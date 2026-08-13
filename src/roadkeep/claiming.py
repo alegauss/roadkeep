@@ -660,12 +660,32 @@ def written(config: Config, task_id: str, changed: Iterable[str]) -> tuple[str, 
     something whose diff carries this id (:func:`~roadkeep.history.carrying`). Either alone is
     the repair RK342 names and refuses: every dirty governed file hands one session another's
     `add`, and every dirty file carrying the id claims authorship of somebody's code.
+
+    A **third** since RK1126, and it is the same claim through the one carrier where the id is
+    not on the line: a rationale file edited inside this id's own section carries the id in no
+    changed line, because a heading is what carries one. So
+    :func:`~roadkeep.history.owned_edit` reads the span instead, and it is asked only of a prose
+    path that is dirty and that the first reading did not already name — two subprocesses on the
+    turn somebody edited a design, and none on any other.
     """
     # Deferred for RK260's reason, and because git belongs on no path that did not ask.
-    from roadkeep.history import carrying  # noqa: PLC0415
+    from roadkeep.history import carrying, owned_edit  # noqa: PLC0415
 
     changed = frozenset(changed)
-    return carrying(config, task_id, [one for one in writable(config) if one in changed])
+    candidates = [one for one in writable(config) if one in changed]
+    named = set(carrying(config, task_id, candidates))
+    named.update(
+        config.relative(config.path(role))
+        for role in PROSE_ROLES
+        if config.has(role)
+        and (where := config.relative(config.path(role))) in changed
+        and where not in named
+        and owned_edit(config, "HEAD", task_id, role)
+    )
+    # In `writable`'s order and never in the order the two readings answered: the list is read
+    # against a `git add --` line, and a path's place in it is not a fact about which reading
+    # found it.
+    return tuple(one for one in candidates if one in named)
 
 
 def departing(config: Config, task_id: str, entries: Iterable[Entry]) -> Scope | None:

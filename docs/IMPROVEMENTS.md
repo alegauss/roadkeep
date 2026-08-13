@@ -77,34 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1126 The paragraph that carries no id
-
-`written` credits a path where its diff **names this id**, read off `git diff HEAD -U0`
-— so what accounts for a rationale file is a *heading* being written, `### §RK2 …`
-carrying the id in an added line. A `section amend <id> --body` rewrites the paragraph
-under that heading and touches no line carrying the id at all.
-
-Measured while writing RK1125's tests, which is how it was found — the fixture amended a
-body and the reading came back:
-
-```
-Scope(mine=('src/a.py',), theirs=(), loose=('IMPROVEMENTS.md',), …)
-  loose    IMPROVEMENTS.md  (no claim names it)
-```
-
-The file this task had just edited, reported as a change no claim accounts for. That is
-RK1117's sentence pointed at the author's own work, and it is the failure RK342 named
-from the other side: every dirty governed file handed to whoever asks was wrong, and so
-is every one withheld — the author declares the path by hand to silence it, and the
-scope then carries paths that were never the work.
-
-The reading that decides it already exists one command over. `lint --since` parses the
-file as it was so a removal is attributed to the section that **held** it (RK36), and
-`changed_lines` gives the line numbers. A prose file is this id's where its changed
-lines fall inside the span of a section this id owns — `sections.owners` being the
-reader of that ownership, including the outline case where the id lives in the heading's
-title rather than in its anchor.
-
 ### §RK1127 The subtree that is not a stranger
 
 `designs_since` labels each section by the id its heading names, or by its anchor where

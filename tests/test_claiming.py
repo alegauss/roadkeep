@@ -29,6 +29,7 @@ import pytest
 
 from roadkeep import claiming, storing
 from roadkeep.sections import add as add_section
+from roadkeep.sections import amend as amend_section
 from roadkeep.attesting import attest
 from roadkeep.briefing import NothingToBrief, brief
 from roadkeep.authoring import add, set_status
@@ -1916,3 +1917,93 @@ def test_a_carrier_is_not_read_as_prose_and_the_other_way_round(tmp_path):
     config = _with_prose(tmp_path, BLOCKS + line("RK2"))
     assert designs_since(config, "HEAD", "roadmap") == frozenset()
     assert ids_since(config, "HEAD", "improvements") == frozenset()
+
+
+# -- the paragraph that carries no id (RK1126) ---------------------------------
+
+
+def test_a_body_amend_of_this_task_s_own_design_is_its_own_work(tmp_path):
+    """RK1126, found by a test written for RK1125 on a wrong premise: `carrying` credits a path
+    where a changed line **names** the id, and on a rationale file only a heading carries one —
+    so the file the author had just edited came back as a change no claim accounts for."""
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _with_prose(
+        tmp_path,
+        BLOCKS + line("RK2"),
+        prose="# Improvements\n\n## Block A — The model\n\n### §RK2 A design\n\nThe reasoning.\n",
+    )
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    amend_section(config, "improvements", "RK2", body="The reasoning, corrected.")[0].save()
+    scope = claiming.departing(config, "RK2", config.document("roadmap").entries)
+    assert "IMPROVEMENTS.md" not in scope.loose
+    assert "IMPROVEMENTS.md" in claiming.written(config, "RK2", ["IMPROVEMENTS.md"])
+
+
+def test_a_paragraph_inside_somebody_else_s_section_is_not_this_task_s(tmp_path):
+    # The half that keeps it a reading and not a blanket credit: the span decides, so an edit
+    # to another design's prose is still a change this commit does not account for.
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _with_prose(
+        tmp_path,
+        BLOCKS + line("RK2") + line("RK9"),
+        prose=(
+            "# Improvements\n\n## Block A — The model\n\n### §RK2 A design\n\nThe reasoning.\n"
+            "\n### §RK9 Another design\n\nTheir reasoning.\n"
+        ),
+    )
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    amend_section(config, "improvements", "RK9", body="Their reasoning, edited.")[0].save()
+    scope = claiming.departing(config, "RK2", config.document("roadmap").entries)
+    assert "IMPROVEMENTS.md" in scope.loose
+
+
+def test_a_subsection_of_this_task_s_design_belongs_to_it(tmp_path):
+    # `owners` reads a sub-anchor segment by segment (RK114), so prose under `§RK2.1` is RK2's
+    # — the reading the gate and the drop already share.
+    from roadkeep.history import git_available, owned_edit
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _with_prose(
+        tmp_path,
+        BLOCKS + line("RK2"),
+        prose=(
+            "# Improvements\n\n## Block A — The model\n\n### §RK2 A design\n\nThe reasoning.\n"
+            "\n#### §RK2.1 A subsection\n\nMore of it.\n"
+        ),
+    )
+    amend_section(config, "improvements", "RK2.1", body="More of it, corrected.")[0].save()
+    assert owned_edit(config, "HEAD", "RK2", "improvements")
+
+
+def test_a_removed_paragraph_is_read_against_the_file_it_was_in(tmp_path):
+    """RK36's split, and the reason this is two parses: a deletion's line numbers are the old
+    file's, so judging them against the current text credits whichever section now sits over
+    the hole."""
+    from roadkeep.history import git_available, owned_edit
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _with_prose(
+        tmp_path,
+        BLOCKS + line("RK2") + line("RK9"),
+        prose=(
+            "# Improvements\n\n## Block A — The model\n\n### §RK2 A design\n\n"
+            "The reasoning.\n\nA second paragraph of it.\n"
+            "\n### §RK9 Another design\n\nTheirs.\n"
+        ),
+    )
+    text = (tmp_path / "IMPROVEMENTS.md").read_text(encoding="utf-8")
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        text.replace("\nA second paragraph of it.\n", ""), encoding="utf-8"
+    )
+    assert owned_edit(config, "HEAD", "RK2", "improvements")
+    assert not owned_edit(config, "HEAD", "RK9", "improvements")

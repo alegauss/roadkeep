@@ -656,6 +656,49 @@ def designs_since(
     return _labels(before, pattern) ^ _labels(now, pattern)
 
 
+def owned_edit(config: Config, rev: str, task_id: str, role: str) -> bool:
+    """Whether this tree's changes to a prose file are inside a section this id owns (RK1126).
+
+    The reading :func:`carrying` cannot make. It credits a path where an added or removed line
+    **names the id**, which on a rationale file means a heading — so `section amend <id>
+    --body` rewrites the paragraph under one, touches no line carrying the id, and the file the
+    author just edited came back as `loose  (no claim names it)`. RK1117's sentence pointed at
+    the author's own work, and RK342's defect from the other side: withholding a path is as
+    wrong as handing it over, because the answer is then declared by hand and the scope carries
+    what was never the work.
+
+    Additions are read against the file **now** and removals against the file at ``rev``, which
+    is RK36's split and the reason this is not one span lookup: a deleted paragraph's line
+    numbers are the old file's, and judging them against the current parse attributes them to
+    whichever section now sits over the hole. :func:`~roadkeep.sections.owners` decides
+    ownership so the outline case answers too — there the id is in the heading's title and a
+    sub-anchor belongs to the id its first segment spells.
+
+    A blank line belongs to no section's prose, exactly as the gate reads it: counting one
+    would credit a file for the trailing newline of somebody else's paragraph.
+    """
+    if role not in PROSE_ROLES or not config.has(role):
+        return False
+    ids = config.schema.id_pattern()
+    try:
+        edited = touched_since(config, rev, role)
+        now = anchored(config.document(role))
+        before = anchored(
+            Document.parse(content_at(config, rev, role), schema=config.schema_for(role))
+        )
+    except (HistoryUnavailable, OSError, ValueError):
+        return False
+    for change in edited.changes:
+        if not change.text.strip():
+            continue
+        for section in now if change.added else before:
+            if section.first <= change.lineno <= section.last and task_id in owners(
+                section, ids
+            ):
+                return True
+    return False
+
+
 def _labels(sections: Sequence[Section], pattern: re.Pattern[str]) -> frozenset[str]:
     """Each section as the id its heading names, or as its anchor where it names none."""
     out: set[str] = set()
