@@ -636,6 +636,7 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
     if prose:
         findings.extend(_pointers(config, documents, anchors))
         findings.extend(_citations(config, prose, anchors))
+        findings.extend(_crossing(config, prose, anchors))
         for role, document in prose.items():
             findings.extend(_orphans(config, documents, document, anchors, role=role))
         if since is not None:
@@ -2406,6 +2407,58 @@ def _namespace_remedy(config: Config) -> str:
         " — `[refs] <role> = \"<prefix>\"` in roadkeep.toml gives one of the two files its "
         "own namespace, so its addresses are written §<prefix>:<x.y>"
     )
+
+
+def _crossing(
+    config: Config,
+    prose: dict[str, Document],
+    anchors: dict[str, tuple[Section, ...]],
+) -> list[Finding]:
+    """A citation that resolves into the **other** prose file while a local one exists (RK1168).
+
+    Declaring `[refs]` re-addresses every heading in a file at once — 48 of them in the run this
+    was measured on — and carries none of that file's own citations. Seven became `ref.dangling`,
+    which the gate reports; **twenty-one kept resolving**, into the other file's section of the
+    same address, because both files declared it — which is why they collided at all and why the
+    key was declared in the first place. Nothing said a word about those.
+
+    That is worse than a dead reference: a dangling citation stops a reader, and this one hands
+    them somebody else's design under the address they meant. So the shape reported is exactly
+    that state — the citing file gives its own headings a namespace, the citation is written bare,
+    and the namespaced address it would have meant is a section that exists here.
+
+    Not every bare citation into another file. A project's prose argues from the other file all
+    the time and `§S:I.2` is how it says so; what makes this a finding is that the same address
+    resolves **both** ways and the local one is the file the sentence is in.
+    """
+    declared = _declared(anchors)
+    out: list[Finding] = []
+    for role, document in prose.items():
+        namespace = document.schema.ref_prefix
+        if not namespace:
+            continue
+        file = config.relative(config.path(role))
+        for cited in references(document):
+            local = f"{namespace}:{cited.anchor}"
+            if local not in declared or role in declared.get(cited.anchor, ()):
+                continue
+            elsewhere = declared.get(cited.anchor, ())
+            if not elsewhere:
+                continue  # `ref.dangling` is that finding, and one state is one code
+            named = " and ".join(config.relative(config.path(one)) for one in elsewhere)
+            out.append(
+                Finding(
+                    "ref.crossed",
+                    file,
+                    f"§{cited.by} cites §{cited.anchor}, which resolves into {named} while "
+                    f"§{local} is this file's own: a namespace re-addressed the headings and "
+                    f"not the prose citing them, so the reference reads as correct and answers "
+                    f"with somebody else's design",
+                    cited.lineno,
+                    subject=cited.by,
+                )
+            )
+    return out
 
 
 def _declared(anchors: dict[str, tuple[Section, ...]]) -> dict[str, tuple[str, ...]]:

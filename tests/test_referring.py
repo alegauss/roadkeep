@@ -43,8 +43,11 @@ def test_the_count_the_task_argued_from_is_re_readable_and_was_one_short():
     # for a total index, made by the index. The rest are shapes, traversals and procedures.
     # Eighteen since RK1106 added the citation, which is the index paying for itself: a fourth
     # relation cost a row and reused the pointer's resolver, and this number is where it shows.
-    assert sum(len(relation.answers) for relation in RELATIONS) == 18
-    assert len(familied()) == 18 + len(ELSEWHERE)
+    # Nineteen since RK1168, and by the same arithmetic one relation deeper: the citation grew a
+    # second answer — an address that resolves into the *other* prose file — which cost a code
+    # and no resolver at all, the index it is read against being the one already built.
+    assert sum(len(relation.answers) for relation in RELATIONS) == 19
+    assert len(familied()) == 19 + len(ELSEWHERE)
 
 
 def test_the_queue_and_the_deps_share_one_resolver():

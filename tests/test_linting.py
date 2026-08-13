@@ -2446,3 +2446,67 @@ def test_a_surface_budget_without_a_per_tool_one_is_refused(tmp_path):
     with pytest.raises(ConfigError) as raised:
         project(tmp_path, config=CONFIG + "\n[tools]\nsession = 53000\n")
     assert "holds nobody to anything" in str(raised.value)
+
+
+# -- a citation the namespace left behind (RK1168) ----------------------------
+
+
+NAMESPACED = """prefix = "RK"
+ref_scheme = "outline"
+[files]
+roadmap = "ROADMAP.md"
+improvements = "IMPROVEMENTS.md"
+strategy = "STRATEGY.md"
+[refs]
+strategy = "S"
+"""
+
+
+def crossed(tmp_path: Path, citation: str) -> Config:
+    """Two prose files that both number from `I`, the second namespaced — the state `[refs]`
+    is declared to fix, with one of the second file's own citations written bare."""
+    (tmp_path / "roadkeep.toml").write_text(NAMESPACED, encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text("# Roadmap\n\n## Block A — The model\n", encoding="utf-8")
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n### I.2 A design over here\n\nThe improvements file's own.\n",
+        encoding="utf-8",
+    )
+    # Bare in the file and namespaced in the index (RK340): `[refs]` is how this file's headings
+    # are addressed *everywhere else*, and the headings themselves are untouched — which is
+    # precisely why a citation written here reads as though it were local.
+    (tmp_path / "STRATEGY.md").write_text(
+        f"# Strategy\n\n### I.2 A design over there\n\nThe strategy file's own.\n\n"
+        f"### I.3 A design that argues from it\n\n{citation}\n",
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_a_citation_that_crosses_into_the_other_file_is_a_finding(tmp_path):
+    """RK1168, measured while adopting the key on a live project: declaring `[refs]` re-addressed
+    48 headings and left 28 of that file's own citations behind — 7 became `ref.dangling`, and
+    **21 kept resolving**, into the other file's section of the same address. Nothing said a word
+    about those, which is worse than a dead reference: the sentence reads as correct and answers
+    with somebody else's design."""
+    config = crossed(tmp_path, "This extends §I.2, which is the design over there.")
+    found = [one for one in lint(config).findings if one.code == "ref.crossed"]
+    assert len(found) == 1
+    assert "resolves into IMPROVEMENTS.md" in found[0].message
+    assert "§S:I.2 is this file's own" in found[0].message
+    assert found[0].subject == "S:I.3"
+
+
+def test_the_namespaced_citation_is_what_the_finding_asks_for(tmp_path):
+    """The control, and the reason this is not "no bare citation across files": a project argues
+    from the other file all the time, and `§S:I.2` is how it says so — what makes a finding is
+    the same address resolving **both** ways with the local one in the file the sentence is in."""
+    config = crossed(tmp_path, "This extends §S:I.2, which is this file's own design.")
+    assert [one for one in lint(config).findings if one.code == "ref.crossed"] == []
+
+
+def test_a_citation_nothing_declares_stays_the_dangling_one(tmp_path):
+    """One state, one code: an address neither file has is `ref.dangling`, which the gate has
+    reported since RK1106, and reporting it twice would make one mistake read as two."""
+    config = crossed(tmp_path, "This extends §I.9, which nobody declares.")
+    codes = {one.code for one in lint(config).findings}
+    assert "ref.dangling" in codes and "ref.crossed" not in codes

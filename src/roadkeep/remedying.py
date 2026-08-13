@@ -910,6 +910,15 @@ _TABLE: Mapping[str, _Rule] = {
             "design and which took it, so a sentence can be corrected instead of deleted",
         ),
     ),
+    # RK1168. `compose` and one door: the citation is this section's own sentence, and which
+    # address it meant — the local `S:I.2` or the other file's `I.2` — is a claim about the
+    # argument that only its author can make. What the finding supplies is that the two exist;
+    # writing the corrected sentence is the half L4 keeps out of the tool.
+    "ref.crossed": _compose(
+        ("section", "amend", "{id}", "--body", "-"),
+        "the citation resolves into the other prose file while this one declares the same "
+        "address; the sentence naming which it meant arrives on stdin",
+    ),
     "section.too-long": _compose(
         ("section", "amend", "{id}", "--body", "-"),
         "past the word budget; the shorter prose is yours and arrives on stdin",

@@ -24,21 +24,31 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 📋 **RK1168** (deps: —) **Declaring a namespace re-addresses the headings and leaves the file's own citations pointing at the other prose file** — section move carries pointers with an address and [refs] carries none, so 28 citations stayed behind and 21 resolve into the other file rather than dangle. → §RK1168
+- ⏳ **RK1168** (deps: —) **Declaring a namespace re-addresses the headings and leaves the file's own citations pointing at the other prose file** — section move carries pointers with an address and [refs] carries none, so 28 citations stayed behind and 21 resolve into the other file rather than dangle. → §RK1168
 
 ## Block B — Authoring (insert, never hand-edit)
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1174** (deps: —) **The why budget brief prints is the roadmap line's, and the ship that follows enforces a different one nothing shows** — An author composing a ship's why is composing against a ceiling only a refusal reveals, though brief already holds both numbers it is derived from. → §RK1174
+
 ## Block D — The gate
 
 - 📋 **RK1165** (deps: —) **gaps prints a numbering jump as 499 rows, and the two ids worth reading are behind them** — A contiguous run of never-carried ids is one permanent fact, and the format already spells many ids as a range. → §RK1165
+- 📋 **RK1172** (deps: —) **The gate's checks are functions gathered by convention, each with its own signature, so adding one is invisible** — linting.py is 1,618 code lines of hand-wired calls whose scan kind is implicit in the parameters, where the remedy side has been a table keyed by code since RK420. → §RK1172
+- 📋 **RK1173** (deps: RK1172) **A rule's remedy is a second table keyed by the same code, kept in step by a test rather than by the record** — Once the check is a record, its door is a field on it, and the totality assertion becomes a thing that cannot be written wrong instead of one a test catches. → §RK1173
 
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
+
+## Block H — The tool's own shape (what one verb costs to change)
+
+- 📋 **RK1169** (deps: —) **Six tables in serving.py restate per verb what its own parser already declares** — Every property is already derived from the argparse action, so exposure, bounds and the withheld reason are the same kind of fact, and the totality tests exist to hold two places in step. → §RK1169
+- 📋 **RK1170** (deps: —) **A verb's plain answer and its json payload are built in two files, and most of the printing never moved** — rendering.py holds 23 printers against 386 print calls left in the handlers, so the layer buys no rule about where a sentence is and costs every verb a second file. → §RK1170
+- 📋 **RK1171** (deps: RK1169, RK1170) **build_parser is one 2,000-line function, so a verb's flags are edited in the file the whole surface is in** — cli.py was split by layer for size and grew back to 2,260 code lines, so the cut that holds is per verb, which the two deps make a move and not a rewrite. → §RK1171
 
 ## Non-goals
 

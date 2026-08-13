@@ -161,6 +161,10 @@ PREVENTION: tuple[Prevented, ...] = (
     # verbs do report, at the moment they create it. This is the backstop for the caller who
     # was told and did not act, so there is nothing here for an `add` to have refused.
     Prevented("ref.dangling", "gate", because=LATER),
+    # RK1168. `LATER` for the same reason and by a different write: the citation was local and
+    # correct when it was written, and declaring `[refs]` re-addressed every heading in its file
+    # at once — an edit to `roadkeep.toml`, which no door of this tool makes and none can refuse.
+    Prevented("ref.crossed", "gate", because=LATER),
     Prevented("grammar.unreadable", "gate", because=RULE),
     Prevented("block.unorganised", "gate", because=FILE),
     Prevented("export.unmarked", "gate", because=FILE),

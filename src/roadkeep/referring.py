@@ -110,7 +110,10 @@ RELATIONS: tuple[Relation, ...] = (
         # index a `→ §S:I.2` does, and two answers about one address would be the disagreement
         # this file exists to prevent — one of them across the namespaces and one inside a file.
         resolver="roadkeep.sections.anchored",
-        answers=("ref.dangling",),
+        # Two, since RK1168: an address neither file declares is `ref.dangling`, and one that
+        # resolves into the *other* prose file while the citing file declares the same address
+        # is `ref.crossed` — the state a namespace leaves behind, which reads as correct.
+        answers=("ref.dangling", "ref.crossed"),
     ),
     Relation(
         name="queued",

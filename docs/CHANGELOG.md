@@ -53,6 +53,7 @@
 - ✅ **RK1069** **the kernel is a boundary a test holds and not a place the code lives** — The two mechanism modules are src/roadkeep/kernel/, so reaching past the boundary is an import that reads wrong rather than a test somebody has to know exists.
 - ✅ **RK1074** **fourteen module addresses are spelled by hand across the suite and nothing holds them level** — surface.address() answers where a module lives now, the five surveys the move broke ask it, and an invariant refuses any literal naming a subpackage address the census does not have.
 - ✅ **RK1102** **a predicate that reads a governed file's text instead of asking the parser has now been wrong twice** — conftest's docstring states ask the parser, never the line, and a scan holds that the shared fixtures read no file as text but the one declared.
+- ✅ **RK1168 (the finding)** **Declaring a namespace re-addresses the headings and leaves the file's own citations pointing at the other prose file** — a citation resolving into the other prose file while this one declares the same address is now ref.crossed.
 
 ## Block B — Authoring
 
@@ -692,3 +693,6 @@
 - ✅ **RK1017** **Every save re-asks which copy of the tool answered, so a keystroke costs a subprocess and a git call** — Which copy answered is asked once per window and again when somebody presses refresh, so a save runs the reads about the file and not the one about the tool.
 - ✅ **RK1018** **The backlog tree opens with no count, so how much work is left is a question only reading the file answers** — The tree opens with the total and each declared marker beside it, every number rendered from the payload `stats` already answers and none computed here.
 - ✅ **RK1019** **The harness proves the client against whatever roadkeep the machine resolves, and nothing says it was this checkout** — The harness compares the home `engines` derived against this checkout exactly, so a run that answered from another tree fails instead of reporting on it.
+
+## Block H — The tool's own shape (what one verb costs to change)
+
