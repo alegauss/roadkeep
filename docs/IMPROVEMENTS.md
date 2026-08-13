@@ -77,7 +77,58 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1164 The count ship already knows
+
+Measured over one block: six ships, six `list` calls immediately after, each asking the
+same question — is this block done, and what is next.
+
+`ship` already knows. Its result carries `event: {id, block, stage}`, so the block has
+been resolved by the time the response is composed, and the standing sentence `list`
+returns (*"Block L has 1 open"*) is derived from data the same call has in hand. The
+second call re-reads the roadmap to recompute something the first one could have said
+for free.
+
+The cost is not the round trip so much as what it does to a loop. A caller running a
+block task-by-task has to remember to ask, and the failure when it forgets is silent: it
+ships the last task and reports the block finished without checking, or it stops one
+task early because nothing said there was another. Both were reachable on the run this
+came from.
+
+What to add is small: the block's standing after the ship, in the same shape `list`
+returns it, so a caller can act on one response. Not the next task's brief — that is
+`pick`'s job and it would make a write verb answer a planning question, which is the
+sort of merge that makes a surface hard to learn.
+
+The same argument applies to `retire`, which resolves a block for the same reason and
+leaves the caller in the same place.
+
 ## Block C — Query
+
+### §RK1163 The design a dependency has already answered
+
+Measured on a real run. Shio's SH720 asked whether a duplicate-URL check should widen to
+drafts, and its rationale argued both sides: widening risks "a report full of findings
+about drafts somebody is still writing", which is "the noise that gets a check switched
+off". A genuine trade-off when it was written.
+
+Its dep, SH719, shipped first — a unique index making a draft duplicate impossible to
+create. That deleted one side of the trade-off: what remained to report was legacy
+damage, never somebody's unfinished draft. The rationale still read as an open question,
+and `brief` handed it over verbatim beside `deps_resolved: SH719 shipped`. Both facts
+were on screen and nothing connected them.
+
+Following the design as written would have given the wrong answer for a
+defensible-looking reason. It was caught by reading the dep's commit, which a caller has
+no reason to do when the tool has just said the dep is satisfied.
+
+So: when a section's last revision predates the commit that shipped a dep the line
+names, `brief` should say so — one line beside the section, not a refusal and not a
+guess at what changed. `origin` already answers which commit wrote a design, so the data
+is reachable from a verb that exists.
+
+The general shape: a dep is not only a scheduling fact. Shipping one can settle a
+question the dependent's design left open, and the design is the artefact least likely
+to notice.
 
 ## Block D — The gate
 
