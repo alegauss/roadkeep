@@ -30,6 +30,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1159** (deps: —) **nothing here runs the suite the way CI does, so four defects this session were only findable there** — The differences are an installed console script, no ambient git and no caches, and three of the four need no second interpreter. → §RK1159
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
