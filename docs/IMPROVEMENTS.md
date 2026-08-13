@@ -81,37 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1156 A served surface shaped by one project's scheme
-
-Found from the other side of RK1149. Over MCP, on a project whose `ref_scheme` is
-`outline`:
-
-```
-add(block=A, symptom=…, why=…)  →  isError
-  ref: every task points at its rationale section — …§RK1.1 is free
-       (`mcp__…__anchors` with block: A lists it)
-```
-
-`ref` is required there and the `add` tool's `exposes` list does not carry it — `block`,
-`symptom`, `why`, `deps`, `status`, `section`, `section_body` and nothing else. So the
-refusal names the read that finds the free address, that read is served, and there is no
-field to pass the answer back through: **an outline-scheme project cannot file a task
-over the served surface at all**, whatever it learns.
-
-Why it is invisible from here is the part worth keeping: this repository derives its
-pointer from the id (RK27), so `--ref` is never needed and the whitelist that omits it
-is complete for every project that resembles this one. Under L6 the scheme is
-per-project, and the surface was shaped by the configuration of the project shaping it.
-The corpora are the projects that would have shown it, and neither is served.
-
-RK1149 met the same wall from the refusal's side: the retry it offers is a shell command
-wherever one exists, and over MCP it offers nothing, because the door it would name has
-no call. That was written down as *the sentence there names `anchors`* — true, and it is
-only half an answer while `anchors` names an address nothing accepts.
-
-What needs deciding: whether the field is exposed for every project or only where the
-scheme requires it, a tool schema being a per-project answer already (RK111).
-
 ## Block E — Adoption
 
 ## Block F — The plugin

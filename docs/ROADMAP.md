@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1156** (deps: —) **an outline-scheme project cannot file a task over MCP: ref is required and the tool exposes no field for it** — The served add was whitelisted from a project that derives its pointer, so the one field an adopted backlog must pass is absent. → §RK1156
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

@@ -468,6 +468,7 @@
 - ✅ **RK1153** **three tests spawn git around the suite's own runner, so CI has no committer identity** — every fixture git call goes through the runner that carries the identity, and the three that cannot say why in a table a closure reads.
 - ✅ **RK1154** **an installed engine's name is a substring of the tool name, so three guard tests fail in CI** — one predicate says what the three meant — a line spelling the engine followed by a verb, which a tool name never is.
 - ✅ **RK1155** **a test simulates a missing engine by pointing one variable at nothing, and the cache answers instead** — every variable the launcher reads is pointed inside the fixture, and a closure holds that set against the launcher's own source.
+- 🗑 **RK1156** **an outline-scheme project cannot file a task over MCP: ref is required and the tool exposes no field for it** — abandoned: the premise was read off Tool.exposes and not Tool.exposed(config): RK111's conditional already opens ref on an outline project, and a served add there takes it.
 
 ## Block E — Adoption
 
