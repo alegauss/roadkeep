@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1127** (deps: —) **a task's own subsection reads as another design, the exclusion comparing labels as strings and not as addresses** — §RK2.1 is RK2's own subtree and survives the subtraction, so a departure names the design being shipped as somebody else's. → §RK1127
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

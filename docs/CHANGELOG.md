@@ -196,6 +196,7 @@
 - ✅ **RK1123** **nothing binds the fields of Scope to the two payloads that carry them, so a field added reaches one reader** — A rename table per payload is asserted against the fields of Scope in both directions, so a sixth field cannot reach one reader only.
 - ✅ **RK1125** **a prose file this task wrote hides another session new section, the reading being lines and a rationale holding none** — A rationale file is compared by the sections it holds, labelled by the id each heading names, so another session's design is named inside the file being staged.
 - ✅ **RK1126** **a body-only section amend leaves this task's own rationale file unaccounted, so a departure calls it nobody's** — A prose file edited inside a section this id owns is read by its span, additions against the file now and removals against the file at the revision.
+- ✅ **RK1127** **a task's own subsection reads as another design, the exclusion comparing labels as strings and not as addresses** — A moved section is labelled by the task that owns it, so this id's own subsection is excluded and prose belonging to nobody keeps its anchor.
 
 ## Block C — Query
 

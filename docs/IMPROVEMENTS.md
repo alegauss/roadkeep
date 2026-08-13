@@ -77,38 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1127 The subtree that is not a stranger
-
-`designs_since` labels each section by the id its heading names, or by its anchor where
-it names none, and `sharing` then subtracts the id being committed. Under the id scheme
-a subsection's anchor is `§RK2.1`, which is not the string `RK2` — so this task's own
-subtree survives the subtraction and is reported as another session's design.
-
-Measured in a scratch repository, one subsection appended to the section being shipped:
-
-```
-$ designs_since(config, "HEAD", "improvements")
-frozenset({'RK2.1'})
-$ … - {"RK2"}
-{'RK2.1'}
-```
-
-So the report a departure prints would name `RK2.1` as work this commit is carrying for
-somebody else, on the ordinary shape RK1112's own docstring describes: *a `§<id>.1` is a
-section with an anchor of its own, amended by naming it*. A reader who trusts one false
-`shared` line stops reading the true ones, which is the whole cost of the rule it
-belongs to.
-
-The comparison is the wrong one and the right one is already written. `sections` reads
-an address **segment by segment and never as a string prefix** — the care `_extends`
-takes so `§0.1` is not read as extending `§0.10`, and `descending` is the reader that
-answers which anchors are one address's own subtree.
-
-Which leaves a question the fix has to answer rather than inherit: a subsection of
-*another* task's design is that task's, so the exclusion is "extends this id" and not
-"starts with it", and an outline's `XVI.12.3` is nobody's id at all until its title says
-so.
-
 ## Block C — Query
 
 ## Block D — The gate

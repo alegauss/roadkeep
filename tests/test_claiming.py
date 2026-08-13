@@ -2007,3 +2007,62 @@ def test_a_removed_paragraph_is_read_against_the_file_it_was_in(tmp_path):
     )
     assert owned_edit(config, "HEAD", "RK2", "improvements")
     assert not owned_edit(config, "HEAD", "RK9", "improvements")
+
+
+# -- the subtree that is not a stranger (RK1127) --------------------------------
+
+
+def test_this_task_s_own_subsection_is_not_another_design(tmp_path):
+    """RK1127. The labels were the ids a *title* names, or the anchor — so `§RK2.1` labelled as
+    its own address, survived `- {task_id}`, and a departure reported the design being shipped
+    as somebody else's. `owners` reads a sub-anchor by its root, for the gate and for the drop."""
+    from roadkeep.history import designs_since, git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _with_prose(
+        tmp_path,
+        BLOCKS + line("RK2"),
+        prose="# Improvements\n\n## Block A — The model\n\n### §RK2 A design\n\nThe reasoning.\n",
+    )
+    with (tmp_path / "IMPROVEMENTS.md").open("a", encoding="utf-8", newline="") as handle:
+        handle.write("\n#### §RK2.1 A subsection of it\n\nMore of this task's own reasoning.\n")
+    assert designs_since(config, "HEAD", "improvements") - {"RK2"} == frozenset()
+
+
+def test_the_departure_that_would_have_named_it_stays_quiet(tmp_path, capsys):
+    # The report the false positive would have reached: one wrong `shared` line and a reader
+    # stops trusting the true ones.
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _with_prose(
+        tmp_path,
+        BLOCKS + line("RK2", status=IN_PROGRESS),
+        prose="# Improvements\n\n## Block A — The model\n\n### §RK2 A design\n\nThe reasoning.\n",
+    )
+    hold(config, "RK2")
+    claiming.scope(config, "RK2", ["src/a.py"])
+    with (tmp_path / "IMPROVEMENTS.md").open("a", encoding="utf-8", newline="") as handle:
+        handle.write("\n#### §RK2.1 A subsection of it\n\nMore of it.\n")
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now."]) == EXIT_OK
+    assert "shared" not in capsys.readouterr().out
+
+
+def test_a_design_belonging_to_nobody_is_still_labelled_by_its_anchor(tmp_path):
+    # The fallback, which is the one thing `owners` does not answer: prose no task owns has
+    # only its address to be named by, and it is still work arriving in the file.
+    from roadkeep.history import designs_since, git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _with_prose(
+        tmp_path,
+        BLOCKS + line("RK2"),
+        prose="# Improvements\n\n## Block A — The model\n\n### §RK2 A design\n\nThe reasoning.\n",
+    )
+    with (tmp_path / "IMPROVEMENTS.md").open("a", encoding="utf-8", newline="") as handle:
+        handle.write("\n### §0.1 A house constraint\n\nBelonging to no task.\n")
+    assert "0.1" in designs_since(config, "HEAD", "improvements")

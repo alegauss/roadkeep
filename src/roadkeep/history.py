@@ -638,9 +638,13 @@ def designs_since(
     reader then has to resolve. :meth:`~roadkeep.sections.Section.names` is that reading and it
     is the title's alone — a section quoting another id is discussing it, not being it.
 
-    A consequence worth stating: a section this project *moved* keeps its id, so it is not
-    reported. The design did not arrive or leave; its address changed, which is what `section
-    move` is for and is nobody else's work landing in the commit.
+    Two consequences worth stating, and both are the roadmap's reading in this unit. A section
+    this project *moved* keeps its id, so it is not reported — the design did not arrive or
+    leave, its address changed, which is what `section move` is for. And a **subsection added
+    under a design that already existed** is that design changing rather than arriving, so it is
+    not reported either: exactly as an amended task line is not an id arriving on the roadmap
+    (RK1120), and for the same reason — this answers which work is in the file, not which
+    paragraph somebody edited.
     """
     if role not in PROSE_ROLES or not config.has(role):
         return frozenset()
@@ -652,8 +656,8 @@ def designs_since(
         now = anchored(config.document(role))
     except (HistoryUnavailable, OSError, ValueError):
         return frozenset()
-    pattern = re.compile(rf"\b{config.schema.id_fragment}\b")
-    return _labels(before, pattern) ^ _labels(now, pattern)
+    ids = config.schema.id_pattern()
+    return _labels(before, ids) ^ _labels(now, ids)
 
 
 def owned_edit(config: Config, rev: str, task_id: str, role: str) -> bool:
@@ -699,11 +703,21 @@ def owned_edit(config: Config, rev: str, task_id: str, role: str) -> bool:
     return False
 
 
-def _labels(sections: Sequence[Section], pattern: re.Pattern[str]) -> frozenset[str]:
-    """Each section as the id its heading names, or as its anchor where it names none."""
+def _labels(sections: Sequence[Section], ids: re.Pattern[str]) -> frozenset[str]:
+    """Each section as **the task it belongs to**, or as its anchor where it belongs to none.
+
+    :func:`~roadkeep.sections.owners` and not a second reading of a heading (RK1127). Labelling
+    by the ids a *title* names left a sub-anchor labelled by its own address: `§RK2.1` is `RK2`'s
+    subsection and the anchor says so segment by segment, so the exclusion `- {task_id}` did not
+    remove it and a departure reported the design being shipped as somebody else's. `owners`
+    already answers this for the gate and for the drop — under the id scheme the anchor is the
+    id and a sub-anchor is its root's, and under an outline the id is in the title — so the one
+    thing left here is the fallback: a section belonging to no task is labelled by the anchor,
+    which is the only handle a reader has on prose that is nobody's.
+    """
     out: set[str] = set()
     for section in sections:
-        out.update(section.names(pattern) or (section.anchor,))
+        out.update(owners(section, ids) or (section.anchor,))
     return frozenset(out)
 
 
