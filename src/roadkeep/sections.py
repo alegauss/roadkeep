@@ -686,22 +686,67 @@ def _argument(body: str) -> str:
     """
     out: list[str] = []
     fence: str | None = None
+    #: Whether an **indented** code block is open, and what the last line was — the two the
+    #: fourth exclusion needs (RK1151). A block and not a line, because four spaces mean two
+    #: different things: sample output where a blank line came before, and a list item's own
+    #: continuation where a bullet did. A rule reading indentation alone would blank the
+    #: second, and a citation nobody scans is worse than one falsely reported — this is the
+    #: backstop that is supposed to notice.
+    indented = False
+    previous = ""
     for line in body.splitlines():
         stripped = line.strip()
         if fence is not None:
             if stripped.startswith(fence):
                 fence = None
             out.append("")
+            previous = stripped
             continue
         if stripped.startswith(_FENCES):
             fence = stripped[:3]
             out.append("")
+            previous = stripped
             continue
         if stripped.startswith(">"):
             out.append("")
+            previous = stripped
+            continue
+        if indented and stripped and not line.startswith(_INDENT):
+            # Closed by the first line indented less, which is Markdown's own rule — a blank
+            # line inside an indented block does not end it.
+            indented = False
+        elif not indented and stripped and line.startswith(_INDENT) and not previous:
+            # Opened only after a blank line: indented code cannot interrupt a paragraph, and
+            # under a bullet the blank is the item's, so `_BULLET` is what tells them apart.
+            indented = not _BULLET.match(_before(out))
+        if indented:
+            out.append("")
+            previous = stripped
             continue
         out.append(_QUOTED.sub(lambda m: " " * len(m.group()), line))
+        previous = stripped
     return "\n".join(out)
+
+
+#: Four spaces: Markdown's other code block, and the width a list item's continuation shares
+#: with it. A tab is deliberately not read as one — no line in any of the four trees measured
+#: for RK1151 opens a block that way, and treating one as code would blank a Markdown table.
+_INDENT = "    "
+#: What opens a list item, whose continuation is prose (RK1151). Ordered and unordered both:
+#: a numbered argument's second paragraph is indented exactly like sample output.
+_BULLET = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s")
+
+
+def _before(rendered: list[str]) -> str:
+    """The last line that said anything, for deciding what an indent belongs to.
+
+    Read off what is already rendered rather than off the source, so a blockquote or a fence —
+    both blanked above — cannot be mistaken for the bullet an indent hangs from.
+    """
+    for line in reversed(rendered):
+        if line.strip():
+            return line
+    return ""
 
 
 #: What is being talked about rather than said: a code span, and a pointer reproduced whole.

@@ -462,6 +462,7 @@
 - ✅ **RK1145** **five tests skip because the shape they read left the corpora, so re-pinning retires coverage without saying so** — The two dep kinds a re-pin retired are frozen as their own bytes beside a config that parses them, and the skip that replaced each names where the shape went.
 - ✅ **RK1146** **a backlog written before the tool has no live evidence left, so two tests about disagreement only skip** — neither door: both pins hold zero offenders under Shio's own declaration, so the disagreement is declared instead — their bytes under this repository's schema.
 - ✅ **RK1147** **the adopt payload publishes the count of an unread reading and not the flag that changes it** — the rows that say a reading is unread now carry the door that reads it, published in the one shape a door already has.
+- ✅ **RK1151** **a citation inside an indented code block is read as a citation, so the gate is red on quoted output** — four spaces are a code block after a blank line and a list item's continuation after a bullet, so the state is a block and not an indent.
 
 ## Block E — Adoption
 

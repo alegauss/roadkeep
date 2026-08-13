@@ -65,6 +65,7 @@ from roadkeep.sections import (
     nested,
     paragraphs,
     pointers,
+    references,
     structural,
     titled,
     untitled,
@@ -1867,7 +1868,21 @@ This extends §RK1, and the argument in §RK1.1 is why.
 ```
 a fence naming §RK1
 ```
+
+    a refusal quoted four spaces in, naming §RK1
+    and its second line, naming §RK1.1
 """
+
+#: The same file with the citation in a **list item's continuation** rather than in a code
+#: block (RK1151). Four spaces either way, and this one is argument: a numbered point whose
+#: second paragraph is indented exactly like sample output, which is why the rule reads what
+#: the indent hangs from and not how wide it is.
+CONTINUED = CITING.replace(
+    "    a refusal quoted four spaces in, naming §RK1\n"
+    "    and its second line, naming §RK1.1\n",
+    "1. A first point, whose argument runs on.\n\n"
+    "    And the run-on says §RK1 is why, which is a citation.\n",
+)
 
 
 def shippable(tmp_path: Path, improvements: str) -> Config:
@@ -1913,6 +1928,22 @@ def test_a_quotation_is_not_a_citation(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
     cited = [line for line in capsys.readouterr().out.splitlines() if "cited" in line]
     assert cited and "RK2" not in cited[0]
+
+
+def test_an_indented_block_is_quoted_and_an_indented_continuation_is_argument(tmp_path):
+    """RK1151: four spaces mean two things, and only one of them is a quotation.
+
+    The false finding was this repository's own gate turning red on §RK1149, which reproduces a
+    refusal — `§XII`, `§XII.17`, `§XXIII.7`, `§XXIII.10`, four dead references in prose that
+    cites nothing. Measured across four rationale files while fixing it: 2 anchor-shaped tokens
+    on indented lines, both of them that quotation, and 0 under a bullet anywhere. So the
+    second half of this test is the one with no live instance — a list item's continuation is
+    argument, and blanking it would leave a real citation unscanned by the backstop.
+    """
+    quoted = Document.parse(CITING, schema=Schema())
+    assert "RK2" not in {cite.by for cite in references(quoted)}
+    argued = Document.parse(CONTINUED, schema=Schema())
+    assert ("RK1", "RK2") in {(cite.anchor, cite.by) for cite in references(argued)}
 
 
 def test_a_ship_with_nobody_citing_it_says_nothing(tmp_path, capsys):
