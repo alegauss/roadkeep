@@ -24,6 +24,8 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 📋 **RK1168** (deps: —) **Declaring a namespace re-addresses the headings and leaves the file's own citations pointing at the other prose file** — section move carries pointers with an address and [refs] carries none, so 28 citations stayed behind and 21 resolve into the other file rather than dangle. → §RK1168
+
 ## Block B — Authoring (insert, never hand-edit)
 
 ## Block C — Query (consult without reading the file)
