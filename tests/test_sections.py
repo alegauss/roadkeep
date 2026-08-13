@@ -2190,6 +2190,56 @@ def test_a_leaf_takes_its_own_body_back_unchanged(tmp_path):
     assert changed == ()
 
 
+# -- which of the two empty answers this is (RK1118) ---------------------------
+
+
+def test_a_container_says_why_its_own_body_is_blank(tmp_path, capsys):
+    # `--own` on a heading that holds sections and no paragraph printed the heading and a blank
+    # line: correct, and indistinguishable from a command that printed nothing. `§0` here is
+    # this repository's own shape, which is the shape the flag is most often pointed at.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "section", "show", "0", "--own"]) == EXIT_OK
+    said = capsys.readouterr()
+    assert "carries no prose of its own" in said.err
+    # And it names the addresses that do carry it, which is the edit the reader came for.
+    assert "§0.1" in said.err and "amended by its own anchor" in said.err
+
+
+def test_the_note_is_on_stderr_so_a_body_file_stays_a_body(tmp_path, capsys):
+    # This output is what an `amend --body-file` is composed from, so a sentence on stdout
+    # would land in the file — the rule `_print_standing` already keeps for a listing.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "section", "show", "0", "--own"]) == EXIT_OK
+    said = capsys.readouterr()
+    assert "roadkeep:" not in said.out and said.out.strip() == "## §0 — Why this exists"
+
+
+def test_an_empty_leaf_is_the_other_silence_and_says_so(tmp_path, capsys):
+    # Two shapes, one of them a defect: a container is the ordinary structure of a rationale
+    # file, and a heading with no paragraph is what the gate calls `body.empty`.
+    project(tmp_path, improvements=RATIONALE + "\n### §RK2 A second design\n")
+    assert main(["-C", str(tmp_path), "section", "show", "RK2", "--own"]) == EXIT_OK
+    said = capsys.readouterr()
+    assert "is empty in" in said.err and "body.empty" in said.err
+
+
+def test_a_section_with_prose_says_nothing_extra(tmp_path, capsys):
+    # The note is about an absence, so a section that has prose gets no sentence at all.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "section", "show", "RK1", "--own"]) == EXIT_OK
+    assert capsys.readouterr().err == ""
+
+
+def test_the_payload_names_the_subsections_rather_than_leaving_a_count(tmp_path, capsys):
+    # So the report and the payload cannot disagree about why a body came back empty: a client
+    # reading `own_words: 0` alone would be guessing at the reason.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "section", "show", "0", "--own", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["body"] == "" and payload["own_words"] == 0
+    assert payload["nested"] == ["0.1"]
+
+
 def test_show_states_the_same_pair_as_the_section_verbs(tmp_path, capsys):
     # `show` and `brief` are what start a task, so a figure they state wrongly is the one
     # an author acts on first.

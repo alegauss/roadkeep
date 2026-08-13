@@ -118,16 +118,16 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 134 | 1 |
-| C — Query (consult without reading the file) | 1 | 88 | 1 |
+| C — Query (consult without reading the file) | 0 | 89 | 1 |
 | D — The gate | 0 | 149 | 0 |
 | E — Adoption | 1 | 84 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 102 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 609 | 6 |
+| **Total** | 1 | 610 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1118** (deps: —) **`section show --own` on a container prints an empty body, which reads exactly like a command that failed** — A parent with no paragraph of its own is the shape this repository's §0 has, so the reader cannot tell an honest absence from a call that did nothing. → §RK1118
+- 📋 **RK1119** (deps: —) **the entry-point sentence `install` writes says it wired a checkout, which a `--committed` project has none of** — The bridge resolves an engine at runtime and the environment the flag exists for holds no checkout, so the first sentence a session reads sends it looking for one. → §RK1119
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

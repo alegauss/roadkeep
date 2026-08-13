@@ -283,6 +283,7 @@
 - ✅ **RK1095** **two reads rank what a session pays for and neither can be asked about the other** — budget --session names the schema paid once at the handshake and the resident files paid on every turn, and never adds them, because the cadences differ.
 - ✅ **RK1096** **budget has six subjects and the two that read a session's cost overlap without sharing a measurement** — budget --tools and --session now read one serving.surface(), so the ranking and the session total cannot disagree.
 - ✅ **RK1110** **a table of contents lists the file's own headings and nothing re-derives it, so a ship leaves it wrong** — export --contents derives a prose file's contents from its own headings, so a ship that drops a section rewrites the list in one write (design §RK1110 superseded: one level, not every heading).
+- ✅ **RK1118** **`section show --own` on a container prints an empty body, which reads exactly like a command that failed** — An empty own body says which of the two silences it is and names the subsections that carry the prose, on stderr so the body stays a body.
 
 ## Block D — The gate
 

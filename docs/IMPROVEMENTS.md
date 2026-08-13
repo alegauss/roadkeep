@@ -79,33 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1118 The container that answers with a blank line
-
-`section show <a> --own` prints the heading and the section's own prose, which is the
-extent `section amend --body` replaces (RK1112). On a **container** — a heading that
-holds subsections and no paragraph of its own — that is a heading and a blank line:
-
-```
-$ roadkeep section show 0 --role improvements --own
-## §0 — Why this exists
-
-```
-
-Correct, and unreadable as an answer. `own_words` is 0 and the verb says nothing, so
-"this section has no prose of its own" and "the command printed nothing" are the same
-output, and the reader's next move is a second guess at the anchor or the hand edit the
-guard denies.
-
-Every other absence this tool reports is named. `install` says which surfaces it did not
-write and why; `anchors` says a declared file is not on disk; `remaining` says which
-count is zero. The rule they follow is the one this file already states about the
-report: an adopter discovers a silent absence by needing it.
-
-What to say is already on the record rather than a thing to compose. `Section.nests` is
-the two counts differing, so a container is exactly a section whose own count is 0 and
-whose subtree's is not — and the sentence a reader needs is which anchor does carry the
-prose, which is the subsection list `show` prints without the flag.
-
 ## Block D — The gate
 
 ## Block E — Adoption

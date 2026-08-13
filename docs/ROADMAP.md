@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1118** (deps: —) **`section show --own` on a container prints an empty body, which reads exactly like a command that failed** — A parent with no paragraph of its own is the shape this repository's §0 has, so the reader cannot tell an honest absence from a call that did nothing. → §RK1118
-
 ## Block D — The gate
 
 ## Block E — Adoption

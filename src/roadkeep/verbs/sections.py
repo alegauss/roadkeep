@@ -388,13 +388,50 @@ def _section_show(config: Config, args: argparse.Namespace) -> int:
     # limit instead of the file. `body` stays the key either way: it is the body of what was
     # asked for, and `own_words` beside it already states that the two extents differ.
     shown = section.prose if args.own else section.body
+    # Named rather than left as a blank line (RK1118): a container has no prose of its own, so
+    # `--own` on this repository's own `§0` answered with a heading and nothing — correct, and
+    # indistinguishable from a command that printed nothing. Every other absence this tool
+    # reports says which of the two it is, and an adopter discovers a silent one by needing it.
+    nested = tuple(child.anchor for child in nested_sections(document, section.anchor))
     if args.json:
-        print(json.dumps({**_section_json(section, where), "body": shown}, indent=2))
+        print(
+            json.dumps(
+                # Its own key, so the payload and the report cannot disagree about why a body
+                # came back empty — a client reading `own_words: 0` alone would be guessing.
+                {**_section_json(section, where), "body": shown, "nested": list(nested)},
+                indent=2,
+            )
+        )
         return EXIT_OK
     print(heading_of(config.schema, section))
     print()
     print(shown)
+    if not shown.strip():
+        # On stderr, for the reason `_print_standing` is (RK429): this output is what an
+        # `amend --body-file` is composed from, so a sentence on stdout would end up in the
+        # file. The note is the same either way; where it goes is decided by what stdout is.
+        print(f"roadkeep: {_silence(section, nested, where)}", file=sys.stderr)
     return EXIT_OK
+
+
+def _silence(section, nested: tuple[str, ...], where: str) -> str:
+    """Which of the two empty answers this is, and the address that carries the prose (RK1118).
+
+    Two, because a section with no text has two shapes and one of them is a defect: a
+    **container** is the ordinary structure of a rationale file — this repository's `§0`, and
+    every `## <Block>` heading over subsections — while a leaf with nothing in it is what the
+    gate calls `body.empty`. Saying "no prose" to both would send half the readers to `lint`
+    and the other half looking for a bug in the reader.
+    """
+    if nested:
+        return (
+            f"§{section.anchor} carries no prose of its own — its {section.words} words are "
+            f"{', '.join('§' + one for one in nested)}, each amended by its own anchor"
+        )
+    return (
+        f"§{section.anchor} is empty in {where}: a heading with no paragraph under it, which "
+        f"`lint` reports as `body.empty`"
+    )
 
 
 def _section_drop(config: Config, args: argparse.Namespace) -> int:
