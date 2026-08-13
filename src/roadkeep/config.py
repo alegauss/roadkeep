@@ -241,13 +241,25 @@ CLAIM_HELD_MAX = 480
 
 
 class ConfigError(ValueError):
-    """Every problem with the file, not the first one found."""
+    """Every problem with the file, not the first one found.
+
+    An **unknown key adds a clause** (RK1150), and it is about this process rather than about the
+    file: `unknown key 'headings.permanent' (allowed: headings.word)` is every word true, and the
+    conclusion it invites — delete it, or fix a config that is already right — is wrong whenever
+    the key belongs to a *later* roadkeep than the one reading. Reached from Shio, where the
+    server resolves this package from the plugin cache and the project from a checkout.
+
+    A key nothing ever declared is a typo and a key this build predates is an upgrade; the file
+    cannot tell them apart, so both are named and the command that decides it is carried the way
+    every `lint` finding carries one (RK14/15). Once per refusal and not once per key: three
+    unknown keys are one skew, and the same sentence three times reads as three problems.
+    """
 
     def __init__(self, problems: tuple[str, ...], path: Path | None = None) -> None:
         self.problems = tuple(problems)
         self.path = path
         where = f"{path}: " if path else ""
-        super().__init__(where + "; ".join(self.problems))
+        super().__init__(where + "; ".join(self.problems) + _skew(self.problems))
 
 
 #: The three bytes a Windows editor writes ahead of a UTF-8 file, which `tomllib` refuses by
@@ -681,12 +693,43 @@ def _declares_roadkeep(path: Path) -> bool:
     return "roadkeep" in data.get("tool", {})
 
 
+def _skew(problems: tuple[str, ...]) -> str:
+    """The reading an unknown key cannot rule out, or `""` where none was reported (RK1150).
+
+    Keyed off the problem text this module writes, one function over — a code would be a second
+    vocabulary for the same set, and this file's problems are prose by construction (`lint` is
+    where findings carry codes). `engines` is the door because it is the one command that answers
+    *which copies answer here*: the build that writes, the plugin's own, and the gate's.
+    """
+    if not any(one.startswith("unknown key") for one in problems):
+        return ""
+    from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260, the refusal path only
+
+    return (
+        " — unknown to this build: a typo if nothing declares it, an upgrade if a newer "
+        f"roadkeep does, and `{invocation()} engines` names the copies answering here"
+    )
+
+
 # -- reading one key at a time, collecting what is wrong -------------------
 
 
 def _reject_unknown(
     data: Mapping[str, object], allowed: frozenset[str], where: str, problems: list[str]
 ) -> None:
+    """Every key this schema does not declare, said as **two** readings and not one (RK1150).
+
+    The message used to name the key and the allowed set, which is the older schema presented as
+    though it were the schema: `unknown key 'headings.permanent' (allowed: headings.word)` was a
+    key a *later* roadkeep added, read by a build that predates it, and the cheapest action the
+    sentence suggested was deleting a key the project needs. Reached from Shio, where the server
+    resolves this package from the plugin cache and the project from a checkout.
+
+    A key no version ever declared is a typo and a key *this* build does not have is an upgrade,
+    and nothing in the file separates them — so both are named, and the clause carries the one
+    command that decides it (RK14/15's rule, on the refusal that reads a config rather than a
+    line). `engines` is that command: it prints the copy that writes beside the plugin's own.
+    """
     for key in data:
         if key not in allowed:
             problems.append(

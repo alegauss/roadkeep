@@ -83,32 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1150 A version skew wearing a typo's message (RK1150)
-
-Reached from Shio, filing RK1149. The MCP server resolves roadkeep from the plugin cache
-and the project resolves it from a checkout, so the two can differ. When they did:
-
-    roadkeep: D:\...\roadkeep.toml: unknown key 'headings.permanent'
-    (allowed: headings.word)
-
-Every word true, and the conclusion it invites is wrong. `headings.permanent` is not a
-typo and not somebody's invention — it is a key a *later* roadkeep added, read by a
-binary that predates it. The message's own `allowed` list is the older schema, presented
-as though it were the schema. The cheapest action it suggests is deleting a key the
-project needs, and the second cheapest is editing a config that is already correct.
-
-Nothing in the sentence can be used to reach the real answer, because the one fact that
-separates the two readings — which roadkeep is running — is absent. The tool prints its
-version in the MCP handshake and in `--version`, and not in the refusal that needs it.
-
-So: name the running version in every config refusal, and where a key is unknown say
-which of the two states it is. A key no version has ever declared is a typo; a key this
-version does not have is an upgrade. They are different findings and they currently
-share a message.
-
-Cheap, and it is the first thing a reader needs on a machine where two copies are
-installed.
-
 ## Block F — The plugin
 
 ### §RK1152 A refusal a caller cannot act on names the wrong line

@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1150** (deps: —) **An older installed roadkeep reports a newer config's key as a typo, so the fix reads as deleting it** — unknown key names the allowed set and never the running version, so a plugin one release behind its project looks like a roadkeep.toml somebody got wrong. → §RK1150
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK1152** (deps: —) **ship refuses because a dependent task's why is one character too long once its dep annotation grows a tick** — The refusal names the shipping task's own why, which cannot fix it: unblocking one ship meant amending three dependents one at a time, re-running ship after each. → §RK1152

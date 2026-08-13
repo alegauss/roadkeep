@@ -1547,7 +1547,7 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         # thing that failed (RK248). The launch path is what is left, and it is the safe half.
         provenance.witness(error)
         return _answered(
-            f"roadkeep: {error} — read by {engine()}",
+            f"roadkeep: {error}{provenance.read_by()}",
             Path(directory),
             is_error=True,
             served=_spelled(tool),

@@ -49,7 +49,7 @@ from roadkeep.capturing import PARTS, offer
 from roadkeep.config import Config, ConfigError, PROSE_ROLES
 from roadkeep.exporting import DEFAULTS
 from roadkeep.locking import LockBusy, exclusive
-from roadkeep.provenance import engine, invocation, invoked
+from roadkeep.provenance import engine, invocation, invoked, read_by
 from roadkeep.ranking import NEAREST
 from roadkeep.serving import Prose, spelled
 from roadkeep.remaining import declared
@@ -2543,7 +2543,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         # `report`, whose whole purpose is the session where something is wrong, crashed
         # on the file it was about to carry as evidence.
         if not getattr(args, "tolerates_config_error", False):
-            print(f"roadkeep: {error}", file=sys.stderr)
+            # And which build read it (RK1150): over MCP that clause has been on this refusal
+            # since RK155, and at a terminal the same message named the file, the key and an
+            # allowed set that is *this* version's — with no way to tell a typo from a config a
+            # newer roadkeep wrote. One spelling for both surfaces, so they cannot drift.
+            print(f"roadkeep: {error}{read_by()}", file=sys.stderr)
             return EXIT_USAGE
         # `guard` (RK22) is the one command that has to survive a broken config: it runs
         # before every write in the session, so failing here would turn one typo in

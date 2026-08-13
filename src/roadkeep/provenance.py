@@ -275,6 +275,21 @@ def witnessed() -> tuple[str, ...] | None:
     return _WITNESSED
 
 
+def read_by() -> str:
+    """`— read by <engine>`, the clause a config refusal ends with (RK155, RK1150).
+
+    Two surfaces refuse a `roadkeep.toml` and only one of them said which build was reading it.
+    Over MCP that clause has been there since RK155, because a key the file declares and the code
+    does not know is the shape stale code produces; at a terminal the same refusal named the file,
+    the key and the allowed set — every word true, and no way to reach the real answer, since the
+    one fact separating *typo* from *this engine is older* is which roadkeep is running.
+
+    A function rather than a literal at each end: the clause is one sentence about this process,
+    and two spellings of it would be two answers to a question with one.
+    """
+    return f" — read by {engine()}"
+
+
 def invoked(argv: Sequence[str]) -> None:
     """Record the arguments this run was given, for a refusal that can offer the retry (RK1149).
 

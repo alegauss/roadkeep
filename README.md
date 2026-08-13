@@ -120,14 +120,14 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 146 | 1 |
 | C — Query (consult without reading the file) | 0 | 93 | 1 |
 | D — The gate | 0 | 164 | 0 |
-| E — Adoption | 1 | 85 | 1 |
+| E — Adoption | 0 | 86 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 104 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 644 | 6 |
+| **Total** | 1 | 645 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1150** (deps: —) **An older installed roadkeep reports a newer config's key as a typo, so the fix reads as deleting it** — unknown key names the allowed set and never the running version, so a plugin one release behind its project looks like a roadkeep.toml somebody got wrong. → §RK1150
+- 📋 **RK1152** (deps: —) **ship refuses because a dependent task's why is one character too long once its dep annotation grows a tick** — The refusal names the shipping task's own why, which cannot fix it: unblocking one ship meant amending three dependents one at a time, re-running ship after each. → §RK1152
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -556,6 +556,7 @@
 - ✅ **RK1101** **a relative path under -C resolves against the shell's directory, so adopt can measure another project's file** — a path naming a file of the project resolves against the project root, and the refusal names the file beside the caller when there is one.
 - ✅ **RK1103** **adopt resolves a project path from the root and no other verb taking one was checked** — PATH_ARGUMENTS classifies every path this CLI takes as the project's, the caller's or repo-relative text, held against the parser.
 - ✅ **RK1119** **the entry-point sentence `install` writes says it wired a checkout, which a `--committed` project has none of** — The entry-point sentence has a variant per wiring, so a committed project reads that its launcher finds an engine rather than that one was wired.
+- ✅ **RK1150** **An older installed roadkeep reports a newer config's key as a typo, so the fix reads as deleting it** — an unknown key names both readings once per refusal, and every config refusal now ends with the build that read it.
 
 ## Block F — The Claude Code plugin
 

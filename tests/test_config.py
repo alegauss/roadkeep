@@ -26,7 +26,9 @@ from roadkeep.config import (
     find_config,
     spent,
 )
+from roadkeep.cli import EXIT_USAGE, main
 from roadkeep.kernel.schema import DESIGNED, IDEA, SHIPPED, Task
+from roadkeep.provenance import engine, invocation, read_by
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -753,3 +755,45 @@ def test_a_claims_scope_is_never_resolved(tmp_path):
     # And the rule itself still does what it says on the class that takes it.
     assert config.locate("docs/ROADMAP.md") == config.root / "docs" / "ROADMAP.md"
     assert config.locate(tmp_path / "elsewhere.md") == tmp_path / "elsewhere.md"
+
+
+# -- which build read it (RK1150) ---------------------------------------------
+
+
+def test_an_unknown_key_names_both_readings_once_however_many_keys(tmp_path: Path) -> None:
+    """RK1150: `unknown key 'headings.permanent' (allowed: headings.word)` was every word true
+    and invited the wrong action — the key belonged to a *newer* roadkeep, and the allowed set
+    was this build's schema presented as the schema. Both readings are named, and once: three
+    unknown keys are one skew, and the same sentence three times reads as three problems."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[headings]\ninvented = "x"\nalso = 1\n', encoding="utf-8"
+    )
+    with pytest.raises(ConfigError) as raised:
+        Config.discover(tmp_path)
+    said = str(raised.value)
+    assert said.count("unknown key") == 2
+    assert said.count("a typo if nothing declares it") == 1
+    assert "an upgrade if a newer roadkeep does" in said
+    # The command that decides it, the way every `lint` finding carries one (RK14/15).
+    assert f"{invocation()} engines" in said
+
+
+def test_a_problem_that_is_not_an_unknown_key_carries_no_skew_clause(tmp_path: Path) -> None:
+    """The clause is about a key this build does not have, so a value of the wrong type — which
+    every version rejects the same way — must not collect it."""
+    (tmp_path / "roadkeep.toml").write_text('prefix = 7\n', encoding="utf-8")
+    with pytest.raises(ConfigError) as raised:
+        Config.discover(tmp_path)
+    assert "a typo if nothing declares it" not in str(raised.value)
+
+
+def test_a_config_refusal_at_a_terminal_names_the_build_that_read_it(tmp_path, capsys) -> None:
+    """The other half (RK155, RK1150): over MCP the refusal has named the engine since a key the
+    file declared and the code did not know turned every write into `unknown key`. At a terminal
+    it named the file and the key and nothing about which of two installed copies was reading."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[headings]\ninvented = "x"\n', encoding="utf-8"
+    )
+    assert main(["-C", str(tmp_path), "list"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert read_by() in err and str(engine()) in err
