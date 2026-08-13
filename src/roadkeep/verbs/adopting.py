@@ -420,7 +420,19 @@ def _capture_filed(config: Config, args: argparse.Namespace) -> int:
         return EXIT_USAGE
     where = config.relative(known.path)
     if args.json:
-        print(json.dumps({"path": where, "filed": written}, indent=2))
+        # `delivered` beside it where there is one (RK1162): the stamp carries the repository
+        # and a consumer would otherwise recover it by parsing a `#`, which is a second reader of
+        # a shape this module already parsed. Absent and not null, for `_remedy_json`'s reason.
+        print(
+            json.dumps(
+                {
+                    "path": where,
+                    "filed": written,
+                    **({"delivered": elsewhere} if elsewhere else {}),
+                },
+                indent=2,
+            )
+        )
         return EXIT_OK
     # No staging line: the report directory is git-ignored, so there is nothing to stage —
     # which is the exemption `test_every_write_command_is_either_wired_or_exempted` carries.

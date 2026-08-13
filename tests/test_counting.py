@@ -526,4 +526,7 @@ def test_the_payload_keeps_the_fact_the_report_stops_saying(tmp_path, capsys):
     stamp(tmp_path / ".roadkeep" / "reports" / "20260101T000000Z-run-a.json", "RK9")
     assert main(["-C", str(tmp_path), "stats", "--json"]) == EXIT_OK
     held = json.loads(capsys.readouterr().out)["captures"]
-    assert held == {"kept": 1, "filed": 1, "unfiled": []}
+    # `delivered` is empty here and present: this capture was resolved against RK9, which is a
+    # different fact from a stamp naming another repository (RK1162), and a key that appeared
+    # only when non-empty is one a client stops looking for.
+    assert held == {"kept": 1, "filed": 1, "delivered": [], "unfiled": []}

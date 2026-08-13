@@ -81,37 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1162 One count, two facts
-
-RK1160 made a capture's row clear on the author's word that the work went to another
-backlog, and said so in the report: `delivered to alegauss/roadkeep, which this project
-cannot read — taken as filed`. The payloads of the same two commands say nothing of the
-kind:
-
-```
-capture filed --json  {"path": "…", "filed": "alegauss/roadkeep#RK1128"}
-stats --json          {"kept": 1, "filed": 1, "unfiled": []}
-```
-
-A consumer can recover the first by parsing the `#` and cannot recover the second at
-all: `filed: 1` counts a stamp verified against this project's ids and one nothing here
-can check as the same number. One is a resolution and the other is a claim, which is the
-whole of what RK1160 was about.
-
-This is RK1147's rule one command over: the printed report named the door and the
-payload published the count, so the surface an **agent** reads was the poorer of the
-two. Here the text names which reading cleared the row and the payload does not, on the
-row a session is told to drive to zero.
-
-The shape: `delivered` beside `filed` in the counts, and the repository named per
-capture where there is one — so a client can show *1 filed here, 1 delivered to
-alegauss/roadkeep* rather than a 2 that means two different things. `capture filed
---json` carries the same key for the same reason.
-
-What is not wanted is a third state in the **row**: `stats` prints one only where
-something is unfiled (RK1143), and a delivery is filed. What changes is what the number
-is made of.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

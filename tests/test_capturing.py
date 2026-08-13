@@ -1190,3 +1190,35 @@ def test_a_capture_aimed_nowhere_keeps_the_refusal(tmp_path, capsys) -> None:
     assert kept.upstream == ""
     assert main(["-C", str(root), "capture", "filed", str(kept.path), "--as", "RK1128"]) != EXIT_OK
     assert "no governed file holds RK1128" in capsys.readouterr().err
+
+
+#: A line the first capture can be resolved against, so the two readings are exercised in one
+#: project: one stamp this backlog holds, one naming a repository it cannot open.
+FILED = "- \U0001F4CB **RK9** (deps: —) **A different wording** — Because of a reason. → §RK9\n"
+
+
+def test_the_payload_tells_a_resolution_from_a_claim(tmp_path, capsys) -> None:
+    """RK1162. `filed` counted a stamp this project resolved against its own ids and a stamp
+    nothing here can check as one number, so `filed: 2` could not be read as *one closed row and
+    one somebody says is closed elsewhere*. The report has said which since RK1160; this is the
+    surface an agent reads."""
+    root = project(tmp_path, config=AIMED, roadmap=CLEAN + FILED)
+    main(["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
+    main(["-C", str(root), "report", "--symptom", "A second symptom entirely", "--why", WHY,
+          "--", "lint"])
+    first, second = captures(root)
+    main(["-C", str(root), "capture", "filed", str(first.path), "--as", "RK9"])
+    capsys.readouterr()
+    main(["-C", str(root), "capture", "filed", str(second.path), "--as", "RK1128", "--json"])
+    door = json.loads(capsys.readouterr().out)
+    assert door["filed"] == "alegauss/roadkeep#RK1128"
+    assert door["delivered"] == "alegauss/roadkeep"
+
+    main(["-C", str(root), "stats", "--json"])
+    held = json.loads(capsys.readouterr().out)["captures"]
+    assert held["kept"] == 2 and held["unfiled"] == []
+    # One of each, and the repository named where a client would otherwise parse a `#`.
+    assert held["filed"] == 1
+    assert held["delivered"] == [
+        {"path": second.path.relative_to(root).as_posix(), "repository": "alegauss/roadkeep"}
+    ]

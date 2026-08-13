@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from dataclasses import dataclass
 from collections.abc import Mapping, Sequence
 
 from roadkeep import attesting, claiming
@@ -239,7 +240,23 @@ def _stats(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-def _unfiled(config: Config) -> tuple[tuple[Path, bool], ...]:
+@dataclass(frozen=True, slots=True)
+class _Read:
+    """One capture, and what this project can honestly say about it (RK1162).
+
+    Three states and not two, because `filed` was two facts wearing one number: a stamp resolved
+    against this project's own ids is a **resolution**, and a stamp naming another repository is
+    a **claim** nothing here can check — which is what RK1160 made the row clear on. A tuple
+    growing a third position would have carried the distinction and named neither.
+    """
+
+    path: Path
+    filed: bool
+    #: The repository a delivery names, or `""` for a capture this project resolved itself.
+    elsewhere: str = ""
+
+
+def _unfiled(config: Config) -> tuple[_Read, ...]:
     """Each capture this project holds, and whether the backlog already states its claim.
 
     The reading RK1139 asked for, and the cheap order matters: the directory is globbed first,
@@ -269,21 +286,39 @@ def _unfiled(config: Config) -> tuple[tuple[Path, bool], ...]:
     # repository or by deleting the evidence. Filed by construction, because this cannot read
     # that backlog and does not pretend to.
     return tuple(
-        (
-            one.path,
-            bool(delivered(one.filed))
+        _Read(
+            path=one.path,
+            filed=bool(delivered(one.filed))
             or (one.filed in ids if one.filed else one.symptom in stated),
+            elsewhere=delivered(one.filed),
         )
         for one in held
     )
 
 
 def _captures_json(config: Config) -> dict[str, object]:
+    """The three states, told apart (RK1162).
+
+    `filed` counted a stamp this project resolved and a stamp nothing here can check as one
+    number, so a consumer reading `filed: 2` could not tell two closed rows from one closed row
+    and one somebody says is closed elsewhere. `delivered` is that second half, as a list for
+    `unfiled`'s reason: the repository is what a client shows, and the count is its length.
+
+    RK1147's rule, one command over — the printed report has said which reading cleared the row
+    since RK1160, and the payload is the surface an agent reads.
+    """
     held = _unfiled(config)
     return {
         "kept": len(held),
-        "filed": sum(1 for _, filed in held if filed),
-        "unfiled": [config.relative(path) for path, filed in held if not filed],
+        # Resolutions only now: `kept` is still the total, and a client that added `filed` to
+        # `delivered` gets what this key used to mean.
+        "filed": sum(1 for one in held if one.filed and not one.elsewhere),
+        "delivered": [
+            {"path": config.relative(one.path), "repository": one.elsewhere}
+            for one in held
+            if one.elsewhere
+        ],
+        "unfiled": [config.relative(one.path) for one in held if not one.filed],
     }
 
 
@@ -303,7 +338,7 @@ def _print_captures(config: Config, width: int) -> None:
     nothing to skip, where a line costs every reader the same attention on every run.
     """
     held = _unfiled(config)
-    unfiled = [path for path, is_filed in held if not is_filed]
+    unfiled = [one.path for one in held if not one.filed]
     if not unfiled:
         return
     print(f"  {'captures':<{width}}  {len(held):>4}  {len(unfiled)} unfiled")
