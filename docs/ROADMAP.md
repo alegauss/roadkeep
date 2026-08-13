@@ -30,9 +30,13 @@
 
 ## Block D — The gate
 
+- 📋 **RK1141** (deps: —) **a capture whose defect shipped under a reworded symptom stays unfiled for ever, and nothing can clear the row** — RK1139's count is cleared by an exact match, so this repository now carries a row that cannot reach zero — the state RK402 calls a check nobody reads. → §RK1141
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK1140** (deps: —) **anchors --next names a free top-level that add --ref then refuses, because no heading declares it yet** — The read answers which address the outline has not spent and never that a top-level is not yet a section, so a caller composes a command that cannot work. → §RK1140
 
 ## Block G — The editor surface (the backlog where the file is open)
 

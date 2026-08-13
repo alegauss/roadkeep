@@ -119,11 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 145 | 1 |
 | C — Query (consult without reading the file) | 0 | 92 | 1 |
-| D — The gate | 0 | 154 | 0 |
+| D — The gate | 1 | 154 | 0 |
 | E — Adoption | 0 | 85 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 103 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 103 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 631 | 6 |
+| **Total** | 2 | 631 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1140** (deps: —) **anchors --next names a free top-level that add --ref then refuses, because no heading declares it yet** — The read answers which address the outline has not spent and never that a top-level is not yet a section, so a caller composes a command that cannot work. → §RK1140
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
