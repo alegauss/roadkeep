@@ -325,7 +325,8 @@ def test_the_json_says_the_roadmap_was_not_touched(tmp_path, capsys):
     payload = json.loads(capsys.readouterr().out)
     assert payload["id"] == "RK3" and payload["marker"] == SHIPPED
     assert payload["roadmap"] == {"touched": False} and payload["refreshed"] == []
-    assert payload["event"] == {"id": "RK3", "block": "A", "stage": "live"}
+    # `standing` beside the stage since RK1164, on every mutator's event.
+    assert payload["event"]["stage"] == "live" and payload["event"]["standing"]["open"] == 2
 
 
 def test_a_refused_record_writes_nothing_and_exits_two(tmp_path, capsys):

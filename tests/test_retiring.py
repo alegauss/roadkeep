@@ -376,7 +376,10 @@ def test_the_command_reports_every_edit_and_the_event(tmp_path, capsys):
     assert "dropped  §RK1" in out
     assert "found    RK7 in ROADMAP.md" in out
     assert "still    RK4 name RK1" in out
-    assert out.splitlines()[-1] == "  event    RK1  Block A  live"
+    # The standing under the event since RK1164: a retirement resolves the block for the same
+    # reason a ship does, and the caller driving one asked `list` next.
+    assert out.splitlines()[-2] == "  event    RK1  Block A  live"
+    assert out.splitlines()[-1] == "           Block A has 2 open"
 
 
 def test_the_command_names_the_store_when_that_is_where_it_found_it(tmp_path, capsys):

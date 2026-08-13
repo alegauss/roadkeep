@@ -147,7 +147,17 @@ def _event(task_id: str, block: str, roadmap: Document, config: Config) -> dict[
     droppable, and under the old boolean it was told to run a command that refuses.
     """
     standing = Backlog.during(config, roadmap=roadmap).standing(block)
-    return {"id": task_id, "block": block, "stage": str(standing.stage)}
+    # And **what is left**, in the shape `list` answers with (RK1164). The standing was read
+    # here and reduced to one word, so a caller driving a block one task at a time followed
+    # every ship with a `list` asking what this call already knew — measured at six ships and
+    # six calls over one block. `stage` stays beside it: it is what the offer below branches
+    # on and what every consumer written before this reads.
+    return {
+        "id": task_id,
+        "block": block,
+        "stage": str(standing.stage),
+        "standing": _standing_json(standing),
+    }
 
 
 #: The two stages a heading is droppable in, and the clause that says which one it is
@@ -162,7 +172,9 @@ _DROPPABLE = {
 }
 
 
-def _print_event(event: dict[str, object], indent: str = "", *, config: Config) -> None:
+def _print_event(
+    event: dict[str, object], indent: str = "", *, config: Config, standing: bool = False
+) -> None:
     """The event, and where the stage allows it the one command that state makes available.
 
     A heading becomes droppable the moment its block stops holding work, and a project whose
@@ -189,6 +201,18 @@ def _print_event(event: dict[str, object], indent: str = "", *, config: Config) 
     """
     stage = event["stage"]
     print(f"{indent}event    {event['id']}  Block {event['block']}  {stage}")
+    # What is left, on the line under it — for the two verbs a caller **drives a block** with
+    # (RK1164). `ship` and `retire` are where the follow-up `list` was measured, and where the
+    # live count is the question being asked: *is this block finished, and is there another*.
+    # Every other write says the stage and no more, which is RK1143's rule about a line that is
+    # never the next step; the payload carries the counts for all of them, a key costing a
+    # client nothing to skip where a line costs every reader the same attention.
+    #
+    # `_print_standing` stays silent on a live block for its own reason: there an empty listing
+    # was the filter's doing, and here the count is the answer.
+    left = event.get("standing") if standing else None
+    if isinstance(left, dict) and left.get("sentence"):
+        print(f"{indent}         {left['sentence']}")
     because = None if config.permanent_headings else _DROPPABLE.get(Stage(stage))
     if because:
         print(
@@ -999,6 +1023,7 @@ def _standing_json(standing: Standing | None) -> dict[str, object] | None:
     return {
         "block": standing.label,
         "state": str(standing.stage),
+        "sentence": standing.sentence,
         "open": standing.open,
         "recorded": standing.recorded,
         "paused": standing.paused,

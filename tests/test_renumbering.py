@@ -333,7 +333,21 @@ def test_json_says_which_files_the_transaction_touched(tmp_path, capsys):
     assert payload["moved"] == ["RK91"]
     assert payload["section"]["anchor"] == "RK92"
     assert payload["files"] == sorted([ROADMAP, IMPROVEMENTS])
-    assert payload["event"] == {"id": "RK92", "block": "A", "stage": "live"}
+    # `standing` beside the stage since RK1164: every event carries the counts, and only the two
+    # verbs a caller drives a block with print the sentence.
+    assert payload["event"] == {
+        "id": "RK92",
+        "block": "A",
+        "stage": "live",
+        "standing": {
+            "block": "A",
+            "state": "live",
+            "sentence": "Block A has 2 open",
+            "open": 2,
+            "recorded": 1,
+            "paused": 0,
+        },
+    }
 
 
 # -- what to stage, from the verb that moves an address (RK1130) -----------------

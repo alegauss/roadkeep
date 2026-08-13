@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1164 The count ship already knows
-
-Measured over one block: six ships, six `list` calls immediately after, each asking the
-same question — is this block done, and what is next.
-
-`ship` already knows. Its result carries `event: {id, block, stage}`, so the block has
-been resolved by the time the response is composed, and the standing sentence `list`
-returns (*"Block L has 1 open"*) is derived from data the same call has in hand. The
-second call re-reads the roadmap to recompute something the first one could have said
-for free.
-
-The cost is not the round trip so much as what it does to a loop. A caller running a
-block task-by-task has to remember to ask, and the failure when it forgets is silent: it
-ships the last task and reports the block finished without checking, or it stops one
-task early because nothing said there was another. Both were reachable on the run this
-came from.
-
-What to add is small: the block's standing after the ship, in the same shape `list`
-returns it, so a caller can act on one response. Not the next task's brief — that is
-`pick`'s job and it would make a write verb answer a planning question, which is the
-sort of merge that makes a surface hard to learn.
-
-The same argument applies to `retire`, which resolves a block for the same reason and
-leaves the caller in the same place.
-
 ## Block C — Query
 
 ### §RK1163 The design a dependency has already answered
@@ -191,5 +166,35 @@ The fix keeps the reasoning that rejected the glob and adds the half it missed: 
 only stands the launcher down when the path it names is still there. A row pointing at a
 pruned install is not a wired plugin, it is a stale record, and the safe reading of it
 is the one already chosen for an unparseable registry.
+
+### §RK1167 The first matching row is not the installed one
+
+`_installed` walks the harness's registry and returns on the first row whose
+`projectPath` resolves to this tree. One project is assumed to have one row.
+
+An update can leave two. The harness wrote a second row for the same `projectPath` when
+the plugin was reinstalled, and left the first in place, so the list now holds the
+replaced version and the live one under one key. The scan takes the first, which is
+ordered by when it was written, so the **older** row wins — and it checks neither the
+`installPath` it names nor the `lastUpdated` that would order them.
+
+Measured in the Viglet Turing corpus, whose registry holds both rows for
+`D:\Git\viglet\turing\2026.3`:
+
+    row 1   0.1.285   2026-08-05   installPath exists: False
+    row 2   0.1.820   2026-08-13   installPath exists: True
+
+`engines` reported `plugin 0.1.285 ... project scope` and printed the `differ` sentence
+telling the author to run `/plugin update` — after the update had already landed. The
+advice is not merely stale, it is unfollowable: running it again writes a third row and
+the first still wins.
+
+The fix is to stop treating the first match as the answer. A row naming a path that is
+not there is a record of an install that is gone, and among rows that do resolve the
+newest `lastUpdated` is the one the harness will load. Both readings are already in the
+file; only the scan's early return keeps them out of it.
+
+Companion to RK1166, which measured the other half: what a row with no install does to
+the launcher's decision to stand down.
 
 ## Block G — The editor surface (the backlog where the file is open)

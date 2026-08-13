@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 🛠 **RK1164** (deps: —) **ship does not say what is left in the block, so every iteration of a block run costs a second call** — ship already resolves the block to report the event, and a caller driving a block one task at a time has to follow every ship with list to learn whether it is finished. → §RK1164
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1163** (deps: —) **A rationale written before its dep shipped reads as current, and brief is where that is decided** — brief prints the section verbatim beside deps it reports as shipped, so a design whose trade-off the dep already settled is followed rather than re-decided. → §RK1163
@@ -41,6 +39,7 @@
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK1166** (deps: —) **A registry row whose install directory is gone stands the launcher down, and nothing guards the governed files** — _plugin_is_wired decides on the row alone, so an install the harness pruned leaves the local hook deferring to a plugin that cannot load. → §RK1166
+- 📋 **RK1167** (deps: RK1166) **Two registry rows for one project make the first win, so engines names a version that was replaced and is not on disk** — The scan returns on the first matching projectPath, checking neither the installPath it names nor the lastUpdated that would order them. → §RK1167
 
 ## Block G — The editor surface (the backlog where the file is open)
 

@@ -203,6 +203,7 @@
 - ✅ **RK1137** **git collapses an untracked tree to its top directory, so a claim naming a file inside it is called a typo** — Either side of the comparison may be the directory, and the trailing slash git spells a collapsed tree with is what keeps the third case exact.
 - ✅ **RK1138** **A partial that is later abandoned has no exit: retire refuses while its entry exists** — The refusal names ship --why as the exit whose sentence records the abandonment, the three shapes for a second record each being blocked by a rule the format keeps.
 - ✅ **RK1149** **A refusal that already computed the free anchor still makes the caller retype it** — the refusal that computed the free address now hands back the caller's own call with it filled in, quoted, at the surface that made one.
+- ✅ **RK1164** **ship does not say what is left in the block, so every iteration of a block run costs a second call** — every event carries the block's standing and the two verbs a block is driven with print it, so the follow-up list is one call fewer.
 
 ## Block C — Query
 

@@ -2169,3 +2169,46 @@ def test_appending_a_sentence_is_what_the_ledger_calls_two(tmp_path):
         part="local half",
     )
     assert "why.sentences" in {v.code for v in schema.validate(task)}
+
+
+# -- what is left in the block, said by the write (RK1164) --------------------
+
+
+def test_a_ship_says_what_is_left_in_the_block_it_just_changed(tmp_path, capsys):
+    """Measured over one block: six ships, six `list` calls immediately after, each asking the
+    same question. `_event` had already read the standing to name the stage and reduced it to one
+    word, so the second call re-read three files to recompute what the first one held.
+
+    The **live** case is the one that costs the call, and it is the one `_print_standing` stays
+    silent about in `list` — there an empty listing under a live block was the filter's doing,
+    and here the count is the question: is this block finished, and is there another line.
+    """
+    config = project(tmp_path)  # Block A holds RK1 and RK2
+    assert main(["-C", str(config.root), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "event    RK1  Block A  live" in printed
+    assert "Block A has 1 open" in printed
+
+    assert main(["-C", str(config.root), "ship", "RK2", "--why", "It works now."]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "Block A is finished" in printed and "records 2 filed under it" in printed
+
+
+def test_the_payload_carries_the_standing_in_the_shape_list_answers_with(tmp_path, capsys):
+    """One shape and not a second (RK1164): `_standing_json` is what `list` and `pick` publish,
+    so a caller acting on a ship reads the same fields it already knows. `stage` stays beside it
+    — it is what the droppable offer branches on, and what every consumer written before this
+    reads."""
+    config = project(tmp_path)
+    argv = ["-C", str(config.root), "ship", "RK1", "--why", "It works now.", "--json"]
+    assert main(argv) == EXIT_OK
+    event = json.loads(capsys.readouterr().out)["event"]
+    assert event["stage"] == "live"
+    assert event["standing"] == {
+        "block": "A",
+        "state": "live",
+        "sentence": "Block A has 1 open",
+        "open": 1,
+        "recorded": 1,
+        "paused": 0,
+    }

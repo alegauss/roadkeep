@@ -145,7 +145,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
     # Last before the event line, because it is about the commit this ship precedes rather
     # than about the three edits above it (RK294).
     _print_scope(shipment.scope, wrote)
-    _print_event(event, "  ", config=config)
+    _print_event(event, "  ", config=config, standing=True)
     return EXIT_OK
 
 
@@ -191,7 +191,7 @@ def _partly(config: Config, partial: Partial, args: argparse.Namespace) -> int:
     print(f"  finish   {invocation()} ship {partial.task_id}  (drops the qualifier)")
     if partial.refreshed:
         print(f"  derived  {', '.join(partial.refreshed)} (dep annotations re-derived)")
-    _print_event(event, "  ", config=config)
+    _print_event(event, "  ", config=config, standing=True)
     return EXIT_OK
 
 
@@ -866,5 +866,5 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
         print(f"  still    {', '.join(departure.dependents)} name {departure.task_id}")
     # A retirement is committed exactly as a ship is, and it releases the same claim (RK294).
     _print_scope(departure.scope, wrote)
-    _print_event(event, "  ", config=config)
+    _print_event(event, "  ", config=config, standing=True)
     return EXIT_OK

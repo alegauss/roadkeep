@@ -99,7 +99,10 @@ def test_ship_emits_the_event(tmp_path, capsys):
     project(tmp_path)
     assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
     out = capsys.readouterr().out.splitlines()
-    assert out[-2] == "  event    RK1  Block A  finished"
+    assert out[-3] == "  event    RK1  Block A  finished"
+    # What is left, on the line under it (RK1164): this is the verb a caller drives a block
+    # with, and the `list` that used to follow every ship asked what this line answers.
+    assert out[-2] == "           Block A is finished: nothing open, and the ledger records 1 filed under it"
     # And the verb that state makes available (RK408): a block that stopped holding work is
     # the one moment a heading becomes droppable, and the answer used to stop one word short
     # of saying so. `finished` and not `empty` (RK438): the ledger now records the line.
@@ -115,9 +118,12 @@ def test_the_block_settles_only_when_its_last_line_goes(tmp_path, capsys):
     # without re-reading the file the command just wrote.
     project(tmp_path, roadmap=BACKLOG + f"{SECOND.replace('RK2', 'RK4')}\n")
     assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now."]) == EXIT_OK
-    assert capsys.readouterr().out.splitlines()[-1] == "  event    RK2  Block B  live"
+    said = capsys.readouterr().out.splitlines()
+    assert said[-2] == "  event    RK2  Block B  live"
+    # The live count, which is the case that cost the second call (RK1164).
+    assert said[-1] == "           Block B has 1 open"
     assert main(["-C", str(tmp_path), "ship", "RK4", "--why", "It works now."]) == EXIT_OK
-    assert capsys.readouterr().out.splitlines()[-2] == "  event    RK4  Block B  finished"
+    assert capsys.readouterr().out.splitlines()[-3] == "  event    RK4  Block B  finished"
 
 
 def test_a_status_write_never_settles_a_block(tmp_path, capsys):
@@ -158,24 +164,30 @@ def test_json_carries_the_event_from_every_mutator(tmp_path, capsys):
         )
         == EXIT_OK
     )
-    assert json.loads(capsys.readouterr().out)["event"] == {
-        "id": "RK3",
-        "block": "A",
-        "stage": "live",
-    }
+    event = json.loads(capsys.readouterr().out)["event"]
+    assert (event["id"], event["block"], event["stage"]) == ("RK3", "A", "live")
+    # Every mutator's event carries the standing since RK1164, printed by the two a caller
+    # drives a block with: a key costs a client nothing to skip, where a line costs a reader.
+    assert event["standing"]["open"] == 2
 
     assert main(["-C", str(tmp_path), "status", "RK1", "🛠", "--json"]) == EXIT_OK
-    assert json.loads(capsys.readouterr().out)["event"] == {
-        "id": "RK1",
-        "block": "A",
-        "stage": "live",
-    }
+    moved = json.loads(capsys.readouterr().out)["event"]
+    assert (moved["id"], moved["block"], moved["stage"]) == ("RK1", "A", "live")
+    assert moved["standing"]["open"] == 2
 
     assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now.", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["event"] == {
         "id": "RK2",
         "block": "B",
         "stage": "finished",
+        "standing": {
+            "block": "B",
+            "state": "finished",
+            "sentence": "Block B is finished: nothing open, and the ledger records 1 filed under it",
+            "open": 0,
+            "recorded": 1,
+            "paused": 0,
+        },
     }
 
 
@@ -186,7 +198,7 @@ def test_an_open_block_is_offered_no_verb_it_would_be_refused(tmp_path, capsys):
     project(tmp_path, roadmap=BACKLOG + f"{SECOND.replace('RK2', 'RK4')}\n")
     assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now."]) == EXIT_OK
     out = capsys.readouterr().out
-    assert out.splitlines()[-1] == "  event    RK2  Block B  live"
+    assert out.splitlines()[-2] == "  event    RK2  Block B  live"
     assert "block drop" not in out
 
 
@@ -227,13 +239,16 @@ def test_a_paused_block_is_offered_no_verb_that_would_refuse_it(tmp_path, capsys
 
 
 def test_the_payload_is_unchanged_by_the_sentence(tmp_path, capsys):
-    # `--json` carries the stage and nothing else new: the suggestion is a sentence for a
-    # reader, and a consumer that already derives the next command from the stage would be
-    # handed a second spelling of the same fact (RK38's three facts and no more).
+    # `--json` carries no spelling of the **suggestion**: that is a sentence for a reader, and a
+    # consumer deriving the next command from the stage would be handed it twice (RK38's three
+    # facts and no more). What it does carry since RK1164 is the standing — the counts a caller
+    # asked `list` for after every ship, which is a fact about the files and not a suggestion.
     project(tmp_path)
     assert main(["-C", str(tmp_path), "ship", "--json", "RK1", "--why", "Works."]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    assert payload["event"] == {"id": "RK1", "block": "A", "stage": "finished"}
+    assert set(payload["event"]) == {"id", "block", "stage", "standing"}
+    assert payload["event"]["stage"] == "finished"
+    assert "block drop" not in json.dumps(payload)
 
 
 # -- the offer a project may answer once (RK1121) ------------------------------
@@ -268,7 +283,8 @@ def test_the_declaration_changes_no_payload(tmp_path, capsys):
     permanent(tmp_path)
     assert main(["-C", str(tmp_path), "ship", "--json", "RK1", "--why", "Works."]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    assert payload["event"] == {"id": "RK1", "block": "A", "stage": "finished"}
+    assert (payload["event"]["stage"], payload["event"]["block"]) == ("finished", "A")
+    assert "block drop" not in json.dumps(payload)
 
 
 def test_a_project_that_says_nothing_is_still_offered_the_door(tmp_path, capsys):
