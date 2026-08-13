@@ -996,3 +996,40 @@ def test_a_file_that_is_not_a_capture_is_skipped_and_never_counted(tmp_path):
     (directory / "empty.json").write_text('{"why": "no symptom here"}', encoding="utf-8")
     _capture_file(tmp_path, "real.json", "A real symptom")
     assert [one.symptom for one in captures(tmp_path)] == ["A real symptom"]
+
+
+# -- the row a stamp clears (RK1141) --------------------------------------------
+
+
+def test_a_stamp_names_the_id_and_keeps_every_other_key(tmp_path):
+    """RK1141. RK1139's count cleared a row by an exact symptom match — right for an author who
+    ran the pre-filled `add`, and permanent for one who reworded the sentence: this repository
+    carried a row that could never reach zero, which is the check RK402 says nobody reads."""
+    from roadkeep.capturing import captures, stamp
+
+    path = _capture_file(tmp_path, "one.json", "A symptom")
+    assert stamp(path, "RK9") is True
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    # A capture is what a replay runs from, so every other key survives the write.
+    assert payload["filed"] == "RK9"
+    assert payload["symptom"] == "A symptom" and payload["why"] == "Because of a reason."
+    assert captures(tmp_path)[0].filed == "RK9"
+
+
+def test_a_file_it_cannot_parse_is_left_exactly_as_it_was(tmp_path):
+    from roadkeep.capturing import stamp
+
+    directory = tmp_path / ".roadkeep" / "reports"
+    directory.mkdir(parents=True)
+    broken = directory / "broken.json"
+    broken.write_text("{not json", encoding="utf-8")
+    assert stamp(broken, "RK9") is False
+    assert broken.read_text(encoding="utf-8") == "{not json"
+
+
+def test_a_capture_that_is_not_there_is_not_a_failure_of_the_write(tmp_path):
+    # The rule this keeps: a stamp is the transient half, and the task is already filed by the
+    # time it runs — so an absent path answers False and raises nothing.
+    from roadkeep.capturing import stamp
+
+    assert stamp(tmp_path / "nowhere.json", "RK9") is False

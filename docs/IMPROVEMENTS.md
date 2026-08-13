@@ -81,35 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1141 The row that cannot be cleared
-
-RK1139 gave a kept capture a count and named the unfiled ones, and the row is cleared by
-an **exact symptom match** — which is what the pre-filled `add` produces. That leaves
-one state with no way out, and this repository is in it right now:
-
-```
-$ roadkeep stats
-  captures      2  1 filed
-  unfiled    .roadkeep/reports/20260813T163536Z-run-eaad6ef5.json
-```
-
-That capture is RK1138, shipped in the same session it was filed from. The task line was
-written in the author's own words rather than the capture's, so the symptoms differ, so
-the row stays — permanently, because nothing addresses it and nothing can. A count that
-cannot reach zero is the defect RK402 names from the other side: a check that can never
-report clean is one nobody reads, and the drift arrives inside a report that already
-said the same thing yesterday.
-
-`keep`'s own docstring says retention is **deliberately unsolved**, and lists the
-shapes: rotation, dedup by argv, an age limit, a command that lists what was never sent.
-RK1139 built the listing; what it created is the need for the other end.
-
-What has to be decided rather than added: which door. A `report --prune` that deletes an
-addressed capture is one command and loses the evidence a replay runs from. A row that
-names the id it was filed as — written into the capture, so `stats` reads *the file*
-rather than guessing from prose — keeps both and is the reading RK89 already chose for
-everything else in that directory: the fact lives in the artefact.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

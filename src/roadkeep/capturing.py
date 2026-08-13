@@ -932,6 +932,41 @@ class Held:
     #: an author who ran the pre-filled command produces an exact match and anything else
     #: reads as unfiled. Conservative in the safe direction: it nags rather than reassures.
     symptom: str
+    #: The id this capture was filed as, where :func:`stamp` wrote one (RK1141). The reading
+    #: that does not depend on prose: an author who reworded the symptom still clears the row,
+    #: and a capture filed before this existed falls back to the match above.
+    filed: str = ""
+
+
+def stamp(path: str | Path, task_id: str) -> bool:
+    """Write into a capture the id it was filed as (RK1141). True where it landed.
+
+    The fact lives in the **artefact**, which is the reading RK89 chose for everything in that
+    directory: a capture is evidence, and what happened to it is part of the evidence. RK1139
+    counted captures and cleared a row by an exact symptom match — right for an author who ran
+    the pre-filled `add`, and permanent for one who reworded the sentence, which left this
+    repository holding a row that could never reach zero.
+
+    Never a condition of the write that calls it. `add` has already placed the line and saved
+    the governed files by the time this runs, so a capture that cannot be stamped costs the
+    link and never the task — the rule :func:`~roadkeep.claiming.follow` keeps for a claim, for
+    the same reason: the durable half is in the repository and this is the transient one.
+
+    Keeps every other key exactly as it was, because a capture is what a replay runs from: the
+    payload is re-serialised from what was read, and a file this cannot parse is left alone.
+    """
+    target = Path(path)
+    try:
+        payload = json.loads(target.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            return False
+        payload["filed"] = task_id
+        target.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+    except (OSError, ValueError):
+        return False
+    return True
 
 
 def captures(root: str | Path = ".") -> tuple[Held, ...]:
@@ -956,7 +991,14 @@ def captures(root: str | Path = ".") -> tuple[Held, ...]:
             continue
         symptom = payload.get("symptom") if isinstance(payload, dict) else None
         if isinstance(symptom, str) and symptom:
-            out.append(Held(path=path, symptom=symptom))
+            stamped = payload.get("filed")
+            out.append(
+                Held(
+                    path=path,
+                    symptom=symptom,
+                    filed=stamped if isinstance(stamped, str) else "",
+                )
+            )
     return tuple(out)
 
 

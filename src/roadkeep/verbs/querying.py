@@ -254,13 +254,19 @@ def _unfiled(config: Config) -> tuple[tuple[Path, bool], ...]:
     if not held:
         return ()
     backlog = Backlog.load(config)
-    stated = {
-        entry.task.symptom
-        for document in (backlog.roadmap, backlog.ledger, backlog.store)
-        if document is not None
-        for entry in document.entries
-    }
-    return tuple((one.path, one.symptom in stated) for one in held)
+    documents = [
+        one for one in (backlog.roadmap, backlog.ledger, backlog.store) if one is not None
+    ]
+    stated = {entry.task.symptom for one in documents for entry in one.entries}
+    ids = {entry.task.id for one in documents for entry in one.entries}
+    # The stamp first and the prose second (RK1141): an author who ran the pre-filled `add`
+    # cleared this row by the act that closed it, and one who reworded the symptom is why the
+    # match alone left a row that could never reach zero. An id no file holds does not clear it
+    # — a stamp naming a task that was renumbered away is a link and not an outcome.
+    return tuple(
+        (one.path, one.filed in ids if one.filed else one.symptom in stated)
+        for one in held
+    )
 
 
 def _captures_json(config: Config) -> dict[str, object]:

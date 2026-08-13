@@ -383,6 +383,15 @@ def build_parser() -> argparse.ArgumentParser:
         help=_BODY_FILE.format(what="rationale"),
     )
     add_parser.add_argument(
+        "--capture",
+        metavar="PATH",
+        help=(
+            "the kept capture this line files, stamped with the id this call mints (RK1141) "
+            "— `report` prints this flag already filled in, so the row `stats` counts is "
+            "cleared by the act that closes it and never by a second step somebody remembers"
+        ),
+    )
+    add_parser.add_argument(
         "--json", action="store_true", help="the line, with the file and line it landed on"
     )
     # `reads_stdin` is declared here for the reason `reads_only` is (RK171): it is a claim about

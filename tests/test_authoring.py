@@ -1946,3 +1946,77 @@ def test_a_no_op_amend_reports_no_before_at_all(tmp_path, capsys):
     assert main(argv) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["changed"] == [] and payload["was"] == {}
+
+
+# -- the capture an add files closes the row it was counted in (RK1141) ----------
+
+
+def _kept(root: Path, symptom: str) -> Path:
+    directory = root / ".roadkeep" / "reports"
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / "20260101T000000Z-run-a.json"
+    path.write_text(
+        json.dumps({"symptom": symptom, "why": "Because of a reason.", "block": "B"}),
+        encoding="utf-8",
+    )
+    return path
+
+
+def test_an_add_stamps_the_capture_it_files_with_the_id_it_mints(tmp_path, capsys):
+    """RK1141. The row `stats` counts is cleared by the act that closes it, and never by a
+    second step somebody remembers — which is what RK86 is this block's own record of."""
+    project(tmp_path)
+    capture = _kept(tmp_path, "A captured symptom")
+    argv = [
+        "-C", str(tmp_path), "add", "--block", "B",
+        "--symptom", "A captured symptom",
+        "--why", "Because of a reason.",
+        "--capture", str(capture),
+    ]
+    capsys.readouterr()
+    assert main(argv) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "capture" in printed and "now names RK2" in printed
+    assert json.loads(capture.read_text(encoding="utf-8"))["filed"] == "RK2"
+
+
+def test_the_payload_says_whether_the_stamp_landed(tmp_path, capsys):
+    project(tmp_path)
+    capture = _kept(tmp_path, "A captured symptom")
+    argv = [
+        "-C", str(tmp_path), "add", "--block", "B",
+        "--symptom", "A captured symptom",
+        "--why", "Because of a reason.",
+        "--capture", str(capture), "--json",
+    ]
+    capsys.readouterr()
+    assert main(argv) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["capture"] == {"path": str(capture), "stamped": True}
+
+
+def test_an_add_that_names_no_capture_says_nothing_about_one(tmp_path, capsys):
+    project(tmp_path)
+    argv = [
+        "-C", str(tmp_path), "add", "--block", "B",
+        "--symptom", "A symptom", "--why", "Because of a reason.", "--json",
+    ]
+    capsys.readouterr()
+    assert main(argv) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["capture"] is None
+
+
+def test_a_stamp_that_cannot_be_written_costs_the_link_and_not_the_task(tmp_path, capsys):
+    # The rule `claiming.follow` keeps for a claim: the durable half is in the repository and
+    # this is the transient one, so the line is filed either way and the answer says so.
+    project(tmp_path)
+    argv = [
+        "-C", str(tmp_path), "add", "--block", "B",
+        "--symptom", "A symptom", "--why", "Because of a reason.",
+        "--capture", str(tmp_path / "nowhere.json"),
+    ]
+    capsys.readouterr()
+    assert main(argv) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "could not be stamped" in printed and "the line is filed" in printed
+    assert "**RK2**" in source(Config.discover(tmp_path))

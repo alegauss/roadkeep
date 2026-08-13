@@ -16,6 +16,7 @@ import json
 import sys
 
 from roadkeep.authoring import add, amend, restate, set_status
+from roadkeep.capturing import stamp
 from roadkeep.config import Config
 from roadkeep.deferring import Carried, defer, resume
 from roadkeep.ids import derivation, highest
@@ -126,6 +127,12 @@ def _add(config: Config, args: argparse.Namespace) -> int:
     event = _event(
         insertion.entry.task.id, insertion.entry.task.block, insertion.document, config
     )
+    # After the line is placed and the files are saved, and never a condition of either
+    # (RK1141): the capture is evidence in an ignored directory, so a stamp that cannot be
+    # written costs the link and not the task — `claiming.follow`'s rule for the same reason.
+    stamped = (
+        stamp(args.capture, insertion.entry.task.id) if args.capture else False
+    )
     written = insertion.section
     # The file the write actually chose (RK230), read off the document `_with_section` left
     # rather than composed from the improvements default: a report that names the role and a
@@ -165,6 +172,13 @@ def _add(config: Config, args: argparse.Namespace) -> int:
                     # Every path this write touched, projections included (RK1129) — the same
                     # key a departure's scope carries, so a client staging one stages the other.
                     "wrote": [config.relative(one) for one in insertion.wrote],
+                    # Which capture this line files, where one was named (RK1141) — null
+                    # where none was, and false where the stamp could not be written, so a
+                    # client tells "not asked" from "asked and did not land".
+                    "capture": None if not args.capture else {
+                        "path": args.capture,
+                        "stamped": stamped,
+                    },
                     "event": event,
                 },
                 indent=2,
@@ -197,6 +211,15 @@ def _add(config: Config, args: argparse.Namespace) -> int:
     # The projection this write refreshed is in here (RK1129): the roadmap and the rationale are
     # files the caller named, and the README is one they did not — so a commit took the two and
     # left the third, green against the working tree and `export.stale` in a clean checkout.
+    if args.capture:
+        # Said either way: a stamp that did not land is the row `stats` will still count,
+        # and silence about it is how a second step comes to be forgotten (RK86).
+        print(
+            f"capture  {args.capture} now names {insertion.entry.task.id}"
+            if stamped
+            else f"capture  {args.capture} could not be stamped: the line is filed, the "
+            f"link is not"
+        )
     _print_staging(config.relative(one) for one in insertion.wrote)
     _print_event(event, config=config)
     return EXIT_OK

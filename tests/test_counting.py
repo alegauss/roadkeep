@@ -446,3 +446,33 @@ def test_the_payload_carries_the_same_three_answers(tmp_path, capsys):
     held = json.loads(capsys.readouterr().out)["captures"]
     assert held["kept"] == 1 and held["filed"] == 0
     assert held["unfiled"] == [".roadkeep/reports/20260101T000000Z-run-a.json"]
+
+
+# -- the stamp the count reads before the prose (RK1141) -------------------------
+
+
+def test_a_stamped_capture_is_filed_even_when_the_symptom_was_reworded(tmp_path, capsys):
+    """The state that had no exit: the task line was written in the author's own words, so the
+    symptoms differed, so the row stayed for ever. The stamp is the reading that does not
+    depend on prose."""
+    from roadkeep.capturing import stamp
+
+    filed = "- 📋 **RK9** (deps: —) **A different wording entirely** — Because of a reason. → §RK9\n"
+    project(tmp_path, roadmap=CLEAN + filed)
+    _capture(tmp_path, "A symptom nobody filed")
+    stamp(tmp_path / ".roadkeep" / "reports" / "20260101T000000Z-run-a.json", "RK9")
+    assert main(["-C", str(tmp_path), "stats"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "1 filed" in printed and "unfiled" not in printed
+
+
+def test_a_stamp_naming_an_id_no_file_holds_does_not_clear_it(tmp_path, capsys):
+    # A link is not an outcome: a task renumbered away leaves a stamp naming nothing, and the
+    # row is exactly the debt it was.
+    from roadkeep.capturing import stamp
+
+    project(tmp_path)
+    _capture(tmp_path, "A symptom nobody filed")
+    stamp(tmp_path / ".roadkeep" / "reports" / "20260101T000000Z-run-a.json", "RK404")
+    assert main(["-C", str(tmp_path), "stats"]) == EXIT_OK
+    assert "0 filed" in capsys.readouterr().out

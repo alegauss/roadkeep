@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1141** (deps: —) **a capture whose defect shipped under a reworded symptom stays unfiled for ever, and nothing can clear the row** — RK1139's count is cleared by an exact match, so this repository now carries a row that cannot reach zero — the state RK402 calls a check nobody reads. → §RK1141
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

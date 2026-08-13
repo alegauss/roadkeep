@@ -119,15 +119,11 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 145 | 1 |
 | C — Query (consult without reading the file) | 0 | 92 | 1 |
-| D — The gate | 1 | 154 | 0 |
+| D — The gate | 0 | 155 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 104 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 632 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1141** (deps: —) **a capture whose defect shipped under a reworded symptom stays unfiled for ever, and nothing can clear the row** — RK1139's count is cleared by an exact match, so this repository now carries a row that cannot reach zero — the state RK402 calls a check nobody reads. → §RK1141
+| **Total** | 0 | 633 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
