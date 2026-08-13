@@ -30,7 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1153** (deps: —) **three tests spawn git around the suite's own runner, so CI has no committer identity** — The environment that supplies one is passed by that runner alone, and an inline subprocess takes the machine's instead. → §RK1153
 - 📋 **RK1154** (deps: —) **an installed engine's name is a substring of the tool name, so three guard tests fail in CI** — The assertion reads the absence of the shell as the absence of a word, and a served name contains that word. → §RK1154
 
 ## Block E — Adoption

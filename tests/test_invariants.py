@@ -408,6 +408,49 @@ def test_no_survey_derives_its_own_view_of_the_package():
 _HISTORIES = ("any more", "has since", "used to", "it had", "since shipped")
 
 
+#: Where git is spawned as its own process on purpose, and why each has to be. Every other call
+#: goes through `conftest.git`, which is what carries `GIT_ENVIRONMENT` — the identity a fixture
+#: repository needs and the machine is not asked for (RK456). Three call sites had grown around
+#: it, and all three passed on a developer's machine and failed on every runner with no
+#: `user.name`: `Committer identity unknown`, on this repository's own gate (RK1153).
+_SPAWNS_GIT = {
+    "conftest.py": "it is the runner: the one call that carries the environment is this one",
+    "test_merging.py": "`git merge` is what invokes the driver, so it has to be git's own call",
+    "test_linting.py": "it tolerates a non-zero exit, a tree git cannot answer for being an "
+    "absent input rather than a failure, and the runner raises",
+}
+
+
+def test_no_test_spawns_git_around_the_suites_own_runner():
+    """RK1153, and the reason it is a closure rather than three fixes.
+
+    `conftest.git` exists because a fixture repository must need nothing from the machine, and a
+    docstring saying so is not what the next inline `subprocess.run(["git", ...])` will read. So
+    the sweep is over the argv: a `subprocess.run` whose first list element is `"git"` is a call
+    that took the environment this suite was careful to replace.
+
+    The exemption carries its reason and is asserted in both directions, which is RK491's rule:
+    a file that stops spawning git leaves a row here that fails, and a file that starts spawning
+    one fails until somebody writes down why it must.
+    """
+    spawning: dict[str, list[int]] = {}
+    for module in sorted(Path(__file__).parent.glob("*.py")):
+        for node in ast.walk(ast.parse(module.read_text(encoding="utf-8"))):
+            if not isinstance(node, ast.Call) or not node.args:
+                continue
+            named = node.func.attr if isinstance(node.func, ast.Attribute) else ""
+            if named not in ("run", "Popen") or not isinstance(node.args[0], ast.List):
+                continue
+            first = node.args[0].elts[0] if node.args[0].elts else None
+            if isinstance(first, ast.Constant) and first.value == "git":
+                spawning.setdefault(module.name, []).append(node.lineno)
+    assert set(spawning) == set(_SPAWNS_GIT), {
+        "spawns git, no reason": sorted(set(spawning) - set(_SPAWNS_GIT)),
+        "reason, spawns none": sorted(set(_SPAWNS_GIT) - set(spawning)),
+    }
+    assert all(len(why.split()) >= 6 for why in _SPAWNS_GIT.values())
+
+
 def test_no_skip_writes_a_corpus_history_by_hand():
     """RK1148. The alternative this closes off is the one the section weighed and refused.
 

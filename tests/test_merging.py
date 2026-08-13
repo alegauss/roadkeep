@@ -11,6 +11,7 @@ file only when it can prove it, and hands the reviewer git's own markers when it
 
 from __future__ import annotations
 
+import os
 import shlex
 import subprocess
 import sys
@@ -18,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from conftest import git, git_commit, git_init
+from conftest import GIT_ENVIRONMENT, git, git_commit, git_init
 
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
@@ -797,7 +798,13 @@ def test_following_the_repair_the_check_names_ends_the_check(tmp_path, capsys):
     # The half that is still open, and only that one: repeating the verb would change nothing.
     assert config_command() in second and "merge --register" not in second
 
-    subprocess.run(shlex.split(config_command()), cwd=tmp_path, check=True, capture_output=True)
+    subprocess.run(
+        shlex.split(config_command()),
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        env={**os.environ, **GIT_ENVIRONMENT},
+    )
     assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_OK
     assert "fix" not in capsys.readouterr().out
 
@@ -818,7 +825,13 @@ def test_git_itself_reaches_the_driver_and_reads_back_a_line_it_can_act_on(tmp_p
     # governed file declares and another does not.
     (tmp_path / CHANGELOG).write_text("# Shipped\n\n## Block A — The model\n", encoding="utf-8")
     assert main(["-C", str(tmp_path), "merge", "--register"]) == EXIT_OK
-    subprocess.run(shlex.split(config_command()), cwd=tmp_path, check=True, capture_output=True)
+    subprocess.run(
+        shlex.split(config_command()),
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        env={**os.environ, **GIT_ENVIRONMENT},
+    )
     git_commit(tmp_path, "base")
     # Whatever this git calls its first branch — the name is a version's default and not a
     # fact this test is about.
@@ -829,8 +842,18 @@ def test_git_itself_reaches_the_driver_and_reads_back_a_line_it_can_act_on(tmp_p
                      f"A line {symptom} under one heading", "--why", "Because."]) == EXIT_OK
         git(tmp_path, "add", "-A")
         git_commit(tmp_path, f"{branch} adds")
+    # Its own process, and the one call here that has to be: `git merge` is what invokes the
+    # driver, so routing it through the suite's runner would test something else. What it takes
+    # from that runner is the **environment** (RK1153) — identity is `GIT_ENVIRONMENT`'s to
+    # supply, and a machine with no `user.name` is every CI runner, where this read
+    # `Committer identity unknown` instead of the driver's own line.
     done = subprocess.run(
-        ["git", "merge", "theirs"], cwd=tmp_path, capture_output=True, text=True, check=False
+        ["git", "merge", "theirs"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+        env={**os.environ, **GIT_ENVIRONMENT},
     )
     said = done.stdout + done.stderr
     assert "both branches created" in said, said

@@ -465,6 +465,7 @@
 - ✅ **RK1147** **the adopt payload publishes the count of an unread reading and not the flag that changes it** — the rows that say a reading is unread now carry the door that reads it, published in the one shape a door already has.
 - ✅ **RK1151** **a citation inside an indented code block is read as a citation, so the gate is red on quoted output** — four spaces are a code block after a blank line and a list item's continuation after a bullet, so the state is a block and not an indent.
 - ✅ **RK1148** **three skips claim a shape left the corpus and it was never there at the pin before** — the clause is derived from the revision each pin replaced, so a skip says which of three things happened instead of asserting one.
+- ✅ **RK1153** **three tests spawn git around the suite's own runner, so CI has no committer identity** — every fixture git call goes through the runner that carries the identity, and the three that cannot say why in a table a closure reads.
 
 ## Block E — Adoption
 

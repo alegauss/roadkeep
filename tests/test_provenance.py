@@ -28,7 +28,7 @@ from pathlib import Path
 import pytest
 
 import roadkeep
-from conftest import git_commit, git_init, since_import
+from conftest import git, git_commit, git_init, since_import
 from surface import address, modules
 from roadkeep.provenance import (
     MODIFIED,
@@ -67,12 +67,7 @@ def test_this_checkout_reports_the_commit_it_is_at(checkout):
     # landing between them is the one difference this must not read as a defect (RK263).
     checkout.steady(head=True)
     assert len(engine().commit) >= 7
-    assert engine().commit in subprocess.run(
-        ["git", "-C", str(HERE), "rev-parse", "HEAD"],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
+    assert engine().commit in git(HERE, "rev-parse", "HEAD")
 
 
 def test_the_answer_is_computed_once_per_process():

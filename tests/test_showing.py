@@ -18,6 +18,7 @@ from pathlib import Path
 import pytest
 
 import corpora
+from conftest import git
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.kernel.schema import DESIGNED, SHIPPED
@@ -556,9 +557,11 @@ def _repo(tmp_path: Path) -> Config:
     for argv in (
         ("init", "-q"),
         ("add", "-A"),
-        ("-c", "user.email=a@b.c", "-c", "user.name=t", "commit", "-qm", "feat: two at once"),
+        # No `-c user.email=…` here: `conftest.git` carries the identity for every fixture
+        # repository, which is what made three call sites around it a red gate (RK1153).
+        ("commit", "-qm", "feat: two at once"),
     ):
-        subprocess.run(["git", *argv], cwd=tmp_path, check=True, capture_output=True)
+        git(tmp_path, *argv)
     return Config.discover(tmp_path)
 
 

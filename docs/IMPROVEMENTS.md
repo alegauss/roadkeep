@@ -81,37 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1153 The runner exists so the machine does not decide
-
-`conftest.GIT_ENVIRONMENT` exists so that a fixture repository needs nothing from the
-machine: `GIT_AUTHOR_NAME`, `GIT_COMMITTER_EMAIL` and their pair, passed by `git()` —
-the suite's one runner, which RK456 made one so that how a test repository is built is
-not eleven agreements.
-
-Three call sites spawn git around it, with `subprocess.run(["git", …])` of their own,
-and on this repository's own CI they read:
-
-```
-fatal: empty ident name (for <runner@runnervm….internal.cloudapp.net>) not allowed
-Committer identity unknown
-```
-
-Two in `test_packaging`, committing to prove the pre-commit hook stages what somebody
-staged (RK320, RK153), and one in `test_merging`, running a real `git merge` because
-driving the driver through git is the one way it is actually used (RK484). Every one of
-them passes on a developer's machine, where `user.name` is set globally, and fails on
-any runner where it is not — which is the gate this repository ships as an action
-(RK17), red on three tests about git.
-
-The fix is the runner that already exists, and the closure is the point: an AST sweep
-asserting that no test spawns `git` except `conftest.git`, the way RK496 holds the
-module surveys and RK1016 the Layout index. A rule stated in a docstring is one the next
-inline `subprocess.run` will not read.
-
-What needs deciding rather than copying: `git merge` must reach the driver as **git**
-invokes it, so that one keeps its own process and takes the environment instead of the
-helper.
-
 ### §RK1154 Which spelling a test means
 
 Three assertions in `test_guarding` say *this message does not name the shell*, and they

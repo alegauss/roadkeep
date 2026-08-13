@@ -132,33 +132,15 @@ def test_the_bump_is_not_staged_over_an_edit_the_hook_did_not_write(tmp_path) ->
 
     clone_of_the_hook(tmp_path)
     manifest = tmp_path / ".claude-plugin" / "plugin.json"
-    at_head = json.loads(
-        subprocess.run(
-            ["git", "-C", str(tmp_path), "show", "HEAD:.claude-plugin/plugin.json"],
-            check=True,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-        ).stdout
-    )["version"]
+    at_head = json.loads(git(tmp_path, "show", "HEAD:.claude-plugin/plugin.json"))["version"]
     foreign = manifest.read_text(encoding="utf-8").replace('"version"', '"foreign-marker"', 1)
     manifest.write_text(foreign, encoding="utf-8")
 
     (tmp_path / "unrelated.txt").write_text("a commit about something else\n", encoding="utf-8")
-    subprocess.run(["git", "-C", str(tmp_path), "add", "--", "unrelated.txt"], check=True)
-    subprocess.run(
-        ["git", "-C", str(tmp_path), "commit", "--quiet", "-m", "fix: something else"],
-        check=True,
-        capture_output=True,
-    )
+    git(tmp_path, "add", "--", "unrelated.txt")
+    git(tmp_path, "commit", "--quiet", "-m", "fix: something else")
 
-    committed = subprocess.run(
-        ["git", "-C", str(tmp_path), "show", "HEAD:.claude-plugin/plugin.json"],
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    ).stdout
+    committed = git(tmp_path, "show", "HEAD:.claude-plugin/plugin.json")
     assert "foreign-marker" not in committed, "the hook staged an edit nobody declared"
     # And the bump still reached the working tree: the plugin a session loads is the point.
     assert "foreign-marker" in manifest.read_text(encoding="utf-8")
@@ -177,21 +159,11 @@ def test_a_clean_tree_still_carries_the_bump_into_the_commit(tmp_path) -> None:
     before = json.loads((tmp_path / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
 
     (tmp_path / "unrelated.txt").write_text("a commit of its own\n", encoding="utf-8")
-    subprocess.run(["git", "-C", str(tmp_path), "add", "--", "unrelated.txt"], check=True)
-    subprocess.run(
-        ["git", "-C", str(tmp_path), "commit", "--quiet", "-m", "feat: a change"],
-        check=True,
-        capture_output=True,
-    )
+    git(tmp_path, "add", "--", "unrelated.txt")
+    git(tmp_path, "commit", "--quiet", "-m", "feat: a change")
 
     for relative in (".claude-plugin/plugin.json", "src/roadkeep/__init__.py"):
-        shown = subprocess.run(
-            ["git", "-C", str(tmp_path), "show", f"HEAD:{relative}"],
-            check=True,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-        ).stdout
+        shown = git(tmp_path, "show", f"HEAD:{relative}")
         assert before["version"] not in shown, relative
 
 
@@ -199,27 +171,15 @@ def _version_at_head(root: Path) -> str:
     import json
     import subprocess
 
-    return json.loads(
-        subprocess.run(
-            ["git", "-C", str(root), "show", "HEAD:.claude-plugin/plugin.json"],
-            check=True,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-        ).stdout
-    )["version"]
+    return json.loads(git(root, "show", "HEAD:.claude-plugin/plugin.json"))["version"]
 
 
 def _commit(root: Path, name: str) -> None:
     import subprocess
 
     (root / name).write_text(f"{name}\n", encoding="utf-8")
-    subprocess.run(["git", "-C", str(root), "add", "--", name], check=True)
-    subprocess.run(
-        ["git", "-C", str(root), "commit", "--quiet", "-m", f"feat: {name}"],
-        check=True,
-        capture_output=True,
-    )
+    git(root, "add", "--", name)
+    git(root, "commit", "--quiet", "-m", f"feat: {name}")
 
 
 @pytest.mark.skipif(not git_available(), reason="git is not on PATH")
