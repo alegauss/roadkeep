@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1152** (deps: —) **ship refuses because a dependent task's why is one character too long once its dep annotation grows a tick** — The refusal names the shipping task's own why, which cannot fix it: unblocking one ship meant amending three dependents one at a time, re-running ship after each. → §RK1152
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Non-goals

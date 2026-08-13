@@ -243,5 +243,43 @@ def test_the_refusal_names_the_dependent_line_and_not_a_bare_count(tmp_path):
     (violation,) = raised.value.violations
     assert f"RK1's line ({ROADMAP}:3)" in violation.message
     assert "dep annotation" in violation.message
-    # Appended, never substituted: the rule and its number are still what a fix needs.
-    assert violation.message.startswith("40 characters, limit is 38")
+    # **Leading** since RK1152: RK348 appended this clause, so the sentence still opened with a
+    # count about the string the caller had just typed and the redirection arrived after the
+    # remedy — read in order, it says shorten the wrong prose. The rule and its number survive
+    # after the address, because a refusal that only says what to type teaches nobody why.
+    assert violation.message.startswith(f"on RK1's line ({ROADMAP}:3), not on the text passed")
+    assert "40 characters, limit is 38" in violation.message
+    assert "amend RK1 --why" in violation.message
+
+
+def test_every_line_the_write_would_overflow_is_named_in_one_refusal(tmp_path):
+    """RK1152's second half, and the one that cost the rounds.
+
+    `ship DD34` was refused three times in Shio: each refusal named one dependent, the author
+    amended it, and the next was found only by re-running the command. Three lines whose
+    annotation this write ticks are three violations of one refusal — the scan does not stop at
+    the first, because `derive` reads the backlog rather than the document being rebuilt, so the
+    third overflow is as true as the first before anything is written.
+    """
+    lines = [
+        f"- 📋 **RK{n}** (deps: RK4) **A symptom that is quite long** — "
+        f"Because of a reason that fills the line. → §RK{n}"
+        for n in (1, 2, 3)
+    ]
+    project(tmp_path, roadmap="## Block A — The model\n\n" + "\n".join(lines) + "\n")
+    (tmp_path / "roadkeep.toml").write_text(
+        f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n'
+        f"[limits]\nline = {width(lines[0])}\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(SchemaError) as raised:
+        refresh(Backlog.load(Config.discover(tmp_path)))
+    named = {
+        one.message.split("'s line", 1)[0].removeprefix("on ")
+        for one in raised.value.violations
+    }
+    assert named == {"RK1", "RK2", "RK3"}, named
+    # And each one carries the edit that closes it, so one round of amends is enough.
+    assert all(f"amend {who} --why" in " ".join(
+        one.message for one in raised.value.violations
+    ) for who in named)

@@ -665,6 +665,7 @@
 - ✅ **RK1116** **the launcher the installed skill names as the entry point forwards only guard and mcp, so every verb exits 2** — Anything that is not guard or mcp is forwarded to the engine the launcher resolved, so the entry point the installed skill names runs every verb.
 - ✅ **RK1128** **A --lines refusal says the ledger records no partial, on a line whose partial it names one call later** — A --lines beside a --part is refused for the rule rather than for the ledger, and names the call with no --part as the completion a count belongs to.
 - ✅ **RK1140** **anchors --next names a free top-level that add --ref then refuses, because no heading declares it yet** — A free top-level says it is an address and not yet a section and names the section add that declares it, on stderr and in the payload, where a free child says nothing.
+- ✅ **RK1152** **ship refuses because a dependent task's why is one character too long once its dep annotation grows a tick** — the refusal leads with whose line overflowed and the amend that closes it, and names every line the write would break.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

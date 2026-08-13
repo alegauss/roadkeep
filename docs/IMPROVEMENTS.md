@@ -85,30 +85,4 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1152 A refusal a caller cannot act on names the wrong line
-
-`ship DD34` was refused three times in a row, each time with a message that opened by
-naming the `--why` passed to the command:
-
-```
-why: 164 characters, limit is 163 ... delete 1 character - about 1 word
-  ... - on DD35's line (docs/ROADMAP.md:15), whose dep annotation this write
-  re-derives, and not on the text passed to this command
-```
-
-The clause that matters is at the end, after the remedy. A caller reads "delete 1
-character" and edits the string it just passed, which cannot help: the overflow is on a
-*dependent's* line, because shipping re-derives `(deps: DD34)` into `(deps: DD34 ✅)` and
-that tick is two characters wider. Unblocking one ship meant amending DD35, then DD36,
-then DD37 — each discovered only by re-running `ship` and reading the next refusal.
-
-Two things would fix it independently. The refusal could lead with whose line overflowed
-and what to run (`amend DD35 --why ...`), rather than leading with a remedy that applies
-to a different string. And it could report **every** line the write would overflow, not
-the first, so one edit round closes it instead of three.
-
-The check itself is right: a line that will not fit after a derived write should refuse
-before writing rather than truncate. What is wrong is that the message is addressed to
-the wrong text.
-
 ## Block G — The editor surface (the backlog where the file is open)

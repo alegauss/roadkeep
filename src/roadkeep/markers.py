@@ -65,6 +65,12 @@ def refresh(backlog: Backlog) -> Refresh:
     """
     document = backlog.roadmap
     changed: list[str] = []
+    # Every line this write would overflow, and not the first one found (RK1152). A `ship` that
+    # ticks three dependents used to refuse three times: each refusal named one line, the author
+    # amended it, and the next was discovered only by re-running the command. The scan is
+    # unaffected by collecting rather than raising — `derive` reads the backlog and not the
+    # document being rebuilt — so the second overflow is as true as the first.
+    refused: list[tuple[Entry, SchemaError]] = []
     for entry in backlog.roadmap.entries:
         derived = derive(backlog, entry.task)
         if document.schema.render(derived) == entry.raw:
@@ -74,41 +80,57 @@ def refresh(backlog: Backlog) -> Refresh:
         try:
             document.schema.check(derived)
         except SchemaError as error:
-            raise _naming_the_line(backlog, entry, error) from None
+            refused.append((entry, error))
+            continue
         current = next(e for e in document.entries if e.lineno == entry.lineno)
         document = document.replace_task(current, derived)
         changed.append(entry.task.id)
+    if refused:
+        raise _naming_the_lines(backlog, refused) from None
     return Refresh(document=document, changed=tuple(changed))
 
 
-def _naming_the_line(backlog: Backlog, entry: Entry, error: SchemaError) -> SchemaError:
-    """The same refusal, told whose line it is about (RK348).
+def _naming_the_lines(
+    backlog: Backlog, refused: list[tuple[Entry, SchemaError]]
+) -> SchemaError:
+    """The refusal, addressed to the line it is about and not to the caller's text (RK348, RK1152).
 
-    A length reported as a bare number reads as *your sentence is too long*, and here it
-    never is: the sentence that went over belongs to a **dependent**, and it went over
-    because this write re-derived its `(deps: …)` annotation and a ✅ costs two characters.
-    The author shortens what they just typed, gets the same count back, and finds the real
-    line by diffing the file.
+    A length reported as a bare number reads as *your sentence is too long*, and here it never is:
+    the sentence that went over belongs to a **dependent**, and it went over because this write
+    re-derived its `(deps: …)` annotation and a ✅ costs two characters. RK348 put the id and the
+    `file:line` in the message and put them at the **end**, after the remedy — so the sentence
+    still opened `delete 1 character` about the string the caller had just typed, and the clause
+    that redirects it arrived once the reader had already acted. Measured on Shio: `ship DD34`
+    refused three times, three amends, each next line found by re-running the command.
 
-    So every violation raised here gets the clause the rest of this tool's refusals already
-    carry — the id and its `file:line` — appended rather than substituted, because what the
-    limit is has to survive alongside where it was hit. The repair after that is a real edit
-    and stays the author's: trimming a dependent's `why` to make room for a marker nobody
-    typed is legitimate, and only discovering it by elimination was not.
+    So the address **leads**, and the command that closes it is named the way every `lint` finding
+    names one (RK14/15): the edit is `amend <the dependent> --why …`, never a shorter `--why` here.
+    What the limit is survives after it, because a refusal that only says what to type teaches
+    nobody why the field exists. The repair itself stays the author's — trimming a dependent's
+    `why` to make room for a marker nobody typed is a real edit, and only discovering *which*
+    line by elimination was the defect.
+
+    Every refused line in one error, so one edit round closes what took three.
     """
+    from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260, the refusal path only
+
     where = backlog.roadmap.path
-    address = (
-        f"{backlog.config.relative(where)}:{entry.lineno}"
-        if where is not None
-        else f"line {entry.lineno}"
-    )
-    said = (
-        f" — on {entry.task.id}'s line ({address}), whose dep annotation this write "
-        f"re-derives, and not on the text passed to this command"
-    )
-    return SchemaError(
-        tuple(replace(one, message=f"{one.message}{said}") for one in error.violations)
-    )
+    violations = []
+    for entry, error in refused:
+        address = (
+            f"{backlog.config.relative(where)}:{entry.lineno}"
+            if where is not None
+            else f"line {entry.lineno}"
+        )
+        lead = f"on {entry.task.id}'s line ({address}), not on the text passed here — "
+        said = (
+            f" — `{invocation()} amend {entry.task.id} --why …` is the edit: this write "
+            f"re-derives that line's dep annotation, and a marker is two characters wider"
+        )
+        violations += [
+            replace(one, message=f"{lead}{one.message}{said}") for one in error.violations
+        ]
+    return SchemaError(tuple(violations))
 
 
 def _annotate(backlog: Backlog, dep: Dep) -> Dep:

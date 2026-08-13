@@ -121,13 +121,9 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 93 | 1 |
 | D — The gate | 0 | 164 | 0 |
 | E — Adoption | 0 | 86 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 104 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 105 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 645 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1152** (deps: —) **ship refuses because a dependent task's why is one character too long once its dep annotation grows a tick** — The refusal names the shipping task's own why, which cannot fix it: unblocking one ship meant amending three dependents one at a time, re-running ship after each. → §RK1152
+| **Total** | 0 | 646 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
