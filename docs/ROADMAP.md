@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1123** (deps: —) **nothing binds the fields of Scope to the two payloads that carry them, so a field added reaches one reader** — RK1120 added the fifth field and both payloads were edited by hand, which is the arrangement RK276 and RK289 already closed for Registration and Plan. → §RK1123
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

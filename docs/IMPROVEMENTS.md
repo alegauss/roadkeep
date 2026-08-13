@@ -77,37 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1123 The dataclass with two payloads and no closure
-
-`Scope` has five fields and two payloads carry them: `rendering._scope_json` for a
-departure and the dict `claim <id> --json` composes. Nothing holds the two against the
-dataclass.
-
-Measured while shipping RK1120, which added the fifth: both payloads were edited by
-hand, and the only thing that would have caught a missed one is a reader noticing later
-that a client is parsing a field this tool stopped sending — or never started.
-
-This is the arrangement RK276 and RK289 already closed one dataclass over. RK289 bound
-`Plan` to `install --json` with a test that reads `dataclasses.fields` and asserts every
-name is in the payload — and it earns its keep on every field added since, RK1113's two
-included:
-
-```
-named = {PLAN_RENAMES.get(field.name, field.name) for field in fields(Plan)}
-assert named <= set(payload)
-```
-
-The same test over `Scope` is the deliverable, and the rename table is the part that
-needs a decision rather than a copy: the two payloads already spell three of the five
-differently (`mine` → `paths` in one of them, `loose` → `unclaimed`, `idle` →
-`staging_nothing`), and a name a client reads is a contract this must not quietly rename
-to make a closure pass.
-
-So: one table saying which field each payload calls what, asserted in both directions
-like RK491's rule for an unheld code — a field with no entry is red, and an entry naming
-no field is red too, which is what keeps the table from outliving the dataclass it
-describes.
-
 ## Block C — Query
 
 ## Block D — The gate

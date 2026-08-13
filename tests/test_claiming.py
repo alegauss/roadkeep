@@ -1678,3 +1678,82 @@ def test_a_quiet_tree_says_nothing_on_either_path(tmp_path, capsys):
     capsys.readouterr()
     assert main(["-C", str(tmp_path), "claim", "RK2"]) == EXIT_OK
     assert "shared" not in capsys.readouterr().out
+
+
+# -- the dataclass and the two payloads that carry it (RK1123) ------------------
+
+#: What each payload calls each field of :class:`~roadkeep.claiming.Scope`, per reader. Two
+#: tables and not one, because the two genuinely differ on the first row: a departure reports
+#: `mine` as what the claim declared, and `claim <id>` reports it as `paths` — the word a
+#: client outside this package already reads. Declared rather than derived for RK289's reason,
+#: and asserted in **both** directions (RK491's rule for an unheld code): a field with no entry
+#: is red, and an entry naming no field is red too, so the table cannot outlive the record.
+DEPARTURE_KEYS = {
+    "mine": "mine",
+    "theirs": "theirs",
+    "loose": "unclaimed",
+    "idle": "staging_nothing",
+    "shared": "shared",
+}
+CLAIM_KEYS = {**DEPARTURE_KEYS, "mine": "paths"}
+
+
+def _scoped(tmp_path: Path) -> Config:
+    """A held line with a scope, in a repository, so both payloads have something to carry."""
+    config = _committed(tmp_path, BLOCKS + line("RK2", status=IN_PROGRESS))
+    hold(config, "RK2")
+    claiming.scope(config, "RK2", ["src/a.py"])
+    return config
+
+
+@pytest.mark.parametrize("table", [DEPARTURE_KEYS, CLAIM_KEYS], ids=["ship", "claim"])
+def test_the_rename_table_names_every_field_and_only_fields(table):
+    """RK1123's first half, and the one that fails on the *next* field rather than on this one:
+    RK1120 added `shared` and both payloads were edited by hand, with nothing to notice a miss."""
+    from dataclasses import fields
+
+    from roadkeep.claiming import Scope
+
+    assert set(table) == {field.name for field in fields(Scope)}
+
+
+def test_the_claim_payload_carries_every_field_of_the_scope(tmp_path, capsys):
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    _scoped(tmp_path)
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "claim", "RK2", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert set(CLAIM_KEYS.values()) <= set(payload)
+
+
+def test_the_departure_payload_carries_every_field_of_the_scope(tmp_path, capsys):
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    _scoped(tmp_path)
+    capsys.readouterr()
+    argv = ["-C", str(tmp_path), "ship", "RK2", "--why", "It works now.", "--json"]
+    assert main(argv) == EXIT_OK
+    scope = json.loads(capsys.readouterr().out)["scope"]
+    assert set(DEPARTURE_KEYS.values()) <= set(scope)
+
+
+def test_the_key_the_two_payloads_do_not_share_is_the_declared_one(tmp_path, capsys):
+    # Held so the second table is a difference somebody wrote down and not a copy that drifted:
+    # `paths` and `mine` are one field under two names, and both are read by somebody.
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    _scoped(tmp_path)
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "claim", "RK2", "--json"]) == EXIT_OK
+    claimed = json.loads(capsys.readouterr().out)
+    assert claimed["paths"] == ["src/a.py"] and "mine" not in claimed
+    argv = ["-C", str(tmp_path), "ship", "RK2", "--why", "It works now.", "--json"]
+    assert main(argv) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["scope"]["mine"] == ["src/a.py"]
