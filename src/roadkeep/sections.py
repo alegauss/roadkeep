@@ -378,15 +378,22 @@ class Section:
     first: int  # 1-based, as an editor counts
     last: int
     body: str = ""
-    #: What this section's **own** prose spends, where :attr:`body` is a subtree (RK287).
-    #: None where the two are the same string — :func:`anchored`'s reading — and set by
-    #: :func:`find`, which is the constructor that returns the children with the parent.
-    own: int | None = None
+    #: This section's **own** prose, where :attr:`body` is a subtree (RK287). None where the
+    #: two are the same string — :func:`anchored`'s reading — and set by :func:`find`, which
+    #: is the constructor that returns the children with the parent. The **text** and not a
+    #: count of it since RK1112: `amend` replaces exactly this, so a reader that could state
+    #: its size but not print it left `show` unable to offer what the write takes.
+    own: str | None = None
 
     @property
     def words(self) -> int:
         """What the budget charges this section: its argument, not its whole text (RK136)."""
         return words(self.body)
+
+    @property
+    def prose(self) -> str:
+        """This section's own text, subsections excluded — what `amend --body` replaces."""
+        return self.body if self.own is None else self.own
 
     @property
     def own_words(self) -> int:
@@ -396,7 +403,7 @@ class Section:
         like this repository's `§0` has no paragraph of its own, so :attr:`words` measures
         the file's shape rather than anyone's argument.
         """
-        return words(self.body) if self.own is None else self.own
+        return words(self.prose)
 
     @property
     def nests(self) -> bool:
@@ -472,7 +479,7 @@ def find(document: Document, anchor: str) -> Section | None:
         first=heading.lineno,
         last=end,
         body=body,
-        own=words(own),
+        own=own,
     )
 
 
@@ -1141,6 +1148,41 @@ def _refuse_reuse(config: Config, role: str, anchor: str, where: str) -> None:
     raise AnchorRetired(anchor, spent.written_in, free, where)
 
 
+def _refuse_subtree(document: Document, anchor: str, body: str) -> None:
+    """Refuse a body that carries a subsection's own heading (RK1112).
+
+    `show` prints the subtree and this verb replaces the own prose, so the obvious round-trip
+    — show a section, correct one sentence, amend it back — arrived at the word limit instead:
+    measured in claude-tray, 1692 words against 300 on a `§XXIII` with six subsections. That
+    refusal is right about the number and says nothing about the cause, and an author reads
+    *"a section this long is two sections"* as a verdict on prose they only meant to pass
+    through. Asked **before** the limit, because a mistake about extent is not a mistake about
+    length and the two have no remedy in common.
+
+    Read off the file's own heading lines and never by parsing the pasted text: what a child's
+    heading is, this document already decided, so the check is whether the body carries one of
+    those strings — no second grammar for headings, and a body carrying none of them is prose
+    however long. The remedy is the extent, so the message names both halves of it: the
+    reader that prints what this verb takes, and the anchor a subsection is amended by.
+    """
+    lines = {line.strip() for line in body.splitlines() if line.strip()}
+    for child in nested(document, anchor):
+        heading = document.lines[child.first - 1].strip()
+        if heading in lines:
+            raise SectionError(
+                (
+                    Violation(
+                        "body.subtree",
+                        "body",
+                        f"the body carries §{child.anchor}'s own heading, so this is "
+                        f"§{anchor}'s subtree and not its prose: `section show {anchor} "
+                        f"--own` prints the extent this replaces, and §{child.anchor} is "
+                        f"amended by its own anchor",
+                    ),
+                )
+            )
+
+
 def amend(
     config: Config,
     role: str,
@@ -1179,7 +1221,12 @@ def amend(
     if span is None or section is None:
         raise NoSuchSection(anchor, config.relative(config.path(role)))
     _, _, heading = span
-    own = "".join(document.lines[heading.lineno : document.prose_end(heading)]).strip("\r\n")
+    # The one reading of "this section's own prose", off the record `find` already built
+    # (RK1112): a second slice here is the second answer that let `show` print one extent and
+    # this verb take another.
+    own = section.prose
+    if body is not None:
+        _refuse_subtree(document, anchor, body)
 
     # Read before the no-op check rather than after it, because a `--title` has to be bound
     # before it can be compared (RK262): the title that differs from the file only by the id

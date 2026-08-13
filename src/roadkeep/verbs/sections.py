@@ -382,12 +382,18 @@ def _section_show(config: Config, args: argparse.Namespace) -> int:
         )
         return EXIT_USAGE
 
+    # The extent, and it is the caller's (RK1112): the subtree is what a reader of the design
+    # wants and the own prose is what `amend` replaces, so the flag says which question this
+    # call is — printing one of them under the other's name is how a round-trip met a word
+    # limit instead of the file. `body` stays the key either way: it is the body of what was
+    # asked for, and `own_words` beside it already states that the two extents differ.
+    shown = section.prose if args.own else section.body
     if args.json:
-        print(json.dumps({**_section_json(section, where), "body": section.body}, indent=2))
+        print(json.dumps({**_section_json(section, where), "body": shown}, indent=2))
         return EXIT_OK
     print(heading_of(config.schema, section))
     print()
-    print(section.body)
+    print(shown)
     return EXIT_OK
 
 

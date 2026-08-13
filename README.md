@@ -117,17 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 132 | 1 |
+| B — Authoring (insert, never hand-edit) | 0 | 133 | 1 |
 | C — Query (consult without reading the file) | 0 | 88 | 1 |
 | D — The gate | 0 | 149 | 0 |
 | E — Adoption | 0 | 84 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 98 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 98 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 4 | 603 | 6 |
+| **Total** | 4 | 604 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1112** (deps: —) **section show prints the subtree and section amend takes only the own body, so the obvious round-trip is refused** — Feeding show's output straight back reports 1692 words against a 300 limit, which reads as prose written too long rather than as the wrong extent. → §RK1112
+- 📋 **RK1113** (deps: —) **`install --check` reports drift on a `--committed` project and names the plain `install`, which downgrades the wiring** — The committed launcher exists for a session that installs no plugin, so a refresh replacing it with a checkout path leaves that environment with no guard. → §RK1113
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -525,11 +525,21 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "Print one section whole, with the word count the budget is measured in. An "
             "address that is not an anchor is read as a heading text, so the file's opening "
-            "and a table of contents answer too. Reads; never writes."
+            "and a table of contents answer too. `--own` prints what `section amend --body` "
+            "takes, so the two extents are one on the section that has children. Reads; "
+            "never writes."
         ),
     )
     section_show.add_argument(
         "anchor", help="the anchor, e.g. RK9, or an unanchored heading's own text"
+    )
+    section_show.add_argument(
+        "--own",
+        action="store_true",
+        help=(
+            "print this section's own prose alone, which is the extent `section amend "
+            "--body` replaces — the round-trip on a section that has subsections"
+        ),
     )
     section_show.add_argument("--role", default="improvements", help="which prose file")
     section_show.add_argument("--json", action="store_true", help=_JSON_HELP)

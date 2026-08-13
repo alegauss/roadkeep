@@ -379,11 +379,14 @@ the limit, because composing to exactly the declared number is what refuses. `bu
 refuses, `--role` naming which of them you mean; on a line's own budget that half comes
 back empty and states the same reason; `section show <a>` is the other half of that read —
 the prose whole, with the count the budget is measured in, so an `amend` is composed
-against what is there rather than against a remembered version of it. **If a body is
-refused anyway, do not count by
-hand**: `body.too-long` names what each paragraph costs and which is the longest, so the
-second draft is composed once — and a `0` there is a table or a fence, which is prose no
-cut can reach. `budget --non-goal [--lead "…"]` is the roadmap's other bullet, whose two
+against what is there rather than against a remembered version of it — and it prints the
+**subtree**, so on a section with children `section show <a> --own` is the half that write
+replaces. Hand the subtree back and it is refused as the wrong extent (`body.subtree`)
+naming that flag, rather than counted as prose somebody wrote too long: a subsection is
+amended by its own anchor. **If a body is refused anyway, do not count by hand**:
+`body.too-long` names what each paragraph costs and which is the longest, so the second
+draft is composed once — and a `0` there is a table or a fence, which is prose no cut can
+reach. `budget --non-goal [--lead "…"]` is the roadmap's other bullet, whose two
 limits are the list's own and not the task line's. **`budget --file <p>` is the fourth
 subject**, and the one that is not about prose at all: what an every-turn file `[budgets]`
 declares costs in lines and bytes and what is left — bare, every declared budget. Read it

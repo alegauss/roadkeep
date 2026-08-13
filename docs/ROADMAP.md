@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1112** (deps: —) **section show prints the subtree and section amend takes only the own body, so the obvious round-trip is refused** — Feeding show's output straight back reports 1692 words against a 300 limit, which reads as prose written too long rather than as the wrong extent. → §RK1112
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
@@ -39,6 +37,7 @@
 - 📋 **RK1113** (deps: —) **`install --check` reports drift on a `--committed` project and names the plain `install`, which downgrades the wiring** — The committed launcher exists for a session that installs no plugin, so a refresh replacing it with a checkout path leaves that environment with no guard. → §RK1113
 - 📋 **RK1114** (deps: —) **`pick` offers a partially shipped line that `--claim` then refuses, the partial ledger entry reading as a ship** — A partial leaves the line open at ⏳ by design, so the one verb that starts a task cannot take the line the picker just named. → §RK1114
 - 📋 **RK1115** (deps: —) **defer refuses any line whose why already fills its budget, because the wrapped reason is charged to the same limit** — A line written to its why budget can never be paused: the prefix alone needs 14 characters the limit has no room for, so the only doors are terminal. → §RK1115
+- 📋 **RK1116** (deps: —) **the launcher the installed skill names as the entry point forwards only guard and mcp, so every verb exits 2** — With no MCP server connected, the one path the session is told to use answers a usage line, so an agent with a working engine on disk guesses at a checkout path instead. → §RK1116
 
 ## Block G — The editor surface (the backlog where the file is open)
 

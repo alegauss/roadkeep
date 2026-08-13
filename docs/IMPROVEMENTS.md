@@ -77,37 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1112 Show prints the subtree, amend takes the body
-
-`section show <anchor>` prints the section **and its subsections**. `section amend
-<anchor> --body-file` accepts only the section's **own** body — its own help says so:
-*"The subtree is not touched: a subsection is amended by its own anchor."* So the
-natural round-trip, show a section, edit one sentence, amend it back, is refused on any
-section that has children.
-
-**Reproduced in claude-tray**, correcting one citation inside `§XXIII`, which has six
-subsections:
-
-```
-$ roadkeep section show XXIII --role improvements > body.md   # 1692 words: XXIII + .1 … .6
-$ roadkeep section amend XXIII --body-file body.md --role improvements
-roadkeep: refused, nothing written:
-  body: 1692 words, limit is 300: delete 1392 words; a section this long is two sections, or a
-  paragraph that belongs in the commit; by paragraph ¶1 60, ¶2 63, … ¶20 is the longest
-```
-
-The refusal is correct about the number and wrong about the cause, and it names neither
-`show` nor the subtree. An author reads *"delete 1392 words"* and *"a section this long
-is two sections"* as a verdict on prose they did not write, on a body they only meant to
-pass through. The workaround is to slice the file by hand between the heading and the
-first `###`, which is the hand-edit the guard exists to stop.
-
-**Two candidate fixes, and the choice is editorial.** Either `show` grows a default or a
-flag that prints the own body alone, so the round-trip is closed; or `amend` detects
-that the body it was handed begins with this section's own text and continues into its
-declared children, and says *that* instead of counting words. The second also catches
-the copy-paste case where no `show` was involved.
-
 ## Block C — Query
 
 ## Block D — The gate
@@ -204,5 +173,34 @@ sentence they did not write and that the module promises never to rewrite.
 The fix is a decision rather than an obvious edit: charge only the author's half to the
 limit and let the derived prefix ride free, give the wrapped form a budget of its own,
 or keep the refusal and make it name the prefix and point at `amend`.
+
+### §RK1116 The named entry point that runs no command
+
+`install --committed` writes `.claude/hooks/roadkeep-launch.py` and the skill beside it,
+and that skill states the entry point in its first paragraph: `python
+".claude/hooks/roadkeep-launch.py"` is this project's entry point, the package is not
+installed and `roadkeep` is on no PATH. Everything the skill then describes is a command
+— `add`, `pick`, `brief`, `lint`, `ship`.
+
+The launcher dispatches on `guard` and `mcp` alone. Anything else writes a usage line
+and exits 2, and that line names those two modes rather than a path that would answer.
+
+Measured on the dockerdesk repository, adopted `--committed`, nothing else changed:
+
+    $ python .claude/hooks/roadkeep-launch.py pick
+    usage: roadkeep-launch.py {guard|mcp}
+    $ echo $?
+    2
+
+Both modes are internal: the harness calls `guard` from a hook and `mcp` from
+`.mcp.json`. So the file resolves an engine for the two callers that are not the agent,
+and refuses the one that was handed its name. Where the server connected the tools cover
+it; where it did not, the session has a working engine on disk, a documented way to
+reach it, and no verb that arrives — so the fallback is guessing at a checkout path,
+which is the guess the committed launcher exists to remove.
+
+The resolution order is the valuable half of this file and it is already right. A mode
+that forwards its remaining arguments to the engine it already found makes the entry
+point the skill names the entry point that runs.
 
 ## Block G — The editor surface (the backlog where the file is open)

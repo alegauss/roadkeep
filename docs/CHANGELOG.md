@@ -189,6 +189,7 @@
 - ✅ **RK1088** **the closure names the file it removed from and no caller reads it** — The closure's document is named for what it is and the printer and payload read removed_in, so the file a closure wrote is answered rather than assumed to be the roadmap.
 - ✅ **RK1107** **a prose file's preamble and table of contents carry no anchor, so every edit to them is a hand edit** — An address that is not an anchor reads as a heading text, so a file's opening and its contents answer to section show and amend (design §RK1107 superseded: no positional name had to be declared).
 - ✅ **RK1109** **section amend answers unchanged: it already reads that way over a body left unread on stdin** — An unchanged amend says the prose was never read and the JSON carries it as a field, so a piped body with a --title is not a confirmation (design §RK1109 superseded: stdin is never a tty over MCP).
+- ✅ **RK1112** **section show prints the subtree and section amend takes only the own body, so the obvious round-trip is refused** — `section show --own` prints the extent `section amend --body` replaces, and a body carrying a subsection's heading is refused as the wrong extent.
 
 ## Block C — Query
 

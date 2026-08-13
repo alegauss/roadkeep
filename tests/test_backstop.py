@@ -140,6 +140,9 @@ BACKSTOP: tuple[Backstopped, ...] = (
     ),
     # -- nothing reports it, and the two kinds of nothing ---------------------
     Backstopped("title.newline", because=ARGUMENT),
+    # RK1112: the argument covered the wrong extent, and once written a pasted child heading
+    # *is* a heading — so the state this refuses has no spelling in the file to report.
+    Backstopped("body.subtree", because=ARGUMENT),
     Backstopped("title.markup", because=ARGUMENT),
     Backstopped("anchor.namespace", because=PROSE),
     Backstopped(

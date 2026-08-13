@@ -2108,6 +2108,88 @@ def test_the_json_carries_both_counts_so_a_client_never_has_to_choose(tmp_path, 
     assert payload["own_words"] < payload["words"]
 
 
+# -- the extent show prints is the extent amend takes (RK1112) ----------------
+
+
+def test_show_own_prints_the_extent_amend_replaces(tmp_path, capsys):
+    # The round-trip: show a section, correct one sentence, amend it back. Without the flag
+    # `show` prints §RK1 *and* §RK1.1, so what came back was the subtree — and the refusal
+    # was a word count, right about the number and silent about the cause.
+    config = project(tmp_path)
+    assert main(["-C", str(tmp_path), "section", "show", "RK1", "--own"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "The reasoning the line has no room for." in printed
+    assert "A subsection" not in printed
+    # And it is the same string the write replaces, which is the whole claim: one extent.
+    assert find(config.document("improvements"), "RK1").prose in printed
+
+
+def test_show_still_prints_the_subtree_by_default(tmp_path, capsys):
+    # Held so the flag is an answer to a second question and not a change to the first: a
+    # reader of the design wants the children, and that is what a pointer hands them.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "section", "show", "RK1"]) == EXIT_OK
+    assert "A subsection" in capsys.readouterr().out
+
+
+def test_the_json_body_is_the_extent_that_was_asked_for(tmp_path, capsys):
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "section", "show", "RK1", "--own", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert "A subsection" not in payload["body"]
+    # The pair of counts is unchanged: they say what the section is, not what was printed.
+    assert payload["own_words"] < payload["words"]
+
+
+def test_a_body_carrying_a_subsections_heading_is_refused_as_the_wrong_extent(tmp_path):
+    # The defect, as claude-tray reported it: 1692 words against 300 on a `§XXIII` with six
+    # subsections, from an author who had edited one sentence of it. "Delete 1392 words" and
+    # "a section this long is two sections" are a verdict on prose they did not write.
+    config = project(tmp_path)
+    whole = find(config.document("improvements"), "RK1").body
+    with pytest.raises(SectionError) as raised:
+        amend(config, "improvements", "RK1", body=whole.replace("reasoning", "argument"))
+    assert [v.code for v in raised.value.violations] == ["body.subtree"]
+
+
+def test_the_refusal_names_the_reader_that_prints_what_this_verb_takes(tmp_path):
+    # The rule this project holds everywhere: a refusal carries the command that closes it.
+    # Here that is the extent — the flag above, and the anchor a subsection is amended by.
+    config = project(tmp_path)
+    whole = find(config.document("improvements"), "RK1").body
+    with pytest.raises(SectionError) as raised:
+        amend(config, "improvements", "RK1", body=whole)
+    said = str(raised.value.violations[0])
+    assert "section show RK1 --own" in said and "§RK1.1" in said
+
+
+def test_the_extent_is_asked_before_the_word_limit(tmp_path):
+    # Order matters and is the fix: a mistake about extent is not a mistake about length, so
+    # a subtree that is also over the budget must still be told which of the two it is.
+    config = project(tmp_path)
+    whole = find(config.document("improvements"), "RK1").body
+    with pytest.raises(SectionError) as raised:
+        amend(config, "improvements", "RK1", body=whole + "\n\n" + "word " * 400)
+    assert [v.code for v in raised.value.violations] == ["body.subtree"]
+
+
+def test_prose_that_is_merely_long_is_still_a_length_refusal(tmp_path):
+    # The other side, so the check above is about headings and not about size.
+    config = project(tmp_path)
+    with pytest.raises(SectionError) as raised:
+        amend(config, "improvements", "RK1", body="word " * 400)
+    assert [v.code for v in raised.value.violations] == ["body.too-long"]
+
+
+def test_a_leaf_takes_its_own_body_back_unchanged(tmp_path):
+    # Nothing nested, so `show` and `amend` were already one extent — and a no-op amend of
+    # what was just printed writes nothing rather than being refused.
+    config = project(tmp_path)
+    leaf = find(config.document("improvements"), "0.1")
+    _, _, changed = amend(config, "improvements", "0.1", body=leaf.prose)
+    assert changed == ()
+
+
 def test_show_states_the_same_pair_as_the_section_verbs(tmp_path, capsys):
     # `show` and `brief` are what start a task, so a figure they state wrongly is the one
     # an author acts on first.
