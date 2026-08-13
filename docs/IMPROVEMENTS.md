@@ -133,32 +133,31 @@ pointer scheme are its own. None of that is a table; all of it is the field's ty
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-### §RK1169 The tool declares itself once, or six tables declare it again
+### §RK1169 What is left of the six is one
 
 `src/roadkeep/serving.py` derives every property's type, description and bounds from the
-argparse action, which was right and stopped one file short. What it could not derive it
-tabled: `TOOLS` says which arguments a caller may set, `_BOUNDS` narrows them,
-`WITHHELD` says what a refusal must explain, `_CONDITIONAL` says when a project opens
-one, `_DIVERGENT` says where a verb's bounds are not the common ones, and `_DESTS` maps
-an option back to its dest.
+argparse action, and tabled what it could not. The first slice moved one: `WITHHELD` had
+**no reader in the package** — only a test comparing it against the parsers — so each
+reason now sits on the argument it explains, and both the table and that test are gone.
 
-None is wrong, and that is the finding. Each is held true by a test asserting its domain
-is total against the parsers, so the cost is not a defect waiting to happen but tests
-written to prove that two places agree about one thing.
+The remaining five were measured against the same question, and three answer it
+differently:
 
-A parser already carries `handler`, `reads_only` and `reads_stdin` through
-`set_defaults`. Exposure, bounds and the withheld reason are the same kind of fact and
-belong there; moved, the tables go and so do the tests that held them, because a fact
-stated once cannot disagree with itself.
+- **`_BOUNDS` and `_CONDITIONAL` are keyed by *dest*, not by verb.** `symptom` means one thing
+  wherever it appears, and one row answers for every verb that takes it. Per parser, one answer
+  becomes six copies — this task's own drift, pointed the other way.
+- **`_DIVERGENT` belongs to the served surface.** Its rows name JSON-Schema bound tables, so
+  declaring it in `cli.py` would make the command surface import the server's vocabulary,
+  inverting a dependency that runs one way on purpose: `serving` imports `cli` lazily and never
+  the reverse.
+- **`_DESTS` stays, as this already said**, owed a derivation checked against the parsers.
 
-`_DESTS` is the exception and must not be folded in blind. It exists so `serves` can
-answer inside a hook the harness waits on **without** building the parser index, which
-costs 117 ms — a budget, not a convenience. So it stays a table, and what it is owed
-here is a derivation checked against the parsers rather than a second hand-written
-opinion.
+So what is left of the claim is **`TOOLS`**: which verbs are tools, and which of their
+arguments a caller may set. That is the substantial one, and its facts are per verb and
+per argument — the shape the first slice proved.
 
-What is derived stays derived: the config still narrows a conditional field, since L6
-says the project declares that shape.
+What needs deciding: whether exposure is a list declared beside the verb or a mark on
+each `add_argument`. The second is where the fact belongs and the larger edit.
 
 ### §RK1170 One result, two registers, one place
 
