@@ -110,36 +110,6 @@ describes.
 
 ## Block C — Query
 
-### §RK1122 The read that cannot see what the departure can
-
-RK1120 gave a departure the half `loose` cannot reach: for a governed file this id
-explains, which *other* ids gained or lost a line since HEAD. `claim <id>` is the other
-reader of the same contract and it answers `shared: []` on every call, because
-`departing` computes the list and `split` does not.
-
-The asymmetry is backwards. A departure is the moment of committing and this read is the
-one an author makes *before* it — `--porcelain` exists to be piped straight into `git
-add --`, so it is the answer a commit is actually composed from on every task that is
-not shipping. A session that runs it is told the paths and not that the roadmap it is
-about to stage already carries somebody else's line.
-
-```
-$ roadkeep claim RK2 --json | jq .shared
-[]                       # always, whatever the roadmap holds
-$ roadkeep ship RK2 --why "…"
-  shared   ROADMAP.md  (RK9 moved in it too, and staging it takes that)
-```
-
-Both readings are already available here. `claim <id>` asks git for `dirty` and
-`indexed` and computes `written`, which is the accounting the `shared` list is
-subtracted from, so what is missing is the call and not the machinery: `ids_since` is
-pure over a revision and a role.
-
-What is worth keeping is why the two verbs differ at all. A departure *must* answer,
-because after it the claim is released and no verb can; this one is asked, so it answers
-either way. That makes the read the cheaper place to put a warning and not the one to
-leave it out of.
-
 ## Block D — The gate
 
 ## Block E — Adoption

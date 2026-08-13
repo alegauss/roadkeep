@@ -118,16 +118,16 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 136 | 1 |
-| C — Query (consult without reading the file) | 1 | 89 | 1 |
+| C — Query (consult without reading the file) | 0 | 90 | 1 |
 | D — The gate | 0 | 149 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 102 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 613 | 6 |
+| **Total** | 1 | 614 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1122** (deps: —) **`claim <id>` answers an empty shared list on every call, so the read a commit is composed from sees half its contract** — The departure computes which other ids moved in a file it stages and this read does not, so one question has two answers depending on the verb asked. → §RK1122
+- 📋 **RK1123** (deps: —) **nothing binds the fields of Scope to the two payloads that carry them, so a field added reaches one reader** — RK1120 added the fifth field and both payloads were edited by hand, which is the arrangement RK276 and RK289 already closed for Registration and Plan. → §RK1123
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

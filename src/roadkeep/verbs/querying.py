@@ -396,8 +396,18 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
     # `accounted=wrote` (RK1117): here the word means what it always meant on this path — the
     # dirty governed files whose diff carries this id — and the subtraction it feeds is the
     # same one a departure makes, now made in one place rather than by each printer.
+    #
+    # And `shared` with it (RK1122): this is the read a commit is composed from, so the ids
+    # inside a file it is about to stage are exactly what it exists to say. Asked here rather
+    # than deep in the split for the same reason `dirty` is — this command was told to answer.
     scope = claiming.split(
-        config, args.id, entries, dirty(config), indexed(config), accounted=wrote
+        config,
+        args.id,
+        entries,
+        dirty(config),
+        indexed(config),
+        accounted=wrote,
+        shared=claiming.sharing(config, args.id, wrote),
     )
     if args.json:
         print(
@@ -413,10 +423,8 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
                         {"path": one, "claimed_by": who} for one, who in scope.theirs
                     ],
                     "unclaimed": list(scope.loose),
-                    # Empty on this path and present for the reason every other key is
-                    # (RK1120): `claim <id>` computes no `shared` — that reading belongs to
-                    # the moment of committing — and a key that appeared only at a departure
-                    # would read as a client's payload predating the field.
+                    # The same list a departure carries, and computed here since RK1122: the
+                    # two readers of one contract answering differently was the defect.
                     "shared": [
                         {"path": one, "ids": list(named)} for one, named in scope.shared
                     ],

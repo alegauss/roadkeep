@@ -30,8 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1122** (deps: —) **`claim <id>` answers an empty shared list on every call, so the read a commit is composed from sees half its contract** — The departure computes which other ids moved in a file it stages and this read does not, so one question has two answers depending on the verb asked. → §RK1122
-
 ## Block D — The gate
 
 ## Block E — Adoption

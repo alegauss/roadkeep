@@ -53,7 +53,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
@@ -535,6 +535,7 @@ def split(
     changed: Iterable[str],
     tracked: Iterable[str] = (),
     accounted: Iterable[str] = (),
+    shared: Iterable[tuple[str, tuple[str, ...]]] = (),
 ) -> Scope:
     """Split the changed paths by whose claim names them (RK280, RK295).
 
@@ -558,6 +559,12 @@ def split(
     file whose name was not mistyped. A caller that omits it gets no idle reading at all
     rather than one made against half the evidence — the empty default is the honest failure,
     since every path would otherwise read as staging nothing.
+
+    `shared` is :func:`sharing`'s answer, passed in for the same reason `changed` is: it asks
+    git, and this function's purity is what lets one caller be told to answer and the other
+    answer only where a claim spoke. Carried through rather than composed by each caller so
+    the whole :class:`Scope` is assembled in one place — five lists that have to stay
+    consistent with each other, and two assemblies of them is how they come to differ.
 
     All three lists ask :func:`_covers`, which is the whole of RK495: they used to, between
     them, read a declared directory two ways — `idle` as the `git add --` it becomes, and the
@@ -588,6 +595,7 @@ def split(
             and not any(_covers(declared, one) for declared in named)
         ),
         idle=() if not known else tuple(one for one in mine if not _stages(one, known)),
+        shared=tuple(shared),
     )
 
 
@@ -695,23 +703,50 @@ def departing(config: Config, task_id: str, entries: Iterable[Entry]) -> Scope |
     # Imported here for the reason :mod:`roadkeep.provenance` does it (RK260): this is the
     # only function in the file that asks git anything, and every other reader of a claim —
     # `pick`, `brief`, every marker write — would otherwise pay for the wrapper.
-    from roadkeep.history import dirty, ids_since, indexed  # noqa: PLC0415
+    from roadkeep.history import dirty, indexed  # noqa: PLC0415
 
     changed = dirty(config)
     accounted = written(config, task_id, changed)
-    scope = split(
-        config, task_id, entries, changed, indexed(config), accounted=accounted
+    return split(
+        config,
+        task_id,
+        entries,
+        changed,
+        indexed(config),
+        accounted=accounted,
+        shared=sharing(config, task_id, accounted),
     )
-    shared: list[tuple[str, tuple[str, ...]]] = []
+
+
+def sharing(
+    config: Config, task_id: str, accounted: Iterable[str]
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Per governed file this id explains, the other ids whose line moved in it (RK1120).
+
+    Its own function since RK1122, because **both** readers of the commit contract want it and
+    only one had it: `claim <id>` computed no `shared` at all — an empty list on every call —
+    while being the read a commit is actually composed from, `--porcelain` existing to be piped
+    into `git add --`. A departure *must* answer, the claim being released after it; this one is
+    asked, so it answers either way, which makes it the cheaper place for the warning and not
+    the one to leave it out of.
+
+    Only the files this id already explains (`accounted`): one it does not is reported whole by
+    :attr:`Scope.loose`, and naming the ids inside it as well would be one fact under two
+    headings. :data:`~roadkeep.ids.CARRIERS` and not every role, because a line is what moves —
+    a prose file's ids live in headings, and one this task did not write is loose already.
+    """
+    from roadkeep.history import ids_since  # noqa: PLC0415 - RK260, and git belongs off every
+    # path that did not ask for it
+
+    explained = frozenset(accounted)
+    out: list[tuple[str, tuple[str, ...]]] = []
     for role in CARRIERS:
-        # Only the files this id explains: one it does not is already reported whole, and
-        # naming the ids inside it as well would be the same fact under two headings.
-        if not config.has(role) or config.relative(config.path(role)) not in accounted:
+        if not config.has(role) or config.relative(config.path(role)) not in explained:
             continue
         others = tuple(sorted(ids_since(config, "HEAD", role) - {task_id}))
         if others:
-            shared.append((config.relative(config.path(role)), others))
-    return replace(scope, shared=tuple(shared))
+            out.append((config.relative(config.path(role)), others))
+    return tuple(out)
 
 
 def rename(root: Path | str, old: str, new: str) -> bool:

@@ -1609,3 +1609,72 @@ def test_a_project_git_cannot_answer_for_reports_no_ids(tmp_path):
 
     config = project(tmp_path, BLOCKS + line("RK2"))
     assert ids_since(config, "HEAD", "roadmap") == frozenset()
+
+
+# -- the read a commit is composed from answers the same thing (RK1122) --------
+
+
+def test_the_claim_read_names_the_ids_that_moved_in_a_file_it_stages(tmp_path, capsys):
+    """RK1122. A departure answered this and `claim <id>` returned an empty list on every call —
+    while being the read a commit is actually composed from, `--porcelain` existing to be piped
+    into `git add --`. One question, two answers, decided by which verb was asked."""
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _committed(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    with (tmp_path / "ROADMAP.md").open("a", encoding="utf-8", newline="") as handle:
+        handle.write(line("RK9"))
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "claim", "RK2"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "shared   ROADMAP.md" in printed and "RK9" in printed
+
+
+def test_the_payload_carries_it_on_this_path_too(tmp_path, capsys):
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _committed(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    with (tmp_path / "ROADMAP.md").open("a", encoding="utf-8", newline="") as handle:
+        handle.write(line("RK9"))
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "claim", "RK2", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["shared"] == [{"path": "ROADMAP.md", "ids": ["RK9"]}]
+
+
+def test_both_readers_of_the_contract_answer_alike(tmp_path):
+    # The property the task is about, asserted as one: `sharing` is one function and both
+    # callers pass it the same accounting, so the two verbs cannot come to differ.
+    from roadkeep.history import dirty, git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _committed(tmp_path, BLOCKS + line("RK2", status=IN_PROGRESS) + line("RK9"))
+    hold(config, "RK2")
+    claiming.scope(config, "RK2", ["src/a.py"])
+    text = (tmp_path / "ROADMAP.md").read_text(encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text(text.replace(line("RK9"), ""), encoding="utf-8")
+    entries = config.document("roadmap").entries
+    asked = claiming.sharing(config, "RK2", claiming.written(config, "RK2", dirty(config)))
+    assert asked == claiming.departing(config, "RK2", entries).shared
+
+
+def test_a_quiet_tree_says_nothing_on_either_path(tmp_path, capsys):
+    # The common case has to stay quiet or neither report is read.
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _committed(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "claim", "RK2"]) == EXIT_OK
+    assert "shared" not in capsys.readouterr().out
