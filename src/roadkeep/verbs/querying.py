@@ -683,6 +683,21 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
             f"  budget   why {why.left} of {why.allowed} left, {_aim(why)}, "
             f"{gathered.budget.prose} for prose"
         )
+    if gathered.shipping is not None:
+        # The allowance for the write this brief is starting, which is not the one above
+        # (RK1174): a `ship` writes a ledger line, whose limit is `[limits.changelog]` and whose
+        # structure carries no deps and no pointer. Measured across four ships in one session,
+        # three refused for `why.too-long` on the first attempt — a refusal that names the
+        # arithmetic and cannot arrive early, which is what this line is for.
+        #
+        # Printed only where it **differs**: two numbers for one field is the fact worth seeing,
+        # and repeating the same one under another name is a line that teaches nobody anything.
+        ship = gathered.shipping.share("why")
+        if gathered.budget is None or ship.allowed != gathered.budget.share("why").allowed:
+            print(
+                f"  shipping why {ship.left} of {ship.allowed} left on the ledger line a "
+                f"`ship` writes, which is the limit that refuses it"
+            )
     settled = {one.dep: one for one in gathered.settled}
     for resolution in gathered.deps:
         print(f"  dep      {resolution.dep.id}  {resolution.status}  {resolution.detail}")

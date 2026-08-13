@@ -154,6 +154,15 @@ class Brief:
     #: Deps that shipped after this design was last revised (RK1163) — the question a
     #: dependency may have answered, said as an ordering and never as a claim about the prose.
     settled: tuple[Settled, ...] = ()
+    #: What the **ship** this brief is starting will have for prose (RK1174). The same field of
+    #: the same task, measured under the ledger's grammar: `[limits.changelog]` and a line with
+    #: no deps and no pointer in it. Two numbers for what an author thinks of as one thing, and
+    #: only the one that does not apply was shown before the write — measured across four ships
+    #: in one session, three of them refused for `why.too-long` on the first attempt.
+    #:
+    #: None where the project declares no changelog, and on a shipped line, which has no ship
+    #: left to compose for.
+    shipping: Budget | None = None
     #: What this line has left for prose (RK190). Here because a brief is the call that
     #: starts a task, and the next write on the line it handed over is an `amend` — so the
     #: number that would otherwise arrive as a refusal is already on the desk. None for a
@@ -249,6 +258,11 @@ def _gather(
         claim=claim,
         settled=_settled(config, view, backlog.resolve(task) if entry is not None else ()),
         budget=None if view.shipped else budget_of(config, task, open_line=True),
+        shipping=None
+        if view.shipped or not config.has("changelog")
+        else budget_of(
+            config, task, open_line=False, schema=config.schema_for("changelog")
+        ),
     )
 
 

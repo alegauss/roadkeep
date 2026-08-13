@@ -303,6 +303,7 @@
 - ✅ **RK1133** **amend --json carries which fields changed and never what they were, where status and restate both answer** — The amend payload carries what each changed field said before, deps spelled the way the line spells them and nothing for a field that did not move.
 - ✅ **RK1143** **stats keeps printing the capture row after every capture is filed, so a permanent line says nothing is owed** — The capture row prints where one is unfiled and carries the total there, and the payload keeps the state a report stops saying.
 - ✅ **RK1163** **A rationale written before its dep shipped reads as current, and brief is where that is decided** — a dep whose ship is a descendant of the design's last revision is named beside it, as an ordering and never a claim.
+- ✅ **RK1174** **The why budget brief prints is the roadmap line's, and the ship that follows enforces a different one nothing shows** — brief prints the ledger line's allowance beside the roadmap line's, where the two differ, so the ceiling a ship enforces arrives before the write.
 
 ## Block D — The gate
 

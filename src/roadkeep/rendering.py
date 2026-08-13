@@ -826,6 +826,10 @@ def _brief_json(gathered: Brief, config: Config) -> dict[str, object]:
         # The whole table here and one line on stdout (RK190): a tool result is read by
         # something that can hold it, and this is the number the next write is measured on.
         "budget": None if gathered.budget is None else _budget_json(gathered.budget),
+        # The same shape for the write about to be made (RK1174), and always published where it
+        # exists — unlike the printed line, which is silent when the two agree: a key costs a
+        # client nothing to skip and a consumer comparing them wants both numbers present.
+        "shipping": None if gathered.shipping is None else _budget_json(gathered.shipping),
         # Same key and same shape as `pick`'s (RK154): one fact spelled two ways is two facts.
         "held": [{"id": h.id, "age": round(h.age), "since": h.since} for h in gathered.held],
         "claimed": None

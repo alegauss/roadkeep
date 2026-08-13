@@ -30,8 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1174** (deps: —) **The why budget brief prints is the roadmap line's, and the ship that follows enforces a different one nothing shows** — An author composing a ship's why is composing against a ceiling only a refusal reveals, though brief already holds both numbers it is derived from. → §RK1174
-
 ## Block D — The gate
 
 - 📋 **RK1172** (deps: —) **The gate's checks are functions gathered by convention, each with its own signature, so adding one is invisible** — linting.py is 1,618 code lines of hand-wired calls whose scan kind is implicit in the parameters, where the remedy side has been a table keyed by code since RK420. → §RK1172

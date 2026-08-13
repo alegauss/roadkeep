@@ -71,7 +71,7 @@ from roadkeep.authoring import compose, prose_role
 from roadkeep.config import Budget as ConfigBudget
 from roadkeep.config import Config, spent, translated
 from roadkeep.ids import next_id
-from roadkeep.kernel.schema import CHARS_PER_WORD, Task, body_aim, width, words
+from roadkeep.kernel.schema import CHARS_PER_WORD, Schema, Task, body_aim, width, words
 from roadkeep.scoping import NoSuchNonGoal, NotGoverned, address, leads, read
 from roadkeep.sections import binding, declaring, find
 
@@ -246,15 +246,26 @@ def budget(
 
 
 def budget_of(
-    config: Config, task: Task, *, open_line: bool, ref_assumed: bool = False
+    config: Config,
+    task: Task,
+    *,
+    open_line: bool,
+    ref_assumed: bool = False,
+    schema: Schema | None = None,
 ) -> Budget:
     """The same answer about a task the caller already holds — what `brief` hands over.
 
     Separate from :func:`budget` because the caller that has the line does not want it
     looked up again, and because a shipped one has no budget to state: the ledger is a
     different grammar, and the line an `amend` would rewrite is the open one.
+
+    ``schema`` is which grammar the answer is about (RK1174). The roadmap's is the default and
+    was the only one, which made the number `brief` printed the wrong one for the write an
+    author was usually about to make: a `ship` writes a **ledger** line, whose allowance comes
+    from `[limits.changelog]` and from a structure with no deps and no pointer in it. Measured
+    on one task: 162 characters for the line that exists and 172 for the line it ships to.
     """
-    schema = config.schema
+    schema = schema or config.schema
     prose = schema.prose_budget(task)
     # The structure is derived from the budget rather than measured again: `prose_budget` is
     # the one place that renders the emptied line, and a second measurement is a second answer.

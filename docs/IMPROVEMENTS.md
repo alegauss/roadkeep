@@ -109,27 +109,6 @@ section, which is the migration the key looked like it was.
 
 ## Block C — Query
 
-### §RK1174 The budget shown is not the budget the next write is measured against
-
-Measured across four ships in one session: three were refused for `why.too-long` on the
-first attempt, and each refusal cost a round trip the budget line exists to prevent.
-
-The budget `brief` prints is real and it is the wrong one. `brief DD53` said `budget why
-16 of 165 left`, which is the roadmap line's allowance. The `ship` that followed writes
-a *changelog* line, whose allowance comes from a different limit and a different symptom
-position: the refusal said `limit is 184 ... the line's own limit of 320 leaves 300 for
-prose, and the symptom takes 116`. Two numbers, 165 and 184, for a field an author
-thinks of as one thing, and only the one that does not apply is shown before the write.
-
-The refusal itself is good — it names the limit, the arithmetic and how many words to
-cut. What it cannot do is arrive early. An author composing a ship's `--why` is
-composing against a ceiling derived from the ledger's limit and the symptom already on
-the line, and the tool holds both the moment `brief` runs.
-
-So the fix is upstream of the refusal: `brief` should print the allowance for the write
-the author is about to make, not only for the line that already exists — or both,
-labelled, where the difference between them is itself the thing worth seeing.
-
 ## Block D — The gate
 
 ### §RK1172 A rule is a record, the way a remedy already is

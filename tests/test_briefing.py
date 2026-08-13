@@ -511,3 +511,51 @@ def test_a_design_written_after_its_dep_shipped_says_nothing(tmp_path, capsys):
 
     assert main(["-C", str(tmp_path), "brief", "RK4"]) == EXIT_OK
     assert "after this design was last written" not in capsys.readouterr().out
+
+
+# -- the allowance for the write about to be made (RK1174) --------------------
+
+
+def test_the_brief_states_the_ledgers_allowance_beside_the_lines_own(tmp_path, capsys):
+    """Measured across four ships in one session: three were refused for `why.too-long` on the
+    first attempt, each costing the round trip the budget line exists to prevent. The number
+    shown was the roadmap line's; the write about to be made is a **ledger** line, whose limit is
+    `[limits.changelog]` and whose structure carries no deps and no pointer."""
+    # A line whose own remainder bites: the deps group and the pointer are what the ledger's
+    # line does not carry, so the same field has more room there — and where the roadmap line is
+    # short enough for `why_max` to be the binding number, the two agree and nothing is printed.
+    long = (
+        "- 📋 **RK7** (deps: RK1, RK2, RK4) **A symptom long enough that the line's own "
+        "remainder is what binds the why rather than its declared maximum** — Because. → §RK7\n"
+    )
+    project(tmp_path, roadmap=ROADMAP + long)
+    assert main(["-C", str(tmp_path), "brief", "RK7"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "budget   why" in printed
+    assert "shipping why" in printed and "which is the limit that refuses it" in printed
+
+    assert main(["-C", str(tmp_path), "brief", "RK7", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    line = next(s for s in payload["budget"]["fields"] if s["field"] == "why")
+    ship = next(s for s in payload["shipping"]["fields"] if s["field"] == "why")
+    # The ledger's line is shorter by what a dep group and a pointer cost, so the same field has
+    # more room there — which is the whole finding: two numbers, and only one was ever shown.
+    assert ship["allowed"] > line["allowed"]
+
+
+def test_the_second_line_is_silent_where_the_two_agree(tmp_path, capsys):
+    """A line repeating the number above it teaches nobody anything, so it prints only where the
+    difference is the thing worth seeing — while the payload publishes both either way, a key
+    costing a client nothing to skip."""
+    # A project with no changelog has no ledger line to compose for at all.
+    project(tmp_path)
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nimprovements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    assert main(["-C", str(tmp_path), "brief", "RK4"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "budget   why" in printed and "shipping why" not in printed
+
+    assert main(["-C", str(tmp_path), "brief", "RK4", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["shipping"] is None
