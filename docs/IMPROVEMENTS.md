@@ -77,7 +77,68 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1123 The dataclass with two payloads and no closure
+
+`Scope` has five fields and two payloads carry them: `rendering._scope_json` for a
+departure and the dict `claim <id> --json` composes. Nothing holds the two against the
+dataclass.
+
+Measured while shipping RK1120, which added the fifth: both payloads were edited by
+hand, and the only thing that would have caught a missed one is a reader noticing later
+that a client is parsing a field this tool stopped sending — or never started.
+
+This is the arrangement RK276 and RK289 already closed one dataclass over. RK289 bound
+`Plan` to `install --json` with a test that reads `dataclasses.fields` and asserts every
+name is in the payload — and it earns its keep on every field added since, RK1113's two
+included:
+
+```
+named = {PLAN_RENAMES.get(field.name, field.name) for field in fields(Plan)}
+assert named <= set(payload)
+```
+
+The same test over `Scope` is the deliverable, and the rename table is the part that
+needs a decision rather than a copy: the two payloads already spell three of the five
+differently (`mine` → `paths` in one of them, `loose` → `unclaimed`, `idle` →
+`staging_nothing`), and a name a client reads is a contract this must not quietly rename
+to make a closure pass.
+
+So: one table saying which field each payload calls what, asserted in both directions
+like RK491's rule for an unheld code — a field with no entry is red, and an entry naming
+no field is red too, which is what keeps the table from outliving the dataclass it
+describes.
+
 ## Block C — Query
+
+### §RK1122 The read that cannot see what the departure can
+
+RK1120 gave a departure the half `loose` cannot reach: for a governed file this id
+explains, which *other* ids gained or lost a line since HEAD. `claim <id>` is the other
+reader of the same contract and it answers `shared: []` on every call, because
+`departing` computes the list and `split` does not.
+
+The asymmetry is backwards. A departure is the moment of committing and this read is the
+one an author makes *before* it — `--porcelain` exists to be piped straight into `git
+add --`, so it is the answer a commit is actually composed from on every task that is
+not shipping. A session that runs it is told the paths and not that the roadmap it is
+about to stage already carries somebody else's line.
+
+```
+$ roadkeep claim RK2 --json | jq .shared
+[]                       # always, whatever the roadmap holds
+$ roadkeep ship RK2 --why "…"
+  shared   ROADMAP.md  (RK9 moved in it too, and staging it takes that)
+```
+
+Both readings are already available here. `claim <id>` asks git for `dirty` and
+`indexed` and computes `written`, which is the accounting the `shared` list is
+subtracted from, so what is missing is the call and not the machinery: `ids_since` is
+pure over a revision and a role.
+
+What is worth keeping is why the two verbs differ at all. A departure *must* answer,
+because after it the claim is released and no verb can; this one is asked, so it answers
+either way. That makes the read the cheaper place to put a warning and not the one to
+leave it out of.
 
 ## Block D — The gate
 

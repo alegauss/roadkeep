@@ -26,7 +26,11 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1123** (deps: —) **nothing binds the fields of Scope to the two payloads that carry them, so a field added reaches one reader** — RK1120 added the fifth field and both payloads were edited by hand, which is the arrangement RK276 and RK289 already closed for Registration and Plan. → §RK1123
+
 ## Block C — Query (consult without reading the file)
+
+- 📋 **RK1122** (deps: —) **`claim <id>` answers an empty shared list on every call, so the read a commit is composed from sees half its contract** — The departure computes which other ids moved in a file it stages and this read does not, so one question has two answers depending on the verb asked. → §RK1122
 
 ## Block D — The gate
 
