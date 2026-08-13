@@ -81,6 +81,39 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK1136 The two sections a turn rarely needs
+
+RK1135 made the per-sentence pass and measured the floor: 122 of 125 lines, 8197 of 8400
+bytes, with every rule and every measurement kept. Two lines came back. The next ones
+cannot come from the same place — the prose is wrapped at 85–98 characters throughout,
+and the index's continuation lines are content rather than wrapping, so rewrapping
+either gains nothing.
+
+Where the room is, counted by section:
+
+```
+42  ## Layout                    protected: a fifth of the file, held by a test (RK203)
+16  ## Editing and committing    needed on the turns that commit
+15  (before the first ##)        what this is, the measurement, the insight
+13  ## The six laws
+11  ## This repo's own docs are the conformance fixture
+10  ## Build and test            needed on the turns that build
+ 8  ## The write path is a skill, not a preamble
+ 7  ## Non-goals are binding
+```
+
+**The precedent is in the file itself.** RK23 moved the write path out of here and into
+a trigger-loaded skill, on the argument that what loads every turn should be only what a
+turn touching no governed file needs — and the section that says so is eight lines long.
+`Build and test` and `Editing and committing` are the same shape: 26 lines, needed on a
+turn that runs pytest or writes a commit, and paid for on every turn that does neither.
+
+What has to be decided rather than copied: a skill is loaded by its `description`
+matching, and "how to commit here" has no governed file in play to trigger on. So either
+the trigger is the verb (`commands/`, which this repo already ships) or the sections
+move to a file the resident one *points at* — cheaper than a skill and weaker, since
+nothing guarantees it is read.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

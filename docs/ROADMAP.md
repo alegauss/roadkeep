@@ -30,6 +30,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1136** (deps: —) **26 lines of the every-turn file are needed only on a turn that builds or commits, and every other turn pays for them** — RK1135 measured the prose at its floor with three lines left, so the next headroom is a section moving behind a trigger the way RK23 moved the write path. → §RK1136
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

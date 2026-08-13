@@ -119,11 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 143 | 1 |
 | C — Query (consult without reading the file) | 0 | 92 | 1 |
-| D — The gate | 0 | 152 | 0 |
+| D — The gate | 1 | 152 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 103 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 627 | 6 |
+| **Total** | 1 | 627 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1136** (deps: —) **26 lines of the every-turn file are needed only on a turn that builds or commits, and every other turn pays for them** — RK1135 measured the prose at its floor with three lines left, so the next headroom is a section moving behind a trigger the way RK23 moved the write path. → §RK1136
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
