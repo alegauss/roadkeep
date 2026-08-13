@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1158** (deps: —) **an API newer than the supported floor is green on this machine and red only in CI** — The suite runs on the version developed against, so a call the floor cannot make ships and the action finds it a commit later. → §RK1158
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

@@ -764,9 +764,11 @@ def test_a_contents_written_into_a_governed_file_still_round_trips(tmp_path):
     write_all(write)
     reread = Config.discover(tmp_path)
     document = reread.document("improvements")
-    assert document.render() == reread.path("improvements").read_text(
-        encoding="utf-8", newline=""
-    )
+    # `open(..., newline="")` and not `read_text(newline=...)`, which is 3.13 and this package
+    # supports 3.11 (RK1158) — the bytes are the point here, so translating them would compare a
+    # rendering against a file this reader had already changed.
+    with reread.path("improvements").open("r", encoding="utf-8", newline="") as handle:
+        assert document.render() == handle.read()
     codes = [f.code for f in lint(reread).findings]
     assert "line.non-canonical" not in codes and "line.unparsed" not in codes
 

@@ -119,15 +119,11 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 146 | 1 |
 | C — Query (consult without reading the file) | 0 | 93 | 1 |
-| D — The gate | 1 | 166 | 1 |
+| D — The gate | 0 | 167 | 1 |
 | E — Adoption | 0 | 86 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 105 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 648 | 7 |
-
-**Next ready:**
-
-- 📋 **RK1158** (deps: —) **an API newer than the supported floor is green on this machine and red only in CI** — The suite runs on the version developed against, so a call the floor cannot make ships and the action finds it a commit later. → §RK1158
+| **Total** | 0 | 649 | 7 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

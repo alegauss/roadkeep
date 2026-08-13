@@ -81,35 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1158 The floor is declared and nothing reads it
-
-`pyproject.toml` declares `requires-python = ">=3.11"` and this machine develops on
-3.13, so an API newer than the floor is green here and red only in CI. It happened:
-
-```
-tests/test_backlog.py:910: TypeError: Path.read_text() got an unexpected keyword argument 'newline'
-```
-
-`newline=` on `read_text` is 3.13. The call was written, the suite passed, the task
-shipped, and the gate that found it was the one this repository ships as an action
-(RK17) — one commit later, in a log somebody had to read.
-
-CI catching it is not the same as catching it, and the difference is this project's own
-thesis: a limit reported after the prose exists asks the author to delete work. Here it
-asks them to fix a shipped commit, and the round trip is a push, a wait and a log.
-
-The shape that fits: a closure that scans the package and the suite for a **declared**
-set of calls newer than the floor, with the floor read from `requires-python` rather
-than restated — the same arrangement `test_linting`'s index and `test_surfaces`' staging
-closure already use. Declared and not derived, because deriving *every* API's version
-needs a table of the standard library nobody here maintains; what a row costs is one
-line, and what it buys is that the next one is caught before the commit rather than
-after it.
-
-The alternative worth weighing: a linter with a `target-version`, which knows the whole
-table and costs a dev dependency plus a configuration this repository has so far not
-needed.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

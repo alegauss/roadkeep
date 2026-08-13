@@ -400,6 +400,71 @@ def test_no_survey_derives_its_own_view_of_the_package():
     assert asking["surface.py"], "surface.py stopped reading the package at all"
 
 
+#: Calls this package may not make, keyed by the version that added them. Declared and not
+#: derived: deriving every standard-library API's version needs a table nobody here maintains, and
+#: what a row costs is one line. Each was measured — the first by CI, the afternoon it shipped.
+#:
+#: The keyword form is what bit: `Path.read_text(newline="")` is 3.13, `read_bytes` is not, and the
+#: name alone would refuse every correct call. So a row is a callable's name and, where the version
+#: is about an argument rather than the call, that keyword.
+_NEWER_THAN_THE_FLOOR = {
+    (3, 13): (("read_text", "newline"), ("read_bytes", "newline")),
+    (3, 12): (("itertools.batched", ""), ("Path.walk", "")),
+}
+
+
+def _floor() -> tuple[int, int]:
+    """The oldest Python this package supports, read from where it is declared.
+
+    `requires-python` is the statement an installer enforces, so a second copy here would be a
+    second answer to a question with one — the arrangement RK1000 removed from the config defaults
+    and RK105 from the corpora. What this reads is the floor; what it holds is the calls above it.
+    """
+    declared = re.search(
+        r'requires-python\s*=\s*">=(\d+)\.(\d+)"',
+        (HERE / "pyproject.toml").read_text(encoding="utf-8"),
+    )
+    assert declared, "pyproject.toml declares no requires-python floor"
+    return int(declared[1]), int(declared[2])
+
+
+def test_no_call_needs_a_python_newer_than_the_floor():
+    """RK1158. The suite runs on the version this machine develops with, so a newer call is green
+    here and red only in CI — measured: `read_text(newline="")` is 3.13, it passed locally, the task
+    shipped, and the gate this repository ships as an action found it a commit later, in a log
+    somebody had to read. CI catching it is not the same as catching it.
+
+    Over the package **and** the suite, because the one that shipped was in a test: a fixture is
+    what runs on the floor as much as the code it exercises.
+    """
+    floor = _floor()
+    watched = {
+        name: (version, keyword)
+        for version, rows in _NEWER_THAN_THE_FLOOR.items()
+        if version > floor
+        for name, keyword in rows
+    }
+    assert watched, f"nothing is newer than {floor}: the rows and the floor have met"
+    found: list[str] = []
+    for module in (*modules(), *sorted(Path(__file__).parent.glob("*.py"))):
+        text = module.text if hasattr(module, "text") else module.read_text(encoding="utf-8")
+        where = module.where if hasattr(module, "where") else f"tests/{module.name}"
+        for node in ast.walk(ast.parse(text)):
+            if not isinstance(node, ast.Call):
+                continue
+            called = node.func.attr if isinstance(node.func, ast.Attribute) else getattr(
+                node.func, "id", ""
+            )
+            if called not in watched:
+                continue
+            version, keyword = watched[called]
+            passed = {word.arg for word in node.keywords}
+            if not keyword or keyword in passed:
+                spelled = f"{called}({keyword}=…)" if keyword else f"{called}()"
+                found.append(f"{where}:{node.lineno} {spelled} needs {version[0]}.{version[1]}")
+    assert found == [], found
+
+
 #: Clauses that make a claim about a corpus's **past**. Each was measured for RK1148 and three
 #: of the five skips RK1144 left carried one; three of those three were false — Shio conformed at
 #: `b9302e8e` too and Turing spelled no lettered heading at `f08304fcb1` either — and RK1146 was
