@@ -81,6 +81,38 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK1135 One line of headroom
+
+`budget --file agents.md` answers **124 of 125 lines, 1 left** and 8321 of 8400 bytes,
+79 left. One line is not headroom; it is the next entry, and the constraint has already
+bitten:
+
+RK1132 added a top-level surface, the RK1016 closure required the index to name it, and
+the two-line clause that named it took the file to **125 of 125, 0 left**. It shipped
+only because the clause was compressed onto an existing line. The next surface has no
+such room, and the compression will be made by whoever is mid-task rather than by
+somebody reading the file.
+
+Where the room is is measured, not guessed — the same command says so:
+
+```
+3034 bytes  43 lines  ## Layout
+1158        16         ## Editing and committing
+ 972        16         (before the first ##)
+ 798        11         ## This repo's own docs are the conformance fixture
+```
+
+The Layout index is the largest section and the one a test already holds at a fifth of
+the file (RK203), so it is **not** the answer: compressing it is compressing the thing
+the budget exists to protect. What the file's own closing sentence names as the target
+is the prose, and the three sections under Layout are where it accumulated.
+
+What needs deciding rather than doing: which sentences are load-bearing. Each of those
+sections states a rule that cost a red — the heredoc, the one-task-one-commit, the
+version bump — and a compression that dropped the *measurement* beside a rule would
+leave advice, which is what §0 says nobody keeps. So the pass is per sentence, and the
+test that holds the index's share is what says whether it worked.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

@@ -30,6 +30,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1135** (deps: —) **agents.md has one line of budget left, so the next surface the index must name has nowhere to be named** — RK1132 needed that line and shipped only because the clause was compressed onto an existing one, which is the pass being made mid-task instead of on purpose. → §RK1135
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
