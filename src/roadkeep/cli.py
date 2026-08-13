@@ -400,6 +400,12 @@ def build_parser() -> argparse.ArgumentParser:
     # this command that a surface serving it has to know, and the only statement of it used to be
     # the comment two lines above the read. Gated, because an `add` naming no section must never
     # block on a pipe — which is what that comment said and nothing enforced.
+    withheld(
+        add_parser,
+        family="the id's prefix is `[ids]`' and `next-id` derives it; a caller choosing one is a caller numbering into another project's range",
+        section_body_file="a path on the caller's disk, which this transport does not share — the body crosses as text or not at all",
+        capture='a path to a local artefact this transport does not share, and the verb that writes one is not a tool here',
+    )
     add_parser.set_defaults(
         handler=_add,
         # Two, and this is the command that has two (RK329): the body was the obvious
@@ -459,6 +465,11 @@ def build_parser() -> argparse.ArgumentParser:
     section_add.add_argument("--json", action="store_true", help=_JSON_HELP)
     # Ungated and reached by omission: this command's whole input is a paragraph, so `--body`
     # left out *is* the pipe, which the help above states and RK171 makes readable by a surface.
+    withheld(
+        section_add,
+        body_file="`add`'s reason: a path this transport does not share",
+        level="the heading depth is the file's shape and the writer derives it, so a caller setting one is a caller writing a heading the renderer would not",
+    )
     section_add.set_defaults(handler=_section_add, reads_stdin=(Prose(dest="body"),))
 
     section_amend = actions.add_parser(
@@ -501,6 +512,10 @@ def build_parser() -> argparse.ArgumentParser:
     section_amend.add_argument("--json", action="store_true", help=_JSON_HELP)
     # `omitted=False` and not an oversight: an amend with neither field is refused below rather
     # than defaulted to the pipe, so only the documented `-` reaches the read here.
+    withheld(
+        section_amend,
+        body_file="`section add`'s reason, which the verb correcting a body does not change: the text crosses as text",
+    )
     section_amend.set_defaults(
         handler=_section_amend, reads_stdin=(Prose(dest="body", omitted=False),)
     )
@@ -952,6 +967,11 @@ def build_parser() -> argparse.ArgumentParser:
     record_add.add_argument(
         "--json", action="store_true", help="the entry, with the file and line it landed on"
     )
+    withheld(
+        record_add,
+        task_id="the ledger's id is the roadmap line's, and `ship` is what carries it across; typing one here is inventing an id the backlog never issued",
+        lines="the entry's shape is derived from what it records, and a count set by hand is the arrangement the schema replaced",
+    )
     record_add.set_defaults(
         handler=_record, reads_stdin=(Prose(dest="why", omitted=False),)
     )
@@ -1256,6 +1276,10 @@ def build_parser() -> argparse.ArgumentParser:
     list_parser.add_argument(
         "--ids", action="store_true", help="print ids alone, one per line"
     )
+    withheld(
+        list_parser,
+        ids='how a terminal prints: the payload carries every id in `tasks`, so a caller over this transport already has what the flag composes',
+    )
     list_parser.set_defaults(handler=_list, reads_only=True)
     # Two output *forms* of one read are two answers, exactly as `budget`'s subjects are
     # (RK465's rule, RK467's find): the payload came back whole with nothing said about the
@@ -1307,6 +1331,10 @@ def build_parser() -> argparse.ArgumentParser:
     claims_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     # A read that can write, so it declares which flag makes it one (RK167): `dispatch` keeps
     # deciding the lock, and reading the registry never waits on one.
+    withheld(
+        claims_parser,
+        prune='it writes the registry, exactly as `lint --fix` writes the files (RK16)',
+    )
     claims_parser.set_defaults(handler=_claims, reads_only=True, writes_when="prune")
 
     claim_parser = subcommands.add_parser(
@@ -1350,6 +1378,10 @@ def build_parser() -> argparse.ArgumentParser:
     claim_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     # A read that can write, declared the way `claims --prune` declares it (RK167) — and by
     # two arguments (RK307), because either of them is the write.
+    withheld(
+        claim_parser,
+        porcelain='how a terminal prints, for a caller that is already reading JSON',
+    )
     claim_parser.set_defaults(
         handler=_claim,
         reads_only=True,
@@ -1432,6 +1464,12 @@ def build_parser() -> argparse.ArgumentParser:
     # deliberate: the refusal names the other process, re-running is the answer, and splitting
     # one command into a locked half and an unlocked half is a second mechanism for the rarer
     # case. What the flag buys is that the *report* never waits on a write at all.
+    withheld(
+        lint_parser,
+        fix='it writes, and RK16 keeps the derived-only repair where a human is standing',
+        since="a git revision, which is a fact about the checkout the caller cannot see from here — and the gate's answer is about the tree as it is",
+        quiet='how a terminal prints, which is not a thing a JSON payload has',
+    )
     lint_parser.set_defaults(handler=_lint, reads_only=True, writes_when="fix")
     # `list`'s pair, one verb over: `--quiet` shortens the printed report and `--json` is a
     # different form of the same read (RK467).
@@ -1562,6 +1600,10 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     brief_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    withheld(
+        brief_parser,
+        claim='it writes, and a read that writes is a read a caller stops making freely (L5) — so the writing door is a tool of its own with its own hint',
+    )
     brief_parser.set_defaults(handler=_brief, reads_only=True, writes_when="claim")
 
     budget_parser = subcommands.add_parser(
@@ -1671,6 +1713,10 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     budget_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    withheld(
+        budget_parser,
+        family="`add`'s reason read back: the answer is about the id this project would issue next, and a prefix typed here asks about one it would not",
+    )
     budget_parser.set_defaults(handler=_budget, reads_only=True)
     # Four subjects and one verb (RK283/RK345), declared rather than checked by hand (RK489).
     # Named rather than inferred from the positional: under the id scheme `RK12` is both a
@@ -1741,6 +1787,10 @@ def build_parser() -> argparse.ArgumentParser:
     # The query it is without `--claim`, and the write it is with one (RK167). `take` still
     # holds a lock of its own over the answer *and* the marker, that pair being what has to be
     # indivisible for every caller — re-entrant, so declaring it here costs nothing twice.
+    withheld(
+        pick_parser,
+        claim="`brief`'s reason, and its answer too: the writing door is already served as the `claim` tool, so a second flag here would be a second spelling of it",
+    )
     pick_parser.set_defaults(handler=_pick, reads_only=True, writes_when="claim")
 
     retire_parser = subcommands.add_parser(
@@ -2684,6 +2734,21 @@ def json_needs(source: argparse.Namespace | argparse.ArgumentParser) -> str:
         else getattr(source, "json_needs", "")
     )
     return declared or ""
+
+
+def withheld(parser: argparse.ArgumentParser, **reasons: str) -> None:
+    """Say why this verb's tool surface does not offer these arguments (RK1169).
+
+    A fact about an argument, declared where the argument is. `serving.WITHHELD` was a table of
+    the same rows keyed by verb, held true against these parsers by a test asserting the two
+    agreed — which is the shape this task is about: not a defect waiting to happen, but a test
+    written to prove that two places say one thing.
+
+    Merged rather than replaced, so a verb may declare its reasons beside the flags they are
+    about instead of in one call at the end — the point being that the sentence sits next to
+    what it explains.
+    """
+    parser.set_defaults(withheld={**(parser.get_default("withheld") or {}), **reasons})
 
 
 def writes_when(source: argparse.Namespace | argparse.ArgumentParser) -> tuple[str, ...]:

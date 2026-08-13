@@ -2258,23 +2258,28 @@ def test_only_the_readers_that_cannot_ask_a_project_read_the_unconditional_half(
 def test_every_argument_the_surface_withholds_says_why():
     """The reading RK1099 asked for, run rather than written down.
 
-    `exposes` is a whitelist, so withholding is what happens when nobody acts — and RK1095
-    added `budget --session` to the parser, left it off the tool, and it stayed CLI-only
-    through two more tasks. Nothing was watching: what eventually caught it was a remedy door
-    naming the flag, which is a coincidence and not a check.
+    `unconditional` is a whitelist, so withholding is what happens when nobody acts — and RK1095
+    added `budget --session` to the parser, left it off the tool, and it stayed CLI-only through
+    two more tasks. Nothing was watching: what eventually caught it was a remedy door naming the
+    flag, which is a coincidence and not a check.
 
-    So the two sets are held equal. A flag added to a served verb is now a red test with one
-    question in it — expose it, or write the reason here — and a flag exposed while a row for
-    it survives is the same failure from the other side.
+    **The two sets are now one** (RK1169). This asserted that a table in `serving` and the
+    parsers agreed; the reason is declared on the parser beside the argument it explains, so what
+    is left to check is the half that is still two things: an argument withheld with no reason
+    written for it. A flag added to a served verb is a red here with one question in it — expose
+    it, or say why not — and the other direction cannot be written wrong any more.
     """
-    declared = {command: set(rows) for command, rows in serving.WITHHELD.items()}
-    assert declared == _withheld_by_parser()
+    every = _withheld_by_parser()
+    said = {command: set(rows) for command, rows in serving.withheld().items()}
+    assert said == every, {
+        "withheld, unexplained": {c: every[c] - said.get(c, set()) for c in every},
+    }
 
 
 def test_no_reason_is_left_as_a_placeholder():
     # The failure a table of reasons has: a row written to make the test above pass. Each is a
     # sentence about *this* argument, so the cheapest wrong answer is one that is not.
-    for command, rows in serving.WITHHELD.items():
+    for command, rows in serving.withheld().items():
         for dest, why in rows.items():
             assert len(why.split()) >= 8, f"{command}.{dest} has no reason in it"
             assert not why[0].isupper(), f"{command}.{dest}: a clause, like every other row"
@@ -2286,7 +2291,7 @@ def test_the_transport_is_not_a_decision_anybody_records():
     from roadkeep.serving import STRUCTURAL
 
     assert not [
-        command for command, rows in serving.WITHHELD.items() if STRUCTURAL in rows
+        command for command, rows in serving.withheld().items() if STRUCTURAL in rows
     ], "the transport is not a field a reason could be about"
     for tool in serving.TOOLS:
         assert STRUCTURAL not in tool.unconditional, tool.name

@@ -698,3 +698,4 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
+- ✅ **RK1169 (the withheld reasons)** **Six tables in serving.py restate per verb what its own parser already declares** — each reason is declared beside the argument it explains, so the table and the test holding it against the parsers are gone.

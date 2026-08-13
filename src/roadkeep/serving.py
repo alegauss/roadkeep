@@ -598,85 +598,45 @@ def serves(argv: Sequence[str]) -> str | None:
 #: `--json` is not a field a caller could set — it is what the transport already is.
 STRUCTURAL = "json"
 
-#: Every argument a served verb has and does not offer, with the reason it does not (RK1099).
-#:
-#: `unconditional` is a whitelist, which makes withholding the default: a flag added to `cli.py` and
-#: not listed there is unreachable over MCP and nothing says so. Measured, that is not
-#: hypothetical — RK1095 added `budget --session` and left it off, and it stayed CLI-only
-#: through two more tasks. What caught it was a *remedy door* naming the flag; a flag no door
-#: names would still be missing.
-#:
-#: So this is the reading, and it is a declaration rather than a report because the reading a
-#: report gives is one nobody runs. `tests/test_serving.py` derives the same set from the
-#: parsers and holds the two equal, so a new flag is a red test asking one question: is it
-#: exposed, or withheld for a reason written here. :data:`STRUCTURAL` is excluded, being the
-#: transport rather than a decision.
-#:
-#: Three kinds of reason, and they are worth telling apart when reading the rows: **it writes**
-#: (RK16 keeps those where a human is standing), **the tool derives it** (exposing it would let
-#: a caller choose what the schema then cannot check), and **the shape does not cross** — a
-#: path on this machine, or a flag whose whole purpose is to change how a terminal prints.
-WITHHELD: Mapping[str, Mapping[str, str]] = {
-    "add": {
-        "family": "the id's prefix is `[ids]`' and `next-id` derives it; a caller choosing "
-        "one is a caller numbering into another project's range",
-        "section_body_file": "a path on the caller's disk, which this transport does not "
-        "share — the body crosses as text or not at all",
-        # RK1141. The same reason as the body file, plus a second that decides it: `report` is
-        # not served, so a client of these tools has no capture of its own to name.
-        "capture": "a path to a local artefact this transport does not share, and the verb "
-        "that writes one is not a tool here",
-    },
-    "budget": {
-        "family": "`add`'s reason read back: the answer is about the id this project would "
-        "issue next, and a prefix typed here asks about one it would not",
-    },
-    "brief": {
-        # Withheld from *this* tool and served as another: `Tool(always=("claim",))` publishes
-        # the same command as the `claim` tool (RK150). The row is here because the whitelist
-        # is per tool, and `brief` not offering it is the decision that keeps its hint honest.
-        "claim": "it writes, and a read that writes is a read a caller stops making freely "
-        "(L5) — so the writing door is a tool of its own with its own hint",
-    },
-    "claims": {
-        "prune": "it writes the registry, exactly as `lint --fix` writes the files (RK16)",
-    },
-    "lint": {
-        "fix": "it writes, and RK16 keeps the derived-only repair where a human is standing",
-        "since": "a git revision, which is a fact about the checkout the caller cannot see "
-        "from here — and the gate's answer is about the tree as it is",
-        "quiet": "how a terminal prints, which is not a thing a JSON payload has",
-    },
-    "list": {
-        "ids": "how a terminal prints: the payload carries every id in `tasks`, so a caller "
-        "over this transport already has what the flag composes",
-    },
-    "pick": {
-        "claim": "`brief`'s reason, and its answer too: the writing door is already served "
-        "as the `claim` tool, so a second flag here would be a second spelling of it",
-    },
-    "record add": {
-        "task_id": "the ledger's id is the roadmap line's, and `ship` is what carries it "
-        "across; typing one here is inventing an id the backlog never issued",
-        "lines": "the entry's shape is derived from what it records, and a count set by "
-        "hand is the arrangement the schema replaced",
-    },
-    # The `claim` **command** — what one held line's commit owns — and not the `claim` tool,
-    # which is `brief --claim` above. Keyed by command throughout, because that is what the
-    # parser answers to and two tools can share one.
-    "claim": {
-        "porcelain": "how a terminal prints, for a caller that is already reading JSON",
-    },
-    "section add": {
-        "body_file": "`add`'s reason: a path this transport does not share",
-        "level": "the heading depth is the file's shape and the writer derives it, so a "
-        "caller setting one is a caller writing a heading the renderer would not",
-    },
-    "section amend": {
-        "body_file": "`section add`'s reason, which the verb correcting a body does not "
-        "change: the text crosses as text",
-    },
-}
+def withheld() -> Mapping[str, Mapping[str, str]]:
+    """Every argument a served verb has and does not offer, with the reason it does not (RK1099).
+
+    `unconditional` is a whitelist, which makes withholding the default: a flag added to `cli.py`
+    and not listed there is unreachable over MCP and nothing says so. Measured, that is not
+    hypothetical — RK1095 added `budget --session` and left it off, and it stayed CLI-only through
+    two more tasks. What caught it was a *remedy door* naming the flag; a flag no door names would
+    still be missing. :data:`STRUCTURAL` is excluded, being the transport rather than a decision.
+
+    **Read from the parsers and no longer restated here** (RK1169). This was a table of the same
+    rows keyed by verb, held true by a test asserting that it and the parsers agreed — which is
+    the shape that task is about: not a defect waiting to happen, but a test written to prove two
+    places say one thing. `cli.withheld` declares each reason beside the argument it explains, so
+    the two cannot disagree and the assertion that held them apart is gone.
+
+    Three kinds of reason, and they are worth telling apart when reading them: **it writes** (RK16
+    keeps those where a human is standing), **the tool derives it** (exposing it would let a
+    caller choose what the schema then cannot check), and **the shape does not cross** — a path on
+    this machine, or a flag whose whole purpose is to change how a terminal prints.
+
+    Not on the hook path: `serves` answers *which tool* from :data:`_DESTS` alone, which is the
+    budget RK261 bought, and this builds the parser index that reader deliberately avoids. Every
+    caller here is composing a description or a refusal, where that cost is already paid.
+    """
+    from roadkeep.cli import build_parser  # noqa: PLC0415 - RK260
+
+    out: dict[str, dict[str, str]] = {}
+
+    def walk(parser: argparse.ArgumentParser, path: tuple[str, ...] = ()) -> None:
+        for action in parser._actions:  # noqa: SLF001 - argparse exposes no public reader
+            if isinstance(action, argparse._SubParsersAction):  # noqa: SLF001
+                for name, sub in action.choices.items():
+                    walk(sub, (*path, name))
+        rows = parser.get_default("withheld")
+        if rows:
+            out[" ".join(path)] = dict(rows)
+
+    walk(build_parser())
+    return out
 
 
 def _markers(config: Config) -> dict[str, Any]:
