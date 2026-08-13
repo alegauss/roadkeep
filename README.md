@@ -119,15 +119,11 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 145 | 1 |
 | C — Query (consult without reading the file) | 0 | 93 | 1 |
-| D — The gate | 1 | 157 | 0 |
+| D — The gate | 0 | 158 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 104 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 636 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1145** (deps: —) **five tests skip because the shape they read left the corpora, so re-pinning retires coverage without saying so** — Two of the four dep kinds now have no live evidence and three states went the same way, and a skip that will never fire again is a test that stopped testing. → §RK1145
+| **Total** | 0 | 637 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

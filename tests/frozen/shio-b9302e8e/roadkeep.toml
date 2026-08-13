@@ -1,0 +1,19 @@
+# The format the line beside this was written under, declared rather than copied (RK1145).
+#
+# Not Shio's `roadkeep.toml` verbatim: what a frozen shape needs is the configuration that
+# makes its bytes parse, and the rest of that file is their prose about their own adoption.
+# Every value here is one their config states at `b9302e8e` — the revision the ROADMAP.md
+# beside this was read at.
+
+prefix = "SH"
+ref_scheme = "outline"
+
+[files]
+roadmap = "ROADMAP.md"
+
+[limits]
+# Shio's own, because the frozen line is 316 characters and this fixture exists to prove it
+# parses rather than to hold it to this repository's narrower ceiling.
+line = 400
+symptom = 120
+why = 320

@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1145** (deps: —) **five tests skip because the shape they read left the corpora, so re-pinning retires coverage without saying so** — Two of the four dep kinds now have no live evidence and three states went the same way, and a skip that will never fire again is a test that stopped testing. → §RK1145
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

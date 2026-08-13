@@ -1,0 +1,18 @@
+# The format the line beside this was written under, declared rather than copied (RK1145).
+# Every value here is one Turing's own config states at `f08304fcb1`, the revision that
+# ROADMAP.md was read at — `[ids] suffix` included, since a range is read against the id
+# shape and Turing spells a split id `T24b`.
+
+prefix = "T"
+ref_scheme = "outline"
+
+[ids]
+suffix = true
+
+[files]
+roadmap = "ROADMAP.md"
+
+[limits]
+line = 400
+symptom = 120
+why = 320

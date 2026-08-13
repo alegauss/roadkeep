@@ -81,39 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1145 The shape that did not outlive its pin
-
-RK1144 moved both pins and re-measured. What it also did was retire coverage, quietly,
-and the suite says so out loud — five tests skip where a shape used to be:
-
-```
-shio carries no block dep at this pin: every one it had has shipped
-shio@9b91a136bc conforms: there is no adoption cost left to estimate
-shio@9b91a136bc conforms: it has no line left to disagree with
-turing@2d71c9eac9 spells no fourth level with a letter any more
-turing@2d71c9eac9 carries 13 doubled anchors and no open line points at one
-```
-
-Two of the four dep kinds have no live evidence now: `BLOCK` was Shio's at `b9302e8e`,
-`RANGE` was Turing's at `f08304fcb1`, and both shipped out. Three states went the same
-way. Each skip is honest, and honest is not covered: RK28's argument was that these
-kinds were **read off real backlogs** rather than imagined, and it now rests on
-revisions nothing reads.
-
-A skip that will never fire again is a test that stopped testing, which is RK402's
-finding in the other direction — a check that cannot report clean is one nobody reads,
-and one that can only skip is one nobody notices.
-
-What it wants is that a shape a corpus demonstrated **outlives the pin that demonstrated
-it**: the excerpt frozen where the suite can read it, dated by the revision it came
-from, so re-pinning re-measures the *numbers* without also deciding which shapes are
-still evidence.
-
-What needs deciding rather than copying: an excerpt is somebody else's text in this
-repository, which `--embed` already refuses to send by default (RK481) — so the size,
-and whether a shape is kept as their bytes or as the smallest file that exhibits it, is
-the question.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

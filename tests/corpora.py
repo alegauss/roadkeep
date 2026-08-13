@@ -289,3 +289,48 @@ def live(corpus: Corpus, role: str) -> str | None:
         return None
     with path.open("r", encoding="utf-8", newline="") as handle:
         return handle.read()
+
+
+#: Where a shape that left a live tree is kept, one directory per corpus and revision (RK1145).
+#: A frozen excerpt is a **project**: their line, byte for byte, beside a `roadkeep.toml` that
+#: declares only what makes it parse — so `Config.discover` reads it the way it reads anything,
+#: and nothing here needs a second loader.
+FROZEN = Path(__file__).resolve().parent / "frozen"
+
+
+@dataclass(frozen=True, slots=True)
+class Frozen:
+    """One shape that outlived the pin that demonstrated it (RK1144, RK1145).
+
+    RK1144 moved both pins and retired coverage while doing it: Shio's block deps and Turing's
+    range deps had shipped out of the live trees, so two of the four dep kinds went from *read
+    off a real backlog* — RK28's whole argument — to asserted by synthetic fixtures alone. The
+    dated citation kept the claim; nothing kept the bytes.
+
+    Bytes and not a reconstruction, which is the only version of this worth having: a line
+    written by hand to look like a range dep proves the parser reads what this repository
+    imagines, and the corpora exist because that is not the same question.
+    """
+
+    corpus: str
+    #: The revision the line was read at. In the directory name too, because a second shape
+    #: frozen from the same tree at another revision is a second fixture and not an overwrite.
+    rev: str
+    #: What it is evidence of, for the test that names it and for a reader of the directory.
+    shape: str
+
+    @property
+    def where(self) -> Path:
+        return FROZEN / f"{self.corpus}-{self.rev}"
+
+
+#: The two RK1144 retired. Declared rather than globbed, so a fixture nobody reads is a row
+#: with no test and a test with no row cannot silently stop reading one.
+BLOCK_DEP = Frozen("shio", "b9302e8e", "a block dep — `(deps: SH233 ✅, SH182 ✅, Block P)`")
+RANGE_DEP = Frozen("turing", "f08304fcb1", "a range dep — `(deps: T451–T457 ✅)`")
+FROZEN_SHAPES = (BLOCK_DEP, RANGE_DEP)
+
+
+def thawed(shape: Frozen) -> Config:
+    """The frozen excerpt as a project, read the way every other project is."""
+    return Config.discover(shape.where)

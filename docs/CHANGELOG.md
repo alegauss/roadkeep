@@ -459,6 +459,7 @@
 - ✅ **RK1141** **a capture whose defect shipped under a reworded symptom stays unfiled for ever, and nothing can clear the row** — A capture carries the id it was filed as, stamped by the add that files it, so the count reads the artefact and a reworded symptom no longer leaves a row nothing can clear.
 - ✅ **RK1142** **a capture already on disk has no command that stamps it, so the only door is the Python API** — capture filed stamps a capture already on disk, refusing an id no governed file holds and a path this project did not write.
 - ✅ **RK1144** **the corpora pins are 477 deliveries behind, so the shapes those projects adopted since are untested here** — Both pins moved and every number under them was re-measured, and two shapes that shipped out of the live trees are an absent input rather than a weakened claim.
+- ✅ **RK1145** **five tests skip because the shape they read left the corpora, so re-pinning retires coverage without saying so** — The two dep kinds a re-pin retired are frozen as their own bytes beside a config that parses them, and the skip that replaced each names where the shape went.
 
 ## Block E — Adoption
 

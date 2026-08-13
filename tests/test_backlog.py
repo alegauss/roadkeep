@@ -559,7 +559,12 @@ def test_shios_block_deps_all_name_a_block_it_declares():
         if schema.classify_dep(dep) is DepKind.BLOCK
     }
     if not named:
-        pytest.skip("shio carries no block dep at this pin: every one it had has shipped")
+        # Where the shape went, named in the skip (RK1145): a reader of a skip should not have
+        # to discover that the coverage moved rather than ended.
+        pytest.skip(
+            f"shio carries no block dep at this pin: every one it had has shipped, and the "
+            f"shape is frozen at {corpora.BLOCK_DEP.where.name}"
+        )
     assert named <= declared
 
 
@@ -852,3 +857,51 @@ def _shipped(tmp_path):
         with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
             handle.write(body)
     return tmp_path
+
+
+# -- the shape that outlived the pin that demonstrated it (RK1145) ---------------
+
+
+@pytest.mark.parametrize(
+    ("shape", "expected"),
+    [(corpora.BLOCK_DEP, DepKind.BLOCK), (corpora.RANGE_DEP, DepKind.RANGE)],
+    ids=lambda value: value.shape if isinstance(value, corpora.Frozen) else "",
+)
+def test_a_dep_kind_no_live_corpus_carries_is_still_read_off_real_bytes(shape, expected):
+    """RK1145. RK1144's re-pin retired the evidence for two of the four kinds: Shio's block deps
+    and Turing's ranges had shipped out, so RK28's argument — that these were **read off real
+    backlogs** rather than imagined — came to rest on revisions nothing reads.
+
+    The bytes are theirs, copied at the revision named in the fixture's own directory, and the
+    fixture is a project so `Config.discover` reads it the way it reads anything. A line written
+    by hand to look like a range dep would prove the parser reads what this repository imagines,
+    which is not the question the corpora exist to answer.
+    """
+    config = corpora.thawed(shape)
+    document = config.document("roadmap")
+    schema = config.schema_for("roadmap")
+    kinds = {schema.classify_dep(dep) for e in document.entries for dep in e.task.deps}
+    assert expected in kinds
+    # And it is no format violation, which is the other half of what the live test asserted:
+    # these shapes were never mistakes, and a frozen one has to keep saying so.
+    assert not [
+        v
+        for e in document.entries
+        for v in schema.validate(e.task)
+        if v.code.startswith("deps")
+    ]
+
+
+@pytest.mark.parametrize(
+    "shape", corpora.FROZEN_SHAPES, ids=lambda one: f"{one.corpus}-{one.rev}"
+)
+def test_a_frozen_excerpt_still_round_trips_and_says_where_it_came_from(shape):
+    # L3 over their bytes, which is why freezing the line rather than reconstructing it is the
+    # whole point — and the provenance is prose the parser ignores, so the fixture carries where
+    # it came from inside itself rather than in a table beside it.
+    config = corpora.thawed(shape)
+    document = config.document("roadmap")
+    source = config.path("roadmap").read_text(encoding="utf-8", newline="")
+    assert document.render() == source
+    assert document.entries and document.rejects == ()
+    assert shape.rev in source and "frozen excerpt" in source
