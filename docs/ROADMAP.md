@@ -36,8 +36,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1140** (deps: —) **anchors --next names a free top-level that add --ref then refuses, because no heading declares it yet** — The read answers which address the outline has not spent and never that a top-level is not yet a section, so a caller composes a command that cannot work. → §RK1140
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Non-goals

@@ -114,35 +114,4 @@ everything else in that directory: the fact lives in the artefact.
 
 ## Block F — The plugin
 
-### §RK1140 The free address that is not a section
-
-`anchors --next` answers which top-level address is free, and `add --ref` then refuses
-it. Captured in this repository, `20260813T122607Z-run-accf30aa.json`, engine 0.1.732:
-
-```
-$ roadkeep anchors --next        # on a reused, emptied block
-XXII
-$ roadkeep add --ref XXII.1 …
-roadkeep: no section XXII.1 extends
-```
-
-Both are right about their own question. `anchors` reads which addresses the outline has
-**spent**, so `XXII` being free is a fact about numbering; `add --ref XXII.1` needs a
-heading for `XXII` to exist first, because a pointer resolves to a section and `XXII.1`
-extends one that no file declares. What is missing is that the read never says the
-second half.
-
-This is RK93's shape one command earlier. There, an `add` whose pointer resolved to
-nothing answered with the `section add` that closes it, rather than leaving the gate to
-report a dangling reference a turn later — the write that creates an obligation names
-it. Here the **read** creates an expectation and names nothing: a caller who trusts the
-answer composes a command that cannot work, and the refusal arrives with the fields
-already typed.
-
-What it wants: `anchors --next` saying that a free top-level is an address and not yet a
-section — with the `section add <n> --title "…"` that makes it one, on the answer rather
-than in the refusal that follows. The sub-address case differs and should say so:
-`XXII.1` is free *and* placeable the moment `XXII` is declared, so the sentence is about
-which of the two the caller is about to write.
-
 ## Block G — The editor surface (the backlog where the file is open)

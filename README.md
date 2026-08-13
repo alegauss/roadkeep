@@ -121,13 +121,13 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 92 | 1 |
 | D — The gate | 1 | 154 | 0 |
 | E — Adoption | 0 | 85 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 103 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 104 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 631 | 6 |
+| **Total** | 1 | 632 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1140** (deps: —) **anchors --next names a free top-level that add --ref then refuses, because no heading declares it yet** — The read answers which address the outline has not spent and never that a top-level is not yet a section, so a caller composes a command that cannot work. → §RK1140
+- 📋 **RK1141** (deps: —) **a capture whose defect shipped under a reworded symptom stays unfiled for ever, and nothing can clear the row** — RK1139's count is cleared by an exact match, so this repository now carries a row that cannot reach zero — the state RK402 calls a check nobody reads. → §RK1141
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

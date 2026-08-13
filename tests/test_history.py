@@ -1825,3 +1825,62 @@ def test_a_family_with_room_is_offered_with_nothing_added(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "next     §IX.1 — nothing ever used it\n" in out
     assert "already spends" not in out
+
+
+# -- the free address that is not a section yet (RK1140) ------------------------
+
+
+def test_a_free_top_level_says_it_is_not_a_section_yet(tmp_path, capsys):
+    """RK1140, from a capture this repository kept. `anchors` reads which addresses the outline
+    has **spent**, so a free top-level is a fact about numbering — and `add --ref XXII.1` then
+    refuses, because a pointer resolves to a section and nothing declares `XXII`. The read
+    answered `XXII` and the write answered "no section XXII.1 extends"."""
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 A design", "docs: file it")
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "anchors", "--next"]) == EXIT_OK
+    said = capsys.readouterr()
+    # stdout stays the address and nothing else: this command exists to be captured.
+    assert said.out.startswith("§") and "roadkeep:" not in said.out
+    assert "is free and not yet a section" in said.err
+    assert "section add" in said.err and "--title" in said.err
+
+
+def test_a_free_child_says_nothing_because_its_family_exists(tmp_path, capsys):
+    # The distinction the note turns on: a child is placeable the moment it is answered,
+    # because the heading it extends is already there.
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 A design", "docs: file it")
+    assert main(["-C", str(tmp_path), "anchors", "--next", "--family", "XXXVII"]) == EXIT_OK
+    said = capsys.readouterr()
+    assert said.out.startswith("§XXXVII.")
+    assert said.err == ""
+
+
+def test_the_payload_names_the_command_the_reader_is_given(tmp_path, capsys):
+    # One question, one answer: a client composing `add --ref <next>.1` walks into the refusal
+    # a person now reads about, so the payload carries the command and not only the address.
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 A design", "docs: file it")
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "anchors", "--next", "--json"]) == EXIT_OK
+    rows = json.loads(capsys.readouterr().out)["next_families"]
+    assert rows and all(row["opens"] == f"section add {row['next']} --title …" for row in rows)
+
+
+def test_the_command_it_names_is_the_one_that_makes_the_pointer_resolve(tmp_path, capsys):
+    """RK1045's rule: a remedy is a promise, and a promise nothing runs is prose. So the
+    sentence is not read here — the command it names is executed, and then the `add` it says
+    will resolve is executed too."""
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 A design", "docs: file it")
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "anchors", "--next"]) == EXIT_OK
+    free = capsys.readouterr().out.splitlines()[0].lstrip("§").split()[0]
+    argv = ["-C", str(tmp_path), "section", "add", free, "--title", "A new family",
+            "--body", "The reasoning it carries."]
+    assert main(argv) == EXIT_OK
+    capsys.readouterr()
+    filed = ["-C", str(tmp_path), "add", "--block", "A", "--symptom", "A symptom",
+             "--why", "Because of a reason.", "--ref", f"{free}.1"]
+    assert main(filed) == EXIT_OK

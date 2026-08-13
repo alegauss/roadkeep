@@ -445,7 +445,11 @@ def test_the_narrow_payload_keeps_what_makes_the_answer_readable(tmp_path, capsy
     payload = json.loads(capsys.readouterr().out)
     # The address is meaningless without which numbering it continues; the listing is what
     # this flag exists to leave out, so those keys are gone rather than empty.
-    assert payload["next_families"] == [{"namespace": None, "next": "III"}]
+    # `opens` joined with RK1140: the address alone sent a client at `add --ref III.1`, which
+    # refuses until a heading declares `III` — so the row names the command that makes it one.
+    assert payload["next_families"] == [
+        {"namespace": None, "next": "III", "opens": "section add III --title …"}
+    ]
     assert "anchors" not in payload and "retired" not in payload
 
 

@@ -1282,7 +1282,17 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
                     "next_families": []
                     if args.family
                     else [
-                        {"namespace": space or None, "next": next_family(spread, space)}
+                        {
+                            "namespace": space or None,
+                            "next": next_family(spread, space),
+                            # The same sentence the reader gets, as the command it names
+                            # (RK1140): a client composing `add --ref <next>.1` walks into the
+                            # refusal a person now reads about, and two answers to one question
+                            # is what a payload beside a report must not be.
+                            "opens": None
+                            if not (fresh := next_family(spread, space))
+                            else f"section add {fresh} --title …",
+                        }
                         for space in namespaces(spread)
                     ],
                 },
@@ -1496,6 +1506,10 @@ def _next_anchor(args: argparse.Namespace, whole, spread) -> int:
     where an address came from.
     """
     if args.family:
+        # No note here, and the difference is the whole of RK1140: a free **child** is
+        # placeable the moment it is answered, because the family's heading already exists —
+        # `add --ref XXII.3` resolves. It is the top-level below that is an address and not
+        # yet a section.
         print(f"§{next_child(whole, args.family)}")
         return EXIT_OK
     if not spread:
@@ -1513,7 +1527,27 @@ def _next_anchor(args: argparse.Namespace, whole, spread) -> int:
         # The same refusal the wide read gives, in one line: a namespace whose top-levels
         # are not one numbering derives nothing, and a blank row would read as an address.
         print(f"§{fresh}{named}" if fresh else f"—{named}  not one numbering, so none derives")
+        if fresh:
+            # What the answer left to the next refusal (RK1140). `anchors` reads which
+            # addresses the outline has **spent**, so a free top-level is a fact about
+            # numbering — and `add --ref XXII.1` then refuses, because a pointer resolves to a
+            # section and nothing declares `XXII` yet. Captured in this repository: the read
+            # answered `XXII` and the write answered "no section XXII.1 extends".
+            #
+            # On stderr for `next-id`'s reason: stdout here is the address and nothing else,
+            # because this command exists to be captured in a shell. RK93's shape one command
+            # earlier — the read that creates an expectation names what closes it.
+            print(f"roadkeep: {_opens(fresh)}", file=sys.stderr)
     return EXIT_OK
+
+
+def _opens(family: str) -> str:
+    """The sentence a free top-level owes, and the command that makes it a section (RK1140)."""
+    return (
+        f"§{family} is free and not yet a section, so `{invocation()} add --ref {family}.1` "
+        f"refuses until one exists — `{invocation()} section add {family} --title \"…\"` "
+        f"declares it, and the pointer resolves from then on"
+    )
 
 
 def _ownership(one: Anchor) -> str:
