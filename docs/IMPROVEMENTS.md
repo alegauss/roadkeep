@@ -81,6 +81,30 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK1161 The destination belongs in the evidence
+
+RK1160 gave a capture a stamp recording delivery elsewhere: `--as owner/repo#RK1128`.
+The repository is typed by the author, and this tool knows it twice over — `[report]
+upstream` declares where a defect in roadkeep is filed, and `--to OWNER/REPO` overrides
+it per run. So the door asks for the field the configuration exists to state, which is
+what RK1149 removed from the refusals: a command that computed the answer handing it
+back to be retyped.
+
+What the capture holds is the rest of the session — `argv`, `block`, `config`, `engine`,
+`environment`, `exit`, `output`, `reproduces`, `symptom`, `why` — and **not where it was
+aimed**. RK89 chose the artefact as the record, and RK1141 put the filed id there for
+that reason. The destination belongs beside it.
+
+Then `capture filed --as RK1128` can qualify itself from the file: the capture says it
+was aimed at `alegauss/roadkeep`, the id is not one this backlog holds, and the stamp
+becomes `alegauss/roadkeep#RK1128` without a second spelling of the repository.
+
+What must not happen is a silent qualification of a **typo**. A bare id that no local
+file holds is refused today, and that refusal is right whenever the capture names no
+destination. Where it does, the two readings are distinguishable and the door can say
+which it took — the way RK1160's own line already says `delivered to <repo>, which this
+project cannot read`.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

@@ -30,6 +30,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1161** (deps: —) **the delivery stamp asks for the repository the config already declares** — A capture records the whole session and not where it was aimed, so the one field report knows is typed by hand. → §RK1161
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
