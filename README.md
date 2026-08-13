@@ -118,16 +118,12 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 145 | 1 |
-| C — Query (consult without reading the file) | 1 | 92 | 1 |
+| C — Query (consult without reading the file) | 0 | 93 | 1 |
 | D — The gate | 0 | 156 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 104 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 634 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1143** (deps: —) **stats keeps printing the capture row after every capture is filed, so a permanent line says nothing is owed** — This repository now prints captures 2 2 filed on every run, which is RK1121's shape: a line that is never the next step and is read past every time. → §RK1143
+| **Total** | 0 | 635 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

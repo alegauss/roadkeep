@@ -79,37 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1143 The row that says nothing is owed
-
-RK1139 made `stats` count captures so an unfiled one could not sit unmentioned, and
-RK1141 and RK1142 gave the row two ways to clear. It is clear now, and the row stays:
-
-```
-$ roadkeep stats
-  total         0
-  uncounted     0
-  captures      2  2 filed
-```
-
-Two captures, both accounted for, on every run from now until somebody deletes the files
-— which nothing does, because retention is the part `keep` leaves deliberately unsolved.
-That is RK1121's shape exactly: a line that is never the next step, read past on every
-run, and the argument there was that a hedge costs the same attention every time.
-
-The two readings are not equal, though, and that is what makes this a decision rather
-than a deletion. `captures N (0 filed)` is **debt** — the number RK1139 exists to print.
-`captures N (N filed)` is **history**: the directory has contents, nothing is owed, and
-the only thing the row still says is that this project once hit a defect in the tool.
-
-Three ways out. Print only where something is unfiled, and a project never learns the
-directory has files — the silence RK1139 closed, one step along. Carry the total in the
-*unfiled* line, so the row appears exactly when it is debt. Or leave it, on the argument
-that `uncounted 0` earns its place the same way.
-
-What decides it is which of those a session acts on, and the answer for `uncounted` was
-measured: a field that appears only when it is non-zero is a field a reader stops
-looking for.
-
 ## Block D — The gate
 
 ## Block E — Adoption

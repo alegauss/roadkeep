@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1143** (deps: —) **stats keeps printing the capture row after every capture is filed, so a permanent line says nothing is owed** — This repository now prints captures 2 2 filed on every run, which is RK1121's shape: a line that is never the next step and is read past every time. → §RK1143
-
 ## Block D — The gate
 
 ## Block E — Adoption

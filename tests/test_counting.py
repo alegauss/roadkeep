@@ -415,7 +415,7 @@ def test_stats_counts_the_captures_and_names_the_unfiled(tmp_path, capsys):
     _capture(tmp_path, "A symptom nobody filed")
     assert main(["-C", str(tmp_path), "stats"]) == EXIT_OK
     printed = capsys.readouterr().out
-    assert "captures" in printed and "0 filed" in printed
+    assert "captures" in printed and "1 unfiled" in printed
     assert ".roadkeep/reports/20260101T000000Z-run-a.json" in printed
 
 
@@ -427,7 +427,8 @@ def test_a_capture_whose_claim_the_backlog_states_is_filed(tmp_path, capsys):
     _capture(tmp_path, "A symptom nobody filed")
     assert main(["-C", str(tmp_path), "stats"]) == EXIT_OK
     printed = capsys.readouterr().out
-    assert "1 filed" in printed and "unfiled" not in printed
+    # Silent now that nothing is owed (RK1143): the row is debt, and this tree has none.
+    assert "captures" not in printed and "unfiled" not in printed
 
 
 def test_a_project_with_no_captures_gets_no_row_at_all(tmp_path, capsys):
@@ -463,7 +464,8 @@ def test_a_stamped_capture_is_filed_even_when_the_symptom_was_reworded(tmp_path,
     stamp(tmp_path / ".roadkeep" / "reports" / "20260101T000000Z-run-a.json", "RK9")
     assert main(["-C", str(tmp_path), "stats"]) == EXIT_OK
     printed = capsys.readouterr().out
-    assert "1 filed" in printed and "unfiled" not in printed
+    # Silent now that nothing is owed (RK1143): the row is debt, and this tree has none.
+    assert "captures" not in printed and "unfiled" not in printed
 
 
 def test_a_stamp_naming_an_id_no_file_holds_does_not_clear_it(tmp_path, capsys):
@@ -475,4 +477,53 @@ def test_a_stamp_naming_an_id_no_file_holds_does_not_clear_it(tmp_path, capsys):
     _capture(tmp_path, "A symptom nobody filed")
     stamp(tmp_path / ".roadkeep" / "reports" / "20260101T000000Z-run-a.json", "RK404")
     assert main(["-C", str(tmp_path), "stats"]) == EXIT_OK
-    assert "0 filed" in capsys.readouterr().out
+    assert "1 unfiled" in capsys.readouterr().out
+
+
+# -- the row appears exactly where there is debt (RK1143) ------------------------
+
+
+def test_a_tree_whose_captures_are_all_filed_prints_no_row(tmp_path, capsys):
+    """RK1143. Measured on this repository the run after RK1142 shipped: `captures 2  2 filed`
+    on every `stats`, for ever, because nothing deletes a capture — RK1121's finding one command
+    over, a line that is never the next step and is read past every time."""
+    from roadkeep.capturing import stamp
+
+    filed = "- 📋 **RK9** (deps: —) **A different wording** — Because of a reason. → §RK9\n"
+    project(tmp_path, roadmap=CLEAN + filed)
+    _capture(tmp_path, "A symptom nobody filed")
+    stamp(tmp_path / ".roadkeep" / "reports" / "20260101T000000Z-run-a.json", "RK9")
+    assert main(["-C", str(tmp_path), "stats"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "captures" not in printed and "unfiled" not in printed
+
+
+def test_the_total_rides_on_the_row_where_one_is_owed(tmp_path, capsys):
+    # What silence costs is the fact that the directory has files, so the number a reader wants
+    # beside "one is unfiled" is how many there are — it is not lost, it moved.
+    from roadkeep.capturing import stamp
+
+    filed = "- 📋 **RK9** (deps: —) **A different wording** — Because of a reason. → §RK9\n"
+    project(tmp_path, roadmap=CLEAN + filed)
+    _capture(tmp_path, "The one that is filed", "20260101T000000Z-run-a.json")
+    _capture(tmp_path, "The one that is not", "20260102T000000Z-run-b.json")
+    stamp(tmp_path / ".roadkeep" / "reports" / "20260101T000000Z-run-a.json", "RK9")
+    assert main(["-C", str(tmp_path), "stats"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "captures      2  1 unfiled" in printed
+    assert "20260102T000000Z-run-b.json" in printed
+    assert "20260101T000000Z-run-a.json" not in printed
+
+
+def test_the_payload_keeps_the_fact_the_report_stops_saying(tmp_path, capsys):
+    # A key costs a client nothing to skip, where a line costs every reader the same attention
+    # on every run — so the state stays in the payload and the report is what to act on.
+    from roadkeep.capturing import stamp
+
+    filed = "- 📋 **RK9** (deps: —) **A different wording** — Because of a reason. → §RK9\n"
+    project(tmp_path, roadmap=CLEAN + filed)
+    _capture(tmp_path, "A symptom nobody filed")
+    stamp(tmp_path / ".roadkeep" / "reports" / "20260101T000000Z-run-a.json", "RK9")
+    assert main(["-C", str(tmp_path), "stats", "--json"]) == EXIT_OK
+    held = json.loads(capsys.readouterr().out)["captures"]
+    assert held == {"kept": 1, "filed": 1, "unfiled": []}

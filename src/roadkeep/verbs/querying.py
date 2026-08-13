@@ -279,24 +279,29 @@ def _captures_json(config: Config) -> dict[str, object]:
 
 
 def _print_captures(config: Config, width: int) -> None:
-    """The count, and the paths behind it where any is unfiled (RK1139).
+    """The captures this project owes an entry for, and the total behind them (RK1139, RK1143).
 
-    Silent where the directory holds none, which is not the rule the counts above follow — they
+    Printed **only where one is unfiled**, which is not the rule the counts above follow — they
     print at zero because a field that appears only when it is non-zero is one a reader stops
-    looking for. The difference is that `uncounted` is about the file this command reports on
-    and a capture is not: a project that has never hit a defect in this tool has no such debt,
-    and a permanent `captures 0` would be a row about nothing on every run.
+    looking for. Two differences decide it. `uncounted` is about the file this command reports
+    on and a capture is not; and a row that says nothing is owed is never the next step, which
+    is RK1121's finding one command over — measured here, where `captures 2  2 filed` printed on
+    every run of a tree with no debt at all, for ever, because nothing deletes a capture.
+
+    The **total rides on the row** rather than being lost with it: the number a reader wants
+    beside "one is unfiled" is how many there are. What silence costs is the fact that the
+    directory has files at all, and that is what the payload keeps — a key costs a client
+    nothing to skip, where a line costs every reader the same attention on every run.
     """
     held = _unfiled(config)
-    if not held:
+    unfiled = [path for path, is_filed in held if not is_filed]
+    if not unfiled:
         return
-    filed = sum(1 for _, is_filed in held if is_filed)
-    print(f"  {'captures':<{width}}  {len(held):>4}  {filed} filed")
-    for path, is_filed in held:
-        if not is_filed:
-            # Named and not only counted: this is the list the tool asks every project to hold
-            # its debt in, and a count with nothing behind it is the silent file again.
-            print(f"  {'unfiled':<{width}}  {config.relative(path)}")
+    print(f"  {'captures':<{width}}  {len(held):>4}  {len(unfiled)} unfiled")
+    for path in unfiled:
+        # Named and not only counted: this is the list the tool asks every project to hold its
+        # debt in, and a count with nothing behind it is the silent file again.
+        print(f"  {'unfiled':<{width}}  {config.relative(path)}")
 
 
 def _audit(config: Config, args: argparse.Namespace) -> int:
