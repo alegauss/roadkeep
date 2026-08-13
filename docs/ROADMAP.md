@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1146** (deps: —) **a backlog written before the tool has no live evidence left, so two tests about disagreement only skip** — Shio conformed, which is the tool working, and the state those tests exist for is a file rather than a line — so freezing it is a decision RK1145 deliberately left. → §RK1146
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

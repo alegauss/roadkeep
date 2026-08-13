@@ -460,6 +460,7 @@
 - ✅ **RK1142** **a capture already on disk has no command that stamps it, so the only door is the Python API** — capture filed stamps a capture already on disk, refusing an id no governed file holds and a path this project did not write.
 - ✅ **RK1144** **the corpora pins are 477 deliveries behind, so the shapes those projects adopted since are untested here** — Both pins moved and every number under them was re-measured, and two shapes that shipped out of the live trees are an absent input rather than a weakened claim.
 - ✅ **RK1145** **five tests skip because the shape they read left the corpora, so re-pinning retires coverage without saying so** — The two dep kinds a re-pin retired are frozen as their own bytes beside a config that parses them, and the skip that replaced each names where the shape went.
+- ✅ **RK1146** **a backlog written before the tool has no live evidence left, so two tests about disagreement only skip** — neither door: both pins hold zero offenders under Shio's own declaration, so the disagreement is declared instead — their bytes under this repository's schema.
 
 ## Block E — Adoption
 

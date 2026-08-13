@@ -1763,7 +1763,8 @@ def test_init_refusal_is_a_usage_error(tmp_path: Path, capsys) -> None:
 # -- the corpus that decides §RK20 -------------------------------------------
 
 
-def test_shio_is_readable_before_it_is_conforming(tmp_path: Path) -> None:
+@pytest.mark.parametrize("scheme", ["outline", "id"])
+def test_shio_is_readable_before_it_is_conforming(tmp_path: Path, scheme: str) -> None:
     """The measurement RK20 turns on: the lines parse, and it is the *prose* that does not.
 
     If a meaningful fraction could not be read at all, the grammar would be wrong. What
@@ -1774,20 +1775,29 @@ def test_shio_is_readable_before_it_is_conforming(tmp_path: Path) -> None:
     every time Shio ships, and a bound set at today's live reading is a count whatever the
     comment beside it claims (RK102) — which is how the one in `test_document.py` was
     crossed. What a moving corpus cannot be allowed to decide is whether this suite is red.
+
+    **Both schemes, because an estimate means nothing until one is named** (RK1146). The
+    editing-cost half used to rest on which codes appeared, and Shio's prose has since come
+    inside even this repository's narrower limits — so that half stopped asserting and
+    skipped, on a corpus that had simply improved. Pointing the same bytes at the wrong
+    scheme is what still separates the two costs: every line that is canonical under their
+    numbering is non-canonical under ours, and no editing of theirs can make that go away.
     """
     corpora.require(corpora.SHIO)
     source = corpora.materialise(corpora.SHIO, "roadmap", tmp_path)
-    estimate = adopt(Config.default(tmp_path), source, ref_scheme="outline")
+    estimate = adopt(Config.default(tmp_path), source, ref_scheme=scheme)
     assert estimate.prefix == "SH"
-    assert estimate.non_canonical == 0
     # Re-measured with the pin (RK1144): 48 at `b9302e8e`, and the roadmap turned over.
     assert estimate.parsed == 20
     codes = dict(estimate.codes)
-    if not codes:
-        pytest.skip(f"{corpora.SHIO} conforms: there is no adoption cost left to estimate")
-    # The finding is which *kind* of code appears: none about the id, the deps, the marker
-    # or the block, so what adoption asks for is editing and not reformatting.
-    assert [c for c in codes if not c.startswith(("why.", "line.", "ref."))] == []
+    if scheme == "outline":
+        assert estimate.non_canonical == 0
+        # The finding is which *kind* of code appears: none about the id, the deps, the marker
+        # or the block, so what adoption asks for is editing and not reformatting.
+        assert [c for c in codes if not c.startswith(("why.", "line.", "ref."))] == []
+    else:
+        assert estimate.non_canonical == estimate.parsed
+        assert {"line.non-canonical", "ref.mismatch"} <= set(codes)
 
 
 class _Stdin:

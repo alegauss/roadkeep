@@ -197,19 +197,35 @@ def test_no_marker_bearing_line_is_silently_dropped(case):
 
 
 def test_a_foreign_backlog_round_trips_while_failing_validation():
-    # The two halves are independent, and conflating them is what makes a formatter
-    # destructive: a line over the limits still renders back unchanged. What the pin buys
-    # here is that the *absence* of offenders is a fact rather than a flake (RK105): Shio
-    # rewrote those lines, so at this revision there are none, and the skip below says so
-    # once instead of appearing and disappearing with somebody else's afternoon.
+    """The two halves are independent — and *whose* schema does the failing is the question.
+
+    Conflating them is what makes a formatter destructive: a line that fails validation still
+    renders back unchanged. This read used to hold Shio's roadmap to Shio's own declaration
+    and wait for a line to disagree, and under L6 that wait cannot end — conformance is
+    relative to a declaration, so a project that declares its own format conforms to it by
+    construction. Both pins agree, which is what settles it: 0 offenders at `b9302e8e` as
+    well, so the re-pin did not retire this state and there was never a state to retire. The
+    skip was waiting for something the design removes (RK1146).
+
+    So the disagreement is **declared**, the way `UNMARKED_LEDGERS` below declares one: their
+    bytes, read under this repository's schema. Every line fails, because a foreign prefix is
+    a violation on all of them — so the assertion is a ratio and not a count, and it is the
+    one thing here a re-pin does not send anybody back to re-measure.
+    """
     corpora.require(corpora.SHIO)
-    schema = corpora.config(corpora.SHIO).schema_for("roadmap")
-    document = corpora.document(corpora.SHIO, "roadmap")
-    offenders = [e for e in document.entries if schema.validate(e.task)]
-    assert document.non_canonical == ()
-    if not offenders:
-        pytest.skip(f"{corpora.SHIO} conforms: it has no line left to disagree with")
-    assert document.render() == corpora.text(corpora.SHIO, "roadmap")
+    theirs = corpora.config(corpora.SHIO).schema_for("roadmap")
+    conforming = corpora.document(corpora.SHIO, "roadmap")
+    assert conforming.non_canonical == ()
+    assert [e.task.id for e in conforming.entries if theirs.validate(e.task)] == []
+    mine = Schema()
+    source = corpora.text(corpora.SHIO, "roadmap")
+    document = Document.parse(source, schema=mine)
+    offenders = [e for e in document.entries if mine.validate(e.task)]
+    assert len(offenders) == len(document.entries) > 0
+    assert {v.code for e in offenders for v in mine.validate(e.task)} >= {"id.format"}
+    # Non-canonical *and* byte-identical: L3 is a property of the bytes, not of the verdict.
+    assert len(document.non_canonical) == len(document.entries)
+    assert document.render() == source
 
 
 #: What each pinned ledger yields when it is read under a schema that **expects** the marker
