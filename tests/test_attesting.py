@@ -26,6 +26,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from conftest import shelled
 from roadkeep import storing
 from roadkeep.attesting import State, attest, record_path, survey, unattested
 from roadkeep.cli import EXIT_OK, main
@@ -171,7 +172,9 @@ def test_the_stop_answer_names_the_engine_this_session_can_reach(tmp_path):
     assert found.served == (serving(root) or "")
     served = str(_replace(found, served="mcp__roadkeep__"))
     assert "`mcp__roadkeep__lint` judges the format" in served
-    assert invocation() not in served
+    # The engine's name is a word in this prose — *the last roadkeep verb wrote it* — so what is
+    # asserted is the absence of a **command**, which is a verb after it (RK1154).
+    assert not shelled(served)
     # And the shell form is untouched where a session has no tools, which is the case it was
     # always right for — the split `Review` has kept since RK448.
     assert f"`{invocation()} lint` judges the format" in str(_replace(found, served=""))

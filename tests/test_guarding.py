@@ -37,7 +37,9 @@ from pathlib import Path
 
 import pytest
 
-from conftest import git_commit, git_init
+from asking import verbs
+
+from conftest import git_commit, git_init, shelled
 
 from roadkeep.cli import EXIT_OK, build_parser, main
 from roadkeep.guarding import (
@@ -716,24 +718,7 @@ def test_a_mechanical_finding_is_still_counted_and_not_repeated(tmp_path):
     assert reason.count(f"{invocation()} lint --fix") == 1
 
 
-def shelled(text: str) -> list[str]:
-    """The lines that spell the **shell command**, which is the engine followed by a verb.
-
-    Three tests meant this and asked for `invocation() not in …`, a substring test (RK1154).
-    On a checkout the engine is `python scripts/roadkeep.py` and the two readings agree; after a
-    `pip install` it is the console script — `roadkeep` — and every served name contains it, so
-    `mcp__roadkeep__brief` failed an assertion about the shell for being served by this tool.
-    Red on this repository's own CI, green on every developer's machine, and about nothing the
-    claim was making.
-
-    A space is what separates the two: a tool name has none, and a command always has one before
-    its verb. `invocation()` is right to change with the install; a test comparing against it has
-    to say which spelling it means.
-    """
-    return [one for one in text.splitlines() if f"{invocation()} " in one]
-
-
-def test_the_shell_predicate_is_not_fooled_by_the_tool_that_serves_it(monkeypatch):
+def test_the_shell_predicate_is_not_fooled_by_the_tool_that_serves_it():
     """RK1154, at the one spelling that broke the three assertions below.
 
     Asserted with the engine forced to the console script, because that is the install this
@@ -741,9 +726,12 @@ def test_the_shell_predicate_is_not_fooled_by_the_tool_that_serves_it(monkeypatc
     every tool this project serves is named after it. Both directions, since a predicate that
     answered *no* to everything would have made three tests pass by testing nothing.
     """
-    monkeypatch.setitem(globals(), "invocation", lambda: "roadkeep")
-    assert shelled("  then     roadkeep lint --fix") == ["  then     roadkeep lint --fix"]
-    assert shelled("`mcp__roadkeep__brief` starts a task, and takes the id") == []
+    installed = "roadkeep"  # the console script `pip install` puts on PATH
+    assert shelled("  then     roadkeep lint --fix", installed) == ["  then     roadkeep lint --fix"]
+    assert shelled("`mcp__roadkeep__brief` starts a task, and takes the id", installed) == []
+    # The product as a subject, which is how the one guaranteed message opens (RK444) — found
+    # under the installed spelling by `scripts/like_ci.py`, on the run it exists for.
+    assert shelled("roadkeep governs docs/ROADMAP.md — ask, never read them whole", installed) == []
 
 
 def test_the_door_the_gate_prints_is_in_the_spelling_this_session_has(tmp_path):

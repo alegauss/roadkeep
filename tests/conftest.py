@@ -663,3 +663,28 @@ def _narrow(argument: str) -> bool:
     the default argument anyway.
     """
     return "::" in argument or argument.split("::")[0].endswith(".py")
+
+
+def shelled(text: str, engine: str = "") -> list[str]:
+    """The lines that spell a **shell command**: this engine followed by a verb it parses (RK1154).
+
+    Three assertions meant *no line names the shell* and said it as `invocation() not in said`. On a
+    checkout the engine is `python scripts/roadkeep.py` and the two readings agree; after a `pip
+    install` it is the console script — `roadkeep` — and then every served name contains it, so
+    `mcp__roadkeep__brief` failed an assertion about the shell for being served by this tool.
+
+    A space is not enough either: the one guaranteed message opens `roadkeep governs
+    docs/ROADMAP.md`, where the word is the **product as a subject**. What makes a line a command
+    is a verb after the engine, read from the parser so a rename moves both ends at once — and
+    `scripts/like_ci.py` found both halves of this, on the run it exists for (RK1159).
+
+    ``engine`` is for the test that checks this predicate under a spelling this machine has not
+    got; every caller passes nothing and gets the one this session would print.
+    """
+    from asking import verbs
+    from roadkeep.provenance import invocation
+
+    spelled = engine or invocation()
+    return [
+        one for one in text.splitlines() if any(f"{spelled} {verb}" in one for verb in verbs())
+    ]

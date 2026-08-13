@@ -44,7 +44,7 @@ from roadkeep import claiming, serving
 from roadkeep import cli
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
-from conftest import since_import
+from conftest import since_import, shelled
 from roadkeep.provenance import engine, invocation
 from roadkeep.kernel.schema import body_aim
 from roadkeep.serving import (
@@ -2104,7 +2104,10 @@ def test_a_refusal_the_write_path_raised_names_the_tool_that_serves_it(tmp_path)
     )
     said = text_of(answer)
     assert answer["isError"] and "ref.missing" in said
-    assert "anchors" in said and invocation() not in said
+    # `shelled` and not a substring of `invocation()` (RK1154): under the console script the
+    # engine's own name is inside every served one, so this read as *the shell is named* about
+    # `mcp__…__anchors`. Found by `scripts/like_ci.py` on the environment it reproduces.
+    assert "anchors" in said and not shelled(said)
     # The tail through the parser and not left as flags (RK449's finding): naming the right
     # tool beside `--block A` would be an argument nobody on this transport can pass.
     assert "--block" not in said and "block: A" in said
