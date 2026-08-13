@@ -92,9 +92,16 @@ class Corpus:
 
 
 #: Shio: block deps, an outline rationale file, and a ledger whose lines carry no marker.
-SHIO = Corpus("shio", Path("D:/Git/viglet/shio/latest"), "b9302e8e")
+#: Re-pinned by RK1144 from `b9302e8e`, which the advisory had been naming on every run: 378
+#: ledger entries and a roadmap turnover behind, so the shapes this corpus exists to supply
+#: were the ones it had two quarters ago.
+SHIO = Corpus("shio", Path("D:/Git/viglet/shio/latest"), "9b91a136bc")
 #: Turing: ranges, external deps, `[ids] suffix`, a strategy file and the lettered heading.
-TURING = Corpus("turing", Path("D:/Git/viglet/turing/latest"), "f08304fcb1")
+#: Re-pinned by RK1144 from `f08304fcb1` — 99 entries behind. The path stays the `latest`
+#: junction and never the version it resolved to: a pin that does not resolve is an absent
+#: corpus and skips, which is the decision this module already made and the reason a re-point
+#: costs a skip rather than a red.
+TURING = Corpus("turing", Path("D:/Git/viglet/turing/latest"), "2d71c9eac9")
 BOTH = (SHIO, TURING)
 
 

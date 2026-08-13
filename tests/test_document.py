@@ -103,11 +103,15 @@ def _read(path: Path) -> str:
 #: was the one kind of file this property did not read, and it passed on every file for as
 #: long as the defect existed. What made two more files affordable is RK105: they are read
 #: at a pin, so they cannot turn this suite red for somebody else's afternoon.
+#: Re-measured at the pins RK1144 moved to, which is what moving one costs: these numbers are
+#: what *that* revision holds, so they are read off the corpus rather than carried forward. The
+#: two roadmaps turned over almost completely (48 → 20, 37 → 3) and the two ledgers grew by 378
+#: and 100 — the shapes this suite parses are those, and not the ones of two quarters ago.
 PINNED = {
-    ("shio", "roadmap"): 48,
-    ("shio", "changelog"): 290,
-    ("turing", "roadmap"): 37,
-    ("turing", "changelog"): 801,
+    ("shio", "roadmap"): 20,
+    ("shio", "changelog"): 668,
+    ("turing", "roadmap"): 3,
+    ("turing", "changelog"): 901,
 }
 
 
@@ -213,7 +217,11 @@ def test_a_foreign_backlog_round_trips_while_failing_validation():
 #: misconfiguration, which is why the corpus's own `[ledger] marker = false` is not used here
 #: — before RK43 these numbers were 0, and 920 bullets in Shio read as prose because nothing
 #: wore the slot wrongly. Exact at the pin (RK105); the ledgers grow between pins.
-UNMARKED_LEDGERS = {"shio": 290, "turing": 801}
+#: Re-measured with the pin (RK1144). Shio's 665 is three short of its 668 entries and
+#: Turing's 887 fourteen short of its 901: a line the misconfigured schema can *still* read is
+#: not a reject, which is the shape those two ledgers gained since the last pin and the reason
+#: this number is read off the corpus rather than derived from the count above it.
+UNMARKED_LEDGERS = {"shio": 665, "turing": 887}
 
 
 @pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)

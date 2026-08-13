@@ -81,36 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1144 The pin the advisory keeps naming
-
-`test_corpora` reads the live trees as an **advisory** — it warns and never fails,
-because a red about another repository is a red that gets re-run instead of read
-(RK105). It has warned on every run of this session, and the drift it measures is not
-small:
-
-```
-shio:   b9302e8e   roadmap 48 → 20, changelog 290 → 668
-turing: f08304fcb1 roadmap 37 →  4, changelog 801 → 900
-```
-
-Shio has shipped **378 ledger entries** since the pin and Turing **99**; both roadmaps
-have turned over almost completely. The pinned bytes are still true, which is what the
-advisory says — what is no longer true is that they are *the corpora*. Their whole job
-is to supply the dep kinds, the outline scheme, the unmarked ledger and the scale this
-repository's own `docs/` never reach, and every shape those two projects have adopted in
-477 deliveries is untested here.
-
-`corpora.py` already decides how this is done: **updating a pin is a commit of its
-own**, because the numbers under it are what that revision holds, so moving it is
-re-measuring on purpose rather than absorbing somebody else's afternoon. So the work is
-the measurement, not the edit: new revisions, the counts re-read, and whatever the suite
-then says about shapes it has never parsed.
-
-What has to be decided rather than done: whether the pin follows `latest` — the junction
-that is re-pointed per version — or names the version it was measured against. The
-second is what makes an absent corpus a skip rather than a surprise, and the first is
-what keeps this from being re-filed every quarter.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

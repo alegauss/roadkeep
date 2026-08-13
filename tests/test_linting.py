@@ -434,16 +434,22 @@ def test_the_tail_rule_earns_four_of_its_five_silences_on_a_unique_file():
 def test_the_exposure_the_tail_rule_accepts_is_a_sixth_of_the_tree(corpus):
     """What a one-segment match *could* be wrong about, so the ledgers' record is readable.
 
-    17% of the files in each corpus share a basename with at least one other file — 16
-    `package.json` in Shio, 23 `README.md` in Turing. That is the risk the rule takes, and
-    the two tests above are what say it was not realised: the ledgers write two segments
-    where they mean a file and one segment only where they mean the repository.
+    A fifth of the files in each corpus share a basename with at least one other — 20
+    `package.json` and 21 `page.tsx` in Shio, 24 `README.md` in Turing. That is the risk the
+    rule takes, and the two tests above are what say it was not realised: the ledgers write two
+    segments where they mean a file and one segment only where they mean the repository.
+
+    Re-measured with the pin (RK1144) and the band widened by what it found: Shio is 21% at
+    `9b91a136bc` where it was 17% at `b9302e8e`, because a React migration landed 21 files named
+    `page.tsx`. A bound and not an exact figure for the reason RK203's share test gives — the
+    point is which order of magnitude the exposure is, and a test that failed on one file
+    arriving would be re-run rather than read.
     """
     corpora.require(corpus)
     names = [name for name in tracked_at(corpora.checkout(corpus), corpus.rev) if name]
     counts = Counter(name.split("/")[-1] for name in names)
     ambiguous = sum(count for count in counts.values() if count > 1)
-    assert 15 <= ambiguous * 100 // len(names) <= 19
+    assert 15 <= ambiguous * 100 // len(names) <= 25
 
 
 # -- the schema, re-read where nothing was watching --------------------------

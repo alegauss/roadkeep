@@ -1780,7 +1780,8 @@ def test_shio_is_readable_before_it_is_conforming(tmp_path: Path) -> None:
     estimate = adopt(Config.default(tmp_path), source, ref_scheme="outline")
     assert estimate.prefix == "SH"
     assert estimate.non_canonical == 0
-    assert estimate.parsed == 48
+    # Re-measured with the pin (RK1144): 48 at `b9302e8e`, and the roadmap turned over.
+    assert estimate.parsed == 20
     codes = dict(estimate.codes)
     if not codes:
         pytest.skip(f"{corpora.SHIO} conforms: there is no adoption cost left to estimate")

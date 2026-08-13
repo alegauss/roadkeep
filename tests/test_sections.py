@@ -317,7 +317,9 @@ def test_an_anchor_the_outline_scheme_cannot_number_is_refused(tmp_path):
 #: in its roadmap resolving to one of them. Exact rather than a floor because the read is
 #: pinned (RK105): 120 was a floor this file fell through as Shio shipped, and a number that
 #: somebody else's progress crosses is a red about their afternoon.
-SHIO_SECTIONS = 79
+#: Re-measured when RK1144 moved the pin: 79 at `b9302e8e`. A number under a pin is what that
+#: revision holds, so it is read off the corpus rather than carried forward.
+SHIO_SECTIONS = 55
 
 
 def test_a_live_outline_file_yields_its_sections_and_answers_its_pointers():
@@ -1179,6 +1181,14 @@ def test_the_state_this_condition_is_for_is_one_a_live_corpus_carries():
         for e in corpora.document(corpora.TURING, "roadmap").entries
         if e.task.ref and len(declared.get(e.task.ref, ())) > 1
     }
+    # The 13 doubled anchors are still there at `2d71c9eac9`; what shipped is T354, the one open
+    # line that pointed at one of them (RK1144). So the state this test is for — a doubled anchor
+    # a live pointer reaches — is an **absent input** at this pin rather than a failing claim,
+    # which is `corpora.require`'s rule one step along, and the measurement below stays dated.
+    if not pointed:
+        pytest.skip(
+            f"{corpora.TURING} carries 13 doubled anchors and no open line points at one"
+        )
     assert pointed == {"X.1"}
     improvements = documents["improvements"]
     (own,) = [s for s in anchored(improvements) if s.anchor == "X.1"]

@@ -119,15 +119,11 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 145 | 1 |
 | C — Query (consult without reading the file) | 0 | 93 | 1 |
-| D — The gate | 1 | 156 | 0 |
+| D — The gate | 0 | 157 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 104 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 635 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1144** (deps: —) **the corpora pins are 477 deliveries behind, so the shapes those projects adopted since are untested here** — The advisory warns on every run and nothing has acted on it: Shio has shipped 378 ledger entries since its pin and Turing 99, and both roadmaps have turned over. → §RK1144
+| **Total** | 0 | 636 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
