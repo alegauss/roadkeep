@@ -1518,3 +1518,94 @@ def test_a_governed_file_this_task_did_write_is_still_accounted_for(tmp_path):
     claiming.scope(config, "RK2", ["src/a.py"])
     scope = claiming.departing(config, "RK2", config.document("roadmap").entries)
     assert "ROADMAP.md" not in scope.loose
+
+
+# -- the id inside the file this task is named in (RK1120) ---------------------
+
+
+def _committed(tmp_path: Path, roadmap: str) -> Config:
+    """A project at a commit, so `HEAD` is a revision the readings below can compare against."""
+    from conftest import git, git_init
+
+    git_init(tmp_path)
+    project(tmp_path, roadmap)
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "chore: bootstrap")
+    return Config.discover(tmp_path)
+
+
+def test_a_line_another_session_added_is_named_inside_the_staged_roadmap(tmp_path):
+    """RK1120, the half RK1117 could not reach: the roadmap is a file this task is always named
+    in — the marker that took the line is in the same diff — so it is accounted for whatever
+    else arrived in it. Measured here: RK1116's filing rode inside RK1112's commit."""
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _committed(tmp_path, BLOCKS + line("RK2"))
+    take(config)  # 🛠 on RK2's own line, which is what makes the file accounted
+    claiming.scope(config, "RK2", ["src/a.py"])
+    with (tmp_path / "ROADMAP.md").open("a", encoding="utf-8", newline="") as handle:
+        handle.write(line("RK9"))  # somebody else's filing
+    scope = claiming.departing(config, "RK2", config.document("roadmap").entries)
+    assert scope.shared == (("ROADMAP.md", ("RK9",)),)
+    # And still accounted, because it is: the file is staged either way, and what is reported
+    # is the id inside it rather than a path to leave out of the `git add`.
+    assert "ROADMAP.md" not in scope.loose
+
+
+def test_an_annotation_refresh_moves_no_line_and_names_nobody(tmp_path):
+    """The false positive a textual reading would produce, and the reason this is two parses:
+    a marker write re-derives every dependent's annotation (RK8), so the added lines name half
+    the backlog while not one of those lines arrived or left."""
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _committed(tmp_path, BLOCKS + line("RK2") + line("RK9", deps="RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    roadmap = (tmp_path / "ROADMAP.md").read_text(encoding="utf-8")
+    assert "RK9" in roadmap and IN_PROGRESS in roadmap  # the refresh did happen
+    scope = claiming.departing(config, "RK2", config.document("roadmap").entries)
+    assert scope.shared == ()
+
+
+def test_a_line_another_session_shipped_counts_the_same_way(tmp_path):
+    # Both directions, because both are a second session's work: a line removed here is a ship
+    # of theirs, and this commit would carry it.
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _committed(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    text = (tmp_path / "ROADMAP.md").read_text(encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text(text.replace(line("RK9"), ""), encoding="utf-8")
+    scope = claiming.departing(config, "RK2", config.document("roadmap").entries)
+    assert scope.shared == (("ROADMAP.md", ("RK9",)),)
+
+
+def test_an_ordinary_departure_names_nobody(tmp_path, capsys):
+    # The report has to be quiet on the common case or it is not read: a ship of one line in a
+    # tree holding nothing else says the staging and no more.
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _committed(tmp_path, BLOCKS + line("RK2", status=IN_PROGRESS))
+    hold(config, "RK2")
+    claiming.scope(config, "RK2", ["src/a.py"])
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now."]) == EXIT_OK
+    assert "shared" not in capsys.readouterr().out
+
+
+def test_a_project_git_cannot_answer_for_reports_no_ids(tmp_path):
+    # The rule every reader of history keeps: a report is worth less than a session, so a
+    # directory that is not a repository answers nothing rather than raising.
+    from roadkeep.history import ids_since
+
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    assert ids_since(config, "HEAD", "roadmap") == frozenset()

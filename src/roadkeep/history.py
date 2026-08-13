@@ -29,6 +29,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from roadkeep.config import PROSE_ROLES, Config
+from roadkeep.kernel.document import Document
 from roadkeep.kernel.schema import REF_SEPARATOR, Schema, split_ref
 from roadkeep.sections import find, owners
 
@@ -571,6 +572,41 @@ def added_ids(config: Config, role: str) -> dict[str, str]:
         for task_id in bold.findall(added):
             first.setdefault(task_id, head.strip())
     return first
+
+
+def ids_since(config: Config, rev: str, role: str) -> frozenset[str]:
+    """Which ids this role's file **gained or lost a line for** since ``rev`` (RK1120).
+
+    Two parses and never a diff heuristic, which is the whole of why this is decidable. RK1117
+    subtracted whole *files* a departure could explain — the roadmap is always one, because
+    the marker write that took the line is in the same diff — so another session's added line
+    rode inside the staging the report printed. What tells them apart is not that a second id
+    *appears* in the change: an annotation refresh (RK8) rewrites every dependent's deps field
+    and names those ids in added lines, so a textual reading calls half the backlog somebody
+    else's. What it is, is a line **arriving or leaving**, which only two parses can answer.
+
+    The symmetric difference and not the additions, because both directions are a second
+    session's work: a line added here is theirs, and a line removed is a ship of theirs that
+    this commit would carry. The id being committed is the caller's to exclude — it is in this
+    set on every ordinary departure, that being the line leaving.
+
+    Empty where git cannot answer or the role is not declared, the rule every reader here
+    keeps: a report is worth less than a session, and this feeds a report. :func:`resolves` is
+    asked first and not left to the read below, because the two silences differ in the one way
+    that matters here: :func:`content_at` answers `""` both for a file a revision did not carry
+    and for a revision that does not exist, and comparing a *whole backlog* against nothing
+    reports every id in it as newly arrived — which on a directory that is not a repository is
+    every line the project has.
+    """
+    if not config.has(role) or not resolves(config, rev):
+        return frozenset()
+    schema = config.schema_for(role)
+    try:
+        before = Document.parse(content_at(config, rev, role), schema=schema)
+        now = config.document(role)
+    except (HistoryUnavailable, OSError, ValueError):
+        return frozenset()
+    return frozenset(before.by_id()) ^ frozenset(now.by_id())
 
 
 def costs_of(config: Config, shas: tuple[str, ...]) -> dict[str, Cost]:

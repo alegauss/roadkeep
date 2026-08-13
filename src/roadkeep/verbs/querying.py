@@ -413,6 +413,13 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
                         {"path": one, "claimed_by": who} for one, who in scope.theirs
                     ],
                     "unclaimed": list(scope.loose),
+                    # Empty on this path and present for the reason every other key is
+                    # (RK1120): `claim <id>` computes no `shared` — that reading belongs to
+                    # the moment of committing — and a key that appeared only at a departure
+                    # would read as a client's payload predating the field.
+                    "shared": [
+                        {"path": one, "ids": list(named)} for one, named in scope.shared
+                    ],
                     "staging_nothing": list(scope.idle),
                 },
                 indent=2,

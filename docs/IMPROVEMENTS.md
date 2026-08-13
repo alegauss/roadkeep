@@ -77,37 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1120 The file whose diff names two tasks
-
-RK1117 taught a departure to report a governed file it wrote and does not explain, and
-it is bounded by its own reading: `written` asks whether the **file's** diff names this
-id, so a file this task both wrote and is named in stays accounted for whatever else is
-in it.
-
-The roadmap is that file on every ship. Measured here, shipping RK1112 while another
-session had filed RK1116: `docs/IMPROVEMENTS.md` is now reported, and `docs/ROADMAP.md`
-is not — this task's marker write is in the same diff, so the added `RK1116` line rides
-inside the staging line the report prints and nothing says a second id is in it.
-
-```
-$ git diff HEAD -U0 -- docs/ROADMAP.md
--- 📋 **RK1112** …          this task's own marker
-+- 🛠 **RK1112** …
-+- 📋 **RK1116** …          somebody else's line
-```
-
-The machinery to read it is already here and used one command over. `lint --since HEAD`
-parses both revisions of a governed file to answer `block.emptied` (RK269), and a
-`Document` gives entries by id — so *which ids gained or lost a line since HEAD* is a
-comparison of two parses rather than a diff heuristic. An annotation refresh (RK8)
-changes a dependent's deps field and is not a line gained or lost, which is exactly the
-false positive a diff-level reading of "other ids appear" would produce.
-
-What to say is one line beside the staging: which ids in this file's change are not this
-task's, and that staging the file takes them. Not a refusal — a tree somebody else is
-working in is not this command's to block, and the answer needed is which hunk to leave
-out.
-
 ### §RK1121 The next step that is never the next step
 
 Every `ship` that takes the last open line out of a block prints a second line naming

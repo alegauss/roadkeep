@@ -53,12 +53,13 @@ from __future__ import annotations
 
 import time
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import StrEnum
 from pathlib import Path
 
 from roadkeep.backlog import Backlog
 from roadkeep.config import ROLES, Config
+from roadkeep.ids import CARRIERS
 from roadkeep.kernel.document import Entry
 from roadkeep.locking import exclusive
 from roadkeep.kernel.schema import IN_PROGRESS, Task
@@ -510,6 +511,11 @@ class Scope:
     #: nor the index. A subset of :attr:`mine`, in the order it was declared, because this is
     #: a reading *of* the declaration and not a fourth list beside it.
     idle: tuple[str, ...] = ()
+    #: `(path, ids)` for a governed file whose change this id explains **and** that another
+    #: session's line arrived in or left (RK1120). Not a fourth kind of ownership: the file is
+    #: staged either way, so what this carries is the ids inside it that are nobody's business
+    #: here — the half :attr:`loose` cannot reach, a roadmap always naming this id.
+    shared: tuple[tuple[str, tuple[str, ...]], ...] = ()
 
     @property
     def spoken(self) -> bool:
@@ -675,9 +681,13 @@ def departing(config: Config, task_id: str, entries: Iterable[Entry]) -> Scope |
     What this id **already explains** is asked here and not left to the printer (RK1117), and
     asked of the tree *before* the transaction writes: a governed file dirty at this moment is
     dirty from something else, and :func:`written` says whether that something names this id.
-    The reading is per file and says so — a file this task both wrote and is named in stays
-    accounted, so a second task's line added to the same roadmap is still not separable. What
-    it does catch is the other file, which is what a report has to be right about to be read.
+
+    That reading is per **file**, and the roadmap is a file this task is always named in — the
+    marker that took the line is in the same diff — so RK1117 left the id inside it unreachable.
+    :attr:`Scope.shared` is that half (RK1120): for each carrier this id explains,
+    :func:`~roadkeep.history.ids_since` says which *other* ids gained or lost a line since HEAD,
+    which two parses answer and no textual reading can — an annotation refresh names every
+    dependent in an added line and moves none of them.
     """
     entries = tuple(entries)
     if not any(one.paths for one in live(config, entries)):
@@ -685,17 +695,23 @@ def departing(config: Config, task_id: str, entries: Iterable[Entry]) -> Scope |
     # Imported here for the reason :mod:`roadkeep.provenance` does it (RK260): this is the
     # only function in the file that asks git anything, and every other reader of a claim —
     # `pick`, `brief`, every marker write — would otherwise pay for the wrapper.
-    from roadkeep.history import dirty, indexed  # noqa: PLC0415
+    from roadkeep.history import dirty, ids_since, indexed  # noqa: PLC0415
 
     changed = dirty(config)
-    return split(
-        config,
-        task_id,
-        entries,
-        changed,
-        indexed(config),
-        accounted=written(config, task_id, changed),
+    accounted = written(config, task_id, changed)
+    scope = split(
+        config, task_id, entries, changed, indexed(config), accounted=accounted
     )
+    shared: list[tuple[str, tuple[str, ...]]] = []
+    for role in CARRIERS:
+        # Only the files this id explains: one it does not is already reported whole, and
+        # naming the ids inside it as well would be the same fact under two headings.
+        if not config.has(role) or config.relative(config.path(role)) not in accounted:
+            continue
+        others = tuple(sorted(ids_since(config, "HEAD", role) - {task_id}))
+        if others:
+            shared.append((config.relative(config.path(role)), others))
+    return replace(scope, shared=tuple(shared))
 
 
 def rename(root: Path | str, old: str, new: str) -> bool:

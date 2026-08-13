@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1120** (deps: —) **a roadmap carrying two sessions lines is one accounted file, so a departure cannot separate them** — The reading is per file and this task's own marker is in that diff, so another session's added line rides inside the staging the report prints. → §RK1120
 - 📋 **RK1121** (deps: —) **the block-empty hint names a door six ships out of nine, in a project that has never dropped a heading** — Whether an emptied block is a heading to withdraw is a fact about the project, so the hedge in the sentence is read on every run instead of declared once. → §RK1121
 
 ## Block C — Query (consult without reading the file)

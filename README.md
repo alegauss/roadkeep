@@ -117,17 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
-| B — Authoring (insert, never hand-edit) | 2 | 134 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 135 | 1 |
 | C — Query (consult without reading the file) | 0 | 89 | 1 |
 | D — The gate | 0 | 149 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 102 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 611 | 6 |
+| **Total** | 1 | 612 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1120** (deps: —) **a roadmap carrying two sessions lines is one accounted file, so a departure cannot separate them** — The reading is per file and this task's own marker is in that diff, so another session's added line rides inside the staging the report prints. → §RK1120
+- 📋 **RK1121** (deps: —) **the block-empty hint names a door six ships out of nine, in a project that has never dropped a heading** — Whether an emptied block is a heading to withdraw is a fact about the project, so the hedge in the sentence is read on every run instead of declared once. → §RK1121
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

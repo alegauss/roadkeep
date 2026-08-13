@@ -281,6 +281,12 @@ def _print_scope(scope: claiming.Scope | None, wrote: Sequence[str] = ()) -> Non
         print(f"  stage    git add -- {' '.join(_shell(one) for one in staging)}")
     for one, who in scope.theirs:
         print(f"  theirs   {one}  ({who} is holding it)")
+    for one, others in scope.shared:
+        # Beside the staging and not instead of it (RK1120): the file is staged either way —
+        # this transaction wrote it — and what the author needs is the ids inside it that this
+        # commit is not about, which is the hunk to leave out rather than a path to drop.
+        named = ", ".join(others)
+        print(f"  shared   {one}  ({named} moved in it too, and staging it takes that)")
     for one in scope.loose:
         # No filter here since RK1117: `loose` already excludes what this id explains, and the
         # subtraction moved to `split` because the two callers meant different things by the
@@ -322,6 +328,10 @@ def _scope_json(
         # about which paths belong to nobody.
         "unclaimed": list(scope.loose),
         "staging_nothing": list(scope.idle),
+        # RK1120: per governed file, the other ids whose line moved in it. Its own key beside
+        # `unclaimed`, because the two are different answers — a path nobody claims, and a path
+        # this commit does claim that is carrying somebody else's line.
+        "shared": [{"path": one, "ids": list(ids)} for one, ids in scope.shared],
     }
 
 

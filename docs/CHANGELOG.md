@@ -191,6 +191,7 @@
 - ✅ **RK1109** **section amend answers unchanged: it already reads that way over a body left unread on stdin** — An unchanged amend says the prose was never read and the JSON carries it as a field, so a piped body with a --title is not a confirmation (design §RK1109 superseded: stdin is never a tty over MCP).
 - ✅ **RK1112** **section show prints the subtree and section amend takes only the own body, so the obvious round-trip is refused** — `section show --own` prints the extent `section amend --body` replaces, and a body carrying a subsection's heading is refused as the wrong extent.
 - ✅ **RK1117** **`ship` prints a stage line without naming the paths in it that carry changes no claim owns** — The subtraction of what an id already explains happens in split, so a departure reports a governed file it wrote that another session had changed.
+- ✅ **RK1120** **a roadmap carrying two sessions lines is one accounted file, so a departure cannot separate them** — A departure names the other ids whose line arrived in or left a governed file it stages, read as two parses so an annotation refresh moves nobody.
 
 ## Block C — Query
 
