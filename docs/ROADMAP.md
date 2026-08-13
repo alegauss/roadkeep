@@ -26,11 +26,17 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1117** (deps: —) **`ship` prints a stage line without naming the paths in it that carry changes no claim owns** — The line is what a commit is composed from, so a governed file another session changed in the meantime is staged under this task's message with nothing saying so. → §RK1117
+
 ## Block C — Query (consult without reading the file)
+
+- 📋 **RK1118** (deps: —) **`section show --own` on a container prints an empty body, which reads exactly like a command that failed** — A parent with no paragraph of its own is the shape this repository's §0 has, so the reader cannot tell an honest absence from a call that did nothing. → §RK1118
 
 ## Block D — The gate
 
 ## Block E — Adoption
+
+- 📋 **RK1119** (deps: —) **the entry-point sentence `install` writes says it wired a checkout, which a `--committed` project has none of** — The bridge resolves an engine at runtime and the environment the flag exists for holds no checkout, so the first sentence a session reads sends it looking for one. → §RK1119
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
