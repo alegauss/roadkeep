@@ -85,32 +85,6 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1113 install --check reads the wrong wiring variant
-
-`install` writes a project's surfaces two ways. The default points the hook, the server
-and the skill at a checkout — `${CLAUDE_PROJECT_DIR}/../roadkeep/scripts/roadkeep.py` —
-and `--committed` points them at `.claude/hooks/roadkeep-launch.py`, a launcher
-committed to the adopting repository so a session that installs no plugin and clones
-nothing still has a guard.
-
-`--check` compares against the default alone. On a project adopted with `--committed` it
-reports every one of those surfaces as drifted and names the plain `install` as the
-repair. Running it rewrites them to the checkout path, which is the one change the
-committed launcher exists to prevent: the file stays on disk, nothing references it, and
-the web session loses its hook.
-
-Measured on the dockerdesk repository at commit acc7fc1, a tree with no local edits:
-`install --check` answered "3 surface(s) differ", the plain `install` then changed
-`.mcp.json`, `.claude/settings.json` and `.claude/skills/roadkeep/SKILL.md`, and
-`install --committed` restored all three to exactly HEAD. Nothing had drifted; the check
-was reading a variant that project never chose. The `SessionStart` message is built from
-the same answer, so such a session opens by being told its own wiring is stale — and an
-agent that believes it spends its first turn undoing the adoption.
-
-What decides the answer is already on disk: a committed launcher that the settings and
-the server actually reference is the project saying which variant it is. Read that
-first, and report drift against it.
-
 ### §RK1114 A partial ship leaves a line the picker offers and the claim refuses
 
 `ship <id> --part` writes a ledger entry and deliberately leaves the roadmap line open

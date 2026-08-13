@@ -121,13 +121,13 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 88 | 1 |
 | D — The gate | 0 | 149 | 0 |
 | E — Adoption | 0 | 84 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 98 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 99 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 4 | 604 | 6 |
+| **Total** | 3 | 605 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1113** (deps: —) **`install --check` reports drift on a `--committed` project and names the plain `install`, which downgrades the wiring** — The committed launcher exists for a session that installs no plugin, so a refresh replacing it with a checkout path leaves that environment with no guard. → §RK1113
+- 📋 **RK1114** (deps: —) **`pick` offers a partially shipped line that `--claim` then refuses, the partial ledger entry reading as a ship** — A partial leaves the line open at ⏳ by design, so the one verb that starts a task cannot take the line the picker just named. → §RK1114
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

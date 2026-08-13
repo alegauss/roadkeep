@@ -321,6 +321,13 @@ class Plan:
     #: raised here, because `--check` writes nothing and still has to report it: its whole
     #: job is naming the remedy, and `install` was the remedy it named and could not do.
     blocked: tuple[tuple[Path, Path], ...] = ()
+    #: Which variant this plan is (RK1108), and whether the flag or the disk said so (RK1113).
+    #: On the plan because the launcher alone does not say *why* it is that path, and a reader
+    #: of a report that names no flag has to be able to tell a project wired to the bridge
+    #: from one this run is about to move there.
+    committed: bool = False
+    #: True where :func:`_carrying` answered it rather than the caller (RK1113).
+    carried: bool = False
     #: What is standing in the way of `.gitattributes`, where anything is (RK394). Its own
     #: field and not a row in :attr:`blocked`, because the driver is not one of the surfaces:
     #: it is written after the loop, by `--register-merge` alone, and the report names it on
@@ -361,9 +368,19 @@ def plan(
     exact and is what an early adopter developing against a checkout wants; the bridge searches
     at runtime, which is the only thing that can work in an environment holding neither a
     plugin nor a checkout. A project that has both is better served by the exact path.
+
+    Opt-in **for a project that has not chosen yet**, which is the correction RK1113 makes: a
+    project already wired to the bridge has chosen, on disk, and the flag is not where that
+    answer lives. Without the flag this reads :func:`_carrying` and keeps the variant it finds,
+    so `--check` on a `--committed` project reports what actually drifted and the plain
+    `install` it names no longer downgrades the wiring. Moving *back* to a checkout path is
+    `uninstall` and then `install`, which is the same two commands as any other change of mind
+    about a variant — and unlike a flag, it cannot happen by running the repair a check named.
     """
     base = Path(root).resolve()
     origin = Path(source).resolve() if source is not None else _source()
+    carried = not committed and _carrying(base)
+    committed = committed or carried
     _carried(origin, committed=committed)
 
     # Addressed from the project and not from the checkout, which is the whole point: the file
@@ -439,6 +456,8 @@ def plan(
         # Always, and not only under `--register-merge` (RK394): the report names the flag on
         # every run, so whether running it could work is part of every run's answer.
         driver=driver,
+        committed=committed,
+        carried=carried,
     )
 
 
@@ -752,6 +771,41 @@ def _standing(base: Path) -> int | None:
         return lint(config).problems
     except (ValueError, OSError):
         return None
+
+
+def _carrying(base: Path) -> bool:
+    """Whether this project's own declarations run the committed launcher (RK1113).
+
+    The variant is a property of the project and `--check` read it off the **flag**, so a tree
+    adopted `--committed` was told every one of its surfaces had drifted and handed the plain
+    `install` as the repair — which rewrites them to a checkout path, the one change the bridge
+    exists to prevent: the file stays on disk, nothing references it, and a web session loses
+    its hook. Measured on dockerdesk at acc7fc1, a tree with no local edits: "3 surface(s)
+    differ", and `install --committed` restored all three to exactly HEAD.
+
+    Read the way :func:`removal` reads (RK284, RK1108) — **this project's own entry** and no
+    checkout — and both halves of it, because either alone is a different state. A bridge
+    nothing references is what a downgrade leaves behind; a declaration naming a bridge that is
+    not there is a project whose launcher was deleted. Neither is wired to it, so both are drift
+    against the default, where the repair is the `install --committed` that puts it back.
+
+    A substring and not a parse: what is being asked is whether the path this command writes
+    appears where this command writes it, and the two declarations spell it under different
+    placeholders (:data:`PROJECT_DIR` and :data:`PROJECT_DIR_OR_CWD`) — so matching the launcher
+    itself is the one test that does not need to know which of them a surface used.
+    """
+    if not (base / PROJECT_BRIDGE).is_file():
+        return False
+    for name in (PROJECT_SETTINGS, PROJECT_MCP):
+        try:
+            if PROJECT_BRIDGE in _read(base / name):
+                return True
+        except OSError:
+            # A declaration that is not there says nothing about the variant, and an
+            # unreadable one is not this command's refusal to make: `_declaration` reads the
+            # same file one step on and reports it as the surface it is.
+            continue
+    return False
 
 
 def _launcher(base: Path, origin: Path) -> str:

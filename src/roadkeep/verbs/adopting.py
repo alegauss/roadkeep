@@ -21,7 +21,15 @@ from pathlib import Path
 from roadkeep.adopting import adopt, init
 from roadkeep.capturing import STOPPED_NOTICE, body, capture, check, handoff, keep, replay
 from roadkeep.config import Config
-from roadkeep.installing import UNPINNABLE, engines, install, plan, removal, uninstall
+from roadkeep.installing import (
+    PROJECT_BRIDGE,
+    UNPINNABLE,
+    engines,
+    install,
+    plan,
+    removal,
+    uninstall,
+)
 from roadkeep.provenance import invocation
 from roadkeep.rendering import _estimate_json, _print_estimate, registration_report
 from roadkeep.serving import serve
@@ -216,6 +224,11 @@ def _install(config: Config, args: argparse.Namespace) -> int:
                     "root": intent.root.as_posix(),
                     "source": intent.source.as_posix(),
                     "launcher": intent.launcher,
+                    # RK1113: which variant, and whether the project said so rather than the
+                    # flag. Two keys, because a reader deciding whether to pass `--committed`
+                    # needs the second one — with `carried` true, passing it changes nothing.
+                    "committed": intent.committed,
+                    "carried": intent.carried,
                     "checked": args.check,
                     "debt": intent.debt,
                     "surfaces": [
@@ -269,6 +282,14 @@ def _install(config: Config, args: argparse.Namespace) -> int:
         )
     else:
         print(f"{intent.source.as_posix()}  →  {intent.launcher}")
+        if intent.carried:
+            # Said because the header alone does not (RK1113): the launcher is a path, and a
+            # reader who passed no flag has to be told the path came from their own project
+            # rather than from a default that is about to overwrite it.
+            print(
+                f"  committed      this project already runs {PROJECT_BRIDGE}, so the "
+                f"wiring stays on it — `uninstall` then `install` moves it to a checkout"
+            )
         for surface in intent.surfaces:
             # `--check` writes nothing, so it reports in the conditional: the same three
             # words in the past tense would claim a file changed that did not.

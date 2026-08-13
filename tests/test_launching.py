@@ -362,6 +362,110 @@ def test_switching_from_a_checkout_wiring_to_a_committed_one_leaves_one_guard(tm
     assert all(PROJECT_BRIDGE in one for one in commands), commands
 
 
+# -- the variant is on the disk, not on the flag (RK1113) ---------------------
+
+
+def test_a_committed_project_reports_clean_without_the_flag(tmp_path):
+    """The defect, as dockerdesk reported it at acc7fc1: `--check` compared against the default
+    alone, so a tree with no local edits answered "3 surface(s) differ" on every run — and the
+    repair it named rewrote all three to a checkout path."""
+    from roadkeep.adopting import init
+    from roadkeep.installing import install, plan
+
+    init(tmp_path)
+    install(tmp_path, source=ROOT, committed=True)
+    intent = plan(tmp_path, source=ROOT, gauging=False)
+    assert intent.changing == ()
+    assert intent.launcher == PROJECT_BRIDGE and intent.committed and intent.carried
+
+
+def test_the_plain_install_no_longer_downgrades_the_wiring(tmp_path):
+    """The consequence that made it worth a task rather than a wrong number: running the named
+    repair is what removes the guard from the environment the bridge exists for."""
+    from roadkeep.adopting import init
+    from roadkeep.installing import install
+
+    init(tmp_path)
+    install(tmp_path, source=ROOT, committed=True)
+    install(tmp_path, source=ROOT)
+    settings = json.loads((tmp_path / ".claude/settings.json").read_text(encoding="utf-8"))
+    commands = [
+        hook["command"]
+        for groups in settings["hooks"].values()
+        for group in groups
+        for hook in group["hooks"]
+    ]
+    assert all(PROJECT_BRIDGE in one for one in commands), commands
+    assert (tmp_path / PROJECT_BRIDGE).is_file()
+
+
+def test_the_session_start_notice_is_silent_on_a_committed_project(tmp_path):
+    # The same answer feeds `SessionStart` (RK234), so the session opened by being told its own
+    # wiring was stale — and an agent that believes it spends its first turn undoing the
+    # adoption. `stale` takes no flag at all, which is why the reading had to move.
+    from roadkeep.adopting import init
+    from roadkeep.installing import install, stale
+
+    init(tmp_path)
+    install(tmp_path, source=ROOT, committed=True)
+    assert stale(tmp_path) == ()
+
+
+def test_a_bridge_nothing_references_is_not_a_committed_project(tmp_path):
+    # Both halves, because either alone is another state: this is what a downgrade leaves
+    # behind, and reading the file alone would report the wiring as committed while the hook
+    # that runs is the checkout's.
+    from roadkeep.adopting import init
+    from roadkeep.installing import install, plan
+
+    init(tmp_path)
+    install(tmp_path, source=ROOT)
+    (tmp_path / PROJECT_BRIDGE).parent.mkdir(parents=True, exist_ok=True)
+    (tmp_path / PROJECT_BRIDGE).write_text("# left behind\n", encoding="utf-8")
+    intent = plan(tmp_path, source=ROOT, gauging=False)
+    assert not intent.committed and not intent.carried
+    assert intent.launcher != PROJECT_BRIDGE
+
+
+def test_the_flag_is_still_what_a_project_with_no_variant_asks_with(tmp_path):
+    # Read off the disk means read off *a choice already made*: a project that has not made one
+    # gets the default, and the flag is the only thing that moves it.
+    from roadkeep.adopting import init
+    from roadkeep.installing import plan
+
+    init(tmp_path)
+    asked = plan(tmp_path, source=ROOT, gauging=False, committed=True)
+    assert asked.committed and not asked.carried
+    assert not plan(tmp_path, source=ROOT, gauging=False).committed
+
+
+def test_the_report_says_the_project_chose_it_rather_than_the_default(tmp_path, capsys):
+    # The launcher line is a path, so a reader who passed no flag is told where the path came
+    # from — and how to leave, which is the door a flag no longer opens by accident.
+    from roadkeep.adopting import init
+    from roadkeep.cli import main
+    from roadkeep.installing import install
+
+    init(tmp_path)
+    install(tmp_path, source=ROOT, committed=True)
+    assert main(["-C", str(tmp_path), "install", "--source", str(ROOT), "--check"]) == 0
+    printed = capsys.readouterr().out
+    assert PROJECT_BRIDGE in printed and "uninstall" in printed
+
+
+def test_the_payload_says_which_of_the_two_answered(tmp_path, capsys):
+    from roadkeep.adopting import init
+    from roadkeep.cli import main
+    from roadkeep.installing import install
+
+    init(tmp_path)
+    install(tmp_path, source=ROOT, committed=True)
+    argv = ["-C", str(tmp_path), "install", "--source", str(ROOT), "--check", "--json"]
+    assert main(argv) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["committed"] and payload["carried"] and payload["changing"] == 0
+
+
 def test_a_source_that_predates_the_bridge_is_refused_by_name(tmp_path):
     """Not in `CARRIED`, which also decides whether a tree *is* the plugin: a sixth entry there
     would make an older checkout stop being recognised as one. So the file is asked for under
