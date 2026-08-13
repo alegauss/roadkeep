@@ -119,11 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 143 | 1 |
 | C — Query (consult without reading the file) | 0 | 92 | 1 |
-| D — The gate | 0 | 150 | 0 |
+| D — The gate | 1 | 150 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 103 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 625 | 6 |
+| **Total** | 1 | 625 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1134** (deps: —) **the index closure reads the git index, so a new surface reaches it one commit after it was written** — RK1132 added a top-level file, passed its own turn and reddened the next one, which is the silence RK1016 was written against said back to it. → §RK1134
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

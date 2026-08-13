@@ -30,6 +30,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1134** (deps: —) **the index closure reads the git index, so a new surface reaches it one commit after it was written** — RK1132 added a top-level file, passed its own turn and reddened the next one, which is the silence RK1016 was written against said back to it. → §RK1134
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
