@@ -109,6 +109,33 @@ What needs deciding: whether it lives in `scripts/` beside the two a developer a
 runs, or as a marker the suite honours, which would put the environment inside pytest
 rather than around it.
 
+### §RK1160 A capture delivered to another backlog has no way to say so
+
+RK1139 counted captures and RK1141 gave each one the id it was filed as, so a reworded
+symptom no longer left a row nothing could clear. Both resolve that id against **the
+capturing project's own backlog** — `stats` reads the ids in this project's roadmap and
+ledger, and clears the row only when the stamp is one of them.
+
+A capture of a defect *in this tool* has one correct destination: this backlog, never
+the project that hit it, which is what `report --to OWNER/REPO` says. So the stamp names
+an id that project does not hold, the row never clears, and the two ways to silence it
+are a stamp from the wrong repository or deleting the evidence.
+
+Measured in the Viglet Turing corpus, which held one capture whose defect shipped here
+as RK1128:
+
+    stamped RK1128 (where it was really filed)  ->  captures 1  1 unfiled
+    stamped T954   (a local id, the control)    ->  no captures row at all
+
+The control is what makes it a defect rather than a nag: the mechanism works, and it
+works only for the destination that is wrong for this tool's own captures.
+
+`add --capture PATH` is the same assumption on the write side — it files the line and
+stamps the file in one project, which is right for a defect in *that* project's code and
+unavailable for one in this tool's. What is missing is a stamp that records delivery
+elsewhere: an id qualified by the repository that holds it, resolved as filed without
+being looked up locally.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

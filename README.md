@@ -119,15 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 146 | 1 |
 | C — Query (consult without reading the file) | 0 | 93 | 1 |
-| D — The gate | 1 | 167 | 1 |
+| D — The gate | 2 | 167 | 1 |
 | E — Adoption | 0 | 86 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 105 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 649 | 7 |
+| **Total** | 2 | 649 | 7 |
 
 **Next ready:**
 
-- 📋 **RK1159** (deps: —) **nothing here runs the suite the way CI does, so four defects this session were only findable there** — The differences are an installed console script, no ambient git and no caches, and three of the four need no second interpreter. → §RK1159
+- 🛠 **RK1159** (deps: —) **nothing here runs the suite the way CI does, so four defects this session were only findable there** — The differences are an installed console script, no ambient git and no caches, and three of the four need no second interpreter. → §RK1159
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
