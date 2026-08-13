@@ -1891,3 +1891,58 @@ def test_a_project_with_no_projection_names_only_what_it_wrote(tmp_path, capsys)
         line for line in capsys.readouterr().out.splitlines() if "stage    " in line
     )
     assert "README.md" not in staging
+
+
+# -- what an amend replaced, and not only which field (RK1133) -------------------
+
+
+def test_the_amend_payload_carries_what_each_changed_field_said_before(tmp_path, capsys):
+    """RK1133, found by RK1131's table: `status` answers `from` beside `to` and `restate`
+    answers `was` beside `now`, while an amend answered which fields moved and never their old
+    values — so a client rendering one could show the new line and not the sentence it
+    replaced, on `why`, the field this verb exists to correct."""
+    project(tmp_path)
+    argv = [
+        "-C", str(tmp_path), "amend", "RK1",
+        "--why", "Because of a corrected reason.",
+        "--json",
+    ]
+    capsys.readouterr()
+    assert main(argv) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["changed"] == ["why"]
+    assert payload["was"] == {"why": "Because of a reason."}
+
+
+def test_a_field_that_did_not_move_has_no_before_to_report(tmp_path, capsys):
+    # Only the changed fields: sending a field's current value under this name would let a
+    # reader render a diff where there is none.
+    project(tmp_path)
+    argv = ["-C", str(tmp_path), "amend", "RK1", "--why", "Because of a corrected reason.", "--json"]
+    capsys.readouterr()
+    assert main(argv) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert set(payload["was"]) == set(payload["changed"])
+    assert "deps" not in payload["was"] and "ref" not in payload["was"]
+
+
+def test_the_deps_it_replaced_are_spelled_the_way_the_line_spells_them(tmp_path, capsys):
+    # A `Dep` is a record, and handing one to a client outside this process is what `UNSENT`
+    # refuses for a document — so the answer is the rendering every other payload here uses.
+    project(tmp_path, BODY.replace("(deps: —)", "(deps: RK9)"))
+    argv = ["-C", str(tmp_path), "amend", "RK1", "--dep", "—", "--json"]
+    capsys.readouterr()
+    assert main(argv) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["was"]["deps"] == ["RK9"]
+
+
+def test_a_no_op_amend_reports_no_before_at_all(tmp_path, capsys):
+    # `changed` is empty there, so `was` is too: nothing moved, and a key naming a value would
+    # be this record answering a question the write never asked.
+    project(tmp_path)
+    argv = ["-C", str(tmp_path), "amend", "RK1", "--why", "Because of a reason.", "--json"]
+    capsys.readouterr()
+    assert main(argv) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["changed"] == [] and payload["was"] == {}

@@ -929,6 +929,28 @@ class Amendment:
         )
 
     @property
+    def was(self) -> dict[str, str | tuple[str, ...]]:
+        """What each changed field said before, keyed by field name (RK1133).
+
+        The reading this record held and did not answer. `status` reports `from` beside `to`
+        and `restate` reports `was` beside `now`; an amend reported *which* fields moved and
+        never their old values, so a client rendering one could show the new line and not the
+        sentence it replaced — on `why`, the field this verb exists to correct.
+
+        Only the fields in :attr:`changed`, because a field that did not move has no *before*
+        to report: sending its current value under this name would let a reader show a diff
+        where there is none. Deps are rendered as the line spells them, which is the one
+        spelling every other payload here uses — a `Dep` is a record, and handing one to a
+        client outside this process is the thing :data:`UNSENT` refuses for a document.
+        """
+        return {
+            name: tuple(dep.render() for dep in self.before.deps)
+            if name == "deps"
+            else getattr(self.before, name)
+            for name in self.changed
+        }
+
+    @property
     def rendered(self) -> str:
         return self.entry.raw
 

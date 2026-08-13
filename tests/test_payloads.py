@@ -292,7 +292,7 @@ RECORDS: dict[str, dict[str, str | None]] = {
     "Amendment": {
         "document": None,
         "entry": None,
-        "before": None,
+        "before": "was",
         "refreshed": "refreshed",
         "wrote": "wrote",
     },
@@ -320,7 +320,6 @@ UNSENT = {
     "StatusChange.entry": "the line, reported as `rendered`",
     "Amendment.document": "the parsed roadmap, addressed by `file` and `line`",
     "Amendment.entry": "the line, reported as `rendered`",
-    "Amendment.before": "the old values are the diff's; `changed` is which fields differ",
     "Restatement.document": "the parsed roadmap, addressed by `file` and `line`",
     "Restatement.entry": "the line, reported as `rendered`",
 }

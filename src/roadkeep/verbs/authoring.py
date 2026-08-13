@@ -273,6 +273,13 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
                     "line": amended.entry.lineno,
                     "changed": list(amended.changed),
                     "rendered": amended.rendered,
+                    # What each changed field said before (RK1133), beside which ones moved:
+                    # `status` answers `from`/`to` and `restate` answers `was`/`now`, and this
+                    # was the one write whose client could show the new line and nothing else.
+                    "was": {
+                        name: list(value) if isinstance(value, tuple) else value
+                        for name, value in amended.was.items()
+                    },
                     "refreshed": list(amended.refreshed),
                     **_wrote_json(config, amended.wrote),
                 },
