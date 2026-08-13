@@ -77,9 +77,73 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1131 The closure that reads one record
+
+RK1123 bound the five fields of `Scope` to the two payloads that carry them, and the
+argument was general: a field added reaches one reader and not the other, and nothing
+notices. RK1130 then added `wrote` to **six** records — `Insertion`, `StatusChange`,
+`Amendment`, `Restatement` and the two the ledger keeps — and to twelve payloads, every
+one of them by hand.
+
+Nothing holds any of those. The closure that exists reads one dataclass; the sweep that
+needed it read twelve, and the only reason it is right is that a human checked twelve
+times.
+
+`test_installing`'s `PLAN_RENAMES` is the shape, and `test_claiming`'s two tables are
+the shape refined — a rename map per payload, asserted in **both** directions so a field
+with no entry is red and an entry naming no field is red too. What is missing is that
+the map exists once per record instead of once per project:
+
+```
+RECORDS = {
+    "Insertion":    {"entry": "line", "wrote": "wrote", …},
+    "StatusChange": {"before": "from", "wrote": "wrote", …},
+    …
+}
+```
+
+Two things need deciding rather than copying. A record carries fields a payload **must
+not** have — `document`, `entry`, `prose` are objects, not keys — so the table needs the
+`because` column `test_backstop` uses for a code nothing reports, not a silent omission.
+And a verb whose payload nests (`ship`'s `scope`, `changelog`, `improvements`) addresses
+a key by path, so the map's values are addresses and not names.
+
+What it buys is the next sweep: a seventh field, added by whoever needs it, is refused
+by a test rather than caught by a reviewer counting payloads.
+
 ## Block C — Query
 
 ## Block D — The gate
+
+### §RK1132 One tree, two terminators
+
+Measured across the working tree: **45 of the 56 package modules end CRLF and 11 end
+LF**, and eight test files carry **both**. `src/roadkeep/verbs/shipping.py` is one of
+the eleven while every file beside it is one of the forty-five.
+
+The cost is not rendering and not bytes. It is that an edit anchored on one terminator
+matches nothing in a file that uses the other, **silently** — which is RK1091's defect
+one layer down. Twice in one session a scripted patch asserted its anchor and stopped:
+
+```
+AssertionError:                     "event": event,
+                },
+```
+
+The assert is what made it cheap; RK1091 was filed because the same class of edit had
+once *succeeded* at writing the wrong bytes. Both times the fix was to notice the file's
+endings — a step nothing here declares, so every author rediscovers it.
+
+The repository already owns the file where this is stated: `.gitattributes` carries the
+merge driver for the governed files (RK120), so a `*.py text` line lands beside a
+declaration this project already made. It changes the **checkout**, which is where the
+mixing comes from — the index is normalised to LF either way, so no diff is at stake.
+
+Two decisions worth writing down rather than assuming. Whether the eight mixed files are
+normalised in one commit — a diff of every line, once, against a class of silent failure
+— and whether anything holds it afterwards: `test_invariants` is where a source-level
+property lives, and "one terminator per file" is one it can read off
+`surface.modules()`.
 
 ## Block E — Adoption
 

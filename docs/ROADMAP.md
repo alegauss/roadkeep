@@ -26,9 +26,13 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1131** (deps: —) **six records gained a field and twelve payloads carry it, with a closure over one dataclass and none over the rest** — RK1130 edited every payload by hand and the only thing that made it right was checking twelve times, which is what RK1123 closed for Scope alone. → §RK1131
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
+
+- 📋 **RK1132** (deps: —) **45 modules end CRLF and 11 end LF, so an edit anchored on one terminator silently matches nothing** — Two scripted patches stopped on their own assert in one session, which is RK1091's defect one layer down and a step nothing in the repository declares. → §RK1132
 
 ## Block E — Adoption
 

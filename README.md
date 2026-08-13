@@ -117,13 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 142 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 142 | 1 |
 | C — Query (consult without reading the file) | 0 | 91 | 1 |
-| D — The gate | 0 | 149 | 0 |
+| D — The gate | 1 | 149 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 103 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 622 | 6 |
+| **Total** | 2 | 622 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1131** (deps: —) **six records gained a field and twelve payloads carry it, with a closure over one dataclass and none over the rest** — RK1130 edited every payload by hand and the only thing that made it right was checking twelve times, which is what RK1123 closed for Scope alone. → §RK1131
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
