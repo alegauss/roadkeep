@@ -26,7 +26,7 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1130** (deps: —) **four of the thirty-two write commands print a staging line, so the rest can leave the projection they refreshed behind** — Document.save routes through save_all and answers one path, so every verb but ship, retire and add discards the list a commit is composed from. → §RK1130
+- ⏳ **RK1130** (deps: —) **four of the thirty-two write commands print a staging line, so the rest can leave the projection they refreshed behind** — Document.save routes through save_all and answers one path, so every verb but ship, retire and add discards the list a commit is composed from. → §RK1130
 
 ## Block C — Query (consult without reading the file)
 

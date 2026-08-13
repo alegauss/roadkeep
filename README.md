@@ -117,17 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 141 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 142 | 1 |
 | C — Query (consult without reading the file) | 0 | 91 | 1 |
 | D — The gate | 0 | 149 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 103 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 621 | 6 |
+| **Total** | 1 | 622 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1130** (deps: —) **four of the thirty-two write commands print a staging line, so the rest can leave the projection they refreshed behind** — Document.save routes through save_all and answers one path, so every verb but ship, retire and add discards the list a commit is composed from. → §RK1130
+- ⏳ **RK1130** (deps: —) **four of the thirty-two write commands print a staging line, so the rest can leave the projection they refreshed behind** — Document.save routes through save_all and answers one path, so every verb but ship, retire and add discards the list a commit is composed from. → §RK1130
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

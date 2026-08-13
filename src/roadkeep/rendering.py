@@ -305,6 +305,17 @@ def _print_scope(scope: claiming.Scope | None, wrote: Sequence[str] = ()) -> Non
         print(f"  typo?    {one}  (declared, and stages nothing)")
 
 
+def _wrote_json(config: Config, paths: Iterable[Path]) -> dict[str, object]:
+    """The `wrote` key, spelled once for every write that answers one (RK1129, RK1130).
+
+    A fragment merged into each payload rather than a field on each record, because what a
+    client does with it is the same `git add` whichever verb answered — and a key spelled per
+    verb is a key that comes to differ per verb. Relative, like every path in every payload
+    here: an absolute one is a fact about the machine that ran the command.
+    """
+    return {"wrote": [config.relative(one) for one in paths]}
+
+
 def _print_staging(paths: Iterable[str]) -> None:
     """The `git add --` line, spelled in one place (RK298, RK1129).
 

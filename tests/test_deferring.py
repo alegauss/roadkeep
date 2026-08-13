@@ -749,3 +749,37 @@ def test_a_roadmap_line_gets_no_free_prefix_for_writing_the_same_words(tmp_path)
     assert "why.too-long" not in {
         v.code for v in schema.as_deferred().validate(replace(task, status=DEFERRED))
     }
+
+
+# -- what to stage, from the two doors that are not terminal (RK1130) -----------
+
+
+def test_a_pause_says_what_to_stage(tmp_path, capsys):
+    # Two governed files move in one transaction here, and the projection with them: a commit
+    # that took the roadmap alone would leave the store's new line uncommitted.
+    project(tmp_path)
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "defer", "RK1", "--reason", "waiting on a decision"]) == EXIT_OK
+    staging = next(
+        line for line in capsys.readouterr().out.splitlines() if "stage    " in line
+    )
+    assert "ROADMAP.md" in staging and "DEFERRED.md" in staging
+
+
+def test_a_resume_says_the_same(tmp_path, capsys):
+    project(tmp_path)
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "resume", "RK2"]) == EXIT_OK
+    staging = next(
+        line for line in capsys.readouterr().out.splitlines() if "stage    " in line
+    )
+    assert "ROADMAP.md" in staging and "DEFERRED.md" in staging
+
+
+def test_the_pause_payload_carries_the_list(tmp_path, capsys):
+    project(tmp_path)
+    argv = ["-C", str(tmp_path), "defer", "RK1", "--reason", "waiting", "--json"]
+    capsys.readouterr()
+    assert main(argv) == EXIT_OK
+    wrote = json.loads(capsys.readouterr().out)["wrote"]
+    assert "ROADMAP.md" in wrote and "DEFERRED.md" in wrote

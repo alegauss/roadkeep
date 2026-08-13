@@ -3356,3 +3356,51 @@ def test_the_clause_names_the_path_where_this_process_cannot_read_a_pipe(monkeyp
     assert "--body-file <path> is the door" in reading.unread_prose()
     monkeypatch.setattr(reading, "_STDIN_HARDENED", True)
     assert "pass --body - to replace it" in reading.unread_prose()
+
+
+# -- what to stage, from the verbs that write a section (RK1130) ----------------
+
+
+@pytest.mark.parametrize(
+    ("argv", "expect"),
+    [
+        (["section", "add", "RK3", "--title", "A third design", "--body", "The reasoning."], "RK3"),
+        (["section", "amend", "RK1", "--body", "Rewritten."], "RK1"),
+        (["section", "move", "RK1", "--to", "RK1"], None),
+    ],
+    ids=["add", "amend", "move-refused"],
+)
+def test_a_section_write_says_what_to_stage(tmp_path, capsys, argv, expect):
+    """RK1130. Four of the thirty-two write commands printed a `git add --` line; the rest
+    refreshed the same derived block and said nothing, so a commit took the governed file and
+    left the projection behind — green against the working tree, `export.stale` in a checkout."""
+    project(tmp_path)
+    capsys.readouterr()
+    code = main(["-C", str(tmp_path), *argv])
+    printed = capsys.readouterr().out
+    if expect is None:
+        assert code != EXIT_OK  # a refusal writes nothing, so it stages nothing
+        assert "stage" not in printed
+        return
+    assert code == EXIT_OK
+    staging = next(line for line in printed.splitlines() if "stage    " in line)
+    assert IMPROVEMENTS in staging
+
+
+def test_a_section_drop_stages_the_file_it_emptied(tmp_path, capsys):
+    project(tmp_path, improvements=RATIONALE + "\n### §RK9 An orphan\n\nNobody's prose.\n")
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "section", "drop", "RK9"]) == EXIT_OK
+    staging = next(
+        line for line in capsys.readouterr().out.splitlines() if "stage    " in line
+    )
+    assert IMPROVEMENTS in staging
+
+
+def test_the_payload_carries_the_same_list(tmp_path, capsys):
+    # One key, spelled once (`_wrote_json`), so a client stages what a reader is told to.
+    project(tmp_path)
+    argv = ["-C", str(tmp_path), "section", "amend", "RK1", "--body", "Rewritten.", "--json"]
+    capsys.readouterr()
+    assert main(argv) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["wrote"] == [IMPROVEMENTS]

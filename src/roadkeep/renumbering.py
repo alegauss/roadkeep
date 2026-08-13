@@ -130,16 +130,17 @@ class Renumbering:
     def lineno(self) -> int:
         return self.entry.lineno
 
-    def save(self) -> None:
-        """Write the files. Nothing here can fail on the format — that was decided.
+    def save(self) -> tuple[Path, ...]:
+        """Write the files, and answer every path that took (RK1130).
 
         The claim goes last and never conditions the write: it is transient state whose worst
         failure is a claim lost, which is the behaviour before claims existed — and putting it
         before the files would move an address the files had not moved yet.
         """
-        save_all(*self.documents.values())
+        wrote = save_all(*self.documents.values())
         if self.root is not None and self.claim is not None:
             claiming.rename(self.root, self.task_id, self.to)
+        return wrote
 
 
 def renumber(config: Config, task_id: str, to: str | None = None) -> Renumbering:

@@ -24,7 +24,13 @@ from roadkeep.queueing import (
     drop as drop_priority,
     migrate as migrate_priority,
 )
-from roadkeep.rendering import _counted, _print_cited, _section_json
+from roadkeep.rendering import (
+    _counted,
+    _print_cited,
+    _print_staging,
+    _section_json,
+    _wrote_json,
+)
 from roadkeep.scoping import add as add_non_goal, amend as amend_non_goal, drop as drop_non_goal
 from roadkeep.sections import (
     AmbiguousTitle,
@@ -209,18 +215,19 @@ def _section_add(config: Config, args: argparse.Namespace) -> int:
         document, section = add_section(
             config, args.role, args.anchor, args.title, body, level=args.level
         )
-        document.save()
+        wrote = document.save()
     except REFUSALS as error:
         return _refused(error)
 
     where = config.relative(config.path(args.role))
     if args.json:
-        print(json.dumps(_section_json(section, where), indent=2))
+        print(json.dumps({**_section_json(section, where), **_wrote_json(config, wrote)}, indent=2))
         return EXIT_OK
     print(
         f"§{section.anchor} → {where}:{section.first}  "
         f"{_counted(section, config.schema_for(args.role).section_max)}"
     )
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 
@@ -262,7 +269,7 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
             document, section, changed = amend_section(
                 config, args.role, args.anchor, title=args.title, body=body
             )
-        document.save()
+        wrote = document.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -277,6 +284,7 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
                     # at all. `changed: []` says nothing moved and cannot say why, which is the
                     # ambiguity a piped body and a `--title` land in together.
                     "read_body": body is not None,
+                    **_wrote_json(config, wrote),
                 },
                 indent=2,
             )
@@ -301,13 +309,14 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
         else ""
     )
     print(f"{named} amended  {where}:{section.first}  ({', '.join(changed)}){counted}")
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 
 def _section_move(config: Config, args: argparse.Namespace) -> int:
     try:
         moved = move_section(config, args.role, args.anchor, args.to)
-        moved.save()
+        wrote = moved.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -324,6 +333,7 @@ def _section_move(config: Config, args: argparse.Namespace) -> int:
                     "repointed": [{"id": one, "to": a} for one, a in moved.repointed],
                     "kept": [{"id": one, "address": a} for one, a in moved.kept],
                     "cited": [{"address": a, "by": by} for a, by in moved.cited],
+                    **_wrote_json(config, wrote),
                 },
                 indent=2,
             )
@@ -342,6 +352,7 @@ def _section_move(config: Config, args: argparse.Namespace) -> int:
         print(f"  kept     {one} still points at §{address}, which the other file declares")
     for address, by in moved.cited:
         print(f"  cited    §{by} names §{address} in its prose — that address has moved")
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 
@@ -446,7 +457,7 @@ def _section_drop(config: Config, args: argparse.Namespace) -> int:
             claimed=pointers(config),
             where=config.relative(config.path(args.role)),
         )
-        document.save()
+        wrote = document.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -454,7 +465,12 @@ def _section_drop(config: Config, args: argparse.Namespace) -> int:
     if args.json:
         print(
             json.dumps(
-                {**_section_json(section, where), "nested": list(taken), "cited": list(cited)},
+                {
+                    **_section_json(section, where),
+                    "nested": list(taken),
+                    "cited": list(cited),
+                    **_wrote_json(config, wrote),
+                },
                 indent=2,
             )
         )
@@ -463,6 +479,7 @@ def _section_drop(config: Config, args: argparse.Namespace) -> int:
     if taken:
         print(f"  nested   {', '.join(f'§{a}' for a in taken)} went with it")
     _print_cited(cited)
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 

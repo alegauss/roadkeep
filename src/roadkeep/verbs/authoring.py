@@ -32,6 +32,7 @@ from roadkeep.rendering import (
     _promise_json,
     _prose_file,
     _section_json,
+    _wrote_json,
 )
 from roadkeep.renumbering import renumber
 from roadkeep.kernel.schema import width as measured_width
@@ -344,7 +345,7 @@ def _restate(config: Config, args: argparse.Namespace) -> int:
 def _renumber(config: Config, args: argparse.Namespace) -> int:
     try:
         moved = renumber(config, args.id, args.to)
-        moved.save()
+        wrote = moved.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -379,6 +380,7 @@ def _renumber(config: Config, args: argparse.Namespace) -> int:
                     "refreshed": list(moved.refreshed),
                     "files": sorted(config.relative(config.path(role)) for role in moved.documents),
                     "claimed": _held_json(moved.claim),
+                    **_wrote_json(config, wrote),
                     "event": event,
                 },
                 indent=2,
@@ -400,6 +402,7 @@ def _renumber(config: Config, args: argparse.Namespace) -> int:
         # The half the files do not hold (RK156): the worker holding this will next ask for it
         # by a number that no longer exists, and that it is still theirs is what to say.
         print(f"  claimed  the claim taken {moved.claim.since} ago moved with it")
+    _print_staging(config.relative(one) for one in wrote)
     _print_event(event, "  ", config=config)
     return EXIT_OK
 
@@ -431,7 +434,7 @@ def _carried_line(config: Config, carried: Carried) -> str:
 def _defer(config: Config, args: argparse.Namespace) -> int:
     try:
         pause = defer(config, args.id, reason=_piped(args.reason))
-        pause.save()
+        wrote = pause.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -455,6 +458,7 @@ def _defer(config: Config, args: argparse.Namespace) -> int:
                     "dequeued": pause.dequeued,
                     "dependents": list(pause.dependents),
                     "refreshed": list(pause.refreshed),
+                    **_wrote_json(config, wrote),
                     "event": event,
                 },
                 indent=2,
@@ -475,6 +479,7 @@ def _defer(config: Config, args: argparse.Namespace) -> int:
     if pause.refreshed:
         print(f"  derived  {', '.join(pause.refreshed)} (dep annotations re-derived)")
     _print_dequeued(pause.dequeued)
+    _print_staging(config.relative(one) for one in wrote)
     _print_event(event, "  ", config=config)
     return EXIT_OK
 
@@ -482,7 +487,7 @@ def _defer(config: Config, args: argparse.Namespace) -> int:
 def _resume(config: Config, args: argparse.Namespace) -> int:
     try:
         resumption = resume(config, args.id, marker=args.marker)
-        resumption.save()
+        wrote = resumption.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -521,6 +526,7 @@ def _resume(config: Config, args: argparse.Namespace) -> int:
                     # pause removed is the author's to put back, because where in the
                     # order it belonged is not a fact the store kept.
                     "requeue": _requeue(config, resumption.task_id),
+                    **_wrote_json(config, wrote),
                     "event": event,
                 },
                 indent=2,
@@ -552,6 +558,7 @@ def _resume(config: Config, args: argparse.Namespace) -> int:
     follow = _requeue(config, resumption.task_id)
     if follow is not None:
         print(f"  requeue  {follow}")
+    _print_staging(config.relative(one) for one in wrote)
     _print_event(event, "  ", config=config)
     return EXIT_OK
 

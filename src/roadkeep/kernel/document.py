@@ -1016,7 +1016,19 @@ class Document:
             if handle.read() != self.source:
                 raise StaleFile(target)
 
-    def save(self, path: str | Path | None = None) -> Path:
+    def save(self, path: str | Path | None = None) -> tuple[Path, ...]:
+        """Write this file, and answer **every** path that took, projections included.
+
+        The whole list and not this file's own (RK1130). A one-document transaction refreshes
+        the derived block exactly as a three-document one does — that is what routing through
+        :func:`save_all` below says — and answering only the target left every caller composing
+        a commit with no way to name the file it had just refreshed. Measured: four of the
+        thirty-two write commands printed a `git add --` line, and the other twenty-eight had
+        nothing to print it from.
+
+        A path **argument** is the one case that writes alone: it is a copy to somewhere the
+        project does not govern, so it stales no projection and the answer is that one file.
+        """
         target = Path(path) if path is not None else self.path
         if target is None:
             raise ValueError("no path to save to")
@@ -1024,15 +1036,14 @@ class Document:
             # The one-document transaction, and not a shorter path around one: a write that
             # stales a derived block owes the refresh whether it touched one file or three
             # (RK188), and `save_all` is where that is stated once.
-            save_all(self)
-            return target
+            return save_all(self)
         self.ensure_writable()
         # Both halves of "may this file be rewritten": one the tool understood, and one
         # nobody else has touched since (RK116). Re-read and not stat'd — a modification
         # time is a second source of truth about the bytes, and the coarser one.
         self.assert_current(target)
         write_atomically(target, self.render())
-        return target
+        return (target,)
 
     def _reparse(self, lines: list[str]) -> Document:
         # Reparse rather than patch the entry tuples: line numbers shift, and a

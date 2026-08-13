@@ -1416,8 +1416,9 @@ class Moved:
     #: is a promise the format makes and a citation is a sentence (L4).
     cited: tuple[tuple[str, str], ...] = ()
 
-    def save(self) -> None:
-        save_all(*self.documents.values())
+    def save(self) -> tuple[Path, ...]:
+        """Write every file this move touched, and answer them all (RK1130)."""
+        return save_all(*self.documents.values())
 
 
 def move(config: Config, role: str, anchor: str, to: str) -> Moved:

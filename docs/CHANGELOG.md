@@ -198,6 +198,7 @@
 - ✅ **RK1126** **a body-only section amend leaves this task's own rationale file unaccounted, so a departure calls it nobody's** — A prose file edited inside a section this id owns is read by its span, additions against the file now and removals against the file at the revision.
 - ✅ **RK1127** **a task's own subsection reads as another design, the exclusion comparing labels as strings and not as addresses** — A moved section is labelled by the task that owns it, so this id's own subsection is excluded and prose belonging to nobody keeps its anchor.
 - ✅ **RK1129** **`add` refreshes the README projection and prints no staging line, so a commit takes the roadmap and leaves it behind** — add prints the git add line for every path it wrote, projections included, off the save's own return.
+- ✅ **RK1130 (the seven verb-layer doors)** **four of the thirty-two write commands print a staging line, so the rest can leave the projection they refreshed behind** — Document.save answers every path a write took, and the four section verbs, both pause doors and renumber print and carry it.
 
 ## Block C — Query
 

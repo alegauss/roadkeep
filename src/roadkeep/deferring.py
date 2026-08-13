@@ -212,19 +212,20 @@ class Pause:
     #: over a line that never moved would be describing a write nobody made.
     reconciled: bool = False
 
-    def save(self) -> None:
-        """Write both files. Nothing here can fail on the format — that was decided.
+    def save(self) -> tuple[Path, ...]:
+        """Write both files, and answer every path that took (RK1130).
 
         The store first, for the reason the ledger goes first in a departure (RK118): the
         arrival is written before the removal, so a crash between them leaves the line in
         both files — visible, and a `resume` away — rather than in neither.
         """
-        save_all(self.store.document, self.roadmap)
+        wrote = save_all(self.store.document, self.roadmap)
         if self.root is not None:
             # Last, and never a condition of the write: the worker who set this aside is not
             # holding it, and a claim left behind would greet the `resume` (RK156). The same
             # rule every marker write obeys (RK158), the marker here being ⏸.
             claiming.follow(self.root, self.task_id, self.marker, self.roadmap.entries)
+        return wrote
 
 
 @dataclass(frozen=True, slots=True)
@@ -263,15 +264,16 @@ class Resumption:
     #: over a line that never moved would be describing a write nobody made.
     reconciled: bool = False
 
-    def save(self) -> None:
+    def save(self) -> tuple[Path, ...]:
         # The same rule read backwards: the roadmap is the arrival now, so it goes first
         # and the store's removal second (RK118). A line in both files is a state a reader
         # can see and a second `resume` can finish; a line in neither is one nobody can.
-        save_all(self.roadmap, self.store)
+        wrote = save_all(self.roadmap, self.store)
         if self.root is not None:
             claiming.follow(
                 self.root, self.task_id, self.marker, self.roadmap.entries
             )
+        return wrote
 
 
 def defer(config: Config, task_id: str, *, reason: str) -> Pause:

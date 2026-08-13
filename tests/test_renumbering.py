@@ -334,3 +334,27 @@ def test_json_says_which_files_the_transaction_touched(tmp_path, capsys):
     assert payload["section"]["anchor"] == "RK92"
     assert payload["files"] == sorted([ROADMAP, IMPROVEMENTS])
     assert payload["event"] == {"id": "RK92", "block": "A", "stage": "live"}
+
+
+# -- what to stage, from the verb that moves an address (RK1130) -----------------
+
+
+def test_a_renumber_says_what_to_stage(tmp_path, capsys):
+    # This write touches every file the address is in — the roadmap, the section, the
+    # dependents' annotations — so the one list a commit is composed from is worth printing.
+    project(tmp_path)
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "renumber", "RK90", "--to", "RK98"]) == EXIT_OK
+    staging = next(
+        line for line in capsys.readouterr().out.splitlines() if "stage    " in line
+    )
+    assert ROADMAP in staging and IMPROVEMENTS in staging
+
+
+def test_the_renumber_payload_carries_the_list(tmp_path, capsys):
+    project(tmp_path)
+    argv = ["-C", str(tmp_path), "renumber", "RK90", "--to", "RK98", "--json"]
+    capsys.readouterr()
+    assert main(argv) == EXIT_OK
+    wrote = json.loads(capsys.readouterr().out)["wrote"]
+    assert ROADMAP in wrote and IMPROVEMENTS in wrote
