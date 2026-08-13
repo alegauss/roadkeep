@@ -117,4 +117,22 @@ so.
 
 ## Block F — The plugin
 
+### §RK1128 A --lines refusal points at a missing entry that is present
+
+`ship <id> --part "…" --lines 1` on a line that already records a partial refuses with
+*"--lines says how many lines a completion replaces, and this call replaces none:
+docs/CHANGELOG.md records no partial for T898, so the entry is placed and nothing is
+deleted"*.
+
+The ledger did record one — `docs/CHANGELOG.md:693`, `**T898 (the lint half)**` — and
+dropping `--lines` proves the engine knows: the next refusal is *"T898 already records a
+half in docs/CHANGELOG.md:693 (the lint half)"*, with the right guidance (a delivered
+step takes its own id).
+
+So the first message sends the caller to look for an entry that is there. The real rule
+is narrower than what it says: `--lines` describes how many lines a **completion**
+replaces, and a call still passing `--part` is not a completion, so there is nothing for
+it to replace regardless of what the ledger holds. Saying that — rather than reporting
+the ledger as empty — would land the caller on the second refusal's advice directly.
+
 ## Block G — The editor surface (the backlog where the file is open)
