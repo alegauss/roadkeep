@@ -1793,6 +1793,120 @@ def words(body: str) -> int:
 _UNANCHORED = ("ref.missing", "anchor.format")
 
 
+@dataclass(frozen=True, slots=True)
+class Namespaced:
+    """A prose file's addresses moved into a namespace, with its own citations carried (RK1168).
+
+    Declaring `[refs]` re-addresses every heading in a file at once — 48 of them in the run this
+    was measured on — and carried none of that file's own citations: seven dangled and twenty-one
+    kept resolving, into the other file's section of the same address. The first half of this task
+    made the second population a finding (`ref.crossed`); this is the transaction that stops
+    creating it.
+
+    **Why it has to be one act.** At the moment the key is declared, every bare citation in that
+    file *was* local by construction — they resolved to it before the namespace existed, which is
+    what a namespace changes. A minute later the same citation is ambiguous, which is why the
+    finding's remedy is `compose` and this one can be a rewrite: the transaction is what makes the
+    answer knowable, and outside it nobody can say which section was meant.
+
+    An address and never a word of prose (L4): what changes is `§I.2` to `§S:I.2` inside a
+    sentence nobody else touches — the same act `move` performs on the pointers at a section.
+    """
+
+    role: str
+    namespace: str
+    #: The file, with the citations rewritten. Saved by the caller, so the config write and this
+    #: one land together or not at all.
+    document: Document
+    #: What was re-addressed, as `(anchor, line)`, so the report names every one.
+    carried: tuple[tuple[str, int], ...]
+    #: The configuration as it will read, rendered from the file that is there — a targeted
+    #: insertion and never a serialiser, for `bump_version`'s reason: the rest of somebody's
+    #: `roadkeep.toml` has to come back byte-identical.
+    config_text: str
+
+
+def namespaced(config: Config, role: str, prefix: str) -> Namespaced:
+    """Declare `[refs] <role>` and carry that file's own citations into it (RK1168).
+
+    Refuses rather than guesses in the three states it cannot answer for: a role this project
+    does not declare as prose, a namespace this project already gives that role — where every
+    citation is already qualified and there is nothing to carry — and a *different* namespace,
+    which is a re-addressing whose citations carry the old prefix and whose answer is a different
+    transaction from this one.
+    """
+    if role not in PROSE_ROLES or not config.has(role):
+        raise ValueError(
+            f"{role} is not a prose file this project declares: `[refs]` names the namespace a "
+            f"prose file's outline lives in, and the roles are {', '.join(sorted(PROSE_ROLES))}"
+        )
+    if not _NAMESPACE_RE.match(prefix):
+        raise ValueError(
+            f"'{prefix}' is not a namespace: one is the letters and digits before the colon of "
+            f"an address like `S:I.2`, and a separator inside it would be a second address"
+        )
+    already = config.refs.get(role)
+    if already == prefix:
+        raise ValueError(
+            f"{role} already lives in `{prefix}:`, so its citations are already qualified and "
+            f"there is nothing to carry"
+        )
+    if already:
+        raise ValueError(
+            f"{role} already lives in `{already}:`, and moving it to `{prefix}:` re-addresses "
+            f"citations that carry the old namespace — a different transaction from declaring one"
+        )
+    document = config.document(role)
+    own = {section.anchor for section in anchored(document)}
+    carried: list[tuple[str, int]] = []
+    for cited in references(document):
+        # The file's **own** addresses and no others, read as they stand *before* the key is
+        # declared — which is the whole reason this is one transaction: right now a bare anchor
+        # this file declares is unambiguously its own, and a citation of the other file's section
+        # is already right and must not be moved into a namespace it has no section in.
+        if cited.anchor not in own:
+            continue
+        at = cited.lineno - 1
+        replaced = document.lines[at].replace(f"§{cited.anchor}", f"§{prefix}:{cited.anchor}")
+        if replaced == document.lines[at]:
+            continue
+        carried.append((cited.anchor, cited.lineno))
+        document = document.replace_line(at, replaced)
+    return Namespaced(
+        role=role,
+        namespace=prefix,
+        document=document,
+        carried=tuple(carried),
+        config_text=_with_namespace(config, role, prefix),
+    )
+
+
+#: What a namespace may be: the letters and digits before the colon of an address (RK340). A
+#: separator inside one would make `S:I` two addresses rather than one.
+_NAMESPACE_RE = re.compile(r"^[A-Za-z0-9]+$")
+
+
+def _with_namespace(config: Config, role: str, prefix: str) -> str:
+    """This project's `roadkeep.toml` with one key added, and every other byte as it was.
+
+    A targeted insertion and never a serialiser, which is `bump_version`'s rule about the two
+    files that state a version: a `tomllib` round-trip is not one — it drops the comments a
+    scaffolded config is mostly made of, and rewriting somebody's file to add a line is the
+    destructive formatting L3 refuses one layer down.
+    """
+    if config.source is None:
+        raise ValueError("this project declares no roadkeep.toml to add a namespace to")
+    text = config.source.read_text(encoding="utf-8")
+    row = f'{role} = "{prefix}"\n'
+    if "\n[refs]\n" in text or text.startswith("[refs]\n"):
+        at = text.index("[refs]\n") + len("[refs]\n")
+        return text[:at] + row + text[at:]
+    # A table of its own, at the end: a key appended under whatever table happens to be last
+    # would belong to that table, which is the one way this write can be silently wrong.
+    joined = "" if text.endswith("\n") else "\n"
+    return f"{text}{joined}\n[refs]\n{row}"
+
+
 def naming_the_anchor(
     config: Config,
     block: str | None,

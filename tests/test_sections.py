@@ -3461,3 +3461,90 @@ def test_the_payload_carries_the_same_list(tmp_path, capsys):
     capsys.readouterr()
     assert main(argv) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["wrote"] == [IMPROVEMENTS]
+
+
+# -- declaring a namespace carries the citations (RK1168) ---------------------
+
+
+TWO_FILES = """prefix = "RK"
+ref_scheme = "outline"
+[files]
+roadmap = "ROADMAP.md"
+improvements = "IMPROVEMENTS.md"
+strategy = "STRATEGY.md"
+"""
+
+
+def colliding(tmp_path: Path, citation: str = "This extends §I.2, and §I.9 is nobody's.") -> Config:
+    """Two prose files numbering from `I`, before either is namespaced — the state `[refs]` is
+    declared for, with the strategy file citing one of its own sections and one of nobody's."""
+    (tmp_path / "roadkeep.toml").write_text(TWO_FILES, encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text("# Roadmap\n\n## Block A — The model\n", encoding="utf-8")
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n### I.2 Over here\n\nThe improvements file's own.\n", encoding="utf-8"
+    )
+    (tmp_path / "STRATEGY.md").write_text(
+        f"# Strategy\n\n### I.2 Over there\n\nProse.\n\n### I.3 Arguing\n\n{citation}\n",
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_declaring_a_namespace_carries_the_files_own_citations(tmp_path, capsys):
+    """RK1168's other half. Declaring the key re-addresses every heading at once — 48 of them in
+    the run this was measured on — and carried none of the prose citing them: 7 dangled and 21
+    kept resolving into the other file's section of the same address.
+
+    **One transaction, because that is what makes the answer knowable**: at the moment the key is
+    declared, a bare citation of a section this file declares was local by construction. A minute
+    later the same citation is ambiguous, which is why the finding's remedy is `compose`.
+    """
+    config = colliding(tmp_path)
+    assert main(["-C", str(tmp_path), "refs", "strategy", "--as", "S"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "§I.2 → §S:I.2" in printed
+    assert "stage    git add -- STRATEGY.md roadkeep.toml" in printed
+
+    strategy = (tmp_path / "STRATEGY.md").read_text(encoding="utf-8")
+    assert "§S:I.2" in strategy
+    # The citation of a section this file does not declare is untouched: re-addressing it would
+    # point it at a heading the namespace has not got.
+    assert "§I.9" in strategy
+    assert 'strategy = "S"' in (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+    # And the state the first half reports is gone, which is the whole point of the transaction.
+    assert [one for one in lint(Config.discover(tmp_path)).findings if one.code == "ref.crossed"] == []
+
+
+def test_the_config_keeps_every_other_byte(tmp_path):
+    """A targeted insertion and never a serialiser (`bump_version`'s rule): a `tomllib`
+    round-trip drops the comments a scaffolded config is mostly made of."""
+    (tmp_path / "roadkeep.toml").write_text(
+        TWO_FILES.replace("[files]", "# a comment somebody wrote\n[files]"), encoding="utf-8"
+    )
+    colliding(tmp_path)  # rewrites the prose files, not the config
+    (tmp_path / "roadkeep.toml").write_text(
+        TWO_FILES.replace("[files]", "# a comment somebody wrote\n[files]"), encoding="utf-8"
+    )
+    assert main(["-C", str(tmp_path), "refs", "strategy", "--as", "S"]) == EXIT_OK
+    written = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+    assert "# a comment somebody wrote" in written
+    assert written.startswith(TWO_FILES.split("[files]")[0])
+
+
+def test_the_three_states_it_will_not_guess_at_are_refused(tmp_path, capsys):
+    """A role this project does not declare, a namespace it already has, and a *different* one —
+    the last being a re-addressing whose citations carry the old prefix, which is another
+    transaction and not this one."""
+    colliding(tmp_path)
+    assert main(["-C", str(tmp_path), "refs", "roadmap", "--as", "S"]) != EXIT_OK
+    assert "not a prose file" in capsys.readouterr().err
+
+    assert main(["-C", str(tmp_path), "refs", "strategy", "--as", "S:1"]) != EXIT_OK
+    assert "is not a namespace" in capsys.readouterr().err
+
+    assert main(["-C", str(tmp_path), "refs", "strategy", "--as", "S"]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "refs", "strategy", "--as", "S"]) != EXIT_OK
+    assert "already lives in" in capsys.readouterr().err
+    assert main(["-C", str(tmp_path), "refs", "strategy", "--as", "T"]) != EXIT_OK
+    assert "re-addresses citations that carry the old namespace" in capsys.readouterr().err

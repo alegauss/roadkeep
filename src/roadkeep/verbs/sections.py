@@ -33,6 +33,7 @@ from roadkeep.rendering import (
 )
 from roadkeep.scoping import add as add_non_goal, amend as amend_non_goal, drop as drop_non_goal
 from roadkeep.sections import (
+    namespaced,
     AmbiguousTitle,
     add as add_section,
     amend as amend_section,
@@ -234,6 +235,56 @@ def _section_add(config: Config, args: argparse.Namespace) -> int:
         f"{_counted(section, config.schema_for(args.role).section_max)}"
     )
     _print_staging(config.relative(one) for one in wrote)
+    return EXIT_OK
+
+
+def _refs(config: Config, args: argparse.Namespace) -> int:
+    """Declare a prose file's namespace and carry its own citations into it (RK1168).
+
+    The transaction the first half of this task made visible: `[refs]` re-addresses every heading
+    in a file at once and carried none of the prose citing them, so declaring it created seven
+    dangling citations and twenty-one that resolved into the other file — the second population
+    being the one nothing reported until `ref.crossed`.
+
+    **The config last.** A prose file this cannot rewrite leaves the key undeclared, which is the
+    state the project was already in; a key declared over a file that was not carried is the
+    defect. So the order makes the failure land on the side that changes nothing, which is the
+    rule `init` keeps one module over about a scaffold's directories.
+    """
+    try:
+        found = namespaced(config, args.role, args.namespace)
+        wrote = found.document.save()
+        config.source.write_text(found.config_text, encoding="utf-8", newline="")
+    except REFUSALS as error:
+        return _refused(error)
+
+    where = config.relative(config.path(args.role))
+    staged = [where, config.relative(config.source)]
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "role": found.role,
+                    "namespace": found.namespace,
+                    "file": where,
+                    "config": config.relative(config.source),
+                    "carried": [
+                        {"anchor": anchor, "line": line} for anchor, line in found.carried
+                    ],
+                    **_wrote_json(config, (*wrote, config.source)),
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+    print(f"{config.relative(config.source)}  [refs] {found.role} = \"{found.namespace}\"")
+    for anchor, line in found.carried:
+        # Named and not counted: this is a rewrite inside somebody's prose, and a number alone
+        # is the diff a reviewer has to reconstruct to see what moved.
+        print(f"  carried  §{anchor} → §{found.namespace}:{anchor}  ({where}:{line})")
+    if not found.carried:
+        print(f"  carried  nothing: {where} cites none of its own sections")
+    _print_staging(staged)
     return EXIT_OK
 
 

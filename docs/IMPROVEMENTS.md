@@ -75,36 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK1168 A namespace is a migration, not a config key
-
-`section move` is the model to copy: it re-addresses a section and takes its subtree and
-every `→ §<anchor>` naming it, or it takes none of them. Declaring `[refs]` is the same
-kind of event at file scale — every heading in that file changes address at once — and
-it carries nothing.
-
-Measured adopting it on Viglet Turing, where two prose files had 13 doubled addresses.
-`[refs] strategy = "S"` re-addressed 48 headings and put `section.ambiguous` at 0, and
-left 28 of that file's own citations behind:
-
-    7   became ref.dangling — the address exists in neither space
-    21  kept resolving, into the OTHER file's section of the same address
-
-The second half is the dangerous one: both files declared that address — which is why
-they collided at all — so the citation still resolves and `lint` says nothing. Repairing
-all 21 moved the total from 46 to 46.
-
-Two asks, and the first is worth little without the second:
-
-- **Carry the citations.** When a namespace is declared or changed, re-address
-  that file's own citations in the same transaction, as `move` does for the
-  pointers at a section. A body it cannot rewrite should refuse the call whole.
-- **Report the ones that cross.** A citation resolving into a different prose
-  file, where the citing file declares that same address, is a finding — a
-  reference the author cannot see is wrong.
-
-Without them, adopting the config key means a hand-rolled classifier and one `amend` per
-section, which is the migration the key looked like it was.
-
 ## Block B — Authoring
 
 ## Block C — Query

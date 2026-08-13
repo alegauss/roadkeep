@@ -116,7 +116,7 @@ called unbuilt were already in the ledger.
 
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
-| A — The model (a task is data before it is a line) | 1 | 42 | 2 |
+| A — The model (a task is data before it is a line) | 0 | 42 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 147 | 1 |
 | C — Query (consult without reading the file) | 0 | 95 | 1 |
 | D — The gate | 2 | 172 | 1 |
@@ -124,11 +124,11 @@ called unbuilt were already in the ledger.
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 107 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 0 | 0 |
-| **Total** | 6 | 660 | 7 |
+| **Total** | 5 | 660 | 7 |
 
 **Next ready:**
 
-- ⏳ **RK1168** (deps: —) **Declaring a namespace re-addresses the headings and leaves the file's own citations pointing at the other prose file** — section move carries pointers with an address and [refs] carries none, so 28 citations stayed behind and 21 resolve into the other file rather than dangle. → §RK1168
+- 📋 **RK1169** (deps: —) **Six tables in serving.py restate per verb what its own parser already declares** — Every property is already derived from the argparse action, so exposure, bounds and the withheld reason are the same kind of fact, and the totality tests exist to hold two places in step. → §RK1169
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

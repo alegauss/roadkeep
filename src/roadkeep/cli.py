@@ -97,6 +97,7 @@ from roadkeep.verbs.querying import (
 from roadkeep.verbs.reading import harden
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE
 from roadkeep.verbs.sections import (
+    _refs,
     _block_add,
     _block_drop,
     _block_merge,
@@ -2141,6 +2142,30 @@ def build_parser() -> argparse.ArgumentParser:
     )
     capture_filed.add_argument("--json", action="store_true", help=_JSON_HELP)
     capture_filed.set_defaults(handler=_capture_filed)
+
+    refs_parser = subcommands.add_parser(
+        "refs",
+        help="declare the namespace a prose file's outline lives in, carrying its citations",
+        description=(
+            "Write `[refs] <role>` and re-address that file's own citations in the same "
+            "transaction (RK1168). Declaring the key alone re-addresses every heading at once "
+            "and carries none of the prose citing them: measured on one adoption, 7 citations "
+            "dangled and 21 kept resolving into the other prose file's section of the same "
+            "address, where nothing reports them. Both writes land or neither does. Only a "
+            "declaration: a role that already has a namespace is a re-addressing, whose "
+            "citations carry the old prefix and whose answer is a different transaction."
+        ),
+    )
+    refs_parser.add_argument("role", help="the prose role, e.g. strategy")
+    refs_parser.add_argument(
+        "--as",
+        dest="namespace",
+        required=True,
+        metavar="NS",
+        help="the namespace, e.g. S — the letters before the colon of an address like S:I.2",
+    )
+    refs_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    refs_parser.set_defaults(handler=_refs)
 
     init_parser = subcommands.add_parser(
         "init",
