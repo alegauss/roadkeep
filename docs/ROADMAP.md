@@ -34,6 +34,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1165** (deps: —) **gaps prints a numbering jump as 499 rows, and the two ids worth reading are behind them** — A contiguous run of never-carried ids is one permanent fact, and the format already spells many ids as a range. → §RK1165
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

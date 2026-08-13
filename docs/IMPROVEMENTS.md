@@ -132,6 +132,32 @@ to notice.
 
 ## Block D — The gate
 
+### §RK1165 A run is one fact, said once
+
+`gaps` on this repository prints **503 lines**, and 499 of them are one fact. Every row
+of the run reads the same way — *never carried: the whole history mentions it nowhere* —
+with only the number changing, from 501 through 999.
+
+Measured: the never-carried ids are a **contiguous run of 499** plus exactly two singles, at 80 and
+224. The run is a numbering jump — this backlog restarted its series at a thousand — so it is
+permanent, unactionable, and 499 rows on every run for ever.
+
+The two singles are the signal: each is a number the counter spent and no commit ever
+carried, which is the reading RK95 built. They are findable today only by paging past
+the jump.
+
+This is RK1143's rule one command over — a row that is never the next step makes the row
+beside it unread — and the shape is already in the format: a **range** is how this tool
+spells many ids at once. One line for the run, rows for the singles.
+
+What needs deciding: whether a run is collapsed by size or by *reason*. A jump in the
+series and five ids somebody burnt in one afternoon are both contiguous, and only the
+first is permanent.
+
+Worth stating because it decided the prose above: naming those ids here is refused
+(`body.promise`, RK431), an id in this prefix that no line carries being read as spent.
+The rule found this section, which is the rule working.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
