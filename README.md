@@ -117,17 +117,13 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 140 | 1 |
+| B — Authoring (insert, never hand-edit) | 0 | 141 | 1 |
 | C — Query (consult without reading the file) | 0 | 91 | 1 |
 | D — The gate | 0 | 149 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 103 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 620 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1129** (deps: —) **`add` refreshes the README projection and prints no staging line, so a commit takes the roadmap and leaves it behind** — The gate reads the working tree, so the omission is green there and red in a clean checkout: export.stale on the commit that filed RK1128. → §RK1129
+| **Total** | 0 | 621 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

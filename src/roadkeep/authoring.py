@@ -245,6 +245,10 @@ class Insertion:
     #: to nobody, and a caller reporting one as the other would say a paragraph was written
     #: that was not. Always None under `ref_scheme = "id"`, where the anchor is the id.
     bound: Section | None = None
+    #: Every path :meth:`save` wrote, projections included (RK1129) — set by :func:`add` off
+    #: the save's own return, and empty on an insertion nothing has written yet. This is the
+    #: list a `git add --` takes, which is the one thing the report could not say.
+    wrote: tuple[Path, ...] = ()
 
     @property
     def rendered(self) -> str:
@@ -254,9 +258,15 @@ class Insertion:
     def lineno(self) -> int:
         return self.entry.lineno
 
-    def save(self) -> None:
-        """Write the files. Nothing here can fail on the format — that was decided."""
-        save_all(self.document, self.prose)
+    def save(self) -> tuple[Path, ...]:
+        """Write the files, and answer which paths that touched.
+
+        The return is :func:`~roadkeep.kernel.document.save_all`'s own, projections included
+        (RK1129): a write that refreshes a derived block owes the caller the fact, because the
+        caller is composing a commit and the block is what a clean checkout calls stale. It was
+        discarded here, so the report had nothing to name.
+        """
+        return save_all(self.document, self.prose)
 
 
 def compose(
@@ -580,8 +590,9 @@ def add(
         )
     else:
         insertion = _binding(config, insertion)
-    insertion.save()
-    return insertion
+    # The paths ride back on the record (RK1129), because the caller composing a commit is the
+    # one who needs them and `save` is the only reader that knows what a projection refreshed.
+    return replace(insertion, wrote=insertion.save())
 
 
 def _binding(config: Config, insertion: Insertion) -> Insertion:

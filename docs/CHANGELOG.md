@@ -197,6 +197,7 @@
 - ✅ **RK1125** **a prose file this task wrote hides another session new section, the reading being lines and a rationale holding none** — A rationale file is compared by the sections it holds, labelled by the id each heading names, so another session's design is named inside the file being staged.
 - ✅ **RK1126** **a body-only section amend leaves this task's own rationale file unaccounted, so a departure calls it nobody's** — A prose file edited inside a section this id owns is read by its span, additions against the file now and removals against the file at the revision.
 - ✅ **RK1127** **a task's own subsection reads as another design, the exclusion comparing labels as strings and not as addresses** — A moved section is labelled by the task that owns it, so this id's own subsection is excluded and prose belonging to nobody keeps its anchor.
+- ✅ **RK1129** **`add` refreshes the README projection and prints no staging line, so a commit takes the roadmap and leaves it behind** — add prints the git add line for every path it wrote, projections included, off the save's own return.
 
 ## Block C — Query
 

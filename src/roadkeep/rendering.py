@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 
 from roadkeep import claiming
 from roadkeep.adopting import Estimate
@@ -283,9 +283,7 @@ def _print_scope(scope: claiming.Scope | None, wrote: Sequence[str] = ()) -> Non
     """
     if scope is None:
         return
-    staging = tuple(dict.fromkeys((*scope.mine, *wrote)))
-    if staging:
-        print(f"  stage    git add -- {' '.join(_shell(one) for one in staging)}")
+    _print_staging(dict.fromkeys((*scope.mine, *wrote)))
     for one, who in scope.theirs:
         print(f"  theirs   {one}  ({who} is holding it)")
     for one, others in scope.shared:
@@ -305,6 +303,20 @@ def _print_scope(scope: claiming.Scope | None, wrote: Sequence[str] = ()) -> Non
     # so a scope naming a file the tree does not have is a typo and not a file yet to be written.
     for one in scope.idle:
         print(f"  typo?    {one}  (declared, and stages nothing)")
+
+
+def _print_staging(paths: Iterable[str]) -> None:
+    """The `git add --` line, spelled in one place (RK298, RK1129).
+
+    Two writes print it now — a departure, which releases the scope nothing can read back
+    afterwards, and `add`, which refreshes a projection the commit was leaving behind — so the
+    quoting and the label are here rather than at each of them. Nothing is printed for an empty
+    list: a command that wrote no file has no staging to advise, and a bare `git add --` is a
+    line somebody would paste.
+    """
+    staging = tuple(paths)
+    if staging:
+        print(f"  stage    git add -- {' '.join(_shell(one) for one in staging)}")
 
 
 def _shell(path: str) -> str:

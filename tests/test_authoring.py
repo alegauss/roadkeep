@@ -442,9 +442,12 @@ def test_the_command_prints_the_line_it_wrote(tmp_path, capsys):
         )
         == EXIT_OK
     )
-    printed, event = capsys.readouterr().out.splitlines()
+    printed, staging, event = capsys.readouterr().out.splitlines()
     assert printed == "- 📋 **RK2** (deps: RK1) **A second symptom** — Because of another reason. → §RK2"
     assert printed in source(config)
+    # What to stage, projections included (RK1129): this write refreshed a derived block in a
+    # file the caller never named, and a commit that took the roadmap alone left it stale.
+    assert staging.startswith("  stage    git add -- ") and ROADMAP in staging
     # A block that just gained a line is never empty, and the event says so anyway: one
     # shape from every mutator is what makes it parseable at all (RK38).
     assert event == "event    RK2  Block B  live"
@@ -1140,11 +1143,13 @@ def test_the_command_writes_both_files_and_reports_both(tmp_path, capsys):
         )
         == EXIT_OK
     )
-    line, reported, event = capsys.readouterr().out.splitlines()
+    line, reported, staging, event = capsys.readouterr().out.splitlines()
     assert line.endswith("→ §RK2")
     assert reported.startswith(f"design   §RK2 → {IMPROVEMENTS}:")
     assert reported.endswith("5 words")
     assert "Because the gate said so." in design(config)
+    # Both files it wrote are in the staging line, which is the same list the report names.
+    assert ROADMAP in staging and IMPROVEMENTS in staging
     assert event == "event    RK2  Block B  live"
 
 
@@ -1166,8 +1171,9 @@ def test_the_command_names_the_follow_up_it_leaves_behind(tmp_path, capsys):
         )
         == EXIT_OK
     )
-    _, follow, event = capsys.readouterr().out.splitlines()
+    _, follow, staging, event = capsys.readouterr().out.splitlines()
     assert follow.startswith(f"needs    `{invocation()} section add RK2 --title")
+    assert staging.startswith("  stage    git add -- ")
     assert event == "event    RK2  Block B  live"
 
 
@@ -1805,3 +1811,83 @@ def test_a_project_addressing_by_id_binds_nothing(tmp_path):
     """The anchor is the id already, so there is no heading to bind."""
     config = project(tmp_path)
     assert task(config).bound is None
+
+
+# -- the refresh nobody was told to stage (RK1129) ------------------------------
+
+
+def test_the_staging_line_names_the_projection_this_write_refreshed(tmp_path, capsys):
+    """RK1129, measured on this repository: a filing committed `docs/ROADMAP.md` and left the
+    refreshed README behind — green against the working tree, where the refresh was sitting, and
+    `export.stale` in a clean checkout of that commit. Nothing had asked for it to be staged."""
+    project(tmp_path)
+    (tmp_path / "README.md").write_text(
+        "# A project\n\n<!-- roadkeep:begin -->\n<!-- roadkeep:end -->\n", encoding="utf-8"
+    )
+    argv = [
+        "-C",
+        str(tmp_path),
+        "add",
+        "--block",
+        "B",
+        "--symptom",
+        "A second symptom",
+        "--why",
+        "Because of another reason.",
+    ]
+    capsys.readouterr()
+    assert main(argv) == EXIT_OK
+    staging = next(
+        line for line in capsys.readouterr().out.splitlines() if "stage    " in line
+    )
+    # The file the caller named, and the one they did not: a projection is derived, so the
+    # write that invalidates it owes it — and the commit is where that debt is paid.
+    assert ROADMAP in staging and "README.md" in staging
+
+
+def test_the_payload_carries_the_same_paths(tmp_path, capsys):
+    # So a client stages what a reader is told to stage, which is the rule every other pair of
+    # answers here keeps.
+    project(tmp_path)
+    (tmp_path / "README.md").write_text(
+        "# A project\n\n<!-- roadkeep:begin -->\n<!-- roadkeep:end -->\n", encoding="utf-8"
+    )
+    argv = [
+        "-C",
+        str(tmp_path),
+        "add",
+        "--block",
+        "B",
+        "--symptom",
+        "A second symptom",
+        "--why",
+        "Because of another reason.",
+        "--json",
+    ]
+    capsys.readouterr()
+    assert main(argv) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert ROADMAP in payload["wrote"] and "README.md" in payload["wrote"]
+
+
+def test_a_project_with_no_projection_names_only_what_it_wrote(tmp_path, capsys):
+    # No target, nothing derived: the line is the governed files and never a path this write
+    # did not touch, which is what makes it safe to paste.
+    project(tmp_path)
+    argv = [
+        "-C",
+        str(tmp_path),
+        "add",
+        "--block",
+        "B",
+        "--symptom",
+        "A second symptom",
+        "--why",
+        "Because of another reason.",
+    ]
+    capsys.readouterr()
+    assert main(argv) == EXIT_OK
+    staging = next(
+        line for line in capsys.readouterr().out.splitlines() if "stage    " in line
+    )
+    assert "README.md" not in staging

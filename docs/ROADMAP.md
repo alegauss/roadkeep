@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1129** (deps: —) **`add` refreshes the README projection and prints no staging line, so a commit takes the roadmap and leaves it behind** — The gate reads the working tree, so the omission is green there and red in a clean checkout: export.stale on the commit that filed RK1128. → §RK1129
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

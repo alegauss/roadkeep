@@ -28,6 +28,7 @@ from roadkeep.rendering import (
     _print_dequeued,
     _print_event,
     _print_followed,
+    _print_staging,
     _promise_json,
     _prose_file,
     _section_json,
@@ -160,6 +161,9 @@ def _add(config: Config, args: argparse.Namespace) -> int:
                     # Null on almost every add, and the whole point when it is not (RK431):
                     # the id below the one just written was a sentence, not a line.
                     "promise": _promise_json(insertion.promise),
+                    # Every path this write touched, projections included (RK1129) — the same
+                    # key a departure's scope carries, so a client staging one stages the other.
+                    "wrote": [config.relative(one) for one in insertion.wrote],
                     "event": event,
                 },
                 indent=2,
@@ -189,6 +193,10 @@ def _add(config: Config, args: argparse.Namespace) -> int:
         # Beside the line and not instead of it: the `add` succeeded, and what this reports
         # is a sentence somewhere else that has just stopped being true (RK431).
         print(f"promise  {insertion.promise.sentence}")
+    # The projection this write refreshed is in here (RK1129): the roadmap and the rationale are
+    # files the caller named, and the README is one they did not — so a commit took the two and
+    # left the third, green against the working tree and `export.stale` in a clean checkout.
+    _print_staging(config.relative(one) for one in insertion.wrote)
     _print_event(event, config=config)
     return EXIT_OK
 
