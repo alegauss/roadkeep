@@ -676,6 +676,7 @@
 - ✅ **RK1140** **anchors --next names a free top-level that add --ref then refuses, because no heading declares it yet** — A free top-level says it is an address and not yet a section and names the section add that declares it, on stderr and in the payload, where a free child says nothing.
 - ✅ **RK1152** **ship refuses because a dependent task's why is one character too long once its dep annotation grows a tick** — the refusal leads with whose line overflowed and the amend that closes it, and names every line the write would break.
 - ✅ **RK1166** **A registry row whose install directory is gone stands the launcher down, and nothing guards the governed files** — a row only stands the launcher down where the install it names is still on disk, and a row naming none still binds.
+- ✅ **RK1167** **Two registry rows for one project make the first win, so engines names a version that was replaced and is not on disk** — the row that answers is the newest whose install is still on disk, so a pruned version stops being what engines reports.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

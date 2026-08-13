@@ -38,8 +38,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1167** (deps: RK1166 ✅) **Two registry rows for one project make the first win, so engines names a version that was replaced and is not on disk** — The scan returns on the first matching projectPath, checking neither the installPath it names nor the lastUpdated that would order them. → §RK1167
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Non-goals

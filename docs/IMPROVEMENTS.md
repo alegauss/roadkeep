@@ -137,34 +137,4 @@ The rule found this section, which is the rule working.
 
 ## Block F — The plugin
 
-### §RK1167 The first matching row is not the installed one
-
-`_installed` walks the harness's registry and returns on the first row whose
-`projectPath` resolves to this tree. One project is assumed to have one row.
-
-An update can leave two. The harness wrote a second row for the same `projectPath` when
-the plugin was reinstalled, and left the first in place, so the list now holds the
-replaced version and the live one under one key. The scan takes the first, which is
-ordered by when it was written, so the **older** row wins — and it checks neither the
-`installPath` it names nor the `lastUpdated` that would order them.
-
-Measured in the Viglet Turing corpus, whose registry holds both rows for
-`D:\Git\viglet\turing\2026.3`:
-
-    row 1   0.1.285   2026-08-05   installPath exists: False
-    row 2   0.1.820   2026-08-13   installPath exists: True
-
-`engines` reported `plugin 0.1.285 ... project scope` and printed the `differ` sentence
-telling the author to run `/plugin update` — after the update had already landed. The
-advice is not merely stale, it is unfollowable: running it again writes a third row and
-the first still wins.
-
-The fix is to stop treating the first match as the answer. A row naming a path that is
-not there is a record of an install that is gone, and among rows that do resolve the
-newest `lastUpdated` is the one the harness will load. Both readings are already in the
-file; only the scan's early return keeps them out of it.
-
-Companion to RK1166, which measured the other half: what a row with no install does to
-the launcher's decision to stand down.
-
 ## Block G — The editor surface (the backlog where the file is open)

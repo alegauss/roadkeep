@@ -625,6 +625,18 @@ def installed(root: Path) -> Installed | None:
     Not cached. `engine()` is a fact about the running process and this is a fact about a
     file somebody else writes — a `/plugin update` between two calls is exactly the change
     this exists to report, and an answer decided at import would hide it.
+
+    **The first matching row is not the answer** (RK1167). A project accumulates one row per
+    install and the harness prunes the directories, not the records: measured on a corpus whose
+    registry held `0.1.285` dated the 5th with no install left, and `0.1.820` dated the 13th with
+    one. Returning on the first put the retired version in `engines`, which then printed the
+    sentence telling the author to run `/plugin update` — after the update had landed, and
+    unfollowably, since running it again writes a fourth row the same scan skips.
+
+    So a row naming an install that is gone is a **record** and not an install (RK1166 made the
+    launcher read it that way), and among the rows that do resolve the newest `lastUpdated` is
+    the one the harness will load. A row naming no path keeps its claim: older harnesses wrote
+    none, and dropping those would answer *no plugin* where there is one.
     """
     import json  # noqa: PLC0415
 
@@ -639,24 +651,61 @@ def installed(root: Path) -> Installed | None:
     plugins = payload.get("plugins") if isinstance(payload, dict) else None
     if not isinstance(plugins, dict):
         return None
+    found: list[dict[str, object]] = []
     for key, rows in plugins.items():
         if not isinstance(key, str) or key.partition("@")[0] != PLUGIN:
             continue
         for row in rows if isinstance(rows, list) else ():
             if not isinstance(row, dict) or not _is(row.get("projectPath"), wanted):
                 continue
-            version = row.get("version")
-            if not isinstance(version, str) or not version:
+            if not isinstance(row.get("version"), str) or not row.get("version"):
                 continue
-            place = row.get("installPath")
-            commit = row.get("gitCommitSha")
-            return Installed(
-                version=version,
-                home=Path(place) if isinstance(place, str) and place else None,
-                commit=commit if isinstance(commit, str) and commit else None,
-                scope=row.get("scope") if isinstance(row.get("scope"), str) else "",
-            )
-    return None
+            found.append(row)
+    row = _loaded(found)
+    if row is None:
+        return None
+    place = row.get("installPath")
+    commit = row.get("gitCommitSha")
+    return Installed(
+        version=str(row["version"]),
+        home=Path(place) if isinstance(place, str) and place else None,
+        commit=commit if isinstance(commit, str) and commit else None,
+        scope=row.get("scope") if isinstance(row.get("scope"), str) else "",
+    )
+
+
+def _loaded(rows: list[dict[str, object]]) -> dict[str, object] | None:
+    """Which of a project's rows the harness would actually load (RK1167).
+
+    Two readings the file already carries and the scan skipped. An `installPath` that is not
+    there names an install the harness pruned, and a record of one is not one; `lastUpdated`
+    orders what is left, because a project accumulates a row per install and the newest is the
+    one loaded. Compared as text, which is what an ISO timestamp is written for — parsing it
+    would be this reader deciding a format somebody else owns.
+
+    Falls back to the rows as written where **none** resolves: an answer of *no plugin* about a
+    project the registry names is a worse reading than a stale version, and `engines` prints the
+    install directory beside the number, so a reader sees what this could not confirm.
+    """
+    if not rows:
+        return None
+    live = [one for one in rows if _present(one.get("installPath"))]
+    return max(live or rows, key=lambda one: str(one.get("lastUpdated") or ""))
+
+
+def _present(stated: object) -> bool:
+    """Whether the install a row names is still on disk — True where it names none (RK1167).
+
+    The same reading `hooks/roadkeep-launch.py` makes of the same field (RK1166), and stated
+    twice because the two readers may not import each other: that file runs with nothing on
+    `sys.path` but the standard library, which is the whole of what it is for.
+    """
+    if not isinstance(stated, str) or not stated:
+        return True
+    try:
+        return Path(stated).is_dir()
+    except OSError:
+        return False
 
 
 def _is(stated: object, wanted: Path) -> bool:

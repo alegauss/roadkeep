@@ -35,6 +35,7 @@ from roadkeep.provenance import (
     UNTRACKED,
     Engine,
     engine,
+    installed,
     invocation,
     persisted,
     named,
@@ -524,3 +525,78 @@ def test_no_registry_at_all_is_the_same_silence(tmp_path, monkeypatch):
 
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "nowhere"))
     assert installed(tmp_path) is None
+
+
+# -- which of a project's rows the harness would load (RK1167) ----------------
+
+
+def rows_for(config_dir: Path, project: Path, *rows: tuple[str, str, bool]) -> None:
+    """A registry holding several rows for one project — `(version, lastUpdated, installed)`.
+
+    What a project accumulates: the harness writes a row per install and prunes the
+    directories, not the records, so the file states more history than state.
+    """
+    written = []
+    for version, updated, present in rows:
+        install = config_dir / "cache" / version
+        if present:
+            install.mkdir(parents=True, exist_ok=True)
+        written.append(
+            {
+                "scope": "project",
+                "projectPath": str(project),
+                "installPath": str(install),
+                "version": version,
+                "lastUpdated": updated,
+            }
+        )
+    registry(config_dir, {"version": 2, "plugins": {"roadkeep@alegauss": written}})
+
+
+def test_a_row_whose_install_is_gone_is_not_the_version_that_answers(tmp_path, monkeypatch):
+    """The measured defect: a corpus whose registry held a version dated the 5th with no install
+    left and one dated the 13th with one. The scan returned on the first, so `engines` named the
+    retired number and printed the sentence telling the author to run `/plugin update` — after
+    the update had landed, and unfollowably, since running it again writes another row."""
+    config, project = tmp_path / "config", tmp_path / "project"
+    project.mkdir()
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(config))
+    rows_for(
+        config,
+        project,
+        ("0.1.285", "2026-08-05T10:00:00.000Z", False),
+        ("0.1.820", "2026-08-13T10:00:00.000Z", True),
+    )
+    found = installed(project)
+    assert found is not None and found.version == "0.1.820"
+
+
+def test_among_installs_that_are_there_the_newest_is_the_one_loaded(tmp_path, monkeypatch):
+    """Written order is not the answer either: `lastUpdated` is what orders two live installs,
+    compared as the text an ISO timestamp is written to be compared as."""
+    config, project = tmp_path / "config", tmp_path / "project"
+    project.mkdir()
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(config))
+    rows_for(
+        config,
+        project,
+        ("0.1.900", "2026-08-14T09:00:00.000Z", True),
+        ("0.1.899", "2026-08-02T09:00:00.000Z", True),
+    )
+    assert installed(project).version == "0.1.900"
+
+
+def test_where_no_install_is_left_the_rows_still_answer(tmp_path, monkeypatch):
+    """The fallback, and its reason: *no plugin* about a project the registry names is a worse
+    reading than a stale version, and `engines` prints the directory beside the number — so what
+    could not be confirmed is visible rather than silently dropped."""
+    config, project = tmp_path / "config", tmp_path / "project"
+    project.mkdir()
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(config))
+    rows_for(
+        config,
+        project,
+        ("0.1.285", "2026-08-05T10:00:00.000Z", False),
+        ("0.1.300", "2026-08-06T10:00:00.000Z", False),
+    )
+    assert installed(project).version == "0.1.300"
