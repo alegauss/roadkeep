@@ -81,33 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1155 Isolation written as a comment
-
-`test_a_missing_engine_is_a_refusal_and_not_a_quiet_zero` simulates *nothing to find* by
-pointing `ROADKEEP_HOME` at a directory that does not exist. It went red this afternoon,
-having passed for weeks, and nothing in the launcher or the test changed:
-
-```
-assert b"no engine found" in b'roadkeep: [Errno 2] ... .cache/roadkeep-src/roadkeep/scripts/roadkeep.py ...'
-```
-
-A plugin cache appeared under `~/.cache/roadkeep-src`, and `_cache_engine` is route 3 of
-the four the bridge searches — correctly, that being the whole reason it exists for the
-web. So the test's premise was never *nothing is findable*; it was *nothing is findable
-on a machine with no cache*, which is a fact about the developer's disk that the comment
-states as isolation.
-
-The three routes it does not neutralise are the registry (`CLAUDE_CONFIG_DIR`, else
-`~/.claude`), the cache (`XDG_CACHE_HOME`, else `~/.cache`), and the project
-(`CLAUDE_PROJECT_DIR` — which this helper already pops, having found *that* one). Each
-reads an environment variable before falling back to `Path.home()`, so each can be
-pointed inside `tmp_path`: the isolation the test claims is one `env` dict away.
-
-This is RK1153 and RK1154 a third time, on a different axis. Both were assertions that
-held on a developer's machine and failed elsewhere; this one holds until the developer
-installs the plugin, and then fails here while passing in CI. What the three share is a
-premise about the environment written as a comment rather than as an `env`.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

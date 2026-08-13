@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import ast
 import os
 import subprocess
 import sys
@@ -275,13 +276,37 @@ def test_a_refresh_that_reads_the_disk_writes_the_committed_sentence(tmp_path):
 # -- the entry point the skill names is the one that runs (RK1116) -------------
 
 
+#: The variable this helper *removes* rather than points somewhere: a project root the harness
+#: states is the one route whose fallback — this file's own grandparent — is the checkout the
+#: suite runs in, and no value could make that absent.
+POPPED = "CLAUDE_PROJECT_DIR"
+
+
+def nowhere(cwd: Path) -> dict[str, str]:
+    """Every variable a resolution route reads, pointed inside ``cwd`` (RK1155).
+
+    `bridged(home=None)` means *nothing to find*, and it used to mean it by setting one variable:
+    the override. Three routes were left reading the developer's home — the registry under
+    `~/.claude`, the cache under `~/.cache` — so the claim held on the single fact that this
+    machine had no plugin installed. A cache appeared and route 3 answered, weeks later, with
+    nothing in the launcher or the test changed.
+
+    A function rather than a literal in the helper, because the closure below reads it: what the
+    isolation covers has to be comparable against what the file actually reads.
+    """
+    return {
+        "ROADKEEP_HOME": str(cwd / "absent"),
+        "XDG_CACHE_HOME": str(cwd / "absent-cache"),
+        "CLAUDE_CONFIG_DIR": str(cwd / "absent-config"),
+    }
+
+
 def bridged(argv: list[str], home: Path | None, cwd: Path) -> subprocess.CompletedProcess:
     """The shipped file, run as the agent runs it: an engine named, and a project to answer in."""
     env = {**os.environ, "ROADKEEP_HOME": "" if home is None else str(home)}
-    env.pop("CLAUDE_PROJECT_DIR", None)
+    env.pop(POPPED, None)
     if home is None:
-        # Nothing to find at all: no override, and no sibling of a directory with no siblings.
-        env["ROADKEEP_HOME"] = str(cwd / "absent")
+        env.update(nowhere(cwd))
     return subprocess.run(
         [sys.executable, str(BRIDGE), *argv],
         capture_output=True,
@@ -590,3 +615,33 @@ def test_a_source_that_predates_the_bridge_is_refused_by_name(tmp_path):
     with pytest.raises(NotShipped) as refusal:
         plan(tmp_path, source=older, gauging=False, committed=True)
     assert PLUGIN_BRIDGE in str(refusal.value)
+
+
+def test_every_route_the_launcher_reads_is_one_this_suite_can_make_absent():
+    """RK1155. The isolation `bridged(home=None)` claims, held against the file it isolates.
+
+    A route added to the launcher reads a variable, falls back to the home directory, and is then
+    found on any machine that has one — which is how a test asserting *no engine found* passed
+    for weeks and went red the afternoon somebody installed the plugin. So the set is read off
+    the launcher's own source: every `os.environ.get` in it is either pointed inside `tmp_path`
+    or declared as the one that gets popped.
+
+    Both directions, RK491's rule: a variable the launcher stops reading leaves a row here that
+    fails, and a new one fails until the isolation covers it.
+    """
+    read = {
+        node.args[0].value
+        for node in ast.walk(ast.parse(BRIDGE.read_text(encoding="utf-8")))
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "get"
+        and isinstance(node.func.value, ast.Attribute)
+        and node.func.value.attr == "environ"
+        and node.args
+        and isinstance(node.args[0], ast.Constant)
+    }
+    assert read, "nothing in the launcher reads the environment any more"
+    assert read == {*nowhere(Path("x")), POPPED}, {
+        "read, not isolated": sorted(read - {*nowhere(Path("x")), POPPED}),
+        "isolated, not read": sorted({*nowhere(Path("x")), POPPED} - read),
+    }
