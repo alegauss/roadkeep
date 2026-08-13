@@ -469,6 +469,7 @@
 - ✅ **RK1154** **an installed engine's name is a substring of the tool name, so three guard tests fail in CI** — one predicate says what the three meant — a line spelling the engine followed by a verb, which a tool name never is.
 - ✅ **RK1155** **a test simulates a missing engine by pointing one variable at nothing, and the cache answers instead** — every variable the launcher reads is pointed inside the fixture, and a closure holds that set against the launcher's own source.
 - 🗑 **RK1156** **an outline-scheme project cannot file a task over MCP: ref is required and the tool exposes no field for it** — abandoned: the premise was read off Tool.exposes and not Tool.exposed(config): RK111's conditional already opens ref on an outline project, and a served add there takes it.
+- ✅ **RK1157** **the declaration and the answer differ by one letter, and the declaration is the reachable one** — the half is named for the condition it is one side of, and a closure declares the two readers that cannot ask a project.
 
 ## Block E — Adoption
 

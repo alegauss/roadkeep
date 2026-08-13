@@ -146,20 +146,28 @@ class Prose:
 class Tool:
     """One subcommand, and which of its arguments an agent is allowed to set.
 
-    `exposes` is a whitelist and not a filter: `add --ref` exists for adoption (RK18) and
-    would let a caller choose a pointer the tool derives, which is the one thing a schema
-    cannot then check.
+    :attr:`unconditional` is a whitelist and not a filter: `add --ref` exists for adoption
+    (RK18) and would let a caller choose a pointer the tool derives, which is the one thing a
+    schema cannot then check.
 
-    :attr:`conditional` is the exception that proves the rule (RK111): where a project
-    declares a shape the deriver cannot spell, withholding the field leaves that surface
-    unable to write a legal id at all.
+    :attr:`conditional` is the exception that proves the rule (RK111): where a project declares
+    a shape the deriver cannot spell, withholding the field leaves that surface unable to write
+    a legal id at all.
+
+    **The answer is :meth:`exposed`, and the two declarations are its halves** (RK1157). That
+    field was called `exposes` — one letter from `exposed(config)`, and the shorter of the two —
+    so a reader asking what a tool offers got the half that is true on every project and reads
+    as total. Two tasks were filed against that reading in three iterations and one was shipped
+    before it surfaced: `add exposes: (block, symptom, why, …)` says an outline project cannot
+    name its anchor, and `exposed(config)` on that project ends in `ref`. Named for the
+    condition it is one side of, so the half is visible as a half.
     """
 
     #: The subcommand path, space-separated where it is nested (`"section add"`). The argv
     #: is this split; the tool's name is the same with `_`, because a protocol name may not
     #: carry a space and a client shows what it is given.
     command: str
-    exposes: tuple[str, ...] = ()
+    unconditional: tuple[str, ...] = ()
     #: Arguments this tool always passes, by dest — never exposed, so a caller cannot unset
     #: one. This is how a **flag becomes a tool** (RK150): `readOnlyHint` is one boolean per
     #: tool and `brief --claim` writes while `brief` does not, so the two are two tools over
@@ -187,7 +195,7 @@ class Tool:
         command lines.
         """
         opened = tuple(dest for dest in self.conditional if _CONDITIONAL[dest].opens(config))
-        return (*self.exposes, *opened)
+        return (*self.unconditional, *opened)
 
     @property
     def name(self) -> str:
@@ -237,7 +245,7 @@ class Tool:
         # free-to-ask about an argv that writes.
         from roadkeep.cli import writes_when  # noqa: PLC0415 - RK260
 
-        settable = (*self.exposes, *self.conditional, *self.always)
+        settable = (*self.unconditional, *self.conditional, *self.always)
         return any(flag in settable for flag in writes_when(parser))
 
 
@@ -556,8 +564,8 @@ def serves(argv: Sequence[str]) -> str | None:
     the guard can afford: a denial is composed inside a `PreToolUse` the harness waits on,
     held at 44.6 ms by RK261, and building the CLI's parser index to name one tool costs 117
     ms of that. So this reads :data:`TOOLS` and nothing else — the subcommand path answers
-    *which* tool, and :attr:`Tool.exposes` answers whether the flags in the argv are ones a
-    caller may pass. The parser is then only ever asked for the field **values**.
+    *which* tool, and :attr:`Tool.unconditional` answers whether the flags in the argv are ones
+    a caller may pass on **every** project — the half this reader can afford (RK1157). The parser is then only ever asked for the field **values**.
 
     That second question is the one `guarding._tool_for` did not ask, and `lint --fix` is the
     row that proves it has to be: RK16 keeps the writing flag where a human is standing, so
@@ -578,7 +586,11 @@ def serves(argv: Sequence[str]) -> str | None:
             passed = (
                 dest_of(word, tool.command) for word in words[length:] if word.startswith("--")
             )
-            return tool.name if all(dest in tool.exposes for dest in passed) else None
+            return (
+                tool.name
+                if all(dest in tool.unconditional for dest in passed)
+                else None
+            )
     return None
 
 
@@ -588,7 +600,7 @@ STRUCTURAL = "json"
 
 #: Every argument a served verb has and does not offer, with the reason it does not (RK1099).
 #:
-#: `exposes` is a whitelist, which makes withholding the default: a flag added to `cli.py` and
+#: `unconditional` is a whitelist, which makes withholding the default: a flag added to `cli.py` and
 #: not listed there is unreachable over MCP and nothing says so. Measured, that is not
 #: hypothetical — RK1095 added `budget --session` and left it off, and it stayed CLI-only
 #: through two more tasks. What caught it was a *remedy door* naming the flag; a flag no door
@@ -1356,7 +1368,7 @@ def _companioned(
     declared paths answer the same way and a fourth cannot be the one that was forgotten.
     """
     for prose in prose_of(tool.command, parsers):
-        if prose.dest not in tool.exposes or not prose.reached_by(arguments):
+        if prose.dest not in tool.unconditional or not prose.reached_by(arguments):
             continue
         raise ToolError(
             f"{tool.name}: {prose.dest} is the prose itself, and over this transport there "
@@ -1680,7 +1692,7 @@ def _as_call(argv: str, prefix: str, *, plain: bool = False) -> str:
     uses to publish the schema — and comes back as the fields a call carries.
 
     Empty on anything this surface cannot answer for: a verb it withholds, an argv the parser
-    refuses, a field outside the tool's `exposes`. There the shell spelling stays, which is
+    refuses, a field outside the tool's `unconditional`. There the shell spelling stays, which is
     what the CLI wrote and what is at least right where a shell exists.
 
     Composed by :meth:`~roadkeep.remedying.Door.mention` and no longer here (RK488). This was

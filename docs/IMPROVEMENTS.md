@@ -81,34 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1157 A name that cannot be mistaken for the answer
-
-`Tool.exposes` is the **declaration** and `Tool.exposed(config)` is the **answer**: the
-first is a literal tuple, the second adds whatever `conditional` this project opens
-(RK111). The names differ by one letter, and the one a reader reaches for first is the
-one that is not the answer.
-
-Measured twice in three iterations. RK1147 claimed `adopt` never named the flag that
-changes its estimate — read off the `Estimate` object, while the report had named it
-since RK285 — and was restated once the command was run. RK1156 claimed an outline
-project cannot file over MCP, read off `Tool.exposes`; `exposed(config)` ends in `ref`,
-a served `add` takes it, and the line was retired.
-
-What makes it worth a change rather than a resolution to be careful: `serves()` reads
-`exposes` **deliberately**, and says so — it is composed inside a hook the harness waits
-on, and asking the config would cost the parser build RK261 removed. So both readings
-are legitimate, they coexist in one class, and the cheap one is the one that looks
-total.
-
-The fix is the project's own thesis applied to its own API: make the wrong reading hard
-rather than documented. A declaration named `declares` (or `whitelist`) cannot be
-mistaken for the answer, and `exposed(config)` stays the one thing a caller asks. Eight
-call sites and the `_WITHHELD` closure name it, so the rename is mechanical and the
-closure proves it total.
-
-What needs deciding: whether `serves` keeps its cheap reading under a name that says
-*cheap*.
-
 ### §RK1158 The floor is declared and nothing reads it
 
 `pyproject.toml` declares `requires-python = ">=3.11"` and this machine develops on

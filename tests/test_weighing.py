@@ -252,7 +252,7 @@ def test_it_ranks_nothing_and_writes_nothing(tmp_path):
     assert main(["-C", str(config.root), "weight"]) == EXIT_OK
     assert config.path("roadmap").read_text(encoding="utf-8") == before
     served = next(tool for tool in TOOLS if tool.name == "weight")
-    assert not served.writes and served.exposes == ("block", "records")
+    assert not served.writes and served.unconditional == ("block", "records")
 
 
 # -- the command --------------------------------------------------------------

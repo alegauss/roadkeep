@@ -285,7 +285,7 @@ def test_what_the_sweep_lets_through_says_why(tmp_path):
     served_now = {tool.command for tool in TOOLS}
     assert served_now.isdisjoint(_UNSERVED), sorted(served_now & set(_UNSERVED))
     lint_ = next(tool for tool in TOOLS if tool.command == "lint")
-    assert "fix" not in lint_.exposes, "the surface exposes --fix; the exception is stale"
+    assert "fix" not in lint_.unconditional, "the surface exposes --fix; the exception is stale"
     # And the sweep sees them: both appear in the shell rendering it compares against.
     shell = str(shapes(project(tmp_path))["Refusal"][1])
     assert all(one in shell for one in _SHELL_ONLY)

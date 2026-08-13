@@ -254,7 +254,10 @@ class Door:
             return None
         tool = next(one for one in TOOLS if one.name == name)
         rest = list(self.argv)[len(tool.argv_head) :]
-        fields = _fields_of(_subparser(tool.command), rest, tool.exposes)
+        # The unconditional half, which is what this reader can ask: a door is composed
+        # without a project (RK1157), and whether one opens a conditional field is that
+        # project's answer — so a field only some projects offer has no call here.
+        fields = _fields_of(_subparser(tool.command), rest, tool.unconditional)
         return None if fields is None else (name, fields)
 
     def payload(self, served: str = "") -> dict[str, object]:

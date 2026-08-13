@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import io
+import ast
 import json
 import os
 import re
@@ -36,6 +37,8 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+
+from surface import modules
 
 from roadkeep import claiming, serving
 from roadkeep import cli
@@ -408,7 +411,7 @@ def _minimal(tool: Tool) -> dict[str, str]:
     required = descriptor(tool, Config.default())["inputSchema"].get("required", [])
     filled = {name: "RK1" if name == "id" else "x" for name in required}
     for prose in prose_of(tool.command):
-        if prose.dest in tool.exposes and prose.reached_by(filled):
+        if prose.dest in tool.unconditional and prose.reached_by(filled):
             filled[prose.dest] = "The prose, passed as a string because there is no pipe."
     return filled
 
@@ -1167,7 +1170,7 @@ def _variants(tool: Tool) -> list[dict[str, str]]:
     base = _minimal(tool)
     out = [dict(base)]
     for prose in prose_of(tool.command):
-        if prose.dest not in tool.exposes:
+        if prose.dest not in tool.unconditional:
             continue
         omitted = {name: value for name, value in base.items() if name != prose.dest}
         if prose.gated_by:
@@ -1193,7 +1196,7 @@ def test_no_exposed_argv_reaches_a_read_of_the_transport():
         declared = prose_of(tool.command)
         for arguments in _variants(tool):
             reaches = any(
-                prose.dest in tool.exposes and prose.reached_by(arguments)
+                prose.dest in tool.unconditional and prose.reached_by(arguments)
                 for prose in declared
             )
             if not reaches:
@@ -2201,7 +2204,7 @@ def _withheld_by_parser() -> dict[str, set[str]]:
             # A flag turned into a tool of its own (RK150): the command it serves is narrower
             # than the parser's, and what it does not pass it does not withhold either.
             continue
-        offered = set(tool.exposes) | set(tool.conditional)
+        offered = set(tool.unconditional) | set(tool.conditional)
         missing = {
             action.dest
             for action in _subparser(tool.command)._actions
@@ -2211,6 +2214,42 @@ def _withheld_by_parser() -> dict[str, set[str]]:
         if missing:
             out[tool.command] = missing
     return out
+
+
+#: Who reads the **declaration** rather than the answer, and why each has to. `exposed(config)` is
+#: what a tool offers on a project; `unconditional` is the half true everywhere, and a caller
+#: holding a config and reading the half would be answering a question about this project with a
+#: fact about all of them (RK1157). Two may, and both for the same reason — they have no config:
+#: `serves` is composed inside a `PreToolUse` the harness waits on, where asking one costs the
+#: parser build RK261 removed, and a `Door` is built where no project has been discovered at all.
+READS_THE_HALF = {
+    "serving.py": "it is the field's own module, and `serves` is the cheap reader RK261 bought",
+    "remedying.py": "a door is composed without a project, so a conditional field has no call",
+}
+
+
+def test_only_the_readers_that_cannot_ask_a_project_read_the_unconditional_half():
+    """RK1157. The rename made the half visible; this keeps it from being read as the answer.
+
+    Two tasks in three iterations were filed against `Tool.unconditional` — one letter from
+    `exposed(config)`, and the half that is true on every project — and one of them was worked and
+    shipped before the misreading surfaced. So the readers are declared: a module that acquires a
+    config and reads the half is a red here, and a row naming a module that stopped reading it is
+    a red too, which is RK491's rule in both directions.
+
+    Over the package and not the suite: a test asking about the declaration is asking about the
+    declaration, which is what this file does three times below.
+    """
+    reading: dict[str, list[int]] = {}
+    for module in modules():
+        for node in ast.walk(ast.parse(module.text)):
+            if isinstance(node, ast.Attribute) and node.attr == "unconditional":
+                reading.setdefault(Path(module.where).name, []).append(node.lineno)
+    assert set(reading) == set(READS_THE_HALF), {
+        "reads it, no reason": sorted(set(reading) - set(READS_THE_HALF)),
+        "reason, reads none": sorted(set(READS_THE_HALF) - set(reading)),
+    }
+    assert all(len(why.split()) >= 6 for why in READS_THE_HALF.values())
 
 
 def test_every_argument_the_surface_withholds_says_why():
@@ -2247,4 +2286,4 @@ def test_the_transport_is_not_a_decision_anybody_records():
         command for command, rows in serving.WITHHELD.items() if STRUCTURAL in rows
     ], "the transport is not a field a reason could be about"
     for tool in serving.TOOLS:
-        assert STRUCTURAL not in tool.exposes, tool.name
+        assert STRUCTURAL not in tool.unconditional, tool.name
