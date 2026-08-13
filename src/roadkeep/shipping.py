@@ -856,11 +856,11 @@ class Partial:
     #: The marker the ledger entry carries: ✅, on the part that shipped.
     marker: str = ""
 
-    def save(self) -> None:
+    def save(self) -> tuple[Path, ...]:
         # The ledger first, as everywhere else (RK118): the record of what landed is the
         # thing that cannot be reconstructed, and a marker not yet ⏳ is a state a second
         # run of the same command corrects.
-        save_all(self.ledger.document, self.roadmap)
+        return save_all(self.ledger.document, self.roadmap)
 
 
 @dataclass(frozen=True, slots=True)
@@ -968,12 +968,12 @@ class Record:
     #: promised is the repair, and writing one it did not promise is the author's to see.
     mentioned: IdRef | None = None
 
-    def save(self) -> None:
+    def save(self) -> tuple[Path, ...]:
         """Write the ledger, and the roadmap only if a line in it actually changed."""
         # The roadmap is passed only where a line in it changed, so it is not rewritten to
         # the same bytes: an untouched file with a moved mtime reads as an edit to every
         # hook watching it, and "touched nothing else" has to be true on disk.
-        save_all(self.ledger.document, self.roadmap if self.refreshed else None)
+        return save_all(self.ledger.document, self.roadmap if self.refreshed else None)
 
 
 @dataclass(frozen=True, slots=True)
@@ -1000,9 +1000,10 @@ class Dropped:
     #: The marker the removed entry carried, which is normally the same one.
     marker: str = ""
 
-    def save(self) -> None:
-        """Write the ledger. Nothing else was opened, so nothing else can be touched."""
-        self.ledger.save()
+    def save(self) -> tuple[Path, ...]:
+        """Write the ledger, and answer it (RK1130). Nothing else was opened, so nothing
+        else can be touched — and the answer is what a `git add --` takes."""
+        return self.ledger.save()
 
 
 @dataclass(frozen=True, slots=True)
@@ -1036,9 +1037,10 @@ class Corrected:
     def lineno(self) -> int:
         return self.entry.lineno
 
-    def save(self) -> None:
-        """Write the ledger. Nothing else was opened, so nothing else can be touched."""
-        self.ledger.save()
+    def save(self) -> tuple[Path, ...]:
+        """Write the ledger, and answer it (RK1130). Nothing else was opened, so nothing
+        else can be touched — and the answer is what a `git add --` takes."""
+        return self.ledger.save()
 
 
 def amend(
@@ -1189,9 +1191,10 @@ class Refiled:
     def lineno(self) -> int:
         return self.entry.lineno
 
-    def save(self) -> None:
-        """Write the ledger. Nothing else was opened, so nothing else can be touched."""
-        self.ledger.save()
+    def save(self) -> tuple[Path, ...]:
+        """Write the ledger, and answer it (RK1130). Nothing else was opened, so nothing
+        else can be touched — and the answer is what a `git add --` takes."""
+        return self.ledger.save()
 
 
 def move(config: Config, task_id: str, *, to_block: str) -> Refiled:
@@ -1284,9 +1287,10 @@ class Readdressed:
     def lineno(self) -> int:
         return self.entry.lineno
 
-    def save(self) -> None:
-        """Write the ledger. Nothing else was opened, so nothing else can be touched."""
-        self.ledger.save()
+    def save(self) -> tuple[Path, ...]:
+        """Write the ledger, and answer it (RK1130). Nothing else was opened, so nothing
+        else can be touched — and the answer is what a `git add --` takes."""
+        return self.ledger.save()
 
 
 def drop(config: Config, task_id: str, *, lineno: int | None = None) -> Dropped:

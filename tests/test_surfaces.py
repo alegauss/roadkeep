@@ -13,11 +13,14 @@ surface that drifts from the CLI fails a test instead of failing a push.
 
 from __future__ import annotations
 
+import argparse
 import re
 import shlex
 from pathlib import Path
 
 import pytest
+
+from surface import modules
 
 from roadkeep.cli import build_parser
 
@@ -227,3 +230,76 @@ def test_the_client_is_gated_against_this_repository_s_own_docs():
     job = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]["client"]
     assert any(step.get("uses", "").startswith("actions/checkout") for step in job["steps"])
     assert any(step.get("uses", "").startswith("actions/setup-node") for step in job["steps"])
+
+
+# -- every write says what to stage, or says why it does not (RK1130) -----------
+
+#: The write commands that print no `git add --` line, each with the reason. Four of them
+#: write a file the caller **named** — `init` scaffolds it, `install` and `uninstall` wire the
+#: harness, `adopt` writes nothing at all and estimates — and `export` writes the projection
+#: *as the work*, so a line restating it is the answer repeating the question. Declared rather
+#: than derived: an exemption nobody wrote down is a verb that quietly stopped answering.
+EXEMPT = {
+    "init": "scaffolds the files the caller asked for, so the paths are the argument",
+    "install": "wires the harness's own surfaces, which are not governed files",
+    "uninstall": "un-wires the same surfaces, and names each as it takes it out",
+    "adopt": "writes nothing: it estimates what bringing a backlog under the schema costs",
+    "export": "the projection *is* the work here, so the staging line restates the argument",
+    # Found by the closure below rather than by a reader, which is the whole argument for it.
+    "repair": "writes nothing itself: it re-enters the dispatcher per step, and each step's "
+    "own output is deliberately not suppressed — so the staging lines are the steps'",
+}
+
+
+def writes() -> dict[str, str]:
+    """Every command the parser declares that is not `reads_only`, as `<path>` → handler."""
+    found: dict[str, tuple[str, bool]] = {}
+
+    def walk(parser, path=()):
+        for action in parser._actions:
+            if isinstance(action, argparse._SubParsersAction):
+                for name, sub in action.choices.items():
+                    walk(sub, (*path, name))
+        handler = parser.get_default("handler")
+        if handler is not None:
+            found[" ".join(path)] = (handler.__name__, bool(parser.get_default("reads_only")))
+
+    walk(build_parser())
+    return {name: handler for name, (handler, reads) in found.items() if not reads}
+
+
+def test_every_write_command_is_either_wired_or_exempted():
+    """RK1130's closure. The sweep was mechanical and that is exactly why it needs one: a verb
+    added tomorrow inherits the defect silently, and what the defect costs is a commit that
+    passes the gate locally and fails it in a clean checkout."""
+    declared = set(writes())
+    assert set(EXEMPT) <= declared, sorted(set(EXEMPT) - declared)
+    wired = declared - set(EXEMPT)
+    # The number in RK1130's own line was 32 — read as `63 - 31 reads_only`, one command
+    # short. Stated here as the parser answers it, because that is the reading that binds.
+    assert len(declared) == 33 and len(wired) == 27
+
+
+def test_every_wired_write_reaches_the_one_printer():
+    """Executed rather than asserted, which is `test_doors`' rule: each handler is read for the
+    call, because a staging line composed per verb is a line that comes to differ per verb."""
+    # `surface.modules` and never a glob of its own (RK496): the one module allowed to ask the
+    # filesystem what this package holds is the one every survey quantifies over, so a layout
+    # that moves takes this reader with it instead of leaving it quietly covering nothing.
+    source = {one.where: one.text for one in modules() if one.where.startswith("verbs/")}
+    handlers = {handler for name, handler in writes().items() if name not in EXEMPT}
+    missing = []
+    for handler in sorted(handlers):
+        body = next(
+            (
+                text.split(f"def {handler}(", 1)[1]
+                for text in source.values()
+                if f"def {handler}(" in text
+            ),
+            "",
+        )
+        # Up to the next top-level def: a handler that delegates is read through its own body.
+        body = body.split("\ndef ", 1)[0]
+        if "_print_staging" not in body and "_print_scope" not in body:
+            missing.append(handler)
+    assert not missing, missing

@@ -223,6 +223,7 @@ def _status(config: Config, args: argparse.Namespace) -> int:
                     "rendered": change.rendered,
                     "refreshed": list(change.refreshed),
                     "claim": str(change.claim) or None,
+                    **_wrote_json(config, change.wrote),
                     "event": event,
                 },
                 indent=2,
@@ -238,6 +239,7 @@ def _status(config: Config, args: argparse.Namespace) -> int:
     if change.refreshed:
         print(f"  derived  {', '.join(change.refreshed)} (dep annotations re-derived)")
     _print_followed(change, config)
+    _print_staging(config.relative(one) for one in change.wrote)
     _print_event(event, "  ", config=config)
     return EXIT_OK
 
@@ -272,6 +274,7 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
                     "changed": list(amended.changed),
                     "rendered": amended.rendered,
                     "refreshed": list(amended.refreshed),
+                    **_wrote_json(config, amended.wrote),
                 },
                 indent=2,
             )
@@ -285,6 +288,7 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
     print(f"  {amended.rendered}")
     if amended.refreshed:
         print(f"  derived  {', '.join(amended.refreshed)} (dep annotations re-derived)")
+    _print_staging(config.relative(one) for one in amended.wrote)
     return EXIT_OK
 
 
@@ -314,6 +318,7 @@ def _restate(config: Config, args: argparse.Namespace) -> int:
                     "typo": restated.typo,
                     "rendered": restated.rendered,
                     "refreshed": list(restated.refreshed),
+                    **_wrote_json(config, restated.wrote),
                 },
                 indent=2,
             )
@@ -339,6 +344,7 @@ def _restate(config: Config, args: argparse.Namespace) -> int:
     )
     if restated.refreshed:
         print(f"  derived  {', '.join(restated.refreshed)} (dep annotations re-derived)")
+    _print_staging(config.relative(one) for one in restated.wrote)
     return EXIT_OK
 
 

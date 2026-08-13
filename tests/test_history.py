@@ -801,9 +801,13 @@ def test_a_retirement_answers_for_its_own_writes_as_a_ship_does(tmp_path, capsys
         claiming.path(tmp_path).unlink(missing_ok=True)
 
 
-def test_a_ship_no_claim_spoke_for_stays_silent_about_what_it_wrote(tmp_path, capsys):
-    # The record is not a scope. With no claim there is nothing to report it beside, and a
-    # staging line under a heading that read nothing would be the RK294 defect reversed.
+def test_a_ship_no_claim_spoke_for_still_says_what_it_wrote(tmp_path, capsys):
+    """The other way round since RK1130, and deliberately. This asserted silence on the
+    argument that *the record is not a scope* — true, and it is the three lists below the
+    staging line that need a claim to mean anything. The line itself is a fact about what this
+    transaction wrote, which is why RK1129 has `add` print it on a project with no claims at
+    all; a `ship` that stayed quiet was the same tool answering one question two ways, on the
+    write with the most files in it and the one whose commit is hardest to compose."""
     config = repo(tmp_path)
     append(
         config.path("roadmap"),
@@ -811,7 +815,10 @@ def test_a_ship_no_claim_spoke_for_stays_silent_about_what_it_wrote(tmp_path, ca
     )
     git_commit(tmp_path, "chore: a line")
     assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "it works now."]) == EXIT_OK
-    assert "stage" not in capsys.readouterr().out
+    printed = capsys.readouterr().out
+    assert "stage    git add --" in printed
+    # And still nothing that needs a claim to be true: no scope spoke, so no path is anybody's.
+    assert "loose" not in printed and "theirs" not in printed
 
 
 # -- the next family, and the order that lets a reader check it (RK293) --------

@@ -485,7 +485,10 @@ def test_the_drop_command_names_both_lines_and_the_event(tmp_path, capsys):
     out = capsys.readouterr().out
     assert out.startswith(f"RK1 {SHIPPED} CHANGELOG.md:10 removed, duplicate of CHANGELOG.md:5")
     assert "roadmap  untouched" in out
-    assert out.splitlines()[-2] == "  event    RK1  Block A  finished"
+    # Named rather than counted back to (RK1130): the staging line sits between the report
+    # and the event, so an index into the tail is an assertion about the wrong sentence.
+    assert "  event    RK1  Block A  finished" in out.splitlines()
+    assert any("stage    git add --" in line for line in out.splitlines())
 
 
 def test_the_drop_json_says_which_line_answers_now(tmp_path, capsys):
@@ -1123,7 +1126,10 @@ def test_the_move_command_names_both_positions(tmp_path, capsys):
     out = capsys.readouterr().out
     assert out.startswith("RK1 moved  Block A → Block B  CHANGELOG.md:5 → :9")
     assert "roadmap  untouched" in out
-    assert out.splitlines()[-2] == "  event    RK1  Block B  finished"
+    # Positional no longer (RK1130): the staging line sits between the report and the
+    # event, so the assertion names the line it is about rather than counting back to it.
+    assert "  event    RK1  Block B  finished" in out.splitlines()
+    assert any("stage    git add --" in line for line in out.splitlines())
 
 
 def test_the_move_json_carries_the_block_it_left(tmp_path, capsys):

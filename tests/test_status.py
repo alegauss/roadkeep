@@ -277,6 +277,10 @@ def test_the_command_prints_the_transition(tmp_path, capsys):
         # a claim and says so (RK158): a claim moved without being named is the silence
         # RK119 argued against for the answer itself.
         "  claimed  held for 60m unless a marker moves it sooner",
+        # What to stage, projections included (RK1130): a marker write refreshes the derived
+        # block like every other governed write, and a commit that took the roadmap alone
+        # left that refresh behind — `export.stale` in a clean checkout.
+        f"  stage    git add -- {ROADMAP}",
         "  event    RK1  Block A  live",
     ]
 

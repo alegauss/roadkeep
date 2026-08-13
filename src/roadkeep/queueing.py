@@ -47,6 +47,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from pathlib import Path
 
 from roadkeep.config import Config
 from roadkeep.kernel.document import Document, blank
@@ -212,8 +213,8 @@ class Written:
     def lineno(self) -> int:
         return self.entry.lineno
 
-    def save(self) -> None:
-        self.document.save()
+    def save(self) -> tuple[Path, ...]:
+        return self.document.save()
 
 
 @dataclass(frozen=True, slots=True)
@@ -228,8 +229,8 @@ class Dropped:
     def lineno(self) -> int:
         return self.entry.lineno
 
-    def save(self) -> None:
-        self.document.save()
+    def save(self) -> tuple[Path, ...]:
+        return self.document.save()
 
 
 def typed(config: Config, token: str) -> bool:
@@ -470,8 +471,8 @@ class Migrated:
     #: The heading's line, 1-based, so the answer names where the section landed.
     lineno: int
 
-    def save(self) -> None:
-        self.document.save()
+    def save(self) -> tuple[Path, ...]:
+        return self.document.save()
 
 
 def migrate(config: Config) -> Migrated:

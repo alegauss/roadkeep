@@ -55,7 +55,7 @@ def _block_add(config: Config, args: argparse.Namespace) -> int:
         opened = open_block(
             config, args.label, args.title, after=args.after, organise=args.organise
         )
-        opened.save()
+        wrote = opened.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -86,6 +86,7 @@ def _block_add(config: Config, args: argparse.Namespace) -> int:
                         {"file": where, "reason": reason}
                         for where, reason in opened.skipped
                     ],
+                    **_wrote_json(config, wrote),
                 },
                 indent=2,
             )
@@ -101,13 +102,14 @@ def _block_add(config: Config, args: argparse.Namespace) -> int:
         print(f"  {files[role]:<{width}}:{opened.placed[role]}  {opened.rendered[role]}")
     for where, reason in opened.skipped:
         print(f"  not      {where}: {reason}")
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 
 def _block_drop(config: Config, args: argparse.Namespace) -> int:
     try:
         closed = drop_block(config, args.label, prose=args.prose)
-        closed.save()
+        wrote = closed.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -134,6 +136,7 @@ def _block_drop(config: Config, args: argparse.Namespace) -> int:
                     "skipped": [
                         {"file": where, "reason": reason} for where, reason in closed.skipped
                     ],
+                    **_wrote_json(config, wrote),
                 },
                 indent=2,
             )
@@ -150,13 +153,14 @@ def _block_drop(config: Config, args: argparse.Namespace) -> int:
             print(f"  note     {closed.notes[role]} line(s) of prose taken with the heading")
     for where, reason in closed.skipped:
         print(f"  kept     {where}: {reason}")
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 
 def _block_merge(config: Config, args: argparse.Namespace) -> int:
     try:
         merged = merge_block(config, args.label, prose=args.prose)
-        merged.save()
+        wrote = merged.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -181,6 +185,7 @@ def _block_merge(config: Config, args: argparse.Namespace) -> int:
                         }
                         for role in merged.documents
                     ],
+                    **_wrote_json(config, wrote),
                 },
                 indent=2,
             )
@@ -197,6 +202,7 @@ def _block_merge(config: Config, args: argparse.Namespace) -> int:
         )
         if role in merged.notes:
             print(f"  note     {merged.notes[role]} line(s) of prose dropped with a heading")
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 
@@ -486,7 +492,7 @@ def _section_drop(config: Config, args: argparse.Namespace) -> int:
 def _non_goal_add(config: Config, args: argparse.Namespace) -> int:
     try:
         written = add_non_goal(config, lead=args.lead, why=_piped(args.why))
-        written.save()
+        wrote = written.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -500,6 +506,7 @@ def _non_goal_add(config: Config, args: argparse.Namespace) -> int:
                     "file": where,
                     "line": written.lineno,
                     "rendered": list(written.rendered),
+                    **_wrote_json(config, wrote),
                 },
                 indent=2,
             )
@@ -511,13 +518,14 @@ def _non_goal_add(config: Config, args: argparse.Namespace) -> int:
         print(f"  {line}")
     # No event line (RK38): the payload a hook reads is an id and its block's open state, and
     # a non-goal has neither — it is the constraint on what a block may hold, not a member.
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 
 def _non_goal_amend(config: Config, args: argparse.Namespace) -> int:
     try:
         amended = amend_non_goal(config, args.lead, _piped(args.why))
-        amended.save()
+        wrote = amended.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -535,6 +543,7 @@ def _non_goal_amend(config: Config, args: argparse.Namespace) -> int:
                     "file": where,
                     "line": amended.lineno,
                     "rendered": list(amended.rendered),
+                    **_wrote_json(config, wrote),
                 },
                 indent=2,
             )
@@ -547,6 +556,7 @@ def _non_goal_amend(config: Config, args: argparse.Namespace) -> int:
     print(f"{where}:{amended.lineno}  amended  {len(amended.rendered)} line(s)")
     for line in amended.rendered:
         print(f"  {line}")
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 
@@ -599,7 +609,7 @@ def _non_goal_list(config: Config, args: argparse.Namespace) -> int:
 def _non_goal_drop(config: Config, args: argparse.Namespace) -> int:
     try:
         dropped = drop_non_goal(config, args.lead)
-        dropped.save()
+        wrote = dropped.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -615,6 +625,7 @@ def _non_goal_drop(config: Config, args: argparse.Namespace) -> int:
                     "removed": [span.first, span.last],
                     "carried": dropped.carried,
                     "rendered": list(dropped.lines),
+                    **_wrote_json(config, wrote),
                 },
                 indent=2,
             )
@@ -629,13 +640,14 @@ def _non_goal_drop(config: Config, args: argparse.Namespace) -> int:
             f"  duplicate {dropped.carried} bullets carried this lead: the later one went, "
             f"the first is where the reader already found it"
         )
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 
 def _priority_add(config: Config, args: argparse.Namespace) -> int:
     try:
         written = add_priority(config, args.token, after=args.after, first=args.first)
-        written.save()
+        wrote = written.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -655,6 +667,7 @@ def _priority_add(config: Config, args: argparse.Namespace) -> int:
                     # Whether this call also opened the section (RK1014): a caller who asked
                     # to queue a token has had a heading written into a governed file.
                     "opened": written.opened,
+                    **_wrote_json(config, wrote),
                 },
                 indent=2,
             )
@@ -669,6 +682,7 @@ def _priority_add(config: Config, args: argparse.Namespace) -> int:
     print(f"  order    {written.position} of {written.length}")
     # No event line (RK38): the payload a hook reads is an id and its block's open state, and
     # an entry states neither — the token names work whose line is somewhere else.
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 
@@ -722,7 +736,7 @@ def _priority_list(config: Config, args: argparse.Namespace) -> int:
 def _priority_drop(config: Config, args: argparse.Namespace) -> int:
     try:
         dropped = drop_priority(config, args.token)
-        dropped.save()
+        wrote = dropped.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -736,6 +750,7 @@ def _priority_drop(config: Config, args: argparse.Namespace) -> int:
                     "removed": dropped.entry.lineno,
                     "length": dropped.length,
                     "rendered": dropped.entry.raw,
+                    **_wrote_json(config, wrote),
                 },
                 indent=2,
             )
@@ -744,6 +759,7 @@ def _priority_drop(config: Config, args: argparse.Namespace) -> int:
 
     print(f"{where}:{dropped.entry.lineno}  dropped  {dropped.entry.token}")
     print(f"  order    {dropped.length} left")
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 
@@ -757,7 +773,7 @@ def _priority_migrate(config: Config, args: argparse.Namespace) -> int:
     """
     try:
         migrated = migrate_priority(config)
-        migrated.save()
+        wrote = migrated.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -770,6 +786,7 @@ def _priority_migrate(config: Config, args: argparse.Namespace) -> int:
                     "line": migrated.lineno,
                     "tokens": list(migrated.tokens),
                     "configured": _configured_source(config),
+                    **_wrote_json(config, wrote),
                 },
                 indent=2,
             )
@@ -783,6 +800,7 @@ def _priority_migrate(config: Config, args: argparse.Namespace) -> int:
         f"  left     `priority` is still in {_configured_source(config)} and is now read by "
         f"nothing — take the line out; `lint` reports it as `priority.config` until you do"
     )
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 

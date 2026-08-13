@@ -77,32 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1130 The staging line at one door
-
-RK1129 gave `add` the `git add --` line for what it wrote, projections included, and
-left the rule stated at one door. The parser declares **63 handlers, 31 of them
-`reads_only`** — so 32 commands write, and four of those print the line: `ship`, its
-closure path, `retire` (all three through `_print_scope`) and now `add`.
-
-Every one of the other 28 refreshes the same derived block, because the refresh is not a
-verb's decision: `Document.save` routes a one-document transaction through `save_all`
-for exactly that reason (RK188), and `save_all` writes the projections last. So
-`status`, `defer`, `resume`, `renumber`, `restate`, `amend`, `section
-add|amend|drop|move`, `block add|drop|merge`, `record *`, `priority *` and `non-goal *`
-each leave a file the caller never named, and say nothing about it.
-
-What the commit then misses is what RK1129 measured: green against the working tree,
-where the refresh is sitting, and `export.stale` in a clean checkout.
-
-Two things make this a sweep rather than 28 decisions. `_print_staging` is already the
-one writer of the line, and the missing half is that **`Document.save` answers one
-path** — its own target — while `save_all` answered the whole list. Returning that list
-is the same edit `Insertion.save` took, in the place every other verb saves through.
-
-What needs deciding is the one door where a staging line would be wrong: `export` writes
-the projection *as the work*, so the file is what the caller named and the line would
-restate it.
-
 ## Block C — Query
 
 ## Block D — The gate

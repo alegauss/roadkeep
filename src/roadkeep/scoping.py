@@ -34,6 +34,7 @@ from __future__ import annotations
 import re
 import textwrap
 from dataclasses import dataclass, replace
+from pathlib import Path
 
 from roadkeep.config import Config, Scope
 from roadkeep.kernel.document import Document, blank
@@ -197,8 +198,8 @@ class Written:
     def rendered(self) -> tuple[str, ...]:
         return self.non_goal.lines
 
-    def save(self) -> None:
-        self.document.save()
+    def save(self) -> tuple[Path, ...]:
+        return self.document.save()
 
 
 @dataclass(frozen=True, slots=True)
@@ -223,8 +224,8 @@ class Amended:
     def rendered(self) -> tuple[str, ...]:
         return self.non_goal.lines
 
-    def save(self) -> None:
-        self.document.save()
+    def save(self) -> tuple[Path, ...]:
+        return self.document.save()
 
 
 @dataclass(frozen=True, slots=True)
@@ -241,8 +242,8 @@ class Dropped:
     def lines(self) -> tuple[str, ...]:
         return self.non_goal.lines
 
-    def save(self) -> None:
-        self.document.save()
+    def save(self) -> tuple[Path, ...]:
+        return self.document.save()
 
 
 def read(document: Document) -> tuple[NonGoal, ...]:

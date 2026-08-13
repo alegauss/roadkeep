@@ -59,6 +59,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from roadkeep.authoring import _after_preamble, remove_entry
 from roadkeep.config import Config
@@ -354,9 +355,9 @@ class Merged:
     #: heading stood over entries alone, so the report tells "folded" from "folded the note too".
     notes: Mapping[str, int] = field(default_factory=dict)
 
-    def save(self) -> None:
+    def save(self) -> tuple[Path, ...]:
         """Write every file, having asked all of them first (RK116, RK6)."""
-        save_all(*self.documents.values())
+        return save_all(*self.documents.values())
 
 
 @dataclass(frozen=True, slots=True)
@@ -385,9 +386,9 @@ class Closed:
     #: neither a refusal nor a removal and would otherwise be an unexplained silence.
     skipped: tuple[tuple[str, str], ...] = ()
 
-    def save(self) -> None:
+    def save(self) -> tuple[Path, ...]:
         """Write every file, having asked all of them first (RK116, RK6)."""
-        save_all(*self.documents.values())
+        return save_all(*self.documents.values())
 
 
 def drop_block(config: Config, label: str, *, prose: bool = False) -> Closed:
@@ -645,9 +646,9 @@ class Opened:
     #: discovers was skipped by the next command that refuses on it.
     skipped: tuple[tuple[str, str], ...] = ()
 
-    def save(self) -> None:
+    def save(self) -> tuple[Path, ...]:
         """Write every file, having asked all of them first (RK116, RK6)."""
-        save_all(*self.documents.values())
+        return save_all(*self.documents.values())
 
 
 def open_block(

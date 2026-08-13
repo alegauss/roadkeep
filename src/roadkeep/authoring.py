@@ -47,6 +47,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
+from pathlib import Path
 
 from roadkeep import claiming, sections
 from roadkeep.backlog import Backlog, DepStatus, NotOpen
@@ -804,6 +805,9 @@ class StatusChange:
     #: is not obviously an assertion of ownership to whoever typed it — and a claim taken or
     #: dropped without being said is the silence RK119 argued against for the answer itself.
     claim: Followed = Followed.NEITHER
+    #: Every path this write took, projections included (RK1130) — the list a `git add --`
+    #: takes, so the report a caller composes a commit from can name the file it refreshed.
+    wrote: tuple[Path, ...] = ()
 
     @property
     def after(self) -> str:
@@ -884,8 +888,9 @@ def set_status(config: Config, task_id: str, marker: str) -> StatusChange:
             claim=claiming.follow(config.root, task_id, marker, roadmap.entries),
         )
     derived = refresh(replace(backlog, roadmap=roadmap.replace_task(entry, updated)))
-    derived.document.save()
+    wrote = derived.document.save()
     return StatusChange(
+        wrote=wrote,
         document=derived.document,
         entry=next(e for e in derived.document.entries if e.lineno == entry.lineno),
         before=entry.task.status,
@@ -910,6 +915,9 @@ class Amendment:
     before: Task
     #: Other lines whose dep annotation this write made true again (RK8).
     refreshed: tuple[str, ...] = ()
+    #: Every path this write took, projections included (RK1130) — the list a `git add --`
+    #: takes, so the report a caller composes a commit from can name the file it refreshed.
+    wrote: tuple[Path, ...] = ()
 
     @property
     def changed(self) -> tuple[str, ...]:
@@ -996,8 +1004,9 @@ def amend(
         verb="correcting it",
     )
     derived = refresh(replace(backlog, roadmap=roadmap.rewrite_entry(entry, updated)))
-    derived.document.save()
+    wrote = derived.document.save()
     return Amendment(
+        wrote=wrote,
         document=derived.document,
         entry=next(e for e in derived.document.entries if e.lineno == entry.lineno),
         before=entry.task,
@@ -1033,6 +1042,9 @@ class Restatement:
     #: Declared and **never inferred**: which of the two a rewording is cannot be read off two
     #: strings, and a tool that guessed would be filing the caller's intent under its own.
     typo: bool = False
+    #: Every path this write took, projections included (RK1130) — the list a `git add --`
+    #: takes, so the report a caller composes a commit from can name the file it refreshed.
+    wrote: tuple[Path, ...] = ()
 
     @property
     def changed(self) -> bool:
@@ -1122,8 +1134,9 @@ def restate(
         verb="restating it",
     )
     derived = refresh(replace(backlog, roadmap=roadmap.rewrite_entry(entry, updated)))
-    derived.document.save()
+    wrote = derived.document.save()
     return Restatement(
+        wrote=wrote,
         document=derived.document,
         entry=next(e for e in derived.document.entries if e.lineno == entry.lineno),
         before=entry.task,

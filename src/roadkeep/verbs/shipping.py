@@ -20,6 +20,8 @@ from roadkeep.provenance import invocation
 from roadkeep.ranking import NEAREST, nearest
 from roadkeep.remaining import declared
 from roadkeep.rendering import (
+    _print_staging,
+    _wrote_json,
     _event,
     _print_cited,
     _print_dequeued,
@@ -271,7 +273,7 @@ def _record(config: Config, args: argparse.Namespace) -> int:
             supersedes=args.supersedes,
             lines=args.lines,
         )
-        entry.save()
+        wrote = entry.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -311,6 +313,7 @@ def _record(config: Config, args: argparse.Namespace) -> int:
                         "line": entry.mentioned.lineno,
                     },
                     "event": event,
+                    **_wrote_json(config, wrote),
                 },
                 indent=2,
             )
@@ -346,6 +349,7 @@ def _record(config: Config, args: argparse.Namespace) -> int:
         )
     if entry.refreshed:
         print(f"  derived  {', '.join(entry.refreshed)} (dep annotations re-derived)")
+    _print_staging(config.relative(one) for one in wrote)
     _print_event(event, "  ", config=config)
     return EXIT_OK
 
@@ -365,7 +369,7 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
         corrected = amend_record(
             config, args.id, why=_piped(args.why), part=args.part, lines=args.lines
         )
-        corrected.save()
+        wrote = corrected.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -378,6 +382,7 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
                     "file": where,
                     # The line it was already on, because not moving it is the claim.
                     "line": corrected.lineno,
+                    **_wrote_json(config, wrote),
                     "rendered": corrected.rendered,
                     "changed": list(corrected.changed),
                     # The lines under the bullet this write put back (RK1049): `rendered`
@@ -421,14 +426,16 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
             f"  kept     {corrected.below} continuation line(s) under the bullet, "
             f"verbatim: no field holds them"
         )
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 
 def _record_move(config: Config, args: argparse.Namespace) -> int:
     try:
         refiled = move_record(config, args.id, to_block=args.to_block)
-        if refiled.moved:
-            refiled.save()
+        # Nothing is written where the entry already sits under that heading, so nothing is
+        # staged either: an empty list is the honest answer and `_print_staging` says nothing.
+        wrote = refiled.save() if refiled.moved else ()
     except REFUSALS as error:
         return _refused(error)
 
@@ -446,6 +453,7 @@ def _record_move(config: Config, args: argparse.Namespace) -> int:
                     # one position would be the pretence this verb exists not to make.
                     "from": {"block": refiled.from_block, "line": refiled.from_line},
                     "to": {"block": refiled.to_block, "line": refiled.lineno},
+                    **_wrote_json(config, wrote),
                     "moved": refiled.moved,
                     "rendered": refiled.rendered,
                     "roadmap": {"touched": False},
@@ -469,13 +477,14 @@ def _record_move(config: Config, args: argparse.Namespace) -> int:
     print(f"  {refiled.rendered}")
     print("  roadmap  untouched: a block is where an entry is filed, not what it records")
     _print_event(event, "  ", config=config)
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 
 def _record_renumber(config: Config, args: argparse.Namespace) -> int:
     try:
         moved = readdress_record(config, args.id, lineno=args.line, to=args.to)
-        moved.save()
+        wrote = moved.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -485,6 +494,7 @@ def _record_renumber(config: Config, args: argparse.Namespace) -> int:
             json.dumps(
                 {
                     "id": moved.task_id,
+                    **_wrote_json(config, wrote),
                     "to": moved.to,
                     "file": ledger,
                     # The entry does not move: it keeps its line, so the ledger still reads
@@ -505,13 +515,14 @@ def _record_renumber(config: Config, args: argparse.Namespace) -> int:
         f"  kept     {moved.kept_marker} line {moved.kept} still carries {moved.task_id}: "
         f"every annotation elsewhere was written about that delivery"
     )
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 
 def _record_drop(config: Config, args: argparse.Namespace) -> int:
     try:
         dropped = drop_record(config, args.id, lineno=args.line)
-        dropped.save()
+        wrote = dropped.save()
     except REFUSALS as error:
         return _refused(error)
 
@@ -531,6 +542,7 @@ def _record_drop(config: Config, args: argparse.Namespace) -> int:
                     },
                     "kept": {"line": dropped.kept, "marker": dropped.kept_marker},
                     "roadmap": {"touched": False},
+                    **_wrote_json(config, wrote),
                     "event": event,
                 },
                 indent=2,
@@ -552,6 +564,7 @@ def _record_drop(config: Config, args: argparse.Namespace) -> int:
         )
     print("  roadmap  untouched: an id the ledger still records changes no annotation")
     _print_event(event, "  ", config=config)
+    _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
 
 

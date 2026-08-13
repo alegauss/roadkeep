@@ -282,6 +282,11 @@ def _print_scope(scope: claiming.Scope | None, wrote: Sequence[str] = ()) -> Non
     these paths is stage them.
     """
     if scope is None:
+        # The staging line is still owed (RK1130). What needs a claim is the *subtraction* —
+        # which paths are somebody else's — and a project that declared none was getting no
+        # `git add --` line at all from the two verbs that had one, on the write with the most
+        # files in it. So the silence stays where it belongs: on the three lists below.
+        _print_staging(dict.fromkeys(wrote))
         return
     _print_staging(dict.fromkeys((*scope.mine, *wrote)))
     for one, who in scope.theirs:
