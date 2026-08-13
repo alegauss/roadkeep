@@ -9,6 +9,7 @@ unlikely, so the test rewrites history on purpose and asserts the answer still r
 from __future__ import annotations
 
 import json
+import shlex
 import subprocess
 from pathlib import Path
 
@@ -36,6 +37,7 @@ from roadkeep.history import (
     searchable,
     spell,
 )
+from roadkeep.provenance import invocation
 from roadkeep.sections import AnchorRetired
 from roadkeep.sections import add as add_section
 from roadkeep.sections import move as move_section
@@ -1173,6 +1175,75 @@ def test_the_refusal_that_demands_a_ref_names_what_produces_one(tmp_path, capsys
     assert "every task points at its rationale section" in err
     assert "Block Q's prose is under §XVII" in err and "§XVII.4 is free" in err
     assert "anchors --block Q" in err
+
+
+def test_the_refusal_offers_the_call_and_the_call_is_the_one_that_works(tmp_path, capsys):
+    """RK1149: the refusal had already done the work and handed it over as prose to retype.
+
+    Measured on a project on the outline scheme: seven tasks filed, five refused first for
+    exactly this, five retries carrying no new information. So the retry is **executed** here
+    rather than matched — a printed command whose quoting is wrong is a command that runs as
+    eight arguments, and this is the first door carrying the caller's own prose.
+    """
+    config = outlined_blocks(tmp_path)
+    # The ledger has to declare the block before any `add` there can succeed, because the retry
+    # is *run* below and a second refusal would prove nothing about the first one's quoting.
+    assert main(["-C", str(config.root), "block", "add", "Q", "--title", "Serving"]) == EXIT_OK
+    typed = [
+        "-C", str(config.root), "add", "--block", "Q",
+        "--symptom", "A symptom with spaces", "--why", "A reason, with a comma.",
+    ]
+    assert main(typed) == EXIT_USAGE
+    (offered,) = [
+        line for line in capsys.readouterr().err.splitlines() if line.startswith("  retry")
+    ]
+    retry = offered.split("retry", 1)[1].strip()
+    assert retry.startswith(invocation())
+    again = shlex.split(retry[len(invocation()) :])
+    # The same call, one flag longer — and the address is the one the sentence named.
+    assert again == [*typed, "--ref", "XVII.4"]
+    assert main(again) == EXIT_OK
+
+
+def test_the_retry_replaces_an_address_the_caller_typed_and_cannot_reuse(tmp_path, capsys):
+    """The second refusal, which RK1149 measured as worse than the first: the anchor is spent,
+    the author had no way to know, and what changes is one token of the same call. Replaced
+    wherever it sits, so the positional of `section add` and a `--ref` are one rule."""
+    config = outlined_blocks(tmp_path)
+    root = str(config.root)
+    # Spent the way RK1149 measured it: the entry shipped, which takes its section with it, and
+    # the ledger keeps prose citing the address while nothing on any file says it was ever used.
+    assert main(["-C", root, "block", "add", "Q", "--title", "Serving"]) == EXIT_OK
+    assert main(["-C", root, "ship", "RK2", "--why", "It works now."]) == EXIT_OK
+    assert main(["-C", root, "section", "drop", "XVII.3"]) == EXIT_OK
+    git_commit(config.root, "chore: ship the line and drop the prose it pointed at")
+    typed = [
+        "-C", str(config.root), "section", "add", "XVII.3",
+        "--title", "A design at a spent address", "--body", "Prose enough to matter.",
+    ]
+    assert main(typed) == EXIT_USAGE
+    err = capsys.readouterr().err
+    (offered,) = [line for line in err.splitlines() if line.startswith("  retry")]
+    again = shlex.split(offered.split("retry", 1)[1].strip()[len(invocation()) :])
+    # The substitution is the claim: the spent address is gone from the call and the offered one
+    # is where it stood. Not executed here — this fixture writes its prose file directly, so
+    # `section add` refuses the offered child for a missing parent, which is a fact about the
+    # fixture and not about the retry. The test above runs its call, which is where quoting lives.
+    assert "XVII.3" not in again and again[again.index("add") + 1] == "XVII.4"
+    assert again[:3] == ["-C", root, "section"] and "--title" in again
+
+
+def test_a_refusal_that_derived_no_address_offers_no_call(tmp_path, capsys):
+    """The absence is the rule (RK360): where this declines to name an address — two families,
+    or no history to read — there is nothing to substitute and no retry is printed."""
+    config = outlined_blocks(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {DESIGNED} **RK4** (deps: —) **A symptom** — a reason. → §XVII.5\n",
+    )
+    argv = ["-C", str(config.root), "add", "--block", "R", "--symptom", "A", "--why", "B."]
+    assert main(argv) == EXIT_USAGE
+    assert "retry" not in capsys.readouterr().err
 
 
 def test_a_block_spanning_two_families_is_told_to_ask_rather_than_given_one(tmp_path, capsys):

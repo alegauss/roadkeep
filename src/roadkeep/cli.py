@@ -49,7 +49,7 @@ from roadkeep.capturing import PARTS, offer
 from roadkeep.config import Config, ConfigError, PROSE_ROLES
 from roadkeep.exporting import DEFAULTS
 from roadkeep.locking import LockBusy, exclusive
-from roadkeep.provenance import engine, invocation
+from roadkeep.provenance import engine, invocation, invoked
 from roadkeep.ranking import NEAREST
 from roadkeep.serving import Prose, spelled
 from roadkeep.remaining import declared
@@ -2550,6 +2550,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         # `roadkeep.toml` into a repository nobody can edit. It resolves its own config
         # from the payload anyway — one hook process serves every project a session sees.
         config = Config.default(args.directory)
+    # Recorded here because this is the one surface that has one: a refusal that computed the
+    # address the caller was missing can then offer the same call with it filled in, instead of a
+    # sentence to read, extract and retype (RK1149). After `discover`, so a run that never reached
+    # a project leaves the slot as the served path expects to find it — empty.
+    invoked(argv)
     faulted = False
     try:
         code = dispatch(config, args)

@@ -1834,17 +1834,24 @@ def naming_the_anchor(
     named = tuple(one for one in error.violations if one.code in _UNANCHORED)
     if not named:
         return error
-    clause = (
+    clause, free = (
         _where_a_top_level_is(config, namespace, anchor)
         if block is None
         else _where_the_anchor_is(config, block)
     )
-    return type(error)(
+    refusal = type(error)(
         tuple(
             replace(one, message=f"{one.message}{clause}") if one in named else one
             for one in error.violations
         )
     )
+    # The address as **data** on the refusal, for the surface that can turn it into a retry
+    # (RK1149). On the exception and not in a slot somewhere: it is one refusal's fact, it
+    # travels with the object that carries the refusal, and a reader that finds no attribute
+    # gets today's behaviour rather than a stale answer about an earlier call.
+    if free:
+        refusal.offered = free
+    return refusal
 
 
 def checked(config: Config, task: Task, *, schema: Schema | None = None) -> Task:
@@ -1879,8 +1886,14 @@ def checked(config: Config, task: Task, *, schema: Schema | None = None) -> Task
         raise naming_the_anchor(config, task.block, error) from None
 
 
-def _where_the_anchor_is(config: Config, block: str) -> str:
-    """The clause an unanchored refusal ends with: the command, and where an address derives."""
+def _where_the_anchor_is(config: Config, block: str) -> tuple[str, str]:
+    """The clause an unanchored refusal ends with, and the address it offers (RK1149).
+
+    A pair, because the sentence and the anchor are read by different surfaces: the clause is
+    what a human reads and the anchor is what a **retry** needs, and until this the second only
+    existed inside the first. `""` where none could be derived — the two cases this already
+    refused to guess in — so a caller has nothing to substitute and says so by having nothing.
+    """
     # Deferred for RK260's reason, and because git belongs on no successful write path.
     from roadkeep.history import (  # noqa: PLC0415
         HistoryUnavailable,
@@ -1897,7 +1910,7 @@ def _where_the_anchor_is(config: Config, block: str) -> str:
         return (
             f" — `{invocation()} anchors --block {block}` says which family this block's "
             f"prose lives under, and `anchors` alone names the free top-level"
-        )
+        ), ""
     family = spans[0]
     try:
         free = next_child(anchors(config), family)
@@ -1905,15 +1918,18 @@ def _where_the_anchor_is(config: Config, block: str) -> str:
         return (
             f" — Block {block}'s prose is under §{family}, and "
             f"`{invocation()} anchors --family {family}` says which address is free"
-        )
+        ), ""
     return (
         f" — Block {block}'s prose is under §{family}, where §{free} is free "
         f"(`{invocation()} anchors --block {block}` lists it)"
-    )
+    ), free
 
 
-def _where_a_top_level_is(config: Config, namespace: str, anchor: str = "") -> str:
+def _where_a_top_level_is(config: Config, namespace: str, anchor: str = "") -> tuple[str, str]:
     """The same clause for an anchor belonging to nobody: a free address, or the command.
+
+    A pair for :func:`_where_the_anchor_is`' reason (RK1149): the second half is the address a
+    retry substitutes, and `""` wherever this declines to name one.
 
     **Which** free address is decided by what the caller typed (RK363). A malformed anchor
     whose leading segment is a family that exists is a typo inside that family — `XVII-1`
@@ -1942,22 +1958,23 @@ def _where_a_top_level_is(config: Config, namespace: str, anchor: str = "") -> s
     try:
         taken = anchors(config)
     except (HistoryUnavailable, OSError):
-        return f" — `{invocation()} anchors` names the addresses this outline has taken"
+        return f" — `{invocation()} anchors` names the addresses this outline has taken", ""
     family = _family_typed(taken, namespace, anchor)
     if family is not None:
+        child = next_child(taken, family)
         return (
-            f" — §{family} is a family that exists, where §{next_child(taken, family)} is "
+            f" — §{family} is a family that exists, where §{child} is "
             f"free (`{invocation()} anchors --family {family}` lists it)"
-        )
+        ), child
     free = next_family(taken, namespace)
     if free is None:
         # None is the honest answer where the top-levels are not one numbering, and a guess
         # printed beside a rule reads exactly like a fact.
-        return f" — `{invocation()} anchors` names the addresses this outline has taken"
+        return f" — `{invocation()} anchors` names the addresses this outline has taken", ""
     return (
         f" — a section belonging to no task takes a top-level, and §{free} is free "
         f"(`{invocation()} anchors` lists what is taken)"
-    )
+    ), free
 
 
 #: What counts as the segment a malformed address opens with: the letters and digits before

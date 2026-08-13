@@ -30,6 +30,64 @@ EXIT_USAGE = 2
 REFUSALS = (RoundTripError, StaleFile, KeyError, ValueError, OSError)
 
 
+#: Where a refusal that computed an address keeps it. Two names and not one field: the first is
+#: a channel the kernel declares for the layer above it (`SchemaError.offered`), the second is a
+#: refusal class's own answer that its callers and its tests already read (`SectionExists.free`).
+#: Both are addresses this tool derived while explaining why it refused, which is the whole
+#: population RK1149 is about — and a third one is a row here rather than a second function.
+_OFFERS = ("offered", "free")
+
+
+def _retrying(error: Exception) -> str | None:
+    """The caller's own call with the address it was refused for, or ``None`` (RK1149).
+
+    `lint` findings have carried a door since RK15 — the command, pre-filled — and a write
+    refusal carried prose alone. Two of them had already *done the work*: the free anchor is
+    computed to explain the rule and then handed over as a sentence to read, extract and retype
+    into an otherwise identical call. Measured on a project on the outline scheme: seven tasks
+    filed, five refused first for exactly this, five retries carrying no new information.
+
+    Two conditions, and both are absences rather than judgements. No offered address — which is
+    every refusal about anything else, and the two anchor cases that decline to guess (RK360) — is
+    nothing to substitute. And **no recorded argv is a caller that made none**: the MCP server
+    dispatches a parsed namespace (RK24), so there is no call of theirs to hand back, and the
+    served `add` withholds `--ref` anyway — under an id scheme it is derived — which is why the
+    sentence there names `anchors`, a read that surface does serve (RK444, RK463). That the slot
+    is *empty* rather than stale is `serving`'s to guarantee, and it clears it where a call begins.
+
+    **The address the caller typed is replaced wherever it sits**, which is one rule for two
+    shapes: `--ref XXIII.7` on a task line and the bare positional `section add XXIII.7`. The
+    second refusal is the one RK1149 measured as worse than the first — the address is burnt, the
+    author had no way to know, and the retry is the same call one token different. Where nothing
+    matches, nothing was typed, and the flag is appended.
+
+    A `Door`, so the spelling is the one every other command's remedy uses (RK254) — this engine
+    as this machine can reach it, and never a console script no `pip install` put on PATH. Quoted,
+    this being the first door whose argv carries the caller's own prose: a symptom and a why with
+    spaces and apostrophes in them, and an unquoted line is one that runs as eight arguments.
+    """
+    from roadkeep.provenance import invocation_argv  # noqa: PLC0415 - RK260
+    from roadkeep.remedying import Door  # noqa: PLC0415 - RK260
+
+    offered = next((getattr(error, one, "") for one in _OFFERS if getattr(error, one, "")), "")
+    if not offered:
+        return None
+    argv = list(invocation_argv())
+    if not argv:
+        return None
+    burnt = getattr(error, "anchor", "")
+    if burnt and burnt in argv:
+        argv[argv.index(burnt)] = offered
+    elif "--ref" in argv:
+        at = argv.index("--ref")
+        argv[at + 1 : at + 2] = [offered]
+    else:
+        argv += ["--ref", offered]
+    return Door(
+        argv=tuple(argv), what="the same call, with the address it was refused for"
+    ).quoted
+
+
 def _refused(error: Exception) -> int:
     """One error path for every command that writes. The exit code is the contract.
 
@@ -46,6 +104,9 @@ def _refused(error: Exception) -> int:
         print("roadkeep: refused, nothing written:", file=sys.stderr)
         for violation in error.violations:
             print(f"  {violation}", file=sys.stderr)
+        retry = _retrying(error)
+        if retry is not None:
+            print(f"  retry    {retry}", file=sys.stderr)
         return EXIT_USAGE
     if isinstance(error, (RoundTripError, StaleFile)):
         # The file drifted before this command ran, so the gate says no: normalizing a
@@ -57,4 +118,10 @@ def _refused(error: Exception) -> int:
     # KeyError renders its message in quotes, which reads as a stray token in a report.
     message = error.args[0] if isinstance(error, KeyError) else error
     print(f"roadkeep: {message}", file=sys.stderr)
+    # The other refusal that computed an address (RK1149): a `section add` onto one a shipped
+    # entry's prose still cites, whose remedy sentence names the free child. Here and not only in
+    # the SchemaError branch, because that is where `SectionExists` arrives — a ValueError.
+    retry = _retrying(error)
+    if retry is not None:
+        print(f"  retry    {retry}", file=sys.stderr)
     return EXIT_USAGE

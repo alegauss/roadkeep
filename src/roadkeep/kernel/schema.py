@@ -632,6 +632,12 @@ class SchemaError(ValueError):
 
     def __init__(self, violations: tuple[Violation, ...]) -> None:
         self.violations = tuple(violations)
+        #: An address a refusal above this layer computed while explaining itself, for the
+        #: surface that can offer a retry (RK1149). Empty here and always: the kernel derives
+        #: no anchor and knows no outline — what it declares is the *channel*, so a reader is
+        #: a field access rather than a `getattr` guess, and a violation stays a rule broken
+        #: rather than growing a field only one code would ever fill.
+        self.offered = ""
         super().__init__("; ".join(str(v) for v in self.violations))
 
 

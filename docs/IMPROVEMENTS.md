@@ -77,33 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1149 The refusal that knows the answer (RK1145)
-
-`lint` findings carry a `remedy.doors` array: the tool to call, the arguments, and
-whether it writes. `add` refuses with prose alone — and its two most common refusals
-have *already done the work*:
-
-    ref: every task points at its rationale section — Block L's prose is under §XII,
-    where §XII.17 is free (`anchors` with block: L lists it)
-
-    §XXIII.7 was declared before (e210585) and its section is gone … §XXIII.10 is the
-    next one nothing ever used
-
-Both know the answer. Both hand it over as a sentence the caller must read, extract and
-retype into an otherwise identical call. Measured in one session against Shio, a project
-on the outline scheme: seven tasks filed, five of them refused first for exactly this,
-five retries carrying no new information. The second refusal is worse than the first,
-because the anchor it forbids is one `anchors` would have offered and the caller had no
-way to know it was burnt.
-
-The fix is the mechanism this tool already has, not a new one: attach a door to these
-refusals the way `lint` attaches one, complete and pre-filled, so the retry is a call
-rather than a transcription.
-
-Auto-assigning instead was considered and is the wrong half. A ref is an address other
-lines cite, and choosing it silently is how a task ends up pointing somewhere its author
-never read — the refusal is right, its ergonomics are not.
-
 ## Block C — Query
 
 ## Block D — The gate
@@ -137,5 +110,31 @@ Cheap, and it is the first thing a reader needs on a machine where two copies ar
 installed.
 
 ## Block F — The plugin
+
+### §RK1152 A refusal a caller cannot act on names the wrong line
+
+`ship DD34` was refused three times in a row, each time with a message that opened by
+naming the `--why` passed to the command:
+
+```
+why: 164 characters, limit is 163 ... delete 1 character - about 1 word
+  ... - on DD35's line (docs/ROADMAP.md:15), whose dep annotation this write
+  re-derives, and not on the text passed to this command
+```
+
+The clause that matters is at the end, after the remedy. A caller reads "delete 1
+character" and edits the string it just passed, which cannot help: the overflow is on a
+*dependent's* line, because shipping re-derives `(deps: DD34)` into `(deps: DD34 ✅)` and
+that tick is two characters wider. Unblocking one ship meant amending DD35, then DD36,
+then DD37 — each discovered only by re-running `ship` and reading the next refusal.
+
+Two things would fix it independently. The refusal could lead with whose line overflowed
+and what to run (`amend DD35 --why ...`), rather than leading with a remedy that applies
+to a different string. And it could report **every** line the write would overflow, not
+the first, so one edit round closes it instead of three.
+
+The check itself is right: a line that will not fit after a derived write should refuse
+before writing rather than truncate. What is wrong is that the message is addressed to
+the wrong text.
 
 ## Block G — The editor surface (the backlog where the file is open)

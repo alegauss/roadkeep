@@ -117,17 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 145 | 1 |
+| B — Authoring (insert, never hand-edit) | 0 | 146 | 1 |
 | C — Query (consult without reading the file) | 0 | 93 | 1 |
 | D — The gate | 0 | 162 | 0 |
 | E — Adoption | 1 | 85 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 104 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 104 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 2 | 641 | 6 |
+| **Total** | 2 | 642 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1149** (deps: —) **A refusal that already computed the free anchor still makes the caller retype it** — add names the next free ref and the next unused one when it refuses, but carries no door, so every task under an outline scheme costs two calls instead of one. → §RK1149
+- 📋 **RK1150** (deps: —) **An older installed roadkeep reports a newer config's key as a typo, so the fix reads as deleting it** — unknown key names the allowed set and never the running version, so a plugin one release behind its project looks like a roadkeep.toml somebody got wrong. → §RK1150
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

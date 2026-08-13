@@ -80,6 +80,7 @@ over the whole table rather than a defect discovered one row at a time.
 
 from __future__ import annotations
 
+import shlex
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from functools import lru_cache
@@ -190,6 +191,25 @@ class Door:
         from .provenance import invocation
 
         return " ".join((invocation(), *self.argv))
+
+    @property
+    def quoted(self) -> str:
+        """:attr:`command`, spelled for the shell that will run it verbatim (RK1149).
+
+        Every door before this one carried argv of single tokens — an id, a code, a flag — or a
+        `BLANK` the author fills, so joining on spaces was the whole of it. A retry offered on a
+        refusal carries the caller's **prose**: a symptom and a why, with spaces and apostrophes
+        in them, and a command printed unquoted is one that runs as eight arguments or not at all.
+
+        Beside :attr:`command` rather than replacing it: what a table prints and what a caller
+        pastes are two readings, and quoting a `…` placeholder would spell it `'…'`, which reads
+        as a value somebody chose.
+        """
+        if self.foreign:
+            return shlex.join(self.argv)
+        from .provenance import invocation
+
+        return f"{invocation()} {shlex.join(self.argv)}"
 
     @property
     def complete(self) -> bool:

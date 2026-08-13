@@ -37,6 +37,7 @@ from __future__ import annotations
 import shutil
 import sys
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -74,6 +75,14 @@ _HOME = Path(__file__).resolve().parent
 #: *a refusal decided outside this package*. A surface that cannot tell those apart would
 #: suppress a note on a refusal it never learned the origin of.
 _WITNESSED: tuple[str, ...] | None = None
+
+#: The arguments this process was invoked with, as the surface that parsed them read them, or
+#: `()` where nothing set it — which is every in-process caller: the MCP server dispatches a
+#: parsed namespace and never an argv (RK24), and a test calls `main([...])`. Set once per
+#: process by :func:`~roadkeep.cli.main`, so a retry offered on a refusal is the *caller's own*
+#: call and not this interpreter's `sys.argv`, which under a server or a test harness names
+#: somebody else's program entirely (RK1149).
+_INVOKED: tuple[str, ...] = ()
 
 
 def _codecs() -> tuple[tuple[str, str], ...]:
@@ -264,6 +273,29 @@ def witness(error: BaseException | None) -> None:
 def witnessed() -> tuple[str, ...] | None:
     """What :func:`witness` last recorded — `None` when nothing was, which is not `()` (RK267)."""
     return _WITNESSED
+
+
+def invoked(argv: Sequence[str]) -> None:
+    """Record the arguments this run was given, for a refusal that can offer the retry (RK1149).
+
+    Here rather than read from `sys.argv` where it is wanted, because `sys.argv` is only the
+    caller's own call at *one* of this tool's surfaces: over MCP it names the server's process
+    and under pytest it names pytest. A refusal spelling a retry off that would print a command
+    nobody ran — the failure mode RK254 removed from remedies, arriving through the argument
+    rather than through the engine.
+
+    One slot for :func:`witness`'s reason and under its rules: written by the surface that owns
+    the invocation, read only where a refusal is being rendered, and never a public fact about
+    the process. It is set **before** dispatch, so nothing can read an earlier call's argv.
+    """
+    global _INVOKED
+    _INVOKED = tuple(argv)
+
+
+def invocation_argv() -> tuple[str, ...]:
+    """The argv :func:`invoked` recorded, or `()` where this surface has none."""
+    return _INVOKED
+
 
 
 #: The console script `pyproject.toml` declares, which is what a message may name only where a

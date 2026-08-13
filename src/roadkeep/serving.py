@@ -1531,6 +1531,12 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     # Before anything that could refuse, so the note can never be composed from an earlier call's
     # refusal (RK267): the slot is one call's out-parameter and this is where the call begins.
     provenance.witness(None)
+    # And the argv beside it, for the same reason and under the same rule (RK1149): this surface
+    # dispatches a parsed namespace and has no argv at all, so anything left in that slot is the
+    # last *terminal* call this process served — and a retry spelled from it would offer a caller
+    # here a command about somebody else's invocation. One call, one out-parameter, cleared where
+    # the call begins.
+    provenance.invoked(())
     try:
         config = Config.discover(directory)
     except ConfigError as error:
