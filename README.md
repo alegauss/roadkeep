@@ -118,12 +118,16 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 143 | 1 |
-| C — Query (consult without reading the file) | 0 | 91 | 1 |
+| C — Query (consult without reading the file) | 1 | 91 | 1 |
 | D — The gate | 0 | 150 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 103 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 624 | 6 |
+| **Total** | 1 | 624 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1133** (deps: —) **amend --json carries which fields changed and never what they were, where status and restate both answer** — The record holds the whole task as it was, so a client rendering an amend cannot show the sentence it replaced — the field the verb exists to correct. → §RK1133
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

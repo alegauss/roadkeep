@@ -28,6 +28,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1133** (deps: —) **amend --json carries which fields changed and never what they were, where status and restate both answer** — The record holds the whole task as it was, so a client rendering an amend cannot show the sentence it replaced — the field the verb exists to correct. → §RK1133
+
 ## Block D — The gate
 
 ## Block E — Adoption

@@ -79,6 +79,37 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1133 The reading an amend does not send
+
+RK1131's table put the four records' fields beside the keys they become, and the
+asymmetry is in the `before` row:
+
+```
+StatusChange.before  → "from"     beside "to"
+Restatement.before   → "was"      beside "now"
+Amendment.before     → None       "the old values are the diff's"
+```
+
+So a client reading `status --json` can render 📋 → 🛠, one reading `restate --json` can
+show the claim that was replaced beside the one that replaced it, and one reading `amend
+--json` gets `changed: ["why"]` and the new line — with no way to say what the sentence
+used to be.
+
+The record carries it. `Amendment.before` is the whole `Task` as it was, which is how
+the verb computes `changed` in the first place; the payload is where it stops.
+
+Why it matters more than symmetry. RK1011-13 put the backlog in an editor, and that
+surface renders these payloads — so "what did this amend do" is answerable there for a
+marker and a symptom and not for a `why`, which is the field `amend` exists to correct
+and the most edited one in the format. The reason written into the table is honest about
+the mechanism (a diff does hold the old text) and wrong about the reader: a client is
+not standing in a git checkout, and RK1005's whole argument is that a payload is read by
+something outside this process.
+
+What needs deciding rather than copying: `restate` prints both readings *because the act
+is worth recording*, while an amend is ordinary — so the key belongs in the payload
+without joining the printed report, which already shows the rendered line.
+
 ## Block D — The gate
 
 ## Block E — Adoption
