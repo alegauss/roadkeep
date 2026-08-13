@@ -58,7 +58,7 @@ from enum import StrEnum
 from pathlib import Path
 
 from roadkeep.backlog import Backlog
-from roadkeep.config import ROLES, Config
+from roadkeep.config import PROSE_ROLES, ROLES, Config
 from roadkeep.ids import CARRIERS
 from roadkeep.kernel.document import Entry
 from roadkeep.locking import exclusive
@@ -732,16 +732,26 @@ def sharing(
 
     Only the files this id already explains (`accounted`): one it does not is reported whole by
     :attr:`Scope.loose`, and naming the ids inside it as well would be one fact under two
-    headings. :data:`~roadkeep.ids.CARRIERS` and not every role, because a line is what moves —
-    a prose file's ids live in headings, and one this task did not write is loose already.
+    headings.
+
+    Every governed file that can hold a record, in the unit that file keeps it in (RK1125): a
+    carrier holds **lines** and :func:`~roadkeep.history.ids_since` reads them, a rationale file
+    holds **sections** and :func:`~roadkeep.history.designs_since` reads those. Restricting this
+    to the carriers left the prose file a departure wrote unreadable for the same reason the
+    roadmap was — one `section amend` puts this id in its diff, and everything else inside it
+    then went unnamed.
     """
     # Deferred for RK260's reason, and because git belongs off every path that did not ask.
-    from roadkeep.history import ids_since, resolves  # noqa: PLC0415
+    from roadkeep.history import designs_since, ids_since, resolves  # noqa: PLC0415
 
+    readers = {
+        **dict.fromkeys(CARRIERS, ids_since),
+        **dict.fromkeys(PROSE_ROLES, designs_since),
+    }
     explained = frozenset(accounted)
     wanted = [
         role
-        for role in CARRIERS
+        for role in readers
         if config.has(role) and config.relative(config.path(role)) in explained
     ]
     if not wanted:
@@ -749,15 +759,13 @@ def sharing(
         # holding only this task's work, and the reason the loop is not entered to find out.
         return ()
     # Once, and passed down (RK1124): whether git knows `HEAD` is a fact about the repository,
-    # and a `rev-parse` per role was 20.6ms of an answer already in hand.
+    # and a `rev-parse` per role was 40.6ms of an answer already in hand.
     known = resolves(config, "HEAD")
     out: list[tuple[str, tuple[str, ...]]] = []
     for role in wanted:
-        others = tuple(
-            sorted(ids_since(config, "HEAD", role, resolved=known) - {task_id})
-        )
-        if others:
-            out.append((config.relative(config.path(role)), others))
+        moved = readers[role](config, "HEAD", role, resolved=known) - {task_id}
+        if moved:
+            out.append((config.relative(config.path(role)), tuple(sorted(moved))))
     return tuple(out)
 
 

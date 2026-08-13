@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1125** (deps: —) **a prose file this task wrote hides another session new section, the reading being lines and a rationale holding none** — One section amend puts this id in that file's diff, so it is accounted and a §RK-B added beside it rides into the staging with nothing said. → §RK1125
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

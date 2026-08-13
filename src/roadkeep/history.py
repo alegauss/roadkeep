@@ -31,7 +31,7 @@ from pathlib import Path
 from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.kernel.document import Document
 from roadkeep.kernel.schema import REF_SEPARATOR, Schema, split_ref
-from roadkeep.sections import find, owners
+from roadkeep.sections import Section, anchored, find, owners
 
 _UNIT = "\x1f"  # between fields
 _RECORD = "\x1e"  # between commits — a body may hold newlines, so lines will not do
@@ -619,6 +619,49 @@ def ids_since(
     except (HistoryUnavailable, OSError, ValueError):
         return frozenset()
     return frozenset(before.by_id()) ^ frozenset(now.by_id())
+
+
+def designs_since(
+    config: Config, rev: str, role: str, *, resolved: bool | None = None
+) -> frozenset[str]:
+    """Which designs this prose role's file **gained or lost a section for** since ``rev``.
+
+    :func:`ids_since`'s unit one file over (RK1125). A rationale file holds no task lines, so
+    that reading answers nothing about it — and the file a departure *wrote* is exactly where
+    the silence hurt: one `section amend` earlier in the session puts this id in the diff, the
+    file is then accounted for, and another session's new `### §RK-B` rides into the staging
+    with nothing said. That is RK1117's defect and RK1120's fix, in the other unit.
+
+    Labelled by the **id the heading names** where it names one, and by the anchor otherwise.
+    Under the id scheme those are the same string; under an outline the anchor is `XVI.12` and
+    the id lives in the title, so a label read off the anchor alone would report an address the
+    reader then has to resolve. :meth:`~roadkeep.sections.Section.names` is that reading and it
+    is the title's alone — a section quoting another id is discussing it, not being it.
+
+    A consequence worth stating: a section this project *moved* keeps its id, so it is not
+    reported. The design did not arrive or leave; its address changed, which is what `section
+    move` is for and is nobody else's work landing in the commit.
+    """
+    if role not in PROSE_ROLES or not config.has(role):
+        return frozenset()
+    if not (resolves(config, rev) if resolved is None else resolved):
+        return frozenset()
+    schema = config.schema_for(role)
+    try:
+        before = anchored(Document.parse(content_at(config, rev, role), schema=schema))
+        now = anchored(config.document(role))
+    except (HistoryUnavailable, OSError, ValueError):
+        return frozenset()
+    pattern = re.compile(rf"\b{config.schema.id_fragment}\b")
+    return _labels(before, pattern) ^ _labels(now, pattern)
+
+
+def _labels(sections: Sequence[Section], pattern: re.Pattern[str]) -> frozenset[str]:
+    """Each section as the id its heading names, or as its anchor where it names none."""
+    out: set[str] = set()
+    for section in sections:
+        out.update(section.names(pattern) or (section.anchor,))
+    return frozenset(out)
 
 
 def costs_of(config: Config, shas: tuple[str, ...]) -> dict[str, Cost]:

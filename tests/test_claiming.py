@@ -28,6 +28,7 @@ from pathlib import Path
 import pytest
 
 from roadkeep import claiming, storing
+from roadkeep.sections import add as add_section
 from roadkeep.attesting import attest
 from roadkeep.briefing import NothingToBrief, brief
 from roadkeep.authoring import add, set_status
@@ -1811,3 +1812,107 @@ def test_a_caller_that_already_resolved_is_not_asked_again(tmp_path, monkeypatch
     )
     assert history.ids_since(config, "HEAD", "roadmap", resolved=False) == frozenset()
     assert history.ids_since(config, "HEAD", "roadmap", resolved=True) == frozenset({"RK9"})
+
+
+# -- the same reading in the unit a prose file keeps (RK1125) -------------------
+
+
+#: Committed with the block heading and no section, because what puts this id in the file's
+#: diff is a **heading being written** — an added `### §RK2 …` line names it, where an amend of
+#: the paragraph under it does not. That is the state a departure meets when the design was
+#: filed in the same working tree as the work.
+PROSE = "# Improvements\n\n## Block A — The model\n"
+
+
+def _with_prose(tmp_path: Path, roadmap: str, prose: str = PROSE) -> Config:
+    """The same fixture with a rationale file, which is the file this task is about."""
+    from conftest import git, git_init
+
+    git_init(tmp_path)
+    project(tmp_path, roadmap)
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "IMPROVEMENTS.md").write_text(prose, encoding="utf-8")
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "chore: bootstrap")
+    return Config.discover(tmp_path)
+
+
+def _designed(config: Config, task_id: str, title: str) -> None:
+    """This task's own section, written into the working tree — what accounts for the file."""
+    document, _ = add_section(config, "improvements", task_id, title, "The reasoning.")
+    document.save()
+
+
+def test_a_section_another_session_added_is_named_inside_the_prose_file(tmp_path):
+    """RK1125. A rationale file holds no task lines, so `ids_since` answers nothing about it —
+    and the file a departure wrote is exactly where that hurt: this id's own heading puts it in
+    the diff, the file is then accounted for, and a `§RK9` beside it rode into the staging."""
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _with_prose(tmp_path, BLOCKS + line("RK2") + line("RK9"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    _designed(config, "RK2", "A first design")
+    with (tmp_path / "IMPROVEMENTS.md").open("a", encoding="utf-8", newline="") as handle:
+        handle.write("\n### §RK9 Somebody else's design\n\nTheir paragraph.\n")
+    scope = claiming.departing(config, "RK2", config.document("roadmap").entries)
+    assert ("IMPROVEMENTS.md", ("RK9",)) in scope.shared
+    assert "IMPROVEMENTS.md" not in scope.loose  # accounted, which is the whole difficulty
+
+
+def test_this_task_s_own_section_is_not_somebody_else_s(tmp_path):
+    # The exclusion, in the unit this reading uses: writing the design of the task being
+    # shipped is the ordinary shape of one, and reporting it would make every departure noisy.
+    from roadkeep.history import git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _with_prose(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    _designed(config, "RK2", "A first design")
+    scope = claiming.departing(config, "RK2", config.document("roadmap").entries)
+    assert scope.shared == ()
+
+
+def test_a_design_labelled_by_the_id_its_heading_names(tmp_path):
+    """Under an outline the anchor is `XVI.12` and the id lives in the title, so a label read
+    off the anchor alone would report an address the reader then has to resolve."""
+    from roadkeep.history import designs_since, git_available
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    outline = (
+        "# Improvements\n\n## I. House constraints\n\nWhat this file is for.\n\n"
+        "### I.1 A first design (RK2)\n\nThe reasoning.\n"
+    )
+    config = _with_prose(tmp_path, BLOCKS + line("RK2"), prose=outline)
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\nref_scheme = "outline"\n[files]\nroadmap = "ROADMAP.md"\n'
+        'changelog = "CHANGELOG.md"\nimprovements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    config = Config.discover(tmp_path)
+    with (tmp_path / "IMPROVEMENTS.md").open("a", encoding="utf-8", newline="") as handle:
+        handle.write("\n### I.2 A second design (RK9)\n\nTheirs.\n")
+    moved = designs_since(config, "HEAD", "improvements")
+    # The id and never the address: `RK9` is what a reader recognises as somebody else's work.
+    assert "RK9" in moved and "I.2" not in moved
+
+
+def test_a_carrier_is_not_read_as_prose_and_the_other_way_round(tmp_path):
+    # One reader per unit, chosen by the role: a roadmap has no sections to compare and a
+    # rationale file has no lines, so each answers nothing about the other's file.
+    from roadkeep.history import designs_since, git_available, ids_since
+
+    if not git_available():
+        pytest.skip("git is not on PATH")
+    config = _with_prose(tmp_path, BLOCKS + line("RK2"))
+    assert designs_since(config, "HEAD", "roadmap") == frozenset()
+    assert ids_since(config, "HEAD", "improvements") == frozenset()

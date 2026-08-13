@@ -77,36 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1125 The section nobody names
-
-RK1120 reads **lines**: `ids_since` parses two revisions of a carrier and answers which
-ids gained or lost one. A prose file holds no lines, so it is covered by the other half
-— a rationale file this task did not write is `loose`, named whole.
-
-The gap is the file this task *did* write. One `section amend §RK-A` earlier in the
-session puts this id in `docs/IMPROVEMENTS.md`'s diff, so the file is accounted; another
-session's new `### §RK-B` inside it then rides into the staging with nothing said, which
-is exactly the state RK1117 was filed about and RK1120 closed for the roadmap:
-
-```
-$ roadkeep section amend RK-A --body-file …     # this id is now in the file's diff
-$ roadkeep ship RK-A --why "…"
-  stage    git add -- … docs/IMPROVEMENTS.md
-                                               # §RK-B is in there, and nothing names it
-```
-
-`sections.anchored` is the reader that makes it decidable, and it is already used
-against a revision one command over: `lint --since` parses the file as it was so a
-removed section is attributed to the section that held it (RK36). So the question is the
-same comparison with a different unit — anchors instead of ids — over `PROSE_ROLES`
-instead of `CARRIERS`.
-
-What is worth deciding rather than copying is the *unit reported*. An anchor is not an
-id under an outline scheme, and the ids a `§XVI.12 A design (SH123)` heading names live
-in its title — which `Section.names` already reads, and which is what makes the sentence
-say "somebody else's design" rather than an address the reader has to resolve
-themselves.
-
 ## Block C — Query
 
 ## Block D — The gate

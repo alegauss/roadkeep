@@ -194,6 +194,7 @@
 - ✅ **RK1120** **a roadmap carrying two sessions lines is one accounted file, so a departure cannot separate them** — A departure names the other ids whose line arrived in or left a governed file it stages, read as two parses so an annotation refresh moves nobody.
 - ✅ **RK1121** **the block-empty hint names a door six ships out of nine, in a project that has never dropped a heading** — A project declares once with [headings] permanent that its headings outlive the work, and the offer to withdraw one is then absent rather than hedged.
 - ✅ **RK1123** **nothing binds the fields of Scope to the two payloads that carry them, so a field added reaches one reader** — A rename table per payload is asserted against the fields of Scope in both directions, so a sixth field cannot reach one reader only.
+- ✅ **RK1125** **a prose file this task wrote hides another session new section, the reading being lines and a rationale holding none** — A rationale file is compared by the sections it holds, labelled by the id each heading names, so another session's design is named inside the file being staged.
 
 ## Block C — Query
 
