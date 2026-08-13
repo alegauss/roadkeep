@@ -119,11 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 145 | 1 |
 | C — Query (consult without reading the file) | 0 | 93 | 1 |
-| D — The gate | 0 | 158 | 0 |
+| D — The gate | 1 | 158 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 104 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 637 | 6 |
+| **Total** | 1 | 637 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1146** (deps: —) **a backlog written before the tool has no live evidence left, so two tests about disagreement only skip** — Shio conformed, which is the tool working, and the state those tests exist for is a file rather than a line — so freezing it is a decision RK1145 deliberately left. → §RK1146
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

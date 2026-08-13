@@ -81,6 +81,36 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK1146 The state a conforming corpus cannot show
+
+RK1145 froze the two dep kinds a re-pin retired and stopped there, deliberately: those
+two are RK28's claim, and the scope was named in the ledger. Two skips it did not reach
+are the same argument about a different shape.
+
+```
+shio@9b91a136bc conforms: there is no adoption cost left to estimate
+shio@9b91a136bc conforms: it has no line left to disagree with
+```
+
+Both read a **non-conforming** backlog: one measures what adoption would cost a file the
+tool has never written, the other that such a file still round-trips while its lines
+fail the schema. Shio conformed, which is the tool working — and the state those tests
+exist for now has no live evidence anywhere. `estimate.non_canonical == 0` and
+`document.non_canonical == ()` still assert against the conforming file, so what is lost
+is precisely the half about disagreement.
+
+The shape is bigger than a line, and that is the decision. A block dep is one bullet; "a
+backlog written before the tool" is a *file* — the wrap, the undeclared marker, the
+`why` past the limit, the bullet that is prose. An excerpt must carry enough of those to
+be the state, and every line of it is somebody else's text here — the cost RK1145 paid
+twice and should not pay carelessly.
+
+The alternative worth weighing: `b9302e8e` is still a resolvable revision, so a **second
+pin** — one corpus read at two revisions, the older one named as the non-conforming
+baseline — keeps the bytes where they are and costs a directory of nothing. What it
+costs instead is a pin nobody re-measures, which is the arrangement RK105 exists to
+prevent.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
