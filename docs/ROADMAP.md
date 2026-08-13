@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1116** (deps: —) **the launcher the installed skill names as the entry point forwards only guard and mcp, so every verb exits 2** — With no MCP server connected, the one path the session is told to use answers a usage line, so an agent with a working engine on disk guesses at a checkout path instead. → §RK1116
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Non-goals

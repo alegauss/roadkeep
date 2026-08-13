@@ -627,6 +627,7 @@
 - ✅ **RK1113** **`install --check` reports drift on a `--committed` project and names the plain `install`, which downgrades the wiring** — install reads the committed launcher off the project's own declarations, so a --committed tree reports its real drift and the plain install keeps its wiring.
 - ✅ **RK1114** **`pick` offers a partially shipped line that `--claim` then refuses, the partial ledger entry reading as a ship** — A ledger entry naming a half is the one pair no marker write refuses, so the line pick offers is the line a claim takes.
 - ✅ **RK1115** **defer refuses any line whose why already fills its budget, because the wrapped reason is charged to the same limit** — The why limit charges the author's sentence and not the prefix a pause derives, so a line written to its budget can be set aside.
+- ✅ **RK1116** **the launcher the installed skill names as the entry point forwards only guard and mcp, so every verb exits 2** — Anything that is not guard or mcp is forwarded to the engine the launcher resolved, so the entry point the installed skill names runs every verb.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

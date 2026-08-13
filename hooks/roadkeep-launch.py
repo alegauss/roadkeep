@@ -49,6 +49,25 @@ Three rules keep it from ever making things worse:
 The engine invoked is ``scripts/roadkeep.py`` — roadkeep's own launcher, which puts its
 ``src`` on ``sys.path`` and calls ``roadkeep.cli.main``. So the arguments, exit codes and
 refusals are that engine's own; this file only decides *which copy answers*.
+
+Anything that is **not** one of those two modes is forwarded to that engine (RK1116). Both
+modes are internal — the harness calls ``guard`` from a hook and ``mcp`` from ``.mcp.json`` —
+so a file that answered only them resolved an engine for the two callers that are not the
+agent and refused the one that was handed its name: the installed skill states ``python
+".claude/hooks/roadkeep-launch.py"`` as the project's entry point and then describes commands,
+and every one of them exited 2 on a usage line naming ``guard`` and ``mcp``. Where the MCP
+server connected, the tools cover it; where it did not, the session had a working engine on
+disk, a documented way to reach it, and no verb that arrived — so the fallback was guessing at
+a checkout path, which is the guess this file exists to remove.
+
+A forwarded verb keeps the resolution order and **neither of the first two rules**, because
+both are about a caller that did not ask:
+
+  * the plugin is not deferred to — a command somebody typed is answered whether or not some
+    other surface could also have answered it, and silence is not an answer to ``pick``;
+  * a missing engine is a **refusal** and not a quiet 0 — "unenforced beats broken" is the
+    right trade for a hook that fires on every turn and the wrong one for a command whose
+    exit code is read as its result.
 """
 
 from __future__ import annotations
@@ -165,14 +184,35 @@ def _run(mode: str, argv: list[str], payload: bytes | None) -> int:
     ).returncode
 
 
+def _forward(argv: list[str]) -> int:
+    """Every other verb, run against the engine this file resolves (RK1116).
+
+    No payload is read here, unlike ``guard``: a stream is readable once and the child is the
+    one that wants it, so stdin is inherited and `add --why -` reaches the engine's own reader.
+    """
+    engine = _resolve()
+    if engine is None:
+        # Named rather than silent, and it names the two things a caller can do: this is the
+        # one path here whose exit code somebody reads as an answer. ASCII, like the line it
+        # replaces: this file writes to whatever console the environment gave it, and a
+        # refusal that raises on encoding is a refusal that arrives as a traceback.
+        sys.stderr.write(
+            "roadkeep-launch.py: no engine found: set ROADKEEP_HOME to a roadkeep "
+            "checkout, or put one beside this repository as ../roadkeep\n"
+        )
+        return 2
+    return subprocess.run([sys.executable, str(engine), *argv], check=False).returncode
+
+
 def main(argv: list[str]) -> int:
     if argv[:1] == ["guard"]:
         # The payload is read here and handed on, because a stream is readable once.
         return _run("guard", argv[1:], sys.stdin.buffer.read())
     if argv[:1] == ["mcp"]:
         return _run("mcp", argv[1:], None)
-    sys.stderr.write("usage: roadkeep-launch.py {guard|mcp}\n")
-    return 2
+    # Including no arguments at all, which the engine answers with its own usage and its own
+    # list of verbs — a better answer than a line naming the two modes nobody types.
+    return _forward(argv)
 
 
 if __name__ == "__main__":

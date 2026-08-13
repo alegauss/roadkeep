@@ -121,13 +121,9 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 88 | 1 |
 | D — The gate | 0 | 149 | 0 |
 | E — Adoption | 0 | 84 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 101 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 102 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 607 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1116** (deps: —) **the launcher the installed skill names as the entry point forwards only guard and mcp, so every verb exits 2** — With no MCP server connected, the one path the session is told to use answers a usage line, so an agent with a working engine on disk guesses at a checkout path instead. → §RK1116
+| **Total** | 0 | 608 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -227,11 +227,73 @@ def test_it_never_clones():
     assert imported == {"__future__", "json", "os", "subprocess", "sys", "pathlib"}
 
 
-def test_an_unknown_mode_is_a_usage_error(tmp_path):
-    done = subprocess.run(
-        [sys.executable, str(BRIDGE), "lint"], capture_output=True, check=False
+# -- the entry point the skill names is the one that runs (RK1116) -------------
+
+
+def bridged(argv: list[str], home: Path | None, cwd: Path) -> subprocess.CompletedProcess:
+    """The shipped file, run as the agent runs it: an engine named, and a project to answer in."""
+    env = {**os.environ, "ROADKEEP_HOME": "" if home is None else str(home)}
+    env.pop("CLAUDE_PROJECT_DIR", None)
+    if home is None:
+        # Nothing to find at all: no override, and no sibling of a directory with no siblings.
+        env["ROADKEEP_HOME"] = str(cwd / "absent")
+    return subprocess.run(
+        [sys.executable, str(BRIDGE), *argv],
+        capture_output=True,
+        check=False,
+        cwd=str(cwd),
+        env=env,
     )
-    assert done.returncode == 2 and b"guard|mcp" in done.stderr
+
+
+def test_a_verb_reaches_the_engine_this_file_resolved(tmp_path):
+    """RK1116, measured on dockerdesk: the installed skill states this file as the project's
+    entry point and then describes `add`, `pick`, `brief`, `lint`, `ship` — and every one of
+    them exited 2 on a usage line naming the two modes only the harness calls."""
+    from roadkeep.adopting import init
+
+    init(tmp_path)
+    done = bridged(["stats"], ROOT, tmp_path)
+    assert done.returncode == 0, done.stderr
+    assert b"total" in done.stdout
+
+
+def test_the_engine_owns_the_exit_code_and_the_refusal(tmp_path):
+    # This file only decides which copy answers, which is the rule the two modes already
+    # keep: a verb the engine refuses is refused in the engine's own words.
+    from roadkeep.adopting import init
+
+    init(tmp_path)
+    done = bridged(["nonesuch"], ROOT, tmp_path)
+    assert done.returncode == 2 and b"guard|mcp" not in done.stderr
+
+
+def test_a_missing_engine_is_a_refusal_and_not_a_quiet_zero(tmp_path):
+    # The one rule a forwarded verb does not keep. "Unenforced beats broken" is right for a
+    # hook that fires every turn and wrong here, where the exit code is read as the result.
+    done = bridged(["stats"], None, tmp_path)
+    assert done.returncode == 2 and b"no engine found" in done.stderr
+
+
+def test_a_verb_is_answered_even_where_the_plugin_is_wired(tmp_path):
+    # The other rule a forwarded verb does not keep. Standing down exists so a hook and a
+    # server do not double-fire; a command somebody typed has no second copy to double, and
+    # silence would be this file answering `pick` with nothing.
+    from roadkeep.adopting import init
+
+    init(tmp_path)
+    home = tmp_path / "config"
+    registry(home, tmp_path)
+    env = {**os.environ, "ROADKEEP_HOME": str(ROOT), "CLAUDE_CONFIG_DIR": str(home)}
+    env["CLAUDE_PROJECT_DIR"] = str(tmp_path)
+    done = subprocess.run(
+        [sys.executable, str(BRIDGE), "stats"],
+        capture_output=True,
+        check=False,
+        cwd=str(tmp_path),
+        env=env,
+    )
+    assert done.returncode == 0 and b"total" in done.stdout
 
 
 # -- what `install --committed` writes ----------------------------------------

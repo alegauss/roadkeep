@@ -85,33 +85,4 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1116 The named entry point that runs no command
-
-`install --committed` writes `.claude/hooks/roadkeep-launch.py` and the skill beside it,
-and that skill states the entry point in its first paragraph: `python
-".claude/hooks/roadkeep-launch.py"` is this project's entry point, the package is not
-installed and `roadkeep` is on no PATH. Everything the skill then describes is a command
-— `add`, `pick`, `brief`, `lint`, `ship`.
-
-The launcher dispatches on `guard` and `mcp` alone. Anything else writes a usage line
-and exits 2, and that line names those two modes rather than a path that would answer.
-
-Measured on the dockerdesk repository, adopted `--committed`, nothing else changed:
-
-    $ python .claude/hooks/roadkeep-launch.py pick
-    usage: roadkeep-launch.py {guard|mcp}
-    $ echo $?
-    2
-
-Both modes are internal: the harness calls `guard` from a hook and `mcp` from
-`.mcp.json`. So the file resolves an engine for the two callers that are not the agent,
-and refuses the one that was handed its name. Where the server connected the tools cover
-it; where it did not, the session has a working engine on disk, a documented way to
-reach it, and no verb that arrives — so the fallback is guessing at a checkout path,
-which is the guess the committed launcher exists to remove.
-
-The resolution order is the valuable half of this file and it is already right. A mode
-that forwards its remaining arguments to the engine it already found makes the entry
-point the skill names the entry point that runs.
-
 ## Block G — The editor surface (the backlog where the file is open)
