@@ -112,6 +112,35 @@ The cost: a second parse per estimate, and a report that mentions a configuratio
 caller did not ask about — the price of a number otherwise read as a verdict on a
 backlog.
 
+### §RK1148 A skip that makes a historical claim can be held to it
+
+A skip reason is prose an author writes once, and three of the five RK1144 catalogued
+make a **historical** claim — the shape *used to* be here. Measured against the
+revisions those pins replaced, three of them are false:
+
+```
+shio: no adoption cost left to estimate    → 0 codes at b9302e8e too
+shio: no line left to disagree with        → 0 offenders at b9302e8e too
+turing: no fourth level with a letter any more → 0 lettered at f08304fcb1 too
+```
+
+Two are true: Shio's block dep was there at `b9302e8e` (RK1145 froze it) and T354
+pointed at a doubled anchor before it shipped. So the suite says *a shape left this
+tree* on three states that had already left, or never existed under that reading — and
+RK1146 was filed, worked and shipped on the strength of one of them.
+
+Both retired revisions still resolve. That makes the historical clause **checkable**: a
+skip claiming a shape is gone can assert it was there at the pin before, and a false
+claim goes red where today it reads as coverage.
+
+What that costs is a second revision per corpus, and RK105's objection applies with its
+sign reversed — a baseline is a pin nobody re-measures *on purpose*, because the state
+it holds is what the claim is about and must not move.
+
+The cheaper alternative, worth weighing rather than dismissing: forbid the clause. A
+skip that says only what it read at this pin needs no second revision and cannot be
+wrong — and loses exactly the information that motivated RK1145.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

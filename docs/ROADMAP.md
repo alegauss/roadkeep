@@ -31,6 +31,7 @@
 ## Block D — The gate
 
 - 📋 **RK1147** (deps: —) **adopt calls every line non-canonical when the ref scheme is the only disagreement** — The estimate names no cause, so an adopter reads a file that needs rewriting line by line where the truth is one flag. → §RK1147
+- 📋 **RK1148** (deps: —) **three skips claim a shape left the corpus and it was never there at the pin before** — The clause is prose nobody checks, while both retired revisions still resolve, so a false history reads as coverage. → §RK1148
 
 ## Block E — Adoption
 
