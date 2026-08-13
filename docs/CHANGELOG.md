@@ -200,6 +200,7 @@
 - ✅ **RK1129** **`add` refreshes the README projection and prints no staging line, so a commit takes the roadmap and leaves it behind** — add prints the git add line for every path it wrote, projections included, off the save's own return.
 - ✅ **RK1130** **four of the thirty-two write commands print a staging line, so the rest can leave the projection they refreshed behind** — Every write command prints the git add line for what it wrote or is exempted with a reason, and a closure over the parser holds the two sets total.
 - ✅ **RK1131** **six records gained a field and twelve payloads carry it, with a closure over one dataclass and none over the rest** — A table per record binds every field to the key it becomes or to the reason it becomes none, asserted in both directions and executed against the verb that answers.
+- ✅ **RK1137** **git collapses an untracked tree to its top directory, so a claim naming a file inside it is called a typo** — Either side of the comparison may be the directory, and the trailing slash git spells a collapsed tree with is what keeps the third case exact.
 
 ## Block C — Query
 

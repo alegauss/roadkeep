@@ -77,42 +77,63 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1137 The directory git named instead
+### §RK1138 The exit a partial does not have
 
-RK495 taught `_covers` that a **declared directory** speaks for the files git lists
-under it: a claim on `src/` prints the staging line that takes `src/a.py` and must not
-then report `src/a.py` as named by nobody. This is the same question from the other
-side, and it is the one nobody asked: git reports an *untracked directory* as the
-directory, so a claim naming a **file inside it** matches nothing.
+`ship --part` records the half that landed and leaves the line open, which is the right
+shape for work that genuinely continues. What it has no answer for is the half that is
+later **abandoned**.
 
-Measured on the ship that created one, this repository, one command:
+Observed on SH698 in the Shio backlog: an intermittent red was instrumented rather than
+cured, the cure did not reproduce in eighteen runs, and its two proposed mechanisms were
+measured and refuted. The owner decided to abandon the remainder. Then:
 
-```
-$ roadkeep claim RK1136 --path .claude/skills/roadkeep-dev/SKILL.md …
-$ roadkeep ship RK1136 --why "…"
-  loose    .claude/skills/  (no claim names it)
-  typo?    .claude/skills/roadkeep-dev/SKILL.md  (declared, and stages nothing)
-```
+    $ roadkeep retire SH698 --reason "..."
+    roadkeep: docs/CHANGELOG.md:1351 already records ✅ SH698 (the instrument), and retiring
+    SH698 would replace that entry: the half that shipped would leave the only file that holds
+    it — say what happens to it first (`ship SH698` ... or `record amend SH698 --part ...`)
 
-Both lines are wrong and they are about one path. The scope named the file the write
-created; `dirty` answered `.claude/skills/` because git collapses an untracked tree to
-its topmost new directory, so `_covers` compared a declared file against a shorter
-string and `_stages` found nothing for the declaration — which reads as a mistyped path
-on the one path that is certainly not mistyped.
+The hint is followed and does not help. `record amend --part "instrumented, not cured"
+--why "…the cure is abandoned…"` succeeds, restating the entry as the whole of what will
+ever be — and `retire` then refuses with exactly the same message, because the entry
+still exists. The only verb that closes the roadmap line is `ship`, whose own contract
+is that the outcome shipped.
 
-`_covers` already knows the shape of the answer: it strips a trailing slash and compares
-a prefix. What is missing is that the *listed* side can be the prefix — `path ==
-declared or path.startswith(declared + "/") or declared.startswith(path)`, where the
-third case is a directory git named standing for everything under it.
+So an abandoned remainder is recorded as a ship. The ledger reads as if the work
+completed, and the one place that says otherwise is the sentence the author happened to
+write.
 
-What needs deciding rather than adding: the third case must not make a claim on
-`src/a.py` answer for a dirty `src/` on a tree where `src/` is tracked and merely holds
-other changes. Git only collapses **untracked** trees, so the reading is available —
-`--others` names them.
+What it wants is a door: `retire` accepting a task whose entry is a partial, appending
+the abandonment to that entry rather than replacing it — or the refusal naming `ship` as
+the intended exit, rather than as the thing to do "if the rest landed after all".
 
 ## Block C — Query
 
 ## Block D — The gate
+
+### §RK1139 The capture nothing ever reads again
+
+`report` validates a symptom and a why to the same limits `add` enforces, writes
+`.roadkeep/reports/<stamp>-run-<id>.json`, and prints `kept <path>`. That is the last
+time the capture is ever mentioned. `REPORTS` is defined in `capturing.py:918` and no
+other module reads that directory: not `stats`, not `lint`, not `list`.
+
+Observed directly. A session was told to file roadkeep friction in roadkeep's backlog,
+ran `report` twice, read `kept …json` as "filed", and reported it as done. The owner had
+to say *"não foi registrado no roadkeep"* before a task line existed. Meanwhile `stats`
+answered `total 2` and was right, which is what made the mistake invisible: nothing
+disagreed.
+
+Three things would each have caught it:
+
+1. **`report` says what it did not do** — this is a capture, not a backlog line, with the `add`
+   command pre-filled from the two fields it just validated.
+2. **Captures are counted where a session looks.** `stats` printing `captures 2 (0 filed)` makes
+   an unfiled capture the shape roadkeep asks every project to hold debt in: a named list with a
+   printed count, never a silent file.
+3. **`report --file`** — one transaction, since the data is identical to `add`'s.
+
+The second is the one that matters: a capture nothing counts is a note in a drawer, and
+this tool's whole argument is against those.
 
 ## Block E — Adoption
 

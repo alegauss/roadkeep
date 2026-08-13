@@ -611,8 +611,22 @@ def _covers(declared: str, path: str) -> bool:
 
     Prefix and not `startswith` alone: `src/` must not answer for `srcfoo/a.py`, which is a
     different directory whose name begins the same way.
+
+    And **either side may be the directory** (RK1137), which is RK495's question from the other
+    end. Git collapses an untracked tree to its topmost new directory — `?? .claude/skills/` —
+    so a claim naming the file the write created was compared against a shorter string and
+    matched nothing: RK1136's own ship reported that file as `loose` *and* its declaration as
+    staging nothing, two wrong lines about one path.
+
+    The trailing slash is what makes the third case safe rather than a widening. Git spells a
+    collapsed tree with one and a dirty **file** never carries one, so `declared.startswith(path)`
+    fires exactly where the listed path is a directory standing for everything under it — and a
+    claim on `src/a.py` still does not answer for a tracked `src/` holding somebody else's edit,
+    because git lists that as `src/other.py`.
     """
-    return path == declared or path.startswith(declared.rstrip("/") + "/")
+    if path == declared or path.startswith(declared.rstrip("/") + "/"):
+        return True
+    return path.endswith("/") and declared.startswith(path)
 
 
 def _stages(one: str, known: frozenset[str]) -> bool:

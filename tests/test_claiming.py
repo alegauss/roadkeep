@@ -2066,3 +2066,52 @@ def test_a_design_belonging_to_nobody_is_still_labelled_by_its_anchor(tmp_path):
     with (tmp_path / "IMPROVEMENTS.md").open("a", encoding="utf-8", newline="") as handle:
         handle.write("\n### §0.1 A house constraint\n\nBelonging to no task.\n")
     assert "0.1" in designs_since(config, "HEAD", "improvements")
+
+
+# -- either side may be the directory (RK1137) ---------------------------------
+
+
+def test_a_claim_on_a_file_inside_a_new_directory_is_not_a_typo(tmp_path):
+    """RK1137, measured on RK1136's own ship: git collapses an untracked tree to its topmost new
+    directory, so `dirty` answered `.claude/skills/` while the claim named the file the write had
+    created — and the report called that file `loose` *and* its declaration a typo, two wrong
+    lines about one path."""
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", [".claude/skills/roadkeep-dev/SKILL.md"])
+    entries = config.document("roadmap").entries
+    # What git reports for a tree it has never seen: the directory, with the slash.
+    split = claiming.split(config, "RK2", entries, [".claude/skills/"], [".claude/skills/"])
+    assert split.loose == () and split.idle == ()
+    assert split.mine == (".claude/skills/roadkeep-dev/SKILL.md",)
+
+
+def test_the_slash_is_what_makes_it_a_directory_and_not_a_prefix(tmp_path):
+    # The guard that keeps the third case from being a widening: a dirty *file* never carries a
+    # trailing slash, so a claim on one file cannot answer for another under the same folder.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    entries = config.document("roadmap").entries
+    split = claiming.split(config, "RK2", entries, ["src/other.py"], ["src/other.py"])
+    assert split.loose == ("src/other.py",)
+
+
+def test_a_declared_directory_still_speaks_for_what_is_under_it(tmp_path):
+    # RK495's own direction, held so the two readings stay one function.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/"])
+    entries = config.document("roadmap").entries
+    split = claiming.split(config, "RK2", entries, ["src/a.py", "srcfoo/b.py"])
+    assert split.loose == ("srcfoo/b.py",)
+
+
+def test_neither_reading_answers_for_a_sibling_that_only_begins_the_same(tmp_path):
+    # `.claude/skillsets/` is not `.claude/skills/`, in either direction.
+    config = project(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", [".claude/skills/roadkeep-dev/SKILL.md"])
+    entries = config.document("roadmap").entries
+    split = claiming.split(config, "RK2", entries, [".claude/skillsets/"])
+    assert split.loose == (".claude/skillsets/",)

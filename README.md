@@ -117,17 +117,17 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 143 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 144 | 1 |
 | C — Query (consult without reading the file) | 0 | 92 | 1 |
-| D — The gate | 0 | 153 | 0 |
+| D — The gate | 1 | 153 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 103 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 628 | 6 |
+| **Total** | 2 | 629 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1137** (deps: —) **git collapses an untracked tree to its top directory, so a claim naming a file inside it is called a typo** — RK1136's own ship reported the new skill as loose and its declaration as staging nothing, both about one path and both wrong (RK495 from the other side). → §RK1137
+- 📋 **RK1138** (deps: —) **A partial that is later abandoned has no exit: retire refuses while its entry exists** — retire points at record amend, which changes the entry and not the refusal, so the only door left is ship - which claims the rest landed. → §RK1138
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

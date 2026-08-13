@@ -26,11 +26,13 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1137** (deps: —) **git collapses an untracked tree to its top directory, so a claim naming a file inside it is called a typo** — RK1136's own ship reported the new skill as loose and its declaration as staging nothing, both about one path and both wrong (RK495 from the other side). → §RK1137
+- 📋 **RK1138** (deps: —) **A partial that is later abandoned has no exit: retire refuses while its entry exists** — retire points at record amend, which changes the entry and not the refusal, so the only door left is ship - which claims the rest landed. → §RK1138
 
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
+
+- 📋 **RK1139** (deps: —) **A kept capture is write-only: nothing lists it, counts it or says it is not a backlog line** — report prints kept <path> and stops, so a session reads it as filed - two captures sat unmentioned while stats reported the backlog as complete. → §RK1139
 
 ## Block E — Adoption
 
