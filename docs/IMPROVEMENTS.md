@@ -77,6 +77,37 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1129 The refresh nobody was told to stage
+
+RK298 gave `ship` the `git add --` line for what it releases, and RK280 gave `claim
+<id>` the same answer read back. `add` writes as many files: the roadmap line, the
+rationale section under `--section`, and the **projection** RK188 refreshes with every
+governed write. It prints the line, the design and the event, and nothing about what to
+stage.
+
+Measured on this repository, on a filing made by another session while this one worked:
+
+```
+$ git show --stat 88f9382
+ docs/IMPROVEMENTS.md | 18 +++++++++++++
+ docs/ROADMAP.md      |  2 ++
+ …                                        # README.md is not in it
+$ roadkeep -C <88f9382 extracted> lint
+README.md:114  export.stale  the block between the roadkeep markers is not what the governed
+               files render: `export --readme` rewrites it
+```
+
+Green on the author's machine and red in a clean checkout, which is the worst
+arrangement of the two: the gate reads the **working tree**, where the refresh is
+sitting, and the commit is what went stale. The refresh was on disk the whole time;
+nothing asked for it to be staged.
+
+The alternative considered and not taken: have the gate read the **index**. That is a
+bigger change than the defect — `lint --since HEAD` is a reading of a tree by design
+(RK84), the `Stop` hook narrows to a turn's own edits, and a gate that judged the index
+would refuse a tree an author is mid-edit in. What is missing here is one line the two
+other write paths already print, on the write that produces the same three files.
+
 ## Block C — Query
 
 ## Block D — The gate
