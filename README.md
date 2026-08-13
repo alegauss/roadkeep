@@ -119,11 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 145 | 1 |
 | C — Query (consult without reading the file) | 0 | 93 | 1 |
-| D — The gate | 0 | 159 | 0 |
+| D — The gate | 1 | 159 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 104 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 638 | 6 |
+| **Total** | 1 | 638 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1147** (deps: —) **adopt calls every line non-canonical when the ref scheme is the only disagreement** — The estimate names no cause, so an adopter reads a file that needs rewriting line by line where the truth is one flag. → §RK1147
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

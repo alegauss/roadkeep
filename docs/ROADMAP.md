@@ -30,6 +30,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1147** (deps: —) **adopt calls every line non-canonical when the ref scheme is the only disagreement** — The estimate names no cause, so an adopter reads a file that needs rewriting line by line where the truth is one flag. → §RK1147
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

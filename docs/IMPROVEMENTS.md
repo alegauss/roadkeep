@@ -81,6 +81,37 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK1147 The scheme decides the estimate, and the report never says so
+
+`adopt` is the first command an adopting project runs, and it runs before anybody there
+knows this tool's vocabulary. Point it at Shio's roadmap with no `--ref-scheme` and it
+reads:
+
+```
+adopt(id):      parsed=20 non_canonical=20 codes=[line.non-canonical (20), ref.mismatch (20)]
+adopt(outline): parsed=20 non_canonical=0  codes=[]
+```
+
+Same bytes. Every line is a reformatting cost under one flag and none of it is under the
+other, and nothing in the report says the flag decided it — 48/48 and 37/37 at the other
+pins, so the ratio is the file's numbering scheme rather than a distribution over its
+lines.
+
+What an adopter reads is *this file needs rewriting line by line*; the answer is *this
+file numbers its sections the other way*. That is what RK14/15 removed from `lint`,
+where every finding carries the command that closes it, and `adopt` is the surface where
+a misread costs the adoption itself.
+
+Both readings are already available: the estimate parses under a schema it constructs,
+so the other one is a second parse of a file in memory. What it cannot do is say which
+is *right* — an id-numbered backlog is non-canonical under `outline` just as
+symmetrically. So the finding is a comparison and not a correction: name the scheme that
+costs nothing and let the adopter recognise their own file.
+
+The cost: a second parse per estimate, and a report that mentions a configuration the
+caller did not ask about — the price of a number otherwise read as a verdict on a
+backlog.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
