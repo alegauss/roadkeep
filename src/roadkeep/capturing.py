@@ -924,6 +924,43 @@ _COVERED = frozenset({".roadkeep", ".roadkeep/", "/.roadkeep", "/.roadkeep/", ".
 
 
 @dataclass(frozen=True, slots=True)
+class Held:
+    """One capture the report directory already holds, and the claim it states (RK1139)."""
+
+    path: Path
+    #: The capture's own `symptom`, which is verbatim what `add --symptom` would receive — so
+    #: an author who ran the pre-filled command produces an exact match and anything else
+    #: reads as unfiled. Conservative in the safe direction: it nags rather than reassures.
+    symptom: str
+
+
+def captures(root: str | Path = ".") -> tuple[Held, ...]:
+    """Every capture on disk, in filename order — which is time order (RK1139).
+
+    A capture was write-only: `report` printed `kept <path>`, and nothing listed, counted or
+    contradicted it. Measured directly — a session ran `report` twice, read that line as
+    "filed", and reported the work done; `stats` answered `total 2` and was right, which is
+    what made the mistake invisible. This is the reader that lets a count disagree.
+
+    Read defensively, one file at a time: a capture is evidence somebody may have hand-edited,
+    and a directory that cannot be parsed must not stop a query. What a file without a
+    `symptom` is is not a capture this can say anything about, so it is skipped rather than
+    counted as unfiled — a number that included junk would be a number nobody trusts.
+    """
+    directory = Path(root) / REPORTS
+    out: list[Held] = []
+    for path in sorted(directory.glob("*.json")):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        symptom = payload.get("symptom") if isinstance(payload, dict) else None
+        if isinstance(symptom, str) and symptom:
+            out.append(Held(path=path, symptom=symptom))
+    return tuple(out)
+
+
+@dataclass(frozen=True, slots=True)
 class Kept:
     """One capture on disk, and what had to be said about getting it there."""
 

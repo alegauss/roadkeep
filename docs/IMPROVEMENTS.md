@@ -81,31 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1139 The capture nothing ever reads again
-
-`report` validates a symptom and a why to the same limits `add` enforces, writes
-`.roadkeep/reports/<stamp>-run-<id>.json`, and prints `kept <path>`. That is the last
-time the capture is ever mentioned. `REPORTS` is defined in `capturing.py:918` and no
-other module reads that directory: not `stats`, not `lint`, not `list`.
-
-Observed directly. A session was told to file roadkeep friction in roadkeep's backlog,
-ran `report` twice, read `kept …json` as "filed", and reported it as done. The owner had
-to say *"não foi registrado no roadkeep"* before a task line existed. Meanwhile `stats`
-answered `total 2` and was right, which is what made the mistake invisible: nothing
-disagreed.
-
-Three things would each have caught it:
-
-1. **`report` says what it did not do** — this is a capture, not a backlog line, with the `add`
-   command pre-filled from the two fields it just validated.
-2. **Captures are counted where a session looks.** `stats` printing `captures 2 (0 filed)` makes
-   an unfiled capture the shape roadkeep asks every project to hold debt in: a named list with a
-   printed count, never a silent file.
-3. **`report --file`** — one transaction, since the data is identical to `add`'s.
-
-The second is the one that matters: a capture nothing counts is a note in a drawer, and
-this tool's whole argument is against those.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

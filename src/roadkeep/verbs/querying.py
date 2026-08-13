@@ -18,7 +18,10 @@ import sys
 from collections.abc import Mapping, Sequence
 
 from roadkeep import attesting, claiming
+from pathlib import Path
+
 from roadkeep.backlog import Backlog, Stage, Standing
+from roadkeep.capturing import captures
 from roadkeep.briefing import NothingToBrief, brief
 from roadkeep.budgeting import (
     Body,
@@ -200,6 +203,10 @@ def _stats(config: Config, args: argparse.Namespace) -> int:
                         "unit": CHARACTER_UNIT,
                     },
                     "standing": _standing_json(standing),
+                    # RK1139: a capture nothing counts is a note in a drawer, and this tool's
+                    # whole argument is against those. Its own key, because it is debt this
+                    # project holds and not a line of the backlog it is reporting.
+                    "captures": _captures_json(config),
                 },
                 indent=2,
             )
@@ -226,9 +233,64 @@ def _stats(config: Config, args: argparse.Namespace) -> int:
             f"  {'longest':<{width}}  {longest.task.id} at {measured_width(longest.raw)} "
             f"of {census.schema.line_max}"
         )
+    _print_captures(config, width)
     if not census.total:
         _print_standing(standing)
     return EXIT_OK
+
+
+def _unfiled(config: Config) -> tuple[tuple[Path, bool], ...]:
+    """Each capture this project holds, and whether the backlog already states its claim.
+
+    The reading RK1139 asked for, and the cheap order matters: the directory is globbed first,
+    so a project with no captures — which is every project that has never hit a defect in this
+    tool — pays one `glob` and never the parse of three governed files.
+
+    "Filed" is an **exact symptom match**, because the capture's symptom is verbatim what
+    `add --symptom` receives: an author who ran the pre-filled command produces one, and an
+    author who reworded it reads as unfiled. Wrong in the direction that nags.
+    """
+    held = captures(config.root)
+    if not held:
+        return ()
+    backlog = Backlog.load(config)
+    stated = {
+        entry.task.symptom
+        for document in (backlog.roadmap, backlog.ledger, backlog.store)
+        if document is not None
+        for entry in document.entries
+    }
+    return tuple((one.path, one.symptom in stated) for one in held)
+
+
+def _captures_json(config: Config) -> dict[str, object]:
+    held = _unfiled(config)
+    return {
+        "kept": len(held),
+        "filed": sum(1 for _, filed in held if filed),
+        "unfiled": [config.relative(path) for path, filed in held if not filed],
+    }
+
+
+def _print_captures(config: Config, width: int) -> None:
+    """The count, and the paths behind it where any is unfiled (RK1139).
+
+    Silent where the directory holds none, which is not the rule the counts above follow — they
+    print at zero because a field that appears only when it is non-zero is one a reader stops
+    looking for. The difference is that `uncounted` is about the file this command reports on
+    and a capture is not: a project that has never hit a defect in this tool has no such debt,
+    and a permanent `captures 0` would be a row about nothing on every run.
+    """
+    held = _unfiled(config)
+    if not held:
+        return
+    filed = sum(1 for _, is_filed in held if is_filed)
+    print(f"  {'captures':<{width}}  {len(held):>4}  {filed} filed")
+    for path, is_filed in held:
+        if not is_filed:
+            # Named and not only counted: this is the list the tool asks every project to hold
+            # its debt in, and a count with nothing behind it is the silent file again.
+            print(f"  {'unfiled':<{width}}  {config.relative(path)}")
 
 
 def _audit(config: Config, args: argparse.Namespace) -> int:

@@ -427,7 +427,12 @@ def _report(config: Config, args: argparse.Namespace) -> int:
     # caller taking a second step, and this block's own RK86 is the record of second steps
     # not being taken. On stderr, so `--json` and `--issue` stay pipeable.
     kept = keep(found, config.root)
-    print(f"kept  {kept.path}", file=sys.stderr)
+    # The clause on the line that was misread (RK1139): a session ran this twice, read `kept
+    # …json` as "filed" and reported the work done — and `stats` answered `total 2` and was
+    # right, so nothing disagreed. "File it:" was already printed, at the end of the dump
+    # below; what was missing is the **negative**, said where the path is.
+    print(f"kept  {kept.path}  (a capture, not a backlog line)", file=sys.stderr)
+    print(f"file  {found.filing}", file=sys.stderr)
     if kept.complaint:
         print(f"roadkeep: {kept.complaint}", file=sys.stderr)
     # Which of the two forms this is, said here because this is the only moment anybody can

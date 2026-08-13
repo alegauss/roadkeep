@@ -949,3 +949,50 @@ def test_a_word_inside_an_argument_is_not_read_as_the_verb(capsys, tmp_path):
     with pytest.raises(SystemExit):
         main(["-C", str(tmp_path), "add", "--why", "scope"])
     assert "publishes that verb" not in capsys.readouterr().err
+
+
+# -- a capture nothing counts is a note in a drawer (RK1139) --------------------
+
+
+def _capture_file(root: Path, name: str, symptom: str) -> Path:
+    """One capture on disk, written the way `keep` writes one: the fields, as JSON."""
+    directory = root / ".roadkeep" / "reports"
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / name
+    path.write_text(
+        json.dumps({"symptom": symptom, "why": "Because of a reason.", "block": "A"}),
+        encoding="utf-8",
+    )
+    return path
+
+
+def test_the_captures_a_project_holds_are_readable_in_filename_order(tmp_path):
+    """RK1139. `report` printed `kept <path>` and nothing listed, counted or contradicted it — a
+    session read that line as "filed", and `stats` answered `total 2` and was right, which is
+    what made the mistake invisible."""
+    from roadkeep.capturing import captures
+
+    _capture_file(tmp_path, "20260101T000000Z-run-b.json", "The second symptom")
+    _capture_file(tmp_path, "20250101T000000Z-run-a.json", "The first symptom")
+    held = captures(tmp_path)
+    # Filename order is time order, because the name carries the stamp `keep` wrote it with.
+    assert [one.symptom for one in held] == ["The first symptom", "The second symptom"]
+
+
+def test_a_project_that_has_never_hit_a_defect_holds_none(tmp_path):
+    from roadkeep.capturing import captures
+
+    assert captures(tmp_path) == ()
+
+
+def test_a_file_that_is_not_a_capture_is_skipped_and_never_counted(tmp_path):
+    # A capture is evidence somebody may have hand-edited, so a directory that cannot be
+    # parsed must not stop a query — and junk counted as unfiled is a number nobody trusts.
+    from roadkeep.capturing import captures
+
+    directory = tmp_path / ".roadkeep" / "reports"
+    directory.mkdir(parents=True)
+    (directory / "broken.json").write_text("{not json", encoding="utf-8")
+    (directory / "empty.json").write_text('{"why": "no symptom here"}', encoding="utf-8")
+    _capture_file(tmp_path, "real.json", "A real symptom")
+    assert [one.symptom for one in captures(tmp_path)] == ["A real symptom"]

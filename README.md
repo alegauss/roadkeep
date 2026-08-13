@@ -119,15 +119,11 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 145 | 1 |
 | C — Query (consult without reading the file) | 0 | 92 | 1 |
-| D — The gate | 1 | 153 | 0 |
+| D — The gate | 0 | 154 | 0 |
 | E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 103 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 630 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1139** (deps: —) **A kept capture is write-only: nothing lists it, counts it or says it is not a backlog line** — report prints kept <path> and stops, so a session reads it as filed - two captures sat unmentioned while stats reported the backlog as complete. → §RK1139
+| **Total** | 0 | 631 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -393,3 +393,56 @@ def test_the_ledger_is_counted_under_its_own_schema(tmp_path, capsys):
     payload = json.loads(capsys.readouterr().out)
     assert payload["total"] == 1 and payload["markers"] == {"✅": 1}
     assert payload["uncounted"] == 0
+
+
+# -- the debt a query counts where a session looks (RK1139) ----------------------
+
+
+def _capture(root: Path, symptom: str, name: str = "20260101T000000Z-run-a.json") -> None:
+    directory = root / ".roadkeep" / "reports"
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / name).write_text(
+        json.dumps({"symptom": symptom, "why": "Because of a reason.", "block": "A"}),
+        encoding="utf-8",
+    )
+
+
+def test_stats_counts_the_captures_and_names_the_unfiled(tmp_path, capsys):
+    """RK1139's second answer, and the one it says matters: a capture nothing counts is a note in
+    a drawer, and this tool's whole argument is against those. Measured on this repository the
+    moment it worked — two captures, zero filed, while `stats` had been answering `total 2`."""
+    project(tmp_path)
+    _capture(tmp_path, "A symptom nobody filed")
+    assert main(["-C", str(tmp_path), "stats"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "captures" in printed and "0 filed" in printed
+    assert ".roadkeep/reports/20260101T000000Z-run-a.json" in printed
+
+
+def test_a_capture_whose_claim_the_backlog_states_is_filed(tmp_path, capsys):
+    # An exact symptom match, which is what the pre-filled `add` produces: the capture's
+    # symptom is verbatim what `--symptom` receives, so running it closes this row.
+    filed = "- 📋 **RK9** (deps: —) **A symptom nobody filed** — Because of a reason. → §RK9\n"
+    project(tmp_path, roadmap=CLEAN + filed)
+    _capture(tmp_path, "A symptom nobody filed")
+    assert main(["-C", str(tmp_path), "stats"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "1 filed" in printed and "unfiled" not in printed
+
+
+def test_a_project_with_no_captures_gets_no_row_at_all(tmp_path, capsys):
+    # Not the rule the counts above follow, and the reason is stated: `uncounted` is about the
+    # file this command reports on, and a capture is not — a permanent `captures 0` would be a
+    # row about nothing on every run of every project that never hit a defect in this tool.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "stats"]) == EXIT_OK
+    assert "captures" not in capsys.readouterr().out
+
+
+def test_the_payload_carries_the_same_three_answers(tmp_path, capsys):
+    project(tmp_path)
+    _capture(tmp_path, "A symptom nobody filed")
+    assert main(["-C", str(tmp_path), "stats", "--json"]) == EXIT_OK
+    held = json.loads(capsys.readouterr().out)["captures"]
+    assert held["kept"] == 1 and held["filed"] == 0
+    assert held["unfiled"] == [".roadkeep/reports/20260101T000000Z-run-a.json"]

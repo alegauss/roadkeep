@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1139** (deps: —) **A kept capture is write-only: nothing lists it, counts it or says it is not a backlog line** — report prints kept <path> and stops, so a session reads it as filed - two captures sat unmentioned while stats reported the backlog as complete. → §RK1139
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
