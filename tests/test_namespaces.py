@@ -31,7 +31,15 @@ from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError
 from roadkeep.linting import lint
 from roadkeep.kernel.schema import split_ref
-from roadkeep.sections import SectionError, add, anchored, find, local, qualified
+from roadkeep.sections import (
+    SectionError,
+    add,
+    anchored,
+    find,
+    local,
+    qualified,
+    references,
+)
 
 ROADMAP = "docs/ROADMAP.md"
 IMPROVEMENTS = "docs/IMPROVEMENTS.md"
@@ -68,7 +76,9 @@ The reasoning that line has no room for.
 """
 
 
-def project(tmp_path, *, refs: str = '[refs]\nstrategy = "S"\n') -> Config:
+def project(
+    tmp_path, *, refs: str = '[refs]\nstrategy = "S"\n', strategy: str = STRATEGY_BODY
+) -> Config:
     """Two prose files whose outlines both start at `I`, and what the project says about it."""
     (tmp_path / "roadkeep.toml").write_text(
         f'prefix = "RK"\nref_scheme = "outline"\n{refs}'
@@ -79,7 +89,7 @@ def project(tmp_path, *, refs: str = '[refs]\nstrategy = "S"\n') -> Config:
     for name, body in {
         ROADMAP: BACKLOG,
         IMPROVEMENTS: IMPROVEMENTS_BODY,
-        STRATEGY: STRATEGY_BODY,
+        STRATEGY: strategy,
     }.items():
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -394,6 +404,35 @@ def test_a_section_add_writes_the_bare_heading_under_the_named_role(tmp_path):
     assert section.anchor == "S:I.2"
     assert "### I.2 A second note" in "".join(document.lines)
     assert "S:I.2" not in "".join(document.lines)
+
+
+# -- a citation ends where the address does, not where the sentence does (RK1111) --
+
+
+def citing(sentence: str) -> str:
+    """`STRATEGY_BODY` with its opening paragraph replaced, so the citation is in `S:I`."""
+    return STRATEGY_BODY.replace("What that file is for.", sentence)
+
+
+def test_a_namespaced_citation_ending_a_sentence_is_read_whole(tmp_path):
+    # RK1111, reproduced in claude-tray: the scan stopped at the namespace and reported `§S:V`
+    # as a citation of `§S` — an address no file declares — so the gate was red on prose that
+    # is correct, in every project that namespaces a second file. The edits it left were to
+    # reword the sentence or to hide the citation in a code span, and the second one removes
+    # the relation the rule checks.
+    config = project(tmp_path, strategy=citing("What that file is for, which §S:I.1 settles."))
+    assert [f.code for f in lint(config).findings] == []
+    cited = references(config.document("strategy"))
+    assert [(c.anchor, c.by) for c in cited] == [("S:I.1", "S:I")]
+
+
+def test_the_period_is_the_sentence_and_never_part_of_the_address(tmp_path):
+    # The mechanism, held apart from the namespace: a trailing `.` is punctuation the address
+    # does not own, and the shortened read is what made a live anchor look dangling. Held on a
+    # dead address so a pass here is the scan finding the token and not the resolver excusing it.
+    config = project(tmp_path, strategy=citing("What that file is for, unlike §S:I.9."))
+    dangling = [f for f in lint(config).findings if f.code == "ref.dangling"]
+    assert len(dangling) == 1 and "§S:I.9" in dangling[0].message
 
 
 # -- what the reads say ------------------------------------------------------

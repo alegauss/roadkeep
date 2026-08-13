@@ -911,6 +911,20 @@ def test_a_citation_inside_a_quotation_is_not_a_citation(tmp_path):
         assert "ref.dangling" not in codes(lint(project(tmp_path, improvements=citing))), quoted
 
 
+def test_a_dead_citation_that_ends_a_sentence_is_still_a_finding(tmp_path):
+    # RK1111's other half, under the id scheme: the scan's boundary refused a trailing `.` — the
+    # sentence's own punctuation — so a citation written last in its sentence was read as no
+    # citation at all, and the check reported nothing over a design that is gone. Silent, which
+    # is the state RK1106 was filed about, reached one period later.
+    citing = PROSE.replace(
+        "The reasoning the second line has no room for.",
+        "The reasoning the second line has no room for, as settled by §RK7.",
+    )
+    report = lint(project(tmp_path, improvements=citing))
+    dangling = [f for f in report.findings if f.code == "ref.dangling"]
+    assert len(dangling) == 1 and dangling[0].lineno == 11
+
+
 def test_two_dead_citations_on_two_lines_are_two_findings(tmp_path):
     # Every occurrence and not the distinct set: two of them are two edits, and a reader
     # handed one fixes the file halfway and reads a clean gate as agreement.

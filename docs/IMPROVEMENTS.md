@@ -112,38 +112,6 @@ the copy-paste case where no `show` was involved.
 
 ## Block D — The gate
 
-### §RK1111 A namespaced citation read as its namespace
-
-`ref.dangling` extracts the citation `§S` from the prose `§S:V` and reports it as an
-anchor no file declares. `§S:V` is the namespaced address of STRATEGY.md's fifth section
-— `anchors --role strategy` lists `S:V  1 live` in the same working tree — so the rule
-is red on prose that is correct.
-
-**Reproduced in claude-tray**, whose `[refs] strategy = "S"` gives the second prose file
-a namespace:
-
-```
-$ roadkeep lint
-STRATEGY.md:67  ref.dangling  §S:VII cites §S, which is not in IMPROVEMENTS.md or STRATEGY.md
-$ sed -n 67p STRATEGY.md
-- **No paid tier, no accounts, no license server.** Changing this would invalidate §S:V.
-```
-
-That line carries no bare `§S`; its only citation is `§S:V`. Engine roadkeep 0.1.728
-(06cca7f). Capture: `.roadkeep/reports/20260812T154201Z-lint-ad6b4e3c.json`.
-
-**Why it matters more than one line.** The rule's own message is that a dangling pointer
-and a typo cannot be told apart from the next command on — which is exactly what a false
-positive does one level up: the finding cannot be told from a real one, and the fixes
-available to the project are to reword correct prose or to hide the citation in a code
-span, which removes the relation the rule checks. Every project that namespaces a second
-prose file inherits it.
-
-**Where the fix probably is.** The scanner appears to match `§` plus a roman numeral and
-stop, without consuming `:` and the address after it. Code spans are already skipped — a
-backticked address in the same repository is not reported — so the extractor is the
-layer, not the reporter.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

@@ -632,7 +632,16 @@ class Cite:
 #: token is a well-formed address of this project is what resolving it answers. A pattern that
 #: only matched valid anchors would read a typo as prose and report nothing about it, which is
 #: the citation this exists to find.
-_CITED_RE = re.compile(r"§([A-Za-z0-9]+(?::[A-Za-z0-9]+)?(?:\.[A-Za-z0-9]+)*)(?![\w.])")
+#:
+#: **Atomic**, which is the whole of RK1111: the address is taken whole or not at all. The
+#: earlier boundary `(?![\w.])` refused a sentence-final `.` — punctuation the address does not
+#: own — and the engine answered by *shortening the match* until the lookahead passed, so the
+#: prose `§S:V.` was read as a citation of `§S` and `§I.2.` as no citation at all. Both silent:
+#: one reported a live anchor as dangling in every project that namespaces a second file, the
+#: other reported nothing over a dead one. What follows a whole address may be anything that is
+#: not a word character — a period, a comma, a paren, a fence — and a token that runs on into
+#: `\w` after the scheme's own separators is not an address in either scheme.
+_CITED_RE = re.compile(r"§((?>[A-Za-z0-9]+(?::[A-Za-z0-9]+)?(?:\.[A-Za-z0-9]+)*))(?!\w)")
 
 
 def references(document: Document) -> tuple[Cite, ...]:

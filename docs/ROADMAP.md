@@ -32,8 +32,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1111** (deps: —) **a namespaced citation is read as its namespace, so lint reports a live anchor as dangling** — ref.dangling reads §S:V as §S in STRATEGY.md:67 while anchors lists S:V as live, so the rule is red on correct prose in every project that namespaces a second file. → §RK1111
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
