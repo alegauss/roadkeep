@@ -129,11 +129,24 @@ def project(tmp_path: Path) -> Path:
     return tmp_path
 
 
+#: What a verb needs before its flags mean anything: the positional it declares required. One
+#: table for both halves of the sweep (RK1147) — they read it for different reasons, one to
+#: parse and one to run, and two copies is how a verb ends up covered by only one of them.
+#: `adopt` arrived here by being declared `reads_only`, which it always was, and its file is
+#: the project's own roadmap: a real corpus this fixture already writes, so the pair runs
+#: against an answer rather than against argparse's missing-argument exit.
+NEEDS = {
+    "claim": ["RK2"],
+    "show": ["RK1"],
+    "origin": ["RK1"],
+    "adopt": ["docs/ROADMAP.md"],
+}
+
+
 def run(root: Path, command: str, *flags: str) -> tuple[int, str]:
     """One call, with its stdout — which is the thing a swallowed flag leaves identical."""
-    needs = {"claim": ["RK2"], "show": ["RK1"], "origin": ["RK1"]}
     out = io.StringIO()
-    argv = ["-C", str(root), command, *needs.get(command, []), *flags]
+    argv = ["-C", str(root), command, *NEEDS.get(command, []), *flags]
     with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
         try:
             code = main(argv)
@@ -221,8 +234,7 @@ def test_the_dispatcher_refuses_exactly_the_pairs_a_verb_declares(command, first
     a sixth subject and forgets to declare it fails here on the pair it swallows, in the file
     that has always been the one able to see the class."""
     parser = build_parser()
-    needs = {"claim": ["RK2"], "show": ["RK1"], "origin": ["RK1"]}
-    args = parser.parse_args([command, *needs.get(command, []), first, second])
+    args = parser.parse_args([command, *NEEDS.get(command, []), first, second])
     refused = _one_answer(args) is not None
     assert refused == separated(command, first, second), (
         f"`{command} {first} {second}`: the dispatcher "
