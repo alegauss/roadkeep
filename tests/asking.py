@@ -94,6 +94,10 @@ ANSWERS_NO_QUESTION: dict[str, str] = {
     # different subject from the backlog, and L5 is a law about the backlog.
     "report": "the subject is a defect in roadkeep, filed as facts a replay re-runs",
     "replay": "the subject is that capture, and the answer is whether it still reproduces",
+    # And one whose subject is a file **no project governs yet** (RK1147). L5 is a law about
+    # a backlog this tool owns the writes to; `adopt` measures somebody else's file before any
+    # of that exists, so the question it answers is asked once and never again.
+    "adopt": "the subject is a foreign file, measured before this tool owns any write to it",
 }
 
 

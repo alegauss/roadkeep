@@ -532,6 +532,13 @@ class Estimate:
     #: — there, every gain is true and useless.
     gains: tuple[Gain, ...] = ()
     unit: str = "line"
+    #: Whether the file was read in the **ledger** role — the flag a door has to carry to
+    #: reproduce this reading (RK1147). :attr:`unit` cannot say it: a backlog and a changelog
+    #: are both measured in lines, and a ledger is measured under `[limits.changelog]` and
+    #: `[rules.changelog]` (RK76), so the same bytes re-read without `--ledger` are a different
+    #: measurement. Published for the same reason :attr:`defaulted` is — a consumer inferring
+    #: it from `unit` would be inferring it wrongly half the time.
+    ledger: bool = False
     #: The scheme the pointers and anchors were read under (RK44). Reported because it
     #: decides what was read at all: under the wrong one a file of 151 sections yields 0.
     ref_scheme: str = "id"
@@ -1118,6 +1125,7 @@ def adopt(
         defaulted=defaulted,
         parsed=len(document.entries),
         conforming=conforming,
+        ledger=ledger,
         ref_scheme=schema.ref_scheme,
         gains=_gains(config, _declared(config, target), document),
         surface=_surface(config),

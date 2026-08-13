@@ -32,7 +32,6 @@
 
 ## Block D — The gate
 
-- 🛠 **RK1147** (deps: —) **the adopt payload publishes the count of an unread reading and not the flag that changes it** — The printed report has named the flag since RK285 and the payload leaves it to be inferred from a count. → §RK1147
 - 📋 **RK1148** (deps: —) **three skips claim a shape left the corpus and it was never there at the pin before** — The clause is prose nobody checks, while both retired revisions still resolve, so a false history reads as coverage. → §RK1148
 
 ## Block E — Adoption

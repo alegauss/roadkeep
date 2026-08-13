@@ -62,7 +62,7 @@ from roadkeep.merging import (
 from roadkeep.picking import Choice, Claim
 from roadkeep.provenance import invocation, served_by
 from roadkeep.remaining import count, declared
-from roadkeep.remedying import remedy
+from roadkeep.remedying import Door, remedy
 from roadkeep.repairing import MAX_PASSES, Repaired, repair
 from roadkeep.kernel.schema import UTF16_UNITS, width as measured_width
 from roadkeep.sections import Section
@@ -1173,6 +1173,68 @@ _ID_SPELLS = {
 }
 
 
+#: What choosing each unread reading means, in the words the row's own clause already uses.
+#: Keyed by the flag, because the flag is what the door carries and what a reader reruns.
+_READING_WHAT = {
+    "--prefix": "measure this file again with that family read as a track of the backlog",
+    "--ref-scheme": "measure this file again with its sections addressed the way it addresses them",
+}
+
+
+def _readings(estimate: Estimate) -> tuple[tuple[str, str, int, Door], ...]:
+    """The readings this file carries that the declared one leaves unread, each with its door.
+
+    One writer for both answers (RK1147). The printed report has named the flag since RK285 and
+    the payload published `{"scheme": "outline", "count": 20}` beside `line.non-canonical: 20`,
+    leaving the door to be inferred from two counts — by an agent, which is the author this tool
+    is built for. Both guards live here now, spelled once: a family the chosen ones already
+    cover is not unread, and a scheme is reported only where the declared one left an address
+    unread (RK288/RK305, :func:`_misread`).
+
+    The door reruns **this** estimate, so it carries the flags that decided what was measured:
+    `--sections` reads a rationale file and `--ledger` applies the changelog limits (RK76). A
+    door dropping either would name a command whose answer is about a reading nobody asked for,
+    which is worse than the count it was added to explain.
+    """
+    role: tuple[str, ...] = ()
+    if estimate.unit == "section":
+        role = ("--sections",)
+    elif estimate.ledger:
+        role = ("--ledger",)
+
+    def door(flag: str, value: str) -> Door:
+        return Door(
+            argv=("adopt", estimate.path.as_posix(), *role, flag, value),
+            what=_READING_WHAT[flag],
+        )
+
+    rows = [
+        ("--prefix", prefix, count, door("--prefix", prefix))
+        for prefix, count in estimate.prefixes
+        if prefix not in estimate.families
+    ]
+    if _misread(estimate):
+        rows += [
+            ("--ref-scheme", scheme, count, door("--ref-scheme", scheme))
+            for scheme, count in estimate.schemes
+            if scheme != estimate.ref_scheme
+        ]
+    return tuple(rows)
+
+
+def _reading_door(estimate: Estimate, flag: str, value: str) -> dict[str, object]:
+    """One row's door as a payload key, or nothing at all.
+
+    Absent and not ``"door": null``, for the reason a remedy is (see :func:`_remedy_json`): a
+    consumer reading the key at all is one that acts on it, and a null is a row it has to
+    test before it can use. No ``served`` is threaded here because `adopt` is deliberately
+    unserved — it runs once, before the project exists (RK57) — so there is no tool call to
+    publish beside the argv.
+    """
+    found = [d for f, v, _, d in _readings(estimate) if (f, v) == (flag, value)]
+    return {"door": found[0].payload()} if found else {}
+
+
 def _print_estimate(estimate: Estimate) -> None:
     where = estimate.path.as_posix()
     # Which of the three (RK485): a prefix nothing declared and nothing produced is the
@@ -1222,35 +1284,35 @@ def _print_estimate(estimate: Estimate) -> None:
         print(f"  loose    {said}, in no shape read here")
     if estimate.blocks:
         print(f"  blocks   {', '.join(estimate.blocks)}")
-    for prefix, count in estimate.prefixes:
-        # Only the ones the chosen families do not cover. `prefix` takes a list now
-        # (RK74), so this names the flag instead of the limitation: whether the spelling
-        # is a second track or a paste from another backlog is the reader's call.
-        if prefix not in estimate.families:
+    # Both guards moved into `_readings` (RK1147), which is now the one place that decides
+    # what is unread here — the payload publishes the same rows with the door beside them, and
+    # two loops asking the same question in two functions is the drift that put a flag on one
+    # surface and a bare count on the other. Only the *sentences* stay here.
+    for flag, value, count, _ in _readings(estimate):
+        # `prefix` takes a list now (RK74), so this names the flag instead of the limitation:
+        # whether the spelling is a second track or a paste from another backlog is the
+        # reader's call.
+        if flag == "--prefix":
             print(
-                f"  also     {count} id(s) spell {prefix}, unread here: "
-                f"--prefix {prefix} if it is a track of this backlog"
+                f"  also     {count} id(s) spell {value}, unread here: "
+                f"--prefix {value} if it is a track of this backlog"
             )
-    # Only where the declared scheme left something in this file unread (RK288/RK305). The
-    # prefix line has the same guard by another name: it prints only families the chosen ones
-    # do not cover.
-    unread = estimate.schemes if _misread(estimate) else ()
-    for scheme, count in unread:
+            continue
+        scheme = value
         # The same sentence one field over (RK285). Shio read `0 conform, 65 would change`
         # under the default and `63 conform, 2 would change` under `--ref-scheme outline`,
         # with `ref.mismatch` on every line as the only signal — while the prefix half of the
         # same misreading already named its flag. The trailing clause keeps the judgement with
         # the reader for the reason that one does: whether a live outline is what this backlog
         # numbers by is a decision about the project, not a fact about the file.
-        if scheme != estimate.ref_scheme:
-            # Worded off `unit` for the reason the loose line is (RK288): on a backlog the
-            # evidence is the pointers, on a rationale file it is the headings' own anchors,
-            # and one sentence for both would name neither.
-            spells = "pointer(s) spell" if estimate.unit == "line" else "heading(s) anchored"
-            print(
-                f"  also     {count} {spells} {scheme}, unread here: "
-                f"--ref-scheme {scheme} if that is how this project addresses its sections"
-            )
+        # Worded off `unit` for the reason the loose line is (RK288): on a backlog the
+        # evidence is the pointers, on a rationale file it is the headings' own anchors,
+        # and one sentence for both would name neither.
+        spells = "pointer(s) spell" if estimate.unit == "line" else "heading(s) anchored"
+        print(
+            f"  also     {count} {spells} {scheme}, unread here: "
+            f"--ref-scheme {scheme} if that is how this project addresses its sections"
+        )
     # The one finding a per-file estimate could not reach (RK347), and a line here rather than
     # a refusal for the reason every other one is: `adopt` writes nothing and exits 0 (RK18),
     # and what an adopter is buying is the number *before* the commitment.
@@ -1333,16 +1395,12 @@ def _print_estimate(estimate: Estimate) -> None:
         # named as probably wrong — the one claim in this output an adopter cannot discount,
         # and it was the one that was wrong. The number stays; what is added is which reading
         # produced it, so a reader can tell "your file is broken" from "read it another way".
-        under = [f"--prefix {name}" for name, _ in estimate.prefixes if name not in estimate.families]
-        # Behind the same predicate as the `also` line above (RK305) and not behind a second
-        # spelling of it: an alternative reading offered here on a file the declared scheme read
-        # whole is the same wrong advice, and two conditions for one sentence is where the two
-        # would drift apart.
-        under += [
-            f"--ref-scheme {name}"
-            for name, _ in unread
-            if name != estimate.ref_scheme
-        ]
+        # The third reader of one list (RK1147). Behind the same predicate as the `also` lines
+        # above (RK305) and not behind a second spelling of it: an alternative reading offered
+        # here on a file the declared scheme read whole is the same wrong advice, and two
+        # conditions for one sentence is where the two drift apart — which is what the payload
+        # did, publishing the count these words qualify with no flag beside it.
+        under = [f"{flag} {value}" for flag, value, _, _ in _readings(estimate)]
         because = f" — measured under this reading; {', '.join(under)} changes it" if under else ""
         print(
             f"  {estimate.non_canonical} line(s) do not round-trip: the tool would "
@@ -1467,12 +1525,23 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         # a client adding this to a per-turn cost is the arithmetic RK1095 refused to print.
         "serves": {"characters": estimate.surface, "cadence": "once, at connect"},
         "unit": estimate.unit,
+        # Which role decided the numbers (RK1147): `unit` says lines for a backlog and for a
+        # ledger alike, and a ledger is measured under `[limits.changelog]` (RK76) — so a
+        # consumer rerunning this estimate needs the flag rather than a guess, and every door
+        # below carries it for the same reason.
+        "ledger": estimate.ledger,
         "ref_scheme": estimate.ref_scheme,
         "parsed": estimate.parsed,
         "conforming": estimate.conforming,
         "changing": estimate.changing,
         "blocks": list(estimate.blocks),
-        "prefixes": [{"prefix": p, "count": n} for p, n in estimate.prefixes],
+        # The door beside the count, on exactly the rows the printed report names a flag for
+        # (RK1147) — absent on the rest, because a family the chosen ones already cover is not
+        # an unread reading and a door there would be a command with nothing to change.
+        "prefixes": [
+            {"prefix": p, "count": n, **_reading_door(estimate, "--prefix", p)}
+            for p, n in estimate.prefixes
+        ],
         "measures": [
             {
                 "field": m.field,
@@ -1513,7 +1582,10 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         },
         "rejects": [{"reason": r, "count": n} for r, n in estimate.rejects],
         "non_canonical": estimate.non_canonical,
-        "schemes": [{"scheme": s, "count": n} for s, n in estimate.schemes],
+        "schemes": [
+            {"scheme": s, "count": n, **_reading_door(estimate, "--ref-scheme", s)}
+            for s, n in estimate.schemes
+        ],
         # Each file under the key that says what its name **is** (RK371): a role `[files]`
         # answers, or a path it does not. The printed line can leave this to the sentence
         # around it; a payload read so that an answer costs no file read (L5) cannot, and a

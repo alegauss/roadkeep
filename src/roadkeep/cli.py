@@ -2222,7 +2222,11 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     adopt_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    adopt_parser.set_defaults(handler=_adopt)
+    # Read-only, which RK18 has been true of since this verb existed and nothing declared:
+    # `adopt` measures a file and exits 0, writing nothing anywhere. Undeclared it took the
+    # write lock for a run that cannot conflict with one, and — since RK1147 published a door
+    # that reruns it — said `writes: true` in a payload about a command that writes nothing.
+    adopt_parser.set_defaults(handler=_adopt, reads_only=True)
 
     install_parser = subcommands.add_parser(
         "install",

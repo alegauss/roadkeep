@@ -976,6 +976,63 @@ def test_the_report_names_both_halves_of_one_misreading(tmp_path: Path, capsys) 
     assert "--prefix SH, --ref-scheme outline changes it" in printed
 
 
+def test_the_payload_carries_the_door_the_printed_report_names(tmp_path: Path, capsys) -> None:
+    """RK1147: the same run, both surfaces, and the flag on each.
+
+    The report has named `--ref-scheme outline` since RK285 and the payload published
+    `{"scheme": "outline", "count": 20}` beside `line.non-canonical`, so what an agent got was
+    two counts and the inference between them — the asymmetry `lint` has not had since RK15.
+    Asserted against the *rendered* report and not against the fields, because reading the
+    object is what filed this task against a report that already said the right thing.
+    """
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(OUTLINED, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "RK"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "RK", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    doors = {
+        tuple(row["door"]["argv"][-2:])
+        for key in ("prefixes", "schemes")
+        for row in payload[key]
+        if "door" in row
+    }
+    assert doors == {("--prefix", "SH"), ("--ref-scheme", "outline")}
+    # Every flag the text names is a door, and every door is a flag the text names: one list
+    # decides both (`_readings`), and the point of the closure is that it stays one.
+    for flag, value in doors:
+        assert f"{flag} {value}" in printed
+        (row,) = [
+            r
+            for r in payload["prefixes" if flag == "--prefix" else "schemes"]
+            if r.get(flag.strip("-").replace("ref-scheme", "scheme")) == value
+        ]
+        # The door is a read, and says so — `adopt` writes nothing (RK18), which the parser
+        # now declares rather than a test comment claiming it.
+        assert row["door"]["writes"] is False and row["door"]["complete"] is True
+    # And a row the report says nothing about carries no door: a family already covered is not
+    # an unread reading, so the key is absent rather than null.
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "SH", "--json"]) == EXIT_OK
+    covered = json.loads(capsys.readouterr().out)
+    assert [row for row in covered["prefixes"] if "door" in row] == []
+
+
+def test_a_door_carries_the_flag_that_decided_the_measurement(tmp_path: Path, capsys) -> None:
+    """A ledger read as a backlog is a different measurement of the same bytes (RK76), so a door
+    that dropped `--ledger` would answer about a reading nobody asked for."""
+    target = tmp_path / "CHANGELOG.md"
+    target.write_text(UNSLOTTED, encoding="utf-8")
+    # Declared the way a ledger of these lines has to be (RK286), so the entries parse at all:
+    # under the default slots every line is a reject and the run has no reading to be unread.
+    ledgered(tmp_path, marker=False, symptom=False)
+    argv = ["-C", str(tmp_path), "adopt", str(target), "--ledger", "--prefix", "RK", "--json"]
+    assert main(argv) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["ledger"] is True
+    (row,) = [r for r in payload["prefixes"] if "door" in r]
+    assert "--ledger" in row["door"]["argv"]
+
+
 def test_a_reading_nothing_disputes_qualifies_nothing(tmp_path: Path, capsys) -> None:
     """The qualifier is a conjunction and not a hedge: read correctly, there is no `also` line
     and the round-trip sentence — if it fires at all — names no alternative."""

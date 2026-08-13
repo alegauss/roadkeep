@@ -119,15 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 145 | 1 |
 | C — Query (consult without reading the file) | 0 | 93 | 1 |
-| D — The gate | 2 | 159 | 0 |
+| D — The gate | 1 | 160 | 0 |
 | E — Adoption | 1 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 104 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 4 | 638 | 6 |
+| **Total** | 3 | 639 | 6 |
 
 **Next ready:**
 
-- 🛠 **RK1147** (deps: —) **the adopt payload publishes the count of an unread reading and not the flag that changes it** — The printed report has named the flag since RK285 and the payload leaves it to be inferred from a count. → §RK1147
+- 📋 **RK1148** (deps: —) **three skips claim a shape left the corpus and it was never there at the pin before** — The clause is prose nobody checks, while both retired revisions still resolve, so a false history reads as coverage. → §RK1148
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -108,34 +108,6 @@ never read — the refusal is right, its ergonomics are not.
 
 ## Block D — The gate
 
-### §RK1147 The payload carries the count and the report carries the door
-
-`adopt` is the first command an adopting project runs, and it runs before anybody there
-knows this tool's vocabulary. Point it at Shio's roadmap with nothing declared and the
-printed report has said the right thing since RK285:
-
-```
-also  20 pointer(s) spell outline, unread here: --ref-scheme outline if that is how …
-```
-
-The payload of the same run says `{"scheme": "outline", "count": 20}` beside
-`line.non-canonical: 20`, and nothing else. Same reading, two surfaces, and only one of
-them carries the door — the asymmetry `lint` has not had since RK15, where every finding
-names the command that closes it and the JSON carries it as a structured `remedy`.
-
-Who reads which is the whole cost. The text surface goes to a person weighing an
-adoption; the payload goes to an agent, which is the author this tool is built for, and
-what it gets is two counts and the inference *between* them. This filing is the
-evidence: it was opened against the `Estimate` object, claimed the report named no
-cause, and the report named it twice.
-
-So the finding is one field wide: the rows that already say a reading is unread carry
-the door that reads it that way, published in the one shape `Door` already has. What the
-door must carry to be honest is the flags that decide the measurement — `--sections`
-reads a rationale file and `--ledger` applies the changelog limits (RK76) — and the
-estimate records neither today, so the role it was taken in becomes a field rather than
-something a consumer infers from `unit`.
-
 ### §RK1148 A skip that makes a historical claim can be held to it
 
 A skip reason is prose an author writes once, and three of the five RK1144 catalogued

@@ -243,7 +243,6 @@ EXEMPT = {
     "init": "scaffolds the files the caller asked for, so the paths are the argument",
     "install": "wires the harness's own surfaces, which are not governed files",
     "uninstall": "un-wires the same surfaces, and names each as it takes it out",
-    "adopt": "writes nothing: it estimates what bringing a backlog under the schema costs",
     "export": "the projection *is* the work here, so the staging line restates the argument",
     # Found by the closure below rather than by a reader, which is the whole argument for it.
     "repair": "writes nothing itself: it re-enters the dispatcher per step, and each step's "
@@ -282,7 +281,10 @@ def test_every_write_command_is_either_wired_or_exempted():
     # The number in RK1130's own line was 32 — read as `63 - 31 reads_only`, one command
     # short. Stated here as the parser answers it, because that is the reading that binds.
     # 34 since `capture filed` (RK1142), which is exempt: its file is not in the repository.
-    assert len(declared) == 34 and len(wired) == 27
+    # 33 since RK1147: `adopt` was exempt with the reason *writes nothing*, which is a
+    # `reads_only` declaration written as a comment in a test — so the parser says it now, the
+    # verb is out of the write lock, and this row is gone rather than restating it.
+    assert len(declared) == 33 and len(wired) == 27
 
 
 def test_every_wired_write_reaches_the_one_printer():

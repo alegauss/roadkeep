@@ -237,6 +237,35 @@ class Door:
         fields = _fields_of(_subparser(tool.command), rest, tool.exposes)
         return None if fields is None else (name, fields)
 
+    def payload(self, served: str = "") -> dict[str, object]:
+        """This door as JSON — one writer, because two answers publish one now (RK1147).
+
+        `Remedy.payload` built this row inline, and then `adopt` needed the same shape: its
+        printed report has named the flag that reads a file the other way since RK285, and its
+        payload published the count beside it and nothing else — the asymmetry `lint` has not
+        had since RK15, on the one command whose whole output is a decision. An estimate's
+        unread reading is not a finding and has no code, so what it carries is a door and not a
+        `Remedy`, which is exactly why the row had to stop being a `Remedy` local.
+
+        ``served`` is the prefix this session's tools arrive under, and where it is given the
+        door carries its **call** beside its argv (RK449). Absent — or where nothing serves the
+        door, which is every `adopt` door, that verb being deliberately unserved — only the
+        argv is published, which is what every consumer written before RK449 already reads.
+        """
+        row: dict[str, object] = {
+            "argv": list(self.argv),
+            "what": self.what,
+            "complete": self.complete,
+            # Whether pressing it changes the files (RK1015): the kind is the remedy's, and one
+            # `decide` holds a read and a write.
+            "writes": self.writes,
+        }
+        call = self.call() if served else None
+        if call is not None:
+            name, fields = call
+            row["call"] = {"tool": f"{served}{name}", "arguments": fields}
+        return row
+
     def named(self, served: str = "") -> str:
         """This door's **command alone**, in the spelling ``served`` has (RK488).
 
@@ -403,22 +432,11 @@ class Remedy:
         module reads no project. Absent, or where nothing serves the door, only the argv is
         published, which is what every consumer written before this already reads.
         """
-        doors: list[dict[str, object]] = []
-        for door in self.doors:
-            row: dict[str, object] = {
-                "argv": list(door.argv),
-                "what": door.what,
-                "complete": door.complete,
-                # Whether pressing it changes the files (RK1015): the kind is the remedy's,
-                # and one `decide` holds a read and a write.
-                "writes": door.writes,
-            }
-            call = door.call() if served else None
-            if call is not None:
-                name, fields = call
-                row["call"] = {"tool": f"{served}{name}", "arguments": fields}
-            doors.append(row)
-        return {"kind": self.kind, "decision": self.decision, "doors": doors}
+        return {
+            "kind": self.kind,
+            "decision": self.decision,
+            "doors": [door.payload(served) for door in self.doors],
+        }
 
     def spoken(self, served: str = "") -> str:
         """The same text :meth:`__str__` renders, in the spelling this session has (RK478)."""
