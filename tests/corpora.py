@@ -54,9 +54,11 @@ import atexit
 import shutil
 import tempfile
 import tomllib
-from dataclasses import dataclass
+from collections.abc import Callable
+from dataclasses import dataclass, replace
 from functools import lru_cache
 from pathlib import Path
+from typing import NoReturn
 
 import pytest
 
@@ -334,3 +336,46 @@ FROZEN_SHAPES = (BLOCK_DEP, RANGE_DEP)
 def thawed(shape: Frozen) -> Config:
     """The frozen excerpt as a project, read the way every other project is."""
     return Config.discover(shape.where)
+
+
+#: The revision each pin replaced, kept here because it still resolves (RK1148). Not a second
+#: pin anything is measured at — nothing reads it for a number — and that is what answers RK105
+#: rather than contradicting it: a **baseline** must not move, the state it holds being the
+#: subject of the claim, so it is the one revision nobody re-measures on purpose.
+BEFORE = {"shio": "b9302e8e", "turing": "f08304fcb1"}
+
+
+def retired(
+    corpus: Corpus, shape: str, found: Callable[[Corpus], bool], also: str = ""
+) -> NoReturn:
+    """Skip because a shape is not at this pin, saying whether the pin is what took it.
+
+    Three of the five skips RK1144 left made a **historical** claim — *any more*, *has since*,
+    *every one it had has shipped* — and measured against the revisions those pins replaced,
+    three of them were false: Shio conformed at `b9302e8e` too, and Turing spelled no lettered
+    fourth level at `f08304fcb1` either. RK1146 was filed, worked and shipped on the strength of
+    one of them, which is what a clause nobody checks costs.
+
+    So the clause is **derived** rather than written (RK1148). ``found`` is the shape as a
+    question about a corpus, asked here at the baseline, and the reason names which of three
+    things happened: the pin took it, the shape was gone before either pin, or the baseline no
+    longer resolves and nothing can say. A test keeps the sentence it can prove and no other.
+
+    Never a red, deliberately. What a skip reports is an **absent input** — `require`'s rule one
+    step along — and a suite going red because somebody else renamed a heading is the arrangement
+    RK105 removed. What was wrong was never the skip; it was the history beside it.
+
+    ``also`` is where the coverage went, when it went somewhere: RK1145 froze two shapes, and a
+    reader of a skip should not have to discover that the evidence moved rather than ended.
+    """
+    # So the summary keeps naming the *test* that skipped and not this helper: a report telling
+    # a maintainer that `corpora.py` skipped three times is one that cannot be acted on.
+    __tracebackhide__ = True
+    baseline = replace(corpus, rev=BEFORE[corpus.name])
+    if not present(baseline):
+        because = f"and {baseline.rev} no longer resolves, so nothing here can say when"
+    elif found(baseline):
+        because = f"and it was there at {baseline.rev}, which is what the pin took"
+    else:
+        because = f"and it was not there at {baseline.rev} either, so no pin retired it"
+    pytest.skip(f"{corpus} carries no {shape}, {because}{f' ({also})' if also else ''}")

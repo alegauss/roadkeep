@@ -341,16 +341,24 @@ def test_a_lettered_heading_in_the_live_corpus_becomes_a_section_the_budget_char
     """The shape RK47 measured — a fourth level spelled with a letter, escaping the budget.
 
     The parser's side of it is the local fixture above (`§IX.2a`); what the corpus added was
-    that twenty of them existed and one ran to 779 words. Turing has since renumbered them
-    to `III.1.1`, so at this pin the shape is not there to read — which the pin turns into
-    one stable skip instead of a test that goes red the day somebody else renames a heading.
+    that twenty of them existed and one ran to 779 words. At this pin the shape is not there to
+    read — which the pin turns into one stable skip instead of a test that goes red the day
+    somebody else renames a heading.
+
+    The skip used to say Turing *had since* renumbered them, and RK1148 measured that clause:
+    `f08304fcb1` spells none either, so no re-pin took this shape and the sentence was inventing
+    a history. `corpora.retired` asks the baseline instead of asserting an answer.
     """
     corpora.require(corpora.TURING)
-    sections = anchored(corpora.document(corpora.TURING, "improvements"))
-    lettered = [s for s in sections if s.anchor[-2:-1] == "." and s.anchor[-1].isalpha()]
-    if not lettered:
-        pytest.skip(f"{corpora.TURING} spells no fourth level with a letter any more")
-    assert max(s.words for s in lettered) > 250
+
+    def lettered(corpus):
+        sections = anchored(corpora.document(corpus, "improvements"))
+        return [s for s in sections if s.anchor[-2:-1] == "." and s.anchor[-1].isalpha()]
+
+    found = lettered(corpora.TURING)
+    if not found:
+        corpora.retired(corpora.TURING, "fourth level spelled with a letter", lettered)
+    assert max(s.words for s in found) > 250
 
 
 # -- dropping ----------------------------------------------------------------
@@ -1177,19 +1185,27 @@ def test_the_state_this_condition_is_for_is_one_a_live_corpus_carries():
             declared.setdefault(anchor, []).append(role)
     assert len([a for a, rs in declared.items() if len(rs) > 1]) == 13
 
-    pointed = {
-        e.task.ref
-        for e in corpora.document(corpora.TURING, "roadmap").entries
-        if e.task.ref and len(declared.get(e.task.ref, ())) > 1
-    }
+    def pointing(corpus):
+        """The state this test is for: a doubled anchor an open line still reaches."""
+        held: dict[str, list[str]] = {}
+        for role in ("improvements", "strategy"):
+            if not corpora.has(corpus, role):
+                continue
+            for anchor in dict.fromkeys(s.anchor for s in anchored(corpora.document(corpus, role))):
+                held.setdefault(anchor, []).append(role)
+        return {
+            e.task.ref
+            for e in corpora.document(corpus, "roadmap").entries
+            if e.task.ref and len(held.get(e.task.ref, ())) > 1
+        }
+
+    pointed = pointing(corpora.TURING)
     # The 13 doubled anchors are still there at `2d71c9eac9`; what shipped is T354, the one open
-    # line that pointed at one of them (RK1144). So the state this test is for — a doubled anchor
-    # a live pointer reaches — is an **absent input** at this pin rather than a failing claim,
-    # which is `corpora.require`'s rule one step along, and the measurement below stays dated.
+    # line that pointed at one of them (RK1144). So the state this test is for is an **absent
+    # input** at this pin rather than a failing claim, which is `corpora.require`'s rule one step
+    # along — and RK1148 has the baseline say so rather than this comment claiming it.
     if not pointed:
-        pytest.skip(
-            f"{corpora.TURING} carries 13 doubled anchors and no open line points at one"
-        )
+        corpora.retired(corpora.TURING, "doubled anchor an open line points at", pointing)
     assert pointed == {"X.1"}
     improvements = documents["improvements"]
     (own,) = [s for s in anchored(improvements) if s.anchor == "X.1"]

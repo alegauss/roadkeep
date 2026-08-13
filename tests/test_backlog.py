@@ -549,21 +549,27 @@ def test_shios_block_deps_all_name_a_block_it_declares():
     for the pin that carries one again rather than being weakened into passing on nothing.
     """
     corpora.require(corpora.SHIO)
-    schema = corpora.config(corpora.SHIO).schema_for("roadmap")
+
+    def blocks(corpus):
+        schema = corpora.config(corpus).schema_for("roadmap")
+        return {
+            schema.block_of_dep(dep)
+            for e in corpora.document(corpus, "roadmap").entries
+            for dep in e.task.deps
+            if schema.classify_dep(dep) is DepKind.BLOCK
+        }
+
     document = corpora.document(corpora.SHIO, "roadmap")
     declared = {h.label for h in document.headings if h.label}
-    named = {
-        schema.block_of_dep(dep)
-        for e in document.entries
-        for dep in e.task.deps
-        if schema.classify_dep(dep) is DepKind.BLOCK
-    }
+    named = blocks(corpora.SHIO)
     if not named:
-        # Where the shape went, named in the skip (RK1145): a reader of a skip should not have
-        # to discover that the coverage moved rather than ended.
-        pytest.skip(
-            f"shio carries no block dep at this pin: every one it had has shipped, and the "
-            f"shape is frozen at {corpora.BLOCK_DEP.where.name}"
+        # Where the shape went, and whether the pin is what took it: RK1145 froze it and RK1148
+        # has the baseline say so, rather than a sentence here asserting a history.
+        corpora.retired(
+            corpora.SHIO,
+            "block dep",
+            blocks,
+            also=f"the shape is frozen at {corpora.BLOCK_DEP.where.name}",
         )
     assert named <= declared
 

@@ -119,15 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 145 | 1 |
 | C — Query (consult without reading the file) | 0 | 93 | 1 |
-| D — The gate | 1 | 161 | 0 |
+| D — The gate | 0 | 162 | 0 |
 | E — Adoption | 1 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 104 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 3 | 640 | 6 |
+| **Total** | 2 | 641 | 6 |
 
 **Next ready:**
 
-- 📋 **RK1148** (deps: —) **three skips claim a shape left the corpus and it was never there at the pin before** — The clause is prose nobody checks, while both retired revisions still resolve, so a false history reads as coverage. → §RK1148
+- 📋 **RK1149** (deps: —) **A refusal that already computed the free anchor still makes the caller retype it** — add names the next free ref and the next unused one when it refuses, but carries no door, so every task under an outline scheme costs two calls instead of one. → §RK1149
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

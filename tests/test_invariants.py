@@ -400,6 +400,54 @@ def test_no_survey_derives_its_own_view_of_the_package():
     assert asking["surface.py"], "surface.py stopped reading the package at all"
 
 
+#: Clauses that make a claim about a corpus's **past**. Each was measured for RK1148 and three
+#: of the five skips RK1144 left carried one; three of those three were false — Shio conformed at
+#: `b9302e8e` too and Turing spelled no lettered heading at `f08304fcb1` either — and RK1146 was
+#: filed, worked and shipped on the strength of one. `corpora.retired` derives the clause from
+#: the baseline instead, so what is forbidden here is writing one by hand.
+_HISTORIES = ("any more", "has since", "used to", "it had", "since shipped")
+
+
+def test_no_skip_writes_a_corpus_history_by_hand():
+    """RK1148. The alternative this closes off is the one the section weighed and refused.
+
+    A skip reason is prose an author writes once and nothing reads again, which is exactly the
+    condition RK402 named in the other direction: a check that can only skip is one nobody
+    notices. Forbidding the clause outright would lose what RK1145 needed it for — where the
+    coverage went — so the clause is *derived* where it is true and refused where it is typed.
+
+    Both directions, because a rule over an empty set is a rule about nothing: the helper has to
+    be reached by more than one test, or this is a filter nobody trips and the histories are
+    somewhere else.
+    """
+    typed: dict[str, list[int]] = {}
+    reached = 0
+    for module in sorted(Path(__file__).parent.glob("*.py")):
+        for node in ast.walk(ast.parse(module.read_text(encoding="utf-8"))):
+            if not isinstance(node, ast.Call):
+                continue
+            named = node.func.attr if isinstance(node.func, ast.Attribute) else ""
+            if named == "retired":
+                reached += 1
+                continue
+            if named != "skip":
+                continue
+            # The literal halves of the message, f-string or not: an interpolated revision is a
+            # measurement and only the words around it can invent a history.
+            said = " ".join(
+                part.value
+                for argument in node.args
+                for part in (
+                    argument.values if isinstance(argument, ast.JoinedStr) else [argument]
+                )
+                if isinstance(part, ast.Constant) and isinstance(part.value, str)
+            )
+            if any(clause in said for clause in _HISTORIES):
+                typed.setdefault(module.name, []).append(node.lineno)
+    assert typed == {}, typed
+    assert reached >= 3, f"corpora.retired is reached {reached} time(s): the rule sweeps nothing"
+
+
 def test_no_test_spells_an_address_the_package_no_longer_has():
     """RK1074. RK496 declared the module *set* and left the **addresses** hand-written.
 

@@ -32,8 +32,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1148** (deps: —) **three skips claim a shape left the corpus and it was never there at the pin before** — The clause is prose nobody checks, while both retired revisions still resolve, so a false history reads as coverage. → §RK1148
-
 ## Block E — Adoption
 
 - 📋 **RK1150** (deps: —) **An older installed roadkeep reports a newer config's key as a typo, so the fix reads as deleting it** — unknown key names the allowed set and never the running version, so a plugin one release behind its project looks like a roadkeep.toml somebody got wrong. → §RK1150
