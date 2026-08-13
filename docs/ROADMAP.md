@@ -30,6 +30,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1162** (deps: —) **a delivery elsewhere and a local filing are one number in the payload** — The report says which reading cleared the row and the JSON publishes a count that means two different things. → §RK1162
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

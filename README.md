@@ -119,11 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 146 | 1 |
 | C — Query (consult without reading the file) | 0 | 93 | 1 |
-| D — The gate | 0 | 170 | 1 |
+| D — The gate | 1 | 170 | 1 |
 | E — Adoption | 0 | 86 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 105 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 652 | 7 |
+| **Total** | 1 | 652 | 7 |
+
+**Next ready:**
+
+- 📋 **RK1162** (deps: —) **a delivery elsewhere and a local filing are one number in the payload** — The report says which reading cleared the row and the JSON publishes a count that means two different things. → §RK1162
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
