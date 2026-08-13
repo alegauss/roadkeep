@@ -81,35 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1154 Which spelling a test means
-
-Three assertions in `test_guarding` say *this message does not name the shell*, and they
-say it as a substring test: `assert invocation() not in said`. On a checkout
-`invocation()` is `python scripts/roadkeep.py` and the test means what it says. After
-`pip install`, it is the console script — `roadkeep` — and every served name contains
-it:
-
-```
-assert 'roadkeep' not in 'roadkeep governs docs/ROADMAP.md — … `mcp__roadkeep__brief` starts …'
-```
-
-So the assertion fails on the one environment where the message it guards is *most*
-likely to be right, and it fails for a reason that has nothing to do with the claim:
-`mcp__roadkeep__brief` contains `roadkeep` because this tool is what serves it. Three
-tests, all green locally, all red in CI, and RK444's finding — the one guaranteed
-message must name the engine that answers — is not what any of them measured there.
-
-What the claim actually is: no line spells the **command**, which is the engine followed
-by a verb. `mcp__roadkeep__brief` never is, whatever the engine is called, because a
-tool name has no space in it. So the test reads for `invocation()` immediately followed
-by a space, and not for the name alone — one predicate, in one helper, for the three
-that make the claim.
-
-The general shape is worth naming: an assertion about a *rendering* that reads the
-rendering's own vocabulary out of a function whose answer changes with the install.
-`invocation()` is right to change; a test comparing against it has to say which spelling
-it means.
-
 ## Block E — Adoption
 
 ### §RK1150 A version skew wearing a typo's message (RK1150)

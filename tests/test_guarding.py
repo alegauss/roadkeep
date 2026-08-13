@@ -716,6 +716,36 @@ def test_a_mechanical_finding_is_still_counted_and_not_repeated(tmp_path):
     assert reason.count(f"{invocation()} lint --fix") == 1
 
 
+def shelled(text: str) -> list[str]:
+    """The lines that spell the **shell command**, which is the engine followed by a verb.
+
+    Three tests meant this and asked for `invocation() not in …`, a substring test (RK1154).
+    On a checkout the engine is `python scripts/roadkeep.py` and the two readings agree; after a
+    `pip install` it is the console script — `roadkeep` — and every served name contains it, so
+    `mcp__roadkeep__brief` failed an assertion about the shell for being served by this tool.
+    Red on this repository's own CI, green on every developer's machine, and about nothing the
+    claim was making.
+
+    A space is what separates the two: a tool name has none, and a command always has one before
+    its verb. `invocation()` is right to change with the install; a test comparing against it has
+    to say which spelling it means.
+    """
+    return [one for one in text.splitlines() if f"{invocation()} " in one]
+
+
+def test_the_shell_predicate_is_not_fooled_by_the_tool_that_serves_it(monkeypatch):
+    """RK1154, at the one spelling that broke the three assertions below.
+
+    Asserted with the engine forced to the console script, because that is the install this
+    suite never runs under and CI always does: `pip install .` puts `roadkeep` on PATH, and
+    every tool this project serves is named after it. Both directions, since a predicate that
+    answered *no* to everything would have made three tests pass by testing nothing.
+    """
+    monkeypatch.setitem(globals(), "invocation", lambda: "roadkeep")
+    assert shelled("  then     roadkeep lint --fix") == ["  then     roadkeep lint --fix"]
+    assert shelled("`mcp__roadkeep__brief` starts a task, and takes the id") == []
+
+
 def test_the_door_the_gate_prints_is_in_the_spelling_this_session_has(tmp_path):
     """RK449 gave `Door.call()` the served spelling and RK448 the line above it; a door
     printed here in the shell form would undo both one message later."""
@@ -732,7 +762,7 @@ def test_the_door_the_gate_prints_is_in_the_spelling_this_session_has(tmp_path):
     # absence of the shell spelling under a finding rather than a prefix on every line.
     under = [one for one in said.splitlines() if one.startswith("    ")]
     assert under and any("mcp__roadkeep__" in one for one in under), under
-    assert not [one for one in under if invocation() in one], under
+    assert not shelled("\n".join(under)), under
     # `--fix` is the exception that stays a shell command, and it says why itself.
     assert f"{invocation()} lint --fix" in said
 
@@ -918,7 +948,7 @@ def test_the_reads_a_denial_closes_on_are_named_in_the_spelling_this_session_has
     for read in ("brief", "show", "list"):
         assert f"mcp__roadkeep__{read}" in said, read
     tail = said[said.index("Reading is never refused") :]
-    assert invocation() not in tail
+    assert not shelled(tail), tail
     # Fields and not an argv, which is RK476's finding in prose: a caller here passes
     # arguments, so `<id>` and `--block <x>` would be a spelling it cannot use.
     assert "<id>" not in tail and "--block" not in tail
@@ -1023,7 +1053,7 @@ def test_where_the_tools_are_served_the_notice_names_them_and_not_the_shell(tmp_
     served = str(Notice(files=(ROADMAP,), served="mcp__roadkeep__"))
     assert "mcp__roadkeep__brief" in served
     assert "mcp__roadkeep__show" in served and "mcp__roadkeep__list" in served
-    assert invocation() not in served
+    assert not shelled(served), served
 
 
 def test_a_project_with_no_tools_is_still_pointed_at_the_route_it_has(tmp_path):
