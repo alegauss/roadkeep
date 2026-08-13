@@ -450,6 +450,7 @@
 - ✅ **RK1111** **a namespaced citation is read as its namespace, so lint reports a live anchor as dangling** — A citation is read to the end of its address, so a namespaced or sentence-final one resolves and a dead one is still reported.
 - ✅ **RK1132** **45 modules end CRLF and 11 end LF, so an edit anchored on one terminator silently matches nothing** — A committed .gitattributes decides the checkout and a test refuses any file that mixes the two, so a scripted edit cannot silently match nothing.
 - ✅ **RK1134** **the index closure reads the git index, so a new surface reaches it one commit after it was written** — The index closure reads what is tracked and what is written but not yet added, so a surface reaches it on the turn that wrote it and both directions read one set.
+- ✅ **RK1135** **agents.md has one line of budget left, so the next surface the index must name has nowhere to be named** — A per-sentence pass reclaimed two lines and 124 bytes with every rule and measurement kept, and measured the prose and the index both at their density floor.
 
 ## Block E — Adoption
 
