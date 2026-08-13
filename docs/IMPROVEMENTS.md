@@ -77,6 +77,66 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1126 The paragraph that carries no id
+
+`written` credits a path where its diff **names this id**, read off `git diff HEAD -U0`
+— so what accounts for a rationale file is a *heading* being written, `### §RK2 …`
+carrying the id in an added line. A `section amend <id> --body` rewrites the paragraph
+under that heading and touches no line carrying the id at all.
+
+Measured while writing RK1125's tests, which is how it was found — the fixture amended a
+body and the reading came back:
+
+```
+Scope(mine=('src/a.py',), theirs=(), loose=('IMPROVEMENTS.md',), …)
+  loose    IMPROVEMENTS.md  (no claim names it)
+```
+
+The file this task had just edited, reported as a change no claim accounts for. That is
+RK1117's sentence pointed at the author's own work, and it is the failure RK342 named
+from the other side: every dirty governed file handed to whoever asks was wrong, and so
+is every one withheld — the author declares the path by hand to silence it, and the
+scope then carries paths that were never the work.
+
+The reading that decides it already exists one command over. `lint --since` parses the
+file as it was so a removal is attributed to the section that **held** it (RK36), and
+`changed_lines` gives the line numbers. A prose file is this id's where its changed
+lines fall inside the span of a section this id owns — `sections.owners` being the
+reader of that ownership, including the outline case where the id lives in the heading's
+title rather than in its anchor.
+
+### §RK1127 The subtree that is not a stranger
+
+`designs_since` labels each section by the id its heading names, or by its anchor where
+it names none, and `sharing` then subtracts the id being committed. Under the id scheme
+a subsection's anchor is `§RK2.1`, which is not the string `RK2` — so this task's own
+subtree survives the subtraction and is reported as another session's design.
+
+Measured in a scratch repository, one subsection appended to the section being shipped:
+
+```
+$ designs_since(config, "HEAD", "improvements")
+frozenset({'RK2.1'})
+$ … - {"RK2"}
+{'RK2.1'}
+```
+
+So the report a departure prints would name `RK2.1` as work this commit is carrying for
+somebody else, on the ordinary shape RK1112's own docstring describes: *a `§<id>.1` is a
+section with an anchor of its own, amended by naming it*. A reader who trusts one false
+`shared` line stops reading the true ones, which is the whole cost of the rule it
+belongs to.
+
+The comparison is the wrong one and the right one is already written. `sections` reads
+an address **segment by segment and never as a string prefix** — the care `_extends`
+takes so `§0.1` is not read as extending `§0.10`, and `descending` is the reader that
+answers which anchors are one address's own subtree.
+
+Which leaves a question the fix has to answer rather than inherit: a subsection of
+*another* task's design is that task's, so the exclusion is "extends this id" and not
+"starts with it", and an outline's `XVI.12.3` is nobody's id at all until its title says
+so.
+
 ## Block C — Query
 
 ## Block D — The gate
