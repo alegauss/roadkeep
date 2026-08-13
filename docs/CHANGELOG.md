@@ -472,6 +472,7 @@
 - ✅ **RK1157** **the declaration and the answer differ by one letter, and the declaration is the reachable one** — the half is named for the condition it is one side of, and a closure declares the two readers that cannot ask a project.
 - ✅ **RK1158** **an API newer than the supported floor is green on this machine and red only in CI** — a closure reads the floor pyproject declares and refuses the calls above it, over the package and the suite alike.
 - ✅ **RK1159** **nothing here runs the suite the way CI does, so four defects this session were only findable there** — one command applies every difference the gate has that this machine can, and names the two it cannot.
+- ✅ **RK1160** **A capture filed in another repo's backlog can never clear its row, and only a wrong id or a deletion silences it** — a stamp qualified by the repository holding the id is read as filed, because this project cannot open that backlog.
 
 ## Block E — Adoption
 

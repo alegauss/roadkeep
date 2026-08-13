@@ -21,7 +21,7 @@ from roadkeep import attesting, claiming
 from pathlib import Path
 
 from roadkeep.backlog import Backlog, Stage, Standing
-from roadkeep.capturing import captures
+from roadkeep.capturing import captures, delivered
 from roadkeep.briefing import NothingToBrief, brief
 from roadkeep.budgeting import (
     Body,
@@ -263,8 +263,17 @@ def _unfiled(config: Config) -> tuple[tuple[Path, bool], ...]:
     # cleared this row by the act that closed it, and one who reworded the symptom is why the
     # match alone left a row that could never reach zero. An id no file holds does not clear it
     # — a stamp naming a task that was renumbered away is a link and not an outcome.
+    # **Unless the stamp names another repository** (RK1160): a capture of a defect in this tool
+    # belongs in this tool's backlog, so its id is one no governed file here will ever hold, and
+    # both readings above left a row that could only be silenced by a stamp from the wrong
+    # repository or by deleting the evidence. Filed by construction, because this cannot read
+    # that backlog and does not pretend to.
     return tuple(
-        (one.path, one.filed in ids if one.filed else one.symptom in stated)
+        (
+            one.path,
+            bool(delivered(one.filed))
+            or (one.filed in ids if one.filed else one.symptom in stated),
+        )
         for one in held
     )
 

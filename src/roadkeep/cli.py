@@ -2122,7 +2122,10 @@ def build_parser() -> argparse.ArgumentParser:
             "door for one already on disk, and it is the whole of what RK1142 was: clearing "
             "this repository's own row took a `python -c`, which is what L5 exists against. "
             "Refused where no governed file holds the id — a stamp naming nothing is a link "
-            "to nothing — and where the path is not a capture this tool wrote."
+            "to nothing — and where the path is not a capture this tool wrote. An id "
+            "**qualified by a repository** is the exception (RK1160): a defect in roadkeep is "
+            "filed in roadkeep's backlog, so no local file will ever hold that id, and both "
+            "readers left a row nothing could clear."
         ),
     )
     capture_filed.add_argument("path", help="a capture under .roadkeep/reports/")
@@ -2131,7 +2134,10 @@ def build_parser() -> argparse.ArgumentParser:
         dest="task_id",
         required=True,
         metavar="ID",
-        help="the task it was filed as, e.g. RK1138 — refused unless a governed file holds it",
+        help=(
+            "the task it was filed as, e.g. RK1138 — refused unless a governed file holds it, "
+            "or `owner/repo#ID` for one filed in another backlog this project cannot read"
+        ),
     )
     capture_filed.add_argument("--json", action="store_true", help=_JSON_HELP)
     capture_filed.set_defaults(handler=_capture_filed)

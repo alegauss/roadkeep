@@ -119,15 +119,11 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 146 | 1 |
 | C — Query (consult without reading the file) | 0 | 93 | 1 |
-| D — The gate | 1 | 168 | 1 |
+| D — The gate | 0 | 169 | 1 |
 | E — Adoption | 0 | 86 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 105 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 650 | 7 |
-
-**Next ready:**
-
-- 📋 **RK1160** (deps: —) **A capture filed in another repo's backlog can never clear its row, and only a wrong id or a deletion silences it** — The filed id resolves against the capturing project's own ids, so a capture about this tool stays unfiled for ever in the project that took it. → §RK1160
+| **Total** | 0 | 651 | 7 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

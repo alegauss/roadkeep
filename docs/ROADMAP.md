@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1160** (deps: —) **A capture filed in another repo's backlog can never clear its row, and only a wrong id or a deletion silences it** — The filed id resolves against the capturing project's own ids, so a capture about this tool stays unfiled for ever in the project that took it. → §RK1160
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

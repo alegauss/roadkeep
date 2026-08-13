@@ -26,6 +26,7 @@ from roadkeep.capturing import (
     capture,
     captures,
     check,
+    delivered,
     handoff,
     keep,
     replay,
@@ -384,6 +385,11 @@ def _capture_filed(config: Config, args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return EXIT_USAGE
+    # A stamp naming another repository is not this backlog's to verify (RK1160): a capture of a
+    # defect in *this tool* is filed in this tool's backlog — which is what `report --to
+    # OWNER/REPO` says — so the id is one no governed file here holds, and the lookup below would
+    # refuse the one delivery a capture taken here can have. What is checked is the shape.
+    elsewhere = delivered(args.task_id)
     backlog = Backlog.load(config)
     ids = {
         entry.task.id
@@ -391,11 +397,12 @@ def _capture_filed(config: Config, args: argparse.Namespace) -> int:
         if document is not None
         for entry in document.entries
     }
-    if args.task_id not in ids:
+    if not elsewhere and args.task_id not in ids:
         print(
             f"roadkeep: no governed file holds {args.task_id}, so stamping it would be a "
             f"link to nothing — file the capture first, and `add --capture {args.path}` "
-            f"stamps it as it mints the id",
+            f"stamps it as it mints the id; a defect in roadkeep itself belongs in roadkeep's "
+            f"backlog, and `--as owner/repo#{args.task_id}` records that delivery",
             file=sys.stderr,
         )
         return EXIT_USAGE
@@ -409,6 +416,10 @@ def _capture_filed(config: Config, args: argparse.Namespace) -> int:
     # No staging line: the report directory is git-ignored, so there is nothing to stage —
     # which is the exemption `test_every_write_command_is_either_wired_or_exempted` carries.
     print(f"{where} now names {args.task_id}")
+    if elsewhere:
+        # Said out loud, because this is the one stamp nothing here can check: the row clears on
+        # the author's word that the work went there, and a reader should see which claim it is.
+        print(f"  delivered to {elsewhere}, which this project cannot read — taken as filed")
     return EXIT_OK
 
 

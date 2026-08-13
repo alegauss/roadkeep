@@ -57,6 +57,7 @@ from roadkeep.capturing import (
     body,
     capture,
     check,
+    delivered,
     handoff,
     keep,
     observe,
@@ -1084,3 +1085,52 @@ def test_the_payload_says_what_it_wrote(tmp_path, capsys):
     assert main(argv) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload == {"path": ".roadkeep/reports/held.json", "filed": "RK1"}
+
+
+# -- a capture delivered to another backlog (RK1160) ---------------------------
+
+#: The spelling every tracker already uses for a cross-repository reference, which is what an
+#: author types after filing a defect in this tool's own backlog rather than in their project's.
+UPSTREAM = "alegauss/roadkeep#RK1128"
+
+
+def test_a_stamp_naming_a_repository_is_read_as_a_delivery_and_a_bare_one_is_not() -> None:
+    """The shape, and it is the only thing this can check: a qualified id belongs to a backlog
+    this project cannot open, so what is verified is that the author named where it went. Both
+    directions, because a predicate answering *delivered* to everything would clear every row —
+    the state RK1139 was filed to end."""
+    assert delivered(UPSTREAM) == "alegauss/roadkeep"
+    assert delivered("a/b#SH41a") == "a/b"  # another project's `[ids] suffix` (RK110)
+    assert delivered("RK1128") == ""  # a local id, which the backlog still has to hold
+    assert delivered("roadkeep#RK1") == ""  # no repository: a local id with punctuation in it
+    assert delivered("alegauss/roadkeep#nope") == ""
+
+
+def test_a_capture_filed_upstream_clears_the_row_the_local_backlog_cannot(tmp_path, capsys):
+    """The defect, measured in Viglet Turing: a capture whose defect shipped here as RK1128 read
+    `1 unfiled` for ever, because both readings resolve the stamp against the *capturing*
+    project's ids — and a capture of a defect in this tool has one correct destination, which is
+    never that project. The two ways to silence it were a stamp from the wrong repository and
+    deleting the evidence."""
+    root = project(tmp_path)
+    kept = keep(capture(SYMPTOM, WHY, "F", ["lint"], root), root)
+    main(["-C", str(root), "stats"])
+    assert "1 unfiled" in capsys.readouterr().out
+
+    assert main(["-C", str(root), "capture", "filed", str(kept.path), "--as", UPSTREAM]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "delivered to alegauss/roadkeep" in said and "taken as filed" in said
+    main(["-C", str(root), "stats"])
+    assert "unfiled" not in capsys.readouterr().out
+
+
+def test_a_local_id_the_backlog_does_not_hold_is_still_a_link_to_nothing(tmp_path, capsys):
+    """The control, which is what makes the row above a defect rather than a nag: the bare
+    reading is unchanged, so a stamp naming a task nothing here holds is still refused — and the
+    refusal now names the spelling that records a delivery instead."""
+    root = project(tmp_path)
+    kept = keep(capture(SYMPTOM, WHY, "F", ["lint"], root), root)
+    assert main(["-C", str(root), "capture", "filed", str(kept.path), "--as", "RK999"]) != EXIT_OK
+    refused = capsys.readouterr().err
+    assert "no governed file holds RK999" in refused
+    assert "--as owner/repo#RK999" in refused

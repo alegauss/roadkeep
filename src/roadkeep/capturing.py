@@ -928,6 +928,33 @@ IGNORE_RULE = ".roadkeep/"
 _COVERED = frozenset({".roadkeep", ".roadkeep/", "/.roadkeep", "/.roadkeep/", ".roadkeep/**"})
 
 
+#: A stamp naming a task in **another** repository: `owner/repo#ID` (RK1160). One spelling, and
+#: it is the one every tracker already uses for a cross-repository reference, so an author who
+#: types it is typing what they would paste into an issue.
+#:
+#: The id half is deliberately loose — a prefix and a number, with the optional suffix RK110
+#: reads — because it belongs to a backlog whose `[ids]` this project cannot see. What is strict
+#: is the **shape**: a qualifier without a repository is a local id with punctuation in it, and
+#: this must never accept one, since the whole point is that it clears a row nothing checks.
+DELIVERED = re.compile(r"^(?P<repo>[A-Za-z0-9._-]+/[A-Za-z0-9._-]+)#(?P<id>[A-Za-z]+\d+[a-z]?)$")
+
+
+def delivered(stamp: str) -> str:
+    """The repository a stamp names, or `""` where it names an id of this project's own.
+
+    The reading RK1160 needed, and the reason it is a *shape* and not a lookup: a capture of a
+    defect in this tool belongs in this tool's backlog and never in the project that hit it
+    (`report --to OWNER/REPO`), so the id it was filed as is one no governed file here holds. Both
+    readers resolved that stamp against the local backlog, so the row never cleared, and the two
+    ways to silence it were a stamp from the wrong repository or deleting the evidence.
+
+    A qualified stamp is therefore *filed by construction*: this cannot check another backlog and
+    does not pretend to, so what it verifies is that the author named where the work went.
+    """
+    found = DELIVERED.match(stamp.strip())
+    return found["repo"] if found else ""
+
+
 @dataclass(frozen=True, slots=True)
 class Held:
     """One capture the report directory already holds, and the claim it states (RK1139)."""
