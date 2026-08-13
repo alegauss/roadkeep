@@ -109,35 +109,6 @@ themselves.
 
 ## Block C — Query
 
-### §RK1124 The revision resolved once per file
-
-`ids_since` asks `resolves` before it reads anything, which is right — the two silences
-`content_at` returns are what made a whole backlog read as newly arrived — and it asks
-it once per **carrier**, because `sharing` loops over the roles. Resolving `HEAD` is a
-fact about the repository and not about a file, so every call after the first is a
-subprocess for an answer already in hand.
-
-Measured on this repository, which declares two of the three carriers:
-
-```
-resolves alone   20.6ms
-ids_since x3     85.6ms      (two carriers reached; the third is not declared)
-```
-
-RK176 set the floor this spends from at **43ms** for a whole session-start read, and
-`stale` was written to cost 0.86ms of it. `claim <id>` now pays the figure above on
-every call — and it is a read an agent runs before every commit, so it is the one place
-in this mechanism where a subprocess per role is a habit rather than an answer.
-
-The fix is a parameter and not a cache: `resolves` once in `sharing`, its answer passed
-down, which is the shape `plan(gauging=…)` already uses for the one expensive question a
-caller may decline. A cache keyed on a revision would be a second reader of git state
-with its own staleness, in a module whose whole rule is that nothing is stored.
-
-`--porcelain` already pays none of this — it prints the paths and returns before the
-split — so what is measured here is the two answering forms, which are the ones a person
-reads.
-
 ## Block D — The gate
 
 ## Block E — Adoption

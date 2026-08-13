@@ -30,8 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1124** (deps: —) **sharing resolves the same revision once per carrier, so a read pays a subprocess for an answer it already has** — One rev-parse is 20.6ms and the pair costs 85.6ms here against RK176's 43ms floor, on the read an agent runs before every commit. → §RK1124
-
 ## Block D — The gate
 
 ## Block E — Adoption

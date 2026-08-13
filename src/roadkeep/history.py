@@ -574,7 +574,9 @@ def added_ids(config: Config, role: str) -> dict[str, str]:
     return first
 
 
-def ids_since(config: Config, rev: str, role: str) -> frozenset[str]:
+def ids_since(
+    config: Config, rev: str, role: str, *, resolved: bool | None = None
+) -> frozenset[str]:
     """Which ids this role's file **gained or lost a line for** since ``rev`` (RK1120).
 
     Two parses and never a diff heuristic, which is the whole of why this is decidable. RK1117
@@ -597,8 +599,18 @@ def ids_since(config: Config, rev: str, role: str) -> frozenset[str]:
     and for a revision that does not exist, and comparing a *whole backlog* against nothing
     reports every id in it as newly arrived — which on a directory that is not a repository is
     every line the project has.
+
+    ``resolved`` is that answer where the caller already has it (RK1124). Whether git knows a
+    revision is a fact about the **repository**, and asking it per role made a caller looping
+    over the carriers pay a `rev-parse` for something in hand: measured at 20.6ms each, 85.6ms
+    for the pair this repository declares, against the 43ms floor RK176 set for a whole
+    session-start read. A parameter and not a cache, the shape `plan(gauging=…)` already uses
+    for the one expensive question a caller may decline — a cache keyed on a revision would be
+    a second reader of git state with its own staleness, in a module that stores nothing.
     """
-    if not config.has(role) or not resolves(config, rev):
+    if not config.has(role):
+        return frozenset()
+    if not (resolves(config, rev) if resolved is None else resolved):
         return frozenset()
     schema = config.schema_for(role)
     try:

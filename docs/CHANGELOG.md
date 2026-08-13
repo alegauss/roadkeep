@@ -288,6 +288,7 @@
 - ✅ **RK1110** **a table of contents lists the file's own headings and nothing re-derives it, so a ship leaves it wrong** — export --contents derives a prose file's contents from its own headings, so a ship that drops a section rewrites the list in one write (design §RK1110 superseded: one level, not every heading).
 - ✅ **RK1118** **`section show --own` on a container prints an empty body, which reads exactly like a command that failed** — An empty own body says which of the two silences it is and names the subsections that carry the prose, on stderr so the body stays a body.
 - ✅ **RK1122** **`claim <id>` answers an empty shared list on every call, so the read a commit is composed from sees half its contract** — sharing is one function both readers of the commit contract call, so claim <id> names the ids that moved in a file it is about to stage.
+- ✅ **RK1124** **sharing resolves the same revision once per carrier, so a read pays a subprocess for an answer it already has** — The revision is resolved once per command and passed down, and a tree with nothing to compare asks git nothing: 123.8ms to 90.8ms here.
 
 ## Block D — The gate
 

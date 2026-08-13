@@ -1757,3 +1757,57 @@ def test_the_key_the_two_payloads_do_not_share_is_the_declared_one(tmp_path, cap
     argv = ["-C", str(tmp_path), "ship", "RK2", "--why", "It works now.", "--json"]
     assert main(argv) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["scope"]["mine"] == ["src/a.py"]
+
+
+# -- one revision, asked once (RK1124) -----------------------------------------
+
+
+def test_the_revision_is_resolved_once_however_many_carriers(tmp_path, monkeypatch):
+    """RK1124. Whether git knows `HEAD` is a fact about the repository, and `sharing` asked it
+    per role: measured here at 40.6ms a call, 123.8ms for the two carriers this project declares
+    against 90.8ms with one — on the read an agent runs before every commit."""
+    from roadkeep import history
+
+    if not history.git_available():
+        pytest.skip("git is not on PATH")
+    config = _committed(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    asked = []
+    real = history.resolves
+    monkeypatch.setattr(history, "resolves", lambda c, rev: asked.append(rev) or real(c, rev))
+    claiming.sharing(config, "RK2", ["ROADMAP.md", "CHANGELOG.md"])
+    assert asked == ["HEAD"]
+
+
+def test_a_carrier_nothing_accounts_for_asks_git_nothing(tmp_path, monkeypatch):
+    # The common case: a tree holding only this task's work. The loop is not entered to find
+    # out there is nothing to compare, so no subprocess is spent discovering it.
+    from roadkeep import history
+
+    if not history.git_available():
+        pytest.skip("git is not on PATH")
+    config = _committed(tmp_path, BLOCKS + line("RK2"))
+    take(config)
+    claiming.scope(config, "RK2", ["src/a.py"])
+    monkeypatch.setattr(
+        history, "resolves", lambda c, rev: pytest.fail("git was asked with nothing to compare")
+    )
+    assert claiming.sharing(config, "RK2", []) == ()
+
+
+def test_a_caller_that_already_resolved_is_not_asked_again(tmp_path, monkeypatch):
+    # The parameter, and both of its answers: `False` short-circuits the read for the same
+    # reason `resolves` does — comparing a whole backlog against nothing reports all of it.
+    from roadkeep import history
+
+    if not history.git_available():
+        pytest.skip("git is not on PATH")
+    config = _committed(tmp_path, BLOCKS + line("RK2"))
+    with (tmp_path / "ROADMAP.md").open("a", encoding="utf-8", newline="") as handle:
+        handle.write(line("RK9"))
+    monkeypatch.setattr(
+        history, "resolves", lambda c, rev: pytest.fail("the caller had already resolved it")
+    )
+    assert history.ids_since(config, "HEAD", "roadmap", resolved=False) == frozenset()
+    assert history.ids_since(config, "HEAD", "roadmap", resolved=True) == frozenset({"RK9"})

@@ -735,15 +735,27 @@ def sharing(
     headings. :data:`~roadkeep.ids.CARRIERS` and not every role, because a line is what moves —
     a prose file's ids live in headings, and one this task did not write is loose already.
     """
-    from roadkeep.history import ids_since  # noqa: PLC0415 - RK260, and git belongs off every
-    # path that did not ask for it
+    # Deferred for RK260's reason, and because git belongs off every path that did not ask.
+    from roadkeep.history import ids_since, resolves  # noqa: PLC0415
 
     explained = frozenset(accounted)
+    wanted = [
+        role
+        for role in CARRIERS
+        if config.has(role) and config.relative(config.path(role)) in explained
+    ]
+    if not wanted:
+        # Nothing to compare, so nothing is asked of git at all — the common case on a tree
+        # holding only this task's work, and the reason the loop is not entered to find out.
+        return ()
+    # Once, and passed down (RK1124): whether git knows `HEAD` is a fact about the repository,
+    # and a `rev-parse` per role was 20.6ms of an answer already in hand.
+    known = resolves(config, "HEAD")
     out: list[tuple[str, tuple[str, ...]]] = []
-    for role in CARRIERS:
-        if not config.has(role) or config.relative(config.path(role)) not in explained:
-            continue
-        others = tuple(sorted(ids_since(config, "HEAD", role) - {task_id}))
+    for role in wanted:
+        others = tuple(
+            sorted(ids_since(config, "HEAD", role, resolved=known) - {task_id})
+        )
         if others:
             out.append((config.relative(config.path(role)), others))
     return tuple(out)
