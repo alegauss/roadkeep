@@ -120,14 +120,10 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 134 | 1 |
 | C — Query (consult without reading the file) | 0 | 89 | 1 |
 | D — The gate | 0 | 149 | 0 |
-| E — Adoption | 1 | 84 | 1 |
+| E — Adoption | 0 | 85 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 102 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 610 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1119** (deps: —) **the entry-point sentence `install` writes says it wired a checkout, which a `--committed` project has none of** — The bridge resolves an engine at runtime and the environment the flag exists for holds no checkout, so the first sentence a session reads sends it looking for one. → §RK1119
+| **Total** | 0 | 611 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

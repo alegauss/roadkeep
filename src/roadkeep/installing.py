@@ -432,7 +432,9 @@ def plan(
     if own:
         skipped.insert(0, (PROJECT_SKILL, f"{PROJECT_SKILL}: {_OWN_SKILL}"))
     else:
-        surfaces.append(_copy(base / PROJECT_SKILL, _skill(origin, launcher)))
+        surfaces.append(
+            _copy(base / PROJECT_SKILL, _skill(origin, launcher, committed=committed))
+        )
     if own:
         skipped.insert(0, (PROJECT_WORKFLOW, f"{PROJECT_WORKFLOW}: {_OWN_WORKFLOW}"))
     elif (base / WORKFLOWS).is_dir():
@@ -935,7 +937,7 @@ def _workflow(origin: Path, debt: int | None) -> str:
 # -- what each kind of surface does to the file it lands in -------------------
 
 
-def _skill(origin: Path, launcher: str) -> str:
+def _skill(origin: Path, launcher: str, *, committed: bool = False) -> str:
     """The plugin's skill with its entry point re-addressed — the fourth substitution (RK137).
 
     `install` states that the launcher's path is the only substituted fact, and the skill was
@@ -952,18 +954,32 @@ def _skill(origin: Path, launcher: str) -> str:
     text = _read(origin / PLUGIN_SKILL)
     # A function and not a replacement string: a launcher is a path, and `re.sub` would read
     # a backslash in one as a group reference.
-    replaced, count = _ENTRY_RE.subn(lambda _: _entry(launcher), text)
+    replaced, count = _ENTRY_RE.subn(lambda _: _entry(launcher, committed=committed), text)
     if count != 1:
         raise Unanchored(origin / PLUGIN_SKILL, count)
     return replaced
 
 
-def _entry(launcher: str) -> str:
-    """What the entry-point sentence becomes for a project running this from a checkout.
+def _entry(launcher: str, *, committed: bool = False) -> str:
+    """What the entry-point sentence becomes, per variant (RK1119).
 
     Quoted, for the reason the hook command is: a checkout on a path with a space in it is
     otherwise two arguments.
+
+    **Two sentences and not one with a clause swapped**, because the clause is the difference:
+    under `--committed` nothing was wired to a checkout — the launcher is a file in the
+    repository that *resolves* one at runtime, and the environment the flag exists for has
+    none until something provides one. So the sentence a session read before running anything
+    named the wrong place to look for its engine, in the file it reads instead of asking, and
+    an agent that believed it went looking for the checkout the launcher exists to not need.
+    Since RK1113 a plain `install` writes this variant too, so the flag is not the only path.
     """
+    if committed:
+        return (
+            f"`python \"{launcher}\"` is this project's entry point — the package is not "
+            f"installed here and `roadkeep` is on no PATH, and that launcher is committed to "
+            f"this repository so it finds an engine wherever this environment has one."
+        )
     return (
         f"`python \"{launcher}\"` is this project's entry point — `install` wired it to a "
         f"checkout, so the package is not installed here and `roadkeep` is on no PATH."

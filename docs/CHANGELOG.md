@@ -524,6 +524,7 @@
 - ✅ **RK1100** **adopt estimates what a project gains and never says the tool surface costs it fifty thousand characters** — the estimate prints what the served surface costs a session at connect, beside the doors it names and with no verdict on the trade.
 - ✅ **RK1101** **a relative path under -C resolves against the shell's directory, so adopt can measure another project's file** — a path naming a file of the project resolves against the project root, and the refusal names the file beside the caller when there is one.
 - ✅ **RK1103** **adopt resolves a project path from the root and no other verb taking one was checked** — PATH_ARGUMENTS classifies every path this CLI takes as the project's, the caller's or repo-relative text, held against the parser.
+- ✅ **RK1119** **the entry-point sentence `install` writes says it wired a checkout, which a `--committed` project has none of** — The entry-point sentence has a variant per wiring, so a committed project reads that its launcher finds an engine rather than that one was wired.
 
 ## Block F — The Claude Code plugin
 

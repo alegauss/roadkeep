@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1119** (deps: —) **the entry-point sentence `install` writes says it wired a checkout, which a `--committed` project has none of** — The bridge resolves an engine at runtime and the environment the flag exists for holds no checkout, so the first sentence a session reads sends it looking for one. → §RK1119
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

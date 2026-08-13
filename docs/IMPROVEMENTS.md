@@ -83,33 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1119 The entry point that names the wrong variant
-
-`install` substitutes one fact into the skill it copies — the entry point (RK137) — and
-the sentence it writes is:
-
-```
-`python "<launcher>"` is this project's entry point — `install` wired it to a checkout, so
-the package is not installed here and `roadkeep` is on no PATH.
-```
-
-Under `--committed` the launcher is `.claude/hooks/roadkeep-launch.py`, a file committed
-to the adopting repository, and the clause is false: nothing was wired to a checkout.
-That launcher *resolves* one at runtime — `$ROADKEEP_HOME`, a sibling of the repository,
-a populated cache — and the environment the flag exists for is precisely the one holding
-none of them.
-
-So the one sentence a session reads before it runs anything tells it the wrong thing
-about where its engine is, in the file it reads instead of asking. An agent that
-believes it goes looking for a checkout, which is the guess the committed launcher
-exists to remove. Since RK1113 a plain `install` on such a project writes the same
-sentence, so the flag is no longer the only path to it.
-
-Two variants, and the substitution already knows which one it is: `plan.committed` says
-so, and `_entry` is handed only the path. The honest half for the bridge is that the
-launcher finds an engine wherever this environment has one, and needs none of them to be
-here.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

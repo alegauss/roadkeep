@@ -227,6 +227,51 @@ def test_it_never_clones():
     assert imported == {"__future__", "json", "os", "subprocess", "sys", "pathlib"}
 
 
+# -- the sentence that says where the engine is (RK1119) -----------------------
+
+
+def test_the_committed_skill_does_not_say_it_was_wired_to_a_checkout(tmp_path):
+    """RK1119. `install` substitutes one fact into the skill it copies, and under `--committed`
+    the clause around it was false: nothing was wired to a checkout, and the environment the
+    flag exists for has none — so the one sentence a session reads before it runs anything
+    named the wrong place to look for its engine."""
+    from roadkeep.adopting import init
+    from roadkeep.installing import PROJECT_SKILL, install
+
+    init(tmp_path)
+    install(tmp_path, source=ROOT, committed=True)
+    copied = (tmp_path / PROJECT_SKILL).read_text(encoding="utf-8")
+    assert f'`python "{PROJECT_BRIDGE}"` is this project\'s entry point' in copied
+    assert "wired it to a checkout" not in copied
+    # And it says what the launcher does instead, which is the fact a reader acts on.
+    assert "finds an engine wherever this environment has one" in copied
+
+
+def test_the_checkout_variant_still_says_it_was_wired_to_one(tmp_path):
+    # Held so the sentence above is a variant and not a rewrite: a project pointed at a
+    # checkout has one, and naming it is what RK137 was about.
+    from roadkeep.adopting import init
+    from roadkeep.installing import PROJECT_SKILL, install
+
+    init(tmp_path)
+    install(tmp_path, source=ROOT)
+    copied = (tmp_path / PROJECT_SKILL).read_text(encoding="utf-8")
+    assert "wired it to a checkout" in copied
+    assert "finds an engine wherever" not in copied
+
+
+def test_a_refresh_that_reads_the_disk_writes_the_committed_sentence(tmp_path):
+    # The two fixes meet here (RK1113): a plain `install` on a `--committed` project keeps the
+    # variant, so it must keep the sentence too — otherwise the refresh reports clean while
+    # the skill it would write says the other thing.
+    from roadkeep.adopting import init
+    from roadkeep.installing import install, plan
+
+    init(tmp_path)
+    install(tmp_path, source=ROOT, committed=True)
+    assert plan(tmp_path, source=ROOT, gauging=False).changing == ()
+
+
 # -- the entry point the skill names is the one that runs (RK1116) -------------
 
 
