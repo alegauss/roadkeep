@@ -30,6 +30,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1155** (deps: —) **a test simulates a missing engine by pointing one variable at nothing, and the cache answers instead** — Three of the four routes the launcher searches read the developer's home, so installing the plugin turns that isolation false. → §RK1155
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
