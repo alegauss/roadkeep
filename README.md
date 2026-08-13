@@ -119,11 +119,15 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 41 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 146 | 1 |
 | C — Query (consult without reading the file) | 0 | 93 | 1 |
-| D — The gate | 0 | 165 | 0 |
+| D — The gate | 1 | 165 | 0 |
 | E — Adoption | 0 | 86 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 105 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 0 | 647 | 6 |
+| **Total** | 1 | 647 | 6 |
+
+**Next ready:**
+
+- 📋 **RK1156** (deps: —) **an outline-scheme project cannot file a task over MCP: ref is required and the tool exposes no field for it** — The served add was whitelisted from a project that derives its pointer, so the one field an adopted backlog must pass is absent. → §RK1156
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
