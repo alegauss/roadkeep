@@ -380,6 +380,14 @@ class Capture:
     config_path: str | None = None
     #: The input line the engine objected to, verbatim, and where it lives.
     source: str | None = None
+    #: Where this capture was aimed: the repository a defect in **roadkeep** is filed against,
+    #: from `--to` or `[report] upstream` (RK1161). In the artefact for RK89's reason — a capture
+    #: is evidence, and where it was sent is part of it — and read back by `capture filed`, so the
+    #: stamp that records delivery elsewhere does not ask for a repository the config declares.
+    #:
+    #: `None` where the reporting project declared none, which keeps the refusal that reading
+    #: replaces: a bare id no governed file holds is still a link to nothing.
+    upstream: str | None = None
     #: `path -> contents` for the governed files, embedded only when the caller asked (RK88):
     #: they are the input half of a test, and they are also files leaving a repository.
     #:
@@ -544,6 +552,9 @@ class Capture:
             ("traceback", "traceback", self.failure.traceback),
             ("config", "config", self.config),
             ("source", "source", self.source),
+            # Not a redactable part of its own: it is this project's own configuration value and
+            # the tracker body already names it, so `config` is the part that governs it.
+            ("config", "upstream", self.upstream),
             # `path -> contents`, so a capture that carries three files is three entries and
             # not three parallel lists a reader has to zip back together.
             ("document", "documents", dict(self.documents) or None),
@@ -688,6 +699,7 @@ def capture(
     argv: Sequence[str],
     root: str | Path = ".",
     embed: bool = False,
+    upstream: str | None = None,
 ) -> Capture:
     """Run the failing command and compose the report. The claim is already validated.
 
@@ -708,6 +720,7 @@ def capture(
         source=_source(failure.where, root),
         documents=_documents(root) if embed else (),
         environment=environment(),
+        upstream=upstream,
     )
 
 
@@ -968,6 +981,9 @@ class Held:
     #: that does not depend on prose: an author who reworded the symptom still clears the row,
     #: and a capture filed before this existed falls back to the match above.
     filed: str = ""
+    #: Where it was aimed, where the capture recorded one (RK1161) — what lets a stamp of a bare
+    #: id become the delivery it was, instead of asking for a repository twice declared.
+    upstream: str = ""
 
 
 def stamp(path: str | Path, task_id: str) -> bool:
@@ -1024,11 +1040,13 @@ def captures(root: str | Path = ".") -> tuple[Held, ...]:
         symptom = payload.get("symptom") if isinstance(payload, dict) else None
         if isinstance(symptom, str) and symptom:
             stamped = payload.get("filed")
+            aimed = payload.get("upstream")
             out.append(
                 Held(
                     path=path,
                     symptom=symptom,
                     filed=stamped if isinstance(stamped, str) else "",
+                    upstream=aimed if isinstance(aimed, str) else "",
                 )
             )
     return tuple(out)

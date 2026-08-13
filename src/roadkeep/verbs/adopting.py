@@ -391,12 +391,21 @@ def _capture_filed(config: Config, args: argparse.Namespace) -> int:
     # refuse the one delivery a capture taken here can have. What is checked is the shape.
     elsewhere = delivered(args.task_id)
     backlog = Backlog.load(config)
+    # And a **bare** id the capture's own destination explains (RK1161): `--to` or `[report]
+    # upstream` is where a defect in roadkeep was aimed, the capture records it, so asking the
+    # author to spell it again is the asymmetry RK1149 took out of the refusals. Only where this
+    # backlog does not hold the id — a local id that resolves is a local filing, whatever the
+    # capture was aimed at, and a typo stays the refusal below.
     ids = {
         entry.task.id
         for document in (backlog.roadmap, backlog.ledger, backlog.store)
         if document is not None
         for entry in document.entries
     }
+    written = args.task_id
+    if not elsewhere and args.task_id not in ids and known.upstream:
+        written = f"{known.upstream}#{args.task_id}"
+        elsewhere = delivered(written)
     if not elsewhere and args.task_id not in ids:
         print(
             f"roadkeep: no governed file holds {args.task_id}, so stamping it would be a "
@@ -406,20 +415,24 @@ def _capture_filed(config: Config, args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return EXIT_USAGE
-    if not stamp(known.path, args.task_id):
+    if not stamp(known.path, written):
         print(f"roadkeep: {args.path} could not be written", file=sys.stderr)
         return EXIT_USAGE
     where = config.relative(known.path)
     if args.json:
-        print(json.dumps({"path": where, "filed": args.task_id}, indent=2))
+        print(json.dumps({"path": where, "filed": written}, indent=2))
         return EXIT_OK
     # No staging line: the report directory is git-ignored, so there is nothing to stage —
     # which is the exemption `test_every_write_command_is_either_wired_or_exempted` carries.
-    print(f"{where} now names {args.task_id}")
+    print(f"{where} now names {written}")
     if elsewhere:
         # Said out loud, because this is the one stamp nothing here can check: the row clears on
         # the author's word that the work went there, and a reader should see which claim it is.
-        print(f"  delivered to {elsewhere}, which this project cannot read — taken as filed")
+        qualified = "" if written == args.task_id else " — the capture recorded where it went"
+        print(
+            f"  delivered to {elsewhere}, which this project cannot read — taken as filed"
+            f"{qualified}"
+        )
     return EXIT_OK
 
 
@@ -494,8 +507,12 @@ def _report(config: Config, args: argparse.Namespace) -> int:
         for violation in violations:
             print(f"  {violation}", file=sys.stderr)
         return EXIT_USAGE
+    # Resolved before the capture is composed and not in the `--issue` branch where it used to
+    # be read (RK1161): where this went is a fact of the capture, so the artefact records it and
+    # `capture filed` can qualify a bare id from the file instead of asking for it again.
+    aimed = args.to or config.upstream
     found = capture(
-        args.symptom, args.why, args.block, argv, config.root, embed=args.embed
+        args.symptom, args.why, args.block, argv, config.root, embed=args.embed, upstream=aimed
     ).without(*args.without)
     # Written before it is printed (RK89): what only exists on a stdout depends on the
     # caller taking a second step, and this block's own RK86 is the record of second steps
@@ -536,8 +553,7 @@ def _report(config: Config, args: argparse.Namespace) -> int:
     if not args.issue:
         print(found)
         return EXIT_OK
-    upstream = args.to or config.upstream
-    if upstream is None:
+    if aimed is None:
         # Guessed, this publishes a private repository's contents in a stranger's tracker.
         print(
             "roadkeep: no upstream to file against: declare [report] upstream = "
@@ -547,7 +563,7 @@ def _report(config: Config, args: argparse.Namespace) -> int:
         return EXIT_USAGE
     print(body(found))
     sys.stdout.flush()
-    print(handoff(found, upstream), file=sys.stderr)
+    print(handoff(found, aimed), file=sys.stderr)
     return EXIT_OK
 
 

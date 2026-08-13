@@ -56,6 +56,7 @@ from roadkeep.capturing import (
     _tail,
     body,
     capture,
+    captures,
     check,
     delivered,
     handoff,
@@ -1134,3 +1135,58 @@ def test_a_local_id_the_backlog_does_not_hold_is_still_a_link_to_nothing(tmp_pat
     refused = capsys.readouterr().err
     assert "no governed file holds RK999" in refused
     assert "--as owner/repo#RK999" in refused
+
+
+# -- the destination in the evidence (RK1161) ---------------------------------
+
+#: The same project, declaring where a defect in roadkeep is filed. Two spellings reach that
+#: value — this table and `--to` — and the capture records whichever one answered.
+AIMED = CONFIG + '[report]\nupstream = "alegauss/roadkeep"\n'
+
+
+def test_a_capture_records_where_it_was_aimed(tmp_path, capsys) -> None:
+    """RK89 chose the artefact as the record and RK1141 put the filed id there; the destination
+    belongs beside it. Read from `[report] upstream`, and from `--to` where it overrides — the
+    two the `--issue` path already resolved, one step earlier so the capture holds the answer."""
+    root = project(tmp_path, config=AIMED)
+    main(["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
+    capsys.readouterr()
+    (kept,) = captures(root)
+    assert kept.upstream == "alegauss/roadkeep"
+    stored = json.loads(kept.path.read_text(encoding="utf-8"))
+    assert stored["upstream"] == "alegauss/roadkeep"
+
+    main(["-C", str(root), "report", "--to", "someone/else", "--symptom", "A second symptom "
+          "entirely", "--why", WHY, "--", "lint"])
+    capsys.readouterr()
+    assert {one.upstream for one in captures(root)} == {"alegauss/roadkeep", "someone/else"}
+
+
+def test_a_bare_id_becomes_the_delivery_the_capture_recorded(tmp_path, capsys) -> None:
+    """The asymmetry RK1149 took out of the refusals, one command over: the repository is
+    declared, the capture holds it, and asking the author to spell it into `--as` was a field
+    the tool already knew. Only where this backlog does not hold the id."""
+    root = project(tmp_path, config=AIMED)
+    main(["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
+    capsys.readouterr()
+    (kept,) = captures(root)
+    assert main(["-C", str(root), "capture", "filed", str(kept.path), "--as", "RK1128"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "now names alegauss/roadkeep#RK1128" in said
+    assert "the capture recorded where it went" in said
+    assert captures(root)[0].filed == "alegauss/roadkeep#RK1128"
+    main(["-C", str(root), "stats"])
+    assert "unfiled" not in capsys.readouterr().out
+
+
+def test_a_capture_aimed_nowhere_keeps_the_refusal(tmp_path, capsys) -> None:
+    """The control. A project that declares no upstream has nothing to qualify a bare id with,
+    so the stamp stays a link to nothing — which is the reading that keeps a **typo** from
+    clearing a row by being read as somebody else's id."""
+    root = project(tmp_path)  # no `[report] upstream`
+    main(["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
+    capsys.readouterr()
+    (kept,) = captures(root)
+    assert kept.upstream == ""
+    assert main(["-C", str(root), "capture", "filed", str(kept.path), "--as", "RK1128"]) != EXIT_OK
+    assert "no governed file holds RK1128" in capsys.readouterr().err
