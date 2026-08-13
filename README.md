@@ -121,13 +121,9 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 91 | 1 |
 | D — The gate | 0 | 149 | 0 |
 | E — Adoption | 0 | 85 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 102 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 103 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 1 | 619 | 6 |
-
-**Next ready:**
-
-- 📋 **RK1128** (deps: —) **A --lines refusal says the ledger records no partial, on a line whose partial it names one call later** — The message sends you to look for a missing entry when the real rule is that --lines applies to a completion, not to a second --part. → §RK1128
+| **Total** | 0 | 620 | 6 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

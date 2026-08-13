@@ -620,15 +620,27 @@ class NoCompletion(ValueError):
     about the partial entry a completion rewrites. On every other path `ship` *places* a new
     entry and deletes nothing, and a count accepted there is a flag the caller believes took
     effect — the reason `--why` is refused on the closure path rather than ignored.
+
+    **Two sentences, because the paths here are two states** (RK1128). Where the ledger holds
+    nothing to replace, naming that is the answer. Where the call still passes `--part` it is
+    not a completion *whatever the ledger holds*, and reporting the ledger as empty sent a
+    caller to look for an entry that was there: measured in Turing, `ship T898 --part … --lines
+    1` answered "records no partial for T898" over a `**T898 (the lint half)**` on line 693, and
+    dropping the flag produced the refusal that names the real rule. So the narrower sentence is
+    said at the narrower door, which is the shape every refusal here already takes.
     """
 
-    def __init__(self, task_id: str, where: str) -> None:
+    def __init__(self, task_id: str, where: str, *, also_part: bool = False) -> None:
         self.task_id = task_id
-        super().__init__(
-            f"--lines says how many lines a completion replaces, and this call replaces "
-            f"none: {where} records no partial for {task_id}, so the entry is placed and "
-            f"nothing is deleted"
+        because = (
+            f"this call passes --part, so it is not one: a half is **placed** and nothing is "
+            f"deleted whatever {where} holds — `ship {task_id}` with no --part is the "
+            f"completion a count belongs to"
+            if also_part
+            else f"this call replaces none: {where} records no partial for {task_id}, so the "
+            f"entry is placed and nothing is deleted"
         )
+        super().__init__(f"--lines says how many lines a completion replaces, and {because}")
 
 
 class NoSpan(ValueError):
@@ -1476,7 +1488,12 @@ def ship(
     _refuse_absent(config, **{"--why": why, "--part": part, "--superseded-design": superseded})
     if part is not None:
         if lines is not None:
-            raise NoCompletion(task_id, config.relative(config.path("changelog")))
+            # Before the ledger is read at all (RK1128): what refuses here is the flag pair and
+            # not the file, so a message about what the ledger holds would be an answer to a
+            # question this path never asks.
+            raise NoCompletion(
+                task_id, config.relative(config.path("changelog")), also_part=True
+            )
         if superseded is not None:
             raise NoSupersession(task_id, part)
         return _partial(config, task_id, part, why)

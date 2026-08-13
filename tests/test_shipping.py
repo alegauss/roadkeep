@@ -1307,6 +1307,29 @@ def test_the_count_is_refused_where_the_ship_replaces_no_entry(tmp_path):
     assert files(config) == (BACKLOG, LEDGER, RATIONALE)
 
 
+def test_the_count_beside_a_part_is_refused_for_the_rule_and_not_for_the_ledger(tmp_path):
+    """RK1128, measured in Turing: `ship T898 --part … --lines 1` answered "records no partial
+    for T898" over a `**T898 (the lint half)**` on line 693, sending the caller to look for an
+    entry that was there. A call passing `--part` is not a completion whatever the ledger holds."""
+    config = project(tmp_path, roadmap=PARTLY, changelog=WRAPPED_PARTIAL)
+    with pytest.raises(NoCompletion) as raised:
+        ship(config, "RK1", part="another half", lines=1)
+    said = str(raised.value)
+    assert "passes --part, so it is not one" in said
+    assert "records no partial" not in said  # the sentence that was false here
+    # And it names the call that does take a count, which is the advice the second refusal gave.
+    assert "`ship RK1` with no --part" in said
+
+
+def test_the_other_sentence_still_says_what_the_ledger_holds(tmp_path):
+    # Held so the split is two states and not a rewrite: with no `--part`, an empty ledger is
+    # exactly why nothing is replaced, and naming that is the answer.
+    config = project(tmp_path)
+    with pytest.raises(NoCompletion) as raised:
+        ship(config, "RK1", why="Because of a reason.", lines=3)
+    assert "records no partial for RK1" in str(raised.value)
+
+
 def test_the_count_is_refused_on_the_line_a_crash_left_behind(tmp_path):
     # The closure path writes no entry at all (RK62) — it removes the line the ledger was
     # already written from — so there is nothing for a span count to be about.
