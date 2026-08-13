@@ -121,13 +121,13 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 1 | 93 | 1 |
 | D — The gate | 1 | 171 | 1 |
 | E — Adoption | 0 | 86 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 105 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 105 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| **Total** | 3 | 653 | 7 |
+| **Total** | 4 | 653 | 7 |
 
 **Next ready:**
 
-- 📋 **RK1163** (deps: —) **A rationale written before its dep shipped reads as current, and brief is where that is decided** — brief prints the section verbatim beside deps it reports as shipped, so a design whose trade-off the dep already settled is followed rather than re-decided. → §RK1163
+- 🛠 **RK1164** (deps: —) **ship does not say what is left in the block, so every iteration of a block run costs a second call** — ship already resolves the block to report the event, and a caller driving a block one task at a time has to follow every ship with list to learn whether it is finished. → §RK1164
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
