@@ -143,7 +143,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
     # Last before the event line, because it is about the commit this ship precedes rather
     # than about the three edits above it (RK294).
     _print_scope(shipment.scope, wrote)
-    _print_event(event, "  ")
+    _print_event(event, "  ", config=config)
     return EXIT_OK
 
 
@@ -189,7 +189,7 @@ def _partly(config: Config, partial: Partial, args: argparse.Namespace) -> int:
     print(f"  finish   {invocation()} ship {partial.task_id}  (drops the qualifier)")
     if partial.refreshed:
         print(f"  derived  {', '.join(partial.refreshed)} (dep annotations re-derived)")
-    _print_event(event, "  ")
+    _print_event(event, "  ", config=config)
     return EXIT_OK
 
 
@@ -256,7 +256,7 @@ def _closed(
         print(f"  derived  {', '.join(closure.refreshed)} (dep annotations re-derived)")
     _print_dequeued(closure.dequeued)
     _print_scope(closure.scope, wrote)
-    _print_event(event, "  ")
+    _print_event(event, "  ", config=config)
     return EXIT_OK
 
 
@@ -346,7 +346,7 @@ def _record(config: Config, args: argparse.Namespace) -> int:
         )
     if entry.refreshed:
         print(f"  derived  {', '.join(entry.refreshed)} (dep annotations re-derived)")
-    _print_event(event, "  ")
+    _print_event(event, "  ", config=config)
     return EXIT_OK
 
 
@@ -468,7 +468,7 @@ def _record_move(config: Config, args: argparse.Namespace) -> int:
     )
     print(f"  {refiled.rendered}")
     print("  roadmap  untouched: a block is where an entry is filed, not what it records")
-    _print_event(event, "  ")
+    _print_event(event, "  ", config=config)
     return EXIT_OK
 
 
@@ -551,7 +551,7 @@ def _record_drop(config: Config, args: argparse.Namespace) -> int:
             f"{dropped.kept_marker}"
         )
     print("  roadmap  untouched: an id the ledger still records changes no annotation")
-    _print_event(event, "  ")
+    _print_event(event, "  ", config=config)
     return EXIT_OK
 
 
@@ -853,5 +853,5 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
         print(f"  still    {', '.join(departure.dependents)} name {departure.task_id}")
     # A retirement is committed exactly as a ship is, and it releases the same claim (RK294).
     _print_scope(departure.scope, wrote)
-    _print_event(event, "  ")
+    _print_event(event, "  ", config=config)
     return EXIT_OK

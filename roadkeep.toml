@@ -109,3 +109,10 @@ retired = "🗑"
 # working session and not a guess — the bound at 8h is what stops this becoming the lock an
 # expiry exists not to be.
 held = 60
+
+[headings]
+# the seven blocks are the shape of this backlog and outlive every line filed under them, so
+# an emptied one is finished work and never a heading to withdraw (RK1121). Measured before
+# declaring it: nine ships in one session offered `block drop` six times — D, B, F, B, C, E —
+# and no block has ever been dropped here.
+permanent = true

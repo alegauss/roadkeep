@@ -543,7 +543,7 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
     if _print_claim(claim, config) and event is not None:
         # Beside the claim and not at the end: the rationale section closes this output, and
         # an event line after a paragraph of prose is one a hook reader has to hunt for.
-        _print_event(event, "  ")
+        _print_event(event, "  ", config=config)
     print(f"  symptom  {task.symptom}")
     print(f"  why      {task.why}")
     if gathered.budget is not None:
@@ -1061,7 +1061,7 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
     _print_held(choice)
     _print_stalled(choice)
     if _print_claim(claim, config) and event is not None:
-        _print_event(event, "  ")
+        _print_event(event, "  ", config=config)
     return EXIT_OK
 
 

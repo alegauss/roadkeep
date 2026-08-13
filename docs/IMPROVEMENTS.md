@@ -77,34 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1121 The next step that is never the next step
-
-Every `ship` that takes the last open line out of a block prints a second line naming
-the door for the heading:
-
-```
-  event    RK1119  Block E  finished
-           its last open line just left — `block drop E` withdraws the heading, where this
-           project drops one
-```
-
-Measured in this repository across one session: **nine ships, six of those hints — D, B,
-F, B, C, E — and no block has ever been dropped.** The seven headings here are the
-structure of the backlog and outlive every line filed under them; a block that empties
-is a block whose work is finished, not a heading anybody wants withdrawn.
-
-The clause `where this project drops one` is the hedge that says the sentence knows
-this, and a hedge is not the fix: it costs a reader the same attention on every run, and
-the answer to "is this the next step" is a fact about the project rather than about the
-ship. That is what `[blocks]` exists to declare and this is the one thing it does not: a
-project whose blocks are permanent says so once, and the hint is then silence rather
-than a line six ships out of nine have to be read past.
-
-The other half of the same reading is `block.emptied`, the gate's own note (RK269) — a
-transition worth recording, and not a suggestion to act. So the declaration turns the
-*hint* off and leaves the note where it is: what emptied is history and what to do about
-it is the project's, which is the split every other configurable rule here keeps.
-
 ## Block C — Query
 
 ## Block D — The gate

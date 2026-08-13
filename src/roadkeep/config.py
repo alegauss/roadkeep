@@ -117,7 +117,7 @@ _CLAIMS_KEYS = frozenset({"held"})
 #: `[headings]` — the word a project files work under (RK75). Its own table and not a top
 #: key, because the heading is a shape with more than one part and the next question about
 #: it (a sub-block that carries no word at all) belongs under the same heading.
-_HEADING_KEYS = frozenset({"word"})
+_HEADING_KEYS = frozenset({"word", "permanent"})
 #: `[ids]` — the shape of an id, where a project already spells one the format refused
 #: (RK106). Its own table for the reason `[headings]` is: the spelling has more than one
 #: part, and a bare `pad` beside `prefix` would read as one of the limits.
@@ -413,6 +413,10 @@ class Config:
     #: between backlogs (L6), and bounded by :data:`CLAIM_HELD_MAX`, because a window nobody
     #: would wait out is the lock this was designed not to be.
     held: int = CLAIM_HELD
+    #: `[headings] permanent` — whether this project's block headings outlive the work filed
+    #: under them (RK1121). Here and not on the schema: it shapes no line, it decides whether a
+    #: door is offered, which is `held`'s kind of fact rather than the grammar's.
+    permanent_headings: bool = False
     source: Path | None = None
 
     # -- construction ------------------------------------------------------
@@ -476,6 +480,7 @@ class Config:
         non_goals = _scope(data.get("non_goals"), problems)
         upstream = _upstream(data.get("report"), problems)
         held = _held(data.get("claims"), problems)
+        permanent = _permanent_headings(data.get("headings"), problems)
 
         schema = None
         if not problems:
@@ -518,6 +523,7 @@ class Config:
             non_goals=non_goals,
             upstream=upstream,
             held=held,
+            permanent_headings=permanent,
             source=source,
         )
 
@@ -770,6 +776,30 @@ def _heading_word(raw: object, problems: list[str]) -> str:
         problems.append("headings.word must be a string")
         return DEFAULT_HEADING_WORD
     return word
+
+
+def _permanent_headings(raw: object, problems: list[str]) -> bool:
+    """`[headings] permanent` — whether an emptied heading is one this project ever drops.
+
+    Off by default, so nothing changes for a project that has not said (RK1121). Declared by
+    one whose headings are the structure of the backlog rather than a grouping of live work:
+    measured here across a session, **nine ships, six offers to withdraw a heading — D, B, F,
+    B, C, E — and no block ever dropped.** The offer's own clause said `where this project
+    drops one`, which is the sentence knowing the answer it cannot read: whether a finished
+    block is a heading to take out is a fact about the plan, and this is where the plan speaks.
+
+    It silences the *offer* and not the state: the ship still prints `finished`, and the gate's
+    `block.emptied` note (RK269) still records the transition. What emptied is history and what
+    to do about it is the project's — the split every configurable rule here keeps.
+    """
+    if not isinstance(raw, Mapping):
+        # Not a second refusal: `_heading_word` reads the same table and reports the shape.
+        return False
+    value = raw.get("permanent", False)
+    if not isinstance(value, bool):
+        problems.append("headings.permanent must be true or false")
+        return False
+    return value
 
 
 def _markers(raw: object, problems: list[str]) -> dict[str, object]:

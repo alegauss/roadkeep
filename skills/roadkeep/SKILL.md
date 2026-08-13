@@ -284,9 +284,11 @@ order it sat being the one thing the store could not keep. Every write prints on
 neither an id nor a block. The stage is the **same four-state answer** every query gives
 (`live`, `finished`, `paused`, `empty`), so a loop branching on the event and one branching
 on `--json` read one vocabulary; the `block drop` offer rides on the two of them a heading
-is droppable in, and a paused block is never sent at a command that refuses it. There is no
-second route: `Edit` on a governed file is denied, naming the command, and `lint` gates the
-turn's end.
+is droppable in, and a paused block is never sent at a command that refuses it. **Absent
+entirely where `[headings] permanent` says the headings outlive the work filed under them**
+— then an emptied block is finished work and not a heading to withdraw, and the stage word
+still says which. There is no second route: `Edit` on a governed file is denied, naming the
+command, and `lint` gates the turn's end.
 
 **An id is an address, and a merge can spend one twice.** `renumber <id> [--to <new>]`
 moves the line, the `§<id>` section its pointer resolves to and every dep naming it, in

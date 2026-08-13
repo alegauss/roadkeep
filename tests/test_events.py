@@ -18,8 +18,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
-from roadkeep.config import Config
+from roadkeep.config import Config, ConfigError
 from roadkeep.provenance import invocation
 
 ROADMAP = "docs/ROADMAP.md"
@@ -232,3 +234,76 @@ def test_the_payload_is_unchanged_by_the_sentence(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "ship", "--json", "RK1", "--why", "Works."]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["event"] == {"id": "RK1", "block": "A", "stage": "finished"}
+
+
+# -- the offer a project may answer once (RK1121) ------------------------------
+
+
+def permanent(tmp_path: Path) -> None:
+    """`[headings] permanent` on the fixture above, declared after the files are written."""
+    (tmp_path / "roadkeep.toml").write_text(
+        f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n'
+        "[headings]\npermanent = true\n",
+        encoding="utf-8",
+    )
+
+
+def test_a_project_whose_headings_are_permanent_is_offered_no_door(tmp_path, capsys):
+    """RK1121. Measured in this repository: nine ships in one session printed the offer six
+    times — D, B, F, B, C, E — and no block has ever been dropped. The offer's own clause said
+    `where this project drops one`, which is the sentence knowing the answer it cannot read."""
+    project(tmp_path)
+    permanent(tmp_path)
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
+    out = capsys.readouterr().out
+    # The state is still stated: what emptied is a fact, and only the suggestion was a question.
+    assert "Block A  finished" in out
+    assert "block drop" not in out and "withdraws the heading" not in out
+
+
+def test_the_declaration_changes_no_payload(tmp_path, capsys):
+    # Three facts and no more (RK38): the flag decides whether a sentence is printed, so a
+    # consumer that derives its own next command from the stage reads the same event either way.
+    project(tmp_path)
+    permanent(tmp_path)
+    assert main(["-C", str(tmp_path), "ship", "--json", "RK1", "--why", "Works."]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["event"] == {"id": "RK1", "block": "A", "stage": "finished"}
+
+
+def test_a_project_that_says_nothing_is_still_offered_the_door(tmp_path, capsys):
+    # Off by default, so nothing changes for a backlog whose headings group live work.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
+    assert f"{invocation()} block drop A" in capsys.readouterr().out
+
+
+def test_the_flag_has_to_be_a_flag(tmp_path):
+    # Refused where it is typed, like every other value in this table.
+    project(tmp_path)
+    (tmp_path / "roadkeep.toml").write_text(
+        f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\n[headings]\npermanent = "yes"\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ConfigError, match="headings.permanent must be true or false"):
+        Config.discover(tmp_path)
+
+
+def test_the_word_and_the_flag_live_in_one_table(tmp_path):
+    # `[headings]` is the table about the heading a project files work under (RK75), and
+    # whether that heading outlives the work is the same subject.
+    project(tmp_path)
+    (tmp_path / "roadkeep.toml").write_text(
+        f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\n'
+        '[headings]\nword = "Track"\npermanent = true\n',
+        encoding="utf-8",
+    )
+    config = Config.discover(tmp_path)
+    assert config.schema.heading_word == "Track" and config.permanent_headings
+
+
+def test_this_repository_declares_its_own_headings_permanent():
+    # The conformance fixture again: the seven blocks here are the shape of the backlog, and
+    # the measurement that produced the flag was taken on this file's own ships.
+    root = Path(__file__).resolve().parents[1]
+    assert Config.discover(root).permanent_headings

@@ -189,7 +189,7 @@ def _add(config: Config, args: argparse.Namespace) -> int:
         # Beside the line and not instead of it: the `add` succeeded, and what this reports
         # is a sentence somewhere else that has just stopped being true (RK431).
         print(f"promise  {insertion.promise.sentence}")
-    _print_event(event)
+    _print_event(event, config=config)
     return EXIT_OK
 
 
@@ -223,13 +223,13 @@ def _status(config: Config, args: argparse.Namespace) -> int:
     if not change.changed:
         print(f"{args.id} is already {change.after}  {where}")
         _print_followed(change, config)
-        _print_event(event, "  ")
+        _print_event(event, "  ", config=config)
         return EXIT_OK
     print(f"{args.id} {change.before} → {change.after}  {where}")
     if change.refreshed:
         print(f"  derived  {', '.join(change.refreshed)} (dep annotations re-derived)")
     _print_followed(change, config)
-    _print_event(event, "  ")
+    _print_event(event, "  ", config=config)
     return EXIT_OK
 
 
@@ -392,7 +392,7 @@ def _renumber(config: Config, args: argparse.Namespace) -> int:
         # The half the files do not hold (RK156): the worker holding this will next ask for it
         # by a number that no longer exists, and that it is still theirs is what to say.
         print(f"  claimed  the claim taken {moved.claim.since} ago moved with it")
-    _print_event(event, "  ")
+    _print_event(event, "  ", config=config)
     return EXIT_OK
 
 
@@ -467,7 +467,7 @@ def _defer(config: Config, args: argparse.Namespace) -> int:
     if pause.refreshed:
         print(f"  derived  {', '.join(pause.refreshed)} (dep annotations re-derived)")
     _print_dequeued(pause.dequeued)
-    _print_event(event, "  ")
+    _print_event(event, "  ", config=config)
     return EXIT_OK
 
 
@@ -544,7 +544,7 @@ def _resume(config: Config, args: argparse.Namespace) -> int:
     follow = _requeue(config, resumption.task_id)
     if follow is not None:
         print(f"  requeue  {follow}")
-    _print_event(event, "  ")
+    _print_event(event, "  ", config=config)
     return EXIT_OK
 
 

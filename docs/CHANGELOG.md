@@ -192,6 +192,7 @@
 - ✅ **RK1112** **section show prints the subtree and section amend takes only the own body, so the obvious round-trip is refused** — `section show --own` prints the extent `section amend --body` replaces, and a body carrying a subsection's heading is refused as the wrong extent.
 - ✅ **RK1117** **`ship` prints a stage line without naming the paths in it that carry changes no claim owns** — The subtraction of what an id already explains happens in split, so a departure reports a governed file it wrote that another session had changed.
 - ✅ **RK1120** **a roadmap carrying two sessions lines is one accounted file, so a departure cannot separate them** — A departure names the other ids whose line arrived in or left a governed file it stages, read as two parses so an annotation refresh moves nobody.
+- ✅ **RK1121** **the block-empty hint names a door six ships out of nine, in a project that has never dropped a heading** — A project declares once with [headings] permanent that its headings outlive the work, and the offer to withdraw one is then absent rather than hedged.
 
 ## Block C — Query
 

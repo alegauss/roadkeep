@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1121** (deps: —) **the block-empty hint names a door six ships out of nine, in a project that has never dropped a heading** — Whether an emptied block is a heading to withdraw is a fact about the project, so the hedge in the sentence is read on every run instead of declared once. → §RK1121
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

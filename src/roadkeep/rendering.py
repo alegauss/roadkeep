@@ -162,7 +162,7 @@ _DROPPABLE = {
 }
 
 
-def _print_event(event: dict[str, object], indent: str = "") -> None:
+def _print_event(event: dict[str, object], indent: str = "", *, config: Config) -> None:
     """The event, and where the stage allows it the one command that state makes available.
 
     A heading becomes droppable the moment its block stops holding work, and a project whose
@@ -179,10 +179,17 @@ def _print_event(event: dict[str, object], indent: str = "") -> None:
     work still to be filed under it is the project's call, `block drop` refuses anyway where
     the subtree is not blank in every file, and a ship that withdrew a heading nobody asked
     it to would be the tool deciding the shape of the plan.
+
+    And since RK1121 the project may answer that call **once** rather than in every run's
+    reading: `[headings] permanent` says the headings outlive the work filed under them, and
+    the offer is then absent instead of hedged. `config` is a required keyword and not a
+    defaulted one, because a printer that fell back to offering would put the old behaviour
+    back on whichever call site was added next. The `stage` word stays either way — the state
+    is a fact and only the suggestion was a question the file could answer.
     """
     stage = event["stage"]
     print(f"{indent}event    {event['id']}  Block {event['block']}  {stage}")
-    because = _DROPPABLE.get(Stage(stage))
+    because = None if config.permanent_headings else _DROPPABLE.get(Stage(stage))
     if because:
         print(
             f"{indent}         {because} — "
