@@ -81,34 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1142 The stamp with no command
-
-RK1141 gave a capture the id it was filed as, and gave the stamp one writer: `add
---capture`, which closes the row by the act that closes it. That covers every capture
-filed **from now on**. It covers none of the ones already on disk.
-
-Measured on this repository in the session that shipped it. Two captures were held; one
-cleared by the symptom match, and the other — the defect that shipped as RK1138, filed
-in the author's own words — had no door at all. What cleared it was a Python call:
-
-```
-$ python -c "from roadkeep.capturing import stamp; stamp('…eaad6ef5.json', 'RK1138')"
-```
-
-That is the shape L5 exists against: every question this tool answers is a command, and
-here the maintainer reached past the tool. A project that hits it has no `--help` to
-find, and the row `stats` prints names a remedy nothing documents.
-
-Two shapes, and the choice is the task. A **flag on `report`** puts the write where
-captures are written and gives that verb a second job. A **verb of its own** costs a
-subcommand and says what it does; `capture` is not a group yet, and making it one is
-where `prune`, the age limit and the dedup `keep`'s docstring leaves unsolved would
-eventually go.
-
-What must not happen either way: the door writing anything but that one key. A capture
-is what a replay runs from, so the payload is re-serialised from what was read (RK1141),
-and a door that normalised the file would break the artefact it annotates.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

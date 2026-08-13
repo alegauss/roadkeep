@@ -59,6 +59,7 @@ from roadkeep.verbs.adopting import (
     _init,
     _install,
     _mcp,
+    _capture_filed,
     _replay,
     _report,
     _uninstall,
@@ -2099,6 +2100,41 @@ def build_parser() -> argparse.ArgumentParser:
     replay_parser.add_argument("path", help="a capture written by `report --json`")
     replay_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     replay_parser.set_defaults(handler=_replay, tolerates_config_error=True, reads_only=True)
+
+    capture_parser = subcommands.add_parser(
+        "capture",
+        help="what became of a capture already on disk",
+        description=(
+            "The third of the capture pair's family (RK1142). `report` writes one and "
+            "`replay` re-runs it; this says what happened to one that is already there. A "
+            "group with one action because it is where the retention `keep` leaves "
+            "deliberately unsolved goes next — rotation, an age limit, a dedup by argv."
+        ),
+    )
+    capture_actions = capture_parser.add_subparsers(dest="action", required=True)
+    capture_filed = capture_actions.add_parser(
+        "filed",
+        help="record which task a kept capture was filed as",
+        description=(
+            "Write into the capture the id it was filed as, so the row `stats` counts is "
+            "cleared by a fact in the artefact rather than by a symptom that matches "
+            "(RK1141). `add --capture` does this for a capture being filed now; this is the "
+            "door for one already on disk, and it is the whole of what RK1142 was: clearing "
+            "this repository's own row took a `python -c`, which is what L5 exists against. "
+            "Refused where no governed file holds the id — a stamp naming nothing is a link "
+            "to nothing — and where the path is not a capture this tool wrote."
+        ),
+    )
+    capture_filed.add_argument("path", help="a capture under .roadkeep/reports/")
+    capture_filed.add_argument(
+        "--as",
+        dest="task_id",
+        required=True,
+        metavar="ID",
+        help="the task it was filed as, e.g. RK1138 — refused unless a governed file holds it",
+    )
+    capture_filed.add_argument("--json", action="store_true", help=_JSON_HELP)
+    capture_filed.set_defaults(handler=_capture_filed)
 
     init_parser = subcommands.add_parser(
         "init",

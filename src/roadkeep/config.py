@@ -317,7 +317,11 @@ PATH_ARGUMENTS: Mapping[str, Mapping[str, str]] = {
     # be relative to until it has been answered. Every `project` row below is relative to what
     # this one found.
     "": {"directory": "caller"},
-    "add": {"section_body_file": "caller"},
+    # Both capture paths are the caller's, exactly as `replay`'s is (RK1141, RK1142): the file
+    # lives under the project, and what is handed to the process is a path the process resolves
+    # — a `-C` elsewhere does not make somebody's argument project-relative.
+    "add": {"section_body_file": "caller", "capture": "caller"},
+    "capture filed": {"path": "caller"},
     "section add": {"body_file": "caller"},
     "section amend": {"body_file": "caller"},
     "merge": {

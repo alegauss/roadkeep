@@ -19,7 +19,19 @@ import tempfile
 from pathlib import Path
 
 from roadkeep.adopting import adopt, init
-from roadkeep.capturing import STOPPED_NOTICE, body, capture, check, handoff, keep, replay
+from roadkeep.capturing import (
+    REPORTS,
+    STOPPED_NOTICE,
+    body,
+    capture,
+    captures,
+    check,
+    handoff,
+    keep,
+    replay,
+    stamp,
+)
+from roadkeep.backlog import Backlog
 from roadkeep.config import Config
 from roadkeep.installing import (
     PROJECT_BRIDGE,
@@ -346,6 +358,57 @@ def _install(config: Config, args: argparse.Namespace) -> int:
                 )
     if args.check and intent.changing:
         return EXIT_GATE
+    return EXIT_OK
+
+
+def _capture_filed(config: Config, args: argparse.Namespace) -> int:
+    """Record which task a capture already on disk was filed as (RK1142).
+
+    `add --capture` closes the row by the act that closes it, and covered every capture filed
+    from then on and none of the ones already held: clearing this repository's own row took a
+    `python -c`, which is the shape L5 exists against — every question this tool answers is a
+    command, and the maintainer reached past the tool.
+
+    Two refusals, both at the door (L1). An **id no governed file holds** is a link to nothing,
+    which is the reading `stats` already makes and the reason it does not clear a row. A **path
+    that is not a capture** is somebody's file, and a verb that stamped it would be writing a
+    key into an artefact this tool did not produce.
+    """
+    path = Path(args.path)
+    held = {one.path.resolve(): one for one in captures(config.root)}
+    known = held.get(path.resolve())
+    if known is None:
+        print(
+            f"roadkeep: {args.path} is not a capture this project holds: `stats` names the "
+            f"ones it does, under {config.relative(config.root / REPORTS)}",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    backlog = Backlog.load(config)
+    ids = {
+        entry.task.id
+        for document in (backlog.roadmap, backlog.ledger, backlog.store)
+        if document is not None
+        for entry in document.entries
+    }
+    if args.task_id not in ids:
+        print(
+            f"roadkeep: no governed file holds {args.task_id}, so stamping it would be a "
+            f"link to nothing — file the capture first, and `add --capture {args.path}` "
+            f"stamps it as it mints the id",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    if not stamp(known.path, args.task_id):
+        print(f"roadkeep: {args.path} could not be written", file=sys.stderr)
+        return EXIT_USAGE
+    where = config.relative(known.path)
+    if args.json:
+        print(json.dumps({"path": where, "filed": args.task_id}, indent=2))
+        return EXIT_OK
+    # No staging line: the report directory is git-ignored, so there is nothing to stage —
+    # which is the exemption `test_every_write_command_is_either_wired_or_exempted` carries.
+    print(f"{where} now names {args.task_id}")
     return EXIT_OK
 
 

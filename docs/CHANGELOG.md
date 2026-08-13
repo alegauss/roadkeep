@@ -456,6 +456,7 @@
 - ✅ **RK1136** **26 lines of the every-turn file are needed only on a turn that builds or commits, and every other turn pays for them** — Building and committing moved to a trigger-loaded project skill, so the every-turn file dropped to 104 of 125 lines and the pointer is what stays.
 - ✅ **RK1139** **A kept capture is write-only: nothing lists it, counts it or says it is not a backlog line** — report says the kept file is not a backlog line and prints the add that files it, and stats counts every capture and names the unfiled ones.
 - ✅ **RK1141** **a capture whose defect shipped under a reworded symptom stays unfiled for ever, and nothing can clear the row** — A capture carries the id it was filed as, stamped by the add that files it, so the count reads the artefact and a reworded symptom no longer leaves a row nothing can clear.
+- ✅ **RK1142** **a capture already on disk has no command that stamps it, so the only door is the Python API** — capture filed stamps a capture already on disk, refusing an id no governed file holds and a path this project did not write.
 
 ## Block E — Adoption
 

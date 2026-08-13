@@ -231,7 +231,7 @@ def test_the_annotation_is_never_a_refusal_of_the_capture(tmp_path, capsys):
         ],
     )
     assert code == EXIT_OK
-    assert "roadkeep capture" in out
+    assert "A roadkeep field report" in out
     assert STOPPED_NOTICE in err
     assert list((root / REPORTS).iterdir())
 
@@ -309,7 +309,7 @@ def test_the_command_captures_a_failure_and_still_succeeds(tmp_path, capsys):
         ["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--", "-C", str(root), "lint"],
     )
     assert code == EXIT_OK
-    assert "roadkeep capture" in out and "exit     1" in out
+    assert "A roadkeep field report" in out and "exit     1" in out
 
 
 def test_the_command_refuses_a_claim_over_the_limit_before_running_anything(tmp_path, capsys):
@@ -537,7 +537,7 @@ def test_a_capture_goes_nowhere_by_default(tmp_path, capsys):
     code = main(["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
     out, err = capsys.readouterr()
     assert code == EXIT_OK
-    assert "roadkeep capture" in out and "gh issue" not in out
+    assert "A roadkeep field report" in out and "gh issue" not in out
     # RK89 keeps it, and RK87 still sends nothing: the two are not the same step. What is
     # on disk is local, gitignored, and waiting for somebody to decide.
     assert err.startswith(f"kept  {root / REPORTS}")
@@ -635,7 +635,7 @@ def test_a_command_declared_to_survive_a_broken_config_survives_a_broken_one(tmp
     (tmp_path / "roadkeep.toml").write_text("prefix = [\n", encoding="utf-8")
     code = main(["-C", str(tmp_path), "report", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
     assert code == EXIT_OK
-    assert "roadkeep capture" in capsys.readouterr().out
+    assert "A roadkeep field report" in capsys.readouterr().out
 
 
 # -- the capture survives the session that took it (RK89) ---------------------
@@ -1033,3 +1033,54 @@ def test_a_capture_that_is_not_there_is_not_a_failure_of_the_write(tmp_path):
     from roadkeep.capturing import stamp
 
     assert stamp(tmp_path / "nowhere.json", "RK9") is False
+
+
+# -- the door a capture already on disk has (RK1142) -----------------------------
+
+
+def test_the_command_stamps_a_capture_this_project_holds(tmp_path, capsys):
+    """RK1142. RK1141 covered every capture filed from then on and none of the ones held:
+    clearing this repository's own row took a `python -c`, which is the shape L5 exists
+    against — every question this tool answers is a command."""
+    project(tmp_path)
+    path = _capture_file(tmp_path, "held.json", "A captured symptom")
+    argv = ["-C", str(tmp_path), "capture", "filed", str(path), "--as", "RK1"]
+    capsys.readouterr()
+    assert main(argv) == EXIT_OK
+    assert "now names RK1" in capsys.readouterr().out
+    assert json.loads(path.read_text(encoding="utf-8"))["filed"] == "RK1"
+
+
+def test_an_id_no_governed_file_holds_is_refused_at_the_door(tmp_path, capsys):
+    # A stamp naming nothing is a link to nothing, which is the reading `stats` already makes
+    # — so the refusal is L1's: at the door, and naming the command that files it instead.
+    project(tmp_path)
+    path = _capture_file(tmp_path, "held.json", "A captured symptom")
+    argv = ["-C", str(tmp_path), "capture", "filed", str(path), "--as", "RK404"]
+    capsys.readouterr()
+    assert main(argv) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "no governed file holds RK404" in said and "add --capture" in said
+    assert "filed" not in json.loads(path.read_text(encoding="utf-8"))
+
+
+def test_a_path_that_is_not_a_capture_is_refused(tmp_path, capsys):
+    # Somebody's file is not this tool's to annotate, and the refusal names the read that
+    # lists the ones that are.
+    project(tmp_path)
+    stray = tmp_path / "notes.json"
+    stray.write_text('{"symptom": "not under the report directory"}', encoding="utf-8")
+    argv = ["-C", str(tmp_path), "capture", "filed", str(stray), "--as", "RK1"]
+    capsys.readouterr()
+    assert main(argv) == EXIT_USAGE
+    assert "is not a capture this project holds" in capsys.readouterr().err
+
+
+def test_the_payload_says_what_it_wrote(tmp_path, capsys):
+    project(tmp_path)
+    path = _capture_file(tmp_path, "held.json", "A captured symptom")
+    argv = ["-C", str(tmp_path), "capture", "filed", str(path), "--as", "RK1", "--json"]
+    capsys.readouterr()
+    assert main(argv) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload == {"path": ".roadkeep/reports/held.json", "filed": "RK1"}

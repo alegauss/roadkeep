@@ -475,7 +475,12 @@ class Capture:
     def __str__(self) -> str:
         return "\n".join(
             [
-                "roadkeep capture — what the session that hit this knew, before it ended",
+                # The program name and the verb no longer sit together here (RK1142): `filed`
+                # made that pair a command, and a title shaped like one is a line a reader may
+                # type. `test_no_message_spells_an_invocation_it_did_not_derive` is what
+                # noticed — it holds every literal invocation to being derived — and this was
+                # never an invocation at all, so the fix is the wording and not a derivation.
+                "A roadkeep field report — what the session that hit this knew, before it ended",
                 "",
                 f"  symptom  {self.symptom}",
                 f"  why      {self.why}",

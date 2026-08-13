@@ -248,6 +248,10 @@ EXEMPT = {
     # Found by the closure below rather than by a reader, which is the whole argument for it.
     "repair": "writes nothing itself: it re-enters the dispatcher per step, and each step's "
     "own output is deliberately not suppressed — so the staging lines are the steps'",
+    # RK1142: the one write whose file is not in the repository at all. `.roadkeep/` is
+    # git-ignored by the same run that creates it (RK89), so there is nothing to stage and a
+    # `git add --` line naming an ignored path would be a command that does nothing.
+    "capture filed": "writes into `.roadkeep/reports/`, which the tool teaches git to ignore",
 }
 
 
@@ -277,7 +281,8 @@ def test_every_write_command_is_either_wired_or_exempted():
     wired = declared - set(EXEMPT)
     # The number in RK1130's own line was 32 — read as `63 - 31 reads_only`, one command
     # short. Stated here as the parser answers it, because that is the reading that binds.
-    assert len(declared) == 33 and len(wired) == 27
+    # 34 since `capture filed` (RK1142), which is exempt: its file is not in the repository.
+    assert len(declared) == 34 and len(wired) == 27
 
 
 def test_every_wired_write_reaches_the_one_printer():
