@@ -36,7 +36,6 @@
 ## Block D — The gate
 
 - ⏳ **RK1172** (deps: —) **The gate's checks are functions gathered by convention, each with its own signature, so adding one is invisible** — linting.py is 1,618 code lines of hand-wired calls whose scan kind is implicit in the parameters, where the remedy side has been a table keyed by code since RK420. → §RK1172
-- 📋 **RK1173** (deps: RK1172 ⏳) **A rule's remedy is a second table keyed by the same code, kept in step by a test rather than by the record** — Once the check is a record, its door is a field on it, and the totality assertion becomes a thing that cannot be written wrong instead of one a test catches. → §RK1173
 
 ## Block E — Adoption
 

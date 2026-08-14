@@ -171,28 +171,6 @@ call sits.
 What needs deciding next, once the record exists: whether `--fix` reads a field on it —
 `fixing.py` keeps `REPAIRS` today — which is RK1173.
 
-### §RK1173 The door belongs on the rule, not beside it
-
-This is the second half of its dep and deliberately not folded into it, because the two
-are separable and the first is worth shipping alone.
-
-RK420 put the remedy in one table keyed by code, and gave the reason: a remedy computed
-at the emission site would be seventy remedies to keep in step with seventy messages,
-and the one that fell behind would be invisible. Every word of that holds. What it could
-not do at the time was put the remedy on the rule, because there was no rule to put it
-on — the checks were functions, so the only thing both sides could agree on was the code
-string.
-
-With the dep shipped there is a record, and the door is a field on it. The table and the
-emission site stop being two files that a test proves consistent, and
-`test_every_code_the_package_can_emit_has_a_door` stops being needed for the reason it
-was written: a rule with no door does not compile into a rule.
-
-What must survive the move, because it is the part that is load-bearing: the four kinds,
-the marked blank where the prose is the author's by L4, the two doors where the choice
-is editorial, and the config reads that keep a door true on a project whose paths and
-pointer scheme are its own. None of that is a table; all of it is the field's type.
-
 ## Block E — Adoption
 
 ### §RK1186 The prose file a scaffold cannot create
