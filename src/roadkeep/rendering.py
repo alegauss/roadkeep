@@ -917,65 +917,81 @@ def _claim_event(claim: Claim | None, config: Config) -> dict[str, object] | Non
     return _event(entry.task.id, entry.task.block, claim.change.document, config)
 
 
-def _print_claim(claim: Claim | None, config: Config) -> bool:
+# -- the sentences `pick` and `brief` share, as rows (RK1170) ------------------
+#
+# Rows and no longer prints. Both verbs are moving onto their records, and a register composes
+# what it returns — a helper that printed could only be called from a handler, which is what kept
+# two verbs' answers in the file that neither of their records is in. Every sentence below is the
+# one that was printed, and every guard is where it was: what changed is who does the writing.
+
+
+def _claim_rows(claim: Claim | None, config: Config) -> list[str]:
     """What a claim moved, on the two commands that can take one (RK119, RK149).
 
     One sentence and one place, because two commands printing the same fact in two wordings
-    is two answers to "what did I just take". Returns whether it printed, which is what tells
-    `pick` there is an event line to close with. The window comes from the config and is not
+    is two answers to "what did I just take". Empty where nothing was taken, which is what tells
+    `pick` there is no event line to close with. The window comes from the config and is not
     a constant here (RK151): a project that declared its own would otherwise be told the
     default's number by the command that just applied its own.
     """
     if claim is None or claim.change is None:
-        return False
-    print(f"  claimed  {claim.change.before} → {claim.change.after}, held for "
-          f"{config.held}m unless a marker moves it sooner")
-    return True
+        return []
+    return [
+        f"  claimed  {claim.change.before} → {claim.change.after}, held for "
+        f"{config.held}m unless a marker moves it sooner"
+    ]
 
 
-def _print_held(choice: Choice) -> None:
+def _held_rows(choice: Choice) -> list[str]:
     """Which ready lines a live claim kept out of the answer (RK119).
 
     Named and not counted, for the reason a claim carries no owner: the caller cannot be
     told whose it is, so the id is the only thing it can recognise its own by — and a line
     silently absent is one the caller asks about again on the next turn.
     """
-    for held in choice.held:
-        print(f"  held     {held.id} was claimed {held.since} ago and is not offered")
+    return [
+        f"  held     {held.id} was claimed {held.since} ago and is not offered"
+        for held in choice.held
+    ]
 
 
-def _print_undesigned(choice: Choice) -> None:
+def _undesigned_rows(choice: Choice) -> list[str]:
     """What `--designed` set aside, and never silently (RK83).
 
-    Printed rather than folded into `backlog`, whose three numbers are facts about the
+    Said rather than folded into `backlog`, whose three numbers are facts about the
     file: this one is a fact about the question, and a filter that hides its own effect is
     how "this block is finished" gets read off an answer that never looked at half of it.
     """
-    if choice.undesigned:
-        print(f"  skipped  {choice.undesigned} ready and still needing designing")
+    if not choice.undesigned:
+        return []
+    return [f"  skipped  {choice.undesigned} ready and still needing designing"]
 
 
-def _print_stalled(choice: Choice) -> None:
+def _stalled_rows(choice: Choice) -> list[str]:
     """A started task that cannot be continued is the one thing a pick must not hide.
 
     And whether somebody is holding it (RK152), because "started and stuck" invites
     unblocking the line while "claimed and waiting" invites leaving it alone — two answers
     one sentence used to serve.
     """
+    rows: list[str] = []
     for stalled in choice.stalled:
         whose = (
             "" if stalled.claimed is None else f" and claimed {stalled.claimed.since} ago"
         )
-        print(f"  stalled  {stalled.id} is in progress{whose}, waiting on "
-              f"{', '.join(stalled.blockers) or 'nothing this backlog names'}")
+        rows.append(
+            f"  stalled  {stalled.id} is in progress{whose}, waiting on "
+            f"{', '.join(stalled.blockers) or 'nothing this backlog names'}"
+        )
+    return rows
 
 
-def _print_leverage(leverage: Leverage) -> None:
+def _leverage_rows(leverage: Leverage) -> list[str]:
     """The reverse direction, which is the half of prioritisation a tool may supply."""
     shown = ", ".join(leverage.transitive[:4])
     tail = " …" if leverage.count > 4 else ""
     detail = f": {shown}{tail}" if shown else ""
-    print(f"  unblocks {leverage.count} of {leverage.of} open{detail}")
+    return [f"  unblocks {leverage.count} of {leverage.of} open{detail}"]
 def _commits_json(origin: Origin) -> dict[str, object]:
     def one(commit: Commit | None) -> dict[str, object] | None:
         if commit is None:

@@ -65,14 +65,14 @@ from roadkeep.rendering import (
     _miss_json,
     _nothing_json,
     _pick_json,
-    _print_claim,
+    _claim_rows,
     _print_event,
-    _print_held,
-    _print_leverage,
+    _held_rows,
+    _leverage_rows,
     _print_scope,
-    _print_stalled,
+    _stalled_rows,
     _print_standing,
-    _print_undesigned,
+    _undesigned_rows,
     _row_json,
 )
 from roadkeep.kernel.schema import body_aim
@@ -612,6 +612,17 @@ def _markers(markers: Mapping[str, int]) -> str:
     return "  ".join(f"{marker} {count}" for marker, count in markers.items())
 
 
+def _print(rows: Sequence[str]) -> bool:
+    """Write what a row producer returned, and say whether there was anything (RK1170).
+
+    The seam while the two verbs that share these sentences move onto their records: the rows are
+    composed where the answer is and printed here, so a caller that used to read *did it print*
+    still can — `pick` closes with an event line only where a claim was actually taken.
+    """
+    for row in rows:
+        print(row)
+    return bool(rows)
+
 def _brief(config: Config, args: argparse.Namespace) -> int:
     if args.id is not None and (args.block is not None or args.designed):
         # Two answers to one question: the id names a task and the others name a search.
@@ -661,8 +672,8 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
     if gathered.choice is not None:
         # The ids a live claim was stepped around (RK154), on the door a session starts a task
         # with: without them the caller cannot tell one of them is its own.
-        _print_held(gathered.choice)
-    if _print_claim(claim, config) and event is not None:
+        _print(_held_rows(gathered.choice))
+    if _print(_claim_rows(claim, config)) and event is not None:
         # Beside the claim and not at the end: the rationale section closes this output, and
         # an event line after a paragraph of prose is one a hook reader has to hunt for.
         _print_event(event, "  ", config=config)
@@ -711,7 +722,7 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
         # What shipping this would unblock, which a shipped line has already done (RK324):
         # `unblocks 0 of 14 open` beside a checkmark is a cost quoted for work that happened,
         # and the readiness word above is the whole answer a caller needs about it.
-        _print_leverage(gathered.leverage)
+        _print(_leverage_rows(gathered.leverage))
     for referenced in view.paths:
         print(f"  path     {referenced.path}{'' if referenced.exists else '  (missing)'}")
     for non_goal in gathered.non_goals.leads:
@@ -1055,9 +1066,9 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
     if choice.entry is None:
         print(f"nothing to pick: {choice.reason}")
         print(f"  backlog  {choice.counts}")
-        _print_undesigned(choice)
-        _print_held(choice)
-        _print_stalled(choice)
+        _print(_undesigned_rows(choice))
+        _print(_held_rows(choice))
+        _print(_stalled_rows(choice))
         return EXIT_OK
 
     entry = choice.entry
@@ -1068,10 +1079,10 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
     print(f"  symptom  {entry.task.symptom}")
     if choice.alternatives:
         print(f"  or       {', '.join(choice.alternatives)}")
-    _print_undesigned(choice)
-    _print_held(choice)
-    _print_stalled(choice)
-    if _print_claim(claim, config) and event is not None:
+    _print(_undesigned_rows(choice))
+    _print(_held_rows(choice))
+    _print(_stalled_rows(choice))
+    if _print(_claim_rows(claim, config)) and event is not None:
         _print_event(event, "  ", config=config)
     return EXIT_OK
 
@@ -1587,7 +1598,7 @@ def _deps(config: Config, args: argparse.Namespace) -> int:
 
     if not resolutions:
         print(f"{entry.task.id}: {readiness} (no deps)")
-        _print_leverage(leverage)
+        _print(_leverage_rows(leverage))
         return EXIT_OK
     width = max(len(r.dep.id) for r in resolutions)
     for resolution in resolutions:
@@ -1601,7 +1612,7 @@ def _deps(config: Config, args: argparse.Namespace) -> int:
     if cycle:
         # A defect, not a shape: printed here, failed by `lint` (RK14).
         print(f"  cycle    {' ↔ '.join(cycle)}: nothing in this group can be started")
-    _print_leverage(leverage)
+    _print(_leverage_rows(leverage))
     return EXIT_OK
 
 
