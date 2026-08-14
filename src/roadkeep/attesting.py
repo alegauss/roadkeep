@@ -170,6 +170,61 @@ class Attested:
     #: it is absent, and that reads as agreement rather than as a file nobody can find.
     present: bool
 
+    def listed(self) -> str:
+        """One row of the report. `(absent)` is said rather than left to the state column,
+        which answers a different question: whether the record and the disk agree."""
+        absent = "" if self.present else "  (absent)"
+        return f"  {str(self.state):<12} {self.role:<12} {self.path}{absent}"
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "role": self.role,
+            "path": self.path,
+            "state": str(self.state),
+            "present": self.present,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class Survey:
+    """Every governed role read against the record, and where the record lives (RK200).
+
+    A record and no longer a bare tuple (RK1170): the two registers were composed in the door
+    from a count, a path and a list, and none of the three was a fact the tuple carried.
+    """
+
+    rows: tuple[Attested, ...]
+    #: The file itself, named for the reason the claim registry is (RK161): it is what an
+    #: operator deletes, and it lives outside the repository where nothing points at it.
+    record: str
+
+    @property
+    def unattested(self) -> int:
+        return sum(1 for row in self.rows if row.state is State.UNATTESTED)
+
+    @property
+    def unrun(self) -> bool:
+        """Whether no verb has run in this checkout at all."""
+        return all(row.state is State.UNRECORDED for row in self.rows)
+
+    def stated(self) -> str:
+        rows = [f"{len(self.rows)} governed, {self.unattested} unattested"]
+        rows += [row.listed() for row in self.rows]
+        if self.unrun:
+            # The silence `unattested` returns, said out loud: a caller who cannot tell "no
+            # verb has run" from "nothing drifted" reads a fresh checkout as a clean one.
+            rows.append("  no verb has run in this checkout, so there is nothing to differ from")
+        rows.append(f"  record {self.record}")
+        return "\n".join(rows)
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "record": self.record,
+            "governed": len(self.rows),
+            "unattested": self.unattested,
+            "files": [row.payload() for row in self.rows],
+        }
+
 
 def survey(config: Config) -> tuple[Attested, ...]:
     """Every declared role against the record, the rows to act on first (RK200).

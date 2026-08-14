@@ -71,7 +71,6 @@ from roadkeep.kernel.schema import body_aim
 from roadkeep.kernel.schema import width as measured_width
 from roadkeep.sections import binding
 from roadkeep.serving import surface
-from roadkeep.shipping import record
 from roadkeep.showing import show
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
 from roadkeep.weighing import Weighed, weigh
@@ -492,42 +491,13 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
 
 def _writes(config: Config, args: argparse.Namespace) -> int:
     """The write record read against the files (RK200). Nothing here is a failure, so exit 0."""
-    rows = attesting.survey(config)
-    record = str(attesting.record_path(config.root))
-    unattested = sum(1 for row in rows if row.state is attesting.State.UNATTESTED)
+    survey = attesting.Survey(
+        attesting.survey(config), str(attesting.record_path(config.root))
+    )
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "record": record,
-                    "governed": len(rows),
-                    "unattested": unattested,
-                    "files": [
-                        {
-                            "role": row.role,
-                            "path": row.path,
-                            "state": str(row.state),
-                            "present": row.present,
-                        }
-                        for row in rows
-                    ],
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(f"{len(rows)} governed, {unattested} unattested")
-    for row in rows:
-        absent = "" if row.present else "  (absent)"
-        print(f"  {str(row.state):<12} {row.role:<12} {row.path}{absent}")
-    if all(row.state is attesting.State.UNRECORDED for row in rows):
-        # The silence `unattested` returns, said out loud: a caller who cannot tell "no verb
-        # has run" from "nothing drifted" reads a fresh checkout as a clean one.
-        print("  no verb has run in this checkout, so there is nothing to differ from")
-    # Named for the reason the claim registry is (RK161): the record is what an operator
-    # deletes, and it lives outside the repository where nothing points at it.
-    print(f"  record {record}")
+        print(json.dumps(survey.payload(), indent=2))
+    else:
+        print(survey.stated())
     return EXIT_OK
 
 
