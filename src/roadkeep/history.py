@@ -1434,3 +1434,118 @@ def _touching_role(
     except ValueError:
         relative = config.path(role)
     return commits_touching(config.root, needle, relative, literal=literal)
+
+
+@dataclass(frozen=True, slots=True)
+class Gapped:
+    """Every id below the highest that no file carries, as one result (RK1170).
+
+    The second verb moved to the shape RK1170 asks for, and `weight`'s reasons hold unchanged:
+    both registers are derived here, beside the numbers, so the payload carries what the printed
+    answer showed by construction. What the handler keeps is the door — run it, and say which
+    register was asked for.
+
+    The two registers differ on purpose, and here that difference is the whole of RK1165: the
+    printed one collapses a **contiguous run** of never-carried ids into a single row, because 499
+    of this repository's own 503 lines were a numbering jump saying one sentence with a different
+    number. The payload keeps every id, a key costing a client nothing to skip where a line costs
+    every reader the same attention.
+    """
+
+    gaps: tuple[Gap, ...]
+
+    def __str__(self) -> str:
+        if not self.gaps:
+            return "no gaps: every id below the highest is in one of the files"
+        rows: list[tuple[str, str]] = []
+        at = 0
+        for gap, run in _runs(self.gaps):
+            where = gap.id if run == 1 else f"{gap.id}–{self.gaps[at + run - 1].id}"
+            at += run
+            if gap.never_carried:
+                # **Every** run and not a long one (RK1165): a threshold would be a number nobody
+                # can re-read, and two consecutive ids in one row is the same information rather
+                # than less. What decides the row is contiguity, which is a fact and not a
+                # judgement about why the numbering skipped.
+                counted = "" if run == 1 else f"  ({run} ids)"
+                rows.append(
+                    (where, f"never carried  the whole history mentions it nowhere{counted}")
+                )
+            elif gap.removed_in is None:
+                rows.append((where, "unresolvable  no history here to search"))
+            else:
+                commit = gap.removed_in
+                rows.append((where, f"{commit.short}  {commit.date[:10]}  {commit.subject}"))
+        # Padded to the widest label, which a range is: a column sized for one id puts the
+        # sentence of a collapsed row in a different place from every other one.
+        width = max(len(label) for label, _ in rows)
+        resolved = sum(1 for gap in self.gaps if gap.resolved)
+        skipped = sum(1 for gap in self.gaps if gap.never_carried)
+        tail = f", {skipped} never carried" if skipped else ""
+        return "\n".join(
+            [
+                *(f"  {label:<{width}} {said}" for label, said in rows),
+                f"{len(self.gaps)} gap(s), {resolved} resolved against history{tail}",
+            ]
+        )
+
+    def payload(self) -> list[dict[str, object]]:
+        """Every gap, one row each — the runs the printed answer collapses are the reader's cost.
+
+        The commit is the four fields a caller reaches an id's departure by, and `None` where
+        history was searched and answered nothing: *unresolvable* and *never carried* are two
+        different absences (RK95), which the two flags beside it tell apart.
+        """
+        return [
+            {
+                "id": gap.id,
+                "resolved": gap.resolved,
+                "never_carried": gap.never_carried,
+                "removed_in": None
+                if gap.removed_in is None
+                else {
+                    "sha": gap.removed_in.sha,
+                    "short": gap.removed_in.short,
+                    "date": gap.removed_in.date,
+                    "subject": gap.removed_in.subject,
+                },
+            }
+            for gap in self.gaps
+        ]
+
+
+def _runs(found: Sequence[Gap]) -> list[tuple[Gap, int]]:
+    """Each gap with how many **contiguous never-carried** ids start there (RK1165).
+
+    Only that kind runs together: a gap resolved against history carries a commit of its own and
+    two of them are two answers, however adjacent their numbers. What a run of never-carried ids
+    carries is one sentence repeated, and this is what lets the row say it once.
+
+    Contiguity is read off the numbers the ids spell, which `next_id` already treats as a
+    sequence — a prefix change ends a run for free, two families being two sequences.
+    """
+    out: list[tuple[Gap, int]] = []
+    index = 0
+    while index < len(found):
+        gap = found[index]
+        run = 1
+        if gap.never_carried:
+            while index + run < len(found) and _follows(found[index + run - 1], found[index + run]):
+                run += 1
+        out.append((gap, run))
+        index += run
+    return out
+
+
+def _follows(earlier: Gap, later: Gap) -> bool:
+    """Whether one never-carried id is the next number after another, in the same family."""
+    if not later.never_carried:
+        return False
+    one, two = _numbered(earlier.id), _numbered(later.id)
+    return one is not None and two is not None and one[0] == two[0] and two[1] == one[1] + 1
+
+
+def _numbered(task_id: str) -> tuple[str, int] | None:
+    """An id as its family and its number, or None where it spells neither."""
+    found = re.match(r"^([A-Za-z]+)(\d+)$", task_id)
+    return (found[1], int(found[2])) if found else None
