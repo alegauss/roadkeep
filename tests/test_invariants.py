@@ -911,6 +911,50 @@ def test_no_file_mixes_the_two_line_terminators():
     assert not mixed, mixed
 
 
+def test_no_top_level_definition_lost_its_separator():
+    """A `def`, `class` or decorator at column zero has two blank lines above it (RK1195).
+
+    Python does not care and no diff is at stake, which is what makes it expensive — the same
+    argument the terminator invariant above makes about the same kind of damage. What produces
+    it is a scripted deletion: every one in this tree since RK1091 cuts from a definition to
+    the next blank-line run, so the separator goes out with the block and the next definition
+    closes the gap behind it. The anchor is the thing being counted on to survive.
+
+    Measured when this was written: exactly one instance, in `rendering.py`, which four
+    printers had been removed from two commits earlier. This tree takes no dev dependency, so
+    a formatter is not the door — the sweep is.
+
+    The first definition after the imports is exempt: one blank line there is this package's
+    own convention in several modules, and a test that reddened them would be stating a rule
+    the tree does not keep.
+    """
+    glued = []
+    for module in (*modules(), *_test_modules()):
+        text = module.path.read_text(encoding="utf-8")
+        lines = text.splitlines()
+        definitions = [
+            node
+            for node in ast.parse(text).body
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+        ]
+        # The first one carries no separator rule: what is above it is the import block, and
+        # this package writes one blank line there as often as two.
+        for node in definitions[1:]:
+            # A decorator is where the definition starts, and the AST is what knows that: a
+            # `@pytest.mark.parametrize(...)` spanning four lines leaves a bare `)` above the
+            # `def`, which no reading of the text alone tells from a definition against a call.
+            index = min(
+                [node.lineno, *(one.lineno for one in node.decorator_list)]
+            ) - 1
+            # A comment written above a definition belongs to it, so the separator is above
+            # the comment. Walk the run up, which is also how `#:` docs are written here.
+            while index and lines[index - 1].lstrip().startswith("#"):
+                index -= 1
+            if lines[index - 1] or (index >= 2 and lines[index - 2]):
+                glued.append(f"{module.where}:{index + 1}")
+    assert not glued, glued
+
+
 def test_the_declaration_that_decides_a_checkout_is_committed():
     # The other half, and the one a test cannot enforce on its own: a per-machine
     # `core.autocrlf` is not a promise to a contributor who never set it (L6).

@@ -201,6 +201,7 @@ class View:
             "paths": [{"path": p.path, "exists": p.exists} for p in self.paths],
         }
 
+
 def show(config: Config, task_id: str) -> View:
     """Join the line, its section and the paths it names. Reads; never writes."""
     entry, role, document = _locate(config, task_id)

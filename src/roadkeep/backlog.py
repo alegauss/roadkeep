@@ -358,6 +358,7 @@ _SATISFIES = {
     Stage.UNKNOWN: DepStatus.UNRESOLVABLE,
 }
 
+
 @dataclass(frozen=True, slots=True)
 class Resolution:
     """One dep, what it names, how it resolved, and a sentence a human can read."""

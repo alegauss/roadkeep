@@ -613,6 +613,7 @@ def serves(argv: Sequence[str]) -> str | None:
 #: `--json` is not a field a caller could set — it is what the transport already is.
 STRUCTURAL = "json"
 
+
 def withheld() -> Mapping[str, Mapping[str, str]]:
     """Every argument a served verb has and does not offer, with the reason it does not (RK1099).
 
@@ -725,6 +726,7 @@ _BOUNDS = {
     # not only published — a bound a client may skip is a bound on the client.
     "task_id": lambda config: {"pattern": config.schema.split_id_pattern().pattern},
 }
+
 
 @dataclass(frozen=True, slots=True)
 class Conditional:

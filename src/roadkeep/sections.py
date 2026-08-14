@@ -651,6 +651,7 @@ def citing(
         if cited.anchor in wanted and cited.by not in skipped
     )
 
+
 @dataclass(frozen=True, slots=True)
 class Cite:
     """One `§<anchor>` a section's prose makes, and where it is written (RK1106).
