@@ -2595,3 +2595,43 @@ def test_every_rule_that_reads_findings_is_in_the_phase():
         "fold_untainted",
         "fold_ordered",
     ]
+
+
+def test_the_project_reading_rules_are_a_declared_domain():
+    """RK1172's larger slice: `_examine` was 21 calls whose scan kind lived in their parameter
+    lists — `(config, tree)`, `(config, documents, since)`, `(config, documents, prose, targets)`
+    — so what a rule read was implicit and nothing could be total over the set.
+
+    Two things are asserted, and neither is the call list restated: every rule declares a `reads`
+    the scan record actually holds, and `_examine` reaches its rules only through the domain. The
+    second is what makes the first worth having — a rule invoked directly would be a rule outside
+    the loop, which is the hand-wiring this removes.
+    """
+    from roadkeep import linting
+
+    kinds = {"tree", "role", "documents", "prose_role", "anchors", "revision", "governed"}
+    declared = {rule.reads for rule in linting._rules()}
+    assert declared <= kinds, {"reads something the scan has no field for": declared - kinds}
+    # Every kind is used: a name nothing declares is a shape somebody removed and left behind.
+    assert declared == kinds
+
+    source = ast.parse(Path(linting.__file__).read_text(encoding="utf-8"))
+    examine = next(
+        node
+        for node in source.body
+        if isinstance(node, ast.FunctionDef) and node.name == "_examine"
+    )
+    called = {
+        node.func.id
+        for node in ast.walk(examine)
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+    }
+    # The rules are reached through `_rules()`; what `_examine` may still call by name is the
+    # scan's own construction and the phase that reads findings.
+    allowed = {
+        # The scan's own construction, the two derivations that are not checks, and the phase.
+        "_Scan", "_rules", "_targets", "_checked", "anchored", "fold", "Report",
+        # Builtins the body uses to split and count.
+        "isinstance", "list", "sum", "len", "tuple",
+    }
+    assert called <= allowed, {"called by name, outside the domain": called - allowed}

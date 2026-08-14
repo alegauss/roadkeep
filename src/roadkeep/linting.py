@@ -97,6 +97,7 @@ from __future__ import annotations
 import os
 import re
 import unicodedata
+import functools
 from collections.abc import Callable, Sequence
 from typing import Any
 from dataclasses import dataclass, field, replace
@@ -597,34 +598,20 @@ def lint(
 
 
 def _examine(config: Config, since: str | None, tree: Tree) -> Report:
-    """Every check, over whichever tree is being judged."""
-    findings: list[Finding] = []
-    findings.extend(_absent(config, tree))
+    """Every check, over whichever tree is being judged.
 
+    A **loop over a declared domain** since RK1172, where it was 21 hand-wired calls whose scan
+    kind lived in their parameter lists. What each rule reads is now a field on it, so the five
+    inputs are built once here and each kind's iteration — the whole tree, every line-bearing
+    role, one role, the prose with its anchor index — is written once below rather than at every
+    call site. Adding a rule that scans something new says so; adding one that scans something
+    already known costs a row.
+    """
     documents: dict[str, Document] = {}
     for role in LINE_ROLES:
         document = tree.document(role)
         if document is not None:
             documents[role] = document
-
-    for role, document in documents.items():
-        findings.extend(within(config, role, document))
-        # The character pass is a second walk over the same file, so the rule `within` holds
-        # has to be read here too or the 3,301 findings it exists to replace come back from
-        # the other side (RK451). The same predicate, not a second statement of it: `within`
-        # owns what "not text" means and this asks it.
-        if not _voided(document):
-            findings.extend(_characters(config, role, document))
-    findings.extend(_across(config, documents))
-    findings.extend(_scope(config, documents.get("roadmap")))
-    queued, queue_notes = _queue(config, documents)
-    findings.extend(queued)
-    notes: list[Note] = _collective(config, documents)
-    notes.extend(queue_notes)
-    notes.extend(_disagreeing(config, tree))
-    if since is not None:
-        notes.extend(_turned(config, documents, since))
-
     prose: dict[str, Document] = {}
     for role in PROSE_ROLES:
         document = tree.document(role)
@@ -632,29 +619,25 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
             prose[role] = document
     anchors = {role: anchored(document) for role, document in prose.items()}
     sections = tuple(section for found in anchors.values() for section in found)
-    for role, document in prose.items():
-        findings.extend(_marks(config, role, document))
-    if prose:
-        findings.extend(_pointers(config, documents, anchors))
-        findings.extend(_citations(config, prose, anchors))
-        findings.extend(_crossing(config, prose, anchors))
-        for role, document in prose.items():
-            findings.extend(_orphans(config, documents, document, anchors, role=role))
-        if since is not None:
-            notes.extend(_unpaired(config, anchors.get("improvements", ()), since))
-    # After both halves are loaded, because the remedy this names is decided against the
-    # *whole* governed set and not against the file the duplicate is in (RK417).
-    findings.extend(_repeated(config, {**documents, **prose}))
-    findings.extend(_paths(config, documents, tree))
+    scanned = _Scan(
+        config=config,
+        tree=tree,
+        documents=documents,
+        prose=prose,
+        anchors=anchors,
+        since=since,
+        # Read before the rules that want it, and not a check: a projection target is a fact
+        # about the tree that two rules and the file list all ask for (RK1110).
+        targets=_targets(config, tree),
+    )
 
-    targets = _targets(config, tree)
-    # Prose merged in, because the contents block is derived from that file's own headings
-    # (RK1110) — the projection reads four roles now, and one of them is the file it writes into.
-    findings.extend(_projections(config, {**documents, **prose}, targets))
-    budgeted, budget_notes = _budgets(config, tree)
-    findings.extend(budgeted)
-    notes.extend(budget_notes)
+    findings: list[Finding] = []
+    notes: list[Note] = []
+    for rule in _rules():
+        for one in rule.run(scanned):
+            (notes if isinstance(one, Note) else findings).append(one)
 
+    targets = scanned.targets
     checked = _checked(config, documents, prose, targets)
     # The second phase, run as the list it is (RK1172). Every rule above reads the *project*;
     # these three read what those produced — a whole file's worth of findings is evidence about
@@ -672,6 +655,136 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
         budgets=len(config.budgets),
         notes=tuple(notes),
     )
+
+
+@dataclass(frozen=True, slots=True)
+class _Scan:
+    """Every input a rule can read, built once (RK1172).
+
+    The five kinds the measurement found — the governed **tree**, the **documents** carrying task
+    lines, the **prose** files, the **anchor** index derived from them, and a git **revision** —
+    plus the projection targets, which are a reading of the tree that three rules share.
+
+    One record and not a parameter list, so a rule that starts reading a second input changes its
+    own row and nothing else: the signature `(config, documents, prose, targets)` was the fourth
+    shape invented at a call site, and each new one made `_examine` the only place that knew.
+    """
+
+    config: Config
+    tree: Tree
+    documents: dict[str, Document]
+    prose: dict[str, Document]
+    anchors: dict[str, tuple[Section, ...]]
+    since: str | None
+    targets: tuple[Target, ...]
+
+    @property
+    def governed(self) -> dict[str, Document]:
+        """Both halves, for the rules decided against the whole set and not one file (RK417)."""
+        return {**self.documents, **self.prose}
+
+
+@dataclass(frozen=True, slots=True)
+class _Rule:
+    """One gate rule: what it reads, and what it reports (RK1172).
+
+    `remedying.py` has been a table keyed by code since RK420, and its argument — that a central
+    domain is what a test can be total over — was only half applied: the *remedy* was a table and
+    the *check* was sixty functions with signatures invented where they were called.
+
+    :attr:`reads` is the field that removes the hand-wiring. It names one of the kinds
+    :class:`_Scan` holds, and the loop below turns that name into the iteration: `role` runs the
+    rule once per line-bearing document, `prose_role` once per prose file, `whole` once. A rule
+    that fits none of them is the evidence the set is wrong, which is what this task asked for.
+    """
+
+    reads: str
+    run: Callable[[_Scan], Sequence[Finding | Note]]
+
+
+# Cached rather than built at import: `within` and half the rules below are defined further down
+# this file, and a domain whose construction depended on definition order would break when a rule
+# moves. One call, and the tuple is a value a test can be total over.
+@functools.lru_cache(maxsize=1)
+def _rules() -> tuple[_Rule, ...]:
+    """The domain, in the order it runs (RK1172).
+
+    Order is the reader's convenience and not a rule's requirement: `_ordered` sorts the report by
+    file and line, and the two folds before it read the whole population — so nothing here depends
+    on running before anything else, which is what makes a declared list safe.
+    """
+
+    def per_role(one: Callable[[Config, str, Document], Sequence[Finding]]) -> Callable[[_Scan], list[Finding]]:
+        return lambda scan: [
+            found
+            for role, document in scan.documents.items()
+            for found in one(scan.config, role, document)
+        ]
+
+    def characters(scan: _Scan) -> list[Finding]:
+        # The character pass is a second walk over the same file, so the rule `within` holds has
+        # to be read here too or the 3,301 findings it exists to replace come back from the other
+        # side (RK451). The same predicate and not a second statement of it: `within` owns what
+        # "not text" means and this asks it.
+        return [
+            found
+            for role, document in scan.documents.items()
+            if not _voided(document)
+            for found in _characters(scan.config, role, document)
+        ]
+
+    def resolved(scan: _Scan) -> list[Finding]:
+        if not scan.prose:
+            return []
+        found = list(_pointers(scan.config, scan.documents, scan.anchors))
+        found += _citations(scan.config, scan.prose, scan.anchors)
+        found += _crossing(scan.config, scan.prose, scan.anchors)
+        for role, document in scan.prose.items():
+            found += _orphans(
+                scan.config, scan.documents, document, scan.anchors, role=role
+            )
+        return found
+
+    def against_baseline(scan: _Scan) -> list[Note]:
+        if scan.since is None:
+            return []
+        found = list(_turned(scan.config, scan.documents, scan.since))
+        if scan.prose:
+            found += _unpaired(
+                scan.config, scan.anchors.get("improvements", ()), scan.since
+            )
+        return found
+
+    def budgeted(scan: _Scan) -> list[Finding | Note]:
+        found, said = _budgets(scan.config, scan.tree)
+        return [*found, *said]
+
+    def queued(scan: _Scan) -> list[Finding | Note]:
+        found, said = _queue(scan.config, scan.documents)
+        return [*found, *said]
+
+    return (
+        _Rule("tree", lambda scan: _absent(scan.config, scan.tree)),
+        _Rule("role", per_role(within)),
+        _Rule("role", characters),
+        _Rule("documents", lambda scan: _across(scan.config, scan.documents)),
+        _Rule("documents", lambda scan: _scope(scan.config, scan.documents.get("roadmap"))),
+        _Rule("documents", queued),
+        _Rule("documents", lambda scan: _collective(scan.config, scan.documents)),
+        _Rule("tree", lambda scan: _disagreeing(scan.config, scan.tree)),
+        _Rule("revision", against_baseline),
+        _Rule("prose_role", lambda scan: [
+            found
+            for role, document in scan.prose.items()
+            for found in _marks(scan.config, role, document)
+        ]),
+        _Rule("anchors", resolved),
+        _Rule("governed", lambda scan: _repeated(scan.config, scan.governed)),
+        _Rule("tree", lambda scan: _paths(scan.config, scan.documents, scan.tree)),
+        _Rule("governed", lambda scan: _projections(scan.config, scan.governed, scan.targets)),
+        _Rule("tree", budgeted),
+    )
+
 
 
 def _folding(name: str) -> Callable[..., Any]:

@@ -52,6 +52,11 @@ INVENTORY = {
         "— the same argument `serving._root` makes about the same object (RK1015)"
     ),
     ("serving.py", "_root"): "pure: the parser is a function of the code and holds no config",
+    ("linting.py", "_rules"): (
+        "pure: the gate's domain is built from this module's own functions and takes no argument "
+        "— every project-specific value reaches a rule through the `_Scan` it is handed at call "
+        "time, so an entry keyed on nothing cannot be about the wrong project (RK1172)"
+    ),
 }
 
 #: The two the suite asserts `cache_info` about, where clearing *is* the measurement's setup:
