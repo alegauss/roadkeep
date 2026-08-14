@@ -347,23 +347,26 @@ authority out of Python and out of reach of a type checker.
 
 `tests/test_importing.py` holds a property this repository relies on: no module imports
 a name nothing in it spells. `_spelled` answers *what is spelled* by collecting every
-`ast.Name` in the tree — and an `ast.Name` is also what an assignment **target** is. So
-a local variable that happens to carry an import's name makes that import look used, and
-the gate passes.
+`ast.Name` in the tree, with no notion of scope — so a name bound and read inside one
+function is evidence that a module-level import is used.
 
 Measured, not hypothetical. `verbs/querying.py` imported `record` from
 `roadkeep.shipping` with no reader anywhere in the module; a local `record = str(...)`
-inside `_writes` was spelling the name. The import stayed green for as long as that
-local existed, and surfaced only when RK1170 moved the local onto the record it belonged
-to — which is to say the gate was cleared by an accident and repaired by an unrelated
-refactor.
+inside `_writes` was spelling it. The import surfaced only when RK1170 moved that local
+onto the record it belonged to.
 
-The scan's own docstring says the domain is exact: "an `ast.Name` is the whole domain
-and that is not an approximation". It is exact about *reaching a name* and silent about
-the direction, which is where the hole is.
+**Two candidate fixes were measured, and both are wrong.** Counting a `Name` only in
+`Load` context is the clause the first reading of this proposed, and it changes nothing:
+the local was *read*, twice. Disqualifying every name the module rebinds anywhere is
+conservative in the reporting direction and reports 32 — `attesting.py` among them,
+where `path` is imported, used, and shadowed by one comprehension variable. Most of the
+32 are that shape.
 
-The fix looks like one clause — count a `Name` only in `Load` context, so a `Store`
-target is not a use. What is worth doing with it is the measurement: run the corrected
-scan across the package before changing the test, because every import it then reports
-has been dead for as long as its shadowing local has existed, and how many there are is
-the argument for the clause.
+So what this needs is a scope walk: a read counts where it is at module level, or inside
+a function that does not bind the name. Not a clause, and not something an approximation
+reaches — which is the finding, and the reason this line stayed open after the defect
+was understood.
+
+Worth deciding with it: whether the answer is this scan growing scopes, or the property
+being stated some other way. The tree takes no dev dependency, so a linter is not the
+door.
