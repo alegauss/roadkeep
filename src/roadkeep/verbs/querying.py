@@ -66,7 +66,7 @@ from roadkeep.rendering import (
     _nothing_json,
     _pick_json,
     _claim_rows,
-    _print_event,
+    _event_rows,
     _held_rows,
     _leverage_rows,
     _print_scope,
@@ -676,7 +676,7 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
     if _print(_claim_rows(claim, config)) and event is not None:
         # Beside the claim and not at the end: the rationale section closes this output, and
         # an event line after a paragraph of prose is one a hook reader has to hunt for.
-        _print_event(event, "  ", config=config)
+        _print(_event_rows(event, "  ", config=config))
     print(f"  symptom  {task.symptom}")
     print(f"  why      {task.why}")
     if gathered.budget is not None:
@@ -1083,7 +1083,7 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
     _print(_held_rows(choice))
     _print(_stalled_rows(choice))
     if _print(_claim_rows(claim, config)) and event is not None:
-        _print_event(event, "  ", config=config)
+        _print(_event_rows(event, "  ", config=config))
     return EXIT_OK
 
 

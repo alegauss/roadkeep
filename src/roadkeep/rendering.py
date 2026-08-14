@@ -156,9 +156,9 @@ _DROPPABLE = {
 }
 
 
-def _print_event(
+def _event_rows(
     event: dict[str, object], indent: str = "", *, config: Config, standing: bool = False
-) -> None:
+) -> list[str]:
     """The event, and where the stage allows it the one command that state makes available.
 
     A heading becomes droppable the moment its block stops holding work, and a project whose
@@ -184,7 +184,7 @@ def _print_event(
     is a fact and only the suggestion was a question the file could answer.
     """
     stage = event["stage"]
-    print(f"{indent}event    {event['id']}  Block {event['block']}  {stage}")
+    rows = [f"{indent}event    {event['id']}  Block {event['block']}  {stage}"]
     # What is left, on the line under it — for the two verbs a caller **drives a block** with
     # (RK1164). `ship` and `retire` are where the follow-up `list` was measured, and where the
     # live count is the question being asked: *is this block finished, and is there another*.
@@ -196,14 +196,15 @@ def _print_event(
     # was the filter's doing, and here the count is the answer.
     left = event.get("standing") if standing else None
     if isinstance(left, dict) and left.get("sentence"):
-        print(f"{indent}         {left['sentence']}")
+        rows.append(f"{indent}         {left['sentence']}")
     because = None if config.permanent_headings else _DROPPABLE.get(Stage(stage))
     if because:
-        print(
+        rows.append(
             f"{indent}         {because} — "
             f"`{invocation()} block drop {event['block']}` withdraws the heading, "
             f"where this project drops one"
         )
+    return rows
 
 
 def _print_dequeued(token: str | None) -> None:

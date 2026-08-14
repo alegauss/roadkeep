@@ -27,7 +27,7 @@ from roadkeep.rendering import (
     _event,
     _held_json,
     _print_dequeued,
-    _print_event,
+    _event_rows,
     _print_followed,
     _print_staging,
     _promise_json,
@@ -39,6 +39,13 @@ from roadkeep.kernel.schema import width as measured_width
 from roadkeep.verbs.reading import STDIN, _body_reader, _one_body, _piped
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
 
+
+
+def _print(rows) -> bool:
+    """Write what a row producer returned, and say whether there was anything (RK1170)."""
+    for row in rows:
+        print(row)
+    return bool(rows)
 
 def _next_id(config: Config, args: argparse.Namespace) -> int:
     try:
@@ -221,7 +228,7 @@ def _add(config: Config, args: argparse.Namespace) -> int:
             f"link is not"
         )
     _print_staging(config.relative(one) for one in insertion.wrote)
-    _print_event(event, config=config)
+    _print(_event_rows(event, config=config))
     return EXIT_OK
 
 
@@ -256,14 +263,14 @@ def _status(config: Config, args: argparse.Namespace) -> int:
     if not change.changed:
         print(f"{args.id} is already {change.after}  {where}")
         _print_followed(change, config)
-        _print_event(event, "  ", config=config)
+        _print(_event_rows(event, "  ", config=config))
         return EXIT_OK
     print(f"{args.id} {change.before} → {change.after}  {where}")
     if change.refreshed:
         print(f"  derived  {', '.join(change.refreshed)} (dep annotations re-derived)")
     _print_followed(change, config)
     _print_staging(config.relative(one) for one in change.wrote)
-    _print_event(event, "  ", config=config)
+    _print(_event_rows(event, "  ", config=config))
     return EXIT_OK
 
 
@@ -439,7 +446,7 @@ def _renumber(config: Config, args: argparse.Namespace) -> int:
         # by a number that no longer exists, and that it is still theirs is what to say.
         print(f"  claimed  the claim taken {moved.claim.since} ago moved with it")
     _print_staging(config.relative(one) for one in wrote)
-    _print_event(event, "  ", config=config)
+    _print(_event_rows(event, "  ", config=config))
     return EXIT_OK
 
 
@@ -516,7 +523,7 @@ def _defer(config: Config, args: argparse.Namespace) -> int:
         print(f"  derived  {', '.join(pause.refreshed)} (dep annotations re-derived)")
     _print_dequeued(pause.dequeued)
     _print_staging(config.relative(one) for one in wrote)
-    _print_event(event, "  ", config=config)
+    _print(_event_rows(event, "  ", config=config))
     return EXIT_OK
 
 
@@ -595,7 +602,7 @@ def _resume(config: Config, args: argparse.Namespace) -> int:
     if follow is not None:
         print(f"  requeue  {follow}")
     _print_staging(config.relative(one) for one in wrote)
-    _print_event(event, "  ", config=config)
+    _print(_event_rows(event, "  ", config=config))
     return EXIT_OK
 
 
