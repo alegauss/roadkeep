@@ -165,6 +165,32 @@ walks past. The argument for a verb is that `stats` is a report about a file and
 a question asked before writing to one, and `block add` and `block drop` already own the
 noun.
 
+### §RK1190 The allowance is knowable and the draft is not
+
+RK190 made the allowance knowable before the first word exists, and that is not this.
+`budget` answers "this line leaves 174 characters for `why`, this section 250 words". It
+cannot be handed the draft. So the only thing that measures prose against its limit is
+the write that refuses it.
+
+Measured on one session driving another project: eight refusals on length, several of
+them three or four retries for a single task, each costing the whole field again. The
+refusals are good — they name the count, the limit, the deficit, and which paragraph is
+longest — and none of that is reachable until something has been sent.
+
+`--section-body-file` and `--body-file` already remove the *re-send* cost, which is the
+half that was solvable without a new read. What stays is the round trip and the
+guessing: told "delete 3 words", an author cuts and sends again, and the second answer
+is "delete 1".
+
+The shape is `budget --anchor RK12 --body-file draft.md`, and the same for a `why`, so
+the subject flags that exist say what the draft is measured against. It counts with the
+writer's own counter — a second one that disagreed would be worse than none.
+
+Two things to settle. Whether it exits non-zero when over so a script can gate on it, or
+stays a report like the rest of `budget`. And whether **stdin** is accepted here: a pipe
+does not rewind, but this writes nothing, so the objection that shaped the writing verbs
+does not apply.
+
 ## Block D — The gate
 
 ### §RK1172 Two phases, and the five inputs a rule reads
