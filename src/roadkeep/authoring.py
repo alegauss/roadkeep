@@ -1088,6 +1088,59 @@ class Restatement:
     def lineno(self) -> int:
         return self.entry.lineno
 
+    def stated(self, config: Config) -> str:
+        """What this correction did, as a reader is told it (RK178, RK414).
+
+        Beside :meth:`payload` since RK1170. Both registers were in the handler, which is where a
+        write verb's answer least belongs: the record is what the transaction produced, and the
+        door only chose which reading to print.
+        """
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path("roadmap"))
+        if not self.changed:
+            return f"{self.entry.task.id} unchanged: the line already states that symptom"
+        rows = [
+            f"{self.entry.task.id} restated  {where}:{self.lineno}",
+            f"  was      {self.before.symptom}",
+            f"  now      {self.entry.task.symptom}",
+            f"  {self.rendered}",
+            # Said out loud, because keeping them is the whole argument for the verb: the work
+            # never changed, so nothing the history is keyed on moves.
+            "  kept     the id, the deps and the section: the work never changed",
+            # Which of the two acts it was (RK414): the default sentence claims a premise turned
+            # out false, and printing that over a misspelt word is the record describing a
+            # decision nobody took.
+            "  spelling the claim is the one intended — a slip of the pen, not a false premise"
+            if self.typo
+            else "  claim    the premise this line asserted turned out to be false",
+        ]
+        if self.refreshed:
+            rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
+        rows += _staging_rows(config.relative(one) for one in self.wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config) -> dict[str, object]:
+        """The same answer as data, with both readings of the claim (RK178)."""
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "id": self.entry.task.id,
+            "file": config.relative(config.path("roadmap")),
+            "line": self.lineno,
+            # Both readings, which is what makes this recorded rather than hidden: a reviewer
+            # sees a claim replaced where a flag would show a word changing.
+            "was": self.before.symptom,
+            "now": self.entry.task.symptom,
+            "changed": self.changed,
+            # Which of the two acts this was (RK414), so a consumer counting how often a claim
+            # actually moved is not counting spelling fixes with them.
+            "typo": self.typo,
+            "rendered": self.rendered,
+            "refreshed": list(self.refreshed),
+            **_wrote_json(config, self.wrote),
+        }
+
 
 def restate(
     config: Config,

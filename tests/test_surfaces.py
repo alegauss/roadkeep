@@ -311,6 +311,18 @@ def test_every_wired_write_reaches_the_one_printer():
         body = body.split("\ndef ", 1)[0]
         # `_staging_rows` since RK1170: the sentence is composed where the answer is and written
         # by the one seam, so what a handler must reach is the producer rather than a printer.
-        if "_staging_rows" not in body and "_print_scope" not in body:
-            missing.append(handler)
+        if "_staging_rows" in body or "_print_scope" in body:
+            continue
+        # **One hop, where the verb moved onto its record** (RK1170): a handler that renders
+        # through `stated` composes the line inside that method, so this follows the delegation
+        # rather than calling a moved verb a missing one. Not vacuous — some record's own `stated`
+        # has to name the producer, which is what the second half asks.
+        composed = any(
+            "_staging_rows" in one.text.split("def stated(", 1)[-1].split("\n    def ", 1)[0]
+            for one in modules()
+            if "def stated(" in one.text
+        )
+        if ".stated(" in body and composed:
+            continue
+        missing.append(handler)
     assert not missing, missing

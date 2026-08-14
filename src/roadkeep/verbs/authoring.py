@@ -325,6 +325,11 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
 
 
 def _restate(config: Config, args: argparse.Namespace) -> int:
+    """Correct one open line's symptom, keeping its id, its deps and its section (RK178).
+
+    Both registers come off the record (RK1170): a write verb's answer is what the transaction
+    produced, and this door only chooses which reading to print.
+    """
     try:
         restated = restate(
             config, args.id, args.symptom, lines=args.lines, typo=args.typo
@@ -332,51 +337,10 @@ def _restate(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    where = config.relative(config.path("roadmap"))
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": args.id,
-                    "file": where,
-                    "line": restated.lineno,
-                    # Both readings, which is what makes this recorded rather than hidden: a
-                    # reviewer sees a claim replaced where a flag would show a word changing.
-                    "was": restated.before.symptom,
-                    "now": restated.entry.task.symptom,
-                    "changed": restated.changed,
-                    # Which of the two acts this was (RK414), so a consumer counting how
-                    # often a claim actually moved is not counting spelling fixes with them.
-                    "typo": restated.typo,
-                    "rendered": restated.rendered,
-                    "refreshed": list(restated.refreshed),
-                    **_wrote_json(config, restated.wrote),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    if not restated.changed:
-        print(f"{args.id} unchanged: the line already states that symptom")
-        return EXIT_OK
-    print(f"{args.id} restated  {where}:{restated.lineno}")
-    print(f"  was      {restated.before.symptom}")
-    print(f"  now      {restated.entry.task.symptom}")
-    print(f"  {restated.rendered}")
-    # Said out loud, because keeping them is the whole argument for the verb: the work never
-    # changed, so nothing the history is keyed on moves. Which of the two acts it was is the
-    # other half (RK414): the default sentence claims a premise turned out false, and printing
-    # that over a misspelt word is the record describing a decision nobody took.
-    print("  kept     the id, the deps and the section: the work never changed")
-    print(
-        "  spelling the claim is the one intended — a slip of the pen, not a false premise"
-        if restated.typo
-        else "  claim    the premise this line asserted turned out to be false"
-    )
-    if restated.refreshed:
-        print(f"  derived  {', '.join(restated.refreshed)} (dep annotations re-derived)")
-    _print(_staging_rows(config.relative(one) for one in restated.wrote))
+        print(json.dumps(restated.payload(config), indent=2))
+    else:
+        print(restated.stated(config))
     return EXIT_OK
 
 
