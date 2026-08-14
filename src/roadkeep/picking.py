@@ -445,3 +445,126 @@ def _first(ordered: list[Entry], config: Config) -> tuple[Entry, Tier, str]:
             f"lowest ready id; {named} names nothing ready",
         )
     return ordered[0], Tier.LOWEST, "lowest ready id"
+
+
+@dataclass(frozen=True, slots=True)
+class Picked:
+    """What `pick` answers: the choice, and the claim where the call took one (RK1170).
+
+    Three values reached the handler and were rendered there — the choice, the claim and the
+    event — so this verb's two registers were a printer in `verbs/querying.py` and a builder in
+    `rendering.py`, neither of them where the choice is made. One record carries both, and the
+    five sentences it shares with `brief` compose here because those produce rows now.
+
+    `config` is a field and not a parameter, unlike `View.stated`'s: every row this renders needs
+    it — the file a line sits on, the claim window, the offer to withdraw a heading — and this
+    record is built by the verb that already holds the project.
+    """
+
+    config: Config
+    choice: Choice
+    claim: Claim | None
+    event: Mapping[str, object] | None
+
+    def __str__(self) -> str:  # noqa: PLR0912 - the rows are a list, not a branch tree
+        """The answer a reader scans, or the reasoned absence of one.
+
+        Nothing ready is an answer and not a failure: the exit stays 0 and the reason carries the
+        counts, so a caller can tell *backlog finished* from *everything is blocked*.
+        """
+        from roadkeep.rendering import (  # noqa: PLC0415 - RK260, the cycle's one direction
+            _claim_rows,
+            _event_rows,
+            _held_rows,
+            _stalled_rows,
+            _undesigned_rows,
+        )
+
+        choice, config = self.choice, self.config
+        if choice.entry is None:
+            return "\n".join(
+                [
+                    f"nothing to pick: {choice.reason}",
+                    f"  backlog  {choice.counts}",
+                    *_undesigned_rows(choice),
+                    *_held_rows(choice),
+                    *_stalled_rows(choice),
+                ]
+            )
+        entry = choice.entry
+        where = f"{config.relative(config.path('roadmap'))}:{entry.lineno}"
+        rows = [
+            f"{entry.task.id}  Block {entry.task.block}  {entry.task.status}  {where}",
+            f"  because  {choice.reason}",
+            f"  backlog  {choice.counts}",
+            f"  symptom  {entry.task.symptom}",
+        ]
+        if choice.alternatives:
+            rows.append(f"  or       {', '.join(choice.alternatives)}")
+        rows += _undesigned_rows(choice)
+        rows += _held_rows(choice)
+        rows += _stalled_rows(choice)
+        taken = _claim_rows(self.claim, config)
+        rows += taken
+        if taken and self.event is not None:
+            # Beside the claim and not at the end, which is where `brief` puts it too: an event
+            # line after a paragraph of prose is one a hook reader has to hunt for.
+            rows += _event_rows(dict(self.event), "  ", config=config)
+        return "\n".join(rows)
+
+    def payload(self) -> dict[str, object]:
+        """The answer as one object, beside `Brief`'s and for the same reason it exists."""
+        choice, config = self.choice, self.config
+        entry = choice.entry
+        return {
+            "pick": None
+            if entry is None
+            else {
+                "id": entry.task.id,
+                "block": entry.task.block,
+                "status": entry.task.status,
+                "file": config.relative(config.path("roadmap")),
+                "line": entry.lineno,
+                "symptom": entry.task.symptom,
+                "ref": entry.task.ref,
+            },
+            "tier": None if choice.tier is None else str(choice.tier),
+            "reason": choice.reason,
+            "scope": choice.block,
+            # Beside `scope` and never instead of it (RK429): the label is what was asked and
+            # this is what became of it, so a loop scoped to a block reads one word rather than
+            # matching the sentence `reason` states it in.
+            "standing": None if choice.standing is None else choice.standing.payload(),
+            "alternatives": list(choice.alternatives),
+            "ready": choice.ready,
+            "blocked": choice.blocked,
+            "outside": choice.outside,
+            "paused": choice.paused,
+            "needs_design": choice.needs_design,
+            "undesigned": choice.undesigned,
+            # `claimed` on a stalled line and `held` beside it are two facts with two names
+            # (RK152): one is a line somebody is on that nothing could offer, the other is a
+            # candidate the ranking stepped around.
+            "stalled": [
+                {
+                    "id": one.id,
+                    "blockers": list(one.blockers),
+                    "claimed": None
+                    if one.claimed is None
+                    else {"age": round(one.claimed.age), "since": one.claimed.since},
+                }
+                for one in choice.stalled
+            ],
+            "held": [
+                {"id": one.id, "age": round(one.age), "since": one.since}
+                for one in choice.held
+            ],
+            "claimed": None
+            if self.claim is None
+            else {
+                "taken": self.claim.taken,
+                "from": None if self.claim.change is None else self.claim.change.before,
+                "to": None if self.claim.change is None else self.claim.change.after,
+            },
+            "event": None if self.event is None else dict(self.event),
+        }

@@ -53,7 +53,7 @@ from roadkeep.history import (
     origin_of,
 )
 from roadkeep.merging import markers
-from roadkeep.picking import Claim, pick, take
+from roadkeep.picking import Claim, Picked, pick, take
 from roadkeep.provenance import invocation
 from roadkeep.remaining import QueryError, count, declared
 from roadkeep.rendering import (
@@ -64,15 +64,12 @@ from roadkeep.rendering import (
     _load_json,
     _miss_json,
     _nothing_json,
-    _pick_json,
     _claim_rows,
     _event_rows,
     _held_rows,
     _leverage_rows,
     _print_scope,
-    _stalled_rows,
     _print_standing,
-    _undesigned_rows,
     _row_json,
 )
 from roadkeep.kernel.schema import body_aim
@@ -1044,6 +1041,12 @@ def _tools_budget(config: Config, args: argparse.Namespace) -> int:
 
 
 def _pick(config: Config, args: argparse.Namespace) -> int:
+    """The next task this backlog offers, and why that one (RK11).
+
+    Both registers come off one record (RK1170): the choice, the claim and the event reached this
+    handler as three values and were rendered here and in `rendering.py`, so the verb's two
+    readings sat in two files and neither was where the choice is made.
+    """
     claim: Claim | None = None
     try:
         if args.claim:
@@ -1056,34 +1059,11 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
         # marker, so every refusal that guards a marker — a stale file, a sibling stating
         # status — reaches here, and a traceback is what the caller would otherwise read.
         return _refused(error)
-    event = _claim_event(claim, config)
-    if args.json:
-        print(json.dumps(_pick_json(config, choice, claim, event), indent=2))
-        return EXIT_OK
 
-    # Nothing ready is an answer, not a failure: exit stays 0 and the reason carries the
-    # counts, so a caller can tell "backlog finished" from "everything is blocked".
-    if choice.entry is None:
-        print(f"nothing to pick: {choice.reason}")
-        print(f"  backlog  {choice.counts}")
-        _print(_undesigned_rows(choice))
-        _print(_held_rows(choice))
-        _print(_stalled_rows(choice))
-        return EXIT_OK
-
-    entry = choice.entry
-    where = f"{config.relative(config.path('roadmap'))}:{entry.lineno}"
-    print(f"{entry.task.id}  Block {entry.task.block}  {entry.task.status}  {where}")
-    print(f"  because  {choice.reason}")
-    print(f"  backlog  {choice.counts}")
-    print(f"  symptom  {entry.task.symptom}")
-    if choice.alternatives:
-        print(f"  or       {', '.join(choice.alternatives)}")
-    _print(_undesigned_rows(choice))
-    _print(_held_rows(choice))
-    _print(_stalled_rows(choice))
-    if _print(_claim_rows(claim, config)) and event is not None:
-        _print(_event_rows(event, "  ", config=config))
+    answer = Picked(
+        config=config, choice=choice, claim=claim, event=_claim_event(claim, config)
+    )
+    print(json.dumps(answer.payload(), indent=2) if args.json else answer)
     return EXIT_OK
 
 
