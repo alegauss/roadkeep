@@ -798,8 +798,8 @@ def _brief_json(gathered: Brief, config: Config) -> dict[str, object]:
                 # would otherwise join two arrays to find it.
                 **{
                     "settled_since": {
-                        "shipped": _commit_json(one.shipped),
-                        "revised": _commit_json(one.revised),
+                        "shipped": _dated_json(one.shipped),
+                        "revised": _dated_json(one.revised),
                     }
                     for one in gathered.settled
                     if one.dep == r.dep.id
@@ -1038,21 +1038,6 @@ def _print_leverage(leverage: Leverage) -> None:
     tail = " …" if leverage.count > 4 else ""
     detail = f": {shown}{tail}" if shown else ""
     print(f"  unblocks {leverage.count} of {leverage.of} open{detail}")
-
-
-def _commit_json(commit: Commit | None) -> dict[str, str] | None:
-    """A commit **whole**, message included — for an answer whose subject is that commit.
-
-    `None` where there is none, which is half of `cited_origin`'s answer by construction: an
-    anchor nobody ever wrote has no writing commit, and an address still in the file has no
-    removing one. A caller reading either as a record would be reading a crash.
-    """
-    if commit is None:
-        return None
-    return {"sha": commit.sha, "short": commit.short, "date": commit.date,
-            "subject": commit.subject, "body": commit.body}
-
-
 def _commits_json(origin: Origin) -> dict[str, object]:
     def one(commit: Commit | None) -> dict[str, object] | None:
         if commit is None:

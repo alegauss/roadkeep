@@ -856,6 +856,67 @@ class Cited:
         """Written and never removed: the section is still there and this is a live cite."""
         return self.written_in is not None and self.removed_in is None
 
+    def stated(self, where: str, *, why: bool = False) -> str:
+        """Where the design behind this citation went, as the reader is told it (RK212).
+
+        Beside :meth:`payload` since RK1170: these two were a printer inside the handler and a
+        builder in the same function, so one answer had two spellings and the file that holds the
+        fact held neither. `where` is passed rather than stored — the role is the fact and how a
+        project spells that file is the caller's (RK75).
+
+        The absences are three different answers and never one (RK95): a history nobody could
+        search, a history searched to the root that never saw the address — which is what a typo
+        looks like — and an address still in the file, where the citation simply resolves.
+        """
+        if not self.searched:
+            return f"§{self.anchor}: no history to resolve against"
+        if self.written_in is None:
+            return f"§{self.anchor}: searched {where} to the root and nothing ever wrote it"
+        rows = [
+            f"§{self.anchor}  in {where}",
+            f"  written  {self.written_in.short}  {self.written_in.date[:10]}  "
+            f"{self.written_in.subject}",
+        ]
+        if self.removed_in is None:
+            rows.append("  removed  — the section is still there, so the citation resolves")
+        else:
+            rows.append(
+                f"  removed  {self.removed_in.short}  {self.removed_in.date[:10]}  "
+                f"{self.removed_in.subject}"
+            )
+            if why:
+                # The commit's own reasoning, only where it was asked for: it is the one field
+                # here that is a paragraph, and a read that always printed it would be a read
+                # nobody puts in a loop.
+                rows += ["", self.removed_in.reasoning]
+        return "\n".join(rows)
+
+    def payload(self, *, whole: bool = True) -> dict[str, object]:
+        """The same answer as data, with each end null where history answered nothing.
+
+        `whole` keeps the commit's message: a caller asking about an address is asking about
+        those two commits, so the body is the answer here rather than a paragraph riding along.
+        """
+
+        def commit(one: Commit | None) -> dict[str, str] | None:
+            if one is None:
+                return None
+            said = {
+                "sha": one.sha,
+                "short": one.short,
+                "date": one.date,
+                "subject": one.subject,
+            }
+            return {**said, "body": one.body} if whole else said
+
+        return {
+            "anchor": self.anchor,
+            "role": self.role,
+            "searched": self.searched,
+            "written": commit(self.written_in),
+            "removed": commit(self.removed_in),
+        }
+
 
 def cited_origin(config: Config, anchor: str) -> Cited:
     """Where the design behind a dangling citation was written, and what took it away.

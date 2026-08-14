@@ -492,6 +492,11 @@ def test_a_dep_that_shipped_after_the_design_was_written_is_said_beside_it(tmp_p
     assert dep["dep"] == "RK1"
     assert dep["settled_since"]["shipped"]["subject"].startswith("feat: ship RK1")
     assert dep["settled_since"]["revised"]["subject"].startswith("docs: file the backlog")
+    # Four fields and not five (RK1163, wired for real in RK1170): a commit rides here as an
+    # *address*, and a `brief` is a bounded answer — one whole commit message inside it would be
+    # the paragraph nobody asked for. The full record is what `origin` answers with, that read
+    # being about the commit rather than about the line this dep blocks.
+    assert set(dep["settled_since"]["shipped"]) == {"sha", "short", "date", "subject"}
 
 
 def test_a_design_written_after_its_dep_shipped_says_nothing(tmp_path, capsys):

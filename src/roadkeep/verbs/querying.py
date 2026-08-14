@@ -60,7 +60,6 @@ from roadkeep.rendering import (
     CHARACTER_UNIT,
     _brief_json,
     _claim_event,
-    _commit_json,
     _commits_json,
     _counted,
     _load_json,
@@ -1676,45 +1675,13 @@ def _cited(config: Config, args: argparse.Namespace) -> int:
     """
     anchor = args.id.lstrip("§")
     found = cited_origin(config, anchor)
-    if args.json:
-        print(
-            json.dumps(
-                {
-                    "anchor": found.anchor,
-                    "role": found.role,
-                    "searched": found.searched,
-                    "written": _commit_json(found.written_in),
-                    "removed": _commit_json(found.removed_in),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
+    # Both registers off the record (RK1170), and the role spelled by this project (RK75): the
+    # answer is `Cited`'s, and what the printed one needs beyond the fact is the file's name.
     where = config.relative(config.path(found.role)) if config.has(found.role) else found.role
-    if not found.searched:
-        print(f"§{anchor}: no history to resolve against")
-        return EXIT_OK
-    if found.written_in is None:
-        # The two absences are different answers (RK95): a history that was searched and
-        # never saw the address says nobody wrote it, which is what a typo looks like.
-        print(f"§{anchor}: searched {where} to the root and nothing ever wrote it")
-        return EXIT_OK
-    print(f"§{anchor}  in {where}")
-    print(
-        f"  written  {found.written_in.short}  {found.written_in.date[:10]}  "
-        f"{found.written_in.subject}"
-    )
-    if found.removed_in is None:
-        print("  removed  — the section is still there, so the citation resolves")
+    if args.json:
+        print(json.dumps(found.payload(), indent=2))
     else:
-        print(
-            f"  removed  {found.removed_in.short}  {found.removed_in.date[:10]}  "
-            f"{found.removed_in.subject}"
-        )
-        if args.why:
-            print()
-            print(found.removed_in.reasoning)
+        print(found.stated(where, why=args.why))
     return EXIT_OK
 
 
