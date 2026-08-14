@@ -929,3 +929,28 @@ def _test_modules():
         Module(where=f"tests/{path.name}", path=path)
         for path in sorted(Path(__file__).parent.glob("*.py"))
     )
+
+
+def test_no_module_defines_one_name_twice():
+    """RK1170's find, and the cheapest closure this package did not have.
+
+    `rendering.py` held two `_commit_json`s — one nullable and one not — and the second shadowed
+    the first, so a caller written against the older signature raised on the `None` it was built
+    to accept. Both definitions read correctly on their own, which is what makes this invisible:
+    the defect is in what the *module* resolves, and nothing was asking.
+
+    Over the package and the suite, and over functions and classes alike: a fixture redefined
+    halfway down a test file is the same failure with a friendlier name. Assignments are not
+    swept — a constant re-bound under a condition is a pattern this package uses on purpose.
+    """
+    twice: dict[str, list[str]] = {}
+    for module in (*modules(), *sorted(Path(__file__).parent.glob("*.py"))):
+        text = module.text if hasattr(module, "text") else module.read_text(encoding="utf-8")
+        where = module.where if hasattr(module, "where") else f"tests/{module.name}"
+        seen: dict[str, int] = {}
+        for node in ast.parse(text).body:
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                if node.name in seen:
+                    twice.setdefault(where, []).append(f"{node.name} at {seen[node.name]} and {node.lineno}")
+                seen[node.name] = node.lineno
+    assert twice == {}, twice

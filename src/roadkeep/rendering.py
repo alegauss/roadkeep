@@ -1123,6 +1123,12 @@ def _print_leverage(leverage: Leverage) -> None:
 
 
 def _commit_json(commit: Commit | None) -> dict[str, str] | None:
+    """A commit **whole**, message included — for an answer whose subject is that commit.
+
+    `None` where there is none, which is half of `cited_origin`'s answer by construction: an
+    anchor nobody ever wrote has no writing commit, and an address still in the file has no
+    removing one. A caller reading either as a record would be reading a crash.
+    """
     if commit is None:
         return None
     return {"sha": commit.sha, "short": commit.short, "date": commit.date,
@@ -1729,8 +1735,17 @@ def _prose_file(config: Config, prose: Document | None) -> str:
     return config.relative(config.path(declared[0])) if declared else ""
 
 
-def _commit_json(commit: Commit) -> dict[str, str]:
-    """One commit as the fields every payload here already publishes (RK1163)."""
+def _dated_json(commit: Commit) -> dict[str, str]:
+    """A commit as an **address**: where to look, and when it landed (RK1163).
+
+    Four fields and not five. The message body belongs to an answer *about* that commit, and this
+    rides inside a `brief` — a bounded answer whose whole argument is that it costs less than
+    reading the file (RK29), where one long commit message would be a paragraph nobody asked for.
+
+    A name of its own since RK1170 found the duplicate: this was written as a second
+    `_commit_json`, which shadowed the nullable one above and made `origin '§<anchor>' --json`
+    raise on the half of its answer that is `None` by construction.
+    """
     return {
         "sha": commit.sha,
         "short": commit.short,

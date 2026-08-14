@@ -1999,3 +1999,19 @@ def test_a_gap_history_answers_for_is_never_folded_into_a_run(tmp_path, capsys):
     assert "RK2–RK4" in printed
     # And RK1, which the ledger holds, is no gap at all — the run starts after it.
     assert "RK1–" not in printed
+
+
+def test_an_anchor_nobody_wrote_answers_with_nulls_and_not_a_traceback(tmp_path, capsys):
+    """Both halves of `cited_origin` are `None` by construction — an address nobody ever wrote has
+    no writing commit, and one still in the file has no removing one — so the payload publishes
+    nulls. It raised instead, from RK1163 until RK1170 found it: that task added a second
+    `_commit_json` to `rendering.py`, which shadowed the nullable one and narrowed every caller of
+    the name to a commit that must exist.
+
+    On the command and not on the function, because what a duplicate definition breaks is the
+    call: both spellings passed their own tests, and nothing asked what the module resolved.
+    """
+    config = repo(tmp_path)
+    assert main(["-C", str(config.root), "origin", "§RK9999", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["written"] is None and payload["removed"] is None
