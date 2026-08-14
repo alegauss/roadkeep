@@ -380,6 +380,36 @@ class Created:
     files: tuple[Path, ...]
     blocks: tuple[str, ...]
 
+    @property
+    def written(self) -> tuple[Path, ...]:
+        """Every path, config first — the order the scaffold was written in."""
+        return (self.config, *self.files)
+
+    def stated(self, families: Sequence[str]) -> str:
+        """The scaffold, and the one command that puts a line in it (RK56).
+
+        Beside :meth:`payload` since RK1170. `families` is the caller's: `init` runs *before* a
+        project is configured, so the prefixes it was pointed at are argv and not a fact this
+        record read back off a file it just wrote.
+        """
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
+        rows = [f"created  {path.as_posix()}" for path in self.written]
+        rows.append(
+            f"{len(self.written)} file(s), blocks {', '.join(self.blocks)}: "
+            f"`{invocation()} add --block {self.blocks[0]} …` writes the first line"
+        )
+        return "\n".join(rows)
+
+    def payload(self, root: str, families: Sequence[str]) -> dict[str, object]:
+        return {
+            "root": Path(root).resolve().as_posix(),
+            "created": [path.as_posix() for path in self.written],
+            "prefix": families[0],
+            "prefixes": list(families),
+            "blocks": list(self.blocks),
+        }
+
 
 @dataclass(frozen=True, slots=True)
 class Measure:

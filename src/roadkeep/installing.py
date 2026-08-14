@@ -1233,6 +1233,54 @@ class Removal:
     def changing(self) -> tuple[Withdrawal, ...]:
         return tuple(withdrawal for withdrawal in self.withdrawals if withdrawal.writes)
 
+    def stated(self, checked: bool) -> str:
+        """Every file the un-wiring touches, and what it did — or would do — to it (RK138).
+
+        Beside :meth:`payload` and :meth:`verdict` since RK1170, in :class:`Plan`'s shape and
+        for its reason: this is the same command pointed the other way.
+        """
+        rows = [f"{self.root.as_posix()}  ←  this project's own entries"]
+        for withdrawal in self.withdrawals:
+            state = _WOULD_REMOVE[withdrawal.state] if checked else withdrawal.state
+            rows.append(f"  {state:<14} {withdrawal.path.relative_to(self.root).as_posix()}")
+        rows += [f"  kept           {why}" for _, why in self.kept]
+        return "\n".join(rows)
+
+    def verdict(self) -> list[str]:
+        """What a `--check` has to say on **stderr**, where anything is left wired."""
+        if not self.changing:
+            return []
+        return [
+            f"{len(self.changing)} surface(s) still wire this project to a checkout: "
+            f"`{invocation()} uninstall` takes them out"
+        ]
+
+    def payload(self, checked: bool) -> dict[str, object]:
+        return {
+            "root": self.root.as_posix(),
+            "checked": checked,
+            "surfaces": [
+                {
+                    "path": withdrawal.path.relative_to(self.root).as_posix(),
+                    "state": withdrawal.state,
+                    "writes": withdrawal.writes,
+                }
+                for withdrawal in self.withdrawals
+            ],
+            "kept": [{"path": path, "why": why} for path, why in self.kept],
+            "changing": len(self.changing),
+        }
+
+
+#: The same rule as :data:`_WOULD` for the other direction (RK138). `absent` and `untouched`
+#: describe no write either, so only the two states that take something out are conditional.
+_WOULD_REMOVE = {
+    "deleted": "would delete",
+    "reduced": "would reduce",
+    "absent": "absent",
+    "untouched": "untouched",
+}
+
 
 def removal(root: str | Path = ".") -> Removal:
     """Read the project's own surfaces and answer what un-wiring would take out.

@@ -42,7 +42,6 @@ from roadkeep.installing import (
     removal,
     uninstall,
 )
-from roadkeep.provenance import invocation
 from roadkeep.rendering import _estimate_json, _print_estimate
 from roadkeep.serving import serve
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, _refused
@@ -60,27 +59,10 @@ def _init(config: Config, args: argparse.Namespace) -> int:
     except (ValueError, OSError) as error:
         return _refused(error)
 
-    files = [created.config, *created.files]
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "root": Path(args.directory).resolve().as_posix(),
-                    "created": [path.as_posix() for path in files],
-                    "prefix": families[0],
-                    "prefixes": list(families),
-                    "blocks": list(created.blocks),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-    for path in files:
-        print(f"created  {path.as_posix()}")
-    print(
-        f"{len(files)} file(s), blocks {', '.join(created.blocks)}: "
-        f"`{invocation()} add --block {created.blocks[0]} …` writes the first line"
-    )
+        print(json.dumps(created.payload(args.directory, families), indent=2))
+    else:
+        print(created.stated(families))
     return EXIT_OK
 
 
@@ -105,16 +87,6 @@ def _adopt(config: Config, args: argparse.Namespace) -> int:
     # Always 0: this reports on a file the project has not adopted, so there is no
     # contract for it to have broken. `lint` is the command with an exit code.
     return EXIT_OK
-
-
-#: The same rule for the other direction (RK138). `absent` and `untouched` describe no write
-#: either, so only the two states that take something out are put in the conditional.
-_WOULD_REMOVE = {
-    "deleted": "would delete",
-    "reduced": "would reduce",
-    "absent": "absent",
-    "untouched": "untouched",
-}
 
 
 def _engines(config: Config, args: argparse.Namespace) -> int:
@@ -331,38 +303,12 @@ def _uninstall(config: Config, args: argparse.Namespace) -> int:
         return _refused(error)
 
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "root": intent.root.as_posix(),
-                    "checked": args.check,
-                    "surfaces": [
-                        {
-                            "path": withdrawal.path.relative_to(intent.root).as_posix(),
-                            "state": withdrawal.state,
-                            "writes": withdrawal.writes,
-                        }
-                        for withdrawal in intent.withdrawals
-                    ],
-                    "kept": [{"path": path, "why": why} for path, why in intent.kept],
-                    "changing": len(intent.changing),
-                },
-                indent=2,
-            )
-        )
+        print(json.dumps(intent.payload(args.check), indent=2))
     else:
-        print(f"{intent.root.as_posix()}  ←  this project's own entries")
-        for withdrawal in intent.withdrawals:
-            state = _WOULD_REMOVE[withdrawal.state] if args.check else withdrawal.state
-            print(f"  {state:<14} {withdrawal.path.relative_to(intent.root).as_posix()}")
-        for _, why in intent.kept:
-            print(f"  kept           {why}")
-        if args.check and intent.changing:
-            print(
-                f"{len(intent.changing)} surface(s) still wire this project to a checkout: "
-                f"`{invocation()} uninstall` takes them out",
-                file=sys.stderr,
-            )
+        print(intent.stated(args.check))
+        if args.check:
+            for line in intent.verdict():
+                print(line, file=sys.stderr)
     if args.check and intent.changing:
         return EXIT_GATE
     return EXIT_OK
