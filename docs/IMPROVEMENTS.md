@@ -102,6 +102,29 @@ that is merely current.
 
 ## Block B — Authoring
 
+### §RK1182 The refusal names the line it can reach, not the line that is over
+
+Captured in a project on 2026-08-13 and never filed: `ship DD34 --why "…"` exited 2
+naming `--why` as too long. The `--why` was not too long.
+
+Shipping a task rewrites the dep annotations on everything that depends on it — `(deps:
+DD34)` becomes `(deps: DD34 ✅)` — and a tick is a character the dependent line did not
+have. A dependent already one character under its limit is over it the moment its
+blocker ships, and the transaction refuses because a line it must rewrite would not fit.
+
+The refusal reports that as the shipping task's `--why`, which is the one field the
+caller can see and the one field that is innocent. What the author did next is the cost:
+amend DD35, re-run `ship`, learn about DD36, amend it, re-run, learn about DD37. Three
+round trips to discover a set the transaction knew in full before it wrote anything.
+
+Both halves are worth fixing and the second is the larger one. Naming the dependent
+whose line does not fit turns a wrong diagnosis into a right one; naming *every* such
+dependent turns three round trips into one, and the transaction is already computing
+them — it refused because it enumerated them.
+
+What this is not is a case for letting the line through. A line over the limit is over
+it whoever wrote the character, and a tick nobody typed is still a tick a reader sees.
+
 ## Block C — Query
 
 ## Block D — The gate
@@ -149,6 +172,29 @@ What must survive the move, because it is the part that is load-bearing: the fou
 the marked blank where the prose is the author's by L4, the two doors where the choice
 is editorial, and the config reads that keep a door true on a project whose paths and
 pointer scheme are its own. None of that is a table; all of it is the field's type.
+
+### §RK1181 A citation this file cannot make
+
+A rationale section arguing about a design document quotes that document's structure —
+"section 4 says the site must carry no measured number", "the acceptance criteria in
+section 3.1". Written with the section mark, which is how those documents number
+themselves, `ref.dangling` reads it as a pointer into the governed prose file and
+refuses: the anchor is not declared there, because it never was one.
+
+Met twice in one session in a project whose specs live beside the governed files. Both
+times the fix was to strike the mark and spell the reference in words, which is a worse
+sentence, and both times the turn was already spent: the gate fires at the end, so the
+author learns at Stop that a paragraph they wrote is unacceptable for a reason that is
+not about the paragraph.
+
+The check is right that a bare mark naming nothing is usually a typo — that is the case
+it was built for, and it catches real ones. What is missing is the other case having any
+spelling at all. A citation carrying its file, the way a Markdown link already does, is
+one the gate can resolve or leave alone.
+
+So the repair is a form for the outward citation before the inward one is refused. What
+it must not become is a suppression flag: an author who can silence the check silences
+it for the typo too, which is the finding this rule exists to raise.
 
 ## Block E — Adoption
 
