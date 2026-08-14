@@ -521,7 +521,7 @@ def test_a_crash_is_printed_and_closed_with_the_offer(tmp_path, capsys, monkeypa
     def explode(*_args, **_kwargs):
         raise RuntimeError("the parser lost its footing")
 
-    monkeypatch.setattr("roadkeep.cli._lint", explode)
+    monkeypatch.setattr("roadkeep.verbs.linting._lint", explode)
     code = main(["-C", str(root), "lint"])
     err = capsys.readouterr().err
     assert code == 1

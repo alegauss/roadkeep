@@ -72,7 +72,7 @@ from roadkeep.verbs.authoring import (
     _resume,
     _status,
 )
-from roadkeep.verbs.linting import _explain, _guard, _lint, _merge, _repair
+from roadkeep.verbs.linting import declare_gate
 from roadkeep.verbs.querying import (
     _anchors,
     _audit,
@@ -705,64 +705,7 @@ def build_parser() -> argparse.ArgumentParser:
     renumber_parser.add_argument("--json", action="store_true", help="every edit, as data")
     renumber_parser.set_defaults(handler=_renumber)
 
-    merge_parser = subcommands.add_parser(
-        "merge",
-        help="git's merge driver for a governed file: entries by id, prose by one side",
-        description=(
-            "Merge three versions of one governed file structurally. Every id is decided "
-            "on its own against the ancestor, so two branches appending under one heading "
-            "is two additions and not a conflict; an id both branches created is reported "
-            "by name, because `renumber` moves one of them and a driver that picked a side "
-            "would be choosing whose task disappears. Anything it cannot prove falls back "
-            "to git's conflict markers and exits 1. `--register` wires it up, and `--check` "
-            "reads the wiring back: a driver git can no longer run is otherwise silent until "
-            "the merge it was registered for."
-        ),
-    )
-    merge_parser.add_argument("base", nargs="?", help="the ancestor version (git's %%O)")
-    merge_parser.add_argument(
-        "ours", nargs="?", help="this branch's version, and where the result is written (%%A)"
-    )
-    merge_parser.add_argument("theirs", nargs="?", help="the other branch's version (%%B)")
-    merge_parser.add_argument(
-        "--path",
-        help="the file's pathname in the repository (%%P) — which governed file this is",
-    )
-    merge_parser.add_argument(
-        "--register",
-        action="store_true",
-        help="write the .gitattributes lines and print the git config this driver needs",
-    )
-    merge_parser.add_argument(
-        "--check",
-        action="store_true",
-        help="read the driver back out of git config and say whether it still runs; write nothing",
-    )
-    # For `--check` and for nothing else on this command (RK275). The MCP surface passes `--json`
-    # on every call and never exposes it, because a structured answer is the difference between
-    # one an agent can audit and one it re-reads the file to check (L5) — and the driver path has
-    # no answer to structure: git reads its exit code and its bytes in `%A`, not its stdout.
-    # Argparse scopes a flag to the subparser and not to the branch, so the help says which
-    # branch honours it and `_merge` refuses the others (RK317).
-    merge_parser.add_argument(
-        "--json",
-        action="store_true",
-        help="machine-readable form of --check; refused on the driver and on --register",
-    )
-    # `--check` is a pure query wearing the driver's subparser (RK275), so the claim this parser
-    # makes is the one `writes_when` was built for, inverted the only way it can be: the command
-    # reads, and the two arguments that turn it into a write say so. `ours` is where git has the
-    # driver put the result, so a merge that names it writes; `--register` writes `.gitattributes`.
-    # Neither is set by a `--check`, which is what lets it take no lock and be free to ask (L5).
-    # `json_needs` beside them for the reason they are here (RK319): which argument this command's
-    # `--json` is the form of is a fact about the command, and left as an `if` in the handler it
-    # was a constraint on every surface serving it that no surface could read.
-    merge_parser.set_defaults(
-        handler=_merge,
-        reads_only=True,
-        writes_when=("register", "ours"),
-        json_needs="check",
-    )
+    declare_gate(subcommands)
 
     ship_parser = subcommands.add_parser(
         "ship",
@@ -1342,101 +1285,6 @@ def build_parser() -> argparse.ArgumentParser:
     # Never a write, not even behind a flag: re-baselining is what the `Stop` block does, and a
     # query offering it would be the laundering `dispatch` refuses queries in the first place.
     writes_parser.set_defaults(handler=_writes, reads_only=True)
-
-    lint_parser = subcommands.add_parser(
-        "lint",
-        help="validate every governed line; exit 1 when anything drifted",
-        description=(
-            "The backstop for what bypassed `add`. Reports every violation, every line "
-            "that does not round-trip and every dep nothing can satisfy — and exits "
-            "non-zero, which is the entire difference between a gate and advice."
-        ),
-    )
-    lint_parser.add_argument(
-        "--fix",
-        action="store_true",
-        help="normalize what is mechanical first, then report what needs a decision",
-    )
-    lint_parser.add_argument(
-        "--since",
-        metavar="REV",
-        help=(
-            "also report a rationale section edited since REV whose task line was not "
-            "(RK36): HEAD in a commit hook, the base branch in CI"
-        ),
-    )
-    lint_parser.add_argument(
-        "--baseline",
-        metavar="REV",
-        help=(
-            "report only what this working tree added since REV, forgiving the standing "
-            "debt (RK84): the gate a repository can adopt before it has paid it off"
-        ),
-    )
-    lint_parser.add_argument(
-        "--quiet",
-        action="store_true",
-        help="print only the summary line, for a hook that wants the exit code",
-    )
-    lint_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    # The gate is a read and `--fix` is the write in it (RK168). Until it said so, the command
-    # a hook, a CI job and every turn's end run took the *write* lock — so a checkout somebody
-    # else was writing answered with exit 1, which from this command means the format drifted.
-    #
-    # `--fix` still refuses on a busy checkout rather than repairing half of it, and that is
-    # deliberate: the refusal names the other process, re-running is the answer, and splitting
-    # one command into a locked half and an unlocked half is a second mechanism for the rarer
-    # case. What the flag buys is that the *report* never waits on a write at all.
-    withheld(
-        lint_parser,
-        fix='it writes, and RK16 keeps the derived-only repair where a human is standing',
-        since="a git revision, which is a fact about the checkout the caller cannot see from here — and the gate's answer is about the tree as it is",
-        quiet='how a terminal prints, which is not a thing a JSON payload has',
-    )
-    lint_parser.set_defaults(handler=_lint, reads_only=True, writes_when="fix")
-    # `list`'s pair, one verb over: `--quiet` shortens the printed report and `--json` is a
-    # different form of the same read (RK467).
-    answers(
-        lint_parser, ("quiet", "the report as its summary line"), ("json", "the payload")
-    )
-
-    repair_parser = subcommands.add_parser(
-        "repair",
-        help="run the report back: apply every finding whose remedy is one command",
-        description=(
-            "The gate says what is wrong and, since RK420, what closes it. This spends "
-            "that: the mechanical pass, then every finding whose remedy is a complete "
-            "command, one at a time with the report re-read between them. What needs a "
-            "sentence or a choice is printed instead — that half is yours, and the tool "
-            "writing it would be the generator this project refuses. Exits 1 while "
-            "anything is left, which is the gate's own contract and not a second one."
-        ),
-    )
-    repair_parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="print the commands and run none of them",
-    )
-    repair_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    repair_parser.set_defaults(handler=_repair, reads_only=False)
-
-    explain_parser = subcommands.add_parser(
-        "explain",
-        help="what one gate code means, what produces it, and which doors close it",
-        description=(
-            "A finding is about one line; a code is about a class, and there has never "
-            "been anywhere to look the second one up. Three fields and no more — the "
-            "worked example is the argv the finding already carries. With no code, lists "
-            "every one this gate can report, which is the vocabulary it never published."
-        ),
-    )
-    explain_parser.add_argument(
-        "code",
-        nargs="?",
-        help="a code as `lint` prints it, e.g. id.duplicate; omitted, lists them all",
-    )
-    explain_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    explain_parser.set_defaults(handler=_explain, reads_only=True)
 
     delivered_parser = subcommands.add_parser(
         "delivered",
@@ -2325,21 +2173,6 @@ def build_parser() -> argparse.ArgumentParser:
     )
     uninstall_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     uninstall_parser.set_defaults(handler=_uninstall)
-
-    guard_parser = subcommands.add_parser(
-        "guard",
-        help="answer a Claude Code hook: deny a hand-edit, or lint as the turn ends",
-        description=(
-            "Read one hook payload on stdin and answer it on stdout (RK22). A "
-            "`PreToolUse` payload naming a governed file is denied with the command to "
-            "call instead; a `Stop` payload runs `lint` and blocks on what it refuses. "
-            "Everything else is answered with silence. Not for a human to call: the "
-            "harness runs it before every write, so it always exits 0 — a non-zero exit "
-            "is read as the hook itself having failed, which would deny nothing and "
-            "report a broken hook on every edit in the session."
-        ),
-    )
-    guard_parser.set_defaults(handler=_guard, tolerates_config_error=True, reads_only=True)
 
     mcp_parser = subcommands.add_parser(
         "mcp",
