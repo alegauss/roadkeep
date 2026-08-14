@@ -31,6 +31,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
 
+from roadkeep.backlog import Standing
 from roadkeep.config import Config
 from roadkeep.kernel.document import Document, Entry, Reject, declares, shading
 from roadkeep.kernel.schema import DEFAULT_HEADING_WORD, Schema, width
@@ -206,3 +207,90 @@ class Census:
     def longest(self) -> Entry | None:
         """The line closest to the limit — the measurement this repo did by hand."""
         return max(self.counted, key=lambda e: width(e.raw), default=None)
+
+    # -- the two registers, and the third stream ---------------------------
+
+    def listed(self, ids: bool) -> str:
+        """The lines this filter selected, exactly as the file spells them (RK10).
+
+        Beside :meth:`listing` since RK1170. `ids` is the caller's: which of two shapes a
+        terminal wants is a fact about the argv, and this record does not read one.
+        """
+        return "\n".join(entry.task.id if ids else entry.raw for entry in self.counted)
+
+    def notes(self, standing: Standing | None) -> list[str]:
+        """What goes to **stderr** beside a listing (RK10, RK429).
+
+        Its own method and not the tail of :meth:`listed` (RK1170): stdout stays exactly what
+        the file says, so `list` substitutes for the grep it replaces — a sentence in the pipe
+        is a line no `--ids` consumer asked for, and a miss that could corrupt one is worse.
+
+        Two, and they answer different questions. **Which silence this is** where the listing
+        came back empty: nothing is said about a *live* block, because a marker filter matching
+        none of its open lines is a fact about the filter. And **what was not counted**, printed
+        whenever anything was — a listing that looked complete is the whole symptom.
+        """
+        rows = self.silence(standing)
+        if self.missed:
+            from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
+            rows.append(
+                f"roadkeep: {self.uncounted} marker-bearing line(s) in {self.file} "
+                f"were not counted; run '{invocation()} audit' to see them"
+            )
+        return rows
+
+    def silence(self, standing: Standing | None) -> list[str]:
+        """Which of the two silences an empty count is (RK429), for **stderr**.
+
+        The half of :meth:`notes` `audit` and `stats` want on their own: those two report the
+        misses as their subject, so the sentence about what was *not* counted would be the
+        report saying its own contents twice.
+        """
+        if self.counted or standing is None or not standing.settled:
+            return []
+        return [f"roadkeep: {standing.sentence}"]
+
+    def listing(self, standing: Standing | None) -> dict[str, object]:
+        """The same answer as data, with what the label it was scoped to turned out to be."""
+        from roadkeep.rendering import _miss_json, _row_json  # noqa: PLC0415 - RK260
+
+        return {
+            "file": self.file,
+            "total": self.total,
+            "uncounted": [_miss_json(one) for one in self.missed],
+            # Beside the count and not instead of it (RK429): a total of 0 is the answer to
+            # what was asked, and this is what the label it was scoped to turned out to be.
+            # `None` where no block was named, which is the question rather than a missing
+            # answer: a listing over the whole file has no standing.
+            "standing": None if standing is None else standing.payload(),
+            "tasks": [_row_json(entry) for entry in self.counted],
+        }
+
+    def audited(self) -> str:
+        """Every marker-bearing line the count did not count, and why (RK10).
+
+        The empty answer is a sentence and not a blank: exit stays 0, because reporting is
+        not the gate — and :meth:`silence` is what says why a count came back at zero, on the
+        stream that cannot corrupt a pipe.
+        """
+        if not self.missed:
+            return f"{self.file}: {self.total} counted, none uncounted"
+        rows = []
+        for miss in self.missed:
+            where = f"Block {miss.block}" if miss.block else "no block"
+            rows.append(f"{self.file}:{miss.lineno}  ({where})  {miss.reason}")
+            rows.append(f"    {miss.raw.strip()}")
+        rows.append(f"{self.file}: {self.total} counted, {self.uncounted} uncounted")
+        return "\n".join(rows)
+
+    def audit(self, standing: Standing | None) -> dict[str, object]:
+        """The misses as data. `counted` and not `total`: this verb's subject is what was not."""
+        from roadkeep.rendering import _miss_json  # noqa: PLC0415 - RK260
+
+        return {
+            "file": self.file,
+            "counted": self.total,
+            "uncounted": [_miss_json(one) for one in self.missed],
+            "standing": None if standing is None else standing.payload(),
+        }

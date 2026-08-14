@@ -62,12 +62,10 @@ from roadkeep.rendering import (
     _claim_event,
     _commits_json,
     _load_json,
-    _miss_json,
     _nothing_json,
     _leverage_rows,
     _scope_rows,
     _print_standing,
-    _row_json,
 )
 from roadkeep.kernel.schema import body_aim
 from roadkeep.kernel.schema import width as measured_width
@@ -123,38 +121,13 @@ def _list(config: Config, args: argparse.Namespace) -> int:
         return _refused(error)
 
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "file": census.file,
-                    "total": census.total,
-                    "uncounted": [_miss_json(m) for m in census.missed],
-                    # Beside the count and not instead of it (RK429): a total of 0 is the
-                    # answer to what was asked, and this is what the label it was scoped to
-                    # turned out to be. Null where no block narrowed the listing.
-                    # `None` where no block was named, which is the question rather than a
-                    # missing answer (RK429): a listing over the whole file has no standing.
-                    "standing": None if standing is None else standing.payload(),
-                    "tasks": [_row_json(entry) for entry in census.counted],
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    for entry in census.counted:
-        print(entry.task.id if args.ids else entry.raw)
-    if not census.counted:
-        _print_standing(standing)
-    # stdout stays exactly what the file says, so `list` substitutes for the grep it
-    # replaces; the miss goes to stderr, where it cannot be silent and cannot corrupt
-    # a pipe either. A listing that looked complete is the whole symptom (RK10).
-    if census.missed:
-        print(
-            f"roadkeep: {census.uncounted} marker-bearing line(s) in {census.file} "
-            f"were not counted; run '{invocation()} audit' to see them",
-            file=sys.stderr,
-        )
+        print(json.dumps(census.listing(standing), indent=2))
+    else:
+        listed = census.listed(args.ids)
+        if listed:
+            print(listed)
+        for note in census.notes(standing):
+            print(note, file=sys.stderr)
     return EXIT_OK
 
 
@@ -344,31 +317,11 @@ def _audit(config: Config, args: argparse.Namespace) -> int:
         return _refused(error)
 
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "file": census.file,
-                    "counted": census.total,
-                    "uncounted": [_miss_json(m) for m in census.missed],
-                    # `None` where no block was named, which is the question rather than a
-                    # missing answer (RK429): a listing over the whole file has no standing.
-                    "standing": None if standing is None else standing.payload(),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    if not census.missed:
-        print(f"{census.file}: {census.total} counted, none uncounted")
-        if not census.total:
-            _print_standing(standing)
-        return EXIT_OK
-    for miss in census.missed:
-        where = f"Block {miss.block}" if miss.block else "no block"
-        print(f"{census.file}:{miss.lineno}  ({where})  {miss.reason}")
-        print(f"    {miss.raw.strip()}")
-    print(f"{census.file}: {census.total} counted, {census.uncounted} uncounted")
+        print(json.dumps(census.audit(standing), indent=2))
+    else:
+        print(census.audited())
+        for note in census.silence(standing):
+            print(note, file=sys.stderr)
     return EXIT_OK
 
 
