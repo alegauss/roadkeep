@@ -54,13 +54,11 @@ from roadkeep.picking import Claim, Picked, pick, take
 from roadkeep.provenance import invocation
 from roadkeep.remaining import QueryError, count, declared
 from roadkeep.rendering import (
-    _print,
     CHARACTER_UNIT,
     _claim_event,
     _commits_json,
     _load_json,
     _nothing_json,
-    _scope_rows,
 )
 from roadkeep.kernel.schema import body_aim
 from roadkeep.sections import binding
@@ -251,15 +249,6 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
     # silence it — the scope then carrying paths that were never the work.
     seen = status(config)
     wrote = claiming.written(config, args.id, seen.changed)
-    if args.porcelain:
-        # Nothing but the paths: this form is consumed by `git add --`, so a heading on it
-        # would be a filename to a shell and the contract has to be safe to pipe. The
-        # written ones join it for the reason they join the stage line: what the author
-        # does with both lists is the same `git add`.
-        for one in dict.fromkeys((*mine, *wrote)):
-            print(one)
-        return EXIT_OK
-
     # The subtraction is `claiming`'s (RK294), because `ship` asks for the same lists at the
     # moment of committing and two compositions of one answer is how they come to disagree.
     # Git is asked here and not there: this command was told to answer.
@@ -269,62 +258,30 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
     #
     # And `shared` with it (RK1122): this is the read a commit is composed from, so the ids
     # inside a file it is about to stage are exactly what it exists to say. Asked here rather
-    # than deep in the split for the same reason `dirty` is — this command was told to answer.
-    scope = claiming.split(
-        config,
-        args.id,
-        entries,
-        seen.changed,
-        indexed(config),
-        accounted=wrote,
-        shared=claiming.sharing(config, args.id, wrote),
-        staged=seen.staged,
+    # than deep in the split for the same reason git is — this command was told to answer.
+    answer = claiming.Claimed(
+        task_id=args.id,
+        scope=claiming.split(
+            config,
+            args.id,
+            entries,
+            seen.changed,
+            indexed(config),
+            accounted=wrote,
+            shared=claiming.sharing(config, args.id, wrote),
+            staged=seen.staged,
+        ),
+        wrote=tuple(wrote),
     )
-    if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": args.id,
-                    "paths": list(scope.mine),
-                    # Its own key and never merged into `paths` (RK309, RK342): a client
-                    # that read them as one would be handed a scope this tool never
-                    # received, and the two answer different questions.
-                    "wrote": list(wrote),
-                    "theirs": [
-                        {"path": one, "claimed_by": who} for one, who in scope.theirs
-                    ],
-                    "unclaimed": list(scope.loose),
-                    # Which of them the index already carries (RK1197), the key a departure
-                    # answers under the same name: a client acting on `unclaimed` decides, and
-                    # one acting on this has already been committed to by a `git add`.
-                    "unclaimed_staged": list(scope.staged),
-                    # The same list a departure carries, and computed here since RK1122: the
-                    # two readers of one contract answering differently was the defect.
-                    "shared": [
-                        {"path": one, "ids": list(named)} for one, named in scope.shared
-                    ],
-                    "staging_nothing": list(scope.idle),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
 
-    print(f"{args.id} claims {len(mine)} path(s)")
-    idle = set(scope.idle)
-    for one in scope.mine:
-        # Annotated where it stands, and not listed again below (RK295): the mistyped path
-        # and the real one are two lines apart, and the eye reads the second as somebody
-        # else's unless the first says what is wrong with it.
-        print(f"  mine     {one}{'  (stages nothing right now)' if one in idle else ''}")
-    for one in wrote:
-        # Named rather than folded into `mine`, for the reason a departure keeps them
-        # apart (RK309): the scope is what the holder said, verbatim, and these are not a
-        # declaration to be corrected but a record to be used.
-        print(f"  wrote    {one}  (this task's own transactions)")
-    _print(_scope_rows(scope, wrote))
-    if not mine:
-        print(f"  none declared: `claim {args.id} --path <p>` says what this commit owns")
+    # Three registers and not two (RK1170): `--porcelain` is a third reading of one result and
+    # not a narrowing of either — a shell consumes it, so it carries paths and nothing else.
+    if args.porcelain:
+        print(answer.porcelain())
+    elif args.json:
+        print(json.dumps(answer.payload(), indent=2))
+    else:
+        print(answer.stated())
     return EXIT_OK
 
 

@@ -572,6 +572,81 @@ class Scope:
         return bool(self.mine or self.theirs)
 
 
+@dataclass(frozen=True, slots=True)
+class Claimed:
+    """One held line's scope as `claim <id>` answers it (RK280, RK294, RK342).
+
+    The result that read had none of (RK1170). `Scope` is the *subtraction* and is shared with
+    a departure; what this adds is the two things only this door has — the id it was asked
+    about, and what this task's own transactions already wrote — and the three registers that
+    were composed from all of it inside the handler.
+    """
+
+    task_id: str
+    scope: Scope
+    #: The governed files this task's own transactions wrote (RK342), by the reading `ship`
+    #: makes off its own `save`. Named rather than folded into `mine`, for the reason a
+    #: departure keeps them apart (RK309): the scope is what the holder *said*, verbatim, and
+    #: these are not a declaration to be corrected but a record to be used.
+    wrote: tuple[str, ...] = ()
+
+    def porcelain(self) -> str:
+        """Nothing but the paths, in `git add --` order.
+
+        This form is consumed by a shell, so a heading on it would be a filename — the
+        contract has to be safe to pipe. The written ones join it for the reason they join the
+        staging line: what the author does with both lists is the same `git add`.
+        """
+        return chr(10).join(dict.fromkeys((*self.scope.mine, *self.wrote)))
+
+    def stated(self) -> str:
+        from roadkeep.rendering import _scope_rows  # noqa: PLC0415 - RK260
+
+        idle = set(self.scope.idle)
+        rows = [f"{self.task_id} claims {len(self.scope.mine)} path(s)"]
+        # Annotated where it stands, and not listed again below (RK295): the mistyped path and
+        # the real one are two lines apart, and the eye reads the second as somebody else's
+        # unless the first says what is wrong with it.
+        rows += [
+            f"  mine     {one}{'  (stages nothing right now)' if one in idle else ''}"
+            for one in self.scope.mine
+        ]
+        rows += [
+            f"  wrote    {one}  (this task's own transactions)" for one in self.wrote
+        ]
+        rows += _scope_rows(self.scope, self.wrote)
+        if not self.scope.mine:
+            rows.append(
+                f"  none declared: `claim {self.task_id} --path <p>` says what this "
+                f"commit owns"
+            )
+        return chr(10).join(rows)
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "id": self.task_id,
+            "paths": list(self.scope.mine),
+            # Its own key and never merged into `paths` (RK309, RK342): a client that read them
+            # as one would be handed a scope this tool never received, and the two answer
+            # different questions.
+            "wrote": list(self.wrote),
+            "theirs": [
+                {"path": one, "claimed_by": who} for one, who in self.scope.theirs
+            ],
+            "unclaimed": list(self.scope.loose),
+            # Which of them the index already carries (RK1197), the key a departure answers
+            # under the same name: a client acting on `unclaimed` decides, and one acting on
+            # this has already been committed to by a `git add`.
+            "unclaimed_staged": list(self.scope.staged),
+            # The same list a departure carries, and computed here since RK1122: the two
+            # readers of one contract answering differently was the defect.
+            "shared": [
+                {"path": one, "ids": list(named)} for one, named in self.scope.shared
+            ],
+            "staging_nothing": list(self.scope.idle),
+        }
+
+
 def split(
     config: Config,
     task_id: str,
