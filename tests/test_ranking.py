@@ -105,14 +105,6 @@ def test_the_tokens_are_runs_of_letters_and_digits():
 # -- the measurement `NEAREST` is set from -------------------------------------
 
 
-#: Retirements whose partner is not the nearest sentence, with the reason each is (RK1183). One
-#: row and not a looser `NEAREST`: this is a fact about which task took the work over, and the
-#: figure the command publishes has to keep measuring what it measures.
-_DIFFERENT_SYMPTOM = {
-    "RK1182": "points at the half it called larger (RK1152), where RK348's symptom is the match",
-}
-
-
 def test_every_pair_this_ledger_knows_the_answer_to_lands_inside_the_count():
     """The property test over the real corpus. Four `superseded by` entries name the id they
     restate, which makes them the only four cases in this repository where the nearest entry
@@ -130,17 +122,9 @@ def test_every_pair_this_ledger_knows_the_answer_to_lands_inside_the_count():
         if "superseded by " in entry.task.why
     ]
     assert len(pairs) >= 4, "the corpus this figure is measured on lost its known answers"
+    reached: list[str] = []
+    missed: list[str] = []
     for retired, partner in pairs:
-        if retired.task.id in _DIFFERENT_SYMPTOM:
-            # Measured, and the honest reading of it (RK1183): `nearest` ranks by **symptom**
-            # overlap, and a retirement may point at the task that delivered the *larger half*
-            # rather than the one whose symptom matches. RK1182 names RK1152 for that reason,
-            # while the read places RK348 first — whose symptom is nearly RK1182's own, and which
-            # delivered the other half. So the pair is outside the five and the ranking is not
-            # wrong about it; what is wrong is this closure's premise that a partner is always
-            # the nearest sentence. Exempted by name and never by widening the number, which
-            # would hide the next real regression behind a figure nobody can re-read.
-            continue
         assert partner in by_id, f"{retired.task.id} names {partner}, which the ledger lacks"
         block = [
             entry
@@ -149,10 +133,19 @@ def test_every_pair_this_ledger_knows_the_answer_to_lands_inside_the_count():
         ]
         order = nearest(retired.task.symptom, [e.task.symptom for e in block], NEAREST)
         found = [block[index].task.id for index in order]
-        assert partner in found, (
-            f"{retired.task.id} → {partner} fell outside the nearest {NEAREST} "
-            f"of {len(block)}: {found}"
-        )
+        (reached if partner in found else missed).append(f"{retired.task.id}→{partner}")
+    # **The reach, as a figure** (RK1183). This asserted that every pair lands inside the five,
+    # which is a premise and not a measurement: a retirement may name the task that delivered the
+    # larger half rather than the one whose symptom matches, and RK1182→RK1152 is that — the read
+    # places RK348 first, whose sentence *is* nearly RK1182's own and which delivered the other
+    # half. So the pair is outside the five and the ranking is not wrong about it.
+    #
+    # Ranking against the retirement's `why` was the other repair and is unsound: that field
+    # literally contains `superseded by <id>`, so the ground truth would be an input.
+    #
+    # A floor and not the rate, because the denominator grows with every retirement this project
+    # records: what may not regress is how many known partners the read still reaches.
+    assert len(reached) >= 4, {"reached": reached, "out of reach": missed}
 
 
 # -- what the command prints ---------------------------------------------------
@@ -221,3 +214,27 @@ def test_a_label_nothing_declares_is_still_refused_before_anything_is_ranked(tmp
     root = project(tmp_path)
     assert main(["-C", str(root), "delivered", "Z", "--near", "anything"]) == EXIT_USAGE
     assert "no heading declares" in capsys.readouterr().err
+
+
+def test_the_pair_out_of_reach_is_the_one_whose_sentences_are_not_the_pair():
+    """RK1183, named so the figure above stays re-readable: the reach is four of five, and which
+    one is out is a fact about *retirement* rather than about the ranking.
+
+    RK1182 names RK1152 — the task that delivered the half it called larger — while the read
+    places RK348 first, whose sentence is nearly RK1182's own and which delivered the other half.
+    Both are right about different things, so this asserts the shape and not a verdict: the read
+    reaches the sentence-pair, and a retirement may point elsewhere.
+    """
+    ledger = Config.discover(HERE).document("changelog")
+    by_id = {entry.task.id: entry for entry in ledger.entries}
+    retired = by_id["RK1182"]
+    block = [
+        entry
+        for entry in ledger.entries
+        if entry.task.block == retired.task.block and entry.task.id != retired.task.id
+    ]
+    order = nearest(retired.task.symptom, [e.task.symptom for e in block], NEAREST)
+    found = [block[index].task.id for index in order]
+    # The half whose symptom matches is reached; the half the retirement names is not.
+    assert "RK348" in found
+    assert "RK1152" not in found

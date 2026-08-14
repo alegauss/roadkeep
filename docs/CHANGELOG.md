@@ -309,6 +309,7 @@
 - ✅ **RK1163** **A rationale written before its dep shipped reads as current, and brief is where that is decided** — a dep whose ship is a descendant of the design's last revision is named beside it, as an ordering and never a claim.
 - ✅ **RK1174** **The why budget brief prints is the roadmap line's, and the ship that follows enforces a different one nothing shows** — brief prints the ledger line's allowance beside the roadmap line's, where the two differ, so the ceiling a ship enforces arrives before the write.
 - ✅ **RK1178** **anchors recommends an address that was declared and retired inside one commit** — the address is read off the pointer that left with the shipped line, which no prose diff witnesses.
+- ✅ **RK1183** **delivered --near cannot reach a partner whose symptom is stated differently, and its closure now carries an exemption** — the reach is a floor the closure publishes with what is out of it, and ranking against the why is unsound because that field names the partner.
 
 ## Block D — The gate
 

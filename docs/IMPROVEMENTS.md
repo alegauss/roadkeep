@@ -79,33 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1183 The partner the sentences do not match
-
-`delivered --near` ranks a block's entries by word overlap against a sentence, and
-`test_ranking` measures that read against the only ground truth this ledger holds: the
-retirements that name a superseding id. For four pairs the partner is inside the nearest
-five, which is the figure the command publishes.
-
-The fifth pair broke it. RK1182 was retired naming RK1152, and the read places RK348
-first — whose symptom is nearly RK1182's own, and which delivered the other half of the
-same claim. Both answers are right about something different:
-
-- the ranking is right that RK348's *sentence* is the match;
-- the retirement is right that RK1152 delivered the half RK1182 called the larger one.
-
-So the ranking is not wrong about this pair. The closure's premise is — *a partner is
-always among the nearest sentences* — and it fails whenever a task is superseded by work
-whose symptom is stated differently: most refactors, and any pair where one task
-delivers the fix and another the diagnosis.
-
-The exemption is named in the test with its reason rather than bought by a looser
-`NEAREST`: a figure nobody can re-read hides the next real regression.
-
-What needs deciding: whether the measurement changes — ranking against symptom *and*
-why, where a retirement's own reason names its partner — or the ground truth does, an
-unreachable pair being evidence about `--near`'s reach that belongs in the published
-figure rather than in an exemption. The second is honest and larger.
-
 ## Block D — The gate
 
 ### §RK1172 A rule is a record, the way a remedy already is

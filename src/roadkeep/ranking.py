@@ -6,9 +6,16 @@ which is L5 unapplied to its own verb. What the author actually asks is *does th
 with something already shipped*, and the entries that could answer it are a handful.
 
 So the entries are ranked against the proposed sentence and the nearest few are printed.
-Measured on the four `superseded by` pairs this ledger records — the only four cases where
-the right answer is known — the true partner lands at #2, #2, #1 and #1 inside its own
-block, against 31, 102, 65 and 71 entries. Five lines instead of a hundred, same recall.
+Measured on the `superseded by` pairs this ledger records — the only cases where the right
+answer is known — the true partner lands at #2, #2, #1 and #1 inside its own block, against 31,
+102, 65 and 71 entries. Five lines instead of a hundred, same recall.
+
+**Four of five, and the fifth is not a miss** (RK1183). A retirement may name the task that
+delivered the larger half of a claim rather than the one whose symptom matches: RK1182 names
+RK1152, and this read places RK348 first — whose sentence is nearly RK1182's own, and which
+delivered the other half. The reach is over pairs whose *sentences* are the pair, which is what
+a proposal about to be written has, so `tests/test_ranking.py` holds the count as a floor and
+publishes what is out of reach rather than exempting it by name.
 
 Three constraints are the whole design, and each is a thing this deliberately does not do:
 

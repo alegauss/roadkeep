@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1183** (deps: —) **delivered --near cannot reach a partner whose symptom is stated differently, and its closure now carries an exemption** — Four retirement pairs are the only ground truth for the figure the command publishes, and the fifth is outside it for a reason the read is not wrong about. → §RK1183
-
 ## Block D — The gate
 
 - 📋 **RK1172** (deps: —) **The gate's checks are functions gathered by convention, each with its own signature, so adding one is invisible** — linting.py is 1,618 code lines of hand-wired calls whose scan kind is implicit in the parameters, where the remedy side has been a table keyed by code since RK420. → §RK1172
