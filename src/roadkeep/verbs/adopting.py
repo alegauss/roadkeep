@@ -350,49 +350,12 @@ def _replay(config: Config, args: argparse.Namespace) -> int:
     with tempfile.TemporaryDirectory(prefix="roadkeep-replay-") as scratch:
         outcome = replay(recorded, scratch)
     expected = bool(recorded.get("reproduces", True))
-    agrees = outcome.ran and outcome.reproduces == expected
+
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "path": args.path,
-                    "ran": outcome.ran,
-                    "missing": list(outcome.missing),
-                    # A second reason not to run, kept apart from the first (RK343): a part the
-                    # capture lacks is a redaction, and a file it never carried is a capture to
-                    # take again.
-                    "unstaged": list(outcome.unstaged),
-                    "reproduces": outcome.reproduces,
-                    "expected": expected,
-                    "recorded_exit": outcome.recorded_exit,
-                    "exit": outcome.exit_code,
-                    # `null` and not `[]` where the capture recorded no environment (RK341):
-                    # "nothing drifted" and "nothing to compare" are different answers, and a
-                    # reader that cannot tell them apart is the defect this closes.
-                    "drifted": None if outcome.drifted is None else list(outcome.drifted),
-                    # The third reason not to trust the verdict (RK443), beside the other two
-                    # and never folded into `reproduces` — this one reproduces by
-                    # construction, and what it is about is the refusal rather than the
-                    # symptom the capture was filed under.
-                    "stopped": outcome.stopped,
-                    # The fourth (RK1078), and the one that decides whether a report is
-                    # closed rather than live: an empty string is "nothing to compare",
-                    # which is a different answer from "the same version".
-                    "aged": outcome.aged,
-                },
-                indent=2,
-            )
-        )
+        print(json.dumps(outcome.payload(args.path, expected), indent=2))
     else:
-        print(f"{args.path}  {outcome}")
-        if outcome.ran and not agrees:
-            # The whole point of the corpus: a verdict that moved is either a fix to record
-            # or a regression to answer, and both want the file updated in the same commit.
-            print(
-                f"  recorded reproduces = {str(expected).lower()}: "
-                f"update the capture, or the tree stopped agreeing with it"
-            )
-    return EXIT_OK if agrees else EXIT_GATE
+        print(outcome.stated(args.path, expected))
+    return EXIT_OK if outcome.agrees(expected) else EXIT_GATE
 
 
 def _mcp(config: Config, args: argparse.Namespace) -> int:

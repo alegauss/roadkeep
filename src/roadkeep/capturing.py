@@ -814,6 +814,53 @@ class Replay:
         return said
 
 
+    def agrees(self, expected: bool) -> bool:
+        """Whether this run said what the capture recorded (RK89).
+
+        `expected` is the capture's own `reproduces`, which is a fact about the file and not
+        about the run — so it is a parameter, and the verdict below is what the two together
+        mean rather than something either half holds.
+        """
+        return self.ran and self.reproduces == expected
+
+    def stated(self, where: str, expected: bool) -> str:
+        rows = [f"{where}  {self}"]
+        if self.ran and not self.agrees(expected):
+            # The whole point of the corpus: a verdict that moved is either a fix to record or
+            # a regression to answer, and both want the file updated in the same commit.
+            rows.append(
+                f"  recorded reproduces = {str(expected).lower()}: "
+                f"update the capture, or the tree stopped agreeing with it"
+            )
+        return chr(10).join(rows)
+
+    def payload(self, where: str, expected: bool) -> dict[str, object]:
+        return {
+            "path": where,
+            "ran": self.ran,
+            "missing": list(self.missing),
+            # A second reason not to run, kept apart from the first (RK343): a part the capture
+            # lacks is a redaction, and a file it never carried is a capture to take again.
+            "unstaged": list(self.unstaged),
+            "reproduces": self.reproduces,
+            "expected": expected,
+            "recorded_exit": self.recorded_exit,
+            "exit": self.exit_code,
+            # `null` and not `[]` where the capture recorded no environment (RK341): "nothing
+            # drifted" and "nothing to compare" are different answers, and a reader that cannot
+            # tell them apart is the defect this closes.
+            "drifted": None if self.drifted is None else list(self.drifted),
+            # The third reason not to trust the verdict (RK443), beside the other two and never
+            # folded into `reproduces` — this one reproduces by construction, and what it is
+            # about is the refusal rather than the symptom the capture was filed under.
+            "stopped": self.stopped,
+            # The fourth (RK1078), and the one that decides whether a report is closed rather
+            # than live: an empty string is "nothing to compare", which is a different answer
+            # from "the same version".
+            "aged": self.aged,
+        }
+
+
 def replay(recorded: Mapping[str, object], workdir: str | Path) -> Replay:
     """Stage the capture's own inputs in ``workdir`` and run its argv against them.
 
