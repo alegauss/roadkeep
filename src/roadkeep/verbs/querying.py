@@ -15,7 +15,6 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from collections.abc import Sequence
 
 from roadkeep import attesting, claiming
 
@@ -36,18 +35,13 @@ from roadkeep.kernel.document import StaleFile, write_all
 from roadkeep.exporting import project, splice_into
 from roadkeep.graph import Dependencies
 from roadkeep.history import (
-    Anchor,
+    Addresses,
     HistoryUnavailable,
-    anchors,
     cited_origin,
-    doubled,
     families_of_block,
     Gapped,
     gaps,
     indexed,
-    namespaces,
-    next_child,
-    next_family,
     origin_of,
     status,
 )
@@ -61,8 +55,6 @@ from roadkeep.rendering import (
     _load_json,
     _nothing_json,
 )
-from roadkeep.kernel.schema import body_aim
-from roadkeep.sections import binding
 from roadkeep.serving import surface
 from roadkeep.showing import show
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
@@ -642,7 +634,13 @@ def _gaps(config: Config, args: argparse.Namespace) -> int:
 
 
 def _anchors(config: Config, args: argparse.Namespace) -> int:
-    """Live and retired addresses across this project's prose (RK247, RK297)."""
+    """Live and retired addresses across this project's prose (RK247, RK297).
+
+    Four readings off one record (RK1170) — the wide report and its payload, and the free
+    address alone in each register. What stays here is the three **argv** refusals: which
+    prose file, which of two narrowings, and a block whose lines point nowhere. Those are
+    about the call and not about the answer, which is why they never reached the record.
+    """
     # Every declared role unless one is named. `--role` narrows the *listing* and never the
     # free address, which is computed per namespace (RK340, RK346): where no `[refs]` declares
     # one, both files number into the same namespace and a `next` taken from one of them is
@@ -660,8 +658,7 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
         return EXIT_USAGE
     # The block a caller knows, resolved to the family they do not (RK312): under an outline
     # the prose file declares no block heading, so which numeral a block's designs sit under
-    # is written nowhere and used to be globbed out of the pointers by hand. Resolved into
-    # `--family` rather than carried alongside it, so every line below stays one answer.
+    # is written nowhere and used to be globbed out of the pointers by hand.
     block = args.block or ""
     if block and args.family:
         print(
@@ -682,370 +679,36 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
                 file=sys.stderr,
             )
             return EXIT_USAGE
-        # One family narrows; two are reported as the listing they are, because which of them
-        # a new line belongs under is the caller's judgement and not a fact any file holds.
         if len(spans) == 1:
             args.family = spans[0]
-    found = anchors(config, role, args.family)
-    whole = found if not role else anchors(config, "", args.family)
-    retired = [one for one in found if not one.live]
-    # An address that is a task **id** is a question already answered: `add` refuses to
-    # reuse one (RK4), and every shipped task leaves its section retired — so on this
-    # project they are 287 of the 307 rows and none of them is a choice anybody makes.
-    read = [role] if role else asked
-    ids = config.schema_for(role or asked[0]).id_pattern()
-    outline = [one for one in found if not ids.match(one.anchor.split(".")[0])]
-    # The same set over the project, which is what a free address is derived from even when
-    # the listing was narrowed to one file (RK297).
-    spread = [one for one in whole if not ids.match(one.anchor.split(".")[0])]
-    spent = len(found) - len(outline)
-    if args.only_next and args.json:
-        # The narrow read, in the narrow shape (RK410). `family` and `namespace` are kept
-        # because the answer is meaningless without saying which numbering it continues —
-        # everything else in the wide payload is the listing this flag exists to leave out.
-        print(
-            json.dumps(
-                {
-                    "family": args.family,
-                    "next": next_child(whole, args.family) if args.family else None,
-                    "next_families": []
-                    if args.family
-                    else [
-                        {
-                            "namespace": space or None,
-                            "next": next_family(spread, space),
-                            # The same sentence the reader gets, as the command it names
-                            # (RK1140): a client composing `add --ref <next>.1` walks into the
-                            # refusal a person now reads about, and two answers to one question
-                            # is what a payload beside a report must not be.
-                            "opens": None
-                            if not (fresh := next_family(spread, space))
-                            else f"section add {fresh} --title …",
-                        }
-                        for space in namespaces(spread)
-                    ],
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-    if args.json:
-        print(
-            json.dumps(
-                {
-                    "role": role or None,
-                    # Every file the answer was read from, and not one (RK297): a client
-                    # comparing two runs needs to know which outline it was handed.
-                    "files": [config.relative(config.path(one)) for one in read],
-                    "family": args.family,
-                    # The block asked about and every family its pointers name (RK312) —
-                    # both, because one of them narrowed the listing and two did not, and a
-                    # client cannot tell those apart from `family` alone.
-                    "block": block or None,
-                    "block_families": list(spans),
-                    "live": len(found) - len(retired),
-                    "retired": len(retired),
-                    # The rows are the answer where a family was named, and the families are
-                    # the answer where none was (RK264's rule, applied before it was asked):
-                    # 287 retired addresses is not a listing anybody reads.
-                    # Under `--claims` the rows *are* the answer whatever the family, which
-                    # is the whole of RK459: the listing RK264 withholds is the one nobody
-                    # reads, and this one is only ever the exceptions.
-                    "anchors": [
-                        _anchor_row(one)
-                        for one in found
-                        if args.family or (args.claims and _ownership(one))
-                    ],
-                    "families": [] if args.family else _families(outline),
-                    "id_anchors": spent,
-                    # Both free addresses are the **project's** even where the listing was
-                    # narrowed (RK297): the field an author acts on may not be per file.
-                    "next": next_child(whole, args.family) if args.family else None,
-                    # The question one line up, and the one a reused block asks (RK293) —
-                    # asked **per namespace** and nowhere else (RK340/RK346). One row where a
-                    # project declares no `[refs]`, whose `namespace` is null, and one per
-                    # namespace where it does; `next` is null inside a row where those
-                    # top-levels are not one numbering, which is an answer and not an absence.
-                    # The bare `next_family` that sat beside this is gone: it answered for the
-                    # unprefixed namespace alone, so on a project whose roles each declare one
-                    # it named a namespace that no longer exists, and on a project with one it
-                    # was right by coincidence — two readings of one field with nothing to tell
-                    # them apart, which is what `ref.ambiguous` refuses one layer down.
-                    "next_families": []
-                    if args.family
-                    else [
-                        {"namespace": space or None, "next": next_family(spread, space)}
-                        for space in namespaces(spread)
-                    ],
-                    # What no question asked and only the gate said (RK297): an address two
-                    # headings answer to is one no pointer resolves against.
-                    "doubled": [
-                        {"anchor": anchor, "files": list(roles)}
-                        for anchor, roles in doubled(whole)
-                    ],
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
 
-    if args.only_next:
-        return _next_anchor(args, whole, spread)
-
-    where = ", ".join(config.relative(config.path(one)) for one in read)
-    if args.claims:
-        # Its own header and not a second one under the totals (RK459): this listing is the
-        # exceptions, so the number a reader wants first is how many there are of them.
-        rows = [one for one in found if _ownership(one)]
-        # The memos are counted and not listed (RK461): "five of them and none needing
-        # anything" is a different answer from silence, and it is the answer an adopting
-        # corpus most often has.
-        memos = sum(1 for one in found if one.memo)
-        counted = f", {memos} standing memo(s)" if memos else ""
-        print(
-            f"{len(rows)} of {len(found)} address(es) say something about ownership"
-            f"{counted}  ({where})"
-        )
-        for one in rows:
-            named = f"  in {one.role}" if len(read) > 1 else ""
-            print(f"  {one.anchor}{named}{_ownership(one)}")
-        _doubled(whole)
-        return EXIT_OK
-    print(f"{len(found)} anchor(s), {len(retired)} retired  ({where})")
-    if block:
-        # Said whichever way it went (RK312): one family is the narrowing the rest of this
-        # output is already about, and two is the answer itself — the caller picks, because
-        # which subtree a new line belongs under is a judgement no file holds.
-        named = ", ".join(f"§{one}" for one in spans)
-        # The whole command and not the flag alone (RK1022). A caller arrives here from an
-        # `add` refusal that named `--ref`, so a bare `--family` reads as a second flag of
-        # the verb they were writing — and `add --family` is an argparse error, which is a
-        # worse refusal than the validation one it followed. Spelled with an address off
-        # this very listing, so what to run next is a line to copy and not a shape to build.
-        print(
-            f"  block    Block {block}'s prose is under {named}"
-            + (
-                ""
-                if len(spans) == 1
-                else f" — pick one, e.g. `{invocation()} anchors --family {spans[0]}`"
-            )
-        )
-    if args.family:
-        for one in found:
-            written = f"  written in {one.written_in[:7]}" if one.written_in else ""
-            # The file, wherever the project has more than one: two rows spelling the same
-            # address are the doubling, and unlabelled they read as one row printed twice.
-            named = f"  in {one.role}" if len(read) > 1 else ""
-            print(
-                f"  {'live' if one.live else 'retired':<8} {one.anchor}{named}{written}"
-                f"{_ownership(one)}"
-            )
-        print(
-            f"  next     §{next_child(whole, args.family)} — nothing ever used it"
-            f"{_room_left(config, read, args.family)}"
-        )
-        _doubled(whole)
-        return EXIT_OK
-    # Beside the totals and above the rows, because it is the question a reused block asks
-    # first and the listing cannot be read for it (RK293): the rows are per family, and the
-    # last one is only the maximum once they are ordered by the number a numeral spells.
-    for space in namespaces(spread) if spread else ():
-        # One line per namespace (RK340). Where a project declares no `[refs]` this is the
-        # one line it always printed; where it does, the two files each continue their own
-        # numbering, and a single answer would give one file the other's next address.
-        fresh = next_family(spread, space)
-        named = f" in {space}" if space else ""
-        print(
-            f"  next     §{fresh} — no family{named} ever used it"
-            if fresh
-            else f"  next     — these families{named} are not one numbering, so none derives"
-        )
-    for family in _families(outline):
-        # The files only where there is more than one to name (RK297): on the single-file
-        # project that is every project until it declares a second, it would be noise.
-        across = family["files"]
-        spans = f"  ({', '.join(across)})" if len(across) > 1 else ""  # type: ignore[arg-type]
-        print(
-            f"  {family['family']:<8} {family['live']} live, {family['retired']} retired"
-            f"  next §{family['next']}{spans}"
-        )
-    if spent:
-        print(f"  {spent} address(es) are task ids, which `add` already refuses to reuse")
-    _doubled(whole)
-    if outline:
-        # Named because the listing above is per family and the addresses are what the
-        # caller came for: one flag away, and never printed by the hundred unasked.
-        print(
-            f"  `{invocation()} anchors --family <anchor>` lists the addresses under one"
-        )
-    return EXIT_OK
-
-
-def _room_left(config: Config, roles: Sequence[str], family: str) -> str:
-    """What the parent of an offered child address has left, where it has too little (RK1024).
-
-    An address `add` will refuse is an address this listing should not hand over silently.
-    Measured: `anchors --block AJ` offered `§L.1`, `§L` was 299 words of its own 300, and
-    every child of it — the empty one included — was over before a word was composed. The
-    listing said nothing, `budget` said 51 words were left, and `lint` was the first reader
-    to mention it, after the prose existed.
-
-    Said and never refused, because `anchors` is a read (L5): the caller may be about to
-    shorten the parent, which is a plan no count can see. The threshold is the aim rather
-    than the limit — an address with a handful of words under it is one nobody can write a
-    rationale at, and stating a number that small is the same service as stating none left.
-    """
-    for role in roles:
-        answer = binding(config, role, family)
-        if answer is None:
-            continue
-        taken, limit = answer
-        if taken >= body_aim(limit):
-            return (
-                f", but §{family} already spends {taken} of its {limit} words, "
-                f"so a child of it is charged over the limit before it is written"
-            )
-    return ""
-
-
-def _doubled(taken: Sequence[Anchor]) -> None:
-    """The addresses two prose files both declare, named here rather than only at the gate.
-
-    `lint` reports them as `ref.ambiguous`, and by then both headings exist and four verbs
-    refuse to resolve between them (RK297). This is the read an author makes *before*
-    choosing, so it is where the state is cheapest to hear about.
-    """
-    for anchor, roles in doubled(taken):
-        print(f"  doubled  §{anchor} is declared by {' and '.join(roles)}")
-
-
-def _next_anchor(args: argparse.Namespace, whole, spread) -> int:
-    """The free address alone, which is the read this command answers most often (RK410).
-
-    `anchors` answers two questions at once: which addresses a family has spent, asked once
-    before reopening a shipped subtree, and which one nothing ever used, asked by every `add
-    --ref`. Under a 27-anchor family the second answer was the 28th row — so the caller
-    taking the next child scrolled past 27 lines it had not asked for, and on a tool result
-    the rows are what gets truncated first, which made the one line that mattered the one
-    most likely to be cut.
-
-    A filter over a list already computed, so nothing here re-derives an address: the point
-    is to leave the listing out, not to answer differently. `--role` still narrows the
-    listing and never the number (RK297), which is why the wide read stays the way to see
-    where an address came from.
-    """
-    if args.family:
-        # No note here, and the difference is the whole of RK1140: a free **child** is
-        # placeable the moment it is answered, because the family's heading already exists —
-        # `add --ref XXII.3` resolves. It is the top-level below that is an address and not
-        # yet a section.
-        print(f"§{next_child(whole, args.family)}")
-        return EXIT_OK
-    if not spread:
-        # No outline family at all: the free address is the first numeral, and saying so is
-        # the answer — an empty stdout here reads as a command that failed quietly.
-        print(
-            "roadkeep: no outline family exists yet, so none is spent — `add --ref I.1` "
-            "opens the first",
-            file=sys.stderr,
-        )
-        return EXIT_USAGE
-    for space in namespaces(spread):
-        fresh = next_family(spread, space)
-        named = f"  {space}" if space else ""
-        # The same refusal the wide read gives, in one line: a namespace whose top-levels
-        # are not one numbering derives nothing, and a blank row would read as an address.
-        print(f"§{fresh}{named}" if fresh else f"—{named}  not one numbering, so none derives")
-        if fresh:
-            # What the answer left to the next refusal (RK1140). `anchors` reads which
-            # addresses the outline has **spent**, so a free top-level is a fact about
-            # numbering — and `add --ref XXII.1` then refuses, because a pointer resolves to a
-            # section and nothing declares `XXII` yet. Captured in this repository: the read
-            # answered `XXII` and the write answered "no section XXII.1 extends".
-            #
-            # On stderr for `next-id`'s reason: stdout here is the address and nothing else,
-            # because this command exists to be captured in a shell. RK93's shape one command
-            # earlier — the read that creates an expectation names what closes it.
-            print(f"roadkeep: {_opens(fresh)}", file=sys.stderr)
-    return EXIT_OK
-
-
-def _opens(family: str) -> str:
-    """The sentence a free top-level owes, and the command that makes it a section (RK1140)."""
-    return (
-        f"§{family} is free and not yet a section, so `{invocation()} add --ref {family}.1` "
-        f"refuses until one exists — `{invocation()} section add {family} --title \"…\"` "
-        f"declares it, and the pointer resolves from then on"
+    found = Addresses.of(
+        config, role, args.family or "", [role] if role else asked, block, spans
     )
+    if args.only_next:
+        if args.json:
+            print(json.dumps(found.free_payload(), indent=2))
+            return EXIT_OK
+        out, notes = found.freely()
+        if not out:
+            # The one refusal the narrow read has of its own: an empty stdout here reads as a
+            # command that failed quietly, and this form exists to be captured.
+            print(
+                "roadkeep: no outline family exists yet, so none is spent — `add --ref I.1` "
+                "opens the first",
+                file=sys.stderr,
+            )
+            return EXIT_USAGE
+        print(chr(10).join(out))
+        for note in notes:
+            print(note, file=sys.stderr)
+        return EXIT_OK
 
-
-def _ownership(one: Anchor) -> str:
-    """Who binds this address and who points at it, where either is worth saying (RK453).
-
-    Silent on the ordinary row — a heading bound to the one line that claims it is the state
-    every write produces, and repeating it on every address would bury the two that are not.
-    What it names is exactly the two ways they come apart, and each is a different act: an
-    unbound heading a line claims is `section amend --title` away from bound, and a bound
-    heading nothing claims is prose whose task has left, which is the reader's to keep or
-    delete. Retired addresses say nothing: there is no heading to have an opinion about.
-    """
-    # Three silences and not one (RK461). A retired address has no heading to have an
-    # opinion about; the bound-and-claimed row is what every write produces; and a **memo**
-    # — naming no task and claimed by none — is the state RK236 protects and nothing ever
-    # closes. Reported beside the two that are actionable, that third one was five of the
-    # five rows this project's audit printed, and a list whose majority is noise is what
-    # teaches somebody to stop reading a report.
-    if not one.live or one.memo:
-        return ""
-    if one.binds and one.claimed == (one.binds,):
-        return ""
-    if not one.binds:
-        return f"  binds nobody, claimed by {', '.join(one.claimed)}"
-    if not one.claimed:
-        return f"  binds {one.binds}, which no open line claims"
-    return f"  binds {one.binds}, claimed by {', '.join(one.claimed)}"
-
-
-def _anchor_row(one: Anchor) -> dict[str, object]:
-    return {
-        "anchor": one.anchor,
-        # Which file declared it, which is the whole of RK297 in one field: two rows with
-        # one address are two headings, and unlabelled they read as a listing that repeated.
-        "role": one.role,
-        "live": one.live,
-        "written_in": one.written_in or None,
-        # The two facts RK453 adds, and they are two because they come apart in both
-        # directions: a heading binding nobody that a line claims is RK452's write left
-        # undone on an older corpus, and one binding a task no live line claims is prose
-        # whose task has shipped. Null and `[]` on a retired address, which has no heading.
-        "binds": one.binds or None,
-        "claimed": list(one.claimed),
-        "orphaned": one.orphaned,
-        # The third state, told apart from the two that are (RK461): a memo is prose that was
-        # never anybody's, so it is neither bound nor left behind, and a client filtering on
-        # `orphaned` alone used to catch it.
-        "memo": one.memo,
-    }
-
-
-def _families(found: Sequence[Anchor]) -> list[dict[str, object]]:
-    """One row per top-level address, in numeral order (RK293), with the files it spans.
-
-    The counts are the project's and so is ``next`` (RK297): a family declared in two prose
-    files is one family, and a per-file count would be the number this read exists to stop
-    somebody taking. ``files`` is what a row says once it spans two — named rather than
-    summed away, because which file spent an address is what a reader checks it against.
-    """
-    out: dict[str, dict[str, object]] = {}
-    for one in found:
-        top = one.anchor.split(".")[0]
-        row = out.setdefault(top, {"family": top, "live": 0, "retired": 0, "files": []})
-        row["live" if one.live else "retired"] = int(row["live" if one.live else "retired"]) + 1
-        if one.role not in row["files"]:  # type: ignore[operator]
-            row["files"].append(one.role)  # type: ignore[attr-defined]
-    for top, row in out.items():
-        row["next"] = next_child(found, top)
-    return list(out.values())
+    if args.json:
+        print(json.dumps(found.payload(config, args.claims), indent=2))
+    else:
+        print(found.stated(config, args.claims))
+    return EXIT_OK
 
 
 def _deps(config: Config, args: argparse.Namespace) -> int:
