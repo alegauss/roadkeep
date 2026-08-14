@@ -31,17 +31,16 @@ from roadkeep.scoping import add as add_non_goal, amend as amend_non_goal, drop 
 from roadkeep.sections import (
     namespaced,
     AmbiguousTitle,
+    NoSuchSection,
+    Shown,
     add as add_section,
     amend as amend_section,
     amend_untitled,
     drop as drop_section,
     find as find_section,
-    heading_of,
     move as move_section,
-    nested as nested_sections,
     pointers,
     titled,
-    untitled,
 )
 from roadkeep.verbs.reading import _body_reader, _one_body, _piped
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
@@ -207,93 +206,28 @@ def _section_move(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-def _by_title(document, title: str):
-    """The unanchored section this heading text names, or None (RK1107).
-
-    A lookup and not a second reader: :func:`~roadkeep.sections.titled` decides what matches
-    and :func:`~roadkeep.sections.untitled` builds the record, so this only joins the two —
-    which is what keeps `show` and `amend` reading one answer.
-    """
-    heading = titled(document, title)
-    if heading is None:
-        return None
-    return next(
-        (one for one in untitled(document) if one.first == heading.lineno),
-        None,
-    )
-
-
 def _section_show(config: Config, args: argparse.Namespace) -> int:
+    """One section, at the extent the caller asked for (RK1107, RK1112, RK1118).
+
+    Both registers come off the record (RK1170), and the third stream with them: the prose is
+    stdout because an `amend --body-file` is composed from it, so the note saying *why* a body
+    came back empty goes to stderr or it ends up in the file.
+    """
     try:
-        document = config.document(args.role)
-        section = find_section(document, args.anchor)
-        if section is None:
-            # The address is a heading text where it is not an anchor (RK1107), which is the
-            # order every reader here needs: an anchor is the project's chosen name and wins,
-            # and the fall-through is what makes `section show 'Table of contents'` — the call
-            # this task was reported from — an answer instead of a refusal.
-            section = _by_title(document, args.anchor)
+        shown = Shown.of(config, args.role, args.anchor, args.own)
     except (KeyError, OSError, AmbiguousTitle) as error:
         return _refused(error)
-    where = config.relative(config.path(args.role))
-    if section is None:
-        print(
-            f"roadkeep: no §{args.anchor} section in {where}, and no heading reading "
-            f"'{args.anchor}' either",
-            file=sys.stderr,
-        )
+    except NoSuchSection as error:
+        print(f"roadkeep: {error}", file=sys.stderr)
         return EXIT_USAGE
 
-    # The extent, and it is the caller's (RK1112): the subtree is what a reader of the design
-    # wants and the own prose is what `amend` replaces, so the flag says which question this
-    # call is — printing one of them under the other's name is how a round-trip met a word
-    # limit instead of the file. `body` stays the key either way: it is the body of what was
-    # asked for, and `own_words` beside it already states that the two extents differ.
-    shown = section.prose if args.own else section.body
-    # Named rather than left as a blank line (RK1118): a container has no prose of its own, so
-    # `--own` on this repository's own `§0` answered with a heading and nothing — correct, and
-    # indistinguishable from a command that printed nothing. Every other absence this tool
-    # reports says which of the two it is, and an adopter discovers a silent one by needing it.
-    nested = tuple(child.anchor for child in nested_sections(document, section.anchor))
     if args.json:
-        print(
-            json.dumps(
-                # Its own key, so the payload and the report cannot disagree about why a body
-                # came back empty — a client reading `own_words: 0` alone would be guessing.
-                {**section.payload(where), "body": shown, "nested": list(nested)},
-                indent=2,
-            )
-        )
+        print(json.dumps(shown.payload(), indent=2))
         return EXIT_OK
-    print(heading_of(config.schema, section))
-    print()
-    print(shown)
-    if not shown.strip():
-        # On stderr, for the reason `_print_standing` is (RK429): this output is what an
-        # `amend --body-file` is composed from, so a sentence on stdout would end up in the
-        # file. The note is the same either way; where it goes is decided by what stdout is.
-        print(f"roadkeep: {_silence(section, nested, where)}", file=sys.stderr)
+    print(shown.stated(config.schema))
+    for note in shown.silence():
+        print(note, file=sys.stderr)
     return EXIT_OK
-
-
-def _silence(section, nested: tuple[str, ...], where: str) -> str:
-    """Which of the two empty answers this is, and the address that carries the prose (RK1118).
-
-    Two, because a section with no text has two shapes and one of them is a defect: a
-    **container** is the ordinary structure of a rationale file — this repository's `§0`, and
-    every `## <Block>` heading over subsections — while a leaf with nothing in it is what the
-    gate calls `body.empty`. Saying "no prose" to both would send half the readers to `lint`
-    and the other half looking for a bug in the reader.
-    """
-    if nested:
-        return (
-            f"§{section.anchor} carries no prose of its own — its {section.words} words are "
-            f"{', '.join('§' + one for one in nested)}, each amended by its own anchor"
-        )
-    return (
-        f"§{section.anchor} is empty in {where}: a heading with no paragraph under it, which "
-        f"`lint` reports as `body.empty`"
-    )
 
 
 def _section_drop(config: Config, args: argparse.Namespace) -> int:

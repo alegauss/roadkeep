@@ -108,9 +108,15 @@ class SectionError(SchemaError):
 class NoSuchSection(ValueError):
     """An anchor nothing in this file declares."""
 
-    def __init__(self, anchor: str, where: str = "") -> None:
+    def __init__(self, anchor: str, where: str = "", *, titled_too: bool = False) -> None:
         self.anchor = anchor
-        super().__init__(f"no §{anchor} section in {where or 'the document'}")
+        # `titled_too` where the caller also tried the address as a **heading text** (RK1107):
+        # `show` and `amend` look an anchor up first and fall through to the title, so a
+        # refusal naming only the anchor would describe half the lookup that failed.
+        said = f"no §{anchor} section in {where or 'the document'}"
+        if titled_too:
+            said += f", and no heading reading {anchor!r} either"
+        super().__init__(said)
 
 
 class SectionExists(ValueError):
@@ -934,6 +940,98 @@ def pointers(config: Config, *, leaving: str = "") -> dict[str, tuple[str, ...]]
         if entry.task.ref and entry.task.id != leaving:
             out.setdefault(entry.task.ref, []).append(entry.task.id)
     return {anchor: tuple(ids) for anchor, ids in out.items()}
+
+
+@dataclass(frozen=True, slots=True)
+class Shown:
+    """One section as `show` answers it: the extent asked for, and what carries the rest.
+
+    The result that read had none of (RK1170). The door looked the address up two ways, chose
+    an extent off a flag, gathered the nested anchors and composed both registers from the
+    four — so neither reading had a result to derive from, which is that task's whole subject.
+    """
+
+    section: Section
+    #: The extent the caller asked for (RK1112): the subtree is what a reader of the design
+    #: wants and the own prose is what `amend` replaces, so the flag says which question this
+    #: call is. `body` stays the key either way — it is the body of what was asked for, and
+    #: `own_words` beside it already states that the two extents differ.
+    body: str
+    #: The anchors nested under it, named rather than left as a blank line (RK1118): a
+    #: container has no prose of its own, so `--own` on this repository's `§0` answered with a
+    #: heading and nothing — correct, and indistinguishable from a command that printed nothing.
+    nested: tuple[str, ...]
+    #: The file, as this project spells it.
+    where: str
+
+    @classmethod
+    def of(cls, config: Config, role: str, address: str, own: bool) -> Shown:
+        """Look the address up the way every reader here does, or raise `NoSuchSection`.
+
+        **An anchor first and a heading text second** (RK1107): an anchor is the project's
+        chosen name and wins, and the fall-through is what makes `section show 'Table of
+        contents'` an answer instead of a refusal.
+        """
+        document = config.document(role)
+        where = config.relative(config.path(role))
+        section = find(document, address)
+        if section is None:
+            heading = titled(document, address)
+            section = (
+                None
+                if heading is None
+                else next(
+                    (one for one in untitled(document) if one.first == heading.lineno),
+                    None,
+                )
+            )
+        if section is None:
+            raise NoSuchSection(address, where, titled_too=True)
+        return cls(
+            section=section,
+            body=section.prose if own else section.body,
+            nested=tuple(one.anchor for one in nested(document, section.anchor)),
+            where=where,
+        )
+
+    def stated(self, schema: Schema) -> str:
+        """The heading, a blank line, and the prose — which is what an `amend --body-file` is
+        composed from, so nothing else may reach stdout."""
+        return chr(10).join([heading_of(schema, self.section), "", self.body])
+
+    def silence(self) -> list[str]:
+        """Which of the two empty answers this is, for **stderr** (RK1118).
+
+        Two, because a section with no text has two shapes and one of them is a defect: a
+        **container** is the ordinary structure of a rationale file — this repository's `§0`,
+        and every `## <Block>` heading over subsections — while a leaf with nothing in it is
+        what the gate calls `body.empty`. Saying "no prose" to both would send half the readers
+        to `lint` and the other half looking for a bug in the reader.
+
+        On stderr and not beside the prose, for the reason above: this output is piped into a
+        file, and a sentence on stdout would end up in it.
+        """
+        if self.body.strip():
+            return []
+        if self.nested:
+            named = ", ".join("§" + one for one in self.nested)
+            return [
+                f"roadkeep: §{self.section.anchor} carries no prose of its own — its "
+                f"{self.section.words} words are {named}, each amended by its own anchor"
+            ]
+        return [
+            f"roadkeep: §{self.section.anchor} is empty in {self.where}: a heading with no "
+            f"paragraph under it, which `lint` reports as `body.empty`"
+        ]
+
+    def payload(self) -> dict[str, object]:
+        """The same answer as data, with the nested anchors under their own key — so the
+        payload and the report cannot disagree about why a body came back empty."""
+        return {
+            **self.section.payload(self.where),
+            "body": self.body,
+            "nested": list(self.nested),
+        }
 
 
 @dataclass(frozen=True, slots=True)
