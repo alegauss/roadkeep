@@ -21,7 +21,7 @@ from roadkeep.backlog import Backlog, Stage
 from roadkeep.config import Config
 from roadkeep.kernel.document import declares, shading
 from roadkeep.ranking import NEAREST, nearest
-from roadkeep.reverting import reversals
+from roadkeep.reverting import Reversed, reversals
 from roadkeep.shipping import (
     Delivered,
     Closure,
@@ -337,34 +337,18 @@ def _reversals(config: Config, args: argparse.Namespace) -> int:
 
     if args.task_id:
         found = tuple(one for one in found if one.undone == args.task_id)
+    answer = Reversed(
+        found=found,
+        where=config.relative(config.path("changelog")),
+        root=config.root.as_posix(),
+        asked=args.task_id or "",
+    )
+
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "root": config.root.as_posix(),
-                    "asked": args.task_id,
-                    "reversed": [
-                        {
-                            "undone": one.undone,
-                            "by": one.by,
-                            "line": one.undone_entry.lineno,
-                            "why": one.why,
-                        }
-                        for one in found
-                    ],
-                },
-                indent=2,
-            )
-        )
+        print(json.dumps(answer.payload(), indent=2))
     else:
-        for one in found:
-            print(str(one))
-        where = config.relative(config.path("changelog"))
-        print(
-            f"{len(found)} reversal(s) in {where}"
-            + (f" for {args.task_id}" if args.task_id else "")
-        )
-    return EXIT_GATE if args.task_id and found else EXIT_OK
+        print(answer.stated())
+    return EXIT_GATE if answer.gated else EXIT_OK
 
 
 def _retire(config: Config, args: argparse.Namespace) -> int:

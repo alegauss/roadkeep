@@ -65,6 +65,59 @@ class Reversal:
         return f"{self.undone:<8} undone by {self.by:<8} ledger:{where}  {self.why}"
 
 
+@dataclass(frozen=True, slots=True)
+class Reversed:
+    """What the ledger already undid, as one answer (RK416).
+
+    The result that read had none of (RK1170): the door filtered the list, composed a header
+    out of a count and a flag, and built the payload beside it — so the two registers agreed
+    about the narrowing by hand.
+
+    :attr:`asked` is the caller's question and not a fact of the ledger, which is why it is a
+    field rather than something derived: `--id` narrows the same read, and the header has to
+    say so or a listing of one reads as a ledger with one reversal in it.
+    """
+
+    found: tuple[Reversal, ...]
+    where: str
+    root: str
+    #: The id the caller asked about, or `""` where the question was the whole ledger.
+    asked: str = ""
+
+    @property
+    def gated(self) -> bool:
+        """Whether `--id` found its answer, which is what an exit code carries (RK416).
+
+        Exit 1 is "this was tried and undone" and never "you may not" — the read states a
+        fact, and whether the revert was about a broken implementation or a wrong idea is the
+        one thing nobody here can tell.
+        """
+        return bool(self.asked and self.found)
+
+    def stated(self) -> str:
+        rows = [str(one) for one in self.found]
+        rows.append(
+            f"{len(self.found)} reversal(s) in {self.where}"
+            + (f" for {self.asked}" if self.asked else "")
+        )
+        return chr(10).join(rows)
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "root": self.root,
+            "asked": self.asked or None,
+            "reversed": [
+                {
+                    "undone": one.undone,
+                    "by": one.by,
+                    "line": one.undone_entry.lineno,
+                    "why": one.why,
+                }
+                for one in self.found
+            ],
+        }
+
+
 def reversals(config: Config) -> tuple[Reversal, ...]:
     """Every entry the ledger marks as superseded, and the entry that superseded it.
 
