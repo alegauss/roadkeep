@@ -84,7 +84,6 @@ from roadkeep.rendering import (
     _share_json,
     _standing_json,
     _view_json,
-    _weight_json,
 )
 from roadkeep.kernel.schema import body_aim
 from roadkeep.kernel.schema import width as measured_width
@@ -93,7 +92,7 @@ from roadkeep.serving import surface
 from roadkeep.shipping import record
 from roadkeep.showing import show
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
-from roadkeep.weighing import weigh
+from roadkeep.weighing import Weighed, weigh
 
 
 def _census(config: Config, args: argparse.Namespace) -> tuple[Census, Standing | None]:
@@ -1886,6 +1885,11 @@ def _weight(config: Config, args: argparse.Namespace) -> int:
 
     No advice line: what a spread means for the line being written is an editorial call, and
     a tool that phrased it would be writing the reasoning it exists not to write (L4).
+
+    Both registers come off one result (RK1170): this verb was the shape the task measured — the
+    plain answer spelled here and its payload in `rendering.py`, one verb's two readings two files
+    apart, with neither file holding both. `Weighed` is that result, beside the numbers it is
+    derived from, and what is left here is the door: run it, and say which register was asked for.
     """
     try:
         weights = weigh(config, args.block)
@@ -1895,51 +1899,12 @@ def _weight(config: Config, args: argparse.Namespace) -> int:
     except (KeyError, OSError) as error:
         return _refused(error)
 
-    where = config.relative(config.path("changelog"))
-    if args.json:
-        print(json.dumps(_weight_json(where, weights, args.records), indent=2))
-        return EXIT_OK
-
-    scope = f"  Block {weights.block}" if weights.block else ""
-    print(f"{where}{scope}  {weights.lines.count} weighed")
-    print(f"  lines    {weights.lines}")
-    print(f"  files    {weights.files}")
-    if weights.block:
-        # The number the block is being compared against, without a second command.
-        print(f"  ledger   {weights.everywhere}")
-        for weight in weights.recent:
-            print(
-                f"  last     {weight.task_id:<6} {weight.lines:>5} lines  "
-                f"{weight.files:>3} files  {weight.commit}"
-            )
-    else:
-        for label, spread in weights.by_block().items():
-            print(f"  block {label:<3} {spread}")
-    if weights.co_shipped:
-        # Named for the reason `missing` is (RK94): the numbers above are over fewer entries
-        # than the ledger holds, and a spread that does not say so reads as all of it.
-        print(
-            f"  batched  {len(weights.co_shipped)} entr(ies) left out, whose commit wrote "
-            f"more than one: {', '.join(weights.co_shipped)}"
-        )
-    if weights.unresolved:
-        # An absent answer is not a cheap task (RK28): a squash or a shallow clone leaves an
-        # entry no commit accounts for, and a count that hid them would read as complete.
-        print(
-            f"  missing  {len(weights.unresolved)} entr(ies) no commit accounts for: "
-            f"{', '.join(weights.unresolved)}"
-        )
-    if args.records:
-        for weight in weights.weighed:
-            shared = f"  shared with {weight.shared - 1} more" if weight.shared > 1 else ""
-            print(
-                f"  record   {weight.task_id:<6} {weight.lines:>5} lines  "
-                f"{weight.files:>3} files  {weight.commit}{shared}"
-            )
-    elif weights.weighed:
-        # Named and never silent (RK10): a listing that looked complete is the whole symptom
-        # one command over, and an elision the answer does not state is the same defect here.
-        print(f"  records  {len(weights.weighed)} not shown — `--records` prints them")
+    answer = Weighed(
+        where=config.relative(config.path("changelog")),
+        weights=weights,
+        records=args.records,
+    )
+    print(json.dumps(answer.payload(), indent=2) if args.json else answer)
     return EXIT_OK
 
 

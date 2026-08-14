@@ -699,3 +699,4 @@
 ## Block H — The tool's own shape (what one verb costs to change)
 
 - ✅ **RK1169 (the withheld reasons)** **Six tables in serving.py restate per verb what its own parser already declares** — each reason is declared beside the argument it explains, so the table and the test holding it against the parsers are gone.
+- ✅ **RK1170 (weight, as the exemplar)** **A verb's plain answer and its json payload are built in two files, and most of the printing never moved** — one result carries both registers beside the numbers it derives them from, and the renderer's half is gone.

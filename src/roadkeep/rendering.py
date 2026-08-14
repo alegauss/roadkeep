@@ -68,7 +68,6 @@ from roadkeep.kernel.schema import UTF16_UNITS, width as measured_width
 from roadkeep.sections import Section
 from roadkeep.showing import View
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK
-from roadkeep.weighing import Spread, Weights
 
 
 #: What every character figure this tool publishes is counted in (RK430). Declared in the
@@ -1128,62 +1127,6 @@ def _commit_json(commit: Commit | None) -> dict[str, str] | None:
         return None
     return {"sha": commit.sha, "short": commit.short, "date": commit.date,
             "subject": commit.subject, "body": commit.body}
-
-
-def _weight_json(where: str, weights: Weights, records: bool) -> dict[str, object]:
-    """The distribution, the counts, and the sample only where it was asked for (RK264).
-
-    The percentiles **are** the answer — 22.7k of 23.7k characters here were the sample they
-    summarise, and scoping to a block only moved that to 89%, so the read priced to save
-    context was the one that spent it. What replaces the array is a count and never a cap: a
-    top-N would make the p90 a statement about a sample nobody chose, and the figure is the
-    one thing this command may not get wrong.
-
-    `unresolved` and `co_shipped` stay unconditionally. They are ids and not records, and
-    they are what says the distribution is over fewer entries than the ledger holds — the
-    half of this that must never be behind a flag.
-    """
-    def spread(one: Spread) -> dict[str, int]:
-        return {
-            "count": one.count,
-            "low": one.low,
-            "high": one.high,
-            "p25": one.p25,
-            "median": one.median,
-            "p75": one.p75,
-            "p90": one.p90,
-        }
-
-    return {
-        "file": where,
-        "block": weights.block,
-        "lines": spread(weights.lines),
-        "files": spread(weights.files),
-        "ledger": spread(weights.everywhere),
-        "blocks": {
-            label: spread(one) for label, one in weights.by_block().items()
-        },
-        "weighed": [
-            {
-                "id": weight.task_id,
-                "block": weight.block,
-                "lines": weight.lines,
-                "files": weight.files,
-                "commit": weight.commit,
-                # The entry keeps its real numbers and says what they are the size of, so
-                # the list stays checkable against `git show` (RK94).
-                "shared": weight.shared,
-            }
-            for weight in weights.weighed
-        ]
-        if records
-        else [],
-        # `brief`'s `non_goals_elided`, one command over: the caller knows the list it read
-        # was cut, and 0 is the honest answer where nothing was.
-        "weighed_elided": 0 if records else len(weights.weighed),
-        "unresolved": list(weights.unresolved),
-        "co_shipped": list(weights.co_shipped),
-    }
 
 
 def _commits_json(origin: Origin) -> dict[str, object]:

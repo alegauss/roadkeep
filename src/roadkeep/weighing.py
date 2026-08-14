@@ -244,3 +244,137 @@ def _weight(
         commit=cost.short,
         shared=entries_per_commit.get(sha, 1),
     )
+
+
+@dataclass(frozen=True, slots=True)
+class Weighed:
+    """What `weight` answers, as one result both registers are derived from (RK1170).
+
+    `rendering.py` was cut out of a `cli.py` that had reached 8,489 lines, and the printers went
+    first because theirs is the cut with no import cycle. That fixed a file's size and not where a
+    verb's answer lives: counted for RK1170, `verbs/` makes 386 `print` calls of its own against
+    102 delegations, and this verb was the shape of it — the plain answer spelled inside the
+    handler and `_weight_json` in the other file, one verb's two registers two files apart.
+
+    **The two registers are meant to differ.** Plain stdout is the value a shell composes with;
+    `--json` carries the provenance that makes an answer auditable. So this is not one output: it
+    is one result, and both readings are derived from it here, where the numbers were computed.
+    What the payload carries is then what the plain answer showed by construction, which is
+    today's `test_weighing` assertion turned into a property of the code.
+
+    Here and not in `verbs/querying.py`: the record is the *answer*, and the verb is the door.
+    A handler that owned the type would be the layer this task is unwinding, one file over.
+    """
+
+    #: The ledger this weighed, as the project spells it.
+    where: str
+    weights: Weights
+    #: Whether the caller asked for the sample behind the percentiles (RK264).
+    records: bool
+
+    def __str__(self) -> str:
+        """The plain register: the value a shell composes with, one fact per line."""
+        scope = f"  Block {self.weights.block}" if self.weights.block else ""
+        rows = [
+            f"{self.where}{scope}  {self.weights.lines.count} weighed",
+            f"  lines    {self.weights.lines}",
+            f"  files    {self.weights.files}",
+        ]
+        if self.weights.block:
+            # The number the block is being compared against, without a second command.
+            rows.append(f"  ledger   {self.weights.everywhere}")
+            rows += [
+                f"  last     {one.task_id:<6} {one.lines:>5} lines  "
+                f"{one.files:>3} files  {one.commit}"
+                for one in self.weights.recent
+            ]
+        else:
+            rows += [
+                f"  block {label:<3} {spread}"
+                for label, spread in self.weights.by_block().items()
+            ]
+        if self.weights.co_shipped:
+            # Named for the reason `missing` is (RK94): the numbers above are over fewer entries
+            # than the ledger holds, and a spread that does not say so reads as all of it.
+            rows.append(
+                f"  batched  {len(self.weights.co_shipped)} entr(ies) left out, whose commit "
+                f"wrote more than one: {', '.join(self.weights.co_shipped)}"
+            )
+        if self.weights.unresolved:
+            # An absent answer is not a cheap task (RK28): a squash or a shallow clone leaves an
+            # entry no commit accounts for, and a count that hid them would read as complete.
+            rows.append(
+                f"  missing  {len(self.weights.unresolved)} entr(ies) no commit accounts for: "
+                f"{', '.join(self.weights.unresolved)}"
+            )
+        if self.records:
+            rows += [
+                f"  record   {one.task_id:<6} {one.lines:>5} lines  {one.files:>3} files  "
+                f"{one.commit}"
+                + (f"  shared with {one.shared - 1} more" if one.shared > 1 else "")
+                for one in self.weights.weighed
+            ]
+        elif self.weights.weighed:
+            # Named and never silent (RK10): a listing that looked complete is the whole symptom
+            # one command over, and an elision the answer does not state is the same defect here.
+            rows.append(
+                f"  records  {len(self.weights.weighed)} not shown — `--records` prints them"
+            )
+        return "\n".join(rows)
+
+    def payload(self) -> dict[str, object]:
+        """The distribution, the counts, and the sample only where it was asked for (RK264).
+
+        The percentiles **are** the answer — 22.7k of 23.7k characters here were the sample they
+        summarise, and scoping to a block only moved that to 89%, so the read priced to save
+        context was the one that spent it. What replaces the array is a count and never a cap: a
+        top-N would make the p90 a statement about a sample nobody chose, and the figure is the
+        one thing this command may not get wrong.
+
+        `unresolved` and `co_shipped` stay unconditionally. They are ids and not records, and they
+        are what says the distribution is over fewer entries than the ledger holds — the half of
+        this that must never be behind a flag.
+        """
+        return {
+            "file": self.where,
+            "block": self.weights.block,
+            "lines": _spread_json(self.weights.lines),
+            "files": _spread_json(self.weights.files),
+            "ledger": _spread_json(self.weights.everywhere),
+            "blocks": {
+                label: _spread_json(one) for label, one in self.weights.by_block().items()
+            },
+            "weighed": [
+                {
+                    "id": one.task_id,
+                    "block": one.block,
+                    "lines": one.lines,
+                    "files": one.files,
+                    "commit": one.commit,
+                    # The entry keeps its real numbers and says what they are the size of, so
+                    # the list stays checkable against `git show` (RK94).
+                    "shared": one.shared,
+                }
+                for one in self.weights.weighed
+            ]
+            if self.records
+            else [],
+            # `brief`'s `non_goals_elided`, one command over: the caller knows the list it read
+            # was cut, and 0 is the honest answer where nothing was.
+            "weighed_elided": 0 if self.records else len(self.weights.weighed),
+            "unresolved": list(self.weights.unresolved),
+            "co_shipped": list(self.weights.co_shipped),
+        }
+
+
+def _spread_json(one: Spread) -> dict[str, int]:
+    """One distribution as the fields both registers name it by."""
+    return {
+        "count": one.count,
+        "low": one.low,
+        "high": one.high,
+        "p25": one.p25,
+        "median": one.median,
+        "p75": one.p75,
+        "p90": one.p90,
+    }
