@@ -71,7 +71,15 @@ from roadkeep.authoring import compose, prose_role
 from roadkeep.config import Budget as ConfigBudget
 from roadkeep.config import Config, spent, translated
 from roadkeep.ids import next_id
-from roadkeep.kernel.schema import CHARS_PER_WORD, Schema, Task, body_aim, width, words
+from roadkeep.kernel.schema import (
+    CHARS_PER_WORD,
+    UTF16_UNITS,
+    Schema,
+    Task,
+    body_aim,
+    width,
+    words,
+)
 from roadkeep.scoping import NoSuchNonGoal, NotGoverned, address, leads, read
 from roadkeep.sections import binding, declaring, find
 
@@ -148,6 +156,73 @@ class Share:
         """
         return words(self.allowed)
 
+    def payload(self) -> dict[str, object]:
+        """This field in both units, as a payload — shared with the non-goal's two (RK283).
+
+        The same shape and the same arithmetic at both doors: a second spelling of it here would
+        be a second answer, and the whole reason this verb exists is that there is only one.
+        """
+        return {
+            "field": self.field,
+            "limit": self.limit,
+            "allowed": self.allowed,
+            "aim": self.aim,
+            "taken": self.taken,
+            "left": self.left,
+            # Beside `left` and not instead of it (RK245): the characters are still what
+            # refuses, and this is the same remainder in the unit an author can count.
+            "room": self.room,
+            # Declared, as the section budget declares `words` (RK430). A number published
+            # without its unit is what let a consumer counting UTF-16 and a tool counting code
+            # points both be right about one line and disagree by one.
+            "unit": UTF16_UNITS,
+            "bound_by_line": self.bound_by_line,
+            # Where `limit` was set (RK1071), so a surface serving this can answer *why is it
+            # 200* without a second call — the read that otherwise costs a turn. Beside the
+            # number rather than under the payload, because a per-role limit makes it a fact
+            # about this field and not about the answer.
+            "source": self.source.strip(" ()"),
+        }
+
+    @property
+    def aimed(self) -> str:
+        """The word figure, about the room the author actually has (RK245).
+
+        Beside a partly written field the whole-field aim answers a question nobody asked, and
+        read next to a remainder in characters it invites the reading that thirty words are
+        available when three are. So the two are never printed together: what is stated is the
+        aim for what is left, and `--json` keeps both.
+        """
+        return f"aim {self.room} more words" if self.taken else f"aim {self.aim} words"
+
+    def payload(self) -> dict[str, object]:
+        """One prose field in both units, shared with the non-goal's two (RK283).
+
+        The same shape and the same arithmetic at both doors: a second spelling of it here would
+        be a second answer, and the whole reason this verb exists is that there is only one.
+        """
+        return {
+            "field": self.field,
+            "limit": self.limit,
+            "allowed": self.allowed,
+            "aim": self.aim,
+            "taken": self.taken,
+            "left": self.left,
+            # Beside `left` and not instead of it (RK245): the characters are still what
+            # refuses, and this is the same remainder in the unit an author can count.
+            "room": self.room,
+            # Declared, as the section budget declares `words` (RK430). A number published
+            # without its unit is what let a consumer counting UTF-16 and a tool counting code
+            # points both be right about one line and disagree by one.
+            "unit": UTF16_UNITS,
+            "bound_by_line": self.bound_by_line,
+            # Where `limit` was set (RK1071), so a surface serving this can answer *why is it
+            # 200* without a second call — the read that otherwise costs a turn. Beside the
+            # number rather than under the payload, because a per-role limit makes it a fact
+            # about this field and not about the answer.
+            "source": self.source.strip(" ()"),
+        }
+
     @property
     def room(self) -> int:
         """What is *left*, in that same unit (RK245).
@@ -204,6 +279,76 @@ class Budget:
 
     def share(self, field: str) -> Share:
         return next(one for one in self.shares if one.field == field)
+
+    def __str__(self) -> str:
+        """What this line has for prose, one field per row — the register a reader scans.
+
+        Beside :meth:`payload` since RK1170, and for that task's reason: these two were a printer
+        inside the handler and a builder in `rendering.py`, so one answer was spelled in two files
+        and neither held both. What the payload publishes is now what this shows, by construction
+        rather than by a test.
+        """
+        state = "open line" if self.open_line else "the line add would write next"
+        deps = ", ".join(dep.render() for dep in self.task.deps) or "—"
+        rows = [
+            f"{self.task.id}  {self.task.status}  deps {deps}  ({state})",
+            f"  line       {self.line_max}, of which {self.structure} is structure",
+        ]
+        # Only where the caller could have named the anchor and did not (RK265). Said beside the
+        # structure it moved, because a number resting on a guess and one resting on the id read
+        # identically otherwise — and the guess is the one an `add --ref` can still correct.
+        if self.ref_assumed:
+            assumed = (
+                f"§{self.ref} assumed, the widest this roadmap carries"
+                if self.ref
+                else "none on this roadmap, so the structure counts no pointer"
+            )
+            rows.append(f"  pointer    {assumed} — pass --ref for the anchor this line will use")
+        rows.append(f"  prose      {self.prose}")
+        for share in self.shares:
+            # The field's own limit is what the schema publishes; what this line allows is what
+            # refuses. Both, and which one binds, because that difference is the whole finding.
+            bound = "  ← the line binds, not the field" if share.bound_by_line else ""
+            taken = f", {share.taken} written, {share.left} left" if share.taken else ""
+            # The aim, beside the gate (RK185): the characters are what refuses and the words
+            # are what a model can count towards, so both are stated and neither is converted.
+            rows.append(
+                f"  {share.field:<11}{share.allowed} of {share.limit}{taken}"
+                f"  {share.aimed}{bound}"
+            )
+        rows += sourced(self.shares)
+        # The other half of the same transaction (RK301): `add --section` writes a body too, and
+        # the body's limit refused the whole `add` while this read named only the line's fields.
+        if self.section is not None:
+            rows.append(f"  section    {self.section.stated()}")
+        elif self.section_absence:
+            # An absence that is a defect is said, never left as a missing row (RK303): the
+            # line's own two figures are still right, and the half nobody can price is the half
+            # a caller would otherwise read as "this project keeps no rationale file".
+            rows.append(f"  section    none — {self.section_absence}")
+        return "\n".join(rows)
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "id": self.task.id,
+            "status": self.task.status,
+            "deps": [dep.render() for dep in self.task.deps],
+            "open_line": self.open_line,
+            "line_max": self.line_max,
+            "structure": self.structure,
+            # The pointer the structure was measured with, and whether anybody chose it (RK265):
+            # a client comparing this budget against its own `add` needs to know the difference.
+            "ref": self.ref,
+            "ref_assumed": self.ref_assumed,
+            "prose": self.prose,
+            "fields": [share.payload() for share in self.shares],
+            # The write this line is half of (RK301). Null where no prose file is declared,
+            # which is the only project on which `add --section` does not exist.
+            "section": None if self.section is None else self.section.payload(),
+            # Why it is null, where that is a defect rather than a project shape (RK303). Empty
+            # otherwise, so a client can tell the two nulls apart without a second call.
+            "section_absence": self.section_absence,
+        }
 
 
 def budget(
@@ -488,6 +633,64 @@ class Body:
     def nests(self) -> bool:
         """Whether the section carries subsections, so the two counts are two numbers."""
         return self.subtree != self.taken
+
+    def stated(self, named: bool = True) -> str:
+        """A section body's budget as one line, shared by both doors that print it (RK283/301).
+
+        Words throughout and no character figure beside them (RK258) — this limit is declared in
+        words. The aim sits **under** the limit rather than on it (RK301): composing to exactly
+        the declared number is what the thirteen measured refusals did.
+        """
+        spent = f", {self.taken} written, {self.left} left" if self.written else ""
+        nested = f", {self.subtree} with subsections" if self.nests else ""
+        aim = (
+            f"aim {self.room} more words" if self.written else f"aim {self.aim} words"
+        )
+        where = f" ({self.role})" if named else ""
+        # The row RK1029 added, and it is a row: the field's own limit stays the first number,
+        # because that is what the paragraph has to fit — and this is the one that decides
+        # whether the `add` after it lands.
+        # The verb is the one that follows this read (RK1035): a written anchor's next write is
+        # an `amend`, and naming an `add` there priced a section the caller is not about to
+        # insert. The number changed with the sentence — `under_left` is now what a replacement
+        # body may say, this section's own prose already discounted.
+        door = "amend" if self.written else "add"
+        binds = (
+            f"\n  under      §{self.under} spends {self.under_taken} of {self.limit}"
+            f", so {self.under_left} is what an `{door}` here accepts"
+            if self.under
+            else ""
+        )
+        return f"{self.limit} words{where}{spent}{nested}  {aim}{binds}"
+
+    def payload(self) -> dict[str, object]:
+        """One shape at both doors (RK301): the standalone read and the field on a line's own."""
+        return {
+            "anchor": self.anchor,
+            "role": self.role,
+            "written": self.written,
+            # `unit` because this is the one budget already declared in words, and a client
+            # reading `limit` beside a task's characters would otherwise compare the two.
+            "unit": "words",
+            "limit": self.limit,
+            # What actually binds, which is `Share.allowed`'s field one door over (RK1036): the
+            # smaller of the declared limit, what this section's own subsections spend, and what
+            # a binding ancestor leaves. Equal to `limit` on a leaf in a flat file.
+            "allowed": self.allowed,
+            # Under the limit, not on it (RK301): the aim is what a body may be composed to.
+            "aim": self.aim,
+            "taken": self.taken,
+            "left": self.left,
+            "room": self.room,
+            # Both figures, as `section show` carries both (RK287): `taken` is the argument and
+            # this is what a reader pays for the whole subtree.
+            "subtree": self.subtree,
+            # The ancestor that binds, where one does (RK1029). Null and not omitted: a client
+            # reading a missing key cannot tell "no ancestor" from "this server is older".
+            "under": self.under or None,
+            "under_taken": self.under_taken,
+            "under_left": self.under_left if self.under else None,
+        }
 
 
 def non_goal_budget(config: Config, lead: str | None = None) -> tuple[Share, ...]:
@@ -785,3 +988,31 @@ def _widest_anchor(config: Config) -> str | None:
         key=len,
         default=None,
     )
+
+
+def sourced(shares: Sequence[Share]) -> list[str]:
+    """Where the numbers above came from, as the one row that says it (RK1071).
+
+    One line and not a parenthesis after each figure: the read is a column of small numbers
+    and an address on every row drowns it, where the fact is almost always the same for all
+    of them. Split only where the project declared some and not others, which is exactly
+    when *which of these did I choose* is a live question — and silent where it declared
+    none, because `this tool's default` five times over is the noise this avoids.
+    """
+    chosen = [share for share in shares if not share.source.endswith("default)")]
+    if not chosen:
+        return []
+    # Grouped by the table, because that is what a reader opens: one file and one heading,
+    # then the line each field is on. Two roles can differ (RK50), so the grouping is real
+    # rather than cosmetic — a `[limits.changelog]` share sorts under its own key.
+    tables: dict[str, list[str]] = {}
+    for share in chosen:
+        address, _, table = share.source.strip(" ()").partition(" ")
+        file, _, lineno = address.partition(":")
+        tables.setdefault(f"{file} {table.rsplit('.', 1)[0]}", []).append(
+            f"{share.field}:{lineno}" if lineno else share.field
+        )
+    said = "; ".join(f"{table} {', '.join(fields)}" for table, fields in tables.items())
+    fell_back = [share.field for share in shares if share not in chosen]
+    rest = f"; {', '.join(fell_back)} is this tool's default" if fell_back else ""
+    return [f"  declared   {said}{rest}"]

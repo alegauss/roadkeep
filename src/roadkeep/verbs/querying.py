@@ -25,9 +25,7 @@ from roadkeep.backlog import Backlog, Stage, Standing
 from roadkeep.capturing import captures, delivered
 from roadkeep.briefing import NothingToBrief, brief
 from roadkeep.budgeting import (
-    Body,
     Load,
-    Share,
     body_budget,
     budget,
     file_budget,
@@ -60,9 +58,7 @@ from roadkeep.provenance import invocation
 from roadkeep.remaining import QueryError, count, declared
 from roadkeep.rendering import (
     CHARACTER_UNIT,
-    _body_json,
     _brief_json,
-    _budget_json,
     _claim_event,
     _commit_json,
     _commits_json,
@@ -80,7 +76,6 @@ from roadkeep.rendering import (
     _print_standing,
     _print_undesigned,
     _row_json,
-    _share_json,
     _standing_json,
     _view_json,
 )
@@ -678,7 +673,7 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
         # The same figure `budget` states, off the same `Share` (RK245): a brief that named
         # the whole field's aim beside this line's remainder would be the second answer.
         print(
-            f"  budget   why {why.left} of {why.allowed} left, {_aim(why)}, "
+            f"  budget   why {why.left} of {why.allowed} left, {why.aimed}, "
             f"{gathered.budget.prose} for prose"
         )
     if gathered.shipping is not None:
@@ -810,106 +805,11 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(_budget_json(answer), indent=2))
-        return EXIT_OK
-
-    task = answer.task
-    state = "open line" if answer.open_line else "the line add would write next"
-    deps = ", ".join(dep.render() for dep in task.deps) or "—"
-    print(f"{task.id}  {task.status}  deps {deps}  ({state})")
-    print(f"  line       {answer.line_max}, of which {answer.structure} is structure")
-    # Only where the caller could have named the anchor and did not (RK265). Said beside the
-    # structure it moved, because a number resting on a guess and one resting on the id read
-    # identically otherwise — and the guess is the one an `add --ref` can still correct.
-    if answer.ref_assumed:
-        assumed = (
-            f"§{answer.ref} assumed, the widest this roadmap carries"
-            if answer.ref
-            else "none on this roadmap, so the structure counts no pointer"
-        )
-        print(f"  pointer    {assumed} — pass --ref for the anchor this line will use")
-    print(f"  prose      {answer.prose}")
-    for share in answer.shares:
-        # The field's own limit is what the schema publishes; what this line allows is what
-        # refuses. Both, and which one binds, because that difference is the whole finding.
-        bound = "  ← the line binds, not the field" if share.bound_by_line else ""
-        taken = f", {share.taken} written, {share.left} left" if share.taken else ""
-        # The aim, beside the gate (RK185): the characters are what refuses and the words
-        # are what a model can count towards, so both are stated and neither is converted.
-        print(
-            f"  {share.field:<11}{share.allowed} of {share.limit}{taken}"
-            f"  {_aim(share)}{bound}"
-        )
-    # The other half of the same transaction (RK301): `add --section` writes a body too, and
-    # the body's limit refused the whole `add` while this read named only the line's fields.
-    _declared(answer.shares)
-    if answer.section is not None:
-        print(f"  section    {_body(answer.section)}")
-    elif answer.section_absence:
-        # An absence that is a defect is said, never left as a missing row (RK303): the
-        # line's own two figures are still right, and the half nobody can price is the half
-        # a caller would otherwise read as "this project keeps no rationale file".
-        print(f"  section    none — {answer.section_absence}")
+    # Both registers off the record (RK1170): `Budget` already was the result this verb computed,
+    # and its two readings were a printer here and a builder in `rendering.py` — one answer in two
+    # files, with neither holding both.
+    print(json.dumps(answer.payload(), indent=2) if args.json else answer)
     return EXIT_OK
-
-
-def _declared(shares: Sequence[Share]) -> None:
-    """Where the numbers above came from, once under the table (RK1071).
-
-    One line and not a parenthesis after each figure: the read is a column of small numbers
-    and an address on every row drowns it, where the fact is almost always the same for all
-    of them. Split only where the project declared some and not others, which is exactly
-    when *which of these did I choose* is a live question — and silent where it declared
-    none, because `this tool's default` five times over is the noise this avoids.
-    """
-    chosen = [share for share in shares if not share.source.endswith("default)")]
-    if not chosen:
-        return
-    # Grouped by the table, because that is what a reader opens: one file and one heading,
-    # then the line each field is on. Two roles can differ (RK50), so the grouping is real
-    # rather than cosmetic — a `[limits.changelog]` share sorts under its own key.
-    tables: dict[str, list[str]] = {}
-    for share in chosen:
-        address, _, table = share.source.strip(" ()").partition(" ")
-        file, _, lineno = address.partition(":")
-        tables.setdefault(f"{file} {table.rsplit('.', 1)[0]}", []).append(
-            f"{share.field}:{lineno}" if lineno else share.field
-        )
-    said = "; ".join(f"{table} {', '.join(fields)}" for table, fields in tables.items())
-    fell_back = [share.field for share in shares if share not in chosen]
-    rest = f"; {', '.join(fell_back)} is this tool's default" if fell_back else ""
-    print(f"  declared   {said}{rest}")
-
-
-def _body(section: Body, named: bool = True) -> str:
-    """A section body's budget as one line, shared by both doors that print it (RK283/301).
-
-    Words throughout and no character figure beside them (RK258) — this limit is declared in
-    words. The aim sits **under** the limit rather than on it (RK301): composing to exactly
-    the declared number is what the thirteen measured refusals did.
-    """
-    spent = f", {section.taken} written, {section.left} left" if section.written else ""
-    nested = f", {section.subtree} with subsections" if section.nests else ""
-    aim = (
-        f"aim {section.room} more words" if section.written else f"aim {section.aim} words"
-    )
-    where = f" ({section.role})" if named else ""
-    # The row RK1029 added, and it is a row: the field's own limit stays the first number,
-    # because that is what the paragraph has to fit — and this is the one that decides
-    # whether the `add` after it lands.
-    # The verb is the one that follows this read (RK1035): a written anchor's next write is
-    # an `amend`, and naming an `add` there priced a section the caller is not about to
-    # insert. The number changed with the sentence — `under_left` is now what a replacement
-    # body may say, this section's own prose already discounted.
-    door = "amend" if section.written else "add"
-    binds = (
-        f"\n  under      §{section.under} spends {section.under_taken} of {section.limit}"
-        f", so {section.under_left} is what an `{door}` here accepts"
-        if section.under
-        else ""
-    )
-    return f"{section.limit} words{where}{spent}{nested}  {aim}{binds}"
 
 
 def _body_budget(config: Config, args: argparse.Namespace) -> int:
@@ -919,11 +819,11 @@ def _body_budget(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
     if args.json:
-        print(json.dumps({"subject": "section", **_body_json(answer)}, indent=2))
+        print(json.dumps({"subject": "section", **answer.payload()}, indent=2))
         return EXIT_OK
     state = "written" if answer.written else "the section add would write"
     print(f"§{answer.anchor}  {answer.role}  ({state})")
-    print(f"  body       {_body(answer, named=False)}")
+    print(f"  body       {answer.stated(named=False)}")
     return EXIT_OK
 
 
@@ -990,7 +890,7 @@ def _non_goal_budget(config: Config, args: argparse.Namespace) -> int:
         return _refused(error)
     if args.json:
         print(json.dumps({"subject": "non-goal", "lead": args.lead,
-                          "fields": [_share_json(one) for one in shares]}, indent=2))
+                          "fields": [one.payload() for one in shares]}, indent=2))
         return EXIT_OK
     where = config.relative(config.path("roadmap"))
     state = f"the bullet leading {args.lead!r}" if args.lead else "the bullet add would write"
@@ -999,19 +899,8 @@ def _non_goal_budget(config: Config, args: argparse.Namespace) -> int:
         # No `bound_by_line`: a non-goal is two fields on two lines and there is no third
         # limit measured across them, which is the whole difference from a task line.
         taken = f", {share.taken} written, {share.left} left" if share.taken else ""
-        print(f"  {share.field:<11}{share.limit}{taken}  {_aim(share)}")
+        print(f"  {share.field:<11}{share.limit}{taken}  {share.aimed}")
     return EXIT_OK
-
-
-def _aim(share: Share) -> str:
-    """The word figure, about the room the author actually has (RK245).
-
-    Beside a partly written field the whole-field aim answers a question nobody asked, and
-    read next to a remainder in characters it invites the reading that thirty words are
-    available when three are. So the two are never printed together: what is stated is the
-    aim for what is left, and `--json` keeps both.
-    """
-    return f"aim {share.room} more words" if share.taken else f"aim {share.aim} words"
 
 
 #: How many tools the listing names before it stops naming them one by one. The largest few

@@ -35,7 +35,7 @@ from roadkeep.adopting import Estimate
 from roadkeep.authoring import StatusChange
 from roadkeep.backlog import Backlog, Stage, Standing
 from roadkeep.briefing import Brief, NothingToBrief
-from roadkeep.budgeting import Body, Budget, Load, Share
+from roadkeep.budgeting import Load
 from roadkeep.capturing import body
 from roadkeep.claiming import Followed, Held
 from roadkeep.config import Config, PROSE_ROLES
@@ -824,11 +824,11 @@ def _brief_json(gathered: Brief, config: Config) -> dict[str, object]:
         "non_goals_elided": gathered.non_goals.elided,
         # The whole table here and one line on stdout (RK190): a tool result is read by
         # something that can hold it, and this is the number the next write is measured on.
-        "budget": None if gathered.budget is None else _budget_json(gathered.budget),
+        "budget": None if gathered.budget is None else gathered.budget.payload(),
         # The same shape for the write about to be made (RK1174), and always published where it
         # exists — unlike the printed line, which is silent when the two agree: a key costs a
         # client nothing to skip and a consumer comparing them wants both numbers present.
-        "shipping": None if gathered.shipping is None else _budget_json(gathered.shipping),
+        "shipping": None if gathered.shipping is None else gathered.shipping.payload(),
         # Same key and same shape as `pick`'s (RK154): one fact spelled two ways is two facts.
         "held": [{"id": h.id, "age": round(h.age), "since": h.since} for h in gathered.held],
         "claimed": None
@@ -861,88 +861,6 @@ def _load_json(load: Load) -> dict[str, object]:
         # What this checkout pays over the counted number (RK1105), so a caller comparing two
         # machines has the difference as a field instead of inferring it from a mismatch.
         "translated": load.translated,
-    }
-
-
-def _body_json(answer: Body) -> dict[str, object]:
-    """One shape at both doors (RK301): the standalone read and the field on a line's own."""
-    return {
-        "anchor": answer.anchor,
-        "role": answer.role,
-        "written": answer.written,
-        # `unit` because this is the one budget already declared in words, and a client
-        # reading `limit` beside a task's characters would otherwise compare the two.
-        "unit": "words",
-        "limit": answer.limit,
-        # What actually binds, which is `Share.allowed`'s field one door over (RK1036): the
-        # smaller of the declared limit, what this section's own subsections spend, and what
-        # a binding ancestor leaves. Equal to `limit` on a leaf in a flat file.
-        "allowed": answer.allowed,
-        # Under the limit, not on it (RK301): the aim is what a body may be composed to.
-        "aim": answer.aim,
-        "taken": answer.taken,
-        "left": answer.left,
-        "room": answer.room,
-        # Both figures, as `section show` carries both (RK287): `taken` is the argument and
-        # this is what a reader pays for the whole subtree.
-        "subtree": answer.subtree,
-        # The ancestor that binds, where one does (RK1029). Null and not omitted: a client
-        # reading a missing key cannot tell "no ancestor" from "this server is older".
-        "under": answer.under or None,
-        "under_taken": answer.under_taken,
-        "under_left": answer.under_left if answer.under else None,
-    }
-
-
-def _budget_json(answer: Budget) -> dict[str, object]:
-    return {
-        "id": answer.task.id,
-        "status": answer.task.status,
-        "deps": [dep.render() for dep in answer.task.deps],
-        "open_line": answer.open_line,
-        "line_max": answer.line_max,
-        "structure": answer.structure,
-        # The pointer the structure was measured with, and whether anybody chose it (RK265):
-        # a client comparing this budget against its own `add` needs to know the difference.
-        "ref": answer.ref,
-        "ref_assumed": answer.ref_assumed,
-        "prose": answer.prose,
-        "fields": [_share_json(share) for share in answer.shares],
-        # The write this line is half of (RK301). Null where no prose file is declared,
-        # which is the only project on which `add --section` does not exist.
-        "section": None if answer.section is None else _body_json(answer.section),
-        # Why it is null, where that is a defect rather than a project shape (RK303). Empty
-        # otherwise, so a client can tell the two nulls apart without a second call.
-        "section_absence": answer.section_absence,
-    }
-
-
-def _share_json(share: Share) -> dict[str, object]:
-    """One prose field in both units, shared with the non-goal's two (RK283).
-
-    The same shape and the same arithmetic at both doors: a second spelling of it here would
-    be a second answer, and the whole reason this verb exists is that there is only one.
-    """
-    return {
-        "field": share.field,
-        "limit": share.limit,
-        "allowed": share.allowed,
-        "aim": share.aim,
-        "taken": share.taken,
-        "left": share.left,
-        # Beside `left` and not instead of it (RK245): the characters are still what
-        # refuses, and this is the same remainder in the unit an author can count.
-        "room": share.room,
-        # Declared, as the section budget declares `words` (RK430). A number published
-        # without its unit is what let a consumer counting UTF-16 and a tool counting code
-        # points both be right about one line and disagree by one.
-        "unit": CHARACTER_UNIT,
-        "bound_by_line": share.bound_by_line,
-        # Where `limit` was set (RK1071), so a surface serving this can answer *why is it
-        # 200* without a second call — the read that otherwise costs a turn. Beside the
-        # number rather than under the payload, because a per-role limit makes it a fact
-        # about this field and not about the answer.
-        "source": share.source.strip(" ()"),
     }
 
 
