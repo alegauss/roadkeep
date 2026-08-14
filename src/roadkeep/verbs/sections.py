@@ -145,33 +145,10 @@ def _refs(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    where = config.relative(config.path(args.role))
-    staged = [where, config.relative(config.source)]
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "role": found.role,
-                    "namespace": found.namespace,
-                    "file": where,
-                    "config": config.relative(config.source),
-                    "carried": [
-                        {"anchor": anchor, "line": line} for anchor, line in found.carried
-                    ],
-                    **_wrote_json(config, (*wrote, config.source)),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-    print(f"{config.relative(config.source)}  [refs] {found.role} = \"{found.namespace}\"")
-    for anchor, line in found.carried:
-        # Named and not counted: this is a rewrite inside somebody's prose, and a number alone
-        # is the diff a reviewer has to reconstruct to see what moved.
-        print(f"  carried  §{anchor} → §{found.namespace}:{anchor}  ({where}:{line})")
-    if not found.carried:
-        print(f"  carried  nothing: {where} cites none of its own sections")
-    _print(_staging_rows(staged))
+        print(json.dumps(found.payload(config, wrote), indent=2))
+    else:
+        print(found.stated(config, wrote))
     return EXIT_OK
 
 
@@ -264,39 +241,10 @@ def _section_move(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    where = config.relative(config.path(args.role))
     if args.json:
-        print(
-            json.dumps(
-                {
-                    **moved.section.payload(where),
-                    "from": moved.anchor,
-                    "subsections": [
-                        {"from": before, "to": after} for before, after in moved.subsections
-                    ],
-                    "repointed": [{"id": one, "to": a} for one, a in moved.repointed],
-                    "kept": [{"id": one, "address": a} for one, a in moved.kept],
-                    "cited": [{"address": a, "by": by} for a, by in moved.cited],
-                    **_wrote_json(config, wrote),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-    print(f"§{moved.anchor} → §{moved.to}  {where}:{moved.section.first}")
-    for before, after in moved.subsections:
-        print(f"  nested   §{before} → §{after}")
-    # Named for `renumber`'s reason (RK97): a pointer is the other end of the address that
-    # moved, and the line that changed is the one whose author has to agree it should have.
-    for one, address in moved.repointed:
-        print(f"  pointer  {one} follows it to §{address}")
-    for one, address in moved.kept:
-        # The doubling this verb is usually called for: the address still resolves, to the
-        # section that stayed, and that is the answer rather than a thing left half done.
-        print(f"  kept     {one} still points at §{address}, which the other file declares")
-    for address, by in moved.cited:
-        print(f"  cited    §{by} names §{address} in its prose — that address has moved")
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(moved.payload(config, wrote), indent=2))
+    else:
+        print(moved.stated(config, wrote))
     return EXIT_OK
 
 

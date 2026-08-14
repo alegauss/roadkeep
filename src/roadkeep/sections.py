@@ -1526,6 +1526,51 @@ class Moved:
         """Write every file this move touched, and answer them all (RK1130)."""
         return save_all(*self.documents.values())
 
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """Where the address went, and every line that followed it (RK377).
+
+        Beside :meth:`payload` since RK1170. Four lists and never a count: a pointer is the
+        other end of an address that moved, and the line that changed is the one whose author
+        has to agree it should have (RK97).
+        """
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path(self.role))
+        rows = [
+            f"§{self.anchor} → §{self.to}  {where}:{self.section.first}",
+            *(f"  nested   §{before} → §{after}" for before, after in self.subsections),
+            *(f"  pointer  {one} follows it to §{a}" for one, a in self.repointed),
+            # The doubling this verb is usually called for: the address still resolves, to the
+            # section that stayed, and that is the answer rather than a thing left half done.
+            *(
+                f"  kept     {one} still points at §{a}, which the other file declares"
+                for one, a in self.kept
+            ),
+            *(
+                f"  cited    §{by} names §{a} in its prose — that address has moved"
+                for a, by in self.cited
+            ),
+        ]
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        """The same answer as data, with each list as pairs a caller can act on."""
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path(self.role))
+        return {
+            **self.section.payload(where),
+            "from": self.anchor,
+            "subsections": [
+                {"from": before, "to": after} for before, after in self.subsections
+            ],
+            "repointed": [{"id": one, "to": a} for one, a in self.repointed],
+            "kept": [{"id": one, "address": a} for one, a in self.kept],
+            "cited": [{"address": a, "by": by} for a, by in self.cited],
+            **_wrote_json(config, wrote),
+        }
+
 
 def move(config: Config, role: str, anchor: str, to: str) -> Moved:
     """Re-address one live section, its own subtree and every pointer at it (RK377).
@@ -1885,6 +1930,44 @@ class Namespaced:
     #: insertion and never a serialiser, for `bump_version`'s reason: the rest of somebody's
     #: `roadkeep.toml` has to come back byte-identical.
     config_text: str
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """The key declared, and every citation carried into it (RK1168).
+
+        Beside :meth:`payload` since RK1170. The config's own path joins the staging line here
+        and not in :attr:`config_text`'s write: it is the file this transaction's *other* half
+        touched, and a commit that staged the prose and left the key is the half-declared state.
+        """
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path(self.role))
+        source = config.relative(config.source)
+        rows = [f'{source}  [refs] {self.role} = "{self.namespace}"']
+        # Named and not counted: this is a rewrite inside somebody's prose, and a number alone
+        # is the diff a reviewer has to reconstruct to see what moved.
+        rows += [
+            f"  carried  §{anchor} → §{self.namespace}:{anchor}  ({where}:{line})"
+            for anchor, line in self.carried
+        ]
+        if not self.carried:
+            rows.append(f"  carried  nothing: {where} cites none of its own sections")
+        rows += _staging_rows([where, source])
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        """The same answer as data, naming both files the transaction wrote."""
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "role": self.role,
+            "namespace": self.namespace,
+            "file": config.relative(config.path(self.role)),
+            "config": config.relative(config.source),
+            "carried": [
+                {"anchor": anchor, "line": line} for anchor, line in self.carried
+            ],
+            **_wrote_json(config, (*wrote, config.source)),
+        }
 
 
 def namespaced(config: Config, role: str, prefix: str) -> Namespaced:
