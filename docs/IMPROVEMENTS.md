@@ -75,31 +75,6 @@ already written, not authorship.
 
 ## Block A — The model
 
-### §RK1180 Two kinds of block wearing one shape
-
-`ship` reports "Block x is finished: nothing open" and points at `block drop`. That is
-right for a block that is a **project** — a capability with an end, whose last task
-really is the last one.
-
-Some blocks are not projects. Shio's Block N is titled "realignment of what already
-shipped": it is where a finding goes when something that shipped turns out to be
-incomplete against a law or blind to half a repository. A category like that receives
-work forever and is empty only in the sense that nobody has filed the next one yet.
-Measured, in one session: declared, emptied and dropped **three times**, each drop
-followed within the hour by a finding that re-declared it.
-
-The cost is not the churn in the file. It is that the host project hangs a
-**block-completion sweep** off the signal — four public surfaces brought up to date, a
-coverage matrix resolved, a docs build — and that sweep is designed to run once per
-capability. Running it three times for one block means twice re-reading surfaces nothing
-changed on, and it trains the reader to treat the completion notice as noise, which is
-the worse cost.
-
-A block could declare which kind it is: a project empties once and is dropped, a
-standing block empties often and stays. `ship` would say "caught up" rather than
-"finished" for the second, and `stats` could distinguish a zero that is done from a zero
-that is merely current.
-
 ## Block B — Authoring
 
 ## Block C — Query

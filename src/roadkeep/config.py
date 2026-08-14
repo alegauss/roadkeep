@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import re
 import tomllib
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -91,6 +91,8 @@ _TOP_KEYS = frozenset(
         "refs",
         "tools",
         "grammar",
+        # RK1180. Which labels are standing categories rather than projects.
+        "blocks",
     }
 )
 #: `[grammar.<role>]` — the shape of a role's records, which L6 declared everything about
@@ -429,6 +431,14 @@ class Config:
     #: between backlogs (L6), and bounded by :data:`CLAIM_HELD_MAX`, because a window nobody
     #: would wait out is the lock this was designed not to be.
     held: int = CLAIM_HELD
+    #: `[blocks] standing` — the labels that receive work forever and are empty only in the
+    #: sense that nobody has filed the next one yet (RK1180). A project block empties once and is
+    #: done; a standing category — *realignment of what already shipped*, a triage lane — empties
+    #: whenever it is caught up. Measured in one session on such a block: declared, emptied and
+    #: dropped **three times**, each drop followed within the hour by a finding that re-declared
+    #: it. Per label and not `[headings] permanent`, which is the same fact about a whole project:
+    #: a backlog can hold nine blocks that finish and one that never does.
+    standing: frozenset[str] = frozenset()
     #: `[headings] permanent` — whether this project's block headings outlive the work filed
     #: under them (RK1121). Here and not on the schema: it shapes no line, it decides whether a
     #: door is offered, which is `held`'s kind of fact rather than the grammar's.
@@ -497,6 +507,7 @@ class Config:
         upstream = _upstream(data.get("report"), problems)
         held = _held(data.get("claims"), problems)
         permanent = _permanent_headings(data.get("headings"), problems)
+        standing = _standing_blocks(data.get("blocks"), problems)
 
         schema = None
         if not problems:
@@ -540,6 +551,7 @@ class Config:
             upstream=upstream,
             held=held,
             permanent_headings=permanent,
+            standing=standing,
             source=source,
         )
 
@@ -823,6 +835,31 @@ def _heading_word(raw: object, problems: list[str]) -> str:
         problems.append("headings.word must be a string")
         return DEFAULT_HEADING_WORD
     return word
+
+
+def _standing_blocks(raw: object, problems: list[str]) -> frozenset[str]:
+    """`[blocks] standing` — the labels whose emptiness means *caught up* (RK1180).
+
+    Empty by default, so nothing changes for a project that has not said. A label listed here
+    empties the way a queue does rather than the way a project does, and three answers change
+    with it: `ship` says caught up instead of finished, the offer to drop the heading is not
+    made, and a queue token over it is no longer an order over nothing.
+
+    Labels and never a per-block table of properties: what a block *is* is one bit, and a table
+    would invite the second, which is a plan this tool would then be keeping.
+    """
+    if not isinstance(raw, Mapping):
+        if raw is not None:
+            problems.append("blocks must be a table, e.g. [blocks] standing = [\"N\"]")
+        return frozenset()
+    value = raw.get("standing", ())
+    if isinstance(value, str) or not isinstance(value, Sequence):
+        problems.append('blocks.standing must be a list of labels, e.g. standing = ["N"]')
+        return frozenset()
+    labels = [one for one in value if isinstance(one, str) and one.strip()]
+    if len(labels) != len(list(value)):
+        problems.append("blocks.standing takes block labels as strings")
+    return frozenset(one.strip() for one in labels)
 
 
 def _permanent_headings(raw: object, problems: list[str]) -> bool:

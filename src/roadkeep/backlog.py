@@ -150,6 +150,14 @@ class Stage(StrEnum):
     loses the one fact about it that a `resume` would change.
     """
 
+    #: Nothing open and the ledger records work, on a label `[blocks] standing` declares
+    #: (RK1180): the block is **caught up** rather than finished. A category that receives work
+    #: forever — realignment of what already shipped, a triage lane — is empty only in the sense
+    #: that nobody has filed the next one yet, and reading that as completion made one such block
+    #: declared, emptied and dropped three times in a session, each drop followed within the hour
+    #: by a finding that re-declared it. The churn in the file was not the cost: a host project
+    #: hangs a block-completion sweep off the signal, designed to run once per capability.
+    CURRENT = "caught up"
     #: The roadmap carries open lines under it. Nothing here is about them.
     LIVE = "live"
     #: Nothing open, and the ledger records entries filed under the label. Not "shipped":
@@ -219,7 +227,12 @@ class Standing:
         elif counts["paused"]:
             stage = Stage.PAUSED
         elif counts["recorded"]:
-            stage = Stage.FINISHED
+            # Which kind of block this is, asked of the project and not guessed from the counts
+            # (RK1180, L6): the numbers are identical for a project that finished and a standing
+            # category that is caught up, and only the plan knows which it is looking at.
+            stage = (
+                Stage.CURRENT if label in backlog.config.standing else Stage.FINISHED
+            )
         else:
             stage = Stage.EMPTY
         return cls(label, stage, named, **counts)
@@ -232,7 +245,7 @@ class Standing:
         the filter, and a sentence about the block would answer a question nobody asked.
         Neither is `unknown`, which every surface already refuses in its own words.
         """
-        return self.stage in (Stage.FINISHED, Stage.PAUSED, Stage.EMPTY)
+        return self.stage in (Stage.FINISHED, Stage.CURRENT, Stage.PAUSED, Stage.EMPTY)
 
     @property
     def sentence(self) -> str:
@@ -243,6 +256,13 @@ class Standing:
             return (
                 f"{self.named} is finished: nothing open, and the ledger records "
                 f"{self.recorded} filed under it"
+            )
+        if self.stage is Stage.CURRENT:
+            # "Caught up" and never "finished" (RK1180): the same two numbers, and the word is
+            # the one a reader acts on — a sweep meant to run once per capability runs off it.
+            return (
+                f"{self.named} is caught up: nothing open, and the ledger records "
+                f"{self.recorded} filed under it — a standing category, which fills again"
             )
         if self.stage is Stage.PAUSED:
             return (
@@ -330,6 +350,9 @@ class Readiness(StrEnum):
 #: is stays on the printed line, :attr:`Standing.sentence` being the detail.
 _SATISFIES = {
     Stage.FINISHED: DepStatus.SHIPPED,
+    # A dep that shipped is shipped whichever kind of block it sat under (RK1180): the label's
+    # kind decides what an *empty* block means and never what a recorded line means.
+    Stage.CURRENT: DepStatus.SHIPPED,
     Stage.PAUSED: DepStatus.DEFERRED,
     Stage.EMPTY: DepStatus.UNRESOLVABLE,
     Stage.UNKNOWN: DepStatus.UNRESOLVABLE,

@@ -165,6 +165,10 @@ def _event(task_id: str, block: str, roadmap: Document, config: Config) -> dict[
 #: one — the store files lines under that heading, so the command refuses, and naming an
 #: edit that cannot work is worse than naming no edit at all (RK16). The word beside the
 #: event is what tells a paused caller why the offer is absent.
+#: No row for :attr:`Stage.CURRENT` (RK1180), which is the whole of that task's first half: a
+#: standing category is caught up and not finished, so there is no heading to offer to withdraw —
+#: measured as three declare-empty-drop cycles in one session, each drop followed within the hour
+#: by a finding that re-declared the block.
 _DROPPABLE = {
     Stage.FINISHED: "its last open line just left",
     Stage.EMPTY: "no file files a task line under it",

@@ -939,9 +939,16 @@ def test_no_module_defines_one_name_twice():
     to accept. Both definitions read correctly on their own, which is what makes this invisible:
     the defect is in what the *module* resolves, and nothing was asking.
 
-    Over the package and the suite, and over functions and classes alike: a fixture redefined
-    halfway down a test file is the same failure with a friendlier name. Assignments are not
-    swept — a constant re-bound under a condition is a pattern this package uses on purpose.
+    Over the package and the suite, and over functions, classes **and top-level constants** alike:
+    a fixture redefined halfway down a test file is the same failure with a friendlier name.
+    Assignments were left out of the first version of this and cost a session within the hour —
+    a new `STANDING` fixture at the end of `test_shipping.py` rebound the roadmap of that name
+    250 lines above it, and three tests started shipping against a TOML file. Measured before
+    widening: one other case existed in the whole tree, and it was a constant bound twice to the
+    same value, which is noise rather than a pattern to protect.
+
+    Only **module level**. A name re-bound inside a function or under a condition is ordinary
+    Python and says nothing about what a reader resolves.
     """
     twice: dict[str, list[str]] = {}
     for module in (*modules(), *sorted(Path(__file__).parent.glob("*.py"))):
@@ -949,10 +956,19 @@ def test_no_module_defines_one_name_twice():
         where = module.where if hasattr(module, "where") else f"tests/{module.name}"
         seen: dict[str, int] = {}
         for node in ast.parse(text).body:
+            bound: list[str] = []
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-                if node.name in seen:
-                    twice.setdefault(where, []).append(f"{node.name} at {seen[node.name]} and {node.lineno}")
-                seen[node.name] = node.lineno
+                bound = [node.name]
+            elif isinstance(node, ast.Assign):
+                bound = [one.id for one in node.targets if isinstance(one, ast.Name)]
+            elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+                bound = [node.target.id]
+            for name in bound:
+                if name in seen:
+                    twice.setdefault(where, []).append(
+                        f"{name} at {seen[name]} and {node.lineno}"
+                    )
+                seen[name] = node.lineno
     assert twice == {}, twice
 
 

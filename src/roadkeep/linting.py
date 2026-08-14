@@ -1840,6 +1840,11 @@ def _dead_block(
             column=column,
             subject=token,
         )
+    if standing.stage is Stage.CURRENT:
+        # Silent (RK1180): a tier over a standing category is an order waiting for the next
+        # finding, which is what that kind of block is for — the finding below is about a tier
+        # that fires on nothing *from now on*, and this one will fire again.
+        return None
     if standing.stage is Stage.FINISHED:
         return Finding(
             "priority.block-empty",

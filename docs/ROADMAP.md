@@ -24,8 +24,6 @@
 
 ## Block A — The model (a task is data before it is a line)
 
-- 💭 **RK1180** (deps: —) **A block that is a standing category empties whenever it is caught up, and ship reads that as completion** — Shio's Block N was declared, emptied and dropped three times in one session, and each completion asks for a four-surface sweep meant for a block that finishes once. → §RK1180
-
 ## Block B — Authoring (insert, never hand-edit)
 
 ## Block C — Query (consult without reading the file)

@@ -30,7 +30,15 @@ from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.kernel.document import Document, RoundTripError, StaleFile
 from roadkeep.linting import lint
-from roadkeep.kernel.schema import DESIGNED, IN_PROGRESS, PARTIAL, Dep, Schema, SchemaError
+from roadkeep.kernel.schema import (
+    DESIGNED,
+    IN_PROGRESS,
+    PARTIAL,
+    SHIPPED,
+    Dep,
+    Schema,
+    SchemaError,
+)
 from roadkeep.shipping import AlreadyRecorded, NoQualifier, NoSuchPath, SecondPartial
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
@@ -2254,3 +2262,67 @@ def test_two_arguments_sent_to_one_pipe_are_refused_on_this_verb_too(tmp_path, c
     # Spelled as the caller typed them, never as the dest: a refusal naming `superseded_design`
     # is about a flag nobody passed.
     assert "superseded_design" not in said
+
+
+# -- a block that is a standing category (RK1180) -----------------------------
+
+
+CATEGORIES = """prefix = "RK"
+[blocks]
+standing = ["N"]
+[files]
+roadmap = "ROADMAP.md"
+changelog = "CHANGELOG.md"
+"""
+
+
+def categorised(tmp_path: Path) -> Config:
+    """A project with one block that finishes and one that never does."""
+    (tmp_path / "roadkeep.toml").write_text(CATEGORIES, encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text(
+        "## Block A — The model\n\n## Block N — Realignment of what already shipped\n\n"
+        f"- {DESIGNED} **RK9** (deps: —) **A realignment worth a line** — Because of a reason.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "CHANGELOG.md").write_text(
+        f"## Block A — The model\n\n- {SHIPPED} **RK1** **A symptom** — it was done.\n\n"
+        "## Block N — Realignment of what already shipped\n\n"
+        f"- {SHIPPED} **RK2** **An earlier realignment** — it was done.\n",
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_a_standing_block_is_caught_up_and_never_finished(tmp_path, capsys):
+    """RK1180. Some blocks are not projects: a category titled *realignment of what already
+    shipped* receives work forever and is empty only in the sense that nobody has filed the next
+    one yet. Measured on such a block in one session: declared, emptied and dropped **three
+    times**, each drop followed within the hour by a finding that re-declared it.
+
+    The churn in the file was not the cost. A host project hangs a block-completion sweep off the
+    signal — four public surfaces, a coverage matrix, a docs build — designed to run once per
+    capability, and running it three times trains the reader to read completion as noise.
+    """
+    config = categorised(tmp_path)
+    assert main(["-C", str(tmp_path), "ship", "RK9", "--why", "It is realigned now."]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "caught up" in printed and "a standing category, which fills again" in printed
+    assert "finished" not in printed
+    # And no offer to withdraw a heading that fills again, which is the churn itself.
+    assert "block drop" not in printed
+
+
+def test_a_project_block_still_finishes(tmp_path, capsys):
+    """The control, and the reason this is configuration and not a heuristic (L6): the two states
+    have identical counts — nothing open, entries recorded — and only the plan knows which is
+    which."""
+    config = categorised(tmp_path)
+    (config.root / "ROADMAP.md").write_text(
+        "## Block A — The model\n\n"
+        f"- {DESIGNED} **RK9** (deps: —) **A symptom worth a line** — Because of a reason.\n\n"
+        "## Block N — Realignment of what already shipped\n",
+        encoding="utf-8",
+    )
+    assert main(["-C", str(tmp_path), "ship", "RK9", "--why", "It works now."]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "is finished" in printed and "caught up" not in printed

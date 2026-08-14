@@ -728,9 +728,6 @@ def test_a_heading_word_that_is_not_one_bare_word_is_refused():
 
 # -- the qualifier a partial entry carries (RK121) ---------------------------
 
-LEDGER = Schema().as_ledger()
-
-
 def test_a_partial_entry_renders_the_qualifier_inside_the_bold():
     # Inside the bold because that is where the corpus writes it — a second spelling would
     # be a line the tool renders differently from the one it read.

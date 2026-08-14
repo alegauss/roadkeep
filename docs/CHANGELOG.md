@@ -54,6 +54,7 @@
 - ✅ **RK1074** **fourteen module addresses are spelled by hand across the suite and nothing holds them level** — surface.address() answers where a module lives now, the five surveys the move broke ask it, and an invariant refuses any literal naming a subpackage address the census does not have.
 - ✅ **RK1102** **a predicate that reads a governed file's text instead of asking the parser has now been wrong twice** — conftest's docstring states ask the parser, never the line, and a scan holds that the shared fixtures read no file as text but the one declared.
 - ✅ **RK1168** **Declaring a namespace re-addresses the headings and leaves the file's own citations pointing at the other prose file** — one command declares the namespace and re-addresses that file's own citations, which is knowable only in that transaction.
+- ✅ **RK1180** **A block that is a standing category empties whenever it is caught up, and ship reads that as completion** — a label listed in blocks.standing is caught up rather than finished, so no sweep fires and no heading is offered for withdrawal.
 
 ## Block B — Authoring
 
