@@ -264,6 +264,34 @@ the improvements file, by its own rule, cannot hold. `add --section` deriving
 improvements stays exactly as it is: naming the role at both ends is two places that can
 disagree, and a project declaring both makes the choice by calling `section add --role`.
 
+### §RK1193 Adoption stops one step short of a pinned engine
+
+`roadkeep-launch.py` resolves an engine — `$ROADKEEP_HOME`, then a sibling checkout,
+then a cache — and `install` wires a project's four surfaces. Neither *puts an engine in
+the project*. So an adopter that wants a pinned, stable copy has to write that
+themselves.
+
+Two now have. Shio and freewilly each carry a 147-line `install_roadkeep.py` plus a
+`.cmd` wrapper, byte-identical apart from one comment, vendoring into a git-ignored
+`.roadkeep/` with `ROADKEEP_HOME` pointing at it. That is the `node_modules` shape and
+it works — but it is the same code in two repositories, which is the drift this tool
+spends its own backlog refusing elsewhere.
+
+Why an adopter reaches for it at all, measured on one machine: **six** engines were
+resolvable — 0.1.841 and 0.1.820 under `~/.claude`, 0.1.678 and 0.1.645 under
+`~/.claude-pessoal`, plus two marketplace clones — and a live checkout can be
+mid-refactor, which cost a session an hour to `ImportError: cannot import name
+'_print_claim'` out of a half-edited tree. Add that a changing absolute path is a fresh
+authorization prompt every time, and pinning stops being a preference.
+
+The shape the two copies converged on, if it is worth adopting: pick by **version**
+rather than by position (ask each candidate `--version`, take the highest), skip a
+working checkout unless `ROADKEEP_SRC` names it, exclude `.git` so the vendored tree is
+an artefact and not a second repository, and verify after copying that the target
+answers the version that was chosen.
+
+`install --vendor` would make it one command and one implementation.
+
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)
@@ -314,3 +342,28 @@ Its two deps are what make this mechanical rather than a rewrite. What must not 
 reached for: entry points or dynamic discovery, which cost startup, need a dependency,
 and take away the totality the gate is checked by; and a generator, which would move the
 authority out of Python and out of reach of a type checker.
+
+### §RK1194 A name a test cannot tell from a use
+
+`tests/test_importing.py` holds a property this repository relies on: no module imports
+a name nothing in it spells. `_spelled` answers *what is spelled* by collecting every
+`ast.Name` in the tree — and an `ast.Name` is also what an assignment **target** is. So
+a local variable that happens to carry an import's name makes that import look used, and
+the gate passes.
+
+Measured, not hypothetical. `verbs/querying.py` imported `record` from
+`roadkeep.shipping` with no reader anywhere in the module; a local `record = str(...)`
+inside `_writes` was spelling the name. The import stayed green for as long as that
+local existed, and surfaced only when RK1170 moved the local onto the record it belonged
+to — which is to say the gate was cleared by an accident and repaired by an unrelated
+refactor.
+
+The scan's own docstring says the domain is exact: "an `ast.Name` is the whole domain
+and that is not an approximation". It is exact about *reaching a name* and silent about
+the direction, which is where the hole is.
+
+The fix looks like one clause — count a `Name` only in `Load` context, so a `Store`
+target is not a use. What is worth doing with it is the measurement: run the corrected
+scan across the package before changing the test, because every import it then reports
+has been dead for as long as its shadowing local has existed, and how many there are is
+the argument for the clause.

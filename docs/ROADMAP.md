@@ -43,6 +43,7 @@
 ## Block E — Adoption
 
 - 📋 **RK1186** (deps: —) **`init` scaffolds three files and no flag names the strategy one, so a spec above the task line has no home** — Every reader of a pointer already resolves across both prose roles, so the file is supported everywhere except at the one command that creates a project's files. → §RK1186
+- 📋 **RK1193** (deps: —) **Every adopting repository has to write its own installer to pin the engine it runs** — The launcher resolves an engine but nothing vendors one, so two repos now carry the same 147-line script and it will drift. → §RK1193
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
@@ -52,6 +53,7 @@
 
 - 🛠 **RK1170** (deps: —) **A verb's plain answer and its json payload are built in two files, and most of the printing never moved** — rendering.py holds 23 printers against 386 print calls left in the handlers, so the layer buys no rule about where a sentence is and costs every verb a second file. → §RK1170
 - 📋 **RK1171** (deps: RK1169 ✅, RK1170 🛠) **build_parser is one 2,000-line function, so a verb's flags are edited in the file the whole surface is in** — cli.py was split by layer for size and grew back to 2,260 code lines, so the cut that holds is per verb, which the two deps make a move and not a rewrite. → §RK1171
+- 📋 **RK1194** (deps: —) **A local variable with an import's name makes the unspelled-import test read a dead import as used** — _spelled collects every ast.Name, so an assignment target counts as a use — one such local was hiding a dead import until the verb moved onto its record. → §RK1194
 
 ## Non-goals
 
