@@ -98,6 +98,29 @@ the gate, so the file keeps a claim no rule can call wrong. `restate --typo` is
 untouched — a declaration is not prose — and `add --symptom - --why -` needs no new
 refusal, being two arguments asking for one pipe, which dispatch already names.
 
+### §RK1196 The two places a false premise is also written
+
+`restate` exists because a premise turned out false, and it is deliberately narrow: the
+id, the deps, the marker and the section all stay, because the work never changed and
+only its description was wrong. That narrowness is right. What is missing is that this
+is the one verb here which knows a claim was wrong, and it says nothing about the two
+other places that claim is written down.
+
+Measured on a real task. A line asserted a build died on a stale artefact with a
+particular error; investigation showed a different error and a different cause.
+`restate` took the new symptom and reported `the premise this line asserted turned out
+to be false` — and left a `why` still explaining the old premise and a section arguing
+from it, both of which had to be noticed by the same author, from memory.
+
+The precedent is `ship`: it names any section whose prose cited what it deleted, and
+says that citation is your next edit in *this* commit, because a stale pointer reads
+like a typo from the next command on. A `why` arguing a premise the line no longer makes
+is the same defect with no pointer to catch it.
+
+The answer is a report and not a refusal. Whether the `why` still holds is a judgement
+about meaning, which this tool has none of — so it names `amend` and `section amend`
+with the id already substituted, and leaves the reading to the author.
+
 ## Block C — Query
 
 ### §RK1184 The criterion a design declares

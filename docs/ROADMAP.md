@@ -27,6 +27,7 @@
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK1187** (deps: —) **`symptom` is the one prose field no verb declares as a pipe reader, so `-` lands in the file as the claim** — RK1176 made that declaration the parser's own and `restate` declares none — the verb whose only prose argument is the field that carries a backtick as readily as a why. → §RK1187
+- 📋 **RK1196** (deps: —) **restate replaces a false premise and leaves the why and the design still asserting it, naming no follow-up** — ship names every section whose prose cited what it deleted; the verb whose whole purpose is that a claim was wrong names neither place that claim is also written. → §RK1196
 
 ## Block C — Query (consult without reading the file)
 
@@ -53,7 +54,7 @@
 
 - 🛠 **RK1170** (deps: —) **A verb's plain answer and its json payload are built in two files, and most of the printing never moved** — rendering.py holds 23 printers against 386 print calls left in the handlers, so the layer buys no rule about where a sentence is and costs every verb a second file. → §RK1170
 - 📋 **RK1171** (deps: RK1169 ✅, RK1170 🛠) **build_parser is one 2,000-line function, so a verb's flags are edited in the file the whole surface is in** — cli.py was split by layer for size and grew back to 2,260 code lines, so the cut that holds is per verb, which the two deps make a move and not a rewrite. → §RK1171
-- 📋 **RK1195** (deps: —) **Nothing in the suite sees a top-level definition left without its blank-line separator** — A scripted deletion took the separator with the block and glued two functions together; this tree has no linter by decision, so the only reader was a person diffing. → §RK1195
+- 🛠 **RK1195** (deps: —) **Nothing in the suite sees a top-level definition left without its blank-line separator** — A scripted deletion took the separator with the block and glued two functions together; this tree has no linter by decision, so the only reader was a person diffing. → §RK1195
 
 ## Non-goals
 
