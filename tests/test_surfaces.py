@@ -297,6 +297,20 @@ def test_every_wired_write_reaches_the_one_printer():
     # that moves takes this reader with it instead of leaving it quietly covering nothing.
     source = {one.where: one.text for one in modules() if one.where.startswith("verbs/")}
     handlers = {handler for name, handler in writes().items() if name not in EXEMPT}
+    # **The hop, derived** (RK1170): every record method that reaches a producer itself, found
+    # by reading the package rather than named here. `stated` was the first and `retired` the
+    # second — one shape carries two doors — and a pair spelled in this test is a list that
+    # grows by one every slice, which is the restatement the task is about.
+    composing = {
+        name
+        for one in modules()
+        for name in re.findall(r"\n    def (\w+)\(self", one.text)
+        if any(
+            producer in one.text.split(f"\n    def {name}(self", 1)[1].split("\n    def ", 1)[0]
+            for producer in ("_staging_rows", "_scope_rows")
+        )
+    }
+    assert composing, "no record composes the staging line — the hop below would be vacuous"
     missing = []
     for handler in sorted(handlers):
         body = next(
@@ -314,15 +328,9 @@ def test_every_wired_write_reaches_the_one_printer():
         if "_staging_rows" in body or "_scope_rows" in body:
             continue
         # **One hop, where the verb moved onto its record** (RK1170): a handler that renders
-        # through `stated` composes the line inside that method, so this follows the delegation
-        # rather than calling a moved verb a missing one. Not vacuous — some record's own `stated`
-        # has to name the producer, which is what the second half asks.
-        composed = any(
-            "_staging_rows" in one.text.split("def stated(", 1)[-1].split("\n    def ", 1)[0]
-            for one in modules()
-            if "def stated(" in one.text
-        )
-        if ".stated(" in body and composed:
+        # through one of those methods composes the line inside it, so this follows the
+        # delegation rather than calling a moved verb a missing one.
+        if any(f".{name}(" in body for name in composing):
             continue
         missing.append(handler)
     assert not missing, missing

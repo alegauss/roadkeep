@@ -24,9 +24,6 @@ from roadkeep.rendering import (
     _wrote_json,
     _event,
     _event_rows,
-    _scope_rows,
-    _prose_file,
-    _scope_json,
 )
 from roadkeep.reverting import reversals
 from roadkeep.shipping import (
@@ -589,6 +586,12 @@ def _reversals(config: Config, args: argparse.Namespace) -> int:
 
 
 def _retire(config: Config, args: argparse.Namespace) -> int:
+    """Record a line leaving without shipping, and say where its replacement is (RK32, RK244).
+
+    Both registers come off the record (RK1170) — the *retirement* pair, one shape carrying two
+    doors' answers. The replacement's id moved onto it with them: reading it back off argv was
+    the verb answering about the call it received rather than the transaction it made.
+    """
     try:
         departure = retire(
             config,
@@ -600,57 +603,8 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    ledger = config.relative(config.path("changelog"))
-    roadmap = config.relative(config.path("roadmap"))
-    block = departure.ledger.entry.task.block
-    event = _event(departure.task_id, block, departure.roadmap, config)
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": departure.task_id,
-                    "marker": departure.marker,
-                    "superseded_by": args.superseded_by,
-                    "replacement_in": departure.replacement_in,
-                    "changelog": {
-                        "file": ledger,
-                        "line": departure.ledger.lineno,
-                        "rendered": departure.ledger.rendered,
-                    },
-                    "roadmap": {"file": roadmap, "removed": departure.removed_from},
-                    "dropped": None
-                    if departure.dropped is None
-                    else departure.dropped.anchor,
-                    "dependents": list(departure.dependents),
-                    "refreshed": list(departure.refreshed),
-                    "scope": _scope_json(departure.scope, wrote),
-                    "event": event,
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(
-        f"{departure.task_id} {departure.marker} {ledger}:{departure.ledger.lineno} "
-        f"under Block {block}"
-    )
-    print(f"  removed  {roadmap}:{departure.removed_from}")
-    if departure.replacement_in is not None:
-        # Where the replacement was found, because the three files are three different
-        # promises (RK244): shipped is a supersession already delivered, open is one being
-        # worked, and paused is one waiting on a `resume` nobody is holding.
-        print(
-            f"  found    {args.superseded_by} in "
-            f"{config.relative(config.path(departure.replacement_in))}"
-        )
-    if departure.dropped is not None:
-        print(f"  dropped  {departure.dropped} from {_prose_file(config, departure.prose)}")
-    if departure.dependents:
-        # Reported, not refused: a supersession is legitimate and these lines are the
-        # author's next edit. `deps` now resolves them as unresolvable, not as satisfied.
-        print(f"  still    {', '.join(departure.dependents)} name {departure.task_id}")
-    # A retirement is committed exactly as a ship is, and it releases the same claim (RK294).
-    _print(_scope_rows(departure.scope, wrote))
-    _print(_event_rows(event, "  ", config=config, standing=True))
+        print(json.dumps(departure.retirement(config, wrote), indent=2))
+    else:
+        print(departure.retired(config, wrote))
     return EXIT_OK

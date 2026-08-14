@@ -787,6 +787,10 @@ class Departure:
     #: is a supersession waiting on a `resume`, which the retired line's id alone cannot
     #: say, and a prefix saying it would go stale the moment the pause ends.
     replacement_in: str | None = None
+    #: **The id that role is about** (RK1170). Set with the field above and for its reason: the
+    #: two are halves of one fact, and the record held only the second — so both registers read
+    #: the id back off argv, which is a verb answering about a call rather than a transaction.
+    replacement: str | None = None
     #: The checkout, so the claim on a line that left for good is released (RK162) — the one
     #: thing this transaction touches that is not a governed file.
     root: Path | None = None
@@ -932,6 +936,71 @@ class Departure:
             # What left the order with the line (RK327), named because a plan that silently
             # got shorter is a change with no sentence about it.
             "dequeued": self.dequeued,
+            "scope": _scope_json(self.scope, wrote),
+            "event": self.event(config),
+        }
+
+    def retired(self, config: Config, wrote: Sequence[str]) -> str:
+        """The **other** door's reading of this record (RK32), as a reader is told it.
+
+        One shape for both doors and two registers each, which is four methods and not a flag:
+        a retirement's subject is where the replacement was found and who still names the line,
+        and a shipment's is the design that was deleted. A branch inside one method would be
+        those two answers sharing a name because they share a dataclass.
+        """
+        from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _event_rows,
+            _prose_file,
+            _scope_rows,
+        )
+
+        roadmap = config.relative(config.path("roadmap"))
+        ledger = config.relative(config.path("changelog"))
+        rows = [
+            f"{self.task_id} {self.marker} {ledger}:{self.ledger.lineno} "
+            f"under Block {self.block}",
+            f"  removed  {roadmap}:{self.removed_from}",
+        ]
+        if self.replacement_in is not None:
+            # Where the replacement was found, because the three files are three different
+            # promises (RK244): shipped is a supersession already delivered, open is one being
+            # worked, and paused is one waiting on a `resume` nobody is holding.
+            rows.append(
+                f"  found    {self.replacement} in "
+                f"{config.relative(config.path(self.replacement_in))}"
+            )
+        if self.dropped is not None:
+            rows.append(f"  dropped  {self.dropped} from {_prose_file(config, self.prose)}")
+        if self.dependents:
+            # Reported, not refused: a supersession is legitimate and these lines are the
+            # author's next edit. `deps` now resolves them as unresolvable, not as satisfied.
+            rows.append(f"  still    {', '.join(self.dependents)} name {self.task_id}")
+        # A retirement is committed exactly as a ship is, and it releases the same claim (RK294).
+        rows += _scope_rows(self.scope, wrote)
+        rows += _event_rows(self.event(config), "  ", config=config, standing=True)
+        return "\n".join(rows)
+
+    def retirement(self, config: Config, wrote: Sequence[str]) -> dict[str, object]:
+        """The retirement as data, with both halves of where the replacement is (RK244)."""
+        from roadkeep.rendering import _scope_json  # noqa: PLC0415 - RK260
+
+        return {
+            "id": self.task_id,
+            "marker": self.marker,
+            "superseded_by": self.replacement,
+            "replacement_in": self.replacement_in,
+            "changelog": {
+                "file": config.relative(config.path("changelog")),
+                "line": self.ledger.lineno,
+                "rendered": self.ledger.rendered,
+            },
+            "roadmap": {
+                "file": config.relative(config.path("roadmap")),
+                "removed": self.removed_from,
+            },
+            "dropped": None if self.dropped is None else self.dropped.anchor,
+            "dependents": list(self.dependents),
+            "refreshed": list(self.refreshed),
             "scope": _scope_json(self.scope, wrote),
             "event": self.event(config),
         }
@@ -1787,7 +1856,12 @@ def retire(
     else:
         why = f"abandoned: {reason}"
     return _depart(
-        config, task_id, config.schema.retired_marker, why, replacement_in=holder
+        config,
+        task_id,
+        config.schema.retired_marker,
+        why,
+        replacement_in=holder,
+        replacement=superseded_by,
     )
 
 
@@ -2033,6 +2107,7 @@ def _depart(
     lines: int | None = None,
     *,
     replacement_in: str | None = None,
+    replacement: str | None = None,
     superseded: str | None = None,
 ) -> Departure:
     """The one transaction both doors are: validate everything, then write nothing yet."""
@@ -2171,6 +2246,7 @@ def _depart(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
         ),
         replacement_in=replacement_in,
+        replacement=replacement,
         root=config.root,
         # Read off the roadmap as it *was*, and before `save` releases the claim (RK294): the
         # line still carries 🛠 here, and a claim is only ever read against that marker.
