@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import re
 import textwrap
+from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -201,6 +202,35 @@ class Written:
     def save(self) -> tuple[Path, ...]:
         return self.document.save()
 
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """The bullet, as many lines as it took (RK69).
+
+        Beside :meth:`payload` since RK1170. **No event line** (RK38): the payload a hook reads
+        is an id and its block's open state, and a non-goal has neither — it is the constraint
+        on what a block may hold, not a member.
+        """
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path("roadmap"))
+        rows = [
+            f"{where}:{self.lineno}  {len(self.rendered)} line(s)",
+            *(f"  {line}" for line in self.rendered),
+        ]
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "lead": self.non_goal.lead,
+            "why": self.non_goal.why,
+            "file": config.relative(config.path("roadmap")),
+            "line": self.lineno,
+            "rendered": list(self.rendered),
+            **_wrote_json(config, wrote),
+        }
+
 
 @dataclass(frozen=True, slots=True)
 class Amended:
@@ -227,6 +257,39 @@ class Amended:
     def save(self) -> tuple[Path, ...]:
         return self.document.save()
 
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """What the correction rewrote, or that nothing moved (RK368).
+
+        Beside :meth:`payload` since RK1170.
+        """
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        if not self.changed:
+            return f"{self.non_goal.lead} unchanged: the bullet already reads that way"
+        where = config.relative(config.path("roadmap"))
+        rows = [
+            f"{where}:{self.lineno}  amended  {len(self.rendered)} line(s)",
+            *(f"  {line}" for line in self.rendered),
+        ]
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "lead": self.non_goal.lead,
+            # Both readings, which is what makes this reviewable as a correction rather than
+            # as a move: the word changed and the bullet did not.
+            "was": self.before,
+            "now": self.non_goal.why,
+            "changed": self.changed,
+            "file": config.relative(config.path("roadmap")),
+            "line": self.lineno,
+            "rendered": list(self.rendered),
+            **_wrote_json(config, wrote),
+        }
+
 
 @dataclass(frozen=True, slots=True)
 class Dropped:
@@ -244,6 +307,40 @@ class Dropped:
 
     def save(self) -> tuple[Path, ...]:
         return self.document.save()
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """The span that went, and whether the drop was also a repair (RK144).
+
+        Beside :meth:`payload` since RK1170.
+        """
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path("roadmap"))
+        span = self.non_goal
+        rows = [f"{where}:{span.first}-{span.last}  dropped  **{span.lead}**"]
+        if self.carried > 1:
+            # Two bullets for one address is `lint`'s non-goal.duplicate, and this call repaired
+            # it rather than removing the list's only statement of a constraint.
+            rows.append(
+                f"  duplicate {self.carried} bullets carried this lead: the later one went, "
+                f"the first is where the reader already found it"
+            )
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        span = self.non_goal
+        return {
+            "lead": span.lead,
+            "why": span.why,
+            "file": config.relative(config.path("roadmap")),
+            "removed": [span.first, span.last],
+            "carried": self.carried,
+            "rendered": list(self.lines),
+            **_wrote_json(config, wrote),
+        }
 
 
 def read(document: Document) -> tuple[NonGoal, ...]:

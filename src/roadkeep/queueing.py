@@ -46,6 +46,7 @@ repairs one it already repairs (RK328). A separate store makes each of those a f
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -216,6 +217,45 @@ class Written:
     def save(self) -> tuple[Path, ...]:
         return self.document.save()
 
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """Where in the order it landed, and whether the section is new (RK325, RK1014).
+
+        Beside :meth:`payload` since RK1170. **No event line** (RK38): the payload a hook reads
+        is an id and its block's open state, and an entry states neither — the token names work
+        whose line is somewhere else.
+        """
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path("roadmap"))
+        rows = [f"{where}:{self.lineno}  queued {self.entry.token}"]
+        if self.opened:
+            # Said, because the caller asked for an entry and got a heading too (RK1014) — the
+            # same reason every write here prints what it changed rather than only that it did.
+            rows.append(
+                "  opened   the priority section, above the blocks — the queue is declared now"
+            )
+        rows.append(f"  order    {self.position} of {self.length}")
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "token": self.entry.token,
+            "file": config.relative(config.path("roadmap")),
+            "line": self.lineno,
+            # The two a caller cannot read off a line number, and the whole content of a list
+            # whose order is what it says (RK325).
+            "position": self.position,
+            "length": self.length,
+            "rendered": self.entry.raw,
+            # Whether this call also opened the section (RK1014): a caller who asked to queue
+            # a token has had a heading written into a governed file.
+            "opened": self.opened,
+            **_wrote_json(config, wrote),
+        }
+
 
 @dataclass(frozen=True, slots=True)
 class Dropped:
@@ -231,6 +271,30 @@ class Dropped:
 
     def save(self) -> tuple[Path, ...]:
         return self.document.save()
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """What left the order, and how much of it is left."""
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path("roadmap"))
+        rows = [
+            f"{where}:{self.lineno}  dropped  {self.entry.token}",
+            f"  order    {self.length} left",
+        ]
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "token": self.entry.token,
+            "file": config.relative(config.path("roadmap")),
+            "removed": self.lineno,
+            "length": self.length,
+            "rendered": self.entry.raw,
+            **_wrote_json(config, wrote),
+        }
 
 
 def typed(config: Config, token: str) -> bool:
@@ -473,6 +537,44 @@ class Migrated:
 
     def save(self) -> tuple[Path, ...]:
         return self.document.save()
+
+    def configured(self, config: Config) -> str:
+        """The file the queue was declared in, as this project spells it."""
+        return config.relative(config.source) if config.source else "roadkeep.toml"
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """The section, and what `lint` will now say about the line left behind (RK427).
+
+        Beside :meth:`payload` since RK1170. The last row is the half a caller would otherwise
+        learn from a red run: the section wins from here, so the `priority` line left in
+        `roadkeep.toml` becomes `priority.config` — a finding whose remedy is a one-line edit
+        the guard does not deny, that file being one this tool does not govern and never writes.
+        """
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path("roadmap"))
+        rows = [
+            f"{where}:{self.lineno}  priority section written",
+            *(
+                f"  {position:<8} {token}"
+                for position, token in enumerate(self.tokens, start=1)
+            ),
+            f"  left     `priority` is still in {self.configured(config)} and is now read by "
+            f"nothing — take the line out; `lint` reports it as `priority.config` until you do",
+        ]
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "file": config.relative(config.path("roadmap")),
+            "line": self.lineno,
+            "tokens": list(self.tokens),
+            "configured": self.configured(config),
+            **_wrote_json(config, wrote),
+        }
 
 
 def migrate(config: Config) -> Migrated:

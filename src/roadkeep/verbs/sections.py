@@ -6,6 +6,10 @@ against before it is written, and the queue that reorders what `pick` offers.
 
 One module because they share a shape none of the task-line verbs has: each addresses a
 place rather than a task, and each writes the same heading into every file that declares one.
+
+**Every write here renders both registers off its own record** (RK1170), so this module no
+longer imports `rendering` at all. What is left composing an answer in a door is the three
+reads — `section show`, `non-goal list` and `priority list` — which is the rest of that task.
 """
 
 from __future__ import annotations
@@ -23,11 +27,6 @@ from roadkeep.queueing import (
     declared as declared_queue,
     drop as drop_priority,
     migrate as migrate_priority,
-)
-from roadkeep.rendering import (
-    _print,
-    _staging_rows,
-    _wrote_json,
 )
 from roadkeep.scoping import add as add_non_goal, amend as amend_non_goal, drop as drop_non_goal
 from roadkeep.sections import (
@@ -324,29 +323,10 @@ def _non_goal_add(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    where = config.relative(config.path("roadmap"))
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "lead": written.non_goal.lead,
-                    "why": written.non_goal.why,
-                    "file": where,
-                    "line": written.lineno,
-                    "rendered": list(written.rendered),
-                    **_wrote_json(config, wrote),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(f"{where}:{written.lineno}  {len(written.rendered)} line(s)")
-    for line in written.rendered:
-        print(f"  {line}")
-    # No event line (RK38): the payload a hook reads is an id and its block's open state, and
-    # a non-goal has neither — it is the constraint on what a block may hold, not a member.
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(written.payload(config, wrote), indent=2))
+    else:
+        print(written.stated(config, wrote))
     return EXIT_OK
 
 
@@ -357,34 +337,10 @@ def _non_goal_amend(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    where = config.relative(config.path("roadmap"))
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "lead": amended.non_goal.lead,
-                    # Both readings, which is what makes this reviewable as a correction
-                    # rather than as a move: the word changed and the bullet did not.
-                    "was": amended.before,
-                    "now": amended.non_goal.why,
-                    "changed": amended.changed,
-                    "file": where,
-                    "line": amended.lineno,
-                    "rendered": list(amended.rendered),
-                    **_wrote_json(config, wrote),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    if not amended.changed:
-        print(f"{amended.non_goal.lead} unchanged: the bullet already reads that way")
-        return EXIT_OK
-    print(f"{where}:{amended.lineno}  amended  {len(amended.rendered)} line(s)")
-    for line in amended.rendered:
-        print(f"  {line}")
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(amended.payload(config, wrote), indent=2))
+    else:
+        print(amended.stated(config, wrote))
     return EXIT_OK
 
 
@@ -441,34 +397,10 @@ def _non_goal_drop(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    where = config.relative(config.path("roadmap"))
-    span = dropped.non_goal
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "lead": span.lead,
-                    "why": span.why,
-                    "file": where,
-                    "removed": [span.first, span.last],
-                    "carried": dropped.carried,
-                    "rendered": list(dropped.lines),
-                    **_wrote_json(config, wrote),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(f"{where}:{span.first}-{span.last}  dropped  **{span.lead}**")
-    if dropped.carried > 1:
-        # Two bullets for one address is `lint`'s non-goal.duplicate, and this call repaired
-        # it rather than removing the list's only statement of a constraint.
-        print(
-            f"  duplicate {dropped.carried} bullets carried this lead: the later one went, "
-            f"the first is where the reader already found it"
-        )
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(dropped.payload(config, wrote), indent=2))
+    else:
+        print(dropped.stated(config, wrote))
     return EXIT_OK
 
 
@@ -479,38 +411,10 @@ def _priority_add(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    where = config.relative(config.path("roadmap"))
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "token": written.entry.token,
-                    "file": where,
-                    "line": written.lineno,
-                    # The two a caller cannot read off a line number, and the whole content
-                    # of a list whose order is what it says (RK325).
-                    "position": written.position,
-                    "length": written.length,
-                    "rendered": written.entry.raw,
-                    # Whether this call also opened the section (RK1014): a caller who asked
-                    # to queue a token has had a heading written into a governed file.
-                    "opened": written.opened,
-                    **_wrote_json(config, wrote),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(f"{where}:{written.lineno}  queued {written.entry.token}")
-    if written.opened:
-        # Said, because the caller asked for an entry and got a heading too (RK1014) — the
-        # same reason every write here prints what it changed rather than only that it did.
-        print(f"  opened   the priority section, above the blocks — the queue is declared now")
-    print(f"  order    {written.position} of {written.length}")
-    # No event line (RK38): the payload a hook reads is an id and its block's open state, and
-    # an entry states neither — the token names work whose line is somewhere else.
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(written.payload(config, wrote), indent=2))
+    else:
+        print(written.stated(config, wrote))
     return EXIT_OK
 
 
@@ -568,26 +472,10 @@ def _priority_drop(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    where = config.relative(config.path("roadmap"))
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "token": dropped.entry.token,
-                    "file": where,
-                    "removed": dropped.entry.lineno,
-                    "length": dropped.length,
-                    "rendered": dropped.entry.raw,
-                    **_wrote_json(config, wrote),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(f"{where}:{dropped.entry.lineno}  dropped  {dropped.entry.token}")
-    print(f"  order    {dropped.length} left")
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(dropped.payload(config, wrote), indent=2))
+    else:
+        print(dropped.stated(config, wrote))
     return EXIT_OK
 
 
@@ -605,32 +493,9 @@ def _priority_migrate(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    where = config.relative(config.path("roadmap"))
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "file": where,
-                    "line": migrated.lineno,
-                    "tokens": list(migrated.tokens),
-                    "configured": _configured_source(config),
-                    **_wrote_json(config, wrote),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(f"{where}:{migrated.lineno}  priority section written")
-    for position, token in enumerate(migrated.tokens, start=1):
-        print(f"  {position:<8} {token}")
-    print(
-        f"  left     `priority` is still in {_configured_source(config)} and is now read by "
-        f"nothing — take the line out; `lint` reports it as `priority.config` until you do"
-    )
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(migrated.payload(config, wrote), indent=2))
+    else:
+        print(migrated.stated(config, wrote))
     return EXIT_OK
 
-
-def _configured_source(config: Config) -> str:
-    return config.relative(config.source) if config.source else "roadkeep.toml"
