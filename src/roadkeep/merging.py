@@ -348,6 +348,69 @@ class Wiring:
         """
         return self.driver.state in (ABSENT, UNRUNNABLE) and self.attributes.routes_here
 
+    def repairs(self) -> list[str]:
+        """The repair of each half that is actually broken, in the order reported (RK272).
+
+        Measured before it was written: one `merge --register` named for both halves sent a
+        reader into a loop — the verb writes the attribute lines and *prints* the config line,
+        so the check that suggested it answered identically afterwards. Advice a reader can
+        follow and land back on is worse than none, because it is the kind they stop reading.
+
+        Two halves, two remedies, and neither is `register` running `git config` after all:
+        that write is outside the files this tool was given (L2), and the half left to the
+        reader is a decision rather than an oversight. `UNKNOWN` gets none — the question was
+        never resolved, so naming a repair for it would be answering one nobody asked.
+        """
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
+        out = []
+        if self.needs_attributes:
+            # `UNKNOWN` is excluded by that property, not here: a question git could not
+            # answer (RK273) names no repair, the same overreach the config half declines.
+            out.append(f"{invocation()} merge --register")
+        if self.demands_driver:
+            out.append(config_command())
+        return out
+
+    def stated(self) -> str:
+        """Both halves and what each needs, which is the whole of `--check` (RK270, RK277)."""
+        from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _attributes_line,
+            _wiring_line,
+        )
+
+        rows = [
+            f"  attributes  {_attributes_line(self.attributes)}",
+            f"  config      {_wiring_line(self)}",
+        ]
+        rows += [f"  fix         {one}" for one in self.repairs()]
+        return chr(10).join(rows)
+
+    def payload(self, config: Config) -> dict[str, object]:
+        """The halves as fields, because they are two lines for a reason (RK275).
+
+        The MCP surface reaches this as `merge_check` and passes `--json` on every call: a
+        caller that got one string would have to parse which half is broken out of prose this
+        tool is free to reword. `sound` is the exit code as a boolean, so nothing has to infer
+        it from the absence of repairs.
+        """
+        from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _attributes_line,
+            _wiring_line,
+        )
+
+        return {
+            "attributes": {
+                "state": self.attributes.state,
+                "file": config.relative(self.attributes.path),
+                "reported": _attributes_line(self.attributes),
+                "routes_here": self.attributes.routes_here,
+            },
+            "driver": {"state": self.driver.state, "reported": _wiring_line(self)},
+            "sound": self.sound,
+            "fix": self.repairs(),
+        }
+
     @property
     def sound(self) -> bool:
         """Whether git would run this driver over everything routed to it."""

@@ -24,15 +24,12 @@ from roadkeep.fixing import Fix, fix
 from roadkeep.guarding import START_EVENTS, STOP_EVENTS, announce, attested, guard, review
 from roadkeep.history import HistoryUnavailable
 from roadkeep.linting import lint
-from roadkeep.merging import Wiring, config_command, markers, merge, register, role_of, wiring
-from roadkeep.provenance import invocation
+from roadkeep.merging import markers, merge, register, role_of, wiring
 from roadkeep.remedying import codes as remedy_codes, explain
 from roadkeep.rendering import (
-    _attributes_line,
     _lint_json,
     _print_report,
     _served,
-    _wiring_line,
     registration_report,
 )
 from roadkeep.repairing import repair
@@ -151,53 +148,11 @@ def _merge_check(config: Config, args: argparse.Namespace) -> int:
     exit code as a boolean, so nothing has to infer it from the absence of repairs.
     """
     wired = wiring(config)
-    repairs = _repairs(wired)
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "attributes": {
-                        "state": wired.attributes.state,
-                        "file": config.relative(wired.attributes.path),
-                        "reported": _attributes_line(wired.attributes),
-                        "routes_here": wired.attributes.routes_here,
-                    },
-                    "driver": {"state": wired.driver.state, "reported": _wiring_line(wired)},
-                    "sound": wired.sound,
-                    "fix": repairs,
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK if wired.sound else EXIT_GATE
-    print(f"  attributes  {_attributes_line(wired.attributes)}")
-    print(f"  config      {_wiring_line(wired)}")
-    for repair in repairs:
-        print(f"  fix         {repair}")
+        print(json.dumps(wired.payload(config), indent=2))
+    else:
+        print(wired.stated())
     return EXIT_OK if wired.sound else EXIT_GATE
-
-
-def _repairs(wired: Wiring) -> list[str]:
-    """The repair of each half that is actually broken, in the order they are reported (RK272).
-
-    Measured before it was written: one `merge --register` named for both halves sent a reader
-    into a loop — the verb writes the attribute lines and *prints* the config line, so the check
-    that suggested it answered identically afterwards. Advice a reader can follow and land back
-    on is worse than none, because it is the kind they stop reading.
-
-    Two halves, two remedies, and neither is `register` running `git config` after all: that
-    write is outside the files this tool was given (L2), and the half left to the reader is a
-    decision rather than an oversight. `UNKNOWN` gets none — the question was never resolved,
-    so naming a repair for it would be answering one nobody asked.
-    """
-    repairs = []
-    if wired.needs_attributes:
-        # `UNKNOWN` is excluded by that property, not here: a question git could not answer
-        # (RK273) names no repair, the same overreach the config half declines to make.
-        repairs.append(f"{invocation()} merge --register")
-    if wired.demands_driver:
-        repairs.append(config_command())
-    return repairs
 
 
 def _lint(config: Config, args: argparse.Namespace) -> int:
