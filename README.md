@@ -121,10 +121,10 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 3 | 97 | 1 |
 | D — The gate | 1 | 175 | 2 |
 | E — Adoption | 1 | 86 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 107 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 108 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 3 | 0 |
-| **Total** | 9 | 671 | 9 |
+| **Total** | 9 | 672 | 9 |
 
 **Next ready:**
 
@@ -249,10 +249,12 @@ wiring holds on a laptop and in the cloud**:
   "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/roadkeep-launch.py", "mcp"] } }
 ```
 
-Two rules keep the committed launcher from ever making a machine worse than the plugin did: it
-**defers to the plugin** when one is installed, so nothing double-fires on the laptop that
-already has it, and it **no-ops on exit 0** when no engine is found or cloned, so a repository
-without roadkeep is never blocked by a hook that cannot answer.
+Two rules keep the committed launcher from ever making a machine worse than the plugin did, and
+both are the **guard's**: it **defers to the plugin** when one is installed, so no deny message
+doubles on the laptop that already has it, and it **no-ops on exit 0** when no engine is found,
+so a repository without roadkeep is never blocked by a hook that cannot answer. The `mcp` mode
+keeps neither — a stdio server cannot stand down, since the exit that would say so is what the
+harness reads as a crash.
 [Viglet Shio](https://github.com/openviglet/shio) carries the reference copy at
 [`.claude/hooks/roadkeep-launch.py`](https://github.com/openviglet/shio/blob/main/.claude/hooks/roadkeep-launch.py).
 

@@ -357,9 +357,9 @@ def test_a_missing_engine_is_a_refusal_and_not_a_quiet_zero(tmp_path):
 
 
 def test_a_verb_is_answered_even_where_the_plugin_is_wired(tmp_path):
-    # The other rule a forwarded verb does not keep. Standing down exists so a hook and a
-    # server do not double-fire; a command somebody typed has no second copy to double, and
-    # silence would be this file answering `pick` with nothing.
+    # The other rule a forwarded verb does not keep. Standing down exists so a *hook* does not
+    # double-fire (RK1189 took the server out of that sentence); a command somebody typed has
+    # no second copy to double, and silence would be this file answering `pick` with nothing.
     from roadkeep.adopting import init
 
     init(tmp_path)
@@ -772,3 +772,60 @@ def test_the_hook_still_degrades_to_unenforced(tmp_path):
     )
     assert ran.returncode == 0
     assert ran.stdout == "" and "Traceback" not in ran.stderr
+
+
+# -- the server stands down for nobody (RK1189) -------------------------------
+
+#: One handshake, which is all it takes to tell a server from a process that exited.
+HANDSHAKE = json.dumps(
+    {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {"protocolVersion": "2024-11-05", "capabilities": {}},
+    }
+)
+
+
+def served(argv: list[str], home: Path | None, cwd: Path, config: Path | None = None):
+    """The shipped file in ``mcp`` mode, driven the way `.mcp.json` starts it."""
+    env = {**os.environ, "ROADKEEP_HOME": "" if home is None else str(home)}
+    env[POPPED] = str(cwd)
+    if home is None:
+        env.update(nowhere(cwd))
+    if config is not None:
+        env["CLAUDE_CONFIG_DIR"] = str(config)
+    return subprocess.run(
+        [sys.executable, str(BRIDGE), *argv],
+        input=f"{HANDSHAKE}\n".encode("utf-8"),
+        capture_output=True,
+        check=False,
+        cwd=str(cwd),
+        env=env,
+    )
+
+
+def test_the_server_answers_where_the_plugin_is_wired(tmp_path):
+    """RK1189, measured in Shio with everything installed correctly: the deferral exited 0 before
+    a frame was read, the harness read that as the server having failed, and — both entries being
+    named `roadkeep` — the session it showed `✗ failed` in had no roadkeep tools at all.
+
+    Asserted on a frame coming back rather than on the predicate, because *speaks the protocol*
+    is the only thing an exit here cannot also mean.
+    """
+    from roadkeep.adopting import init
+
+    init(tmp_path)
+    home = tmp_path / "config"
+    registry(home, tmp_path)  # the plugin, wired for this very project
+    done = served(["mcp"], ROOT, tmp_path, config=home)
+    assert done.returncode == 0, done.stderr
+    answer = json.loads(done.stdout.splitlines()[0])
+    assert answer["id"] == 1 and "serverInfo" in answer["result"]
+
+
+def test_a_missing_engine_is_a_named_refusal_on_the_server_too(tmp_path):
+    """The other rule it keeps neither of. A server the harness will mark failed regardless is
+    one whose log should say why: exit 0 and silence there is a crash with no cause in it."""
+    done = served(["mcp"], None, tmp_path)
+    assert done.returncode == 2 and b"no engine found" in done.stderr

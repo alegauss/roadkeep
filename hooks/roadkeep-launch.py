@@ -29,12 +29,11 @@ The engine is resolved in this order:
   2. a sibling checkout ``../roadkeep``              two repositories cloned side by side
   3. a cached clone under the user cache directory   the web, second turn onward
 
-Three rules keep it from ever making things worse:
+Three rules keep it from ever making things worse, and the first is the **guard's alone**:
 
   * **Defer to the plugin.** Where the harness has roadkeep enabled *for this project*, its
-    own hook and server already run, so both modes here become a silent no-op — nothing
-    double-fires and there is never a second ``roadkeep`` server or a doubled deny message.
-    That question is a row in the harness's registry and **never a file on disk**: this is
+    own hook already runs, so ``guard`` here becomes a silent no-op and no deny message is
+    doubled. That question is a row in the harness's registry and **never a file on disk**: this is
     the defect the shipped version exists to fix. A hand-written copy globbed
     ``~/.claude/plugins`` for ``scripts/roadkeep.py``, which finds a marketplace clone and
     every cached version whether or not the project uses any of them — so under a
@@ -45,6 +44,18 @@ Three rules keep it from ever making things worse:
   * **Never reach the network.** The cache is used where something else populated it; this
     file does not clone. A hook that fetches code is a hook that runs code the repository
     did not commit, and the environment this exists for is the one that reviews it least.
+
+``mcp`` keeps **neither of the first two**, and standing down there was the defect this was
+reported from (RK1189). A stdio server has no way to say *another copy answers*: it either
+speaks the protocol on the stdin the harness handed it or it exits, and an exit **is** how a
+server reports a crash — so the deferral rendered the project's own declared server ``✗
+failed`` in the harness's listing, in exactly the projects where everything was installed
+correctly. Measured in Shio, where that is worse than cosmetic: the plugin's server and the
+project's are both named ``roadkeep``, so the failed entry took the name and the session had
+no roadkeep tools at all. ``install`` writes both declarations deliberately — the harness
+reads them separately and only the hooks would fire twice (`installing.plan`) — so the file
+it writes has to **serve wherever it is started**, and a missing engine is a refusal on
+stderr for the reason a forwarded verb's is.
 
 The engine invoked is ``scripts/roadkeep.py`` — roadkeep's own launcher, which puts its
 ``src`` on ``sys.path`` and calls ``roadkeep.cli.main``. So the arguments, exit codes and
@@ -60,8 +71,9 @@ server connected, the tools cover it; where it did not, the session had a workin
 disk, a documented way to reach it, and no verb that arrived — so the fallback was guessing at
 a checkout path, which is the guess this file exists to remove.
 
-A forwarded verb keeps the resolution order and **neither of the first two rules**, because
-both are about a caller that did not ask:
+A forwarded verb keeps the resolution order and **neither of the first two rules** — the pair
+``mcp`` keeps neither of, and for the same reason — because both are about the one caller that
+did not ask, which is the hook that fires on every turn:
 
   * the plugin is not deferred to — a command somebody typed is answered whether or not some
     other surface could also have answered it, and silence is not an answer to ``pick``;
@@ -196,19 +208,44 @@ def _resolve() -> Path | None:
     )
 
 
-def _run(mode: str, argv: list[str], payload: bytes | None) -> int:
+def _guard(argv: list[str], payload: bytes | None) -> int:
+    """The hook, which is the caller both of the first two rules are about."""
     if _plugin_is_wired(_repo_root()):
-        return 0  # the plugin's own surface already runs; do not double-fire.
+        return 0  # the plugin's own hook already runs; do not double-fire.
     engine = _resolve()
     if engine is None:
         return 0  # unenforced beats broken.
-    if mode == "mcp":
-        # `execv`, so the server owns this process's stdio rather than talking through a pipe
-        # to a parent that would have to shuttle every frame.
-        os.execv(sys.executable, [sys.executable, str(engine), "mcp", *argv])
     return subprocess.run(
-        [sys.executable, str(engine), mode, *argv], input=payload, check=False
+        [sys.executable, str(engine), "guard", *argv], input=payload, check=False
     ).returncode
+
+
+def _serve(argv: list[str]) -> int:
+    """The server, which stands down for nobody (RK1189) — see the module docstring.
+
+    A wired plugin is not asked about: two ``roadkeep`` servers are two entries the harness
+    reads separately, and the one thing an exit here cannot mean is *another copy answers*.
+    """
+    engine = _resolve()
+    if engine is None:
+        return _missing()
+    # `execv`, so the server owns this process's stdio rather than talking through a pipe to a
+    # parent that would have to shuttle every frame.
+    os.execv(sys.executable, [sys.executable, str(engine), "mcp", *argv])
+
+
+def _missing() -> int:
+    """No engine, for a caller whose exit code is read as its result.
+
+    Named rather than silent, and it names the two things a caller can do. ASCII, like the line
+    it replaces: this file writes to whatever console the environment gave it, and a refusal
+    that raises on encoding is a refusal that arrives as a traceback.
+    """
+    sys.stderr.write(
+        "roadkeep-launch.py: no engine found: set ROADKEEP_HOME to a roadkeep "
+        "checkout, or put one beside this repository as ../roadkeep\n"
+    )
+    return 2
 
 
 def _forward(argv: list[str]) -> int:
@@ -219,24 +256,16 @@ def _forward(argv: list[str]) -> int:
     """
     engine = _resolve()
     if engine is None:
-        # Named rather than silent, and it names the two things a caller can do: this is the
-        # one path here whose exit code somebody reads as an answer. ASCII, like the line it
-        # replaces: this file writes to whatever console the environment gave it, and a
-        # refusal that raises on encoding is a refusal that arrives as a traceback.
-        sys.stderr.write(
-            "roadkeep-launch.py: no engine found: set ROADKEEP_HOME to a roadkeep "
-            "checkout, or put one beside this repository as ../roadkeep\n"
-        )
-        return 2
+        return _missing()
     return subprocess.run([sys.executable, str(engine), *argv], check=False).returncode
 
 
 def main(argv: list[str]) -> int:
     if argv[:1] == ["guard"]:
         # The payload is read here and handed on, because a stream is readable once.
-        return _run("guard", argv[1:], sys.stdin.buffer.read())
+        return _guard(argv[1:], sys.stdin.buffer.read())
     if argv[:1] == ["mcp"]:
-        return _run("mcp", argv[1:], None)
+        return _serve(argv[1:])
     # Including no arguments at all, which the engine answers with its own usage and its own
     # list of verbs — a better answer than a line naming the two modes nobody types.
     return _forward(argv)
