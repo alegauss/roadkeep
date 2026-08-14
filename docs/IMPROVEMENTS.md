@@ -291,26 +291,3 @@ Its two deps are what make this mechanical rather than a rewrite. What must not 
 reached for: entry points or dynamic discovery, which cost startup, need a dependency,
 and take away the totality the gate is checked by; and a generator, which would move the
 authority out of Python and out of reach of a type checker.
-
-### §RK1191 A condition nobody asks any more
-
-`src/roadkeep/verbs/authoring.py` opens `_add` with four lines computing whether the
-section body arrives on stdin, and no statement after them reads the name. RK1176 moved
-that question to `dispatch`, where it is asked over what the parser declares rather than
-per handler — the comment directly under the dead assignment says so, which is what
-makes the leftover readable as deliberate.
-
-Two costs, and the smaller one is the four lines. The larger is that a handler is where
-a reader goes to learn what a verb does with a pipe: a named condition at the top of a
-function reads as the premise the rest of the body rests on, and tracing this one ends
-in nothing. The defect this block keeps finding in prose — a sentence describing a
-mechanism that moved — pointed at code.
-
-Found by the editor's static analysis while `_add`'s neighbours were being moved onto
-their records for RK1170, which is the honest provenance: not by a test, because there
-is no test a dead local can fail. Filed separately rather than swept into that slice,
-since a deletion is not a rendering change.
-
-The fix is the deletion. What is worth checking with it is whether `STDIN` is still
-imported for another reader, and whether another handler kept a copy of the same
-condition — RK1176 named `ship` as the verb its missing refusal was measured on.

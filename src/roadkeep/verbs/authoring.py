@@ -31,7 +31,7 @@ from roadkeep.rendering import (
 )
 from roadkeep.renumbering import renumber
 from roadkeep.kernel.schema import width as measured_width
-from roadkeep.verbs.reading import STDIN, _body_reader, _one_body, _piped
+from roadkeep.verbs.reading import _body_reader, _one_body, _piped
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
 
 
@@ -79,11 +79,6 @@ def _next_id(config: Config, args: argparse.Namespace) -> int:
 
 
 def _add(config: Config, args: argparse.Namespace) -> int:
-    piped = (
-        args.section is not None
-        and args.section_body_file is None
-        and args.section_body in (None, STDIN)
-    )
     # The pipe clash is `dispatch`'s, asked over what this verb's parser declares (RK1176) —
     # this had the only copy of it, which is how `ship` sent two arguments to one stream with
     # the refusal sitting one module away. What is left here is the other question: a body given
