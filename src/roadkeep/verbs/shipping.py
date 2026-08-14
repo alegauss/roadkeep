@@ -21,7 +21,6 @@ from roadkeep.backlog import Backlog, Stage
 from roadkeep.config import Config
 from roadkeep.kernel.document import declares, shading
 from roadkeep.ranking import NEAREST, nearest
-from roadkeep.remaining import declared
 from roadkeep.reverting import reversals
 from roadkeep.shipping import (
     Delivered,

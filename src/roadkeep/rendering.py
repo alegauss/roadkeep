@@ -60,9 +60,7 @@ from roadkeep.merging import (
 )
 from roadkeep.picking import Choice, Claim
 from roadkeep.provenance import invocation, served_by
-from roadkeep.remaining import count, declared
 from roadkeep.remedying import Door, remedy
-from roadkeep.repairing import repair
 from roadkeep.kernel.schema import UTF16_UNITS, width as measured_width
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK
 

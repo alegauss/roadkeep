@@ -20,7 +20,6 @@ import sys
 
 from roadkeep.blocking import drop_block, merge_block, open_block
 from roadkeep.briefing import non_goals
-from roadkeep.capturing import body
 from roadkeep.config import Config
 from roadkeep.queueing import (
     add as add_priority,

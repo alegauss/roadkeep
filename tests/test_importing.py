@@ -21,14 +21,25 @@ live instances, which is what keeps this from being an exemption nobody needs.
 is a compiler directive wearing an import's syntax. Every module here carries it, so without
 this the scan reports fifty-nine hits and is the red nobody keeps.
 
-Anything else is either spelled or it is not, which an AST decides without judgement. What
-the first run found: six names across four modules — `guarding`, `linting`, `remedying` and
+Anything else is either spelled or it is not, which is decided without judgement. What the
+first run found: six names across four modules — `guarding`, `linting`, `remedying` and
 `shipping` — imported and never spelled again, gone in the commit that added this.
+
+**An AST alone cannot decide it** (RK1194). A plain `ast.Name` walk has no scopes, so a
+function's own local answered for a module-level import: `verbs/querying.py` imported `record`
+with nothing reading it and stayed green for as long as a local of that name existed. Three
+narrower fixes were measured and each was wrong — `Load` context alone finds nothing, since
+the local was read; disqualifying every rebound name reports 32 and most are false; and
+`symtable`, which has the scopes, is blind to annotations and reports `Config` and `Sequence`
+in nearly every module here. So the scan is a hybrid, and each half is where its question has
+an answer. Five dead imports were live behind the old reading.
 """
 
 from __future__ import annotations
 
 import ast
+import symtable
+from dataclasses import dataclass
 
 from surface import modules
 
@@ -77,14 +88,98 @@ def _published(tree: ast.Module) -> set[str]:
     return published
 
 
-def _spelled(tree: ast.Module) -> set[str]:
-    """Every name the module actually uses.
+def _annotated(tree: ast.Module) -> set[str]:
+    """Every name an annotation names (RK1194).
 
-    An :class:`ast.Name` is the whole domain and that is not an approximation: an attribute
-    access roots in one, and `from __future__ import annotations` is on every module here, so
-    an annotation is a string at runtime and still a `Name` in the tree this reads.
+    From the AST and never from a scope, because under `from __future__ import annotations` an
+    annotation is **never evaluated**: it is a string at runtime, so it has no scope to be read
+    in and every name in one is a use of the import that supplies it. This is the half
+    :mod:`symtable` cannot see, and it is most of this package's import lists.
     """
-    return {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
+    found: set[str] = set()
+    for node in ast.walk(tree):
+        subtrees: list[ast.expr] = []
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            args = node.args
+            subtrees = [
+                one.annotation
+                for one in (
+                    *args.posonlyargs,
+                    *args.args,
+                    *args.kwonlyargs,
+                    args.vararg,
+                    args.kwarg,
+                )
+                if one is not None and one.annotation is not None
+            ]
+            if node.returns is not None:
+                subtrees.append(node.returns)
+        elif isinstance(node, ast.AnnAssign):
+            subtrees = [node.annotation]
+        for subtree in subtrees:
+            found |= {one.id for one in ast.walk(subtree) if isinstance(one, ast.Name)}
+    return found
+
+
+def _comprehended(tree: ast.Module) -> set[str]:
+    """What a comprehension reads, minus its own targets (RK1194).
+
+    The reads :mod:`symtable` loses: since PEP 709 a comprehension at module level is inlined,
+    and 3.13's tables report neither the elided scope's references nor the module's. Read from
+    the AST instead, with the generator targets subtracted — those are the comprehension's own
+    names, and counting them is exactly the shadowing this whole scan is about.
+    """
+    found: set[str] = set()
+    kinds = (ast.ListComp, ast.SetComp, ast.DictComp, ast.GeneratorExp)
+    for node in ast.walk(tree):
+        if not isinstance(node, kinds):
+            continue
+        bound = {
+            one.id
+            for gen in node.generators
+            for one in ast.walk(gen.target)
+            if isinstance(one, ast.Name)
+        }
+        reads = {
+            one.id
+            for one in ast.walk(node)
+            if isinstance(one, ast.Name) and isinstance(one.ctx, ast.Load)
+        }
+        found |= reads - bound
+    return found
+
+
+def _referenced(table: symtable.SymbolTable, name: str, top: bool = True) -> bool:
+    """Whether some scope reads this name as something other than its own local (RK1194).
+
+    At module level the import *is* the assignment, so a reference there is a use. In a nested
+    scope an assignment means the name belongs to that scope, and the reads are its own — which
+    is the whole defect: `verbs/querying.py` imported `record` with no reader in the module,
+    and a local of that name inside one function was answering for it.
+    """
+    for symbol in table.get_symbols():
+        if symbol.get_name() != name:
+            continue
+        if symbol.is_referenced() and (top or not symbol.is_assigned()):
+            return True
+    return any(_referenced(child, name, top=False) for child in table.get_children())
+
+
+def _spelled(text: str, where: str) -> set[str]:
+    """Every name the module actually uses, with scopes (RK1194).
+
+    Three readers and not one, because no single one of them is right. A plain `ast.Name` walk
+    is scope-blind and counted a function's own local as a module-level use — five dead imports
+    were live behind that. :mod:`symtable` has the scopes and is blind to annotations, which
+    under PEP 563 are most of what this package imports. So the annotations come from the AST,
+    where they have no scope to need, and everything else from the table, where it does.
+    """
+    tree = ast.parse(text)
+    table = symtable.symtable(text, where, "exec")
+    scoped = {
+        name for _, name in _bound(tree) if _referenced(table, name)
+    }
+    return scoped | _annotated(tree) | _comprehended(tree)
 
 
 def unspelled(surface) -> dict[str, list[str]]:
@@ -96,7 +191,7 @@ def unspelled(surface) -> dict[str, list[str]]:
     found: dict[str, list[str]] = {}
     for module in surface:
         tree = ast.parse(module.text)
-        allowed = _published(tree) | _spelled(tree)
+        allowed = _published(tree) | _spelled(module.text, module.where)
         for lineno, name in _bound(tree):
             if name not in allowed:
                 found.setdefault(module.where, []).append(f"{lineno}: {name}")
@@ -121,7 +216,7 @@ def test_the_re_export_exclusion_is_load_bearing():
     reexports = {}
     for module in modules():
         tree = ast.parse(module.text)
-        spelled = _spelled(tree)
+        spelled = _spelled(module.text, module.where)
         quiet = {
             name
             for _, name in _bound(tree)
@@ -130,6 +225,35 @@ def test_the_re_export_exclusion_is_load_bearing():
         if quiet:
             reexports[module.where] = sorted(quiet)
     assert reexports, "nothing re-exports an unspelled name: the exclusion hides more than it admits"
+
+
+@dataclass(frozen=True, slots=True)
+class _Fixture:
+    """A module that is not on disk, in the shape :func:`unspelled` reads."""
+
+    where: str
+    text: str
+
+
+def test_a_local_of_the_same_name_is_not_a_use():
+    """RK1194's property, on fixtures rather than on this tree — which no longer holds one.
+
+    Four shapes, because each is a reader this scan needs and three of them were wrong alone:
+    a shadowed import is dead, a read one is not, an annotation-only one is not, and a name a
+    comprehension reads is not. Written together because a fix to any one of them broke another
+    when they were tried separately.
+    """
+    shadowed = "from __future__ import annotations\nfrom x import n\ndef f(a):\n    n = a\n    return n\n"
+    assert unspelled([_Fixture("shadowed.py", shadowed)]) == {"shadowed.py": ["2: n"]}
+
+    read = "from __future__ import annotations\nfrom x import n\ndef f():\n    return n\n"
+    assert unspelled([_Fixture("read.py", read)]) == {}
+
+    annotated = "from __future__ import annotations\nfrom x import N\ndef f(a: N) -> N:\n    return a\n"
+    assert unspelled([_Fixture("annotated.py", annotated)]) == {}
+
+    comprehended = "from __future__ import annotations\nfrom x import n\nV = [n(one) for one in ()]\n"
+    assert unspelled([_Fixture("comprehended.py", comprehended)]) == {}
 
 
 def test_the_directive_exclusion_covers_every_module_that_imports_at_all():

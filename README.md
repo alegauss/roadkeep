@@ -123,8 +123,8 @@ called unbuilt were already in the ledger.
 | E — Adoption | 2 | 86 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 108 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 3 | 4 | 0 |
-| **Total** | 12 | 673 | 9 |
+| H — The tool's own shape (what one verb costs to change) | 2 | 5 | 0 |
+| **Total** | 11 | 674 | 9 |
 
 **Next ready:**
 
