@@ -104,6 +104,37 @@ class NonGoals:
     #: How many bullets the section held beyond the ones carried. 0 means these are all.
     elided: int = 0
 
+    def stated(self, config: Config) -> str:
+        """The list at the moment a task is proposed (RK69), as a reader is told it.
+
+        Beside :meth:`payload` since RK1170. The rows take the shape `brief` prints, so the
+        list is recognisable as the same list and not as a second one that happens to agree
+        today — which is what a second projection of a scope would be.
+        """
+        where = config.relative(config.path("roadmap"))
+        if not self.leads:
+            return f"{where}: no non-goals — nothing here says what may not be proposed"
+        # A project that has not opted in can still be read (RK70), and the report says which
+        # it is: `add` is what `[non_goals]` gates, and a listing that hid the difference would
+        # let a reader take an ungoverned list for an enforced one.
+        ungoverned = "" if config.non_goals is not None else "  read-only: no [non_goals]"
+        rows = [f"{where}  {len(self.leads)} non-goal(s){ungoverned}"]
+        rows += [f"  not      {lead}" for lead in self.leads]
+        if self.elided:
+            rows.append(f"  not      … and {self.elided} more under Non-goals")
+        return "\n".join(rows)
+
+    def payload(self, config: Config) -> dict[str, object]:
+        return {
+            "file": config.relative(config.path("roadmap")),
+            # A project that has not opted in can still be read — `add` is what `[non_goals]`
+            # gates (RK70), and refusing the read too would leave the scope of two live corpora
+            # unaskable.
+            "governed": config.non_goals is not None,
+            "non_goals": list(self.leads),
+            "non_goals_elided": self.elided,
+        }
+
 
 @dataclass(frozen=True, slots=True)
 class Settled:

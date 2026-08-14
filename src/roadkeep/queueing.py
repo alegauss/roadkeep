@@ -193,6 +193,42 @@ class Queue:
     def __bool__(self) -> bool:
         return bool(self.tokens)
 
+    def stated(self, config: Config) -> str:
+        """The order, and which file declared it (RK325).
+
+        Beside :meth:`payload` since RK1170. Both, always: a project that wrote a section and
+        is still being ordered by its config is the state this move exists to make visible, and
+        it is invisible from the tokens alone.
+        """
+        where = config.relative(config.path("roadmap"))
+        source = config.relative(config.source or config.root)
+        if not self.declared_in:
+            return (
+                f"{where}: no priority queue — add a `## Priority` heading, or declare "
+                f"`priority` in {source}; the id order stands either way"
+            )
+        named = where if self.declared_in == "roadmap" else source
+        empty = "  empty: the tier is declared and off" if not self.tokens else ""
+        rows = [f"{named}  {len(self.tokens)} entr(ies){empty}"]
+        rows += [
+            f"  {place:<8} {token}" for place, token in enumerate(self.tokens, 1)
+        ]
+        rows += [f"  unread   {where}:{lineno}  {raw}" for lineno, raw in self.rejects]
+        return chr(10).join(rows)
+
+    def payload(self, config: Config) -> dict[str, object]:
+        where = config.relative(config.path("roadmap"))
+        return {
+            "declared_in": self.declared_in or None,
+            "file": where
+            if self.declared_in == "roadmap"
+            else config.relative(config.source or config.root),
+            "priority": list(self.tokens),
+            # Bullets under the heading the format could not read — counted apart for
+            # `non-goal`'s reason: unreadable is not absent.
+            "unread": [{"line": lineno, "raw": raw} for lineno, raw in self.rejects],
+        }
+
 
 @dataclass(frozen=True, slots=True)
 class Written:

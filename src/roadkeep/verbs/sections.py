@@ -351,41 +351,14 @@ def _non_goal_list(config: Config, args: argparse.Namespace) -> int:
     the constraint an `add` is checked against is the constraint the file states.
     """
     try:
-        document = config.document("roadmap")
+        gathered = non_goals(config, config.document("roadmap"))
     except (KeyError, OSError) as error:
         return _refused(error)
 
-    where = config.relative(config.path("roadmap"))
-    gathered = non_goals(config, document)
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "file": where,
-                    # A project that has not opted in can still be read — `add` is what
-                    # `[non_goals]` gates (RK70), and refusing the read too would leave the
-                    # scope of two live corpora unaskable.
-                    "governed": config.non_goals is not None,
-                    "non_goals": list(gathered.leads),
-                    "non_goals_elided": gathered.elided,
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    if not gathered.leads:
-        print(f"{where}: no non-goals — nothing here says what may not be proposed")
-        return EXIT_OK
-
-    ungoverned = "" if config.non_goals is not None else "  read-only: no [non_goals]"
-    print(f"{where}  {len(gathered.leads)} non-goal(s){ungoverned}")
-    for lead in gathered.leads:
-        # The shape `brief` prints, so the list is recognisable as the same list and not as
-        # a second one that happens to agree today.
-        print(f"  not      {lead}")
-    if gathered.elided:
-        print(f"  not      … and {gathered.elided} more under Non-goals")
+        print(json.dumps(gathered.payload(config), indent=2))
+    else:
+        print(gathered.stated(config))
     return EXIT_OK
 
 
@@ -428,39 +401,10 @@ def _priority_list(config: Config, args: argparse.Namespace) -> int:
     except (KeyError, OSError) as error:
         return _refused(error)
 
-    where = config.relative(config.path("roadmap"))
-    source = config.relative(config.source or config.root)
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "declared_in": queue.declared_in or None,
-                    "file": where if queue.declared_in == "roadmap" else source,
-                    "priority": list(queue.tokens),
-                    # Bullets under the heading the format could not read — counted apart
-                    # for `non-goal`'s reason: unreadable is not absent.
-                    "unread": [
-                        {"line": lineno, "raw": raw} for lineno, raw in queue.rejects
-                    ],
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    if not queue.declared_in:
-        print(
-            f"{where}: no priority queue — add a `## Priority` heading, or declare "
-            f"`priority` in {source}; the id order stands either way"
-        )
-        return EXIT_OK
-    named = where if queue.declared_in == "roadmap" else source
-    empty = "  empty: the tier is declared and off" if not queue.tokens else ""
-    print(f"{named}  {len(queue.tokens)} entr(ies){empty}")
-    for place, token in enumerate(queue.tokens, 1):
-        print(f"  {place:<8} {token}")
-    for lineno, raw in queue.rejects:
-        print(f"  unread   {where}:{lineno}  {raw}")
+        print(json.dumps(queue.payload(config), indent=2))
+    else:
+        print(queue.stated(config))
     return EXIT_OK
 
 
