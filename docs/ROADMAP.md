@@ -47,6 +47,7 @@
 
 - 📋 **RK1186** (deps: —) **`init` scaffolds three files and no flag names the strategy one, so a spec above the task line has no home** — Every reader of a pointer already resolves across both prose roles, so the file is supported everywhere except at the one command that creates a project's files. → §RK1186
 - 📋 **RK1193** (deps: —) **Every adopting repository has to write its own installer to pin the engine it runs** — The launcher resolves an engine but nothing vendors one, so two repos now carry the same 147-line script and it will drift. → §RK1193
+- 📋 **RK1200** (deps: —) **The committed launcher reads ROADKEEP_HOME verbatim and lists no candidate inside the repository** — install writes ${CLAUDE_PROJECT_DIR} into every hook command it emits, and a project pointing that same spelling at a vendored copy silently gets the sibling checkout instead. → §RK1200
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

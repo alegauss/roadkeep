@@ -371,6 +371,34 @@ answers the version that was chosen.
 
 `install --vendor` would make it one command and one implementation.
 
+### §RK1200 The engine a vendoring project cannot reach
+
+The committed launcher resolves an engine from three candidates: `$ROADKEEP_HOME`, a
+sibling checkout at `../roadkeep`, and a cached clone. A copy vendored *inside* the
+adopting repository is none of them, so a project that carries one has to reach it
+through the environment variable — and that is where it breaks.
+
+Measured on an adopting project. Its `settings.json` sets
+
+    "env": { "ROADKEEP_HOME": "${CLAUDE_PROJECT_DIR}/.roadkeep" }
+
+which is the spelling `install` itself writes into every hook `command` in the same
+file. The harness passes `env` values through verbatim, so the variable arrives with its
+braces intact, `Path(home)` names nothing, and resolution falls through to the sibling —
+a neighbour's working tree, a version ahead, and mid-refactor for part of a session,
+during which the guard denying hand-edits of the governed files was running a traceback.
+
+Nothing said so at any point. `_resolve` returning the second candidate is
+indistinguishable from a project that meant to use it, and the drift report then names
+that checkout as the one to run `install` from, which is the copy the project did not
+choose.
+
+Two halves, and the first is the smaller. **Expand the variable** — both `${...}` and
+`$...`, because a settings file may carry either and being wrong is silent. **And make a
+vendored copy a candidate**, ahead of the sibling: vendoring exists precisely so a
+neighbour's tree is not a dependency, and a repository that carries `.roadkeep` has
+already said which engine it means.
+
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)
