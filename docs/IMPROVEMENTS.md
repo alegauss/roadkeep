@@ -342,3 +342,27 @@ Its two deps are what make this mechanical rather than a rewrite. What must not 
 reached for: entry points or dynamic discovery, which cost startup, need a dependency,
 and take away the totality the gate is checked by; and a generator, which would move the
 authority out of Python and out of reach of a type checker.
+
+### §RK1195 The separator a script deletes with the block
+
+`src/roadkeep/rendering.py` carried `_leverage_rows` and `_commits_json` with one blank
+line between them for two commits. Python does not care, every test passed, and the tree
+takes no dev dependency that would bring a formatter — which is the same decision it
+makes about runtime dependencies and for the same reason.
+
+How it got there is the argument for holding it. A scripted edit removed four printers
+by finding each definition and cutting to the next `"\n\n\n"` — so the separator went
+with the block, and the last deletion in the file closed the gap behind it. The anchor
+was the thing being counted on to survive. That shape recurs: every scripted removal in
+this tree since RK1091 has used a blank-line run as its terminator.
+
+The property is one sweep over the declared surface: a `def`, `class` or decorator at
+column zero has two blank lines above it, unless it is the first statement after the
+imports or the module docstring. `surface.modules()` is the set, as every other survey
+here quantifies over it, and `test_invariants.py` is where it goes — beside
+`test_no_file_mixes_the_two_line_terminators`, which is the same kind of rule about the
+same kind of damage.
+
+Measured before filing: exactly one instance, and it is repaired. So the sweep is green
+on arrival, which is the honest state for a property that exists to catch the next one
+rather than to report a backlog.
