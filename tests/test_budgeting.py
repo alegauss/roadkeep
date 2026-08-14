@@ -1173,9 +1173,10 @@ def test_the_figure_is_what_the_write_after_it_accepts(tmp_path):
         encoding="utf-8",
     )
     room = body_budget(Config.discover(tmp_path), "IX.1").under_left
-    document, _, _ = amend(
+    out = amend(
         Config.discover(tmp_path), "improvements", "IX.1", body=" ".join(["term"] * room)
     )
+    document = out.document
     document.save()
     with pytest.raises(SectionError):
         amend(
@@ -1210,9 +1211,10 @@ def test_the_aim_is_what_the_write_after_it_accepts_on_a_full_parent(tmp_path):
     # The declared limit is unchanged and still shown; what binds is the subsections' share.
     assert answer.limit == 30 and answer.subtree > answer.taken
     assert answer.allowed == answer.limit - (answer.subtree - answer.taken)
-    document, _, _ = amend(
+    out = amend(
         Config.discover(tmp_path), "improvements", "IX", body=" ".join(["term"] * answer.allowed)
     )
+    document = out.document
     document.save()
     with pytest.raises(SectionError):
         amend(

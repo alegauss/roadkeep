@@ -2809,16 +2809,23 @@ def _drop_section(
         claim = owners(held, config.schema.id_pattern())
         if leaving and leaving not in claim:
             return None, None, _unowned(anchor, claim), (), (), None
-    taken = tuple(child.anchor for child in nested(prose, anchor))
-    document, section, cited = drop_section(
+    deleted = drop_section(
         prose,
         anchor,
         claimed=pointers(config, leaving=leaving),
         where=config.relative(config.path(role)),
     )
-    # `cited` is `drop`'s own answer (RK209): the deletion knows what it breaks, and a
-    # second reading of the same file here would be a second thing to keep true.
-    return document, section, None, taken, cited, _emptied(config, document, anchor)
+    # `cited` and `nested` are both `drop`'s own answers (RK209, RK1170): the deletion knows
+    # what it breaks and what it took, and a second reading of the same file here would be two
+    # more things to keep true.
+    return (
+        deleted.document,
+        deleted.section,
+        None,
+        deleted.nested,
+        deleted.cited,
+        _emptied(config, deleted.document, anchor),
+    )
 
 
 def _emptied(config: Config, document: Document, anchor: str) -> str | None:

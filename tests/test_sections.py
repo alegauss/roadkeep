@@ -297,9 +297,10 @@ def test_the_sigil_is_still_required_on_a_heading_under_the_id_scheme(tmp_path):
 
 def test_a_section_written_under_the_outline_scheme_is_read_back(tmp_path):
     config = outline(tmp_path)
-    document, section = add(
+    out = add(
         config, "improvements", "VIII.2", "Agent manifest", "The reasoning, written once."
     )
+    document, section = out.document, out.section
     document.save()
     # Written bare, because that is how the scheme spells a heading — and a heading this
     # tool writes that it cannot read back is the defect RK44 closes, not a new one.
@@ -366,7 +367,8 @@ def test_a_lettered_heading_in_the_live_corpus_becomes_a_section_the_budget_char
 
 def test_dropping_takes_the_subsections_and_leaves_the_shape(tmp_path):
     config = project(tmp_path)
-    document, section, _ = drop(config.document("improvements"), "RK1")
+    out = drop(config.document("improvements"), "RK1")
+    document, section = out.document, out.section
     document.save()
     assert section.first == 11
     assert read(config) == RATIONALE.replace(
@@ -385,7 +387,8 @@ Which belongs to the section above.
 
 def test_dropping_the_last_section_leaves_no_trailing_blank(tmp_path):
     config = project(tmp_path, improvements=RATIONALE + "\n### §RK2 A last design\n\nProse.\n")
-    document, _, _ = drop(config.document("improvements"), "RK2")
+    out = drop(config.document("improvements"), "RK2")
+    document = out.document
     document.save()
     assert read(config) == RATIONALE
 
@@ -434,9 +437,10 @@ def test_a_subtree_nobody_else_claims_still_goes_whole(tmp_path):
     # Ownership bounds the deletion and not depth: §RK1.1 carries no pointer of its own, so
     # it is RK1's prose and leaves with it — which is what keeps the refusal above narrow.
     config = project(tmp_path)
-    document, _, _ = drop(
+    out = drop(
         config.document("improvements"), "RK1", claimed=pointers(config, leaving="RK1")
     )
+    document = out.document
     document.save()
     assert "§RK1.1" not in read(config)
 
@@ -484,7 +488,8 @@ def test_a_section_no_open_line_claims_is_the_one_this_verb_drops(tmp_path):
     # The orphan `lint` already reports: RK1 is gone from the roadmap and its design is
     # what is left. Nothing points at it, so nothing is stranded by removing it.
     config = project(tmp_path, roadmap=BACKLOG.replace(f"{RK1_LINE}\n\n", ""))
-    document, _, _ = drop(config.document("improvements"), "RK1", claimed=pointers(config))
+    out = drop(config.document("improvements"), "RK1", claimed=pointers(config))
+    document = out.document
     document.save()
     assert "§RK1" not in read(config)
 
@@ -496,7 +501,8 @@ def test_the_section_lands_under_its_task_s_block(tmp_path):
     # RK2 is in Block B, so its rationale goes under Block B — the prose file's order is
     # a consequence of the backlog's.
     config = project(tmp_path)
-    document, section = add(config, "improvements", "RK2", "A second design", "Prose.")
+    out = add(config, "improvements", "RK2", "A second design", "Prose.")
+    document, section = out.document, out.section
     document.save()
     assert read(config) == RATIONALE + "\n### §RK2 A second design\n\nProse.\n"
     assert (section.anchor, section.title, section.words) == ("RK2", "A second design", 1)
@@ -506,7 +512,8 @@ def test_a_second_section_follows_the_first_in_its_block(tmp_path):
     # RK3 is in Block A, so its section lands after §RK1's subsections and *before* the
     # Block B heading — appended to its block, not to the file.
     config = project(tmp_path)
-    document, _ = add(config, "improvements", "RK3", "A third design", "More prose.")
+    out = add(config, "improvements", "RK3", "A third design", "More prose.")
+    document = out.document
     document.save()
     body = read(config)
     assert body.index("A third design") < body.index("## Block B")
@@ -529,7 +536,8 @@ def test_a_task_less_anchor_lands_after_the_section_it_extends(tmp_path):
     # the end of the file, where the only signal that it is not Block B's rationale would
     # be the anchor itself (RK45).
     config = project(tmp_path)
-    document, _ = add(config, "improvements", "0.2", "A second reading", "Prose.", level=3)
+    out = add(config, "improvements", "0.2", "A second reading", "Prose.", level=3)
+    document = out.document
     document.save()
     body = read(config)
     assert body.index("The reading that started it.") < body.index("§0.2 A second reading")
@@ -540,7 +548,8 @@ def test_a_subsection_of_a_task_lands_inside_that_task_s_section(tmp_path):
     # §RK1.1 belongs inside §RK1, and this one goes after the subsection already there:
     # the place is the end of the subtree, so a third one follows the second.
     config = project(tmp_path)
-    document, _ = add(config, "improvements", "RK1.2", "A second subsection", "Prose.", level=4)
+    out = add(config, "improvements", "RK1.2", "A second subsection", "Prose.", level=4)
+    document = out.document
     document.save()
     body = read(config)
     assert body.index("Which belongs to the section above.") < body.index("§RK1.2")
@@ -563,7 +572,8 @@ def test_an_anchor_is_not_the_parent_of_the_one_it_prefixes_as_a_string(tmp_path
     # `§0.1` is not what `§0.10` extends — read segment by segment, the same care `find`
     # takes about where an anchor ends. §0 is, so §0.10 lands at the end of §0's subtree.
     config = project(tmp_path, improvements=RATIONALE.replace("§0.1 The", "§0.9 The"))
-    document, _ = add(config, "improvements", "0.10", "A tenth reading", "Prose.", level=3)
+    out = add(config, "improvements", "0.10", "A tenth reading", "Prose.", level=3)
+    document = out.document
     document.save()
     body = read(config)
     assert body.index("The reading that started it.") < body.index("§0.10")
@@ -575,7 +585,8 @@ def test_the_repository_s_own_preface_files_itself_before_the_first_block(govern
     # 50 lines and five headings away from the §0.3 it continues. Unsaved — this file is
     # the conformance fixture, and a test that rewrote it would be measuring itself.
     config = Config.discover(governed)
-    document, section = add(config, "improvements", "0.9", "A ninth reading", "Prose.")
+    out = add(config, "improvements", "0.9", "A ninth reading", "Prose.")
+    document, section = out.document, out.section
     body = "".join(document.lines)
     assert body.index("### §0.4") < body.index("### §0.9") < body.index("## Block A")
     # And nowhere near last, which is where the reading found §0.4: five headings further
@@ -589,7 +600,8 @@ def test_prose_is_reflowed_and_structure_is_not(tmp_path):
         "One sentence that is definitely longer than forty characters in total.\n\n"
         "| a | b |\n|---|---|\n| 1 | 2 |"
     )
-    document, _ = add(config, "improvements", "RK2", "A design", body)
+    out = add(config, "improvements", "RK2", "A design", body)
+    document = out.document
     document.save()
     written = read(config)
     assert "One sentence that is definitely longer\nthan forty characters in total.\n" in written
@@ -600,7 +612,8 @@ def test_prose_is_reflowed_and_structure_is_not(tmp_path):
 
 def test_the_file_keeps_its_line_endings(tmp_path):
     config = project(tmp_path, improvements=RATIONALE.replace("\n", "\r\n"))
-    document, _ = add(config, "improvements", "RK2", "A design", "Prose.")
+    out = add(config, "improvements", "RK2", "A design", "Prose.")
+    document = out.document
     document.save()
     assert "\n" not in read(config).replace("\r\n", "")
 
@@ -629,7 +642,8 @@ def test_the_writing_door_reads_the_limit_the_file_declares(tmp_path):
     # budget had `section add` refusing prose `lint` would accept — and a refusal on legal
     # text is a refusal an author routes around.
     config = project(tmp_path, extra=PER_ROLE)
-    document, section = add(config, "improvements", "RK2", "A design", "word " * 20)
+    out = add(config, "improvements", "RK2", "A design", "word " * 20)
+    document, section = out.document, out.section
     document.save()
     assert section.words == 20
     assert "section.too-long" not in {
@@ -652,10 +666,11 @@ def test_an_amend_is_held_to_the_same_number_as_the_add(tmp_path):
     # Both doors, one reading: `amend`'s subtree check was the one place already calling
     # `schema_for`, so a project with a per-role limit had `add` and `amend` disagreeing.
     config = project(tmp_path, extra=PER_ROLE)
-    add(config, "improvements", "RK2", "A design", "word " * 20)[0].save()
-    document, amended, changed = amend(
+    add(config, "improvements", "RK2", "A design", "word " * 20).document.save()
+    out = amend(
         Config.discover(tmp_path), "improvements", "RK2", body="word " * 25
     )
+    document, amended, changed = out.document, out.section, out.changed
     document.save()
     assert changed == ("body",) and amended.words == 25
     assert "section.too-long" not in {
@@ -911,9 +926,10 @@ def test_the_rationale_of_an_open_task_can_be_corrected(tmp_path):
     with pytest.raises(SectionClaimed):
         drop(config.document("improvements"), "RK1", claimed=pointers(config))
 
-    document, section, changed = amend(
+    out = amend(
         config, "improvements", "RK1", body="One hypothesis is eliminated."
     )
+    document, section, changed = out.document, out.section, out.changed
     document.save()
 
     assert changed == ("body",)
@@ -926,7 +942,8 @@ def test_the_subtree_survives_an_amend_of_its_root(tmp_path):
     # deleting one as a side effect of correcting a paragraph is `drop`'s job, with
     # `drop`'s refusals.
     config = project(tmp_path)
-    document, _, _ = amend(config, "improvements", "RK1", body="A shorter reasoning.")
+    out = amend(config, "improvements", "RK1", body="A shorter reasoning.")
+    document = out.document
     document.save()
 
     body = read(config)
@@ -937,9 +954,10 @@ def test_the_subtree_survives_an_amend_of_its_root(tmp_path):
 
 def test_a_subsection_is_amended_by_its_own_anchor(tmp_path):
     config = project(tmp_path)
-    document, section, changed = amend(
+    out = amend(
         config, "improvements", "RK1.1", body="Corrected in place."
     )
+    document, section, changed = out.document, out.section, out.changed
     document.save()
 
     assert (section.anchor, changed) == ("RK1.1", ("body",))
@@ -949,9 +967,10 @@ def test_a_subsection_is_amended_by_its_own_anchor(tmp_path):
 
 def test_the_heading_text_moves_without_the_prose(tmp_path):
     config = project(tmp_path)
-    document, section, changed = amend(
+    out = amend(
         config, "improvements", "RK1", title="A first design, restated"
     )
+    document, section, changed = out.document, out.section, out.changed
     document.save()
 
     assert changed == ("title",) and section.title == "A first design, restated"
@@ -961,9 +980,10 @@ def test_the_heading_text_moves_without_the_prose(tmp_path):
 
 def test_an_amend_that_changes_nothing_writes_nothing(tmp_path):
     config = project(tmp_path)
-    document, _, changed = amend(
+    out = amend(
         config, "improvements", "RK1", body="The reasoning the line has no room for."
     )
+    document, changed = out.document, out.changed
     document.save()
     assert changed == () and read(config) == RATIONALE
 
@@ -972,12 +992,13 @@ def test_the_replacement_is_reflowed_and_a_table_is_not(tmp_path):
     # The same narrow rule `add` writes under, because it is the same function: prose is
     # filled to the width and a shape the tool did not author is inserted as written.
     config = project(tmp_path, extra="[limits]\nprose = 40\n")
-    document, _, _ = amend(
+    out = amend(
         config,
         "improvements",
         "RK1",
         body="A paragraph long enough that the configured width has to break it somewhere.\n\n| a | b |\n|---|---|\n| 1 | 2 |",
     )
+    document = out.document
     document.save()
 
     body = read(config)
@@ -1049,9 +1070,10 @@ def test_a_container_nothing_points_at_is_charged_its_own_prose(tmp_path):
     (own,) = [s for s in anchored(config.document("improvements")) if s.anchor == "XXII"]
     assert own.words <= 40  # the number the gate actually charges it
 
-    document, amended, changed = amend(
+    out = amend(
         config, "improvements", "XXII", body="A shorter intro that is now true."
     )
+    document, amended, changed = out.document, out.section, out.changed
     document.save()
     assert changed == ("body",)
     body = read(config)
@@ -1093,9 +1115,10 @@ def test_an_anchor_two_prose_files_declare_is_charged_what_the_gate_charges_it(t
     # ends of the one defect since RK239: the pointer's, and each of the two headings'.
     doubled = ["ref.ambiguous", "section.ambiguous", "section.ambiguous"]
     assert sorted(f.code for f in lint(config).findings) == doubled
-    document, amended, changed = amend(
+    out = amend(
         config, "improvements", "RK1", body="Six words, which is under twelve."
     )
+    document, amended, changed = out.document, out.section, out.changed
     assert changed == ("body",)
     document.save()
     assert "Six words, which is under twelve." in read(config)
@@ -1141,7 +1164,8 @@ def test_the_outline_repro_that_filed_it_is_refused_on_both_calls(tmp_path):
         h.write("# Strategy\n\n## Block A — The model\n")
     config = Config.discover(tmp_path)
     for anchor, title in (("IX", "A design"), ("IX.1", "A child")):
-        document, _ = add(config, "improvements", anchor, title, "Prose here.")
+        out = add(config, "improvements", anchor, title, "Prose here.")
+        document = out.document
         document.save()
     config = Config.discover(tmp_path)
     for anchor, title in (("IX", "A design"), ("IX.1", "A child")):
@@ -1266,7 +1290,8 @@ def test_a_paused_tasks_rationale_can_be_corrected(tmp_path):
     # the anchor, the guard denies the `Edit`, and `amend` read the roadmap alone — so the
     # design of a line the tool itself set aside was the one nobody could correct.
     config = paused(tmp_path)
-    document, section, _ = amend(config, "improvements", "RK1", body="The reasoning, corrected.")
+    out = amend(config, "improvements", "RK1", body="The reasoning, corrected.")
+    document, section = out.document, out.section
     assert section.body.startswith("The reasoning, corrected.")
     document.save()
     assert "The reasoning, corrected." in read(config)
@@ -1276,9 +1301,10 @@ def test_a_section_can_be_written_for_a_line_that_is_set_aside(tmp_path):
     # The other door `_task_for` gates. A pause keeps the block, so the placement a section
     # derives from the line is still there to derive from.
     config = paused(tmp_path, roadmap="# Roadmap\n\n## Block A — The model\n")
-    document, written = add(
+    out = add(
         config, "improvements", "RK1.2", "A later subsection", "Written while paused."
     )
+    document, written = out.document, out.section
     assert written.anchor == "RK1.2"
     document.save()
     assert "#### §RK1.2 A later subsection" in read(config)
@@ -1440,7 +1466,8 @@ def test_a_new_top_level_section_lands_after_the_last_one(tmp_path):
     # and the guard denies the edit that would declare it — so a newly declared block's
     # first design was reachable by no verb at all.
     config = outline(tmp_path)
-    document, section = add(config, "improvements", "IX", "A ninth theme", "What it is for.")
+    out = add(config, "improvements", "IX", "A ninth theme", "What it is for.")
+    document, section = out.document, out.section
     document.save()
 
     body = read(config)
@@ -1454,7 +1481,8 @@ def test_a_new_top_level_section_takes_the_depth_this_file_writes_one_at(tmp_pat
     # top level at all — it lands inside the previous one's subtree, where every reader that
     # asks a heading where it ends would find it.
     config = outline(tmp_path)
-    document, section = add(config, "improvements", "IX", "A ninth theme", "Prose.")
+    out = add(config, "improvements", "IX", "A ninth theme", "Prose.")
+    document, section = out.document, out.section
     assert section.level == 2  # `## VIII.`, read off the file rather than defaulted to 3
     document.save()
     assert "## IX A ninth theme" in read(config)
@@ -1463,7 +1491,8 @@ def test_a_new_top_level_section_takes_the_depth_this_file_writes_one_at(tmp_pat
 def test_a_named_level_still_wins_over_the_derived_one(tmp_path):
     # A project whose outline nests four deep has a depth no rule here knows.
     config = outline(tmp_path)
-    document, section = add(config, "improvements", "IX", "A ninth theme", "Prose.", level=3)
+    out = add(config, "improvements", "IX", "A ninth theme", "Prose.", level=3)
+    document, section = out.document, out.section
     assert section.level == 3
     document.save()
 
@@ -1508,7 +1537,8 @@ def test_a_subsection_takes_the_depth_of_the_section_it_extends(tmp_path):
     # RK180: the level was 3 flat, so here `XXI.6` was written as a *sibling* of `### XXI` —
     # which ends the subtree it was meant to be inside, nothing refusing it.
     config = deeper(tmp_path)
-    document, section = add(config, "improvements", "XXI.6", "A sixth design", "Prose.")
+    out = add(config, "improvements", "XXI.6", "A sixth design", "Prose.")
+    document, section = out.document, out.section
     assert section.level == 4
     document.save()
     assert "#### XXI.6 A sixth design" in read(config)
@@ -1518,7 +1548,8 @@ def test_the_subsection_stays_inside_the_subtree_its_anchor_names(tmp_path):
     # The consequence, and the reason a depth is not cosmetic (RK115): depth is what says
     # where a section ends, so a sibling would leave `drop XXI` taking the parent alone.
     config = deeper(tmp_path)
-    document, _ = add(config, "improvements", "XXI.6", "A sixth design", "Prose.")
+    out = add(config, "improvements", "XXI.6", "A sixth design", "Prose.")
+    document = out.document
     document.save()
     config = Config.discover(config.root)
     assert find(config.document("improvements"), "XXI").body.count("XXI.6") == 1
@@ -1528,7 +1559,8 @@ def test_a_subsection_in_a_shallower_file_is_written_exactly_where_it_was(tmp_pa
     # The other direction, which is what keeps this a fix rather than a move: in a file whose
     # top level is `##`, one under the parent is the 3 the constant always gave.
     config = outline(tmp_path)
-    document, section = add(config, "improvements", "VIII.2", "A second design", "Prose.")
+    out = add(config, "improvements", "VIII.2", "A second design", "Prose.")
+    document, section = out.document, out.section
     assert section.level == 3
     document.save()
     assert "### VIII.2 A second design" in read(config)
@@ -1539,7 +1571,8 @@ def test_a_task_s_own_design_still_takes_the_nested_depth(tmp_path):
     # construction — reading a depth off the file's other one-segment sections would find
     # this repository's own `§0` container and write every design a level too shallow.
     config = project(tmp_path)
-    document, section = add(config, "improvements", "RK3", "A third design", "Prose.")
+    out = add(config, "improvements", "RK3", "A third design", "Prose.")
+    document, section = out.document, out.section
     assert section.level == 3
     document.save()
     assert "### §RK3 A third design" in read(config)
@@ -1560,7 +1593,8 @@ def test_a_new_top_level_section_in_a_file_with_none_goes_last(tmp_path):
         improvements="# Improvements\n\nA preface nobody numbered.\n",
         top='ref_scheme = "outline"\n',
     )
-    document, section = add(config, "improvements", "I", "A first theme", "Prose.")
+    out = add(config, "improvements", "I", "A first theme", "Prose.")
+    document, section = out.document, out.section
     document.save()
     # One level under the file's shallowest heading, which is its title in every corpus.
     assert section.level == 2
@@ -1667,9 +1701,10 @@ def test_a_section_belonging_to_no_task_keeps_the_title_it_was_given(tmp_path):
     # The standing memo the outline scheme exists for: no line points at §IX.5, so there is
     # no id to bind and appending one would invent an owner.
     config = outline(tmp_path)
-    _, written = add(
+    out = add(
         config, "improvements", "VIII.11", "A standing memo", "Prose belonging to no task."
     )
+    written = out.section
     assert written.title == "A standing memo"
 
 
@@ -1696,9 +1731,10 @@ def test_an_amended_title_that_drops_the_id_gets_it_back(tmp_path):
     config = outline(tmp_path)
     # RK1 points at §VIII.1 here, and the heading names SH75 — a prefix this project does
     # not use, so the section was already nobody's under its own schema.
-    _, amended, _ = amend(
+    out = amend(
         config, "improvements", "VIII.1", title="MCP server host, rewritten"
     )
+    amended = out.section
     assert amended.title == "MCP server host, rewritten (RK1)"
 
 
@@ -1707,7 +1743,8 @@ def test_an_amended_body_leaves_a_heading_that_names_no_task_alone(tmp_path):
     # file this arrives on is one no write of this tool's created.
     config = outline(tmp_path)
     before = find(config.document("improvements"), "IX.4.d")
-    _, amended, _ = amend(config, "improvements", "IX.4.d", body="A corrected paragraph.")
+    out = amend(config, "improvements", "IX.4.d", body="A corrected paragraph.")
+    amended = out.section
     assert amended.title == before.title
 
 
@@ -1722,9 +1759,10 @@ def test_an_anchor_two_lines_point_at_binds_to_neither(tmp_path):
         .replace("§RK2", "§XIV.8.7")
         .replace("§RK3", "§VIII.10"),
     )
-    _, amended, _ = amend(
+    out = amend(
         config, "improvements", "VIII.10", title="Batch and apply, rewritten"
     )
+    amended = out.section
     assert amended.title == "Batch and apply, rewritten"
 
 
@@ -1827,9 +1865,10 @@ def test_the_name_is_read_segment_by_segment(tmp_path):
         roadmap=BULLET_BACKLOG,
         top='ref_scheme = "outline"\n',
     )
-    document, section, _ = drop(
+    out = drop(
         config.document("improvements"), "XIV.80", claimed=pointers(config)
     )
+    document, section = out.document, out.section
     document.save()
     assert section.anchor == "XIV.80" and "XIV.80" not in read(config)
 
@@ -1847,9 +1886,10 @@ def test_the_line_that_is_leaving_does_not_claim_its_own_subtree(tmp_path):
     # `ship` passes `leaving`, so the claim that is the *reason* for the drop is not one of
     # these — otherwise a task pointing at a descendant could never ship at all.
     config = bulleted(tmp_path)
-    document, section, _ = drop(
+    out = drop(
         config.document("improvements"), "XIV", claimed=pointers(config, leaving="RK373")
     )
+    document, section = out.document, out.section
     document.save()
     assert section.anchor == "XIV" and read(config) == "# Turing — Design rationale\n"
 
@@ -2072,7 +2112,8 @@ def test_the_answer_is_the_deletion_s_own_and_not_a_second_reading(tmp_path):
     it instead of each asking the file again."""
     config = project(tmp_path, improvements=DROPPABLE)
     document = config.document("improvements")
-    _, section, cited = drop(document, "0.2", where=IMPROVEMENTS)
+    out = drop(document, "0.2", where=IMPROVEMENTS)
+    section, cited = out.section, out.cited
     assert section.anchor == "0.2" and cited == ("RK3",)
     # Computed before the removal: afterwards the prose is the only end still in the file.
     assert find(document, "0.2") is not None
@@ -2243,7 +2284,8 @@ def test_a_leaf_takes_its_own_body_back_unchanged(tmp_path):
     # what was just printed writes nothing rather than being refused.
     config = project(tmp_path)
     leaf = find(config.document("improvements"), "0.1")
-    _, _, changed = amend(config, "improvements", "0.1", body=leaf.prose)
+    out = amend(config, "improvements", "0.1", body=leaf.prose)
+    changed = out.changed
     assert changed == ()
 
 
@@ -2765,9 +2807,10 @@ def test_a_body_amend_leaves_the_heading_byte_identical(tmp_path):
     # a file that opened with `§` lost it on the first write to any section in it — and `lint`
     # called the result clean, L3 being held over task lines and a prose file having none.
     config = sigilled(tmp_path)
-    document, section, changed = amend(
+    out = amend(
         config, "improvements", "I.1", body="The corrected reasoning."
     )
+    document, section, changed = out.document, out.section, out.changed
     document.save()
 
     assert changed == ("body",)
@@ -2778,7 +2821,8 @@ def test_a_body_amend_leaves_the_heading_byte_identical(tmp_path):
 
 def test_the_sibling_headings_are_untouched_too(tmp_path):
     config = sigilled(tmp_path)
-    document, _, _ = amend(config, "improvements", "I.1", body="The corrected reasoning.")
+    out = amend(config, "improvements", "I.1", body="The corrected reasoning.")
+    document = out.document
     document.save()
 
     assert "## §I The first family" in read(Config.discover(tmp_path))
@@ -2788,7 +2832,8 @@ def test_a_title_amend_is_the_caller_asking_for_the_heading_to_change(tmp_path):
     # The other half, and why this is a fourth answer rather than a refusal: passing `--title`
     # *is* the request to rewrite that line, so there the canonical spelling is right.
     config = sigilled(tmp_path)
-    document, section, changed = amend(config, "improvements", "I.1", title="A better name")
+    out = amend(config, "improvements", "I.1", title="A better name")
+    document, section, changed = out.document, out.section, out.changed
     document.save()
 
     assert changed == ("title",)
@@ -2801,9 +2846,10 @@ def test_the_prose_under_an_untouched_heading_is_still_reflowed(tmp_path):
     # Not touching the heading is not leaving the section alone: the body is filled to the
     # declared width exactly as before, which is the half `--body` was passed for.
     config = sigilled(tmp_path)
-    document, _, _ = amend(
+    out = amend(
         config, "improvements", "I.1", body="one two three four five six seven " * 6
     )
+    document = out.document
     document.save()
 
     written = read(Config.discover(tmp_path)).splitlines()
@@ -2815,7 +2861,8 @@ def test_the_id_scheme_keeps_its_heading_too(tmp_path):
     # The sigil is required under `id`, so the canonical form and the file already agree —
     # what this holds is that the *rule* is the same one, not a branch on the scheme.
     config = project(tmp_path)
-    document, _, changed = amend(config, "improvements", "RK1", body="The corrected reasoning.")
+    out = amend(config, "improvements", "RK1", body="The corrected reasoning.")
+    document, changed = out.document, out.changed
     document.save()
 
     assert changed == ("body",)
@@ -2834,7 +2881,8 @@ def test_a_paragraph_that_breaks_before_a_bold_span_is_still_prose(tmp_path):
         "A first line of an ordinary paragraph.\n"
         "**does not separate them** is how the second one opens, and it is not a list."
     )
-    document, section = add(config, "improvements", "RK2", "A design", body)
+    out = add(config, "improvements", "RK2", "A design", body)
+    document, section = out.document, out.section
     document.save()
 
     written = read(Config.discover(tmp_path))
@@ -2900,13 +2948,14 @@ def test_an_example_outside_this_project_s_prefix_is_prose_and_not_an_address(tm
     # The door the refusal names: an id-shaped token nothing here numbers cannot be spent,
     # so it costs no address and reads as the illustration it is.
     config = project(tmp_path)
-    _, section = add(
+    out = add(
         config,
         "improvements",
         "RK3",
         "A design",
         "A paragraph naming XX999 as an example of the shape.",
     )
+    section = out.section
     assert "XX999" in section.body
 
 
@@ -2915,13 +2964,14 @@ def test_a_design_may_name_any_task_a_file_carries_as_a_line(tmp_path):
     id as a line rather than the roadmap alone — so a shipped dep, a paused one and the task
     across the block are all citations and none of them is a promise."""
     config = project(tmp_path)
-    _, section = add(
+    out = add(
         config,
         "improvements",
         "RK3",
         "A design",
         "A paragraph about RK3 itself, building on RK1 and beside RK2.",
     )
+    section = out.section
     assert "RK1" in section.body and "RK2" in section.body
 
 
@@ -3029,7 +3079,8 @@ def test_the_child_s_own_words_are_still_what_a_top_level_is_charged(tmp_path):
     """The half that must not move: a top level has no ancestor to overflow, so it is
     charged its own prose exactly as it was, and prose the gate calls clean is accepted."""
     config = _budgeted(tmp_path, parent_words=29)
-    document, section = add(config, "improvements", "X", "A sibling", "Four short words.")
+    out = add(config, "improvements", "X", "A sibling", "Four short words.")
+    document, section = out.document, out.section
     assert section.anchor == "X"
     document.save()
     assert lint(Config.discover(tmp_path)).findings == ()
@@ -3039,7 +3090,8 @@ def test_a_parent_with_room_takes_the_child(tmp_path):
     """The refusal is about the total and not about nesting: where the subtree still fits,
     the write lands and the gate agrees."""
     config = _budgeted(tmp_path, parent_words=5)
-    document, _ = add(config, "improvements", "IX.1", "A child", "Four short words.")
+    out = add(config, "improvements", "IX.1", "A child", "Four short words.")
+    document = out.document
     document.save()
     assert lint(Config.discover(tmp_path)).findings == ()
 
@@ -3057,7 +3109,8 @@ def test_a_container_nothing_points_at_is_not_charged_its_children(tmp_path):
             "### IX A container nobody addresses\n\n" + " ".join(["word"] * 29) + "\n"
         ),
     )
-    document, _ = add(config, "improvements", "IX.1", "A child", "Four short words.")
+    out = add(config, "improvements", "IX.1", "A child", "Four short words.")
+    document = out.document
     document.save()
     assert lint(Config.discover(tmp_path)).findings == ()
 
@@ -3155,7 +3208,8 @@ def test_an_amend_that_shortens_an_already_over_parent_lands(tmp_path):
     else left over is one an author can only correct by writing into it, and a refusal there
     closes every door and leaves the prose saying something untrue."""
     config = _nested(tmp_path, parent_words=25, child_words=25)
-    document, section, _ = amend(config, "improvements", "IX.1", body="Four short words.")
+    out = amend(config, "improvements", "IX.1", body="Four short words.")
+    document, section = out.document, out.section
     document.save()
     assert section.own_words == 3
     # Still over — the parent alone is 25 of 30 — and the write was right anyway.
@@ -3166,7 +3220,8 @@ def test_an_amend_that_leaves_the_total_where_it_was_lands(tmp_path):
     """The boundary between the two above: equal is not worse, so a rewrite that trades one
     sentence for another of the same length is a correction and not an overrun."""
     config = _nested(tmp_path, parent_words=25, child_words=10)
-    document, _, _ = amend(config, "improvements", "IX.1", body=" ".join(["term"] * 10))
+    out = amend(config, "improvements", "IX.1", body=" ".join(["term"] * 10))
+    document = out.document
     document.save()
     assert "term" in read(Config.discover(tmp_path))
 
@@ -3186,7 +3241,8 @@ def test_a_container_nothing_points_at_still_binds_nothing_at_an_amend(tmp_path)
             "#### IX.1 A child\n\nFour short words.\n"
         ),
     )
-    document, _, _ = amend(config, "improvements", "IX.1", body=" ".join(["word"] * 25))
+    out = amend(config, "improvements", "IX.1", body=" ".join(["word"] * 25))
+    document = out.document
     document.save()
     assert lint(Config.discover(tmp_path)).findings == ()
 
@@ -3264,9 +3320,10 @@ def test_an_unanchored_section_is_addressed_by_its_heading(tmp_path):
 
 def test_amending_the_contents_leaves_every_other_line_alone(tmp_path):
     config = project(tmp_path, improvements=UNANCHORED)
-    document, section, changed = amend_untitled(
+    out = amend_untitled(
         config, "improvements", "Table of contents", body="- [§RK1 A first design](#rk1)"
     )
+    document, section, changed = out.document, out.section, out.changed
     document.save()
     body = read(config)
     assert changed == ("body",) and section.level == 2
@@ -3286,9 +3343,10 @@ def test_the_opening_is_the_file_s_own_title_and_needs_no_new_word(tmp_path):
     # already an unanchored heading and `prose_end` already delimits its body, so the file's
     # title is its address and no second addressing scheme is invented anywhere.
     config = project(tmp_path, improvements=UNANCHORED)
-    document, _, changed = amend_untitled(
+    out = amend_untitled(
         config, "improvements", "Improvements", body="A rewritten opening."
     )
+    document, changed = out.document, out.changed
     document.save()
     body = read(config)
     assert changed == ("body",)
@@ -3300,9 +3358,10 @@ def test_a_retitled_unanchored_heading_gets_no_bare_sigil(tmp_path):
     # `heading_of` renders `§` + anchor, so an empty anchor wrote `## § Contents` — caught
     # here because the one writer of that spelling is the one place to answer it.
     config = project(tmp_path, improvements=UNANCHORED)
-    document, _, changed = amend_untitled(
+    out = amend_untitled(
         config, "improvements", "Table of contents", retitle="Contents"
     )
+    document, changed = out.document, out.changed
     document.save()
     assert changed == ("title",)
     assert "\n## Contents\n" in read(config) and "§ Contents" not in read(config)

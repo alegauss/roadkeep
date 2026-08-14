@@ -544,7 +544,8 @@ def test_an_address_nothing_ever_declared_is_written(tmp_path):
     unwrite(config, "### XXXVII.1 A first design", "feat: it works (RK1)")
     config = Config.discover(tmp_path)
 
-    document, section = add_section(config, "improvements", "XXXVII.2", "A design", "Prose.")
+    out = add_section(config, "improvements", "XXXVII.2", "A design", "Prose.")
+    document, section = out.document, out.section
     assert section.anchor == "XXXVII.2" and document is not None
 
 
@@ -560,7 +561,8 @@ def test_an_id_scheme_project_is_not_asked_twice(tmp_path):
     propose(config, "RK2", "docs: propose the second")
     config = Config.discover(tmp_path)
 
-    document, section = add_section(config, "improvements", "RK2", "A design", "Prose.")
+    out = add_section(config, "improvements", "RK2", "A design", "Prose.")
+    document, section = out.document, out.section
     assert section.anchor == "RK2" and document is not None
 
 

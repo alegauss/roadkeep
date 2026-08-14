@@ -783,9 +783,10 @@ def test_a_section_drop_refreshes_the_contents_in_its_own_transaction(tmp_path):
     write_all(write)
     reread = Config.discover(tmp_path)
     assert "Block B" in reread.path("improvements").read_text(encoding="utf-8")
-    document, _, _ = drop_section(
+    out = drop_section(
         reread.document("improvements"), "RK1", claimed={}, where="docs/IMPROVEMENTS.md"
     )
+    document = out.document
     document.save()
     # The refresh a governed write owes, derived from the document the transaction holds.
     for owed in refreshes(Config.discover(tmp_path), [document]):

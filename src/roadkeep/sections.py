@@ -935,13 +935,159 @@ def pointers(config: Config, *, leaving: str = "") -> dict[str, tuple[str, ...]]
     return {anchor: tuple(ids) for anchor, ids in out.items()}
 
 
+@dataclass(frozen=True, slots=True)
+class Deleted:
+    """One section removed whole, and who is left citing it (RK78, RK206).
+
+    A record and no longer a three-tuple (RK1170): the design that task rests on is that both
+    registers come off **one result**, and a tuple has no place to put a method. What the change
+    bought beyond that is :attr:`nested` — the door recomputed the subtree with a second reader
+    to say what went with the heading, and :func:`drop` had the same list in hand to delete it.
+    """
+
+    #: The file without the section, unsaved: the caller mid-transaction decides when.
+    document: Document
+    section: Section
+    #: Sections whose **prose** still names what this deleted (RK206). Reported and never
+    #: refused: a citation is a sentence, and re-wording one is an edit rather than a
+    #: transaction to abandon.
+    cited: tuple[str, ...] = ()
+    #: The anchors that went with it, nested under the one named (RK78). On the record because
+    #: after the write no file holds them, and this answer is their only record.
+    nested: tuple[str, ...] = ()
+    #: The file this was dropped from, as the caller spells it — the same string the refusals
+    #: above take, so a report and a refusal can never name two different files.
+    where: str = ""
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """What went, and who is left pointing at it."""
+        from roadkeep.rendering import _cited_rows, _staging_rows  # noqa: PLC0415 - RK260
+
+        rows = [f"dropped {self.section} from {self.where}"]
+        if self.nested:
+            rows.append(f"  nested   {', '.join(f'§{a}' for a in self.nested)} went with it")
+        rows += _cited_rows(self.cited)
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        """The same answer as data, with the subtree the anchor does not state (RK78)."""
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            **self.section.payload(self.where),
+            "nested": list(self.nested),
+            "cited": list(self.cited),
+            **_wrote_json(config, wrote),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class Written:
+    """One section placed under its block or its anchor (RK93).
+
+    A record and no longer a two-tuple, for :class:`Deleted`'s reason (RK1170). It carries the
+    role because both registers need it — the path to name, and the word limit to count the
+    prose against, which is per role and not per project.
+    """
+
+    document: Document
+    section: Section
+    role: str = "improvements"
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path(self.role))
+        rows = [
+            f"§{self.section.anchor} → {where}:{self.section.first}  "
+            f"{self.section.counted(config.schema_for(self.role).section_max)}"
+        ]
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            **self.section.payload(config.relative(config.path(self.role))),
+            **_wrote_json(config, wrote),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class Rewritten:
+    """One section's heading text or prose corrected in place (RK123, RK1107).
+
+    One record for both doors — anchored and unanchored — because what differs between them is
+    what the write *may* do and not what it answers with: an unanchored section is named by its
+    heading and carries no word count, and :attr:`Section.anchor` being empty is what says so.
+    """
+
+    document: Document
+    section: Section
+    #: Which fields moved. Empty when the file already read that way, and then nothing was
+    #: written — the one answer here with nothing in it to read (RK1109).
+    changed: tuple[str, ...] = ()
+    role: str = "improvements"
+
+    def stated(self, config: Config, wrote: Sequence[Path], read_body: bool) -> str:
+        """What moved, or why nothing did (RK1109).
+
+        `read_body` is the caller's: whether this call looked at the prose at all is a fact
+        about the argv — a piped body and a `--title` land in the unchanged answer together,
+        and one of them means the paragraph was never read.
+        """
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+        from roadkeep.verbs.reading import unread_prose  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path(self.role))
+        # An unanchored section is named by its heading and never by a bare sigil (RK1107), and
+        # it carries no word count: `section = <n>` is what a *rationale* may spend, and printing
+        # a figure beside a limit is claiming the two are the same number — which the file's
+        # opening paragraph and its contents table are not measured by. `[budgets]` counts bytes.
+        named = f"§{self.section.anchor}" if self.section.anchor else f"'{self.section.title}'"
+        if not self.changed:
+            # RK1109. `unchanged` at exit 0 is the one answer here with nothing in it to read:
+            # the changed path lists its fields, so a caller sees `(title)` and knows the prose
+            # was left alone, and this path listed nothing at all.
+            aside = "" if read_body else f" — {unread_prose()}"
+            return f"{named} unchanged: it already reads that way{aside}"
+        counted = (
+            f"  {self.section.counted(config.schema_for(self.role).section_max)}"
+            if self.section.anchor
+            else ""
+        )
+        rows = [
+            f"{named} amended  {where}:{self.section.first}  "
+            f"({', '.join(self.changed)}){counted}"
+        ]
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(
+        self, config: Config, wrote: Sequence[Path], read_body: bool
+    ) -> dict[str, object]:
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            **self.section.payload(config.relative(config.path(self.role))),
+            "changed": list(self.changed),
+            # The same fact as a field (RK1109): whether this call looked at the prose at all.
+            # `changed: []` says nothing moved and cannot say why, which is the ambiguity a
+            # piped body and a `--title` land in together.
+            "read_body": read_body,
+            **_wrote_json(config, wrote),
+        }
+
+
 def drop(
     document: Document,
     anchor: str,
     *,
     claimed: Mapping[str, Sequence[str]] | None = None,
     where: str = "",
-) -> tuple[Document, Section, tuple[str, ...]]:
+) -> Deleted:
     """Delete the section whole — subsections included — and report what went, and who is
     left citing it.
 
@@ -1006,7 +1152,15 @@ def drop(
     start, end, _ = span
     # One edit, not one per line (RK54): a loop validates every half-deleted state, and a
     # section quoting a fenced example is briefly a file whose fence has no opening line.
-    return document.remove_lines(start, end), section, cited
+    return Deleted(
+        document.remove_lines(start, end),
+        section,
+        cited=cited,
+        # The subtree, from the list the deletion itself was computed from — the door
+        # used to read it again with a second reader (RK1170).
+        nested=leaving[1:],
+        where=where,
+    )
 
 
 def add(
@@ -1018,7 +1172,7 @@ def add(
     *,
     level: int | None = None,
     task: Task | None = None,
-) -> tuple[Document, Section]:
+) -> Written:
     """Place one section under its block or its anchor, reflowed. Validates first.
 
     Returns the document unsaved, so a caller mid-transaction (`ship`, `init`) decides
@@ -1088,7 +1242,7 @@ def add(
     placed = find(document, anchor)
     assert placed is not None  # rendered by this function a moment ago
     _refuse_overflow(config, document, anchor, was)
-    return document, placed
+    return Written(document, placed, role)
 
 
 #: The second half of the overage refusal, by the door that raised it (RK1034). The
@@ -1296,7 +1450,7 @@ def amend(
     *,
     title: str | None = None,
     body: str | None = None,
-) -> tuple[Document, Section, tuple[str, ...]]:
+) -> Rewritten:
     """Rewrite one live section's heading text or its prose, in place (RK123).
 
     The gap this closes is a union of three correct refusals: `drop` refuses while an open
@@ -1355,7 +1509,7 @@ def amend(
         if before != after
     )
     if not changed:
-        return document, section, ()
+        return Rewritten(document, section, (), role)
 
     _check(
         document.schema,
@@ -1410,7 +1564,7 @@ def amend(
     # amend is where the prose already exists, and refusing a *shortening* is RK215's
     # deadlock in the one direction an author can act in.
     _refuse_overflow(config, updated, anchor, document, door="amend")
-    return updated, amended, changed
+    return Rewritten(updated, amended, changed, role)
 
 
 def amend_untitled(
@@ -1420,7 +1574,7 @@ def amend_untitled(
     *,
     body: str | None = None,
     retitle: str | None = None,
-) -> tuple[Document, Section, tuple[str, ...]]:
+) -> Rewritten:
     """Rewrite an unanchored section's prose or its heading, in place (RK1107).
 
     :func:`amend`'s twin for the two regions a prose file has that carry no address — its
@@ -1463,7 +1617,7 @@ def amend_untitled(
         if before != after
     )
     if not changed:
-        return document, section, ()
+        return Rewritten(document, section, (), role)
     if not wanted_title:
         raise SectionError(
             (
@@ -1482,7 +1636,12 @@ def amend_untitled(
         wanted_body,
         retitle="title" in changed,
     )
-    return updated, replace(section, title=wanted_title, body=_normalize(wanted_body)), changed
+    return Rewritten(
+        updated,
+        replace(section, title=wanted_title, body=_normalize(wanted_body)),
+        changed,
+        role,
+    )
 
 
 #: The governed files whose lines carry a `→ §<anchor>`, which is the end of a pointer a

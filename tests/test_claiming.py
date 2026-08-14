@@ -1844,7 +1844,8 @@ def _with_prose(tmp_path: Path, roadmap: str, prose: str = PROSE) -> Config:
 
 def _designed(config: Config, task_id: str, title: str) -> None:
     """This task's own section, written into the working tree — what accounts for the file."""
-    document, _ = add_section(config, "improvements", task_id, title, "The reasoning.")
+    out = add_section(config, "improvements", task_id, title, "The reasoning.")
+    document = out.document
     document.save()
 
 
@@ -1937,7 +1938,7 @@ def test_a_body_amend_of_this_task_s_own_design_is_its_own_work(tmp_path):
     )
     take(config)
     claiming.scope(config, "RK2", ["src/a.py"])
-    amend_section(config, "improvements", "RK2", body="The reasoning, corrected.")[0].save()
+    amend_section(config, "improvements", "RK2", body="The reasoning, corrected.").document.save()
     scope = claiming.departing(config, "RK2", config.document("roadmap").entries)
     assert "IMPROVEMENTS.md" not in scope.loose
     assert "IMPROVEMENTS.md" in claiming.written(config, "RK2", ["IMPROVEMENTS.md"])
@@ -1960,7 +1961,7 @@ def test_a_paragraph_inside_somebody_else_s_section_is_not_this_task_s(tmp_path)
     )
     take(config)
     claiming.scope(config, "RK2", ["src/a.py"])
-    amend_section(config, "improvements", "RK9", body="Their reasoning, edited.")[0].save()
+    amend_section(config, "improvements", "RK9", body="Their reasoning, edited.").document.save()
     scope = claiming.departing(config, "RK2", config.document("roadmap").entries)
     assert "IMPROVEMENTS.md" in scope.loose
 
@@ -1980,7 +1981,7 @@ def test_a_subsection_of_this_task_s_design_belongs_to_it(tmp_path):
             "\n#### §RK2.1 A subsection\n\nMore of it.\n"
         ),
     )
-    amend_section(config, "improvements", "RK2.1", body="More of it, corrected.")[0].save()
+    amend_section(config, "improvements", "RK2.1", body="More of it, corrected.").document.save()
     assert owned_edit(config, "HEAD", "RK2", "improvements")
 
 

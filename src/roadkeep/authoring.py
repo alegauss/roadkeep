@@ -872,10 +872,10 @@ def _with_section(
     role = prose_role(config)
     if role is None:
         raise NoProseFile(task.id)
-    prose, written = sections.add(
+    placed = sections.add(
         config, role, task.ref, title, body() if callable(body) else body, task=task
     )
-    return replace(insertion, prose=prose, section=written)
+    return replace(insertion, prose=placed.document, section=placed.section)
 
 
 def prose_role(config: Config, *, on_disk: bool = False) -> str | None:

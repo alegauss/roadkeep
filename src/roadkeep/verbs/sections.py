@@ -26,7 +26,6 @@ from roadkeep.queueing import (
 )
 from roadkeep.rendering import (
     _print,
-    _cited_rows,
     _staging_rows,
     _wrote_json,
 )
@@ -46,7 +45,7 @@ from roadkeep.sections import (
     titled,
     untitled,
 )
-from roadkeep.verbs.reading import _body_reader, _one_body, _piped, unread_prose
+from roadkeep.verbs.reading import _body_reader, _one_body, _piped
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
 
 
@@ -106,22 +105,17 @@ def _section_add(config: Config, args: argparse.Namespace) -> int:
         # Inside the try: a paragraph that is not UTF-8 raises UnicodeDecodeError, which
         # is a ValueError, so it is refused with the exit code every other bad input gets.
         body = _body_reader(args.body, args.body_file)()
-        document, section = add_section(
+        written = add_section(
             config, args.role, args.anchor, args.title, body, level=args.level
         )
-        wrote = document.save()
+        wrote = written.document.save()
     except REFUSALS as error:
         return _refused(error)
 
-    where = config.relative(config.path(args.role))
     if args.json:
-        print(json.dumps({**section.payload(where), **_wrote_json(config, wrote)}, indent=2))
-        return EXIT_OK
-    print(
-        f"§{section.anchor} → {where}:{section.first}  "
-        f"{section.counted(config.schema_for(args.role).section_max)}"
-    )
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(written.payload(config, wrote), indent=2))
+    else:
+        print(written.stated(config, wrote))
     return EXIT_OK
 
 
@@ -183,54 +177,21 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
         if find_section(config.document(args.role), args.anchor) is None and (
             titled(config.document(args.role), args.anchor) is not None
         ):
-            document, section, changed = amend_untitled(
+            rewritten = amend_untitled(
                 config, args.role, args.anchor, body=body, retitle=args.title
             )
         else:
-            document, section, changed = amend_section(
+            rewritten = amend_section(
                 config, args.role, args.anchor, title=args.title, body=body
             )
-        wrote = document.save()
+        wrote = rewritten.document.save()
     except REFUSALS as error:
         return _refused(error)
 
-    where = config.relative(config.path(args.role))
     if args.json:
-        print(
-            json.dumps(
-                {
-                    **section.payload(where),
-                    "changed": list(changed),
-                    # The same fact as a field (RK1109): whether this call looked at the prose
-                    # at all. `changed: []` says nothing moved and cannot say why, which is the
-                    # ambiguity a piped body and a `--title` land in together.
-                    "read_body": body is not None,
-                    **_wrote_json(config, wrote),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-    # An unanchored section is named by its heading and never by a bare sigil (RK1107), and it
-    # carries no word count: `section = <n>` is what a *rationale* may spend, and printing a
-    # figure beside a limit is claiming the two are the same number — which the file's opening
-    # paragraph and its contents table are not measured by. `[budgets]` counts their bytes.
-    named = f"§{section.anchor}" if section.anchor else f"'{section.title}'"
-    if not changed:
-        # RK1109. `unchanged` at exit 0 is the one answer here with nothing in it to read: the
-        # changed path lists its fields, so a caller sees `(title)` and knows the prose was left
-        # alone, and this path listed nothing at all. A caller who piped the replacement and
-        # passed `--title` got a success-shaped message over a paragraph never read.
-        aside = "" if body is not None else f" — {unread_prose()}"
-        print(f"{named} unchanged: it already reads that way{aside}")
-        return EXIT_OK
-    counted = (
-        f"  {section.counted(config.schema_for(args.role).section_max)}"
-        if section.anchor
-        else ""
-    )
-    print(f"{named} amended  {where}:{section.first}  ({', '.join(changed)}){counted}")
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(rewritten.payload(config, wrote, body is not None), indent=2))
+    else:
+        print(rewritten.stated(config, wrote, body is not None))
     return EXIT_OK
 
 
@@ -339,39 +300,20 @@ def _silence(section, nested: tuple[str, ...], where: str) -> str:
 
 def _section_drop(config: Config, args: argparse.Namespace) -> int:
     try:
-        document = config.document(args.role)
-        # Read before the drop, because afterwards the headings are gone: what a subtree
-        # took is the part of this command's size that the anchor does not state (RK78).
-        taken = tuple(child.anchor for child in nested_sections(document, args.anchor))
-        document, section, cited = drop_section(
-            document,
+        deleted = drop_section(
+            config.document(args.role),
             args.anchor,
             claimed=pointers(config),
             where=config.relative(config.path(args.role)),
         )
-        wrote = document.save()
+        wrote = deleted.document.save()
     except REFUSALS as error:
         return _refused(error)
 
-    where = config.relative(config.path(args.role))
     if args.json:
-        print(
-            json.dumps(
-                {
-                    **section.payload(where),
-                    "nested": list(taken),
-                    "cited": list(cited),
-                    **_wrote_json(config, wrote),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-    print(f"dropped {section} from {where}")
-    if taken:
-        print(f"  nested   {', '.join(f'§{a}' for a in taken)} went with it")
-    _print(_cited_rows(cited))
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(deleted.payload(config, wrote), indent=2))
+    else:
+        print(deleted.stated(config, wrote))
     return EXIT_OK
 
 

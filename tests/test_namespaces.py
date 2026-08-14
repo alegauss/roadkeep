@@ -400,7 +400,8 @@ def test_a_section_written_into_the_wrong_namespace_is_refused(tmp_path):
 
 def test_a_section_add_writes_the_bare_heading_under_the_named_role(tmp_path):
     config = project(tmp_path)
-    document, section = add(config, "strategy", "S:I.2", "A second note", "The prose.")
+    out = add(config, "strategy", "S:I.2", "A second note", "The prose.")
+    document, section = out.document, out.section
     assert section.anchor == "S:I.2"
     assert "### I.2 A second note" in "".join(document.lines)
     assert "S:I.2" not in "".join(document.lines)

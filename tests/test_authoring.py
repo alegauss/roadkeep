@@ -1766,9 +1766,9 @@ def test_the_two_write_orders_now_reach_the_same_heading(tmp_path):
         config = outlined(root)
         if order == "line-first":
             written = task(config, ref="XI")
-            add_section(config, "strategy", "XI", "A design", "Prose that is here.")[0].save()
+            add_section(config, "strategy", "XI", "A design", "Prose that is here.").document.save()
         else:
-            add_section(config, "strategy", "XI", "A design", "Prose that is here.")[0].save()
+            add_section(config, "strategy", "XI", "A design", "Prose that is here.").document.save()
             written = task(config, ref="XI")
         headings.append(
             [
@@ -1797,7 +1797,7 @@ def test_two_live_claimants_leave_the_binding_to_the_author(tmp_path):
     from roadkeep.sections import add as add_section
 
     config = outlined(tmp_path)
-    add_section(config, "strategy", "XI", "A design", "Prose that is here.")[0].save()
+    add_section(config, "strategy", "XI", "A design", "Prose that is here.").document.save()
     first = task(config, ref="XI", symptom="A first claimant", why="Because the first held.")
     # Take the binding back out, so the heading names nobody and two live lines claim it.
     path = tmp_path / STRATEGY
