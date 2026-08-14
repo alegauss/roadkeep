@@ -34,7 +34,7 @@ from roadkeep import claiming
 from roadkeep.adopting import Estimate
 from roadkeep.authoring import StatusChange
 from roadkeep.backlog import Backlog, Stage, Standing
-from roadkeep.briefing import Brief, NothingToBrief
+from roadkeep.briefing import NothingToBrief
 from roadkeep.budgeting import Load
 from roadkeep.claiming import Followed, Held
 from roadkeep.config import Config, PROSE_ROLES
@@ -764,67 +764,6 @@ def _nothing_json(nothing: NothingToBrief, args: argparse.Namespace) -> dict[str
         # question it asked; this says which of them answered.
         "standing": None if nothing.standing is None else nothing.standing.payload(),
         "held": [{"id": one.id, "since": one.since} for one in nothing.held],
-    }
-
-
-def _brief_json(gathered: Brief, config: Config) -> dict[str, object]:
-    return {
-        **gathered.view.payload(),
-        "readiness": str(gathered.readiness),
-        "picked": gathered.picked or None,
-        "deps_resolved": [
-            {
-                "dep": r.dep.id,
-                "kind": str(r.kind),
-                "status": str(r.status),
-                "detail": r.detail,
-                # Where this dep shipped after the design was last written (RK1163), the two
-                # commits that say so — beside the resolution rather than in a list of their
-                # own, because it is a fact *about* this dep and a consumer reading the row
-                # would otherwise join two arrays to find it.
-                **{
-                    "settled_since": {
-                        "shipped": _dated_json(one.shipped),
-                        "revised": _dated_json(one.revised),
-                    }
-                    for one in gathered.settled
-                    if one.dep == r.dep.id
-                },
-            }
-            for r in gathered.deps
-        ],
-        "chains": [
-            {
-                "path": [gathered.task.id, *(hop.target for hop in c.hops)],
-                "end": str(c.end),
-                "detail": c.detail,
-            }
-            for c in gathered.chains
-        ],
-        "unblocks": {
-            "count": gathered.leverage.count,
-            "of": gathered.leverage.of,
-            "transitive": list(gathered.leverage.transitive),
-        },
-        "non_goals": list(gathered.non_goals.leads),
-        "non_goals_elided": gathered.non_goals.elided,
-        # The whole table here and one line on stdout (RK190): a tool result is read by
-        # something that can hold it, and this is the number the next write is measured on.
-        "budget": None if gathered.budget is None else gathered.budget.payload(),
-        # The same shape for the write about to be made (RK1174), and always published where it
-        # exists — unlike the printed line, which is silent when the two agree: a key costs a
-        # client nothing to skip and a consumer comparing them wants both numbers present.
-        "shipping": None if gathered.shipping is None else gathered.shipping.payload(),
-        # Same key and same shape as `pick`'s (RK154): one fact spelled two ways is two facts.
-        "held": [{"id": h.id, "age": round(h.age), "since": h.since} for h in gathered.held],
-        "claimed": None
-        if gathered.claim is None or gathered.claim.change is None
-        else {
-            "taken": True,
-            "from": gathered.claim.change.before,
-            "to": gathered.claim.change.after,
-        },
-        "event": _claim_event(gathered.claim, config),
     }
 
 

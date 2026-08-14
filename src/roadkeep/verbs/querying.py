@@ -58,15 +58,11 @@ from roadkeep.provenance import invocation
 from roadkeep.remaining import QueryError, count, declared
 from roadkeep.rendering import (
     CHARACTER_UNIT,
-    _brief_json,
     _claim_event,
     _commits_json,
     _load_json,
     _miss_json,
     _nothing_json,
-    _claim_rows,
-    _event_rows,
-    _held_rows,
     _leverage_rows,
     _print_scope,
     _print_standing,
@@ -74,7 +70,7 @@ from roadkeep.rendering import (
 )
 from roadkeep.kernel.schema import body_aim
 from roadkeep.kernel.schema import width as measured_width
-from roadkeep.sections import binding, heading_of
+from roadkeep.sections import binding
 from roadkeep.serving import surface
 from roadkeep.shipping import record
 from roadkeep.showing import show
@@ -655,86 +651,10 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
         # somebody else is already holding.
         return _refused(error)
 
-    view, task = gathered.view, gathered.task
-    claim = gathered.claim
-    event = _claim_event(claim, config)
-    if args.json:
-        print(json.dumps(_brief_json(gathered, config), indent=2))
-        return EXIT_OK
-
-    print(f"{task.id}  Block {task.block}  {task.status}  {gathered.readiness}  "
-          f"{view.file}:{view.entry.lineno}")
-    if gathered.picked:
-        print(f"  picked   {gathered.picked}")
-    if gathered.choice is not None:
-        # The ids a live claim was stepped around (RK154), on the door a session starts a task
-        # with: without them the caller cannot tell one of them is its own.
-        _print(_held_rows(gathered.choice))
-    if _print(_claim_rows(claim, config)) and event is not None:
-        # Beside the claim and not at the end: the rationale section closes this output, and
-        # an event line after a paragraph of prose is one a hook reader has to hunt for.
-        _print(_event_rows(event, "  ", config=config))
-    print(f"  symptom  {task.symptom}")
-    print(f"  why      {task.why}")
-    if gathered.budget is not None:
-        # One line, and only the field an amend rewrites (RK190): the whole table is
-        # `budget`'s answer, and a brief that grew one would stop being a bounded one.
-        why = gathered.budget.share("why")
-        # The same figure `budget` states, off the same `Share` (RK245): a brief that named
-        # the whole field's aim beside this line's remainder would be the second answer.
-        print(
-            f"  budget   why {why.left} of {why.allowed} left, {why.aimed}, "
-            f"{gathered.budget.prose} for prose"
-        )
-    if gathered.shipping is not None:
-        # The allowance for the write this brief is starting, which is not the one above
-        # (RK1174): a `ship` writes a ledger line, whose limit is `[limits.changelog]` and whose
-        # structure carries no deps and no pointer. Measured across four ships in one session,
-        # three refused for `why.too-long` on the first attempt — a refusal that names the
-        # arithmetic and cannot arrive early, which is what this line is for.
-        #
-        # Printed only where it **differs**: two numbers for one field is the fact worth seeing,
-        # and repeating the same one under another name is a line that teaches nobody anything.
-        ship = gathered.shipping.share("why")
-        if gathered.budget is None or ship.allowed != gathered.budget.share("why").allowed:
-            print(
-                f"  shipping why {ship.left} of {ship.allowed} left on the ledger line a "
-                f"`ship` writes, which is the limit that refuses it"
-            )
-    settled = {one.dep: one for one in gathered.settled}
-    for resolution in gathered.deps:
-        print(f"  dep      {resolution.dep.id}  {resolution.status}  {resolution.detail}")
-        landed = settled.get(resolution.dep.id)
-        if landed is not None:
-            # The ordering and never a claim about the prose (RK1163): the design below was last
-            # written before this dep shipped, so a trade-off it argues may already be decided —
-            # and what decided it is in that commit, which is why the commit is what this names.
-            print(
-                f"           shipped {landed.shipped.date[:10]} in {landed.shipped.short}, "
-                f"after this design was last written ({landed.revised.date[:10]})"
-            )
-    for chain in gathered.chains:
-        print(f"  chain    {chain.render(task.id)}  — {chain.detail}")
-    if not view.shipped:
-        # What shipping this would unblock, which a shipped line has already done (RK324):
-        # `unblocks 0 of 14 open` beside a checkmark is a cost quoted for work that happened,
-        # and the readiness word above is the whole answer a caller needs about it.
-        _print(_leverage_rows(gathered.leverage))
-    for referenced in view.paths:
-        print(f"  path     {referenced.path}{'' if referenced.exists else '  (missing)'}")
-    for non_goal in gathered.non_goals.leads:
-        print(f"  not      {non_goal}")
-    if gathered.non_goals.elided:
-        # Where the list was cut, and not silently: a bounded list that reads as the whole
-        # one is a proposal made against a scope it never saw (RK68).
-        print(f"  not      … and {gathered.non_goals.elided} more under Non-goals")
-    if view.section is not None:
-        print()
-        print(heading_of(config.schema, view.section))
-        print()
-        print(view.section.body)
-    else:
-        print(f"  section  none — {view.section_absence}")
+    # Both registers off the record (RK1170), and the last of the verbs that task measured:
+    # `Brief` is the answer, and its two readings were 20 prints here and a builder in
+    # `rendering.py` — one answer in two files, with neither of them where a brief is composed.
+    print(json.dumps(gathered.payload(config), indent=2) if args.json else gathered.stated(config))
     return EXIT_OK
 
 

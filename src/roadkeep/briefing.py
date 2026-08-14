@@ -183,6 +183,179 @@ class Brief:
         """The ready lines a live claim kept out of the pick this brief came from."""
         return () if self.choice is None else self.choice.held
 
+    def stated(self, config: Config) -> str:
+        """Everything needed to start this task, as a reader is told it (RK29).
+
+        Beside :meth:`payload` since RK1170, and the last of the verbs that task measured: 20
+        prints in the handler against a builder in `rendering.py`, one answer in two files with
+        neither of them where the brief is composed. The five sentences shared with `pick` compose
+        here because those produce rows, which is what the two prerequisite slices bought.
+
+        **Bounded, and that is the claim this file exists to keep.** An answer that fits in a tool
+        result costs nothing to consult twice; one that does not gets replaced by re-reading the
+        file, which is the 5k tokens this verb exists to stop spending — so the non-goals are
+        elided with a count and the budget is one line rather than the whole table.
+        """
+        from roadkeep.rendering import (  # noqa: PLC0415 - RK260, the cycle's one direction
+            _claim_event,
+            _claim_rows,
+            _event_rows,
+            _held_rows,
+            _leverage_rows,
+        )
+        from roadkeep.sections import heading_of  # noqa: PLC0415 - RK260
+
+        view, task = self.view, self.task
+        rows = [
+            f"{task.id}  Block {task.block}  {task.status}  {self.readiness}  "
+            f"{view.file}:{view.entry.lineno}"
+        ]
+        if self.picked:
+            rows.append(f"  picked   {self.picked}")
+        if self.choice is not None:
+            # The ids a live claim was stepped around (RK154), on the door a session starts a task
+            # with: without them the caller cannot tell one of them is its own.
+            rows += _held_rows(self.choice)
+        taken = _claim_rows(self.claim, config)
+        rows += taken
+        event = _claim_event(self.claim, config)
+        if taken and event is not None:
+            # Beside the claim and not at the end: the rationale section closes this output, and
+            # an event line after a paragraph of prose is one a hook reader has to hunt for.
+            rows += _event_rows(event, "  ", config=config)
+        rows.append(f"  symptom  {task.symptom}")
+        rows.append(f"  why      {task.why}")
+        if self.budget is not None:
+            # One line, and only the field an amend rewrites (RK190): the whole table is
+            # `budget`'s answer, and a brief that grew one would stop being a bounded one.
+            why = self.budget.share("why")
+            # The same figure `budget` states, off the same `Share` (RK245): a brief that named
+            # the whole field's aim beside this line's remainder would be the second answer.
+            rows.append(
+                f"  budget   why {why.left} of {why.allowed} left, {why.aimed}, "
+                f"{self.budget.prose} for prose"
+            )
+        if self.shipping is not None:
+            # The allowance for the write this brief is starting, which is not the one above
+            # (RK1174): a `ship` writes a ledger line, whose limit is `[limits.changelog]` and
+            # whose structure carries no deps and no pointer. Measured across four ships in one
+            # session, three refused for `why.too-long` on the first attempt — a refusal that
+            # names the arithmetic and cannot arrive early, which is what this line is for.
+            #
+            # Printed only where it **differs**: two numbers for one field is the fact worth
+            # seeing, and repeating the same one under another name teaches nobody anything.
+            ship = self.shipping.share("why")
+            if self.budget is None or ship.allowed != self.budget.share("why").allowed:
+                rows.append(
+                    f"  shipping why {ship.left} of {ship.allowed} left on the ledger line a "
+                    f"`ship` writes, which is the limit that refuses it"
+                )
+        settled = {one.dep: one for one in self.settled}
+        for resolution in self.deps:
+            rows.append(
+                f"  dep      {resolution.dep.id}  {resolution.status}  {resolution.detail}"
+            )
+            landed = settled.get(resolution.dep.id)
+            if landed is not None:
+                # The ordering and never a claim about the prose (RK1163): the design below was
+                # last written before this dep shipped, so a trade-off it argues may already be
+                # decided — and what decided it is in that commit, which is what this names.
+                rows.append(
+                    f"           shipped {landed.shipped.date[:10]} in "
+                    f"{landed.shipped.short}, after this design was last written "
+                    f"({landed.revised.date[:10]})"
+                )
+        rows += [f"  chain    {chain.render(task.id)}  — {chain.detail}" for chain in self.chains]
+        if not view.shipped:
+            # What shipping this would unblock, which a shipped line has already done (RK324):
+            # `unblocks 0 of 14 open` beside a checkmark is a cost quoted for work that happened,
+            # and the readiness word above is the whole answer a caller needs about it.
+            rows += _leverage_rows(self.leverage)
+        rows += [
+            f"  path     {one.path}{'' if one.exists else '  (missing)'}" for one in view.paths
+        ]
+        rows += [f"  not      {lead}" for lead in self.non_goals.leads]
+        if self.non_goals.elided:
+            # Where the list was cut, and not silently: a bounded list that reads as the whole
+            # one is a proposal made against a scope it never saw (RK68).
+            rows.append(f"  not      … and {self.non_goals.elided} more under Non-goals")
+        if view.section is not None:
+            rows += ["", heading_of(config.schema, view.section), "", view.section.body]
+        else:
+            rows.append(f"  section  none — {view.section_absence}")
+        return "\n".join(rows)
+
+    def payload(self, config: Config) -> dict[str, object]:
+        """The same answer as data, with the whole budget table and every count (RK29).
+
+        Beside :meth:`stated` and deliberately wider: a tool result is read by something that
+        can hold it, so what the printed register elides with a count this carries in full —
+        the non-goals, both allowances, and the commits behind a settled dep.
+        """
+        from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _claim_event,
+            _dated_json,
+        )
+
+        return {
+            **self.view.payload(),
+            "readiness": str(self.readiness),
+            "picked": self.picked or None,
+            "deps_resolved": [
+                {
+                    "dep": r.dep.id,
+                    "kind": str(r.kind),
+                    "status": str(r.status),
+                    "detail": r.detail,
+                    # Where this dep shipped after the design was last written (RK1163), the two
+                    # commits that say so — beside the resolution rather than in a list of their
+                    # own, because it is a fact *about* this dep and a consumer reading the row
+                    # would otherwise join two arrays to find it.
+                    **{
+                        "settled_since": {
+                            "shipped": _dated_json(one.shipped),
+                            "revised": _dated_json(one.revised),
+                        }
+                        for one in self.settled
+                        if one.dep == r.dep.id
+                    },
+                }
+                for r in self.deps
+            ],
+            "chains": [
+                {
+                    "path": [self.task.id, *(hop.target for hop in c.hops)],
+                    "end": str(c.end),
+                    "detail": c.detail,
+                }
+                for c in self.chains
+            ],
+            "unblocks": {
+                "count": self.leverage.count,
+                "of": self.leverage.of,
+                "transitive": list(self.leverage.transitive),
+            },
+            "non_goals": list(self.non_goals.leads),
+            "non_goals_elided": self.non_goals.elided,
+            # The whole table here and one line on stdout (RK190): a tool result is read by
+            # something that can hold it, and this is the number the next write is measured on.
+            "budget": None if self.budget is None else self.budget.payload(),
+            # The same shape for the write about to be made (RK1174), and always published where it
+            # exists — unlike the printed line, which is silent when the two agree: a key costs a
+            # client nothing to skip and a consumer comparing them wants both numbers present.
+            "shipping": None if self.shipping is None else self.shipping.payload(),
+            # Same key and same shape as `pick`'s (RK154): one fact spelled two ways is two facts.
+            "held": [{"id": h.id, "age": round(h.age), "since": h.since} for h in self.held],
+            "claimed": None
+            if self.claim is None or self.claim.change is None
+            else {
+                "taken": True,
+                "from": self.claim.change.before,
+                "to": self.claim.change.after,
+            },
+            "event": _claim_event(self.claim, config),
+        }
+
 
 def brief(
     config: Config,
