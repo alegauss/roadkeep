@@ -488,6 +488,7 @@
 - ✅ **RK1165** **gaps prints a numbering jump as 499 rows, and the two ids worth reading are behind them** — a contiguous run of never-carried ids is one row with its count, so the ids a reader can act on are visible.
 - ✅ **RK1175** **a partial ship's entry is listed as accounted for by no commit, for as long as it stays partial** — the search reads the qualifier a partial entry carries inside its bold id, so the commit that ships half accounts for it.
 - ✅ **RK1181** **ref.dangling reads a section mark citing another document as a pointer into this file, and the first has no spelling** — a mark inside a Markdown link naming a path is a reference outward, which the corpus already writes and the gate now leaves alone.
+- ✅ **RK1172 (the scan kinds)** **The gate's checks are functions gathered by convention, each with its own signature, so adding one is invisible** — the inputs are measured at 24 calls over five kinds, and three rules read findings rather than the project, so the domain has two phases.
 
 ## Block E — Adoption
 

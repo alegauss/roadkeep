@@ -81,27 +81,33 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1172 A rule is a record, the way a remedy already is
+### §RK1172 Two phases, and the five inputs a rule reads
 
-`src/roadkeep/remedying.py` states the argument outright: keyed centrally,
-`tests/test_remedying.py` can assert the domain is total over every code the package can
-emit, which turns adding a check without stating its repair into a red. That is right,
-and it is only half applied — the *remedy* is a table and the *check* is not.
+`remedying.py` states the argument outright: keyed centrally, a test can assert the
+domain is total over every code the package emits, which turns adding a check without
+stating its repair into a red. Only half is applied — the *remedy* is a table and the
+*check* is not.
 
-The check side is about sixty functions in `src/roadkeep/linting.py`, each with a
-signature invented at the call site: `(config, role, document)`, `(config, tree)`,
-`(config, documents, since)`, `(backlog, task, file, lineno)`. What each one scans is
-implicit in its parameters, and `_examine` is the hand-wiring that knows which to call
-with what. Nothing states the set, so nothing can be total over it.
+**Measured, because the scan kinds are the record's shape.** `_examine` makes **24 calls
+across 16 signatures**, clustering into five inputs: the governed **tree**, the
+**documents** carrying task lines, **one role's document**, the **prose** files with the
+**anchor index** derived from them, and a git **revision** where a rule compares against
+a baseline. Each is a fact about the project, and a record naming which a rule wants is
+a loop where hand-wiring is.
 
-As a record — the code, what it scans, the predicate, and whether `--fix` may close it —
-`_examine` becomes a loop over a declared domain, `src/roadkeep/fixing.py` reads the
-derived flag instead of `REPAIRS`, and a rule that scans something new says so rather
-than adding a parameter to a call.
+**Three rules take none of them.** `_grammatical`, `_untainted` and `_ordered` are
+handed the *findings so far*: they fold a file's non-canonical lines into one defect,
+drop what another finding already explains, and put the report in its printed order.
+Those read the report rather than the repository, and a flat domain has nowhere to put
+them.
 
-The scan kinds are the design question worth answering first, because they are what the
-record's shape is: a role's document, the tree, the backlog, the sections, the config. A
-rule that fits none of them is the evidence the set is wrong.
+So the set has **two phases** and not one list: rules that read the project, and rules
+that read what those produced. The record carries its input kind; the phase orders the
+loop, and a rule reading findings declares it instead of being sequenced by where its
+call sits.
+
+What needs deciding next, once the record exists: whether `--fix` reads a field on it —
+`fixing.py` keeps `REPAIRS` today — which is RK1173.
 
 ### §RK1173 The door belongs on the rule, not beside it
 
