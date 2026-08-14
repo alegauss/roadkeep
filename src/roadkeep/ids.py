@@ -194,6 +194,43 @@ class Derivation:
     #: None on the overwhelming majority of derivations, where the highest id is a line.
     promise: Promise | None = None
 
+    def stated(self) -> str:
+        """The id and nothing else.
+
+        Stdout here is the id, because this command exists to be captured in a shell — a
+        second line in that capture is a broken id, which is why the promise goes to stderr.
+        """
+        return self.id
+
+    def notice(self) -> list[str]:
+        """The promise deriving this stepped over, for **stderr** (RK431)."""
+        return [] if self.promise is None else [f"roadkeep: {self.promise.sentence}"]
+
+    def payload(self, config: Config, family: str) -> dict[str, object]:
+        """The same answer with where the maximum was found, so it can be audited."""
+        from roadkeep.rendering import _promise_json  # noqa: PLC0415 - RK260
+
+        top = highest(config, family)
+        return {
+            "next": self.id,
+            "prefix": family,
+            "prefixes": list(config.schema.prefixes),
+            "highest": None
+            if top is None
+            else {
+                "id": top.id,
+                "file": config.relative(top.path),
+                "line": top.lineno,
+            },
+            # Beside `highest` and not folded into it (RK431): that field says which
+            # occurrence set the maximum, and this says the occurrence was a sentence rather
+            # than a line — which is the whole difference nothing recorded.
+            "promise": _promise_json(self.promise),
+            "sources": [
+                config.relative(path) for path in config.id_sources() if path.is_file()
+            ],
+        }
+
 
 def derivation(config: Config, family: str | None = None) -> Derivation:
     """The next id, and whether the number below it was a promise nobody kept (RK431).

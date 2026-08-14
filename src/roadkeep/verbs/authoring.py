@@ -9,8 +9,8 @@ Each is a thin call into :mod:`roadkeep.authoring`, :mod:`roadkeep.renumbering` 
 answer — never a rule, which would then be enforced on one surface and not on the other.
 
 **And no longer the answer either** (RK1170): every write renders both registers off its own
-record, so each door is the call, the save and a choice of reading. `next-id` is what is left
-of the old shape, and it is the one verb here that returns no record — an id is a string.
+record, so each door is the call, the save and a choice of reading. `next-id` renders three, the
+id being stdout a shell captures and the promise a sentence that must not reach it.
 """
 
 from __future__ import annotations
@@ -23,8 +23,7 @@ from roadkeep.authoring import add, amend, restate, set_status
 from roadkeep.capturing import stamp
 from roadkeep.config import Config
 from roadkeep.deferring import defer, resume
-from roadkeep.ids import derivation, highest
-from roadkeep.rendering import _promise_json
+from roadkeep.ids import derivation
 from roadkeep.renumbering import renumber
 from roadkeep.verbs.reading import _body_reader, _one_body, _piped
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
@@ -36,40 +35,16 @@ def _next_id(config: Config, args: argparse.Namespace) -> int:
         derived = derivation(config, args.family)
     except ValueError as error:
         return _refused(error)
-    identifier = derived.id
     family = args.family or config.schema.prefix
-    if not args.json:
-        print(identifier)
-        # On stderr, because stdout here is the id and nothing else: this command exists
-        # to be captured in a shell, and a second line in that capture is a broken id.
-        if derived.promise is not None:
-            print(f"roadkeep: {derived.promise.sentence}", file=sys.stderr)
+    # Three streams and not two (RK1170): the id is stdout because this command exists to be
+    # captured in a shell, and the promise is stderr because a second line in that capture is
+    # a broken id — so the branch is which reading, never whether to add a sentence.
+    if args.json:
+        print(json.dumps(derived.payload(config, family), indent=2))
         return EXIT_OK
-    top = highest(config, family)
-    print(
-        json.dumps(
-            {
-                "next": identifier,
-                "prefix": family,
-                "prefixes": list(config.schema.prefixes),
-                "highest": None
-                if top is None
-                else {
-                    "id": top.id,
-                    "file": config.relative(top.path),
-                    "line": top.lineno,
-                },
-                # Beside `highest` and not folded into it (RK431): that field says which
-                # occurrence set the maximum, and this says the occurrence was a sentence
-                # rather than a line — which is the whole difference nothing recorded.
-                "promise": _promise_json(derived.promise),
-                "sources": [
-                    config.relative(path) for path in config.id_sources() if path.is_file()
-                ],
-            },
-            indent=2,
-        )
-    )
+    print(derived.stated())
+    for note in derived.notice():
+        print(note, file=sys.stderr)
     return EXIT_OK
 
 
