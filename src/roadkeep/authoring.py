@@ -962,6 +962,49 @@ class Amendment:
     def rendered(self) -> str:
         return self.entry.raw
 
+    def stated(self, config: Config) -> str:
+        """What this correction did, as a reader is told it (RK65).
+
+        Beside :meth:`payload` since RK1170, for the reason :class:`Restatement`'s pair is: both
+        registers were in the handler, and a write verb's answer is what the transaction
+        produced rather than something the door composes about it.
+        """
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path("roadmap"))
+        if not self.changed:
+            return f"{self.entry.task.id} unchanged: every field already reads that way"
+        rows = [
+            f"{self.entry.task.id} amended  {where}:{self.entry.lineno}"
+            f"  ({', '.join(self.changed)})",
+            f"  {self.rendered}",
+        ]
+        if self.refreshed:
+            rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
+        rows += _staging_rows(config.relative(one) for one in self.wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config) -> dict[str, object]:
+        """The same answer as data, carrying what each changed field said before (RK1133)."""
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "id": self.entry.task.id,
+            "file": config.relative(config.path("roadmap")),
+            "line": self.entry.lineno,
+            "changed": list(self.changed),
+            "rendered": self.rendered,
+            # What each changed field said before (RK1133), beside which ones moved: `status`
+            # answers `from`/`to` and `restate` answers `was`/`now`, and this was the one write
+            # whose client could show the new line and nothing else.
+            "was": {
+                name: list(value) if isinstance(value, tuple) else value
+                for name, value in self.was.items()
+            },
+            "refreshed": list(self.refreshed),
+            **_wrote_json(config, self.wrote),
+        }
+
 
 def amend(
     config: Config,

@@ -270,6 +270,11 @@ def _status(config: Config, args: argparse.Namespace) -> int:
 
 
 def _amend(config: Config, args: argparse.Namespace) -> int:
+    """Correct one open line's why, deps or pointer, keeping its symptom and its id (RK65).
+
+    Both registers come off the record (RK1170), exactly as `restate`'s do: this door chooses
+    which reading to print and composes neither.
+    """
     if args.why is None and args.deps is None and args.ref is None:
         print(
             "roadkeep: nothing to amend: pass --why, --dep or --ref",
@@ -288,39 +293,10 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    where = config.relative(config.path("roadmap"))
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": args.id,
-                    "file": where,
-                    "line": amended.entry.lineno,
-                    "changed": list(amended.changed),
-                    "rendered": amended.rendered,
-                    # What each changed field said before (RK1133), beside which ones moved:
-                    # `status` answers `from`/`to` and `restate` answers `was`/`now`, and this
-                    # was the one write whose client could show the new line and nothing else.
-                    "was": {
-                        name: list(value) if isinstance(value, tuple) else value
-                        for name, value in amended.was.items()
-                    },
-                    "refreshed": list(amended.refreshed),
-                    **_wrote_json(config, amended.wrote),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    if not amended.changed:
-        print(f"{args.id} unchanged: every field already reads that way")
-        return EXIT_OK
-    print(f"{args.id} amended  {where}:{amended.entry.lineno}  ({', '.join(amended.changed)})")
-    print(f"  {amended.rendered}")
-    if amended.refreshed:
-        print(f"  derived  {', '.join(amended.refreshed)} (dep annotations re-derived)")
-    _print(_staging_rows(config.relative(one) for one in amended.wrote))
+        print(json.dumps(amended.payload(config), indent=2))
+    else:
+        print(amended.stated(config))
     return EXIT_OK
 
 

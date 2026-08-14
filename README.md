@@ -128,7 +128,7 @@ called unbuilt were already in the ledger.
 
 **Next ready:**
 
-- ⏳ **RK1170** (deps: —) **A verb's plain answer and its json payload are built in two files, and most of the printing never moved** — rendering.py holds 23 printers against 386 print calls left in the handlers, so the layer buys no rule about where a sentence is and costs every verb a second file. → §RK1170
+- 🛠 **RK1170** (deps: —) **A verb's plain answer and its json payload are built in two files, and most of the printing never moved** — rendering.py holds 23 printers against 386 print calls left in the handlers, so the layer buys no rule about where a sentence is and costs every verb a second file. → §RK1170
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
