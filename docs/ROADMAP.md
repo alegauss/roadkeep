@@ -28,8 +28,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1182** (deps: —) **ship refuses over a dependent line's why, and names the shipping task's own why, which cannot fix it** — A dep annotation grows a tick when the dep ships, so a dependent one character under the limit goes over, and the refusal points at the wrong line. → §RK1182
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
