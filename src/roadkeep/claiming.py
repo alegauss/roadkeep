@@ -227,6 +227,52 @@ class Dated:
         return f"  {state:<8} {self.id}  claimed {self.since} ago  {self.placed}{scoped}"
 
 
+@dataclass(frozen=True, slots=True)
+class Registry:
+    """The claim registry read against the roadmap, as one answer (RK161).
+
+    A record since RK1170: the door held four values — the rows, what a `--prune` dropped, the
+    window and the file — and composed a header, a listing and a payload from them. Nothing
+    ranks and nothing is offered: `pick` decides what to work on, and a listing that answered
+    that would be a fourth tier nobody declared.
+    """
+
+    rows: tuple[Dated, ...]
+    #: What `--prune` took out, and `()` where the flag was not passed. Named and not counted,
+    #: and present as an empty list when the flag was passed and dropped nothing (RK165): a
+    #: prune that hides its own effect is how "the registry is clean" gets read off a command
+    #: that emptied it.
+    dropped: tuple[Dated, ...] = ()
+    pruned: bool = False
+    #: The file itself. Named because the release is a marker and this is what an operator
+    #: deletes when a whole checkout's worth of claims outlived their workers (RK161).
+    registry: str = ""
+    #: This project's window, in minutes — the number the ages above are read against.
+    window: int = 0
+
+    @property
+    def held(self) -> int:
+        return sum(1 for one in self.rows if one.state is State.HELD)
+
+    def stated(self) -> str:
+        rows = [f"{len(self.rows)} dated, {self.held} held  (window {self.window}m)"]
+        rows += [one.listed() for one in self.rows]
+        rows += [one.listed(pruned=True) for one in self.dropped]
+        if self.pruned and not self.dropped:
+            rows.append("  pruned   nothing: every row is a claim")
+        rows.append(f"  registry {self.registry}")
+        return chr(10).join(rows)
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "window": self.window,
+            "registry": self.registry,
+            "held": self.held,
+            "claims": [one.payload() for one in self.rows],
+            "pruned": None if not self.pruned else [one.payload() for one in self.dropped],
+        }
+
+
 def survey(backlog: Backlog) -> tuple[Dated, ...]:
     """Every dated id, oldest first, with what the files make of it (RK161).
 

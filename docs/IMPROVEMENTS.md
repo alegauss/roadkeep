@@ -405,28 +405,6 @@ already said which engine it means.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-### §RK1170 One result, two registers, one place
-
-`src/roadkeep/rendering.py` was cut out of a `cli.py` that had reached 8,489 lines, and
-its own docstring says why the printers went first: theirs is the cut with no import
-cycle. That was a fix for a file's size, and it is measurably not a fix for where a
-verb's answer lives.
-
-Counted now: `src/roadkeep/verbs/` makes 386 `print` calls of its own against 102
-delegations, so the rule "the sentence is in the renderer" holds for about a fifth of
-the printing. `weight` is the shape of it — the plain answer is spelled inside the
-handler and `_weight_json` is in the other file, so one verb's two registers are two
-files apart, and neither file holds both.
-
-The two registers are meant to differ. Plain stdout is the value a shell composes with;
-`--json` carries the provenance that makes an answer auditable. So the fix is not one
-output. It is one **result** — a dataclass the handler returns — with both registers
-derived from it beside the verb that computed it. The payload then carries what the
-plain answer showed by construction, where today that is a test.
-
-Do this before splitting the parser: once a verb owns its result and both its registers,
-moving it is a move and not a rewrite.
-
 ### §RK1171 The module boundary is orthogonal to the change axis
 
 Measured over this package: the command surface — `src/roadkeep/cli.py`,

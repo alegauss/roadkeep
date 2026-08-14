@@ -161,36 +161,18 @@ def _claims(config: Config, args: argparse.Namespace) -> int:
     except (KeyError, OSError) as error:
         return _refused(error)
 
-    registry = str(claiming.path(config.root))
-    held = sum(1 for row in rows if row.state is claiming.State.HELD)
-    if args.json:
-        print(
-            json.dumps(
-                {
-                    "window": config.held,
-                    "registry": registry,
-                    "held": held,
-                    "claims": [row.payload() for row in rows],
-                    # Named and not counted, and present as an empty list when the flag was
-                    # passed and dropped nothing (RK165): a prune that hides its own effect is
-                    # how "the registry is clean" gets read off a command that emptied it.
-                    "pruned": None if not args.prune else [row.payload() for row in dropped],
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
+    answer = claiming.Registry(
+        rows=tuple(rows),
+        dropped=tuple(dropped),
+        pruned=bool(args.prune),
+        registry=str(claiming.path(config.root)),
+        window=config.held,
+    )
 
-    print(f"{len(rows)} dated, {held} held  (window {config.held}m)")
-    for row in rows:
-        print(row.listed())
-    for row in dropped:
-        print(row.listed(pruned=True))
-    if args.prune and not dropped:
-        print("  pruned   nothing: every row is a claim")
-    # Named because the release is a marker and the *file* is what an operator deletes when a
-    # whole checkout's worth of claims outlived their workers (RK161).
-    print(f"  registry {registry}")
+    if args.json:
+        print(json.dumps(answer.payload(), indent=2))
+    else:
+        print(answer.stated())
     return EXIT_OK
 
 

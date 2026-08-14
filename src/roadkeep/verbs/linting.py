@@ -283,6 +283,12 @@ def _guard(config: Config, args: argparse.Namespace) -> int:
 
     The config discovered from `-C` is only this command's fallback: the payload names the
     directory, and the paths in it may belong to another project entirely.
+
+    **The one door RK1170 left composing its own JSON**, and the reason is that there is no
+    second register to unify it with: this verb has no plain answer at all. The three shapes
+    are the *harness's* protocol keyed by hook event, not readings of one result — and they
+    are three contracts rather than one shape written three times. What belongs to this tool
+    is already on the records it prints: `str(refusal)` and `refusal.decision`.
     """
     payload = _payload()
     root = config.root

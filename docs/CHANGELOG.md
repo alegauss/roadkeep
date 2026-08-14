@@ -711,7 +711,7 @@
 ## Block H — The tool's own shape (what one verb costs to change)
 
 - ✅ **RK1169** **Six tables in serving.py restate per verb what its own parser already declares** — the withheld reasons moved to the arguments they explain, and each table that stayed now carries the measured reason it did — `TOOLS`' being the guard's own 44.6 ms.
-- ✅ **RK1170 (the writes)** **A verb's plain answer and its json payload are built in two files, and most of the printing never moved** — every governed write now renders both registers off its own record, and four verb modules stopped importing rendering at all — what still composes an answer in a door is the reads.
+- ✅ **RK1170** **A verb's plain answer and its json payload are built in two files, and most of the printing never moved** — every verb answers with one result and derives both registers from it, beside the verb that computed it — the door left composing JSON is the guard, whose three shapes are the harness's.
 - ✅ **RK1179** **A checkout whose source does not import answers with a raw Python traceback instead of a sentence** — the engine says which checkout does not parse and where, and the hook still degrades to unenforced.
 - ✅ **RK1191** **_add still computes a `piped` flag that nothing reads, left behind when the pipe clash moved to dispatch** — the dead local is gone and `STDIN` with it — `_one_body` was the only reader left, and no other handler kept a copy of the condition RK1176 moved.
 - ✅ **RK1194** **A local variable with an import's name makes the unspelled-import test read a dead import as used** — the scan is a hybrid — the AST for annotations, which have no scope under PEP 563, and symtable for everything else — and five dead imports that were live behind the old reading are gone.

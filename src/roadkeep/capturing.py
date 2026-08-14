@@ -1081,6 +1081,53 @@ class Read:
 
 
 @dataclass(frozen=True, slots=True)
+class Filed:
+    """Which task a capture on disk was stamped as, and whether this project can check it.
+
+    A record since RK1170. Two values and a branch, which is small — and is exactly the shape
+    the task is about: `elsewhere` decides both what the report says and what the payload
+    carries, and the door was making that decision twice.
+    """
+
+    #: The capture, as this project spells it.
+    where: str
+    #: The stamp that was written — a bare id, or `owner/repo#id` where the capture recorded
+    #: an upstream and this backlog holds no such line (RK1161).
+    filed: str
+    #: The repository a delivery names, or `""` where this project resolved the id itself.
+    elsewhere: str = ""
+    #: What the caller typed, which is what tells a qualified stamp from a bare one.
+    asked: str = ""
+
+    def stated(self) -> str:
+        rows = [f"{self.where} now names {self.filed}"]
+        if self.elsewhere:
+            # Said out loud, because this is the one stamp nothing here can check: the row
+            # clears on the author's word that the work went there, and a reader should see
+            # which claim it is.
+            qualified = "" if self.filed == self.asked else " — the capture recorded where it went"
+            rows.append(
+                f"  delivered to {self.elsewhere}, which this project cannot read — taken "
+                f"as filed{qualified}"
+            )
+        return chr(10).join(rows)
+
+    def payload(self) -> dict[str, object]:
+        """`delivered` beside the stamp where there is one (RK1162).
+
+        The stamp carries the repository and a consumer would otherwise recover it by parsing
+        a `#`, which is a second reader of a shape this module already parsed. **Absent** and
+        not null, for `_remedy_json`'s reason: a key that is always there and usually null is
+        one a client learns to skip.
+        """
+        return {
+            "path": self.where,
+            "filed": self.filed,
+            **({"delivered": self.elsewhere} if self.elsewhere else {}),
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class Debt:
     """The captures a project holds that its backlog has not answered for (RK1139).
 

@@ -20,6 +20,7 @@ from pathlib import Path
 
 from roadkeep.adopting import adopt, init
 from roadkeep.capturing import (
+    Filed,
     REPORTS,
     STOPPED_NOTICE,
     body,
@@ -200,33 +201,19 @@ def _capture_filed(config: Config, args: argparse.Namespace) -> int:
     if not stamp(known.path, written):
         print(f"roadkeep: {args.path} could not be written", file=sys.stderr)
         return EXIT_USAGE
-    where = config.relative(known.path)
-    if args.json:
-        # `delivered` beside it where there is one (RK1162): the stamp carries the repository
-        # and a consumer would otherwise recover it by parsing a `#`, which is a second reader of
-        # a shape this module already parsed. Absent and not null, for `_remedy_json`'s reason.
-        print(
-            json.dumps(
-                {
-                    "path": where,
-                    "filed": written,
-                    **({"delivered": elsewhere} if elsewhere else {}),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
     # No staging line: the report directory is git-ignored, so there is nothing to stage —
     # which is the exemption `test_every_write_command_is_either_wired_or_exempted` carries.
-    print(f"{where} now names {written}")
-    if elsewhere:
-        # Said out loud, because this is the one stamp nothing here can check: the row clears on
-        # the author's word that the work went there, and a reader should see which claim it is.
-        qualified = "" if written == args.task_id else " — the capture recorded where it went"
-        print(
-            f"  delivered to {elsewhere}, which this project cannot read — taken as filed"
-            f"{qualified}"
-        )
+    answer = Filed(
+        where=config.relative(known.path),
+        filed=written,
+        elsewhere=elsewhere,
+        asked=args.task_id,
+    )
+
+    if args.json:
+        print(json.dumps(answer.payload(), indent=2))
+    else:
+        print(answer.stated())
     return EXIT_OK
 
 
