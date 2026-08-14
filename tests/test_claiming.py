@@ -1694,6 +1694,10 @@ DEPARTURE_KEYS = {
     "mine": "mine",
     "theirs": "theirs",
     "loose": "unclaimed",
+    # RK1197: the subset of `loose` the index already carries. Its own key beside it, because
+    # a client acting on `unclaimed` decides and one acting on this has already been committed
+    # to by a `git add` nobody in the session typed.
+    "staged": "unclaimed_staged",
     "idle": "staging_nothing",
     "shared": "shared",
 }

@@ -323,7 +323,13 @@ def _scope_rows(scope: claiming.Scope | None, wrote: Sequence[str] = ()) -> list
     # subtraction moved to `split` because the two callers meant different things by the list
     # this used to read — a departure's `wrote` is what the transaction wrote, and a governed
     # file it wrote *and* somebody else had changed vanished from both reports.
-    rows += [f"  loose    {one}  (no claim names it)" for one in scope.loose]
+    # And whether the index already carries it (RK1197): a `git commit` takes a staged path
+    # whether or not the author reads a diff, and the diff they are reading is the other side.
+    rows += [
+        f"  loose    {one}  "
+        f"({'staged already, and ' if one in set(scope.staged) else ''}no claim names it)"
+        for one in scope.loose
+    ]
     # The declared paths that would stage nothing (RK295). Named here rather than folded into
     # `mine`, which this list deliberately does not repeat: at a departure the work is done, so
     # a scope naming a file the tree does not have is a typo and not a file yet to be written.
@@ -403,6 +409,10 @@ def _scope_json(
         # Already subtracted (RK1117), so the payload and the printed report cannot disagree
         # about which paths belong to nobody.
         "unclaimed": list(scope.loose),
+        # Which of them the index already carries (RK1197). A subset and its own key, because
+        # a client acting on `unclaimed` decides, and one acting on this has already been
+        # committed to by a `git add` nobody in this session typed.
+        "unclaimed_staged": list(scope.staged),
         "staging_nothing": list(scope.idle),
         # RK1120: per governed file, the other ids whose line moved in it. Its own key beside
         # `unclaimed`, because the two are different answers — a path nobody claims, and a path

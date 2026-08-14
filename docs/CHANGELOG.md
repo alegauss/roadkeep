@@ -310,6 +310,7 @@
 - ✅ **RK1174** **The why budget brief prints is the roadmap line's, and the ship that follows enforces a different one nothing shows** — brief prints the ledger line's allowance beside the roadmap line's, where the two differ, so the ceiling a ship enforces arrives before the write.
 - ✅ **RK1178** **anchors recommends an address that was declared and retired inside one commit** — the address is read off the pointer that left with the shipped line, which no prose diff witnesses.
 - ✅ **RK1183** **delivered --near cannot reach a partner whose symptom is stated differently, and its closure now carries an exemption** — the reach is a floor the closure publishes with what is out of it, and ranking against the why is unsound because that field names the partner.
+- ✅ **RK1197** **A loose path that is already staged reads the same as one merely edited, so a stale index entry commits silently** — the porcelain is read once into a record that keeps both columns, and a loose path the index already carries says so — on the row and as its own key in both payloads.
 
 ## Block D — The gate
 

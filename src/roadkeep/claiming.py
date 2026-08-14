@@ -555,6 +555,11 @@ class Scope:
     #: staged either way, so what this carries is the ids inside it that are nobody's business
     #: here — the half :attr:`loose` cannot reach, a roadmap always naming this id.
     shared: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    #: Which of :attr:`loose` the **index** already carries (RK1197). Not a sixth list: a
+    #: staged loose path is the same finding one degree louder, because a `git commit` takes
+    #: it whether or not the author reads a diff — and the diff they are reading is the other
+    #: side. Measured twice in one session as a version literal another process staged.
+    staged: tuple[str, ...] = ()
 
     @property
     def spoken(self) -> bool:
@@ -575,6 +580,7 @@ def split(
     tracked: Iterable[str] = (),
     accounted: Iterable[str] = (),
     shared: Iterable[tuple[str, tuple[str, ...]]] = (),
+    staged: Iterable[str] = (),
 ) -> Scope:
     """Split the changed paths by whose claim names them (RK280, RK295).
 
@@ -624,15 +630,20 @@ def split(
     )
     named = (*mine, *(one for other in others for one in other.paths))
     explained = frozenset(accounted)
+    adrift = tuple(
+        one
+        for one in sorted(changed)
+        if one not in explained
+        and not any(_covers(declared, one) for declared in named)
+    )
     return Scope(
         mine=mine,
         theirs=theirs,
-        loose=tuple(
-            one
-            for one in sorted(changed)
-            if one not in explained
-            and not any(_covers(declared, one) for declared in named)
-        ),
+        loose=adrift,
+        # A subset of `loose` and in its order (RK1197), which is what keeps it from being a
+        # sixth list: the question is not *what else is staged* — `mine` is, and should be —
+        # but which of the paths nobody claims the next commit already carries.
+        staged=tuple(one for one in adrift if one in set(staged)),
         idle=() if not known else tuple(one for one in mine if not _stages(one, known)),
         shared=tuple(shared),
     )
@@ -776,18 +787,19 @@ def departing(config: Config, task_id: str, entries: Iterable[Entry]) -> Scope |
     # Imported here for the reason :mod:`roadkeep.provenance` does it (RK260): this is the
     # only function in the file that asks git anything, and every other reader of a claim —
     # `pick`, `brief`, every marker write — would otherwise pay for the wrapper.
-    from roadkeep.history import dirty, indexed  # noqa: PLC0415
+    from roadkeep.history import indexed, status  # noqa: PLC0415
 
-    changed = dirty(config)
-    accounted = written(config, task_id, changed)
+    seen = status(config)
+    accounted = written(config, task_id, seen.changed)
     return split(
         config,
         task_id,
         entries,
-        changed,
+        seen.changed,
         indexed(config),
         accounted=accounted,
         shared=sharing(config, task_id, accounted),
+        staged=seen.staged,
     )
 
 

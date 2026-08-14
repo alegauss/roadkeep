@@ -28,6 +28,7 @@
 
 - 📋 **RK1187** (deps: —) **`symptom` is the one prose field no verb declares as a pipe reader, so `-` lands in the file as the claim** — RK1176 made that declaration the parser's own and `restate` declares none — the verb whose only prose argument is the field that carries a backtick as readily as a why. → §RK1187
 - 📋 **RK1196** (deps: —) **restate replaces a false premise and leaves the why and the design still asserting it, naming no follow-up** — ship names every section whose prose cited what it deleted; the verb whose whole purpose is that a claim was wrong names neither place that claim is also written. → §RK1196
+- 📋 **RK1198** (deps: —) **Filing into a block whose prose family is spent is four sequential refusals, each teaching one step** — add refuses for a missing ref, anchors refuses because no open line carries one, add refuses for a missing block heading, then for a section with nothing to extend. → §RK1198
 
 ## Block C — Query (consult without reading the file)
 
@@ -35,7 +36,6 @@
 - 📋 **RK1185** (deps: RK1184) **`brief` hands over a task's design and deps but never its criterion, so it is read at the ship** — A criterion binds what the work must produce, so one arriving after the code is written is the read `brief` exists to make in a single call. → §RK1185
 - 📋 **RK1188** (deps: —) **No verb says what the blocks are called, so choosing where a task goes means reading the file the hook denies** — SKILL.md tells an author to look at what the blocks already are before add; stats answers letters and counts, list and delivered demand a block they cannot enumerate. → §RK1188
 - 📋 **RK1190** (deps: —) **budget states the allowance and cannot be handed a draft, so prose three words over is found by being refused** — RK190 made the allowance knowable before the first word; measuring the draft against it still costs a write, and the retry after each refusal is a guess. → §RK1190
-- 📋 **RK1197** (deps: —) **A loose path that is already staged reads the same as one merely edited, so a stale index entry commits silently** — status --porcelain carries a column per side and the reader keeps neither, so a version downgrade another session left in the index was invisible twice in one day. → §RK1197
 
 ## Block D — The gate
 

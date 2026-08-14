@@ -24,7 +24,7 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
-from collections.abc import Iterator, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -494,11 +494,35 @@ def dirty(config: Config) -> frozenset[str]:
     reader here keeps — a checkout with no git is one this reports nothing about, never one
     it refuses.
     """
+    return status(config).changed
+
+
+def status(config: Config) -> Status:
+    """The porcelain read once, split by which side of the index each path changed on (RK1197).
+
+    One process for both answers rather than two for one each: the columns are in the same
+    record git already sent, and asking twice would be this module doing what it tells its
+    callers not to.
+    """
     try:
         listed = _run(config.root, "status", "--porcelain", "-z")
     except HistoryUnavailable:
-        return frozenset()
-    return frozenset(_dirty_paths(listed))
+        return Status()
+    return Status(*_read_status(listed))
+
+
+@dataclass(frozen=True, slots=True)
+class Status:
+    """A working tree as `git status` describes it, both sides kept apart (RK1197)."""
+
+    #: Every path the tree has changed, staged or not, untracked included — what a `git add -A`
+    #: would put in the next commit, which is the list a scope is subtracted from.
+    changed: frozenset[str] = frozenset()
+    #: The subset whose **index** already differs from `HEAD`. The half that was thrown away:
+    #: a `git commit` takes these whether or not the author reads a diff, and the diff they are
+    #: reading is the other side. Measured twice in one session as a version literal another
+    #: process staged and this one would have committed.
+    staged: frozenset[str] = frozenset()
 
 
 def carrying(config: Config, task_id: str, paths: Iterable[str]) -> tuple[str, ...]:
@@ -549,13 +573,19 @@ def carrying(config: Config, task_id: str, paths: Iterable[str]) -> tuple[str, .
     return tuple(one for one in wanted if one in set(found))
 
 
-def _dirty_paths(listed: str) -> Iterator[str]:
+def _read_status(listed: str) -> tuple[frozenset[str], frozenset[str]]:
     """The paths out of `status --porcelain -z`, whose records are not one per NUL.
 
     A rename spends **two** NUL-separated fields — `R  <to>\\0<from>` — so a naive split reads
     the origin as a record and its first two characters as a status code. Both ends are
-    yielded, because both are paths the commit touches.
+    kept, because both are paths the commit touches.
+
+    Two sets since RK1197, from the same records: `XY` is one column per side, and the first
+    is the index. `?` is not one of them — an untracked file is in neither the index nor
+    `HEAD`, so it changes the commit and is not something the commit already carries.
     """
+    changed: list[str] = []
+    staged: list[str] = []
     fields = [field for field in listed.split(_NUL) if field]
     index = 0
     while index < len(fields):
@@ -564,10 +594,19 @@ def _dirty_paths(listed: str) -> Iterator[str]:
         code, _, name = record[:2], record[2:3], record[3:]
         if not name:
             continue
-        yield name
-        if code[0] in "RC" and index < len(fields):
-            yield fields[index]
+        changed.append(name)
+        # The **origin** of a rename is staged too, and by the same record: git states one
+        # code for the pair, so both ends take it.
+        renamed = code[0] in "RC" and index < len(fields)
+        origin = fields[index] if renamed else ""
+        if renamed:
+            changed.append(origin)
             index += 1
+        if code[0] not in " ?":
+            staged.append(name)
+            if origin:
+                staged.append(origin)
+    return frozenset(changed), frozenset(staged)
 
 
 @dataclass(frozen=True, slots=True)

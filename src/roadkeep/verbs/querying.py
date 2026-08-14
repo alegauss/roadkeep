@@ -41,7 +41,6 @@ from roadkeep.history import (
     HistoryUnavailable,
     anchors,
     cited_origin,
-    dirty,
     doubled,
     families_of_block,
     Gapped,
@@ -51,6 +50,7 @@ from roadkeep.history import (
     next_child,
     next_family,
     origin_of,
+    status,
 )
 from roadkeep.merging import markers
 from roadkeep.picking import Claim, Picked, pick, take
@@ -415,7 +415,8 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
     # from it, and both diffs name the id. Without it the report called them `loose`, which
     # reads as *somebody else touched this*, and the author declared them by hand to
     # silence it — the scope then carrying paths that were never the work.
-    wrote = claiming.written(config, args.id, dirty(config))
+    seen = status(config)
+    wrote = claiming.written(config, args.id, seen.changed)
     if args.porcelain:
         # Nothing but the paths: this form is consumed by `git add --`, so a heading on it
         # would be a filename to a shell and the contract has to be safe to pipe. The
@@ -439,10 +440,11 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
         config,
         args.id,
         entries,
-        dirty(config),
+        seen.changed,
         indexed(config),
         accounted=wrote,
         shared=claiming.sharing(config, args.id, wrote),
+        staged=seen.staged,
     )
     if args.json:
         print(
@@ -458,6 +460,10 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
                         {"path": one, "claimed_by": who} for one, who in scope.theirs
                     ],
                     "unclaimed": list(scope.loose),
+                    # Which of them the index already carries (RK1197), the key a departure
+                    # answers under the same name: a client acting on `unclaimed` decides, and
+                    # one acting on this has already been committed to by a `git add`.
+                    "unclaimed_staged": list(scope.staged),
                     # The same list a departure carries, and computed here since RK1122: the
                     # two readers of one contract answering differently was the defect.
                     "shared": [
