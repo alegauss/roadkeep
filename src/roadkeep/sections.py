@@ -678,11 +678,33 @@ def references(document: Document) -> tuple[Cite, ...]:
     return tuple(out)
 
 
+#: A mark that **carries its file**: the outward citation (RK1181). Prose in a governed file
+#: legitimately argues from another document's numbered sections — a spec, an RFC, a standard —
+#: and those documents number themselves with the same mark, so `§3.1` written plainly is read as
+#: a pointer into this file and refused as dangling. Met twice in one session in a project whose
+#: specs live beside the governed files; both times the repair was to strike the mark and spell
+#: the reference in words, which is a worse sentence, and both times the turn was already spent.
+#:
+#: Not a suppression flag, which is what this must never become: an author who can silence the
+#: check silences it for the typo too, and a bare mark naming nothing is usually exactly that —
+#: the case the rule was built for, which it goes on catching. What earns the silence is the
+#: **file**, named the way a Markdown link already names one. This repository's own `agents.md`
+#: writes `[§0.3](docs/IMPROVEMENTS.md)`, so the form is the corpus's and not an invention.
+#:
+#: A fragment (`[§I.2](#i-2)`) is *this* document and buys nothing: a target that names no path
+#: would be the suppression flag with an extra two characters.
+_OUTWARD_RE = re.compile(r"\[(§[^\]]*)\]\(\s*(?!#)([^)\s]+)[^)]*\)")
+
+
 def _argument(body: str) -> str:
     """A section's prose with every quotation blanked out, so a reference in one is not one.
 
     Blanked rather than dropped: the lines keep their positions, which is what lets a caller
     report a place without the two readings of the file disagreeing about which line it is.
+
+    The **outward citation** is blanked the same way (RK1181): a mark inside a Markdown link
+    whose target is a path is a reference into that document, which this file's outline cannot
+    answer for and the gate has nothing to resolve it against.
     """
     out: list[str] = []
     fence: str | None = None
@@ -694,7 +716,10 @@ def _argument(body: str) -> str:
     #: backstop that is supposed to notice.
     indented = False
     previous = ""
-    for line in body.splitlines():
+    for raw in body.splitlines():
+        # The link text first and in place, so an address inside one is gone before any other
+        # rule reads the line and every column after it still lines up.
+        line = _OUTWARD_RE.sub(lambda m: " " * len(m[0]), raw)
         stripped = line.strip()
         if fence is not None:
             if stripped.startswith(fence):

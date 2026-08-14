@@ -2510,3 +2510,52 @@ def test_a_citation_nothing_declares_stays_the_dangling_one(tmp_path):
     config = crossed(tmp_path, "This extends §I.9, which nobody declares.")
     codes = {one.code for one in lint(config).findings}
     assert "ref.dangling" in codes and "ref.crossed" not in codes
+
+
+# -- a citation that carries its file (RK1181) --------------------------------
+
+
+def citing(tmp_path: Path, sentence: str) -> Config:
+    """A governed prose file whose one section's prose makes one reference."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nimprovements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text("# Roadmap\n\n## Block A — The model\n", encoding="utf-8")
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        f"# Improvements\n\n### §RK1 A design\n\n{sentence}\n", encoding="utf-8"
+    )
+    return Config.discover(tmp_path)
+
+
+def dangling(config: Config) -> list[str]:
+    return [one.code for one in lint(config).findings if one.code == "ref.dangling"]
+
+
+def test_a_mark_carrying_its_file_is_a_reference_outward(tmp_path):
+    """RK1181, met twice in one session in a project whose specs live beside the governed files.
+    Prose legitimately argues from another document's numbered sections, and those documents
+    number themselves with the same mark — so `§3.1` written plainly was read as a pointer into
+    this file and refused. Both times the repair was to strike the mark and spell the reference in
+    words, which is a worse sentence, and both times the turn was already spent: the gate fires at
+    the end, so the author learned at Stop that a correct paragraph was unacceptable.
+
+    The form is the corpus's own: this repository's `agents.md` already writes
+    `[§0.3](docs/IMPROVEMENTS.md)`.
+    """
+    config = citing(tmp_path, "This extends [§3.1](specs/http.md) of the transfer spec.")
+    assert dangling(config) == []
+
+
+def test_a_bare_mark_naming_nothing_is_still_the_typo_it_usually_is(tmp_path):
+    """What the rule was built for, and what it must go on catching: this is not a suppression
+    flag, and an author who could silence the check would silence it for the typo too."""
+    config = citing(tmp_path, "This extends §3.1 of the transfer spec.")
+    assert dangling(config) == ["ref.dangling"]
+
+
+def test_a_fragment_target_buys_nothing(tmp_path):
+    """`[§I.2](#i-2)` names *this* document, so it is the suppression flag with two extra
+    characters: what earns the silence is the file, and a fragment names none."""
+    config = citing(tmp_path, "See [§I.2](#i-2) below for the rest.")
+    assert dangling(config) == ["ref.dangling"]

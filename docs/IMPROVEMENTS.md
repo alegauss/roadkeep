@@ -104,6 +104,33 @@ that is merely current.
 
 ## Block C — Query
 
+### §RK1183 The partner the sentences do not match
+
+`delivered --near` ranks a block's entries by word overlap against a sentence, and
+`test_ranking` measures that read against the only ground truth this ledger holds: the
+retirements that name a superseding id. For four pairs the partner is inside the nearest
+five, which is the figure the command publishes.
+
+The fifth pair broke it. RK1182 was retired naming RK1152, and the read places RK348
+first — whose symptom is nearly RK1182's own, and which delivered the other half of the
+same claim. Both answers are right about something different:
+
+- the ranking is right that RK348's *sentence* is the match;
+- the retirement is right that RK1152 delivered the half RK1182 called the larger one.
+
+So the ranking is not wrong about this pair. The closure's premise is — *a partner is
+always among the nearest sentences* — and it fails whenever a task is superseded by work
+whose symptom is stated differently: most refactors, and any pair where one task
+delivers the fix and another the diagnosis.
+
+The exemption is named in the test with its reason rather than bought by a looser
+`NEAREST`: a figure nobody can re-read hides the next real regression.
+
+What needs deciding: whether the measurement changes — ranking against symptom *and*
+why, where a retirement's own reason names its partner — or the ground truth does, an
+unreachable pair being evidence about `--near`'s reach that belongs in the published
+figure rather than in an exemption. The second is honest and larger.
+
 ## Block D — The gate
 
 ### §RK1172 A rule is a record, the way a remedy already is
@@ -149,29 +176,6 @@ What must survive the move, because it is the part that is load-bearing: the fou
 the marked blank where the prose is the author's by L4, the two doors where the choice
 is editorial, and the config reads that keep a door true on a project whose paths and
 pointer scheme are its own. None of that is a table; all of it is the field's type.
-
-### §RK1181 A citation this file cannot make
-
-A rationale section arguing about a design document quotes that document's structure —
-"section 4 says the site must carry no measured number", "the acceptance criteria in
-section 3.1". Written with the section mark, which is how those documents number
-themselves, `ref.dangling` reads it as a pointer into the governed prose file and
-refuses: the anchor is not declared there, because it never was one.
-
-Met twice in one session in a project whose specs live beside the governed files. Both
-times the fix was to strike the mark and spell the reference in words, which is a worse
-sentence, and both times the turn was already spent: the gate fires at the end, so the
-author learns at Stop that a paragraph they wrote is unacceptable for a reason that is
-not about the paragraph.
-
-The check is right that a bare mark naming nothing is usually a typo — that is the case
-it was built for, and it catches real ones. What is missing is the other case having any
-spelling at all. A citation carrying its file, the way a Markdown link already does, is
-one the gate can resolve or leave alone.
-
-So the repair is a form for the outward citation before the inward one is refused. What
-it must not become is a suppression flag: an author who can silence the check silences
-it for the typo too, which is the finding this rule exists to raise.
 
 ## Block E — Adoption
 
