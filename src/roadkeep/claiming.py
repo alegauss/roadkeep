@@ -187,6 +187,45 @@ class Dated:
     def since(self) -> str:
         return since(self.age)
 
+    @property
+    def placed(self) -> str:
+        """Where this row is, in one column (RK164).
+
+        An open line says so with its own marker and block; anything else says which **door**
+        it left by, which is the cause and not the consequence — and the marker column is
+        dropped rather than left blank, a gap reading as something that failed.
+
+        On the record since RK1170: the listing and the row's payload are two readings of one
+        fact, and a function in the door was where only one of them could reach it.
+        """
+        if self.where is Where.OPEN:
+            return f"{self.marker} Block {self.block}"
+        return str(self.where)
+
+    def payload(self) -> dict[str, object]:
+        """The same row as data. `marker` and `block` are null rather than empty where no line
+        carries the id, so a consumer tells "absent" from "blank"."""
+        return {
+            "id": self.id,
+            "state": str(self.state),
+            "where": str(self.where),
+            "age": round(self.age),
+            "since": self.since,
+            "marker": self.marker or None,
+            "block": self.block or None,
+            "paths": list(self.paths),
+        }
+
+    def listed(self, pruned: bool = False) -> str:
+        """One line of the registry listing (RK161, RK280).
+
+        The scope is **counted** here and named by `claim <id>`: this listing ranks nothing and
+        offers nothing, and four paths per row would make it the other command.
+        """
+        scoped = f"  {len(self.paths)} path(s)" if self.paths else ""
+        state = "pruned" if pruned else str(self.state)
+        return f"  {state:<8} {self.id}  claimed {self.since} ago  {self.placed}{scoped}"
+
 
 def survey(backlog: Backlog) -> tuple[Dated, ...]:
     """Every dated id, oldest first, with what the files make of it (RK161).

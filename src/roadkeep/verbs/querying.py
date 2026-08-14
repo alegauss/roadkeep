@@ -347,11 +347,11 @@ def _claims(config: Config, args: argparse.Namespace) -> int:
                     "window": config.held,
                     "registry": registry,
                     "held": held,
-                    "claims": [_claim_row(row) for row in rows],
+                    "claims": [row.payload() for row in rows],
                     # Named and not counted, and present as an empty list when the flag was
                     # passed and dropped nothing (RK165): a prune that hides its own effect is
                     # how "the registry is clean" gets read off a command that emptied it.
-                    "pruned": None if not args.prune else [_claim_row(r) for r in dropped],
+                    "pruned": None if not args.prune else [row.payload() for row in dropped],
                 },
                 indent=2,
             )
@@ -359,40 +359,16 @@ def _claims(config: Config, args: argparse.Namespace) -> int:
         return EXIT_OK
 
     print(f"{len(rows)} dated, {held} held  (window {config.held}m)")
-    for row in (*rows, *dropped):
-        # The scope is counted here and named by `claim <id>` (RK280): this listing ranks
-        # nothing and offers nothing, and four paths per row would make it the other command.
-        scoped = f"  {len(row.paths)} path(s)" if row.paths else ""
-        print(f"  {'pruned' if row in dropped else str(row.state):<8} {row.id}  "
-              f"claimed {row.since} ago  {_claim_where(row)}{scoped}")
+    for row in rows:
+        print(row.listed())
+    for row in dropped:
+        print(row.listed(pruned=True))
     if args.prune and not dropped:
         print("  pruned   nothing: every row is a claim")
     # Named because the release is a marker and the *file* is what an operator deletes when a
     # whole checkout's worth of claims outlived their workers (RK161).
     print(f"  registry {registry}")
     return EXIT_OK
-
-
-def _claim_where(row: claiming.Dated) -> str:
-    """An open line says where it is with its own marker and block; anything else says which
-    door it left by (RK164), which is the cause and not the consequence — and the marker
-    column is dropped rather than left blank, a gap reading as something that failed."""
-    if row.where is claiming.Where.OPEN:
-        return f"{row.marker} Block {row.block}"
-    return str(row.where)
-
-
-def _claim_row(row: claiming.Dated) -> dict[str, object]:
-    return {
-        "id": row.id,
-        "state": str(row.state),
-        "where": str(row.where),
-        "age": round(row.age),
-        "since": row.since,
-        "marker": row.marker or None,
-        "block": row.block or None,
-        "paths": list(row.paths),
-    }
 
 
 def _claim(config: Config, args: argparse.Namespace) -> int:
