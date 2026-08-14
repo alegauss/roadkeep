@@ -4,6 +4,10 @@
 `reversals` read it back — what a block already shipped, and which of those deliveries was
 later undone. Filed by their subject, an entry in the ledger, and not by whether they write
 one: a proposal is checked against both, and the two reads come before it, not after.
+
+**Every write here renders both registers off its own record** (RK1170), so each door is the
+call, the save and a choice of reading — and this module no longer imports `rendering` at all.
+The two reads still compose their answers here, which is the rest of that task.
 """
 
 from __future__ import annotations
@@ -18,13 +22,6 @@ from roadkeep.config import Config
 from roadkeep.kernel.document import declares, shading
 from roadkeep.ranking import NEAREST, nearest
 from roadkeep.remaining import declared
-from roadkeep.rendering import (
-    _print,
-    _staging_rows,
-    _wrote_json,
-    _event,
-    _event_rows,
-)
 from roadkeep.reverting import reversals
 from roadkeep.shipping import (
     Delivered,
@@ -114,80 +111,10 @@ def _record(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    ledger = config.relative(config.path("changelog"))
-    block = entry.ledger.entry.task.block  # as the file reads it back, not as it was typed
-    # The event's block state is the *roadmap's*, as it is for every other mutator: a hook
-    # asking "is Block B finished" is asking about open work, and a record adds none.
-    event = _event(entry.task_id, block, entry.roadmap, config)
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": entry.task_id,
-                    "marker": entry.marker,
-                    "changelog": {
-                        "file": ledger,
-                        "line": entry.ledger.lineno,
-                        "rendered": entry.ledger.rendered,
-                    },
-                    "roadmap": {"touched": bool(entry.refreshed)},
-                    "refreshed": list(entry.refreshed),
-                    # The other half of the transaction (RK395): null on every record that
-                    # supersedes nothing, and the earlier entry as it now reads otherwise.
-                    "superseded": None
-                    if entry.superseded is None
-                    else {
-                        "id": entry.superseded.task.id,
-                        "line": entry.superseded.lineno,
-                        "rendered": entry.superseded.raw,
-                    },
-                    # The sentence that already named this id, where `--id` was allowed
-                    # because no line held it (RK1051): null on every other record.
-                    "mentioned": None
-                    if entry.mentioned is None
-                    else {
-                        "file": config.relative(entry.mentioned.path),
-                        "line": entry.mentioned.lineno,
-                    },
-                    "event": event,
-                    **_wrote_json(config, wrote),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(
-        f"{entry.task_id} {entry.marker} {ledger}:{entry.ledger.lineno} "
-        f"under Block {block}"
-    )
-    # Said out loud, because the absence is the whole point: a reader of this output has to
-    # be able to tell "there was no line" from "the roadmap edit was forgotten". About the
-    # write and not about the work (RK1050, RK1051): this door is also how a task that *was*
-    # planned gets the entry it is missing, and `planned never` was a claim about the wrong
-    # thing on exactly the write that repairs one.
-    print("  roadmap  no line to remove: this door writes the entry and nothing else")
-    if entry.mentioned is not None:
-        # The citation the occupancy check used to refuse over (RK1051). Printed rather than
-        # refused *and* rather than swallowed: an entry that keeps a sentence's promise and
-        # one that collides with it are the same write, and only the author can tell them
-        # apart — so the address is given and the judgement is left where it belongs.
-        print(
-            f"  cited    {config.relative(entry.mentioned.path)}:{entry.mentioned.lineno} "
-            f"already names {entry.task_id}: no line held it, so this entry is what it "
-            f"now points at"
-        )
-    if entry.superseded is not None:
-        # The edit the caller did not spell, printed where every other derived write is: the
-        # forward pointer is this command's fact, and a reviewer reads the diff against it.
-        print(
-            f"  pointed  {ledger}:{entry.superseded.lineno} "
-            f"{entry.superseded.task.id} now names {entry.task_id} as what replaced it"
-        )
-    if entry.refreshed:
-        print(f"  derived  {', '.join(entry.refreshed)} (dep annotations re-derived)")
-    _print(_staging_rows(config.relative(one) for one in wrote))
-    _print(_event_rows(event, "  ", config=config))
+        print(json.dumps(entry.payload(config, wrote), indent=2))
+    else:
+        print(entry.stated(config, wrote))
     return EXIT_OK
 
 
@@ -210,60 +137,10 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    where = config.relative(config.path("changelog"))
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": corrected.task_id,
-                    "file": where,
-                    # The line it was already on, because not moving it is the claim.
-                    "line": corrected.lineno,
-                    **_wrote_json(config, wrote),
-                    "rendered": corrected.rendered,
-                    "changed": list(corrected.changed),
-                    # The lines under the bullet this write put back (RK1049): `rendered`
-                    # is the first line, so a reader diffing the JSON cannot otherwise
-                    # tell a kept tail from a collapsed one.
-                    "below": corrected.below,
-                    # The id that reverted this one, or null (RK1042, RK1052): read off the
-                    # ledger as it stood, since correcting the sentence is what can remove
-                    # the mark it is read from.
-                    "undone_by": undone_by,
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    # `below` as well as `changed` (RK1049): a correction that moved no field and rewrote
-    # four paragraphs under the bullet is a write, and calling it unchanged here would be
-    # the collapse that task closed, reported as a no-op.
-    if not corrected.changed and not corrected.below:
-        print(f"{corrected.task_id} unchanged: the entry already reads that way")
-        return EXIT_OK
-    print(
-        f"{corrected.task_id} amended  {where}:{corrected.lineno}  "
-        f"({', '.join(corrected.changed) or 'tail'})"
-    )
-    print(f"  {corrected.rendered}")
-    if undone_by is not None:
-        # The moment the clause matters most (RK1052): the author is composing an outcome
-        # for work a later entry says did not hold, and `delivered` would have told them.
-        # The two surfaces RK1042 joined are one fact again, said in the same words.
-        print(
-            f"  undone   by {undone_by}: the decision this entry records was reverted, "
-            f"so the outcome being corrected is one that did not hold"
-        )
-    if corrected.below:
-        # Said out loud for the reason the absence is (RK1049): the line printed above is
-        # the whole of what this command can render, and a reader who cannot see that four
-        # paragraphs are still under it has to diff the file to learn whether they survived.
-        print(
-            f"  kept     {corrected.below} continuation line(s) under the bullet, "
-            f"verbatim: no field holds them"
-        )
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(corrected.payload(config, wrote, undone_by), indent=2))
+    else:
+        print(corrected.stated(config, wrote, undone_by))
     return EXIT_OK
 
 
@@ -276,45 +153,10 @@ def _record_move(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    where = config.relative(config.path("changelog"))
-    # The roadmap is read and never written (RK67's rule, for the same reason): a block is
-    # where an entry is filed, so re-filing one leaves every open line exactly as it was.
-    event = _event(refiled.task_id, refiled.to_block, config.document("roadmap"), config)
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": refiled.task_id,
-                    "file": where,
-                    # Both, because the entry does not keep its number and a payload naming
-                    # one position would be the pretence this verb exists not to make.
-                    "from": {"block": refiled.from_block, "line": refiled.from_line},
-                    "to": {"block": refiled.to_block, "line": refiled.lineno},
-                    **_wrote_json(config, wrote),
-                    "moved": refiled.moved,
-                    "rendered": refiled.rendered,
-                    "roadmap": {"touched": False},
-                    "event": event,
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    if not refiled.moved:
-        print(
-            f"{refiled.task_id} unchanged: the ledger already files it under "
-            f"Block {refiled.to_block}"
-        )
-        return EXIT_OK
-    print(
-        f"{refiled.task_id} moved  Block {refiled.from_block} → Block {refiled.to_block}  "
-        f"{where}:{refiled.from_line} → :{refiled.lineno}"
-    )
-    print(f"  {refiled.rendered}")
-    print("  roadmap  untouched: a block is where an entry is filed, not what it records")
-    _print(_event_rows(event, "  ", config=config))
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(refiled.payload(config, wrote), indent=2))
+    else:
+        print(refiled.stated(config, wrote))
     return EXIT_OK
 
 
@@ -325,34 +167,10 @@ def _record_renumber(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    ledger = config.relative(config.path("changelog"))
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": moved.task_id,
-                    **_wrote_json(config, wrote),
-                    "to": moved.to,
-                    "file": ledger,
-                    # The entry does not move: it keeps its line, so the ledger still reads
-                    # in the order work landed and the diff is the number.
-                    "line": moved.lineno,
-                    "rendered": moved.rendered,
-                    "kept": {"line": moved.kept, "marker": moved.kept_marker},
-                    "roadmap": {"touched": False},
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(f"{moved.task_id} → {moved.to}  {ledger}:{moved.lineno}")
-    print(f"  {moved.rendered}")
-    print(
-        f"  kept     {moved.kept_marker} line {moved.kept} still carries {moved.task_id}: "
-        f"every annotation elsewhere was written about that delivery"
-    )
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(moved.payload(config, wrote), indent=2))
+    else:
+        print(moved.stated(config, wrote))
     return EXIT_OK
 
 
@@ -363,45 +181,10 @@ def _record_drop(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    ledger = config.relative(config.path("changelog"))
-    # The roadmap is read, never written (RK67): the event's block state is the *roadmap's*
-    # for every mutator, and a duplicate entry removed leaves open work exactly as it was.
-    event = _event(dropped.task_id, dropped.block, config.document("roadmap"), config)
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": dropped.task_id,
-                    "changelog": {
-                        "file": ledger,
-                        "removed": dropped.removed_from,
-                        "marker": dropped.marker,
-                    },
-                    "kept": {"line": dropped.kept, "marker": dropped.kept_marker},
-                    "roadmap": {"touched": False},
-                    **_wrote_json(config, wrote),
-                    "event": event,
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(
-        f"{dropped.task_id} {dropped.marker} {ledger}:{dropped.removed_from} removed, "
-        f"duplicate of {ledger}:{dropped.kept}"
-    )
-    print(f"  kept     {dropped.kept_marker} line {dropped.kept}: where the decision was found")
-    if dropped.kept_marker != dropped.marker:
-        # Two entries that disagree about the door are not one decision written twice, and
-        # the later one is gone: which marker the ledger now states has to be said out loud.
-        print(
-            f"  differed the entry removed said {dropped.marker}, so the ledger now states "
-            f"{dropped.kept_marker}"
-        )
-    print("  roadmap  untouched: an id the ledger still records changes no annotation")
-    _print(_event_rows(event, "  ", config=config))
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(dropped.payload(config, wrote), indent=2))
+    else:
+        print(dropped.stated(config, wrote))
     return EXIT_OK
 
 

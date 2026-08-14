@@ -1291,6 +1291,94 @@ class Record:
         # hook watching it, and "touched nothing else" has to be true on disk.
         return save_all(self.ledger.document, self.roadmap if self.refreshed else None)
 
+    @property
+    def block(self) -> str:
+        """As the file reads it back, and not as it was typed."""
+        return self.ledger.entry.task.block
+
+    def event(self, config: Config) -> dict[str, object]:
+        """The **roadmap's** block state, as it is for every other mutator: a hook asking "is
+        Block B finished" is asking about open work, and a record adds none."""
+        from roadkeep.rendering import _event  # noqa: PLC0415 - RK260
+
+        return _event(self.task_id, self.block, self.roadmap, config)
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """A ledger entry that had no roadmap line to leave (RK41).
+
+        Beside :meth:`payload` since RK1170.
+        """
+        from roadkeep.rendering import _event_rows, _staging_rows  # noqa: PLC0415 - RK260
+
+        ledger = config.relative(config.path("changelog"))
+        rows = [
+            f"{self.task_id} {self.marker} {ledger}:{self.ledger.lineno} "
+            f"under Block {self.block}",
+            # Said out loud, because the absence is the whole point: a reader of this output
+            # has to be able to tell "there was no line" from "the roadmap edit was forgotten".
+            # About the write and not about the work (RK1050, RK1051): this door is also how a
+            # task that *was* planned gets the entry it is missing, and `planned never` was a
+            # claim about the wrong thing on exactly the write that repairs one.
+            "  roadmap  no line to remove: this door writes the entry and nothing else",
+        ]
+        if self.mentioned is not None:
+            # The citation the occupancy check used to refuse over (RK1051). Printed rather
+            # than refused *and* rather than swallowed: an entry that keeps a sentence's promise
+            # and one that collides with it are the same write, and only the author can tell
+            # them apart — so the address is given and the judgement is left where it belongs.
+            rows.append(
+                f"  cited    {config.relative(self.mentioned.path)}:{self.mentioned.lineno} "
+                f"already names {self.task_id}: no line held it, so this entry is what it "
+                f"now points at"
+            )
+        if self.superseded is not None:
+            # The edit the caller did not spell, printed where every other derived write is:
+            # the forward pointer is this command's fact, and a reviewer reads the diff by it.
+            rows.append(
+                f"  pointed  {ledger}:{self.superseded.lineno} "
+                f"{self.superseded.task.id} now names {self.task_id} as what replaced it"
+            )
+        if self.refreshed:
+            rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        rows += _event_rows(self.event(config), "  ", config=config)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        """The same answer as data, with the entry this one supersedes (RK395)."""
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "id": self.task_id,
+            "marker": self.marker,
+            "changelog": {
+                "file": config.relative(config.path("changelog")),
+                "line": self.ledger.lineno,
+                "rendered": self.ledger.rendered,
+            },
+            "roadmap": {"touched": bool(self.refreshed)},
+            "refreshed": list(self.refreshed),
+            # The other half of the transaction (RK395): null on every record that supersedes
+            # nothing, and the earlier entry as it now reads otherwise.
+            "superseded": None
+            if self.superseded is None
+            else {
+                "id": self.superseded.task.id,
+                "line": self.superseded.lineno,
+                "rendered": self.superseded.raw,
+            },
+            # The sentence that already named this id, where `--id` was allowed because no
+            # line held it (RK1051): null on every other record.
+            "mentioned": None
+            if self.mentioned is None
+            else {
+                "file": config.relative(self.mentioned.path),
+                "line": self.mentioned.lineno,
+            },
+            "event": self.event(config),
+            **_wrote_json(config, wrote),
+        }
+
 
 @dataclass(frozen=True, slots=True)
 class Dropped:
@@ -1320,6 +1408,55 @@ class Dropped:
         """Write the ledger, and answer it (RK1130). Nothing else was opened, so nothing
         else can be touched — and the answer is what a `git add --` takes."""
         return self.ledger.save()
+
+    def event(self, config: Config) -> dict[str, object]:
+        """The roadmap is read, never written (RK67): the event's block state is the
+        *roadmap's* for every mutator, and a duplicate removed leaves open work as it was."""
+        from roadkeep.rendering import _event  # noqa: PLC0415 - RK260
+
+        return _event(self.task_id, self.block, config.document("roadmap"), config)
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """Which of two entries went, and which line the decision keeps (RK67).
+
+        Beside :meth:`payload` since RK1170.
+        """
+        from roadkeep.rendering import _event_rows, _staging_rows  # noqa: PLC0415 - RK260
+
+        ledger = config.relative(config.path("changelog"))
+        rows = [
+            f"{self.task_id} {self.marker} {ledger}:{self.removed_from} removed, "
+            f"duplicate of {ledger}:{self.kept}",
+            f"  kept     {self.kept_marker} line {self.kept}: where the decision was found",
+        ]
+        if self.kept_marker != self.marker:
+            # Two entries that disagree about the door are not one decision written twice, and
+            # the later one is gone: which marker the ledger now states has to be said aloud.
+            rows.append(
+                f"  differed the entry removed said {self.marker}, so the ledger now states "
+                f"{self.kept_marker}"
+            )
+        rows.append("  roadmap  untouched: an id the ledger still records changes no annotation")
+        rows += _event_rows(self.event(config), "  ", config=config)
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        """The same answer as data, with both entries' markers (RK67)."""
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "id": self.task_id,
+            "changelog": {
+                "file": config.relative(config.path("changelog")),
+                "removed": self.removed_from,
+                "marker": self.marker,
+            },
+            "kept": {"line": self.kept, "marker": self.kept_marker},
+            "roadmap": {"touched": False},
+            **_wrote_json(config, wrote),
+            "event": self.event(config),
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -1357,6 +1494,69 @@ class Corrected:
         """Write the ledger, and answer it (RK1130). Nothing else was opened, so nothing
         else can be touched — and the answer is what a `git add --` takes."""
         return self.ledger.save()
+
+    def stated(self, config: Config, wrote: Sequence[Path], undone_by: str | None) -> str:
+        """What the correction moved, and whether it was written about work that held (RK124).
+
+        Beside :meth:`payload` since RK1170. `undone_by` is a parameter for `wrote`'s reason and
+        one more (RK1052): it is read off the ledger *before* the write, because correcting the
+        sentence is what can remove the mark it is read from — so the record cannot hold it.
+        """
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path("changelog"))
+        # `below` as well as `changed` (RK1049): a correction that moved no field and rewrote
+        # four paragraphs under the bullet is a write, and calling it unchanged here would be
+        # the collapse that task closed, reported as a no-op.
+        if not self.changed and not self.below:
+            return f"{self.task_id} unchanged: the entry already reads that way"
+        rows = [
+            f"{self.task_id} amended  {where}:{self.lineno}  "
+            f"({', '.join(self.changed) or 'tail'})",
+            f"  {self.rendered}",
+        ]
+        if undone_by is not None:
+            # The moment the clause matters most (RK1052): the author is composing an outcome
+            # for work a later entry says did not hold, and `delivered` would have told them.
+            # The two surfaces RK1042 joined are one fact again, said in the same words.
+            rows.append(
+                f"  undone   by {undone_by}: the decision this entry records was reverted, "
+                f"so the outcome being corrected is one that did not hold"
+            )
+        if self.below:
+            # Said out loud for the reason the absence is (RK1049): the line printed above is
+            # the whole of what this command can render, and a reader who cannot see that four
+            # paragraphs are still under it has to diff the file to learn whether they survived.
+            rows.append(
+                f"  kept     {self.below} continuation line(s) under the bullet, "
+                f"verbatim: no field holds them"
+            )
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(
+        self, config: Config, wrote: Sequence[Path], undone_by: str | None
+    ) -> dict[str, object]:
+        """The same answer as data, with the tail this write put back (RK1049)."""
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "id": self.task_id,
+            "file": config.relative(config.path("changelog")),
+            # The line it was already on, because not moving it is the claim.
+            "line": self.lineno,
+            **_wrote_json(config, wrote),
+            "rendered": self.rendered,
+            "changed": list(self.changed),
+            # The lines under the bullet this write put back (RK1049): `rendered` is the first
+            # line, so a reader diffing the JSON cannot otherwise tell a kept tail from a
+            # collapsed one.
+            "below": self.below,
+            # The id that reverted this one, or null (RK1042, RK1052): read off the ledger as
+            # it stood, since correcting the sentence is what can remove the mark it is read
+            # from.
+            "undone_by": undone_by,
+        }
 
 
 def amend(
@@ -1512,6 +1712,54 @@ class Refiled:
         else can be touched — and the answer is what a `git add --` takes."""
         return self.ledger.save()
 
+    def event(self, config: Config) -> dict[str, object]:
+        """The roadmap is read and never written (RK67's rule, for the same reason): a block is
+        where an entry is filed, so re-filing one leaves every open line exactly as it was."""
+        from roadkeep.rendering import _event  # noqa: PLC0415 - RK260
+
+        return _event(self.task_id, self.to_block, config.document("roadmap"), config)
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """Both positions, because the line does not keep its number (RK143).
+
+        Beside :meth:`payload` since RK1170.
+        """
+        from roadkeep.rendering import _event_rows, _staging_rows  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path("changelog"))
+        if not self.moved:
+            return (
+                f"{self.task_id} unchanged: the ledger already files it under "
+                f"Block {self.to_block}"
+            )
+        rows = [
+            f"{self.task_id} moved  Block {self.from_block} → Block {self.to_block}  "
+            f"{where}:{self.from_line} → :{self.lineno}",
+            f"  {self.rendered}",
+            "  roadmap  untouched: a block is where an entry is filed, not what it records",
+        ]
+        rows += _event_rows(self.event(config), "  ", config=config)
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        """The same answer as data, naming both positions (RK143)."""
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "id": self.task_id,
+            "file": config.relative(config.path("changelog")),
+            # Both, because the entry does not keep its number and a payload naming one
+            # position would be the pretence this verb exists not to make.
+            "from": {"block": self.from_block, "line": self.from_line},
+            "to": {"block": self.to_block, "line": self.lineno},
+            **_wrote_json(config, wrote),
+            "moved": self.moved,
+            "rendered": self.rendered,
+            "roadmap": {"touched": False},
+            "event": self.event(config),
+        }
+
 
 def move(config: Config, task_id: str, *, to_block: str) -> Refiled:
     """Re-file one ledger entry under another block heading (RK143).
@@ -1607,6 +1855,40 @@ class Readdressed:
         """Write the ledger, and answer it (RK1130). Nothing else was opened, so nothing
         else can be touched — and the answer is what a `git add --` takes."""
         return self.ledger.save()
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """The new address, and the line that keeps the old one (RK127).
+
+        Beside :meth:`payload` since RK1170.
+        """
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        ledger = config.relative(config.path("changelog"))
+        rows = [
+            f"{self.task_id} → {self.to}  {ledger}:{self.lineno}",
+            f"  {self.rendered}",
+            f"  kept     {self.kept_marker} line {self.kept} still carries {self.task_id}: "
+            f"every annotation elsewhere was written about that delivery",
+        ]
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        """The same answer as data, with the delivery the id stayed on (RK127)."""
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "id": self.task_id,
+            **_wrote_json(config, wrote),
+            "to": self.to,
+            "file": config.relative(config.path("changelog")),
+            # The entry does not move: it keeps its line, so the ledger still reads in the
+            # order work landed and the diff is the number.
+            "line": self.lineno,
+            "rendered": self.rendered,
+            "kept": {"line": self.kept, "marker": self.kept_marker},
+            "roadmap": {"touched": False},
+        }
 
 
 def drop(config: Config, task_id: str, *, lineno: int | None = None) -> Dropped:
