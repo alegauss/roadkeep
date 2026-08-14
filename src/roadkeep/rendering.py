@@ -238,7 +238,7 @@ def _carried_json(config: Config, carried: Carried | None) -> dict[str, str | No
     }
 
 
-def _print_emptied(parent: str | None) -> None:
+def _emptied_rows(parent: str | None) -> list[str]:
     """The parent this drop left introducing children that have all shipped (RK400).
 
     Beside the citation line and for the same reason: this is the only moment it can be
@@ -249,16 +249,19 @@ def _print_emptied(parent: str | None) -> None:
 
     Noticing is the tool's; what the introduction should say instead is a `section amend` and
     a judgement (L4). So the sentence names the anchor and the door, and writes nothing.
+
+    Rows and no longer a printer (RK1170): the verbs that say this are moving their whole
+    answer onto their records, which a function that prints cannot be part of.
     """
     if parent is None:
-        return
-    print(
+        return []
+    return [
         f"  emptied  §{parent} now has no subsections — its prose introduces work that has "
         f"shipped; `section amend {parent} --body -` is the edit, in this commit"
-    )
+    ]
 
 
-def _print_cited(cited: Sequence[str]) -> None:
+def _cited_rows(cited: Sequence[str]) -> list[str]:
     """Who is left pointing at prose this command deleted (RK206).
 
     Said here and gated nowhere, because this is the only moment it can be said: `ship`
@@ -266,16 +269,18 @@ def _print_cited(cited: Sequence[str]) -> None:
     on a reference to a section that shipped reads exactly like a typo. The ship is right —
     what the author owes is one edit in the same commit, and this is the sentence that asks
     for it.
+
+    Rows and no longer a printer (RK1170), for the reason its neighbour above is.
     """
     if not cited:
-        return
-    print(
+        return []
+    return [
         f"  cited    {', '.join(f'§{a}' for a in cited)} "
         f"{'cites' if len(cited) == 1 else 'cite'} it in prose — now resolving to nothing"
-    )
+    ]
 
 
-def _print_scope(scope: claiming.Scope | None, wrote: Sequence[str] = ()) -> None:
+def _scope_rows(scope: claiming.Scope | None, wrote: Sequence[str] = ()) -> list[str]:
     """What the tree holds that this commit's claim does not name (RK280, RK294).
 
     Silent on a `None`, which is a project no claim spoke for — there the whole answer would
@@ -297,34 +302,35 @@ def _print_scope(scope: claiming.Scope | None, wrote: Sequence[str] = ()) -> Non
     committer is already reading. Spelled as the command rather than as a list, the shape
     every other unreachable next step in this tool takes (RK257): what the author does with
     these paths is stage them.
+
+    Rows and no longer a printer (RK1170): a departure composes its whole answer where the
+    record is, and the longest list in it cannot be the one part that writes itself.
     """
     if scope is None:
         # The staging line is still owed (RK1130). What needs a claim is the *subtraction* —
         # which paths are somebody else's — and a project that declared none was getting no
         # `git add --` line at all from the two verbs that had one, on the write with the most
         # files in it. So the silence stays where it belongs: on the three lists below.
-        _print(_staging_rows(dict.fromkeys(wrote)))
-        return
-    _print(_staging_rows(dict.fromkeys((*scope.mine, *wrote))))
-    for one, who in scope.theirs:
-        print(f"  theirs   {one}  ({who} is holding it)")
-    for one, others in scope.shared:
-        # Beside the staging and not instead of it (RK1120): the file is staged either way —
-        # this transaction wrote it — and what the author needs is the ids inside it that this
-        # commit is not about, which is the hunk to leave out rather than a path to drop.
-        named = ", ".join(others)
-        print(f"  shared   {one}  ({named} moved in it too, and staging it takes that)")
-    for one in scope.loose:
-        # No filter here since RK1117: `loose` already excludes what this id explains, and the
-        # subtraction moved to `split` because the two callers meant different things by the
-        # list this used to read — a departure's `wrote` is what the transaction wrote, and a
-        # governed file it wrote *and* somebody else had changed vanished from both reports.
-        print(f"  loose    {one}  (no claim names it)")
+        return _staging_rows(dict.fromkeys(wrote))
+    rows = _staging_rows(dict.fromkeys((*scope.mine, *wrote)))
+    rows += [f"  theirs   {one}  ({who} is holding it)" for one, who in scope.theirs]
+    # Beside the staging and not instead of it (RK1120): the file is staged either way — this
+    # transaction wrote it — and what the author needs is the ids inside it that this commit is
+    # not about, which is the hunk to leave out rather than a path to drop.
+    rows += [
+        f"  shared   {one}  ({', '.join(others)} moved in it too, and staging it takes that)"
+        for one, others in scope.shared
+    ]
+    # No filter here since RK1117: `loose` already excludes what this id explains, and the
+    # subtraction moved to `split` because the two callers meant different things by the list
+    # this used to read — a departure's `wrote` is what the transaction wrote, and a governed
+    # file it wrote *and* somebody else had changed vanished from both reports.
+    rows += [f"  loose    {one}  (no claim names it)" for one in scope.loose]
     # The declared paths that would stage nothing (RK295). Named here rather than folded into
-    # `mine`, which this printer deliberately does not repeat: at a departure the work is done,
-    # so a scope naming a file the tree does not have is a typo and not a file yet to be written.
-    for one in scope.idle:
-        print(f"  typo?    {one}  (declared, and stages nothing)")
+    # `mine`, which this list deliberately does not repeat: at a departure the work is done, so
+    # a scope naming a file the tree does not have is a typo and not a file yet to be written.
+    rows += [f"  typo?    {one}  (declared, and stages nothing)" for one in scope.idle]
+    return rows
 
 
 def _wrote_json(config: Config, paths: Iterable[Path]) -> dict[str, object]:

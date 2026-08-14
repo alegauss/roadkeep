@@ -65,7 +65,7 @@ from roadkeep.rendering import (
     _miss_json,
     _nothing_json,
     _leverage_rows,
-    _print_scope,
+    _scope_rows,
     _print_standing,
     _row_json,
 )
@@ -555,7 +555,7 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
         # apart (RK309): the scope is what the holder said, verbatim, and these are not a
         # declaration to be corrected but a record to be used.
         print(f"  wrote    {one}  (this task's own transactions)")
-    _print_scope(scope, wrote)
+    _print(_scope_rows(scope, wrote))
     if not mine:
         print(f"  none declared: `claim {args.id} --path <p>` says what this commit owns")
     return EXIT_OK

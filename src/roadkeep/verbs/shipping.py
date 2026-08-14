@@ -16,7 +16,6 @@ from collections.abc import Sequence
 from roadkeep.backlog import Backlog, Stage
 from roadkeep.config import Config
 from roadkeep.kernel.document import declares, shading
-from roadkeep.provenance import invocation
 from roadkeep.ranking import NEAREST, nearest
 from roadkeep.remaining import declared
 from roadkeep.rendering import (
@@ -24,11 +23,8 @@ from roadkeep.rendering import (
     _staging_rows,
     _wrote_json,
     _event,
-    _print_cited,
-    _dequeued_rows,
-    _print_emptied,
     _event_rows,
-    _print_scope,
+    _scope_rows,
     _prose_file,
     _scope_json,
 )
@@ -79,124 +75,19 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         # entry already was.
         return _closed(config, shipment, args, wrote)
 
-    roadmap = config.relative(config.path("roadmap"))
-    ledger = config.relative(config.path("changelog"))
-    block = shipment.ledger.entry.task.block
-    event = _event(shipment.task_id, block, shipment.roadmap, config)
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": shipment.task_id,
-                    "changelog": {
-                        "file": ledger,
-                        "line": shipment.ledger.lineno,
-                        "rendered": shipment.ledger.rendered,
-                    },
-                    "roadmap": {"file": roadmap, "removed": shipment.removed_from},
-                    "improvements": {
-                        # The file the drop actually rewrote, which is whichever prose role
-                        # declared the anchor (RK196) — not always the improvements file.
-                        "file": _prose_file(config, shipment.prose),
-                        "dropped": None
-                        if shipment.dropped is None
-                        else {
-                            "anchor": shipment.dropped.anchor,
-                            "title": shipment.dropped.title,
-                            "first": shipment.dropped.first,
-                            "last": shipment.dropped.last,
-                        },
-                        "nested": list(shipment.nested),
-                        "cited": list(shipment.cited),
-                        "emptied": shipment.emptied,
-                        "kept": shipment.kept,
-                        # What the deleted design was overtaken by (RK310), beside the
-                        # anchor it was written under: the two are one fact, and a caller
-                        # reading them off the rendered sentence would be parsing prose.
-                        "superseded": shipment.superseded,
-                    },
-                    "refreshed": list(shipment.refreshed),
-                    # What left the order with the line (RK327), named because a plan
-                    # that silently got shorter is a change with no sentence about it.
-                    "dequeued": shipment.dequeued,
-                    "scope": _scope_json(shipment.scope, wrote),
-                    "event": event,
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(f"{shipment.task_id} → {ledger}:{shipment.ledger.lineno} under Block {block}")
-    print(f"  removed  {roadmap}:{shipment.removed_from}")
-    if shipment.dropped is not None:
-        print(f"  dropped  {shipment.dropped} from {_prose_file(config, shipment.prose)}")
-        if shipment.nested:
-            print(
-                f"  nested   {', '.join(f'§{a}' for a in shipment.nested)} went with it"
-            )
-        _print_cited(shipment.cited)
-        _print_emptied(shipment.emptied)
+        print(json.dumps(shipment.payload(config, wrote), indent=2))
     else:
-        print(f"  kept     nothing dropped: {shipment.kept}")
-    # Beside the drop rather than inside it (RK310): the deletion is what makes the clause
-    # the only surviving trace, and it is reported even where the section stayed — a design
-    # another open line still points at can be just as overtaken as one that went.
-    if shipment.superseded is not None:
-        print(f"  overtook the design it read: {shipment.superseded}")
-    if shipment.refreshed:
-        print(f"  derived  {', '.join(shipment.refreshed)} (dep annotations re-derived)")
-    _print(_dequeued_rows(shipment.dequeued))
-    # Last before the event line, because it is about the commit this ship precedes rather
-    # than about the three edits above it (RK294).
-    _print_scope(shipment.scope, wrote)
-    _print(_event_rows(event, "  ", config=config, standing=True))
+        print(shipment.stated(config, wrote))
     return EXIT_OK
 
 
 def _partly(config: Config, partial: Partial, args: argparse.Namespace) -> int:
     """Half of a task recorded, with its roadmap line still open (RK121)."""
-    roadmap = config.relative(config.path("roadmap"))
-    ledger = config.relative(config.path("changelog"))
-    block = partial.ledger.entry.task.block
-    event = _event(partial.task_id, block, partial.roadmap, config)
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": partial.task_id,
-                    "part": partial.part,
-                    "changelog": {
-                        "file": ledger,
-                        "line": partial.ledger.lineno,
-                        "rendered": partial.ledger.rendered,
-                    },
-                    "roadmap": {
-                        "file": roadmap,
-                        "line": partial.roadmap.by_id()[partial.task_id].lineno,
-                        "status": partial.status,
-                        "open": True,
-                    },
-                    "refreshed": list(partial.refreshed),
-                    "event": event,
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(
-        f"{partial.task_id} ({partial.part}) → {ledger}:{partial.ledger.lineno} "
-        f"under Block {block}"
-    )
-    print(
-        f"  open     {roadmap}:{partial.roadmap.by_id()[partial.task_id].lineno} "
-        f"{partial.status} — the rest of it is still a task"
-    )
-    print(f"  finish   {invocation()} ship {partial.task_id}  (drops the qualifier)")
-    if partial.refreshed:
-        print(f"  derived  {', '.join(partial.refreshed)} (dep annotations re-derived)")
-    _print(_event_rows(event, "  ", config=config, standing=True))
+        print(json.dumps(partial.payload(config), indent=2))
+    else:
+        print(partial.stated(config))
     return EXIT_OK
 
 
@@ -204,66 +95,10 @@ def _closed(
     config: Config, closure: Closure, args: argparse.Namespace, wrote: Sequence[str] = ()
 ) -> int:
     """A roadmap line closed against an entry the ledger already had (RK62)."""
-    roadmap = config.relative(config.path("roadmap"))
-    ledger = config.relative(config.path("changelog"))
-    event = _event(closure.task_id, closure.recorded.task.block, closure.remaining, config)
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": closure.task_id,
-                    # The file the line actually came out of (RK1088), read off the
-                    # closure rather than assumed to be the roadmap: the act is the same
-                    # against a different pair, and a payload that named one file by having
-                    # only one to name is one a second act would quietly make wrong.
-                    "closed": {
-                        "file": config.relative(config.path(closure.removed_in)),
-                        "role": closure.removed_in,
-                        "removed": closure.removed_from,
-                    },
-                    "recorded": {
-                        "file": ledger,
-                        "line": closure.recorded.lineno,
-                        "marker": closure.marker,
-                        "written": False,
-                    },
-                    "improvements": {
-                        "file": _prose_file(config, closure.prose),
-                        "dropped": None
-                        if closure.dropped is None
-                        else {"anchor": closure.dropped.anchor, "title": closure.dropped.title},
-                        "nested": list(closure.nested),
-                        "cited": list(closure.cited),
-                        "emptied": closure.emptied,
-                        "kept": closure.kept,
-                    },
-                    "refreshed": list(closure.refreshed),
-                    "dequeued": closure.dequeued,
-                    "scope": _scope_json(closure.scope, wrote),
-                    "event": event,
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(
-        f"{closure.task_id} closed  "
-        f"{config.relative(config.path(closure.removed_in))}:{closure.removed_from} removed, "
-        f"already {closure.marker} in {ledger}:{closure.recorded.lineno}"
-    )
-    print("  ledger   untouched: the entry was already there")
-    if closure.dropped is not None:
-        print(f"  dropped  {closure.dropped} from {_prose_file(config, closure.prose)}")
-        if closure.nested:
-            print(f"  nested   {', '.join(f'§{a}' for a in closure.nested)} went with it")
-        _print_cited(closure.cited)
-        _print_emptied(closure.emptied)
-    if closure.refreshed:
-        print(f"  derived  {', '.join(closure.refreshed)} (dep annotations re-derived)")
-    _print(_dequeued_rows(closure.dequeued))
-    _print_scope(closure.scope, wrote)
-    _print(_event_rows(event, "  ", config=config))
+        print(json.dumps(closure.payload(config, wrote), indent=2))
+    else:
+        print(closure.stated(config, wrote))
     return EXIT_OK
 
 
@@ -816,6 +651,6 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
         # author's next edit. `deps` now resolves them as unresolvable, not as satisfied.
         print(f"  still    {', '.join(departure.dependents)} name {departure.task_id}")
     # A retirement is committed exactly as a ship is, and it releases the same claim (RK294).
-    _print_scope(departure.scope, wrote)
+    _print(_scope_rows(departure.scope, wrote))
     _print(_event_rows(event, "  ", config=config, standing=True))
     return EXIT_OK

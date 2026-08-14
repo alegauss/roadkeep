@@ -26,7 +26,7 @@ from roadkeep.queueing import (
 )
 from roadkeep.rendering import (
     _print,
-    _print_cited,
+    _cited_rows,
     _staging_rows,
     _wrote_json,
 )
@@ -534,7 +534,7 @@ def _section_drop(config: Config, args: argparse.Namespace) -> int:
     print(f"dropped {section} from {where}")
     if taken:
         print(f"  nested   {', '.join(f'§{a}' for a in taken)} went with it")
-    _print_cited(cited)
+    _print(_cited_rows(cited))
     _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 

@@ -838,6 +838,104 @@ class Departure:
             claiming.follow(self.root, self.task_id, self.marker, self.roadmap.entries)
         return _spelled(self.root, written)
 
+    @property
+    def block(self) -> str:
+        return self.ledger.entry.task.block
+
+    def event(self, config: Config) -> dict[str, object]:
+        """What the departure did to the block it left (RK38), off the roadmap it wrote."""
+        from roadkeep.rendering import _event  # noqa: PLC0415 - RK260
+
+        return _event(self.task_id, self.block, self.roadmap, config)
+
+    def stated(self, config: Config, wrote: Sequence[str]) -> str:
+        """Three edits across three files, as a reader is told them (RK6, RK32).
+
+        Beside :meth:`payload` since RK1170. `wrote` is the caller's, because :meth:`save` is
+        the door's step and a record naming paths it has not written would be answering about
+        a transaction that may not have landed.
+        """
+        from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _cited_rows,
+            _dequeued_rows,
+            _emptied_rows,
+            _event_rows,
+            _prose_file,
+            _scope_rows,
+        )
+
+        roadmap = config.relative(config.path("roadmap"))
+        ledger = config.relative(config.path("changelog"))
+        rows = [
+            f"{self.task_id} → {ledger}:{self.ledger.lineno} under Block {self.block}",
+            f"  removed  {roadmap}:{self.removed_from}",
+        ]
+        if self.dropped is not None:
+            rows.append(f"  dropped  {self.dropped} from {_prose_file(config, self.prose)}")
+            if self.nested:
+                rows.append(f"  nested   {', '.join(f'§{a}' for a in self.nested)} went with it")
+            rows += _cited_rows(self.cited)
+            rows += _emptied_rows(self.emptied)
+        else:
+            rows.append(f"  kept     nothing dropped: {self.kept}")
+        # Beside the drop rather than inside it (RK310): the deletion is what makes the clause
+        # the only surviving trace, and it is reported even where the section stayed — a design
+        # another open line still points at can be just as overtaken as one that went.
+        if self.superseded is not None:
+            rows.append(f"  overtook the design it read: {self.superseded}")
+        if self.refreshed:
+            rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
+        rows += _dequeued_rows(self.dequeued)
+        # Last before the event line, because it is about the commit this ship precedes rather
+        # than about the three edits above it (RK294).
+        rows += _scope_rows(self.scope, wrote)
+        rows += _event_rows(self.event(config), "  ", config=config, standing=True)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[str]) -> dict[str, object]:
+        """The same answer as data, with every file the three edits reached."""
+        from roadkeep.rendering import _prose_file, _scope_json  # noqa: PLC0415 - RK260
+
+        return {
+            "id": self.task_id,
+            "changelog": {
+                "file": config.relative(config.path("changelog")),
+                "line": self.ledger.lineno,
+                "rendered": self.ledger.rendered,
+            },
+            "roadmap": {
+                "file": config.relative(config.path("roadmap")),
+                "removed": self.removed_from,
+            },
+            "improvements": {
+                # The file the drop actually rewrote, which is whichever prose role declared
+                # the anchor (RK196) — not always the improvements file.
+                "file": _prose_file(config, self.prose),
+                "dropped": None
+                if self.dropped is None
+                else {
+                    "anchor": self.dropped.anchor,
+                    "title": self.dropped.title,
+                    "first": self.dropped.first,
+                    "last": self.dropped.last,
+                },
+                "nested": list(self.nested),
+                "cited": list(self.cited),
+                "emptied": self.emptied,
+                "kept": self.kept,
+                # What the deleted design was overtaken by (RK310), beside the anchor it was
+                # written under: the two are one fact, and a caller reading them off the
+                # rendered sentence would be parsing prose.
+                "superseded": self.superseded,
+            },
+            "refreshed": list(self.refreshed),
+            # What left the order with the line (RK327), named because a plan that silently
+            # got shorter is a change with no sentence about it.
+            "dequeued": self.dequeued,
+            "scope": _scope_json(self.scope, wrote),
+            "event": self.event(config),
+        }
+
 
 Shipment = Departure
 
@@ -878,6 +976,61 @@ class Partial:
         # thing that cannot be reconstructed, and a marker not yet ⏳ is a state a second
         # run of the same command corrects.
         return save_all(self.ledger.document, self.roadmap)
+
+    @property
+    def block(self) -> str:
+        return self.ledger.entry.task.block
+
+    @property
+    def lineno(self) -> int:
+        """Where the line this did **not** remove still stands."""
+        return self.roadmap.by_id()[self.task_id].lineno
+
+    def event(self, config: Config) -> dict[str, object]:
+        from roadkeep.rendering import _event  # noqa: PLC0415 - RK260
+
+        return _event(self.task_id, self.block, self.roadmap, config)
+
+    def stated(self, config: Config) -> str:
+        """Half of a task recorded, with its roadmap line still open (RK121).
+
+        Beside :meth:`payload` since RK1170. Nothing was removed and nothing was dropped, so a
+        departure's report would be three lines of None: what happened is an entry and a marker.
+        """
+        from roadkeep.rendering import _event_rows  # noqa: PLC0415 - RK260
+
+        roadmap = config.relative(config.path("roadmap"))
+        ledger = config.relative(config.path("changelog"))
+        rows = [
+            f"{self.task_id} ({self.part}) → {ledger}:{self.ledger.lineno} "
+            f"under Block {self.block}",
+            f"  open     {roadmap}:{self.lineno} {self.status} — the rest of it is still a task",
+            f"  finish   {invocation()} ship {self.task_id}  (drops the qualifier)",
+        ]
+        if self.refreshed:
+            rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
+        rows += _event_rows(self.event(config), "  ", config=config, standing=True)
+        return "\n".join(rows)
+
+    def payload(self, config: Config) -> dict[str, object]:
+        """The same answer as data, saying the line is still open (RK121)."""
+        return {
+            "id": self.task_id,
+            "part": self.part,
+            "changelog": {
+                "file": config.relative(config.path("changelog")),
+                "line": self.ledger.lineno,
+                "rendered": self.ledger.rendered,
+            },
+            "roadmap": {
+                "file": config.relative(config.path("roadmap")),
+                "line": self.lineno,
+                "status": self.status,
+                "open": True,
+            },
+            "refreshed": list(self.refreshed),
+            "event": self.event(config),
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -958,6 +1111,83 @@ class Closure:
         if self.root is not None:
             claiming.follow(self.root, self.task_id, self.marker, self.remaining.entries)
         return _spelled(self.root, written)
+
+    def event(self, config: Config) -> dict[str, object]:
+        from roadkeep.rendering import _event  # noqa: PLC0415 - RK260
+
+        return _event(self.task_id, self.recorded.task.block, self.remaining, config)
+
+    def stated(self, config: Config, wrote: Sequence[str]) -> str:
+        """A roadmap line closed against an entry the ledger already had (RK62).
+
+        Beside :meth:`payload` since RK1170, and the file the line came out of is read off this
+        record rather than assumed to be the roadmap (RK1088).
+        """
+        from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _cited_rows,
+            _dequeued_rows,
+            _emptied_rows,
+            _event_rows,
+            _prose_file,
+            _scope_rows,
+        )
+
+        ledger = config.relative(config.path("changelog"))
+        rows = [
+            f"{self.task_id} closed  "
+            f"{config.relative(config.path(self.removed_in))}:{self.removed_from} removed, "
+            f"already {self.marker} in {ledger}:{self.recorded.lineno}",
+            "  ledger   untouched: the entry was already there",
+        ]
+        if self.dropped is not None:
+            rows.append(f"  dropped  {self.dropped} from {_prose_file(config, self.prose)}")
+            if self.nested:
+                rows.append(f"  nested   {', '.join(f'§{a}' for a in self.nested)} went with it")
+            rows += _cited_rows(self.cited)
+            rows += _emptied_rows(self.emptied)
+        if self.refreshed:
+            rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
+        rows += _dequeued_rows(self.dequeued)
+        rows += _scope_rows(self.scope, wrote)
+        rows += _event_rows(self.event(config), "  ", config=config)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[str]) -> dict[str, object]:
+        """The same answer as data, naming the file the line came out of (RK1088)."""
+        from roadkeep.rendering import _prose_file, _scope_json  # noqa: PLC0415 - RK260
+
+        return {
+            "id": self.task_id,
+            # The file the line actually came out of (RK1088), read off the closure rather than
+            # assumed to be the roadmap: the act is the same against a different pair, and a
+            # payload that named one file by having only one to name is one a second act would
+            # quietly make wrong.
+            "closed": {
+                "file": config.relative(config.path(self.removed_in)),
+                "role": self.removed_in,
+                "removed": self.removed_from,
+            },
+            "recorded": {
+                "file": config.relative(config.path("changelog")),
+                "line": self.recorded.lineno,
+                "marker": self.marker,
+                "written": False,
+            },
+            "improvements": {
+                "file": _prose_file(config, self.prose),
+                "dropped": None
+                if self.dropped is None
+                else {"anchor": self.dropped.anchor, "title": self.dropped.title},
+                "nested": list(self.nested),
+                "cited": list(self.cited),
+                "emptied": self.emptied,
+                "kept": self.kept,
+            },
+            "refreshed": list(self.refreshed),
+            "dequeued": self.dequeued,
+            "scope": _scope_json(self.scope, wrote),
+            "event": self.event(config),
+        }
 
 
 @dataclass(frozen=True, slots=True)

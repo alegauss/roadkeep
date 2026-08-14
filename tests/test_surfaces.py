@@ -311,7 +311,7 @@ def test_every_wired_write_reaches_the_one_printer():
         body = body.split("\ndef ", 1)[0]
         # `_staging_rows` since RK1170: the sentence is composed where the answer is and written
         # by the one seam, so what a handler must reach is the producer rather than a printer.
-        if "_staging_rows" in body or "_print_scope" in body:
+        if "_staging_rows" in body or "_scope_rows" in body:
             continue
         # **One hop, where the verb moved onto its record** (RK1170): a handler that renders
         # through `stated` composes the line inside that method, so this follows the delegation
