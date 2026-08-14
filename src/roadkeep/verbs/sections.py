@@ -59,50 +59,10 @@ def _block_add(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    files = {
-        role: config.relative(config.path(role)) for role in opened.documents
-    }
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "label": opened.label,
-                    "title": opened.title,
-                    # The neighbour as it was asked for, null where it was derived: "after
-                    # the last block" and "appended" are the same placement said twice.
-                    "after": opened.after,
-                    "written": [
-                        {
-                            "role": role,
-                            "file": files[role],
-                            "line": opened.placed[role],
-                            "rendered": opened.rendered[role],
-                        }
-                        for role in opened.documents
-                    ],
-                    # Named, never silent: a file skipped in silence is one the author
-                    # discovers was skipped by the next command that refuses on it.
-                    "skipped": [
-                        {"file": where, "reason": reason}
-                        for where, reason in opened.skipped
-                    ],
-                    **_wrote_json(config, wrote),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    beside = (
-        f" (after {config.schema.block_named(opened.after)})" if opened.after else ""
-    )
-    print(f"{config.schema.block_named(opened.label)} declared{beside}: {opened.title}")
-    width = max((len(files[role]) for role in opened.documents), default=0)
-    for role in opened.documents:
-        print(f"  {files[role]:<{width}}:{opened.placed[role]}  {opened.rendered[role]}")
-    for where, reason in opened.skipped:
-        print(f"  not      {where}: {reason}")
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(opened.payload(config, wrote), indent=2))
+    else:
+        print(opened.stated(config, wrote))
     return EXIT_OK
 
 
@@ -113,47 +73,10 @@ def _block_drop(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    files = {role: config.relative(config.path(role)) for role in closed.documents}
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "label": closed.label,
-                    "removed": [
-                        {
-                            "role": role,
-                            "file": files[role],
-                            # The line it was on and the heading it was, because after this
-                            # write no file holds either and the answer is the only record.
-                            "line": closed.removed[role],
-                            "rendered": closed.rendered[role],
-                            # Null where the heading stood over nothing, so a caller reads
-                            # "the note went too" off a field rather than off a count (RK237).
-                            "note": closed.notes.get(role),
-                        }
-                        for role in closed.documents
-                    ],
-                    "skipped": [
-                        {"file": where, "reason": reason} for where, reason in closed.skipped
-                    ],
-                    **_wrote_json(config, wrote),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(f"{config.schema.block_named(closed.label)} withdrawn")
-    width = max((len(files[role]) for role in closed.documents), default=0)
-    for role in closed.documents:
-        print(f"  {files[role]:<{width}}:{closed.removed[role]}  {closed.rendered[role]}")
-        if role in closed.notes:
-            # Said, because this is the one line of the removal that took prose with it and
-            # the file no longer holds it to be compared against (RK237).
-            print(f"  note     {closed.notes[role]} line(s) of prose taken with the heading")
-    for where, reason in closed.skipped:
-        print(f"  kept     {where}: {reason}")
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(closed.payload(config, wrote), indent=2))
+    else:
+        print(closed.stated(config, wrote))
     return EXIT_OK
 
 
@@ -164,45 +87,10 @@ def _block_merge(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    files = {role: config.relative(config.path(role)) for role in merged.documents}
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "label": merged.label,
-                    "merged": [
-                        {
-                            "role": role,
-                            "file": files[role],
-                            # Where the surviving heading is, the ids that moved under it,
-                            # and the headings folded — verbatim, since the file no longer
-                            # holds them and this answer is their only record.
-                            "kept": merged.kept[role],
-                            "moved": list(merged.moved[role]),
-                            "folded": list(merged.folded[role]),
-                            # Null where a folded heading stood over entries alone (RK237).
-                            "note": merged.notes.get(role),
-                        }
-                        for role in merged.documents
-                    ],
-                    **_wrote_json(config, wrote),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(f"{config.schema.block_named(merged.label)} consolidated")
-    width = max((len(files[role]) for role in merged.documents), default=0)
-    for role in merged.documents:
-        moved = ", ".join(merged.moved[role]) or "nothing"
-        print(
-            f"  {files[role]:<{width}}:{merged.kept[role]}  "
-            f"folded {len(merged.folded[role])}, moved {moved}"
-        )
-        if role in merged.notes:
-            print(f"  note     {merged.notes[role]} line(s) of prose dropped with a heading")
-    _print(_staging_rows(config.relative(one) for one in wrote))
+        print(json.dumps(merged.payload(config, wrote), indent=2))
+    else:
+        print(merged.stated(config, wrote))
     return EXIT_OK
 
 

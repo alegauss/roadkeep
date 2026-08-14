@@ -57,7 +57,7 @@ where nothing plans and history still reads. The reverse, which would make `add`
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -359,6 +359,54 @@ class Merged:
         """Write every file, having asked all of them first (RK116, RK6)."""
         return save_all(*self.documents.values())
 
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """What went where, per file (RK403).
+
+        Beside :meth:`payload` since RK1170, through the same row producer its two siblings use.
+        """
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        rows = [
+            f"{config.schema.block_named(self.label)} consolidated",
+            *_role_rows(config, self.documents, self._rows),
+        ]
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def _rows(self, role: str, where: str) -> list[str]:
+        moved = ", ".join(self.moved[role]) or "nothing"
+        rows = [
+            f"  {where}:{self.kept[role]}  "
+            f"folded {len(self.folded[role])}, moved {moved}"
+        ]
+        if role in self.notes:
+            rows.append(f"  note     {self.notes[role]} line(s) of prose dropped with a heading")
+        return rows
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        """The same answer as data, carrying the headings no file holds any more."""
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "label": self.label,
+            "merged": [
+                {
+                    "role": role,
+                    "file": config.relative(config.path(role)),
+                    # Where the surviving heading is, the ids that moved under it, and the
+                    # headings folded — verbatim, since the file no longer holds them and this
+                    # answer is their only record.
+                    "kept": self.kept[role],
+                    "moved": list(self.moved[role]),
+                    "folded": list(self.folded[role]),
+                    # Null where a folded heading stood over entries alone (RK237).
+                    "note": self.notes.get(role),
+                }
+                for role in self.documents
+            ],
+            **_wrote_json(config, wrote),
+        }
+
 
 @dataclass(frozen=True, slots=True)
 class Closed:
@@ -389,6 +437,57 @@ class Closed:
     def save(self) -> tuple[Path, ...]:
         """Write every file, having asked all of them first (RK116, RK6)."""
         return save_all(*self.documents.values())
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """The heading as it read, and the files it came out of (RK144, RK237).
+
+        Beside :meth:`payload` since RK1170, through the same row producer its two siblings use.
+        """
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        rows = [
+            f"{config.schema.block_named(self.label)} withdrawn",
+            *_role_rows(config, self.documents, self._rows),
+            *(f"  kept     {where}: {reason}" for where, reason in self.skipped),
+        ]
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def _rows(self, role: str, where: str) -> list[str]:
+        rows = [f"  {where}:{self.removed[role]}  {self.rendered[role]}"]
+        if role in self.notes:
+            # Said, because this is the one line of the removal that took prose with it and
+            # the file no longer holds it to be compared against (RK237).
+            rows.append(
+                f"  note     {self.notes[role]} line(s) of prose taken with the heading"
+            )
+        return rows
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        """The same answer as data, carrying the heading no file holds any more."""
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "label": self.label,
+            "removed": [
+                {
+                    "role": role,
+                    "file": config.relative(config.path(role)),
+                    # The line it was on and the heading it was, because after this write no
+                    # file holds either and the answer is the only record.
+                    "line": self.removed[role],
+                    "rendered": self.rendered[role],
+                    # Null where the heading stood over nothing, so a caller reads "the note
+                    # went too" off a field rather than off a count (RK237).
+                    "note": self.notes.get(role),
+                }
+                for role in self.documents
+            ],
+            "skipped": [
+                {"file": where, "reason": reason} for where, reason in self.skipped
+            ],
+            **_wrote_json(config, wrote),
+        }
 
 
 def drop_block(config: Config, label: str, *, prose: bool = False) -> Closed:
@@ -649,6 +748,75 @@ class Opened:
     def save(self) -> tuple[Path, ...]:
         """Write every file, having asked all of them first (RK116, RK6)."""
         return save_all(*self.documents.values())
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """The heading, and every file that took it (RK145).
+
+        Beside :meth:`payload` since RK1170. The three block verbs answer in one table shape —
+        role, file, line — and :func:`_role_rows` is where that column width is decided once.
+        """
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        beside = f" (after {config.schema.block_named(self.after)})" if self.after else ""
+        rows = [
+            f"{config.schema.block_named(self.label)} declared{beside}: {self.title}",
+            *_role_rows(
+                config,
+                self.documents,
+                lambda role, where: [
+                    f"  {where}:{self.placed[role]}  {self.rendered[role]}"
+                ],
+            ),
+            *(f"  not      {where}: {reason}" for where, reason in self.skipped),
+        ]
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        """The same answer as data, with the files this write left alone."""
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "label": self.label,
+            "title": self.title,
+            # The neighbour as it was asked for, null where it was derived: "after the last
+            # block" and "appended" are the same placement said twice.
+            "after": self.after,
+            "written": [
+                {
+                    "role": role,
+                    "file": config.relative(config.path(role)),
+                    "line": self.placed[role],
+                    "rendered": self.rendered[role],
+                }
+                for role in self.documents
+            ],
+            # Named, never silent: a file skipped in silence is one the author discovers was
+            # skipped by the next command that refuses on it.
+            "skipped": [
+                {"file": where, "reason": reason} for where, reason in self.skipped
+            ],
+            **_wrote_json(config, wrote),
+        }
+
+
+def _role_rows(
+    config: Config,
+    documents: Mapping[str, Document],
+    rows: Callable[[str, str], list[str]],
+) -> list[str]:
+    """Every role's rows, with the paths padded to one column (RK1170).
+
+    The shape all three block verbs answer in, and the reason this is a function rather than
+    three loops: the width is a property of *the set of files*, so a verb computing it beside
+    its own loop is a verb that can quietly pad to a different column than its siblings.
+
+    The callback is handed the role and its already-padded path, and answers with that role's
+    rows — one for the heading and, where the write took prose with it, a second (RK237).
+    """
+    files = {role: config.relative(config.path(role)) for role in documents}
+    width = max((len(one) for one in files.values()), default=0)
+    return [row for role in documents for row in rows(role, f"{files[role]:<{width}}")]
 
 
 def open_block(
