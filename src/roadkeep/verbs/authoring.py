@@ -32,7 +32,6 @@ from roadkeep.rendering import (
     _print_staging,
     _promise_json,
     _prose_file,
-    _section_json,
     _wrote_json,
 )
 from roadkeep.renumbering import renumber
@@ -155,13 +154,13 @@ def _add(config: Config, args: argparse.Namespace) -> int:
                     "line": insertion.lineno,
                     "rendered": insertion.rendered,
                     "length": measured_width(insertion.rendered),
-                    "section": None if written is None else _section_json(written, prose),
+                    "section": None if written is None else written.payload(prose),
                     # Not a section this write *created* (RK452): an existing outline heading
                     # stopped belonging to nobody, and a caller reading one key for both
                     # would report a paragraph that was never written.
                     "bound": None
                     if insertion.bound is None
-                    else _section_json(insertion.bound, prose),
+                    else insertion.bound.payload(prose),
                     # The follow-up as data: null when the pointer already resolves, so a
                     # caller acts on a field instead of matching a sentence (RK93).
                     "needs": None
@@ -408,7 +407,7 @@ def _renumber(config: Config, args: argparse.Namespace) -> int:
                     "rendered": moved.rendered,
                     "section": None
                     if moved.section is None
-                    else _section_json(moved.section, prose),
+                    else moved.section.payload(prose),
                     # The nested headings that carried the old address, as they now read.
                     "subsections": list(moved.subsections),
                     # The lines this write changed on the author's behalf, because which

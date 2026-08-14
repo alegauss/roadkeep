@@ -25,10 +25,8 @@ from roadkeep.queueing import (
     migrate as migrate_priority,
 )
 from roadkeep.rendering import (
-    _counted,
     _print_cited,
     _print_staging,
-    _section_json,
     _wrote_json,
 )
 from roadkeep.scoping import add as add_non_goal, amend as amend_non_goal, drop as drop_non_goal
@@ -228,11 +226,11 @@ def _section_add(config: Config, args: argparse.Namespace) -> int:
 
     where = config.relative(config.path(args.role))
     if args.json:
-        print(json.dumps({**_section_json(section, where), **_wrote_json(config, wrote)}, indent=2))
+        print(json.dumps({**section.payload(where), **_wrote_json(config, wrote)}, indent=2))
         return EXIT_OK
     print(
         f"§{section.anchor} → {where}:{section.first}  "
-        f"{_counted(section, config.schema_for(args.role).section_max)}"
+        f"{section.counted(config.schema_for(args.role).section_max)}"
     )
     _print_staging(config.relative(one) for one in wrote)
     return EXIT_OK
@@ -335,7 +333,7 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
         print(
             json.dumps(
                 {
-                    **_section_json(section, where),
+                    **section.payload(where),
                     "changed": list(changed),
                     # The same fact as a field (RK1109): whether this call looked at the prose
                     # at all. `changed: []` says nothing moved and cannot say why, which is the
@@ -361,7 +359,7 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
         print(f"{named} unchanged: it already reads that way{aside}")
         return EXIT_OK
     counted = (
-        f"  {_counted(section, config.schema_for(args.role).section_max)}"
+        f"  {section.counted(config.schema_for(args.role).section_max)}"
         if section.anchor
         else ""
     )
@@ -382,7 +380,7 @@ def _section_move(config: Config, args: argparse.Namespace) -> int:
         print(
             json.dumps(
                 {
-                    **_section_json(moved.section, where),
+                    **moved.section.payload(where),
                     "from": moved.anchor,
                     "subsections": [
                         {"from": before, "to": after} for before, after in moved.subsections
@@ -466,7 +464,7 @@ def _section_show(config: Config, args: argparse.Namespace) -> int:
             json.dumps(
                 # Its own key, so the payload and the report cannot disagree about why a body
                 # came back empty — a client reading `own_words: 0` alone would be guessing.
-                {**_section_json(section, where), "body": shown, "nested": list(nested)},
+                {**section.payload(where), "body": shown, "nested": list(nested)},
                 indent=2,
             )
         )
@@ -523,7 +521,7 @@ def _section_drop(config: Config, args: argparse.Namespace) -> int:
         print(
             json.dumps(
                 {
-                    **_section_json(section, where),
+                    **section.payload(where),
                     "nested": list(taken),
                     "cited": list(cited),
                     **_wrote_json(config, wrote),

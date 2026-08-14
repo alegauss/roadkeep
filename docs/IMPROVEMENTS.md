@@ -141,6 +141,30 @@ in prose and always have; a line that says nothing extra is a line whose author 
 nothing extra to say, and printing an absence every turn is a nag the tool has no
 standing to make.
 
+### §RK1188 The one question before every add has no verb
+
+`add --block <x>` is the first flag on the first write of any new task, and nothing
+answers what `<x>` can be. `stats` prints letters and counts, never titles. `list
+--block` and `delivered <block>` both demand the letter as an argument and refuse one
+nothing declares, so neither can discover it. The guidance to place a task in the block
+whose theme covers it is guidance against a fact the tool does not state.
+
+So the author reads `docs/ROADMAP.md` with grep. That is the file the hook exists to
+keep hands off, and the habit it teaches is the one every other refusal is spent
+unteaching. Observed twice in one session on two different projects, the second time to
+file this.
+
+The shape is already there: `non-goal list` answers "what may I not propose" with no
+argument at all, and this is its sibling — "where may I put it". Something like `block
+list`, printing each block's letter, its title and its open count, in file order, since
+order is what a reader takes for the shape of the plan. The counts `stats` prints are
+the same read, so the two want to agree rather than be two answers.
+
+Worth deciding: whether this is a new verb or `stats` learning the titles it already
+walks past. The argument for a verb is that `stats` is a report about a file and this is
+a question asked before writing to one, and `block add` and `block drop` already own the
+noun.
+
 ## Block D — The gate
 
 ### §RK1172 Two phases, and the five inputs a rule reads

@@ -432,6 +432,43 @@ class Section:
     def __str__(self) -> str:
         return f"§{self.anchor} ({self.first}-{self.last})"
 
+    def counted(self, limit: int) -> str:
+        """This section's size as every verb that prints it says it (RK287).
+
+        Both figures where they differ, and the limit beside them either way. A bare `310 words`
+        on a section whose own prose is 48 invites cutting prose that was never over — and the
+        limit is what makes the number act on something, which is the whole of RK283 one door
+        over. Which of the two the gate charges depends on whether a line points at the anchor
+        (RK215), so neither is spelled as the verdict and the refusal states its own.
+
+        Here since RK1170: three verb files and a view all print this, and a helper in
+        `rendering.py` was the fifth place a fact about a section was spelled.
+        """
+        if not self.nests:
+            return f"{self.words} words (limit {limit})"
+        return f"{self.own_words} words, {self.words} with subsections (limit {limit})"
+
+    def payload(self, where: str) -> dict[str, object]:
+        """This section as data, at every door that publishes one (RK1170).
+
+        `where` is passed and not stored, for `counted`'s reason: the file a section was read
+        from is a fact about the project, and an `add` publishes the same record about a file it
+        is writing into.
+        """
+        return {
+            "anchor": self.anchor,
+            "title": self.title,
+            "level": self.level,
+            "file": where,
+            "first": self.first,
+            "last": self.last,
+            "words": self.words,
+            # The figure the limit is measured on, beside the one a reader pays (RK287). `words`
+            # keeps its meaning — the subtree, which is what a drop takes — and this is the
+            # section's own argument, which for a container is none of it.
+            "own_words": self.own_words,
+        }
+
 
 def local(schema: Schema, anchor: str) -> str | None:
     """This address as the *file* writes it, or None where it is another role's (RK340).
@@ -613,7 +650,6 @@ def citing(
         for cited in references(document)
         if cited.anchor in wanted and cited.by not in skipped
     )
-
 
 @dataclass(frozen=True, slots=True)
 class Cite:

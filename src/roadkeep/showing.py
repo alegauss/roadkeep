@@ -37,7 +37,7 @@ from roadkeep.kernel.document import Document, Entry
 from roadkeep.history import indexed
 from roadkeep.provenance import invocation
 from roadkeep.kernel.schema import Task
-from roadkeep.sections import Section, addressable, declaring, find
+from roadkeep.sections import Section, addressable, declaring, find, heading_of
 
 #: A path as prose spells one: inside backticks, or as a Markdown link target. Both are
 #: deliberate acts of quoting, unlike a bare word that happens to contain a dot.
@@ -120,6 +120,86 @@ class View:
         """Whether the sentence runs past the line the parse read it from."""
         return self.entry.wrapped
 
+    def stated(self, config: Config, *, body: bool = True) -> str:
+        """One task as a reader is told it, heading and prose included (RK9).
+
+        Beside :meth:`payload` since RK1170: these two were a printer in the handler and a builder
+        in `rendering.py`, so one answer was spelled in two files and neither held both. `config`
+        is passed and not stored — the limit beside a section's count is the *role's*, and which
+        file declared it is a fact about the project rather than about this view (RK287).
+        """
+        state = "shipped" if self.shipped else "open"
+        task, section = self.task, self.section
+        rows = [
+            f"{task.id}  Block {task.block}  {task.status}  {state}  "
+            f"{self.file}:{self.entry.lineno}",
+            f"  symptom  {task.symptom}",
+            f"  why      {task.why}",
+        ]
+        if self.wrapped:
+            # The rest of the sentence, verbatim (RK194): the fields above hold only as much of it
+            # as fits on the first line, and this is exactly what `record amend --lines` says it
+            # replaces — so the caller confirms the count here instead of opening the file.
+            rows.append(
+                f"  wrapped  {len(self.lines)} lines, {self.entry.lineno}-{self.entry.stop}"
+            )
+            rows += [
+                f"  {offset:<9}{raw.rstrip()}"
+                for offset, raw in enumerate(self.lines, start=self.entry.lineno)
+            ]
+        if task.deps:
+            rows.append(f"  deps     {', '.join(dep.render() for dep in task.deps)}")
+        if section is not None:
+            # The role that declared it, so the limit printed beside the count is the one this
+            # file is held to (RK287) — `[limits.<role>]` is per prose file, exactly as it is for
+            # the changelog. A section exists only where a role declared it.
+            limit = config.schema_for(str(self.section_role)).section_max
+            rows.append(
+                f"  section  {self.section_file}:{section.first}  "
+                f"§{section.anchor}, {section.counted(limit)}"
+            )
+        else:
+            # The absence carries its reason: deleted on ship, never written, or no prose file at
+            # all are three states, and only one of them is a defect (RK15).
+            rows.append(f"  section  none — {self.section_absence}")
+        rows += [
+            f"  path     {one.path}{'' if one.exists else '  (missing)'}" for one in self.paths
+        ]
+        if section is not None and body:
+            rows += ["", heading_of(config.schema, section), "", section.body]
+        return "\n".join(rows)
+
+    def payload(self, *, body: bool = True) -> dict[str, object]:
+        """The same answer as data, with the prose only where it was asked for (RK9).
+
+        Beside :meth:`stated` since RK1170, and the two differ on purpose: the printed register
+        is what a reader scans, and this carries the span a correction replaces and the absence
+        reason a client cannot infer.
+        """
+        task, section = self.task, self.section
+        body = None if not body or section is None else section.body
+        return {
+            "id": task.id,
+            "status": task.status,
+            "block": task.block,
+            "shipped": self.shipped,
+            "file": self.file,
+            "line": self.entry.lineno,
+            "rendered": self.entry.raw,
+            # The whole entry, and the span a correction replaces (RK194). Always present, so a
+            # caller reads the count rather than inferring one from a key that came and went.
+            "lines": [raw.rstrip("\r\n") for raw in self.lines],
+            "wrapped": self.wrapped,
+            "symptom": task.symptom,
+            "why": task.why,
+            "deps": [dep.render() for dep in task.deps],
+            "ref": task.ref,
+            "section": None
+            if section is None
+            else {**section.payload(self.section_file or ""), "body": body},
+            "section_absence": self.section_absence,
+            "paths": [{"path": p.path, "exists": p.exists} for p in self.paths],
+        }
 
 def show(config: Config, task_id: str) -> View:
     """Join the line, its section and the paths it names. Reads; never writes."""

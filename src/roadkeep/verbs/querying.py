@@ -61,7 +61,6 @@ from roadkeep.rendering import (
     _brief_json,
     _claim_event,
     _commits_json,
-    _counted,
     _load_json,
     _miss_json,
     _nothing_json,
@@ -75,7 +74,6 @@ from roadkeep.rendering import (
     _print_standing,
     _print_undesigned,
     _row_json,
-    _view_json,
 )
 from roadkeep.kernel.schema import body_aim
 from roadkeep.kernel.schema import width as measured_width
@@ -733,51 +731,21 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
 
 
 def _show(config: Config, args: argparse.Namespace) -> int:
+    """One task, whole, from every file that holds a piece of it (RK9).
+
+    Both registers come off the record (RK1170): `View` is the answer, and its two readings were a
+    printer here and a builder in `rendering.py` — one verb spelled in two files, with neither
+    holding both. What is left here is the door.
+    """
     try:
         view = show(config, args.id)
     except (KeyError, OSError) as error:
         return _refused(error)
 
-    task = view.task
-    section = view.section
     if args.json:
-        print(json.dumps(_view_json(view, no_body=args.no_body), indent=2))
-        return EXIT_OK
-
-    state = "shipped" if view.shipped else "open"
-    print(f"{task.id}  Block {task.block}  {task.status}  {state}  "
-          f"{view.file}:{view.entry.lineno}")
-    print(f"  symptom  {task.symptom}")
-    print(f"  why      {task.why}")
-    if view.wrapped:
-        # The rest of the sentence, verbatim (RK194): the fields above hold only as much of
-        # it as fits on the first line, and this is exactly what `record amend --lines` says
-        # it replaces — so the caller confirms the count here instead of opening the file.
-        print(f"  wrapped  {len(view.lines)} lines, {view.entry.lineno}-{view.entry.stop}")
-        for offset, raw in enumerate(view.lines, start=view.entry.lineno):
-            print(f"  {offset:<9}{raw.rstrip()}")
-    if task.deps:
-        print(f"  deps     {', '.join(dep.render() for dep in task.deps)}")
-    if section is not None:
-        # The role that declared it, so the limit printed beside the count is the one this
-        # file is held to (RK287) — `[limits.<role>]` is per prose file, exactly as it is
-        # for the changelog. A section exists only where a role declared it.
-        limit = config.schema_for(str(view.section_role)).section_max
-        print(
-            f"  section  {view.section_file}:{section.first}  "
-            f"§{section.anchor}, {_counted(section, limit)}"
-        )
+        print(json.dumps(view.payload(body=not args.no_body), indent=2))
     else:
-        # The absence carries its reason: deleted on ship, never written, or no prose
-        # file at all are three states, and only one of them is a defect (RK15).
-        print(f"  section  none — {view.section_absence}")
-    for referenced in view.paths:
-        print(f"  path     {referenced.path}{'' if referenced.exists else '  (missing)'}")
-    if section is not None and not args.no_body:
-        print()
-        print(heading_of(config.schema, section))
-        print()
-        print(section.body)
+        print(view.stated(config, body=not args.no_body))
     return EXIT_OK
 
 

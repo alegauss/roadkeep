@@ -32,6 +32,7 @@
 
 - 📋 **RK1184** (deps: —) **Nothing states what would prove a task done, so `ship` is a judgement with no artefact behind it** — `remaining` already runs a design's own fenced query, so evidence is that read inverted — sites that must exist rather than sites left, counted and never judged. → §RK1184
 - 📋 **RK1185** (deps: RK1184) **`brief` hands over a task's design and deps but never its criterion, so it is read at the ship** — A criterion binds what the work must produce, so one arriving after the code is written is the read `brief` exists to make in a single call. → §RK1185
+- 📋 **RK1188** (deps: —) **No verb says what the blocks are called, so choosing where a task goes means reading the file the hook denies** — SKILL.md tells an author to look at what the blocks already are before add; stats answers letters and counts, list and delivered demand a block they cannot enumerate. → §RK1188
 
 ## Block D — The gate
 

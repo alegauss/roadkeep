@@ -36,7 +36,6 @@ from roadkeep.authoring import StatusChange
 from roadkeep.backlog import Backlog, Stage, Standing
 from roadkeep.briefing import Brief, NothingToBrief
 from roadkeep.budgeting import Load
-from roadkeep.capturing import body
 from roadkeep.claiming import Followed, Held
 from roadkeep.config import Config, PROSE_ROLES
 from roadkeep.deferring import Carried
@@ -65,8 +64,6 @@ from roadkeep.remaining import count, declared
 from roadkeep.remedying import Door, remedy
 from roadkeep.repairing import MAX_PASSES, Repaired, repair
 from roadkeep.kernel.schema import UTF16_UNITS, width as measured_width
-from roadkeep.sections import Section
-from roadkeep.showing import View
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK
 
 
@@ -88,22 +85,6 @@ def _promise_json(promise: Promise | None) -> dict[str, object] | None:
         "where": promise.where,
         "derived": promise.derived,
         "sentence": promise.sentence,
-    }
-
-
-def _section_json(section: Section, where: str) -> dict[str, object]:
-    return {
-        "anchor": section.anchor,
-        "title": section.title,
-        "level": section.level,
-        "file": where,
-        "first": section.first,
-        "last": section.last,
-        "words": section.words,
-        # The figure the limit is measured on, beside the one a reader pays (RK287). `words`
-        # keeps its meaning — the subtree, which is what a drop takes — and this is the
-        # section's own argument, which for a container is none of it.
-        "own_words": section.own_words,
     }
 
 
@@ -787,7 +768,7 @@ def _nothing_json(nothing: NothingToBrief, args: argparse.Namespace) -> dict[str
 
 def _brief_json(gathered: Brief, config: Config) -> dict[str, object]:
     return {
-        **_view_json(gathered.view, no_body=False),
+        **gathered.view.payload(),
         "readiness": str(gathered.readiness),
         "picked": gathered.picked or None,
         "deps_resolved": [
@@ -865,33 +846,6 @@ def _load_json(load: Load) -> dict[str, object]:
         # What this checkout pays over the counted number (RK1105), so a caller comparing two
         # machines has the difference as a field instead of inferring it from a mismatch.
         "translated": load.translated,
-    }
-
-
-def _view_json(view: View, no_body: bool) -> dict[str, object]:
-    task, section = view.task, view.section
-    body = None if no_body or section is None else section.body
-    return {
-        "id": task.id,
-        "status": task.status,
-        "block": task.block,
-        "shipped": view.shipped,
-        "file": view.file,
-        "line": view.entry.lineno,
-        "rendered": view.entry.raw,
-        # The whole entry, and the span a correction replaces (RK194). Always present, so a
-        # caller reads the count rather than inferring one from a key that came and went.
-        "lines": [raw.rstrip("\r\n") for raw in view.lines],
-        "wrapped": view.wrapped,
-        "symptom": task.symptom,
-        "why": task.why,
-        "deps": [dep.render() for dep in task.deps],
-        "ref": task.ref,
-        "section": None
-        if section is None
-        else {**_section_json(section, view.section_file or ""), "body": body},
-        "section_absence": view.section_absence,
-        "paths": [{"path": p.path, "exists": p.exists} for p in view.paths],
     }
 
 
@@ -1491,20 +1445,6 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         "lines": estimate.lines,
         "recognised": estimate.recognised,
     }
-
-
-def _counted(section: Section, limit: int) -> str:
-    """One phrasing of a section's size, shared by every verb that prints it (RK287).
-
-    Both figures where they differ, and the limit beside them either way. A bare `310 words`
-    on a section whose own prose is 48 invites cutting prose that was never over — and the
-    limit is what makes the number act on something, which is the whole of RK283 one door
-    over. Which of the two the gate charges depends on whether a line points at the anchor
-    (RK215), so neither is spelled as the verdict and the refusal states its own.
-    """
-    if not section.nests:
-        return f"{section.words} words (limit {limit})"
-    return f"{section.own_words} words, {section.words} with subsections (limit {limit})"
 
 
 def registration_report(registration: Registration, where: str, label: int) -> list[str]:
