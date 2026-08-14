@@ -35,7 +35,6 @@ from roadkeep.capturing import (
 from roadkeep.backlog import Backlog
 from roadkeep.config import Config
 from roadkeep.installing import (
-    UNPINNABLE,
     engines,
     install,
     plan,
@@ -99,71 +98,13 @@ def _engines(config: Config, args: argparse.Namespace) -> int:
     sentence to learn the pen and the judge are 133 versions apart is one that will not ask.
     """
     found = engines(config.root)
-    running, plugin = found.running, found.plugin
+    # Both registers off the record (RK1170), the exit code included: whether the pen and the
+    # judge are the same copy is a property of the reading and not a second decision here.
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "writing": {
-                        "version": running.version,
-                        "home": running.home.as_posix(),
-                        "revision": running.revision,
-                    },
-                    # Null where no plugin is registered for this project, which is every
-                    # tree served by a checkout alone and is not a defect (RK415).
-                    "plugin": None
-                    if plugin is None
-                    else {
-                        "version": plugin.version,
-                        "home": None if plugin.home is None else plugin.home.as_posix(),
-                        "revision": plugin.revision,
-                        "scope": plugin.scope,
-                    },
-                    "gates": [
-                        {"file": where, "ref": ref} for where, ref in found.gates
-                    ],
-                    "agree": found.agree,
-                    # Which of the three, because the boolean above cannot carry the state
-                    # RK418 added: a checkout with uncommitted work is at no commit the
-                    # plugin could match, and `agreed` there was the defect being fixed.
-                    "verdict": found.verdict,
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK if found.agree else EXIT_GATE
-
-    print(f"writing  {running.version:<10}{running.revision}  {running.home.as_posix()}")
-    if plugin is None:
-        # Said, never silent: "no plugin" and "a plugin this could not read" look the same
-        # to a reader, and only one of them means the writes are unjudged by a second copy.
-        print("plugin   —         no plugin is registered for this project")
+        print(json.dumps(found.payload(), indent=2))
     else:
-        home = "" if plugin.home is None else f"  {plugin.home.as_posix()}"
-        print(f"plugin   {plugin.version:<10}{plugin.revision}  {plugin.scope} scope{home}")
-    for where, ref in found.gates or ():
-        print(f"gate     {ref:<10}{where}")
-    if not found.gates:
-        print("gate     —         no workflow here calls the action")
-    if found.verdict == UNPINNABLE:
-        # The state that used to read as agreement, and the one a machine developing this
-        # tool is in every day (RK418): the numbers match, the checkout has uncommitted
-        # work, and the files the two copies hold are not the same files.
-        print(
-            f"differ   both state {running.version} and this checkout is modified at "
-            f"{running.revision}, so the two cannot be compared: commit, or read a hook's "
-            f"refusal as that copy's rule rather than this one's"
-        )
-        return EXIT_GATE
-    if not found.agree:
-        print(
-            f"differ   the pen is {running.version} at {running.revision} and the judge is "
-            f"{plugin.version if plugin else '—'} at "
-            f"{plugin.revision if plugin else '—'}: `/plugin update` moves the judge, and "
-            f"until then a hook's refusal is that copy's rule and not this one's"
-        )
-        return EXIT_GATE
-    return EXIT_OK
+        print(found.stated())
+    return EXIT_OK if found.agree else EXIT_GATE
 
 
 def _install(config: Config, args: argparse.Namespace) -> int:

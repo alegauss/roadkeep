@@ -778,6 +778,74 @@ class Engines:
         """
         return self.verdict == AGREED
 
+    def stated(self) -> str:
+        """The three copies, and where they differ (RK415, RK418).
+
+        Beside :meth:`payload` since RK1170. Every absence is **said** rather than left as a
+        missing row: "no plugin" and "a plugin this could not read" look the same to a reader,
+        and only one of them means the writes are unjudged by a second copy.
+        """
+        running, plugin = self.running, self.plugin
+        rows = [
+            f"writing  {running.version:<10}{running.revision}  {running.home.as_posix()}"
+        ]
+        if plugin is None:
+            rows.append("plugin   —         no plugin is registered for this project")
+        else:
+            home = "" if plugin.home is None else f"  {plugin.home.as_posix()}"
+            rows.append(
+                f"plugin   {plugin.version:<10}{plugin.revision}  {plugin.scope} scope{home}"
+            )
+        rows += [f"gate     {ref:<10}{where}" for where, ref in self.gates or ()]
+        if not self.gates:
+            rows.append("gate     —         no workflow here calls the action")
+        if self.verdict == UNPINNABLE:
+            # The state that used to read as agreement, and the one a machine developing this
+            # tool is in every day (RK418): the numbers match, the checkout has uncommitted
+            # work, and the files the two copies hold are not the same files.
+            rows.append(
+                f"differ   both state {running.version} and this checkout is modified at "
+                f"{running.revision}, so the two cannot be compared: commit, or read a hook's "
+                f"refusal as that copy's rule rather than this one's"
+            )
+        elif not self.agree:
+            rows.append(
+                f"differ   the pen is {running.version} at {running.revision} and the judge "
+                f"is {plugin.version if plugin else '—'} at "
+                f"{plugin.revision if plugin else '—'}: `/plugin update` moves the judge, and "
+                f"until then a hook's refusal is that copy's rule and not this one's"
+            )
+        return chr(10).join(rows)
+
+    def payload(self) -> dict[str, object]:
+        running, plugin = self.running, self.plugin
+        return {
+            # `writing`, which is what this copy *does* and not what it is: the reader is
+            # deciding whose rule a refusal was, so the key names the role and the plugin
+            # below names the other one.
+            "writing": {
+                "version": running.version,
+                "home": running.home.as_posix(),
+                "revision": running.revision,
+            },
+            # Null where no plugin is registered for this project, which is every tree served
+            # by a checkout alone and is not a defect (RK415).
+            "plugin": None
+            if plugin is None
+            else {
+                "version": plugin.version,
+                "home": None if plugin.home is None else plugin.home.as_posix(),
+                "revision": plugin.revision,
+                "scope": plugin.scope,
+            },
+            "gates": [{"file": where, "ref": ref} for where, ref in self.gates],
+            "agree": self.agree,
+            # Which of the three, because the boolean above cannot carry the state RK418
+            # added: a checkout with uncommitted work is at no commit the plugin could match,
+            # and `agreed` there was the defect being fixed.
+            "verdict": self.verdict,
+        }
+
 
 def engines(root: str | Path = ".") -> Engines:
     """The three, for one project. Reads four small files and asks git nothing new."""
