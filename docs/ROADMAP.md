@@ -49,9 +49,8 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- ⏳ **RK1169** (deps: —) **Six tables in serving.py restate per verb what its own parser already declares** — Every property is already derived from the argparse action, so exposure, bounds and the withheld reason are the same kind of fact, and the totality tests exist to hold two places in step. → §RK1169
 - ⏳ **RK1170** (deps: —) **A verb's plain answer and its json payload are built in two files, and most of the printing never moved** — rendering.py holds 23 printers against 386 print calls left in the handlers, so the layer buys no rule about where a sentence is and costs every verb a second file. → §RK1170
-- 📋 **RK1171** (deps: RK1169 ⏳, RK1170 ⏳) **build_parser is one 2,000-line function, so a verb's flags are edited in the file the whole surface is in** — cli.py was split by layer for size and grew back to 2,260 code lines, so the cut that holds is per verb, which the two deps make a move and not a rewrite. → §RK1171
+- 📋 **RK1171** (deps: RK1169 ✅, RK1170 ⏳) **build_parser is one 2,000-line function, so a verb's flags are edited in the file the whole surface is in** — cli.py was split by layer for size and grew back to 2,260 code lines, so the cut that holds is per verb, which the two deps make a move and not a rewrite. → §RK1171
 
 ## Non-goals
 

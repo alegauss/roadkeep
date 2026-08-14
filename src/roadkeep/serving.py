@@ -155,6 +155,16 @@ class Tool:
     (RK18) and would let a caller choose a pointer the tool derives, which is the one thing a
     schema cannot then check.
 
+    **Declared here and not on the `add_argument`, which is where the withheld reasons went**
+    (RK1169). The asymmetry is that task's answer, and it is measured rather than argued: a
+    reason is prose about one argument that only a description reads, while exposure is the
+    fact :func:`serves` asks inside a `PreToolUse` the harness waits on — 44.6 ms by RK261,
+    against the 117 ms it costs to build the parser index. A whitelist on the parsers would
+    make the guard pay that to compose every denial. Nor is it a restatement in the first
+    place: the parser declares an argument and never who may set it, so which of them this
+    surface offers is a decision about *this* surface, and `cli.py` holding it inverts the
+    import `_DIVERGENT` is kept out of there for.
+
     :attr:`conditional` is the exception that proves the rule (RK111): where a project declares
     a shape the deriver cannot spell, withholding the field leaves that surface unable to write
     a legal id at all.

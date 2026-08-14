@@ -123,12 +123,12 @@ called unbuilt were already in the ledger.
 | E — Adoption | 1 | 86 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 108 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 3 | 3 | 0 |
-| **Total** | 10 | 672 | 9 |
+| H — The tool's own shape (what one verb costs to change) | 2 | 3 | 0 |
+| **Total** | 9 | 672 | 9 |
 
 **Next ready:**
 
-- ⏳ **RK1169** (deps: —) **Six tables in serving.py restate per verb what its own parser already declares** — Every property is already derived from the argparse action, so exposure, bounds and the withheld reason are the same kind of fact, and the totality tests exist to hold two places in step. → §RK1169
+- ⏳ **RK1170** (deps: —) **A verb's plain answer and its json payload are built in two files, and most of the printing never moved** — rendering.py holds 23 printers against 386 print calls left in the handlers, so the layer buys no rule about where a sentence is and costs every verb a second file. → §RK1170
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

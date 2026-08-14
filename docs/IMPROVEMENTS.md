@@ -247,32 +247,6 @@ disagree, and a project declaring both makes the choice by calling `section add 
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-### §RK1169 What is left of the six is one
-
-`src/roadkeep/serving.py` derives every property's type, description and bounds from the
-argparse action, and tabled what it could not. The first slice moved one: `WITHHELD` had
-**no reader in the package** — only a test comparing it against the parsers — so each
-reason now sits on the argument it explains, and both the table and that test are gone.
-
-The remaining five were measured against the same question, and three answer it
-differently:
-
-- **`_BOUNDS` and `_CONDITIONAL` are keyed by *dest*, not by verb.** `symptom` means one thing
-  wherever it appears, and one row answers for every verb that takes it. Per parser, one answer
-  becomes six copies — this task's own drift, pointed the other way.
-- **`_DIVERGENT` belongs to the served surface.** Its rows name JSON-Schema bound tables, so
-  declaring it in `cli.py` would make the command surface import the server's vocabulary,
-  inverting a dependency that runs one way on purpose: `serving` imports `cli` lazily and never
-  the reverse.
-- **`_DESTS` stays, as this already said**, owed a derivation checked against the parsers.
-
-So what is left of the claim is **`TOOLS`**: which verbs are tools, and which of their
-arguments a caller may set. That is the substantial one, and its facts are per verb and
-per argument — the shape the first slice proved.
-
-What needs deciding: whether exposure is a list declared beside the verb or a mark on
-each `add_argument`. The second is where the fact belongs and the larger edit.
-
 ### §RK1170 One result, two registers, one place
 
 `src/roadkeep/rendering.py` was cut out of a `cli.py` that had reached 8,489 lines, and
