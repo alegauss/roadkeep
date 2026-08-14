@@ -57,6 +57,7 @@ from roadkeep.picking import Claim, Picked, pick, take
 from roadkeep.provenance import invocation
 from roadkeep.remaining import QueryError, count, declared
 from roadkeep.rendering import (
+    _print,
     CHARACTER_UNIT,
     _claim_event,
     _commits_json,
@@ -604,17 +605,6 @@ def _writes(config: Config, args: argparse.Namespace) -> int:
 def _markers(markers: Mapping[str, int]) -> str:
     return "  ".join(f"{marker} {count}" for marker, count in markers.items())
 
-
-def _print(rows: Sequence[str]) -> bool:
-    """Write what a row producer returned, and say whether there was anything (RK1170).
-
-    The seam while the two verbs that share these sentences move onto their records: the rows are
-    composed where the answer is and printed here, so a caller that used to read *did it print*
-    still can — `pick` closes with an event line only where a claim was actually taken.
-    """
-    for row in rows:
-        print(row)
-    return bool(rows)
 
 def _brief(config: Config, args: argparse.Namespace) -> int:
     if args.id is not None and (args.block is not None or args.designed):

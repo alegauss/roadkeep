@@ -330,6 +330,22 @@ def _wrote_json(config: Config, paths: Iterable[Path]) -> dict[str, object]:
     return {"wrote": [config.relative(one) for one in paths]}
 
 
+def _print(rows: Iterable[str]) -> bool:
+    """Write what a row producer returned, and say whether there was anything (RK1170).
+
+    The seam while the verbs move onto their records: a register composes rows where the answer is
+    and this writes them, so a caller that used to read *did it print* still can — `pick` closes
+    with an event line only where a claim was actually taken.
+
+    One definition and not one per verb file, which is the rule this whole task is about: three of
+    them existed within an hour of the first, and a fourth file using the name without one is how
+    106 tests found out.
+    """
+    for row in rows:
+        print(row)
+    return bool(rows)
+
+
 def _staging_rows(paths: Iterable[str]) -> list[str]:
     """The `git add --` line, spelled in one place (RK298, RK1129).
 

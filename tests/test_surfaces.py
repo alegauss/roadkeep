@@ -309,6 +309,8 @@ def test_every_wired_write_reaches_the_one_printer():
         )
         # Up to the next top-level def: a handler that delegates is read through its own body.
         body = body.split("\ndef ", 1)[0]
-        if "_print_staging" not in body and "_print_scope" not in body:
+        # `_staging_rows` since RK1170: the sentence is composed where the answer is and written
+        # by the one seam, so what a handler must reach is the producer rather than a printer.
+        if "_staging_rows" not in body and "_print_scope" not in body:
             missing.append(handler)
     assert not missing, missing

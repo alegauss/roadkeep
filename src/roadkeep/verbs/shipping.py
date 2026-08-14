@@ -20,6 +20,7 @@ from roadkeep.provenance import invocation
 from roadkeep.ranking import NEAREST, nearest
 from roadkeep.remaining import declared
 from roadkeep.rendering import (
+    _print,
     _staging_rows,
     _wrote_json,
     _event,
@@ -48,12 +49,6 @@ from roadkeep.verbs.reading import _piped
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, REFUSALS, _refused
 
 
-
-def _print(rows) -> bool:
-    """Write what a row producer returned, and say whether there was anything (RK1170)."""
-    for row in rows:
-        print(row)
-    return bool(rows)
 
 def _ship(config: Config, args: argparse.Namespace) -> int:
     try:

@@ -23,6 +23,7 @@ from roadkeep.ids import derivation, highest
 from roadkeep.provenance import invocation
 from roadkeep.queueing import declared as declared_queue
 from roadkeep.rendering import (
+    _print,
     _carried_json,
     _event,
     _held_json,
@@ -40,12 +41,6 @@ from roadkeep.verbs.reading import STDIN, _body_reader, _one_body, _piped
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
 
 
-
-def _print(rows) -> bool:
-    """Write what a row producer returned, and say whether there was anything (RK1170)."""
-    for row in rows:
-        print(row)
-    return bool(rows)
 
 def _next_id(config: Config, args: argparse.Namespace) -> int:
     try:

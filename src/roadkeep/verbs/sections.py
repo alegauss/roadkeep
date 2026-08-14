@@ -25,6 +25,7 @@ from roadkeep.queueing import (
     migrate as migrate_priority,
 )
 from roadkeep.rendering import (
+    _print,
     _print_cited,
     _staging_rows,
     _wrote_json,
