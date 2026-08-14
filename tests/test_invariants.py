@@ -954,3 +954,32 @@ def test_no_module_defines_one_name_twice():
                     twice.setdefault(where, []).append(f"{node.name} at {seen[node.name]} and {node.lineno}")
                 seen[node.name] = node.lineno
     assert twice == {}, twice
+
+
+def test_no_dict_literal_states_one_key_twice():
+    """The duplicate definition's smaller sibling, found while moving `delivered` (RK1170).
+
+    `_standing_json` spelled `"sentence"` twice in one literal — harmless, because both said the
+    same thing, and invisible for exactly that reason: the second binding wins silently, so the
+    day the two spellings differ the payload publishes whichever came last. Python has no error
+    here and this package runs no linter (RK1158), so the closure is the check.
+
+    Over the package and the suite, both directions of the same rule as
+    :func:`test_no_module_defines_one_name_twice`: a name bound twice in one place is a question
+    about what the reader resolves, not a style.
+    """
+    twice: dict[str, list[str]] = {}
+    for module in (*modules(), *sorted(Path(__file__).parent.glob("*.py"))):
+        text = module.text if hasattr(module, "text") else module.read_text(encoding="utf-8")
+        where = module.where if hasattr(module, "where") else f"tests/{module.name}"
+        for node in ast.walk(ast.parse(text)):
+            if not isinstance(node, ast.Dict):
+                continue
+            said = [
+                key.value
+                for key in node.keys
+                if isinstance(key, ast.Constant) and isinstance(key.value, str)
+            ]
+            for key in sorted({one for one in said if said.count(one) > 1}):
+                twice.setdefault(where, []).append(f"{key!r} at line {node.lineno}")
+    assert twice == {}, twice

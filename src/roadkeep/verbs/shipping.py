@@ -30,10 +30,10 @@ from roadkeep.rendering import (
     _print_scope,
     _prose_file,
     _scope_json,
-    _standing_json,
 )
 from roadkeep.reverting import reversals
 from roadkeep.shipping import (
+    Delivered,
     Closure,
     Partial,
     amend as amend_record,
@@ -686,73 +686,19 @@ def _delivered(config: Config, args: argparse.Namespace) -> int:
     where = config.relative(config.path("changelog"))
     # One read joined to the listing, not a second parse: `reversals` walks the same entries
     # for the same clause, so asking it here is what keeps the two answers one fact (RK1042).
-    reversed_by = {one.undone: one.by for one in reversals(config)}
-    if args.json:
-        print(
-            json.dumps(
-                {
-                    "file": where,
-                    "block": label,
-                    # Beside the list and not instead of it (RK429): an empty `delivered` is
-                    # the answer to what was asked, and this is what the label it was asked
-                    # about turned out to be.
-                    "standing": _standing_json(standing),
-                    # What the block holds, beside what this call chose to print (RK442):
-                    # a consumer handed five rows and no total reads a five-entry block.
-                    "recorded": recorded,
-                    "near": args.near,
-                    "delivered": [
-                        {
-                            "id": e.task.id,
-                            "marker": e.task.status,
-                            "symptom": e.task.symptom,
-                            "line": e.lineno,
-                            # Null and not omitted (RK1042): a consumer reading a missing
-                            # key cannot tell "this held" from "this server is older", and
-                            # the whole use of this payload is deciding a duplicate.
-                            "undone_by": reversed_by.get(e.task.id),
-                            # The order and never a score (RK441): the absolute figure
-                            # separates nothing, so a payload carrying it is one turn from
-                            # the threshold that measurement rules out. Absent without
-                            # `--near`, where the order is the ledger's and not an answer.
-                            **({"rank": at} if args.near else {}),
-                        }
-                        for at, e in enumerate(entries, start=1)
-                    ],
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    if not entries:
-        # Said, never an empty stdout: "this block has delivered nothing" and "this command
-        # found nothing to read" look the same to a caller, and only one of them is an answer.
-        print(f"{where}  {standing.named} has delivered nothing yet")
-    elif args.near:
-        # The count of what is *shown* against the count of what is there (RK442). This
-        # verb's own docstring is why: it was deliberately unbounded, because the entry that
-        # got elided is exactly the one nobody read — so a bounded answer has to say it is
-        # bounded, in the header, or it inherits the guarantee it just gave up.
-        print(f"{where}  {standing.named}, {len(entries)} nearest of {recorded} delivered")
-    else:
-        print(f"{where}  {standing.named}, {recorded} delivered")
-    print(f"  block    {standing.sentence}")
-    if args.near:
-        # Said once, above the rows: the ordering is the whole answer and there is no
-        # threshold under it, which is the sentence that keeps a reader from taking #1 as a
-        # verdict (RK441). The rest of the block is one command away and named here.
-        print(
-            f"  near     ranked by word overlap, nearest first — an order and not a "
-            f"verdict; `{invocation()} delivered {label}` is all {recorded}"
-        )
-    for entry in entries:
-        # Marked and never dropped (RK1042). This verb's own rule about retired lines: a
-        # claim that did not hold is still a claim somebody made and argued about, so the
-        # marker says which and nothing is conflated. A superseded entry carries no marker
-        # of its own — the ledger spells it in the sentence — so the mark is written here.
-        said = f" (undone by {reversed_by[entry.task.id]})" if entry.task.id in reversed_by else ""
-        print(f"  {entry.task.status} {entry.task.id:<8} {entry.task.symptom}{said}")
+    answer = Delivered(
+        where=where,
+        standing=standing,
+        entries=entries,
+        recorded=recorded,
+        near=args.near or "",
+        reversed_by={one.undone: one.by for one in reversals(config)},
+    )
+    # Both registers off one result (RK1170). This is the read that decides whether an `add` is
+    # a duplicate, so the two had better say the same thing — and they were a printer and a
+    # payload builder in this handler, agreeing by hand over a header, a bound and a per-entry
+    # mark. The payload now carries what the listing shows by construction.
+    print(json.dumps(answer.payload(), indent=2) if args.json else answer)
     return EXIT_OK
 
 

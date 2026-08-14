@@ -116,7 +116,7 @@ command that names it is not the same as a flag that hides one inside a correcti
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -128,7 +128,7 @@ from roadkeep.authoring import (
     refuse_reuse,
     remove_entry,
 )
-from roadkeep.backlog import Backlog, NotOpen
+from roadkeep.backlog import Backlog, NotOpen, Standing
 from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.kernel.document import Document, Entry, Wrapped, counted, save_all
 from roadkeep.ids import IdRef, next_id
@@ -2272,3 +2272,98 @@ def _unowned(anchor: str, claim: tuple[str, ...]) -> str:
     )
 
 
+@dataclass(frozen=True, slots=True)
+class Delivered:
+    """Every claim one block has already made good on, as one result (RK385, RK1170).
+
+    The read that decides whether an `add` is a duplicate, so its two registers had better say
+    the same thing: they were a printer and a payload builder in the same handler, agreeing by
+    hand over a header, a state row, a bound and a per-entry mark.
+
+    **Symptoms and not outcomes.** A shipped line states two things, and a duplicate collides
+    with the problem it claimed rather than with the fix it delivered — an outcome is written in
+    the vocabulary of the fix and never matches. So the rows carry the symptom.
+
+    Unbounded unless a question narrows it. `--near` is not a truncation of this listing (RK442):
+    it is the same read asked a narrower question, so what bounds it is the caller's sentence and
+    not a number this verb chose — which is why the header says how many of how many, and why the
+    order is published with no score under it (RK441).
+    """
+
+    #: The ledger, as the project spells it, and the label this was asked about.
+    where: str
+    standing: Standing
+    entries: tuple[Entry, ...]
+    #: What the block holds, beside what this call chose to show (RK442): a consumer handed five
+    #: rows and no total reads a five-entry block.
+    recorded: int
+    #: The sentence `--near` narrowed by, or empty where the whole block is the answer.
+    near: str
+    #: Which of these the ledger later undid, by the entry that undid it (RK1042).
+    reversed_by: Mapping[str, str]
+
+    def __str__(self) -> str:
+        rows: list[str] = []
+        if not self.entries:
+            # Said, never an empty stdout: "this block has delivered nothing" and "this command
+            # found nothing to read" look the same to a caller, and only one of them is an answer.
+            rows.append(f"{self.where}  {self.standing.named} has delivered nothing yet")
+        elif self.near:
+            # The count of what is *shown* against the count of what is there (RK442). This verb
+            # was deliberately unbounded, because the entry that got elided is exactly the one
+            # nobody read — so a bounded answer has to say it is bounded, in the header, or it
+            # inherits the guarantee it just gave up.
+            rows.append(
+                f"{self.where}  {self.standing.named}, {len(self.entries)} nearest of "
+                f"{self.recorded} delivered"
+            )
+        else:
+            rows.append(f"{self.where}  {self.standing.named}, {self.recorded} delivered")
+        rows.append(f"  block    {self.standing.sentence}")
+        if self.near:
+            # Said once, above the rows: the ordering is the whole answer and there is no
+            # threshold under it, which is the sentence that keeps a reader from taking #1 as a
+            # verdict (RK441). The rest of the block is one command away and named here.
+            rows.append(
+                f"  near     ranked by word overlap, nearest first — an order and not a "
+                f"verdict; `{invocation()} delivered {self.standing.label}` is all "
+                f"{self.recorded}"
+            )
+        for entry in self.entries:
+            # Marked and never dropped (RK1042). This verb's own rule about retired lines: a
+            # claim that did not hold is still a claim somebody made and argued about, so the
+            # marker says which and nothing is conflated. A superseded entry carries no marker
+            # of its own — the ledger spells it in the sentence — so the mark is written here.
+            undone = self.reversed_by.get(entry.task.id)
+            said = f" (undone by {undone})" if undone else ""
+            rows.append(f"  {entry.task.status} {entry.task.id:<8} {entry.task.symptom}{said}")
+        return "\n".join(rows)
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "file": self.where,
+            "block": self.standing.label,
+            # Beside the list and not instead of it (RK429): an empty `delivered` is the answer
+            # to what was asked, and this is what the label it was asked about turned out to be.
+            "standing": self.standing.payload(),
+            "recorded": self.recorded,
+            "near": self.near or None,
+            "delivered": [
+                {
+                    "id": entry.task.id,
+                    "marker": entry.task.status,
+                    "symptom": entry.task.symptom,
+                    "line": entry.lineno,
+                    # Null and not omitted (RK1042): a consumer reading a missing key cannot
+                    # tell "this held" from "this server is older", and the whole use of this
+                    # payload is deciding a duplicate.
+                    "undone_by": self.reversed_by.get(entry.task.id),
+                    # The order and never a score (RK441): the absolute figure separates
+                    # nothing, so a payload carrying it is one turn from the threshold that
+                    # measurement rules out. Absent without `--near`, where the order is the
+                    # ledger's and not an answer.
+                    **({"rank": at} if self.near else {}),
+                }
+                for at, entry in enumerate(self.entries, start=1)
+            ],
+        }

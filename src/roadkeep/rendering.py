@@ -155,7 +155,7 @@ def _event(task_id: str, block: str, roadmap: Document, config: Config) -> dict[
         "id": task_id,
         "block": block,
         "stage": str(standing.stage),
-        "standing": _standing_json(standing),
+        "standing": None if standing is None else standing.payload(),
     }
 
 
@@ -776,7 +776,7 @@ def _nothing_json(nothing: NothingToBrief, args: argparse.Namespace) -> dict[str
         # true for a finished block, a heading opened before its lines and a backlog whose
         # every line is blocked. It stays, because a caller reading it is reading the
         # question it asked; this says which of them answered.
-        "standing": _standing_json(nothing.standing),
+        "standing": None if nothing.standing is None else nothing.standing.payload(),
         "held": [{"id": one.id, "since": one.since} for one in nothing.held],
     }
 
@@ -917,7 +917,7 @@ def _pick_json(
         # Beside `scope` and never instead of it (RK429): the label is what was asked and
         # this is what became of it, so a loop scoped to a block reads one word rather than
         # matching the sentence `reason` states it in.
-        "standing": _standing_json(choice.standing),
+        "standing": None if choice.standing is None else choice.standing.payload(),
         "alternatives": list(choice.alternatives),
         "ready": choice.ready,
         "blocked": choice.blocked,
@@ -941,26 +941,6 @@ def _pick_json(
             "to": None if claim.change is None else claim.change.after,
         },
         "event": event,
-    }
-
-
-def _standing_json(standing: Standing | None) -> dict[str, object] | None:
-    """What became of the block a query was scoped to (RK429), or nothing if none was.
-
-    The counts ride with the state because they are its evidence: `finished` is a claim
-    about the ledger, and a payload asserting it without saying how many entries it read
-    is one a caller has to verify with a second command.
-    """
-    if standing is None:
-        return None
-    return {
-        "block": standing.label,
-        "state": str(standing.stage),
-        "sentence": standing.sentence,
-        "open": standing.open,
-        "recorded": standing.recorded,
-        "paused": standing.paused,
-        "sentence": standing.sentence,
     }
 
 

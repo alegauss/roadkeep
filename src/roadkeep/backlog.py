@@ -256,6 +256,26 @@ class Standing:
             return f"{self.named} is empty: the heading is declared and no task line is filed under it"
         return f"no heading declares {self.named}"
 
+    def payload(self) -> dict[str, object]:
+        """What became of the block a query was scoped to (RK429).
+
+        The counts ride with the state because they are its evidence: `finished` is a claim about
+        the ledger, and a payload asserting it without saying how many entries it read is one a
+        caller has to verify with a second command.
+
+        Here since RK1170, with `delivered`: four payloads publish this record, and a builder in
+        `rendering.py` was the fifth place the fact was spelled — where one of its keys had
+        quietly been written twice.
+        """
+        return {
+            "block": self.label,
+            "state": str(self.stage),
+            "sentence": self.sentence,
+            "open": self.open,
+            "recorded": self.recorded,
+            "paused": self.paused,
+        }
+
 
 class DepStatus(StrEnum):
     """How a single dep resolved."""
@@ -314,7 +334,6 @@ _SATISFIES = {
     Stage.EMPTY: DepStatus.UNRESOLVABLE,
     Stage.UNKNOWN: DepStatus.UNRESOLVABLE,
 }
-
 
 @dataclass(frozen=True, slots=True)
 class Resolution:

@@ -75,7 +75,6 @@ from roadkeep.rendering import (
     _print_standing,
     _print_undesigned,
     _row_json,
-    _standing_json,
     _view_json,
 )
 from roadkeep.kernel.schema import body_aim
@@ -141,7 +140,9 @@ def _list(config: Config, args: argparse.Namespace) -> int:
                     # Beside the count and not instead of it (RK429): a total of 0 is the
                     # answer to what was asked, and this is what the label it was scoped to
                     # turned out to be. Null where no block narrowed the listing.
-                    "standing": _standing_json(standing),
+                    # `None` where no block was named, which is the question rather than a
+                    # missing answer (RK429): a listing over the whole file has no standing.
+                    "standing": None if standing is None else standing.payload(),
                     "tasks": [_row_json(entry) for entry in census.counted],
                 },
                 indent=2,
@@ -197,7 +198,9 @@ def _stats(config: Config, args: argparse.Namespace) -> int:
                         "limit": census.schema.line_max,
                         "unit": CHARACTER_UNIT,
                     },
-                    "standing": _standing_json(standing),
+                    # `None` where no block was named, which is the question rather than a
+                    # missing answer (RK429): a listing over the whole file has no standing.
+                    "standing": None if standing is None else standing.payload(),
                     # RK1139: a capture nothing counts is a note in a drawer, and this tool's
                     # whole argument is against those. Its own key, because it is debt this
                     # project holds and not a line of the backlog it is reporting.
@@ -355,7 +358,9 @@ def _audit(config: Config, args: argparse.Namespace) -> int:
                     "file": census.file,
                     "counted": census.total,
                     "uncounted": [_miss_json(m) for m in census.missed],
-                    "standing": _standing_json(standing),
+                    # `None` where no block was named, which is the question rather than a
+                    # missing answer (RK429): a listing over the whole file has no standing.
+                    "standing": None if standing is None else standing.payload(),
                 },
                 indent=2,
             )
