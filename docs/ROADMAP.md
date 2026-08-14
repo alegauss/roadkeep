@@ -30,8 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1178** (deps: —) **anchors recommends an address that was declared and retired inside one commit** — The reuse guard reads committed history, and an add plus a ship in one commit is a net-zero diff, so the address it just spent looks never-used. → §RK1178
-
 ## Block D — The gate
 
 - 📋 **RK1172** (deps: —) **The gate's checks are functions gathered by convention, each with its own signature, so adding one is invisible** — linting.py is 1,618 code lines of hand-wired calls whose scan kind is implicit in the parameters, where the remedy side has been a table keyed by code since RK420. → §RK1172

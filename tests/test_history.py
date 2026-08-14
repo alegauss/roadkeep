@@ -2015,3 +2015,72 @@ def test_an_anchor_nobody_wrote_answers_with_nulls_and_not_a_traceback(tmp_path,
     assert main(["-C", str(config.root), "origin", "§RK9999", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["written"] is None and payload["removed"] is None
+
+
+# -- an address spent inside one commit (RK1178) ------------------------------
+
+
+def outlined_project(tmp_path: Path, pointer: str = "XIV.30") -> Config:
+    """An outline project with one open line pointing at an address no heading holds yet."""
+    git_init(tmp_path)
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "SH"\nref_scheme = "outline"\n[files]\nroadmap = "ROADMAP.md"\n'
+        'changelog = "CHANGELOG.md"\nimprovements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(
+        f"## Block A — The model\n\n- {DESIGNED} **SH1** (deps: —) **A symptom worth a line** "
+        f"— Because of a reason. → §{pointer}\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "CHANGELOG.md").write_text("## Block A — The model\n", encoding="utf-8")
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        "## Block A — The model\n\n### XIV.29 An older design\n\nProse here.\n",
+        encoding="utf-8",
+    )
+    git_commit(tmp_path, f"docs: file SH1 pointing at {pointer}")
+    return Config.discover(tmp_path)
+
+
+def test_an_address_spent_inside_one_commit_is_read_off_the_pointer_that_left(tmp_path):
+    """RK1178, observed in Shio. A task whose `section add` and whose `ship` land in the same
+    commit leaves a **net-zero diff** in the prose file: the heading was in no committed tree, so
+    no diff of that file mentions it, and `as_ledger` keeps no pointer either. The address then
+    looked never-used and `anchors` offered it as next — an address a shipped task already spent,
+    whose ledger entry's prose cites it.
+
+    What survives is the roadmap: the line was filed carrying `→ §XIV.30` and the ship removed it.
+    Worth fixing rather than tolerating because of which workflow produces it — a task that files
+    its own rationale and ships in one commit is what a one-task-one-commit rule *requires*.
+    """
+    config = outlined_project(tmp_path)
+    ship(config, "SH1", "feat: ship SH1, whose pointer left with the line")
+    taken = anchors(config)
+    spent = next((one for one in taken if one.anchor == "XIV.30"), None)
+    assert spent is not None and not spent.live
+    # And the recommendation moves past it, which is the answer a caller acts on.
+    assert next_child(taken, "XIV") == "XIV.31"
+
+
+def test_a_pointer_still_on_a_line_is_not_a_spent_address(tmp_path):
+    """The two-command flow, which must keep working: `add --ref XIV.30` then `section add XIV.30`
+    is one address being spent *now*, and counting the pointer while its line is still in the file
+    would make the second command refuse what the first was told to take."""
+    config = outlined_project(tmp_path)
+    taken = anchors(config)
+    assert not [one for one in taken if one.anchor == "XIV.30"]
+    assert next_child(taken, "XIV") == "XIV.30"
+
+
+def test_the_id_scheme_is_left_alone(tmp_path):
+    """Under `ref_scheme = "id"` the pointer *is* the id, and retired-never-reused is the
+    roadmap's own property (RK4) — so every shipped task would arrive here as an address to
+    refuse. Silent there, as `_refuse_reuse` is, and for the same reason."""
+    config = repo(tmp_path)
+    append(
+        config.path("roadmap"),
+        f"- {DESIGNED} **RK7** (deps: —) **A symptom** — a reason. → §RK7\n",
+    )
+    git_commit(config.root, "docs: file RK7")
+    ship(config, "RK7", "feat: ship RK7")
+    assert not [one for one in anchors(config) if one.anchor == "RK7" and not one.live]

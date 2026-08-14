@@ -104,29 +104,6 @@ that is merely current.
 
 ## Block C — Query
 
-### §RK1178 A lifecycle short enough to leave no trace
-
-`anchors` reports, per family, how many addresses are live, how many are retired, and
-which one is next. It derives "retired" from history — the refusal in RK1177 names the
-declaring commit, so the reader is looking for a commit in which the address appeared.
-
-That misses the case where an address is declared and dropped **inside a single
-commit**. In Shio, the anchor `XIV.30` was written by `section add`, then removed by
-`ship` in the same task, and the task's one commit therefore carries a net-zero diff for
-it. A `git log -S` over that address finds nothing, so it has no declaring commit, so
-`anchors` offers it as next — an address a shipped task already spent.
-
-The consequence is the one this tool refuses elsewhere: the ledger entry for that task
-cites the anchor, and a later section written at the same address makes that citation
-point at unrelated prose.
-
-What makes it worth fixing rather than tolerating is which workflow produces it. A task
-that files its own rationale and ships in one commit is not unusual — it is what a
-one-task-one- commit rule *requires*, and Shio's process mandates exactly that. So the
-blind spot is not an edge case reached by unusual sequencing; it is the normal path for
-any task whose design is written and shipped together. The tree is the authority on what
-an address currently holds; history should be evidence, not the only witness.
-
 ## Block D — The gate
 
 ### §RK1172 A rule is a record, the way a remedy already is

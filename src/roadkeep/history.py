@@ -30,7 +30,7 @@ from pathlib import Path
 
 from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.kernel.document import Document
-from roadkeep.kernel.schema import REF_SEPARATOR, Schema, split_ref
+from roadkeep.kernel.schema import ARROW, REF_SEPARATOR, Schema, split_ref
 from roadkeep.sections import Section, anchored, find, owners
 
 _UNIT = "\x1f"  # between fields
@@ -1066,6 +1066,7 @@ def anchors(config: Config, role: str = "", family: str = "") -> tuple[Anchor, .
         if config.has(name)
         for one in _role_anchors(config, name)
     ]
+    found += _spent_by_departure(config, roles, found)
     # Whether this file numbers in Roman is a fact about the whole set (RK293), so it is
     # settled once here and handed to the key — a per-segment decision would read `C` as 100
     # in a file whose families are letters, and sort a listing by an arithmetic nobody meant.
@@ -1149,6 +1150,97 @@ def families_of_block(config: Config, block: str) -> tuple[str, ...]:
                 if family and family not in found:
                     found.append(family)
     return tuple(found)
+
+
+def _spent_by_departure(
+    config: Config, roles: Sequence[str], known: Sequence[Anchor]
+) -> list[Anchor]:
+    """Addresses no prose diff witnesses, read off the pointers that left with them (RK1178).
+
+    The blind spot :func:`_pointed_at` covers, joined here so one listing answers for both kinds
+    of evidence: a heading any committed tree held, and an address whose heading no tree ever did
+    because the `section add` that wrote it and the `ship` that dropped it were one commit.
+
+    **Outline only**, the rule :func:`~roadkeep.sections._refuse_reuse` keeps for the same reason:
+    under `ref_scheme = "id"` the pointer *is* the id, retired-never-reused is the roadmap's own
+    property (RK4), and every shipped task would arrive here as an address to refuse.
+
+    Attributed to the file the address belongs to, which its namespace answers where `[refs]`
+    declares one (RK340). Where none does, both files number into one space and the row goes to
+    the first declared role: the address is spent either way — that is the fact this reports — and
+    which file would have held the heading is a question no history can settle.
+    """
+    declared = [name for name in roles if config.has(name)]
+    if not declared or config.schema_for(declared[0]).ref_scheme == "id":
+        return []
+    seen = {one.anchor for one in known}
+    out: list[Anchor] = []
+    for anchor, sha in _pointed_at(config).items():
+        if anchor in seen:
+            continue
+        namespace, _ = split_ref(anchor)
+        role = next(
+            (name for name in declared if config.schema_for(name).ref_prefix == namespace),
+            declared[0],
+        )
+        out.append(Anchor(anchor=anchor, role=role, live=False, written_in=sha))
+        seen.add(anchor)
+    return out
+
+
+def _pointed_at(config: Config) -> dict[str, str]:
+    """Every address a task line pointed at and **took with it**, by the commit that removed it.
+
+    The witness for an address declared and dropped inside one commit (RK1178). `_anchors_written`
+    reads the prose file's own diffs, which is the whole history of an address in every case but
+    one: a task whose `section add` and whose `ship` land in the same commit leaves a net-zero
+    diff there — the heading was never in any committed tree, so no diff of that file mentions it.
+    Nothing in the ledger does either, `as_ledger` keeping no pointer.
+
+    What does survive is the **roadmap**: that task's line was filed in an earlier commit carrying
+    `→ §XIV.30`, and the ship removed the line. So the address is read off the pointer that left,
+    which is a fact in the same history and about the same address.
+
+    Worth fixing rather than tolerating because of which workflow produces it: a task that files
+    its own rationale and ships in one commit is what a one-task-one-commit rule *requires*, so
+    this is the normal path and not unusual sequencing.
+
+    **Removed pointers only.** A pointer on a line still in the file is an address the two-command
+    flow is halfway through spending — `add --ref I.3` then `section add I.3` — and counting it
+    would make the second command refuse the address the first was told to take. A rewritten
+    pointer (`amend --ref`) does register the one it abandoned: an address nothing wrote is still
+    an address a reader saw cited, and they cost nothing.
+    """
+    out: dict[str, str] = {}
+    for role in ("roadmap", "deferred"):
+        if not config.has(role):
+            continue
+        try:
+            output = _run(
+                config.root,
+                "log",
+                "--reverse",
+                f"--format={_RECORD}%H",
+                "--no-color",
+                "-U0",
+                "--",
+                str(config.relative(config.path(role))),
+            )
+        except HistoryUnavailable:
+            continue
+        # Read as `anchor_of` reads a heading's: whatever follows the sigil up to the space
+        # that ends the pointer, which is the last thing a rendered line carries. The address is
+        # then validated by the same reader the prose file's own scan uses, so a bullet that
+        # merely contains an arrow contributes nothing.
+        pointer = re.compile(rf"{ARROW} §(\S+)\s*$")
+        for head, rows in _records(output):
+            for row in rows:
+                if not row.startswith("-") or row.startswith("---"):
+                    continue
+                found = pointer.search(row)
+                if found:
+                    out.setdefault(found[1], head.strip())
+    return out
 
 
 def _role_anchors(config: Config, role: str) -> list[Anchor]:
