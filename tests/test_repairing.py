@@ -244,11 +244,13 @@ def _read(path: Path) -> str:
 
 
 def _printed(capsys, outcome) -> str:
-    """The report for an outcome the test drove itself, since `main` runs its own dispatch."""
-    from roadkeep.rendering import _print_repair
+    """The report for an outcome the test drove itself, since `main` runs its own dispatch.
 
-    _print_repair(outcome, ".")
-    return capsys.readouterr().out
+    Off the record since RK1170, which is what the delegation now is: the door prints what
+    `stated` composes, so a test reading the report reads the same method the door does.
+    """
+    del capsys
+    return outcome.stated(".") + "\n"
 
 
 def test_the_summary_counts_what_ran_and_names_what_was_refused(tmp_path, capsys):

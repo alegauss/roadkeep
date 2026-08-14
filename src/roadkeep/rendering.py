@@ -62,7 +62,7 @@ from roadkeep.picking import Choice, Claim
 from roadkeep.provenance import invocation, served_by
 from roadkeep.remaining import count, declared
 from roadkeep.remedying import Door, remedy
-from roadkeep.repairing import MAX_PASSES, Repaired, repair
+from roadkeep.repairing import repair
 from roadkeep.kernel.schema import UTF16_UNITS, width as measured_width
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK
 
@@ -425,76 +425,17 @@ def _print_standing(standing: Standing | None) -> None:
         print(f"roadkeep: {standing.sentence}", file=sys.stderr)
 
 
-def _print_repair(outcome: Repaired, root: str) -> None:
-    _print_fix(outcome.applied)
-    _print_refusals(outcome.applied)
-    for step in outcome.steps:
-        print(str(step))
-    for left in outcome.left:
-        print(str(left))
-    if outcome.exhausted:
-        print(
-            f"roadkeep: stopped after {MAX_PASSES} repairs with work still reported: a "
-            f"rule and its own remedy disagree, which is a defect in this tool",
-            file=sys.stderr,
-        )
-    verb = "would run" if outcome.dry_run else "ran"
-    # Runs and attempts are two numbers (RK471). This counted the steps, so a run that
-    # dispatched three and had two refused closed with `3 repair(s) ran` three lines under
-    # two the same output had already marked `FAILED` — and the count is the line a person
-    # acts on, so a caller read `3 ran` against `34 left` and concluded the tree moved three
-    # findings closer when it moved one. `Step.ok` already separates them at the point they
-    # are decided; only the sum did not ask.
-    #
-    # The exit code is untouched and stays 1 while anything is left (RK422): two refusals are
-    # not a failure of `repair`, whose whole design is that what it cannot close it prints.
-    failed = [step for step in outcome.steps if not step.ok]
-    ran = len(outcome.steps) - len(failed)
-    refused = f", {len(failed)} refused" if failed else ""
-    print(
-        f"{ran} repair(s) {verb}{refused}, {len(outcome.left)} left for you{_tree(root)}"
-    )
-
-
-def _repair_json(outcome: Repaired, root: str, served: str = "") -> dict[str, object]:
-    return {
-        "root": root,
-        "clean": outcome.clean,
-        "dry_run": outcome.dry_run,
-        "passes": outcome.passes,
-        "exhausted": outcome.exhausted,
-        "steps": [
-            {
-                "code": step.code,
-                "where": step.where,
-                "argv": list(step.argv),
-                "what": step.what,
-                "exit": step.exit,
-            }
-            for step in outcome.steps
-        ],
-        "left": [
-            {
-                "code": left.finding.code,
-                "where": left.finding.where,
-                "message": left.finding.message,
-                **({} if left.remedy is None else {"remedy": left.remedy.payload(served)}),
-            }
-            for left in outcome.left
-        ],
-    }
-
-
 def _print_report(
     config: Config, report: Report, applied: Fix, root: str, quiet: bool
 ) -> None:
     if not quiet:
-        _print_fix(applied)
+        _print(applied.stated())
         # Notes before the findings and the summary: a note is what the gate says about a
         # file it is passing, and after an exit-1 report nobody would read it (RK35).
         for note in report.notes:
             print(str(note))
-    _print_refusals(applied)
+    for line in applied.refusals():
+        print(line, file=sys.stderr)
     if report.clean:
         # The files are named on the way out even when there is nothing to say: a gate
         # that passed by reading nothing looks exactly like a gate that passed.
@@ -599,30 +540,6 @@ def _tree(root: str) -> str:
     expecting it — the same argument as naming the files on a clean run.
     """
     return f" (in {root})"
-
-
-def _print_fix(applied: Fix) -> None:
-    for repair in applied.repairs:
-        print(str(repair))
-    for kept in applied.skipped:
-        print(str(kept))
-    if applied.repairs:
-        print(f"{applied.changed} line(s) normalized in {', '.join(applied.files)}")
-        # Once per run and not on every line (RK357): a `gone` address is a position in the
-        # file as this pass *read* it, which is the reading git still has and the written file
-        # no longer does. Reporting it before the write is deliberate — the reader who wants to
-        # see what was taken needs the line, not the gap — so what was missing was the sentence
-        # saying which of the two trees the address is about.
-        left = sum(1 for repair in applied.repairs if repair.removed)
-        if left:
-            print(f"{left} of them removed, at the line each was read from")
-
-
-def _print_refusals(applied: Fix) -> None:
-    """Printed even under `--quiet`: a pass that could not prove its own output wrote
-    nothing, and silence about that is the difference between "clean" and "unexamined"."""
-    for message in applied.refused:
-        print(f"roadkeep: refused, nothing written: {message}", file=sys.stderr)
 
 
 def _lint_json(config: Config, report: Report, applied: Fix, root: str) -> dict[str, object]:

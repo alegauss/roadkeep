@@ -104,6 +104,75 @@ class Repaired:
     def failed(self) -> tuple[Step, ...]:
         return tuple(step for step in self.steps if not step.ok)
 
+    def stated(self, root: str) -> str:
+        """What ran, what is left, and the two numbers that are not one (RK422, RK471).
+
+        Beside :meth:`payload` since RK1170. Runs and attempts are counted apart: this counted
+        the steps, so a run that dispatched three and had two refused closed with `3 repair(s)
+        ran` three lines under two the same output had already marked `FAILED` — and the count
+        is the line a person acts on, so a caller read `3 ran` against `34 left` and concluded
+        the tree moved three findings closer when it moved one. `Step.ok` already separates
+        them at the point they are decided; only the sum did not ask.
+
+        The exit code is untouched and stays 1 while anything is left: two refusals are not a
+        failure of `repair`, whose whole design is that what it cannot close it prints.
+        """
+        from roadkeep.rendering import _tree  # noqa: PLC0415 - RK260
+
+        rows = self.applied.stated()
+        rows += [str(step) for step in self.steps]
+        rows += [str(left) for left in self.left]
+        verb = "would run" if self.dry_run else "ran"
+        ran = len(self.steps) - len(self.failed)
+        refused = f", {len(self.failed)} refused" if self.failed else ""
+        rows.append(
+            f"{ran} repair(s) {verb}{refused}, {len(self.left)} left for you{_tree(root)}"
+        )
+        return "\n".join(rows)
+
+    def warnings(self) -> list[str]:
+        """What this run has to say on **stderr**: a pass that wrote nothing, and a loop that
+        stopped on its own ceiling rather than on running out of work."""
+        rows = self.applied.refusals()
+        if self.exhausted:
+            rows.append(
+                f"roadkeep: stopped after {MAX_PASSES} repairs with work still reported: a "
+                f"rule and its own remedy disagree, which is a defect in this tool"
+            )
+        return rows
+
+    def payload(self, root: str, served: str = "") -> dict[str, object]:
+        return {
+            "root": root,
+            "clean": self.clean,
+            "dry_run": self.dry_run,
+            "passes": self.passes,
+            "exhausted": self.exhausted,
+            "steps": [
+                {
+                    "code": step.code,
+                    "where": step.where,
+                    "argv": list(step.argv),
+                    "what": step.what,
+                    "exit": step.exit,
+                }
+                for step in self.steps
+            ],
+            "left": [
+                {
+                    "code": left.finding.code,
+                    "where": left.finding.where,
+                    "message": left.finding.message,
+                    **(
+                        {}
+                        if left.remedy is None
+                        else {"remedy": left.remedy.payload(served)}
+                    ),
+                }
+                for left in self.left
+            ],
+        }
+
 
 def repair(
     config: Config,

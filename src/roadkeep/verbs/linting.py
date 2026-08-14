@@ -30,9 +30,7 @@ from roadkeep.remedying import codes as remedy_codes, explain
 from roadkeep.rendering import (
     _attributes_line,
     _lint_json,
-    _print_repair,
     _print_report,
-    _repair_json,
     _served,
     _wiring_line,
     registration_report,
@@ -246,9 +244,11 @@ def _repair(config: Config, args: argparse.Namespace) -> int:
 
     root = config.root.as_posix()
     if args.json:
-        print(json.dumps(_repair_json(outcome, root, _served(config)), indent=2))
+        print(json.dumps(outcome.payload(root, _served(config)), indent=2))
     else:
-        _print_repair(outcome, root)
+        print(outcome.stated(root))
+        for line in outcome.warnings():
+            print(line, file=sys.stderr)
     # Clean means clean, and `--dry-run` is never that: a run that wrote nothing has not
     # closed anything, so reporting 0 would tell a CI job the tree passes when it does not.
     if outcome.dry_run:

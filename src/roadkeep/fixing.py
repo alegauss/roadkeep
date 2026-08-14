@@ -152,6 +152,28 @@ class Fix:
     def changed(self) -> int:
         return len(self.repairs)
 
+    def stated(self) -> list[str]:
+        """Every line this pass normalized, and the two counts (RK16, RK357)."""
+        rows = [str(repair) for repair in self.repairs]
+        rows += [str(kept) for kept in self.skipped]
+        if self.repairs:
+            rows.append(f"{self.changed} line(s) normalized in {', '.join(self.files)}")
+            # Once per run and not on every line (RK357): a `gone` address is a position in the
+            # file as this pass *read* it, which is the reading git still has and the written
+            # file no longer does. Reporting it before the write is deliberate — the reader who
+            # wants to see what was taken needs the line, not the gap — so what was missing was
+            # the sentence saying which of the two trees the address is about.
+            left = sum(1 for repair in self.repairs if repair.removed)
+            if left:
+                rows.append(f"{left} of them removed, at the line each was read from")
+        return rows
+
+    def refusals(self) -> list[str]:
+        """For **stderr**, and printed even under `--quiet`: a pass that could not prove its
+        own output wrote nothing, and silence about that is the difference between "clean"
+        and "unexamined"."""
+        return [f"roadkeep: refused, nothing written: {one}" for one in self.refused]
+
 
 def fix(config: Config) -> Fix:
     """Normalize every governed line that can be normalized. Writes each file once."""
