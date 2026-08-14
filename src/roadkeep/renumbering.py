@@ -42,7 +42,7 @@ the line that already had it.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
@@ -141,6 +141,89 @@ class Renumbering:
         if self.root is not None and self.claim is not None:
             claiming.rename(self.root, self.task_id, self.to)
         return wrote
+
+    def event(self, config: Config) -> dict[str, object]:
+        """What the move did to the block it lands in (RK38).
+
+        The roadmap is read back where this write did not touch it: a line moved in the
+        deferred store owes the same event line, and the file is already saved.
+        """
+        from roadkeep.rendering import _event  # noqa: PLC0415 - RK260
+
+        return _event(
+            self.to,
+            self.entry.task.block,
+            self.documents.get("roadmap") or config.document("roadmap"),
+            config,
+        )
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """Where the line went and what followed it (RK74, RK113, RK156).
+
+        Beside :meth:`payload` since RK1170. `wrote` is the caller's, because :meth:`save` is
+        a step this record does not take.
+        """
+        from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _event_rows,
+            _staging_rows,
+        )
+
+        where = config.relative(config.path(self.role))
+        prose = (
+            config.relative(config.path("improvements")) if config.has("improvements") else ""
+        )
+        rows = [
+            f"{self.task_id} → {self.to}  {where}:{self.lineno}",
+            f"  {self.rendered}",
+        ]
+        if self.section is not None:
+            rows.append(f"  section  §{self.to} → {prose}:{self.section.first}")
+        if self.subsections:
+            rows.append(
+                f"  nested   {', '.join('§' + a for a in self.subsections)} "
+                f"(the id's own numbering)"
+            )
+        if self.moved:
+            rows.append(
+                f"  deps     {', '.join(self.moved)} now name {self.to} — "
+                f"confirm each meant this line"
+            )
+        if self.refreshed:
+            rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
+        if self.claim is not None:
+            # The half the files do not hold (RK156): the worker holding this will next ask for
+            # it by a number that no longer exists, and that it is still theirs is what to say.
+            rows.append(f"  claimed  the claim taken {self.claim.since} ago moved with it")
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        rows += _event_rows(self.event(config), "  ", config=config)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        """The same answer as data, with every file the new address reached."""
+        from roadkeep.rendering import _held_json, _wrote_json  # noqa: PLC0415 - RK260
+
+        prose = (
+            config.relative(config.path("improvements")) if config.has("improvements") else ""
+        )
+        return {
+            "id": self.task_id,
+            "to": self.to,
+            "role": self.role,
+            "file": config.relative(config.path(self.role)),
+            "line": self.lineno,
+            "rendered": self.rendered,
+            "section": None if self.section is None else self.section.payload(prose),
+            # The nested headings that carried the old address, as they now read.
+            "subsections": list(self.subsections),
+            # The lines this write changed on the author's behalf, because which of two
+            # collided ids a dep meant is not a fact any file holds.
+            "moved": list(self.moved),
+            "refreshed": list(self.refreshed),
+            "files": sorted(config.relative(config.path(role)) for role in self.documents),
+            "claimed": _held_json(self.claim),
+            **_wrote_json(config, wrote),
+            "event": self.event(config),
+        }
 
 
 def renumber(config: Config, task_id: str, to: str | None = None) -> Renumbering:

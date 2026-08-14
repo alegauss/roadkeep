@@ -24,12 +24,10 @@ from roadkeep.provenance import invocation
 from roadkeep.rendering import (
     _print,
     _event,
-    _held_json,
     _event_rows,
     _staging_rows,
     _promise_json,
     _prose_file,
-    _wrote_json,
 )
 from roadkeep.renumbering import renumber
 from roadkeep.kernel.schema import width as measured_width
@@ -293,67 +291,21 @@ def _restate(config: Config, args: argparse.Namespace) -> int:
 
 
 def _renumber(config: Config, args: argparse.Namespace) -> int:
+    """Move one line to a free id, with its section, its subsections and its claim (RK74).
+
+    Both registers come off the record (RK1170); `wrote` is passed because saving is this
+    door's step, so the paths are a fact about the call and not about the transaction.
+    """
     try:
         moved = renumber(config, args.id, args.to)
         wrote = moved.save()
     except REFUSALS as error:
         return _refused(error)
 
-    where = config.relative(config.path(moved.role))
-    prose = config.relative(config.path("improvements")) if config.has("improvements") else ""
-    # Read back when this write did not touch the roadmap — a line moved in the deferred
-    # store still owes the same event line (RK38), and the file is already saved.
-    event = _event(
-        moved.to,
-        moved.entry.task.block,
-        moved.documents.get("roadmap") or config.document("roadmap"),
-        config,
-    )
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": moved.task_id,
-                    "to": moved.to,
-                    "role": moved.role,
-                    "file": where,
-                    "line": moved.lineno,
-                    "rendered": moved.rendered,
-                    "section": None
-                    if moved.section is None
-                    else moved.section.payload(prose),
-                    # The nested headings that carried the old address, as they now read.
-                    "subsections": list(moved.subsections),
-                    # The lines this write changed on the author's behalf, because which
-                    # of two collided ids a dep meant is not a fact any file holds.
-                    "moved": list(moved.moved),
-                    "refreshed": list(moved.refreshed),
-                    "files": sorted(config.relative(config.path(role)) for role in moved.documents),
-                    "claimed": _held_json(moved.claim),
-                    **_wrote_json(config, wrote),
-                    "event": event,
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(f"{moved.task_id} → {moved.to}  {where}:{moved.lineno}")
-    print(f"  {moved.rendered}")
-    if moved.section is not None:
-        print(f"  section  §{moved.to} → {prose}:{moved.section.first}")
-    if moved.subsections:
-        print(f"  nested   {', '.join('§' + a for a in moved.subsections)} (the id's own numbering)")
-    if moved.moved:
-        print(f"  deps     {', '.join(moved.moved)} now name {moved.to} — confirm each meant this line")
-    if moved.refreshed:
-        print(f"  derived  {', '.join(moved.refreshed)} (dep annotations re-derived)")
-    if moved.claim is not None:
-        # The half the files do not hold (RK156): the worker holding this will next ask for it
-        # by a number that no longer exists, and that it is still theirs is what to say.
-        print(f"  claimed  the claim taken {moved.claim.since} ago moved with it")
-    _print(_staging_rows(config.relative(one) for one in wrote))
-    _print(_event_rows(event, "  ", config=config))
+        print(json.dumps(moved.payload(config, wrote), indent=2))
+    else:
+        print(moved.stated(config, wrote))
     return EXIT_OK
 
 
