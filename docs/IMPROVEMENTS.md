@@ -214,6 +214,31 @@ stays a report like the rest of `budget`. And whether **stdin** is accepted here
 does not rewind, but this writes nothing, so the objection that shaped the writing verbs
 does not apply.
 
+### §RK1197 The half of a status the reader throws away
+
+`claim <id>` answers what a commit would take that no claim accounts for, out of `status
+--porcelain -z` (RK280, RK294). `_dirty_paths` keeps the path and drops the two status
+columns, so `MM` and ` M` arrive as one fact: this path is loose.
+
+They are not one fact. ` M` is a file the author edited and has not staged; `MM` is a
+file whose **staged** content already differs from `HEAD`, which a `git commit` takes
+whether or not the author looks at the diff — and the diff they are reading is the
+unstaged half.
+
+Measured twice in one session, both times the same shape. This repository bumps a
+version literal in three files from a pre-commit hook. A commit script that stages
+everything left `0.1.901` in the index; a parallel session then committed `0.1.902`; the
+index held a *downgrade*, staged, invisible to `git diff` and reported by `claim` as
+three ordinary loose paths. Caught both times by reading `git diff --cached` by hand,
+which is the analysis this verb exists so that nobody has to make.
+
+What it costs is one letter. The reader already has both columns and discards them at
+the parse; `Scope.loose` would carry whether the path is staged, and the row would say
+so — the same shape `theirs` and `shared` already take, where the extra word is what
+makes the list actionable rather than a restatement of `git status`.
+
+Worth deciding: whether a staged-and-unclaimed path is loud enough to be its own row.
+
 ## Block D — The gate
 
 ### §RK1172 Two phases, and the five inputs a rule reads
