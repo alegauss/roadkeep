@@ -51,6 +51,7 @@
 
 - 🛠 **RK1170** (deps: —) **A verb's plain answer and its json payload are built in two files, and most of the printing never moved** — rendering.py holds 23 printers against 386 print calls left in the handlers, so the layer buys no rule about where a sentence is and costs every verb a second file. → §RK1170
 - 📋 **RK1171** (deps: RK1169 ✅, RK1170 🛠) **build_parser is one 2,000-line function, so a verb's flags are edited in the file the whole surface is in** — cli.py was split by layer for size and grew back to 2,260 code lines, so the cut that holds is per verb, which the two deps make a move and not a rewrite. → §RK1171
+- 📋 **RK1191** (deps: —) **_add still computes a `piped` flag that nothing reads, left behind when the pipe clash moved to dispatch** — RK1176 took the question and not the variable, so the handler still opens with a named condition nothing reads, and a reader tracing it ends in nothing. → §RK1191
 
 ## Non-goals
 
