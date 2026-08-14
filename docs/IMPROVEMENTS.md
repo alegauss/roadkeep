@@ -346,27 +346,27 @@ authority out of Python and out of reach of a type checker.
 ### §RK1194 A name a test cannot tell from a use
 
 `tests/test_importing.py` holds a property this repository relies on: no module imports
-a name nothing in it spells. `_spelled` answers *what is spelled* by collecting every
-`ast.Name` in the tree, with no notion of scope — so a name bound and read inside one
-function is evidence that a module-level import is used.
+a name nothing in it spells. `_spelled` collects every `ast.Name` with no notion of
+scope, so a name bound and read inside one function is evidence that a module-level
+import is used.
 
-Measured, not hypothetical. `verbs/querying.py` imported `record` from
-`roadkeep.shipping` with no reader anywhere in the module; a local `record = str(...)`
-inside `_writes` was spelling it. The import surfaced only when RK1170 moved that local
-onto the record it belonged to.
+Measured: `verbs/querying.py` imported `record` with no reader in the module; a local
+`record = str(...)` inside `_writes` was spelling it. It surfaced only when RK1170 moved
+that local onto the record it belonged to.
 
-**Two candidate fixes were measured, and both are wrong.** Counting a `Name` only in
-`Load` context is the clause the first reading of this proposed, and it changes nothing:
-the local was *read*, twice. Disqualifying every name the module rebinds anywhere is
-conservative in the reporting direction and reports 32 — `attesting.py` among them,
-where `path` is imported, used, and shadowed by one comprehension variable. Most of the
-32 are that shape.
+**Three candidate fixes, each measured, each wrong.**
 
-So what this needs is a scope walk: a read counts where it is at module level, or inside
-a function that does not bind the name. Not a clause, and not something an approximation
-reaches — which is the finding, and the reason this line stayed open after the defect
-was understood.
+- **`Load` context only.** Zero findings: the local was *read*, twice. The clause addresses a
+  defect this is not.
+- **Disqualify every rebound name.** 32 findings, most of them false — `attesting.py` imports
+  `path`, uses it, and shadows it with one comprehension variable.
+- **`symtable`, the stdlib's own scope analysis.** It cannot see annotations, and under
+  `from __future__ import annotations` those are most of this package's imports: it reports
+  `Config`, `Sequence` and `Path` in nearly every module. It also loses a module-level
+  comprehension's reads on 3.13, which is a false positive in the one direction a gate must
+  never take.
 
-Worth deciding with it: whether the answer is this scan growing scopes, or the property
-being stated some other way. The tree takes no dev dependency, so a linter is not the
-door.
+What is left is a hybrid — the AST for annotations, which have no scope under PEP 563,
+and scopes for everything else. That is the finding, and the reason this line stayed
+open once the defect was understood: three doors are closed, and the fourth is not a
+clause.
