@@ -339,6 +339,161 @@ class Plan:
     def changing(self) -> tuple[Surface, ...]:
         return tuple(surface for surface in self.surfaces if surface.writes)
 
+    def stated(self, checked: bool) -> str:
+        """Every surface and what this run did — or would do — to it (RK100, RK393).
+
+        Beside :meth:`payload` since RK1170. `checked` is the caller's and not a field: the
+        plan is the same computation either way, which is what makes `--check` a check of the
+        thing that runs, and only the **tense** of the report differs.
+        """
+        rows = [f"{self.source.as_posix()}  →  {self.launcher}"]
+        if self.carried:
+            # Said because the header alone does not (RK1113): the launcher is a path, and a
+            # reader who passed no flag has to be told the path came from their own project
+            # rather than from a default that is about to overwrite it.
+            rows.append(
+                f"  committed      this project already runs {PROJECT_BRIDGE}, so the "
+                f"wiring stays on it — `uninstall` then `install` moves it to a checkout"
+            )
+        for surface in self.surfaces:
+            # `--check` writes nothing, so it reports in the conditional: the same three words
+            # in the past tense would claim a file changed that did not.
+            state = _WOULD[surface.state] if checked else surface.state
+            rows.append(f"  {state:<14} {surface.path.relative_to(self.root).as_posix()}")
+        if self.registered is not None:
+            # The same lines `merge --register` prints, because it is the same write (RK148) —
+            # and now literally the same rendering (RK276), so a field added to `Registration`
+            # cannot reach one surface and miss the other. The `git config` half is still
+            # printed and not run.
+            from roadkeep.rendering import registration_report  # noqa: PLC0415 - RK260
+
+            rows += registration_report(
+                self.registered, self.registered.attributes.name, 14
+            )
+        if self.debt:
+            # Beside the surfaces, because it is the reason one of them was written the way it
+            # was (RK140): a decision taken from a measurement nobody is shown is one the
+            # adopter cannot check.
+            rows.append(
+                f"  baselined      {self.debt} standing finding(s) here, so the workflow "
+                f"fails on what a branch adds — drop the line once `lint` exits 0"
+            )
+        # One label for every surface this command does not write, because they are not one
+        # kind: `CONTRIBUTING.md` is the author's, the driver is a flag away, and the two at
+        # the plugin's own root are files the tree already ships (RK235). "by hand" said all
+        # three, and on the last two it told the reader to write them.
+        rows += [f"  not written    {why}" for _, why in self.skipped]
+        # Beside the surfaces and before the verdict (RK393): this one is not a difference
+        # `install` closes, and saying so is the whole repair. The remedy named is the blocker,
+        # because that is the file somebody has to move.
+        rows += [
+            f"  blocked        {path.relative_to(self.root).as_posix()}: "
+            f"{parent.relative_to(self.root).as_posix()} is a file, "
+            f"so the directory cannot be made"
+            for path, parent in self.blocked
+        ]
+        return "\n".join(rows)
+
+    def verdict(self) -> list[str]:
+        """What a `--check` has to say on **stderr**, where anything is (RK393).
+
+        Two sentences and not one, because they are two states: a surface that differs is one
+        `install` writes; a surface that is blocked is one it exits 2 on, and a gate whose
+        named remedy is a red command sends a CI job round a loop.
+
+        Its own method rather than the tail of :meth:`stated` (RK1170): these go to a different
+        stream, and a register that mixed the two would put the verdict into the file a reader
+        redirects stdout into.
+        """
+        if not self.changing:
+            return []
+        blocked = {path for path, _ in self.blocked}
+        differing = [one for one in self.changing if one.path not in blocked]
+        rows = []
+        if differing:
+            rows.append(
+                f"{len(differing)} surface(s) differ from what this checkout ships: "
+                f"`{invocation()} install` writes them"
+            )
+        if self.blocked:
+            rows.append(
+                f"{len(self.blocked)} surface(s) cannot be written at all: "
+                f"move what is standing in the directory first, and `{invocation()} "
+                f"install` will not run until you do"
+            )
+        return rows
+
+    def payload(self, checked: bool) -> dict[str, object]:
+        """The same answer as data, with every state a reader might act on."""
+        return {
+            "root": self.root.as_posix(),
+            "source": self.source.as_posix(),
+            "launcher": self.launcher,
+            # RK1113: which variant, and whether the project said so rather than the flag. Two
+            # keys, because a reader deciding whether to pass `--committed` needs the second
+            # one — with `carried` true, passing it changes nothing.
+            "committed": self.committed,
+            "carried": self.carried,
+            "checked": checked,
+            "debt": self.debt,
+            "surfaces": [
+                {
+                    "path": surface.path.relative_to(self.root).as_posix(),
+                    "state": surface.state,
+                    "writes": surface.writes,
+                }
+                for surface in self.surfaces
+            ],
+            "skipped": [{"path": path, "why": why} for path, why in self.skipped],
+            "registered": None
+            if self.registered is None
+            else {
+                "attributes": self.registered.attributes.as_posix(),
+                "added": list(self.registered.added),
+                "present": list(self.registered.present),
+                "command": self.registered.command,
+                "invalidated_by": self.registered.invalidated_by,
+                "wiring": None
+                if self.registered.wiring is None
+                else {
+                    "attributes": self.registered.wiring.attributes.state,
+                    "driver": self.registered.wiring.driver.state,
+                },
+                # Keyed by the field names of `Registration`, and held to them by a test
+                # (RK276): the reading most likely to be automated is the one a dropped field
+                # is quietest in.
+                "left_alone": [list(pair) for pair in self.registered.left_alone],
+            },
+            "changing": len(self.changing),
+            # RK393: the surfaces `install` cannot write, each with the file standing in the
+            # way. Its own key and not folded into `changing`, because a reader acting on that
+            # number would run the command this one says will not run.
+            "blocked": [
+                {
+                    "path": path.relative_to(self.root).as_posix(),
+                    "blocked_by": parent.relative_to(self.root).as_posix(),
+                }
+                for path, parent in self.blocked
+            ],
+            # RK394: what stands in the way of the driver's own file, where anything does. Null
+            # and not absent when nothing does, so a reader tells "checked and clear" from
+            # "this payload predates the field".
+            "driver": None
+            if self.driver is None
+            else self.driver.relative_to(self.root).as_posix(),
+        }
+
+
+#: `install --check` reports the same four states as a run, in the tense of a run that has not
+#: happened. `kept` and `unchanged` are already that tense: neither describes a write. Beside
+#: the plan since RK1170, the report having moved onto it.
+_WOULD = {
+    "created": "would create",
+    "updated": "would update",
+    "unchanged": "unchanged",
+    "kept": "kept, yours",
+}
+
 
 def plan(
     root: str | Path = ".",

@@ -35,7 +35,6 @@ from roadkeep.capturing import (
 from roadkeep.backlog import Backlog
 from roadkeep.config import Config
 from roadkeep.installing import (
-    PROJECT_BRIDGE,
     UNPINNABLE,
     engines,
     install,
@@ -44,7 +43,7 @@ from roadkeep.installing import (
     uninstall,
 )
 from roadkeep.provenance import invocation
-from roadkeep.rendering import _estimate_json, _print_estimate, registration_report
+from roadkeep.rendering import _estimate_json, _print_estimate
 from roadkeep.serving import serve
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, _refused
 
@@ -106,16 +105,6 @@ def _adopt(config: Config, args: argparse.Namespace) -> int:
     # Always 0: this reports on a file the project has not adopted, so there is no
     # contract for it to have broken. `lint` is the command with an exit code.
     return EXIT_OK
-
-
-#: `install --check` reports the same four states as a run, in the tense of a run that has
-#: not happened. `kept` and `unchanged` are already that tense: neither describes a write.
-_WOULD = {
-    "created": "would create",
-    "updated": "would update",
-    "unchanged": "unchanged",
-    "kept": "kept, yours",
-}
 
 
 #: The same rule for the other direction (RK138). `absent` and `untouched` describe no write
@@ -231,132 +220,12 @@ def _install(config: Config, args: argparse.Namespace) -> int:
         return _refused(error)
 
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "root": intent.root.as_posix(),
-                    "source": intent.source.as_posix(),
-                    "launcher": intent.launcher,
-                    # RK1113: which variant, and whether the project said so rather than the
-                    # flag. Two keys, because a reader deciding whether to pass `--committed`
-                    # needs the second one — with `carried` true, passing it changes nothing.
-                    "committed": intent.committed,
-                    "carried": intent.carried,
-                    "checked": args.check,
-                    "debt": intent.debt,
-                    "surfaces": [
-                        {
-                            "path": surface.path.relative_to(intent.root).as_posix(),
-                            "state": surface.state,
-                            "writes": surface.writes,
-                        }
-                        for surface in intent.surfaces
-                    ],
-                    "skipped": [{"path": path, "why": why} for path, why in intent.skipped],
-                    "registered": None
-                    if intent.registered is None
-                    else {
-                        "attributes": intent.registered.attributes.as_posix(),
-                        "added": list(intent.registered.added),
-                        "present": list(intent.registered.present),
-                        "command": intent.registered.command,
-                        "invalidated_by": intent.registered.invalidated_by,
-                        "wiring": None
-                        if intent.registered.wiring is None
-                        else {
-                            "attributes": intent.registered.wiring.attributes.state,
-                            "driver": intent.registered.wiring.driver.state,
-                        },
-                        # Keyed by the field names of `Registration`, and held to them by a
-                        # test (RK276): the reading most likely to be automated is the one a
-                        # dropped field is quietest in.
-                        "left_alone": [list(pair) for pair in intent.registered.left_alone],
-                    },
-                    "changing": len(intent.changing),
-                    # RK393: the surfaces `install` cannot write, each with the file standing
-                    # in the way. Its own key and not folded into `changing`, because a reader
-                    # acting on that number would run the command this one says will not run.
-                    "blocked": [
-                        {
-                            "path": path.relative_to(intent.root).as_posix(),
-                            "blocked_by": parent.relative_to(intent.root).as_posix(),
-                        }
-                        for path, parent in intent.blocked
-                    ],
-                    # RK394: what stands in the way of the driver's own file, where anything
-                    # does. Null and not absent when nothing does, so a reader tells "checked
-                    # and clear" from "this payload predates the field".
-                    "driver": None
-                    if intent.driver is None
-                    else intent.driver.relative_to(intent.root).as_posix(),
-                },
-                indent=2,
-            )
-        )
+        print(json.dumps(intent.payload(args.check), indent=2))
     else:
-        print(f"{intent.source.as_posix()}  →  {intent.launcher}")
-        if intent.carried:
-            # Said because the header alone does not (RK1113): the launcher is a path, and a
-            # reader who passed no flag has to be told the path came from their own project
-            # rather than from a default that is about to overwrite it.
-            print(
-                f"  committed      this project already runs {PROJECT_BRIDGE}, so the "
-                f"wiring stays on it — `uninstall` then `install` moves it to a checkout"
-            )
-        for surface in intent.surfaces:
-            # `--check` writes nothing, so it reports in the conditional: the same three
-            # words in the past tense would claim a file changed that did not.
-            state = _WOULD[surface.state] if args.check else surface.state
-            print(f"  {state:<14} {surface.path.relative_to(intent.root).as_posix()}")
-        if intent.registered is not None:
-            # The same lines `merge --register` prints, because it is the same write (RK148) —
-            # and now literally the same rendering (RK276), so a field added to `Registration`
-            # cannot reach one surface and miss the other. The `git config` half is still
-            # printed and not run.
-            for line in registration_report(intent.registered, intent.registered.attributes.name, 14):
-                print(line)
-        if intent.debt:
-            # Beside the surfaces, because it is the reason one of them was written the way
-            # it was (RK140): a decision taken from a measurement nobody is shown is one the
-            # adopter cannot check.
-            print(
-                f"  baselined      {intent.debt} standing finding(s) here, so the workflow "
-                f"fails on what a branch adds — drop the line once `lint` exits 0"
-            )
-        for _, why in intent.skipped:
-            # One label for every surface this command does not write, because they are not
-            # one kind: `CONTRIBUTING.md` is the author's, the driver is a flag away, and the
-            # two at the plugin's own root are files the tree already ships (RK235). "by hand"
-            # said all three, and on the last two it told the reader to write them.
-            print(f"  not written    {why}")
-        for path, parent in intent.blocked:
-            # Beside the surfaces and before the verdict (RK393): this one is not a difference
-            # `install` closes, and saying so is the whole repair. The remedy named is the
-            # blocker, because that is the file somebody has to move.
-            print(
-                f"  blocked        {path.relative_to(intent.root).as_posix()}: "
-                f"{parent.relative_to(intent.root).as_posix()} is a file, "
-                f"so the directory cannot be made"
-            )
-        if args.check and intent.changing:
-            # Two sentences and not one, because they are two states (RK393). A surface that
-            # differs is one `install` writes; a surface that is blocked is one it exits 2 on,
-            # and a gate whose named remedy is a red command sends a CI job round a loop.
-            blocked = {path for path, _ in intent.blocked}
-            differing = [s for s in intent.changing if s.path not in blocked]
-            if differing:
-                print(
-                    f"{len(differing)} surface(s) differ from what this checkout ships: "
-                    f"`{invocation()} install` writes them",
-                    file=sys.stderr,
-                )
-            if intent.blocked:
-                print(
-                    f"{len(intent.blocked)} surface(s) cannot be written at all: "
-                    f"move what is standing in the directory first, and `{invocation()} "
-                    f"install` will not run until you do",
-                    file=sys.stderr,
-                )
+        print(intent.stated(args.check))
+        if args.check:
+            for line in intent.verdict():
+                print(line, file=sys.stderr)
     if args.check and intent.changing:
         return EXIT_GATE
     return EXIT_OK
