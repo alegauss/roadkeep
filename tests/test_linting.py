@@ -16,6 +16,7 @@ And the fixture that proves the format rather than asserting it: this repository
 
 from __future__ import annotations
 
+import ast
 import json
 import re
 import subprocess
@@ -2559,3 +2560,38 @@ def test_a_fragment_target_buys_nothing(tmp_path):
     characters: what earns the silence is the file, and a fragment names none."""
     config = citing(tmp_path, "See [§I.2](#i-2) below for the rest.")
     assert dangling(config) == ["ref.dangling"]
+
+
+# -- the phase that reads findings (RK1172) -----------------------------------
+
+
+def test_every_rule_that_reads_findings_is_in_the_phase():
+    """RK1172's first code slice, and the totality it buys.
+
+    The measurement that opened that task found three rules taking none of the five project
+    inputs: they are handed the *findings so far*. `_examine` called them nested —
+    `_ordered(_untainted(findings), checked)` — which states the order inside out and makes "where
+    does a fourth go" a question about parentheses.
+
+    Declared as a list, the question has an answer, and this is what holds it: a function in
+    `linting.py` that takes findings and is not one of the folds is a rule sequenced by where its
+    call sits, which is the hand-wiring being removed.
+    """
+    from roadkeep import linting
+
+    source = ast.parse(Path(linting.__file__).read_text(encoding="utf-8"))
+    reads = {
+        node.name
+        for node in source.body
+        if isinstance(node, ast.FunctionDef)
+        and any(one.arg == "findings" for one in node.args.args)
+    }
+    folded = {"_grammatical", "_untainted", "_ordered"}
+    assert reads == folded, {"reads findings, not folded": reads - folded}
+    # And the list runs them in the order each needs the one before it: the inference over the
+    # whole population, then the drop of what it explains, then the sort over what survived.
+    assert [fold.__name__ for fold in linting._FOLDS] == [
+        "fold_grammatical",
+        "fold_untainted",
+        "fold_ordered",
+    ]

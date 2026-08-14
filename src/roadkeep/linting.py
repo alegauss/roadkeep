@@ -97,7 +97,8 @@ from __future__ import annotations
 import os
 import re
 import unicodedata
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
+from typing import Any
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
@@ -654,20 +655,54 @@ def _examine(config: Config, since: str | None, tree: Tree) -> Report:
     findings.extend(budgeted)
     notes.extend(budget_notes)
 
-    # After every per-line check and before the ordering, because it *reads* those findings:
-    # a whole file's worth of them is evidence about the rule (RK1068), and the fold has to
-    # see the population to make the inference.
-    findings = _grammatical(config, documents, findings)
-
     checked = _checked(config, documents, prose, targets)
+    # The second phase, run as the list it is (RK1172). Every rule above reads the *project*;
+    # these three read what those produced — a whole file's worth of findings is evidence about
+    # the rule rather than about a line (RK1068), what another finding already explains is not a
+    # second finding, and the printed order is a fact about the report. Nested calls said the
+    # same thing and said it inside out: `_ordered(_untainted(findings), checked)` puts the last
+    # step first, and where a fourth fold goes was a question about parentheses.
+    for fold in _FOLDS:
+        findings = list(fold(findings, config=config, documents=documents, checked=checked))
     return Report(
-        findings=_ordered(_untainted(findings), checked),
+        findings=tuple(findings),
         checked=checked,
         lines=sum(len(d.entries) for d in documents.values()),
         sections=len(sections),
         budgets=len(config.budgets),
         notes=tuple(notes),
     )
+
+
+def _folding(name: str) -> Callable[..., Any]:
+    """One rule of the reporting phase, adapted to the one shape a fold has (RK1172).
+
+    The three read different things — a document set, the findings alone, the file order — so
+    an adapter is what lets the phase be a list. Written here rather than by changing each
+    rule's own signature: what a rule wants is a fact about that rule, and a uniform parameter
+    list that every caller then ignores half of is the hand-wiring one layer up.
+    """
+    def fold(findings: list[Finding], **inputs: Any) -> Sequence[Finding]:
+        if name == "grammatical":
+            return _grammatical(inputs["config"], inputs["documents"], findings)
+        if name == "untainted":
+            return _untainted(findings)
+        return _ordered(findings, inputs["checked"])
+
+    fold.__name__ = f"fold_{name}"
+    return fold
+
+
+#: The reporting phase, in the order it runs (RK1172). The fold before the drop before the sort,
+#: because each reads what the one before it left: the inference needs the whole population, the
+#: drop needs the fold's own finding to exist before it can suppress what that explains, and the
+#: order is over whatever survived. Three names in a list, where the order used to be the shape
+#: of an expression.
+_FOLDS: tuple[Callable[..., Sequence[Finding]], ...] = (
+    _folding("grammatical"),
+    _folding("untainted"),
+    _folding("ordered"),
+)
 
 
 def _checked(
