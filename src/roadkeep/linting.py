@@ -546,6 +546,29 @@ class Report:
     def problems(self) -> int:
         return len(self.findings)
 
+    def stated(self, config: Config, applied: Fix, root: str, quiet: bool) -> None:
+        """The gate's report, written as it is composed (RK14, RK35, RK420).
+
+        Beside :meth:`payload` since RK1170 — one answer, on the record both readings are
+        about. It **writes** rather than returning rows, which is the one exception this task
+        leaves standing: a finding's remedy is fetched per finding and the mechanical class is
+        counted while the rest are printed, so building the whole report as a list would hold
+        a corpus-sized report in memory to hand it straight to `print`.
+
+        `quiet` is the caller's: what it silences is the *body*, never the summary and never
+        the refusals, because a pass that could not prove its own output wrote nothing.
+        """
+        _report_rows(config, self, applied, root, quiet)
+
+    def payload(self, config: Config, applied: Fix, root: str) -> dict[str, object]:
+        """The same answer as data, rooted first (RK299).
+
+        Every path in it is relative to `root`, and a payload a second tool files against the
+        wrong project is worse than one it cannot file at all — so the key comes first, spelled
+        the way `install --json` already spells it.
+        """
+        return _lint_json(config, self, applied, root)
+
     def codes(self) -> dict[str, int]:
         """Findings per code, most first — the summary a report of ninety is read by."""
         found: dict[str, int] = {}
@@ -3312,3 +3335,230 @@ def _cycles(backlog: Backlog, file: str) -> list[Finding]:
             )
         )
     return out
+
+
+# -- the gate's own two readings (RK1170) -------------------------------------
+#
+# Here and no longer in `rendering`, which is where they were cut to when that module was made
+# out of an 8,489-line `cli.py`: theirs was the cut with no import cycle, which is a fix for a
+# file's size and not for where a verb's answer lives. `Report` is what both are about, so both
+# are on it — and the finding-level helpers below are private to them.
+
+
+def _report_rows(config: Config, report: Report, applied: Fix, root: str, quiet: bool) -> None:
+    from roadkeep.rendering import _print, _tree  # noqa: PLC0415 - RK260
+
+    if not quiet:
+        _print(applied.stated())
+        # Notes before the findings and the summary: a note is what the gate says about a
+        # file it is passing, and after an exit-1 report nobody would read it (RK35).
+        for note in report.notes:
+            print(str(note))
+    for line in applied.refusals():
+        print(line, file=sys.stderr)
+    if report.clean:
+        # The files are named on the way out even when there is nothing to say: a gate
+        # that passed by reading nothing looks exactly like a gate that passed.
+        print(
+            f"{', '.join(report.checked) or 'nothing'}: {_measured(report)}, clean"
+            f"{_standing_line(report)}{_tree(root)}"
+        )
+        return
+    mechanical = 0
+    if not quiet:
+        mechanical = _print_findings(config, report)
+    added = "new " if report.baseline is not None else ""
+    print(
+        f"{report.problems} {added}problem(s) in {_measured(report)} across "
+        f"{len(report.checked)} file(s): {_codes_line(report)}{_standing_line(report)}{_tree(root)}"
+    )
+    if mechanical:
+        # Said once and never per line (RK420): the mechanical class is the one remedy that
+        # is identical on every finding it answers, so repeating it under each of them would
+        # spend the report's length on the findings that cost the reader nothing.
+        print(f"{mechanical} of them need no decision: {invocation()} lint --fix")
+
+
+def _print_findings(config: Config, report: Report) -> int:
+    """Every finding, with a group that is one fact said once (RK469).
+
+    A finding is per line and stays per line — the addresses are the evidence. What is said
+    once is the *sentence and the remedy* where a whole run of them shares both: measured on
+    Turing, 27 `section.ambiguous` findings and their 26 remedies were 80% of a 15,894-char
+    report, two distinct messages once the anchor was taken off, and one `[refs]` line in
+    `roadkeep.toml` closes every one.
+
+    The same argument RK420 already makes one line down, where the mechanical remedy is
+    counted rather than repeated under each finding, and the same one RK451 made about a file
+    a crash left NUL: one finding because the loss is one. A report whose bulk is one sentence
+    repeated is one a reader learns to skip (RK146), and it buries the four findings here that
+    are each about a different line.
+
+    Grouped by what the **emitter** declared they share, and only for runs of two or more: a
+    single member is its own sentence, and a group of one printed as a group would be a
+    heading over nothing.
+    """
+    mechanical = 0
+    # By the key and not by adjacency: a report interleaves files, so the members of one
+    # group are rarely consecutive — and a grouping that only folded runs would fold Turing's
+    # and leave a fixture's alone, which is the shape that passes a test and misses the case.
+    # Printed at the first member's place, so the report's order is otherwise the one it had.
+    groups: dict[tuple[str, str, str], list[Finding]] = {}
+    for finding in report.findings:
+        if finding.shared:
+            groups.setdefault((finding.code, finding.file, finding.shared), []).append(finding)
+    printed: set[tuple[str, str, str]] = set()
+    for finding in report.findings:
+        key = (finding.code, finding.file, finding.shared)
+        run = groups.get(key, []) if finding.shared else []
+        if len(run) < 2:
+            print(str(finding))
+            mechanical += _print_remedy(finding, config)
+            continue
+        if key in printed:
+            continue
+        printed.add(key)
+        first = finding
+        # The pair once, the addresses under it: `file:line` each, which is what an editor
+        # opens and what an author choosing which file takes the namespace counts.
+        print(f"{first.file}  {first.code}  {len(run)} addresses {first.shared}")
+        print(f"    {'  '.join(f'{one.token}:{one.lineno}' for one in run)}")
+        mechanical += _print_remedy(first, config)
+    return mechanical
+
+
+def _print_remedy(finding: Finding, config: Config) -> int:
+    """Print what closes this finding, and return 1 where that was `--fix`'s (RK420).
+
+    Printed by default rather than behind a flag. The defect being answered is a caller
+    spending a *turn* to learn the command, so a report that carries it only on request has
+    the cost exactly where it was: the second call is the thing being removed.
+
+    The mechanical class is counted instead of printed, and every other kind gets its line —
+    including `decide`, whose whole content is the two doors and what separates them, since
+    a decision printed as one word is a decision made by running one and reading its refusal.
+    """
+    from roadkeep.remedying import remedy  # noqa: PLC0415 - RK260
+
+    found = remedy(finding, config)
+    if found is None or found.kind == "fix":
+        return 1 if found is not None else 0
+    for line in str(found).splitlines():
+        print(f"    {line}" if not line.startswith("    ") else line)
+    return 0
+
+
+def _lint_json(config: Config, report: Report, applied: Fix, root: str) -> dict[str, object]:
+    baseline = report.baseline
+    return {
+        # First, because every path below is relative to it and a payload a second tool files
+        # against the wrong project is worse than one it cannot file at all (RK299). The same
+        # key `install --json` already uses, spelled the same way.
+        "root": root,
+        "clean": report.clean and not applied.refused,
+        # Absent without `--baseline`, so a caller reading `problems` cannot mistake a
+        # difference for a total: with it, `findings` holds only what this tree added.
+        **(
+            {}
+            if baseline is None
+            else {
+                "baseline": {
+                    "rev": baseline.rev,
+                    "standing": baseline.standing,
+                    "forgiven": [_finding_json(f, config) for f in baseline.forgiven],
+                    "resolved": [_finding_json(f, config) for f in baseline.resolved],
+                }
+            }
+        ),
+        "fixed": [
+            {
+                "file": repair.file,
+                "line": repair.lineno,
+                "id": repair.id,
+                "reasons": list(repair.reasons),
+                "before": repair.before,
+                "after": repair.after,
+                # A key on the same list rather than a `removed` list beside `fixed` (RK357):
+                # `line` means the pre-pass position here, and a consumer resolving addresses
+                # has to know that from the payload rather than from an empty `after`.
+                "removed": repair.removed,
+            }
+            for repair in applied.repairs
+        ],
+        "kept": [
+            {"file": s.file, "line": s.lineno, "id": s.id, "reason": s.reason}
+            for s in applied.skipped
+        ],
+        "refused": list(applied.refused),
+        "checked": list(report.checked),
+        "lines": report.lines,
+        "sections": report.sections,
+        "budgets": report.budgets,
+        "problems": report.problems,
+        "codes": report.codes(),
+        "findings": [_finding_json(f, config) for f in report.findings],
+        "notes": [
+            {
+                "code": note.code,
+                "file": note.file,
+                "line": note.lineno,
+                "id": note.id or None,
+                "message": note.message,
+                **_remedy_json(note, config),
+            }
+            for note in report.notes
+        ],
+    }
+
+
+def _standing_line(report: Report) -> str:
+    """What the baseline forgave, and what left — said out loud, both of them (RK84).
+
+    Both, because either number alone is the misreading §RK84 was written about: the run
+    that deleted 160 lines of rationale took the count *down* by eight, and the drop read as
+    an improvement right up until the two findings it added were looked at individually.
+    """
+    baseline = report.baseline
+    if baseline is None:
+        return ""
+    counts = f"{baseline.standing} standing"
+    if baseline.resolved:
+        counts += f", {len(baseline.resolved)} resolved"
+    return f" against {baseline.rev} ({counts})"
+
+
+def _measured(report: Report) -> str:
+    """What was read, in its own units: task lines, sections, and budgeted files."""
+    scope = f"{report.lines} line(s), {report.sections} section(s)"
+    return scope if not report.budgets else f"{scope}, {report.budgets} budget(s)"
+
+
+def _codes_line(report: Report) -> str:
+    return "  ".join(f"{code} {count}" for code, count in report.codes().items())
+
+
+def _finding_json(finding: Finding, config: Config) -> dict[str, object]:
+    return {
+        "code": finding.code,
+        "file": finding.file,
+        "line": finding.lineno,
+        # Only a character finding has one (RK34), and it is what makes an invisible
+        # codepoint findable: `file:line:column` is what an editor jumps to.
+        "column": finding.column,
+        "id": finding.id or None,
+        "message": finding.message,
+        **_remedy_json(finding, config),
+    }
+
+
+def _remedy_json(finding: object, config: Config) -> dict[str, object]:
+    """The remedy, as a key that is absent rather than null when the table has none (RK420).
+
+    Absent and not `"remedy": null`, because a consumer that reads the key at all is one
+    about to run what is in it, and a null is a shape it has to branch on before it can
+    tell "no command exists" from "this build predates the field".
+    """
+    from roadkeep.remedying import remedy  # noqa: PLC0415 - RK260
+
+    found = remedy(finding, config)
+    return {} if found is None else {"remedy": found.payload(_served(config))}

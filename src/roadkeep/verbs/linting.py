@@ -27,8 +27,6 @@ from roadkeep.linting import lint
 from roadkeep.merging import markers, merge, register, role_of, wiring
 from roadkeep.remedying import codes as remedy_codes, explain
 from roadkeep.rendering import (
-    _lint_json,
-    _print_report,
     _served,
     registration_report,
 )
@@ -173,9 +171,9 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
     # attribute the report to wherever it was misread from.
     root = config.root.as_posix()
     if args.json:
-        print(json.dumps(_lint_json(config, report, applied, root), indent=2))
+        print(json.dumps(report.payload(config, applied, root), indent=2))
     else:
-        _print_report(config, report, applied, root, quiet=args.quiet)
+        report.stated(config, applied, root, quiet=args.quiet)
     return EXIT_OK if passed else EXIT_GATE
 
 
