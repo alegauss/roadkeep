@@ -274,27 +274,3 @@ Its two deps are what make this mechanical rather than a rewrite. What must not 
 reached for: entry points or dynamic discovery, which cost startup, need a dependency,
 and take away the totality the gate is checked by; and a generator, which would move the
 authority out of Python and out of reach of a type checker.
-
-### §RK1179 The one refusal that is not a refusal
-
-`scripts/roadkeep.py` imports `roadkeep.cli` after its screen, with the comment "after
-the screen, never before". The screen covers the interpreter and the package being
-absent. It does not cover the package being present and unparseable, which is the state
-a checkout is in for as long as somebody is editing it — and every project running the
-tool from a checkout shares that state.
-
-Met from another repository mid-task: a `budget` call came back as a nine-line traceback
-ending `IndentationError: unexpected indent` at `backlog.py`. Nothing in it says which
-checkout answered, that the checkout is the thing that is wrong rather than the call, or
-that the caller's own files were untouched. Compared with every other refusal this tool
-writes — a code, a sentence, and the argv that closes it — it is the one path where the
-tool stops being the thing that explains itself.
-
-`engines` already answers the neighbouring question, reporting `agreed`, `behind` or
-`unpinnable` across the three copies that can be in play. It cannot help here, because
-reaching it needs the same import.
-
-So the screen is the place: catch the import, say which path was imported and that it
-does not parse, and name the one line of the traceback that identifies the file. The
-workaround a caller finds on their own is a clean worktree of the tool, which works and
-is not something the tool should let them discover by inference.

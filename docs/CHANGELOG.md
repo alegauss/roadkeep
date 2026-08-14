@@ -704,3 +704,4 @@
 
 - ✅ **RK1169 (the withheld reasons)** **Six tables in serving.py restate per verb what its own parser already declares** — each reason is declared beside the argument it explains, so the table and the test holding it against the parsers are gone.
 - ✅ **RK1170 (weight, as the exemplar)** **A verb's plain answer and its json payload are built in two files, and most of the printing never moved** — one result carries both registers beside the numbers it derives them from, and the renderer's half is gone.
+- ✅ **RK1179** **A checkout whose source does not import answers with a raw Python traceback instead of a sentence** — the engine says which checkout does not parse and where, and the hook still degrades to unenforced.

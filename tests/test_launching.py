@@ -20,6 +20,7 @@ import importlib.util
 import json
 import ast
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -715,3 +716,59 @@ def test_the_guard_runs_where_the_plugin_it_would_defer_to_cannot_load(tmp_path)
     )
     assert done.returncode == 0
     assert b"deny" in done.stdout, done.stdout
+
+
+# -- a checkout that does not parse (RK1179) ----------------------------------
+
+
+def unparsable(tmp_path: Path) -> Path:
+    """A copy of the engine whose `backlog.py` has one stray indent in it — an edit in progress,
+    which is the state this was met in from another repository."""
+    engine = tmp_path / "roadkeep"
+    shutil.copytree(ROOT / "src", engine / "src")
+    shutil.copytree(ROOT / "scripts", engine / "scripts")
+    broken = engine / "src" / "roadkeep" / "backlog.py"
+    lines = broken.read_text(encoding="utf-8").split("\n")
+    at = next(i for i, line in enumerate(lines) if line.startswith(("def ", "class ")))
+    lines.insert(at, "    stray = 1")
+    broken.write_text("\n".join(lines), encoding="utf-8")
+    return engine / "scripts" / "roadkeep.py"
+
+
+def test_a_command_gets_the_tools_own_sentence_and_not_a_traceback(tmp_path):
+    """RK1179, met from another repository mid-task: a `budget` call came back as a nine-line
+    traceback ending `IndentationError: unexpected indent`. Nothing in it said which checkout
+    answered, that the checkout is what is wrong rather than the call, or that the caller's own
+    files were untouched — the one path where this tool stopped explaining itself.
+
+    Exit 2 and not 1: the command did not run, and 1 in this tool is a verdict about the
+    repository's own contents (RK86).
+    """
+    ran = subprocess.run(
+        [sys.executable, str(unparsable(tmp_path)), "list"],
+        capture_output=True, text=True, cwd=str(ROOT), check=False,
+    )
+    assert ran.returncode == 2
+    assert "Traceback" not in ran.stderr
+    said = ran.stderr
+    assert "does not parse, so no command ran" in said
+    # The three facts a caller cannot get anywhere else: which copy, which file, and that their
+    # own files are untouched.
+    assert "engine" in said and str(tmp_path) in said
+    assert "backlog.py:" in said and "unexpected indent" in said
+    assert "your own files were not read" in said
+    # And the neighbouring read is named, which is the shape every refusal here has (RK14/15).
+    assert "roadkeep engines" in said
+
+
+def test_the_hook_still_degrades_to_unenforced(tmp_path):
+    """The launcher's own second rule, which this must not break: a hook that fires on every turn
+    degrades to *unenforced* and never to a broken session — the harness reads a non-zero exit as
+    the hook having failed, so a refusal printed there takes the turn down with it."""
+    ran = subprocess.run(
+        [sys.executable, str(unparsable(tmp_path)), "guard"],
+        input='{"tool_name":"Edit","tool_input":{"file_path":"docs/ROADMAP.md"}}',
+        capture_output=True, text=True, cwd=str(ROOT), check=False,
+    )
+    assert ran.returncode == 0
+    assert ran.stdout == "" and "Traceback" not in ran.stderr
