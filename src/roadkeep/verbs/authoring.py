@@ -37,7 +37,7 @@ from roadkeep.rendering import (
 )
 from roadkeep.renumbering import renumber
 from roadkeep.kernel.schema import width as measured_width
-from roadkeep.verbs.reading import STDIN, _body_reader, _one_body, _one_pipe, _piped
+from roadkeep.verbs.reading import STDIN, _body_reader, _one_body, _piped
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
 
 
@@ -89,10 +89,11 @@ def _add(config: Config, args: argparse.Namespace) -> int:
         and args.section_body_file is None
         and args.section_body in (None, STDIN)
     )
-    clash = _one_body("--section-body", args.section_body, args.section_body_file) or _one_pipe(
-        ("--why", args.why == STDIN),
-        ("--section-body", piped),
-    )
+    # The pipe clash is `dispatch`'s, asked over what this verb's parser declares (RK1176) —
+    # this had the only copy of it, which is how `ship` sent two arguments to one stream with
+    # the refusal sitting one module away. What is left here is the other question: a body given
+    # twice, as a string and as a path, which no declaration can answer.
+    clash = _one_body("--section-body", args.section_body, args.section_body_file)
     if clash is not None:
         print(f"roadkeep: {clash}", file=sys.stderr)
         return EXIT_USAGE

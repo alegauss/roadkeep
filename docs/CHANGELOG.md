@@ -205,6 +205,7 @@
 - ✅ **RK1138** **A partial that is later abandoned has no exit: retire refuses while its entry exists** — The refusal names ship --why as the exit whose sentence records the abandonment, the three shapes for a second record each being blocked by a rule the format keeps.
 - ✅ **RK1149** **A refusal that already computed the free anchor still makes the caller retype it** — the refusal that computed the free address now hands back the caller's own call with it filled in, quoted, at the surface that made one.
 - ✅ **RK1164** **ship does not say what is left in the block, so every iteration of a block run costs a second call** — every event carries the block's standing and the two verbs a block is driven with print it, so the follow-up list is one call fewer.
+- ✅ **RK1176** **ship writes a literal dash where --superseded-design was handed the pipe every other prose argument reads** — which arguments read the pipe is the parser's claim, resolved once in dispatch, where the two-into-one refusal is asked for every verb.
 
 ## Block C — Query
 

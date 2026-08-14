@@ -625,6 +625,11 @@ SPELLINGS = {
     "`--reason` in the shipped skill and accept both (RK1038)",
     ("--body",): "a section's paragraph, which is a different field with its own limit",
     ("--section-body",): "that paragraph inside an `add`, where the line is written too",
+    # RK1176. Not a synonym for the sentence and not a paragraph: a clause naming the address
+    # of the rationale a shipment overtook, which lands inside the `why` the ledger publishes.
+    # It reads the pipe for the reason the sentence does — the address carries a `§`, which a
+    # shell reads before this program does.
+    ("--superseded-design",): "the clause naming an overtaken design, on `ship` alone",
 }
 
 
@@ -683,4 +688,9 @@ def test_the_two_that_rename_it_accept_the_name_the_rest_use():
     for names, where in prose_fields().items():
         if names in (("--body",), ("--section-body",)):
             continue  # a paragraph is a different field, with its own limit
+        if names == ("--superseded-design",):
+            # A clause about another address rather than this line's own sentence (RK1176), so
+            # the alias rule does not reach it: it is prose that reads the pipe, and there is
+            # nothing for it to be a second name *of*.
+            continue
         assert "--why" in names, (names, where)

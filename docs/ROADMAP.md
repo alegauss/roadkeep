@@ -24,9 +24,10 @@
 
 ## Block A — The model (a task is data before it is a line)
 
+- 💭 **RK1180** (deps: —) **A block that is a standing category empties whenever it is caught up, and ship reads that as completion** — Shio's Block N was declared, emptied and dropped three times in one session, and each completion asks for a four-surface sweep meant for a block that finishes once. → §RK1180
+
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1176** (deps: —) **ship writes a literal dash where --superseded-design was handed the pipe every other prose argument reads** — The clause lands in a published ledger entry as (design superseded: -), and --why - beside it is not caught by the two-arguments-to-one-pipe refusal either. → §RK1176
 - 📋 **RK1177** (deps: —) **add --ref accepts a retired anchor that section add then refuses** — The pointer is validated only when the section is written, so the repair is an amend to a task line already in the file rather than a refusal at input. → §RK1177
 
 ## Block C — Query (consult without reading the file)

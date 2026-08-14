@@ -132,6 +132,11 @@ class Prose:
     #: only when a section was named: an `add` with no rationale must never block on a pipe,
     #: which used to be a comment and is now the thing that says so.
     gated_by: str = ""
+    #: The argument whose presence means this one does *not* read the pipe (RK1176). A body
+    #: named as a path is a body that arrived, so the omitted-argument read is off — which the
+    #: handler knew and this did not, and a resolution pass reading only this would have
+    #: refused `add --why - --section X --section-body-file f.md` for a clash that is not one.
+    unless: str = ""
 
     def reached_by(self, arguments: Mapping[str, Any]) -> bool:
         """Whether this argv sends the handler to the pipe."""

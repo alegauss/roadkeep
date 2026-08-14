@@ -94,7 +94,7 @@ from roadkeep.verbs.querying import (
     _weight,
     _writes,
 )
-from roadkeep.verbs.reading import harden
+from roadkeep.verbs.reading import _one_pipe, _piped, harden
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE
 from roadkeep.verbs.sections import (
     _refs,
@@ -413,7 +413,7 @@ def build_parser() -> argparse.ArgumentParser:
         # because it is the field that reliably carries what a shell reads first. Ungated,
         # unlike the body: a `--why -` is the caller asking for the pipe outright.
         reads_stdin=(
-            Prose(dest="section_body", gated_by="section"),
+            Prose(dest="section_body", gated_by="section", unless="section_body_file"),
             Prose(dest="why", omitted=False),
         ),
     )
@@ -470,7 +470,9 @@ def build_parser() -> argparse.ArgumentParser:
         body_file="`add`'s reason: a path this transport does not share",
         level="the heading depth is the file's shape and the writer derives it, so a caller setting one is a caller writing a heading the renderer would not",
     )
-    section_add.set_defaults(handler=_section_add, reads_stdin=(Prose(dest="body"),))
+    section_add.set_defaults(
+        handler=_section_add, reads_stdin=(Prose(dest="body", unless="body_file"),)
+    )
 
     section_amend = actions.add_parser(
         "amend",
@@ -517,7 +519,8 @@ def build_parser() -> argparse.ArgumentParser:
         body_file="`section add`'s reason, which the verb correcting a body does not change: the text crosses as text",
     )
     section_amend.set_defaults(
-        handler=_section_amend, reads_stdin=(Prose(dest="body", omitted=False),)
+        handler=_section_amend,
+        reads_stdin=(Prose(dest="body", omitted=False, unless="body_file"),),
     )
 
     section_move = actions.add_parser(
@@ -897,7 +900,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ship_parser.add_argument("--json", action="store_true", help="every edit, as data")
     ship_parser.set_defaults(
-        handler=_ship, reads_stdin=(Prose(dest="why", omitted=False),)
+        handler=_ship,
+        reads_stdin=(
+            Prose(dest="why", omitted=False),
+            # The argument RK1176 was filed about: the pipe is documented on every prose
+            # argument, and this one reached the ledger as a literal `-` because the handler
+            # resolved `--why` by hand and this was added after that line was written.
+            Prose(dest="superseded_design", omitted=False),
+        ),
     )
 
     record_parser = subcommands.add_parser(
@@ -2684,6 +2694,13 @@ def dispatch(config: Config, args: argparse.Namespace) -> int:
     refused = _one_answer(args)
     if refused is not None:
         return refused
+    # Which arguments read a pipe is the parser's claim, resolved once (RK1176). Here for
+    # `_one_answer`'s reason: a handler resolving its own is a handler that can be written
+    # without one, which is exactly what happened — `ship --superseded-design -` published the
+    # dash, and `--why - --superseded-design -` was not refused although the refusal existed.
+    refused = _read_prose(args)
+    if refused is not None:
+        return refused
     if _only_reads(args):
         return args.handler(config, args)
     with exclusive(config.root):
@@ -2856,6 +2873,72 @@ def narrows(parser: argparse.ArgumentParser, flag: str, subject: str) -> None:
     parser.set_defaults(
         narrowing=(*declared, (_declared(parser, flag), _declared(parser, subject)))
     )
+
+
+def _reaches(args: argparse.Namespace, one: Prose) -> bool:
+    """Whether this argv sends that argument to the pipe (RK1176).
+
+    :meth:`Prose.reached_by` asks the same question of a tool's arguments mapping, where an
+    argument nobody set is *absent*; on a namespace every dest exists and `None` is how absence
+    arrives, so the reading is spelled here rather than bent into that one.
+    """
+    if one.gated_by and getattr(args, one.gated_by, None) is None:
+        return False
+    if one.unless and getattr(args, one.unless, None) is not None:
+        return False
+    value = getattr(args, one.dest, None)
+    return one.omitted if value is None else value == one.sentinel
+
+
+def _spelled(one: Prose) -> str:
+    """A declared prose argument as the CLI documents it — a refusal names what was typed."""
+    return f"--{one.dest.replace('_', '-')}"
+
+
+def _read_prose(args: argparse.Namespace) -> int | None:
+    """Resolve every prose argument this argv sent to the pipe, or refuse (RK1176).
+
+    ``None`` where nothing asked for stdin, which is every call to a verb that declares no
+    prose. Run from :func:`dispatch`, so one pass answers for both surfaces and no handler
+    carries a copy — the shape `_one_answer` and `_only_reads` already have.
+
+    **The refusal is asked here and can no longer be skipped.** `_one_pipe` existed and was
+    consulted in one handler, so `ship --why - --superseded-design -` sent two arguments to one
+    stream and the second kept its dash: a refusal that is documented and not asked is worse
+    than none, because the documentation promises it.
+
+    Only the sentinel, and never the *omitted* argument. Whether a verb with no value at all
+    should block on a pipe is that verb's own question — `section add` reads, `section amend`
+    refuses — and answering it here would turn `Prose.omitted` into a rule about arguments the
+    caller never mentioned.
+    """
+    declared: tuple[Prose, ...] = getattr(args, "reads_stdin", ()) or ()
+    # The clash first and over *every* argument that reaches the pipe, including one reaching it
+    # by being omitted: resolving the sentinel first is what made `add --why - --section X` stop
+    # being refused, because by the time the handler looked, `--why` no longer held a dash.
+    reaching = [one for one in declared if _reaches(args, one)]
+    if len(reaching) > 1:
+        clash = _one_pipe(*[(_spelled(one), True) for one in reaching])
+        print(f"roadkeep: {clash}", file=sys.stderr)
+        return EXIT_USAGE
+    asked = [one for one in declared if getattr(args, one.dest, None) == one.sentinel]
+    if not asked:
+        return None
+    if len(asked) > 1:
+        # Spelled as the CLI documents them, because that is what the caller typed: a refusal
+        # naming `superseded_design` is about a flag nobody passed.
+        clash = _one_pipe(*[(_spelled(one), True) for one in asked])
+        print(f"roadkeep: {clash}", file=sys.stderr)
+        return EXIT_USAGE
+    (one,) = asked
+    try:
+        setattr(args, one.dest, _piped(getattr(args, one.dest)))
+    except (OSError, UnicodeDecodeError, ValueError) as error:
+        # The same codes the handlers gave this read: prose that is not UTF-8 is bad input, and
+        # a stream this tool could not harden says so in the words RK455 composed for it.
+        print(f"roadkeep: {error}", file=sys.stderr)
+        return EXIT_USAGE
+    return None
 
 
 def _one_answer(args: argparse.Namespace) -> int | None:

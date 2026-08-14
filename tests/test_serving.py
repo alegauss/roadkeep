@@ -1247,12 +1247,18 @@ def test_each_declaration_says_which_argv_goes_to_the_pipe():
     # Three commands, three different answers, which is why one comment in one handler was not
     # the statement of it: `add` is gated on a section being named, `section add` reads on a
     # plain omission, and `section amend` only on the `-` it documents.
+    # `unless` since RK1176: a body named as a *path* is a body that arrived, so the
+    # omitted-argument read is off — which the handler knew and the declaration did not, and a
+    # pass reading only the declaration would have refused a legal `--section-body-file` call
+    # for a pipe clash that is not one.
     assert prose_of("add") == (
-        Prose(dest="section_body", gated_by="section"),
+        Prose(dest="section_body", gated_by="section", unless="section_body_file"),
         Prose(dest="why", omitted=False),
     )
-    assert prose_of("section add") == (Prose(dest="body"),)
-    assert prose_of("section amend") == (Prose(dest="body", omitted=False),)
+    assert prose_of("section add") == (Prose(dest="body", unless="body_file"),)
+    assert prose_of("section amend") == (
+        Prose(dest="body", omitted=False, unless="body_file"),
+    )
     body, why = prose_of("add")
     # An `add` naming no section must never block on a pipe — the comment that was the guard.
     assert not body.reached_by({"block": "A", "symptom": "s", "why": "w."})
@@ -2069,7 +2075,11 @@ def test_two_arguments_cannot_split_one_pipe(tmp_path, monkeypatch, capsys):
         == EXIT_USAGE
     )
     err = capsys.readouterr().err
-    assert "--why and --section-body both read stdin" in err
+    # Both named, in whatever order the parser declares them (RK1176): the refusal moved from
+    # one handler to the pass that reads every verb's declaration, and which of two arguments
+    # is printed first is not a fact about the argv.
+    assert "both read stdin" in err
+    assert "--why" in err and "--section-body" in err
 
 
 def test_every_verb_that_takes_prose_declares_the_pipe(tmp_path):

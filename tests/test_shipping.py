@@ -14,6 +14,7 @@ shipped task is one line long instead of four.
 
 from __future__ import annotations
 
+import io
 import json
 from pathlib import Path
 
@@ -2212,3 +2213,44 @@ def test_the_payload_carries_the_standing_in_the_shape_list_answers_with(tmp_pat
         "recorded": 1,
         "paused": 0,
     }
+
+
+def test_the_clause_arrives_on_the_pipe_like_every_other_prose_argument(tmp_path, capsys, monkeypatch):
+    """RK1176. `-` is documented on every prose argument, and this one — added after the handler's
+    own `_piped(args.why)` line was written — reached the ledger as a literal dash: published,
+    valid to the gate, and wrong in a way only a reader notices.
+
+    Which arguments read a pipe is now the parser's claim, resolved once in `dispatch` for both
+    surfaces, so an argument added tomorrow is reached by the declaration rather than by whoever
+    remembers the call site.
+    """
+    config = project(tmp_path)
+    monkeypatch.setattr("sys.stdin", io.StringIO("the lookup it proposed already existed\n"))
+    argv = [
+        "-C", str(tmp_path), "ship", "RK1",
+        "--why", "The first symptom no longer happens.",
+        "--superseded-design", "-",
+    ]
+    assert main(argv) == EXIT_OK
+    capsys.readouterr()
+    ledger = read(config, CHANGELOG)
+    assert "superseded: the lookup it proposed already existed)" in ledger
+    assert "superseded: -)" not in ledger
+
+
+def test_two_arguments_sent_to_one_pipe_are_refused_on_this_verb_too(tmp_path, capsys, monkeypatch):
+    """The other half of RK1176, and the worse one: `_one_pipe` existed, was consulted in one
+    handler, and this verb sent two arguments to one stream — the pipe going to the first that
+    asked and the second keeping its dash. A refusal that is documented and never asked is worse
+    than none, because the documentation promises it."""
+    project(tmp_path)
+    monkeypatch.setattr("sys.stdin", io.StringIO("one sentence for two fields\n"))
+    argv = [
+        "-C", str(tmp_path), "ship", "RK1", "--why", "-", "--superseded-design", "-",
+    ]
+    assert main(argv) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "--why and --superseded-design both read stdin" in said
+    # Spelled as the caller typed them, never as the dest: a refusal naming `superseded_design`
+    # is about a flag nobody passed.
+    assert "superseded_design" not in said

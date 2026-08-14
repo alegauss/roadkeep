@@ -53,7 +53,10 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         shipment = ship(
             config,
             args.id,
-            why=_piped(args.why),
+            # Resolved by `dispatch` from what this verb's parser declares (RK1176), and no
+            # longer here: a call site that reads the pipe for one argument is a call site that
+            # can be written without it, which is how `--superseded-design` published a dash.
+            why=args.why,
             part=args.part,
             lines=args.lines,
             superseded=args.superseded_design,

@@ -75,27 +75,32 @@ already written, not authorship.
 
 ## Block A — The model
 
+### §RK1180 Two kinds of block wearing one shape
+
+`ship` reports "Block x is finished: nothing open" and points at `block drop`. That is
+right for a block that is a **project** — a capability with an end, whose last task
+really is the last one.
+
+Some blocks are not projects. Shio's Block N is titled "realignment of what already
+shipped": it is where a finding goes when something that shipped turns out to be
+incomplete against a law or blind to half a repository. A category like that receives
+work forever and is empty only in the sense that nobody has filed the next one yet.
+Measured, in one session: declared, emptied and dropped **three times**, each drop
+followed within the hour by a finding that re-declared it.
+
+The cost is not the churn in the file. It is that the host project hangs a
+**block-completion sweep** off the signal — four public surfaces brought up to date, a
+coverage matrix resolved, a docs build — and that sweep is designed to run once per
+capability. Running it three times for one block means twice re-reading surfaces nothing
+changed on, and it trains the reader to treat the completion notice as noise, which is
+the worse cost.
+
+A block could declare which kind it is: a project empties once and is dropped, a
+standing block empties often and stays. `ship` would say "caught up" rather than
+"finished" for the second, and `stats` could distinguish a zero that is done from a zero
+that is merely current.
+
 ## Block B — Authoring
-
-### §RK1176 The pipe is a property of prose arguments, not of the ones that were wired to it
-
-`_ship` calls `_piped(args.why)` and passes `superseded=args.superseded_design` straight
-through, so the one prose argument on that verb that was added last is the one the pipe
-does not reach. At a terminal `-` is documented on every prose argument, and a caller
-who believes that gets a ledger entry reading `(design superseded: -)` — published,
-valid to the gate, and wrong in a way only a reader notices.
-
-`_one_pipe`, the refusal for an argv that sends two arguments to one pipe, is imported
-in `verbs/authoring.py` and in no shipping verb. So `ship <id> --why -
---superseded-design -` is not refused: the pipe goes to the first argument that asks for
-it and the second keeps the dash. The refusal existing and not being consulted is worse
-than it not existing, because the documentation promises it.
-
-The repair is not another `_piped` call at the call site. Whether an argument reads a
-pipe is a property of the argument, so the fix that holds is the parser declaring which
-of a verb's arguments are prose and one resolution pass reading them — which is also
-where `_one_pipe` gets asked exactly once, for every verb, instead of per hand-wired
-call.
 
 ### §RK1177 The pointer is checked one command too late
 
