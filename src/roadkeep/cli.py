@@ -41,8 +41,6 @@ import sys
 import tomllib
 import traceback
 from collections.abc import Sequence
-from dataclasses import dataclass
-from typing import NoReturn
 
 from roadkeep.attesting import attest
 from roadkeep.capturing import PARTS, offer
@@ -94,6 +92,18 @@ from roadkeep.verbs.querying import (
     _weight,
     _writes,
 )
+from roadkeep.verbs.declaring import (
+    Answer,
+    _JSON_HELP,
+    _counting_flags,
+    _marker_flag,
+    _reason_flag,
+    _Verb,
+    answers,
+    narrows,
+    withheld,
+    writes_when,
+)
 from roadkeep.verbs.reading import _one_pipe, _piped, harden
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE
 from roadkeep.verbs.sections import (
@@ -128,7 +138,6 @@ from roadkeep.verbs.shipping import (
 )
 
 
-_JSON_HELP = "machine-readable form"
 #: Appended to every prose argument that reads the pipe (RK329), so the convention is one
 #: sentence in nine help strings rather than nine sentences that drift.
 _PIPE = "; '-' reads stdin, which is how an apostrophe or a backtick survives a shell"
@@ -161,102 +170,6 @@ class _Version(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None) -> None:  # type: ignore[no-untyped-def]
         print(engine())
         parser.exit(EXIT_OK)
-
-
-class _Verb(argparse.ArgumentParser):
-    """A subcommand whose missing-argument refusal can name its near-twin (RK339).
-
-    Two pairs in a list of forty-one differ by one edit *and* differ in whether they need a
-    positional: `status <id> <marker>` writes and `stats` reports, `claim <id>` writes and
-    `claims` reports. In both, the mutator is the one carrying the name every other tool
-    spends on a read-only summary — `git status`, `systemctl status` — so the verb typed
-    wanting a report is the verb that takes arguments, and what comes back is `error: the
-    following arguments are required`.
-
-    Nothing is written and nothing is at risk: the required positionals are what make it fail
-    safe, and the twin needs none, so the mistake the other way is a harmless report. The cost
-    is the confusion and the round trip, and it recurs for as long as the names do.
-
-    **A rename is the wrong fix**, worth saying because it is the first idea. Other projects
-    have adopted this tool, these verbs are in their skills and their hooks, and breaking one
-    to improve a name spends their turn to save this one. So the fix is the refusal, which is
-    already the only thing a caller sees when they get this wrong — one message, no schema
-    change, landing exactly where the mistake is made.
-
-    Keyed on a `twin` default rather than a table here, for :class:`~roadkeep.serving.Prose`'s
-    reason (RK171): it is a claim about one command, so its own parser is where it belongs and
-    a third pair declares itself instead of being found by the session that meets it. Which
-    verbs owe one is read off these parsers rather than remembered (RK350) —
-    `test_every_verb_that_shadows_a_report_declares_the_sentence` is the survey RK339 ran once
-    by hand, so a verb added tomorrow is measured by a test and not by whoever types it wrong.
-
-    That the sentence is *delivered* is a second property over the same list (RK362), because
-    the condition below is a substring of what argparse composes, in argparse's English: a
-    Python release wording it differently would turn every twin off at once and leave a suite
-    of tests asserting the defaults are still declared.
-    """
-
-    def __init__(self, *args: object, **kwargs: object) -> None:
-        # Declared here and not on forty `add_parser` calls (RK1032): argparse resolves any
-        # unambiguous prefix by default, so `lint --f` **wrote files** — and the four flags
-        # it handed over that way are exactly the ones this CLI declares as `writes_when`,
-        # which is to say the ones `dispatch` takes the write lock for. A miss is the refusal
-        # RK1026 composes; a hit was a write nobody typed, reported as a success.
-        #
-        # What this removes is an affordance nobody documented: no help string, no sentence
-        # of the shipped skill and no message in this tree spells a flag short.
-        kwargs.setdefault("allow_abbrev", False)
-        super().__init__(*args, **kwargs)  # type: ignore[arg-type]
-
-    def error(self, message: str) -> NoReturn:
-        twin = self.get_default("twin")
-        if twin is None or "required" not in message:
-            super().error(message)
-        self.exit(EXIT_USAGE, f"roadkeep: {twin}\n")
-
-
-def _reason_flag(parser: argparse.ArgumentParser, help_text: str) -> None:
-    """The prose field on the two verbs that call it `--reason`, under `--why` too (RK1038).
-
-    RK399's repair, one field over. Nine verbs spell this `--why` — `add`, `amend`, `ship`,
-    `restate`, `origin`, `report` and both the `record` and `non-goal` pairs — and `defer`
-    and `retire` spell it `--reason`, which are the two doors a caller reaches least often
-    and so the two names they are least likely to have kept. Because the field is *required*,
-    a caller who typed `--why` got `error: the following arguments are required: --reason`:
-    argparse naming what is missing and never what was typed, so the correction is a guess.
-
-    Both accepted and neither removed, for the reason RK399 gives about `--status`: other
-    projects have adopted this tool, these verbs are in their skills and their hooks, and a
-    rename that breaks them to win a synonym is a cost paid by everyone to fix nobody's
-    defect. `--reason` stays first, so it is what the usage line and the shipped skill spell
-    and what :class:`~roadkeep.serving.Prose` keeps naming; `dest` does not move.
-    """
-    parser.add_argument("--reason", "--why", dest="reason", required=True, help=help_text)
-
-
-def _marker_flag(
-    parser: argparse.ArgumentParser, help_text: str, *, dest: str = "status"
-) -> None:
-    """The open marker, under both names four verbs had spelled it (RK399).
-
-    `add --status` and `resume --marker` write the same field, read from the same
-    `[markers] open` list, and disagreed about what it is called — so a caller who learned
-    the name on one verb got `unrecognized arguments` from the other, which is argparse
-    saying the field does not exist rather than that this verb calls it something else.
-
-    The skill says *marker* throughout, `roadkeep.toml` says `[markers]`, and `status <id>`
-    is a verb rather than a flag because moving one is an act. So `--marker` is the name and
-    `--status` is kept accepted rather than removed: every adopting project's scripts, hooks
-    and half-remembered invocations spell it, and a rename that breaks them to win a synonym
-    is a cost paid by everyone to fix nobody's defect.
-
-    ``dest`` stays whatever each verb already handed its handler. Which of the two argparse
-    treats as canonical is decided by option order alone, so this takes the destination
-    explicitly instead: a helper that silently renamed a field on two of four verbs would be
-    the same defect, arriving through its own repair.
-    """
-    names = ("--marker", "--status") if dest == "marker" else ("--status", "--marker")
-    parser.add_argument(*names, dest=dest, help=help_text)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -2447,15 +2360,6 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _counting_flags(parser: argparse.ArgumentParser) -> None:
-    """The three flags every counting command shares (RK10), declared once."""
-    parser.add_argument("--block", help="only this block, e.g. C")
-    parser.add_argument(
-        "--role", default="roadmap", help="which governed file (default: roadmap)"
-    )
-    parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-
-
 #: Top-level options that take a value, so the token after one is not the verb. Two, because
 #: `--version` is an action and every other flag belongs to a subcommand that was never reached.
 _VALUED = ("-C", "--directory")
@@ -2727,152 +2631,6 @@ def _only_reads(args: argparse.Namespace) -> bool:
     if not getattr(args, "reads_only", False):
         return False
     return not any(getattr(args, flag, False) for flag in writes_when(args))
-
-
-def json_needs(source: argparse.Namespace | argparse.ArgumentParser) -> str:
-    """The argument this command's `--json` is the form *of*, or `""` where it is the command's.
-
-    Declared beside :func:`writes_when` and read the same way, because it is the same kind of
-    claim: a fact about the command that a surface serving it has to know (RK167). One command
-    makes it — `merge`, where `--json` is the form of `--check` and the driver's own answer is an
-    exit code and the bytes git reads out of `%A` (RK317).
-
-    It has to be **declared** rather than left as an `if` in the handler (RK319), because
-    :func:`~roadkeep.serving.argv` ends every tool's command line with `--json` and never exposes
-    it: so a command with a branch that refuses the flag is servable only through a tool whose
-    `always` carries the argument named here, and nothing said so. Held by a test over the two
-    halves (`tests/test_serving.py`), which is this project's answer to a declaration that can
-    stop matching — the alternative being a served tool refusing every call it receives, over a
-    flag the caller never passed and cannot remove.
-    """
-    declared = (
-        source.get_default("json_needs")
-        if isinstance(source, argparse.ArgumentParser)
-        else getattr(source, "json_needs", "")
-    )
-    return declared or ""
-
-
-def withheld(parser: argparse.ArgumentParser, **reasons: str) -> None:
-    """Say why this verb's tool surface does not offer these arguments (RK1169).
-
-    A fact about an argument, declared where the argument is. `serving.WITHHELD` was a table of
-    the same rows keyed by verb, held true against these parsers by a test asserting the two
-    agreed — which is the shape this task is about: not a defect waiting to happen, but a test
-    written to prove that two places say one thing.
-
-    Merged rather than replaced, so a verb may declare its reasons beside the flags they are
-    about instead of in one call at the end — the point being that the sentence sits next to
-    what it explains.
-    """
-    parser.set_defaults(withheld={**(parser.get_default("withheld") or {}), **reasons})
-
-
-def writes_when(source: argparse.Namespace | argparse.ArgumentParser) -> tuple[str, ...]:
-    """The argument(s) that turn a declared read into a write, however it declared them.
-
-    A bare string is one of them, which is what every other parser passes and what this keeps
-    accepting: the plural is the general shape and not a migration (RK307).
-    """
-    declared = (
-        source.get_default("writes_when")
-        if isinstance(source, argparse.ArgumentParser)
-        else getattr(source, "writes_when", "")
-    )
-    if not declared:
-        return ()
-    return (declared,) if isinstance(declared, str) else tuple(declared)
-
-
-@dataclass(frozen=True, slots=True)
-class Answer:
-    """One question a verb can be asked, as its own parser declares it (RK489).
-
-    A **group** of flags rather than one, because two of them can be one question: `export
-    --readme --site` writes the same projection to two destinations and composes, which is
-    what RK39 asked for, while either of them beside `--json` is two answers. One flag is the
-    ordinary case and reads as a group of one.
-    """
-
-    #: `(dest, option string, the parser's own default)` per flag, resolved at declaration
-    #: time so nothing here has to derive an option from a dest or a dest from an option.
-    flags: tuple[tuple[str, str, object], ...]
-    #: What this question answers, as a **noun phrase**: it is rendered inside `<what>
-    #: (--flag)`, so a verb here would have to agree with a list whose length is the caller's.
-    what: str
-
-    def given(self, args: argparse.Namespace) -> tuple[str, ...]:
-        """The option strings of this group the caller actually passed."""
-        return tuple(
-            option
-            for dest, option, default in self.flags
-            if getattr(args, dest, default) != default
-        )
-
-    def holds(self, dest: str) -> bool:
-        return any(one == dest for one, _, _ in self.flags)
-
-    def asked(self, args: argparse.Namespace) -> str:
-        return f"{self.what} ({', '.join(self.given(args))})"
-
-
-def _declared(parser: argparse.ArgumentParser, dest: str) -> tuple[str, str, object]:
-    """One argument this parser declares, or a `KeyError` naming the verb (RK489).
-
-    Raised at **build time**, which is the whole point: a declaration naming a flag the
-    subparser does not have is a mistake that fails when the parser is constructed — before
-    any argv reaches it — rather than a refusal that silently never fires. That is the same
-    trade `writes_when` makes one function up, and the reason this takes dests: an option
-    string is spelled per flag and a dest is what every other declaration here is keyed by.
-    """
-    for action in parser._actions:  # noqa: SLF001 - argparse exposes no public reader
-        if action.dest == dest and action.option_strings:
-            return dest, action.option_strings[0], action.default
-    raise KeyError(f"{parser.prog} declares no --{dest.replace('_', '-')}")
-
-
-def answers(parser: argparse.ArgumentParser, *groups: tuple[str | tuple[str, ...], str]) -> None:
-    """Declare which of a verb's flags are **answers**, so two of them are refused (RK489).
-
-    `budget` wrote this by hand for its four subjects — a list of flags, a refusal when two
-    arrive, and a check of each narrowing flag against the one that answered — and it was
-    twenty-five lines for one verb out of eighty. Every other multi-subject verb either
-    repeated the shape or did not have it: RK465 found `--role` swallowed beside three
-    subjects, RK466 found two commands taking two answers and printing one, and RK467 added a
-    sweep that finds the next one *after* it has been written.
-
-    Declared here, :func:`_one_answer` enforces it for every verb before the handler runs, on
-    both surfaces, because `dispatch` is the door the MCP server comes through too. Which is
-    this tool's own thesis turned on itself: the saving is the analysis, not the characters —
-    a sweep reports after a flag nothing reads has been added, and a declaration refuses
-    before a subparser exists that can swallow one.
-    """
-    parser.set_defaults(
-        subjects=tuple(
-            Answer(
-                tuple(
-                    _declared(parser, one)
-                    for one in ((dests,) if isinstance(dests, str) else dests)
-                ),
-                what,
-            )
-            for dests, what in groups
-        )
-    )
-
-
-def narrows(parser: argparse.ArgumentParser, flag: str, subject: str) -> None:
-    """Declare that ``flag`` shapes ``subject`` and may not arrive without it (RK489).
-
-    Checked against the subject that **answered** and not against the absence of one, which
-    is RK465's finding: the refusal `budget` wrote sat after every dispatch, so it fired only
-    where nothing else had, and `--role` beside `--file` changed nothing and said nothing. A
-    caller reading a number it believes it narrowed is worse off than one refused.
-    """
-    declared = parser.get_default("narrowing") or ()
-    parser.set_defaults(
-        narrowing=(*declared, (_declared(parser, flag), _declared(parser, subject)))
-    )
 
 
 def _reaches(args: argparse.Namespace, one: Prose) -> bool:

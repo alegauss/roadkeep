@@ -258,7 +258,7 @@ class Tool:
         # One argument or several (RK307), read through the CLI's own accessor rather than
         # off the default: a tuple compared as a string is a tool whose `readOnlyHint` says
         # free-to-ask about an argv that writes.
-        from roadkeep.cli import writes_when  # noqa: PLC0415 - RK260
+        from roadkeep.verbs.declaring import writes_when  # noqa: PLC0415 - RK1171
 
         settable = (*self.unconditional, *self.conditional, *self.always)
         return any(flag in settable for flag in writes_when(parser))

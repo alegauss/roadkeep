@@ -55,7 +55,7 @@ def _merge(config: Config, args: argparse.Namespace) -> int:
     # spelled from the parser rather than written twice.
     # Imported here and not at module scope: `cli` imports this module to wire the parser,
     # so a top-level import would be the cycle RK494 exists to keep out (RK260).
-    from roadkeep.cli import json_needs  # noqa: PLC0415 - RK494
+    from roadkeep.verbs.declaring import json_needs  # noqa: PLC0415 - RK1171
 
     needed = json_needs(args)
     if args.json and needed and not getattr(args, needed, False):

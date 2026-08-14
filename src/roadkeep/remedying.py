@@ -112,7 +112,8 @@ def _reading() -> Mapping[str, frozenset[str]]:
     at call time (RK260), and the parser is built once — a remedy is rendered per finding
     and a report can carry hundreds.
     """
-    from roadkeep.cli import build_parser, writes_when  # noqa: PLC0415 - RK1015
+    from roadkeep.cli import build_parser  # noqa: PLC0415 - RK1015
+    from roadkeep.verbs.declaring import writes_when  # noqa: PLC0415 - RK1171
 
     verbs = next(
         action

@@ -310,7 +310,7 @@ def test_every_served_command_that_gates_json_is_served_through_the_gate(tmp_pat
     # servable only through a tool whose `always` carries the gating argument — and the coupling
     # held by coincidence, one tool over that command happening to carry it. A served tool that
     # did not would refuse every call it ever received, over a flag the caller cannot remove.
-    from roadkeep.cli import json_needs
+    from roadkeep.verbs.declaring import json_needs
 
     gated = 0
     for tool in TOOLS:
@@ -328,7 +328,7 @@ def test_the_gate_is_read_from_the_parser_and_not_from_a_branch_position(tmp_pat
     # The refusal used to sit after the `--check` branch and mean "everything past here", which is
     # a claim no surface can read. Declared, the same argv answers the same way and the flag in the
     # message is spelled from the parser rather than written a second time.
-    from roadkeep.cli import json_needs
+    from roadkeep.verbs.declaring import json_needs
 
     assert json_needs(build_parser().parse_args(["merge", "--check"])) == "check"
     served = called(project(tmp_path), "merge_check")
