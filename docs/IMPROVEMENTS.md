@@ -77,7 +77,69 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1187 The prose field the pipe convention skipped
+
+RK329 made every prose argument read the pipe and RK1176 moved the claim into the
+parser, resolved once in dispatch with the two-into-one refusal asked for every verb.
+`add` declares two readers, the body and the `why`; `restate` declares none. So
+`symptom` is the field the convention skipped, and `restate` is the verb with no pipe at
+all — the one whose only prose argument is a symptom.
+
+Refusing `-` by name is the wrong half of the door. A symptom carries the backtick, the
+apostrophe and the `§` exactly as a `why` does, which the lines in this file
+demonstrate: RK1184, RK1185 and RK1186 all quote a command in theirs. The field wants
+the pipe for the same reason the `why` was the argument RK329 was really about, and it
+is the field a shell most quietly corrupts, because a symptom that lost an apostrophe
+still reads like prose somebody wrote.
+
+Nothing downstream can catch it either, which is why the door is the parser's. A bare
+dash is a one-character symptom: it clears every limit, renders, round-trips and passes
+the gate, so the file keeps a claim no rule can call wrong. `restate --typo` is
+untouched — a declaration is not prose — and `add --symptom - --why -` needs no new
+refusal, being two arguments asking for one pipe, which dispatch already names.
+
 ## Block C — Query
+
+### §RK1184 The criterion a design declares
+
+RK492 gave a design its own fenced query and `remaining` runs it: one `<pathspec> ::
+<regex>` per line, counted now rather than maintained as a number on the line. The
+criterion that a task is done is the same read with the sign flipped — sites that must
+exist rather than sites left — so it is a second fenced kind read by that parser and not
+a second grammar.
+
+What it is not: a verdict. The pattern is the author's claim and the count is the
+answer, exactly as `remaining` states it, so `0` says the evidence is not there yet and
+whether that is the work being done is the caller's judgement. The gate reports only a
+block it cannot read, never a criterion unmet: work outstanding is not a defect in a
+file, and a rule that failed a repository for unfinished work would be a rule every
+green branch trips.
+
+It is deleted with the section that made the claim, and that is right: the ledger's
+sentence states the outcome, the criterion was about the work, and a shipped entry
+keeping a query would leave a claim nobody can close. Under L4 the tool writes none of
+it — the pathspec, the pattern and the decision that the pattern is evidence are all the
+author's, and this only counts and reports.
+
+### §RK1185 The criterion at the start, not at the ship
+
+RK1184 makes the criterion a fact a design states; this is the call that hands it over.
+`brief` is what starts a task — the line, the rationale, the deps resolved, the blocker
+chain, what it unblocks and the non-goals, in one call — and a criterion read after the
+code is written is one that shaped nothing. The order is the whole point: the claim the
+work will be measured against arrives before the first edit, which is RK1174's argument
+about the `why` budget made about evidence instead of about characters.
+
+It is a count and a quotation, not a gate: `brief` refuses nothing, and a criterion no
+site satisfies yet is the ordinary state of a task about to start. The cost is what
+decides the shape — this answer is bounded to a tool result, so the block is printed as
+the clauses the design declared plus the count each one matches now, and never as the
+files behind them, which is what `remaining` is for once the work is under way.
+
+A design declaring no criterion is answered and not annotated. Most tasks here state one
+in prose and always have; a line that says nothing extra is a line whose author had
+nothing extra to say, and printing an absence every turn is a nag the tool has no
+standing to make.
 
 ## Block D — The gate
 
@@ -132,6 +194,24 @@ is editorial, and the config reads that keep a door true on a project whose path
 pointer scheme are its own. None of that is a table; all of it is the field's type.
 
 ## Block E — Adoption
+
+### §RK1186 The prose file a scaffold cannot create
+
+The strategy file is a fully governed prose role and has been since RK172: a pointer
+resolves against it, RK186 taught `show` and `brief` to name the file that declares an
+anchor, RK196 kept the drop working across roles, RK229 carried it through a `defer`,
+RK230 let the one-write door reach it, and RK340 gave it its own namespace. Every reader
+is finished. The one command that creates a project's files is not: `init` writes the
+roadmap, the ledger and the improvements file, and nothing names the fourth, so a
+project that wants it hand-edits the configuration and creates the file — the two steps
+a scaffold exists to remove.
+
+The reason to want it is the split, not the file. A task's rationale answers why this
+line exists and is deleted when the line ships; a document above the line outlives every
+task filed under it, which is what a project working from a specification needs and what
+the improvements file, by its own rule, cannot hold. `add --section` deriving
+improvements stays exactly as it is: naming the role at both ends is two places that can
+disagree, and a project declaring both makes the choice by calling `section add --role`.
 
 ## Block F — The plugin
 

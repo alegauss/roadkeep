@@ -26,7 +26,12 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1187** (deps: —) **`symptom` is the one prose field no verb declares as a pipe reader, so `-` lands in the file as the claim** — RK1176 made that declaration the parser's own and `restate` declares none — the verb whose only prose argument is the field that carries a backtick as readily as a why. → §RK1187
+
 ## Block C — Query (consult without reading the file)
+
+- 📋 **RK1184** (deps: —) **Nothing states what would prove a task done, so `ship` is a judgement with no artefact behind it** — `remaining` already runs a design's own fenced query, so evidence is that read inverted — sites that must exist rather than sites left, counted and never judged. → §RK1184
+- 📋 **RK1185** (deps: RK1184) **`brief` hands over a task's design and deps but never its criterion, so it is read at the ship** — A criterion binds what the work must produce, so one arriving after the code is written is the read `brief` exists to make in a single call. → §RK1185
 
 ## Block D — The gate
 
@@ -34,6 +39,8 @@
 - 📋 **RK1173** (deps: RK1172 ⏳) **A rule's remedy is a second table keyed by the same code, kept in step by a test rather than by the record** — Once the check is a record, its door is a field on it, and the totality assertion becomes a thing that cannot be written wrong instead of one a test catches. → §RK1173
 
 ## Block E — Adoption
+
+- 📋 **RK1186** (deps: —) **`init` scaffolds three files and no flag names the strategy one, so a spec above the task line has no home** — Every reader of a pointer already resolves across both prose roles, so the file is supported everywhere except at the one command that creates a project's files. → §RK1186
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
