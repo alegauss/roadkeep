@@ -369,3 +369,24 @@ def test_this_ledgers_own_spread_is_the_one_the_design_states():
     assert weights.lines.p90 * weights.files.median * 2 > 3 * weights.files.p90 * weights.lines.median
     heavy = {w.task_id for w in weights.weighed if w.lines > 800}
     assert {"RK2", "RK6", "RK9", "RK10", "RK18", "RK22", "RK32", "RK48"} <= heavy
+
+
+def test_a_partial_entry_is_accounted_for_by_the_commit_that_carries_it(tmp_path):
+    """RK1175. `ship --part` writes the qualifier inside the bold span — which is where the corpus
+    writes it and what the grammar reads (RK121) — and this search read the bare id, so a partial
+    entry matched nothing and was reported as accounted for by no commit. Permanently: the
+    qualifier stays until the completing ship.
+
+    Measured here as the state that found it: two partial ships in flight, both in commits, both
+    listed as missing — and the distribution silently over fewer entries than it stated (RK94).
+    """
+    config = repo(tmp_path)
+    ledger = config.path("changelog")
+    lines = ledger.read_text(encoding="utf-8").splitlines(keepends=True)
+    lines.insert(1, f"- {SHIPPED} **RK7 (the local half)** **A symptom** — it half shipped.\n")
+    ledger.write_text("".join(lines), encoding="utf-8")
+    (config.root / "RK7.py").write_text("one\ntwo\n", encoding="utf-8")
+    git_commit(config.root, "feat: ship half of RK7")
+    weights = weigh(config)
+    assert weights.unresolved == ()
+    assert [one.task_id for one in weights.weighed] == ["RK7"]

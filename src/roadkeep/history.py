@@ -611,7 +611,11 @@ def added_ids(config: Config, role: str) -> dict[str, str]:
         "--",
         str(relative),
     )
-    bold = re.compile(rf"\*\*({config.schema.id_fragment})\*\*")
+    # The qualifier a **partial** entry carries inside the bold span (RK121, RK1175): a search
+    # for the bare id read `**RK1169 (the withheld reasons)**` as no id at all, so every partially
+    # shipped entry was reported as one no commit accounts for — permanently, since the qualifier
+    # stays until the completing ship. Optional here for the same reason the grammar has it.
+    bold = re.compile(rf"\*\*({config.schema.id_fragment})(?: \([^)]+\))?\*\*")
     first: dict[str, str] = {}
     for head, rows in _records(output):
         added = "\n".join(
