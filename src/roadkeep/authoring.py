@@ -66,7 +66,7 @@ from roadkeep.kernel.document import (
 )
 from roadkeep.ids import CARRIERS, IdRef, Promise, carried, derivation, scan
 from roadkeep.markers import derive, refresh
-from roadkeep.kernel.schema import SchemaError, Task
+from roadkeep.kernel.schema import SchemaError, Task, width as measured_width
 from roadkeep.sections import Section
 
 #: The rationale a line arrives with: the heading, and prose that is either the string itself
@@ -268,6 +268,138 @@ class Insertion:
         discarded here, so the report had nothing to name.
         """
         return save_all(self.document, self.prose)
+
+    def follow_up(self) -> str | None:
+        """The `section add` that closes a pointer this write just created (RK93, RK197).
+
+        `--role` only where it is not the default, which keeps the sentence every project sees
+        the one it already saw — and makes the exception the case that needs it: a project whose
+        only prose file is the strategy one would otherwise be handed `section add`'s default and
+        a role it does not declare, which is a follow-up that cannot run.
+
+        On the record since RK1170, with the two registers that print it: the anchor and the
+        role are both fields here, and a helper in the door was the *third* place that pair had
+        to be read together.
+        """
+        if self.needs is None:
+            return None
+        named = "" if self.needs_role in (None, "improvements") else f" --role {self.needs_role}"
+        return f"section add {self.needs} --title …{named}"
+
+    def event(self, config: Config) -> dict[str, object]:
+        """What this write did to the block it landed in (RK38), off the file it wrote."""
+        from roadkeep.rendering import _event  # noqa: PLC0415 - RK260
+
+        return _event(self.entry.task.id, self.entry.task.block, self.document, config)
+
+    def added(self, config: Config, capture: str | None, stamped: bool) -> str:
+        """`add`'s own answer, as a reader is told it (RK93, RK431, RK452).
+
+        **Named for the verb and not `stated`** (RK1170), which is the same choice
+        :class:`~roadkeep.shipping.Departure` makes for its second door: this record is
+        *embedded* by three other transactions — a pause's store line, a departure's ledger
+        line, a record's — and a method called `stated` on it would answer about an `add` from
+        inside each of them. There is no default door here to take the plain name.
+
+        `capture` and `stamped` are parameters for the reason `wrote` is elsewhere: the stamp
+        happens after the save and outside this transaction (RK1141), so they are facts about
+        the call and a record holding them would be claiming a write it did not make.
+        """
+        from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _event_rows,
+            _prose_file,
+            _staging_rows,
+        )
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
+        # The file the write actually chose (RK230), read off the document `_with_section` left
+        # rather than composed from the improvements default: a report that names the role and a
+        # write that derives it are two answers, and one of them is wrong on every project that
+        # declares `strategy` alone.
+        prose = _prose_file(config, self.prose)
+        rows = [self.rendered]
+        if self.section is not None:
+            rows.append(
+                f"design   §{self.section.anchor} → {prose}:{self.section.first}  "
+                f"{self.section.words} words"
+            )
+        elif self.needs is not None:
+            # Backticked and carrying the invocation, like every other route this tool composes
+            # (RK476): the bare argv is the *field*, and a line printed for a reader is the form
+            # `serving._rerouted` already spells as a tool where there is no shell.
+            rows.append(
+                f"needs    `{invocation()} {self.follow_up()}`  "
+                f"(the pointer above resolves to nothing until then)"
+            )
+        elif self.bound is not None:
+            # Said, because the write touched a second file the caller did not name (RK452) —
+            # and because the heading now carries an id, which is the fact `ship` and the gate
+            # both read as "this design belongs to that task".
+            rows.append(
+                f"bound    §{self.bound.anchor} → {prose}:{self.bound.first}  "
+                f"the design was written first, so this line's id is now in its heading"
+            )
+        if self.promise is not None:
+            # Beside the line and not instead of it: the `add` succeeded, and what this reports
+            # is a sentence somewhere else that has just stopped being true (RK431).
+            rows.append(f"promise  {self.promise.sentence}")
+        if capture:
+            # Said either way: a stamp that did not land is the row `stats` will still count,
+            # and silence about it is how a second step comes to be forgotten (RK86).
+            rows.append(
+                f"capture  {capture} now names {self.entry.task.id}"
+                if stamped
+                else f"capture  {capture} could not be stamped: the line is filed, the "
+                f"link is not"
+            )
+        # The projection this write refreshed is in here (RK1129): the roadmap and the rationale
+        # are files the caller named, and the README is one they did not — so a commit took the
+        # two and left the third, green against the tree and `export.stale` in a clean checkout.
+        rows += _staging_rows(config.relative(one) for one in self.wrote)
+        rows += _event_rows(self.event(config), config=config)
+        return "\n".join(rows)
+
+    def addition(
+        self, config: Config, capture: str | None, stamped: bool
+    ) -> dict[str, object]:
+        """The same answer as data, with both derived addresses (RK249)."""
+        from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _promise_json,
+            _prose_file,
+        )
+
+        prose = _prose_file(config, self.prose)
+        return {
+            "id": self.entry.task.id,
+            # The other derived address (RK249). Reported for the reason `id` is: under
+            # `ref_scheme = "outline"` the write derives it, and the only other readings were
+            # the tail of `rendered` and the anchor inside the `needs` sentence — which is null
+            # exactly when `--section` wrote the rationale here, the composition RK93 recommends.
+            "ref": self.entry.task.ref,
+            "file": config.relative(config.path("roadmap")),
+            "line": self.lineno,
+            "rendered": self.rendered,
+            "length": measured_width(self.rendered),
+            "section": None if self.section is None else self.section.payload(prose),
+            # Not a section this write *created* (RK452): an existing outline heading stopped
+            # belonging to nobody, and a caller reading one key for both would report a
+            # paragraph that was never written.
+            "bound": None if self.bound is None else self.bound.payload(prose),
+            # The follow-up as data: null when the pointer already resolves, so a caller acts
+            # on a field instead of matching a sentence (RK93).
+            "needs": self.follow_up(),
+            # Null on almost every add, and the whole point when it is not (RK431): the id
+            # below the one just written was a sentence, not a line.
+            "promise": _promise_json(self.promise),
+            # Every path this write touched, projections included (RK1129) — the same key a
+            # departure's scope carries, so a client staging one stages the other.
+            "wrote": [config.relative(one) for one in self.wrote],
+            # Which capture this line files, where one was named (RK1141) — null where none
+            # was, and false where the stamp could not be written, so a client tells "not
+            # asked" from "asked and did not land".
+            "capture": None if not capture else {"path": capture, "stamped": stamped},
+            "event": self.event(config),
+        }
 
 
 def compose(

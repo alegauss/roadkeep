@@ -7,6 +7,10 @@ not terminal — `defer` parks a line in the store with its id, its deps and its
 Each is a thin call into :mod:`roadkeep.authoring`, :mod:`roadkeep.renumbering` or
 :mod:`roadkeep.deferring`. What lives here is the argument reading, the refusal and the
 answer — never a rule, which would then be enforced on one surface and not on the other.
+
+**And no longer the answer either** (RK1170): every write renders both registers off its own
+record, so each door is the call, the save and a choice of reading. `next-id` is what is left
+of the old shape, and it is the one verb here that returns no record — an id is a string.
 """
 
 from __future__ import annotations
@@ -20,17 +24,8 @@ from roadkeep.capturing import stamp
 from roadkeep.config import Config
 from roadkeep.deferring import defer, resume
 from roadkeep.ids import derivation, highest
-from roadkeep.provenance import invocation
-from roadkeep.rendering import (
-    _print,
-    _event,
-    _event_rows,
-    _staging_rows,
-    _promise_json,
-    _prose_file,
-)
+from roadkeep.rendering import _promise_json
 from roadkeep.renumbering import renumber
-from roadkeep.kernel.schema import width as measured_width
 from roadkeep.verbs.reading import _body_reader, _one_body, _piped
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
 
@@ -115,104 +110,16 @@ def _add(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)  # a SchemaError arrives here as the ValueError it is
 
-    event = _event(
-        insertion.entry.task.id, insertion.entry.task.block, insertion.document, config
-    )
     # After the line is placed and the files are saved, and never a condition of either
     # (RK1141): the capture is evidence in an ignored directory, so a stamp that cannot be
     # written costs the link and not the task — `claiming.follow`'s rule for the same reason.
     stamped = (
         stamp(args.capture, insertion.entry.task.id) if args.capture else False
     )
-    written = insertion.section
-    # The file the write actually chose (RK230), read off the document `_with_section` left
-    # rather than composed from the improvements default: a report that names the role and a
-    # write that derives it are two answers, and one of them is wrong on every project that
-    # declares `strategy` alone.
-    prose = _prose_file(config, insertion.prose)
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": insertion.entry.task.id,
-                    # The other derived address (RK249). Reported for the reason `id` is:
-                    # under `ref_scheme = "outline"` the write derives it, and the only
-                    # other readings were the tail of `rendered` and the anchor inside the
-                    # `needs` sentence — which is null exactly when `--section` wrote the
-                    # rationale here, the composition RK93 recommends.
-                    "ref": insertion.entry.task.ref,
-                    "file": config.relative(config.path("roadmap")),
-                    "line": insertion.lineno,
-                    "rendered": insertion.rendered,
-                    "length": measured_width(insertion.rendered),
-                    "section": None if written is None else written.payload(prose),
-                    # Not a section this write *created* (RK452): an existing outline heading
-                    # stopped belonging to nobody, and a caller reading one key for both
-                    # would report a paragraph that was never written.
-                    "bound": None
-                    if insertion.bound is None
-                    else insertion.bound.payload(prose),
-                    # The follow-up as data: null when the pointer already resolves, so a
-                    # caller acts on a field instead of matching a sentence (RK93).
-                    "needs": None
-                    if insertion.needs is None
-                    else _follow_up(insertion.needs, insertion.needs_role),
-                    # Null on almost every add, and the whole point when it is not (RK431):
-                    # the id below the one just written was a sentence, not a line.
-                    "promise": _promise_json(insertion.promise),
-                    # Every path this write touched, projections included (RK1129) — the same
-                    # key a departure's scope carries, so a client staging one stages the other.
-                    "wrote": [config.relative(one) for one in insertion.wrote],
-                    # Which capture this line files, where one was named (RK1141) — null
-                    # where none was, and false where the stamp could not be written, so a
-                    # client tells "not asked" from "asked and did not land".
-                    "capture": None if not args.capture else {
-                        "path": args.capture,
-                        "stamped": stamped,
-                    },
-                    "event": event,
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-    print(insertion.rendered)
-    if written is not None:
-        print(f"design   §{written.anchor} → {prose}:{written.first}  {written.words} words")
-    elif insertion.needs is not None:
-        # Backticked and carrying the invocation, like every other route this file composes
-        # (RK476): the bare argv above is the *field*, and a line printed for a reader is the
-        # form `serving._rerouted` already spells as a tool where there is no shell.
-        print(
-            f"needs    `{invocation()} {_follow_up(insertion.needs, insertion.needs_role)}`  "
-            f"(the pointer above resolves to nothing until then)"
-        )
-    elif insertion.bound is not None:
-        # Said, because the write touched a second file the caller did not name (RK452) —
-        # and because the heading now carries an id, which is the fact `ship` and the gate
-        # both read as "this design belongs to that task".
-        print(
-            f"bound    §{insertion.bound.anchor} → {prose}:{insertion.bound.first}  "
-            f"the design was written first, so this line's id is now in its heading"
-        )
-    if insertion.promise is not None:
-        # Beside the line and not instead of it: the `add` succeeded, and what this reports
-        # is a sentence somewhere else that has just stopped being true (RK431).
-        print(f"promise  {insertion.promise.sentence}")
-    # The projection this write refreshed is in here (RK1129): the roadmap and the rationale are
-    # files the caller named, and the README is one they did not — so a commit took the two and
-    # left the third, green against the working tree and `export.stale` in a clean checkout.
-    if args.capture:
-        # Said either way: a stamp that did not land is the row `stats` will still count,
-        # and silence about it is how a second step comes to be forgotten (RK86).
-        print(
-            f"capture  {args.capture} now names {insertion.entry.task.id}"
-            if stamped
-            else f"capture  {args.capture} could not be stamped: the line is filed, the "
-            f"link is not"
-        )
-    _print(_staging_rows(config.relative(one) for one in insertion.wrote))
-    _print(_event_rows(event, config=config))
+        print(json.dumps(insertion.addition(config, args.capture, stamped), indent=2))
+    else:
+        print(insertion.added(config, args.capture, stamped))
     return EXIT_OK
 
 
@@ -302,18 +209,6 @@ def _renumber(config: Config, args: argparse.Namespace) -> int:
     else:
         print(moved.stated(config, wrote))
     return EXIT_OK
-
-
-def _follow_up(anchor: str, role: str | None) -> str:
-    """The `section add` that closes a pointer `add` just created (RK93, RK197).
-
-    `--role` only where it is not the default, which keeps the sentence every project sees
-    the one it already saw — and makes the exception the case that needs it: a project whose
-    only prose file is the strategy one would otherwise be handed `section add`'s default and
-    a role it does not declare, which is a follow-up that cannot run.
-    """
-    named = "" if role in (None, "improvements") else f" --role {role}"
-    return f"section add {anchor} --title …{named}"
 
 
 def _defer(config: Config, args: argparse.Namespace) -> int:
