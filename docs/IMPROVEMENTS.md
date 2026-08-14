@@ -77,7 +77,72 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1176 The pipe is a property of prose arguments, not of the ones that were wired to it
+
+`_ship` calls `_piped(args.why)` and passes `superseded=args.superseded_design` straight
+through, so the one prose argument on that verb that was added last is the one the pipe
+does not reach. At a terminal `-` is documented on every prose argument, and a caller
+who believes that gets a ledger entry reading `(design superseded: -)` — published,
+valid to the gate, and wrong in a way only a reader notices.
+
+`_one_pipe`, the refusal for an argv that sends two arguments to one pipe, is imported
+in `verbs/authoring.py` and in no shipping verb. So `ship <id> --why -
+--superseded-design -` is not refused: the pipe goes to the first argument that asks for
+it and the second keeps the dash. The refusal existing and not being consulted is worse
+than it not existing, because the documentation promises it.
+
+The repair is not another `_piped` call at the call site. Whether an argument reads a
+pipe is a property of the argument, so the fix that holds is the parser declaring which
+of a verb's arguments are prose and one resolution pass reading them — which is also
+where `_one_pipe` gets asked exactly once, for every verb, instead of per hand-wired
+call.
+
+### §RK1177 The pointer is checked one command too late
+
+`add --block x --ref x.y` writes the task line and takes the anchor on trust. The
+address is only resolved when `section add x.y` runs, which is the next command — and by
+then the line naming it is already in `ROADMAP.md`.
+
+Observed in Shio: `add --ref XIV.29` was accepted, and `section add XIV.29` refused it
+because that address had been declared before and its section dropped, so reusing it
+would make the entries citing it cite something new. The refusal is exactly right; it is
+one command late. The repair is `amend --ref` against a line that should never have been
+written, and the `ref.unresolved` state in between is indistinguishable from the honest
+intermediate state the two-command flow produces on every normal task — so a reader
+cannot tell "not written yet" from "can never be written".
+
+The check already exists and already knows the answer. Running it at `add` costs one
+lookup and turns a two-command repair into a refusal with a `retry` line, which is the
+shape every other refusal in this tool already has.
+
+Worth noting what makes this more than a nuisance: the session hit it while doing
+exactly what the host project's process mandates — one task, one commit — so the wrong
+anchor was seconds away from being committed alongside the code it describes.
+
 ## Block C — Query
+
+### §RK1178 A lifecycle short enough to leave no trace
+
+`anchors` reports, per family, how many addresses are live, how many are retired, and
+which one is next. It derives "retired" from history — the refusal in RK1177 names the
+declaring commit, so the reader is looking for a commit in which the address appeared.
+
+That misses the case where an address is declared and dropped **inside a single
+commit**. In Shio, the anchor `XIV.30` was written by `section add`, then removed by
+`ship` in the same task, and the task's one commit therefore carries a net-zero diff for
+it. A `git log -S` over that address finds nothing, so it has no declaring commit, so
+`anchors` offers it as next — an address a shipped task already spent.
+
+The consequence is the one this tool refuses elsewhere: the ledger entry for that task
+cites the anchor, and a later section written at the same address makes that citation
+point at unrelated prose.
+
+What makes it worth fixing rather than tolerating is which workflow produces it. A task
+that files its own rationale and ships in one commit is not unusual — it is what a
+one-task-one- commit rule *requires*, and Shio's process mandates exactly that. So the
+blind spot is not an edge case reached by unusual sequencing; it is the normal path for
+any task whose design is written and shipped together. The tree is the authority on what
+an address currently holds; history should be evidence, not the only witness.
 
 ## Block D — The gate
 
@@ -203,3 +268,27 @@ Its two deps are what make this mechanical rather than a rewrite. What must not 
 reached for: entry points or dynamic discovery, which cost startup, need a dependency,
 and take away the totality the gate is checked by; and a generator, which would move the
 authority out of Python and out of reach of a type checker.
+
+### §RK1179 The one refusal that is not a refusal
+
+`scripts/roadkeep.py` imports `roadkeep.cli` after its screen, with the comment "after
+the screen, never before". The screen covers the interpreter and the package being
+absent. It does not cover the package being present and unparseable, which is the state
+a checkout is in for as long as somebody is editing it — and every project running the
+tool from a checkout shares that state.
+
+Met from another repository mid-task: a `budget` call came back as a nine-line traceback
+ending `IndentationError: unexpected indent` at `backlog.py`. Nothing in it says which
+checkout answered, that the checkout is the thing that is wrong rather than the call, or
+that the caller's own files were untouched. Compared with every other refusal this tool
+writes — a code, a sentence, and the argv that closes it — it is the one path where the
+tool stops being the thing that explains itself.
+
+`engines` already answers the neighbouring question, reporting `agreed`, `behind` or
+`unpinnable` across the three copies that can be in play. It cannot help here, because
+reaching it needs the same import.
+
+So the screen is the place: catch the import, say which path was imported and that it
+does not parse, and name the one line of the traceback that identifies the file. The
+workaround a caller finds on their own is a clean worktree of the tool, which works and
+is not something the tool should let them discover by inference.

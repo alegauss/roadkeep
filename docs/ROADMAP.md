@@ -26,7 +26,12 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1176** (deps: —) **ship writes a literal dash where --superseded-design was handed the pipe every other prose argument reads** — The clause lands in a published ledger entry as (design superseded: -), and --why - beside it is not caught by the two-arguments-to-one-pipe refusal either. → §RK1176
+- 📋 **RK1177** (deps: —) **add --ref accepts a retired anchor that section add then refuses** — The pointer is validated only when the section is written, so the repair is an amend to a task line already in the file rather than a refusal at input. → §RK1177
+
 ## Block C — Query (consult without reading the file)
+
+- 📋 **RK1178** (deps: —) **anchors recommends an address that was declared and retired inside one commit** — The reuse guard reads committed history, and an add plus a ship in one commit is a net-zero diff, so the address it just spent looks never-used. → §RK1178
 
 ## Block D — The gate
 
@@ -44,6 +49,7 @@
 - ⏳ **RK1169** (deps: —) **Six tables in serving.py restate per verb what its own parser already declares** — Every property is already derived from the argparse action, so exposure, bounds and the withheld reason are the same kind of fact, and the totality tests exist to hold two places in step. → §RK1169
 - ⏳ **RK1170** (deps: —) **A verb's plain answer and its json payload are built in two files, and most of the printing never moved** — rendering.py holds 23 printers against 386 print calls left in the handlers, so the layer buys no rule about where a sentence is and costs every verb a second file. → §RK1170
 - 📋 **RK1171** (deps: RK1169 ⏳, RK1170 ⏳) **build_parser is one 2,000-line function, so a verb's flags are edited in the file the whole surface is in** — cli.py was split by layer for size and grew back to 2,260 code lines, so the cut that holds is per verb, which the two deps make a move and not a rewrite. → §RK1171
+- 📋 **RK1179** (deps: —) **A checkout whose source does not import answers with a raw Python traceback instead of a sentence** — The screen exists to keep an import error off the turn, and an edit in progress in the answering checkout lands under it as an IndentationError naming a line of backlog.py. → §RK1179
 
 ## Non-goals
 
