@@ -19,6 +19,8 @@ from pathlib import Path
 
 import pytest
 
+from conftest import git_commit, git_init
+
 from roadkeep.authoring import (
     DerivedPointer,
     IdInUse,
@@ -2020,3 +2022,71 @@ def test_a_stamp_that_cannot_be_written_costs_the_link_and_not_the_task(tmp_path
     printed = capsys.readouterr().out
     assert "could not be stamped" in printed and "the line is filed" in printed
     assert "**RK2**" in source(Config.discover(tmp_path))
+
+
+# -- the pointer is checked where it is written (RK1177) ----------------------
+
+
+def retired(tmp_path: Path) -> Config:
+    """An outline project whose `I.2` was declared and then shipped — the state the guard reads,
+    which lives in the diff because `as_ledger` keeps no pointer and the files say nothing."""
+    git_init(tmp_path)
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\nref_scheme = "outline"\n[files]\nroadmap = "ROADMAP.md"\n'
+        'changelog = "CHANGELOG.md"\nimprovements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text("## Block A — The model\n", encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text("## Block A — The model\n", encoding="utf-8")
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        "## Block A — The model\n\n### I.1 A design\n\nThe reasoning here.\n\n"
+        "### I.2 Another design\n\nMore reasoning here.\n",
+        encoding="utf-8",
+    )
+    git_commit(tmp_path, "chore: bootstrap with I.1 and I.2")
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        "## Block A — The model\n\n### I.1 A design\n\nThe reasoning here.\n", encoding="utf-8"
+    )
+    git_commit(tmp_path, "docs: ship the task that owned I.2")
+    return Config.discover(tmp_path)
+
+
+def filed(config: Config, ref: str) -> int:
+    return main(
+        [
+            "-C", str(config.root), "add", "--block", "A",
+            "--symptom", "A symptom worth a line",
+            "--why", "Because of a measured reason.",
+            "--ref", ref,
+        ]
+    )
+
+
+def test_a_pointer_at_a_retired_address_is_refused_at_the_add(tmp_path, capsys):
+    """RK1177, observed in Shio: `add --ref XIV.29` was accepted and `section add XIV.29` refused
+    it, so the repair was an `amend --ref` against a line that should never have been written.
+
+    Worse than a nuisance: the `ref.unresolved` state in between is indistinguishable from the
+    honest one every two-command task passes through, so a reader cannot tell *not written yet*
+    from *can never be written* — and the session that met it was one commit from carrying the
+    wrong anchor beside the code it describes.
+    """
+    config = retired(tmp_path)
+    assert filed(config, "I.2") == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "was declared before" in said and "§I.3 is the next one nothing ever used" in said
+    # Nothing written: the refusal is the whole answer, and a line half-filed is what it prevents.
+    assert "**RK1**" not in (config.root / "ROADMAP.md").read_text(encoding="utf-8")
+    # The remedy is the command, with the free address already in it (RK14/15).
+    assert "retry" in capsys.readouterr().out or "--ref I.3" in said
+
+
+def test_the_two_honest_pointers_are_untouched(tmp_path, capsys):
+    """A pointer at an address nobody used is the normal case this tool derives, and one at a
+    section that *exists* is how a task cites a design written first (RK93). Only the retired
+    address is the defect, so only it is refused."""
+    config = retired(tmp_path)
+    assert filed(config, "I.3") == EXIT_OK
+    capsys.readouterr()
+    assert filed(config, "I.1") == EXIT_OK
+    assert "§I.1" in capsys.readouterr().out

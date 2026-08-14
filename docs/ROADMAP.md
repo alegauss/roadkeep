@@ -28,8 +28,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1177** (deps: —) **add --ref accepts a retired anchor that section add then refuses** — The pointer is validated only when the section is written, so the repair is an amend to a task line already in the file rather than a refusal at input. → §RK1177
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1178** (deps: —) **anchors recommends an address that was declared and retired inside one commit** — The reuse guard reads committed history, and an add plus a ship in one commit is a net-zero diff, so the address it just spent looks never-used. → §RK1178

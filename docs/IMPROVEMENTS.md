@@ -102,28 +102,6 @@ that is merely current.
 
 ## Block B — Authoring
 
-### §RK1177 The pointer is checked one command too late
-
-`add --block x --ref x.y` writes the task line and takes the anchor on trust. The
-address is only resolved when `section add x.y` runs, which is the next command — and by
-then the line naming it is already in `ROADMAP.md`.
-
-Observed in Shio: `add --ref XIV.29` was accepted, and `section add XIV.29` refused it
-because that address had been declared before and its section dropped, so reusing it
-would make the entries citing it cite something new. The refusal is exactly right; it is
-one command late. The repair is `amend --ref` against a line that should never have been
-written, and the `ref.unresolved` state in between is indistinguishable from the honest
-intermediate state the two-command flow produces on every normal task — so a reader
-cannot tell "not written yet" from "can never be written".
-
-The check already exists and already knows the answer. Running it at `add` costs one
-lookup and turns a two-command repair into a refusal with a `retry` line, which is the
-shape every other refusal in this tool already has.
-
-Worth noting what makes this more than a nuisance: the session hit it while doing
-exactly what the host project's process mandates — one task, one commit — so the wrong
-anchor was seconds away from being committed alongside the code it describes.
-
 ## Block C — Query
 
 ### §RK1178 A lifecycle short enough to leave no trace

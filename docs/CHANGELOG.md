@@ -206,6 +206,7 @@
 - ✅ **RK1149** **A refusal that already computed the free anchor still makes the caller retype it** — the refusal that computed the free address now hands back the caller's own call with it filled in, quoted, at the surface that made one.
 - ✅ **RK1164** **ship does not say what is left in the block, so every iteration of a block run costs a second call** — every event carries the block's standing and the two verbs a block is driven with print it, so the follow-up list is one call fewer.
 - ✅ **RK1176** **ship writes a literal dash where --superseded-design was handed the pipe every other prose argument reads** — which arguments read the pipe is the parser's claim, resolved once in dispatch, where the two-into-one refusal is asked for every verb.
+- ✅ **RK1177** **add --ref accepts a retired anchor that section add then refuses** — add asks the same history section add reads, so a pointer at a retired address is refused where it is written.
 
 ## Block C — Query
 

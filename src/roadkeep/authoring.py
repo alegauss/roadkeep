@@ -552,6 +552,14 @@ def add(
         deps=deps,
         ref=ref,
     )
+    # The pointer, against the same history `section add` reads (RK1177). One command earlier
+    # than it used to be: `add --ref XIV.29` was accepted and `section add XIV.29` then refused
+    # it, so the repair was an `amend --ref` against a line that should never have been written
+    # — and the `ref.unresolved` state in between is indistinguishable from the honest one every
+    # two-command task passes through, so a reader cannot tell *not written yet* from *can never
+    # be written*. The check already existed and already knew the answer; what it lacked was
+    # being asked here, which costs one lookup.
+    _refuse_retired(config, task)
     # Both fields' breaches in one refusal, where the body is already in hand (RK426). A
     # call whose `why` is fifteen characters over and whose body is fifty words over used to
     # cost two full resubmissions, the second for a limit the first refusal had already
@@ -1362,3 +1370,28 @@ def _after_preamble(document: Document, heading: Heading) -> int:
         if not blank(document.lines[offset]):
             index = offset + 1
     return index
+
+
+def _refuse_retired(config: Config, task: Task) -> None:
+    """Refuse a line whose pointer names an address a ship already took (RK1177).
+
+    The same rule and the same reader as `section add`'s own refusal, asked one command earlier.
+    Nothing is duplicated: this calls what that verb calls, so the sentence a caller gets and the
+    address it recommends are the one answer — and a project whose history cannot be read is
+    silent here exactly as it is there, because what is lost is a refusal and never a file.
+
+    Silent under ``ref_scheme = "id"``, where the pointer is the id and reuse is `refuse_reuse`'s
+    question one file over — a second opinion about a closed one would fire on every `add`.
+
+    Only a **retired** address: a pointer at a section that exists is how every task after the
+    first cites its own design, and one at an address nobody ever used is the normal case this
+    tool derives.
+    """
+    if task.ref is None or not task.ref:
+        return
+    from roadkeep.sections import PROSE_ROLES, _refuse_reuse  # noqa: PLC0415 - RK260
+
+    for role in PROSE_ROLES:
+        if config.has(role):
+            _refuse_reuse(config, role, task.ref, config.relative(config.path(role)))
+            return
