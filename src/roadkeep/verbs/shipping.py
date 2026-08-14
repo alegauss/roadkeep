@@ -20,7 +20,7 @@ from roadkeep.provenance import invocation
 from roadkeep.ranking import NEAREST, nearest
 from roadkeep.remaining import declared
 from roadkeep.rendering import (
-    _print_staging,
+    _staging_rows,
     _wrote_json,
     _event,
     _print_cited,
@@ -359,7 +359,7 @@ def _record(config: Config, args: argparse.Namespace) -> int:
         )
     if entry.refreshed:
         print(f"  derived  {', '.join(entry.refreshed)} (dep annotations re-derived)")
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     _print(_event_rows(event, "  ", config=config))
     return EXIT_OK
 
@@ -436,7 +436,7 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
             f"  kept     {corrected.below} continuation line(s) under the bullet, "
             f"verbatim: no field holds them"
         )
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 
@@ -487,7 +487,7 @@ def _record_move(config: Config, args: argparse.Namespace) -> int:
     print(f"  {refiled.rendered}")
     print("  roadmap  untouched: a block is where an entry is filed, not what it records")
     _print(_event_rows(event, "  ", config=config))
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 
@@ -525,7 +525,7 @@ def _record_renumber(config: Config, args: argparse.Namespace) -> int:
         f"  kept     {moved.kept_marker} line {moved.kept} still carries {moved.task_id}: "
         f"every annotation elsewhere was written about that delivery"
     )
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 
@@ -574,7 +574,7 @@ def _record_drop(config: Config, args: argparse.Namespace) -> int:
         )
     print("  roadmap  untouched: an id the ledger still records changes no annotation")
     _print(_event_rows(event, "  ", config=config))
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 

@@ -295,9 +295,9 @@ def _print_scope(scope: claiming.Scope | None, wrote: Sequence[str] = ()) -> Non
         # which paths are somebody else's — and a project that declared none was getting no
         # `git add --` line at all from the two verbs that had one, on the write with the most
         # files in it. So the silence stays where it belongs: on the three lists below.
-        _print_staging(dict.fromkeys(wrote))
+        _print(_staging_rows(dict.fromkeys(wrote)))
         return
-    _print_staging(dict.fromkeys((*scope.mine, *wrote)))
+    _print(_staging_rows(dict.fromkeys((*scope.mine, *wrote))))
     for one, who in scope.theirs:
         print(f"  theirs   {one}  ({who} is holding it)")
     for one, others in scope.shared:
@@ -330,18 +330,22 @@ def _wrote_json(config: Config, paths: Iterable[Path]) -> dict[str, object]:
     return {"wrote": [config.relative(one) for one in paths]}
 
 
-def _print_staging(paths: Iterable[str]) -> None:
+def _staging_rows(paths: Iterable[str]) -> list[str]:
     """The `git add --` line, spelled in one place (RK298, RK1129).
 
-    Two writes print it now — a departure, which releases the scope nothing can read back
-    afterwards, and `add`, which refreshes a projection the commit was leaving behind — so the
-    quoting and the label are here rather than at each of them. Nothing is printed for an empty
-    list: a command that wrote no file has no staging to advise, and a bare `git add --` is a
-    line somebody would paste.
+    Every write says it — a departure, which releases the scope nothing can read back afterwards,
+    an `add` refreshing a projection the commit was leaving behind, and twenty-six others — so the
+    quoting and the label are here rather than at each of them. Nothing for an empty list: a
+    command that wrote no file has no staging to advise, and a bare `git add --` is a line
+    somebody would paste.
+
+    Rows and no longer a print since RK1170: a write verb moving onto its record composes what it
+    returns, and a helper that printed could only be reached from a handler.
     """
     staging = tuple(paths)
-    if staging:
-        print(f"  stage    git add -- {' '.join(_shell(one) for one in staging)}")
+    if not staging:
+        return []
+    return [f"  stage    git add -- {' '.join(_shell(one) for one in staging)}"]
 
 
 def _shell(path: str) -> str:

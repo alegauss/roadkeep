@@ -26,7 +26,7 @@ from roadkeep.queueing import (
 )
 from roadkeep.rendering import (
     _print_cited,
-    _print_staging,
+    _staging_rows,
     _wrote_json,
 )
 from roadkeep.scoping import add as add_non_goal, amend as amend_non_goal, drop as drop_non_goal
@@ -101,7 +101,7 @@ def _block_add(config: Config, args: argparse.Namespace) -> int:
         print(f"  {files[role]:<{width}}:{opened.placed[role]}  {opened.rendered[role]}")
     for where, reason in opened.skipped:
         print(f"  not      {where}: {reason}")
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 
@@ -152,7 +152,7 @@ def _block_drop(config: Config, args: argparse.Namespace) -> int:
             print(f"  note     {closed.notes[role]} line(s) of prose taken with the heading")
     for where, reason in closed.skipped:
         print(f"  kept     {where}: {reason}")
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 
@@ -201,7 +201,7 @@ def _block_merge(config: Config, args: argparse.Namespace) -> int:
         )
         if role in merged.notes:
             print(f"  note     {merged.notes[role]} line(s) of prose dropped with a heading")
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 
@@ -232,7 +232,7 @@ def _section_add(config: Config, args: argparse.Namespace) -> int:
         f"§{section.anchor} → {where}:{section.first}  "
         f"{section.counted(config.schema_for(args.role).section_max)}"
     )
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 
@@ -282,7 +282,7 @@ def _refs(config: Config, args: argparse.Namespace) -> int:
         print(f"  carried  §{anchor} → §{found.namespace}:{anchor}  ({where}:{line})")
     if not found.carried:
         print(f"  carried  nothing: {where} cites none of its own sections")
-    _print_staging(staged)
+    _print(_staging_rows(staged))
     return EXIT_OK
 
 
@@ -364,7 +364,7 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
         else ""
     )
     print(f"{named} amended  {where}:{section.first}  ({', '.join(changed)}){counted}")
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 
@@ -407,7 +407,7 @@ def _section_move(config: Config, args: argparse.Namespace) -> int:
         print(f"  kept     {one} still points at §{address}, which the other file declares")
     for address, by in moved.cited:
         print(f"  cited    §{by} names §{address} in its prose — that address has moved")
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 
@@ -534,7 +534,7 @@ def _section_drop(config: Config, args: argparse.Namespace) -> int:
     if taken:
         print(f"  nested   {', '.join(f'§{a}' for a in taken)} went with it")
     _print_cited(cited)
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 
@@ -567,7 +567,7 @@ def _non_goal_add(config: Config, args: argparse.Namespace) -> int:
         print(f"  {line}")
     # No event line (RK38): the payload a hook reads is an id and its block's open state, and
     # a non-goal has neither — it is the constraint on what a block may hold, not a member.
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 
@@ -605,7 +605,7 @@ def _non_goal_amend(config: Config, args: argparse.Namespace) -> int:
     print(f"{where}:{amended.lineno}  amended  {len(amended.rendered)} line(s)")
     for line in amended.rendered:
         print(f"  {line}")
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 
@@ -689,7 +689,7 @@ def _non_goal_drop(config: Config, args: argparse.Namespace) -> int:
             f"  duplicate {dropped.carried} bullets carried this lead: the later one went, "
             f"the first is where the reader already found it"
         )
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 
@@ -731,7 +731,7 @@ def _priority_add(config: Config, args: argparse.Namespace) -> int:
     print(f"  order    {written.position} of {written.length}")
     # No event line (RK38): the payload a hook reads is an id and its block's open state, and
     # an entry states neither — the token names work whose line is somewhere else.
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 
@@ -808,7 +808,7 @@ def _priority_drop(config: Config, args: argparse.Namespace) -> int:
 
     print(f"{where}:{dropped.entry.lineno}  dropped  {dropped.entry.token}")
     print(f"  order    {dropped.length} left")
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 
@@ -849,7 +849,7 @@ def _priority_migrate(config: Config, args: argparse.Namespace) -> int:
         f"  left     `priority` is still in {_configured_source(config)} and is now read by "
         f"nothing — take the line out; `lint` reports it as `priority.config` until you do"
     )
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     return EXIT_OK
 
 

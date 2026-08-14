@@ -29,7 +29,7 @@ from roadkeep.rendering import (
     _print_dequeued,
     _event_rows,
     _print_followed,
-    _print_staging,
+    _staging_rows,
     _promise_json,
     _prose_file,
     _wrote_json,
@@ -227,7 +227,7 @@ def _add(config: Config, args: argparse.Namespace) -> int:
             else f"capture  {args.capture} could not be stamped: the line is filed, the "
             f"link is not"
         )
-    _print_staging(config.relative(one) for one in insertion.wrote)
+    _print(_staging_rows(config.relative(one) for one in insertion.wrote))
     _print(_event_rows(event, config=config))
     return EXIT_OK
 
@@ -269,7 +269,7 @@ def _status(config: Config, args: argparse.Namespace) -> int:
     if change.refreshed:
         print(f"  derived  {', '.join(change.refreshed)} (dep annotations re-derived)")
     _print_followed(change, config)
-    _print_staging(config.relative(one) for one in change.wrote)
+    _print(_staging_rows(config.relative(one) for one in change.wrote))
     _print(_event_rows(event, "  ", config=config))
     return EXIT_OK
 
@@ -325,7 +325,7 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
     print(f"  {amended.rendered}")
     if amended.refreshed:
         print(f"  derived  {', '.join(amended.refreshed)} (dep annotations re-derived)")
-    _print_staging(config.relative(one) for one in amended.wrote)
+    _print(_staging_rows(config.relative(one) for one in amended.wrote))
     return EXIT_OK
 
 
@@ -381,7 +381,7 @@ def _restate(config: Config, args: argparse.Namespace) -> int:
     )
     if restated.refreshed:
         print(f"  derived  {', '.join(restated.refreshed)} (dep annotations re-derived)")
-    _print_staging(config.relative(one) for one in restated.wrote)
+    _print(_staging_rows(config.relative(one) for one in restated.wrote))
     return EXIT_OK
 
 
@@ -445,7 +445,7 @@ def _renumber(config: Config, args: argparse.Namespace) -> int:
         # The half the files do not hold (RK156): the worker holding this will next ask for it
         # by a number that no longer exists, and that it is still theirs is what to say.
         print(f"  claimed  the claim taken {moved.claim.since} ago moved with it")
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     _print(_event_rows(event, "  ", config=config))
     return EXIT_OK
 
@@ -522,7 +522,7 @@ def _defer(config: Config, args: argparse.Namespace) -> int:
     if pause.refreshed:
         print(f"  derived  {', '.join(pause.refreshed)} (dep annotations re-derived)")
     _print_dequeued(pause.dequeued)
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     _print(_event_rows(event, "  ", config=config))
     return EXIT_OK
 
@@ -601,7 +601,7 @@ def _resume(config: Config, args: argparse.Namespace) -> int:
     follow = _requeue(config, resumption.task_id)
     if follow is not None:
         print(f"  requeue  {follow}")
-    _print_staging(config.relative(one) for one in wrote)
+    _print(_staging_rows(config.relative(one) for one in wrote))
     _print(_event_rows(event, "  ", config=config))
     return EXIT_OK
 
