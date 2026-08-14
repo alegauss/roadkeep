@@ -920,6 +920,55 @@ class Surface:
     #: The handshake, which is sent once beside the list and counted with it (RK1078/RK1062).
     handshake: int
 
+    def stated(self, unit: str, each: int | None, largest: int) -> str:
+        """The ranking, with the room each tool has before the gate says no (RK345, RK1059).
+
+        Beside :meth:`payload` since RK1170. The terminal gets the largest few and the payload
+        gets every one: a caller reading this to decide what to cut is reading a payload, where
+        a person is reading a report.
+        """
+        ranked = list(self.tools)
+        rows = [
+            f"session    {len(self.tools)} tool(s) and the handshake, {self.characters} {unit}"
+        ]
+        for name, size in ranked[:largest]:
+            # The room before the gate says no, said beside the figure it is about: a budget
+            # reported only as a total leaves the author to subtract per tool.
+            room = "" if each is None else f"  {each - size:+}"
+            rows.append(f"  {name:<16} {size}{room}")
+        if len(ranked) > largest:
+            rows.append(f"  … and {len(ranked) - largest} more — `--json` lists every one")
+        # Under the ranking and not folded into it: it is not a tool, no per-tool ceiling is
+        # about it, and a row among them would read as one that had escaped the gate.
+        rows.append(f"  {'handshake':<16} {self.handshake}  (instructions, sent once)")
+        if each is not None:
+            over = sum(1 for _name, size in ranked if size > each)
+            rows.append(
+                f"  each     {each} {unit}, {over} over — `lint` is what refuses one"
+            )
+        return chr(10).join(rows)
+
+    def payload(self, unit: str, each: int | None) -> dict[str, object]:
+        return {
+            "tools": len(self.tools),
+            # The session's whole cost, which is what the verb exists to answer; the two
+            # halves are named beside it rather than left to be added.
+            "characters": self.characters,
+            "tool_list": self.listed,
+            "handshake": self.handshake,
+            "unit": unit,
+            # Every tool and not the largest few, for the reason above.
+            "by_tool": [{"name": name, "characters": size} for name, size in self.tools],
+            # What one tool may cost, and null where the project declares none (RK1059) — the
+            # gate's number, so the read and the refusal are one.
+            "each": each,
+            "over": [
+                name
+                for name, size in self.tools
+                if each is not None and size > each
+            ],
+        }
+
     @property
     def listed(self) -> int:
         """The tool list alone, which is the half `[tools] characters` is a ceiling on."""

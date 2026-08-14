@@ -24,6 +24,7 @@ from roadkeep.capturing import debt
 from roadkeep.briefing import NothingToBrief, brief
 from roadkeep.budgeting import (
     Load,
+    Session,
     body_budget,
     budget,
     file_budget,
@@ -511,43 +512,19 @@ def _session_budget(config: Config, args: argparse.Namespace) -> int:
     # half, applied to the surface: `--tools` ranks what this returns and `--session` totals
     # it, so a change to what the handshake carries moves both or neither.
     sent = surface(config)
-    resident = [(load.path, load.bytes) for load in (file_budget(config) if config.budgets else ())]
-    once, turn = sent.characters, sum(cost for _path, cost in resident)
-    if args.json:
-        print(
-            json.dumps(
-                {
-                    # Named by cadence rather than by subject, because that is the fact a
-                    # caller is deciding against — and a `total` key would be the sum this
-                    # read refuses to compute.
-                    "once": {
-                        "characters": once,
-                        "unit": CHARACTER_UNIT,
-                        "of": f"{len(sent.tools)} tool(s) and the handshake",
-                    },
-                    "each_turn": {
-                        "bytes": turn,
-                        "files": [
-                            {"path": path, "bytes": cost} for path, cost in resident
-                        ],
-                    },
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(
-        f"session    {once} {CHARACTER_UNIT} once, {turn} bytes on every turn — "
-        f"two cadences, so they are not added"
+    answer = Session(
+        once=sent.characters,
+        tools=len(sent.tools),
+        resident=tuple(
+            (load.path, load.bytes)
+            for load in (file_budget(config) if config.budgets else ())
+        ),
     )
-    print(f"  once     {once:>6}  {len(sent.tools)} tool(s) and the handshake, at connect")
-    for path, cost in resident:
-        print(f"  turn     {cost:>6}  {path}")
-    if not resident:
-        # The state `--file` raises on, said rather than left as an absent row: a project
-        # with no `[budgets]` pays the schema and nothing else, which is a real answer.
-        print("  turn          0  this project declares no [budgets] file")
+
+    if args.json:
+        print(json.dumps(answer.payload(CHARACTER_UNIT), indent=2))
+    else:
+        print(answer.stated(CHARACTER_UNIT))
     return EXIT_OK
 
 
@@ -585,59 +562,11 @@ def _tools_budget(config: Config, args: argparse.Namespace) -> int:
     # The same measurement `--session` totals (RK1096), so the ranking and the total cannot
     # come to disagree about what a client is sent.
     sent = surface(config)
-    listed = sent.listed
-    # The other thing a session is handed before its first call (RK1062). Counted here for
-    # the reason the tool list is: RK1060 moved a paragraph out of 13 properties and into
-    # this message, and a read that saw only one side reported the gross figure as the net
-    # — a number improvable by moving text out of its own view rather than by cutting it.
-    # Once and not per call, which is the footing the list is already on.
-    handshake = sent.handshake
-    total = sent.characters
-    ranked = list(sent.tools)
+
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "tools": len(sent.tools),
-                    # The session's whole cost, which is what the verb exists to answer; the
-                    # two halves are named beside it rather than left to be added.
-                    "characters": total,
-                    "tool_list": listed,
-                    "handshake": handshake,
-                    "unit": CHARACTER_UNIT,
-                    # Every tool and not the largest few: a caller reading this to decide what
-                    # to cut is reading a payload, where the terminal is reading a report.
-                    "by_tool": [{"name": name, "characters": size} for name, size in ranked],
-                    # What one tool may cost, and null where the project declares none
-                    # (RK1059) — the gate's number, so the read and the refusal are one.
-                    "each": config.tool_characters,
-                    "over": [
-                        name
-                        for name, size in ranked
-                        if config.tool_characters is not None and size > config.tool_characters
-                    ],
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-    print(f"session    {len(sent.tools)} tool(s) and the handshake, {total} {CHARACTER_UNIT}")
-    for name, size in ranked[:_LARGEST_TOOLS]:
-        # The room before the gate says no, said beside the figure it is about: a budget
-        # reported only as a total leaves the author to subtract per tool (RK345).
-        room = "" if config.tool_characters is None else f"  {config.tool_characters - size:+}"
-        print(f"  {name:<16} {size}{room}")
-    if len(ranked) > _LARGEST_TOOLS:
-        print(f"  … and {len(ranked) - _LARGEST_TOOLS} more — `--json` lists every one")
-    # Under the ranking and not folded into it: it is not a tool, no per-tool ceiling is
-    # about it, and a row among them would read as one that had escaped the gate.
-    print(f"  {'handshake':<16} {handshake}  (instructions, sent once)")
-    if config.tool_characters is not None:
-        over = sum(1 for _, size in ranked if size > config.tool_characters)
-        print(
-            f"  each     {config.tool_characters} {CHARACTER_UNIT}, "
-            f"{over} over — `lint` is what refuses one"
-        )
+        print(json.dumps(sent.payload(CHARACTER_UNIT, config.tool_characters), indent=2))
+    else:
+        print(sent.stated(CHARACTER_UNIT, config.tool_characters, _LARGEST_TOOLS))
     return EXIT_OK
 
 

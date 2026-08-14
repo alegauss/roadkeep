@@ -809,6 +809,61 @@ class Load:
         return next((cost.taken for cost in self.costs if cost.unit == "bytes"), 0)
 
 
+@dataclass(frozen=True, slots=True)
+class Session:
+    """Both halves of what a session pays, against the cadence each is paid at (RK1095).
+
+    **Two figures and never a sum.** The schema is sent once at the handshake and a resident
+    file is read on every turn, so adding them produces a number that is wrong for every
+    session whose turn count is not one — which is all of them. What is honest is naming each
+    against what it is paid for, and letting the reader multiply the half that repeats.
+
+    A record since RK1170, and the refusal above is why it is worth one: the two registers
+    each had to decline to add the same pair, in two places, by not writing a line.
+    """
+
+    #: The served schema, in characters — what the handshake costs, once.
+    once: int
+    #: How many tools that schema describes, which is what the figure is *of*.
+    tools: int
+    #: `(path, bytes)` per resident file, in the order `file_budget` answers.
+    resident: tuple[tuple[str, int], ...] = ()
+
+    @property
+    def turn(self) -> int:
+        return sum(cost for _path, cost in self.resident)
+
+    def stated(self, unit: str) -> str:
+        rows = [
+            f"session    {self.once} {unit} once, {self.turn} bytes on every turn — "
+            f"two cadences, so they are not added",
+            f"  once     {self.once:>6}  {self.tools} tool(s) and the handshake, at connect",
+        ]
+        rows += [f"  turn     {cost:>6}  {path}" for path, cost in self.resident]
+        if not self.resident:
+            # The state `--file` raises on, said rather than left as an absent row: a project
+            # with no `[budgets]` pays the schema and nothing else, which is a real answer.
+            rows.append("  turn          0  this project declares no [budgets] file")
+        return chr(10).join(rows)
+
+    def payload(self, unit: str) -> dict[str, object]:
+        return {
+            # Named by cadence rather than by subject, because that is the fact a caller is
+            # deciding against — and a `total` key would be the sum this read refuses.
+            "once": {
+                "characters": self.once,
+                "unit": unit,
+                "of": f"{self.tools} tool(s) and the handshake",
+            },
+            "each_turn": {
+                "bytes": self.turn,
+                "files": [
+                    {"path": path, "bytes": cost} for path, cost in self.resident
+                ],
+            },
+        }
+
+
 def file_budget(config: Config, path: str | None = None) -> tuple[Load, ...]:
     """What the always-loaded files have left, before an edit is composed (RK345).
 
