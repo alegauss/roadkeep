@@ -35,7 +35,7 @@ from roadkeep.config import Config, PROSE_ROLES
 from roadkeep.counting import Census
 from roadkeep.kernel.document import StaleFile, write_all
 from roadkeep.exporting import project, splice_into
-from roadkeep.graph import Graph
+from roadkeep.graph import Dependencies
 from roadkeep.history import (
     Anchor,
     HistoryUnavailable,
@@ -63,7 +63,6 @@ from roadkeep.rendering import (
     _commits_json,
     _load_json,
     _nothing_json,
-    _leverage_rows,
     _scope_rows,
     _print_standing,
 )
@@ -1332,8 +1331,9 @@ def _deps(config: Config, args: argparse.Namespace) -> int:
         backlog = Backlog.load(config)
     except (KeyError, OSError) as error:
         return _refused(error)  # a declared file that is not there yet: `init` (RK18)
-    entry = backlog.entry(args.id)
-    if entry is None:
+    try:
+        found = Dependencies.of(backlog, args.id)
+    except KeyError:
         print(
             f"roadkeep: no open task {args.id} in {config.relative(config.path('roadmap'))}"
             + (" (it is in the changelog)" if args.id in backlog.shipped() else ""),
@@ -1341,67 +1341,10 @@ def _deps(config: Config, args: argparse.Namespace) -> int:
         )
         return EXIT_USAGE
 
-    resolutions = backlog.resolve(entry.task)
-    readiness = backlog.readiness(entry.task)
-    graph = Graph.of(backlog)
-    chains = graph.chains(args.id)
-    leverage = graph.leverage(args.id)
-    cycle = graph.cycle_of(args.id)
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": entry.task.id,
-                    "readiness": str(readiness),
-                    "deps": [
-                        {
-                            "dep": r.dep.id,
-                            "kind": str(r.kind),
-                            "status": str(r.status),
-                            "detail": r.detail,
-                        }
-                        for r in resolutions
-                    ],
-                    "blockers": sorted(graph.blockers(args.id)),
-                    "chains": [
-                        {
-                            "path": [entry.task.id, *(hop.target for hop in c.hops)],
-                            "via": [hop.via for hop in c.hops],
-                            "end": str(c.end),
-                            "detail": c.detail,
-                        }
-                        for c in chains
-                    ],
-                    "unblocks": {
-                        "direct": list(leverage.direct),
-                        "transitive": list(leverage.transitive),
-                        "count": leverage.count,
-                        "of": leverage.of,
-                    },
-                    "cycle": list(cycle),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    if not resolutions:
-        print(f"{entry.task.id}: {readiness} (no deps)")
-        _print(_leverage_rows(leverage))
-        return EXIT_OK
-    width = max(len(r.dep.id) for r in resolutions)
-    for resolution in resolutions:
-        print(
-            f"  {resolution.dep.id:<{width}}  {resolution.status:<13}"
-            f"{resolution.kind:<9}{resolution.detail}"
-        )
-    print(f"{entry.task.id}: {readiness}")
-    for chain in chains:
-        print(f"  chain    {chain.render(entry.task.id)}  — {chain.detail}")
-    if cycle:
-        # A defect, not a shape: printed here, failed by `lint` (RK14).
-        print(f"  cycle    {' ↔ '.join(cycle)}: nothing in this group can be started")
-    _print(_leverage_rows(leverage))
+        print(json.dumps(found.payload(), indent=2))
+    else:
+        print(found.stated())
     return EXIT_OK
 
 

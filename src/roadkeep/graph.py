@@ -29,7 +29,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from roadkeep.backlog import Backlog, DepStatus, Readiness
+from roadkeep.backlog import Backlog, DepStatus, Readiness, Resolution
 from roadkeep.config import Config
 from roadkeep.kernel.schema import Task
 
@@ -229,6 +229,102 @@ class Graph:
         if entry is None:
             raise KeyError(f"no open task {task_id}")
         return self.backlog.readiness(entry.task)
+
+
+@dataclass(frozen=True, slots=True)
+class Dependencies:
+    """What one line is waiting on, and what waits on it (RK9, RK92).
+
+    The result `deps` had none of (RK1170): the door gathered six values off a backlog and a
+    graph and composed both registers from them, so neither reading had anything to be derived
+    *from* — which is the shape that task is about. Nothing here is stored: :meth:`of` reads
+    them together, and the two registers read this.
+    """
+
+    task_id: str
+    readiness: Readiness
+    resolutions: tuple[Resolution, ...]
+    blockers: tuple[str, ...]
+    chains: tuple[Chain, ...]
+    leverage: Leverage
+    #: The group nothing in can be started, where this id is in one. A defect and not a shape:
+    #: printed here, failed by `lint` (RK14).
+    cycle: tuple[str, ...] = ()
+
+    @classmethod
+    def of(cls, backlog: Backlog, task_id: str) -> Dependencies:
+        """Every reading of one id, off one backlog. Raises `KeyError` where no line holds it."""
+        entry = backlog.entry(task_id)
+        if entry is None:
+            raise KeyError(task_id)
+        graph = Graph.of(backlog)
+        return cls(
+            task_id=entry.task.id,
+            readiness=backlog.readiness(entry.task),
+            resolutions=tuple(backlog.resolve(entry.task)),
+            blockers=tuple(sorted(graph.blockers(task_id))),
+            chains=tuple(graph.chains(task_id)),
+            leverage=graph.leverage(task_id),
+            cycle=tuple(graph.cycle_of(task_id)),
+        )
+
+    def stated(self) -> str:
+        """Each dep with what became of it, then the readiness the set adds up to."""
+        from roadkeep.rendering import _leverage_rows  # noqa: PLC0415 - RK260
+
+        if not self.resolutions:
+            return "\n".join(
+                [f"{self.task_id}: {self.readiness} (no deps)", *_leverage_rows(self.leverage)]
+            )
+        width = max(len(one.dep.id) for one in self.resolutions)
+        rows = [
+            f"  {one.dep.id:<{width}}  {one.status:<13}{one.kind:<9}{one.detail}"
+            for one in self.resolutions
+        ]
+        rows.append(f"{self.task_id}: {self.readiness}")
+        rows += [
+            f"  chain    {chain.render(self.task_id)}  — {chain.detail}"
+            for chain in self.chains
+        ]
+        if self.cycle:
+            rows.append(
+                f"  cycle    {' ↔ '.join(self.cycle)}: nothing in this group can be started"
+            )
+        rows += _leverage_rows(self.leverage)
+        return "\n".join(rows)
+
+    def payload(self) -> dict[str, object]:
+        """The same answer as data, with each chain's path spelled from this id outward."""
+        return {
+            "id": self.task_id,
+            "readiness": str(self.readiness),
+            "deps": [
+                {
+                    "dep": one.dep.id,
+                    "kind": str(one.kind),
+                    "status": str(one.status),
+                    "detail": one.detail,
+                }
+                for one in self.resolutions
+            ],
+            "blockers": list(self.blockers),
+            "chains": [
+                {
+                    "path": [self.task_id, *(hop.target for hop in chain.hops)],
+                    "via": [hop.via for hop in chain.hops],
+                    "end": str(chain.end),
+                    "detail": chain.detail,
+                }
+                for chain in self.chains
+            ],
+            "unblocks": {
+                "direct": list(self.leverage.direct),
+                "transitive": list(self.leverage.transitive),
+                "count": self.leverage.count,
+                "of": self.leverage.of,
+            },
+            "cycle": list(self.cycle),
+        }
 
 
 def _hops(backlog: Backlog, task: Task) -> tuple[Hop, ...]:

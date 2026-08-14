@@ -881,6 +881,8 @@ def _leverage_rows(leverage: Leverage) -> list[str]:
     tail = " …" if leverage.count > 4 else ""
     detail = f": {shown}{tail}" if shown else ""
     return [f"  unblocks {leverage.count} of {leverage.of} open{detail}"]
+
+
 def _commits_json(origin: Origin) -> dict[str, object]:
     def one(commit: Commit | None) -> dict[str, object] | None:
         if commit is None:
