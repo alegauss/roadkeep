@@ -1017,6 +1017,129 @@ def stamp(path: str | Path, task_id: str) -> bool:
     return True
 
 
+@dataclass(frozen=True, slots=True)
+class Read:
+    """One capture, and what this project can honestly say about it (RK1162).
+
+    Three states and not two, because `filed` was two facts wearing one number: a stamp
+    resolved against this project's own ids is a **resolution**, and a stamp naming another
+    repository is a **claim** nothing here can check — which is what RK1160 made the row clear
+    on. A tuple growing a third position would have carried the distinction and named neither.
+    """
+
+    path: Path
+    filed: bool
+    #: The repository a delivery names, or `""` for a capture this project resolved itself.
+    elsewhere: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class Debt:
+    """The captures a project holds that its backlog has not answered for (RK1139).
+
+    A record and no longer a bare tuple read twice (RK1170): `stats` composed both registers
+    from the same list, and each half called the reader again — so a project with captures paid
+    the glob and the parse of three governed files once per register that asked.
+    """
+
+    held: tuple[Read, ...] = ()
+
+    @property
+    def unfiled(self) -> tuple[Path, ...]:
+        return tuple(one.path for one in self.held if not one.filed)
+
+    def stated(self, config: Config, width: int) -> list[str]:
+        """The captures this project owes an entry for, and the total behind them (RK1143).
+
+        Rows **only where one is unfiled**, which is not the rule the counts beside this follow
+        — they print at zero because a field that appears only when it is non-zero is one a
+        reader stops looking for. Two differences decide it. `uncounted` is about the file the
+        command reports on and a capture is not; and a row that says nothing is owed is never
+        the next step, which is RK1121's finding one command over — measured here, where
+        `captures 2  2 filed` printed on every run of a tree with no debt at all, for ever,
+        because nothing deletes a capture.
+
+        The **total rides on the row** rather than being lost with it: the number a reader wants
+        beside "one is unfiled" is how many there are. What silence costs is that the directory
+        has files at all, and that is what :meth:`payload` keeps — a key costs a client nothing
+        to skip, where a line costs every reader the same attention on every run.
+        """
+        unfiled = self.unfiled
+        if not unfiled:
+            return []
+        rows = [f"  {'captures':<{width}}  {len(self.held):>4}  {len(unfiled)} unfiled"]
+        # Named and not only counted: this is the list the tool asks every project to hold its
+        # debt in, and a count with nothing behind it is the silent file again.
+        rows += [
+            f"  {'unfiled':<{width}}  {config.relative(one)}" for one in unfiled
+        ]
+        return rows
+
+    def payload(self, config: Config) -> dict[str, object]:
+        """The three states, told apart (RK1162).
+
+        `filed` counted a stamp this project resolved and a stamp nothing here can check as one
+        number, so a consumer reading `filed: 2` could not tell two closed rows from one closed
+        row and one somebody says is closed elsewhere.
+        """
+        return {
+            "kept": len(self.held),
+            # Resolutions only: `kept` is still the total, and a client that added `filed` to
+            # `delivered` gets what this key used to mean.
+            "filed": sum(1 for one in self.held if one.filed and not one.elsewhere),
+            "delivered": [
+                {"path": config.relative(one.path), "repository": one.elsewhere}
+                for one in self.held
+                if one.elsewhere
+            ],
+            "unfiled": [config.relative(one) for one in self.unfiled],
+        }
+
+
+def debt(config: Config) -> Debt:
+    """Each capture this project holds, and whether the backlog already states its claim.
+
+    The reading RK1139 asked for, and the cheap order matters: the directory is globbed first,
+    so a project with no captures — which is every project that has never hit a defect in this
+    tool — pays one `glob` and never the parse of three governed files.
+
+    "Filed" is an **exact symptom match**, because the capture's symptom is verbatim what
+    `add --symptom` receives: an author who ran the pre-filled command produces one, and an
+    author who reworded it reads as unfiled. Wrong in the direction that nags.
+    """
+    from roadkeep.backlog import Backlog  # noqa: PLC0415 - RK260
+
+    held = captures(config.root)
+    if not held:
+        return Debt()
+    backlog = Backlog.load(config)
+    documents = [
+        one for one in (backlog.roadmap, backlog.ledger, backlog.store) if one is not None
+    ]
+    stated = {entry.task.symptom for one in documents for entry in one.entries}
+    ids = {entry.task.id for one in documents for entry in one.entries}
+    # The stamp first and the prose second (RK1141): an author who ran the pre-filled `add`
+    # cleared this row by the act that closed it, and one who reworded the symptom is why the
+    # match alone left a row that could never reach zero. An id no file holds does not clear it
+    # — a stamp naming a task that was renumbered away is a link and not an outcome.
+    # **Unless the stamp names another repository** (RK1160): a capture of a defect in this tool
+    # belongs in this tool's backlog, so its id is one no governed file here will ever hold, and
+    # both readings above left a row that could only be silenced by a stamp from the wrong
+    # repository or by deleting the evidence. Filed by construction, because this cannot read
+    # that backlog and does not pretend to.
+    return Debt(
+        tuple(
+            Read(
+                path=one.path,
+                filed=bool(delivered(one.filed))
+                or (one.filed in ids if one.filed else one.symptom in stated),
+                elsewhere=delivered(one.filed),
+            )
+            for one in held
+        )
+    )
+
+
 def captures(root: str | Path = ".") -> tuple[Held, ...]:
     """Every capture on disk, in filename order — which is time order (RK1139).
 

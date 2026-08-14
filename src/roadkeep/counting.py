@@ -32,6 +32,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, replace
 
 from roadkeep.backlog import Standing
+from roadkeep.capturing import Debt
 from roadkeep.config import Config
 from roadkeep.kernel.document import Document, Entry, Reject, declares, shading
 from roadkeep.kernel.schema import DEFAULT_HEADING_WORD, Schema, width
@@ -58,6 +59,15 @@ class Tally:
 #: What a line under no block heading is called in a report. Not "Block —": it is the
 #: absence of a block, which is a lint error (RK14) rather than a place.
 NO_BLOCK = "(no block)"
+
+
+def _marker_row(markers: Mapping[str, int]) -> str:
+    """One row's markers as `📋 3  🛠 1` (RK1170).
+
+    Beside the report it belongs to, and named apart from :meth:`Census._markers`: that one
+    counts entries into a mapping and this one spells a mapping for a reader.
+    """
+    return "  ".join(f"{marker} {count}" for marker, count in markers.items())
 
 
 @dataclass(frozen=True, slots=True)
@@ -265,6 +275,76 @@ class Census:
             # answer: a listing over the whole file has no standing.
             "standing": None if standing is None else standing.payload(),
             "tasks": [_row_json(entry) for entry in self.counted],
+        }
+
+    def counted_out(self, config: Config, debt: Debt) -> str:
+        """The tallies, the totals, and the capture debt beside them (RK10, RK1139).
+
+        Beside :meth:`counts` since RK1170. `debt` is a parameter and not a field: a capture is
+        not a line of the file this counts, and reading one here would make a count of the
+        roadmap depend on a directory git ignores.
+        """
+        from roadkeep.kernel.schema import width as measured  # noqa: PLC0415 - RK260
+
+        tallies = self.tallies()
+        names = [tally.name for tally in tallies] + ["total", "uncounted"]
+        pad = max(len(name) for name in names)
+        rows = [self.file]
+        rows += [
+            f"  {tally.name:<{pad}}  {tally.counted:>4}  "
+            f"{_marker_row(tally.markers)}".rstrip()
+            for tally in tallies
+        ]
+        rows.append(
+            f"  {'total':<{pad}}  {self.total:>4}  {_marker_row(self.markers())}".rstrip()
+        )
+        # Printed at zero too: a field that appears only when it is non-zero is a field a
+        # reader learns to stop looking for, which is how the miss became invisible.
+        rows.append(f"  {'uncounted':<{pad}}  {self.uncounted:>4}")
+        longest = self.longest()
+        if longest is not None:
+            rows.append(
+                f"  {'longest':<{pad}}  {longest.task.id} at {measured(longest.raw)} "
+                f"of {self.schema.line_max}"
+            )
+        rows += debt.stated(config, pad)
+        return "\n".join(rows)
+
+    def counts(self, config: Config, standing: Standing | None, debt: Debt) -> dict[str, object]:
+        """The same answer as data, with the debt this project holds under its own key."""
+        from roadkeep.rendering import CHARACTER_UNIT  # noqa: PLC0415 - RK260
+        from roadkeep.kernel.schema import width as measured  # noqa: PLC0415 - RK260
+
+        longest = self.longest()
+        return {
+            "file": self.file,
+            "total": self.total,
+            "uncounted": self.uncounted,
+            "markers": self.markers(),
+            "blocks": [
+                {
+                    "block": tally.label,
+                    "counted": tally.counted,
+                    "uncounted": tally.missed,
+                    "markers": dict(tally.markers),
+                }
+                for tally in self.tallies()
+            ],
+            "longest": None
+            if longest is None
+            else {
+                "id": longest.task.id,
+                "length": measured(longest.raw),
+                "limit": self.schema.line_max,
+                "unit": CHARACTER_UNIT,
+            },
+            # `None` where no block was named, which is the question rather than a missing
+            # answer (RK429): a listing over the whole file has no standing.
+            "standing": None if standing is None else standing.payload(),
+            # RK1139: a capture nothing counts is a note in a drawer, and this tool's whole
+            # argument is against those. Its own key, because it is debt this project holds
+            # and not a line of the backlog it is reporting.
+            "captures": debt.payload(config),
         }
 
     def audited(self) -> str:

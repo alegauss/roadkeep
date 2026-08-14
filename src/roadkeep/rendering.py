@@ -33,7 +33,7 @@ from collections.abc import Iterable, Sequence
 from roadkeep import claiming
 from roadkeep.adopting import Estimate
 from roadkeep.authoring import StatusChange
-from roadkeep.backlog import Backlog, Stage, Standing
+from roadkeep.backlog import Backlog, Stage
 from roadkeep.briefing import NothingToBrief
 from roadkeep.budgeting import Load
 from roadkeep.claiming import Followed, Held
@@ -419,18 +419,6 @@ def _scope_json(
         # this commit does claim that is carrying somebody else's line.
         "shared": [{"path": one, "ids": list(ids)} for one, ids in scope.shared],
     }
-
-
-def _print_standing(standing: Standing | None) -> None:
-    """Say which of the two silences this is, where a listing came back empty (RK429).
-
-    On stderr, for the reason the uncounted note is: stdout stays exactly what the file
-    says, so `list` substitutes for the grep it replaces, and a sentence in the pipe is a
-    line no `--ids` consumer asked for. Nothing is said about a **live** block — that a
-    marker filter matched none of its open lines is a fact about the filter.
-    """
-    if standing is not None and standing.settled:
-        print(f"roadkeep: {standing.sentence}", file=sys.stderr)
 
 
 def _print_report(

@@ -15,14 +15,12 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from dataclasses import dataclass
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 
 from roadkeep import attesting, claiming
-from pathlib import Path
 
 from roadkeep.backlog import Backlog, Stage, Standing
-from roadkeep.capturing import captures, delivered
+from roadkeep.capturing import debt
 from roadkeep.briefing import NothingToBrief, brief
 from roadkeep.budgeting import (
     Load,
@@ -52,7 +50,6 @@ from roadkeep.history import (
     origin_of,
     status,
 )
-from roadkeep.merging import markers
 from roadkeep.picking import Claim, Picked, pick, take
 from roadkeep.provenance import invocation
 from roadkeep.remaining import QueryError, count, declared
@@ -64,10 +61,8 @@ from roadkeep.rendering import (
     _load_json,
     _nothing_json,
     _scope_rows,
-    _print_standing,
 )
 from roadkeep.kernel.schema import body_aim
-from roadkeep.kernel.schema import width as measured_width
 from roadkeep.sections import binding
 from roadkeep.serving import surface
 from roadkeep.showing import show
@@ -134,178 +129,17 @@ def _stats(config: Config, args: argparse.Namespace) -> int:
         census, standing = _census(config, args)
     except (KeyError, OSError) as error:
         return _refused(error)
-
-    longest = census.longest()
+    # The capture debt is a second subject and joined here (RK1139): a capture is not a line
+    # of the file this counts, so reading one inside the census would make a count of the
+    # roadmap depend on a directory git ignores.
+    owed = debt(config)
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "file": census.file,
-                    "total": census.total,
-                    "uncounted": census.uncounted,
-                    "markers": census.markers(),
-                    "blocks": [
-                        {
-                            "block": tally.label,
-                            "counted": tally.counted,
-                            "uncounted": tally.missed,
-                            "markers": dict(tally.markers),
-                        }
-                        for tally in census.tallies()
-                    ],
-                    "longest": None
-                    if longest is None
-                    else {
-                        "id": longest.task.id,
-                        "length": measured_width(longest.raw),
-                        "limit": census.schema.line_max,
-                        "unit": CHARACTER_UNIT,
-                    },
-                    # `None` where no block was named, which is the question rather than a
-                    # missing answer (RK429): a listing over the whole file has no standing.
-                    "standing": None if standing is None else standing.payload(),
-                    # RK1139: a capture nothing counts is a note in a drawer, and this tool's
-                    # whole argument is against those. Its own key, because it is debt this
-                    # project holds and not a line of the backlog it is reporting.
-                    "captures": _captures_json(config),
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    tallies = census.tallies()
-    names = [tally.name for tally in tallies] + ["total", "uncounted"]
-    width = max(len(name) for name in names)
-    print(census.file)
-    for tally in tallies:
-        print(
-            f"  {tally.name:<{width}}  {tally.counted:>4}  "
-            f"{_markers(tally.markers)}".rstrip()
-        )
-    print(
-        f"  {'total':<{width}}  {census.total:>4}  {_markers(census.markers())}".rstrip()
-    )
-    # Printed at zero too: a field that appears only when it is non-zero is a field a
-    # reader learns to stop looking for, which is how the miss became invisible.
-    print(f"  {'uncounted':<{width}}  {census.uncounted:>4}")
-    if longest is not None:
-        print(
-            f"  {'longest':<{width}}  {longest.task.id} at {measured_width(longest.raw)} "
-            f"of {census.schema.line_max}"
-        )
-    _print_captures(config, width)
-    if not census.total:
-        _print_standing(standing)
+        print(json.dumps(census.counts(config, standing, owed), indent=2))
+    else:
+        print(census.counted_out(config, owed))
+        for note in census.silence(standing):
+            print(note, file=sys.stderr)
     return EXIT_OK
-
-
-@dataclass(frozen=True, slots=True)
-class _Read:
-    """One capture, and what this project can honestly say about it (RK1162).
-
-    Three states and not two, because `filed` was two facts wearing one number: a stamp resolved
-    against this project's own ids is a **resolution**, and a stamp naming another repository is
-    a **claim** nothing here can check — which is what RK1160 made the row clear on. A tuple
-    growing a third position would have carried the distinction and named neither.
-    """
-
-    path: Path
-    filed: bool
-    #: The repository a delivery names, or `""` for a capture this project resolved itself.
-    elsewhere: str = ""
-
-
-def _unfiled(config: Config) -> tuple[_Read, ...]:
-    """Each capture this project holds, and whether the backlog already states its claim.
-
-    The reading RK1139 asked for, and the cheap order matters: the directory is globbed first,
-    so a project with no captures — which is every project that has never hit a defect in this
-    tool — pays one `glob` and never the parse of three governed files.
-
-    "Filed" is an **exact symptom match**, because the capture's symptom is verbatim what
-    `add --symptom` receives: an author who ran the pre-filled command produces one, and an
-    author who reworded it reads as unfiled. Wrong in the direction that nags.
-    """
-    held = captures(config.root)
-    if not held:
-        return ()
-    backlog = Backlog.load(config)
-    documents = [
-        one for one in (backlog.roadmap, backlog.ledger, backlog.store) if one is not None
-    ]
-    stated = {entry.task.symptom for one in documents for entry in one.entries}
-    ids = {entry.task.id for one in documents for entry in one.entries}
-    # The stamp first and the prose second (RK1141): an author who ran the pre-filled `add`
-    # cleared this row by the act that closed it, and one who reworded the symptom is why the
-    # match alone left a row that could never reach zero. An id no file holds does not clear it
-    # — a stamp naming a task that was renumbered away is a link and not an outcome.
-    # **Unless the stamp names another repository** (RK1160): a capture of a defect in this tool
-    # belongs in this tool's backlog, so its id is one no governed file here will ever hold, and
-    # both readings above left a row that could only be silenced by a stamp from the wrong
-    # repository or by deleting the evidence. Filed by construction, because this cannot read
-    # that backlog and does not pretend to.
-    return tuple(
-        _Read(
-            path=one.path,
-            filed=bool(delivered(one.filed))
-            or (one.filed in ids if one.filed else one.symptom in stated),
-            elsewhere=delivered(one.filed),
-        )
-        for one in held
-    )
-
-
-def _captures_json(config: Config) -> dict[str, object]:
-    """The three states, told apart (RK1162).
-
-    `filed` counted a stamp this project resolved and a stamp nothing here can check as one
-    number, so a consumer reading `filed: 2` could not tell two closed rows from one closed row
-    and one somebody says is closed elsewhere. `delivered` is that second half, as a list for
-    `unfiled`'s reason: the repository is what a client shows, and the count is its length.
-
-    RK1147's rule, one command over — the printed report has said which reading cleared the row
-    since RK1160, and the payload is the surface an agent reads.
-    """
-    held = _unfiled(config)
-    return {
-        "kept": len(held),
-        # Resolutions only now: `kept` is still the total, and a client that added `filed` to
-        # `delivered` gets what this key used to mean.
-        "filed": sum(1 for one in held if one.filed and not one.elsewhere),
-        "delivered": [
-            {"path": config.relative(one.path), "repository": one.elsewhere}
-            for one in held
-            if one.elsewhere
-        ],
-        "unfiled": [config.relative(one.path) for one in held if not one.filed],
-    }
-
-
-def _print_captures(config: Config, width: int) -> None:
-    """The captures this project owes an entry for, and the total behind them (RK1139, RK1143).
-
-    Printed **only where one is unfiled**, which is not the rule the counts above follow — they
-    print at zero because a field that appears only when it is non-zero is one a reader stops
-    looking for. Two differences decide it. `uncounted` is about the file this command reports
-    on and a capture is not; and a row that says nothing is owed is never the next step, which
-    is RK1121's finding one command over — measured here, where `captures 2  2 filed` printed on
-    every run of a tree with no debt at all, for ever, because nothing deletes a capture.
-
-    The **total rides on the row** rather than being lost with it: the number a reader wants
-    beside "one is unfiled" is how many there are. What silence costs is the fact that the
-    directory has files at all, and that is what the payload keeps — a key costs a client
-    nothing to skip, where a line costs every reader the same attention on every run.
-    """
-    held = _unfiled(config)
-    unfiled = [one.path for one in held if not one.filed]
-    if not unfiled:
-        return
-    print(f"  {'captures':<{width}}  {len(held):>4}  {len(unfiled)} unfiled")
-    for path in unfiled:
-        # Named and not only counted: this is the list the tool asks every project to hold its
-        # debt in, and a count with nothing behind it is the silent file again.
-        print(f"  {'unfiled':<{width}}  {config.relative(path)}")
 
 
 def _audit(config: Config, args: argparse.Namespace) -> int:
@@ -504,10 +338,6 @@ def _writes(config: Config, args: argparse.Namespace) -> int:
     else:
         print(survey.stated())
     return EXIT_OK
-
-
-def _markers(markers: Mapping[str, int]) -> str:
-    return "  ".join(f"{marker} {count}" for marker, count in markers.items())
 
 
 def _brief(config: Config, args: argparse.Namespace) -> int:
