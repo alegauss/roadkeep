@@ -36,6 +36,7 @@ silently became a rewrite of the design sentence.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -43,7 +44,7 @@ from roadkeep import claiming, queueing
 from roadkeep.authoring import Insertion, place, remove_entry
 from roadkeep.backlog import Backlog, NotOpen, Whereabouts
 from roadkeep.config import PROSE_ROLES, Config
-from roadkeep.kernel.document import Document, save_all
+from roadkeep.kernel.document import Document, Entry, save_all
 from roadkeep.markers import refresh
 from roadkeep.provenance import invocation
 from roadkeep.kernel.schema import PAUSED_CLOSE, PAUSED_OPEN, Task, authored_why, pause_reason
@@ -177,6 +178,20 @@ class Carried:
     #: Why no role answered, ready to print. Empty exactly when `role` is not None.
     absence: str = ""
 
+    def line(self, config: Config) -> str:
+        """The one line saying where a paused design stayed (RK229).
+
+        `kept in <file>` only where a file holds it. An absence spells itself instead of being
+        dressed as a location: "kept in IMPROVEMENTS.md" about a section that is not there
+        sends a reader to look, and the pause is right either way.
+
+        On the record since RK1170, where `_defer` was composing it: which file this resolved
+        to is what this type exists to carry, and a phrasing about it belongs with it.
+        """
+        if self.role is None:
+            return f"{self.anchor} — {self.absence}"
+        return f"{self.anchor} kept in {config.relative(config.path(self.role))}"
+
 
 @dataclass(frozen=True, slots=True)
 class Pause:
@@ -227,6 +242,77 @@ class Pause:
             claiming.follow(self.root, self.task_id, self.marker, self.roadmap.entries)
         return wrote
 
+    @property
+    def block(self) -> str:
+        return self.store.entry.task.block
+
+    def event(self, config: Config) -> dict[str, object]:
+        """What this pause did to the block it left (RK38), off the roadmap it wrote."""
+        from roadkeep.rendering import _event  # noqa: PLC0415 - RK260
+
+        return _event(self.task_id, self.block, self.roadmap, config)
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """Where the line went, and what the pause kept (RK229, RK327).
+
+        Beside :meth:`payload` since RK1170. `wrote` is a parameter and not a field, because
+        :meth:`save` is the caller's step: a record that named paths before they were written
+        would be answering about a write that may not have happened.
+        """
+        from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _dequeued_rows,
+            _event_rows,
+            _staging_rows,
+        )
+
+        roadmap = config.relative(config.path("roadmap"))
+        store = config.relative(config.path("deferred"))
+        rows = [
+            f"{self.task_id} {self.marker} {store}:{self.store.lineno} under Block {self.block}",
+            f"  removed  {roadmap}:{self.removed_from}",
+        ]
+        if self.carried is not None:
+            # Named, because every other door that moves a line deletes this section: silence
+            # about a design that was kept reads exactly like the deletion (RK6). The *file* is
+            # the pause's answer and never this line's (RK229) — composing it here from the
+            # improvements default is what named a path a strategy-only project does not declare.
+            rows.append(f"  carried  {self.carried.line(config)}")
+        if self.dependents:
+            rows.append(f"  still    {', '.join(self.dependents)} name {self.task_id}")
+        if self.refreshed:
+            rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
+        rows += _dequeued_rows(self.dequeued)
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        rows += _event_rows(self.event(config), "  ", config=config)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        """The same answer as data, with the design this did not delete (RK229)."""
+        from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _carried_json,
+            _wrote_json,
+        )
+
+        return {
+            "id": self.task_id,
+            "marker": self.marker,
+            "deferred": {
+                "file": config.relative(config.path("deferred")),
+                "line": self.store.lineno,
+                "rendered": self.store.rendered,
+            },
+            "roadmap": {
+                "file": config.relative(config.path("roadmap")),
+                "removed": self.removed_from,
+            },
+            "carried": _carried_json(config, self.carried),
+            "dequeued": self.dequeued,
+            "dependents": list(self.dependents),
+            "refreshed": list(self.refreshed),
+            **_wrote_json(config, wrote),
+            "event": self.event(config),
+        }
+
 
 @dataclass(frozen=True, slots=True)
 class Resumption:
@@ -274,6 +360,120 @@ class Resumption:
                 self.root, self.task_id, self.marker, self.roadmap.entries
             )
         return wrote
+
+    def standing(self, config: Config) -> Entry | None:
+        """The line this call placed, or the one already there on a reconciling call (RK1086).
+
+        Asked rather than faked: the shape says a reconciliation places nothing, so the entry
+        being described has to be looked up where it already was.
+        """
+        return self.placed or config.document("roadmap").by_id().get(self.task_id)
+
+    def event(self, config: Config) -> dict[str, object]:
+        """What this return did to the block it landed in (RK38), off the roadmap it wrote."""
+        from roadkeep.rendering import _event  # noqa: PLC0415 - RK260
+
+        standing = self.standing(config)
+        block = standing.task.block if standing else ""
+        return _event(self.task_id, block, self.roadmap, config)
+
+    def requeue(self, config: Config) -> str | None:
+        """The `priority add` a resumed line may want, where this project has a queue (RK327).
+
+        Offered and never done. `defer` took the entry out because a paused line is one `pick`
+        can never offer; what it could not keep is **where in the order it sat**, the store
+        holding a line and not a rank — so a resume that re-queued would be choosing a position
+        nobody stated. Silent where no heading declares a section, which is most projects: a
+        follow-up naming a list that does not exist is a command that cannot run.
+
+        On the record since RK1170, with both registers that print it: this is the half of the
+        pause the verb does not undo, which makes it part of what the transaction answers.
+        """
+        try:
+            queue = queueing.declared(config)
+        except (KeyError, OSError):  # a roadmap this command already reported on
+            return None
+        if queue.declared_in != "roadmap" or self.task_id in queue.tokens:
+            return None
+        return (
+            f"`{invocation()} priority add {self.task_id}` if it goes back in the order — the "
+            f"pause took it out, and where it sat is not something the store kept"
+        )
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """Which of the two acts this was, and what came back with the line (RK1083).
+
+        Beside :meth:`payload` since RK1170. `ship` answers the same shape the same way — `RK1
+        closed` against `RK1 →` — because a caller holding an id should not have to know which
+        of two states the files are in, and the *output* is where they find out.
+        """
+        from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _event_rows,
+            _staging_rows,
+        )
+
+        roadmap = config.relative(config.path("roadmap"))
+        store = config.relative(config.path("deferred"))
+        standing = self.standing(config)
+        if self.reconciled:
+            rows = [
+                f"{self.task_id} reconciled  {store}:{self.removed_from} removed, "
+                f"already {self.marker} in {roadmap}:{standing.lineno}",
+                "  roadmap  untouched: the open line is what the files should say",
+            ]
+        else:
+            block = standing.task.block if standing else ""
+            rows = [
+                f"{self.task_id} {self.marker} {roadmap}:{self.placed.lineno} "
+                f"under Block {block}",
+                f"  removed  {store}:{self.removed_from}",
+            ]
+        if self.was is not None:
+            # The last time the reason is visible: what comes back is a design, and the pause
+            # it went through is history the commit states rather than the line.
+            rows.append(f"  was      set aside: {self.was}")
+        if self.refreshed:
+            rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
+        follow = self.requeue(config)
+        if follow is not None:
+            rows.append(f"  requeue  {follow}")
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        rows += _event_rows(self.event(config), "  ", config=config)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        """The same answer as data, saying which of the two acts it was (RK1083)."""
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "id": self.task_id,
+            "marker": self.marker,
+            # Null on a reconciling call, which places no line — a `line` there would be an
+            # address for a write nobody made (RK1086).
+            "roadmap": None
+            if self.placed is None
+            else {
+                "file": config.relative(config.path("roadmap")),
+                "line": self.placed.lineno,
+                "rendered": self.placed.raw,
+            },
+            "deferred": {
+                "file": config.relative(config.path("deferred")),
+                "removed": self.removed_from,
+            },
+            "was": self.was,
+            # Which of the two acts this was (RK1083): a reconciliation removes the store's
+            # stale copy and places nothing, so `roadmap.line` is where the line already was
+            # rather than where one landed.
+            "reconciled": self.reconciled,
+            "refreshed": list(self.refreshed),
+            # The half of the pause this does not undo (RK327): the entry the pause removed is
+            # the author's to put back, because where in the order it belonged is not a fact
+            # the store kept.
+            "requeue": self.requeue(config),
+            **_wrote_json(config, wrote),
+            "event": self.event(config),
+        }
 
 
 def defer(config: Config, task_id: str, *, reason: str) -> Pause:

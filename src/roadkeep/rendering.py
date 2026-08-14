@@ -211,15 +211,19 @@ def _event_rows(
     return rows
 
 
-def _print_dequeued(token: str | None) -> None:
+def _dequeued_rows(token: str | None) -> list[str]:
     """What a departure took out of the priority queue (RK327).
 
     Said and never silent, because a departure that quietly shortened the plan would be an
     ordering changed with no sentence about it — and the printed line is what a reviewer
     reads the diff against (RK298).
+
+    Rows and no longer a printer (RK1170): three verbs share this sentence and each of them
+    is moving its whole answer onto its record, which a function that prints cannot join.
     """
-    if token is not None:
-        print(f"  dequeued {token} left the priority queue with the line")
+    if token is None:
+        return []
+    return [f"  dequeued {token} left the priority queue with the line"]
 
 
 def _carried_json(config: Config, carried: Carried | None) -> dict[str, str | None] | None:

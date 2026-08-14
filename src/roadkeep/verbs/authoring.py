@@ -18,16 +18,13 @@ import sys
 from roadkeep.authoring import add, amend, restate, set_status
 from roadkeep.capturing import stamp
 from roadkeep.config import Config
-from roadkeep.deferring import Carried, defer, resume
+from roadkeep.deferring import defer, resume
 from roadkeep.ids import derivation, highest
 from roadkeep.provenance import invocation
-from roadkeep.queueing import declared as declared_queue
 from roadkeep.rendering import (
     _print,
-    _carried_json,
     _event,
     _held_json,
-    _print_dequeued,
     _event_rows,
     _staging_rows,
     _promise_json,
@@ -372,68 +369,22 @@ def _follow_up(anchor: str, role: str | None) -> str:
     return f"section add {anchor} --title …{named}"
 
 
-def _carried_line(config: Config, carried: Carried) -> str:
-    """The one line saying where a paused design stayed (RK229).
-
-    `kept in <file>` only where a file holds it. An absence spells itself instead of being
-    dressed as a location: "kept in IMPROVEMENTS.md" about a section that is not there sends
-    a reader to look, and the pause is right either way.
-    """
-    if carried.role is None:
-        return f"{carried.anchor} — {carried.absence}"
-    return f"{carried.anchor} kept in {config.relative(config.path(carried.role))}"
-
-
 def _defer(config: Config, args: argparse.Namespace) -> int:
+    """Set one open line aside in the store, keeping its design where it is (RK229, RK327).
+
+    Both registers come off the record (RK1170); `wrote` is passed because saving is this
+    door's step, so the paths are a fact about the call and not about the transaction.
+    """
     try:
         pause = defer(config, args.id, reason=_piped(args.reason))
         wrote = pause.save()
     except REFUSALS as error:
         return _refused(error)
 
-    roadmap = config.relative(config.path("roadmap"))
-    store = config.relative(config.path("deferred"))
-    block = pause.store.entry.task.block
-    event = _event(pause.task_id, block, pause.roadmap, config)
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": pause.task_id,
-                    "marker": pause.marker,
-                    "deferred": {
-                        "file": store,
-                        "line": pause.store.lineno,
-                        "rendered": pause.store.rendered,
-                    },
-                    "roadmap": {"file": roadmap, "removed": pause.removed_from},
-                    "carried": _carried_json(config, pause.carried),
-                    "dequeued": pause.dequeued,
-                    "dependents": list(pause.dependents),
-                    "refreshed": list(pause.refreshed),
-                    **_wrote_json(config, wrote),
-                    "event": event,
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    print(f"{pause.task_id} {pause.marker} {store}:{pause.store.lineno} under Block {block}")
-    print(f"  removed  {roadmap}:{pause.removed_from}")
-    if pause.carried is not None:
-        # Named, because every other door that moves a line deletes this section: silence
-        # about a design that was kept reads exactly like the deletion (RK6). The *file* is
-        # the pause's answer and never this line's (RK229) — composing it here from the
-        # improvements default is what named a path a strategy-only project does not declare.
-        print(f"  carried  {_carried_line(config, pause.carried)}")
-    if pause.dependents:
-        print(f"  still    {', '.join(pause.dependents)} name {pause.task_id}")
-    if pause.refreshed:
-        print(f"  derived  {', '.join(pause.refreshed)} (dep annotations re-derived)")
-    _print_dequeued(pause.dequeued)
-    _print(_staging_rows(config.relative(one) for one in wrote))
-    _print(_event_rows(event, "  ", config=config))
+        print(json.dumps(pause.payload(config, wrote), indent=2))
+    else:
+        print(pause.stated(config, wrote))
     return EXIT_OK
 
 
@@ -444,94 +395,10 @@ def _resume(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    roadmap = config.relative(config.path("roadmap"))
-    store = config.relative(config.path("deferred"))
-    # The line this call placed, or the one already there on a reconciling call (RK1086):
-    # the shape no longer pretends the second is a placement, so the printer asks for the
-    # one it is going to describe rather than reading a field that had to be faked.
-    placed = resumption.placed
-    standing = placed or config.document("roadmap").by_id().get(resumption.task_id)
-    block = standing.task.block if standing else ""
-    event = _event(resumption.task_id, block, resumption.roadmap, config)
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": resumption.task_id,
-                    "marker": resumption.marker,
-                    # Null on a reconciling call, which places no line — a `line` there
-                    # would be an address for a write nobody made (RK1086).
-                    "roadmap": None
-                    if placed is None
-                    else {
-                        "file": roadmap,
-                        "line": placed.lineno,
-                        "rendered": placed.raw,
-                    },
-                    "deferred": {"file": store, "removed": resumption.removed_from},
-                    "was": resumption.was,
-                    # Which of the two acts this was (RK1083): a reconciliation removes the
-                    # store's stale copy and places nothing, so `roadmap.line` is where the
-                    # line already was rather than where one landed.
-                    "reconciled": resumption.reconciled,
-                    "refreshed": list(resumption.refreshed),
-                    # The half of the pause this does not undo (RK327): the entry the
-                    # pause removed is the author's to put back, because where in the
-                    # order it belonged is not a fact the store kept.
-                    "requeue": _requeue(config, resumption.task_id),
-                    **_wrote_json(config, wrote),
-                    "event": event,
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-
-    # Two acts under one verb, said apart (RK1083). `ship` answers the same shape the same
-    # way — `RK1 closed` against `RK1 →` — because a caller holding an id should not have to
-    # know which of two states the files are in, and the *output* is where they find out.
-    if resumption.reconciled:
-        print(
-            f"{resumption.task_id} reconciled  {store}:{resumption.removed_from} removed, "
-            f"already {resumption.marker} in {roadmap}:{standing.lineno}"
-        )
-        print("  roadmap  untouched: the open line is what the files should say")
+        print(json.dumps(resumption.payload(config, wrote), indent=2))
     else:
-        print(
-            f"{resumption.task_id} {resumption.marker} {roadmap}:{placed.lineno} "
-            f"under Block {block}"
-        )
-        print(f"  removed  {store}:{resumption.removed_from}")
-    if resumption.was is not None:
-        # The last time the reason is visible: what comes back is a design, and the pause
-        # it went through is history the commit states rather than the line.
-        print(f"  was      set aside: {resumption.was}")
-    if resumption.refreshed:
-        print(f"  derived  {', '.join(resumption.refreshed)} (dep annotations re-derived)")
-    follow = _requeue(config, resumption.task_id)
-    if follow is not None:
-        print(f"  requeue  {follow}")
-    _print(_staging_rows(config.relative(one) for one in wrote))
-    _print(_event_rows(event, "  ", config=config))
+        print(resumption.stated(config, wrote))
     return EXIT_OK
 
 
-def _requeue(config: Config, task_id: str) -> str | None:
-    """The `priority add` a resumed line may want, where this project has a queue (RK327).
-
-    Offered and never done. `defer` took the entry out because a paused line is one `pick`
-    can never offer; what it could not keep is **where in the order it sat**, the store
-    holding a line and not a rank — so a resume that re-queued would be choosing a position
-    nobody stated. Silent where no heading declares a section, which is most projects: a
-    follow-up naming a list that does not exist is a command that cannot run.
-    """
-    try:
-        queue = declared_queue(config)
-    except (KeyError, OSError):  # a roadmap this command already reported on
-        return None
-    if queue.declared_in != "roadmap" or task_id in queue.tokens:
-        return None
-    return (
-        f"`{invocation()} priority add {task_id}` if it goes back in the order — the "
-        f"pause took it out, and where it sat is not something the store kept"
-    )

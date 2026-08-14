@@ -25,7 +25,7 @@ from roadkeep.rendering import (
     _wrote_json,
     _event,
     _print_cited,
-    _print_dequeued,
+    _dequeued_rows,
     _print_emptied,
     _event_rows,
     _print_scope,
@@ -146,7 +146,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         print(f"  overtook the design it read: {shipment.superseded}")
     if shipment.refreshed:
         print(f"  derived  {', '.join(shipment.refreshed)} (dep annotations re-derived)")
-    _print_dequeued(shipment.dequeued)
+    _print(_dequeued_rows(shipment.dequeued))
     # Last before the event line, because it is about the commit this ship precedes rather
     # than about the three edits above it (RK294).
     _print_scope(shipment.scope, wrote)
@@ -261,7 +261,7 @@ def _closed(
         _print_emptied(closure.emptied)
     if closure.refreshed:
         print(f"  derived  {', '.join(closure.refreshed)} (dep annotations re-derived)")
-    _print_dequeued(closure.dequeued)
+    _print(_dequeued_rows(closure.dequeued))
     _print_scope(closure.scope, wrote)
     _print(_event_rows(event, "  ", config=config))
     return EXIT_OK
