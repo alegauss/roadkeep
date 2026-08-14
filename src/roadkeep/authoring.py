@@ -833,6 +833,58 @@ class StatusChange:
     def lineno(self) -> int:
         return self.entry.lineno
 
+    def event(self, config: Config) -> dict[str, object]:
+        """What this write did to the block it landed in (RK38), off the document it wrote."""
+        from roadkeep.rendering import _event  # noqa: PLC0415 - RK260
+
+        return _event(self.entry.task.id, self.entry.task.block, self.document, config)
+
+    def stated(self, config: Config) -> str:
+        """What the marker did, as a reader is told it (RK7, RK158).
+
+        Beside :meth:`payload` since RK1170. The no-op reading is here too, and that is the
+        point of moving it: a line that already carried the marker still followed its claim and
+        still has a standing to report, which is one answer with a branch in it and not two.
+        """
+        from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _event_rows,
+            _followed_rows,
+            _staging_rows,
+        )
+
+        where = f"{config.relative(config.path('roadmap'))}:{self.lineno}"
+        if not self.changed:
+            rows = [f"{self.entry.task.id} is already {self.after}  {where}"]
+            return "\n".join(
+                rows + _followed_rows(self, config)
+                + _event_rows(self.event(config), "  ", config=config)
+            )
+        rows = [f"{self.entry.task.id} {self.before} → {self.after}  {where}"]
+        if self.refreshed:
+            rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
+        rows += _followed_rows(self, config)
+        rows += _staging_rows(config.relative(one) for one in self.wrote)
+        rows += _event_rows(self.event(config), "  ", config=config)
+        return "\n".join(rows)
+
+    def payload(self, config: Config) -> dict[str, object]:
+        """The same answer as data, with the claim this marker took or dropped (RK158)."""
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "id": self.entry.task.id,
+            "from": self.before,
+            "to": self.after,
+            "changed": self.changed,
+            "file": config.relative(config.path("roadmap")),
+            "line": self.lineno,
+            "rendered": self.rendered,
+            "refreshed": list(self.refreshed),
+            "claim": str(self.claim) or None,
+            **_wrote_json(config, self.wrote),
+            "event": self.event(config),
+        }
+
 
 def set_status(config: Config, task_id: str, marker: str) -> StatusChange:
     """Write one task's marker in the roadmap, and refuse if a sibling carries one.

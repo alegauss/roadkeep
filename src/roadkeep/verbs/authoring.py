@@ -29,7 +29,6 @@ from roadkeep.rendering import (
     _held_json,
     _print_dequeued,
     _event_rows,
-    _print_followed,
     _staging_rows,
     _promise_json,
     _prose_file,
@@ -228,44 +227,20 @@ def _add(config: Config, args: argparse.Namespace) -> int:
 
 
 def _status(config: Config, args: argparse.Namespace) -> int:
+    """Write one task's marker, and say what that did to the claim on its line (RK7, RK158).
+
+    Both registers come off the record (RK1170), the no-op reading included: a marker that did
+    not move still followed its claim, so the branch belongs with the answer and not in a door.
+    """
     try:
         change = set_status(config, args.id, args.marker)
     except REFUSALS as error:
         return _refused(error)
 
-    where = f"{config.relative(config.path('roadmap'))}:{change.lineno}"
-    event = _event(args.id, change.entry.task.block, change.document, config)
     if args.json:
-        print(
-            json.dumps(
-                {
-                    "id": args.id,
-                    "from": change.before,
-                    "to": change.after,
-                    "changed": change.changed,
-                    "file": config.relative(config.path("roadmap")),
-                    "line": change.lineno,
-                    "rendered": change.rendered,
-                    "refreshed": list(change.refreshed),
-                    "claim": str(change.claim) or None,
-                    **_wrote_json(config, change.wrote),
-                    "event": event,
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-    if not change.changed:
-        print(f"{args.id} is already {change.after}  {where}")
-        _print_followed(change, config)
-        _print(_event_rows(event, "  ", config=config))
-        return EXIT_OK
-    print(f"{args.id} {change.before} → {change.after}  {where}")
-    if change.refreshed:
-        print(f"  derived  {', '.join(change.refreshed)} (dep annotations re-derived)")
-    _print_followed(change, config)
-    _print(_staging_rows(config.relative(one) for one in change.wrote))
-    _print(_event_rows(event, "  ", config=config))
+        print(json.dumps(change.payload(config), indent=2))
+    else:
+        print(change.stated(config))
     return EXIT_OK
 
 

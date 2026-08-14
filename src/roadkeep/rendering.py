@@ -88,19 +88,23 @@ def _promise_json(promise: Promise | None) -> dict[str, object] | None:
     }
 
 
-def _print_followed(change: StatusChange, config: Config) -> None:
+def _followed_rows(change: StatusChange, config: Config) -> list[str]:
     """What the marker did to the claim on its line (RK158), and never silently.
 
     A marker change is not obviously an assertion of ownership to whoever typed it, so the
     door says which of the two it just made — the same reason `pick` names the claim it took
     rather than only moving it.
+
+    Rows and no longer a printer (RK1170), like every other phrasing two registers share: the
+    verb composes its whole answer where the record is, and one seam writes it.
     """
     if change.claim is Followed.CLAIMED:
-        print(f"  claimed  held for {config.held}m unless a marker moves it sooner")
-    elif change.claim is Followed.RELEASED:
+        return [f"  claimed  held for {config.held}m unless a marker moves it sooner"]
+    if change.claim is Followed.RELEASED:
         # `dropped` and not `released`: every label in this output is padded to one width, and
         # the eight-letter word is the one that would not fit it.
-        print("  dropped  the claim on this line is released")
+        return ["  dropped  the claim on this line is released"]
+    return []
 
 
 def _event(task_id: str, block: str, roadmap: Document, config: Config) -> dict[str, object]:
