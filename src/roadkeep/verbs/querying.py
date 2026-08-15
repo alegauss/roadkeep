@@ -32,7 +32,7 @@ from roadkeep.budgeting import (
 from roadkeep.config import Config, PROSE_ROLES
 from roadkeep.counting import Census
 from roadkeep.kernel.document import StaleFile, write_all
-from roadkeep.exporting import project, splice_into
+from roadkeep.exporting import DEFAULTS, project, splice_into
 from roadkeep.graph import Dependencies
 from roadkeep.history import (
     Addresses,
@@ -57,6 +57,15 @@ from roadkeep.rendering import (
 )
 from roadkeep.serving import surface
 from roadkeep.showing import show
+from roadkeep.verbs.declaring import (
+    _DESIGNED_HELP,
+    _JSON_HELP,
+    _counting_flags,
+    _marker_flag,
+    answers,
+    narrows,
+    withheld,
+)
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
 from roadkeep.weighing import Weighed, weigh
 
@@ -833,4 +842,605 @@ def _remaining(config: Config, args: argparse.Namespace) -> int:
     print(json.dumps(found.payload(), indent=2) if args.json else str(found))
     return EXIT_OK
 
+
+def declare_reads(subcommands: argparse._SubParsersAction) -> None:
+    """This module's verbs, declared where their handlers are (RK1171).
+
+    `build_parser` called forty-nine blocks like these in a row; what it calls now is an index
+    over the modules that own them. The move is what RK1169 and RK1170 bought: the flags a verb
+    declares, the reasons it withholds and the record it answers with are one file's, so a
+    change to any of them is one file's too.
+
+    The order inside is `build_parser`'s own, which is where these blocks sat.
+    """
+    list_parser = subcommands.add_parser(
+        "list",
+        help="the task lines, filtered, printed verbatim",
+        description=(
+            "Print the lines a filter selects, exactly as the file spells them. A "
+            "marker-bearing line the grammar did not accept is reported on stderr with "
+            "the count, so a filtered listing can never look complete when it is not."
+        ),
+    )
+    _counting_flags(list_parser)
+    _marker_flag(list_parser, "only this status marker", dest="marker")
+    list_parser.add_argument(
+        "--ids", action="store_true", help="print ids alone, one per line"
+    )
+    withheld(
+        list_parser,
+        ids='how a terminal prints: the payload carries every id in `tasks`, so a caller over this transport already has what the flag composes',
+    )
+    list_parser.set_defaults(handler=_list, reads_only=True)
+    # Two output *forms* of one read are two answers, exactly as `budget`'s subjects are
+    # (RK465's rule, RK467's find): the payload came back whole with nothing said about the
+    # flag that shaped nothing.
+    answers(list_parser, ("ids", "the listing as bare ids"), ("json", "the payload"))
+
+    stats_parser = subcommands.add_parser(
+        "stats",
+        help="counts per block and per marker, with what was not counted",
+        description=(
+            "Count the file. Every count carries the number of marker-bearing lines it "
+            "could *not* read, printed even when it is zero: a grep reports the "
+            "remainder with no indication that anything is missing."
+        ),
+    )
+    _counting_flags(stats_parser)
+    stats_parser.set_defaults(handler=_stats, reads_only=True)
+
+    audit_parser = subcommands.add_parser(
+        "audit",
+        help="every marker-bearing line the count did not count, and why",
+        description=(
+            "Print the misses. This is what makes a count trustable rather than an "
+            "extra: exit stays 0, because reporting is not the gate (`lint`, RK14) — "
+            "an audit that failed a build would be a gate nobody could adopt first."
+        ),
+    )
+    _counting_flags(audit_parser)
+    audit_parser.set_defaults(handler=_audit, reads_only=True)
+
+    claims_parser = subcommands.add_parser(
+        "claims",
+        help="which lines a worker is holding, oldest first, and where that is recorded",
+        description=(
+            "List the claim registry against the roadmap: held, expired — stepped over, so "
+            "the line is offered again — or stale, meaning the marker moved and nothing "
+            "reads the entry. Ranks nothing and offers nothing: `pick` decides what to work "
+            "on, and the release is a marker."
+        ),
+    )
+    claims_parser.add_argument(
+        "--prune",
+        action="store_true",
+        help=(
+            "drop the rows that are not claims and keep the ones that are, which is the "
+            "reconciliation a marker write performs and the only other remedy is the file"
+        ),
+    )
+    claims_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    # A read that can write, so it declares which flag makes it one (RK167): `dispatch` keeps
+    # deciding the lock, and reading the registry never waits on one.
+    withheld(
+        claims_parser,
+        prune='it writes the registry, exactly as `lint --fix` writes the files (RK16)',
+    )
+    claims_parser.set_defaults(handler=_claims, reads_only=True, writes_when="prune")
+
+    claim_parser = subcommands.add_parser(
+        "claim",
+        help="the paths one held line's commit owns, declared once and answered on demand",
+        description=(
+            "Say which paths this task will touch, and read them back at the moment of "
+            "committing. Without --path it answers what was declared, plus what the tree "
+            "holds that another live claim says is its own — the analysis `git add -A` "
+            "cannot make. Declared verbatim: nothing here reads the disk or the task's "
+            "prose to guess a path, and nothing here dates a claim."
+        ),
+    )
+    claim_parser.add_argument("id", help="the task id, which a live claim must already hold")
+    claim_parser.add_argument(
+        "--path",
+        action="append",
+        default=[],
+        metavar="PATH",
+        help=(
+            "a path this task's commit owns, repeatable; replaces the whole scope, so a "
+            "correction is one call and not a file to edit"
+        ),
+    )
+    claim_parser.add_argument(
+        "--add-path",
+        action="append",
+        default=[],
+        metavar="PATH",
+        dest="add_path",
+        help=(
+            "a path this task's commit *also* owns, repeatable; keeps what was declared, so "
+            "a file the work turned up is one argument and not the whole scope again"
+        ),
+    )
+    claim_parser.add_argument(
+        "--porcelain",
+        action="store_true",
+        help="the paths alone, one per line — what a commit script feeds to `git add --`",
+    )
+    claim_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    # A read that can write, declared the way `claims --prune` declares it (RK167) — and by
+    # two arguments (RK307), because either of them is the write.
+    withheld(
+        claim_parser,
+        porcelain='how a terminal prints, for a caller that is already reading JSON',
+    )
+    claim_parser.set_defaults(
+        handler=_claim,
+        reads_only=True,
+        writes_when=("path", "add_path"),
+        # The second pair, found by the read RK339 asked for: same one-edit distance, same
+        # asymmetry, and the same verb typed wanting the listing.
+        twin=(
+            "claim reads one line's scope back and needs it: `claim <id>`, or "
+            "`claim <id> --path …` to declare what this commit owns. The registry "
+            "listing is `claims`, which needs no id"
+        ),
+    )
+    # The sixth pair, and the first one the *declaration* found rather than a sweep (RK489):
+    # `--porcelain` returned before `--json` was read, so a caller asking for the payload got
+    # the paths, byte for byte. RK467's sweep could never see it — it runs against a fixture
+    # with no live claim, where every `claim` pair exits 2 for want of one — which is the
+    # limit of finding a class by probing, one probe away from the class being declarable.
+    answers(
+        claim_parser,
+        ("porcelain", "the paths alone, for `git add --`"),
+        ("json", "the payload"),
+    )
+
+    writes_parser = subcommands.add_parser(
+        "writes",
+        help="which governed files a verb wrote, which nothing did, and where that is recorded",
+        description=(
+            "Read the write record against the files: attested — the bytes a verb left — "
+            "unattested, meaning something else produced them, or unrecorded, meaning no "
+            "verb has run here yet. Moves no baseline, so asking twice answers twice; the "
+            "`Stop` hook states it once and consumes it (RK175)."
+        ),
+    )
+    writes_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    # Never a write, not even behind a flag: re-baselining is what the `Stop` block does, and a
+    # query offering it would be the laundering `dispatch` refuses queries in the first place.
+    writes_parser.set_defaults(handler=_writes, reads_only=True)
+
+    brief_parser = subcommands.add_parser(
+        "brief",
+        help="everything it costs to start one task, in one call",
+        description=(
+            "Compose the line, its rationale, its resolved deps, the blocker chain, what "
+            "shipping it unblocks and the non-goals that bind it. With no id, briefs "
+            "whatever `pick` would choose, which makes the first call the only one."
+        ),
+    )
+    brief_parser.add_argument(
+        "id", nargs="?", help="the task; omitted, `pick` chooses it"
+    )
+    brief_parser.add_argument(
+        "--block", help="scope the pick to one block, e.g. C (only without an id)"
+    )
+    brief_parser.add_argument(
+        "--designed",
+        action="store_true",
+        help=_DESIGNED_HELP,
+    )
+    brief_parser.add_argument(
+        "--claim",
+        action="store_true",
+        help=(
+            "take the line as well as describing it: the marker moves to in-progress in the "
+            "same transaction, and a named id another worker holds is refused"
+        ),
+    )
+    brief_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    withheld(
+        brief_parser,
+        claim='it writes, and a read that writes is a read a caller stops making freely (L5) — so the writing door is a tool of its own with its own hint',
+    )
+    brief_parser.set_defaults(handler=_brief, reads_only=True, writes_when="claim")
+
+    budget_parser = subcommands.add_parser(
+        "budget",
+        help="how many characters a line has left for prose, before one is written",
+        description=(
+            "Report what a line leaves its prose fields. Every number is derived from "
+            "the id, the marker, the deps and the pointer — all of which are known before "
+            "the first word exists — so the budget is a fact about the line you are about "
+            "to write rather than a verdict on one you already wrote. With an id that the "
+            "roadmap holds, it is that line's own, which is what an amend has."
+        ),
+    )
+    budget_parser.add_argument(
+        "id",
+        nargs="?",
+        help="an existing line, e.g. RK12 — omitted, the line `add` would write next",
+    )
+    budget_parser.add_argument(
+        "--block", default="", help="the block the line would be filed under, e.g. B"
+    )
+    budget_parser.add_argument(
+        "--dep",
+        action="append",
+        default=[],
+        dest="deps",
+        metavar="DEP",
+        help="a dep the line would carry, repeatable: the group is what moves the budget",
+    )
+    _marker_flag(
+        budget_parser, "the marker the line would carry (default: the first declared)"
+    )
+    budget_parser.add_argument(
+        "--symptom",
+        default="",
+        help="the symptom, where it is written: what it takes is what the why loses",
+    )
+    budget_parser.add_argument(
+        "--prefix",
+        dest="family",
+        help="count the derived id in this track (default: the first declared)",
+    )
+    budget_parser.add_argument(
+        "--ref",
+        help=(
+            "the anchor the line would point at, for ref_scheme = 'outline' only: the "
+            "pointer is structure, so unnamed the budget assumes the widest on file"
+        ),
+    )
+    # The other two prose limits, at the same door and never as a `--dry-run` (RK283): both
+    # are facts about the file and the role, so both are answerable with no prose in hand.
+    budget_parser.add_argument(
+        "--anchor",
+        metavar="ANCHOR",
+        help="a section, e.g. RK12: what its body may say in words, and what it has spent",
+    )
+    budget_parser.add_argument(
+        "--role",
+        choices=PROSE_ROLES,
+        help="which prose file --anchor is measured against (default: the one holding it)",
+    )
+    budget_parser.add_argument(
+        "--non-goal",
+        dest="non_goal",
+        action="store_true",
+        help="the two limits `non-goal add` enforces, which are the list's own",
+    )
+    # The fifth subject, and the one context nothing counted (RK464). Every other budget here
+    # is about prose a *write* is measured against; this one is about what the surface itself
+    # costs a session, which is the same argument RK30 makes about a resident file and had
+    # never been made about the schema this server publishes.
+    budget_parser.add_argument(
+        "--tools",
+        action="store_true",
+        help=(
+            "what this project's tool list costs a session that connects the server: the "
+            "count, the characters, and which tools they are — the read RK30 makes about "
+            "an every-turn file, about the surface"
+        ),
+    )
+    budget_parser.add_argument(
+        "--lead",
+        help="a non-goal that exists, with --non-goal: what its argument has left",
+    )
+    # The fourth subject, and the one limit this format holds that had no pre-write read
+    # (RK345): every other budget is derived from a line, and this one from the file on disk.
+    budget_parser.add_argument(
+        "--file",
+        nargs="?",
+        const="",
+        metavar="PATH",
+        help=(
+            "an every-turn file `[budgets]` declares, e.g. agents.md: what it costs in "
+            "lines and bytes and what is left — bare, every declared budget"
+        ),
+    )
+    # The sixth, and the one neither of the two above could be asked about (RK1095): what a
+    # session pays is the tool list once and every resident file on each turn, and deciding
+    # between cutting a description and cutting a paragraph meant two commands and a
+    # subtraction. Two figures against their cadences rather than one that hides a multiplier.
+    budget_parser.add_argument(
+        "--session",
+        action="store_true",
+        help=(
+            "what one session pays: the served schema once at the handshake and every "
+            "`[budgets]` file on each turn, named against the cadence each is paid at"
+        ),
+    )
+    budget_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    withheld(
+        budget_parser,
+        family="`add`'s reason read back: the answer is about the id this project would issue next, and a prefix typed here asks about one it would not",
+    )
+    budget_parser.set_defaults(handler=_budget, reads_only=True)
+    # Four subjects and one verb (RK283/RK345), declared rather than checked by hand (RK489).
+    # Named rather than inferred from the positional: under the id scheme `RK12` is both a
+    # line and an anchor, and a command that guessed which one was meant would be a budget
+    # the caller has to check before trusting.
+    answers(
+        budget_parser,
+        ("anchor", "one section's prose"),
+        ("non_goal", "the roadmap's other bullet"),
+        ("file", "an every-turn file"),
+        ("tools", "what this tool surface costs a session"),
+        ("session", "both halves of what a session pays, against their cadences"),
+    )
+    narrows(budget_parser, "role", "anchor")
+    narrows(budget_parser, "lead", "non_goal")
+
+    show_parser = subcommands.add_parser(
+        "show",
+        help="one task: its line, its rationale section and the paths it names",
+        description=(
+            "Join what a task is out of the files that hold a piece of it. Nothing is "
+            "stored to make this possible: the section is found by the pointer, and a "
+            "pointer that resolves to nothing is reported as the absence it is."
+        ),
+    )
+    show_parser.add_argument("id", help="the task, e.g. RK12")
+    show_parser.add_argument(
+        "--no-body",
+        dest="no_body",
+        action="store_true",
+        help="omit the section's prose, keeping the line and where the prose is",
+    )
+    show_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    show_parser.set_defaults(handler=_show, reads_only=True)
+
+    pick_parser = subcommands.add_parser(
+        "pick",
+        help="the next task to work on, and the reason it was chosen",
+        description=(
+            "Apply three tiers — work already in progress, the declared priority, then "
+            "the lowest ready id — and print which one answered. A task blocked outside "
+            "the backlog is never offered: shipping cannot unblock it."
+        ),
+    )
+    pick_parser.add_argument(
+        "--block",
+        help=(
+            "scope every part of the answer to one block, so 'nothing to pick' is a "
+            "statement about that block and not about a lower id somewhere else"
+        ),
+    )
+    pick_parser.add_argument(
+        "--designed",
+        action="store_true",
+        help=_DESIGNED_HELP,
+    )
+    pick_parser.add_argument(
+        "--claim",
+        action="store_true",
+        help=(
+            "take the line as well as read it: the marker moves to in-progress in the same "
+            "transaction, so the next caller is answered with something else"
+        ),
+    )
+    pick_parser.add_argument(
+        "--json", action="store_true", help="the pick, the tier and the counts"
+    )
+    # The query it is without `--claim`, and the write it is with one (RK167). `take` still
+    # holds a lock of its own over the answer *and* the marker, that pair being what has to be
+    # indivisible for every caller — re-entrant, so declaring it here costs nothing twice.
+    withheld(
+        pick_parser,
+        claim="`brief`'s reason, and its answer too: the writing door is already served as the `claim` tool, so a second flag here would be a second spelling of it",
+    )
+    pick_parser.set_defaults(handler=_pick, reads_only=True, writes_when="claim")
+
+    export_parser = subcommands.add_parser(
+        "export",
+        help="project the backlog onto a README block, a page, or a JSON payload",
+        description=(
+            "Derive what another file would restate: counts per block and the next ready "
+            "line. Idempotent and stamped with nothing, so a refresh with nothing to say "
+            "makes no diff — and every character of content already passed `add`."
+        ),
+    )
+    export_parser.add_argument(
+        "--readme",
+        nargs="?",
+        const=DEFAULTS["readme"].name,
+        metavar="PATH",
+        help=(
+            f"write the block between the roadkeep markers in this file "
+            f"(default {DEFAULTS['readme'].name})"
+        ),
+    )
+    export_parser.add_argument(
+        "--site",
+        nargs="?",
+        const=DEFAULTS["site"].name,
+        metavar="PATH",
+        help=(
+            f"the same projection as HTML, between the same two markers "
+            f"(default {DEFAULTS['site'].name})"
+        ),
+    )
+    export_parser.add_argument(
+        "--contents",
+        action="store_true",
+        help=(
+            "refresh the table of contents inside this project's rationale file, between the "
+            "same two markers: every row is a heading that file already carries, so a `ship` "
+            "that drops a section leaves the list wrong until this runs. Takes no path — the "
+            "target is `[files]`' own"
+        ),
+    )
+    export_parser.add_argument(
+        "--json", action="store_true", help="the payload a site build reads"
+    )
+    export_parser.set_defaults(handler=_export)
+    # `--json` is a subject and a destination is a write, so asking for both asks two
+    # questions (RK466). `--readme` and `--site` are not that shape — they are two
+    # destinations of one projection and compose, which RK39 asked for, so they are one
+    # group: the whole reason :class:`Answer` holds a group rather than a flag.
+    answers(
+        export_parser,
+        ("json", "the projection printed"),
+        (("readme", "site"), "the projection written into a file"),
+    )
+
+    gaps_parser = subcommands.add_parser(
+        "gaps",
+        help="ids in neither file, resolved against the commit that removed them",
+        description=(
+            "Every id below the highest that no line carries. Each resolves to the commit "
+            "whose message holds the decision, to 'never carried' when a complete history "
+            "mentions it nowhere, or to 'unresolvable' when there is no history to search "
+            "— three different answers from 'retired', none of them a weaker one."
+        ),
+    )
+    gaps_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    gaps_parser.set_defaults(handler=_gaps, reads_only=True)
+
+    anchors_parser = subcommands.add_parser(
+        "anchors",
+        help="which outline addresses this project has ever declared, live or retired",
+        description=(
+            "Read the anchors out of every declared prose file and out of its diffs: live "
+            "ones a heading declares now, and retired ones a ship deleted while every entry "
+            "citing them stayed. An address is spent once a heading used it (RK4's rule for "
+            "ids), so this is the read that says which number a reopened family may take — "
+            "and which top-level is free, which is what a reused block needs."
+        ),
+    )
+    anchors_parser.add_argument(
+        "--family",
+        default="",
+        metavar="ANCHOR",
+        help="only this subtree, e.g. XXXVII — omitted, one row per top-level family",
+    )
+    anchors_parser.add_argument(
+        "--block",
+        default="",
+        metavar="LABEL",
+        help=(
+            "the subtree this block's prose already lives under, e.g. Q — the address a "
+            "caller knows, since a prose file under an outline declares no block heading; "
+            "refused with --family, and names both where a block spans two families"
+        ),
+    )
+    anchors_parser.add_argument(
+        "--role",
+        default="",
+        help=(
+            "list only this prose file's addresses (default: every declared one) — the "
+            "free top-level is per namespace, so it stays the project's where no [refs] "
+            "declares one and is that file's own where one does"
+        ),
+    )
+    anchors_parser.add_argument(
+        "--next",
+        dest="only_next",
+        action="store_true",
+        help=(
+            "the free address alone, without the listing of spent ones — the `next-id` of "
+            "anchors, and the read an `add --ref` makes every time"
+        ),
+    )
+    anchors_parser.add_argument(
+        "--claims",
+        action="store_true",
+        help=(
+            "only the addresses whose ownership is not the ordinary one: a heading binding "
+            "nobody, and one binding a task no open line claims — the audit, over every "
+            "family at once, since the rows it leaves out are the ones nobody reads"
+        ),
+    )
+    anchors_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    anchors_parser.set_defaults(handler=_anchors, reads_only=True)
+    # Two subjects, as `budget`'s four are (RK466): `--next` returned before the `--claims`
+    # branch was reached, so a caller asking for the audit and the free address read the
+    # address alone with nothing said about the other.
+    answers(
+        anchors_parser, ("only_next", "the free address"), ("claims", "the ownership audit")
+    )
+
+    deps_parser = subcommands.add_parser(
+        "deps",
+        help="resolve one task's deps, naming the ones nothing can resolve",
+        description=(
+            "Resolve each dep against the roadmap and the changelog. A dep nothing now "
+            "open will satisfy is reported as unresolvable rather than open — work "
+            "outside the backlog, a task that retired, and a block label with nothing "
+            "filed under it."
+        ),
+    )
+    deps_parser.add_argument("id", help="the task to resolve, e.g. RK5")
+    deps_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    deps_parser.set_defaults(handler=_deps, reads_only=True)
+
+    origin_parser = subcommands.add_parser(
+        "origin",
+        help="the commits that proposed and shipped a task, with the reasoning",
+        description=(
+            "Resolve a task's history from git. The pointer is derived, never stored: "
+            "a hash written into the ledger would be rewritten by the first squash or "
+            "amend, and a dead hash reads exactly like a live one. A leading § asks the "
+            "same question of a rationale anchor instead — the dangling cross-reference a "
+            "ship leaves in somebody else's prose, which no file records the answer to."
+        ),
+    )
+    origin_parser.add_argument(
+        "id", help="the task to look up, e.g. RK1 — or §<anchor>, as the prose spells it"
+    )
+    origin_parser.add_argument(
+        "--why",
+        action="store_true",
+        help="print the shipping commit's full message — the rationale the ledger drops",
+    )
+    origin_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    origin_parser.set_defaults(handler=_origin, reads_only=True)
+
+    weight_parser = subcommands.add_parser(
+        "weight",
+        help="what comparable tasks cost, derived from the commits that shipped them",
+        description=(
+            "What a comparable task cost, so granularity is a query instead of a feel: a "
+            "block whose last comparables shipped at 800+ lines is a block where the next "
+            "line is probably two lines. Derived from the commit that wrote each ledger "
+            "entry, so nothing stores it and `git show` refutes it. Two axes and no score — "
+            "median to p90 lines vary 2.7× here and files, which is what an agent holds in "
+            "context, 1.4×. An entry whose commit wrote several is named and left out "
+            "rather than given a share of it, a divided cost being one no commit contains. "
+            "This ranks nothing: every tier of `pick` is a fact, and a cheapness tier would "
+            "defer the architectural tasks, which is where the leverage is."
+        ),
+    )
+    weight_parser.add_argument("--block", help="only this block's comparables, e.g. C")
+    weight_parser.add_argument(
+        "--records",
+        action="store_true",
+        help=(
+            "every weighed entry, which the percentiles summarise: the evidence for the "
+            "figure, wanted when you dispute it and not when you are sizing a line (RK264)"
+        ),
+    )
+    weight_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    weight_parser.set_defaults(handler=_weight, reads_only=True)
+
+    remaining_parser = subcommands.add_parser(
+        "remaining",
+        help="how many sites a task's own declared query still matches",
+        description=(
+            "The mirror of `weight`, and derived the same way (RK492): that one says what a "
+            "comparable task cost, from the commits that shipped it, and this says what one "
+            "has left, from the repository as it is now. A migration declares the query in "
+            "its rationale section — a fenced `roadkeep-remaining` block, one `<pathspec> :: "
+            "<regex>` per line — and this runs it. Nothing is stored, so nothing goes stale: "
+            "the first commit that closes a site changes the answer, which a number written "
+            "onto a line could not. It is a count and never a verdict — the pattern is the "
+            "author's, so a query answering 0 says the pattern stopped matching, and whether "
+            "that is the work being done is a judgement this tool does not make."
+        ),
+    )
+    remaining_parser.add_argument("id", help="the task whose design declares the query, e.g. RK12")
+    remaining_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    remaining_parser.set_defaults(handler=_remaining, reads_only=True)
 

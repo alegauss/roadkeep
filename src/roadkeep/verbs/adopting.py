@@ -44,6 +44,8 @@ from roadkeep.installing import (
 )
 from roadkeep.rendering import _estimate_json, _print_estimate
 from roadkeep.serving import serve
+from roadkeep.capturing import PARTS
+from roadkeep.verbs.declaring import _JSON_HELP
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, _refused
 
 
@@ -352,3 +354,340 @@ def _mcp(config: Config, args: argparse.Namespace) -> int:
     `roadkeep.toml` edited during the session is the one the next `tools/list` describes.
     """
     return serve(sys.stdin, sys.stdout, args.directory)
+
+
+def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
+    """This module's verbs, declared where their handlers are (RK1171).
+
+    `build_parser` called forty-nine blocks like these in a row; what it calls now is an index
+    over the modules that own them. The move is what RK1169 and RK1170 bought: the flags a verb
+    declares, the reasons it withholds and the record it answers with are one file's, so a
+    change to any of them is one file's too.
+
+    The order inside is `build_parser`'s own, which is where these blocks sat.
+    """
+    report_parser = subcommands.add_parser(
+        "report",
+        help="capture a defect in this tool, with what the failing session knew",
+        description=(
+            "Re-run the command that failed, in this process, and emit what identifies the "
+            "defect: the argv, the exit code, the engine that answered, this project's "
+            "roadkeep.toml, the line the engine objected to and any traceback. The two "
+            "facts a machine cannot supply are arguments and are refused here against this "
+            "tool's own schema, so a report arrives inside the limits the backlog it is "
+            "destined for enforces. Nothing is sent: the capture is printed, and delivery "
+            "is a separate decision."
+        ),
+    )
+    report_parser.add_argument(
+        "--symptom", required=True, help="what does not work — a phrase, never a fix"
+    )
+    report_parser.add_argument(
+        "--why", required=True, help="one sentence, ending in a stop: why it matters"
+    )
+    report_parser.add_argument(
+        "--block",
+        default="F",
+        help="the block of roadkeep's own backlog this belongs under (default: F)",
+    )
+    report_parser.add_argument(
+        "--without",
+        dest="without",
+        action="append",
+        default=[],
+        metavar="PART",
+        choices=PARTS,
+        help=(
+            "drop one part of the capture, repeatable: what a private repository must not "
+            "publish is deleted by name, never scrubbed by a filter"
+        ),
+    )
+    report_parser.add_argument(
+        "--issue",
+        action="store_true",
+        help=(
+            "print the tracker body on stdout and the command that files it on stderr; "
+            "nothing is sent, and the destination is [report] upstream"
+        ),
+    )
+    report_parser.add_argument(
+        "--to",
+        metavar="OWNER/REPO",
+        help="file against this repository instead of the configured upstream",
+    )
+    report_parser.add_argument(
+        "--embed",
+        action="store_true",
+        help=(
+            "carry the governed files this project declares, so the capture can be replayed "
+            "without this repository — a test somewhere else, and files leaving here"
+        ),
+    )
+    report_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    report_parser.add_argument(
+        "command_argv",
+        nargs=argparse.REMAINDER,
+        metavar="-- COMMAND",
+        help="the roadkeep command that failed, after a bare --, without the program name",
+    )
+    report_parser.set_defaults(handler=_report, tolerates_config_error=True, reads_only=True)
+
+    replay_parser = subcommands.add_parser(
+        "replay",
+        help="re-run a stored capture against the tree that is here now",
+        description=(
+            "Stage the capture's own configuration and file in a scratch directory, run "
+            "the argv it recorded, and answer whether the defect still reproduces. Nothing "
+            "from the reporting project is needed: a capture that was never made replayable "
+            "says which part it lacks instead of being staged from a guess. Exits 1 when "
+            "the answer differs from the `reproduces` the file records — which is what "
+            "makes a corpus of field reports a gate rather than a folder."
+        ),
+    )
+    replay_parser.add_argument("path", help="a capture written by `report --json`")
+    replay_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    replay_parser.set_defaults(handler=_replay, tolerates_config_error=True, reads_only=True)
+
+    capture_parser = subcommands.add_parser(
+        "capture",
+        help="what became of a capture already on disk",
+        description=(
+            "The third of the capture pair's family (RK1142). `report` writes one and "
+            "`replay` re-runs it; this says what happened to one that is already there. A "
+            "group with one action because it is where the retention `keep` leaves "
+            "deliberately unsolved goes next — rotation, an age limit, a dedup by argv."
+        ),
+    )
+    capture_actions = capture_parser.add_subparsers(dest="action", required=True)
+    capture_filed = capture_actions.add_parser(
+        "filed",
+        help="record which task a kept capture was filed as",
+        description=(
+            "Write into the capture the id it was filed as, so the row `stats` counts is "
+            "cleared by a fact in the artefact rather than by a symptom that matches "
+            "(RK1141). `add --capture` does this for a capture being filed now; this is the "
+            "door for one already on disk, and it is the whole of what RK1142 was: clearing "
+            "this repository's own row took a `python -c`, which is what L5 exists against. "
+            "Refused where no governed file holds the id — a stamp naming nothing is a link "
+            "to nothing — and where the path is not a capture this tool wrote. An id "
+            "**qualified by a repository** is the exception (RK1160): a defect in roadkeep is "
+            "filed in roadkeep's backlog, so no local file will ever hold that id, and both "
+            "readers left a row nothing could clear."
+        ),
+    )
+    capture_filed.add_argument("path", help="a capture under .roadkeep/reports/")
+    capture_filed.add_argument(
+        "--as",
+        dest="task_id",
+        required=True,
+        metavar="ID",
+        help=(
+            "the task it was filed as, e.g. RK1138 — refused unless a governed file holds it, "
+            "or `owner/repo#ID` for one filed in another backlog this project cannot read"
+        ),
+    )
+    capture_filed.add_argument("--json", action="store_true", help=_JSON_HELP)
+    capture_filed.set_defaults(handler=_capture_filed)
+
+    init_parser = subcommands.add_parser(
+        "init",
+        help="scaffold roadkeep.toml and the files it declares",
+        description=(
+            "Write the configuration and the three governed files, or write nothing. The "
+            "config is rendered from the schema's own defaults, so a scaffold cannot "
+            "declare a format the tool does not implement. No starter task and no prose: "
+            "a title, the blocks you name, and where the non-goals go."
+        ),
+    )
+    init_parser.add_argument(
+        "--prefix",
+        action="append",
+        help=(
+            "the id prefix, uppercase alphanumeric (default: RK). Repeatable for a "
+            "backlog numbered by track; the first is what `add` mints under"
+        ),
+    )
+    init_parser.add_argument(
+        "--block",
+        action="append",
+        dest="blocks",
+        metavar="LABEL",
+        help=(
+            "a block heading, repeatable: 'A' or 'A — The model'. A task is filed "
+            "under a heading and a write never invents one (default: A)"
+        ),
+    )
+    init_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    init_parser.set_defaults(handler=_init)
+
+    adopt_parser = subcommands.add_parser(
+        "adopt",
+        help="what an existing backlog would have to change to pass",
+        description=(
+            "Run the schema over a backlog this tool does not own yet and report the "
+            "delta: what parses, what conforms, the longest field against its limit, the "
+            "markers to declare. Writes nothing and never fails — an estimate that "
+            "exits 1 is a gate, and the point is to take it before the commitment."
+        ),
+    )
+    adopt_parser.add_argument("path", help="the file to measure, e.g. docs/ROADMAP.md")
+    adopt_parser.add_argument(
+        "--prefix",
+        action="append",
+        help=(
+            "read the ids under this prefix, repeatable for a backlog numbered by "
+            "track; without it the project's own is used, or the one the file's ids "
+            "already spell — never all of them, which is a judgement and not a count"
+        ),
+    )
+    adopt_parser.add_argument(
+        "--ref-scheme",
+        dest="ref_scheme",
+        choices=("id", "outline"),
+        help=(
+            "measure the pointers under this scheme: 'outline' asks what adopting the "
+            "tool costs, 'id' what adopting it and renumbering the outline costs"
+        ),
+    )
+    adopt_parser.add_argument(
+        "--ledger",
+        action="store_true",
+        help="measure it as a changelog: shipped marker, no deps field, no pointer",
+    )
+    adopt_parser.add_argument(
+        "--sections",
+        action="store_true",
+        help=(
+            "measure it as a rationale file: sections against `section`, and the width "
+            "its prose is already wrapped to — the two limits an adopter has to declare"
+        ),
+    )
+    adopt_parser.add_argument(
+        "--with",
+        dest="alongside",
+        metavar="PATH",
+        action="append",
+        default=[],
+        help=(
+            "another prose file an address could be doubled across, repeatable — the one "
+            "measure here that is about a set of files rather than this one; requires "
+            "--sections, and never inferred from the directory"
+        ),
+    )
+    adopt_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    # Read-only, which RK18 has been true of since this verb existed and nothing declared:
+    # `adopt` measures a file and exits 0, writing nothing anywhere. Undeclared it took the
+    # write lock for a run that cannot conflict with one, and — since RK1147 published a door
+    # that reruns it — said `writes: true` in a payload about a command that writes nothing.
+    adopt_parser.set_defaults(handler=_adopt, reads_only=True)
+
+    install_parser = subcommands.add_parser(
+        "install",
+        help="wire this project to the checkout answering, the way the plugin would",
+        description=(
+            "Write the surfaces the plugin ships, for a project that runs roadkeep from a "
+            "checkout instead: the server, the guard on its three hook events, and the "
+            "skill that says which command to call — plus the CI workflow when the "
+            "repository already has one. Every byte is translated from what the plugin "
+            "carries, the launcher's path being the only substituted fact, so the skill "
+            "cannot drift from the file it was copied from. The skill is refreshed on "
+            "every run; the declarations keep everything they hold that is not this "
+            "project's entry; the workflow is written once and then yours."
+        ),
+    )
+    install_parser.add_argument(
+        "--check",
+        action="store_true",
+        help=(
+            "write nothing and exit 1 on anything that would change: the gate that keeps "
+            "the copied skill in step, for a CI job or a pre-commit hook"
+        ),
+    )
+    install_parser.add_argument(
+        "--source",
+        metavar="PATH",
+        help=(
+            "the roadkeep checkout to wire in (default: the one this command is running "
+            "from, which is the one whose hook and tools the project would get)"
+        ),
+    )
+    install_parser.add_argument(
+        "--register-merge",
+        action="store_true",
+        help=(
+            "wire the merge driver too — the `.gitattributes` half of `merge --register`, "
+            "with the `git config` line printed for you to run: a flag and not a default, "
+            "because it is configuration and the other half is outside these files"
+        ),
+    )
+    install_parser.add_argument(
+        "--committed",
+        action="store_true",
+        help=(
+            "wire a launcher committed to this repository instead of a path to the checkout, "
+            "so the guard reaches an environment that installs no plugin and clones no "
+            "checkout — Claude Code on the web. It defers where the harness has the plugin "
+            "wired for this project, and never blocks a turn"
+        ),
+    )
+    install_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    install_parser.set_defaults(handler=_install)
+
+    engines_parser = subcommands.add_parser(
+        "engines",
+        help="which copies of roadkeep write, judge and gate this project",
+        description=(
+            "An adopting project wires three: the plugin its hook and skill run, the action "
+            "its workflow gates on, and whatever `roadkeep` the caller invokes. They are "
+            "allowed to differ — a cache may lag a checkout — and what is not survivable is "
+            "not being able to say which one answered. Exits 1 where the two that state a "
+            "version state different ones, so a session can ask this and act on it."
+        ),
+    )
+    engines_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    # A read, and the exit code is its verdict rather than a fault (RK271): the three lines
+    # above it have already said everything, and `/plugin update` is the move.
+    engines_parser.set_defaults(handler=_engines, reads_only=True)
+
+    uninstall_parser = subcommands.add_parser(
+        "uninstall",
+        help="take this project's entries back out of the four surfaces install wrote",
+        description=(
+            "Un-wire a project that ran roadkeep from a checkout — moving to the plugin, or "
+            "off the tool entirely (RK138). The inverse of `install` under the same two "
+            "rules: the declarations keep every entry that is not this project's, and a "
+            "file that is not a JSON object is refused rather than rewritten. A file left "
+            "holding nothing but what `install` wrote is deleted, because that is the state "
+            "it was created from. It reads no checkout — the wiring is recognised by the "
+            "server's name and the launcher a hook runs — so a project can be un-wired "
+            "after the tree it pointed at is gone. The CI workflow stays: that gate calls "
+            "the published action and not the checkout."
+        ),
+    )
+    uninstall_parser.add_argument(
+        "--check",
+        action="store_true",
+        help=(
+            "take nothing out and exit 1 while anything is still wired: the same tense "
+            "`install --check` reports in, on the other direction"
+        ),
+    )
+    uninstall_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    uninstall_parser.set_defaults(handler=_uninstall)
+
+    mcp_parser = subcommands.add_parser(
+        "mcp",
+        help="serve add, ship, pick and lint as MCP tools over stdio",
+        description=(
+            "Speak JSON-RPC on stdin and stdout so the fields arrive as a schema the "
+            "client validates instead of flag names an agent types from memory (RK24). "
+            "Every tool is dispatched through this same parser, so the refusal is the one "
+            "a terminal prints. Not for a human to call: a session's client starts it."
+        ),
+    )
+    # Same reason as `guard`: the process is started once for a whole session, so refusing
+    # to start on a broken `roadkeep.toml` would take the tools away exactly when the gate
+    # is what the project needs. `tools/list` describes the defaults and the first call
+    # reports the error.
+    mcp_parser.set_defaults(handler=_mcp, tolerates_config_error=True, reads_only=True)
+

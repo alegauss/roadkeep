@@ -143,10 +143,21 @@ def test_the_listing_that_sends_a_caller_to_a_family_spells_the_command():
         module for module in modules() if module.where == "verbs/querying.py"
     )
     tree = ast.parse(where.text)
+    # A **declaration** is not a message (RK1171). Since the parser moved in beside the
+    # handler, this module spells `--family` twice more: as the flag itself, and inside
+    # `--block`'s own help. Neither hands a caller a route — argparse prints them under a
+    # `--help` that already names the verb, which is exactly what a message has to supply.
+    declared = {
+        id(inner)
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and getattr(node.func, "attr", "") in ("add_argument", "add_parser")
+        for inner in ast.walk(node)
+    }
     said = [
         text
         for node in ast.walk(tree)
-        if (text := _spelled(node)) and "--family" in text
+        if id(node) not in declared and (text := _spelled(node)) and "--family" in text
     ]
     assert said, "verbs/querying.py stopped naming --family at all"
     for text in said:
