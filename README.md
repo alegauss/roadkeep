@@ -123,12 +123,12 @@ called unbuilt were already in the ledger.
 | E — Adoption | 3 | 86 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 108 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 1 | 6 | 0 |
-| **Total** | 14 | 676 | 9 |
+| H — The tool's own shape (what one verb costs to change) | 0 | 7 | 0 |
+| **Total** | 13 | 677 | 9 |
 
 **Next ready:**
 
-- 🛠 **RK1171** (deps: RK1169 ✅, RK1170 ✅) **build_parser is one 2,000-line function, so a verb's flags are edited in the file the whole surface is in** — cli.py was split by layer for size and grew back to 2,260 code lines, so the cut that holds is per verb, which the two deps make a move and not a rewrite. → §RK1171
+- ⏳ **RK1172** (deps: —) **The gate's checks are functions gathered by convention, each with its own signature, so adding one is invisible** — linting.py is 1,618 code lines of hand-wired calls whose scan kind is implicit in the parameters, where the remedy side has been a table keyed by code since RK420. → §RK1172
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

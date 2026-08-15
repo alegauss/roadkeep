@@ -404,26 +404,3 @@ already said which engine it means.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1171 The module boundary is orthogonal to the change axis
-
-Measured over this package: the command surface — `src/roadkeep/cli.py`,
-`src/roadkeep/verbs/`, `src/roadkeep/rendering.py`, `src/roadkeep/serving.py` — is 7,781
-of 24,405 code lines, or 32%. The kernel that the whole tool is about is 1,532, or 6%.
-The essence is a sixteenth of what the surface costs.
-
-The cause is not that any file is badly written. It is that the decomposition is by
-**layer** — every parser together, every printer together, every served declaration
-together — while the unit of change is the **verb**. So one verb's facts sit in five or
-six files, and the last forty commits touch a median of nine to twelve files each.
-`anchors` appears in sixteen modules; `remaining` in thirteen.
-
-The fix is the law this project already applies to the line format, aimed one layer out:
-the verb is one declaration, and `cli`, `serving` and `rendering` interpret it instead
-of holding three parallel registries of it. `build_parser` becomes an index over those
-declarations rather than a two-thousand-line function that every task appends to.
-
-Its two deps are what make this mechanical rather than a rewrite. What must not be
-reached for: entry points or dynamic discovery, which cost startup, need a dependency,
-and take away the totality the gate is checked by; and a generator, which would move the
-authority out of Python and out of reach of a type checker.

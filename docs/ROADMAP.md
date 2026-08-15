@@ -55,8 +55,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 🛠 **RK1171** (deps: RK1169 ✅, RK1170 ✅) **build_parser is one 2,000-line function, so a verb's flags are edited in the file the whole surface is in** — cli.py was split by layer for size and grew back to 2,260 code lines, so the cut that holds is per verb, which the two deps make a move and not a rewrite. → §RK1171
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
