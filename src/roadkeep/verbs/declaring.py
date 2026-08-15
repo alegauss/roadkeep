@@ -20,6 +20,32 @@ from typing import NoReturn
 
 from roadkeep.verbs.refusing import EXIT_USAGE
 
+#: Appended to every prose argument that reads the pipe (RK329), so the convention is one
+#: sentence in nine help strings rather than nine sentences that drift.
+_PIPE = "; '-' reads stdin, which is how an apostrophe or a backtick survives a shell"
+#: Appended to every prose argument that also answers to a path (RK381), so the convention is
+#: one sentence in three help strings rather than three that drift. What it buys over the pipe
+#: is the **retry**: a refusal on a short field re-reads the file and costs that field alone.
+_BODY_FILE = (
+    "read the {what} from this file instead — a pipe does not rewind, so a refusal on a "
+    "short field costs the paragraph again; a path costs the corrected field alone"
+)
+#: One sentence, on both `pick` and `brief`, because it is one flag (RK83): a caller asking
+#: to execute a block wants work whose design is written, and the markers already say which.
+_DESIGNED_HELP = (
+    "offer only work whose design is written, setting aside the markers "
+    "`[markers] undesigned` names (only without an id)"
+)
+#: Top-level options that take a value, so the token after one is not the verb. Two, because
+#: `--version` is an action and every other flag belongs to a subcommand that was never reached.
+_VALUED = ("-C", "--directory")
+#: How close a rejected flag has to be before it is named as a typo of a real one. High,
+#: because the failure this replaced was advice nobody could act on: at `difflib`'s own 0.6
+#: default, `--note` is offered `--lines`, which is a worse answer than the list — a caller
+#: who wanted `--why` is now weighing a flag that has nothing to do with what they meant.
+#: `--seciton` for `--section` is the case worth catching, and it scores far above this.
+_A_TYPO = 0.8
+
 #: What every `--json` flag this CLI declares says it is for.
 _JSON_HELP = "machine-readable form"
 

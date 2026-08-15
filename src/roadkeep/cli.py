@@ -62,16 +62,7 @@ from roadkeep.verbs.adopting import (
     _report,
     _uninstall,
 )
-from roadkeep.verbs.authoring import (
-    _add,
-    _amend,
-    _defer,
-    _next_id,
-    _renumber,
-    _restate,
-    _resume,
-    _status,
-)
+from roadkeep.verbs.authoring import declare_lines
 from roadkeep.verbs.linting import declare_gate
 from roadkeep.verbs.querying import (
     _anchors,
@@ -94,7 +85,12 @@ from roadkeep.verbs.querying import (
 )
 from roadkeep.verbs.declaring import (
     Answer,
+    _A_TYPO,
+    _BODY_FILE,
+    _DESIGNED_HELP,
     _JSON_HELP,
+    _PIPE,
+    _VALUED,
     _counting_flags,
     _marker_flag,
     _reason_flag,
@@ -138,22 +134,6 @@ from roadkeep.verbs.shipping import (
 )
 
 
-#: Appended to every prose argument that reads the pipe (RK329), so the convention is one
-#: sentence in nine help strings rather than nine sentences that drift.
-_PIPE = "; '-' reads stdin, which is how an apostrophe or a backtick survives a shell"
-#: Appended to every prose argument that also answers to a path (RK381), so the convention is
-#: one sentence in three help strings rather than three that drift. What it buys over the pipe
-#: is the **retry**: a refusal on a short field re-reads the file and costs that field alone.
-_BODY_FILE = (
-    "read the {what} from this file instead — a pipe does not rewind, so a refusal on a "
-    "short field costs the paragraph again; a path costs the corrected field alone"
-)
-#: One sentence, on both `pick` and `brief`, because it is one flag (RK83): a caller asking
-#: to execute a block wants work whose design is written, and the markers already say which.
-_DESIGNED_HELP = (
-    "offer only work whose design is written, setting aside the markers "
-    "`[markers] undesigned` names (only without an id)"
-)
 
 
 class _Version(argparse.Action):
@@ -200,136 +180,8 @@ def build_parser() -> argparse.ArgumentParser:
         dest="command", required=True, parser_class=_Verb
     )
 
-    next_id_parser = subcommands.add_parser(
-        "next-id",
-        help="the next unused task id, one past the highest anywhere",
-        description=(
-            "Print the next id. Never the first unused number: a retired id is never "
-            "reused, so filling its hole would make two tasks share it in the history."
-        ),
-    )
-    next_id_parser.add_argument(
-        "--prefix",
-        dest="family",
-        help=(
-            "count in this track (default: the first declared) — two tracks sharing a "
-            "counter are two tracks that renumber each other"
-        ),
-    )
-    next_id_parser.add_argument(
-        "--json",
-        action="store_true",
-        help="include where the highest id was found, so the answer can be audited",
-    )
-    # `reads_only` is what keeps a command out of the write lock (RK117), declared here
-    # beside `tolerates_config_error` because both are claims about the command rather than
-    # about its arguments. Absent means locked, so a new command is serialised until someone
-    # says it only reads — and `next-id` only reads: the race is not in the scan, it is in
-    # the span between this answer and the `add` that spends it.
-    next_id_parser.set_defaults(handler=_next_id, reads_only=True)
-
-    add_parser = subcommands.add_parser(
-        "add",
-        help="insert a task line under its block, refusing the fields at input",
-        description=(
-            "Compose, validate and insert one task line. Nothing is written unless "
-            "every field passes: a limit reported after the prose exists is a limit "
-            "discovered too late to save the tokens it was meant to save. With "
-            "--section the rationale the line points at is written in the same "
-            "transaction; without it, the follow-up the pointer needs is named."
-        ),
-    )
-    add_parser.add_argument("--block", required=True, help="the block label, e.g. B")
-    add_parser.add_argument(
-        "--symptom", required=True, help="what does not work — a phrase, never a fix"
-    )
-    add_parser.add_argument(
-        "--why", required=True, help="one sentence, ending in a stop" + _PIPE
-    )
-    add_parser.add_argument(
-        "--dep",
-        action="append",
-        default=[],
-        dest="deps",
-        metavar="DEP",
-        help="a dep, repeatable: an id, 'Block X', a range, or work outside the backlog",
-    )
-    _marker_flag(
-        add_parser,
-        "the status marker (default: the first marker roadkeep.toml declares)",
-    )
-    add_parser.add_argument(
-        "--id",
-        dest="task_id",
-        help="the id (default: derived, one past the highest anywhere)",
-    )
-    add_parser.add_argument(
-        "--prefix",
-        dest="family",
-        help=(
-            "which track the derived id counts in (default: the first declared); only "
-            "a backlog that numbers by track has a second one to name"
-        ),
-    )
-    add_parser.add_argument(
-        "--ref",
-        help=(
-            "the rationale anchor, for ref_scheme = 'outline' only; otherwise derived — "
-            "<prefix>:<x.y> for a prose file [refs] gives a namespace"
-        ),
-    )
-    add_parser.add_argument(
-        "--section",
-        metavar="TITLE",
-        help=(
-            "write the rationale under this heading, in the same transaction: the "
-            "pointer every line carries resolves to nothing until a section exists"
-        ),
-    )
-    add_parser.add_argument(
-        "--section-body",
-        dest="section_body",
-        help="the rationale prose; omitted or '-' reads stdin. Read only with --section",
-    )
-    add_parser.add_argument(
-        "--section-body-file",
-        dest="section_body_file",
-        metavar="PATH",
-        help=_BODY_FILE.format(what="rationale"),
-    )
-    add_parser.add_argument(
-        "--capture",
-        metavar="PATH",
-        help=(
-            "the kept capture this line files, stamped with the id this call mints (RK1141) "
-            "— `report` prints this flag already filled in, so the row `stats` counts is "
-            "cleared by the act that closes it and never by a second step somebody remembers"
-        ),
-    )
-    add_parser.add_argument(
-        "--json", action="store_true", help="the line, with the file and line it landed on"
-    )
-    # `reads_stdin` is declared here for the reason `reads_only` is (RK171): it is a claim about
-    # this command that a surface serving it has to know, and the only statement of it used to be
-    # the comment two lines above the read. Gated, because an `add` naming no section must never
-    # block on a pipe — which is what that comment said and nothing enforced.
-    withheld(
-        add_parser,
-        family="the id's prefix is `[ids]`' and `next-id` derives it; a caller choosing one is a caller numbering into another project's range",
-        section_body_file="a path on the caller's disk, which this transport does not share — the body crosses as text or not at all",
-        capture='a path to a local artefact this transport does not share, and the verb that writes one is not a tool here',
-    )
-    add_parser.set_defaults(
-        handler=_add,
-        # Two, and this is the command that has two (RK329): the body was the obvious
-        # affordance because it is long, and the `why` is the one that actually needed it
-        # because it is the field that reliably carries what a shell reads first. Ungated,
-        # unlike the body: a `--why -` is the caller asking for the pipe outright.
-        reads_stdin=(
-            Prose(dest="section_body", gated_by="section", unless="section_body_file"),
-            Prose(dest="why", omitted=False),
-        ),
-    )
+    declare_lines(subcommands)
+    declare_gate(subcommands)
 
     section_parser = subcommands.add_parser(
         "section",
@@ -589,123 +441,6 @@ def build_parser() -> argparse.ArgumentParser:
     )
     block_merge.add_argument("--json", action="store_true", help=_JSON_HELP)
     block_merge.set_defaults(handler=_block_merge)
-
-    status_parser = subcommands.add_parser(
-        "status",
-        help="set a task's marker in the roadmap, and nowhere else",
-        description=(
-            "Write one task's status marker. Refused if a sibling file already carries "
-            "one for that id: two files that both express status will eventually "
-            "express different status, and nothing says which is right."
-        ),
-    )
-    status_parser.add_argument("id", help="the task, e.g. RK7")
-    status_parser.add_argument(
-        "marker", help="the new marker, from the open set this project declares"
-    )
-    status_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    status_parser.set_defaults(
-        handler=_status,
-        twin=(
-            "status writes a marker onto one line and needs both: `status <id> <marker>`."
-            " The backlog's numbers are `stats`, which needs neither — one character "
-            "apart, and this is the one that writes"
-        ),
-    )
-
-    amend_parser = subcommands.add_parser(
-        "amend",
-        help="correct one open line's why, deps or pointer",
-        description=(
-            "Correct the three fields a project that adopted the tool has to be able to fix: "
-            "a pointer it never had, a dep naming an id in neither file, and the compression "
-            "of a `why` that was a paragraph before the limit existed. Validated at input "
-            "exactly as `add` validates it, or nothing is written. The `symptom` is not "
-            "amendable — it is the claim the line is, so a different one is a different task."
-        ),
-    )
-    amend_parser.add_argument("id", help="the task, e.g. RK7")
-    amend_parser.add_argument(
-        "--why", help="the sentence, re-validated against the limit" + _PIPE
-    )
-    amend_parser.add_argument(
-        "--dep",
-        action="append",
-        dest="deps",
-        metavar="DEP",
-        help="a dep, repeatable: given at all, it replaces the whole group",
-    )
-    amend_parser.add_argument(
-        "--ref", help="the rationale anchor, for ref_scheme = 'outline'"
-    )
-    amend_parser.add_argument(
-        "--lines",
-        type=int,
-        help=(
-            "how many lines this correction replaces; required where the line wraps, which "
-            "on a roadmap only an adopted backlog can be"
-        ),
-    )
-    amend_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    amend_parser.set_defaults(
-        handler=_amend, reads_stdin=(Prose(dest="why", omitted=False),)
-    )
-
-    restate_parser = subcommands.add_parser(
-        "restate",
-        help="correct one open line's symptom, keeping its id",
-        description=(
-            "The one field `amend` does not reach, at a door of its own. A different symptom "
-            "is normally a different task, which is why that verb excludes it — and a premise "
-            "that turns out false is not a different task, it is this file asserting "
-            "something untrue in the field a reader sees first. `retire` plus `add` is the "
-            "exit that was designed for it, and it spends an id, deletes a section that was "
-            "already right and records a departure that never happened. This keeps all three. "
-            "A verb rather than a flag, so the act has a name a reviewer can see."
-        ),
-    )
-    restate_parser.add_argument("id", help="the task, e.g. RK7")
-    restate_parser.add_argument(
-        "--symptom",
-        required=True,
-        help="what does not work — re-validated against the limit, exactly as `add` does",
-    )
-    restate_parser.add_argument(
-        "--lines",
-        type=int,
-        help="how many lines this restatement replaces; required where the line wraps",
-    )
-    restate_parser.add_argument(
-        "--typo",
-        action="store_true",
-        help=(
-            "a slip of the pen rather than a false premise: the claim is the one intended "
-            "and a word in it was wrong, so the answer and the payload say so"
-        ),
-    )
-    restate_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    restate_parser.set_defaults(handler=_restate)
-
-    renumber_parser = subcommands.add_parser(
-        "renumber",
-        help="move one open line to a free id, with its section and its dependents",
-        description=(
-            "Change one line's address, without a departure. The line, the section its "
-            "pointer resolves to and every dep naming it move in one transaction; the "
-            "ledger is never opened, because an id it records is a decision and not an "
-            "address. This is the repair a merge that allocated one id twice needs, and "
-            "the door `ship`, `retire` and `amend` all deliberately refuse to be."
-        ),
-    )
-    renumber_parser.add_argument("id", help="the line to move, e.g. RK90")
-    renumber_parser.add_argument(
-        "--to",
-        help="the new id (default: derived, one past the highest in the line's family)",
-    )
-    renumber_parser.add_argument("--json", action="store_true", help="every edit, as data")
-    renumber_parser.set_defaults(handler=_renumber)
-
-    declare_gate(subcommands)
 
     ship_parser = subcommands.add_parser(
         "ship",
@@ -1592,44 +1327,6 @@ def build_parser() -> argparse.ArgumentParser:
         handler=_retire, reads_stdin=(Prose(dest="reason", omitted=False),)
     )
 
-    defer_parser = subcommands.add_parser(
-        "defer",
-        help="set a line aside without retiring it: the store, not the ledger",
-        description=(
-            "A pause spelled as a retirement is terminal — the id cannot come back, the "
-            "resolver reads the dep as never, and the rationale is deleted. This moves the "
-            "line to the deferred store instead, keeping every slot and the section."
-        ),
-    )
-    defer_parser.add_argument("id", help="the task being set aside, e.g. RK33")
-    _reason_flag(
-        defer_parser,
-        "one sentence, the author's own: it wraps the why and a resume unwraps it" + _PIPE,
-    )
-    defer_parser.add_argument("--json", action="store_true", help="every edit, as data")
-    defer_parser.set_defaults(
-        handler=_defer, reads_stdin=(Prose(dest="reason", omitted=False),)
-    )
-
-    resume_parser = subcommands.add_parser(
-        "resume",
-        help="return a set-aside line to its block — the direction the ledger has none of",
-        description=(
-            "The store is revivable, which is what separates it from the two terminal "
-            "doors: the same id, the same deps, the same section, back under the block "
-            "the line left. The open marker is the one thing the store could not keep."
-        ),
-    )
-    resume_parser.add_argument("id", help="the task coming back, e.g. RK33")
-    _marker_flag(
-        resume_parser,
-        "the open marker it returns with; omitted, the first this project declares — "
-        "the store holds one marker, so which one it was is not a fact any file kept",
-        dest="marker",
-    )
-    resume_parser.add_argument("--json", action="store_true", help="every edit, as data")
-    resume_parser.set_defaults(handler=_resume)
-
     export_parser = subcommands.add_parser(
         "export",
         help="project the backlog onto a README block, a page, or a JSON payload",
@@ -2193,17 +1890,8 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-#: Top-level options that take a value, so the token after one is not the verb. Two, because
-#: `--version` is an action and every other flag belongs to a subcommand that was never reached.
-_VALUED = ("-C", "--directory")
 
 
-#: How close a rejected flag has to be before it is named as a typo of a real one. High,
-#: because the failure this replaced was advice nobody could act on: at `difflib`'s own 0.6
-#: default, `--note` is offered `--lines`, which is a worse answer than the list — a caller
-#: who wanted `--why` is now weighing a flag that has nothing to do with what they meant.
-#: `--seciton` for `--section` is the case worth catching, and it scores far above this.
-_A_TYPO = 0.8
 
 
 def _verb_reached(parser: argparse.ArgumentParser, argv: Sequence[str]):
