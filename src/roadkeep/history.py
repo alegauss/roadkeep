@@ -878,6 +878,159 @@ def origin_of(config: Config, task_id: str) -> Origin:
     return Origin(task_id=task_id, proposed_in=proposed, shipped_in=shipped)
 
 
+
+@dataclass(frozen=True, slots=True)
+class Pending:
+    """One open line, and the commits whose message already names it (RK1201).
+
+    Not "the work is done" — which of a task's commits completed it is a judgement, and this
+    tool has no model of one (L4). What this holds is the two facts a reader needs to decide:
+    the line is open, and something in the history says otherwise.
+    """
+
+    id: str
+    marker: str
+    block: str
+    #: The commits naming this id, newest first. Read from the **message** and not from a
+    #: file's history: `origin` asks which commit touched the roadmap at this id, which is
+    #: about the *line*, and the question here is about the work.
+    commits: tuple[Commit, ...] = ()
+    #: Whether the ledger already holds an entry for it — true on a partial (RK121), which is
+    #: the state this deliberately does not report: a half recorded and a line still open is
+    #: exactly what a partial is, and reporting it would be reporting the feature.
+    recorded: bool = False
+
+    @property
+    def stale(self) -> bool:
+        return bool(self.commits) and not self.recorded
+
+
+def pending(config: Config) -> tuple[Pending, ...]:
+    """Every open line with commits naming it and no ledger entry (RK1201).
+
+    One `git log` for the whole backlog rather than one per id: the ids are matched against the
+    subjects that come back, so a backlog of forty costs the same read as a backlog of one.
+
+    Empty where git cannot answer, the rule every reader here keeps — a checkout with no git is
+    one this reports nothing about, never one it refuses.
+    """
+    from roadkeep.backlog import Backlog  # noqa: PLC0415 - RK260
+
+    backlog = Backlog.load(config)
+    open_lines = list(backlog.roadmap.entries)
+    if not open_lines:
+        return ()
+    recorded = (
+        {entry.task.id for entry in backlog.ledger.entries}
+        if backlog.ledger is not None
+        else set()
+    )
+    try:
+        # The module's own format and its own parser (RK1201): a second spelling of a commit
+        # here would be a second thing to keep true, and the one already there carries every
+        # field this needs.
+        listed = _parse(_run(config.root, "log", "--no-merges", f"--format={_FORMAT}"))
+    except HistoryUnavailable:
+        return ()
+    from roadkeep.ids import id_scanner  # noqa: PLC0415 - RK260
+
+    naming: dict[str, list[Commit]] = {}
+    # The **scanner** and not `id_pattern` (RK106): one matches an id as a whole string and the
+    # other finds one inside running text, which is what a commit subject is.
+    pattern = id_scanner(config.schema)
+    for commit in listed:
+        for token in {found.group(0) for found in pattern.finditer(commit.subject)}:
+            naming.setdefault(token, []).append(commit)
+
+    # **The oldest commit naming an id is the one that filed it**, and it is dropped: `add` is
+    # what mints an id, so nothing could name one before the line existed. Measured before this
+    # was written — without it the sweep reported seven lines and every one was its own filing,
+    # where `docs: file RK1196` names the id and means the opposite of what the report said.
+    #
+    # Read off the log already in hand rather than by asking `origin` per id, which is the same
+    # answer at one git call per open line. A **promise** (RK431) is the one shape this reads as
+    # work: an id a sentence named before the line existed leaves the filing as the newest of
+    # two, which errs toward reporting — the safe direction for a report.
+    for named in naming.values():
+        named.pop()
+
+    return tuple(
+        Pending(
+            id=entry.task.id,
+            marker=entry.task.status,
+            block=entry.task.block,
+            commits=tuple(naming.get(entry.task.id, ())),
+            recorded=entry.task.id in recorded,
+        )
+        for entry in open_lines
+    )
+
+
+#: What one `git log` line carries, separated by a NUL. A NUL cannot appear in a subject,
+#: which is what makes splitting safe where a subject may hold anything else — and it is
+#: spelled `%x00` because an argv may not carry one: Windows refuses the process outright.
+
+
+@dataclass(frozen=True, slots=True)
+class Unclosed:
+    """The sweep as one answer: which open lines the history already speaks for (RK1201).
+
+    **A report and never a refusal.** The honest reading of a line with commits is sometimes
+    "the work is under way and these are partial", which is what a partial entry is for — so
+    this states the fact and leaves the verdict where it belongs.
+    """
+
+    rows: tuple[Pending, ...] = ()
+    #: True where git answered at all. `()` means two different things otherwise, and a
+    #: checkout with no history reading as a clean backlog is the silence RK10 is about.
+    searched: bool = True
+
+    @property
+    def stale(self) -> tuple[Pending, ...]:
+        return tuple(one for one in self.rows if one.stale)
+
+    def stated(self) -> str:
+        if not self.searched:
+            return "no history to read, so nothing here says whether a line was left open"
+        found = self.stale
+        rows = [
+            f"{len(found)} of {len(self.rows)} open line(s) already have commits naming them"
+        ]
+        for one in found:
+            named = ", ".join(commit.short for commit in one.commits[:3])
+            more = f" and {len(one.commits) - 3} more" if len(one.commits) > 3 else ""
+            rows.append(
+                f"  {one.marker} {one.id:<8} Block {one.block:<3} {named}{more}"
+            )
+        if found:
+            # The door, as every finding this tool prints carries one (RK420): what closes a
+            # line is `ship`, and what closes it *honestly* where only half landed is `--part`.
+            rows.append(
+                "  close    `ship <id> --why …` records the outcome, or `--part` where only "
+                "half of it landed"
+            )
+        return chr(10).join(rows)
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "searched": self.searched,
+            "open": len(self.rows),
+            "unclosed": [
+                {
+                    "id": one.id,
+                    "marker": one.marker,
+                    "block": one.block,
+                    "recorded": one.recorded,
+                    "commits": [
+                        {"sha": commit.sha, "short": commit.short, "subject": commit.subject}
+                        for commit in one.commits
+                    ],
+                }
+                for one in self.stale
+            ],
+        }
+
+
 @dataclass(frozen=True, slots=True)
 class Cited:
     """An anchor somebody's prose still names, resolved against history (RK212)."""

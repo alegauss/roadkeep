@@ -448,7 +448,9 @@ where the `Stop` hook states it once and consumes it; `show <id>` joins one line
 section and its paths, and on a ledger entry whose bullet **wraps** it prints every line
 that entry owns — which is the count `record amend --lines` asks you to have read; `deps
 <id>` walks the graph both ways; `gaps` resolves an id in neither file against the commit
-that removed it; `origin <id> --why` reads it out of history, and `origin §<anchor>`
+that removed it, and `unclosed` is that question pointed the other way — an **open**
+line whose work a commit already names, which is what a session that shipped the code
+and forgot the line leaves behind; `origin <id> --why` reads it out of history, and `origin §<anchor>`
 answers the other end of a pointer — a rationale address somebody's prose still cites
 after a ship deleted the section, which no file records, so the three answers are the
 commit that wrote it, the one that took it, and "searched and nobody ever wrote it", which

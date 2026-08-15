@@ -311,6 +311,7 @@
 - ✅ **RK1178** **anchors recommends an address that was declared and retired inside one commit** — the address is read off the pointer that left with the shipped line, which no prose diff witnesses.
 - ✅ **RK1183** **delivered --near cannot reach a partner whose symptom is stated differently, and its closure now carries an exemption** — the reach is a floor the closure publishes with what is out of it, and ranking against the why is unsound because that field names the partner.
 - ✅ **RK1197** **A loose path that is already staged reads the same as one merely edited, so a stale index entry commits silently** — the porcelain is read once into a record that keeps both columns, and a loose path the index already carries says so — on the row and as its own key in both payloads.
+- ✅ **RK1201** **An open line whose work is already committed is invisible until somebody runs origin on that one id** — unclosed sweeps the open lines for commits naming them, dropping the one that filed each — the oldest, since add mints the id and nothing can name one before the line exists.
 
 ## Block D — The gate
 

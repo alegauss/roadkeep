@@ -73,6 +73,10 @@ QUESTIONS: tuple[Question, ...] = (
     Question("what id does the next task take", ("next-id",)),
     Question("which id below the highest does no line carry, and where did it go", ("gaps",)),
     Question("which commit wrote this task, and which one took it", ("origin", "RK1")),
+    Question(
+        "which of my open lines did somebody already write the code for",
+        ("unclosed",),
+    ),
     Question("which rationale addresses are spent, and what is the next free one", ("anchors",)),
     Question("what does this rationale section say, and what does it cost", ("section", "show", "RK1")),
     Question("who is holding a line right now", ("claims",)),

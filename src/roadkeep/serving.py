@@ -514,6 +514,10 @@ TOOLS: tuple[Tool, ...] = (
     Tool("next-id", ("family",)),
     Tool("show", ("id", "no_body")),
     Tool("writes", ()),
+    # The other end of `gaps` (RK1201), and served for the reason the eight reads above
+    # are: the caller this catches is an agent driving a block, whose own session is where
+    # a line gets left open — and a read it cannot make is one nobody makes.
+    Tool("unclosed", ()),
     # Which copies of this tool write, judge and gate the project (RK415). Exposed because
     # the agent is the one it happens to: its writes go through whatever `roadkeep` the
     # session reaches and its hand edits are denied by whatever the harness installed, and

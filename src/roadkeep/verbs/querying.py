@@ -35,6 +35,8 @@ from roadkeep.kernel.document import StaleFile, write_all
 from roadkeep.exporting import DEFAULTS, project, splice_into
 from roadkeep.graph import Dependencies
 from roadkeep.history import (
+    Unclosed,
+    pending,
     Addresses,
     HistoryUnavailable,
     cited_origin,
@@ -843,6 +845,26 @@ def _remaining(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+
+def _unclosed(config: Config, args: argparse.Namespace) -> int:
+    """Open lines the history already speaks for (RK1201). Nothing here fails, so exit 0.
+
+    Both registers come off one record (RK1170), and the exit code is not one of them: a
+    commit naming an id is not evidence the work is done, so a non-zero here would fail every
+    session that is mid-task — which is the shape a report must not take.
+    """
+    try:
+        answer = Unclosed(rows=pending(config))
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    if args.json:
+        print(json.dumps(answer.payload(), indent=2))
+    else:
+        print(answer.stated())
+    return EXIT_OK
+
+
 def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     """This module's verbs, declared where their handlers are (RK1171).
 
@@ -1010,6 +1032,23 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     # Never a write, not even behind a flag: re-baselining is what the `Stop` block does, and a
     # query offering it would be the laundering `dispatch` refuses queries in the first place.
     writes_parser.set_defaults(handler=_writes, reads_only=True)
+
+    unclosed_parser = subcommands.add_parser(
+        "unclosed",
+        help="open lines whose work the history already names, and what closes each",
+        description=(
+            "Which open lines already have commits naming them, and no ledger entry. A "
+            "session that shipped the code and forgot the line leaves a state `gaps` "
+            "cannot see — that verb explains an id in neither file, and this one is in "
+            "the roadmap — and `origin` answers one id at a time, so it is a confirmation "
+            "and never a discovery. The commit that *filed* each id is dropped: `add` "
+            "mints the id, so nothing could name one before the line existed. A report "
+            "and never a gate: work under way is exactly this shape, and what a partial "
+            "landing wants is `ship --part`."
+        ),
+    )
+    unclosed_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    unclosed_parser.set_defaults(handler=_unclosed, reads_only=True)
 
     brief_parser = subcommands.add_parser(
         "brief",
