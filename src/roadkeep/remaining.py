@@ -47,6 +47,13 @@ from pathlib import Path
 #: language attribute and this has to survive being viewed on a forge.
 FENCE = "roadkeep-remaining"
 
+#: The other fence, and the same grammar (RK1184). A design says what is *left* and what would
+#: *prove it done*, and the two are one read with the sign flipped — sites that must exist
+#: rather than sites still there. A second tag and never a second parser: the clause, the
+#: separator, the refusal and the count are all shared, so a query that is legal in one block
+#: is legal in the other by construction.
+EVIDENCE = "roadkeep-evidence"
+
 #: What separates a pathspec from the pattern that marks a site. Two colons and not one: a
 #: glob carries no `::` and a regex that wants one spells it `:{2}`, so the split is
 #: unambiguous without anything here parsing either half.
@@ -100,6 +107,11 @@ class Remaining:
     task_id: str
     clauses: tuple[Clause, ...]
     sites: tuple[Site, ...]
+    #: Which fence this counted (RK1184). The numbers are identical and the sentences are
+    #: opposites: `3 site(s) left` is work outstanding, and `3 site(s) of evidence` is what
+    #: the author said would prove the task done. A field and not two classes, because every
+    #: other property of the read — the scan, the refusal, the truncation — is one thing.
+    kind: str = FENCE
     #: How many files each clause actually read, so a query whose glob names nothing is
     #: distinguishable from one whose pattern no longer matches. Two very different answers
     #: that both count zero, and the second is done while the first is a typo.
@@ -117,8 +129,20 @@ class Remaining:
     def files(self) -> int:
         return sum(self.scanned)
 
+    @property
+    def counting(self) -> str:
+        """`left` or `of evidence` — never a verdict either way (RK1184).
+
+        The pattern is the author's claim and the count is the answer, so `0` says the
+        evidence is not there yet and whether that is the work being done is the caller's
+        judgement. This tool has no model of one (L4).
+        """
+        return "left" if self.kind == FENCE else "of evidence"
+
     def __str__(self) -> str:
-        lines = [f"{self.task_id}  {self.total} site(s) left in {self.files} file(s)"]
+        lines = [
+            f"{self.task_id}  {self.total} site(s) {self.counting} in {self.files} file(s)"
+        ]
         for clause, read in zip(self.clauses, self.scanned, strict=False):
             lines.append(f"  query    {clause}  ({read} file(s))")
         for site in self.sites[:SHOWN]:
@@ -132,6 +156,9 @@ class Remaining:
     def payload(self) -> dict[str, object]:
         return {
             "id": self.task_id,
+            # Which question was asked, because the two payloads are otherwise identical and
+            # a consumer acting on `total` means opposite things by it (RK1184).
+            "kind": self.kind,
             "total": self.total,
             "files": self.files,
             "query": [
@@ -145,14 +172,16 @@ class Remaining:
         }
 
 
-def declared(body: str) -> tuple[Clause, ...]:
-    """The query a section's prose declares, or `()` where it declares none.
+def declared(body: str, tag: str = FENCE) -> tuple[Clause, ...]:
+    """The query a section's prose declares under ``tag``, or `()` where it declares none.
 
-    One fence per section. A second is refused rather than merged: two blocks are two
-    claims about what is left, and the sum of them is a number neither paragraph states.
+    One fence per section **per tag** (RK1184). A second of the same kind is refused rather
+    than merged: two blocks are two claims about what is left, and the sum of them is a number
+    neither paragraph states. The two *kinds* are a different matter — a design may say both
+    what remains and what would prove it done, and neither is the other's total.
     """
     found: list[Clause] = []
-    fences = list(_fenced(body))
+    fences = list(_fenced(body, tag))
     if len(fences) > 1:
         raise QueryError(
             fences[1][0] + 1, "a section declares one query, and this is the second"
@@ -168,13 +197,13 @@ def declared(body: str) -> tuple[Clause, ...]:
     return tuple(found)
 
 
-def _fenced(body: str) -> Iterator[tuple[int, list[str]]]:
-    """Each ``` block tagged :data:`FENCE`, as its 0-based start line and its lines."""
+def _fenced(body: str, tag: str = FENCE) -> Iterator[tuple[int, list[str]]]:
+    """Each ``` block carrying ``tag``, as its 0-based start line and its lines."""
     lines = body.splitlines()
     index = 0
     while index < len(lines):
         opening = lines[index].strip()
-        if opening.startswith("```") and opening[3:].strip() == FENCE:
+        if opening.startswith("```") and opening[3:].strip() == tag:
             end = index + 1
             while end < len(lines) and not lines[end].strip().startswith("```"):
                 end += 1
@@ -207,7 +236,9 @@ class _Read:
     unread: list[str] = field(default_factory=list)
 
 
-def count(root: Path, task_id: str, clauses: Sequence[Clause]) -> Remaining:
+def count(
+    root: Path, task_id: str, clauses: Sequence[Clause], kind: str = FENCE
+) -> Remaining:
     """Run a declared query against this tree, now.
 
     Nothing is cached and nothing is written. The whole value of the read is that it is
@@ -223,6 +254,7 @@ def count(root: Path, task_id: str, clauses: Sequence[Clause]) -> Remaining:
         unread += read.unread
     return Remaining(
         task_id=task_id,
+        kind=kind,
         clauses=tuple(clauses),
         sites=tuple(sites),
         scanned=tuple(scanned),

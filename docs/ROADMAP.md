@@ -32,8 +32,7 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1184** (deps: —) **Nothing states what would prove a task done, so `ship` is a judgement with no artefact behind it** — `remaining` already runs a design's own fenced query, so evidence is that read inverted — sites that must exist rather than sites left, counted and never judged. → §RK1184
-- 📋 **RK1185** (deps: RK1184) **`brief` hands over a task's design and deps but never its criterion, so it is read at the ship** — A criterion binds what the work must produce, so one arriving after the code is written is the read `brief` exists to make in a single call. → §RK1185
+- 📋 **RK1185** (deps: RK1184 ✅) **`brief` hands over a task's design and deps but never its criterion, so it is read at the ship** — A criterion binds what the work must produce, so one arriving after the code is written is the read `brief` exists to make in a single call. → §RK1185
 - 📋 **RK1188** (deps: —) **No verb says what the blocks are called, so choosing where a task goes means reading the file the hook denies** — SKILL.md tells an author to look at what the blocks already are before add; stats answers letters and counts, list and delivered demand a block they cannot enumerate. → §RK1188
 - 📋 **RK1190** (deps: —) **budget states the allowance and cannot be handed a draft, so prose three words over is found by being refused** — RK190 made the allowance knowable before the first word; measuring the draft against it still costs a write, and the retry after each refusal is a guess. → §RK1190
 - 📋 **RK1199** (deps: —) **The shipping allowance brief prints is ten characters narrower than the limit ship then enforces** — RK1174 put the ledger's own ceiling in front of the write, and it is measured against a structure ten wider than the line ship writes — so a clause is cut that would have fit. → §RK1199

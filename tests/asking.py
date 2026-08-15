@@ -66,6 +66,7 @@ QUESTIONS: tuple[Question, ...] = (
     Question("how much room does this line's prose have before I write a word", ("budget", "--block", "A")),
     Question("what did a comparable task cost, so this is one line or two", ("weight",)),
     Question("how much of this migration is left", ("remaining", "RK1")),
+    Question("what would show me this task is finished", ("evidence", "RK1")),
     Question("has this work already shipped under another id", ("delivered", "A")),
     Question("which shipped entries were later undone", ("reversals",)),
     Question("what has this project decided not to do", ("non-goal", "list")),

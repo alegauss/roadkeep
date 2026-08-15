@@ -2863,23 +2863,34 @@ def _query(section: Section, file: str) -> list[Finding]:
     exists and does not parse, never the absence of one. The count itself is `remaining`'s and
     never a finding — sites left are work, and work is not a defect in a file.
     """
-    from roadkeep.remaining import FENCE, QueryError, declared  # noqa: PLC0415 - RK260
+    from roadkeep.remaining import (  # noqa: PLC0415 - RK260
+        EVIDENCE,
+        FENCE,
+        QueryError,
+        declared,
+    )
 
-    if FENCE not in section.body:
-        return []
-    try:
-        declared(section.body)
-    except QueryError as error:
-        return [
-            Finding(
-                "remaining.format",
-                file,
-                f"§{section.anchor} declares a query this grammar cannot read: {error}",
-                section.first,
-                section.anchor,
+    # Both fences, and one rule (RK1184): the criterion is the same grammar with the sign
+    # flipped, so a block it cannot read is the same finding — and reporting one kind and
+    # not the other would be the gate holding half of what the parser accepts.
+    found: list[Finding] = []
+    for tag in (FENCE, EVIDENCE):
+        if tag not in section.body:
+            continue
+        try:
+            declared(section.body, tag)
+        except QueryError as error:
+            found.append(
+                Finding(
+                    "remaining.format",
+                    file,
+                    f"§{section.anchor} declares a `{tag}` block this grammar cannot "
+                    f"read: {error}",
+                    section.first,
+                    section.anchor,
+                )
             )
-        ]
-    return []
+    return found
 
 
 def _promise(config: Config, section: Section, file: str) -> list[Finding]:

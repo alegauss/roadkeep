@@ -49,7 +49,7 @@ from roadkeep.history import (
 )
 from roadkeep.picking import Claim, Picked, pick, take
 from roadkeep.provenance import invocation
-from roadkeep.remaining import QueryError, count, declared
+from roadkeep.remaining import EVIDENCE, QueryError, count, declared
 from roadkeep.rendering import (
     CHARACTER_UNIT,
     _claim_event,
@@ -865,6 +865,46 @@ def _unclosed(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+
+def _evidence(config: Config, args: argparse.Namespace) -> int:
+    """What a task's own design says would prove it done, counted now (RK1184).
+
+    `remaining` with the sign flipped, and the same read: sites that must **exist** rather
+    than sites still there. Never a verdict — the pattern is the author's claim and the count
+    is the answer, so `0` says the evidence is not there yet and whether that is the work
+    being done is the caller's judgement (L4).
+
+    The exit code says the call was answered and never what the answer was, for `remaining`'s
+    reason: a criterion unmet is work outstanding, which is not a failing gate.
+    """
+    try:
+        view = show(config, args.id)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+    if view.section is None:
+        print(f"roadkeep: {args.id} has no section: {view.section_absence}", file=sys.stderr)
+        return EXIT_USAGE
+    try:
+        clauses = declared(view.section.body, EVIDENCE)
+    except QueryError as error:
+        return _refused(error)
+    if not clauses:
+        # An answer and not a refusal, exactly as `remaining` reads an absent query: *this
+        # design declares no criterion* is a fact about the task, and the grammar is named
+        # because writing one is the next thing a caller wants.
+        if args.json:
+            print(json.dumps({"id": args.id, "kind": EVIDENCE, "query": [], "total": None}, indent=2))
+        else:
+            print(
+                f"{args.id} declares no criterion: a `{EVIDENCE}` fenced block in "
+                f"§{view.entry.task.ref or args.id}, one `<pathspec> :: <regex>` per line"
+            )
+        return EXIT_OK
+    found = count(config.root, args.id, clauses, EVIDENCE)
+    print(json.dumps(found.payload(), indent=2) if args.json else str(found))
+    return EXIT_OK
+
+
 def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     """This module's verbs, declared where their handlers are (RK1171).
 
@@ -1482,4 +1522,21 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     remaining_parser.add_argument("id", help="the task whose design declares the query, e.g. RK12")
     remaining_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     remaining_parser.set_defaults(handler=_remaining, reads_only=True)
+
+    evidence_parser = subcommands.add_parser(
+        "evidence",
+        help="what this task's design says would prove it done, counted now",
+        description=(
+            "Run the criterion a design declares, against this tree, now. `remaining` "
+            "with the sign flipped: a `roadkeep-evidence` fenced block names sites that "
+            "must **exist** where the other names sites still to change, and both are one "
+            "`<pathspec> :: <regex>` per line read by one grammar. Never a verdict — the "
+            "pattern is the author's claim and the count is the answer, so 0 says the "
+            "evidence is not there yet and whether that is the work being done is yours "
+            "to judge. Nothing is stored, so nothing goes stale."
+        ),
+    )
+    evidence_parser.add_argument("id", help="the task whose design declares the criterion")
+    evidence_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    evidence_parser.set_defaults(handler=_evidence, reads_only=True)
 

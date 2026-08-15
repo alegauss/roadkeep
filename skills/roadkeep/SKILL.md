@@ -424,7 +424,11 @@ What comes back is the distribution and what was elided from it, the sample thos
 percentiles summarise being `--records` and 95% of the payload. It ranks nothing and lands
 on no line — the size field is a non-goal. **`remaining <id>` is that read's mirror**: what
 a task has *left*, run from a query its own design declares — a fenced `roadkeep-remaining`
-block in the rationale section, one `<pathspec> :: <regex>` per line. Derived for the same
+block in the rationale section, one `<pathspec> :: <regex>` per line. **`evidence <id>` is
+that same read with the sign flipped**: a `roadkeep-evidence` block names the sites that
+must *exist* for the task to be done, so what `remaining` counts down `evidence` counts
+up — and neither is a verdict, the pattern being your claim and the count the answer.
+Derived for the same
 reason and stored for none: the first commit that closes a site changes the answer, which a
 number on the line could not, and a `ship` deletes the query with the section that made the
 claim. Reach for it before continuing a migration, which otherwise reads in every file

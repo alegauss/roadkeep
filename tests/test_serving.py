@@ -229,6 +229,9 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # declares. Beside it, because the two answer one question from opposite ends and a
         # session continuing a migration asks this one at exactly the moment RK71 is asked.
         "remaining",
+        # The criterion beside the count (RK1184): what a design says would prove the
+        # task done, which is the read an agent makes immediately before a `ship`.
+        "evidence",
         # And the third (RK190): what the line being proposed leaves its prose, which
         # `maxLength` cannot publish because it moves with the deps and the symptom.
         "budget",

@@ -147,27 +147,6 @@ or the refusal carries it. The refusal is the moment the author is actually in.
 
 ## Block C — Query
 
-### §RK1184 The criterion a design declares
-
-RK492 gave a design its own fenced query and `remaining` runs it: one `<pathspec> ::
-<regex>` per line, counted now rather than maintained as a number on the line. The
-criterion that a task is done is the same read with the sign flipped — sites that must
-exist rather than sites left — so it is a second fenced kind read by that parser and not
-a second grammar.
-
-What it is not: a verdict. The pattern is the author's claim and the count is the
-answer, exactly as `remaining` states it, so `0` says the evidence is not there yet and
-whether that is the work being done is the caller's judgement. The gate reports only a
-block it cannot read, never a criterion unmet: work outstanding is not a defect in a
-file, and a rule that failed a repository for unfinished work would be a rule every
-green branch trips.
-
-It is deleted with the section that made the claim, and that is right: the ledger's
-sentence states the outcome, the criterion was about the work, and a shipped entry
-keeping a query would leave a claim nobody can close. Under L4 the tool writes none of
-it — the pathspec, the pattern and the decision that the pattern is evidence are all the
-author's, and this only counts and reports.
-
 ### §RK1185 The criterion at the start, not at the ship
 
 RK1184 makes the criterion a fact a design states; this is the call that hands it over.

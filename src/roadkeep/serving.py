@@ -428,6 +428,10 @@ TOOLS: tuple[Tool, ...] = (
     # continue a migration asks how many sites are left, and the alternative to a command is
     # a grep whose pattern it composed itself and whose misses are silent (L5).
     Tool("remaining", ("id",)),
+    # The mirror of that mirror (RK1184), served for the same reason: an agent about to
+    # ship asks what would show the task finished, and the alternative to a command is a
+    # grep whose pattern it composed itself and whose misses are silent (L5).
+    Tool("evidence", ("id",)),
     # The other pre-`add` read, and the one this transport needs most (RK190): `maxLength`
     # publishes the field's own ceiling and cannot publish the line's, so without this the
     # binding number reaches the author only as a refusal — a linter, one layer in.
