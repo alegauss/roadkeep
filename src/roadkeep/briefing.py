@@ -47,6 +47,7 @@ from roadkeep.claiming import Held
 from roadkeep.locking import exclusive
 from roadkeep.picking import Choice, Claim, hold, pick, take
 from roadkeep.kernel.schema import Task
+from roadkeep.remaining import Clause
 from roadkeep.showing import View, show
 
 #: How many blocker chains a brief carries. Lower than the graph's own limit on purpose:
@@ -199,6 +200,15 @@ class Brief:
     #: number that would otherwise arrive as a refusal is already on the desk. None for a
     #: shipped task: the ledger is a different grammar and holds no line to amend.
     budget: Budget | None = None
+    #: What this task's design says would prove it done, and how many sites each clause
+    #: matches **now** (RK1184, RK1185). A count and a quotation, never the files behind
+    #: them: this answer is bounded to a tool result, and the addresses are what `evidence`
+    #: is for once the work is under way.
+    #:
+    #: Empty where the design declares no criterion, and that is answered with silence: most
+    #: tasks state one in prose and always have, so printing an absence every turn is a nag
+    #: this tool has no standing to make.
+    criterion: tuple[tuple[Clause, int], ...] = ()
 
     @property
     def task(self) -> Task:
@@ -305,6 +315,12 @@ class Brief:
         rows += [
             f"  path     {one.path}{'' if one.exists else '  (missing)'}" for one in view.paths
         ]
+        for clause, found in self.criterion:
+            # Before the design and after the deps, which is where the claim belongs: the
+            # order is the whole point (RK1185) — what the work will be measured against
+            # arrives before the first edit rather than at the `ship`. Never a verdict: `0`
+            # is the ordinary state of a task about to start.
+            rows.append(f"  proves   {clause}  ({found} site(s) now)")
         rows += [f"  not      {lead}" for lead in self.non_goals.leads]
         if self.non_goals.elided:
             # Where the list was cut, and not silently: a bounded list that reads as the whole
@@ -368,6 +384,14 @@ class Brief:
             },
             "non_goals": list(self.non_goals.leads),
             "non_goals_elided": self.non_goals.elided,
+            # What the design says would prove this done, with what each clause matches now
+            # (RK1185). The clauses and the counts and never the sites: this answer is bounded
+            # to a tool result, and the addresses are `evidence`'s once the work is under way.
+            # `[]` where the design declares none, which is an answer and not an absence.
+            "criterion": [
+                {"pathspec": one.pathspec, "pattern": one.pattern, "sites": found}
+                for one, found in self.criterion
+            ],
             # The whole table here and one line on stdout (RK190): a tool result is read by
             # something that can hold it, and this is the number the next write is measured on.
             "budget": None if self.budget is None else self.budget.payload(),
@@ -462,6 +486,7 @@ def _gather(
         claim=claim,
         settled=_settled(config, view, backlog.resolve(task) if entry is not None else ()),
         budget=None if view.shipped else budget_of(config, task, open_line=True),
+        criterion=_criterion(config, view),
         shipping=None
         if view.shipped or not config.has("changelog")
         else budget_of(
@@ -491,6 +516,41 @@ def non_goals(config: Config, document: Document) -> NonGoals:
             for lead in every[:NON_GOALS]
         ),
         elided=max(0, len(every) - NON_GOALS),
+    )
+
+
+
+def _criterion(config: Config, view: View) -> tuple[tuple[Clause, int], ...]:
+    """What this design says would prove the task done, counted now (RK1184, RK1185).
+
+    The clause and its count, never the sites: a brief is bounded to a tool result, and the
+    addresses are what `evidence` answers once the work is under way. **A criterion is read
+    at the start and not at the ship** — the order is the whole point, since a claim the work
+    will be measured against has to arrive before the first edit.
+
+    Silent on three shapes, all of which are answers rather than failures: a task with no
+    design, a design declaring no criterion, and a block this grammar cannot read. The last is
+    `lint`'s to report (RK1184) and refusing a brief over it would take away the call that
+    starts the work, on a fence the work has not touched yet.
+    """
+    from roadkeep.remaining import EVIDENCE, QueryError, count, declared  # noqa: PLC0415 - RK260
+
+    if view.section is None:
+        return ()
+    try:
+        clauses = declared(view.section.body, EVIDENCE)
+    except QueryError:
+        return ()
+    if not clauses:
+        return ()
+    # Per clause and not one total: two clauses at 3 and 0 are a criterion half met, and a
+    # single `3` says the same thing as both met — which is the shape RK10 is about, one
+    # module over. One `count` each rather than attributing a joined answer afterwards: a
+    # `Site` carries no clause, and giving it one to serve this reader would be a field on
+    # the record that only a caller's arithmetic wanted.
+    return tuple(
+        (clause, count(config.root, view.task.id, (clause,), EVIDENCE).total)
+        for clause in clauses
     )
 
 

@@ -147,26 +147,6 @@ or the refusal carries it. The refusal is the moment the author is actually in.
 
 ## Block C — Query
 
-### §RK1185 The criterion at the start, not at the ship
-
-RK1184 makes the criterion a fact a design states; this is the call that hands it over.
-`brief` is what starts a task — the line, the rationale, the deps resolved, the blocker
-chain, what it unblocks and the non-goals, in one call — and a criterion read after the
-code is written is one that shaped nothing. The order is the whole point: the claim the
-work will be measured against arrives before the first edit, which is RK1174's argument
-about the `why` budget made about evidence instead of about characters.
-
-It is a count and a quotation, not a gate: `brief` refuses nothing, and a criterion no
-site satisfies yet is the ordinary state of a task about to start. The cost is what
-decides the shape — this answer is bounded to a tool result, so the block is printed as
-the clauses the design declared plus the count each one matches now, and never as the
-files behind them, which is what `remaining` is for once the work is under way.
-
-A design declaring no criterion is answered and not annotated. Most tasks here state one
-in prose and always have; a line that says nothing extra is a line whose author had
-nothing extra to say, and printing an absence every turn is a nag the tool has no
-standing to make.
-
 ### §RK1188 The one question before every add has no verb
 
 `add --block <x>` is the first flag on the first write of any new task, and nothing

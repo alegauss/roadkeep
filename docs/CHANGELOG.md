@@ -313,6 +313,7 @@
 - ✅ **RK1197** **A loose path that is already staged reads the same as one merely edited, so a stale index entry commits silently** — the porcelain is read once into a record that keeps both columns, and a loose path the index already carries says so — on the row and as its own key in both payloads.
 - ✅ **RK1201** **An open line whose work is already committed is invisible until somebody runs origin on that one id** — unclosed sweeps the open lines for commits naming them, dropping the one that filed each — the oldest, since add mints the id and nothing can name one before the line exists.
 - ✅ **RK1184** **Nothing states what would prove a task done, so `ship` is a judgement with no artefact behind it** — a roadkeep-evidence block is the same grammar with the sign flipped, counted by the same reader — and this task's own criterion answered 4 of 4 before the line was closed.
+- ✅ **RK1185** **`brief` hands over a task's design and deps but never its criterion, so it is read at the ship** — the criterion rides with the brief as its clauses and what each matches now, so the claim the work is measured against arrives before the first edit rather than at the ship.
 
 ## Block D — The gate
 
