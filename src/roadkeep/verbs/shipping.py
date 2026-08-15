@@ -34,6 +34,13 @@ from roadkeep.shipping import (
     retire,
     ship,
 )
+from roadkeep.serving import Prose
+from roadkeep.verbs.declaring import (
+    _JSON_HELP,
+    _PIPE,
+    _reason_flag,
+    withheld,
+)
 from roadkeep.verbs.reading import _piped
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, REFUSALS, _refused
 
@@ -374,3 +381,343 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
     else:
         print(departure.retired(config, wrote))
     return EXIT_OK
+
+
+def declare_departures(subcommands: argparse._SubParsersAction) -> None:
+    """This module's verbs, declared where their handlers are (RK1171).
+
+    `build_parser` called forty-nine blocks like these in a row; what it calls now is an index
+    over the modules that own them. The move is what RK1169 and RK1170 bought: the flags a verb
+    declares, the reasons it withholds and the record it answers with are one file's, so a
+    change to any of them is one file's too.
+
+    The order inside is `build_parser`'s own, which is where these blocks sat.
+    """
+    ship_parser = subcommands.add_parser(
+        "ship",
+        help="move a task to the ledger, drop its rationale, clear the roadmap line",
+        description=(
+            "Ship one task in three edits across three files. Everything is validated "
+            "before anything is written, because whichever of the three is done by hand "
+            "last is the one that gets forgotten. `--why` is the outcome and is required: "
+            "the roadmap's sentence states the problem, and inheriting it files a defect "
+            "report under a heading that means done."
+        ),
+    )
+    ship_parser.add_argument("id", help="the task to ship, e.g. RK5")
+    ship_parser.add_argument(
+        "--why",
+        help=(
+            "the outcome this shipped — required where an entry is written, because the "
+            "roadmap's sentence states a problem and is not inherited; refused where the "
+            "ledger already holds the id and this call only closes the line. Completing a "
+            "wrapped partial with --lines above one, it is the whole span: the first line "
+            "is the outcome and the rest is written back as the tail" + _PIPE
+        ),
+    )
+    ship_parser.add_argument(
+        "--part",
+        help=(
+            "record only the half that landed and leave the line open, e.g. 'local "
+            "half'; a later ship with no --part completes it and removes the qualifier"
+        ),
+    )
+    ship_parser.add_argument(
+        "--lines",
+        type=int,
+        help=(
+            "how many lines the completion replaces; required where the partial entry it "
+            "completes wraps, and refused where this call replaces no entry — above one it "
+            "is also what lets --why carry that span back instead of collapsing it"
+        ),
+    )
+    ship_parser.add_argument(
+        "--superseded-design",
+        help=(
+            "what the design this deletes turned out to be wrong about, e.g. 'the resize "
+            "endpoint it called a new subsystem had shipped two blocks earlier'; appended "
+            "to the ledger's sentence with the section's address, since the entry is the "
+            "one place both survive the deletion"
+        ),
+    )
+    ship_parser.add_argument("--json", action="store_true", help="every edit, as data")
+    ship_parser.set_defaults(
+        handler=_ship,
+        reads_stdin=(
+            Prose(dest="why", omitted=False),
+            # The argument RK1176 was filed about: the pipe is documented on every prose
+            # argument, and this one reached the ledger as a literal `-` because the handler
+            # resolved `--why` by hand and this was added after that line was written.
+            Prose(dest="superseded_design", omitted=False),
+        ),
+    )
+
+    record_parser = subcommands.add_parser(
+        "record",
+        help="write, correct, re-file, renumber or drop a ledger entry directly",
+        description=(
+            "The ledger's own doors, the ones the roadmap's are not: every other command "
+            "starts from a task line, and these start from the entry."
+        ),
+    )
+    entries = record_parser.add_subparsers(dest="action", required=True)
+
+    record_add = entries.add_parser(
+        "add",
+        help="write a ledger entry directly, for shipped work no open line can carry",
+        description=(
+            "The fourth door, and the only one that starts nowhere: `ship` and both "
+            "retirements begin from an open roadmap line, so this is how the ledger records "
+            "work that has none. Never planned is one case and not the definition — a task "
+            "that was planned and shipped inside another's sentence needs its own entry too, "
+            "and so does a revert (--supersedes). What it does is write the entry and touch "
+            "nothing else; without it the only route in was a fictitious line shipped in the "
+            "same breath, which teaches that the format can be gamed."
+        ),
+    )
+    record_add.add_argument("--block", required=True, help="the block label, e.g. B")
+    record_add.add_argument(
+        "--symptom",
+        required=True,
+        help="what did not work — a phrase, never the name of the patch that closed it",
+    )
+    record_add.add_argument(
+        "--why",
+        required=True,
+        help="one sentence, ending in a stop: the outcome" + _PIPE,
+    )
+    record_add.add_argument(
+        "--id",
+        dest="task_id",
+        help=(
+            "the id (default: derived, one past the highest anywhere); refused where a "
+            "line already holds it, allowed where only a sentence names it — which is how "
+            "an id cited but never recorded gets the entry it is missing"
+        ),
+    )
+    record_add.add_argument(
+        "--supersedes",
+        metavar="ID",
+        help=(
+            "the entry this one reverts: its sentence gains `(superseded by <id>)` in the "
+            "same write, so the ledger's two records of one decision know about each other"
+        ),
+    )
+    record_add.add_argument(
+        "--lines",
+        type=int,
+        # Declared only so a script that spells it gets `NoSpan` rather than argparse's
+        # `declares no --lines` (RK1056): the count authorised a span rewrite the pointer
+        # stopped making, and the refusal is the one answer that says which of the two
+        # changed. Withdrawn from the served tool, which has no script to keep working.
+        help=(
+            "refused, and kept only to say so: the --supersedes pointer is appended to the "
+            "sentence on the entry's first line and replaces no span, so a wrapped bullet "
+            "needs no count and keeps the lines under it"
+        ),
+    )
+    record_add.add_argument(
+        "--json", action="store_true", help="the entry, with the file and line it landed on"
+    )
+    withheld(
+        record_add,
+        task_id="the ledger's id is the roadmap line's, and `ship` is what carries it across; typing one here is inventing an id the backlog never issued",
+        lines="the entry's shape is derived from what it records, and a count set by hand is the arrangement the schema replaced",
+    )
+    record_add.set_defaults(
+        handler=_record, reads_stdin=(Prose(dest="why", omitted=False),)
+    )
+
+    record_amend = entries.add_parser(
+        "amend",
+        help="correct a ledger entry's sentence where it stands",
+        description=(
+            "Rewrite one entry's `why`, or a partial's qualifier, without moving the line. "
+            "`drop` and `add` are not equivalent to this: they would remove the entry and "
+            "append a new one under its block, so a ledger read in the order work landed "
+            "stops being one and a reviewer sees a deletion where a word changed. The "
+            "`symptom` is the claim and is not a field, the id is `renumber`'s, and the "
+            "block is not offered because filing an entry elsewhere is a move."
+        ),
+    )
+    record_amend.add_argument("id", help="the recorded id, e.g. RK41")
+    record_amend.add_argument(
+        "--why",
+        help=(
+            "the corrected sentence, one stop — or, with --lines above one, the whole span: "
+            "the first line is the sentence and the rest is written back as the tail" + _PIPE
+        ),
+    )
+    record_amend.add_argument(
+        "--part",
+        help="correct a partial's qualifier; refused where the entry carries none",
+    )
+    record_amend.add_argument(
+        "--lines",
+        type=int,
+        help=(
+            "how many lines this correction replaces; required where the entry wraps, "
+            "because there the sentence runs past the line the parse holds — and above "
+            "one it is also what lets --why carry that span back"
+        ),
+    )
+    record_amend.add_argument("--json", action="store_true", help=_JSON_HELP)
+    record_amend.set_defaults(
+        handler=_record_amend, reads_stdin=(Prose(dest="why", omitted=False),)
+    )
+
+    record_move = entries.add_parser(
+        "move",
+        help="re-file a ledger entry under another block heading",
+        description=(
+            "The move `amend` deliberately does not pretend is a correction. `ship` files an "
+            "entry under the block its roadmap line sat in, so a line filed under the wrong "
+            "one ships to the wrong one — and no other verb reaches it: `record add` refuses "
+            "an id that exists, `drop` wants the id stated twice, `renumber` changes the "
+            "address and not the heading. This removes the line and re-places it under the "
+            "named heading, reporting both positions, and refuses a heading the ledger does "
+            "not declare — `block add` is what writes one."
+        ),
+    )
+    record_move.add_argument("id", help="the recorded id, e.g. RK41")
+    record_move.add_argument(
+        "--to-block",
+        required=True,
+        dest="to_block",
+        help="the block label to file it under, e.g. B; refused unless a heading declares it",
+    )
+    record_move.add_argument(
+        "--json", action="store_true", help="both positions, and the blocks they are under"
+    )
+    record_move.set_defaults(handler=_record_move)
+
+    record_drop = entries.add_parser(
+        "drop",
+        help="remove the later of two ledger entries for one id",
+        description=(
+            "Delete a duplicate entry, and only a duplicate: refused unless the ledger states "
+            "the id twice, because removing the only record of a decision is deleting history "
+            "rather than de-duplicating it. The first entry stays, since that is where a "
+            "reader already found the decision, and no other file is opened."
+        ),
+    )
+    record_drop.add_argument("id", help="the id the ledger carries twice, e.g. RK41")
+    record_drop.add_argument(
+        "--line",
+        type=int,
+        help=(
+            "which of the two entries goes; required when they do not say the same thing, "
+            "because then they are two deliveries and not one recorded twice"
+        ),
+    )
+    record_drop.add_argument(
+        "--json", action="store_true", help="which line went, and which one answers now"
+    )
+    record_drop.set_defaults(handler=_record_drop)
+
+    record_renumber = entries.add_parser(
+        "renumber",
+        help="give one of two entries for an id an address of its own",
+        description=(
+            "The counterpart of `renumber` for the file that verb never opens. Renumbering "
+            "a record is normally how a `git log -S` starts returning two unrelated "
+            "designs — and that argument inverts on a collision, where the shared id is "
+            "already what makes the history unreadable. Refused on anything but an id the "
+            "ledger states twice, and which of the entries moves is yours to name: the one "
+            "that earned the id from a roadmap line is the one to leave alone."
+        ),
+    )
+    record_renumber.add_argument("id", help="the id the ledger carries twice, e.g. RK41")
+    record_renumber.add_argument(
+        "--line", type=int, help="the entry that moves; named, never defaulted"
+    )
+    record_renumber.add_argument(
+        "--to", help="the new id (default: derived, one past the highest in its family)"
+    )
+    record_renumber.add_argument("--json", action="store_true", help=_JSON_HELP)
+    record_renumber.set_defaults(handler=_record_renumber)
+
+    delivered_parser = subcommands.add_parser(
+        "delivered",
+        help="what a block has already shipped, as claims — the read before an `add`",
+        description=(
+            "The other list to consult before proposing work, beside `non-goal list` "
+            "(RK69). A duplicate is not refused and could not be: RK378 restated RK340 the "
+            "day after it shipped and RK382 restated RK178 a day later, and a lexical match "
+            "cannot be gated: measured over this ledger it ranks the true pair in the top "
+            "three and still scores below what an entry with no duplicate scores against "
+            "its own nearest neighbour, so no threshold separates them. Two people "
+            "describing one problem use disjoint words, and recognising that takes meaning "
+            "this tool has none of (L4). So it states what "
+            "the block delivered and you read it. Symptoms alone: the claim is what a "
+            "duplicate collides with, and the outcome sentence doubles the length. A letter "
+            "no heading declares is refused rather than answered as empty — that answer is "
+            "read as evidence — and where the label is declared the reply says which of "
+            "live, paused, finished or empty the block is. `--near` is the same read "
+            f"bounded by the question (RK442): the {NEAREST} entries nearest the sentence "
+            "you are about to propose, in order, instead of the whole block. The order is "
+            "the answer and there is no score — RK441 measured that the absolute one "
+            "separates nothing, so publishing it would invite a threshold that cannot exist."
+        ),
+    )
+    delivered_parser.add_argument("block", help="the block label, e.g. B")
+    delivered_parser.add_argument(
+        "--near",
+        metavar="SYMPTOM",
+        help=(
+            f"the symptom about to be proposed: print the {NEAREST} entries nearest it "
+            "rather than the block, ranked by word overlap and never refused or warned about"
+        ),
+    )
+    delivered_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    delivered_parser.set_defaults(handler=_delivered, reads_only=True)
+
+    reversals_parser = subcommands.add_parser(
+        "reversals",
+        help="the decisions this ledger already made and undid, with the argument",
+        description=(
+            "A revert is filed as a delivery, so a duplicate check answers `yes, shipped` "
+            "about the entry that says the work did not hold. This reads the forward "
+            "pointer back: every id the ledger marks superseded, the entry that superseded "
+            "it, and that entry's sentence — which is the argument a fresh proposal is "
+            "against. Read it before an `add`, not after. It refuses nothing: re-proposing "
+            "reverted work is sometimes right, and which is a judgement the tool never makes."
+        ),
+    )
+    reversals_parser.add_argument(
+        "--id",
+        dest="task_id",
+        help="ask about one id: exits 1 where that id's decision was reversed",
+    )
+    reversals_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    reversals_parser.set_defaults(handler=_reversals, reads_only=True)
+
+
+    retire_parser = subcommands.add_parser(
+        "retire",
+        help="record a line leaving without shipping: replaced by another, or abandoned",
+        description=(
+            "The two departures that are not a ship: the work moved to another id "
+            "(--superseded-by), or it is not being done. Both write one ledger line under "
+            "the block it belonged to, with the forward pointer where there is one, and no "
+            "design — which is what a gap here otherwise reads as, a botched hand-edit."
+        ),
+    )
+    retire_parser.add_argument("id", help="the task leaving, e.g. RK33")
+    retire_parser.add_argument(
+        "--superseded-by",
+        dest="superseded_by",
+        metavar="ID",
+        help=(
+            "the id that takes the work over, which is a replacement and not an "
+            "abandonment; omitted, the line is recorded as abandoned"
+        ),
+    )
+    _reason_flag(
+        retire_parser, "one sentence, the author's own: the tool never writes it" + _PIPE
+    )
+    retire_parser.add_argument("--json", action="store_true", help="every edit, as data")
+    retire_parser.set_defaults(
+        handler=_retire, reads_stdin=(Prose(dest="reason", omitted=False),)
+    )
+
