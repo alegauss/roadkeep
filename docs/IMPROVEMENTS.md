@@ -272,34 +272,6 @@ and on a line with deps, where the structures differ again.
 
 ## Block D — The gate
 
-### §RK1172 Two phases, and the five inputs a rule reads
-
-`remedying.py` states the argument outright: keyed centrally, a test can assert the
-domain is total over every code the package emits, which turns adding a check without
-stating its repair into a red. Only half is applied — the *remedy* is a table and the
-*check* is not.
-
-**Measured, because the scan kinds are the record's shape.** `_examine` makes **24 calls
-across 16 signatures**, clustering into five inputs: the governed **tree**, the
-**documents** carrying task lines, **one role's document**, the **prose** files with the
-**anchor index** derived from them, and a git **revision** where a rule compares against
-a baseline. Each is a fact about the project, and a record naming which a rule wants is
-a loop where hand-wiring is.
-
-**Three rules take none of them.** `_grammatical`, `_untainted` and `_ordered` are
-handed the *findings so far*: they fold a file's non-canonical lines into one defect,
-drop what another finding already explains, and put the report in its printed order.
-Those read the report rather than the repository, and a flat domain has nowhere to put
-them.
-
-So the set has **two phases** and not one list: rules that read the project, and rules
-that read what those produced. The record carries its input kind; the phase orders the
-loop, and a rule reading findings declares it instead of being sequenced by where its
-call sits.
-
-What needs deciding next, once the record exists: whether `--fix` reads a field on it —
-`fixing.py` keeps `REPAIRS` today — which is RK1173.
-
 ### §RK1192 The check nobody runs
 
 `install --check` already answers this exactly, and that is the problem: it is a command

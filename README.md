@@ -119,16 +119,16 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 3 | 149 | 2 |
 | C — Query (consult without reading the file) | 5 | 98 | 1 |
-| D — The gate | 2 | 175 | 2 |
+| D — The gate | 1 | 175 | 2 |
 | E — Adoption | 3 | 86 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 108 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 7 | 0 |
-| **Total** | 13 | 677 | 9 |
+| **Total** | 12 | 677 | 9 |
 
 **Next ready:**
 
-- ⏳ **RK1172** (deps: —) **The gate's checks are functions gathered by convention, each with its own signature, so adding one is invisible** — linting.py is 1,618 code lines of hand-wired calls whose scan kind is implicit in the parameters, where the remedy side has been a table keyed by code since RK420. → §RK1172
+- 📋 **RK1184** (deps: —) **Nothing states what would prove a task done, so `ship` is a judgement with no artefact behind it** — `remaining` already runs a design's own fenced query, so evidence is that read inverted — sites that must exist rather than sites left, counted and never judged. → §RK1184
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
