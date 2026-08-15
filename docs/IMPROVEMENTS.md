@@ -270,6 +270,29 @@ Worth establishing first: whether the ten are the dep annotation, which a ledger
 does not carry and a roadmap line does, and whether the same gap appears on a `--part`
 and on a line with deps, where the structures differ again.
 
+### §RK1201 The line a commit already closed
+
+Measured today: `pick` offered RK1172, the record and both phases were already on disk,
+and two commits named the id. Nothing had shipped it. What found the state was reading
+the code and then running `origin RK1172`, which answered `shipped —` — the right answer
+to a question nobody would think to ask about a line they had not already opened.
+
+Neither neighbouring read covers it. `gaps` explains an id in **neither** file, and this
+one is in the roadmap. `origin` resolves one id, so it is a confirmation and never a
+discovery. `claims` reads the registry, which says who holds a line and not whether its
+work landed. `writes` reads the attestation record, which is about governed files rather
+than commits.
+
+The shape is a sweep over the open lines: for each, whether any commit names it, and
+whether the ledger records it. An id with commits and no entry is the state — a *report*
+and never a refusal, because the honest reading is sometimes "the work is under way and
+the commits are partial", which is what a partial entry is for.
+
+Two things it must not become. Not a gate: a commit naming an id is not evidence the
+work is done, and failing CI on that would fail every session mid-task. And not a second
+`ship` — which of a task's commits completed it is a judgement, and this tool has no
+model of one (L4).
+
 ## Block D — The gate
 
 ### §RK1192 The check nobody runs
