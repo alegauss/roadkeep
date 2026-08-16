@@ -77,15 +77,27 @@ Rationale = tuple[str, "str | Callable[[], str]"]
 
 
 class IdInUse(ValueError):
-    """An id is the one decision that cannot be taken back once it is committed."""
+    """An id is the one decision that cannot be taken back once it is committed.
 
-    def __init__(self, task_id: str, where: str, lineno: int) -> None:
+    ``flag`` is which argument this caller's number arrived on (RK1212). Written for `add
+    --id`, where every word of it is right, and shared by RK4 with every door that moves a
+    task onto a number — so `renumber --to TT1` answered *omit `--id` and it is derived* at a
+    verb that declares no `--id`, and said so itself one call later. The advice underneath is
+    correct at all of them, which is what makes the wrong spelling worse than no remedy: it
+    reads as typeable, and costs a call to find out it is not.
+
+    An argument and not a lookup here, the shape :class:`~roadkeep.kernel.document.UnknownBlock`
+    already has for `--organise`: the raiser is the one thing that knows which door it is.
+    """
+
+    def __init__(self, task_id: str, where: str, lineno: int, *, flag: str = "--id") -> None:
         self.task_id = task_id
         self.where = where
         self.lineno = lineno
+        self.flag = flag
         super().__init__(
             f"{task_id} already occurs at {where}:{lineno}: an id is never reused, "
-            f"not even one that was retired — omit --id and it is derived"
+            f"not even one that was retired — omit {flag} and it is derived"
         )
 
 
@@ -1611,7 +1623,7 @@ def _refuse_sibling_status(config: Config, task_id: str) -> None:
             )
 
 
-def refuse_reuse(config: Config, task_id: str) -> None:
+def refuse_reuse(config: Config, task_id: str, *, flag: str = "--id") -> None:
     """Refuse an id anything already mentions, anywhere (RK4).
 
     Public because every door that **moves a task onto** a number needs the same refusal,
@@ -1620,6 +1632,11 @@ def refuse_reuse(config: Config, task_id: str) -> None:
     refused as well as a line, and that is right here: landing a task on a number some
     sentence already names silently re-points the sentence at work it was not about.
 
+    ``flag`` is the one thing that is **not** shared (RK1212): the rule is one and the
+    argument carrying the number is each verb's own, so the remedy is passed rather than
+    assumed — `renumber` and `record renumber` take `--to`, and the sentence naming `--id` at
+    them was a call the parser refuses, one step further down.
+
     :func:`refuse_occupied` is the *other* rule, for the door that gives a number the line
     it is missing rather than taking one over (RK1051). Two functions and not a flag,
     because they enforce different things — this one that a number is unspoken for, that
@@ -1627,7 +1644,7 @@ def refuse_reuse(config: Config, task_id: str) -> None:
     """
     clash = next((ref for ref in scan(config) if ref.id == task_id), None)
     if clash is not None:
-        raise IdInUse(task_id, config.relative(clash.path), clash.lineno)
+        raise IdInUse(task_id, config.relative(clash.path), clash.lineno, flag=flag)
 
 
 def refuse_occupied(config: Config, task_id: str) -> IdRef | None:

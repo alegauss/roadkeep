@@ -1972,7 +1972,8 @@ def readdress(
         raise SameId(task_id)
     if not config.schema.id_pattern().match(to):
         raise NotAnId(to, config.schema.id_pattern().pattern)
-    refuse_reuse(config, to)
+    # `--to`, this verb's own spelling for the number (RK1212).
+    refuse_reuse(config, to, flag="--to")
 
     document = ledger.replace_task(going, ledger.schema.check(replace(going.task, id=to)))
     kept = next(entry for entry in twins if entry.lineno != going.lineno)

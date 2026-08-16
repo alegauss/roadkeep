@@ -223,6 +223,22 @@ def test_a_destination_the_ledger_records_is_refused(tmp_path):
     assert source(config, "roadmap") == BACKLOG
 
 
+def test_the_refusal_names_this_verbs_own_flag(tmp_path):
+    """RK1212. `IdInUse` was written for `add --id` and RK4 shared it with every door that
+    moves a task onto a number — so this one answered *omit `--id` and it is derived* at a
+    verb declaring no `--id`, and the parser said so itself one call later. The advice
+    underneath is right here (`renumber <id>` with no `--to` derives), which is what made the
+    wrong spelling worse than no remedy: it reads as typeable and costs a call to find out."""
+    config = project(tmp_path)
+    with pytest.raises(IdInUse) as raised:
+        renumber(config, "RK90", "RK91")
+    assert "omit --to and it is derived" in str(raised.value)
+    assert "--id" not in str(raised.value)
+    # And the flag rides on the refusal, not only inside its sentence, so a surface composing
+    # a retry reads a field rather than parsing prose.
+    assert raised.value.flag == "--to"
+
+
 def test_a_destination_the_format_cannot_read_is_refused(tmp_path):
     config = project(tmp_path)
     with pytest.raises(NotAnId):

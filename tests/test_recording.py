@@ -985,8 +985,12 @@ def test_the_other_delivery_is_given_an_address_of_its_own(tmp_path):
 def test_the_destination_is_derived_and_refused_against_every_source(tmp_path):
     config = project(tmp_path, roadmap=ROADMAP, ledger=DELIVERIES)
     assert readdress(config, "RK1", lineno=5).to == "RK3"
-    with pytest.raises(IdInUse):
+    with pytest.raises(IdInUse) as raised:
         readdress(config, "RK1", lineno=5, to="RK2")
+    # `--to`, this verb's own spelling (RK1212). The path is live and was inheriting `add`'s
+    # flag, which the design filing that task left as an open question about this door.
+    assert "omit --to and it is derived" in str(raised.value)
+    assert raised.value.flag == "--to"
 
 
 def test_which_entry_moves_is_named_and_never_defaulted(tmp_path):

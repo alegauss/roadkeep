@@ -368,6 +368,9 @@ def test_an_id_already_used_is_refused_even_where_it_is_only_prose(tmp_path):
     with pytest.raises(IdInUse) as raised:
         task(config, task_id="RK9")
     assert "agents.md:1" in str(raised.value)
+    # `--id` here, which is this verb's own spelling and the one the sentence was written for
+    # (RK1212): what changed is that the other two doors stopped inheriting it.
+    assert "omit --id and it is derived" in str(raised.value)
     assert source(config) == BODY
 
 

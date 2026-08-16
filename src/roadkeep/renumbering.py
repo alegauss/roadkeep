@@ -248,7 +248,9 @@ def renumber(config: Config, task_id: str, to: str | None = None) -> Renumbering
         raise SameId(task_id)
     if not schema.id_pattern().match(to):
         raise NotAnId(to, schema.id_pattern().pattern)
-    refuse_reuse(config, to)
+    # `--to` and not `--id`, which is this verb's own spelling (RK1212): the rule is shared
+    # and the argument carrying the number is not.
+    refuse_reuse(config, to, flag="--to")
 
     changed: dict[str, Document] = {}
     # The pointer is the id under `ref_scheme = "id"` (RK27), so it moves with it; under
