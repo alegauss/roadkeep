@@ -70,6 +70,16 @@ DEFAULT_PATHS: Mapping[str, str] = {
     "improvements": "docs/IMPROVEMENTS.md",
 }
 
+#: Where the strategy file goes when a scaffold is asked for one (RK1186). **Beside the table
+#: and not in it**, and the difference is what that table is: it declares the layout a project
+#: *has* when it declares none, so a `strategy` row made `Config.missing()` report an absent
+#: strategy file on every unconfigured project — measured immediately, by the test that asserts
+#: that layout. This says where `init --strategy` would put one, which is a scaffold's decision.
+#:
+#: Here rather than in `adopting`, because L6's own invariant says so: two modules may spell a
+#: governed file's default name, and the one that scaffolds is not one of them.
+STRATEGY_PATH = "docs/STRATEGY.md"
+
 _TOP_KEYS = frozenset(
     {
         "prefix",

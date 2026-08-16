@@ -120,15 +120,15 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 3 | 149 | 2 |
 | C — Query (consult without reading the file) | 3 | 101 | 1 |
 | D — The gate | 1 | 175 | 2 |
-| E — Adoption | 3 | 86 | 1 |
+| E — Adoption | 2 | 87 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 108 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 7 | 0 |
-| **Total** | 10 | 680 | 9 |
+| **Total** | 9 | 681 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1186** (deps: —) **`init` scaffolds three files and no flag names the strategy one, so a spec above the task line has no home** — Every reader of a pointer already resolves across both prose roles, so the file is supported everywhere except at the one command that creates a project's files. → §RK1186
+- 📋 **RK1187** (deps: —) **`symptom` is the one prose field no verb declares as a pipe reader, so `-` lands in the file as the claim** — RK1176 made that declaration the parser's own and `restate` declares none — the verb whose only prose argument is the field that carries a backtick as readily as a why. → §RK1187
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

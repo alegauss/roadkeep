@@ -18,7 +18,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from roadkeep.adopting import adopt, init
+from roadkeep.adopting import SCAFFOLD_ROLES, STRATEGY_ROLE, adopt, init
 from roadkeep.capturing import (
     Filed,
     REPORTS,
@@ -57,7 +57,15 @@ def _init(config: Config, args: argparse.Namespace) -> int:
     del config
     families = tuple(args.prefix or ("RK",))
     try:
-        created = init(args.directory, prefix=families, blocks=args.blocks or ("A",))
+        created = init(
+            args.directory,
+            prefix=families,
+            blocks=args.blocks or ("A",),
+            # Named at the door and never derived (RK1186): which prose files a project wants
+            # is the author's decision, and a scaffold that guessed would create a file
+            # somebody has to notice is empty before they can delete it.
+            roles=(*SCAFFOLD_ROLES, STRATEGY_ROLE) if args.strategy else SCAFFOLD_ROLES,
+        )
     except (ValueError, OSError) as error:
         return _refused(error)
 
@@ -515,6 +523,15 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
         help=(
             "a block heading, repeatable: 'A' or 'A — The model'. A task is filed "
             "under a heading and a write never invents one (default: A)"
+        ),
+    )
+    init_parser.add_argument(
+        "--strategy",
+        action="store_true",
+        help=(
+            "scaffold the strategy file too: a prose role for a document that outlives "
+            "every task filed under it, where an improvements section is one task's "
+            "rationale and goes when the line ships"
         ),
     )
     init_parser.add_argument("--json", action="store_true", help=_JSON_HELP)

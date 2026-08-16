@@ -63,6 +63,7 @@ from roadkeep.config import (
     CLAIM_HELD,
     CONFIG_NAME,
     DEFAULT_PATHS,
+    STRATEGY_PATH,
     PROSE_ROLES,
     PYPROJECT,
     Config,
@@ -84,12 +85,20 @@ from roadkeep.sections import anchored, structural, unanchored, words as section
 #: project does not, and a declared file nobody writes is `file.missing` on the first lint.
 SCAFFOLD_ROLES = ("roadmap", "changelog", "improvements")
 
+#: The fourth, written only where `init --strategy` asks for it (RK1186). Opt-in and not a
+#: default, because the two prose roles answer different questions: an improvements section is
+#: a task's rationale and is **deleted when the line ships**, and a strategy document outlives
+#: every task filed under it. A project with one backlog and no specification above it would
+#: get an empty file it never opens, which is the scaffold inventing a decision.
+STRATEGY_ROLE = "strategy"
+
 #: The heading each scaffolded file opens with. Structural, not prose — the block headings
 #: below it are what `add`, `ship` and `section add` file text under.
 _TITLES = {
     "roadmap": "Roadmap (active backlog)",
     "changelog": "Shipped Ledger",
     "improvements": "Improvements",
+    "strategy": "Strategy",
 }
 
 #: The fields `adopt` measures against their limits, and where each one is read from.
@@ -732,9 +741,14 @@ def init(
     """Write `roadkeep.toml` and the files it declares, or write nothing.
 
     ``blocks`` are heading suffixes: ``"A"`` becomes ``## Block A`` and ``"A — The model"``
-    becomes ``## Block A — The model``. They are mirrored into all three files, because the
-    ledger and the rationale file are filed under the same headings the roadmap is and a
-    write never invents one (RK37).
+    becomes ``## Block A — The model``. They are mirrored into every file written, because the
+    ledger and the prose files are filed under the same headings the roadmap is and a write
+    never invents one (RK37).
+
+    ``roles`` is which files to write, and the strategy one is opt-in (RK1186): every reader
+    of a pointer has resolved against it since RK172, and this was the one command that could
+    not create it — so a project wanting a document *above* the task line hand-edited the
+    configuration and made the file, which are the two steps a scaffold exists to remove.
     """
     base = Path(root).resolve()
     existing = _configured(base)
@@ -755,8 +769,11 @@ def init(
             raise RepeatedBlock(label)
         seen.add(label)
 
-    paths = {role: base / DEFAULT_PATHS[role] for role in roles}
-    text = render_config(schema, {role: DEFAULT_PATHS[role] for role in roles})
+    # The scaffold's own table, which is `DEFAULT_PATHS` plus the one role that is not part
+    # of a project's implied layout (RK1186).
+    where = {**DEFAULT_PATHS, STRATEGY_ROLE: STRATEGY_PATH}
+    paths = {role: base / where[role] for role in roles}
+    text = render_config(schema, {role: where[role] for role in roles})
     _verify(text, schema, base, paths)
 
     target = base / CONFIG_NAME
@@ -815,7 +832,12 @@ def render_config(schema: Schema, paths: Mapping[str, str]) -> str:
         "",
         "[files]",
     ]
-    lines += [f"{role} = {_quote(paths[role])}" for role in SCAFFOLD_ROLES if role in paths]
+    # Every role the caller asked to scaffold, in the order this module declares them
+    # (RK1186). `SCAFFOLD_ROLES` alone was the same list twice — what a bare `init`
+    # writes and what the config may declare — and `--strategy` made the second one
+    # wrong: the file was written and the key was not, which `_verify` refuses whole.
+    written = (*SCAFFOLD_ROLES, STRATEGY_ROLE)
+    lines += [f"{role} = {_quote(paths[role])}" for role in written if role in paths]
     lines += [
         "",
         "[limits]",

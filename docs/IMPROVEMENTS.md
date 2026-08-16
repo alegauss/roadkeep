@@ -256,24 +256,6 @@ reader learns to skip — which is how a gate stops being read.
 
 ## Block E — Adoption
 
-### §RK1186 The prose file a scaffold cannot create
-
-The strategy file is a fully governed prose role and has been since RK172: a pointer
-resolves against it, RK186 taught `show` and `brief` to name the file that declares an
-anchor, RK196 kept the drop working across roles, RK229 carried it through a `defer`,
-RK230 let the one-write door reach it, and RK340 gave it its own namespace. Every reader
-is finished. The one command that creates a project's files is not: `init` writes the
-roadmap, the ledger and the improvements file, and nothing names the fourth, so a
-project that wants it hand-edits the configuration and creates the file — the two steps
-a scaffold exists to remove.
-
-The reason to want it is the split, not the file. A task's rationale answers why this
-line exists and is deleted when the line ships; a document above the line outlives every
-task filed under it, which is what a project working from a specification needs and what
-the improvements file, by its own rule, cannot hold. `add --section` deriving
-improvements stays exactly as it is: naming the role at both ends is two places that can
-disagree, and a project declaring both makes the choice by calling `section add --role`.
-
 ### §RK1193 Adoption stops one step short of a pinned engine
 
 `roadkeep-launch.py` resolves an engine — `$ROADKEEP_HOME`, then a sibling checkout,

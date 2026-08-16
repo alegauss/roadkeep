@@ -89,6 +89,50 @@ def test_scaffold_is_a_project_lint_passes(tmp_path: Path, capsys) -> None:
     assert "clean" in capsys.readouterr().out
 
 
+
+def test_the_strategy_file_is_scaffolded_only_where_it_is_asked_for(tmp_path: Path) -> None:
+    """RK1186's two halves, and neither works alone.
+
+    A bare `init` writes three files and declares three keys — the strategy role is opt-in
+    because the two prose roles answer different questions, and a project with no
+    specification above its backlog would get a file it never opens. With `--strategy` it
+    writes four and declares four, which is the second half: the file and the key are one
+    transaction, and `_verify` refuses the scaffold whole where they disagree.
+    """
+    from roadkeep.adopting import SCAFFOLD_ROLES, STRATEGY_ROLE, init
+
+    bare = init(tmp_path / "plain", blocks=("A",))
+    assert [one.name for one in bare.files] == ["ROADMAP.md", "CHANGELOG.md", "IMPROVEMENTS.md"]
+    assert "strategy" not in bare.config.read_text(encoding="utf-8")
+
+    asked = init(
+        tmp_path / "split", blocks=("A",), roles=(*SCAFFOLD_ROLES, STRATEGY_ROLE)
+    )
+    assert [one.name for one in asked.files] == [
+        "ROADMAP.md",
+        "CHANGELOG.md",
+        "IMPROVEMENTS.md",
+        "STRATEGY.md",
+    ]
+    # The key as well as the file: a scaffold that wrote one without the other is the
+    # half-configured project `_verify` exists to refuse.
+    assert 'strategy = "docs/STRATEGY.md"' in asked.config.read_text(encoding="utf-8")
+
+
+def test_an_unconfigured_project_is_not_missing_a_strategy_file(tmp_path: Path) -> None:
+    """The measurement that moved `STRATEGY_PATH` out of `DEFAULT_PATHS` (RK1186).
+
+    That table declares the layout a project **has** when it declares none, so a row in it
+    is a file the project is expected to have — and a strategy row made `missing()` name one
+    on every unconfigured tree. Where the constant lives is the fix, and this is what says so.
+    """
+    from roadkeep.config import Config
+
+    config = Config.discover(tmp_path)
+    assert config.source is None
+    assert "strategy" not in config.missing()
+
+
 def test_scaffold_takes_the_whole_lifecycle(tmp_path: Path, capsys, monkeypatch) -> None:
     """The claim the file listing cannot make: `add`, `section`, `ship` and `lint` all run.
 
