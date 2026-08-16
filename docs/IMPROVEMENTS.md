@@ -106,8 +106,8 @@ none.
 A pointer `add` creates, and a door `add` names, where the door refuses. Measured on a
 fresh outline project: `add --block A --ref I.1 …` lands the line and reports `section
 add I.1 --title …` as the write that closes the pointer it just made — and that call
-refuses, no §I existing for a child to extend. The line is left unresolvable by the
-command the write handed over.
+refuses, no family `I` existing for a child to extend. The line is left unresolvable by
+the command the write handed over.
 
 RK197 made that follow-up name the role a `section add` would write into, so a command
 naming a file nobody created is never printed. This is the same claim one address up: a
@@ -126,9 +126,9 @@ on purpose.
 
 ### §RK1207 The refusal whose door is the call that was just made
 
-`section add I.1` on a file with no §I answers `no section §I.1 extends
+`section add I.1` on a file with no family `I` answers *no section I.1 extends
 (docs/IMPROVEMENTS.md declares: none): an anchor states its own place, and appending
-files the prose under the last block`. Every clause is true and none is a verb. The
+files the prose under the last block*. Every clause is true and none is a verb. The
 listing of what the file declares comes closest, and on an empty outline it is the word
 `none`.
 
