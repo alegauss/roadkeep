@@ -156,34 +156,6 @@ class Share:
         """
         return words(self.allowed)
 
-    def payload(self) -> dict[str, object]:
-        """This field in both units, as a payload — shared with the non-goal's two (RK283).
-
-        The same shape and the same arithmetic at both doors: a second spelling of it here would
-        be a second answer, and the whole reason this verb exists is that there is only one.
-        """
-        return {
-            "field": self.field,
-            "limit": self.limit,
-            "allowed": self.allowed,
-            "aim": self.aim,
-            "taken": self.taken,
-            "left": self.left,
-            # Beside `left` and not instead of it (RK245): the characters are still what
-            # refuses, and this is the same remainder in the unit an author can count.
-            "room": self.room,
-            # Declared, as the section budget declares `words` (RK430). A number published
-            # without its unit is what let a consumer counting UTF-16 and a tool counting code
-            # points both be right about one line and disagree by one.
-            "unit": UTF16_UNITS,
-            "bound_by_line": self.bound_by_line,
-            # Where `limit` was set (RK1071), so a surface serving this can answer *why is it
-            # 200* without a second call — the read that otherwise costs a turn. Beside the
-            # number rather than under the payload, because a per-role limit makes it a fact
-            # about this field and not about the answer.
-            "source": self.source.strip(" ()"),
-        }
-
     @property
     def aimed(self) -> str:
         """The word figure, about the room the author actually has (RK245).
