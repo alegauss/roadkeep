@@ -324,6 +324,7 @@
 - ✅ **RK1201** **An open line whose work is already committed is invisible until somebody runs origin on that one id** — unclosed sweeps the open lines for commits naming them, dropping the one that filed each — the oldest, since add mints the id and nothing can name one before the line exists.
 - ✅ **RK1184** **Nothing states what would prove a task done, so `ship` is a judgement with no artefact behind it** — a roadkeep-evidence block is the same grammar with the sign flipped, counted by the same reader — and this task's own criterion answered 4 of 4 before the line was closed.
 - ✅ **RK1185** **`brief` hands over a task's design and deps but never its criterion, so it is read at the ship** — the criterion rides with the brief as its clauses and what each matches now, so the claim the work is measured against arrives before the first edit rather than at the ship.
+- ✅ **RK1188** **No verb says what the blocks are called, so choosing where a task goes means reading the file the hook denies** — `block list` prints every declared block with its title, open count and state in file order, naming the labels only the ledger declares — the read `add --block` assumes, served over MCP.
 
 ## Block D — The gate
 

@@ -28,7 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1188** (deps: —) **No verb says what the blocks are called, so choosing where a task goes means reading the file the hook denies** — SKILL.md tells an author to look at what the blocks already are before add; stats answers letters and counts, list and delivered demand a block they cannot enumerate. → §RK1188
 - 📋 **RK1190** (deps: —) **budget states the allowance and cannot be handed a draft, so prose three words over is found by being refused** — RK190 made the allowance knowable before the first word; measuring the draft against it still costs a write, and the retry after each refusal is a guess. → §RK1190
 - 📋 **RK1199** (deps: —) **The shipping allowance brief prints is ten characters narrower than the limit ship then enforces** — RK1174 put the ledger's own ceiling in front of the write, and it is measured against a structure ten wider than the line ship writes — so a clause is cut that would have fit. → §RK1199
 - 📋 **RK1210** (deps: —) **next_family answers a different free address per process where two numbering systems tie on the same file** — max breaks the tie by set iteration order, which is per-process hash randomisation, so a derived address is not a function of the bytes it is derived from. → §RK1210
