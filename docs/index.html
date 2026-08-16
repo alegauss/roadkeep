@@ -794,7 +794,7 @@ Call instead, from the project root:
         <div class="ico">🪶</div>
         <span class="kicker">No setup turn</span>
         <h3>argparse and tomllib. That is the whole stack.</h3>
-        <p><b>Zero runtime dependencies</b> — not <code>click</code>, not <code>pydantic</code>. Nothing to resolve means <code>uvx roadkeep lint</code> runs with no install and no checkout, and it governs <b>the Markdown you already have</b>: no migration, no store, no service.</p>
+        <p><b>Zero runtime dependencies</b> — not <code>click</code>, not <code>pydantic</code>. Nothing to resolve means one <code>uvx</code> line runs the gate with no install and no checkout, and it governs <b>the Markdown you already have</b>: no migration, no store, no service.</p>
       </div>
     </div>
   </div>
@@ -988,8 +988,8 @@ docs/ROADMAP.md, docs/CHANGELOG.md, docs/IMPROVEMENTS.md:
   <div class="wrap">
     <div class="sec-head reveal">
       <div class="eyebrow">Get started</div>
-      <h2>Three lines, and the next turn is cheaper</h2>
-      <p>Python ≥3.11 and nothing to resolve. It reads the Markdown you already have, so there is no migration to plan.</p>
+      <h2>Two commands, and the repository carries the rest</h2>
+      <p>Python ≥3.11 and nothing to resolve. <b>Nothing is installed and nothing joins your <code>PATH</code></b> — and it reads the Markdown you already have, so there is no migration to plan.</p>
     </div>
 
     <div class="install">
@@ -997,7 +997,7 @@ docs/ROADMAP.md, docs/CHANGELOG.md, docs/IMPROVEMENTS.md:
         <div class="n">1</div>
         <div class="body">
           <h4>Install the plugin, in Claude Code</h4>
-          <p>Hook, MCP server, skill and slash commands — the enforcement point <b>an agent cannot route around</b>, and the schema it calls with.</p>
+          <p>Hook, MCP server, skill and slash commands — the enforcement point <b>an agent cannot route around</b>, and the schema it calls with. <b>The package ships inside it</b>, so there is no second thing to install: <code>roadkeep guard</code> and <code>roadkeep mcp</code> <i>are</i> the CLI, and the plugin already carries it.</p>
           <div class="copyline">
             <code data-copy>/plugin marketplace add alegauss/roadkeep</code>
             <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
@@ -1006,30 +1006,41 @@ docs/ROADMAP.md, docs/CHANGELOG.md, docs/IMPROVEMENTS.md:
             <code data-copy>/plugin install roadkeep@alegauss</code>
             <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
           </div>
+          <p style="margin-top:11px">From a shell instead, the same two with <code>claude plugin … --scope project</code> write both declarations into that repository's <code>.claude/settings.json</code> — commit it and <b>every clone is wired</b>, with no per-machine step.</p>
         </div>
       </div>
 
       <div class="install-step reveal">
         <div class="n">2</div>
         <div class="body">
-          <h4>Install the CLI the plugin calls</h4>
-          <p><code>roadkeep guard</code> and <code>roadkeep mcp</code> <i>are</i> the CLI — one package, no dependencies, nothing else to configure.</p>
+          <h4>Measure before you commit to it</h4>
+          <p><code>adopt</code> runs the schema over the backlog you already have and reports the delta: what parses, the longest <code>symptom</code>, <code>why</code> and rendered line against their limits, the markers to declare. It <b>writes nothing and never exits 1</b> — an estimate that is a gate is one you took too late. It runs <i>before</i> the project is governed, so it is the one step that wants a shell, and the plugin's own copy answers.</p>
           <div class="copyline">
-            <code data-copy>pip install roadkeep</code>
+            <code data-copy>R=~/.claude/plugins/marketplaces/alegauss/scripts/roadkeep.py</code>
             <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
           </div>
+          <div class="copyline" style="margin-top:9px">
+            <code data-copy>python $R adopt docs/ROADMAP.md --prefix XX</code>
+            <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
+          </div>
+          <div class="copyline" style="margin-top:9px">
+            <code data-copy>python $R adopt docs/IMPROVEMENTS.md --sections --with docs/STRATEGY.md</code>
+            <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
+          </div>
+          <p style="margin-top:11px">Both halves, because both are limits you have to declare — and the numbers <code>[limits]</code> gets set from come from <b>your</b> corpus rather than copied from this one.</p>
         </div>
       </div>
 
       <div class="install-step reveal">
         <div class="n">3</div>
         <div class="body">
-          <h4>Point it at your repository</h4>
-          <p><code>adopt</code> <b>measures the backlog you already have</b> and reports what adopting would cost <i>before</i> you commit to it; <code>init</code> then writes <code>roadkeep.toml</code> — your prefix, paths, markers and limits.</p>
+          <h4>Declare the format once</h4>
+          <p><code>init</code> writes <code>roadkeep.toml</code> — your prefix, paths, markers and limits — and the governed files it declares. <b>No starter task and no prose</b>: a title, the blocks you name, and where the non-goals go. On a repository with no backlog yet, this is the only step of the two you need.</p>
           <div class="copyline">
-            <code data-copy>roadkeep adopt   # then: roadkeep init</code>
+            <code data-copy>python $R init --prefix XX --block "A — &lt;label&gt;"</code>
             <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
           </div>
+          <p style="margin-top:11px">Everything a <i>task</i> needs afterwards is already in the tools the plugin installed — <code>add</code>, <code>status</code>, <code>ship</code>, <code>brief</code>, <code>pick</code>, <code>lint</code> — validating against the schema <code>roadkeep.toml</code> just declared. No shell, no <code>PATH</code>.</p>
         </div>
       </div>
 
@@ -1044,7 +1055,7 @@ docs/ROADMAP.md, docs/CHANGELOG.md, docs/IMPROVEMENTS.md:
 
 repos:
   - repo: https://github.com/alegauss/roadkeep
-    rev: v0.1.0
+    rev: main                     <span class="c"># or a tag, once one is cut</span>
     hooks:
       - id: <span class="g">roadkeep-lint</span>          <span class="c"># or roadkeep-lint-fix</span></pre>
           </div>
@@ -1052,8 +1063,12 @@ repos:
       </div>
 
       <p class="install-foot reveal">
-        Or keep it to one command in an existing pipeline: <code>uvx roadkeep lint</code> — exit
-        <b>0</b> clean, <b>1</b> drifted.
+        Or keep it to one command in an existing pipeline, with no plugin and no checkout:<br>
+        <code>uvx --from git+https://github.com/alegauss/roadkeep roadkeep lint</code> — exit
+        <b>0</b> clean, <b>1</b> drifted.<br>
+        Not on PyPI yet, so the short forms — <code>uvx roadkeep</code>, <code>pip install
+        roadkeep</code> — wait on the first release; <code>pip install
+        git+https://github.com/alegauss/roadkeep</code> installs it today.
       </p>
     </div>
   </div>
