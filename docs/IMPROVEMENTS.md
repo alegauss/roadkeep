@@ -161,6 +161,54 @@ Worth establishing first: whether the ten are the dep annotation, which a ledger
 does not carry and a roadmap line does, and whether the same gap appears on a `--part`
 and on a line with deps, where the structures differ again.
 
+### §RK1210 The address decided by hash order
+
+Measured on a file whose top levels are `1`, `1.1` and `I`. Eight runs of `next_family`
+in eight processes over the same bytes answered `II`, `2`, `2`, `2`, `II`, `2`, `2`,
+`2`. One revision, two answers, and which arrives is decided by nothing in the file.
+
+The line is `max(…)` over a dict built from a **set** comprehension. `1` and `I` both
+read as 1, so the key ties, `max` returns whichever came first, and set iteration order
+over strings is per-process hash randomisation. The system the address is spelled in is
+the tie-break, so the address is too.
+
+The cost is not cosmetic. The address `ref.missing` carries as `offered` — what a retry
+substitutes — is unstable between the refusal and the retry, and in one tree it
+disagreed with itself across surfaces: `anchors` printed `next §2` while the
+`ref.missing` path printed `§II is its free top-level`.
+
+The rule this function states is the answer. *None where the top-levels are not one
+numbering* — a guess beside a total reads like a fact. Roman in one family and decimal
+in another is not one numbering either; the guard catches only a segment reading as
+**no** numeral, so the case that ties is the one let through.
+
+So the fix is that rule applied and not a tie-break invented: two systems is None. Every
+caller has an answer for None already — `_where_a_top_level_is` names `anchors` instead
+of an address, which is what it does for the undecidables it knows about.
+
+### §RK1211 The one address this tool spells for you
+
+`anchors --next` on an outline with nothing in it answers *no outline family exists yet,
+so none is spent — `add --ref I.1` opens the first*. `I` is roman, and it is written
+into that sentence by hand rather than derived: the file has no family to read a system
+off, which is why `next_family` answers None here at all.
+
+So one half of this command declines to guess and the other half guesses. `numeral`
+reads roman and decimal, `spell` writes back in whichever was read, and both exist
+because the numbering is the author's (L4, L6): a project outlining `1`, `2`, `3` is as
+ordinary as one outlining `I`, `II`, `III`, and it is told to open `I.1`.
+
+Following that advice makes the file this tool then cannot read. Measured: a project
+holding `1` and `1.1` was offered `I.1`, took it, and its top levels became `1` and `I`
+— two systems tying at 1, which is RK1210's nondeterminism. The message is the door into
+that defect, and the defect is invisible from the message.
+
+Two readings are available. Naming no address — *`section add <your first family>` opens
+the outline* — costs the caller the one decision only they can make. Naming both —
+*`I.1` or `1.1`, whichever this project numbers in* — shows the choice exists, which
+today's sentence hides. What it must not do is keep one spelling: a first address
+chooses the system for every address after it, and this tool has no opinion (L4).
+
 ## Block D — The gate
 
 ### §RK1192 The check nobody runs
