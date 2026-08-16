@@ -18,7 +18,7 @@ import argparse
 import json
 import sys
 
-from roadkeep.blocking import drop_block, merge_block, open_block
+from roadkeep.blocking import amend_block, drop_block, merge_block, open_block
 from roadkeep.briefing import non_goals
 from roadkeep.config import Config
 from roadkeep.queueing import (
@@ -80,6 +80,20 @@ def _block_drop(config: Config, args: argparse.Namespace) -> int:
         print(json.dumps(closed.payload(config, wrote), indent=2))
     else:
         print(closed.stated(config, wrote))
+    return EXIT_OK
+
+
+def _block_amend(config: Config, args: argparse.Namespace) -> int:
+    try:
+        retitled = amend_block(config, args.label, args.title)
+        wrote = retitled.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    if args.json:
+        print(json.dumps(retitled.payload(config, wrote), indent=2))
+    else:
+        print(retitled.stated(config, wrote))
     return EXIT_OK
 
 
@@ -610,6 +624,23 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
     )
     block_add.add_argument("--json", action="store_true", help=_JSON_HELP)
     block_add.set_defaults(handler=_block_add)
+
+    block_amend = block_actions.add_parser(
+        "amend",
+        help="give a declared block's heading new words, keeping its label and its work",
+        description=(
+            "The words on a heading the other three cannot change. `drop` plus `add` was the "
+            "repair and it is refused the moment anything is filed under the label, so a "
+            "title was write-once from the first `add` on. Narrow: the label is the identity "
+            "and does not move, the subtree is untouched, and each file keeps its own level "
+            "and separator. Every file that declares the label or none — a title corrected "
+            "in one and left in another is the defect this closes."
+        ),
+    )
+    block_amend.add_argument("label", help="the block label, e.g. G")
+    block_amend.add_argument("--title", required=True, help="the words it should read")
+    block_amend.add_argument("--json", action="store_true", help=_JSON_HELP)
+    block_amend.set_defaults(handler=_block_amend)
 
     block_drop = block_actions.add_parser(
         "drop",

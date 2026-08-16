@@ -249,7 +249,13 @@ is refused rather than appended. `block drop <x>` withdraws a label opened by mi
 heading goes only from the files where its whole subtree is blank, and anything filed
 under it — an open line, a paused one, a rationale section — is named in a refusal that
 writes nothing, because a heading over work is not an empty heading. The ledger keeps its
-heading either way, history being filed under it. **`block merge <x>` is the key to the
+heading either way, history being filed under it — which is why **`block amend <x> --title
+"…"` is the door to a heading's *words***: that refusal makes drop-and-re-add impossible the
+moment anything is filed, so a title was otherwise write-once. It is narrow — the label is
+the identity and does not move, the subtree is untouched, and each file keeps its own level
+and separator, nobody having asked for a restyle — and it writes every file that declares the
+label or none, a title corrected in one file and left in another being the defect it closes.
+**`block merge <x>` is the key to the
 doubled heading** — the state a textual git merge, an `adopt` or a hand edit leaves, that
 the gate reports `block.repeated` and every write refuses with "merge the two regions by
 hand". It keeps the first heading and folds every later duplicate's entries into it, all

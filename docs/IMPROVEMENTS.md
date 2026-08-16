@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1204 No verb renames a block, so a heading is correctable only while empty
-
-`block add` takes the title, `block drop` removes the heading, `block merge` folds a
-duplicate label. None of the three changes the words of a heading that already exists,
-and `section amend --title` — the verb that does exactly this one file over, for a
-rationale section — has no block counterpart.
-
-Found reopening a pruned block in Turing. The ledger's heading reads `Analytics &
-observability gaps`; the reopen passed the title through a layer that escaped the
-ampersand, and the roadmap got `Analytics &amp; observability gaps`. The skill's own
-rule is that the reopened title stays byte-identical to the ledger's, so one letter is
-never described two ways — and the repair was `block drop` followed by `block add`,
-which worked only because nothing had been filed under it yet.
-
-That is the sharp edge. `block drop` is refused, correctly, the moment the label holds
-an open line, a paused one or a rationale section — a heading over work is not an empty
-heading. So the window for fixing a heading closes on the first `add`, and after it the
-only remaining route is the hand edit the guard denies.
-
-`block amend <label> --title "…"` is the missing door, and it is narrow: the label is
-the identity and does not move, the subtree is untouched, and every file that declares
-the label is rewritten together, the way `block merge` already writes all of them or
-none.
-
 ### §RK1205 The follow-up that names a call which cannot run
 
 A pointer `add` creates, and a door `add` names, where the door refuses. Measured on a

@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1204** (deps: —) **A block title is write-once: nothing renames one, and block drop is refused the moment a line is filed under it** — A typo or an escaped character in a heading is repairable only while the block is empty, which is the one moment nobody is reading it. → §RK1204
 - 📋 **RK1205** (deps: —) **The section add an add prints to close the pointer it wrote refuses where that anchor's family does not exist** — RK197 stopped the follow-up naming a file nobody created; a parent nobody created refuses the same way, and a printed call is read as one that works. → §RK1205
 - 📋 **RK1207** (deps: —) **section add refuses a child whose family does not exist and names no verb, listing what the file declares instead** — The write that makes room is the same command one address up, derivable from the anchor typed and already read to compose the sentence. → §RK1207
 

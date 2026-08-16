@@ -307,6 +307,11 @@ TOOLS: tuple[Tool, ...] = (
     # the one the guard denies the `Edit` to, and the note under that heading was the whole
     # obstacle — a flag only a human can pass is no door on the surface this ships for.
     Tool("block drop", ("label", "prose")),
+    # The third key those two left unmade (RK1204). Exposed for the reason both of them are,
+    # and more sharply: `drop` plus `add` is refused the moment a line is filed under the
+    # label, so after the first `add` the hand-edit the guard denies was the only repair — and
+    # over this transport there is no hand-edit at all.
+    Tool("block amend", ("label", "title")),
     # The key RK141/RK144's pair never cut (RK403): a doubled heading is the state every write
     # refuses with `merge the two regions by hand`, and the guard denies exactly that edit — so
     # an agent that reaches it over MCP, where there is no hand-edit at all, had no door out.

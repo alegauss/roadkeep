@@ -67,7 +67,15 @@ characters = 2600
 # declaring per project. 53,000 — above the widest of the three by 1,428, about a verb and a
 # half at the 978-character average, and re-argued rather than raised when the next one is
 # worth more than what it costs every session at connect.
-session = 53000
+# Re-argued at 55 tools (RK1204), and re-measured rather than extrapolated: 53,515 here,
+# 53,884 in Shio, 54,223 in Turing — the 1.4% spread above, unchanged, so the reading that
+# decided this number still holds. The headroom is what `block amend` spent, and it is the
+# verb that argument was written for: after the first `add` under a label, `drop` plus `add`
+# is refused and a heading's words are correctable only by the hand edit the guard denies —
+# which over MCP does not exist at all, so this is the one door that surface has. 55,700,
+# above the widest by 1,477 and about a verb and a half at the 986-character average, which
+# is the same discipline and not a looser one.
+session = 55700
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

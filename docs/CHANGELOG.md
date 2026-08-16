@@ -212,6 +212,7 @@
 - ✅ **RK1187** **`symptom` is the one prose field no verb declares as a pipe reader, so `-` lands in the file as the claim** — restate --symptom reads stdin like every other prose argument, so a bare - is the pipe and never the claim it lands as.
 - ✅ **RK1196** **restate replaces a false premise and leaves the why and the design still asserting it, naming no follow-up** — restate names the why and the design as the two other places the claim it replaced is written, as the doors that reach them.
 - ✅ **RK1198** **Filing into a block whose prose family is spent is four sequential refusals, each teaching one step** — The ref.missing refusal on a block whose prose has not started prints the whole path, ordered and with its arguments filled in.
+- ✅ **RK1204** **A block title is write-once: nothing renames one, and block drop is refused the moment a line is filed under it** — block amend <label> --title gives a declared heading new words in every file that declares it, keeping the label, the placement and the work.
 
 ## Block C — Query
 

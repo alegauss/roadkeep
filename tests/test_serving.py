@@ -172,6 +172,9 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # And the key that could not close the door (RK144): the caller that opened a label by
         # mistake is the one the guard denies the hand-edit to, which is RK141's own argument.
         "block_drop",
+        # The third key those two left unmade (RK1204): `drop` plus `add` is the only repair
+        # for a heading's words and it is refused the moment a line is filed under the label.
+        "block_amend",
         # The key RK141/RK144's pair never cut (RK403): a doubled heading is the state every
         # write refuses with `merge by hand`, and over MCP there is no hand-edit at all.
         "block_merge",
@@ -873,6 +876,7 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "repair",
         "block_add",
         "block_drop",
+        "block_amend",
         "block_merge",
         "status",
         "amend",

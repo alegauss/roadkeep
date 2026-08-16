@@ -36,10 +36,12 @@ from roadkeep.blocking import (
     NotALabel,
     NotOrganisable,
     NothingToDrop,
+    amend_block,
     drop_block,
     open_block,
 )
 from roadkeep.authoring import place
+from roadkeep.kernel.document import RepeatedHeading
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.deferring import defer
@@ -1212,3 +1214,146 @@ def _repeated(tmp_path, later: str = "- 📋 **DX2** (deps: —) **A second** �
     with (tmp_path / "ROADMAP.md").open("w", encoding="utf-8", newline="") as handle:
         handle.write(body)
     return Config.discover(tmp_path)
+
+
+# -- the words on a heading the other three cannot change (RK1204) ------------
+
+
+def test_a_heading_is_retitled_in_every_file_that_declares_the_label(tmp_path):
+    """RK1204. The door the other three left shut, over work that makes `drop` refuse.
+
+    Measured in Turing: the ledger read `Analytics & observability gaps`, the reopen passed
+    the title through a layer that escaped the ampersand, and the roadmap took `&amp;`. One
+    heading, two spellings, and the repair was `drop` plus `add` — which worked only because
+    nothing had been filed under it yet. The window closes on the first `add`.
+    """
+    config = project(tmp_path)
+    retitled = amend_block(config, "B", "Authoring, corrected")
+    retitled.save()
+
+    # All three, because a title fixed in one file and left in another is this defect again.
+    assert set(retitled.documents) == {"roadmap", "changelog", "improvements"}
+    for name in (ROADMAP, CHANGELOG, IMPROVEMENTS):
+        assert "## Block B — Authoring, corrected" in read(config, name)
+        assert "## Block B — Authoring\n" not in read(config, name)
+    # And the work under it is untouched, which is what makes this safe where `drop` is not.
+    assert "**RK2** (deps: —) **A second symptom**" in read(config, ROADMAP)
+    assert "### §RK2 A second design" in read(config, IMPROVEMENTS)
+
+
+def test_the_label_a_heading_declares_is_the_one_thing_it_cannot_move(tmp_path):
+    # The identity, and the reason this is not `merge` and not `add`: a verb that could move
+    # a label would be filing work under a heading nobody agreed to.
+    config = project(tmp_path)
+    amend_block(config, "B", "Authoring, corrected").save()
+    assert "## Block B — " in read(config, ROADMAP)
+    assert "**RK2**" in read(config, ROADMAP)
+
+
+def test_a_retitle_is_refused_over_a_label_no_file_declares(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(NoSuchBlock) as caught:
+        amend_block(config, "Z", "Nothing to rename")
+    # The list, for `drop`'s reason: a label spelled differently from the file's is the
+    # commonest way this door is reached at all.
+    assert "A, B" in str(caught.value) and "retitle" in str(caught.value)
+
+
+def test_a_blank_title_is_refused_exactly_as_it_is_at_the_door_that_opens_one(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(NotALabel):
+        amend_block(config, "B", "   ")
+    assert "## Block B — Authoring" in read(config, ROADMAP)
+
+
+def test_each_file_keeps_its_own_level_and_separator(tmp_path):
+    # Nobody asked for a restyle (RK388). Rendering from the project's first block heading
+    # would take a file's own spacing as the silent price of correcting three words.
+    config = project(
+        tmp_path,
+        roadmap="# Roadmap\n\n## Block A — The model\n\n## Block B — Authoring\n",
+        changelog="# Shipped\n\n### Block A - The model\n\n### Block B - Authoring\n",
+        improvements="# Improvements\n\n## Block A — The model\n\n## Block B — Authoring\n",
+    )
+    amend_block(config, "B", "Authoring, corrected").save()
+    assert "## Block B — Authoring, corrected" in read(config, ROADMAP)
+    assert "### Block B - Authoring, corrected" in read(config, CHANGELOG)
+
+
+def test_a_title_every_file_already_reads_writes_nothing(tmp_path):
+    # The rule the doors in `authoring` keep: rewriting the same bytes makes a no-op look
+    # like an edit to every hook watching the file.
+    config = project(tmp_path)
+    before = read(config, ROADMAP)
+    retitled = amend_block(config, "B", "Authoring")
+    assert not retitled.documents
+    assert [where for where, _ in retitled.skipped] == [ROADMAP, CHANGELOG, IMPROVEMENTS]
+    assert retitled.save() == () and read(config, ROADMAP) == before
+
+
+def test_a_file_already_reading_it_is_skipped_while_the_others_are_written(tmp_path):
+    # The half-corrected state this verb exists to end, met on the way in rather than out.
+    config = project(
+        tmp_path,
+        roadmap="# Roadmap\n\n## Block A — The model\n\n## Block B — Authoring, corrected\n",
+    )
+    retitled = amend_block(config, "B", "Authoring, corrected")
+    retitled.save()
+    assert set(retitled.documents) == {"changelog", "improvements"}
+    assert retitled.skipped == ((ROADMAP, "already reads that"),)
+    assert "## Block B — Authoring, corrected" in read(config, CHANGELOG)
+
+
+def test_a_doubled_heading_is_refused_and_names_the_verb_that_folds_it(tmp_path):
+    # Picking one of two to rewrite would leave the other saying the old thing, which is this
+    # defect again inside one file — so the refusal is `merge`'s, not a choice made here.
+    config = _repeated(tmp_path)
+    with pytest.raises(RepeatedHeading) as caught:
+        amend_block(config, "A", "The first block, corrected")
+    assert "block merge" in str(caught.value)
+
+
+def test_the_amend_command_prints_both_readings_of_every_heading(tmp_path, capsys):
+    config = project(tmp_path)
+    assert main(
+        ["-C", str(config.root), "block", "amend", "B", "--title", "Authoring, corrected"]
+    ) == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.startswith("Block B retitled: Authoring, corrected")
+    # Both, because a report with only the new heading says a title is right and not that
+    # one changed — which is the whole thing a reviewer is reading for.
+    assert "  was      ## Block B — Authoring" in out
+    assert "docs/ROADMAP.md     :7  ## Block B — Authoring, corrected" in out
+    assert "kept     the label, the placement and everything filed under it" in out
+
+
+def test_the_amend_json_carries_both_readings_per_file(tmp_path, capsys):
+    config = project(tmp_path)
+    assert main(
+        [
+            "-C", str(config.root), "block", "amend", "B",
+            "--title", "Authoring, corrected", "--json",
+        ]
+    ) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["label"] == "B" and payload["title"] == "Authoring, corrected"
+    written = {one["role"]: one for one in payload["written"]}
+    assert set(written) == {"roadmap", "changelog", "improvements"}
+    assert written["roadmap"]["was"] == "## Block B — Authoring"
+    assert written["roadmap"]["rendered"] == "## Block B — Authoring, corrected"
+
+
+def test_the_retitled_file_still_lints_and_still_takes_a_write(tmp_path):
+    # The claim the round-trip law makes of every writer (L3): the heading is rewritten, and
+    # the file it leaves is one the next `add` files into without noticing.
+    config = project(tmp_path)
+    amend_block(config, "B", "Authoring, corrected").save()
+    config = Config.discover(tmp_path)
+    assert not lint(config).findings
+    assert main(
+        [
+            "-C", str(tmp_path), "add", "--block", "B",
+            "--symptom", "A third symptom", "--why", "Because of a third reason.",
+        ]
+    ) == EXIT_OK
+    assert "## Block B — Authoring, corrected" in read(config, ROADMAP)

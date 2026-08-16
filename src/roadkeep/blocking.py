@@ -63,7 +63,13 @@ from pathlib import Path
 
 from roadkeep.authoring import _after_preamble, remove_entry
 from roadkeep.config import Config
-from roadkeep.kernel.document import Document, Heading, blank, save_all
+from roadkeep.kernel.document import (
+    Document,
+    Heading,
+    RepeatedHeading,
+    blank,
+    save_all,
+)
 from roadkeep.kernel.schema import Schema
 
 __all__ = [
@@ -196,13 +202,20 @@ class NoSuchBlock(KeyError):
     differently from the file's is the commonest reason this door is reached at all.
     """
 
-    def __init__(self, label: str, declared: Sequence[str], word: str = "Block") -> None:
+    def __init__(
+        self,
+        label: str,
+        declared: Sequence[str],
+        word: str = "Block",
+        *,
+        doing: str = "remove",
+    ) -> None:
         self.label = label
         self.declared = tuple(declared)
         known = ", ".join(self.declared) or "none"
         super().__init__(
             f"no governed file declares {word} {label} (declares: {known}): there is no "
-            f"heading to remove"
+            f"heading to {doing}"
         )
 
 
@@ -328,6 +341,179 @@ class RegionOccupied(ValueError):
             f"{where} files loose prose ({holds}) under a second {word} {label}: pass "
             f"--prose to drop the note as the duplicate heading is folded, or move it first"
         )
+
+
+@dataclass(frozen=True, slots=True)
+class Retitled:
+    """The words one block's heading is given, in every file that declares it (RK1204).
+
+    A fourth shape and not :class:`Opened` with a flag, for the reason :class:`Closed` is not
+    that either: what this one has to carry is the heading **as it read** beside the heading it
+    now reads, because the whole answer is a title changing and a reader has to see both. The
+    label is on neither side of that pair — it is the identity, and a verb that could move it
+    would be `merge` and `add` at once.
+    """
+
+    label: str
+    title: str
+    #: The files this write changes, by role. Written together or not at all.
+    documents: Mapping[str, Document] = field(default_factory=dict)
+    #: Where the heading is, by role — 1-based, as an editor counts. Unmoved by this write,
+    #: which is the point: the subtree is untouched and so is the placement.
+    placed: Mapping[str, int] = field(default_factory=dict)
+    #: The heading each file held before this write, by role, verbatim.
+    was: Mapping[str, str] = field(default_factory=dict)
+    #: The heading each file holds after it. Two files can differ in level and in separator,
+    #: and each keeps its own: nobody asked for a restyle, and re-rendering from the project's
+    #: convention would take a file's own spacing as the silent price of a retitle (RK388).
+    rendered: Mapping[str, str] = field(default_factory=dict)
+    #: Roles left alone, each with the reason — a file that declares the label with this title
+    #: already above all, which is neither a refusal nor a write.
+    skipped: tuple[tuple[str, str], ...] = ()
+
+    def save(self) -> tuple[Path, ...]:
+        """Write every file, having asked all of them first (RK116, RK6)."""
+        return save_all(*self.documents.values())
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        """Both readings of the heading, and every file that took the new one (RK1204).
+
+        Through the same row producer its three siblings use, so the four block verbs answer
+        in one table shape and none of them pads to a column of its own.
+        """
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        rows = [
+            f"{config.schema.block_named(self.label)} retitled: {self.title}",
+            *_role_rows(
+                config,
+                self.documents,
+                # Two rows per file, and the second is a left-aligned `was` rather than a
+                # column under the first: `restate` prints both readings of a claim that way,
+                # and a heading is long enough that an indented pair wraps in a terminal.
+                lambda role, where: [
+                    f"  {where}:{self.placed[role]}  {self.rendered[role]}",
+                    f"  was      {self.was[role]}",
+                ],
+            ),
+            *(f"  not      {where}: {reason}" for where, reason in self.skipped),
+            # Said out loud, because it is the whole argument for the verb being narrow: a
+            # retitle that moved work would be a merge nobody asked for.
+            "  kept     the label, the placement and everything filed under it",
+        ]
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        """The same answer as data, with both readings of every heading it rewrote."""
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "label": self.label,
+            "title": self.title,
+            "written": [
+                {
+                    "role": role,
+                    "file": config.relative(config.path(role)),
+                    "line": self.placed[role],
+                    # Both readings, which is what makes the write reviewable: a payload with
+                    # only the new heading says a title is right and not that one changed.
+                    "was": self.was[role],
+                    "rendered": self.rendered[role],
+                }
+                for role in self.documents
+            ],
+            "skipped": [
+                {"file": where, "reason": reason} for where, reason in self.skipped
+            ],
+            **_wrote_json(config, wrote),
+        }
+
+
+def amend_block(config: Config, label: str, title: str) -> Retitled:
+    """Give one block's heading new words, in every governed file that declares it (RK1204).
+
+    The door the other three left shut. `add` takes a title, `drop` removes a heading and
+    `merge` folds a duplicate; none of them changes the words of a heading that exists, and
+    `section amend --title` — the verb that does exactly this one file over — had no block
+    counterpart. So a title was write-once, and the only repair was `drop` plus `add`, which
+    :class:`BlockOccupied` refuses the moment anything is filed under the label. The window
+    closed on the first `add`, and after it the hand edit the guard denies was the whole exit.
+
+    Measured in Turing: the ledger's `Analytics & observability gaps` was reopened through a
+    layer that escaped the ampersand, and the roadmap took `Analytics &amp; observability
+    gaps`. One heading, two spellings, and the skill's own rule is that they stay identical.
+
+    **Narrow, and every part of that is deliberate.** The label is the identity and does not
+    move — `merge` is the verb for a label, and a retitle that could change one would be two
+    acts wearing one name. The subtree is not touched: this rewrites a heading line and
+    nothing beneath it, which is why it is safe over work where `drop` is rightly not. Each
+    file keeps its **own** level and separator, read off the heading being rewritten rather
+    than off the project's first block, because nobody asked for a restyle and RK388 settled
+    that a body-only edit leaves the bytes it was not asked about alone.
+
+    All of the files or none of them, as its three siblings write: a title corrected in the
+    roadmap and left standing in the ledger is the exact two-spellings defect this closes.
+
+    A file already holding this title is skipped and said so, and a label where **every** file
+    holds it writes nothing: rewriting the same bytes makes a no-op look like an edit to every
+    hook watching the file, which is the rule the doors in `authoring` keep.
+    """
+    schema = config.schema
+    if not schema.block_dep_pattern().match(schema.block_named(label)):
+        raise NotALabel(label, schema.block_dep_pattern().pattern)
+    if not title.strip():
+        raise NotALabel(label, "a block is named by its title, and this one is blank")
+
+    wanted = title.strip()
+    changed: dict[str, Document] = {}
+    placed: dict[str, int] = {}
+    was: dict[str, str] = {}
+    rendered: dict[str, str] = {}
+    skipped: list[tuple[str, str]] = []
+    declared: list[str] = []
+
+    for role, (where, document, blocks) in _readable(config).items():
+        holding = [one for one in blocks if one.label == label]
+        if not holding:
+            continue
+        declared.append(where)
+        if len(holding) > 1:
+            # Two headings under one label is `merge`'s state, and picking one to rewrite
+            # would leave the other saying the old thing — which is this defect again, inside
+            # one file. The refusal names the verb that resolves it (RK391, RK403).
+            raise RepeatedHeading(
+                label,
+                [one.lineno for one in holding],
+                where,
+                word=schema.heading_word,
+            )
+        (heading,) = holding
+        raw = _heading((heading,), schema.block_named(label), wanted)
+        before = document.lines[heading.lineno - 1].rstrip("\r\n")
+        if before == raw:
+            skipped.append((where, "already reads that"))
+            continue
+        changed[role] = document.replace_line(heading.lineno - 1, raw)
+        was[role] = before
+        rendered[role] = raw
+        placed[role] = heading.lineno
+
+    if not declared:
+        raise NoSuchBlock(label, _labels(config), word=schema.heading_word, doing="retitle")
+    if not changed:
+        # Every file already reads that, which is success and not a write. A refusal here
+        # would be a rule against running the same correction twice.
+        return Retitled(label=label, title=wanted, skipped=tuple(skipped))
+    return Retitled(
+        label=label,
+        title=wanted,
+        documents=changed,
+        placed=placed,
+        was=was,
+        rendered=rendered,
+        skipped=tuple(skipped),
+    )
 
 
 @dataclass(frozen=True, slots=True)

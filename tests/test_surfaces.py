@@ -286,7 +286,10 @@ def test_every_write_command_is_either_wired_or_exempted():
     # verb is out of the write lock, and this row is gone rather than restating it.
     # 34 since `refs` (RK1168), which is wired: it writes a prose file and `roadkeep.toml`, and
     # the staging line names both — the config being the half a reviewer would otherwise miss.
-    assert len(declared) == 34 and len(wired) == 28
+    # 35 since `block amend` (RK1204), which is wired for its three siblings' reason: it
+    # rewrites a heading in every file that declares the label, and the staging line is the
+    # only place a commit learns that the ledger's copy moved with the roadmap's.
+    assert len(declared) == 35 and len(wired) == 29
 
 
 def test_every_wired_write_reaches_the_one_printer():

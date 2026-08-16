@@ -147,6 +147,9 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
         # And the inverse (RK144), because the key that only opens is the same asymmetry: a
         # label typed wrongly was a heading in three files that only this denial's edit removed.
         ("block drop <x>", "withdraw a label: refused by name over any line under it"),
+        # And the words on it (RK1204): the drop above is refused the moment a line is filed
+        # under the label, so a heading's title was correctable only while nobody read it.
+        ('block amend <x> --title "…"', "correct a heading's words; the label and work stay"),
         ("status <id> <marker>", "a marker, and only in this file"),
         ('amend <id> --why "…"', "correct the why, the deps or the pointer of a line"),
         # The field that one excludes, which is the whole reason it is a second row (RK178): a
@@ -192,6 +195,9 @@ _INSTEAD: Mapping[str, tuple[tuple[str, str], ...]] = {
         # Its inverse reaches this file too, but only for a label with nothing under it: an
         # entry is history, and history keeps the heading it was filed under (RK144).
         ("block drop <x>", "withdraw a label opened by mistake; entries keep theirs"),
+        # Which is why the retitle reaches it at all (RK1204): a heading standing over history
+        # is one that can never be dropped, so its words were correctable by nothing.
+        ('block amend <x> --title "…"', "correct a heading's words over entries it keeps"),
         # The ledger's update (RK124), without which the honest answer to "a word is wrong
         # here" was drop-and-re-add, which moves the entry to the end of its block.
         ('record amend <id> --why "…"', "correct an entry's sentence where it already is"),
