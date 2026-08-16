@@ -96,7 +96,10 @@ false, `restate <id> --symptom "…"` is that correction and the only door to it
 the deps, the marker and the section all stay, because the work never changed and only the
 description of it was wrong. Reach for it instead of `retire` plus `add`, which spends an
 id and deletes a design that was already right. It takes no reason: the format has nowhere
-to put one, so the commit that removes the false claim is where it belongs. **A misspelt
+to put one, so the commit that removes the false claim is where it belongs. **It names the
+two other places that claim is written** — the `why` and the section — as `amend` and
+`section amend` with the id filled in, to be read and edited in this commit: whether either
+still holds is a judgement, so nothing there is rewritten for you. **A misspelt
 word is not that case**: `restate <id> --symptom "…" --typo` says the claim is the one
 intended and a word in it was wrong, so the answer and the payload record which of the two
 acts it was — without it every spelling fix reads as a premise that turned out false,
@@ -199,7 +202,8 @@ first, and a shell that eats a backtick does not refuse — it hands over prose 
 unlike what you wrote and the line lands. The pipe's own trailing newline comes off; a
 trailing space is still yours and still refused, and two arguments asking for one pipe is
 refused naming both. Over MCP there is no pipe, so every write that reads one takes it
-**as a string** and refuses `-` by name. **A pipe does not rewind, and a paragraph is the expensive argument**: an `add`
+**as a string** and refuses `-` by name. **A pipe does not rewind, and a paragraph is the
+expensive argument**: an `add`
 refused for a `why` three words over used to cost the whole rationale a second time, so
 the body is now fetched *below* every refusal the line itself can raise — and where that
 is not enough, because `section add` reports the anchor, the title and the body together,

@@ -1302,10 +1302,37 @@ class Restatement:
     #: Every path this write took, projections included (RK1130) — the list a `git add --`
     #: takes, so the report a caller composes a commit from can name the file it refreshed.
     wrote: tuple[Path, ...] = ()
+    #: The anchor of the design that argues from the claim this call replaced (RK1196), where
+    #: the pointer resolves to exactly one live section. Empty where it resolves to none or to
+    #: two, which are a `lint` finding and not this verb's to settle — `deferring._carried`
+    #: spells the same three outcomes at the door that keeps a section rather than naming it.
+    design: str = ""
+    #: Which prose role holds that anchor, so the follow-up names `--role` where the project's
+    #: design does not live in the default file (RK196).
+    design_role: str = ""
 
     @property
     def changed(self) -> bool:
         return self.before.symptom != self.entry.task.symptom
+
+    @property
+    def follow_up(self) -> tuple[str, ...]:
+        """The edits the two other statements of the replaced claim need (RK1196).
+
+        Composed once and read by both registers, which is what keeps the printed row and the
+        payload from being two spellings of one answer (RK1170). Empty on a `--typo`, which is
+        the caller declaring the claim was the one intended: a slip of the pen leaves the `why`
+        and the design arguing the premise they were written for, so asking for two edits there
+        would be the record describing a decision nobody took (RK414). Empty too where nothing
+        changed, the file already stating this symptom.
+        """
+        if self.typo or not self.changed:
+            return ()
+        edits = [f"amend {self.entry.task.id} --why -"]
+        if self.design:
+            named = "" if self.design_role == "improvements" else f" --role {self.design_role}"
+            edits.append(f"section amend {self.design}{named} --body -")
+        return tuple(edits)
 
     @property
     def rendered(self) -> str:
@@ -1322,7 +1349,7 @@ class Restatement:
         write verb's answer least belongs: the record is what the transaction produced, and the
         door only chose which reading to print.
         """
-        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+        from roadkeep.rendering import _premise_rows, _staging_rows  # noqa: PLC0415 - RK260
 
         where = config.relative(config.path("roadmap"))
         if not self.changed:
@@ -1342,6 +1369,9 @@ class Restatement:
             if self.typo
             else "  claim    the premise this line asserted turned out to be false",
         ]
+        # Said after the claim and before the staging line, which is the order the author acts
+        # in: what this call did, then the two edits it did not (RK1196).
+        rows += _premise_rows(self.follow_up, self.design)
         if self.refreshed:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
         rows += _staging_rows(config.relative(one) for one in self.wrote)
@@ -1363,6 +1393,13 @@ class Restatement:
             # Which of the two acts this was (RK414), so a consumer counting how often a claim
             # actually moved is not counting spelling fixes with them.
             "typo": self.typo,
+            # The two other places the replaced claim is written, as the doors that reach them
+            # (RK1196) — empty on a typo and on a no-op, exactly as the printed rows are.
+            "premise": {
+                "design": self.design or None,
+                "role": self.design_role or None,
+                "next": list(self.follow_up),
+            },
             "rendered": self.rendered,
             "refreshed": list(self.refreshed),
             **_wrote_json(config, self.wrote),
@@ -1445,6 +1482,7 @@ def restate(
     )
     derived = refresh(replace(backlog, roadmap=roadmap.rewrite_entry(entry, updated)))
     wrote = derived.document.save()
+    design, role = _arguing(config, updated)
     return Restatement(
         wrote=wrote,
         document=derived.document,
@@ -1452,7 +1490,26 @@ def restate(
         before=entry.task,
         refreshed=tuple(name for name in derived.changed if name != task_id),
         typo=typo,
+        design=design,
+        design_role=role,
     )
+
+
+def _arguing(config: Config, task: Task) -> tuple[str, str]:
+    """The one live section written from the claim this restatement replaced (RK1196).
+
+    Resolved here rather than at either printer, because it is a fact about the transaction
+    and not about the register it is read in — the shape `wrote` and `refreshed` already have.
+
+    A pointer that resolves to nothing or to two files answers the empty pair, so the report
+    names the `why` alone. Both are findings `lint` already holds and neither is this verb's
+    to settle: a follow-up naming one of two ambiguous files would be a guess printed as an
+    instruction, and `deferring._carried` declines the same guess at the door beside this one.
+    """
+    if not task.ref:
+        return "", ""
+    roles = sections.declaring(config, task.ref)
+    return (task.ref, roles[0]) if len(roles) == 1 else ("", "")
 
 
 def _refuse_sibling_status(config: Config, task_id: str) -> None:

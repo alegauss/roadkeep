@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1196 The two places a false premise is also written
-
-`restate` exists because a premise turned out false, and it is deliberately narrow: the
-id, the deps, the marker and the section all stay, because the work never changed and
-only its description was wrong. That narrowness is right. What is missing is that this
-is the one verb here which knows a claim was wrong, and it says nothing about the two
-other places that claim is written down.
-
-Measured on a real task. A line asserted a build died on a stale artefact with a
-particular error; investigation showed a different error and a different cause.
-`restate` took the new symptom and reported `the premise this line asserted turned out
-to be false` — and left a `why` still explaining the old premise and a section arguing
-from it, both of which had to be noticed by the same author, from memory.
-
-The precedent is `ship`: it names any section whose prose cited what it deleted, and
-says that citation is your next edit in *this* commit, because a stale pointer reads
-like a typo from the next command on. A `why` arguing a premise the line no longer makes
-is the same defect with no pointer to catch it.
-
-The answer is a report and not a refusal. Whether the `why` still holds is a judgement
-about meaning, which this tool has none of — so it names `amend` and `section amend`
-with the id already substituted, and leaves the reading to the author.
-
 ### §RK1198 The path to a first add is discovered one refusal at a time
 
 Observed filing three tasks into a project whose `ref_scheme` is `outline`, into blocks
@@ -232,6 +209,29 @@ newest one**: three copies are allowed to differ and `engines` adjudicates that,
 must not become a second opinion about which version is right. And **a project that
 deliberately pins an older surface must be able to say so**, or the finding is noise a
 reader learns to skip — which is how a gate stops being read.
+
+### §RK1202 A gate whose failure looks exactly like its consent
+
+Measured in pportal on 2026-08-16. A file containing the bytes `not json at all`,
+redirected into `guard`, produces no output and exit 0. That is byte for byte what a
+governed path being allowed looks like, and what a session with no engine looks like,
+and what a payload naming an ungoverned file looks like. Four states, one answer.
+
+The cost is not hypothetical. A pportal session probed this guard by piping a payload
+from PowerShell, whose pipe does not deliver the UTF-8 the reader wants, saw exit 0, and
+wrote a project note asserting nothing denied a hand-edit there. The guard was working:
+the same payload written to a BOM-less file and redirected in gets the full denial. The
+note was wrong for four days and the design it accused was fine.
+
+The asymmetry is what makes it bad rather than merely quiet. `allow` must be silence,
+since printing `permissionDecision: "allow"` would grant a write the harness had not
+decided to grant. Nothing forces a *failure* to be silent too. A payload that will not
+parse is not a decision about a tool call; it is the gate not running, and the only
+audience is a person checking it is alive.
+
+The remedy is one line to stderr on a payload that does not parse, which the harness
+ignores and a person reads. Exit 0 should stay: a gate that fails a turn because it
+could not read its own input is the failure the launcher exists to avoid.
 
 ## Block E — Adoption
 

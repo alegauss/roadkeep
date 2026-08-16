@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1196** (deps: —) **restate replaces a false premise and leaves the why and the design still asserting it, naming no follow-up** — ship names every section whose prose cited what it deleted; the verb whose whole purpose is that a claim was wrong names neither place that claim is also written. → §RK1196
 - 📋 **RK1198** (deps: —) **Filing into a block whose prose family is spent is four sequential refusals, each teaching one step** — add refuses for a missing ref, anchors refuses because no open line carries one, add refuses for a missing block heading, then for a section with nothing to extend. → §RK1198
 
 ## Block C — Query (consult without reading the file)
@@ -38,6 +37,7 @@
 ## Block D — The gate
 
 - 📋 **RK1192** (deps: —) **A launcher and skill older than the version answering are reported by nothing the gate runs** — `install --check` answers it and is a command nobody thinks to run; lint fires every turn through the Stop hook, and a stale launcher is the state that leaves a session with no door in. → §RK1192
+- 📋 **RK1202** (deps: —) **guard exits 0 and prints nothing on a payload it could not parse, which is the answer it gives for allowed** — A gate whose refusal and whose failure are the same silence cannot be told apart by testing it, so a probe that misencodes stdin reads as proof the guard is absent. → §RK1202
 
 ## Block E — Adoption
 

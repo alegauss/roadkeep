@@ -256,6 +256,30 @@ def _emptied_rows(parent: str | None) -> list[str]:
     ]
 
 
+def _premise_rows(edits: Sequence[str], design: str) -> list[str]:
+    """The two other places the claim a restatement replaced is also written (RK1196).
+
+    Beside the citation line and the emptied one, and for their reason: this is the only
+    moment it can be said. `restate` is the one verb here that *knows* a claim was wrong, and
+    the `why` beneath that claim and the section arguing from it are written from the same
+    premise — so from the next command on they read as prose somebody meant, and only the
+    author who just corrected the symptom is holding the fact that they do not.
+
+    A report and never a refusal, which is the difference between this and a rule. Whether the
+    `why` still holds is a judgement about meaning and this tool has none (L4), so it names the
+    doors with the id already in them and leaves the reading where it belongs.
+    """
+    if not edits:
+        return []
+    also = f"the `why` and §{design} were" if design else "the `why` was"
+    return [
+        f"  premise  {also} written from the claim this replaced — whether they still hold "
+        f"is a reading",
+        f"  next     {', '.join(f'`{one}`' for one in edits)} "
+        f"{'is the edit' if len(edits) == 1 else 'are the edits'}, in this commit",
+    ]
+
+
 def _cited_rows(cited: Sequence[str]) -> list[str]:
     """Who is left pointing at prose this command deleted (RK206).
 

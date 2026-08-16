@@ -303,6 +303,8 @@ RECORDS: dict[str, dict[str, str | None]] = {
         "refreshed": "refreshed",
         "typo": "typo",
         "wrote": "wrote",
+        "design": "premise",
+        "design_role": "premise",
     },
 }
 

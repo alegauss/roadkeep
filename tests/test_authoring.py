@@ -661,6 +661,80 @@ def test_the_restate_json_carries_both_readings(tmp_path, capsys):
     assert payload["changed"] is True and payload["line"] == 5
 
 
+#: A design the pointer on `FIRST` actually resolves to, which is what makes the second half
+#: of the follow-up reachable at all (RK93): a project declaring no prose file is the case
+#: where `restate` can only name the `why`.
+ARGUED = """# Improvements
+
+## Block A — The model
+
+### §RK1 A design
+
+The rationale, argued from the premise the line asserts.
+
+## Block B — Authoring
+"""
+
+
+def test_a_restatement_names_the_two_other_places_the_claim_is_written(tmp_path, capsys):
+    """RK1196. The verb that knows a claim was wrong, saying where else it is written.
+
+    `ship` is the precedent: it names any section whose prose cited what it deleted, because
+    from the next command on a stale pointer reads like a typo. A `why` arguing a premise the
+    line no longer makes is the same defect with nothing to catch it — measured on a real task
+    whose `why` and design both survived the restatement and had to be noticed from memory.
+    """
+    project(tmp_path, prose=ARGUED)
+    assert main(
+        ["-C", str(tmp_path), "restate", "RK1", "--symptom", "A premise that was false"]
+    ) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "premise  the `why` and §RK1 were written from the claim this replaced" in out
+    # The doors with the id already in them, and not a description of them: the author is
+    # holding the correction, and a sentence naming `amend` costs them the substitution.
+    assert "`amend RK1 --why -`, `section amend RK1 --body -` are the edits, in this commit" in out
+
+
+def test_the_follow_up_names_the_why_alone_where_no_one_file_holds_the_design(tmp_path, capsys):
+    # A pointer resolving to nothing — or to two files — is a `lint` finding this verb does not
+    # settle, so the report drops the half it cannot spell rather than guessing a role.
+    project(tmp_path)
+    assert main(
+        ["-C", str(tmp_path), "restate", "RK1", "--symptom", "A premise that was false"]
+    ) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "premise  the `why` was written from the claim this replaced" in out
+    assert "`amend RK1 --why -` is the edit, in this commit" in out
+    assert "section amend" not in out
+
+
+def test_a_spelling_fix_asks_for_no_follow_up(tmp_path, capsys):
+    # RK414 split the two acts this door carries, and the split holds here: a typo is the
+    # caller declaring the claim was the one intended, so the `why` and the design still argue
+    # the premise they were written for and asking for two edits would file a decision nobody
+    # took.
+    project(tmp_path, prose=ARGUED)
+    assert main(
+        ["-C", str(tmp_path), "restate", "RK1", "--symptom", "A first symptomm", "--typo"]
+    ) == EXIT_OK
+    out = capsys.readouterr().out
+    # The `spelling` row says *not a false premise* in so many words, so the claim is about the
+    # two rows and not about the word: neither the follow-up heading nor a door is printed.
+    assert "  premise " not in out and "amend" not in out
+
+
+def test_the_restate_payload_carries_the_same_follow_up_as_the_printed_rows(tmp_path, capsys):
+    # One spelling, read by both registers (RK1170): a payload composing its own would be the
+    # second place this answer is written, which is the defect the task itself is about.
+    project(tmp_path, prose=ARGUED)
+    assert main(
+        ["-C", str(tmp_path), "restate", "RK1", "--symptom", "A premise that was false", "--json"]
+    ) == EXIT_OK
+    premise = json.loads(capsys.readouterr().out)["premise"]
+    assert premise["design"] == "RK1" and premise["role"] == "improvements"
+    assert premise["next"] == ["amend RK1 --why -", "section amend RK1 --body -"]
+
+
 def test_the_symptom_reads_the_pipe_like_every_other_prose_argument(tmp_path, monkeypatch):
     """RK1187. The field the convention skipped, on the verb whose only prose argument it is.
 
