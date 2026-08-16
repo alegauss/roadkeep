@@ -236,6 +236,11 @@ class Insertion:
     #: more than one place a section could go, so the command offered names the one it means
     #: — otherwise the author is handed `section add`'s default and a file that refuses it.
     needs_role: str | None = None
+    #: The family that follow-up's anchor extends, where that role declares none yet (RK1205).
+    #: One address up and the same verb, because `section add I.1` on a file with no §I is
+    #: `UnknownParent` — so without this the command handed over is one that cannot run, which
+    #: is RK197's own claim about a *file* nobody created, made one level down.
+    opens: str | None = None
     #: The id a sentence promised that deriving this one stepped over (RK431). Set only
     #: where the id was *derived* — a caller that named its own spent nothing — and only
     #: where the number below it is a mention no line ever took.
@@ -283,8 +288,29 @@ class Insertion:
         """
         if self.needs is None:
             return None
-        named = "" if self.needs_role in (None, "improvements") else f" --role {self.needs_role}"
-        return f"section add {self.needs} --title …{named}"
+        return f"section add {self.needs} --title …{self._named()}"
+
+    def _named(self) -> str:
+        return "" if self.needs_role in (None, "improvements") else f" --role {self.needs_role}"
+
+    def follow_ups(self) -> tuple[str, ...]:
+        """Every call between this write and a pointer that resolves, in order (RK1205).
+
+        One normally, and that one is :meth:`follow_up`. Two where the anchor extends a family
+        no prose file declares yet: `section add` refuses that child with `UnknownParent`, so
+        the single command this used to hand over was one the author would run and be refused
+        by — worse than silence, because a printed call is read as a call that works.
+
+        The parent's own title is not composed here and never could be (L4): what is derived
+        is that a call is needed and what its address is, which is everything except the words.
+        """
+        if self.needs is None:
+            return ()
+        opening = (
+            () if self.opens is None
+            else (f"section add {self.opens} --title …{self._named()}",)
+        )
+        return (*opening, f"section add {self.needs} --title …{self._named()}")
 
     def event(self, config: Config) -> dict[str, object]:
         """What this write did to the block it landed in (RK38), off the file it wrote."""
@@ -327,10 +353,17 @@ class Insertion:
             # Backticked and carrying the invocation, like every other route this tool composes
             # (RK476): the bare argv is the *field*, and a line printed for a reader is the form
             # `serving._rerouted` already spells as a tool where there is no shell.
-            rows.append(
-                f"needs    `{invocation()} {self.follow_up()}`  "
+            # Every call and not the last one (RK1205): where the anchor extends a family this
+            # file has not opened, the closing command refuses until the opening one has run,
+            # and naming one of the two is the staircase RK1198 took out of the door above.
+            rows += [
+                f"needs    `{invocation()} {one}`  "
                 f"(the pointer above resolves to nothing until then)"
-            )
+                if one == self.follow_ups()[-1]
+                else f"needs    `{invocation()} {one}`  "
+                f"(§{self.needs} extends it, and no prose file declares it yet)"
+                for one in self.follow_ups()
+            ]
         elif self.bound is not None:
             # Said, because the write touched a second file the caller did not name (RK452) —
             # and because the heading now carries an id, which is the fact `ship` and the gate
@@ -386,8 +419,15 @@ class Insertion:
             # paragraph that was never written.
             "bound": None if self.bound is None else self.bound.payload(prose),
             # The follow-up as data: null when the pointer already resolves, so a caller acts
-            # on a field instead of matching a sentence (RK93).
-            "needs": self.follow_up(),
+            # on a field instead of matching a sentence (RK93). The **first** call and not the
+            # closing one (RK1205) — which is the same value on every project not meeting that
+            # defect, and a call that runs on the one that is: this key has always meant *what
+            # to do next*, and where a family is missing the closing command is not it.
+            "needs": None if self.needs is None else self.follow_ups()[0],
+            # And the whole sequence, because the first alone is the staircase again: empty
+            # where the pointer resolves, one call normally, two where a family has to be
+            # opened before the design can extend it.
+            "needs_path": list(self.follow_ups()),
             # Null on almost every add, and the whole point when it is not (RK431): the id
             # below the one just written was a sentence, not a line.
             "promise": _promise_json(self.promise),
@@ -727,13 +767,43 @@ def add(
         role := _unresolved(config, insertion.entry.task.ref)
     ):
         insertion = replace(
-            insertion, needs=insertion.entry.task.ref, needs_role=role
+            insertion,
+            needs=insertion.entry.task.ref,
+            needs_role=role,
+            opens=_unopened(config, role, insertion.entry.task.ref),
         )
     else:
         insertion = _binding(config, insertion)
     # The paths ride back on the record (RK1129), because the caller composing a commit is the
     # one who needs them and `save` is the only reader that knows what a projection refreshed.
     return replace(insertion, wrote=insertion.save())
+
+
+def _unopened(config: Config, role: str, anchor: str) -> str | None:
+    """The family this anchor extends that the prose file has not opened yet (RK1205).
+
+    ``None`` wherever the follow-up runs as it stands: an anchor whose parent is declared, a
+    top-level one under an outline — which :func:`~roadkeep.sections.place_for` places after
+    the last top level (RK166) — and the id scheme, where an anchor carries no place at all
+    and a `§RK9` extending nothing is a section for a task rather than a child of anything.
+
+    Asked here rather than left to `section add`, because this is the moment the command is
+    *composed*: the refusal one door over is correct and arrives one call too late, after the
+    author has spent a retry on a call that was never available (RK1149).
+
+    The address alone, and never a title. What a family is called is editorial and L4's to
+    leave alone — the same reason `block add` takes the title `add` will not compose.
+    """
+    document = config.document(role)
+    if sections._top_level(document, anchor) or document.schema.ref_scheme == "id":
+        return None
+    if sections._extends(document, anchor) is not None:
+        return None
+    # The address one segment up, which is what `section add` will look for and not find. A
+    # one-segment anchor under the id scheme left above; here it means the file is an outline
+    # and the anchor is a child, so there is always a segment to drop.
+    parent = anchor.rsplit(".", 1)[0]
+    return None if parent == anchor else parent
 
 
 def _binding(config: Config, insertion: Insertion) -> Insertion:

@@ -1693,6 +1693,12 @@ def _rerouted(text: str, root: Path) -> str:
     text = re.sub(
         r'("needs": )("(?:[^"\\]|\\.)*")', lambda found: _as_field(found, prefix), text
     )
+    # And every call in the path beside it (RK1205, RK1476's rule). A second key holding argv
+    # is a second key this transport owes the rewrite: `needs` alone would answer a tool call
+    # and the list under it shell spellings, on the surface RK57 says may have no shell.
+    text = re.sub(
+        r'("needs_path": )(\[[^\]]*\])', lambda found: _as_path(found, prefix), text
+    )
     reached = invocation()
     if reached not in text:
         return text
@@ -1718,8 +1724,30 @@ def _as_field(found: re.Match[str], prefix: str) -> str:
     The value is **decoded before it is read and re-encoded after** — `json.dumps` escapes the
     ellipsis `--title …` ends on, and matching the raw span cost this its first measurement.
     """
-    call = _as_call(json.loads(found.group(2)), prefix, plain=True)
-    return found.group(1) + json.dumps(call) if call else found.group(0)
+    rewritten = _as_value(found.group(2), prefix)
+    return found.group(1) + rewritten if rewritten != found.group(2) else found.group(0)
+
+
+def _as_path(found: re.Match[str], prefix: str) -> str:
+    """`add`'s `needs_path`, element by element (RK1205).
+
+    Each string rewritten **in place** rather than the list re-encoded, so the indentation
+    `json.dumps` wrote survives: a value this pass declines to touch has to come back
+    byte-identical, which is the promise `_as_field` keeps one key over.
+    """
+    return found.group(1) + re.sub(
+        r'"(?:[^"\\]|\\.)*"', lambda one: _as_value(one.group(0), prefix), found.group(2)
+    )
+
+
+def _as_value(encoded: str, prefix: str) -> str:
+    """One JSON-encoded argv as the call that serves it, or the same bytes back.
+
+    The decode/re-encode both keys share: `json.dumps` escapes the ellipsis `--title …` ends
+    on, and matching the raw span cost this its first measurement (RK476).
+    """
+    call = _as_call(json.loads(encoded), prefix, plain=True)
+    return json.dumps(call) if call else encoded
 
 
 def _as_call(argv: str, prefix: str, *, plain: bool = False) -> str:

@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1205** (deps: —) **The section add an add prints to close the pointer it wrote refuses where that anchor's family does not exist** — RK197 stopped the follow-up naming a file nobody created; a parent nobody created refuses the same way, and a printed call is read as one that works. → §RK1205
 - 📋 **RK1207** (deps: —) **section add refuses a child whose family does not exist and names no verb, listing what the file declares instead** — The write that makes room is the same command one address up, derivable from the anchor typed and already read to compose the sentence. → §RK1207
 
 ## Block C — Query (consult without reading the file)

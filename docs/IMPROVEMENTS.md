@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1205 The follow-up that names a call which cannot run
-
-A pointer `add` creates, and a door `add` names, where the door refuses. Measured on a
-fresh outline project: `add --block A --ref I.1 …` lands the line and reports `section
-add I.1 --title …` as the write that closes the pointer it just made — and that call
-refuses, no family `I` existing for a child to extend. The line is left unresolvable by
-the command the write handed over.
-
-RK197 made that follow-up name the role a `section add` would write into, so a command
-naming a file nobody created is never printed. This is the same claim one address up: a
-command naming a *parent* nobody created cannot run either, and it is worse than silence
-for RK1149's reason — a printed call is read as one that works.
-
-The fact is in reach where the follow-up is composed: `add` holds the anchor, and
-whether its family exists is one `find` on the prose file it already resolved. Where the
-parent is missing the follow-up is two calls and not one, in order — the family, then
-the design — which is the shape RK1198 settled for the refusal one door over.
-
-Refusing the write instead would be wrong. The line is valid, the pointer is the address
-the caller chose, and the gate already reports the unresolved pointer; refusing here
-would stop an outline project filing a line before its prose exists, which RK93 allows
-on purpose.
-
 ### §RK1207 The refusal whose door is the call that was just made
 
 `section add I.1` on a file with no family `I` answers *no section I.1 extends

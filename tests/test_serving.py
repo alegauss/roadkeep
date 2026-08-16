@@ -675,7 +675,13 @@ def test_the_anchor_reaches_the_roadmap_over_the_protocol(tmp_path):
     assert "→ §4.2" in (tree / ROADMAP).read_text(encoding="utf-8")
     # And the prose the anchor names is still the caller's next call, not this one's silence
     # — spelled as the tool that serves it since RK476, because this caller has no shell.
-    assert written["needs"].endswith("section_add with anchor: 4.2  title: …")
+    # The family first since RK1205: `4.2` extends a `4` this file declares nothing of, so the
+    # call that closes the pointer is the second of two and never the one to hand over first.
+    assert written["needs"].endswith("section_add with anchor: 4  title: …")
+    assert [one.split("__")[-1] for one in written["needs_path"]] == [
+        "section_add with anchor: 4  title: …",
+        "section_add with anchor: 4.2  title: …",
+    ]
 
 
 def test_a_closed_field_is_refused_by_the_table_that_would_open_it(tmp_path):
@@ -2180,10 +2186,18 @@ def test_the_follow_up_an_add_leaves_is_the_call_that_closes_it(tmp_path):
         why="Nothing warms it before the first read.", ref="IX.1",
     )
     assert not answer["isError"], text_of(answer)
-    needs = json.loads(text_of(answer))["needs"]
-    assert needs.endswith("section_add with anchor: IX.1  title: …"), needs
+    written = json.loads(text_of(answer))
+    # `IX.1` extends a family this file has not opened (RK1205), so the closing call is the
+    # second of two — and the rewrite this test is about reaches every element of the path,
+    # a second key holding argv being a second key this transport owes it.
+    assert written["needs"].endswith("section_add with anchor: IX  title: …"), written["needs"]
+    assert [one.split("__")[-1] for one in written["needs_path"]] == [
+        "section_add with anchor: IX  title: …",
+        "section_add with anchor: IX.1  title: …",
+    ]
     # A field and not a sentence printed to somebody, so no backticks came with the rewrite.
-    assert "`" not in needs and "--title" not in needs
+    for one in (written["needs"], *written["needs_path"]):
+        assert "`" not in one and "--title" not in one
 
 
 def test_the_same_follow_up_at_a_terminal_is_a_line_a_shell_runs(tmp_path, capsys):
@@ -2194,9 +2208,12 @@ def test_the_same_follow_up_at_a_terminal_is_a_line_a_shell_runs(tmp_path, capsy
     assert main(["-C", str(tree), "add", "--block", "A", "--symptom",
                  "A widget stalls on a cold cache", "--why", "Nothing warms it.",
                  "--ref", "IX.1"]) == EXIT_OK
-    line = next(one for one in capsys.readouterr().out.splitlines() if one.startswith("needs"))
-    assert f"`{invocation()} section add IX.1 --title …`" in line
-    assert "mcp__" not in line
+    rows = [one for one in capsys.readouterr().out.splitlines() if one.startswith("needs")]
+    # Both rows since RK1205, and the claim this test makes is about each of them: the shell
+    # spelling is what the CLI writes, and a path half-rewritten is the defect one key over.
+    assert [f"`{invocation()} section add IX --title …`" in rows[0],
+            f"`{invocation()} section add IX.1 --title …`" in rows[1]] == [True, True], rows
+    assert not [one for one in rows if "mcp__" in one]
 
 
 def test_no_other_field_of_that_answer_is_read_as_a_command(tmp_path):

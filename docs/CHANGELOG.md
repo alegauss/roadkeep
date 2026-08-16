@@ -213,6 +213,7 @@
 - ✅ **RK1196** **restate replaces a false premise and leaves the why and the design still asserting it, naming no follow-up** — restate names the why and the design as the two other places the claim it replaced is written, as the doors that reach them.
 - ✅ **RK1198** **Filing into a block whose prose family is spent is four sequential refusals, each teaching one step** — The ref.missing refusal on a block whose prose has not started prints the whole path, ordered and with its arguments filled in.
 - ✅ **RK1204** **A block title is write-once: nothing renames one, and block drop is refused the moment a line is filed under it** — block amend <label> --title gives a declared heading new words in every file that declares it, keeping the label, the placement and the work.
+- ✅ **RK1205** **The section add an add prints to close the pointer it wrote refuses where that anchor's family does not exist** — add names the family a pointer's anchor extends before the design that extends it, so every call it hands over is one that runs.
 
 ## Block C — Query
 

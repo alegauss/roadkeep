@@ -1046,18 +1046,36 @@ def test_either_declared_role_answering_is_enough(tmp_path):
 
 
 def test_the_command_offers_a_follow_up_that_runs(tmp_path, capsys):
+    """And it did not, which is RK1205: this fixture's `X.9` extends a family the file
+    declares nothing of, so the one command handed over was refused `UnknownParent` — a test
+    named for a claim it never checked, because it matched a sentence instead of running it."""
     outlined(tmp_path)
     argv = [
         "-C", str(tmp_path), "add", "--block", "A",
         "--symptom", "A second symptom", "--why", "Because of another.", "--ref", "X.9",
     ]
     assert main(argv) == EXIT_OK
+    out = capsys.readouterr().out
     # Backticked and carrying the invocation since RK476, which is what every other route
     # this file composes carries — and the shape the tool surface can respell (RK475).
-    assert (
-        f"needs    `{invocation()} section add X.9 --title … --role strategy`"
-        in capsys.readouterr().out
-    )
+    for step in ("section add X --title … --role strategy",
+                 "section add X.9 --title … --role strategy"):
+        assert f"needs    `{invocation()} {step}`" in out, step
+    # Executed, which is the only reading that binds: the family opens, the design extends it,
+    # and the pointer the `add` created resolves — in the order the two rows were printed.
+    for anchor in ("X", "X.9"):
+        assert main(
+            [
+                "-C", str(tmp_path), "section", "add", anchor, "--role", "strategy",
+                "--title", "A title", "--body", "Prose enough to matter.",
+            ]
+        ) == EXIT_OK, anchor
+    from roadkeep.linting import lint
+
+    # Asked of this line's pointer and not of the file: `BODY` carries an `RK1` addressed by
+    # its id, which is a fixture written before this project had an outline and is nothing
+    # the two calls above touched.
+    assert not [one for one in lint(Config.discover(tmp_path)).findings if "X.9" in one.message]
 
 
 def test_the_json_carries_the_same_follow_up(tmp_path, capsys):
@@ -1069,7 +1087,45 @@ def test_the_json_carries_the_same_follow_up(tmp_path, capsys):
     ]
     assert main(argv) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    assert payload["needs"] == "section add X.9 --title … --role strategy"
+    # The first call and not the closing one (RK1205): this key has always meant *what to do
+    # next*, and where a family is missing the closing command is the one that refuses.
+    assert payload["needs"] == "section add X --title … --role strategy"
+    assert payload["needs_path"] == [
+        "section add X --title … --role strategy",
+        "section add X.9 --title … --role strategy",
+    ]
+
+
+def test_a_family_the_file_already_declares_is_still_one_call(tmp_path, capsys):
+    # The ordinary case, unchanged: `needs` is the closing command and the path is one long,
+    # so nothing about a project not meeting this defect moved (RK1205).
+    outlined(tmp_path)
+    argv = [
+        "-C", str(tmp_path), "add", "--block", "A",
+        "--symptom", "A second symptom", "--why", "Because of another.", "--ref", "X.1.4",
+        "--json",
+    ]
+    assert main(argv) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["needs"] == "section add X.1.4 --title … --role strategy"
+    assert payload["needs_path"] == ["section add X.1.4 --title … --role strategy"]
+
+
+def test_a_top_level_anchor_opens_nothing_because_it_extends_nothing(tmp_path):
+    # RK166 placed a top-level section after the last one rather than refusing it, so there
+    # is no family above it to open — the silence here is that decision, not an oversight.
+    config = outlined(tmp_path)
+    added = task(config, ref="XI")
+    assert added.needs == "XI" and added.opens is None
+    assert added.follow_ups() == ("section add XI --title … --role strategy",)
+
+
+def test_the_id_scheme_opens_nothing_because_an_anchor_carries_no_place(tmp_path):
+    # Under `ref_scheme = "id"` a `§RK2` extends nothing by construction: it is a section for
+    # a task, placed under that task's block, so dropping a segment would be inventing one.
+    config = project(tmp_path, prose=DESIGN)
+    added = task(config)
+    assert added.needs == "RK2" and added.opens is None
 
 
 def test_the_json_names_the_pointer_beside_the_id(tmp_path, capsys):

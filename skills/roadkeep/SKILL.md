@@ -69,7 +69,10 @@ which is what `--section-body-file` is for); the shipped marker never reaches th
 writes the rationale in the same transaction — the prose on stdin or `--section-body`,
 both files validated before either is written — and an `add` without it answers with the
 `section add` that closes the pointer it just created, rather than leaving the gate to say
-so. **`ship <id> --why "<what now works>"` makes its three edits** (ledger entry, roadmap
+so. Under an outline that is **two** calls where the anchor extends a family the prose file
+has not opened: the family first, then the design, both named and in order, because a
+`section add` on a child whose parent is missing is refused.
+**`ship <id> --why "<what now works>"` makes its three edits** (ledger entry, roadmap
 line gone, `§<id>` deleted) plus the dependents' annotations, or none. It **names any
 section whose prose cited what it deleted**: the ship is right and that citation is your
 next edit, in *this* commit, because a shipped entry keeps no pointer and from the next
