@@ -301,16 +301,51 @@ class UnknownParent(ValueError):
     was reachable by nothing at all. A top-level anchor under an outline is now placed after
     the last top-level section, which is the same derivation this file already makes one
     level down.
+
+    ``opens`` is every ancestor of this anchor the file does not declare, outermost first
+    (RK1207). Until it existed every clause of this sentence was true and none of them was a
+    verb: the listing of what the file declares came closest, and on a file whose outline has
+    not started that listing is the word `none`. The write that makes room is the **same
+    command one address up**, which is why it reads as a wall rather than a step — a caller
+    told `section add` refuses naturally looks for a different verb, and there is none.
+
+    Derived rather than described, so what is left for the author is the title, which is
+    editorial and L4's to leave alone. A chain, because `§I.1.2` on an empty outline is two
+    calls before this one: reporting the first alone is the staircase RK1198 took out of the
+    door one file over, and this is the same staircase met by a caller who arrived directly —
+    writing a design before the line, which is the order an outline invites.
+
+    ``role`` rides with it for RK197's reason: a project whose only prose file is the strategy
+    one would be handed `section add`'s default, which is a remedy that cannot run.
     """
 
-    def __init__(self, anchor: str, declared: Sequence[str], where: str = "") -> None:
+    def __init__(
+        self,
+        anchor: str,
+        declared: Sequence[str],
+        where: str = "",
+        *,
+        opens: Sequence[str] = (),
+        role: str = "",
+    ) -> None:
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
         self.anchor = anchor
         self.declared = tuple(declared)
+        self.opens = tuple(opens)
         known = ", ".join(f"§{a}" for a in self.declared) or "none"
         file = f"{where} " if where else ""
+        named = "" if role in ("", "improvements") else f" --role {role}"
+        steps = ", then ".join(
+            f"`{invocation()} section add {one} --title …{named}`" for one in self.opens
+        )
+        # Silent where nothing derives one, which is a one-segment anchor under the id scheme:
+        # there this refusal means the id names no open line, and a `section add` above it
+        # would be an address invented out of a task number.
+        opening = f" — {steps} opens what it extends" if self.opens else ""
         super().__init__(
             f"no section §{anchor} extends ({file}declares: {known}): an anchor states "
-            f"its own place, and appending files the prose under the last block"
+            f"its own place, and appending files the prose under the last block{opening}"
         )
 
 
@@ -1329,7 +1364,7 @@ def add(
     # The file as it was read, for the delta :func:`_refuse_overflow` charges (RK1033).
     was = document
     lines = _render(document.schema, anchor, title, body, _depth(document, anchor, level))
-    index = _placement(document, anchor, task, where)
+    index = _placement(document, anchor, task, where, role)
     payload = list(lines)
     if index > 0 and not blank(document.lines[index - 1]):
         payload.insert(0, "")
@@ -3140,7 +3175,9 @@ def _reflow(paragraph: str, width: int) -> str:
     )
 
 
-def _placement(document: Document, anchor: str, task: Task | None, where: str = "") -> int:
+def _placement(
+    document: Document, anchor: str, task: Task | None, where: str = "", role: str = ""
+) -> int:
     """Where the section goes: after the last one under its block, or after what it extends.
 
     A section for a task belongs under that task's block, so the prose file's order is a
@@ -3165,7 +3202,7 @@ def _placement(document: Document, anchor: str, task: Task | None, where: str = 
     derive from either side, and only that one goes last.
     """
     if task is None or document.schema.ref_scheme != "id":
-        return _extended(document, anchor, where)
+        return _extended(document, anchor, where, role)
     if not task.block:
         return len(document.lines)
     heading = document.heading(task.block)
@@ -3179,7 +3216,9 @@ def _placement(document: Document, anchor: str, task: Task | None, where: str = 
     return document.subtree_end(heading)
 
 
-def _extended(document: Document, anchor: str, where: str = "") -> int:
+def _extended(
+    document: Document, anchor: str, where: str = "", role: str = ""
+) -> int:
     """The end of the subtree of the section this anchor extends, or a refusal (RK45).
 
     Or, for a top-level anchor under an outline, the end of the last top-level section
@@ -3188,6 +3227,10 @@ def _extended(document: Document, anchor: str, where: str = "") -> int:
     verb at all. The file's *own* order decides it — after the last one, never sorted, since
     whether `XXII` follows `XXI` is a question about somebody's numbering (L4, L6) and the
     author is the one who wrote the anchor.
+
+    ``role`` reaches the refusal alone, for RK197's reason: the remedy it names is a
+    `section add`, and on a project declaring only a strategy file the default role is one
+    that cannot run. Read here and not resolved from a config this function does not hold.
     """
     parent = _extends(document, anchor)
     if parent is None:
@@ -3202,10 +3245,28 @@ def _extended(document: Document, anchor: str, where: str = "") -> int:
             anchor,
             [section.anchor for section in anchored(document)],
             where,
+            opens=_ancestry(anchor),
+            role=role,
         )
     span = _span(document, parent)
     assert span is not None  # `_extends` read the anchor out of this document
     return span[1]
+
+
+def _ancestry(anchor: str) -> tuple[str, ...]:
+    """Every ancestor of this anchor, outermost first — all of them missing (RK1207).
+
+    Not filtered against what the file declares, and that is the invariant rather than an
+    omission: this is reached only where :func:`_extends` answered None, and that function
+    returns the **longest declared prefix**. So one ancestor being declared is exactly the
+    case that never arrives here, and a filter would be a test of something already decided.
+
+    Outermost first, because that is the order the calls have to run in: `section add I.1` on
+    a file with no §I is this same refusal, one address down. Empty for a one-segment anchor,
+    which has no ancestor to be missing.
+    """
+    segments = anchor.split(".")
+    return tuple(".".join(segments[:depth]) for depth in range(1, len(segments)))
 
 
 #: The depth a section with nothing to derive one from is written at: a one-segment anchor

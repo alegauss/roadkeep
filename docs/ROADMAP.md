@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1207** (deps: —) **section add refuses a child whose family does not exist and names no verb, listing what the file declares instead** — The write that makes room is the same command one address up, derivable from the anchor typed and already read to compose the sentence. → §RK1207
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1188** (deps: —) **No verb says what the blocks are called, so choosing where a task goes means reading the file the hook denies** — SKILL.md tells an author to look at what the blocks already are before add; stats answers letters and counts, list and delivered demand a block they cannot enumerate. → §RK1188

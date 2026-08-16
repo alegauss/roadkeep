@@ -38,6 +38,7 @@ from roadkeep.authoring import IdInUse, refuse_reuse
 from roadkeep.backlog import Where, Whereabouts
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
+from roadkeep.provenance import invocation
 from roadkeep.kernel.document import Document, UnknownBlock
 from roadkeep.kernel.schema import Schema, SchemaError
 from roadkeep.linting import lint
@@ -3607,3 +3608,98 @@ def test_the_three_states_it_will_not_guess_at_are_refused(tmp_path, capsys):
     assert "already lives in" in capsys.readouterr().err
     assert main(["-C", str(tmp_path), "refs", "strategy", "--as", "T"]) != EXIT_OK
     assert "re-addresses citations that carry the old namespace" in capsys.readouterr().err
+
+
+# -- the refusal whose door is the call that was just made (RK1207) -----------
+
+
+def test_the_missing_parent_is_named_as_the_call_that_opens_it(tmp_path):
+    """RK1207. Every clause of this refusal was true and none of them was a verb.
+
+    The listing of what the file declares came closest, and on a file whose outline has not
+    started that listing is the word `none`. That the write making room is the **same
+    command** one address up is why it read as a wall rather than a step: a caller told
+    `section add` refuses looks for a different verb, and there is none.
+    """
+    config = project(tmp_path)
+    with pytest.raises(UnknownParent) as raised:
+        add(config, "improvements", "9.1", "A reading nothing precedes", "Prose.")
+    assert f"`{invocation()} section add 9 --title …` opens what it extends" in str(raised.value)
+    # And the rule survives, as it does at every other door this tool appends a remedy to.
+    assert "an anchor states its own place" in str(raised.value)
+    assert read(config) == RATIONALE
+
+
+def test_two_missing_ancestors_are_named_in_the_order_they_have_to_run(tmp_path):
+    # `section add 9.1` on a file with no §9 is this same refusal one address down, so naming
+    # the first alone is the staircase RK1198 took out of the door one file over.
+    config = project(tmp_path)
+    with pytest.raises(UnknownParent) as raised:
+        add(config, "improvements", "9.1.2", "A reading nothing precedes", "Prose.")
+    assert (
+        f"`{invocation()} section add 9 --title …`, then "
+        f"`{invocation()} section add 9.1 --title …` opens what it extends"
+    ) in str(raised.value)
+
+
+def test_an_anchor_with_one_declared_ancestor_never_reaches_this_refusal(tmp_path):
+    """The invariant the chain is unfiltered on: `_extends` answers the **longest declared
+    prefix**, so a §0 that exists places §0.9.1 at the end of its subtree and there is no
+    refusal to carry a remedy. Stated, because the alternative reading — that the chain
+    should be filtered — is the plausible one, and it is a test of something already decided.
+    """
+    config = project(tmp_path)
+    out = add(config, "improvements", "0.9.1", "A reading nothing precedes", "Prose.")
+    out.document.save()
+    body = read(config)
+    assert body.index("§0.9.1") < body.index("## Block A")
+
+
+def test_a_one_segment_anchor_has_no_ancestor_to_open(tmp_path):
+    # Under the id scheme this refusal means the id names no open line, and a `section add`
+    # above it would be an address invented out of a task number (L4). Read off the helper,
+    # because `add` refuses that call earlier, with `anchor.unknown`.
+    from roadkeep.sections import _ancestry
+
+    assert _ancestry("RK404") == () and _ancestry("IX") == ()
+    assert _ancestry("IX.2.3") == ("IX", "IX.2")
+
+
+def test_the_remedy_names_the_role_where_it_is_not_the_default(tmp_path):
+    # RK197's rule, at this door: a project whose only prose file is the strategy one would
+    # be handed `section add`'s default, which is a remedy that cannot run.
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\nref_scheme = "outline"\n[rules.roadmap]\nref = false\n'
+        '[files]\nroadmap = "docs/ROADMAP.md"\nstrategy = "docs/STRATEGY.md"\n',
+        encoding="utf-8",
+    )
+    for name, body in {
+        "docs/ROADMAP.md": "# Roadmap\n\n## Block A — The model\n",
+        "docs/STRATEGY.md": "# Strategy\n",
+    }.items():
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    with pytest.raises(UnknownParent) as raised:
+        add(Config.discover(tmp_path), "strategy", "I.1", "A design", "Prose.")
+    assert "section add I --title … --role strategy" in str(raised.value)
+
+
+def test_the_named_calls_are_the_ones_that_work(tmp_path):
+    """Executed rather than matched, which is `test_doors`' rule: a remedy printed in the
+    wrong order is one that refuses at step two, and each step here was previously
+    discovered only by being refused."""
+    config = outline(tmp_path)
+    with pytest.raises(UnknownParent) as raised:
+        add(config, "improvements", "XI.2.3", "A reading nothing precedes", "Prose.")
+    named = [
+        one.split("section add ")[1].split(" ")[0]
+        for one in str(raised.value).split("`")
+        if one.startswith(f"{invocation()} section add ")
+    ]
+    assert named == ["XI", "XI.2"]
+    for anchor in (*named, "XI.2.3"):
+        add(config, "improvements", anchor, "A title", "Prose enough to matter.").document.save()
+        config = Config.discover(tmp_path)
+    assert "#### XI.2.3 A title" in read(config) or "##### XI.2.3 A title" in read(config)

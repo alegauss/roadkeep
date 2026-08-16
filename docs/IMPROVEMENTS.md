@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1207 The refusal whose door is the call that was just made
-
-`section add I.1` on a file with no family `I` answers *no section I.1 extends
-(docs/IMPROVEMENTS.md declares: none): an anchor states its own place, and appending
-files the prose under the last block*. Every clause is true and none is a verb. The
-listing of what the file declares comes closest, and on an empty outline it is the word
-`none`.
-
-The write that makes room is `section add I` — the same command, one address up,
-derivable from the anchor the caller typed by dropping the last segment. Whether that
-parent exists is the read this refusal already made to compose its own sentence, so the
-door is known where the refusal is written, and printing it is what every other finding
-here does (RK14, RK326).
-
-That it is the *same verb* is the reason it reads as a wall rather than a step. A caller
-told `section add` refuses naturally reads the family as something a different command
-opens, and there is no different command; the answer is the call they just made with one
-segment less. Two calls, in order, and the second is the one they typed.
-
-The sibling of RK1198 at the next door down. That task collapsed the staircase at `add`,
-where the whole path was computable; this is one stair of the same staircase, met by a
-caller who arrived at it directly rather than through an `add` — writing a design before
-the line, which is the order an outline invites.
-
 ## Block C — Query
 
 ### §RK1188 The one question before every add has no verb
