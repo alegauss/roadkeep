@@ -3231,6 +3231,13 @@ def _extended(
     ``role`` reaches the refusal alone, for RK197's reason: the remedy it names is a
     `section add`, and on a project declaring only a strategy file the default role is one
     that cannot run. Read here and not resolved from a config this function does not hold.
+
+    **A prefix found is not an address that is well-formed** (RK1208). :func:`_extends`
+    answers the *longest declared* prefix, and reading that as a parent wrote `§I.9.1` into a
+    file holding only `§I` — a `###` at a child's depth, so `I.9.1` reads as a sibling of
+    `I.1`, while `anchors --family I` derives its next child from the `9` inside it and spends
+    a `§I.9` nothing ever claimed. `section add I.1` on that same file is refused, which is
+    the same mistake with the same author and the other answer.
     """
     parent = _extends(document, anchor)
     if parent is None:
@@ -3248,18 +3255,31 @@ def _extended(
             opens=_ancestry(anchor),
             role=role,
         )
+    # Every generation between the prefix found and the anchor typed. None of them is declared
+    # by construction — `_extends` returned the longest that is — so this asks *how far* the
+    # prefix falls short and never re-asks what the file holds.
+    missing = _ancestry(anchor)[len(parent.split(".")) :]
+    if missing:
+        raise UnknownParent(
+            anchor,
+            [section.anchor for section in anchored(document)],
+            where,
+            opens=missing,
+            role=role,
+        )
     span = _span(document, parent)
     assert span is not None  # `_extends` read the anchor out of this document
     return span[1]
 
 
 def _ancestry(anchor: str) -> tuple[str, ...]:
-    """Every ancestor of this anchor, outermost first — all of them missing (RK1207).
+    """Every ancestor of this anchor, outermost first — the address alone (RK1207, RK1208).
 
-    Not filtered against what the file declares, and that is the invariant rather than an
-    omission: this is reached only where :func:`_extends` answered None, and that function
-    returns the **longest declared prefix**. So one ancestor being declared is exactly the
-    case that never arrives here, and a filter would be a test of something already decided.
+    Not filtered against what the file declares, and the two callers are why that is an
+    invariant rather than an omission: :func:`_extends` answers the **longest declared
+    prefix**, so where it answered None every ancestor is missing, and where it answered one
+    the callers take the tail past it. Either way the set handed to the refusal is undeclared
+    by construction, and a filter here would re-ask what that function already decided.
 
     Outermost first, because that is the order the calls have to run in: `section add I.1` on
     a file with no §I is this same refusal, one address down. Empty for a one-segment anchor,

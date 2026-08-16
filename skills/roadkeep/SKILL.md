@@ -71,7 +71,8 @@ both files validated before either is written — and an `add` without it answer
 `section add` that closes the pointer it just created, rather than leaving the gate to say
 so. Under an outline that is **two** calls where the anchor extends a family the prose file
 has not opened: the family first, then the design, both named and in order, because a
-`section add` on a child whose parent is missing is refused.
+`section add` on a child whose **immediate** parent is missing is refused — a nearer
+ancestor existing is not enough, and the refusal names every generation in between.
 **`ship <id> --why "<what now works>"` makes its three edits** (ledger entry, roadmap
 line gone, `§<id>` deleted) plus the dependents' annotations, or none. It **names any
 section whose prose cited what it deleted**: the ship is right and that citation is your

@@ -215,6 +215,7 @@
 - ✅ **RK1204** **A block title is write-once: nothing renames one, and block drop is refused the moment a line is filed under it** — block amend <label> --title gives a declared heading new words in every file that declares it, keeping the label, the placement and the work.
 - ✅ **RK1205** **The section add an add prints to close the pointer it wrote refuses where that anchor's family does not exist** — add names the family a pointer's anchor extends before the design that extends it, so every call it hands over is one that runs.
 - ✅ **RK1207** **section add refuses a child whose family does not exist and names no verb, listing what the file declares instead** — The refusal for a child whose family is missing names every section add that opens one, in the order they run.
+- ✅ **RK1208** **section add refuses a child whose family is missing and writes a grandchild whose middle generation is** — section add refuses an anchor whose immediate parent is missing, naming every generation between the prefix it found and the address typed.
 
 ## Block C — Query
 

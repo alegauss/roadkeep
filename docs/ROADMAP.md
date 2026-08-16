@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1208** (deps: —) **section add refuses a child whose family is missing and writes a grandchild whose middle generation is** — _extends answers the longest declared prefix, so finding one is read as the address being well-formed, and the file keeps a hole lint calls clean. → §RK1208
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1188** (deps: —) **No verb says what the blocks are called, so choosing where a task goes means reading the file the hook denies** — SKILL.md tells an author to look at what the blocks already are before add; stats answers letters and counts, list and delivered demand a block they cannot enumerate. → §RK1188

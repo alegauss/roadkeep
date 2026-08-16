@@ -77,32 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1208 The address whose parent was never checked, only its prefix
-
-Two calls, one mistake, two answers. On a fresh outline project declaring only `I`,
-`section add I.1` is refused `UnknownParent` — correctly, and since RK1207 it names the
-write that makes room. `section add I.9.1` on the same file is **written**: it lands as
-a `###` directly under `I`, at the depth a child of `I` uses, and `lint` calls the
-result clean.
-
-The difference is `_extends`, which answers the longest declared prefix rather than the
-immediate parent. For `I.9.1` that is `I`, so a parent was found and the placement
-derived from it; for `I.1` there is none, so the refusal fires. The author's mistake is
-the same in both, and the file keeps a grandchild of a generation never written.
-
-What the file then says is not what the address says. The heading sits at a child's
-depth, so a reader sees `I.9.1` as a sibling of `I.1`, and `anchors --family I` derives
-its next child from the `9` inside it — so the missing `I.9` is spent by a section that
-never claimed it.
-
-RK45's rule is right: the longest declared prefix is how a subtree is found. The gap is
-that *finding a prefix* was read as *the address is well-formed*, and those are two
-questions. The second is answerable from the same segments, and the remedy is the chain
-RK1207 composes.
-
-Worth deciding: whether the gate reports a hole a file already has, or only the door
-refuses a new one.
-
 ## Block C — Query
 
 ### §RK1188 The one question before every add has no verb

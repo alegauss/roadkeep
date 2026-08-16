@@ -3642,17 +3642,48 @@ def test_two_missing_ancestors_are_named_in_the_order_they_have_to_run(tmp_path)
     ) in str(raised.value)
 
 
-def test_an_anchor_with_one_declared_ancestor_never_reaches_this_refusal(tmp_path):
-    """The invariant the chain is unfiltered on: `_extends` answers the **longest declared
-    prefix**, so a §0 that exists places §0.9.1 at the end of its subtree and there is no
-    refusal to carry a remedy. Stated, because the alternative reading — that the chain
-    should be filtered — is the plausible one, and it is a test of something already decided.
+def test_a_prefix_that_is_not_the_parent_is_refused_like_no_prefix_at_all(tmp_path):
+    """RK1208. A prefix found is not an address that is well-formed.
+
+    `_extends` answers the **longest declared** prefix, and reading that as a parent wrote
+    `§0.9.1` into a file holding `§0` and no `§0.9` — at a child's depth, so it read as a
+    sibling of `§0.1`, while the missing `§0.9` was spent by a section that never claimed it
+    and `lint` called the file clean. `section add 0.1` on a file with no `§0` was refused all
+    along: the same mistake, the same author, and the other answer.
     """
     config = project(tmp_path)
-    out = add(config, "improvements", "0.9.1", "A reading nothing precedes", "Prose.")
+    with pytest.raises(UnknownParent) as raised:
+        add(config, "improvements", "0.9.1", "A reading nothing precedes", "Prose.")
+    # Only the generations between the prefix found and the anchor typed: §0 is declared, so
+    # the one missing call is the one under it.
+    assert f"`{invocation()} section add 0.9 --title …` opens what it extends" in str(raised.value)
+    assert "section add 0 --title" not in str(raised.value)
+    assert read(config) == RATIONALE
+
+
+def test_two_generations_between_the_prefix_and_the_anchor_are_both_named(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(UnknownParent) as raised:
+        add(config, "improvements", "0.4.2.7", "A reading nothing precedes", "Prose.")
+    assert (
+        f"`{invocation()} section add 0.4 --title …`, then "
+        f"`{invocation()} section add 0.4.2 --title …` opens what it extends"
+    ) in str(raised.value)
+
+
+def test_a_hole_the_file_already_had_does_not_refuse_a_legal_child(tmp_path):
+    """The narrowness this door keeps: what is refused is a generation *this call* would skip,
+    never one the file arrived with. Measured before it was decided — no hole exists in this
+    repository, in Shio or in Turing — so the gate reports none and the door refuses new ones,
+    which is L1 with the population it was measured against.
+    """
+    config = project(
+        tmp_path,
+        improvements="# Improvements\n\n### §0.9 A design with no family above it\n\nProse.\n",
+    )
+    out = add(config, "improvements", "0.9.1", "A reading under it", "Prose.")
     out.document.save()
-    body = read(config)
-    assert body.index("§0.9.1") < body.index("## Block A")
+    assert "§0.9.1" in read(config)
 
 
 def test_a_one_segment_anchor_has_no_ancestor_to_open(tmp_path):
