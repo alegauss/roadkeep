@@ -18,7 +18,13 @@ import argparse
 import json
 import sys
 
-from roadkeep.blocking import amend_block, drop_block, merge_block, open_block
+from roadkeep.blocking import (
+    amend_block,
+    catalogue,
+    drop_block,
+    merge_block,
+    open_block,
+)
 from roadkeep.briefing import non_goals
 from roadkeep.config import Config
 from roadkeep.queueing import (
@@ -108,6 +114,24 @@ def _block_merge(config: Config, args: argparse.Namespace) -> int:
         print(json.dumps(merged.payload(config, wrote), indent=2))
     else:
         print(merged.stated(config, wrote))
+    return EXIT_OK
+
+
+def _block_list(config: Config, args: argparse.Namespace) -> int:
+    """Print where a task may go, at the moment one is placed (RK1188).
+
+    `non-goal list`'s sibling, and answered the same way: no argument, never refused, and
+    the counts are the reader every other query about a block already uses.
+    """
+    try:
+        declared = catalogue(config)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    if args.json:
+        print(json.dumps(declared.payload(config), indent=2))
+    else:
+        print(declared.stated(config))
     return EXIT_OK
 
 
@@ -582,14 +606,36 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
 
     block_parser = subcommands.add_parser(
         "block",
-        help="declare a block, which no other write will invent for you",
+        help="say what the blocks are, and declare one no other write will invent for you",
         description=(
             "A block is declared by a heading and by nothing else, so every write refuses "
             "an undeclared one — and the guard denies the hand-edit that would declare it. "
-            "Both refusals are right and the pair is a deadlock; this is the key."
+            "Both refusals are right and the pair is a deadlock; this is the key. `list` is "
+            "the read the other four assume has happened: which labels exist to file under."
         ),
     )
     block_actions = block_parser.add_subparsers(dest="action", required=True)
+
+    # First of the five, because it is the one called before the other four (RK1188): the
+    # question `add --block <x>` asks and nothing answered, which sent the author to grep the
+    # file the hook exists to keep hands off.
+    block_list = block_actions.add_parser(
+        "list",
+        help="print every declared block with its title and open count — call it before `add`",
+        description=(
+            "Where a task may go, at the moment one is placed. `add --block <x>` is the "
+            "first flag on the first write of any new task and nothing said what `<x>` "
+            "could be: `stats` prints letters and counts and never a title, `list --block` "
+            "and `delivered <block>` both demand the letter they cannot enumerate. In file "
+            "order, because a reader takes the sequence for the shape of the plan. A label "
+            "the roadmap has lost keeps its ledger heading and is named as such — that is "
+            "the row an `add` still refuses, and `block add` re-declares it."
+        ),
+    )
+    block_list.add_argument(
+        "--json", action="store_true", help="the rows, with every file each label is in"
+    )
+    block_list.set_defaults(handler=_block_list, reads_only=True)
 
     block_add = block_actions.add_parser(
         "add",

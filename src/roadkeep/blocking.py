@@ -53,6 +53,19 @@ That file is left alone and said so, which is also what keeps the removal from r
 deadlock — the only asymmetry it can leave is a ledger declaring a label the roadmap does not,
 where nothing plans and history still reads. The reverse, which would make `add` work and
 `ship` fail, is exactly what refusing over open lines prevents.
+
+**And the question all four of them assume has been answered** (RK1188). `add --block <x>` is
+the first flag on the first write of any new task, and until :func:`catalogue` nothing said
+what `<x>` could be: `stats` prints letters and counts and never a title, `list --block` and
+`delivered <block>` both demand the letter as an argument and refuse one nothing declares, so
+neither can discover it. The author read `docs/ROADMAP.md` with grep — the file the hook exists
+to keep hands off, and the habit every other refusal here is spent unteaching.
+
+A read under this noun rather than a column on `stats`, for the reason `non-goal list` is not
+a column on anything: that verb is a report *about a file*, and this is the question asked
+before writing *to* one. What it answers with is the label, the title as the file spells it,
+and what became of the block — from the same reader `list` and `brief` answer an empty count
+with, so the two cannot come to disagree about a block being finished.
 """
 
 from __future__ import annotations
@@ -62,6 +75,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from roadkeep.authoring import _after_preamble, remove_entry
+from roadkeep.backlog import Backlog, Standing as Became
 from roadkeep.config import Config
 from roadkeep.kernel.document import (
     Document,
@@ -75,7 +89,9 @@ from roadkeep.kernel.schema import Schema
 __all__ = [
     "BlockExists",
     "BlockOccupied",
+    "Catalogue",
     "Closed",
+    "Declared",
     "Merged",
     "NoSuchBlock",
     "NoSuchNeighbour",
@@ -86,6 +102,7 @@ __all__ = [
     "NothingToDrop",
     "Opened",
     "RegionOccupied",
+    "catalogue",
     "drop_block",
     "merge_block",
     "open_block",
@@ -891,6 +908,157 @@ def _labels(config: Config) -> tuple[str, ...]:
             if heading.label and heading.label not in found:
                 found.append(heading.label)
     return tuple(found)
+
+
+@dataclass(frozen=True, slots=True)
+class Declared:
+    """One block, as the question before an `add` needs it answered (RK1188)."""
+
+    label: str
+    #: `Block C`, or whatever `[headings] word` spells — the same rendering every refusal
+    #: about a label uses, so a project writing `Fase` never reads `Block` back.
+    named: str
+    #: The words after the label, **read** off the heading and never composed here. The
+    #: first file that declares it wins, which is the roadmap wherever the roadmap has it:
+    #: two files may legitimately title one block differently (this repository's do), and a
+    #: verb that reported both would be answering a question about drift instead of place.
+    title: str
+    #: What became of it — :class:`roadkeep.backlog.Standing`, so this row and the sentence
+    #: `list --block` prints over an empty count are one read and cannot disagree.
+    became: Became
+    #: The roles declaring it, in :data:`BLOCK_ROLES` order. Roles and not paths, because
+    #: :attr:`plannable` is a question about *which* file and a path cannot be asked it.
+    roles: tuple[str, ...] = ()
+
+    @property
+    def plannable(self) -> bool:
+        """Whether an `add --block` could land here — which is the roadmap's heading alone.
+
+        A block whose last line shipped keeps its ledger heading and may have lost the
+        roadmap's, and that row is the one whose absence turns an `add` into
+        :class:`~roadkeep.kernel.document.UnknownBlock`. Reported rather than filtered out:
+        the label exists, and hiding it would answer "no such block" to a caller who can see
+        the heading in the changelog.
+        """
+        return "roadmap" in self.roles
+
+
+@dataclass(frozen=True, slots=True)
+class Catalogue:
+    """Where a task may go, in the order the files declare it (RK1188).
+
+    Order is content here, for the reason `--after` exists (RK145): `list` reports blocks in
+    the headings' own order and a reader takes the sequence for the shape of the plan, so a
+    catalogue sorted alphabetically would be a second opinion about that shape.
+    """
+
+    blocks: tuple[Declared, ...] = ()
+
+    def __bool__(self) -> bool:
+        return bool(self.blocks)
+
+    def stated(self, config: Config) -> str:
+        """The rows, and the labels an `add` would still refuse (RK1188)."""
+        where = config.relative(config.path("roadmap"))
+        if not self.blocks:
+            return (
+                f"{where}: no block is declared — `block add <label> --title …` writes the "
+                f"first heading, and every other write refuses until one exists"
+            )
+        pad = max(len(one.named) for one in self.blocks)
+        titles = max(len(one.title) for one in self.blocks)
+        rows = [f"{len(self.blocks)} block(s), in file order"]
+        rows += [
+            f"  {one.named:<{pad}}  {one.title:<{titles}}  "
+            f"{one.became.open:>4} open  {one.became.stage}".rstrip()
+            for one in self.blocks
+        ]
+        elsewhere = [one.label for one in self.blocks if not one.plannable]
+        if elsewhere:
+            # The one row an author has to act on before typing `add --block`, said once
+            # rather than as a column that is empty on every other line.
+            rows.append(
+                f"  not in {where}: {', '.join(elsewhere)} — `block add <label> --title …` "
+                f"re-declares the heading a task can be filed under"
+            )
+        return "\n".join(rows)
+
+    def payload(self, config: Config) -> dict[str, object]:
+        """The same answer as data, with every file each label is declared in."""
+        return {
+            "file": config.relative(config.path("roadmap")),
+            "blocks": [
+                {
+                    # The state and its counts first and whole, because they are one record
+                    # (RK1170): a payload that spelled `block` a second time here would be the
+                    # two-readers defect this row exists to keep out of `stats`.
+                    **one.became.payload(),
+                    "named": one.named,
+                    "title": one.title,
+                    # Whether `add --block` resolves, which is the roadmap's heading and not
+                    # the label existing — the distinction the ledger's own headings create.
+                    "plannable": one.plannable,
+                    "declared_in": [
+                        config.relative(config.path(role)) for role in one.roles
+                    ],
+                }
+                for one in self.blocks
+            ],
+        }
+
+
+def catalogue(config: Config) -> Catalogue:
+    """Every block this project declares, titled and counted (RK1188).
+
+    Read-only, and reading is never refused: a project with no block at all answers with the
+    empty catalogue and the command that opens the first heading, because the caller who most
+    needs this verb is the one who has nothing to grep for.
+
+    The walk is :func:`_labels`', so the order and the membership are the ones the three
+    writes in this module already resolve against, and the counts are
+    :meth:`roadkeep.backlog.Backlog.standing`'s — one read of the roadmap, the ledger and the
+    store, which is what keeps this from being a fourth opinion about a finished block.
+    """
+    backlog = Backlog.load(config)
+    readable = _readable(config)
+    schema = config.schema
+    found: list[Declared] = []
+    for label in _labels(config):
+        roles = tuple(
+            role for role, (_, _, blocks) in readable.items()
+            if any(one.label == label for one in blocks)
+        )
+        heading = next(
+            one
+            for role in roles
+            for one in readable[role][2]
+            if one.label == label
+        )
+        found.append(
+            Declared(
+                label=label,
+                named=schema.block_named(label),
+                title=_title(heading),
+                became=backlog.standing(label),
+                roles=roles,
+            )
+        )
+    return Catalogue(blocks=tuple(found))
+
+
+def _title(heading: Heading) -> str:
+    """The words this heading gives its block, with the separator it spelled them after.
+
+    The inverse of :func:`_heading`, and it reads the same two facts that one writes: what
+    follows the label, minus whatever :func:`_separator` says this file puts between them. A
+    heading that is the label alone has no title, and the empty string is that answer — not
+    an invention this module would then have to keep out of `amend`.
+    """
+    tail = heading.text[_label_end(heading.text) :]
+    separator = _separator(heading)
+    if tail.startswith(separator):
+        return tail[len(separator) :].strip()
+    return tail.strip()
 
 
 def _excise(document: Document, heading: Heading) -> Document:

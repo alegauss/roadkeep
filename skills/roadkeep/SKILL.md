@@ -244,7 +244,14 @@ under `ref_scheme = "id"` it is refused by name, the anchor being the id and `re
 the verb that moves both ends. `section drop` is refused while an open line points at the
 anchor **or at any address under it**, named in the refusal, whether this file writes that
 address as a heading or as a bullet; that is right, and shipping is not a way to fix a
-paragraph. No write invents a block heading — **`block add <x> --title "…"` is the one
+paragraph. **`block list` is the read before every `add`** — it is what says the labels
+exist and what each is called, in file order, with each block's open count and whether it
+is live, paused, finished or empty. No other read enumerates them: `list --block` and
+`delivered <block>` both demand the letter as an argument, so until this verb the only
+answer was reading the roadmap, which the guard denies. A label the roadmap has lost keeps
+its ledger heading and is named as such: that row is a block an `add` still refuses, and
+the next sentence is its remedy. No write invents a block heading
+— **`block add <x> --title "…"` is the one
 that declares one**, in every governed file already organised by blocks, placed after the
 last block's subtree and spelled at that file's own level and separator. Reach for it the
 moment any write refuses with "no heading declares". A file organised by *nothing* is

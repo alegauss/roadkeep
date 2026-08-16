@@ -223,8 +223,10 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # writes that reach everything else about a section.
         "section_move",
         "section_drop",
-        # The two reads a session that is *proposing* makes, so they head the reads: what
-        # may not be proposed at all (RK69), and what a comparable one cost (RK71).
+        # The reads a session that is *proposing* makes, so they head the reads: where the
+        # task would go (RK1188), what may not be proposed at all (RK69), and what a
+        # comparable one cost (RK71).
+        "block_list",
         "non_goal_list",
         "priority_list",
         "weight",

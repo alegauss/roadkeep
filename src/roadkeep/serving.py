@@ -423,6 +423,12 @@ TOOLS: tuple[Tool, ...] = (
     # way through is the hand edit this server's own guard denies the agent making it.
     Tool("section move", ("anchor", "to", "role")),
     Tool("section drop", ("anchor", "role")),
+    # The read the four `block` writes above assume has happened (RK1188), beside the other
+    # read a proposal makes: `non-goal list` answers what may not be proposed and this one
+    # answers where it would go. Exposed for a sharper version of their reason — the agent
+    # that may not hand-edit the roadmap may not grep it either, so over this transport the
+    # labels were unobtainable and `add --block` was a guess.
+    Tool("block list"),
     Tool("non-goal list"),
     Tool("priority list"),
     # `records` is exposed because the caller paying for them is this one (RK264): the

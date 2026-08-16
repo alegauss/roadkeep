@@ -51,6 +51,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK1218** (deps: —) **add cannot carry the section it requires, so every filing is two commands with a dangling pointer between them** — add prints 'the pointer above resolves to nothing until then' and lint agrees: the roadmap is briefly in a state the project's own gate refuses, on every task filed. → §RK1218
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
