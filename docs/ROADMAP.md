@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1204** (deps: —) **A block title is write-once: nothing renames one, and block drop is refused the moment a line is filed under it** — A typo or an escaped character in a heading is repairable only while the block is empty, which is the one moment nobody is reading it. → §RK1204
+
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1188** (deps: —) **No verb says what the blocks are called, so choosing where a task goes means reading the file the hook denies** — SKILL.md tells an author to look at what the blocks already are before add; stats answers letters and counts, list and delivered demand a block they cannot enumerate. → §RK1188
