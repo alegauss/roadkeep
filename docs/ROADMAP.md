@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1187** (deps: —) **`symptom` is the one prose field no verb declares as a pipe reader, so `-` lands in the file as the claim** — RK1176 made that declaration the parser's own and `restate` declares none — the verb whose only prose argument is the field that carries a backtick as readily as a why. → §RK1187
 - 📋 **RK1196** (deps: —) **restate replaces a false premise and leaves the why and the design still asserting it, naming no follow-up** — ship names every section whose prose cited what it deleted; the verb whose whole purpose is that a claim was wrong names neither place that claim is also written. → §RK1196
 - 📋 **RK1198** (deps: —) **Filing into a block whose prose family is spent is four sequential refusals, each teaching one step** — add refuses for a missing ref, anchors refuses because no open line carries one, add refuses for a missing block heading, then for a section with nothing to extend. → §RK1198
 

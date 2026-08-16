@@ -661,6 +661,25 @@ def test_the_restate_json_carries_both_readings(tmp_path, capsys):
     assert payload["changed"] is True and payload["line"] == 5
 
 
+def test_the_symptom_reads_the_pipe_like_every_other_prose_argument(tmp_path, monkeypatch):
+    """RK1187. The field the convention skipped, on the verb whose only prose argument it is.
+
+    A symptom carries the backtick and the apostrophe exactly as a `why` does — the lines in
+    this project's own roadmap quote a command in theirs — and it is the field a shell
+    corrupts most quietly, because a claim that lost an apostrophe still reads like prose
+    somebody wrote. Refusing `-` by name would have been the wrong half of the door: a bare
+    dash is a one-character symptom that clears every limit, renders, round-trips and passes
+    the gate, so nothing downstream can call the file wrong.
+    """
+    config = project(tmp_path)
+    monkeypatch.setattr(
+        "sys.stdin", io.StringIO("`add --why -` doesn't survive a shell's quoting\n")
+    )
+    assert main(["-C", str(tmp_path), "restate", "RK1", "--symptom", "-"]) == EXIT_OK
+    assert "`add --why -` doesn't survive a shell's quoting" in source(config)
+    assert "**-**" not in source(config)
+
+
 def test_restate_takes_no_reason_because_the_format_has_nowhere_to_put_one(tmp_path):
     # An argument the tool cannot store is an argument it must not pretend to take (L4). The
     # commit that removes the false claim is where the reason belongs.

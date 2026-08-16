@@ -209,6 +209,7 @@
 - ✅ **RK1176** **ship writes a literal dash where --superseded-design was handed the pipe every other prose argument reads** — which arguments read the pipe is the parser's claim, resolved once in dispatch, where the two-into-one refusal is asked for every verb.
 - ✅ **RK1177** **add --ref accepts a retired anchor that section add then refuses** — add asks the same history section add reads, so a pointer at a retired address is refused where it is written.
 - 🗑 **RK1182** **ship refuses over a dependent line's why, and names the shipping task's own why, which cannot fix it** — superseded by RK1152: Verified here: the refusal names each dependent's line and all of them at once, which RK348 and RK1152 delivered — the capture is from a project on an older engine.
+- ✅ **RK1187** **`symptom` is the one prose field no verb declares as a pipe reader, so `-` lands in the file as the claim** — restate --symptom reads stdin like every other prose argument, so a bare - is the pipe and never the claim it lands as.
 
 ## Block C — Query
 

@@ -117,18 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 3 | 149 | 2 |
+| B — Authoring (insert, never hand-edit) | 2 | 150 | 2 |
 | C — Query (consult without reading the file) | 3 | 101 | 1 |
 | D — The gate | 1 | 175 | 2 |
 | E — Adoption | 2 | 87 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 108 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 7 | 0 |
-| **Total** | 9 | 681 | 9 |
+| **Total** | 8 | 682 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1187** (deps: —) **`symptom` is the one prose field no verb declares as a pipe reader, so `-` lands in the file as the claim** — RK1176 made that declaration the parser's own and `restate` declares none — the verb whose only prose argument is the field that carries a backtick as readily as a why. → §RK1187
+- 📋 **RK1188** (deps: —) **No verb says what the blocks are called, so choosing where a task goes means reading the file the hook denies** — SKILL.md tells an author to look at what the blocks already are before add; stats answers letters and counts, list and delivered demand a block they cannot enumerate. → §RK1188
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

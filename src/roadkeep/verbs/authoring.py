@@ -447,7 +447,8 @@ def declare_lines(subcommands: argparse._SubParsersAction) -> None:
     restate_parser.add_argument(
         "--symptom",
         required=True,
-        help="what does not work — re-validated against the limit, exactly as `add` does",
+        help="what does not work — re-validated against the limit, exactly as `add` does"
+        + _PIPE,
     )
     restate_parser.add_argument(
         "--lines",
@@ -463,7 +464,16 @@ def declare_lines(subcommands: argparse._SubParsersAction) -> None:
         ),
     )
     restate_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    restate_parser.set_defaults(handler=_restate)
+    restate_parser.set_defaults(
+        handler=_restate,
+        # The field the pipe convention skipped, and the verb whose only prose argument it is
+        # (RK1187). A symptom carries the backtick and the apostrophe exactly as a `why` does,
+        # and is the one a shell corrupts most quietly — a symptom that lost an apostrophe
+        # still reads like prose somebody wrote, so nothing downstream calls it wrong. Ungated
+        # and sentinel-only, like `amend --why`: `--symptom` is required, so the omitted read
+        # is a shape argparse already refuses.
+        reads_stdin=(Prose(dest="symptom", omitted=False),),
+    )
 
     renumber_parser = subcommands.add_parser(
         "renumber",

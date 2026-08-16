@@ -77,27 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1187 The prose field the pipe convention skipped
-
-RK329 made every prose argument read the pipe and RK1176 moved the claim into the
-parser, resolved once in dispatch with the two-into-one refusal asked for every verb.
-`add` declares two readers, the body and the `why`; `restate` declares none. So
-`symptom` is the field the convention skipped, and `restate` is the verb with no pipe at
-all — the one whose only prose argument is a symptom.
-
-Refusing `-` by name is the wrong half of the door. A symptom carries the backtick, the
-apostrophe and the `§` exactly as a `why` does, which the lines in this file
-demonstrate: RK1184, RK1185 and RK1186 all quote a command in theirs. The field wants
-the pipe for the same reason the `why` was the argument RK329 was really about, and it
-is the field a shell most quietly corrupts, because a symptom that lost an apostrophe
-still reads like prose somebody wrote.
-
-Nothing downstream can catch it either, which is why the door is the parser's. A bare
-dash is a one-character symptom: it clears every limit, renders, round-trips and passes
-the gate, so the file keeps a claim no rule can call wrong. `restate --typo` is
-untouched — a declaration is not prose — and `add --symptom - --why -` needs no new
-refusal, being two arguments asking for one pipe, which dispatch already names.
-
 ### §RK1196 The two places a false premise is also written
 
 `restate` exists because a premise turned out false, and it is deliberately narrow: the

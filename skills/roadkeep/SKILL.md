@@ -192,14 +192,14 @@ task rather than promising one, so an unclaimed id in this project's own prefix 
 spent and the next `add` derives past it — spell an example outside the prefix, or name the
 id you meant.
 **At a terminal, `-` reads stdin on every prose argument** — `--section-body` and
-`--body`, and `--why` and `--reason` on every verb that take one. Reach for it on the
-sentence, not only the paragraph: a `why` names types, files and prior ids, so it carries
-the apostrophe, the backtick and the `§` a shell reads first, and a shell that eats a
-backtick does not refuse — it hands over prose subtly unlike what you wrote and the line
-lands. The pipe's own trailing newline comes off; a trailing space is still yours and
-still refused, and two arguments asking for one pipe is refused naming both. Over MCP
-there is no pipe, so every write that reads one takes it **as a string** and refuses `-`
-by name. **A pipe does not rewind, and a paragraph is the expensive argument**: an `add`
+`--body`, and `--why`, `--reason` and `restate --symptom` on every verb that takes one.
+Reach for it on the sentence, not only the paragraph: a `why` or a symptom names types,
+files and prior ids, so it carries the apostrophe, the backtick and the `§` a shell reads
+first, and a shell that eats a backtick does not refuse — it hands over prose subtly
+unlike what you wrote and the line lands. The pipe's own trailing newline comes off; a
+trailing space is still yours and still refused, and two arguments asking for one pipe is
+refused naming both. Over MCP there is no pipe, so every write that reads one takes it
+**as a string** and refuses `-` by name. **A pipe does not rewind, and a paragraph is the expensive argument**: an `add`
 refused for a `why` three words over used to cost the whole rationale a second time, so
 the body is now fetched *below* every refusal the line itself can raise — and where that
 is not enough, because `section add` reports the anchor, the title and the body together,

@@ -1230,11 +1230,14 @@ def test_a_call_can_never_be_handed_the_transport_either(tmp_path):
 def test_the_paths_that_could_reach_it_are_the_ones_declared():
     # The inventory §RK171 says neither file stated, now derived from the parsers — and one
     # `--why` per prose-writing verb since RK329, because the field a shell most reliably
-    # eats is the sentence and not the paragraph.
+    # eats is the sentence and not the paragraph. `restate` since RK1187: its `--symptom` is
+    # the same sentence under a different name, and was the one prose argument the convention
+    # had skipped — so this set is now every verb here that takes prose at all.
     reaching = {tool.name for tool in TOOLS if prose_of(tool.command)}
     assert reaching == {
         "add",
         "amend",
+        "restate",
         "ship",
         "record_add",
         "record_amend",
