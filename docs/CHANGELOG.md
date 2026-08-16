@@ -211,6 +211,7 @@
 - 🗑 **RK1182** **ship refuses over a dependent line's why, and names the shipping task's own why, which cannot fix it** — superseded by RK1152: Verified here: the refusal names each dependent's line and all of them at once, which RK348 and RK1152 delivered — the capture is from a project on an older engine.
 - ✅ **RK1187** **`symptom` is the one prose field no verb declares as a pipe reader, so `-` lands in the file as the claim** — restate --symptom reads stdin like every other prose argument, so a bare - is the pipe and never the claim it lands as.
 - ✅ **RK1196** **restate replaces a false premise and leaves the why and the design still asserting it, naming no follow-up** — restate names the why and the design as the two other places the claim it replaced is written, as the doors that reach them.
+- ✅ **RK1198** **Filing into a block whose prose family is spent is four sequential refusals, each teaching one step** — The ref.missing refusal on a block whose prose has not started prints the whole path, ordered and with its arguments filled in.
 
 ## Block C — Query
 

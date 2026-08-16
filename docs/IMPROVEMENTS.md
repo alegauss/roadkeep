@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1198 The path to a first add is discovered one refusal at a time
-
-Observed filing three tasks into a project whose `ref_scheme` is `outline`, into blocks
-whose every line had shipped. Each refusal is individually correct and names the next
-verb. Together they are a staircase: `add` refuses for a missing `--ref`; `anchors
---block` refuses because no open line in that block carries a pointer; `anchors
---only-next` answers a free top-level; `add` refuses because no heading declares the
-block; `block add` writes it; `add` refuses again because the anchor has nothing to
-extend; `section add` writes the family; `add` lands. Six calls before the first write,
-and the prose was ready at call one.
-
-The information was there at the first refusal. `add` knew the block, whether a heading
-declared it, that its families were spent and what the next free top-level was —
-everything the remaining five calls established. Reporting one step is right when a
-caller is one step from done and wrong when they are six, because a staircase discovered
-a stair at a time reads as a tool changing its mind.
-
-So: when the first refusal can compute the whole path, print it — the ordered verbs with
-their arguments filled in, not a description of them. RK1188 is the sibling question
-(*what are the blocks called*); this is *what does filing into this one take*.
-
-Worth deciding: whether `add` grows a `--plan` that prints the sequence without writing,
-or the refusal carries it. The refusal is the moment the author is actually in.
-
 ## Block C — Query
 
 ### §RK1188 The one question before every add has no verb
@@ -232,6 +208,29 @@ audience is a person checking it is alive.
 The remedy is one line to stderr on a payload that does not parse, which the harness
 ignores and a person reads. Exit 0 should stay: a gate that fails a turn because it
 could not read its own input is the failure the launcher exists to avoid.
+
+### §RK1203 The path.missing door on a ledger line names a verb that refuses it
+
+Found adopting Turing, whose ledger holds 755 entries written before the tool existed.
+`lint` reports `path.missing` on a **changelog** entry — T759 names
+`frontend/apps/site/scripts/emit-model-catalog.mjs`, true when it shipped and false
+since the catalog moved to its own repository — and emits exactly one door: `amend T759
+--why …`, kind `compose`, with the matching MCP call.
+
+Following it produces `no open task T759 in docs/ROADMAP.md: it is already in the
+changelog`. `amend` loads the roadmap, looks the id up in `roadmap.by_id()` and raises
+`NotOpen` for anything the ledger holds; it was built to correct an open line and says
+so. So the one remedy offered for this finding is the one verb that structurally cannot
+perform it, and an agent that trusts the door spends a call learning the door is shut.
+
+Two things are wrong and only one is the door. A ledger entry recording a path that was
+real at ship time is not drift — it is what history is *for* — so the check itself wants
+a notion of "true when written". And the remedy, if one is offered at all, has to name a
+verb that reaches the ledger: `record amend` exists for that file, and the 200-character
+cap on `amend --why` would refuse this 1,600-character entry even if it did.
+
+Minimum: stop emitting an unfollowable door. Better: let a ledger path be resolved
+against the commit that shipped it.
 
 ## Block E — Adoption
 

@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1198** (deps: —) **Filing into a block whose prose family is spent is four sequential refusals, each teaching one step** — add refuses for a missing ref, anchors refuses because no open line carries one, add refuses for a missing block heading, then for a section with nothing to extend. → §RK1198
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1188** (deps: —) **No verb says what the blocks are called, so choosing where a task goes means reading the file the hook denies** — SKILL.md tells an author to look at what the blocks already are before add; stats answers letters and counts, list and delivered demand a block they cannot enumerate. → §RK1188
@@ -38,6 +36,7 @@
 
 - 📋 **RK1192** (deps: —) **A launcher and skill older than the version answering are reported by nothing the gate runs** — `install --check` answers it and is a command nobody thinks to run; lint fires every turn through the Stop hook, and a stale launcher is the state that leaves a session with no door in. → §RK1192
 - 📋 **RK1202** (deps: —) **guard exits 0 and prints nothing on a payload it could not parse, which is the answer it gives for allowed** — A gate whose refusal and whose failure are the same silence cannot be told apart by testing it, so a probe that misencodes stdin reads as proof the guard is absent. → §RK1202
+- 📋 **RK1203** (deps: —) **lint offers amend as the door for a path.missing on a changelog line, and amend refuses every shipped id** — The only remedy named for a ledger entry naming a moved path is a verb that cannot edit the ledger, so the finding has no reachable fix. → §RK1203
 
 ## Block E — Adoption
 
