@@ -117,14 +117,14 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 158 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 159 | 2 |
 | C — Query (consult without reading the file) | 5 | 101 | 1 |
 | D — The gate | 5 | 175 | 2 |
 | E — Adoption | 2 | 87 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 108 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 1 | 7 | 0 |
-| **Total** | 13 | 690 | 9 |
+| **Total** | 13 | 691 | 9 |
 
 **Next ready:**
 
@@ -261,15 +261,18 @@ harness reads as a crash.
 ### Or just the CLI
 
 ```sh
-uvx roadkeep lint                                      # no install, no checkout
-pip install roadkeep
+# Not on PyPI yet, so the name resolves by URL until the first release is cut
+uvx --from git+https://github.com/alegauss/roadkeep roadkeep lint   # no install, no checkout
+pip install git+https://github.com/alegauss/roadkeep
 
-pip install git+https://github.com/alegauss/roadkeep   # an unreleased commit
+# What those two become the moment `publish.yml` runs with target=pypi
+uvx roadkeep lint
+pip install roadkeep
 ```
 
 Python ≥3.11, **zero runtime dependencies** — `argparse` and `tomllib`, not `click` and
 `pydantic`. A tool meant to run in someone else's CI pays for every dependency it takes,
-and that is also what makes the first line above viable: there is nothing to resolve.
+and that is also what makes the `uvx` line above viable: there is nothing to resolve.
 
 ## Run it as a gate
 
@@ -286,7 +289,7 @@ steps:
 # .pre-commit-config.yaml — the same command, one step earlier
 repos:
   - repo: https://github.com/alegauss/roadkeep
-    rev: v0.1.0                        # or main, to track an unreleased commit
+    rev: main                          # no tag is cut yet; a version pin once one is
     hooks:
       - id: roadkeep-lint              # or roadkeep-lint-fix, which normalizes first
 ```

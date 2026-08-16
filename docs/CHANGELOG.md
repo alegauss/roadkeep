@@ -218,6 +218,7 @@
 - ✅ **RK1208** **section add refuses a child whose family is missing and writes a grandchild whose middle generation is** — section add refuses an anchor whose immediate parent is missing, naming every generation between the prefix it found and the address typed.
 - ✅ **RK1212** **The id-reuse refusal tells a caller to omit --id, and renumber declares no --id** — The id-reuse refusal names the flag the verb it fired at declares, so renumber and record renumber say --to where add says --id.
 - ✅ **RK1213** **A paused id is refused in the words an id nobody wrote gets, and Whereabouts says no file mentions it** — Where carries the paused state, so a refusal about a line the store holds names the store and resume instead of reading as a typo.
+- ✅ **RK1215** **defer refuses a partially shipped line in the ledger's words about a second entry it would not write** — defer and resume take a line whose ledger entry is a half, and the gate reads that qualifier off the changelog rather than off whichever file is second.
 
 ## Block C — Query
 

@@ -673,11 +673,23 @@ _unwrapped = authored_why
 
 
 def _refuse_recorded(config: Config, task_id: str) -> None:
-    """A pause is between open and terminal, so an id the ledger holds has neither door."""
+    """A pause is between open and terminal, so an id the ledger holds has neither door.
+
+    **Except the one pair this tool writes on purpose** (RK1215). `ship --part` records a
+    qualified half and leaves the line open at ⏳, and this asked only *does the ledger hold
+    the id* — so a line whose remainder waits on a decision, which is the case the store
+    exists for, was refused with :class:`~roadkeep.shipping.AlreadyRecorded`: the ledger's own
+    sentence, about a second entry neither of these two verbs would write.
+
+    :attr:`~roadkeep.kernel.schema.Task.in_halves` and never a second test of the qualifier,
+    which is the field :func:`~roadkeep.authoring._refuse_sibling_status` and
+    :func:`~roadkeep.linting._carried` already read for this pair — so the door, the gate and
+    the pause cannot disagree about a state one of them creates (RK1080, RK1114).
+    """
     if not config.has("changelog") or not config.path("changelog").is_file():
         return
     recorded = config.document("changelog").by_id().get(task_id)
-    if recorded is None:
+    if recorded is None or recorded.task.in_halves:
         return
     # Imported here rather than at module scope: the two write paths are peers, and this is
     # the one fact one of them owns about the other — the ledger's refusal, in its words.

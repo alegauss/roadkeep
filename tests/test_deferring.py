@@ -46,6 +46,7 @@ from roadkeep.kernel.schema import (
     DEFERRED,
     DESIGNED,
     IDEA,
+    PARTIAL,
     SHIPPED,
     Dep,
     Schema,
@@ -832,3 +833,86 @@ def test_a_shipped_id_keeps_the_reading_it_had(tmp_path):
     found = Whereabouts.of(config, "RK1")
     assert found.recorded and not found.paused
     assert main(["-C", str(tmp_path), "amend", "RK1", "--why", "A reason."]) == EXIT_USAGE
+
+
+# -- the one pair this tool writes on purpose, at the two doors that refused it (RK1215) --
+
+
+def test_a_partially_shipped_line_can_still_be_paused(tmp_path):
+    """RK1215. `ship --part` records a qualified half and leaves the line open at ⏳, which
+    is the one shape this tool creates on purpose — and `defer` answered with the *ledger's*
+    refusal, about a second entry it would never write. `_refuse_recorded` asked whether the
+    ledger holds the id and never whether that entry is a half, which is the pair
+    `_refuse_sibling_status` and the gate both skip on `Task.in_halves` (RK1080, RK1114).
+
+    The state it locked out is the case the store exists for: a half that landed and a
+    remainder waiting on a decision. The only exit left was `retire`, which deletes the
+    design and records a departure that did not happen.
+    """
+    from roadkeep.shipping import ship
+
+    config = project(tmp_path)
+    ship(config, "RK1", why="The local half works now.", part="local half").save()
+    config = Config.discover(tmp_path)
+    assert config.document("roadmap").by_id()["RK1"].task.status == PARTIAL
+
+    paused = defer(config, "RK1", reason="the rest waits on a decision")
+    paused.save()
+    config = Config.discover(tmp_path)
+    assert config.document("deferred").by_id()["RK1"] is not None
+    # And the gate agrees, which is the half opening the door alone would have broken.
+    assert [f.code for f in lint(config).findings] == []
+
+
+def test_the_pause_a_partial_allows_comes_back(tmp_path):
+    # `resume` reads the same function, so it had the same refusal about an id the store
+    # already held — and the qualifier the roadmap lost is `--marker`'s to restore.
+    from roadkeep.shipping import ship
+
+    config = project(tmp_path)
+    ship(config, "RK1", why="The local half works now.", part="local half").save()
+    config = Config.discover(tmp_path)
+    defer(config, "RK1", reason="the rest waits on a decision").save()
+    config = Config.discover(tmp_path)
+
+    resume(config, "RK1", marker=PARTIAL).save()
+    config = Config.discover(tmp_path)
+    assert config.document("roadmap").by_id()["RK1"].task.status == PARTIAL
+    assert "RK1" not in config.document("deferred").by_id()
+    assert [f.code for f in lint(config).findings] == []
+
+
+def test_a_whole_shipment_is_still_refused_at_both_doors(tmp_path):
+    # The rule the exception is carved out of, unchanged: an id the ledger holds *whole* has
+    # neither door, and a pause beside it is the contradiction `id.paused-and-gone` reports.
+    from roadkeep.shipping import ship
+
+    config = project(tmp_path)
+    ship(config, "RK1", why="It works now.").save()
+    config = Config.discover(tmp_path)
+    # The line is gone from the roadmap, so `defer` refuses one step earlier — and says so
+    # in the words RK1213 gave that reading rather than the ledger's.
+    assert main(["-C", str(tmp_path), "defer", "RK1", "--reason", "set aside"]) == EXIT_USAGE
+    assert main(["-C", str(tmp_path), "resume", "RK1"]) == EXIT_USAGE
+
+
+def test_the_gate_reads_the_qualifier_off_the_ledger_and_not_off_the_second_file(tmp_path):
+    """The gate half (RK1215). `_carried` walks three pairs and read `in_halves` off `held`,
+    the pair's *second* file — but the changelog is second in two of them and first in the
+    third, so `id.paused-and-gone` looked for the qualifier on the store's line, where it
+    never appears. A tolerance applied to a position rather than to the file carrying the
+    fact works by coincidence."""
+    store = DEFERRED_STORE + (
+        f"- {DEFERRED} **RK7** (deps: —) **A half-shipped symptom** — "
+        f"set aside (the rest waits): Because of a reason. → §RK7\n"
+    )
+    whole = LEDGER + f"- {SHIPPED} **RK7** **A half-shipped symptom** — It works now.\n"
+    halved = LEDGER + (
+        f"- {SHIPPED} **RK7 (local half)** **A half-shipped symptom** — The half works.\n"
+    )
+    # Whole: the contradiction the rule is for, still reported.
+    config = project(tmp_path, {"DEFERRED.md": store, "CHANGELOG.md": whole})
+    assert "id.paused-and-gone" in [f.code for f in lint(config).findings]
+    # A half: the two files agreeing that work arrived in halves, and the store holds the rest.
+    config = project(tmp_path, {"DEFERRED.md": store, "CHANGELOG.md": halved})
+    assert "id.paused-and-gone" not in [f.code for f in lint(config).findings]

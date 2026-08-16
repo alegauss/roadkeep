@@ -2368,9 +2368,16 @@ def _carried(config: Config, backlog: Backlog) -> list[Finding]:
     exist and the walk over them; a pair the declaration carries with no code is one nobody
     has walked into, and it is skipped here and named there.
 
-    `in_halves` is the one tolerated shape (RK121, RK1080) and belongs to the ledger pair:
-    an entry naming a half beside an open line is the two files agreeing that work arrived
-    in halves. No other pair has one, because no other file can say so.
+    `in_halves` is the one tolerated shape (RK121, RK1080) and belongs to the **ledger's own
+    entry**: an entry naming a half is the file saying work arrived in halves, and whatever
+    sits beside it agrees rather than disagrees. No other file can say so, which is why the
+    roadmap–store pair has no tolerance at all.
+
+    Read off whichever side *is* the changelog and no longer off `second` (RK1215). Two of
+    the three pairs put the ledger second and the third puts it first, so the qualifier was
+    being looked for on the store's line — where it never appears — and `id.paused-and-gone`
+    fired on a half-shipped line the store legitimately holds. A tolerance applied to a
+    position rather than to the file that carries the fact is one that works by coincidence.
     """
     # Off the `Backlog` the run already holds (RK1085), which is the reader that opens all
     # three carriers once — the shape `_deps` and `_queued` are handed. Reaching for
@@ -2391,7 +2398,14 @@ def _carried(config: Config, backlog: Backlog) -> list[Finding]:
         filed = config.relative(config.path(pair.first))
         for task_id, entry in first.by_id().items():
             held = elsewhere.get(task_id)
-            if held is None or held.task.in_halves:
+            if held is None:
+                continue
+            recorded = (
+                entry if pair.first == "changelog"
+                else held if pair.second == "changelog"
+                else None
+            )
+            if recorded is not None and recorded.task.in_halves:
                 continue
             out.append(
                 Finding(

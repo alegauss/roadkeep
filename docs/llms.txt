@@ -9,8 +9,9 @@
 > author to constrain is usually an agent.
 
 Status: the model, the write paths, the query surface and the gate are done; the Claude
-Code plugin that stops an agent hand-editing a governed file is not. Install with
-`uvx roadkeep` or `pip install roadkeep`.
+Code plugin that stops an agent hand-editing a governed file is not. Not on PyPI yet, so
+install with `pip install git+https://github.com/alegauss/roadkeep`, or take the plugin:
+`claude plugin marketplace add alegauss/roadkeep`.
 
 No count is stated here on purpose. A restatement of a backlog goes stale on the first
 ship — this file said "9 of 36" through twenty-five of them — and the ROADMAP and

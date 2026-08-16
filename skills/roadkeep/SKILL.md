@@ -135,7 +135,10 @@ pause is none of those three**: `defer <id> --reason "…"` moves the line to th
 store, keeping the id, the deps, the symptom and the section a departure deletes, and
 `resume <id> [--marker <m>]` is the return direction the ledger has none of — the reason
 wraps the `why` on the way out and is unwrapped on the way back, and the open marker is
-what the store could not keep, so `--marker` is where you say which it was. A dep on a
+what the store could not keep, so `--marker` is where you say which it was (`--marker ⏳`
+where a `--part` already landed: **a half that shipped does not close the pause door**, and
+the gate reads the qualifier off the ledger, so the store and that entry are the two files
+agreeing). A dep on a
 paused task resolves as **deferred**, and the line waiting on it as `blocked-paused` — not
 offered, counted apart, and unblocked by a `resume` rather than a ship. The three writes that
 reach a line by id — `amend`, `restate`, `status` — refuse a paused one **naming the store
