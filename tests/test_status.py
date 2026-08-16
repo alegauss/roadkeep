@@ -630,6 +630,10 @@ SPELLINGS = {
     # It reads the pipe for the reason the sentence does — the address carries a `§`, which a
     # shell reads before this program does.
     ("--superseded-design",): "the clause naming an overtaken design, on `ship` alone",
+    # RK1187. The falsifiable claim the line *is*, with a limit of its own — `amend` excludes
+    # it for that reason and `restate` is its door. It reads the pipe because it carries the
+    # backtick and the apostrophe a `why` does, which is not the same as being one.
+    ("--symptom",): "the claim a line makes, on `restate` alone",
 }
 
 
@@ -688,9 +692,11 @@ def test_the_two_that_rename_it_accept_the_name_the_rest_use():
     for names, where in prose_fields().items():
         if names in (("--body",), ("--section-body",)):
             continue  # a paragraph is a different field, with its own limit
-        if names == ("--superseded-design",):
-            # A clause about another address rather than this line's own sentence (RK1176), so
-            # the alias rule does not reach it: it is prose that reads the pipe, and there is
-            # nothing for it to be a second name *of*.
+        if names in (("--superseded-design",), ("--symptom",)):
+            # A clause about another address rather than this line's own sentence (RK1176),
+            # and the claim the line is rather than the reason for it (RK1187). The alias rule
+            # does not reach either: both are prose that reads the pipe, and neither is a
+            # second name *of* anything — a `--symptom` accepting `--why` would make the two
+            # fields `amend` deliberately keeps apart one field with two spellings.
             continue
         assert "--why" in names, (names, where)

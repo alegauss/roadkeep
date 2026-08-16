@@ -2420,13 +2420,20 @@ def _where_the_anchor_is(config: Config, block: str) -> tuple[str, str]:
     from roadkeep.provenance import invocation  # noqa: PLC0415
 
     spans = families_of_block(config, block)
-    if len(spans) != 1:
-        # Two families is a block that reopened under a fresh top-level, and none is a block
-        # whose prose has not started — different answers, and the same command gives both.
+    if len(spans) > 1:
+        # A block that reopened under a fresh top-level. Two families is a real answer and the
+        # tool must not pick between them (RK312), so the command that lists both is still the
+        # whole of it — the one case here where the path forks on a judgement, and so the one
+        # RK1198 leaves exactly as it was.
         return (
             f" — `{invocation()} anchors --block {block}` says which family this block's "
             f"prose lives under, and `anchors` alone names the free top-level"
         ), ""
+    if not spans:
+        # And none is a block whose prose has not started, which is not the same question
+        # (RK1198): the two shared a sentence, and the sentence sent an author who was six
+        # calls from a first write to a command that answers one of them.
+        return _the_path_into(config, block)
     family = spans[0]
     try:
         free = next_child(anchors(config), family)
@@ -2438,6 +2445,84 @@ def _where_the_anchor_is(config: Config, block: str) -> tuple[str, str]:
     return (
         f" — Block {block}'s prose is under §{family}, where §{free} is free "
         f"(`{invocation()} anchors --block {block}` lists it)"
+    ), free
+
+
+def _the_path_into(config: Config, block: str) -> tuple[str, str]:
+    """Every verb between this refusal and the line that lands, with its arguments (RK1198).
+
+    Observed filing three tasks into a project whose `ref_scheme` is `outline`, into blocks
+    whose every line had shipped. Each refusal was individually correct and named the next
+    verb; together they were a staircase, and six calls stood between prose that was ready at
+    call one and the first write. The information was there at the first refusal — it knew the
+    block, whether a heading declared it, that its families were spent and what the next free
+    top-level was, which is everything the remaining five calls established.
+
+    So reporting one step is right when a caller is one step from done and wrong when they are
+    six, because a staircase discovered a stair at a time reads as a tool changing its mind.
+    The refusal carries the path rather than a `--plan` flag doing it, for the reason the
+    whole clause exists: this is the moment the author is actually in, and a flag is one more
+    thing to have learnt first.
+
+    Filled in and not described: the block, the address and the ledger's own spelling are all
+    derived here, so what is left in angle brackets is the title, which is editorial and L4's
+    to leave alone. `""` for the address wherever the outline's numbering does not derive one
+    — the same silence :func:`_where_a_top_level_is` keeps, since a path opening on a number
+    this could not verify is worse than the command that reads it.
+    """
+    # Deferred for RK260's reason, and because git belongs on no successful write path.
+    from roadkeep.authoring import prose_role  # noqa: PLC0415
+    from roadkeep.blocking import BLOCK_ROLES  # noqa: PLC0415
+    from roadkeep.history import (  # noqa: PLC0415
+        HistoryUnavailable,
+        anchors,
+        next_child,
+        next_family,
+    )
+    from roadkeep.provenance import invocation  # noqa: PLC0415
+
+    role = prose_role(config, on_disk=True)
+    started = f" — Block {block}'s prose has not started"
+    try:
+        taken = () if role is None else anchors(config)
+    except (HistoryUnavailable, OSError):
+        taken = ()
+    family = None if role is None else next_family(taken, config.schema_for(role).ref_prefix)
+    if family is None:
+        # An outline with no family at all, one whose top-levels are not one numbering, or a
+        # history that cannot be read: all three are numbers this could not verify, and a path
+        # opening on a guessed address is worse than the command that reads the real one
+        # (RK340, RK293).
+        return (
+            f"{started}, and `{invocation()} anchors` names the free top-level it opens at"
+        ), ""
+    # The task's design is a **child** of that family, through
+    # :func:`~roadkeep.history.next_child` rather than spelled here, so the one writer of a
+    # child address stays the one writer of it.
+    free = next_child(taken, family)
+    steps = [
+        # The family first, and it is the stair nobody sees coming: `section add <free>`
+        # refuses with nothing to extend, and so does an `add --section` naming the same
+        # address, because an anchor states its own place and a fresh top-level has no prose
+        # yet. A free family exists nowhere by construction, so this step is unconditional.
+        f'section add {family} --title "<its title>"',
+        f"add --block {block} --ref {free} …",
+        # Named although the `add` above prints it on success: the whole point is that the
+        # path is legible at call one, and a last step that only appears once the fourth call
+        # lands is the staircase again with one stair left on it.
+        f"section add {free} --title …",
+    ]
+    if any(
+        not config.document(one).declaring(block)
+        for one in BLOCK_ROLES
+        if config.has(one) and config.path(one).is_file()
+    ):
+        # Ahead of them all, because it is the refusal the retry walks into next: a label no
+        # heading declares is `add`'s own second door, one call further down the stairs.
+        steps.insert(0, f'block add {block} --title "<its title>"')
+    return (
+        f"{started} and §{family} is its free top-level, so filing here is "
+        + ", then ".join(f"`{invocation()} {one}`" for one in steps)
     ), free
 
 

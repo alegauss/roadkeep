@@ -1276,6 +1276,89 @@ def test_a_block_spanning_two_families_is_told_to_ask_rather_than_given_one(tmp_
     assert "anchors --block R" in err and "free top-level" in err
 
 
+def test_filing_into_a_block_whose_prose_has_not_started_gets_the_whole_path(tmp_path, capsys):
+    """RK1198. The staircase, collapsed into the refusal the author is actually standing in.
+
+    Measured filing three tasks into an outline project, into blocks whose every line had
+    shipped: `add` refused for a missing `--ref`, `anchors --block` refused because no open
+    line there carries a pointer, `add` refused for the block heading, `section add` refused
+    for a family with nothing to extend — six calls before the first write, and the prose was
+    ready at call one. Every fact those five calls established was available at this refusal.
+
+    Reporting one step is right when a caller is one step from done and wrong when they are
+    six, because a staircase discovered a stair at a time reads as a tool changing its mind.
+    """
+    config = outlined_blocks(tmp_path)
+    # Block Z, which no governed file declares: the measured case is a block being *opened*,
+    # so the heading is the first stair and Block A — declared in all three — is the next test.
+    argv = ["-C", str(config.root), "add", "--block", "Z", "--symptom", "A", "--why", "B."]
+    assert main(argv) == EXIT_USAGE
+    err = capsys.readouterr().err
+    # The rule survives, as it does at every other door this clause is appended at.
+    assert "every task points at its rationale section" in err
+    assert "Block Z's prose has not started and §XXI is its free top-level" in err
+    # The ordered verbs with their arguments filled in, and not a description of them: what is
+    # left in angle brackets is the title, which is editorial and L4's to leave alone.
+    for step in (
+        'block add Z --title "<its title>"',
+        'section add XXI --title "<its title>"',
+        "add --block Z --ref XXI.1 …",
+        "section add XXI.1 --title …",
+    ):
+        assert f"`{invocation()} {step}`" in err, step
+
+
+def test_the_path_names_no_block_add_where_a_heading_already_declares_it(tmp_path, capsys):
+    # The first stair is conditional, being `add`'s own second door: a block every governed
+    # file already declares is one the retry walks straight past, and a step naming a write
+    # that is already done is the same noise as a step withheld.
+    config = outlined_blocks(tmp_path)
+    argv = ["-C", str(config.root), "add", "--block", "A", "--symptom", "A", "--why", "B."]
+    assert main(argv) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "block add A" not in err
+    assert f'`{invocation()} section add XXI --title "<its title>"`' in err
+
+
+def test_the_path_is_the_one_that_works(tmp_path, capsys):
+    """Executed and not matched, for the reason RK1149's retry is: a printed sequence whose
+    order is wrong is a sequence that refuses at step two, and this one exists precisely
+    because each step in it was previously discovered by being refused."""
+    config = outlined_blocks(tmp_path)
+    root = str(config.root)
+    typed = ["-C", root, "add", "--block", "Z", "--symptom", "A symptom", "--why", "A reason."]
+    assert main(typed) == EXIT_USAGE
+    steps = [
+        shlex.split(one.strip()[len(invocation()) :])
+        for one in capsys.readouterr().err.replace("`", "\n").splitlines()
+        if one.strip().startswith(invocation())
+    ]
+    # Every refusal ends with the `report` line that files a defect against this tool, and it
+    # is spelled as an invocation like the rest — it is not a stair, so it is not walked.
+    steps = [one for one in steps if one[0] != "report"]
+    # The ellipsis stands for the caller's own prose, which only they can write (L4). Filling
+    # it in is this test's job and the order is not: each step runs as printed, in the order
+    # printed, and every one of them has to be accepted where it stands.
+    filled = {
+        "block": ["--title", "The model"],
+        "section": ["--title", "A title", "--body", "Prose enough to matter."],
+        "add": ["--symptom", "A symptom", "--why", "A reason."],
+    }
+    for step in steps:
+        again = step[: step.index("…")] if "…" in step else step
+        # The ellipsis stands where a flag was already typed as often as where none was, so
+        # the dangling `--title` goes with it rather than being answered twice.
+        again = again[:-1] if again[-1].startswith("--") else again
+        assert main(["-C", root, *again, *filled[again[0]]]) == EXIT_OK, step
+    # And the line the path landed is one the gate has nothing to say about. Asked of this
+    # block alone rather than of the file: `outlined_blocks` writes two blocks whose ledger
+    # headings it never declares, which is a fixture the path being tested does not touch.
+    capsys.readouterr()
+    main(["-C", root, "lint"])
+    reported = capsys.readouterr().out
+    assert "Block Z" not in reported and "XXI" not in reported
+
+
 def test_every_other_violation_still_arrives_with_it(tmp_path, capsys):
     # Enriched around `place` and not before it: the schema reports every violation at once,
     # and an early refusal would trade that for the one sentence it improves.

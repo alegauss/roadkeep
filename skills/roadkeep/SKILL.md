@@ -51,7 +51,11 @@ says which track while the number stays derived, per family. Where it declares `
 = "outline"` the anchor is not derivable at all, so `add --ref <x.y>` is the field that
 names it — offered over MCP too, and only there, an `add` without it on such a project
 being refused `ref.missing`; there the id in a section's heading is what binds it to its
-line, and it too is appended for you. Where `[refs]` gives a prose file a **namespace**,
+line, and it too is appended for you. **That refusal carries the whole path where the
+block's prose has not started** — the `block add`, the `section add` opening the family,
+the retry and the design, in order and with the arguments filled in — so read it once and
+run them rather than discovering a stair per call. Where `[refs]` gives a prose file a
+**namespace**,
 that file's addresses are written `<prefix>:<x.y>` and it answers no bare one — two files
 each numbering their own outline from `I` being one flat set of addresses otherwise, which
 `anchors` reports as `doubled` and the gate as `section.ambiguous`. The prefix rides on
