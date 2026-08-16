@@ -42,6 +42,7 @@
 - 📋 **RK1203** (deps: —) **lint offers amend as the door for a path.missing on a changelog line, and amend refuses every shipped id** — The only remedy named for a ledger entry naming a moved path is a verb that cannot edit the ledger, so the finding has no reachable fix. → §RK1203
 - 📋 **RK1206** (deps: —) **Under an outline, the ref.unresolved remedy names the task id where the missing section is the anchor the line points at** — The finding prints the anchor and the command under it prints the id, so running it writes a section the line does not point at. → §RK1206
 - 📋 **RK1214** (deps: —) **a resolved engine that fails to import takes the whole command down instead of falling through to the next candidate** — The launcher promises a missing engine degrades to unenforced rather than to a broken session, and a checkout mid-refactor is found and then explodes. → §RK1214
+- 📋 **RK1217** (deps: —) **path.missing judges a shipped entry against today's tree, so a file later moved to another repo makes history a finding** — A ledger sentence is true about the tree that shipped it, and the only door offered rewrites that sentence. → §RK1217
 
 ## Block E — Adoption
 

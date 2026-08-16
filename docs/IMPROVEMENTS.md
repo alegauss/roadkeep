@@ -354,6 +354,32 @@ and would have turned this into a slower command rather than a failed one.
 This is separate from RK1200, which is about which candidate is picked. This one is
 about what happens after a pick that turns out to be wrong.
 
+### §RK1217 The ledger's paths are checked against the wrong tree
+
+Turing's `T759` entry names `frontend/apps/site/scripts/emit-model-catalog.mjs`, a
+script that existed when the work shipped and was later extracted into its own
+repository along with the model catalog. The entry is accurate. The file is gone. `lint`
+reports it every run, and will keep reporting it.
+
+`_candidates` already forgives a path that moved **within** the repository —
+`tree.anywhere` catches a rename — but one that left it entirely has nowhere to be
+found, so the rule reads a correct statement about the past as drift.
+
+What makes it worse than noise is the door. The remedy composes `amend --why`, which
+replaces the entry's whole sentence under `[limits] why` at 200 characters — while
+`[limits.changelog]` lets that same entry run to thousands, and `T759` spends about
+1,500 of them on what was built. The offered fix for a stale path is to delete the
+as-built record that made the entry worth keeping. Nobody takes that door, so the
+finding stays forgiven by baseline forever.
+
+The tree the question is about is the one the entry was written against, and git knows
+it: the revision that added the line, or failing that, whether the repository ever held
+the path at any revision. Either reading answers `T759` and still catches what the rule
+is for — a path this repository never had.
+
+If walking history per entry is too slow for a hook, ask the working tree first as now,
+and only for a token that fails ask whether history held it.
+
 ## Block E — Adoption
 
 ### §RK1193 Adoption stops one step short of a pinned engine
