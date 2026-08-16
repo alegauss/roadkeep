@@ -77,6 +77,32 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1208 The address whose parent was never checked, only its prefix
+
+Two calls, one mistake, two answers. On a fresh outline project declaring only `I`,
+`section add I.1` is refused `UnknownParent` — correctly, and since RK1207 it names the
+write that makes room. `section add I.9.1` on the same file is **written**: it lands as
+a `###` directly under `I`, at the depth a child of `I` uses, and `lint` calls the
+result clean.
+
+The difference is `_extends`, which answers the longest declared prefix rather than the
+immediate parent. For `I.9.1` that is `I`, so a parent was found and the placement
+derived from it; for `I.1` there is none, so the refusal fires. The author's mistake is
+the same in both, and the file keeps a grandchild of a generation never written.
+
+What the file then says is not what the address says. The heading sits at a child's
+depth, so a reader sees `I.9.1` as a sibling of `I.1`, and `anchors --family I` derives
+its next child from the `9` inside it — so the missing `I.9` is spent by a section that
+never claimed it.
+
+RK45's rule is right: the longest declared prefix is how a subtree is found. The gap is
+that *finding a prefix* was read as *the address is well-formed*, and those are two
+questions. The second is answerable from the same segments, and the remedy is the chain
+RK1207 composes.
+
+Worth deciding: whether the gate reports a hole a file already has, or only the door
+refuses a new one.
+
 ## Block C — Query
 
 ### §RK1188 The one question before every add has no verb
@@ -319,3 +345,30 @@ already said which engine it means.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+### §RK1209 The composer tested against itself
+
+Four tasks found the same defect and no test found any of them. RK1149: the retry a
+refusal offered had to be retyped. RK1198: the path into a fresh block was six calls
+discovered one at a time. RK1205: the `section add` an `add` handed over was refused.
+RK1207: the refusal for that family named no verb.
+
+Each was covered. `test_the_command_offers_a_follow_up_that_runs` is the sharpest
+reading — named for the claim, asserting the sentence was printed, never running it,
+green for as long as the command it described refused. Matching a composed command tests
+the composer against itself.
+
+The three tasks that fixed one each wrote the same instrument by hand: RK1149 executes
+its retry, RK1198 walks its four steps, RK1207 runs the chain it names. Three copies,
+one shape, and the next composed command is covered by whichever session remembers to
+write a fourth.
+
+`invocation()` is called at 56 sites, so the population is enumerable and already named
+by one function. What a sweep needs beyond that is the placeholders: `<its title>` and
+the trailing ellipsis stand for prose only the author writes (L4), so a harness fills
+them per verb — three entries covered every step of RK1198's path — and runs what is
+left.
+
+Not every site is reachable. So the sweep is a **declared** set with the unreached ones
+carrying a reason, the shape `test_surfaces` uses for a write that is wired or exempted:
+an exemption nobody can see reads exactly like a rule being kept.
