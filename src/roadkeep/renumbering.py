@@ -49,7 +49,7 @@ from pathlib import Path
 from roadkeep import claiming
 from roadkeep.authoring import refuse_reuse
 from roadkeep.claiming import Held
-from roadkeep.backlog import Backlog, NotOpen
+from roadkeep.backlog import Backlog, NotOpen, Whereabouts
 from roadkeep.config import Config
 from roadkeep.kernel.document import Document, Entry, save_all
 from roadkeep.ids import id_scanner, next_id
@@ -360,7 +360,7 @@ def _locate(
     raise NotOpen(
         task_id,
         ", ".join(config.relative(config.path(role)) for role in documents),
-        shipped=task_id in Backlog.load(config).shipped(),
+        Whereabouts.of(config, task_id),
     )
 
 

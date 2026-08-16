@@ -128,7 +128,7 @@ from roadkeep.authoring import (
     refuse_reuse,
     remove_entry,
 )
-from roadkeep.backlog import Backlog, NotOpen, Standing
+from roadkeep.backlog import Backlog, NotOpen, Standing, Whereabouts
 from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.kernel.document import Document, Entry, Wrapped, counted, save_all
 from roadkeep.ids import IdRef, next_id
@@ -2322,7 +2322,7 @@ def _partial(
         raise NotOpen(
             task_id,
             config.relative(config.path("roadmap")),
-            shipped=task_id in ledger.by_id(),
+            Whereabouts.of(config, task_id),
         )
     recorded = ledger.by_id().get(task_id)
     if recorded is not None:
@@ -2402,7 +2402,7 @@ def _depart(
         raise NotOpen(
             task_id,
             config.relative(config.path("roadmap")),
-            shipped=task_id in ledger.by_id(),
+            Whereabouts.of(config, task_id),
         )
     where = config.relative(config.path("changelog"))
     # Before the ledger is consulted (RK1081): a departure that lands while the store still

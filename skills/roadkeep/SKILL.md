@@ -137,7 +137,10 @@ store, keeping the id, the deps, the symptom and the section a departure deletes
 wraps the `why` on the way out and is unwrapped on the way back, and the open marker is
 what the store could not keep, so `--marker` is where you say which it was. A dep on a
 paused task resolves as **deferred**, and the line waiting on it as `blocked-paused` — not
-offered, counted apart, and unblocked by a `resume` rather than a ship. Reach for `retire`
+offered, counted apart, and unblocked by a `resume` rather than a ship. The three writes that
+reach a line by id — `amend`, `restate`, `status` — refuse a paused one **naming the store
+and `resume`**, so a refusal about a pause never reads like one about a typo. Reach for
+`retire`
 only when the work is not coming back. `record add --block <x> --symptom "…" --why "…"` is
 the fourth — the entry alone, roadmap untouched, for **any** shipped work with no open line
 to carry it: never planned is one case, and so is a task that shipped inside another's

@@ -783,3 +783,52 @@ def test_the_pause_payload_carries_the_list(tmp_path, capsys):
     assert main(argv) == EXIT_OK
     wrote = json.loads(capsys.readouterr().out)["wrote"]
     assert "ROADMAP.md" in wrote and "DEFERRED.md" in wrote
+
+
+# -- the absence with a door, told apart from the one with none (RK1213) ------
+
+
+def test_a_paused_id_is_not_the_absence_a_typo_is(tmp_path):
+    """RK1213. `Where` had three members and the store was a fourth, so `amend`, `restate`
+    and `status` refused a paused line word for word as they refuse an id nobody wrote —
+    while `Whereabouts` said *no file mentions it* about a line the store carries verbatim.
+
+    `Stage.PAUSED` made this argument one level up (RK92, RK429): a block whose every line
+    was deferred is not finished and not empty, and reading it as either loses the one fact
+    a `resume` would change. An id is the same claim with a door of its own.
+    """
+    config = project(tmp_path)
+    defer(config, "RK1", reason="it waits on a decision").save()
+    config = Config.discover(tmp_path)
+
+    found = Whereabouts.of(config, "RK1")
+    assert found.paused and not found.recorded
+    assert found.sentence == "the deferred store holds it — `resume` brings it back"
+    # And the one it must not be confused with, unchanged.
+    assert Whereabouts.of(config, "RK404").sentence == "no file mentions it"
+
+
+def test_the_doors_that_refuse_a_paused_line_name_the_one_that_takes_it(tmp_path):
+    # The three writes that reach a line by id. Each answered "nothing there carries that
+    # id", which is true of the roadmap and false about the project.
+    config = project(tmp_path)
+    defer(config, "RK1", reason="it waits on a decision").save()
+    root = str(tmp_path)
+    for argv in (
+        ["amend", "RK1", "--why", "A corrected reason."],
+        ["restate", "RK1", "--symptom", "A premise that was false"],
+        ["status", "RK1", DESIGNED],
+    ):
+        assert main(["-C", root, *argv]) == EXIT_USAGE, argv
+
+
+def test_a_shipped_id_keeps_the_reading_it_had(tmp_path):
+    # The state that was already told apart: what changed is the two that were not.
+    from roadkeep.shipping import ship
+
+    config = project(tmp_path)
+    ship(config, "RK1", why="It works now.").save()
+    config = Config.discover(tmp_path)
+    found = Whereabouts.of(config, "RK1")
+    assert found.recorded and not found.paused
+    assert main(["-C", str(tmp_path), "amend", "RK1", "--why", "A reason."]) == EXIT_USAGE

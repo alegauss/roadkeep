@@ -41,25 +41,6 @@ from roadkeep.kernel.document import Document, Entry
 from roadkeep.kernel.schema import Dep, DepKind, Schema, Task
 
 
-class NotOpen(ValueError):
-    """Only an open task can be written to, and the two ways of not being one differ.
-
-    Lives here rather than in the command that first needed it (RK6) because "is this
-    id open?" is a question about the roadmap and the ledger together, and reporting
-    "no such task" for one that shipped yesterday sends the reader to the wrong file.
-    """
-
-    def __init__(self, task_id: str, where: str, shipped: bool) -> None:
-        self.task_id = task_id
-        self.shipped = shipped
-        detail = (
-            "it is already in the changelog"
-            if shipped
-            else "nothing there carries that id"
-        )
-        super().__init__(f"no open task {task_id} in {where}: {detail}")
-
-
 class Where(StrEnum):
     """Which absence an id is (RK240) — the question three refusals ask after "not here".
 
@@ -72,6 +53,12 @@ class Where(StrEnum):
 
     #: The roadmap carries it as an open line.
     OPEN = "open"
+    #: The deferred store holds it (RK1213). Here for the reason :attr:`Stage.PAUSED` is one
+    #: level up (RK92, RK429): a pause is not an absence, and reading it as one loses the very
+    #: fact a `resume` would change. It was the fourth state this enum did not have, so
+    #: `amend`, `restate` and `status` refused a paused line in the words a typo gets, while
+    #: `sentence` said *no file mentions it* about a line the store carries verbatim.
+    PAUSED = "paused"
     #: The ledger carries it, shipped or retired — :attr:`Whereabouts.marker` says which.
     RECORDED = "recorded"
     NOWHERE = "nowhere"
@@ -102,12 +89,16 @@ class Whereabouts:
     def of(cls, config: Config, task_id: str) -> Whereabouts:
         """Read the files, roadmap first, and the ledger only where it can still answer.
 
-        The order is the answer's own: an id open in the roadmap is not looked for in a
-        ledger of finished work, and a project that declares no changelog has two states
-        rather than three.
+        The order is the answer's own, and it is :meth:`Standing.of`'s (RK1213): open work,
+        then paused work, then the ledger — so the reading for an id and the reading for the
+        label it sits under cannot disagree about the same state. A project that declares no
+        changelog or no store simply has fewer answers rather than a different order.
         """
         if config.document("roadmap").by_id().get(task_id) is not None:
             return cls(Where.OPEN)
+        if config.has("deferred") and config.path("deferred").is_file():
+            if config.document("deferred").by_id().get(task_id) is not None:
+                return cls(Where.PAUSED)
         if config.has("changelog") and config.path("changelog").is_file():
             recorded = config.document("changelog").by_id().get(task_id)
             if recorded is not None:
@@ -119,13 +110,57 @@ class Whereabouts:
         return self.where is Where.RECORDED
 
     @property
+    def paused(self) -> bool:
+        return self.where is Where.PAUSED
+
+    @property
     def sentence(self) -> str:
-        """The clause a refusal appends after naming where the id is not."""
+        """The clause a refusal appends after naming where the id is not.
+
+        The paused one names its verb (RK1213), and it is the only one of the four that can:
+        a shipped id has no way back and a typo has nothing to go back to, while a pause is
+        one command from open — which is RK91's whole argument for the store existing.
+        """
         if self.where is Where.OPEN:
             return "it is open in the roadmap"
+        if self.where is Where.PAUSED:
+            return "the deferred store holds it — `resume` brings it back"
         if self.where is Where.RECORDED:
             return f"the changelog records it as {self.marker}"
         return "no file mentions it"
+
+
+class NotOpen(ValueError):
+    """Only an open task can be written to, and the ways of not being one differ.
+
+    Lives here rather than in the command that first needed it (RK6) because "is this
+    id open?" is a question about every file that can hold one, and reporting
+    "no such task" for one that shipped yesterday sends the reader to the wrong file.
+
+    **Below :class:`Whereabouts` and composed from it** (RK1213). It carried a bare
+    `shipped: bool`, so the three states it could not spell collapsed into one: a paused id
+    was refused in the words a typo gets, and the door back — `resume` — was named by
+    nothing, on the one absence that has a door. A second bool would have been the same
+    question asked twice, so the answer is the type RK240 already built to answer it, and the
+    sentence has one spelling for every caller that asks.
+    """
+
+    def __init__(self, task_id: str, where: str, found: Whereabouts) -> None:
+        self.task_id = task_id
+        self.found = found
+        detail = (
+            "it is already in the changelog"
+            if found.recorded
+            else found.sentence
+            if found.paused
+            else "nothing there carries that id"
+        )
+        super().__init__(f"no open task {task_id} in {where}: {detail}")
+
+    @property
+    def shipped(self) -> bool:
+        """Kept as the reading it always was, now derived rather than passed."""
+        return self.found.recorded
 
 
 class Stage(StrEnum):

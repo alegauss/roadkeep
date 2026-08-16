@@ -496,7 +496,7 @@ def defer(config: Config, task_id: str, *, reason: str) -> Pause:
         raise NotOpen(
             task_id,
             config.relative(config.path("roadmap")),
-            shipped=task_id in backlog.shipped(),
+            Whereabouts.of(config, task_id),
         )
     _refuse_recorded(config, task_id)
     store = config.document("deferred")

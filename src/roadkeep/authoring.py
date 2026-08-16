@@ -50,7 +50,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from roadkeep import claiming, sections
-from roadkeep.backlog import Backlog, DepStatus, NotOpen
+from roadkeep.backlog import Backlog, DepStatus, NotOpen, Whereabouts
 from roadkeep.claiming import Followed
 from roadkeep.config import PROSE_ROLES, ROLES, Config
 from roadkeep.kernel.document import (
@@ -1132,7 +1132,7 @@ def set_status(config: Config, task_id: str, marker: str) -> StatusChange:
         raise NotOpen(
             task_id,
             config.relative(config.path("roadmap")),
-            shipped=task_id in backlog.shipped(),
+            Whereabouts.of(config, task_id),
         )
     twins = tuple(e.lineno for e in roadmap.entries if e.task.id == task_id)
     if len(twins) > 1:
@@ -1309,7 +1309,7 @@ def amend(
         raise NotOpen(
             task_id,
             config.relative(config.path("roadmap")),
-            shipped=task_id in backlog.shipped(),
+            Whereabouts.of(config, task_id),
         )
     twins = tuple(e.lineno for e in roadmap.entries if e.task.id == task_id)
     if len(twins) > 1:
@@ -1540,7 +1540,7 @@ def restate(
         raise NotOpen(
             task_id,
             config.relative(config.path("roadmap")),
-            shipped=task_id in backlog.shipped(),
+            Whereabouts.of(config, task_id),
         )
     twins = tuple(e.lineno for e in roadmap.entries if e.task.id == task_id)
     if len(twins) > 1:
