@@ -101,6 +101,53 @@ the identity and does not move, the subtree is untouched, and every file that de
 the label is rewritten together, the way `block merge` already writes all of them or
 none.
 
+### §RK1205 The follow-up that names a call which cannot run
+
+A pointer `add` creates, and a door `add` names, where the door refuses. Measured on a
+fresh outline project: `add --block A --ref I.1 …` lands the line and reports `section
+add I.1 --title …` as the write that closes the pointer it just made — and that call
+refuses, no §I existing for a child to extend. The line is left unresolvable by the
+command the write handed over.
+
+RK197 made that follow-up name the role a `section add` would write into, so a command
+naming a file nobody created is never printed. This is the same claim one address up: a
+command naming a *parent* nobody created cannot run either, and it is worse than silence
+for RK1149's reason — a printed call is read as one that works.
+
+The fact is in reach where the follow-up is composed: `add` holds the anchor, and
+whether its family exists is one `find` on the prose file it already resolved. Where the
+parent is missing the follow-up is two calls and not one, in order — the family, then
+the design — which is the shape RK1198 settled for the refusal one door over.
+
+Refusing the write instead would be wrong. The line is valid, the pointer is the address
+the caller chose, and the gate already reports the unresolved pointer; refusing here
+would stop an outline project filing a line before its prose exists, which RK93 allows
+on purpose.
+
+### §RK1207 The refusal whose door is the call that was just made
+
+`section add I.1` on a file with no §I answers `no section §I.1 extends
+(docs/IMPROVEMENTS.md declares: none): an anchor states its own place, and appending
+files the prose under the last block`. Every clause is true and none is a verb. The
+listing of what the file declares comes closest, and on an empty outline it is the word
+`none`.
+
+The write that makes room is `section add I` — the same command, one address up,
+derivable from the anchor the caller typed by dropping the last segment. Whether that
+parent exists is the read this refusal already made to compose its own sentence, so the
+door is known where the refusal is written, and printing it is what every other finding
+here does (RK14, RK326).
+
+That it is the *same verb* is the reason it reads as a wall rather than a step. A caller
+told `section add` refuses naturally reads the family as something a different command
+opens, and there is no different command; the answer is the call they just made with one
+segment less. Two calls, in order, and the second is the one they typed.
+
+The sibling of RK1198 at the next door down. That task collapsed the staircase at `add`,
+where the whole path was computable; this is one stair of the same staircase, met by a
+caller who arrived at it directly rather than through an `add` — writing a design before
+the line, which is the order an outline invites.
+
 ## Block C — Query
 
 ### §RK1188 The one question before every add has no verb
@@ -255,6 +302,30 @@ cap on `amend --why` would refuse this 1,600-character entry even if it did.
 
 Minimum: stop emitting an unfollowable door. Better: let a ledger path be resolved
 against the commit that shipped it.
+
+### §RK1206 The remedy composed from a field the finding did not read
+
+The finding names one address and its remedy names another. On a project whose
+`ref_scheme` is `outline`, a line pointing at `§I.1` with no such section is reported as
+`TT1: points at §I.1, which is not in docs/IMPROVEMENTS.md` — correctly — and the
+command underneath it reads `section add TT1 --title …`. `TT1` is the task's id; the
+missing section is `I.1`. Run as printed, it writes a section the line does not point
+at, and the finding survives with a second orphan beside it.
+
+RK14 and RK326 settled that every finding carries the command that closes it, and the
+whole value of that is that the command is *runnable*. A remedy composed from the id is
+right under `ref_scheme = "id"`, where the anchor is the id — which is this repository,
+and so the shape its own conformance fixture can never catch. It is wrong under an
+outline, where the pointer is the address and the id is not one.
+
+The fix is that the remedy is composed from the same field the finding reads. The gate
+has the anchor in hand: it is what the resolution failed on, and it is already printed
+in the sentence one line above. Nothing needs deriving.
+
+Worth checking at the same time whether any other finding composes an address rather
+than reading one, since this class is invisible here by construction: a repository on
+the id scheme cannot tell the two apart, and the corpora at `tests/corpora.py` are what
+can.
 
 ## Block E — Adoption
 
