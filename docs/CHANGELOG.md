@@ -334,6 +334,7 @@
 - ✅ **RK1216** **remaining reports 0 sites for a pathspec that matched no files, which is what it reports for work that is finished** — A pathspec that reached no file is named on the headline and beside its clause, and published as `unmatched`, so a query that never ran no longer reads like a migration that finished.
 - ✅ **RK1221** **budget on an id the roadmap holds reads the four fields describing a line and discards them without a word** — Every field the caller states now wins over the line on file, as --ref already did, and the answer names which came from the call rather than from the roadmap.
 - ✅ **RK1225** **budget publishes every width a field has and not the one sentence it accepts** — budget names the sentence and terminator rules beside the widths, read off the role's own schema — which the line half was not using, so its numbers were the base's too.
+- ✅ **RK1226** **Nothing names the open half of a partial, only the half that shipped** — brief names every qualifier the ledger records for an open line, so resuming a partial no longer means reading the design to recover what is left.
 
 ## Block D — The gate
 

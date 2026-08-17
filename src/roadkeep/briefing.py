@@ -210,6 +210,23 @@ class Brief:
     #: tasks state one in prose and always have, so printing an absence every turn is a nag
     #: this tool has no standing to make.
     criterion: tuple[tuple[Clause, int], ...] = ()
+    #: What has already **landed** of this task, as the ledger records it (RK1226). One string
+    #: per `ship --part`, in the order the ledger holds them, and empty for the ordinary line
+    #: that has shipped nothing.
+    #:
+    #: `ship --part` records the half that landed and leaves the line open, which is the right
+    #: shape: the ledger gains an entry qualified by what shipped and the roadmap keeps a task
+    #: whose sentence is still partly true. What nothing held was the **other** half. Reading
+    #: the ⏳ line said the problem was not solved and reading the ledger said what was done, so
+    #: the remainder was reconstructed by subtracting one from the other — across two files,
+    #: from prose written for different purposes, by whoever picked the line up. That
+    #: reconstruction happened here several sessions later and needed the whole design read to
+    #: recover a remainder the person shipping had known precisely.
+    #:
+    #: The subtraction is still the reader's; what changes is that both sides of it are on one
+    #: answer. Naming the remainder as *data* is the stronger version and a change to the
+    #: model — a second field on the entry — which RK1226 leaves open rather than guessing at.
+    landed: tuple[str, ...] = ()
 
     @property
     def task(self) -> Task:
@@ -317,6 +334,11 @@ class Brief:
         rows += [
             f"  path     {one.path}{'' if one.exists else '  (missing)'}" for one in view.paths
         ]
+        # Before the criterion and after the deps, which is where a fact about *this* line's
+        # own history belongs (RK1226): what already landed is the other side of the
+        # subtraction whoever picks a partial up has to make, and the design is what they
+        # would otherwise read in full to make it.
+        rows += [f"  landed   {one}" for one in self.landed]
         for clause, found in self.criterion:
             # Before the design and after the deps, which is where the claim belongs: the
             # order is the whole point (RK1185) — what the work will be measured against
@@ -390,6 +412,9 @@ class Brief:
             # (RK1185). The clauses and the counts and never the sites: this answer is bounded
             # to a tool result, and the addresses are `evidence`'s once the work is under way.
             # `[]` where the design declares none, which is an answer and not an absence.
+            # What the ledger already records as landed, per `ship --part` (RK1226). `[]` on
+            # the ordinary line, which is an answer rather than an absence.
+            "landed": list(self.landed),
             "criterion": [
                 {"pathspec": one.pathspec, "pattern": one.pattern, "sites": found}
                 for one, found in self.criterion
@@ -489,6 +514,9 @@ def _gather(
         settled=_settled(config, view, backlog.resolve(task) if entry is not None else ()),
         budget=None if view.shipped else budget_of(config, task, open_line=True),
         criterion=_criterion(config, view),
+        # A lookup this verb already performs (RK1226): the ledger is open because `shipping`
+        # is measured against it, so surfacing what has already landed costs nothing.
+        landed=_landed(backlog, task.id) if not view.shipped else (),
         shipping=None
         if view.shipped or not config.has("changelog")
         else budget_of(
@@ -562,6 +590,29 @@ def _criterion(config: Config, view: View) -> tuple[tuple[Clause, int], ...]:
     return tuple(
         (clause, count(config.root, view.task.id, (clause,), EVIDENCE).total)
         for clause in clauses
+    )
+
+
+def _landed(backlog: Backlog, task_id: str) -> tuple[str, ...]:
+    """Every qualifier the ledger records for this open id, in file order (RK1226).
+
+    **All of them and not the first.** Through this tool's own door there is at most one:
+    `SecondPartial` refuses a second `ship --part` on one id, because one id carries one
+    partial and then the completion. An **adopted** ledger is the other case, and it is the
+    one that decides the reader — Turing's holds 755 entries written before the tool existed,
+    and a history spelling two deliveries of one id is exactly what `adopt` takes in. `by_id`
+    answers the first entry per id by design (a duplicate is a lint error, not a merge), which
+    would name one of them and hide the other.
+
+    Silent where nothing landed, which is every ordinary line: a row saying *nothing has
+    shipped* on every brief is a nag this tool has no standing to make.
+    """
+    if backlog.ledger is None:
+        return ()
+    return tuple(
+        entry.task.part
+        for entry in backlog.ledger.entries
+        if entry.task.id == task_id and entry.task.part
     )
 
 

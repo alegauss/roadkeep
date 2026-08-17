@@ -31,8 +31,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1226** (deps: —) **Nothing names the open half of a partial, only the half that shipped** — brief joins line, section and ledger but omits the recorded qualifier, so resuming a partial means subtracting one file from another to recover the remainder. → §RK1226
-
 ## Block D — The gate
 
 - 📋 **RK1228** (deps: —) **Nothing reports source changed under an open task while the line stayed open** — lint --since flags a section edited without its line but not the mirror, so work that landed and passed its tests can leave the ledger with no entry at all. → §RK1228

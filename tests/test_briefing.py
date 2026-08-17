@@ -619,3 +619,81 @@ def test_the_qualifier_a_brief_cannot_know_about_is_named_and_not_folded_in(tmp_
     project(tmp_path, roadmap=ROADMAP + long)
     assert main(["-C", str(tmp_path), "brief", "RK7"]) == EXIT_OK
     assert "--part" in capsys.readouterr().out
+
+
+# -- the half a partial already landed (RK1226) --------------------------------
+
+
+def parted(tmp_path: Path, *parts: str) -> Config:
+    """A task shipped in halves, which is the shape `ship --part` leaves behind."""
+    config = project(tmp_path)
+    for part in parts:
+        assert main([
+            "-C", str(tmp_path), "ship", "RK1", "--part", part,
+            "--why", f"{part} works now.",
+        ]) == EXIT_OK
+    return Config.discover(tmp_path)
+
+
+def test_the_brief_names_what_already_landed(tmp_path, capsys):
+    """`ship --part` records the half that landed and leaves the line open, which is right.
+    What nothing held was the **other** half: reading the ⏳ line said the problem was not
+    solved and reading the ledger said what was done, so the remainder was reconstructed by
+    subtracting one from the other — across two files, from prose written for different
+    purposes, by whoever picked the line up.
+
+    That reconstruction happened here several sessions after the partial and needed the whole
+    design read to recover a remainder the person shipping had known precisely.
+    """
+    config = parted(tmp_path, "the parser half")
+    capsys.readouterr()
+    assert brief(config, "RK1").landed == ("the parser half",)
+
+    assert main(["-C", str(tmp_path), "brief", "RK1"]) == EXIT_OK
+    assert "landed   the parser half" in capsys.readouterr().out
+
+
+def test_the_door_records_one_half_and_an_adopted_ledger_may_hold_more(tmp_path):
+    """Two facts that decide the reader, and the first is the opposite of what it looks like:
+    `SecondPartial` **refuses** a second `ship --part` on one id, so this tool writes at most
+    one qualifier per task.
+
+    An adopted ledger is the other half. Turing's holds 755 entries written before the tool
+    existed, and a history that spelled two deliveries of one id is exactly what `adopt` takes
+    in — so reading `by_id`, which answers the first entry per id by design, would name one and
+    hide the other. Every entry, in file order.
+    """
+    config = parted(tmp_path, "the parser half")
+    # The door: one id carries one partial and then the completion, so a second is refused.
+    assert main([
+        "-C", str(tmp_path), "ship", "RK1", "--part", "the writer half",
+        "--why", "the writer half works now.",
+    ]) == EXIT_USAGE
+
+    # And a ledger that already spells two, which no door of this tool wrote.
+    ledger = config.path("changelog")
+    ledger.write_text(
+        ledger.read_text(encoding="utf-8")
+        + f"- {SHIPPED} **RK1 (the writer half)** **A first symptom** — it writes now.\n",
+        encoding="utf-8",
+    )
+    assert brief(Config.discover(tmp_path), "RK1").landed == (
+        "the parser half",
+        "the writer half",
+    )
+
+
+def test_a_line_that_shipped_nothing_says_nothing(tmp_path, capsys):
+    """Silence on the ordinary line: a row saying *nothing has shipped* on every brief is a nag
+    this tool has no standing to make."""
+    config = project(tmp_path)
+    assert brief(config, "RK1").landed == ()
+    assert main(["-C", str(tmp_path), "brief", "RK1"]) == EXIT_OK
+    assert "landed" not in capsys.readouterr().out
+
+
+def test_the_payload_carries_it_for_a_caller_that_is_not_a_terminal(tmp_path, capsys):
+    config = parted(tmp_path, "the parser half")
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "brief", "RK1", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["landed"] == ["the parser half"]

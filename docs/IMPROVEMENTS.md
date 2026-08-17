@@ -128,32 +128,6 @@ and no entry carries, which also finds the ones already written.
 
 ## Block C — Query
 
-### §RK1226 A partial has two halves and one of them is an inference
-
-`ship --part` records the half that landed and leaves the line open, which is the right
-shape: the ledger gains an entry qualified by what shipped, and the roadmap keeps a task
-whose sentence is still partly true. What nothing holds is the other half.
-
-The qualifier names the landed side. Reading the ⏳ line later tells you the problem is
-not solved; reading the ledger tells you what was done. Neither tells you what remains,
-so the remainder is reconstructed by subtracting one from the other — across two files,
-from prose written for different purposes, by whoever picks the line up. That
-reconstruction happened here several sessions after the partial, and it needed the
-improvements section read in full to recover a remainder that the person shipping had
-known precisely.
-
-`brief` is where this belongs, because it already joins the line, the section and the
-ledger. Surfacing the recorded qualifier on a partial would make the subtraction
-explicit instead of implicit, and it costs a lookup the verb already performs.
-
-The stronger version is to let `--part` name the remainder as well, so the open half is
-data rather than an inference. That is a field on the entry, which is a change to the
-model and not only to a report, so it is worth deciding whether the qualifier is one
-string or two.
-
-Either way the property to keep is that resuming a partial should not require reading
-the rationale to learn what is left.
-
 ## Block D — The gate
 
 ### §RK1228 The check that a section moved has no mirror
