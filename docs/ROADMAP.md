@@ -31,6 +31,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1233** (deps: —) **The open half of a partial is still an inference the reader makes, where the landed half is recorded** — RK1226 put both sides on one answer and left the remainder as prose to subtract; naming it costs a decision about whether the qualifier is one string or two. → §RK1233
+
 ## Block D — The gate
 
 - 📋 **RK1228** (deps: —) **Nothing reports source changed under an open task while the line stayed open** — lint --since flags a section edited without its line but not the mirror, so work that landed and passed its tests can leave the ledger with no entry at all. → §RK1228

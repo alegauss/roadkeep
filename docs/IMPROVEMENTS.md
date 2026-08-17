@@ -128,6 +128,32 @@ and no entry carries, which also finds the ones already written.
 
 ## Block C — Query
 
+### §RK1233 The remainder as data, not as a subtraction
+
+`ship --part` records the half that landed, and RK1226 put that qualifier on the brief
+so resuming a partial no longer means reading the design to recover what is left. It
+made the subtraction *explicit*. It did not make the remainder *data*.
+
+The open half is still an inference: a reader is handed `landed the parser half` beside
+a symptom describing the whole, and works out the rest — better than reading two files,
+and still a reconstruction, done by whoever picks the line up from prose written for
+another purpose.
+
+What would make it data is `ship --part` naming both sides. That is the decision RK1226
+declined to take, and it is the one to settle first: whether the qualifier is **one
+string or two**.
+
+Two shapes, differing in which file carries the remainder. A second field on the ledger
+entry keeps both halves in one record and makes the ledger state something about work
+that has not happened — the one thing a ledger has never done. Or the *roadmap* line
+carries it, amended in the same transaction: an open line already claims what is left,
+so narrowing its own sentence is a shape the format has, and `record amend --part` stays
+the door for the landed side alone.
+
+The second looks right and wants checking against L4: `ship --part` may not compose a
+`why` it was not given, so the remainder is an argument the caller passes — a flag on
+`ship`, never a derivation.
+
 ## Block D — The gate
 
 ### §RK1228 The check that a section moved has no mirror
