@@ -79,31 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1210 The address decided by hash order
-
-Measured on a file whose top levels are `1`, `1.1` and `I`. Eight runs of `next_family`
-in eight processes over the same bytes answered `II`, `2`, `2`, `2`, `II`, `2`, `2`,
-`2`. One revision, two answers, and which arrives is decided by nothing in the file.
-
-The line is `max(…)` over a dict built from a **set** comprehension. `1` and `I` both
-read as 1, so the key ties, `max` returns whichever came first, and set iteration order
-over strings is per-process hash randomisation. The system the address is spelled in is
-the tie-break, so the address is too.
-
-The cost is not cosmetic. The address `ref.missing` carries as `offered` — what a retry
-substitutes — is unstable between the refusal and the retry, and in one tree it
-disagreed with itself across surfaces: `anchors` printed `next §2` while the
-`ref.missing` path printed `§II is its free top-level`.
-
-The rule this function states is the answer. *None where the top-levels are not one
-numbering* — a guess beside a total reads like a fact. Roman in one family and decimal
-in another is not one numbering either; the guard catches only a segment reading as
-**no** numeral, so the case that ties is the one let through.
-
-So the fix is that rule applied and not a tie-break invented: two systems is None. Every
-caller has an answer for None already — `_where_a_top_level_is` names `anchors` instead
-of an address, which is what it does for the undecidables it knows about.
-
 ### §RK1211 The one address this tool spells for you
 
 `anchors --next` on an outline with nothing in it answers *no outline family exists yet,

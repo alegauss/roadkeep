@@ -328,6 +328,7 @@
 - ✅ **RK1219** **Share declares payload twice, so the definition a reader edits may be the one Python has already discarded** — The dead copy of `Share.payload` is gone, and `tests/test_shadowing.py` sweeps every module and class of the package for a name its own body binds twice.
 - ✅ **RK1190** **budget states the allowance and cannot be handed a draft, so prose three words over is found by being refused** — Every prose argument `budget` takes is a draft it measures — `--why`, `--symptom` and `--body` answer with the overrun and exit 1, and the served schema publishes no ceiling to refuse one.
 - ✅ **RK1199** **The shipping allowance brief prints is ten characters narrower than the limit ship then enforces** — `brief` prices the ledger line through `as_recorded`, the function `ship` renders from, so the pointer's ten characters are gone from the figure and a `--part` is named as structure it cannot know.
+- ✅ **RK1210** **next_family answers a different free address per process where two numbering systems tie on the same file** — Two numbering systems among a file's top levels is two numberings, so `next_family` answers None there — the address no longer depends on which string a set iterated first.
 
 ## Block D — The gate
 

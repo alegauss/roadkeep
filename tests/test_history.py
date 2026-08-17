@@ -878,6 +878,33 @@ def test_families_that_are_not_one_numbering_derive_no_next_at_all(tmp_path):
     assert next_family(anchors(config, "improvements")) is None
 
 
+def test_two_numbering_systems_on_one_file_derive_no_next_either(tmp_path):
+    """RK1210. `1` and `I` both read as 1, so the key tied and `max` returned whichever the
+    iteration reached first — over a **set** of strings, which is per-process hash
+    randomisation. Eight runs over one revision answered `II`, `2`, `2`, `2`, `II`, `2`, `2`,
+    `2`, and the address `ref.missing` offers is the string a retry substitutes.
+
+    Held as *stability* and not as one expected value: asserting `is None` alone would pass on
+    the buggy code one process in three, which is exactly how this survived.
+    """
+    config = outlined(tmp_path)
+    for family in ("1", "I"):
+        design(config, f"### {family}.1 A design", f"docs: file {family}")
+    found = anchors(config, "improvements")
+    assert next_family(found) is None
+    # Two systems is two numberings, exactly as A, B, C is — and the caller already answers
+    # None by naming `anchors` instead of an address.
+    assert len({next_family(found) for _ in range(8)}) == 1
+
+
+def test_one_system_still_derives_where_the_families_are_a_sequence(tmp_path):
+    """The half RK1210's rule must not take: two *families* is not two numberings."""
+    config = outlined(tmp_path)
+    for family in ("1", "2"):
+        design(config, f"### {family}.1 A design", f"docs: file {family}")
+    assert next_family(anchors(config, "improvements")) == "3"
+
+
 def test_a_letter_family_is_never_read_as_the_roman_number_it_could_spell(tmp_path):
     # `C` is 100 on a file numbered in Roman and a letter on one whose families are A to F,
     # and only the whole set says which — so the decision is made once, over the set.

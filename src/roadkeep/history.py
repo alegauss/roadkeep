@@ -1557,12 +1557,33 @@ def next_family(taken: Sequence[Anchor], namespace: str = "") -> str | None:
     sequence answers None, which is the useful answer withheld from exactly the projects
     that declared their way out of the collision. The default is the unprefixed namespace,
     which is every project that declares no `[refs]` at all.
+
+    **One numbering means one system, and until RK1210 it meant one that reads as a number.**
+    The guard below caught a segment that is no numeral at all and let `1` beside `I` through
+    — they read as 1 and 1, so the key ties, and `max` returns whichever the iteration reached
+    first. That order is a **set** comprehension's over strings, which is per-process hash
+    randomisation: eight runs over one revision of one file answered `II`, `2`, `2`, `2`, `II`,
+    `2`, `2`, `2`. The system the address is spelled in was the tie-break, so the address was
+    too — and `ref.missing` carries it as `offered`, the string a retry substitutes, so a
+    refusal and its own retry could name two different addresses. In one tree they did:
+    `anchors` printed `next §2` where the refusal said `§II is its free top-level`.
+
+    The fix is this function's own rule applied and never a tie-break invented — sorting the
+    set would make the answer stable and still make it a coin the file did not toss. Two
+    systems is two numberings, so it is None, exactly as `A`, `B`, `C` is; every caller
+    already has an answer for None, `_where_a_top_level_is` naming `anchors` in place of an
+    address for the undecidables it already knew about.
     """
     own = [one for one in taken if split_ref(one.anchor)[0] == namespace]
     read = {top: numeral(top) for top in {_family_of(one.anchor) for one in own}}
     if not read or any(value is None for value in read.values()):
         return None
-    system, highest = max((value for value in read.values() if value), key=lambda one: one[1])
+    counted = [value for value in read.values() if value]
+    if len({system for system, _ in counted}) > 1:
+        # Roman in one family and decimal in another. Not a sequence to continue, and the one
+        # shape where continuing it silently picked which of two conventions the project has.
+        return None
+    system, highest = max(counted, key=lambda one: one[1])
     top = spell(highest + 1, system)
     return f"{namespace}{REF_SEPARATOR}{top}" if namespace else top
 
