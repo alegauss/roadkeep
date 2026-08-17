@@ -90,7 +90,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from roadkeep.config import Config, ConfigError, find_config
-from roadkeep.provenance import WIRED, served_by
+from roadkeep.provenance import WIRED, declared_by, invocation, served_by
 from roadkeep.remedying import Door, alongside, offered
 
 if TYPE_CHECKING:  # annotations only, and already strings — see the docstring's sixth decision
@@ -124,7 +124,14 @@ START_EVENTS = ("SessionStart",)
 #: a number a test holds, exactly as `[budgets]` holds `agents.md` (RK30). It prices the line
 #: every session gets; the drift sentence (RK234) is over it deliberately and is not resident
 #: — it appears only while a copy has drifted and goes away with one `install`.
-_NOTICE_BUDGET = 260
+#:
+#: Raised from 260 by RK1242, which is the deliberate act a counted limit exists to make
+#: visible. What it bought is the fallback clause on a project that declares the server: a
+#: line naming an interface that never arrives sends a session to re-derive by hand
+#: everything this line exists to stop it re-deriving, which is worth more than the sixty
+#: characters. Sized for the longest invocation a wired project has — the committed launcher,
+#: `python .roadkeep/scripts/roadkeep.py` — rather than for the console script.
+_NOTICE_BUDGET = 320
 
 #: Where a tool's input spells the file. Every key any writer uses, rather than the key
 #: each one uses: reading all three costs three dict lookups and survives a renamed field.
@@ -587,6 +594,11 @@ class Notice:
     #: inside `__str__`: which engine answers is a fact about the project, decided where the
     #: project is read, and a `Notice` built by a test says which case it is testing.
     served: str = ""
+    #: Whether this project declares the server **itself**, rather than getting it from the
+    #: plugin the engine runs out of (RK1242). The one case whose connection can fail on its
+    #: own: the harness spawns a launcher this repository wrote, and where that does not
+    #: finish, the tools named above never arrive at all.
+    declared: bool = False
 
     def __str__(self) -> str:
         # And the first message of the session is the first place the invocation has to be one
@@ -616,6 +628,20 @@ class Notice:
             f"roadkeep governs {', '.join(self.files)} — ask, never read them whole: "
             f"{asks}, and a hand-edit is refused."
         )
+        # And what to do when they do not arrive (RK1242). Measured over one long session on a
+        # project that vendors roadkeep: this line named the tools, the harness reported the
+        # server as still connecting, and they never appeared — two searches minutes apart
+        # found none, and every call for the rest of the session went through the launcher.
+        # Nothing was lost, which is why it is worth saying: the CLI answered everything, so
+        # the only cost was a paragraph about an interface that was not there, and an agent
+        # that trusted it would have waited or reported the capability as unavailable.
+        #
+        # Where the project **declares** the server and not where a plugin provides it: the
+        # connection that can fail this way is the launcher this repository wrote, spawned by
+        # the harness, and a plugin's server is the harness's own machinery. So this appears on
+        # the projects the failure was measured on and stays off the rest.
+        if self.served and self.declared:
+            said += f" `{invocation()}` is the same engine if they never arrive."
         # The invocation stays here whatever the clause above chose (RK444): `install` runs
         # once per project and is deliberately not on the served surface — so it is one more
         # door through the same renderer, and the shell form is what comes back because
@@ -655,7 +681,14 @@ def announce(payload: Mapping[str, object], root: str | Path = ".") -> Notice | 
     # bare prefix is the right guess wherever nothing says otherwise, but this line is read
     # by every adopting session including the ones with no tools at all, and there naming a
     # prefix nobody can call is worse than naming the shell.
-    return Notice(files=files, stale=stale(config.root), served=served_by(config.root))
+    return Notice(
+        files=files,
+        stale=stale(config.root),
+        served=served_by(config.root),
+        # The same read `serving` makes to choose the prefix, asked for the second thing it
+        # decides (RK1242): whether the server that has to connect is this project's.
+        declared=declared_by(config.root),
+    )
 
 
 def guard(payload: Mapping[str, object], root: str | Path = ".") -> Refusal | None:

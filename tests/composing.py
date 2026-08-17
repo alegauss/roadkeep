@@ -72,6 +72,11 @@ NOT_A_STEP = (
     "deliberate: what it composes is the capture offer, which every refusal ends with and "
     "which is a defect report about the run being tested rather than a step of anything"
 )
+NOT_A_COMMAND = (
+    "deliberate: what it composes is the **engine** and not a call — the notice names what "
+    "else answers where a session's tools never arrive (RK1242), so running it as printed "
+    "would be running the invocation with no verb"
+)
 FOREIGN = (
     "deliberate: the command it names is another tool's — git, or the harness — so running "
     "it here would be this suite asserting somebody else's contract"
@@ -105,6 +110,8 @@ SITES: tuple[Site, ...] = (
     # RK1238. Run by `test_installing`, which executes the read this note names — the command
     # that says which of three copies answered, on the report that qualifies.
     Site("linting.py:_judged", "run"),
+    # RK1242. The one row whose composed text is the engine alone, and it says so.
+    Site("guarding.py:Notice.__str__", "deliberate", NOT_A_COMMAND),
     Site("cli.py:_crossed", "unreached", NO_FIXTURE),
     Site("cli.py:_unrecognised", "unreached", NO_FIXTURE),
     Site("config.py:_skew", "unreached", NO_FIXTURE),

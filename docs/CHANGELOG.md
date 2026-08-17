@@ -741,6 +741,7 @@
 - ✅ **RK1237** **The pin guard runs three git calls in front of every write and nobody measured them** — The guard asks the version first and pays for git only where two copies claim one, which is 2 ms against 45.
 - ✅ **RK1238** **The pen is guarded against a stale copy and the gate that judges it is the same stale copy** — lint carries a gate.behind note beside its verdict on a pinned project, so a clean report says whose clean it is.
 - ✅ **RK1240** **One pinned key silences a finding and enables two refusals, added by three tasks reading it three ways** — The refusal and the note read [install] enforced, so quieting a stale surface no longer buys a guard on every write.
+- ✅ **RK1242** **The MCP tools the session-start note names never arrive, so the agent falls back to the CLI** — The session-start note names what else answers where a project declares the server and its tools never arrive.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

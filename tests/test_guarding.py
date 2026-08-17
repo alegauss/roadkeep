@@ -53,7 +53,7 @@ from roadkeep.guarding import (
     guard,
     review,
 )
-from roadkeep.provenance import invocation
+from roadkeep.provenance import WIRED, invocation
 from roadkeep.serving import TOOLS
 
 #: This checkout, which is the tree `install` translates in the two tests that wire a
@@ -1154,3 +1154,64 @@ def test_the_command_answers_a_sessionstart_payload_with_context(
 def test_a_session_start_outside_a_project_prints_nothing(tmp_path, monkeypatch, capsys):
     (tmp_path / "elsewhere").mkdir()
     assert run(monkeypatch, capsys, start(tmp_path / "elsewhere"), tmp_path / "elsewhere") == {}
+
+
+# -- the interface that answered, not the one that was meant to (RK1242) ------
+
+
+def test_the_note_says_what_answers_when_the_tools_do_not_arrive():
+    """Measured over one long session on a project that vendors roadkeep. This line arrived
+    as designed and named the tools; the harness reported the server as still connecting and
+    said they would appear shortly. They never did — two searches minutes apart found none,
+    and every call for the rest of the session went through the launcher.
+
+    Nothing was lost, which is why it is worth saying: the CLI answered everything the tools
+    would have, so the only cost was a paragraph about an interface that was not there. An
+    agent that trusted it would have waited, searched again, or reported the capability as
+    unavailable.
+    """
+    said = str(Notice(files=(ROADMAP, CHANGELOG), served=WIRED, declared=True))
+    assert "mcp__roadkeep__brief" in said
+    assert "if they never arrive" in said
+    assert invocation() in said
+
+
+def test_a_plugin_served_project_is_not_given_a_fallback():
+    """Where the project **declares** the server and not where a plugin provides it: the
+    connection that can fail this way is the launcher this repository wrote, spawned by the
+    harness, and a plugin's server is the harness's own machinery. So the clause appears on
+    the projects the failure was measured on and stays off the rest."""
+    said = str(
+        Notice(files=(ROADMAP, CHANGELOG), served="mcp__plugin_roadkeep_roadkeep__")
+    )
+    assert "mcp__plugin_roadkeep_roadkeep__brief" in said
+    assert "never arrive" not in said
+
+
+def test_a_project_with_no_tools_at_all_says_nothing_new():
+    """The third state (RK444) is already the shell, so a sentence about tools not arriving
+    would be about tools this line never named."""
+    said = str(Notice(files=(ROADMAP, CHANGELOG), declared=True))
+    assert "never arrive" not in said
+
+
+def test_the_clause_fits_the_line_a_session_pays_for():
+    """The budget is a number a test holds, and RK1242 raised it — which is the deliberate
+    act a counted limit exists to make visible. Sized for the longest invocation a wired
+    project has, which is the committed launcher and not the console script."""
+    said = str(Notice(files=(ROADMAP, CHANGELOG), served=WIRED, declared=True))
+    longest = len(said) - len(invocation()) + len("python .roadkeep/scripts/roadkeep.py")
+    assert longest <= _NOTICE_BUDGET, longest
+
+
+def test_whether_the_project_declares_the_server_is_read_where_the_prefix_is(tmp_path):
+    """One predicate and never two: `serving` already asks this to choose between two
+    prefixes, and the notice asks the same cached answer to decide whether to name a
+    fallback at all."""
+    from roadkeep.provenance import declared_by, serving
+
+    (tmp_path / ".mcp.json").write_text(
+        '{"mcpServers": {"roadkeep": {"command": "python"}}}', encoding="utf-8"
+    )
+    assert declared_by(tmp_path) is True
+    assert serving(tmp_path) == WIRED
