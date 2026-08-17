@@ -616,6 +616,7 @@
 - ✅ **RK1193** **Every adopting repository has to write its own installer to pin the engine it runs** — `install --vendor` copies the highest-versioned engine this machine reaches into `.roadkeep/`, verifies it, and the launcher resolves it before any sibling — one installer instead of one per repo.
 - ✅ **RK1200** **The committed launcher reads ROADKEEP_HOME verbatim and lists no candidate inside the repository** — The launcher expands `${VAR}` and `$VAR` in ROADKEEP_HOME, answering CLAUDE_PROJECT_DIR itself, and a vendored copy is a candidate ahead of the sibling — the second half shipped with RK1193.
 - ✅ **RK1224** **A refusal on one over-long field discards the section body sent with it, so the retry re-sends every word** — budget --body no longer needs an anchor, so one call prices the line and the body add validates as one unit — the retry no longer carries the rationale again.
+- ✅ **RK1227** **section amend accepts prose citing an anchor that does not exist, so a docs-only commit turns an adopter's gate red** — section add and section amend resolve every anchor the body cites and refuse ref.dangling with the addresses named, which is the code the gate reports for the same defect.
 
 ## Block F — The Claude Code plugin
 

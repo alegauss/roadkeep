@@ -36,11 +36,9 @@
 ## Block D — The gate
 
 - 📋 **RK1228** (deps: —) **Nothing reports source changed under an open task while the line stayed open** — lint --since flags a section edited without its line but not the mirror, so work that landed and passed its tests can leave the ledger with no entry at all. → §RK1228
-- 🛠 **RK1232** (deps: —) **A full run asks for every core, so the machine has nothing left while the suite is running** — Half the workers cost 176s against 174s on this suite, so `auto` can leave half the machine to the session that started the run instead of taking the last core. → §RK1232
+- 🛠 **RK1232** (deps: —) **A full run asks for every core, so the machine has nothing left while the suite is running** — The pool is half the cores instead of every one, so two sessions sharing a checkout stop asking for 56 workers on 28 threads, at a wall-clock cost stated rather than hidden. → §RK1232
 
 ## Block E — Adoption
-
-- 📋 **RK1227** (deps: —) **section amend accepts prose citing an anchor that does not exist, so a docs-only commit turns an adopter's gate red** — It checks the body's length and shape and never resolves the anchors it names, so a section citing one a ship removed is written and found by running the suite. → §RK1227
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

@@ -729,6 +729,21 @@ class Cite:
 _CITED_RE = re.compile(r"§((?>[A-Za-z0-9]+(?::[A-Za-z0-9]+)?(?:\.[A-Za-z0-9]+)*))(?!\w)")
 
 
+def cited_in(body: str) -> tuple[str, ...]:
+    """Every anchor a body cites, in order and without repeats (RK1227).
+
+    :func:`references` asks this of a **document**, for the gate; this asks it of a paragraph
+    somebody is about to write, for the door. Both go through :func:`_argument` and
+    :data:`_CITED_RE`, so what counts as a citation — the four exclusions, each measured
+    across four trees — is decided once and the two cannot come to disagree about a quotation.
+
+    Distinct here and every occurrence there, which is the same split :func:`citing` makes:
+    the gate reports a place per dead citation because each is an edit, and a refusal is about
+    *which addresses do not resolve*, where naming one twice is noise.
+    """
+    return tuple(dict.fromkeys(_CITED_RE.findall(_argument(body))))
+
+
 def references(document: Document) -> tuple[Cite, ...]:
     """Every citation this file's prose makes, unresolved (RK1106).
 
@@ -1345,6 +1360,9 @@ def add(
             task,
             elsewhere=_elsewhere(config, document.schema, anchor, task),
             known=known(config, anchor, task),
+            # The same question `amend` now asks (RK1227), so the two writers into one file
+            # cannot come to disagree about which addresses a paragraph may cite.
+            resolves=resolvable(config, anchor),
         )
     except SectionError as error:
         # The third door onto the same gap (RK349). `anchor.format` fires on the caller who
@@ -1653,6 +1671,9 @@ def amend(
         owner,
         elsewhere=_elsewhere(config, document.schema, anchor, owner),
         known=known(config, anchor, owner),
+        # The addresses this body may cite (RK1227), read from the project because `_check`
+        # takes a schema and cannot.
+        resolves=resolvable(config, anchor),
     )
     updated = _rewrite(
         document,
@@ -2707,6 +2728,7 @@ def _check(
     *,
     elsewhere: Whereabouts | None = None,
     known: frozenset[str] | None = None,
+    resolves: frozenset[str] | None = None,
 ) -> None:
     """Every rule a section is refused by, under **this file's** schema (RK147).
 
@@ -2748,6 +2770,29 @@ def _check(
             Violation("title.markup", "title", "the level is a field, not part of the text")
         )
     out += promised(schema, body, known)
+    # The one thing prose can be wrong about mechanically, asked where the text is created
+    # (RK1227, L1). Found in Shio filing SH763: its rationale cited `§XVII.100`, an anchor a
+    # task had removed when it shipped, and this write took it without complaint — surfacing
+    # two commits later as a **red gate in that project**, on a docs-only commit that had
+    # touched nothing else. Length was checked and paragraph shape was checked; whether the
+    # address resolves was not asked, though the file was open and the answer is a lookup.
+    #
+    # Threaded like `known` and never resolved here (RK238): this function takes a schema and
+    # not a project, which is what keeps it the one place the *rules* live — and which
+    # addresses exist is a fact about the caller's files. `None` is a caller with nothing to
+    # say, which is every call that cannot open them.
+    if resolves is not None:
+        dangling = [one for one in cited_in(body) if one not in resolves]
+        if dangling:
+            out.append(
+                Violation(
+                    "ref.dangling",
+                    "body",
+                    f"cites {', '.join('§' + one for one in dangling)}, which no prose file "
+                    f"declares: a citation of an address a ship removed reads as an argument "
+                    f"the reader can follow, and the gate finds it in somebody else's commit",
+                )
+            )
     if not body.strip():
         out.append(Violation("body.empty", "body", "a section with no prose is a heading"))
     elif words(body) > schema.section_max:
@@ -2803,6 +2848,25 @@ def known(config: Config, anchor: str, task: Task | None) -> frozenset[str]:
 
     own = {anchor} if task is None else {task.id, anchor}
     return carried(config) | frozenset(own)
+
+
+def resolvable(config: Config, anchor: str) -> frozenset[str]:
+    """Every anchor a body may cite: those the prose files declare, plus the one being written.
+
+    Across **every** prose role and never one document's (RK1227, following RK1106's reading):
+    a citation of `§S:I.2` from the improvements file is a reference into the strategy file,
+    and asking one document would refuse the correct half of a project's prose.
+
+    The anchor being written is included for :func:`known`'s reason one field over: `section
+    add` is checked before it writes, so a design citing the address it *is* would be refused
+    by the transaction reading itself backwards.
+    """
+    out = {anchor}
+    for role in PROSE_ROLES:
+        if not config.has(role) or not config.path(role).is_file():
+            continue
+        out.update(one.anchor for one in anchored(config.document(role)))
+    return frozenset(out)
 
 
 def promised(schema: Schema, body: str, known: frozenset[str] | None) -> list[Violation]:

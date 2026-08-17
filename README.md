@@ -120,15 +120,15 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 2 | 160 | 2 |
 | C — Query (consult without reading the file) | 1 | 111 | 1 |
 | D — The gate | 2 | 182 | 2 |
-| E — Adoption | 1 | 90 | 1 |
+| E — Adoption | 0 | 91 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 109 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 9 | 0 |
-| **Total** | 7 | 715 | 9 |
+| **Total** | 6 | 716 | 9 |
 
 **Next ready:**
 
-- 🛠 **RK1232** (deps: —) **A full run asks for every core, so the machine has nothing left while the suite is running** — Half the workers cost 176s against 174s on this suite, so `auto` can leave half the machine to the session that started the run instead of taking the last core. → §RK1232
+- 🛠 **RK1232** (deps: —) **A full run asks for every core, so the machine has nothing left while the suite is running** — The pool is half the cores instead of every one, so two sessions sharing a checkout stop asking for 56 workers on 28 threads, at a wall-clock cost stated rather than hidden. → §RK1232
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

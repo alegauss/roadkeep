@@ -105,6 +105,10 @@ BACKSTOP: tuple[Backstopped, ...] = (
         "part.blank",
         "part.too-long",
         "part.unexpected",
+        # RK1227. The one code here that is refused about a *body* and reported about a
+        # citation inside one — the same defect and the same name, because `section amend`
+        # now asks the question `lint` was left to answer three commits later.
+        "ref.dangling",
         "ref.format",
         "ref.mismatch",
         "ref.missing",

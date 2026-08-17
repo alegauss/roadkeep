@@ -3734,3 +3734,105 @@ def test_the_named_calls_are_the_ones_that_work(tmp_path):
         add(config, "improvements", anchor, "A title", "Prose enough to matter.").document.save()
         config = Config.discover(tmp_path)
     assert "#### XI.2.3 A title" in read(config) or "##### XI.2.3 A title" in read(config)
+
+
+# -- the anchor a rationale cites and nothing resolves (RK1227) ----------------
+
+
+OUTLINE_CITING = (
+    'prefix = "TT"\nref_scheme = "outline"\n[files]\nroadmap = "ROADMAP.md"\n'
+    'changelog = "CHANGELOG.md"\nimprovements = "IMPROVEMENTS.md"\n'
+)
+
+
+def citing_project(tmp_path: Path) -> Config:
+    """An outline project holding one live family and one live child.
+
+    Outline rather than the id scheme, because there every anchor is id-shaped and
+    `body.promise` answers first — a different rule about a different question (RK1002). What
+    RK1227 is about is an address that *is* well formed and names no heading.
+    """
+    (tmp_path / "roadkeep.toml").write_text(OUTLINE_CITING, encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A\n\n"
+        "- 📋 **TT1** (deps: —) **A symptom** — Because of a reason. → §I.1\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "CHANGELOG.md").write_text("# Shipped\n\n## Block A\n", encoding="utf-8")
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A\n\n### I A family\n\nProse enough to matter.\n\n"
+        "### I.1 A design\n\nProse enough to matter.\n",
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_a_citation_that_resolves_to_nothing_is_refused_at_the_door(tmp_path):
+    """Found in Shio filing SH763: its rationale cited `§XVII.100`, an anchor a task had
+    removed when it shipped, and this write took it without complaint. The failure surfaced
+    two commits later as a red gate in *that* project, on a docs-only commit that had touched
+    nothing else.
+
+    The write validated everything about the prose except the one thing prose can be wrong
+    about mechanically. Length: checked. Paragraph shape: checked. Whether the address
+    resolves: not asked, though the file was open and the answer is a lookup.
+    """
+    config = citing_project(tmp_path)
+    with pytest.raises(SectionError) as refused:
+        amend(config, "improvements", "I.1", body="Prose arguing from §XVII.100 here.")
+    codes = [one.code for one in refused.value.violations]
+    assert codes == ["ref.dangling"], codes
+    assert "§XVII.100" in str(refused.value)
+
+
+def test_the_same_question_is_asked_by_the_write_that_creates_one(tmp_path):
+    """`add` and `amend` are two writers into one file, so a rule one of them holds and the
+    other does not is a hole with a door beside it. RK1227 asked this on the way."""
+    config = citing_project(tmp_path)
+    with pytest.raises(SectionError) as refused:
+        add(config, "improvements", "I.2", "Another design", "Prose citing §XVII.100 here.")
+    assert [one.code for one in refused.value.violations] == ["ref.dangling"]
+
+
+def test_an_address_that_resolves_is_written(tmp_path):
+    """The rule is an exception and has to read as one: a live citation is the ordinary case
+    and the reason citations are worth writing at all."""
+    config = citing_project(tmp_path)
+    written = amend(config, "improvements", "I.1", body="Prose arguing from §I here.")
+    assert written.changed == ("body",)
+
+
+def test_a_section_may_cite_the_address_it_is(tmp_path):
+    """`known`'s reason one field over: `section add` is checked before it writes, so a design
+    citing the address it *is* would be refused by the transaction reading itself backwards."""
+    config = citing_project(tmp_path)
+    written = add(config, "improvements", "I.2", "Another", "Prose about §I.2 itself.")
+    assert written.section.anchor == "I.2"
+
+
+def test_the_doors_scanner_makes_the_gates_own_exclusions(tmp_path):
+    """`cited_in` goes through `_argument`, which is the reading the gate and `ship` already
+    make — so what counts as a citation is decided once and the door cannot come to refuse a
+    quoted example the backstop accepts. The exclusions themselves are measured above."""
+    from roadkeep.sections import cited_in
+
+    assert cited_in("Prose citing §I.1 here.") == ("I.1",)
+    assert cited_in("Prose quoting `§XVII.100` as an example.") == ()
+    # Distinct, because a refusal is about which addresses do not resolve.
+    assert cited_in("§I.1 and again §I.1.") == ("I.1",)
+
+
+def test_the_door_and_the_gate_report_one_code(tmp_path):
+    """One rule, one code: what `lint` calls `ref.dangling` is what this refuses, so the
+    remedy and the explanation a caller reaches are the same on both sides of the write."""
+    config = citing_project(tmp_path)
+    prose = config.path("improvements")
+    prose.write_text(
+        prose.read_text(encoding="utf-8").replace(
+            "### I.1 A design\n\nProse enough to matter.\n",
+            "### I.1 A design\n\nProse arguing from §XVII.100 here.\n",
+        ),
+        encoding="utf-8",
+    )
+    found = [one.code for one in lint(Config.discover(tmp_path)).findings]
+    assert "ref.dangling" in found

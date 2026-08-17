@@ -182,57 +182,26 @@ transition `block.emptied` almost describes, from the other side.
 ### §RK1232 The worker count that leaves the machine usable
 
 `-n auto` resolved to `os.cpu_count()` — every logical core, with nothing left over.
-Here that is 28 workers on 28 threads, and the run RK457 made the default became the run
-that makes the machine unusable while it goes: an editor, a language server and a second
-session all wait behind a pool that asked for the whole processor.
+Here that is 28 workers on 28 threads, so the run RK457 made the default became the run
+that makes the machine unusable while it goes. Two sessions sharing this checkout is
+what made it visible: each asks `auto` for everything, so 56 workers compete for 28
+threads and the machine stops answering before either suite does.
 
-The count was never what made the suite fast. RK457 measured 5m07s serial against 41s
-parallel and attributed it to a long tail of process spawns and filesystem work — which
-is what parallelism answers, and what stops answering once every core is spoken for.
-Each worker also imports this suite's `conftest`, which fingerprints the checkout and
-copies the governed files (RK263, RK315), so the twenty-eighth worker pays that setup to
-win contention against the twenty-seventh.
+**It is a trade and not a free win.** A back-to-back pair on the full suite went 172.5 s
+at 28 workers against 267.9 s at 14 — about half again the wall clock, for half the
+machine back.
 
-Measured on the full suite at 3,828 tests, both runs green:
+Take that as the shape and not as a constant. The same suite came back 172 s at 28, 268
+s at 14 and 310 s at 20, which is not monotonic and so is not a measurement: what moved
+was the tree, a second session shipping here throughout, its test count rising under
+each run and its workers taking the same threads. So this rests on the claim needing no
+ranking — a default asking for every thread has no headroom to give, whatever it buys.
 
-    -n 28 (what auto answered)   174.3 s
-    -n 14                        176.4 s
-
-Half the pool costs two seconds — inside this suite's own run-to-run noise — and hands
-back fourteen threads. So `auto` halves: floored at two, so a two-core CI runner keeps
-both rather than dropping to the single worker RK462 measured as worse than none, and
-capped at the cores there are, so a one-core box is not asked for two.
-
-The narrow path is untouched. A caller naming one file still gets no workers at all,
-which is RK460's answer to a different question: there the cost is the spawn, and here
-it is the contention.
+The floor keeps the halving from being a regression where there is nothing to halve: CI
+has two cores, and one worker there is what RK462 measured as worse than none. The cap
+is the other end, so a one-core box is never asked for two.
 
 ## Block E — Adoption
-
-### §RK1227 The anchor a rationale cites and nothing resolves
-
-Found in Shio, filing SH763. Its rationale cited `§XVII.100` — an anchor a task had
-removed when it shipped — and `roadkeep section amend` wrote it without complaint. The
-failure surfaced two commits later as a **red JS gate** in that project, from
-`improvements-debt.test.mjs`, on a docs-only commit that had touched nothing else.
-
-The write validated everything about the prose except the one thing prose can be wrong
-about mechanically. Length: checked. Paragraph shape: checked. Whether `§XVII.100`
-resolves to a heading in the file being written: not asked, though the file is open and
-the answer is a lookup.
-
-Three properties make this worth fixing here rather than in the adopting project. It is
-**decidable** — an anchor either exists in the governed file or it does not, which is
-the same question `lint` already answers for a task line's `ref`. It is **cheap** — the
-section index is built to insert the section at all. And the alternative discovery path
-is the worst kind: a gate in somebody else's repository, red for a reason whose cause is
-three commits back in a different file, reached only by running the suite.
-
-The shape to copy is `add --ref`, which resolves before it writes and refuses naming the
-free anchors. `amend` should ask the same question of every anchor reference in the body
-it is handed, and refuse with the same list.
-
-Worth checking on the way: whether `add --section-body` has the same hole.
 
 ## Block F — The plugin
 
