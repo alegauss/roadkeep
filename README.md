@@ -121,10 +121,14 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 112 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 91 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 116 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 116 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 0 | 13 | 0 |
-| **Total** | 0 | 733 | 9 |
+| H — The tool's own shape (what one verb costs to change) | 1 | 13 | 0 |
+| **Total** | 2 | 733 | 9 |
+
+**Next ready:**
+
+- 📋 **RK1245** (deps: —) **The read that exists to compare two costs prints them in two different units** — The notice is a message handed to a session exactly as a resident file is, and they are counted two ways. → §RK1245
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

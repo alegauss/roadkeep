@@ -85,6 +85,61 @@ already written, not authorship.
 
 ## Block F — The plugin
 
+### §RK1246 The field four messages share
+
+Four records carry `served` — `Refusal`, `Notice`, `Review`, `Unattested` — each filled
+at its own site from `served_by(config.root)`. Four sites, one fact, nothing holding
+them together.
+
+Not a theory. RK479 found `Unattested` was the one **not** wired: it rendered a route a
+served session could not call, and somebody found it by reading the message. The test
+written then holds that one record, leaving the property asserted per instance by
+whoever remembered.
+
+RK1244 is the same family the other way round. RK1242 added a second field beside
+`served` on one of the four — a three-way answer stored as two — and the census in
+`test_spelling` swept both spellings and passed, because it compares what a message
+*offers* and has no opinion about what a record *holds*.
+
+So the missing instrument is a census of the carriers: every record with a `served`
+field and the site that fills it, asserted total. A fifth added tomorrow is red until
+somebody says which site fills it — `remedying`'s table over every code, `PREVENTION`
+over every finding, `SITES` over every composed command, applied to the field four
+messages share.
+
+Two things to decide. Whether the census reads the field name or a marker the records
+declare, a name being what drifts. And whether it asserts the *site* or only that one
+exists: the second is cheap and would have caught RK479, the first also catches a site
+filling it from something other than `served_by` — a case nothing has met yet.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+### §RK1245 One comparison, two units
+
+`budget --session` exists so an author can decide between cutting a tool description and
+cutting a paragraph. Since RK1243 it prints three figures in two units:
+
+    session    54925 utf-16-code-units once, 7366 bytes on every turn
+      once      54639  56 tool(s) and the handshake, at connect
+      once        286  the session-start notice, +34 of 320
+      turn       6906  agents.md
+
+The split used to be defensible, because the two cadences were also two kinds of thing:
+a JSON payload a client validates, and a file on disk. The notice broke that. It is a
+**message handed to a session**, exactly as `agents.md` is, and it sits under `once` in
+code units beside a file under `turn` in bytes.
+
+So the read whose whole purpose is a comparison now asks the reader to make it across
+units. On ASCII prose the two agree and the defect is invisible; on a paragraph carrying
+the status markers this tool writes, `agents.md` measured in bytes is three times its
+length in code units, and the choice a reader makes from these numbers is the wrong one.
+
+What is probably right is that a **resident file is prose too**, and prose is counted
+the way RK430 says everything here is counted. `[budgets]` declares `lines` and `bytes`,
+so the key stays and the report gains the reading a model actually pays for.
+
+To settle before touching it: `bytes` is the declared limit and `lint` refuses on it, so
+a report in another unit is a read and a gate disagreeing — which is the shape RK1243
+just closed for the notice, by moving the *gate* rather than the report.
