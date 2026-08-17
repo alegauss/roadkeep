@@ -646,13 +646,40 @@ def pytest_xdist_auto_num_workers(config: pytest.Config) -> int:
         16 files  68.0 s   11.3 s
 
     So one thing is spawned for nobody, two is a wash, and past that the pool wins by more
-    the more there is. One worker per thing named, capped at the cores there are, which is
-    the same rule the no-argument run gets — it names one tree and asks for every core.
+    the more there is. One worker per thing named, capped at :func:`_pool`, which is the same
+    number the no-argument run gets — it names one tree and asks for the whole pool.
     """
     named = [one for one in config.args if _narrow(one)]
     if not named:
-        return os.cpu_count() or 1
-    return 0 if len(named) < 2 else min(len(named), os.cpu_count() or 1)
+        return _pool()
+    return 0 if len(named) < 2 else min(len(named), _pool())
+
+
+def _pool() -> int:
+    """How many workers a run that asked for everything gets — half the cores (RK1232).
+
+    RK457 and RK462 both spent the whole machine, and this is the cost of that rather than a
+    defect in either: `auto` answered `os.cpu_count()`, so a full run took all 28 threads here
+    and left nothing for the editor, the language server or the second session that shares this
+    checkout. Two sessions is the case that made it visible — each asking `auto` for everything
+    is 56 workers on 28 threads, and the machine stops answering before either suite does.
+
+    **This is a trade and not a free win, which is the part worth stating.** A back-to-back
+    pair on the full suite went 172.5 s at 28 against 267.9 s at 14 — about half again the wall
+    clock, for half the machine back. Take that as the shape and not as a constant: repeated
+    full runs of the same suite came back 172 s at 28, 268 s at 14 and 310 s at 20, which is
+    not monotonic and therefore is not a measurement. What moved was the tree — a second
+    session shipping into this checkout, its test count rising under each run, its own workers
+    competing for the same threads — and a number taken here measures that as much as it
+    measures the pool. The defensible claim is the one that does not need the ranking: a
+    default asking for every thread has no headroom to give, whatever it buys in return.
+
+    The floor is what keeps the halving from being a regression where there is nothing to
+    spare: CI has two cores, and one worker there is the case RK462 measured as *worse* than
+    none. The cap is the other end — a one-core box is not asked for two.
+    """
+    cores = os.cpu_count() or 1
+    return min(cores, max(2, cores // 2))
 
 
 def _narrow(argument: str) -> bool:

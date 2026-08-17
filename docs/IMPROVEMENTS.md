@@ -179,28 +179,6 @@ The narrower version is cheaper and catches the same case: a block whose every t
 paths were touched by this change while at least one line is still open. That is the
 transition `block.emptied` almost describes, from the other side.
 
-### §RK1232 The worker count that leaves the machine usable
-
-`-n auto` resolved to `os.cpu_count()` — every logical core, with nothing left over.
-Here that is 28 workers on 28 threads, so the run RK457 made the default became the run
-that makes the machine unusable while it goes. Two sessions sharing this checkout is
-what made it visible: each asks `auto` for everything, so 56 workers compete for 28
-threads and the machine stops answering before either suite does.
-
-**It is a trade and not a free win.** A back-to-back pair on the full suite went 172.5 s
-at 28 workers against 267.9 s at 14 — about half again the wall clock, for half the
-machine back.
-
-Take that as the shape and not as a constant. The same suite came back 172 s at 28, 268
-s at 14 and 310 s at 20, which is not monotonic and so is not a measurement: what moved
-was the tree, a second session shipping here throughout, its test count rising under
-each run and its workers taking the same threads. So this rests on the claim needing no
-ranking — a default asking for every thread has no headroom to give, whatever it buys.
-
-The floor keeps the halving from being a regression where there is nothing to halve: CI
-has two cores, and one worker there is what RK462 measured as worse than none. The cap
-is the other end, so a one-core box is never asked for two.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

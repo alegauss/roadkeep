@@ -119,16 +119,16 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 160 | 2 |
 | C — Query (consult without reading the file) | 1 | 111 | 1 |
-| D — The gate | 2 | 182 | 2 |
+| D — The gate | 1 | 183 | 2 |
 | E — Adoption | 0 | 91 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 109 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 9 | 0 |
-| **Total** | 6 | 716 | 9 |
+| **Total** | 5 | 717 | 9 |
 
 **Next ready:**
 
-- 🛠 **RK1232** (deps: —) **A full run asks for every core, so the machine has nothing left while the suite is running** — The pool is half the cores instead of every one, so two sessions sharing a checkout stop asking for 56 workers on 28 threads, at a wall-clock cost stated rather than hidden. → §RK1232
+- 📋 **RK1228** (deps: —) **Nothing reports source changed under an open task while the line stayed open** — lint --since flags a section edited without its line but not the mirror, so work that landed and passed its tests can leave the ledger with no entry at all. → §RK1228
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

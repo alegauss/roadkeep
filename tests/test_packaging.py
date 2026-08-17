@@ -467,20 +467,47 @@ def test_several_things_named_are_a_pool_and_not_a_serial_run() -> None:
     where it stops costing and past that the pool wins by more the more there is."""
     from conftest import pytest_xdist_auto_num_workers
 
+    from conftest import _pool
+
     assert pytest_xdist_auto_num_workers(_Asked("a.py", "b.py")) == 2
     assert pytest_xdist_auto_num_workers(_Asked("a.py", "b.py", "c.py::t")) == 3
-    # Capped at the cores there are, which is the same ceiling the whole-tree run gets.
-    many = [f"f{n}.py" for n in range((os.cpu_count() or 1) + 5)]
-    assert pytest_xdist_auto_num_workers(_Asked(*many)) == os.cpu_count()
+    # Capped at the pool, which is the same ceiling the whole-tree run gets: naming more files
+    # than that is asking for the machine, and it is one number that answers both (RK1232).
+    many = [f"f{n}.py" for n in range(_pool() + 5)]
+    assert pytest_xdist_auto_num_workers(_Asked(*many)) == _pool()
 
 
-def test_a_whole_tree_still_gets_every_core() -> None:
+def test_a_whole_tree_gets_the_pool_and_not_the_whole_machine() -> None:
     """`testpaths` makes `tests` the default argument, so this is the no-argument run — the
-    one RK457 is about, and the one that has 2891 tests to distribute."""
-    from conftest import pytest_xdist_auto_num_workers
+    one RK457 is about, and the one that has 3828 tests to distribute.
 
-    assert pytest_xdist_auto_num_workers(_Asked("tests")) == os.cpu_count()
-    assert pytest_xdist_auto_num_workers(_Asked("tests/", "tests/captures")) == os.cpu_count()
+    It used to be `os.cpu_count()` exactly, which is every thread and no headroom: the suite
+    ran and the machine stopped answering, and two sessions sharing this checkout asked for 56
+    workers on 28 threads. The halving costs wall clock — a back-to-back pair went 172.5 s at
+    28 against 267.9 s at 14 — and buys back half the machine, which is the trade RK1232 states
+    rather than a speed-up it claims."""
+    from conftest import _pool, pytest_xdist_auto_num_workers
+
+    assert pytest_xdist_auto_num_workers(_Asked("tests")) == _pool()
+    assert pytest_xdist_auto_num_workers(_Asked("tests/", "tests/captures")) == _pool()
+
+
+def test_the_pool_leaves_a_two_core_runner_the_two_it_has(monkeypatch) -> None:
+    """The halving is a measurement made on 28 threads, and the floor is what keeps it from
+    being a regression where there is nothing to halve. CI has two cores, and one worker there
+    is the case RK462 measured as *worse* than none — so a machine that small keeps both, and
+    a machine smaller still is never asked for more threads than it has (RK1232)."""
+    from conftest import _pool
+
+    def pool_on(cores: int | None) -> int:
+        monkeypatch.setattr(os, "cpu_count", lambda: cores)
+        return _pool()
+
+    assert pool_on(2) == 2, "a two-core runner keeps both, rather than dropping to one"
+    assert pool_on(1) == 1, "the cap is the cores there are, so one is never asked for two"
+    assert pool_on(None) == 1, "an unknowable count is one worker and not a crash"
+    assert pool_on(4) == 2
+    assert pool_on(28) == 14, "the measured case: half of this machine, not all of it"
 
 
 # -- the gate's environment, run here (RK1159) --------------------------------
