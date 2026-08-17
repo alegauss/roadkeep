@@ -210,6 +210,10 @@ ELSEWHERE: Mapping[str, str] = {
     "deps.marker": "the cached annotation, which is derived and re-derived (RK8)",
     "deps.stale": "the same annotation gone out of date, which `--fix` rewrites",
     "deps.unexpected": "a field the role's grammar drops carrying a value (RK1064)",
+    # RK1229. About the *slot*, not about the target: a dep carrying `)` or the pointer arrow
+    # stops the rendered line parsing, which is decidable from the value and the grammar with
+    # nothing resolved — and is why it is refused before any target is looked for.
+    "deps.unrenderable": "text the deps group cannot carry back, decidable before resolving",
     "deps.collective": "a note about what `Block X` names, not a defect about a target",
     "ref.format": "the anchor's shape under `ref_scheme`, before it is resolved",
     "ref.sigil": "the `§` itself, a character question",

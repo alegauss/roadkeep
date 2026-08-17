@@ -1015,6 +1015,14 @@ _TABLE: Mapping[str, _Rule] = {
         ("amend", "{id}", "--dep", BLANK),
         "the range names no line this backlog carries",
     ),
+    # RK1229. A `compose`, because what the dep should say instead is the caller's: the
+    # parenthetical they wrote is usually a sentence about *why* the dependency exists, which
+    # belongs in the section the line points at and not inside a rendered group.
+    "deps.unrenderable": _compose(
+        ("amend", "{id}", "--dep", BLANK),
+        "a dep carrying `)` or the pointer arrow stops the line parsing, and then no verb "
+        "reaches it; the parenthetical belongs in the section, not in the dep",
+    ),
     "deps.unexpected": _run(
         ("lint", "--fix"),
         "this file's rules declare no deps field, so the annotation is dropped",

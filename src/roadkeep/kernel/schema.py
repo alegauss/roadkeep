@@ -1572,6 +1572,57 @@ class Schema:
         )
         return pattern.match(dep.id)
 
+    def _unrenderable(self, task: Task) -> list[Violation]:
+        """A dep whose text the line it is written into cannot carry back (RK1229).
+
+        Measured: `amend --dep "FreeWilly DD133 (Docker drops its pipe mid-build)"` was
+        accepted and **written**. The deps group is `\\(deps: [^)]*\\)`, so the inner `)` closed
+        it early, the grammar stopped reading the line, and `lint` reported `line.unparsed`
+        with `section.orphan` beside it.
+
+        What makes that more than bad input is what came after. `amend`, `restate`, `retire`
+        and `defer` all answered *nothing there carries that id* — correct, the grammar cannot
+        read the line — `repair` listed both findings as decisions with no complete command,
+        `--fix` names a control character as its one cause, and the guard denies the hand edit.
+        **The tool wrote a state none of its verbs reaches and its own gate forbids repairing
+        by hand.** The task was re-filed under a new id, spending one, and the line stayed.
+
+        Asked by **round-tripping the slot** and never by listing characters: the group is
+        rendered and read back with the pattern that reads it, so a capture that differs is
+        the defect whatever produced it. The arrow is the one thing that check cannot see —
+        `document._split_ref` cuts the pointer off *before* the grammar runs, so a dep
+        carrying one moves where the line ends — and it is asked separately for that reason.
+
+        The message names the characters rather than the arithmetic, because a caller holding
+        a refusal wants to know which part of what they typed to change.
+        """
+        if not task.deps or not self.deps_field:
+            return []
+        # What the slot actually writes, `NO_DEPS` included: a caller clearing the group hands
+        # over one empty dep, the join is `""`, and `_writes_deps` renders the em dash — so
+        # comparing against the join alone reports the clear as unrenderable. Measured by
+        # `test_amend_replaces_the_whole_dep_group` the moment this check existed.
+        written = ", ".join(dep.render() for dep in task.deps) or NO_DEPS
+        found = re.fullmatch(_reads_deps(True), _writes_deps(self, task))
+        arrowed = [dep.render() for dep in task.deps if ARROW in dep.render()]
+        if (found is not None and found.group("deps") == written) and not arrowed:
+            return []
+        named = [
+            dep.render()
+            for dep in task.deps
+            if ")" in dep.render() or "(" in dep.render() or ARROW in dep.render()
+        ] or [written]
+        return [
+            Violation(
+                "deps.unrenderable",
+                "deps",
+                f"{', '.join(repr(one) for one in named)} cannot survive the line it is "
+                f"written into: the deps group closes at the first ')' and the pointer is "
+                f"split at the first '{ARROW}', so a line carrying this stops parsing and "
+                f"no verb reaches it — put the parenthetical in the section, not the dep",
+            )
+        ]
+
     def _check_deps(self, task: Task) -> list[Violation]:
         if task.deps and not self.deps_field:
             return [
@@ -1583,6 +1634,7 @@ class Schema:
                 )
             ]
         out: list[Violation] = []
+        out += self._unrenderable(task)
         ids = self.id_pattern()
         seen: set[str] = set()
         allowed = self.dep_markers

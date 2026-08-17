@@ -143,6 +143,16 @@ BACKSTOP: tuple[Backstopped, ...] = (
         section="### §RK9 A design for nothing\n\nA paragraph about it.\n",
     ),
     # -- nothing reports it, and the two kinds of nothing ---------------------
+    # RK1229. Mapped, and the mapping is the whole argument for holding it at the door: a
+    # line carrying an unrenderable dep does not parse at all, so the gate reports
+    # `line.unparsed` — which names no field. The *reason* is unrecoverable the moment the
+    # line is written, and no verb starting from a task reaches it to repair.
+    #
+    # Unprobed, and said rather than left blank: every measured row here puts a file in the
+    # state by writing a **section**, and this state is a roadmap *line*. A probe would want a
+    # second fixture shape for one row, so what stands instead is `test_prevention`'s, which
+    # runs the write and asserts it refuses.
+    Backstopped("deps.unrenderable", gate="line.unparsed"),
     Backstopped("title.newline", because=ARGUMENT),
     # RK1112: the argument covered the wrong extent, and once written a pasted child heading
     # *is* a heading — so the state this refuses has no spelling in the file to report.

@@ -2322,3 +2322,68 @@ def test_the_one_call_form_writes_both_and_is_held_to_the_same_limits(tmp_path, 
     over[over.index("X.2")] = "X.3"
     assert main(over) == EXIT_USAGE
     assert "body" in capsys.readouterr().err
+
+
+# -- a dep the line it is written into cannot carry back (RK1229) --------------
+
+
+@pytest.mark.parametrize(
+    "dep",
+    ["FreeWilly DD133 (Docker drops its pipe mid-build)", "DD133 → done", "a note)"],
+    ids=["parenthesised", "arrowed", "closing-paren"],
+)
+def test_a_dep_that_cannot_survive_rendering_is_refused_at_input(tmp_path, capsys, dep):
+    """Measured: this was **accepted and written**. The deps group is `\\(deps: [^)]*\\)`, so the
+    inner `)` closed it early, the grammar stopped reading the line, and `lint` reported
+    `line.unparsed` with `section.orphan` beside it.
+
+    What makes it more than bad input is what came after: `amend`, `restate`, `retire` and
+    `defer` all answered *nothing there carries that id* — correct, the grammar cannot read
+    the line — `repair` listed both findings as decisions with no complete command, `--fix`
+    names a control character as its one cause, and the guard denies the hand edit. The tool
+    wrote a state none of its verbs reaches and its own gate forbids repairing by hand.
+    """
+    root = str(project(tmp_path).root)
+    assert main(["-C", root, "amend", "RK1", "--dep", dep]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "deps.unrenderable" in said
+    # Nothing written, which is the promise `add` and `amend` both make about validation.
+    assert "(deps: —)" in (tmp_path / ROADMAP).read_text(encoding="utf-8")
+
+
+def test_the_same_input_through_add_is_refused_too(tmp_path, capsys):
+    """One rule in the schema and not one per door: `add` composes the same line."""
+    root = str(project(tmp_path).root)
+    code = main([
+        "-C", root, "add", "--block", "A", "--dep", "DD1 (a note)",
+        "--symptom", "A symptom plainly long enough to read", "--why", "Because of it.",
+    ])
+    assert code == EXIT_USAGE
+    assert "deps.unrenderable" in capsys.readouterr().err
+
+
+def test_a_prose_dep_without_those_characters_still_writes(tmp_path, capsys):
+    """The rule has to stay narrow: real work waits on a whole block and on things that are
+    not work at all (RK28), so prose is a legitimate dep and only what breaks the line is not.
+    """
+    root = str(project(tmp_path).root)
+    assert main(["-C", root, "amend", "RK1", "--dep", "Docker drops its pipe mid-build"]) == EXIT_OK
+    capsys.readouterr()
+    # And the line it wrote is one the gate can still read, which is the whole claim.
+    assert main(["-C", root, "lint"]) == EXIT_OK
+
+
+def test_the_check_is_a_round_trip_and_not_a_list_of_characters(tmp_path):
+    """Asked by rendering the group and reading it back with the pattern that reads it, so a
+    capture that differs is the defect whatever produced it. The arrow is asked separately,
+    because the pointer is split off *before* the grammar runs and that check cannot see it."""
+    from dataclasses import replace
+    from roadkeep.kernel.schema import DESIGNED, Schema, Task
+
+    schema = Schema()
+    fine = Task(id="RK1", status=DESIGNED, block="A", symptom="A symptom", why="Because.",
+                deps=("Docker drops its pipe",))
+    assert not [one for one in schema.validate(fine) if one.code == "deps.unrenderable"]
+
+    broken = replace(fine, deps=("Docker drops its pipe)",))
+    assert [one.code for one in schema.validate(broken) if one.code == "deps.unrenderable"]

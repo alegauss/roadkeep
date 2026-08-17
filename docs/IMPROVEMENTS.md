@@ -77,32 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1229 A line the tool wrote and cannot repair
-
-`amend --deps` accepted `FreeWilly DD133 (Docker drops its pipe mid-build)` and wrote
-it. The rendered line put that value inside the derived `(deps: …)` group, so the inner
-parenthesis closed the group early and the grammar stopped reading the line. `lint` then
-reported `line.unparsed` at that line and `section.orphan` for the section it had
-pointed at.
-
-What makes it more than bad input is what came next. `amend`, `restate`, `retire` and
-`defer` all answered *nothing there carries that id* — correct, since the grammar cannot
-read the line. `repair` listed both findings as decisions with no complete command,
-`lint --fix` names control characters as its one cause, and the hook refuses the
-hand-edit.
-
-So the tool wrote a state that none of its verbs reaches and its gate forbids repairing
-by hand. The task had to be re-filed under a new id, spending one, and the invalid line
-is still there.
-
-The input check is where this closes. `add` and `amend` both promise validation *at
-input* — "or nothing is written" — and a dep that cannot survive rendering is exactly
-what that promise is for. Rejecting `(`, `)` and `→` in a dep would have cost a refusal
-instead of a lost id.
-
-Worth deciding whether `lint --fix` should also delete a line no verb can reach, since a
-line outside the grammar is not a line any reader is served by.
-
 ### §RK1231 The heading the tool wrote is the one it does not renumber
 
 `add --section` composes the rationale heading itself, appending the task's id:
