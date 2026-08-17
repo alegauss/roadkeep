@@ -927,3 +927,139 @@ def test_a_missing_engine_is_a_named_refusal_on_the_server_too(tmp_path):
     one whose log should say why: exit 0 and silence there is a crash with no cause in it."""
     done = served(["mcp"], None, tmp_path)
     assert done.returncode == 2 and b"no engine found" in done.stderr
+
+
+# -- an engine that is found and then explodes (RK1214) ------------------------
+
+
+def sealed(monkeypatch, tmp_path: Path) -> None:
+    """Cut every candidate this machine has, so a fixture measures only what it built.
+
+    The launcher's last candidate is a cache clone under the user cache directory, and this
+    developer has one: without this the tests below resolve *that*, run `lint` against whatever
+    directory pytest started in, and pass or fail for reasons no fixture states.
+    """
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "cache"))
+    monkeypatch.delenv("ROADKEEP_HOME", raising=False)
+
+
+def broken(root: Path) -> Path:
+    """A tree that exists, is chosen, and raises the moment it is run.
+
+    A checkout mid-refactor, which is what the measured incident was: on disk, resolvable, and
+    `ImportError: cannot import name NotOpen from roadkeep.backlog` when anything uses it.
+    """
+    (root / "scripts").mkdir(parents=True, exist_ok=True)
+    (root / "scripts" / "roadkeep.py").write_text(
+        "import sys\n"
+        "sys.stderr.write('ImportError: cannot import name NotOpen\\n')\n"
+        "raise SystemExit(1)\n",
+        encoding="utf-8",
+    )
+    return root
+
+
+def working(root: Path, answer: str = "ok") -> Path:
+    (root / "scripts").mkdir(parents=True, exist_ok=True)
+    (root / "scripts" / "roadkeep.py").write_text(
+        f"import sys\nprint({answer!r})\nraise SystemExit(0)\n", encoding="utf-8"
+    )
+    return root
+
+
+def test_a_candidate_that_does_not_run_is_not_the_engine(tmp_path, monkeypatch):
+    """`_resolve` stopped at the first path that *exists*, and existing is the wrong test:
+    what the caller needs is an engine that runs. Measured in pportal, mid-task."""
+    bridge = load()
+    repo = tmp_path / "repo"
+    broken(repo / bridge.VENDORED)
+    working(tmp_path / "roadkeep")
+    monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(repo))
+    sealed(monkeypatch, tmp_path)
+
+    # Resolution order is unchanged: the vendored copy is still first.
+    assert bridge._resolve() == repo / bridge.VENDORED / "scripts" / "roadkeep.py"
+    # And the one that answers is the sibling, because the first one does not.
+    assert bridge._running() == tmp_path / "roadkeep" / "scripts" / "roadkeep.py"
+
+
+def test_the_guard_falls_through_without_paying_for_a_probe(tmp_path, monkeypatch, capfd):
+    """The hot path. `guard` writes nothing and the CLI returns 0 on every path it has, so a
+    non-zero exit means the engine did not work — which makes trying the next one free of the
+    hazard a retry can carry, and needs no probe to establish."""
+    bridge = load()
+    repo = tmp_path / "repo"
+    (repo / ".claude").mkdir(parents=True)
+    broken(repo / bridge.VENDORED)
+    working(tmp_path / "roadkeep", answer="the second engine answered")
+    monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(repo))
+    sealed(monkeypatch, tmp_path)
+    monkeypatch.setattr(bridge, "_plugin_is_wired", lambda _root: False)
+
+    assert bridge._guard([], b"{}") == 0
+    # `capfd` and not `capsys`: the engine is a child process, so its output reaches the
+    # file descriptor and never this interpreter's `sys.stdout`.
+    assert "the second engine answered" in capfd.readouterr().out
+
+
+def test_the_guard_is_still_zero_where_nothing_runs(tmp_path, monkeypatch):
+    """This file's own rule, unchanged by the fall-through: a missing roadkeep degrades to
+    unenforced and never to a broken session — and so, now, does a broken one."""
+    bridge = load()
+    repo = tmp_path / "repo"
+    (repo / ".claude").mkdir(parents=True)
+    broken(repo / bridge.VENDORED)
+    monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(repo))
+    sealed(monkeypatch, tmp_path)
+    monkeypatch.setattr(bridge, "_plugin_is_wired", lambda _root: False)
+    assert bridge._guard([], b"{}") == 0
+
+
+def test_a_forwarded_verb_asks_before_it_runs_and_never_retries(tmp_path, monkeypatch, capfd):
+    """The split this task turns on: a forwarded verb may **write**, so running one and trying
+    the next on failure could repeat a half-done write — the one hazard `guard` does not have.
+    Asking first costs one spawn on a path a person typed, and it is the path the measured
+    incident came through."""
+    bridge = load()
+    repo = tmp_path / "repo"
+    broken(repo / bridge.VENDORED)
+    working(tmp_path / "roadkeep", answer="forwarded")
+    monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(repo))
+    sealed(monkeypatch, tmp_path)
+
+    ran: list[list[str]] = []
+    real = bridge.subprocess.run
+
+    def watched(argv, **kwargs):
+        ran.append(list(argv))
+        return real(argv, **kwargs)
+
+    monkeypatch.setattr(bridge.subprocess, "run", watched)
+    assert bridge._forward(["lint"]) == 0
+    assert "forwarded" in capfd.readouterr().out
+    # One probe per candidate until one answers, then the verb — and the verb goes to the
+    # engine that answered. On a healthy machine that is one probe; here it is two, because
+    # the first candidate is the broken one and asking is how that was found out.
+    assert [one[-1] for one in ran] == ["--version", "--version", "lint"], ran
+    # The broken engine was probed and never handed the verb, which is the whole claim: a
+    # write forwarded to it and then retried elsewhere is the hazard this ordering avoids.
+    broken_engine = str(repo / bridge.VENDORED)
+    assert broken_engine in " ".join(ran[0])
+    assert all(broken_engine not in " ".join(one) for one in ran[1:])
+
+
+def test_the_refusal_tells_a_broken_engine_from_an_absent_one(tmp_path, monkeypatch, capfd):
+    """A message saying *no engine found* over a directory plainly sitting there sends its
+    reader looking for the wrong thing."""
+    bridge = load()
+    repo = tmp_path / "repo"
+    broken(repo / bridge.VENDORED)
+    monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(repo))
+    sealed(monkeypatch, tmp_path)
+    assert bridge._forward(["lint"]) == 2
+    assert "none of which ran" in capfd.readouterr().err
+
+    # And the other sentence is kept for the state it is about.
+    monkeypatch.setattr(bridge, "_candidates", list)
+    assert bridge._missing() == 2
+    assert "no engine found" in capfd.readouterr().err

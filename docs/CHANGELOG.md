@@ -515,6 +515,7 @@
 - ✅ **RK1202** **guard exits 0 and prints nothing on a payload it could not parse, which is the answer it gives for allowed** — A payload the guard could not read says so on stderr, naming the bytes that arrived and that this is the gate failing rather than a write allowed; stdout and exit 0 are untouched.
 - ✅ **RK1203** **lint offers amend as the door for a path.missing on a changelog line, and amend refuses every shipped id** — The path.missing door names `record amend`, which reaches the ledger the finding is always about, and a test runs it end to end rather than matching its argv.
 - ✅ **RK1206** **Under an outline, the ref.unresolved remedy names the task id where the missing section is the anchor the line points at** — The pointer finding carries the anchor as its subject, so the door names the address that failed instead of the task id, and a sweep over an outline fixture holds the class.
+- ✅ **RK1214** **a resolved engine that fails to import takes the whole command down instead of falling through to the next candidate** — The launcher asks a candidate to run before trusting it: guard falls through on any failure, and the two modes that may write or execv probe first.
 
 ## Block E — Adoption
 

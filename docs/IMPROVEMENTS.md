@@ -204,30 +204,6 @@ the rationale to learn what is left.
 
 ## Block D — The gate
 
-### §RK1214 An engine that is found and then explodes
-
-Measured in pportal on 2026-08-16, mid-task. A `section add` that had worked four times
-in the same minute came back as a traceback: ImportError, cannot import name NotOpen
-from roadkeep.backlog, while importing roadkeep.cli. The engine the launcher resolved
-was the sibling checkout, whose working tree was part-way through a refactor. Nothing
-was written, and the roadmap was left holding a line whose section did not exist - lint
-red, mid-task.
-
-The launcher's own docstring makes this a defect rather than bad luck. It says: never
-block a turn, and if no engine can be found every mode exits 0 and emits nothing, so a
-missing roadkeep degrades to unenforced and never to a broken session. A checkout
-mid-refactor is not missing. It is found, chosen, and then it explodes - the failure
-that rule exists to prevent, arriving through the one door it does not cover.
-
-The resolution order already has the material for a fix. _resolve tries ROADKEEP_HOME,
-then a sibling, then a cache, then a clone, and stops at the first path that exists.
-Existing is the wrong test: what the caller needs is an engine that runs. Importing the
-chosen one and moving to the next candidate when that raises would cost one try block
-and would have turned this into a slower command rather than a failed one.
-
-This is separate from RK1200, which is about which candidate is picked. This one is
-about what happens after a pick that turns out to be wrong.
-
 ### §RK1217 The ledger's paths are checked against the wrong tree
 
 Turing's `T759` entry names `frontend/apps/site/scripts/emit-model-catalog.mjs`, a
