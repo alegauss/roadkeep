@@ -409,33 +409,6 @@ the wrong rules is the failure the note describes and does not prevent.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-### §RK1209 The composer tested against itself
-
-Four tasks found the same defect and no test found any of them. RK1149: the retry a
-refusal offered had to be retyped. RK1198: the path into a fresh block was six calls
-discovered one at a time. RK1205: the `section add` an `add` handed over was refused.
-RK1207: the refusal for that family named no verb.
-
-Each was covered. `test_the_command_offers_a_follow_up_that_runs` is the sharpest
-reading — named for the claim, asserting the sentence was printed, never running it,
-green for as long as the command it described refused. Matching a composed command tests
-the composer against itself.
-
-The three tasks that fixed one each wrote the same instrument by hand: RK1149 executes
-its retry, RK1198 walks its four steps, RK1207 runs the chain it names. Three copies,
-one shape, and the next composed command is covered by whichever session remembers to
-write a fourth.
-
-`invocation()` is called at 56 sites, so the population is enumerable and already named
-by one function. What a sweep needs beyond that is the placeholders: `<its title>` and
-the trailing ellipsis stand for prose only the author writes (L4), so a harness fills
-them per verb — three entries covered every step of RK1198's path — and runs what is
-left.
-
-Not every site is reachable. So the sweep is a **declared** set with the unreached ones
-carrying a reason, the shape `test_surfaces` uses for a write that is wired or exempted:
-an exemption nobody can see reads exactly like a rule being kept.
-
 ### §RK1220 The message that is a command, and the one that only starts like one
 
 `test_the_path_is_the_one_that_works` executes the stair a `ref.missing` refusal prints,

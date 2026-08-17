@@ -56,7 +56,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1209** (deps: —) **No test runs the commands this tool composes, so a refusal naming a call that refuses stays green** — Four tasks found one each and three wrote the same harness by hand; invocation() names the 56 sites, and what a sweep adds is filling the placeholders. → §RK1209
 - 📋 **RK1220** (deps: —) **A refusal preamble is spelled with the invocation, so the test that walks the stair it prints reads it as a step** — Any stderr line starting with the invocation is taken for a command, and where the console script is on PATH so is the preamble — green by whether one is installed. → §RK1220
 
 ## Non-goals

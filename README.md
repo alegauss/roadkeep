@@ -123,12 +123,12 @@ called unbuilt were already in the ledger.
 | E — Adoption | 2 | 89 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 108 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 2 | 7 | 0 |
-| **Total** | 15 | 704 | 9 |
+| H — The tool's own shape (what one verb costs to change) | 1 | 8 | 0 |
+| **Total** | 14 | 705 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1209** (deps: —) **No test runs the commands this tool composes, so a refusal naming a call that refuses stays green** — Four tasks found one each and three wrote the same harness by hand; invocation() names the 56 sites, and what a sweep adds is filling the placeholders. → §RK1209
+- 📋 **RK1214** (deps: —) **a resolved engine that fails to import takes the whole command down instead of falling through to the next candidate** — The launcher promises a missing engine degrades to unenforced rather than to a broken session, and a checkout mid-refactor is found and then explodes. → §RK1214
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
