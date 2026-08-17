@@ -34,6 +34,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK1242** (deps: —) **The MCP tools the session-start note names never arrive, so the agent falls back to the CLI** — The launch note names the interface that is actually reachable, so an agent is not sent to tools that never connect. → §RK1242
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

@@ -85,6 +85,28 @@ already written, not authorship.
 
 ## Block F — The plugin
 
+### §RK1242 Naming the interface that answered, not the one that was meant to
+
+Measured over one long session in a project that vendors roadkeep. The session-start
+note arrived as designed and named the interface to use: `mcp__roadkeep__brief` starts a
+task, `mcp__roadkeep__show` and `mcp__roadkeep__list` answer the rest, and a hand-edit
+is refused. The harness reported the server as still connecting and said the tools would
+appear shortly. They never did. Two searches for them — one immediately, one after
+several minutes of other work — both answered that no matching tool was found, and every
+call for the rest of the session went through `python .roadkeep/scripts/roadkeep.py`.
+
+Nothing was lost, and that is the point worth noticing: the CLI answered every question
+the tools would have, so the failure was invisible except as a paragraph of instructions
+about tools that were not there. An agent that trusted the note would have waited, or
+searched again, or reported the capability as unavailable.
+
+Two halves are worth separating. The first is why a server named in the settings a clone
+gets does not finish connecting, which is a real defect and may be local to this
+machine. The second is what the note should say when it does not, and that half is
+roadkeep's whichever way the first goes: the guidance names an interface, so it can name
+the one that is reachable — the tools when they are there, the vendored script when they
+are not, rather than one spelling on the assumption that it always resolves.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
