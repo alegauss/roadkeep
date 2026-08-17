@@ -88,30 +88,3 @@ already written, not authorship.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1239 The row a reader cannot act on
-
-RK1236 ranks a tool's fields and names the module to edit. On the two tools measured
-here the largest row after `why` is `(description)` — 377 of `budget`'s 2568, 359 of
-`ship`'s 2555 — and that row is the one a reader cannot act on from what is printed.
-
-A tool's description is not one string. `_description` takes the subparser's
-`description=` and then **appends a sentence per always-passed flag**, built from that
-flag's own `help`. So `record_add`'s description carries prose written for `--role`, and
-an author who shortens the `description=` in front of them cuts a fraction of what the
-row measured.
-
-The row is honest about the total and silent about the composition — RK1236's own defect
-one level down: the number is right and the next move is a guess.
-
-What it should say is the split — the parser's own sentence, and each appended clause
-with the flag it came from — because those are edited in different places and only one
-of them is where the caller is looking.
-
-Cheap: `_description` already builds it from parts and throws the seam away. Returning
-them is a shape change to one function with one caller.
-
-To settle: whether the split appears in the rows or only under `--json`. The terminal
-report is already eight lines for a tool with six fields, and a nested breakdown of one
-row may be what `--json` is for — the reading `--tools` bare already takes about the
-tools it does not name.

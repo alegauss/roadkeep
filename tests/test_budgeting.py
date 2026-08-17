@@ -1855,3 +1855,67 @@ def test_bare_is_still_the_ranking_over_every_tool(tmp_path, capsys):
     budgeted(tmp_path)
     assert main(["-C", str(tmp_path), "budget", "--tools"]) == EXIT_OK
     assert "tool(s) and the handshake" in capsys.readouterr().out
+
+
+# -- and the seam inside the largest row (RK1239) -----------------------------
+
+
+def test_the_description_row_says_which_of_its_parts_to_shorten(tmp_path, capsys):
+    """A tool's description is not one string: `_description` takes the subparser's own
+    sentence and appends one per always-passed flag, built from that flag's `help`. So an
+    author shortening the `description=` in front of them cuts a fraction of what the row
+    measured, because the rest is written in another file.
+
+    Measured here: 725 of `merge_check`'s 871, and 427 of `claim`'s 949 — the largest row
+    either tool has, and the one a reader could not act on."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools", "merge_check"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "(description)" in printed
+    # Named by the flag: what a caller needs is which text to open, and `--check`'s sentence
+    # is edited where `--check` is declared.
+    assert "from description" in printed and "from --check" in printed
+
+
+def test_the_parts_sum_to_the_sentence_and_not_to_the_serialised_row(tmp_path, capsys):
+    """The row measures the property as it is sent — key, quotes and escaping — and the parts
+    measure the clauses as they are written. Stated rather than reconciled, because a
+    breakdown that quietly balanced would be one that had assigned punctuation to a clause."""
+    from roadkeep.kernel.schema import width
+    from roadkeep.serving import TOOLS, _described, _parsers, _subparser
+
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools", "merge_check", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    parsers = _parsers()
+    (tool,) = [one for one in TOOLS if one.name == "merge_check"]
+    written = _described(tool, _subparser(tool.command, parsers))
+    assert [one["source"] for one in payload["description_from"]] == [
+        source for source, _text in written
+    ]
+    assert sum(one["characters"] for one in payload["description_from"]) == sum(
+        width(text) for _source, text in written
+    )
+
+
+def test_a_description_that_is_one_sentence_has_nothing_to_split(tmp_path, capsys):
+    """The rule `_print_parts` already keeps one read over: a single-part breakdown is the
+    row's own total printed twice."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools", "ship", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["description_from"] == []
+    assert main(["-C", str(tmp_path), "budget", "--tools", "ship"]) == EXIT_OK
+    assert "from description" not in capsys.readouterr().out
+
+
+def test_the_split_is_what_the_client_is_actually_sent(tmp_path, capsys):
+    """Derived and never a second estimate, which is `descriptors`' own rule: the join of the
+    parts *is* the description a client receives, so a clause reworded moves both."""
+    from roadkeep.config import Config
+    from roadkeep.serving import TOOLS, _description, _parsers, _subparser, descriptor
+
+    config = budgeted(tmp_path)
+    parsers = _parsers()
+    (tool,) = [one for one in TOOLS if one.name == "merge_check"]
+    parser = _subparser(tool.command, parsers)
+    assert descriptor(tool, config, parsers)["description"] == _description(tool, parser)

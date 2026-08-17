@@ -476,7 +476,9 @@ declares costs in lines and bytes and what is left — bare, every declared budg
 prose: what the tool list costs a session that connects the server, in characters and by
 tool, largest first; **named — `budget --tools ship` — what each of that one tool's fields
 spent**, and the module its `help=` strings are written in, which is the question you have
-the moment `lint` says a tool is over and the ranking cannot answer. Nothing refuses it —
+the moment `lint` says a tool is over and the ranking cannot answer. Where the description
+is the largest row, it is split by where each clause is written: a tool that always passes a
+flag carries that flag's own `help`, edited somewhere else. Nothing refuses it —
 the number is stated so that adding a tool or a
 sentence to a description stops looking free, which is the argument `[budgets]` makes about
 a file that loads every turn. Every

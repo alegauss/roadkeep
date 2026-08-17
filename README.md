@@ -123,12 +123,8 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 91 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 113 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 1 | 10 | 0 |
-| **Total** | 1 | 727 | 9 |
-
-**Next ready:**
-
-- 📋 **RK1239** (deps: —) **The description row is the largest a tool has and nothing says which of its parts to shorten** — A tool's description is the parser's sentence plus a clause per always-passed flag, and those are edited in different files. → §RK1239
+| H — The tool's own shape (what one verb costs to change) | 0 | 11 | 0 |
+| **Total** | 0 | 728 | 9 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

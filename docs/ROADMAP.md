@@ -38,8 +38,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1239** (deps: —) **The description row is the largest a tool has and nothing says which of its parts to shorten** — A tool's description is the parser's sentence plus a clause per always-passed flag, and those are edited in different files. → §RK1239
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

@@ -1089,6 +1089,10 @@ class Detail:
     characters: int
     #: The module declaring this verb's parser, which is where a `help=` string is edited.
     where: str
+    #: What the description row is composed of, where it is more than the parser's own
+    #: sentence (RK1239) — `(source, characters)`, and empty where there is nothing to split.
+    #: The clause as written, so these sum to the sentence and not to the serialised row.
+    described: tuple[tuple[str, int], ...] = ()
 
     @property
     def envelope(self) -> int:
@@ -1098,7 +1102,15 @@ class Detail:
     def stated(self, unit: str, each: int | None) -> str:
         room = "" if each is None else f", {each - self.characters:+} of {each}"
         rows = [f"{self.name}    {self.characters} {unit}{room}  ({self.where})"]
-        rows += [f"  {size:>6}  {part}" for part, size in self.parts]
+        for part, size in self.parts:
+            rows.append(f"  {size:>6}  {part}")
+            if part == DESCRIPTION:
+                # Indented under the row it decomposes, and only where there is more than one
+                # part: a description that is the parser's sentence alone would print its own
+                # total twice, which is the rule `_print_parts` already keeps one read over.
+                rows += [
+                    f"  {clause:>6}    from {source}" for source, clause in self.described
+                ]
         rows.append(f"  {self.envelope:>6}  (the JSON around them: name, keys, required)")
         return chr(10).join(rows)
 
@@ -1110,6 +1122,12 @@ class Detail:
             "each": each,
             "declared_in": self.where,
             "by_field": [{"field": part, "characters": size} for part, size in self.parts],
+            # The seam inside the largest row, where there is one (RK1239). Measured as the
+            # clause is written, so it sums to the sentence rather than to the serialised
+            # property above — the difference being that property's key, quotes and joins.
+            "description_from": [
+                {"source": source, "characters": size} for source, size in self.described
+            ],
             "envelope": self.envelope,
         }
 
@@ -1134,11 +1152,18 @@ def detail(config: Config, name: str) -> Detail:
         }
         for field, schema in payload["inputSchema"]["properties"].items():
             parts[field] = width(json.dumps({field: schema}, ensure_ascii=False))
+        written = _described(tool, _subparser(tool.command, parsers))
         return Detail(
             name=name,
             parts=tuple(sorted(parts.items(), key=lambda row: (-row[1], row[0]))),
             characters=width(json.dumps(payload, ensure_ascii=False)),
             where=_declared_in(tool, parsers, config),
+            # Nothing to split where the description is the parser's own sentence alone.
+            described=(
+                ()
+                if len(written) < 2
+                else tuple((source, width(text)) for source, text in written)
+            ),
         )
     raise KeyError(name)
 
@@ -1403,12 +1428,29 @@ def _description(tool: Tool, parser: argparse.ArgumentParser) -> str:
     tool whose whole point is a flag it never mentioned would be a tool a client mistakes for
     the read it was split off from.
     """
-    described = (parser.description or "").strip()
+    return " ".join(text for _source, text in _described(tool, parser))
+
+
+def _described(
+    tool: Tool, parser: argparse.ArgumentParser
+) -> tuple[tuple[str, str], ...]:
+    """The same sentence as the parts it is composed of, each named by where it is written.
+
+    :func:`_description` joins these and every caller wanted the join, so the seam was thrown
+    away — and on the two tools measured here that seam is the largest row `budget --tools
+    <name>` prints: 725 of `merge_check`'s 871, 427 of `claim`'s 949 (RK1239). A reader
+    shortening the `description=` in front of them is cutting a fraction of what the row
+    measured, because the rest was written as another flag's `help` in another file.
+
+    Named by the flag and not by an index: what a caller needs is which text to open, and
+    `--check`'s sentence is edited where `--check` is declared.
+    """
+    parts = [("description", (parser.description or "").strip())]
     for dest in tool.always:
         action = _action(parser, dest)
         flag, help_ = action.option_strings[0], (action.help or "").strip()
-        described = f"{described} This tool always passes {flag}, which is to {help_}."
-    return described
+        parts.append((flag, f"This tool always passes {flag}, which is to {help_}."))
+    return tuple(parts)
 
 
 def _bounds_for(tool: Tool) -> Mapping[str, Any]:
