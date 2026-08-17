@@ -194,6 +194,11 @@ PREVENTION: tuple[Prevented, ...] = (
     # RK1234. The same statement about a block, so the same reason: what makes it true is
     # every one of those lines' source moving, and no write of this tool observes a diff.
     Prevented("block.worked", "gate", because=LATER),
+    # RK1238. The write path is guarded against exactly this (RK1235), so what reaches the
+    # gate is a state no write of this tool could have made: the copy running became the
+    # older one when somebody pinned a newer, which is an edit to `roadkeep.toml` or a
+    # `/plugin update` that did not happen.
+    Prevented("gate.behind", "gate", because=LATER),
     # -- true of an earlier line because of a later write ---------------------
     Prevented("id.paused-and-open", "gate", because=LATER),
     Prevented("id.paused-and-gone", "gate", because=LATER),

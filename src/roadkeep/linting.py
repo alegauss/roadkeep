@@ -818,6 +818,10 @@ def _rules() -> tuple[_Rule, ...]:
         # it is the one this engine ships are two questions, and a check folded into another's
         # return is one nobody finds by reading the list of what this gate asks.
         _Rule("config", lambda scan: _wired(scan.config)),
+        # And the other half of the same pin (RK1238): `_wired` asks whether the surfaces are
+        # behind the engine, and this asks whether the engine judging them is behind the one
+        # the project chose.
+        _Rule("config", lambda scan: _judged(scan.config)),
     )
 
 
@@ -1379,6 +1383,61 @@ def _wired(config: Config) -> list[Finding]:
             subject=where,
         )
         for where in stale(config.root)
+    ]
+
+
+def _judged(config: Config) -> list[Note]:
+    """Whose rules this verdict is, where the project said which copy's it should be (RK1238).
+
+    RK1235 guards the **pen**: a governed write from a copy behind the pinned one is refused
+    before the lock. The gate was left alone, and it is the same copy — so on a pinned project
+    running a stale engine the writes stop and this keeps answering from rules that have
+    moved. It reports clean, and the action CI runs at its own ref disagrees.
+
+    That is RK1235's failure with the halves swapped, and worse in one way. A refused write is
+    a message, read at the moment somebody asked for something. A gate that passes is
+    **silence** — which is exactly what the shipped `Stop` hook produces on every turn that
+    changed nothing, so there is no moment at which a reader is looking.
+
+    A **note**, and the shape is the whole task. A refusal is wrong: `lint` exiting 2 because a
+    copy is old turns one stale plugin into a repository nobody can commit in, which is the
+    state `guard` is written to survive (RK22). A finding is wrong for RK1192's stated reason:
+    it fires every turn until somebody updates, and a gate carrying noise stops being read.
+    What a note does is qualify the verdict beside it — printed before the findings and before
+    a clean summary alike (RK35) — so a clean report says *whose* clean it is.
+
+    Both of RK1235's conditions and for its reasons: `behind` and never `unpinnable`, because
+    a modified checkout is where a developer lives; and only where `[install] pinned` is
+    declared, that key being the project saying which copy is right (L6) rather than this tool
+    guessing at a setup it cannot see. Filed at `roadkeep.toml`, which is where that decision
+    is written and the file a reader would open to change it.
+
+    **2 ms**, and that is why it can be on the gate at all: :func:`~roadkeep.installing.behind`
+    compares versions before it asks git anything (RK1237), so the case this fires on — two
+    copies at two versions — is answered without a subprocess.
+    """
+    if not config.install_pinned:
+        return []
+    from roadkeep.installing import behind, engines  # noqa: PLC0415 - RK260
+
+    # Silence on every failure inside, as `_wired` is and for its reason (RK82, RK234): a gate
+    # that fails because a registry moved is worse than one that says nothing, and `engines`
+    # still answers on demand.
+    try:
+        if not behind(config.root):
+            return []
+        read = engines(config.root)
+    except OSError:
+        return []
+    return [
+        Note(
+            "gate.behind",
+            _configured(config),
+            f"this gate is {read.running.version} and the project pinned "
+            f"{read.plugin.version if read.plugin else '—'}, so a clean report here is that "
+            f"copy's clean — `{invocation()} engines` names all three",
+            subject="pinned",
+        )
     ]
 
 

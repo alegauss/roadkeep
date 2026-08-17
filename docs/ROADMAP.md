@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1238** (deps: —) **The pen is guarded against a stale copy and the gate that judges it is the same stale copy** — A refused write is a message; a gate answering from rules that have moved is silence, on every turn that changed nothing. → §RK1238
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

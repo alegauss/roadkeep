@@ -102,6 +102,9 @@ SITES: tuple[Site, ...] = (
     # RK1236. Run by `test_budgeting`, which executes the ranking this refusal names when a
     # tool it does not serve is asked about.
     Site("verbs/querying.py:_tools_budget", "run"),
+    # RK1238. Run by `test_installing`, which executes the read this note names — the command
+    # that says which of three copies answered, on the report that qualifies.
+    Site("linting.py:_judged", "run"),
     Site("cli.py:_crossed", "unreached", NO_FIXTURE),
     Site("cli.py:_unrecognised", "unreached", NO_FIXTURE),
     Site("config.py:_skew", "unreached", NO_FIXTURE),

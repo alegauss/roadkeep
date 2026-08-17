@@ -85,34 +85,6 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1238 The gate that is as old as the pen
-
-RK1235 refuses a governed **write** from a copy behind the one a project pinned. The
-gate is untouched, and it is the same copy.
-
-So on a pinned project running a stale engine the writes stop and `lint` keeps answering
-from rules that have moved. It reports clean and the action CI runs at its own ref
-disagrees. That is RK1235's failure with the halves swapped: there a line landed and the
-gate caught it; here the gate is what speaks out of date, and nothing downstream is
-left.
-
-A refused write is a message, read at the moment somebody asked for something. A gate
-that passes is silence, and silence is what the `Stop` hook produces on every turn that
-changed nothing.
-
-The cheap reading is built: `behind` is 2 ms where the versions differ, which is this
-case. What is not obvious is the **shape** of the answer, and it is the whole task.
-
-A refusal is wrong: `lint` exiting 2 because a copy is old turns one stale plugin into a
-repository nobody can commit in, which is what `guard` survives by design.
-
-A finding is wrong too, for RK1192's reason: it fires every turn until somebody updates,
-and a gate carrying noise stops being read.
-
-Probably right is a **note** beside the verdict it qualifies — `this gate is 0.1.0 and
-the project pinned 0.1.4` — so a clean report says whose clean it is: `engines`' own
-sentence, printed where the answer is.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

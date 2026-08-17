@@ -1527,3 +1527,83 @@ def test_the_unplaced_reading_is_the_same_verdict_with_poorer_facts(tmp_path, mo
     # And both questions are cached, so a process asking each asks it once.
     assert engine(placed=False) is unplaced
     engine.cache_clear()
+
+
+# -- and the gate that judged it (RK1238) -------------------------------------
+
+
+def _linted(tmp_path: Path, config: str = PINNED):
+    from roadkeep.config import Config
+    from roadkeep.linting import lint
+
+    return lint(Config.discover(_pinned(tmp_path, config)))
+
+
+def test_a_clean_report_says_whose_clean_it_is(tmp_path, monkeypatch):
+    """RK1235 guards the pen and left the judge, which is the same copy. So on a pinned
+    project running a stale engine the writes stop and `lint` keeps answering from rules that
+    have moved: it reports clean, and the action CI runs at its own ref disagrees."""
+    _reading(monkeypatch, _pair(plugin_version="0.1.4"))
+    report = _linted(tmp_path)
+    assert report.clean, [str(one) for one in report.findings]
+    (said,) = [one for one in report.notes if one.code == "gate.behind"]
+    assert "0.1.1" in said.message and "0.1.4" in said.message
+    # Filed where the decision is written, which is the file a reader would open to change it.
+    assert said.file == "roadkeep.toml"
+
+
+def test_it_is_a_note_and_never_a_finding(tmp_path, monkeypatch):
+    """The whole shape. A refusal is wrong — `lint` exiting 2 because a copy is old turns one
+    stale plugin into a repository nobody can commit in, which is the state `guard` is written
+    to survive — and a finding is wrong for RK1192's reason, firing every turn until somebody
+    updates."""
+    _reading(monkeypatch, _pair(plugin_version="0.1.4"))
+    report = _linted(tmp_path)
+    assert "gate.behind" not in {one.code for one in report.findings}
+    assert "gate.behind" in {one.code for one in report.notes}
+
+
+def test_a_project_that_declared_no_pin_is_told_nothing(tmp_path, monkeypatch):
+    """The same standing RK1235's refusal has, and its whole extent: `[install] pinned` is the
+    project saying which copy is right (L6), and without it three copies differing is the
+    ordinary state of a machine that develops this tool."""
+    _reading(monkeypatch, _pair(plugin_version="0.1.4"))
+    report = _linted(tmp_path, 'prefix = "DX"\n[files]\nroadmap = "ROADMAP.md"\n')
+    assert [one for one in report.notes if one.code == "gate.behind"] == []
+
+
+def test_a_modified_checkout_is_not_behind_and_is_not_qualified(tmp_path, monkeypatch):
+    """`behind` and never `unpinnable`, for the reason RK418 separated them: a checkout with
+    uncommitted work is at no commit the plugin could match, and it is where a developer
+    lives every day."""
+    _reading(monkeypatch, _pair(modified=True))
+    assert [one for one in _linted(tmp_path).notes if one.code == "gate.behind"] == []
+
+
+def test_the_note_is_printed_on_a_report_that_passes(tmp_path, monkeypatch, capsys):
+    """Where the whole value is. A refused write is a message read at the moment somebody
+    asked for something; a gate that passes is silence, which is what the shipped `Stop` hook
+    produces on every turn that changed nothing."""
+    from composing import runs
+
+    root = _pinned(tmp_path)
+    _reading(monkeypatch, _pair(plugin_version="0.1.4"))
+    assert main(["-C", str(root), "lint"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "gate.behind" in printed and "clean" in printed
+    # And the read it names runs as printed (RK1209), which is what makes it a door.
+    assert runs(root, printed) == (["engines"],)
+
+
+def test_the_door_names_all_three_rather_than_the_update(tmp_path, monkeypatch):
+    """Which copy is right is a decision about a setup this tool can read and never make, so
+    the remedy is the command that names all three."""
+    from roadkeep.config import Config
+    from roadkeep.remedying import remedy
+
+    _reading(monkeypatch, _pair(plugin_version="0.1.4"))
+    config = Config.discover(_pinned(tmp_path))
+    (said,) = [one for one in _linted(tmp_path).notes if one.code == "gate.behind"]
+    rule = remedy(said, config)
+    assert rule.kind == "read"
+    assert [one.argv for one in rule.doors] == [("engines",)]

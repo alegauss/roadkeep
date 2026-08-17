@@ -1260,6 +1260,14 @@ _TABLE: Mapping[str, _Rule] = {
         (("list", "--block", "{id}"), "read the lines this is about before shipping any"),
         (("unclosed",), "which of them commits already name, which is the other half"),
     ),
+    # RK1238. `engines` and not `/plugin update`: which copy is right is a decision about a
+    # setup this tool can read and never make, and the one command that names all three is
+    # the whole of what a reader needs before taking it.
+    "gate.behind": _read(
+        ("engines",),
+        "the copy that judged this tree is older than the one `[install] pinned` names, so "
+        "a clean verdict here is that copy's; this reads all three and says which answered",
+    ),
     "engine.disagreement": _read(
         ("engines",),
         "three copies of this tool can be in play and they may differ; this reads all "

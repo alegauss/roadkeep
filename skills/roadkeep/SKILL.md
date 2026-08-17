@@ -62,7 +62,10 @@ project that declared `[install] pinned`, it no longer only agrees: a write from
 `behind` the pinned one is **refused before the lock**, and the refusal names that read.
 Only `behind` and only where the pin was declared — a modified checkout is where a
 developer lives — and `init`, `install`, `uninstall` and `capture filed` still write, being
-how a pin gets satisfied and how a defect in this tool gets filed.
+how a pin gets satisfied and how a defect in this tool gets filed. The **gate** says so too,
+on the same two conditions: `lint` carries a `gate.behind` note beside its verdict, clean
+verdicts included, because a copy old enough to have its writes refused is old enough that
+its *pass* is that copy's pass and not the pinned one's.
 
 `roadkeep <add|status|amend|restate|ship|retire|record|non-goal|section> --help` has the
 flags. What they guarantee, so it costs you no thought: the id, the `→ §<id>` pointer, the
