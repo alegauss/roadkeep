@@ -40,8 +40,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1241** (deps: —) **The description split does not name its own unaccounted bytes where the tool total does** — An accounting honest at the top and silent one level in teaches a reader to distrust both. → §RK1241
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

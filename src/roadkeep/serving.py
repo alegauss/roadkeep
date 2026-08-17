@@ -1099,6 +1099,25 @@ class Detail:
         """The JSON around the fields: the name, the keys, the brackets, `required`."""
         return self.characters - sum(size for _part, size in self.parts)
 
+    @property
+    def quoting(self) -> int:
+        """What the description's clauses do not account for: its key, its quotes, its
+        escaping and the space between each pair (RK1241).
+
+        The same row the outer :attr:`envelope` is, one level in. RK1236 named the difference
+        between a tool's total and the sum of its fields, on the argument that a breakdown
+        which quietly balanced would have assigned structure to whichever field rounded best;
+        RK1239 then split the description and left the reader to notice 725 over 576 and 129.
+        An accounting honest at the top and silent underneath teaches a reader to distrust
+        both.
+
+        Zero where there is nothing to split, which is where :attr:`described` is empty.
+        """
+        if not self.described:
+            return 0
+        row = next((size for part, size in self.parts if part == DESCRIPTION), 0)
+        return row - sum(size for _source, size in self.described)
+
     def stated(self, unit: str, each: int | None) -> str:
         room = "" if each is None else f", {each - self.characters:+} of {each}"
         rows = [f"{self.name}    {self.characters} {unit}{room}  ({self.where})"]
@@ -1111,6 +1130,10 @@ class Detail:
                 rows += [
                     f"  {clause:>6}    from {source}" for source, clause in self.described
                 ]
+                if self.quoting:
+                    rows.append(
+                        f"  {self.quoting:>6}    (its key, quoting, and the space between)"
+                    )
         rows.append(f"  {self.envelope:>6}  (the JSON around them: name, keys, required)")
         return chr(10).join(rows)
 
@@ -1128,6 +1151,9 @@ class Detail:
             "description_from": [
                 {"source": source, "characters": size} for source, size in self.described
             ],
+            # And what those clauses do not account for, named rather than left to be
+            # subtracted (RK1241) — the same row `envelope` is, one level in.
+            "description_quoting": self.quoting,
             "envelope": self.envelope,
         }
 

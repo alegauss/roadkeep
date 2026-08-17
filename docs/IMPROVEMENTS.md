@@ -110,28 +110,3 @@ are not, rather than one spelling on the assumption that it always resolves.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1241 The envelope inside the envelope
-
-RK1236 reports the difference between a tool's total and the sum of its fields as one
-named **envelope** row — the JSON key, the quotes, the `required` list — because a
-breakdown that quietly balanced would have assigned structure to whichever field rounded
-best.
-
-RK1239 then split the description row and did not do the same thing. `merge_check`
-prints 725 for `(description)` and 576 + 129 under it, and the missing 20 are the
-property's own key, its quotes and the space joining two clauses. The docstring says so;
-the report does not, and the report is what a reader is looking at while subtracting.
-
-The same defect one level in, which is why it is worth fixing rather than explaining: an
-accounting honest at the top and silent underneath teaches a reader to distrust both.
-
-The fix is a row, and the only real question is what it is called. `(the JSON around
-them)` is the outer one's phrase and would be wrong here — what is unaccounted for
-inside a description is the key, the quoting and the joins between clauses, which is a
-different list. Something like `(quoting, and the space between clauses)` says it.
-
-Worth checking while there: whether the inner rows should be *serialised* instead. It
-would subtract cleanly and misreport what a caller is about to edit — a clause is
-written as prose and not as JSON — so the number to act on is probably the one already
-printed.

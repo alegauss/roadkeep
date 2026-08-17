@@ -1919,3 +1919,41 @@ def test_the_split_is_what_the_client_is_actually_sent(tmp_path, capsys):
     (tool,) = [one for one in TOOLS if one.name == "merge_check"]
     parser = _subparser(tool.command, parsers)
     assert descriptor(tool, config, parsers)["description"] == _description(tool, parser)
+
+
+# -- the envelope inside the envelope (RK1241) --------------------------------
+
+
+def test_the_split_names_what_its_clauses_do_not_account_for(tmp_path, capsys):
+    """RK1236 named the difference between a tool's total and the sum of its fields, on the
+    argument that a breakdown which quietly balanced would have assigned structure to
+    whichever field rounded best. RK1239 then split the description and left 725 over 576 and
+    129 for the reader to notice — the docstring said so, and the report is what a reader is
+    looking at while subtracting."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools", "merge_check"]) == EXIT_OK
+    assert "its key, quoting, and the space between" in capsys.readouterr().out
+
+
+def test_both_levels_balance_exactly(tmp_path, capsys):
+    """Which is the whole claim: an accounting honest at the top and silent underneath
+    teaches a reader to distrust both."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools", "merge_check", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    fields = sum(one["characters"] for one in payload["by_field"])
+    assert fields + payload["envelope"] == payload["characters"]
+    (row,) = [one for one in payload["by_field"] if one["field"] == "(description)"]
+    clauses = sum(one["characters"] for one in payload["description_from"])
+    assert clauses + payload["description_quoting"] == row["characters"]
+
+
+def test_a_row_with_nothing_to_split_reports_no_inner_envelope(tmp_path, capsys):
+    """Zero where `description_from` is empty, and no row: a description that is the parser's
+    own sentence has no seam, so naming what it does not account for would be naming the
+    serialisation of a row already printed."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools", "ship", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["description_quoting"] == 0
+    assert main(["-C", str(tmp_path), "budget", "--tools", "ship"]) == EXIT_OK
+    assert "its key, quoting" not in capsys.readouterr().out

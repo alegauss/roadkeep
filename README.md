@@ -123,12 +123,12 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 91 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 114 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 1 | 11 | 0 |
-| **Total** | 2 | 729 | 9 |
+| H — The tool's own shape (what one verb costs to change) | 0 | 12 | 0 |
+| **Total** | 1 | 730 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1241** (deps: —) **The description split does not name its own unaccounted bytes where the tool total does** — An accounting honest at the top and silent one level in teaches a reader to distrust both. → §RK1241
+- 📋 **RK1242** (deps: —) **The MCP tools the session-start note names never arrive, so the agent falls back to the CLI** — The launch note names the interface that is actually reachable, so an agent is not sent to tools that never connect. → §RK1242
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
