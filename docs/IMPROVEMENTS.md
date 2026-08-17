@@ -79,6 +79,30 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1221 The flags one arm of a two-arm read never looks at
+
+`_subject` has two arms. With an id the roadmap holds it returns that entry's task; with
+anything else it composes one out of `--block`, `--dep`, `--marker` and `--symptom`. So
+on the first arm all four are read and discarded: `budget RK12 --symptom "<a rewrite I
+am weighing>"` answers about the symptom already on the line and says so nowhere.
+
+That arm is right about the *file*: an id the roadmap holds has a symptom, and reporting
+the caller's instead would answer about a line nobody has. What is wrong is the silence,
+and RK465 named the shape — a narrowing flag nobody reads is worse than a refused one,
+because the caller reads a number believing it narrowed it. RK1190 sharpened it:
+`--symptom` is now a draft to measure, so passing one beside an id is what an author
+weighing an `amend` does.
+
+Three readings, and they are not equally good. **Refuse** it, as `answers` and `narrows`
+refuse two subjects, which is consistent and costs the caller a second command to get
+the number they wanted. **Honour** it — measure the draft against the line's other
+fields — which is what the flag now means everywhere else and is what an `amend` is
+about to do. **Say** it, leaving the answer alone and naming what was ignored.
+
+The second looks right and wants checking against the arm's own claim: `--dep` and
+`--marker` move the allowance too, so honouring one and not the others makes three flags
+mean two things.
+
 ## Block D — The gate
 
 ### §RK1192 The check nobody runs
@@ -224,6 +248,30 @@ is for — a path this repository never had.
 If walking history per entry is too slow for a hook, ask the working tree first as now,
 and only for a token that fails ask whether history held it.
 
+### §RK1222 The half RK1216 named and left to the gate
+
+RK1216 gave `remaining` the words: a pathspec that reached no file is named on the
+headline and published as `unmatched`, so a query that never ran no longer reads as a
+migration that finished. That fixes the *read* — and the read is asked by whoever is
+continuing the migration, who does not have the typo in front of them.
+
+The gate is the other half, and RK1216's design named it without taking it: a declared
+query is a claim in a governed file, and a claim nothing answers is what `lint` refuses
+everywhere else. A dangling pointer is `ref.dangling`, a dead queue entry
+`priority.dead`, an unreadable fence `remaining.format` — which this sits beside. A
+pathspec matching no file is that same statement. It is not *work outstanding*, which
+the gate is right to stay out of; it is a query that cannot answer.
+
+What has to be settled first is the false positive, and it is real. A migration whose
+sites are *deleted* rather than rewritten ends with its pathspec matching nothing, and
+that is the query working — the same zero, honestly. A finding would fire on the
+finished migration it was meant to tell apart from the typo: RK1216's confusion with the
+sign flipped.
+
+Two ways through. Fire only where the pathspec has **no glob metacharacter and names an
+extant directory**, which is the shape both measured cases had. Or make it a note rather
+than a finding, so nothing fails and the report still says it.
+
 ## Block E — Adoption
 
 ### §RK1193 Adoption stops one step short of a pinned engine
@@ -336,3 +384,29 @@ left.
 Not every site is reachable. So the sweep is a **declared** set with the unreached ones
 carrying a reason, the shape `test_surfaces` uses for a write that is wired or exempted:
 an exemption nobody can see reads exactly like a rule being kept.
+
+### §RK1220 The message that is a command, and the one that only starts like one
+
+`test_the_path_is_the_one_that_works` executes the stair a `ref.missing` refusal prints,
+in the order printed, which is the right shape: RK1149's whole claim is that the
+sequence runs. It finds the steps by taking every stderr line that starts with
+`invocation()`.
+
+Where that resolves to the bare console script — an environment where `pip install
+roadkeep` put `roadkeep.exe` on PATH, which is this developer's — the preamble
+`roadkeep: refused, nothing written:` starts with it too. `shlex.split` of the remainder
+yields `[':', 'refused,', …]`, and the walk fails on a step nobody printed. Where
+`invocation()` answers `python scripts/roadkeep.py` the preamble does not match and the
+test passes, so one commit is green in CI and red on a machine that installed the
+package. Observed both ways on one tree, minutes apart.
+
+Which half is wrong is worth settling before fixing. The test's heuristic is the loose
+one: `prog: message` is how every CLI on this platform prefixes an error, and this tool
+spells its own that way deliberately. So the steps want a marker the preamble cannot
+have — the refusal already wraps each in backticks and the reader already splits on
+them, so a step is a backticked span rather than a line beginning with a word.
+
+Worth checking beside it: whether any other test finds commands by matching
+`invocation()` at the head of a line, since the same environment decides those too.
+RK1209 is about to add a sweep that runs every composed command, and it will inherit
+whichever rule this settles.

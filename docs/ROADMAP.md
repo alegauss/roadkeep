@@ -28,6 +28,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1221** (deps: —) **budget on an id the roadmap holds reads the four fields describing a line and discards them without a word** — The arm that finds the entry answers off the file, so a draft symptom or a dep passed beside an id narrows nothing and the caller reads a number believing it did. → §RK1221
+
 ## Block D — The gate
 
 - 📋 **RK1192** (deps: —) **A launcher and skill older than the version answering are reported by nothing the gate runs** — `install --check` answers it and is a command nobody thinks to run; lint fires every turn through the Stop hook, and a stale launcher is the state that leaves a session with no door in. → §RK1192
@@ -36,6 +38,7 @@
 - 📋 **RK1206** (deps: —) **Under an outline, the ref.unresolved remedy names the task id where the missing section is the anchor the line points at** — The finding prints the anchor and the command under it prints the id, so running it writes a section the line does not point at. → §RK1206
 - 📋 **RK1214** (deps: —) **a resolved engine that fails to import takes the whole command down instead of falling through to the next candidate** — The launcher promises a missing engine degrades to unenforced rather than to a broken session, and a checkout mid-refactor is found and then explodes. → §RK1214
 - 📋 **RK1217** (deps: —) **path.missing judges a shipped entry against today's tree, so a file later moved to another repo makes history a finding** — A ledger sentence is true about the tree that shipped it, and the only door offered rewrites that sentence. → §RK1217
+- 📋 **RK1222** (deps: —) **The gate reads a declared query for a grammar it cannot parse and never for a pathspec that answers about nothing** — RK1216 gave the read the words; the typo is in a governed file, and a claim nothing answers is what lint refuses for a pointer, a dead queue entry and a bad fence. → §RK1222
 
 ## Block E — Adoption
 
@@ -51,6 +54,7 @@
 ## Block H — The tool's own shape (what one verb costs to change)
 
 - 📋 **RK1209** (deps: —) **No test runs the commands this tool composes, so a refusal naming a call that refuses stays green** — Four tasks found one each and three wrote the same harness by hand; invocation() names the 56 sites, and what a sweep adds is filling the placeholders. → §RK1209
+- 📋 **RK1220** (deps: —) **A refusal preamble is spelled with the invocation, so the test that walks the stair it prints reads it as a step** — Any stderr line starting with the invocation is taken for a command, and where the console script is on PATH so is the preamble — green by whether one is installed. → §RK1220
 
 ## Non-goals
 
