@@ -85,6 +85,59 @@ already written, not authorship.
 
 ## Block F — The plugin
 
+### §RK1240 The key that grew two meanings
+
+`[install] pinned = true` decides three things, added by three tasks that each read the
+key as meaning what that task needed.
+
+RK1192 introduced it as a **silencer**: a project sitting on an older surface on purpose
+is not told about that decision every turn, so `install.stale` goes quiet. That is what
+its docstring says, and what an adopter reads.
+
+RK1235 read it as **standing to refuse**: a governed write from a copy behind the pinned
+one is refused before the lock. RK1238 read it that way again for the gate note. Both
+are defensible alone — the key is the project saying which copy is right — and neither
+is what an adopter agreed to.
+
+So a project that pinned to stop a noisy finding acquires a write refusal it never asked
+for, and the way back is unsetting the key and taking the noise again. One boolean
+silencing in one direction and refusing in two is a setting whose meaning depends on
+which docstring you read.
+
+Two shapes, and choosing is the task. Split it — `pinned` for the silence, `enforced`
+for the refusal — which is honest and costs a second decision. Or keep one key and say
+plainly, in one place, that it means *this project has chosen its version and roadkeep
+should hold it to that*: cheaper, and the promise the later tasks already made for the
+adopter.
+
+What decides it is whether anyone wants one without the other — about adopters, not
+code.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+### §RK1241 The envelope inside the envelope
+
+RK1236 reports the difference between a tool's total and the sum of its fields as one
+named **envelope** row — the JSON key, the quotes, the `required` list — because a
+breakdown that quietly balanced would have assigned structure to whichever field rounded
+best.
+
+RK1239 then split the description row and did not do the same thing. `merge_check`
+prints 725 for `(description)` and 576 + 129 under it, and the missing 20 are the
+property's own key, its quotes and the space joining two clauses. The docstring says so;
+the report does not, and the report is what a reader is looking at while subtracting.
+
+The same defect one level in, which is why it is worth fixing rather than explaining: an
+accounting honest at the top and silent underneath teaches a reader to distrust both.
+
+The fix is a row, and the only real question is what it is called. `(the JSON around
+them)` is the outer one's phrase and would be wrong here — what is unaccounted for
+inside a description is the key, the quoting and the joins between clauses, which is a
+different list. Something like `(quoting, and the space between clauses)` says it.
+
+Worth checking while there: whether the inner rows should be *serialised* instead. It
+would subtract cleanly and misreport what a caller is about to edit — a clause is
+written as prose and not as JSON — so the number to act on is probably the one already
+printed.

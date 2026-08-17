@@ -121,10 +121,14 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 112 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 91 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 113 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 113 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 0 | 11 | 0 |
-| **Total** | 0 | 728 | 9 |
+| H — The tool's own shape (what one verb costs to change) | 1 | 11 | 0 |
+| **Total** | 2 | 728 | 9 |
+
+**Next ready:**
+
+- 📋 **RK1240** (deps: —) **One pinned key silences a finding and enables two refusals, added by three tasks reading it three ways** — A project that pinned to quiet install.stale acquires a write refusal it never asked for, and unsetting it takes the noise back. → §RK1240
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
