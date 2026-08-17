@@ -67,6 +67,40 @@ def test_the_registry_path_is_the_one_the_package_reads():
     assert load().REGISTRY == _REGISTRY
 
 
+def test_the_vendored_directory_is_the_one_install_writes():
+    """RK1193's half of the closure. `install --vendor` puts an engine in `.roadkeep/` and this
+    file resolves one there, and the two names are spelled apart because this file runs before
+    the package it would import exists. A rename that reached one of them would leave a pinned
+    project running whatever a sibling clone is today, silently."""
+    from roadkeep.installing import PROJECT_ENGINE
+
+    assert load().VENDORED == PROJECT_ENGINE
+
+
+def test_a_vendored_engine_outranks_a_sibling_and_yields_to_the_override(tmp_path, monkeypatch):
+    """The order is the decision (RK1193): a copy the project vendored is one it *chose*, so it
+    beats whatever `../roadkeep` happens to be — and `$ROADKEEP_HOME` still beats both, because
+    a pin nobody can step over for one command is a pin that gets deleted instead of used."""
+    bridge = load()
+    repo = tmp_path / "repo"
+
+    def engine_at(root: Path) -> Path:
+        (root / "scripts").mkdir(parents=True)
+        (root / "scripts" / "roadkeep.py").write_text("", encoding="utf-8")
+        return root
+
+    engine_at(repo / bridge.VENDORED)
+    engine_at(tmp_path / "roadkeep")
+    named = engine_at(tmp_path / "elsewhere")
+    monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(repo))
+
+    monkeypatch.delenv("ROADKEEP_HOME", raising=False)
+    assert bridge._resolve() == repo / bridge.VENDORED / "scripts" / "roadkeep.py"
+
+    monkeypatch.setenv("ROADKEEP_HOME", str(named))
+    assert bridge._resolve() == named / "scripts" / "roadkeep.py"
+
+
 def test_the_plugin_name_is_the_one_the_package_matches():
     from roadkeep.provenance import PLUGIN
 

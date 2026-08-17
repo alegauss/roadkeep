@@ -41,6 +41,7 @@ from roadkeep.installing import (
     plan,
     removal,
     uninstall,
+    vendor,
 )
 from roadkeep.rendering import _estimate_json, _print_estimate
 from roadkeep.serving import serve
@@ -140,13 +141,23 @@ def _install(config: Config, args: argparse.Namespace) -> int:
                 committed=args.committed,
             )
         )
+        # After the surfaces and never instead of them (RK1193): the engine is what those
+        # declarations *point at*, so a run that vendored one and failed to wire it would
+        # leave a copy nothing reaches. Inside the same try, so a machine with no engine to
+        # copy refuses in the words every other bad input gets.
+        pinned = vendor(args.directory, checked=args.check) if args.vendor else None
     except (ValueError, OSError) as error:
         return _refused(error)
 
     if args.json:
-        print(json.dumps(intent.payload(args.check), indent=2))
+        payload = intent.payload(args.check)
+        if pinned is not None:
+            payload["vendored"] = pinned.payload()
+        print(json.dumps(payload, indent=2))
     else:
         print(intent.stated(args.check))
+        if pinned is not None:
+            print(pinned.stated(args.check))
         if args.check:
             for line in intent.verdict():
                 print(line, file=sys.stderr)
@@ -645,6 +656,15 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
             "so the guard reaches an environment that installs no plugin and clones no "
             "checkout — Claude Code on the web. It defers where the harness has the plugin "
             "wired for this project, and never blocks a turn"
+        ),
+    )
+    install_parser.add_argument(
+        "--vendor",
+        action="store_true",
+        help=(
+            "copy the highest-versioned roadkeep this machine can reach into .roadkeep/, so "
+            "the project runs a pinned engine instead of whichever copy a search order "
+            "reaches first; ROADKEEP_SRC names a working checkout, which is otherwise skipped"
         ),
     )
     install_parser.add_argument("--json", action="store_true", help=_JSON_HELP)

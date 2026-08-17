@@ -94,6 +94,12 @@ from pathlib import Path
 #: LAUNCHER` names, restated here for the reason the module docstring gives.
 ENGINE_REL = Path("scripts") / "roadkeep.py"
 
+#: Where `roadkeep install --vendor` puts a pinned engine, relative to the repository root
+#: (RK1193). Restated here rather than imported for this file's standing reason: it runs
+#: before an engine has been found, so it may not import the package that names it, and
+#: `tests/test_launching.py` holds the two spellings together.
+VENDORED = ".roadkeep"
+
 #: The name the plugin is published under, matched against the registry key's
 #: ``<name>@<marketplace>`` left half.
 PLUGIN = "roadkeep"
@@ -199,10 +205,19 @@ def _cache_engine() -> Path | None:
 
 
 def _resolve() -> Path | None:
-    """An engine to run, or None. Not the deferral check — that is asked first and separately."""
+    """An engine to run, or None. Not the deferral check — that is asked first and separately.
+
+    ``.roadkeep/`` is second and it is the whole of RK1193 as this file sees it: a copy the
+    project vendored is a copy the project *chose*, so it outranks whatever a sibling clone
+    happens to be today and needs no environment variable to be honoured. Below
+    ``$ROADKEEP_HOME``, which stays the explicit override — a caller who names a tree has said
+    which one they mean, and a pin nobody can step over for one command is a pin that gets
+    deleted instead of used.
+    """
     home = os.environ.get("ROADKEEP_HOME")
     return (
         (_valid(Path(home)) if home else None)
+        or _valid(_repo_root() / VENDORED)
         or _valid(_repo_root().parent / "roadkeep")
         or _cache_engine()
     )

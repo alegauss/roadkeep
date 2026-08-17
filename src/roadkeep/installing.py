@@ -70,6 +70,8 @@ from __future__ import annotations
 import json
 import os
 import re
+import sys
+from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -113,6 +115,20 @@ PROJECT_WORKFLOW = ".github/workflows/roadkeep.yml"
 #: purpose: the environment it exists for reads what is committed and nothing else, so a path
 #: pointing anywhere outside would be a path that resolves on one machine.
 PROJECT_BRIDGE = ".claude/hooks/roadkeep-launch.py"
+
+#: Where a **vendored** engine lands (RK1193). Inside the project so the path a declaration
+#: names is stable across machines, and git-ignored so it stays an artefact: the tree is a
+#: copy of somebody else's repository, and committing it would make every `/plugin update` a
+#: diff in this one. The name is the `node_modules` shape both adopters converged on.
+PROJECT_ENGINE = ".roadkeep"
+#: The environment variable the launcher resolves first, which is how a vendored copy is
+#: *pinned* rather than merely present: resolution order alone would still prefer it only
+#: where nothing earlier answered, and pinning is the whole point.
+ENGINE_HOME = "ROADKEEP_HOME"
+#: The one way a **working checkout** becomes eligible to be vendored (RK1193). Named rather
+#: than inferred, because the case that costs an hour is a checkout mid-refactor: it answers a
+#: version, imports halfway, and is exactly what a pinned copy exists to stop being.
+ENGINE_SOURCE = "ROADKEEP_SRC"
 
 #: The directory whose presence decides whether the workflow is written. A repository with no
 #: workflows has not asked for CI, and a scaffold that leaves a file nobody runs is litter.
@@ -1266,6 +1282,375 @@ def _declaration(path: Path, merge) -> Surface:
         existed=existed,
         stale=merged != current,
     )
+
+
+# -- vendoring an engine into the project (RK1193) ----------------------------
+
+
+class NoEngine(ValueError):
+    """Nothing on this machine is a roadkeep this command could copy (RK1193).
+
+    A refusal and never a silent skip: `--vendor` is asked for, so a run that copied nothing
+    and exited 0 would leave a project believing it is pinned. The candidates it looked at are
+    named, because the commonest cause is a plugin root under a `CLAUDE_CONFIG_DIR` this
+    process does not see.
+    """
+
+    def __init__(self, looked: Sequence[str]) -> None:
+        self.looked = tuple(looked)
+        where = ", ".join(self.looked) or "nowhere this process can see"
+        super().__init__(
+            f"no engine to vendor: looked in {where} — set {ENGINE_SOURCE} to a roadkeep "
+            f"checkout to use one, which is also the only way a working tree is eligible"
+        )
+
+
+class NotVerified(ValueError):
+    """The copy landed and does not answer the version it was chosen for (RK1193).
+
+    The last of the four rules, and the one the other three exist to make meaningful: picking
+    by version is worth nothing if what arrives is a different tree. Raised **after** the copy,
+    because the evidence is the copy running — so the directory is left on disk for a reader
+    to look at rather than removed to make the failure tidy.
+    """
+
+    def __init__(self, wanted: str, answered: str, where: Path) -> None:
+        self.wanted = wanted
+        self.answered = answered
+        super().__init__(
+            f"vendored {where} answers {answered or 'nothing'} and {wanted} was chosen: the "
+            f"copy is left where it is, because what is wrong with it is what it just said"
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class Candidate:
+    """One roadkeep this machine can reach, and what it answered when asked (RK1193)."""
+
+    #: The plugin root — the directory holding `scripts/roadkeep.py`.
+    home: Path
+    #: What `--version` printed. Compared as a **tuple of integers**, never as text: `0.1.9`
+    #: sorts above `0.1.10` as a string, and the two adopters this generalises both got that
+    #: right by accident of never having a two-digit patch.
+    version: str
+    #: Where it was found, for a report that has to say why this one and not another.
+    why: str
+    #: Whether it is a working tree — skipped unless `ROADKEEP_SRC` named it, which is the
+    #: rule the measured hour paid for: a checkout mid-refactor answers a version and then
+    #: raises `ImportError` out of a half-edited module.
+    working: bool = False
+
+    @property
+    def ordered(self) -> tuple[int, ...]:
+        return _numbered(self.version)
+
+
+def _numbered(version: str) -> tuple[int, ...]:
+    """A version as integers, so `0.1.10` outranks `0.1.9` (RK1193).
+
+    Anything unparsable sorts lowest rather than raising: a candidate that answered something
+    this cannot read is still a candidate, and it loses to every one that answered a number.
+    """
+    parts: list[int] = []
+    for piece in version.strip().split("."):
+        digits = "".join(one for one in piece if one.isdigit())
+        if not digits:
+            break
+        parts.append(int(digits))
+    return tuple(parts)
+
+
+@dataclass(frozen=True, slots=True)
+class Vendored:
+    """What `install --vendor` copied, from where, and what the copy then answered."""
+
+    #: Where it landed, absolute.
+    into: Path
+    chosen: Candidate
+    #: Every candidate this looked at, highest version first — the report's evidence that the
+    #: choice was by version and not by position.
+    considered: tuple[Candidate, ...] = ()
+    #: What the copy answered when asked after the write. Equal to `chosen.version` or this
+    #: is a :class:`NotVerified` rather than a result.
+    verified: str = ""
+    files: int = 0
+    #: Whether the project should be told to ignore the copy — False where a `.gitignore`
+    #: already names it, so a project that did this once is not advised about it every run.
+    ignore: bool = False
+
+    def stated(self, checked: bool) -> str:
+        """The choice, the evidence for it, and what the copy answered (RK1193)."""
+        would = "would vendor" if checked else "vendored"
+        rows = [
+            f"  {would:<14} {self.chosen.version} from {self.chosen.why}",
+            f"  {'into':<14} {self.into.as_posix()}  ({self.files} file(s))",
+        ]
+        rows += [
+            f"  {'also saw':<14} {one.version} at {one.why}"
+            + ("  (a working tree, skipped)" if one.working else "")
+            for one in self.considered
+            if one.home != self.chosen.home
+        ]
+        if self.verified:
+            # The fourth rule, said out loud: picking by version is worth nothing unless what
+            # landed is asked what it is.
+            rows.append(f"  {'answers':<14} {self.verified}, as chosen")
+        if self.ignore:
+            # Printed and never written, which is `merge --register`'s rule about the `git
+            # config` half (RK148): `.gitignore` is the project's file, and a copy of somebody
+            # else's repository appearing in `git status` is what the line prevents. Said only
+            # where nothing already covers it, so a project that did this once is not nagged.
+            rows.append(
+                f"  {'to ignore':<14} add `{PROJECT_ENGINE}/` to .gitignore — the copy is an "
+                f"artefact, and committing it makes every upgrade a diff in this repository"
+            )
+        return "\n".join(rows)
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "into": self.into.as_posix(),
+            "version": self.chosen.version,
+            "from": self.chosen.why,
+            "files": self.files,
+            "verified": self.verified or None,
+            "ignore": self.ignore,
+            "considered": [
+                {"version": one.version, "from": one.why, "working": one.working}
+                for one in self.considered
+            ],
+        }
+
+
+#: What is never copied into the vendored tree (RK1193). `.git` above all: with it the copy is
+#: a second repository inside the project — `git status` walks it, tooling finds two roots, and
+#: an artefact stops being one. The rest is build litter that costs megabytes and answers
+#: nothing.
+_UNVENDORED = (".git", "__pycache__", ".pytest_cache", ".venv", "node_modules")
+
+
+def candidates(root: Path) -> tuple[Candidate, ...]:
+    """Every roadkeep this machine can reach, highest version first (RK1193).
+
+    **Asked rather than read.** Each candidate is run as `<home>/scripts/roadkeep.py
+    --version`, which is the one question that proves the tree is not merely present but
+    *importable* — and importability is the whole failure being designed around: a checkout
+    mid-refactor is on disk, states a version in `__init__.py`, and raises `ImportError` out of
+    a half-edited module the moment anything uses it. Reading the literal would rank exactly
+    that tree first.
+
+    Measured on one machine: **six** engines resolvable — 0.1.841 and 0.1.820 under
+    `~/.claude`, 0.1.678 and 0.1.645 under `~/.claude-pessoal`, and two marketplace clones.
+    Picking by position gives whichever the search order happened to reach; picking by version
+    gives the same answer on every machine, which is what makes a pin reproducible.
+
+    A **working tree is excluded** unless `ROADKEEP_SRC` names it. Deliberately not a
+    heuristic about how modified it is: a clean checkout is one `git pull` from being a dirty
+    one, and a project that pinned an engine did so to stop tracking somebody's editor.
+    """
+    named = os.environ.get(ENGINE_SOURCE)
+    found: list[Candidate] = []
+    seen: set[Path] = set()
+    for home, why, working in _places(root, named):
+        resolved = home.resolve()
+        if resolved in seen or not (resolved / LAUNCHER).is_file():
+            continue
+        seen.add(resolved)
+        version = _asked(resolved)
+        if version:
+            found.append(Candidate(resolved, version, why, working=working))
+    return tuple(sorted(found, key=lambda one: one.ordered, reverse=True))
+
+
+def _places(root: Path, named: str | None) -> list[tuple[Path, str, bool]]:
+    """Where to look, with what to call each — the launcher's own order plus the caches.
+
+    Not the launcher's *resolution*, which stops at the first hit: this collects, because the
+    choice here is by version and a search that returned early would be picking by position
+    under another name.
+    """
+    out: list[tuple[Path, str, bool]] = []
+    if named:
+        # The one door a working tree comes through, and it is unconditional: a caller who
+        # named it has said which tree they mean.
+        out.append((Path(named), f"{ENGINE_SOURCE}={named}", False))
+    wired = installed(root)
+    if wired is not None and wired.home is not None:
+        out.append((wired.home, f"the plugin wired to this project ({wired.version})", False))
+    for base in _plugin_roots():
+        out += [(one, f"a plugin root at {one.as_posix()}", False) for one in _under(base)]
+    sibling = root.resolve().parent / "roadkeep"
+    if sibling.is_dir():
+        # A sibling checkout is the case `ROADKEEP_SRC` exists for, so it is offered and
+        # marked rather than silently dropped: the report says it was seen and why it lost.
+        out.append((sibling, f"a sibling checkout at {sibling.as_posix()}", True))
+    cache = Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache")
+    out.append((cache / "roadkeep-src" / "roadkeep", "the launcher's cache clone", False))
+    return out
+
+
+def _plugin_roots() -> tuple[Path, ...]:
+    """The harness config directories a plugin can be unpacked under.
+
+    Both spellings, because a machine can have more than one: `CLAUDE_CONFIG_DIR` and the
+    default `~/.claude` are what the harness itself resolves, and the measurement that
+    motivated this found engines under two of them at once.
+    """
+    stated = os.environ.get("CLAUDE_CONFIG_DIR")
+    homes = [Path(stated)] if stated else []
+    homes.append(Path.home() / ".claude")
+    return tuple(dict.fromkeys(one / "plugins" for one in homes))
+
+
+def _under(base: Path) -> list[Path]:
+    """Every directory under a plugins root that carries a launcher, at any depth up to two.
+
+    Shallow on purpose: a marketplace unpacks to `<root>/<marketplace>/<plugin>` and a cache
+    to `<root>/<name>`, and a full walk of a config directory is a scan of somebody's whole
+    plugin collection for a command that should cost milliseconds.
+    """
+    out: list[Path] = []
+    try:
+        for one in sorted(base.iterdir()):
+            if not one.is_dir():
+                continue
+            out.append(one)
+            out += [two for two in sorted(one.iterdir()) if two.is_dir()]
+    except OSError:
+        return []
+    return out
+
+
+def _asked(home: Path) -> str:
+    """What this tree answers to `--version`, or `""` where it cannot be run at all.
+
+    The subprocess is the point (see :func:`candidates`), and every failure is `""`: a tree
+    that raises, hangs past the timeout or is not Python is not a candidate, and none of that
+    is worth failing the command over while another copy may be fine.
+    """
+    import subprocess  # noqa: PLC0415 - RK260
+
+    try:
+        done = subprocess.run(
+            [sys.executable, str(home / LAUNCHER), "--version"],
+            capture_output=True,
+            text=True,
+            timeout=_ASKED_TIMEOUT,
+            check=False,
+        )
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return ""
+    if done.returncode != 0:
+        return ""
+    return _version_in(done.stdout)
+
+
+#: The number inside a `--version` line, wherever it sits in it. `argparse` prints `roadkeep
+#: 0.1.963 (479d7266 modified, D:\…\src\roadkeep)` — the provenance RK79 added — so taking the
+#: last token reads the *path* as the version and every candidate ties at nothing. Anchored on
+#: a dotted run of digits, which is the one shape a version has and no path fragment does.
+_VERSION_RE = re.compile(r"\b(\d+(?:\.\d+)+)\b")
+
+
+def _version_in(said: str) -> str:
+    """The version a `--version` line states, or `""` where it states none.
+
+    Read out of the line rather than assumed to *be* it, because the line carries more than
+    the number by design: this tool's own `--version` names the commit, whether the tree is
+    modified, and where the package is — the facts RK79 added so two copies could be told
+    apart, and exactly the ones that break a positional read.
+    """
+    found = _VERSION_RE.search(said)
+    return found.group(1) if found else ""
+
+
+#: Seconds one candidate may take to say what it is. Generous for a cold import and short
+#: enough that six of them do not make `install` feel hung.
+_ASKED_TIMEOUT = 30
+
+
+def vendor(root: str | Path = ".", *, checked: bool = False) -> Vendored:
+    """Copy the highest-versioned engine this machine can reach into the project (RK1193).
+
+    The command two adopting repositories each wrote for themselves. Shio and freewilly carry
+    a 147-line `install_roadkeep.py` and a `.cmd` wrapper, byte-identical apart from one
+    comment — the same code in two repositories, which is the drift this tool spends its
+    backlog refusing everywhere else. `install --vendor` is that, once.
+
+    Four rules, and each is a measurement rather than a preference:
+
+    * **Pick by version, not by position.** Six engines were resolvable on the machine this
+      was written on. A search order answers differently per machine; the highest version
+      answers the same everywhere, which is what a pin is for.
+    * **Skip a working checkout unless `ROADKEEP_SRC` names it.** A tree mid-refactor answers
+      a version and then raises out of a half-edited module — an hour, measured.
+    * **Exclude `.git`.** With it the copy is a second repository inside the project rather
+      than an artefact.
+    * **Verify what landed.** The copy is asked its version, and a disagreement is
+      :class:`NotVerified` — picking by version proves nothing about a tree that arrived
+      different.
+
+    ``checked`` computes and copies nothing, which is `--check`'s contract one command over:
+    the choice and the evidence for it are the whole answer, and reporting them costs the same
+    walk either way.
+    """
+    import shutil  # noqa: PLC0415 - RK260
+
+    base = Path(root).resolve()
+    found = candidates(base)
+    usable = [one for one in found if not one.working or _named(one)]
+    if not usable:
+        raise NoEngine([one.why for one in found] or _looked(base))
+    chosen = usable[0]
+    into = base / PROJECT_ENGINE
+    unignored = not _ignored(base)
+    if checked:
+        return Vendored(into=into, chosen=chosen, considered=found, ignore=unignored)
+
+    if into.exists():
+        # Replaced whole rather than merged: a half-old tree is the state every rule above is
+        # about, and `shutil.copytree` onto a populated directory is how one is made.
+        shutil.rmtree(into)
+    shutil.copytree(chosen.home, into, ignore=shutil.ignore_patterns(*_UNVENDORED))
+    answered = _asked(into)
+    if answered != chosen.version:
+        raise NotVerified(chosen.version, answered, into)
+    return Vendored(
+        into=into,
+        chosen=chosen,
+        considered=found,
+        verified=answered,
+        files=sum(1 for one in into.rglob("*") if one.is_file()),
+        ignore=unignored,
+    )
+
+
+def _ignored(root: Path) -> bool:
+    """Whether a `.gitignore` here already covers the vendored tree (RK1193).
+
+    Read as **text and not through git**, which is the honest bound: this is deciding whether
+    to print one line of advice, and shelling out to `check-ignore` would make a report depend
+    on a subprocess for a sentence. A project whose rule lives in `.git/info/exclude` or a
+    parent's `.gitignore` gets the advice anyway, which is a redundant line and not a wrong one.
+    """
+    try:
+        written = (root / ".gitignore").read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return False
+    return any(
+        one.strip().rstrip("/") == PROJECT_ENGINE for one in written.splitlines()
+    )
+
+
+def _named(candidate: Candidate) -> bool:
+    """Whether `ROADKEEP_SRC` is what put this working tree on the list."""
+    return candidate.why.startswith(f"{ENGINE_SOURCE}=")
+
+
+def _looked(root: Path) -> list[str]:
+    """Where a refusal says it looked, when nothing answered at all."""
+    return [one.as_posix() for one in _plugin_roots()] + [
+        (root.resolve().parent / "roadkeep").as_posix()
+    ]
 
 
 # -- un-wiring ---------------------------------------------------------------

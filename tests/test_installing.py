@@ -1036,3 +1036,177 @@ def _plugin_tree(root: Path) -> Path:
         if not path.is_file():
             path.write_text("{}\n", encoding="utf-8")
     return root
+
+
+# -- vendoring an engine into the project (RK1193) ----------------------------
+
+
+def engine_tree(root: Path, version: str, *, working: bool = False) -> Path:
+    """A tree that answers `--version` and nothing else — the one question `candidates` asks."""
+    (root / "scripts").mkdir(parents=True, exist_ok=True)
+    (root / "scripts" / "roadkeep.py").write_text(
+        f"import sys\nprint('roadkeep {version}')\n", encoding="utf-8"
+    )
+    (root / "src").mkdir(exist_ok=True)
+    (root / "src" / "marker.txt").write_text(version, encoding="utf-8")
+    if working:
+        (root / ".git").mkdir(exist_ok=True)
+        (root / ".git" / "HEAD").write_text("ref: refs/heads/main\n", encoding="utf-8")
+    return root
+
+
+def only_here(monkeypatch, tmp_path):
+    """Point every discovery at this tmp tree, so the developer's own machine is not read."""
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "config"))
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "cache"))
+    monkeypatch.delenv("ROADKEEP_SRC", raising=False)
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path / "home"))
+
+
+def test_the_highest_version_wins_and_never_the_first_one_found(tmp_path, monkeypatch):
+    """The defect two adopters each wrote 147 lines to solve. Six engines were resolvable on
+    the machine this was measured on, and a search order answers differently per machine —
+    which is the one thing a pin exists to stop."""
+    from roadkeep.installing import candidates, vendor
+
+    only_here(monkeypatch, tmp_path)
+    plugins = tmp_path / "config" / "plugins"
+    engine_tree(plugins / "a" / "roadkeep", "0.1.9")
+    engine_tree(plugins / "b" / "roadkeep", "0.1.10")
+    project = tmp_path / "adopter"
+    project.mkdir()
+
+    found = candidates(project)
+    # Compared as integers: `0.1.9` sorts above `0.1.10` as text, which both vendored copies
+    # got right only by never having had a two-digit patch.
+    assert [one.version for one in found] == ["0.1.10", "0.1.9"]
+    assert vendor(project).chosen.version == "0.1.10"
+
+
+def test_a_working_checkout_is_skipped_unless_it_is_named(tmp_path, monkeypatch):
+    """The rule an hour paid for: a tree mid-refactor answers a version and then raises out of
+    a half-edited module. Naming it is a caller saying which tree they mean."""
+    from roadkeep.installing import vendor
+
+    only_here(monkeypatch, tmp_path)
+    project = tmp_path / "adopter"
+    project.mkdir()
+    engine_tree(tmp_path / "roadkeep", "9.9.9", working=True)
+    engine_tree(tmp_path / "config" / "plugins" / "a" / "roadkeep", "0.1.1")
+
+    # The sibling is the higher version and loses anyway.
+    assert vendor(project).chosen.version == "0.1.1"
+    monkeypatch.setenv("ROADKEEP_SRC", str(tmp_path / "roadkeep"))
+    assert vendor(project).chosen.version == "9.9.9"
+
+
+def test_the_copy_is_an_artefact_and_not_a_second_repository(tmp_path, monkeypatch):
+    """`.git` above all: with it, `git status` walks the copy and the project has two roots."""
+    from roadkeep.installing import PROJECT_ENGINE, vendor
+
+    only_here(monkeypatch, tmp_path)
+    monkeypatch.setenv("ROADKEEP_SRC", str(engine_tree(tmp_path / "src-tree", "1.0.0", working=True)))
+    project = tmp_path / "adopter"
+    project.mkdir()
+
+    written = vendor(project)
+    assert written.into == project / PROJECT_ENGINE
+    assert not (written.into / ".git").exists()
+    assert (written.into / "src" / "marker.txt").read_text(encoding="utf-8") == "1.0.0"
+
+
+def test_what_landed_is_asked_what_it_is(tmp_path, monkeypatch):
+    """The fourth rule, and the one that makes the other three mean anything: picking by
+    version proves nothing about a tree that arrived different."""
+    from roadkeep.installing import NotVerified, vendor
+
+    only_here(monkeypatch, tmp_path)
+    source = engine_tree(tmp_path / "src-tree", "1.0.0")
+    monkeypatch.setenv("ROADKEEP_SRC", str(source))
+    project = tmp_path / "adopter"
+    project.mkdir()
+    assert vendor(project).verified == "1.0.0"
+
+    # A tree that says one thing when asked and another after it lands.
+    (source / "scripts" / "roadkeep.py").write_text(
+        "import sys, pathlib\n"
+        "print('roadkeep 1.0.0' if 'src-tree' in str(pathlib.Path(__file__)) else 'roadkeep 0.0.1')\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(NotVerified) as refused:
+        vendor(project)
+    assert "0.0.1" in str(refused.value)
+    # Left on disk: what is wrong with it is what it just said.
+    assert (project / ".roadkeep").is_dir()
+
+
+def test_a_machine_with_no_engine_refuses_rather_than_reporting_success(tmp_path, monkeypatch):
+    """`--vendor` is asked for, so a run that copied nothing and exited 0 would leave a
+    project believing it is pinned."""
+    from roadkeep.installing import ENGINE_SOURCE, NoEngine, vendor
+
+    only_here(monkeypatch, tmp_path)
+    project = tmp_path / "adopter"
+    project.mkdir()
+    with pytest.raises(NoEngine) as refused:
+        vendor(project)
+    assert ENGINE_SOURCE in str(refused.value)
+
+
+def test_the_check_reports_the_choice_and_copies_nothing(tmp_path, monkeypatch):
+    from roadkeep.installing import vendor
+
+    only_here(monkeypatch, tmp_path)
+    monkeypatch.setenv("ROADKEEP_SRC", str(engine_tree(tmp_path / "src-tree", "1.0.0")))
+    project = tmp_path / "adopter"
+    project.mkdir()
+    written = vendor(project, checked=True)
+    assert written.chosen.version == "1.0.0"
+    assert not (project / ".roadkeep").exists()
+
+
+def test_a_rerun_replaces_the_tree_rather_than_merging_into_it(tmp_path, monkeypatch):
+    """A half-old tree is the state every rule here is about, and `copytree` onto a populated
+    directory is how one is made."""
+    from roadkeep.installing import vendor
+
+    only_here(monkeypatch, tmp_path)
+    monkeypatch.setenv("ROADKEEP_SRC", str(engine_tree(tmp_path / "src-tree", "1.0.0")))
+    project = tmp_path / "adopter"
+    project.mkdir()
+    vendor(project)
+    (project / ".roadkeep" / "src" / "left-behind.txt").write_text("x", encoding="utf-8")
+    vendor(project)
+    assert not (project / ".roadkeep" / "src" / "left-behind.txt").exists()
+
+
+def test_the_ignore_line_is_printed_and_never_written(tmp_path, monkeypatch):
+    """`.gitignore` is the project's file, so this is `merge --register`'s rule about the `git
+    config` half: the line is stated and running it is the author's. Said only where nothing
+    covers it already, so a project that did this once is not advised about it every run."""
+    from roadkeep.installing import vendor
+
+    only_here(monkeypatch, tmp_path)
+    monkeypatch.setenv("ROADKEEP_SRC", str(engine_tree(tmp_path / "src-tree", "1.0.0")))
+    project = tmp_path / "adopter"
+    project.mkdir()
+
+    written = vendor(project)
+    assert written.ignore and ".gitignore" in written.stated(checked=False)
+    assert not (project / ".gitignore").exists(), "advice, not an edit"
+
+    (project / ".gitignore").write_text(".roadkeep/\n", encoding="utf-8")
+    assert not vendor(project).ignore
+
+
+def test_the_version_is_read_out_of_the_line_and_not_off_its_end():
+    """Measured end to end, and it is why this function exists: `--version` prints the number
+    followed by the provenance RK79 added — the commit, whether the tree is modified, and where
+    the package is. Taking the last token reads the *path* as the version, every candidate ties
+    at nothing, and the verification after the copy then compares two paths and refuses."""
+    from roadkeep.installing import _version_in
+
+    said = r"roadkeep 0.1.963 (479d7266 modified, D:\Git\alegauss\roadkeep\src\roadkeep)"
+    assert _version_in(said) == "0.1.963"
+    assert _version_in("roadkeep 1.2\n") == "1.2"
+    assert _version_in("no numbers here") == ""

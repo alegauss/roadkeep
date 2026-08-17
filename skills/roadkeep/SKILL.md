@@ -30,7 +30,15 @@ type it, because **the gate now asks**: a vendored launcher, hook or skill behin
 roadkeep answering here is `install.stale`, filed at that file, and `install` is what closes
 it. A project holding its version on purpose says `[install] pinned = true` and the finding
 stops; the check and `engines` still answer, a pin being a decision and not a claim that the
-files agree. `install --committed`
+files agree. **`install --vendor` pins the engine itself**, which nothing else here does:
+it copies the highest-versioned roadkeep this machine can reach into `.roadkeep/` and the
+launcher resolves that ahead of any sibling checkout. By version and never by search order,
+so every machine pins the same one; a *working* checkout is skipped unless `ROADKEEP_SRC`
+names it, a tree mid-refactor being the thing a pin exists to stop running; `.git` is
+excluded so the copy is an artefact and not a second repository; and what landed is asked
+its version, a disagreement being a refusal that leaves the tree there to look at. Add
+`.roadkeep/` to `.gitignore` — the command says so and does not write it. `install
+--committed`
 wires a launcher committed to the repository instead of a path into a checkout, which is
 what reaches a session that can install no plugin and clone nothing — Claude Code on the
 web; its **guard** stands down where the harness has the plugin wired for that project, so

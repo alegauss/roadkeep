@@ -350,34 +350,6 @@ transition `block.emptied` almost describes, from the other side.
 
 ## Block E — Adoption
 
-### §RK1193 Adoption stops one step short of a pinned engine
-
-`roadkeep-launch.py` resolves an engine — `$ROADKEEP_HOME`, then a sibling checkout,
-then a cache — and `install` wires a project's four surfaces. Neither *puts an engine in
-the project*. So an adopter that wants a pinned, stable copy has to write that
-themselves.
-
-Two now have. Shio and freewilly each carry a 147-line `install_roadkeep.py` plus a
-`.cmd` wrapper, byte-identical apart from one comment, vendoring into a git-ignored
-`.roadkeep/` with `ROADKEEP_HOME` pointing at it. That is the `node_modules` shape and
-it works — but it is the same code in two repositories, which is the drift this tool
-spends its own backlog refusing elsewhere.
-
-Why an adopter reaches for it at all, measured on one machine: **six** engines were
-resolvable — 0.1.841 and 0.1.820 under `~/.claude`, 0.1.678 and 0.1.645 under
-`~/.claude-pessoal`, plus two marketplace clones — and a live checkout can be
-mid-refactor, which cost a session an hour to `ImportError: cannot import name
-'_print_claim'` out of a half-edited tree. Add that a changing absolute path is a fresh
-authorization prompt every time, and pinning stops being a preference.
-
-The shape the two copies converged on, if it is worth adopting: pick by **version**
-rather than by position (ask each candidate `--version`, take the highest), skip a
-working checkout unless `ROADKEEP_SRC` names it, exclude `.git` so the vendored tree is
-an artefact and not a second repository, and verify after copying that the target
-answers the version that was chosen.
-
-`install --vendor` would make it one command and one implementation.
-
 ### §RK1200 The engine a vendoring project cannot reach
 
 The committed launcher resolves an engine from three candidates: `$ROADKEEP_HOME`, a
