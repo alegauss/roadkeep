@@ -179,6 +179,34 @@ The narrower version is cheaper and catches the same case: a block whose every t
 paths were touched by this change while at least one line is still open. That is the
 transition `block.emptied` almost describes, from the other side.
 
+### §RK1232 The worker count that leaves the machine usable
+
+`-n auto` resolved to `os.cpu_count()` — every logical core, with nothing left over.
+Here that is 28 workers on 28 threads, and the run RK457 made the default became the run
+that makes the machine unusable while it goes: an editor, a language server and a second
+session all wait behind a pool that asked for the whole processor.
+
+The count was never what made the suite fast. RK457 measured 5m07s serial against 41s
+parallel and attributed it to a long tail of process spawns and filesystem work — which
+is what parallelism answers, and what stops answering once every core is spoken for.
+Each worker also imports this suite's `conftest`, which fingerprints the checkout and
+copies the governed files (RK263, RK315), so the twenty-eighth worker pays that setup to
+win contention against the twenty-seventh.
+
+Measured on the full suite at 3,828 tests, both runs green:
+
+    -n 28 (what auto answered)   174.3 s
+    -n 14                        176.4 s
+
+Half the pool costs two seconds — inside this suite's own run-to-run noise — and hands
+back fourteen threads. So `auto` halves: floored at two, so a two-core CI runner keeps
+both rather than dropping to the single worker RK462 measured as worse than none, and
+capped at the cores there are, so a one-core box is not asked for two.
+
+The narrow path is untouched. A caller naming one file still gets no workers at all,
+which is RK460's answer to a different question: there the cost is the spawn, and here
+it is the contention.
+
 ## Block E — Adoption
 
 ### §RK1227 The anchor a rationale cites and nothing resolves
