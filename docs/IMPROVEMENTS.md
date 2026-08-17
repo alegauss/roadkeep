@@ -156,29 +156,6 @@ The second looks right and wants checking against L4: `ship --part` may not comp
 
 ## Block D — The gate
 
-### §RK1228 The check that a section moved has no mirror
-
-`lint --since` already checks the shape where prose moved and the line did not: a
-rationale section edited without its task line is RK36's Note. The mirror is unchecked.
-Source can change under everything a task's section names, the tests for it can pass,
-and the line stays open with nobody told.
-
-Observed here across a working session. A task's section named the component and the
-library module it needed; both were rewritten, a dozen assertions were added and passed,
-the outcome was reported as delivered — and `ship` was never called. `lint` said clean,
-because the files it governs were internally consistent, and they were: the entry simply
-did not exist. It surfaced two blocks later, when a block that should have been finished
-still counted one open line.
-
-The signal is already computed. `show` resolves the paths a section names, and `--since`
-already has the diff. A Note is the right tier — a path named in a section changes for
-plenty of reasons that are not the task, so refusing would produce a gate that gets
-bypassed. Saying it once at the moment of the commit is the whole value.
-
-The narrower version is cheaper and catches the same case: a block whose every task's
-paths were touched by this change while at least one line is still open. That is the
-transition `block.emptied` almost describes, from the other side.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

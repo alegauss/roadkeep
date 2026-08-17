@@ -1230,6 +1230,16 @@ _TABLE: Mapping[str, _Rule] = {
         "the clause names a directory where `Path.glob` wants a pattern, so it reads no file "
         "at all; `<that path>/**/*` is the shape, and which files it should reach is yours",
     ),
+    # A `decide` and not a `run` (RK1228): whether the work this change carries *is* the task
+    # is the one judgement nothing here can make — a path a section names changes for a
+    # rename, a neighbouring fix, a refactor that crossed it. So the two readings are named
+    # and the caller picks, which is why this is a note and not a finding in the first place.
+    "task.worked": _decide(
+        "source under this open task moved and the line did not, which is either the work "
+        "landing or a path it merely names changing:",
+        (("ship", "{id}", "--why", BLANK), "this is what landed, and the entry is owed"),
+        (("show", "{id}"), "read what the section claims before deciding it was that"),
+    ),
     "engine.disagreement": _read(
         ("engines",),
         "three copies of this tool can be in play and they may differ; this reads all "

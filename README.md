@@ -119,16 +119,16 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 160 | 2 |
 | C — Query (consult without reading the file) | 1 | 111 | 1 |
-| D — The gate | 1 | 183 | 2 |
+| D — The gate | 0 | 184 | 2 |
 | E — Adoption | 0 | 91 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 109 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 9 | 0 |
-| **Total** | 5 | 717 | 9 |
+| **Total** | 4 | 718 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1228** (deps: —) **Nothing reports source changed under an open task while the line stayed open** — lint --since flags a section edited without its line but not the mirror, so work that landed and passed its tests can leave the ledger with no entry at all. → §RK1228
+- 📋 **RK1229** (deps: —) **A dep with a parenthesis is written, then no verb can reach the line it made unreadable** — amend accepts it, the rendered deps group closes early, and amend, retire, defer, repair and lint --fix all answer that no task carries the id. → §RK1229
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

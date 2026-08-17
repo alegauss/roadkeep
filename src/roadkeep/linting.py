@@ -776,6 +776,14 @@ def _rules() -> tuple[_Rule, ...]:
             found += _unpaired(
                 scan.config, scan.anchors.get("improvements", ()), scan.since
             )
+            # And the mirror of it (RK1228): prose that moved without its line, then source
+            # that moved under a line nobody closed.
+            found += _worked(
+                scan.config,
+                scan.documents,
+                scan.anchors.get("improvements", ()),
+                scan.since,
+            )
         return found
 
     def budgeted(scan: _Scan) -> list[Finding | Note]:
@@ -1566,6 +1574,71 @@ def _turned(config: Config, documents: dict[str, Document], since: str) -> list[
                     label,
                 )
             )
+    return out
+
+
+def _worked(
+    config: Config, documents: dict[str, Document], sections: tuple[Section, ...], since: str
+) -> list[Note]:
+    """Source moved under an open task while its line stood still (RK1228).
+
+    :func:`_unpaired` checks the shape where the *prose* moved and the line did not. This is
+    the mirror, and it was unchecked: source can change under everything a task's section
+    names, the tests for it can pass, and the line stays open with nobody told.
+
+    Observed here across a working session. A task's section named the component and the
+    library module it needed; both were rewritten, a dozen assertions were added and passed,
+    the outcome was reported as delivered — and `ship` was never called. `lint` said clean,
+    because the files it governs were internally consistent, and they were: the entry simply
+    did not exist. It surfaced two blocks later, when a block that should have been finished
+    still counted one open line.
+
+    **A note and never a finding**, which is the whole judgement and the same one RK36 made: a
+    path named in a section changes for plenty of reasons that are not the task — a rename, a
+    neighbouring fix, a refactor that crossed it — so refusing would produce a gate that gets
+    bypassed within a week. Saying it once, at the moment of the commit, is the whole value.
+
+    Nothing here is semantic. The signal is a coincidence of two facts this run already holds:
+    the paths a section names, which `show` resolves, and the diff, which `--since` has.
+    """
+    if not sections or not documents.get("roadmap"):
+        return []
+    from roadkeep.history import changed_paths  # noqa: PLC0415 - RK260
+
+    moved = changed_paths(config, since)
+    if not moved:
+        return []
+    where = config.relative(config.path("roadmap"))
+    by_anchor = {one.anchor: one for one in sections}
+    out: list[Note] = []
+    for entry in documents["roadmap"].entries:
+        section = by_anchor.get(entry.task.ref or entry.task.id)
+        if section is None:
+            continue
+        named = {
+            one.path
+            for one in paths_in(
+                section.body,
+                config.root,
+                near=config.path("improvements").parent
+                if config.has("improvements")
+                else None,
+                known=lambda: known_directories(config),
+            )
+        }
+        touched = sorted(named & moved)
+        if not touched:
+            continue
+        out.append(
+            Note(
+                "task.worked",
+                where,
+                f"this change touches {', '.join(touched)}, which §{section.anchor} names, "
+                f"and the line is still open — `ship` if that is what landed",
+                entry.lineno,
+                entry.task.id,
+            )
+        )
     return out
 
 

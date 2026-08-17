@@ -523,6 +523,7 @@
 - ✅ **RK1217** **path.missing judges a shipped entry against today's tree, so a file later moved to another repo makes history a finding** — A ledger path absent from HEAD that some commit once held is history and not drift; one still in HEAD is a deletion the gate keeps reporting.
 - ✅ **RK1222** **The gate reads a declared query for a grammar it cannot parse and never for a pathspec that answers about nothing** — remaining.unmatched fires on a pathspec with no metacharacter naming a directory that exists, which is the typo and never the migration whose sites were deleted.
 - ✅ **RK1232** **A full run asks for every core, so the machine has nothing left while the suite is running** — `auto` answers half the cores, so a full run leaves the machine to the session that started it and two sessions in one checkout stop asking for 56 workers on 28 threads.
+- ✅ **RK1228** **Nothing reports source changed under an open task while the line stayed open** — lint --since notes task.worked where this change touches a path an open task's section names, which is the mirror of the check that prose moved without its line.
 
 ## Block E — Adoption
 

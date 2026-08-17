@@ -960,3 +960,87 @@ def test_a_healthy_repository_asks_history_nothing(tmp_path, monkeypatch):
     )
     assert paths(lint(config)) == []
     assert asked == []
+
+
+# -- source that moved under a line nobody closed (RK1228) ---------------------
+
+
+def naming_source(path: str) -> str:
+    """A rationale whose prose names one artefact, which is what `show` resolves."""
+    return PROSE.replace(
+        "The reasoning the first line has no room for.",
+        f"The reasoning the first line has no room for, built in `{path}`.",
+    )
+
+
+def test_source_that_moved_under_an_open_line_is_said_once(tmp_path):
+    """`_unpaired` checks the shape where the prose moved and the line did not. This is the
+    mirror, and it was unchecked.
+
+    Observed across a working session: a task's section named the component and the library
+    module it needed; both were rewritten, a dozen assertions were added and passed, the
+    outcome was reported as delivered — and `ship` was never called. `lint` said clean,
+    because the files it governs were internally consistent, and they were: the entry simply
+    did not exist. It surfaced two blocks later, when a block that should have been finished
+    still counted one open line.
+    """
+    config = repo(tmp_path, files={"lib/thing.py": "x = 1\n"})
+    write(tmp_path, "IMPROVEMENTS.md", naming_source("lib/thing.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name the artefact")
+
+    # Nothing moved yet, so nothing is said.
+    assert [one.code for one in lint(config, since="HEAD").notes if one.code == "task.worked"] == []
+
+    # The work lands and the line stays open, which is the pair nobody was told about.
+    write(tmp_path, "lib/thing.py", "x = 2\n")
+    said = [one for one in lint(config, since="HEAD").notes if one.code == "task.worked"]
+    assert len(said) == 1, said
+    assert said[0].id == "RK1"
+    assert "lib/thing.py" in said[0].message
+
+
+def test_it_is_a_note_and_never_a_finding(tmp_path):
+    """The whole judgement, and the same one RK36 made: a path a section names changes for a
+    rename, a neighbouring fix, a refactor that crossed it — so refusing would produce a gate
+    bypassed within a week. Saying it once at the moment of the commit is the value."""
+    config = repo(tmp_path, files={"lib/thing.py": "x = 1\n"})
+    write(tmp_path, "IMPROVEMENTS.md", naming_source("lib/thing.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name the artefact")
+    write(tmp_path, "lib/thing.py", "x = 2\n")
+
+    report = lint(config, since="HEAD")
+    assert "task.worked" in {one.code for one in report.notes}
+    # Never among the findings, which is the exit code's contract: this fixture carries one
+    # standing problem of its own, so what is asserted is that this check added none.
+    assert "task.worked" not in {one.code for one in report.findings}
+
+
+def test_a_path_no_section_names_says_nothing(tmp_path):
+    """The signal is a coincidence of two facts and not a diff: source this backlog never
+    claimed is source this check has no opinion about."""
+    config = repo(tmp_path, files={"lib/thing.py": "x = 1\n", "other/loose.py": "y = 1\n"})
+    write(tmp_path, "IMPROVEMENTS.md", naming_source("lib/thing.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name the artefact")
+
+    write(tmp_path, "other/loose.py", "y = 2\n")
+    assert [one for one in lint(config, since="HEAD").notes if one.code == "task.worked"] == []
+
+
+def test_the_door_leaves_the_judgement_to_the_caller(tmp_path):
+    """Whether the change *is* the task is the one thing nothing here can decide, which is
+    why this is a note — so the remedy names both readings rather than picking one."""
+    from roadkeep.remedying import remedy
+
+    config = repo(tmp_path, files={"lib/thing.py": "x = 1\n"})
+    write(tmp_path, "IMPROVEMENTS.md", naming_source("lib/thing.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name the artefact")
+    write(tmp_path, "lib/thing.py", "x = 2\n")
+
+    (said,) = [one for one in lint(config, since="HEAD").notes if one.code == "task.worked"]
+    rule = remedy(said, config)
+    assert rule.kind == "decide"
+    assert {one.argv[0] for one in rule.doors} == {"ship", "show"}

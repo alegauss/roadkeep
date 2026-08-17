@@ -182,6 +182,10 @@ PREVENTION: tuple[Prevented, ...] = (
     # a query — the pathspec and the regex are the author's (L4, one level down), written into
     # a rationale section as prose, so there is no door that could have refused this one.
     Prevented("remaining.unmatched", "gate", because=FILE),
+    # RK1228. `LATER` in its purest form: the write that composed this line was correct, and
+    # what makes the note true is an edit somewhere else entirely — source moving under a
+    # task while its line stands still. No door of this tool sees that pair.
+    Prevented("task.worked", "gate", because=LATER),
     # -- true of an earlier line because of a later write ---------------------
     Prevented("id.paused-and-open", "gate", because=LATER),
     Prevented("id.paused-and-gone", "gate", because=LATER),

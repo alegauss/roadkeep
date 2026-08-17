@@ -346,6 +346,27 @@ def touched_since(config: Config, rev: str, role: str) -> Touched:
     return _read_diff(output)
 
 
+def changed_paths(config: Config, rev: str) -> frozenset[str]:
+    """Every path this working tree changed against ``rev``, repo-relative (RK1228).
+
+    The half `--since` already had for the governed files, asked of the **rest of the tree**:
+    `touched_since` diffs one governed file to attribute a change to a section, and this is
+    the mirror question — what source moved while the backlog stood still.
+
+    Names and not hunks, because the question is *did anything under this task change* and a
+    line count would invite a threshold nobody could defend. Repo-relative and forward-slashed,
+    which is the spelling a section's own prose uses and what `paths_in` resolves to.
+
+    Empty where git cannot answer, which keeps the note silent: this reports a coincidence
+    worth a sentence, and a repository with no history has no coincidence to report.
+    """
+    try:
+        found = _run(config.root, "diff", "--name-only", rev)
+    except HistoryUnavailable:
+        return frozenset()
+    return frozenset(one.strip().replace("\\", "/") for one in found.splitlines() if one.strip())
+
+
 def changed_lines(config: Config, rev: str, path: Path) -> frozenset[int] | None:
     """Line numbers this working tree changed in one file against ``rev`` (RK60).
 
