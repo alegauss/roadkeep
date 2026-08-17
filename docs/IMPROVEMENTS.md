@@ -330,6 +330,32 @@ vendored copy a candidate**, ahead of the sibling: vendoring exists precisely so
 neighbour's tree is not a dependency, and a repository that carries `.roadkeep` has
 already said which engine it means.
 
+### §RK1224 The retry that pays for the body twice (RK1224)
+
+Filing one Shio task took four calls. The first was refused for a missing `ref`, the
+next three for `why` — 176, 171 and 170 characters against a limit of 167. Each refusal
+was correct, each named the exact overflow, and each threw away the 250-word
+`--section-body` that had travelled beside it.
+
+The cost worth measuring: the field that failed was **three characters** too long, and
+the payload re-sent to fix it was two orders of magnitude larger. `budget` answers
+before a word is written and is the documented remedy, but it answers about *limits*,
+not about a sentence somebody has composed — so the shape of the work is compose, call,
+shave, call again, with the body riding along every time.
+
+The all-or-nothing transaction is right and is not what should change: a task whose line
+validated and whose section did not is the half-written state `add` exists to prevent.
+What is missing is a way to say *the body is unchanged*.
+
+Two shapes. A **draft handle** — a refusal returns a token naming the payload it already
+holds, and the retry passes the token plus the corrected field. Or `add --dry-run`
+taking the real fields and answering about all of them at once, which is `budget`
+pointed at a draft rather than at a schema, and would have collapsed those four calls
+into two.
+
+The measurement this needs first: how often a refusal is the second or third for one
+filing, which the tool sees and nobody counts.
+
 ## Block F — The plugin
 
 ### §RK1218 Two commands to file one task

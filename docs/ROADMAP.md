@@ -45,6 +45,7 @@
 
 - 📋 **RK1193** (deps: —) **Every adopting repository has to write its own installer to pin the engine it runs** — The launcher resolves an engine but nothing vendors one, so two repos now carry the same 147-line script and it will drift. → §RK1193
 - 📋 **RK1200** (deps: —) **The committed launcher reads ROADKEEP_HOME verbatim and lists no candidate inside the repository** — install writes ${CLAUDE_PROJECT_DIR} into every hook command it emits, and a project pointing that same spelling at a vendored copy silently gets the sibling checkout instead. → §RK1200
+- 📋 **RK1224** (deps: —) **A refusal on one over-long field discards the section body sent with it, so the retry re-sends every word** — add validates the whole transaction and writes nothing, so a three-character why overflow cost three round trips carrying the same 250-word body. → §RK1224
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
