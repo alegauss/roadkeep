@@ -890,3 +890,73 @@ def test_a_token_is_spelled_once_per_base_and_not_once_per_question(tmp_path):
         assert tree.holds("lib/gone.py", tmp_path) is False
     # Two bases, one spelling each — never four for the two questions `holds` asks.
     assert len(spelled) == 2
+
+
+# -- a path that left the repository, not the working tree (RK1217) ------------
+
+
+def test_a_path_the_repository_had_and_committed_away_is_history_and_not_drift(tmp_path):
+    """Turing's `T759` names a script that existed when the work shipped and was later
+    extracted into its own repository with the model catalog it built. The entry is accurate,
+    the file is gone, and the gate reported it every run and would have kept reporting it.
+
+    A shipped sentence is a claim about the tree that shipped it. What made it worse than
+    noise was the door: the remedy rewrites the entry's sentence, which on that entry is about
+    1,500 characters of as-built record — so the offered fix for a stale path was deleting the
+    thing that made the entry worth keeping, nobody took it, and the finding sat forgiven by a
+    baseline for ever.
+    """
+    config = repo(tmp_path, files={"lib/gone.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("lib/gone.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name the file")
+    assert paths(lint(config)) == []
+
+    # Extracted elsewhere: removed **and committed**, which is what leaving the repository is.
+    (tmp_path / "lib" / "gone.py").unlink()
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "chore: it moved to its own repository")
+    assert paths(lint(config)) == []
+
+
+def test_a_deletion_nobody_committed_is_still_the_repositorys(tmp_path):
+    """The narrowing that keeps this from swallowing the rule. A file removed from a working
+    tree and not committed is still in `HEAD` — forgiving that would stop the gate reporting a
+    deletion at exactly the moment it is worth reporting, which is before it lands."""
+    config = repo(tmp_path, files={"lib/gone.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("lib/gone.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name the file")
+
+    (tmp_path / "lib" / "gone.py").unlink()
+    assert paths(lint(config)) == ["path.missing RK5"]
+
+
+def test_a_path_this_repository_never_had_is_still_the_finding(tmp_path):
+    """What the rule is for, and what survives the narrowing. RK1217 knowingly stops catching
+    a rename the ledger did not follow — the old path was held once — because the alternative
+    is a correct statement about the past reported for ever."""
+    config = repo(tmp_path, files={"lib/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("lib/never-was.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name a file that never existed")
+    assert paths(lint(config)) == ["path.missing RK5"]
+
+
+def test_a_healthy_repository_asks_history_nothing(tmp_path, monkeypatch):
+    """The cost, bounded where it is paid. Every other reading answers first — `exists`,
+    `anywhere`, `check-ignore` — so a repository whose ledger resolves never reaches this."""
+    from roadkeep import history
+
+    config = repo(tmp_path, files={"lib/kept.py": "x = 1\n"})
+    write(tmp_path, "CHANGELOG.md", naming("lib/kept.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name the file")
+
+    asked: list[str] = []
+    real = history.left_the_repository
+    monkeypatch.setattr(
+        history, "left_the_repository", lambda root, token: asked.append(token) or real(root, token)
+    )
+    assert paths(lint(config)) == []
+    assert asked == []

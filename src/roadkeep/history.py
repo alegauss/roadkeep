@@ -1588,6 +1588,54 @@ def next_family(taken: Sequence[Anchor], namespace: str = "") -> str | None:
     return f"{namespace}{REF_SEPARATOR}{top}" if namespace else top
 
 
+def left_the_repository(root: Path, token: str) -> bool:
+    """Whether this repository once held ``token`` and no longer does, as committed (RK1217).
+
+    The tree a shipped entry's paths are about is **not this afternoon's**. Turing's `T759`
+    names `frontend/apps/site/scripts/emit-model-catalog.mjs`, a script that existed when the
+    work shipped and was later extracted into its own repository with the model catalog it
+    built. The entry is accurate, the file is gone, and the gate reported it every run and
+    would have kept reporting it.
+
+    `Tree.anywhere` already forgives a path that moved **within** the repository, so what was
+    left was the one that left it entirely — a correct statement about the past, read as drift.
+    And the door made it worse than noise: the remedy rewrites the entry's sentence, which on
+    that entry is about 1,500 characters of as-built record. The offered fix for a stale path
+    was deleting the thing that made the entry worth keeping, so nobody took it and the finding
+    sat forgiven by a baseline for ever.
+
+    **Two questions, and the first one is what keeps this narrow.** *Is it in `HEAD`* — because
+    a file somebody deleted in their working tree and has not committed is still the
+    repository's, and forgiving that would stop the gate reporting a deletion at exactly the
+    moment it is worth reporting. Only then *did any commit ever hold it*, over all refs, which
+    is the reading that answers `T759`.
+
+    Not `--follow`, which needs a single surviving path and answers about a rename chain rather
+    than about existence.
+
+    **What this deliberately stops catching** is a rename the ledger did not follow, which was
+    the one true finding this check produced on a live corpus: the old path was held once, so
+    it is now forgiven. RK1217 takes that trade knowingly — the alternative is a correct
+    statement about the past reported for ever, with a door whose only effect is to delete the
+    as-built record that made the entry worth keeping. What is left is the reading the rule was
+    always for: **a path this repository never had.**
+
+    Cheap because it is asked **last** (see :func:`~roadkeep.linting._paths`): the working tree
+    answers first, so a healthy repository asks this nothing at all and a corpus with stale
+    entries pays at most two calls per token that already failed every other reading.
+
+    False where git cannot be reached, which keeps the finding: this is a *forgiveness*, and an
+    unavailable history is not evidence that a path was ever there.
+    """
+    try:
+        if _run(root, "ls-tree", "HEAD", "--", token).strip():
+            return False
+        found = _run(root, "log", "--all", "--max-count=1", "--format=%H", "--", token)
+    except HistoryUnavailable:
+        return False
+    return bool(found.strip())
+
+
 def _declared(config: Config, role: str) -> tuple[str, ...]:
     from roadkeep.sections import anchored  # noqa: PLC0415 - RK260
 

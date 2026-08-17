@@ -3174,6 +3174,7 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
         for token in _candidates(tree, entry.raw, near)
     ]
     untracked = tree.declared_untracked([(token, near) for _, token in unresolved])
+    left = _left_the_repository(config, tree, [token for _, token in unresolved])
     return [
         Finding(
             "path.missing",
@@ -3187,7 +3188,36 @@ def _paths(config: Config, documents: dict[str, Document], tree: Tree) -> list[F
         # output is absent from a bare checkout and present for whoever just compiled, so
         # a gate that read the filesystem alone answered by machine.
         if token not in untracked
+        # And not one it *had* when the entry was written (RK1217): a shipped sentence is a
+        # claim about the tree that shipped it, and a file later extracted into its own
+        # repository makes history a finding on every run for ever.
+        and token not in left
     ]
+
+
+def _left_the_repository(
+    config: Config, tree: Tree, tokens: Sequence[str]
+) -> frozenset[str]:
+    """Which of these paths this repository once held and no longer does (RK1217).
+
+    Asked **last and only of what already failed**, which is the whole of its cost: `exists`,
+    `anywhere` and `check-ignore` have each answered before a token reaches here, so a healthy
+    repository asks git nothing and a corpus with stale entries pays one call per token — six
+    on the ledger that motivated this, against 801 entries.
+
+    Skipped at a revision, where the question is already being asked of history: a run naming a
+    `--baseline` resolves the tree at that ref (RK218), and reaching past it to *every* ref
+    would forgive a path the baseline's own tree never had.
+    """
+    if tree.rev is not None or not tokens:
+        return frozenset()
+    from roadkeep.history import left_the_repository  # noqa: PLC0415 - RK260
+
+    return frozenset(
+        token
+        for token in dict.fromkeys(tokens)
+        if left_the_repository(config.root, token)
+    )
 
 
 def _candidates(tree: Tree, text: str, near: Path) -> tuple[str, ...]:

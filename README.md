@@ -119,16 +119,16 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 3 | 159 | 2 |
 | C — Query (consult without reading the file) | 3 | 108 | 1 |
-| D — The gate | 3 | 180 | 2 |
+| D — The gate | 2 | 181 | 2 |
 | E — Adoption | 2 | 89 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 108 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 9 | 0 |
-| **Total** | 13 | 707 | 9 |
+| **Total** | 12 | 708 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1217** (deps: —) **path.missing judges a shipped entry against today's tree, so a file later moved to another repo makes history a finding** — A ledger sentence is true about the tree that shipped it, and the only door offered rewrites that sentence. → §RK1217
+- 📋 **RK1218** (deps: —) **add cannot carry the section it requires, so every filing is two commands with a dangling pointer between them** — add prints 'the pointer above resolves to nothing until then' and lint agrees: the roadmap is briefly in a state the project's own gate refuses, on every task filed. → §RK1218
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
