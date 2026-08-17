@@ -1325,8 +1325,12 @@ def test_the_command_names_the_follow_up_it_leaves_behind(tmp_path, capsys):
         )
         == EXIT_OK
     )
-    _, follow, staging, event = capsys.readouterr().out.splitlines()
+    _, follow, offer, staging, event = capsys.readouterr().out.splitlines()
     assert follow.startswith(f"needs    `{invocation()} section add RK2 --title")
+    # And the call that would have needed no follow-up at all (RK1218), under the remedy
+    # rather than instead of it: this line's pointer already dangles, so what closes *this*
+    # one comes first and the flag that closes the next comes after.
+    assert offer.startswith("or       pass `--section")
     assert staging.startswith("  stage    git add -- ")
     assert event == "event    RK2  Block B  live"
 
@@ -2242,3 +2246,79 @@ def test_the_two_honest_pointers_are_untouched(tmp_path, capsys):
     capsys.readouterr()
     assert filed(config, "I.1") == EXIT_OK
     assert "§I.1" in capsys.readouterr().out
+
+
+# -- the one-call form, named where the two-call one is (RK1218) ---------------
+
+
+def test_the_add_that_needs_a_follow_up_names_the_flag_that_needs_none(tmp_path, capsys):
+    """`add --section` has written both halves in one transaction since RK93, and this row —
+    printed on every `add` that omits it — named only the follow-up. So what the tool taught,
+    once per task, was the two-command path.
+
+    Measured across fourteen sessions driving another project's backlog: every task filed in
+    two commands, with the roadmap between them in the state this project's own gate calls
+    `ref.unresolved`. Nothing was lost in the window; what it cost was the tool saying it had
+    left the docs wrong and then asking the caller to fix that, once per task, forever.
+    """
+    outlined(tmp_path)
+    argv = [
+        "-C", str(tmp_path), "add", "--block", "A",
+        "--symptom", "A second symptom", "--why", "Because of another.", "--ref", "X.9",
+    ]
+    assert main(argv) == EXIT_OK
+    out = capsys.readouterr().out
+    # Under the remedy rather than instead of it: this call is already made and its pointer
+    # already dangles, so the follow-up closes *this* one and the flag closes the next.
+    assert out.index("needs ") < out.index("or       pass")
+    assert '`--section "<its title>"`' in out
+
+
+def test_the_offer_is_a_flag_and_never_a_call_to_make(tmp_path, capsys):
+    """The one care this row needs. `add` has already run, so an argv printed with the
+    invocation on it would read as a call to make — and making it files a second task.
+
+    RK1209's sweep finds a composed command by exactly that prefix, so the shape is also what
+    keeps this row out of it: asserted through that reader rather than by eye, because the two
+    claims are one claim.
+    """
+    from composing import commands
+
+    outlined(tmp_path)
+    assert main([
+        "-C", str(tmp_path), "add", "--block", "A",
+        "--symptom", "A second symptom", "--why", "Because of another.", "--ref", "X.9",
+    ]) == EXIT_OK
+    out = capsys.readouterr().out
+    offered = [one for one in out.splitlines() if one.startswith("or       pass")]
+    assert offered, out
+    assert commands(offered[0]) == (), offered
+
+
+def test_the_one_call_form_writes_both_and_is_held_to_the_same_limits(tmp_path, capsys):
+    """The other half of RK1218's ask, which RK93 and RK301 already shipped and this pins: the
+    combined form is not a way to smuggle prose past the limit `section add` enforces."""
+    outlined(tmp_path)
+    # The family first, which the fixture declares a child of and no heading for: that stair
+    # is RK1198's and this test is about what happens once it has been climbed.
+    assert main([
+        "-C", str(tmp_path), "section", "add", "X", "--role", "strategy",
+        "--title", "A family", "--body", "Prose enough to matter.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+    argv = [
+        "-C", str(tmp_path), "add", "--block", "A",
+        "--symptom", "A second symptom", "--why", "Because of another.",
+        "--ref", "X.2",
+        "--section", "A design", "--section-body", "Prose enough to matter.",
+    ]
+    assert main(argv) == EXIT_OK
+    out = capsys.readouterr().out
+    # One transaction: the design is reported, and no follow-up is asked for.
+    assert "design   §" in out and "needs " not in out
+
+    over = [*argv[:-1], " ".join(["word"] * 400)]
+    over[over.index("A second symptom")] = "A third symptom"
+    over[over.index("X.2")] = "X.3"
+    assert main(over) == EXIT_USAGE
+    assert "body" in capsys.readouterr().err

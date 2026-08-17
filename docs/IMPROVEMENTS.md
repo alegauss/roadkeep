@@ -329,28 +329,6 @@ Worth checking on the way: whether `add --section-body` has the same hole.
 
 ## Block F — The plugin
 
-### §RK1218 Two commands to file one task
-
-Filed from fourteen sessions driving another project's backlog, where every task cost
-the same two commands: `add` writes the line and prints that the pointer it just wrote
-resolves to nothing, then `section add` writes the prose it points at. Between them the
-roadmap is in a state this project's own lint calls ref.unresolved.
-
-The window is short and nothing was lost in it, so the cost is not corruption. It is
-that the tool says it has left the docs wrong and then asks you to fix that yourself,
-once per task, forever. A caller interrupted between the two commands - or who forgets,
-which is why the warning exists - leaves a dangling pointer for lint to find later.
-
-The separation is defensible: a line is a claim and a section is an argument, and being
-made to write them apart is what stops a one-line symptom standing in for a rationale.
-That is worth keeping. What is not worth keeping is that the defensible order is the
-only order, when the caller already holds both halves at the moment they run `add`.
-
-So let `add` take the section with it, by the same `--title` and `--body-file` it would
-be given next, and write both or neither. The two-command path stays for the caller who
-wants to think between them. The budget refusal has to apply to the combined form too,
-or this becomes a way to smuggle prose past the limit `section add` enforces.
-
 ### §RK1230 The copy a shell command should invoke
 
 The MCP tools always reach the right copy. The shell does not, and a session that needs

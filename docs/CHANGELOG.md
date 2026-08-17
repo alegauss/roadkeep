@@ -722,6 +722,7 @@
 - ✅ **RK1166** **A registry row whose install directory is gone stands the launcher down, and nothing guards the governed files** — a row only stands the launcher down where the install it names is still on disk, and a row naming none still binds.
 - ✅ **RK1167** **Two registry rows for one project make the first win, so engines names a version that was replaced and is not on disk** — the row that answers is the newest whose install is still on disk, so a pruned version stops being what engines reports.
 - ✅ **RK1189** **A wired plugin stood the committed launcher's MCP server down, so the harness marked that server failed** — The mcp mode serves wherever it is started and names a missing engine on stderr, the deferral being the guard's rule alone.
+- ✅ **RK1218** **add cannot carry the section it requires, so every filing is two commands with a dangling pointer between them** — The one-call form has existed since RK93 and nothing named it: every add that omits --section now offers it beside the follow-up it would have avoided.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

@@ -376,6 +376,26 @@ class Insertion:
                 f"(§{self.needs} extends it, and no prose file declares it yet)"
                 for one in self.follow_ups()
             ]
+            # And the call that would not have needed any of them (RK1218). `add --section`
+            # has written both halves in one transaction since RK93, and this row — printed on
+            # every `add` that omits it — named only the *follow-up*, so what the tool taught,
+            # once per task, was the two-command path. Measured across fourteen sessions
+            # driving another project's backlog: every task filed in two commands, with the
+            # roadmap between them in the state this project's own gate calls `ref.unresolved`.
+            #
+            # Under the row rather than instead of it: this call is already made and its
+            # pointer already dangles, so the follow-up is what closes *this* one and this is
+            # what closes the next. A line that replaced the remedy with advice would be the
+            # tool answering a question the caller has not asked yet.
+            # A **flag** and never a composed command, which is the one care this row needs.
+            # `add` has already run here, so an argv printed with the invocation on it would
+            # read as a call to make — and making it files a second task. RK1209's sweep finds
+            # a command by exactly that prefix, so the shape is also what keeps this row out
+            # of it: what is offered is the argument to add next time, not a call to run now.
+            rows.append(
+                'or       pass `--section "<its title>"` to `add` next time: both halves in '
+                "one transaction, under the same limits"
+            )
         elif self.bound is not None:
             # Said, because the write touched a second file the caller did not name (RK452) —
             # and because the heading now carries an id, which is the fact `ship` and the gate

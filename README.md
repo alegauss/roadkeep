@@ -121,14 +121,14 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 3 | 108 | 1 |
 | D — The gate | 2 | 181 | 2 |
 | E — Adoption | 2 | 89 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 108 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 109 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 9 | 0 |
-| **Total** | 12 | 708 | 9 |
+| **Total** | 11 | 709 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1218** (deps: —) **add cannot carry the section it requires, so every filing is two commands with a dangling pointer between them** — add prints 'the pointer above resolves to nothing until then' and lint agrees: the roadmap is briefly in a state the project's own gate refuses, on every task filed. → §RK1218
+- 📋 **RK1221** (deps: —) **budget on an id the roadmap holds reads the four fields describing a line and discards them without a word** — The arm that finds the entry answers off the file, so a draft symptom or a dep passed beside an id narrows nothing and the caller reads a number believing it did. → §RK1221
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
