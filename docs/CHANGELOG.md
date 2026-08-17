@@ -771,3 +771,4 @@
 - ✅ **RK1236** **The tool over its ceiling is named and which of its arguments spent the bytes is not** — budget --tools takes a tool and ranks its own fields, naming the module each help string is written in.
 - ✅ **RK1239** **The description row is the largest a tool has and nothing says which of its parts to shorten** — The description row is split by where each clause is written, so a tool's always-passed flag names its own help.
 - ✅ **RK1241** **The description split does not name its own unaccounted bytes where the tool total does** — The description split names its own unaccounted bytes, so both levels of the breakdown balance exactly.
+- ✅ **RK1243** **The line every session is handed has a budget nothing reads and a constant somebody edits** — budget --session prices the SessionStart notice beside the schema, in the unit its ceiling is now held in.

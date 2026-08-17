@@ -53,6 +53,7 @@ from roadkeep.guarding import (
     guard,
     review,
 )
+from roadkeep.kernel.schema import width
 from roadkeep.provenance import WIRED, invocation
 from roadkeep.serving import TOOLS
 
@@ -1060,7 +1061,7 @@ def test_the_notice_does_not_restate_the_write_path():
 def test_the_notice_fits_the_budget_that_makes_it_worth_injecting():
     """Resident for the whole session, so its size is the argument for it. A number a test
     holds, because prose about being brief is what stops holding."""
-    assert len(str(Notice(files=(ROADMAP, CHANGELOG)))) <= _NOTICE_BUDGET
+    assert width(str(Notice(files=(ROADMAP, CHANGELOG)))) <= _NOTICE_BUDGET
 
 
 def test_the_notice_names_a_vendored_copy_that_has_drifted(tmp_path):
@@ -1119,7 +1120,7 @@ def test_the_install_it_may_name_is_never_the_served_route(tmp_path):
 
 
 def test_the_served_notice_still_fits_the_budget():
-    assert len(str(Notice(files=(ROADMAP, CHANGELOG), served="mcp__plugin_roadkeep_roadkeep__"))) <= _NOTICE_BUDGET
+    assert width(str(Notice(files=(ROADMAP, CHANGELOG), served="mcp__plugin_roadkeep_roadkeep__"))) <= _NOTICE_BUDGET
 
 
 def test_the_route_is_read_where_the_project_is(tmp_path):
@@ -1200,7 +1201,7 @@ def test_the_clause_fits_the_line_a_session_pays_for():
     act a counted limit exists to make visible. Sized for the longest invocation a wired
     project has, which is the committed launcher and not the console script."""
     said = str(Notice(files=(ROADMAP, CHANGELOG), served=WIRED, declared=True))
-    longest = len(said) - len(invocation()) + len("python .roadkeep/scripts/roadkeep.py")
+    longest = width(said) - width(invocation()) + width("python .roadkeep/scripts/roadkeep.py")
     assert longest <= _NOTICE_BUDGET, longest
 
 

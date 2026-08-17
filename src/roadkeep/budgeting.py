@@ -1038,17 +1038,45 @@ class Session:
     tools: int
     #: `(path, bytes)` per resident file, in the order `file_budget` answers.
     resident: tuple[tuple[str, int], ...] = ()
+    #: The `SessionStart` notice, in the same unit as :attr:`once` (RK1243). The third thing
+    #: a session pays for, and the one nothing counted: it is resident for the whole session
+    #: in every governed project, it has a ceiling, and until now the ceiling was a constant
+    #: a test asserted a fixture against. Measured **without** the drift sentence (RK234),
+    #: which is deliberately over that ceiling and goes away with one `install` — what is
+    #: priced here is what every session gets.
+    notice: int = 0
+    #: What the notice may cost, so the room is stated beside the figure — RK345's pairing,
+    #: and the reason this is a read rather than a second gate.
+    notice_limit: int | None = None
 
     @property
     def turn(self) -> int:
         return sum(cost for _path, cost in self.resident)
 
+    @property
+    def at_connect(self) -> int:
+        """Everything paid once, which is the schema **and** the notice (RK1243).
+
+        Added, where :attr:`once` and :attr:`turn` are not: the rule this record keeps is
+        that two *cadences* may not be summed, and these two share one. A reader deciding
+        whether to cut a tool description or a sentence from the notice is deciding inside
+        one budget, which is exactly the arithmetic RK1095 removed from the pair above.
+        """
+        return self.once + self.notice
+
     def stated(self, unit: str) -> str:
         rows = [
-            f"session    {self.once} {unit} once, {self.turn} bytes on every turn — "
+            f"session    {self.at_connect} {unit} once, {self.turn} bytes on every turn — "
             f"two cadences, so they are not added",
             f"  once     {self.once:>6}  {self.tools} tool(s) and the handshake, at connect",
         ]
+        if self.notice:
+            room = (
+                ""
+                if self.notice_limit is None
+                else f", {self.notice_limit - self.notice:+} of {self.notice_limit}"
+            )
+            rows.append(f"  once     {self.notice:>6}  the session-start notice{room}")
         rows += [f"  turn     {cost:>6}  {path}" for path, cost in self.resident]
         if not self.resident:
             # The state `--file` raises on, said rather than left as an absent row: a project
@@ -1061,9 +1089,14 @@ class Session:
             # Named by cadence rather than by subject, because that is the fact a caller is
             # deciding against — and a `total` key would be the sum this read refuses.
             "once": {
-                "characters": self.once,
+                # The cadence's whole figure, with its two parts named under it (RK1243):
+                # a caller acting on this is choosing which of them to cut.
+                "characters": self.at_connect,
                 "unit": unit,
-                "of": f"{self.tools} tool(s) and the handshake",
+                "of": f"{self.tools} tool(s) and the handshake, and the session-start notice",
+                "schema": self.once,
+                "notice": self.notice,
+                "notice_limit": self.notice_limit,
             },
             "each_turn": {
                 "bytes": self.turn,
@@ -1072,6 +1105,40 @@ class Session:
                 ],
             },
         }
+
+
+def notice_budget(config: Config) -> tuple[int, int | None]:
+    """What this project's `SessionStart` line costs, and what it may (RK1243).
+
+    The third thing a session pays for, and the one no command could ask about. `--tools`
+    prices the schema and `--file` the resident files; the notice is resident too — one line
+    handed to every session in every governed project — and its ceiling was a constant in
+    `guarding.py` that a test asserted a fixture against. RK1242 raised that constant by 23%
+    to fit a clause, which is a change to what every adopting session pays, made by editing a
+    literal. RK30's own argument, one surface over: a limit nobody counts is a limit that
+    moves.
+
+    Measured off :func:`~roadkeep.guarding.announce` and never re-composed, which is
+    :func:`~roadkeep.serving.surface`'s rule: it is the line *this* project's sessions get,
+    with this project's paths in it, so a sentence reworded in `guarding.py` moves the figure.
+
+    **Without the drift sentence** (RK234), which is deliberately over the ceiling and is not
+    resident — it appears only while a vendored copy has drifted and goes away with one
+    `install`. What is priced here is what every session pays.
+
+    In UTF-16 code units, the unit every other figure in this module is in (RK430) — and the
+    unit the ceiling is now held in, so this read and that gate cannot disagree about a line
+    carrying a character outside the BMP.
+
+    ``(0, None)`` where there is no notice: a project this cannot announce for pays nothing,
+    which is a real answer rather than a missing row.
+    """
+    from roadkeep.guarding import _NOTICE_BUDGET, announce  # noqa: PLC0415 - RK260
+
+    said = announce({"cwd": str(config.root)}, config.root)
+    if said is None:
+        return 0, None
+    return width(str(replace(said, stale=()))), _NOTICE_BUDGET
 
 
 def file_budget(config: Config, path: str | None = None) -> tuple[Load, ...]:

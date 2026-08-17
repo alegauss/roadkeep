@@ -40,8 +40,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1243** (deps: —) **The line every session is handed has a budget nothing reads and a constant somebody edits** — budget --session prices two of the three things a session pays for, and RK1242 moved the third by 23 percent unobserved. → §RK1243
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

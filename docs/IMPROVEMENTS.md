@@ -115,27 +115,3 @@ wrong number.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1243 The third thing a session pays for
-
-`budget --session` prices what a session pays: the served schema once at connect, and
-every `[budgets]` file per turn, against the cadence of each. It names two of the three.
-
-The third is the `SessionStart` notice — resident for the whole session in every
-governed project, with a budget nothing reads: `_NOTICE_BUDGET` in `guarding.py`. RK1242
-raised it from 260 to 320 to fit one clause, a 23% increase to a line every adopting
-session pays, taken by editing a literal and rerunning a test.
-
-Which is the shape RK464 named about the tool list and RK30 about a resident file: a
-limit nobody counts is a limit that moves. Both got a read. This one has a test
-asserting a fixture is under a number — a gate and not an answer — so nothing says what
-the line costs *here*, with this project's paths in it, before somebody adds a sentence.
-
-Cheap: `announce` composes the real line, so its length is one call, and `Session`
-already has the shape for a figure named against a cadence.
-
-To settle: whether the notice is a subject of its own or a row inside `--session`. It is
-once-per-session like the schema, so the second is probably right, and it completes that
-read rather than adding a sixth answer to a verb with five. And whether the constant
-belongs in `roadkeep.toml` — not per-project today, and L6 says the limits are, but this
-line is the tool's own prose and not the author's.

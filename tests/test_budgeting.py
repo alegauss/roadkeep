@@ -1403,9 +1403,17 @@ def test_the_two_surface_reads_share_one_measurement(tmp_path, capsys):
     main(["-C", str(tmp_path), "budget", "--session", "--json"])
     session = json.loads(capsys.readouterr().out)
 
-    assert tools["characters"] == session["once"]["characters"] == sent.characters
+    # The **schema** and not the cadence total: since RK1243 the once-per-session figure also
+    # carries the `SessionStart` notice, which is a second thing paid at the same cadence and
+    # not a second measurement of this one. What may not come apart is the shared half.
+    assert tools["characters"] == session["once"]["schema"] == sent.characters
     assert sum(row["characters"] for row in tools["by_tool"]) == sent.listed
     assert tools["handshake"] == sent.handshake
+    # And the total is the two, stated: a reader choosing what to cut is inside one budget.
+    assert (
+        session["once"]["characters"]
+        == session["once"]["schema"] + session["once"]["notice"]
+    )
 
 
 def test_a_loads_bytes_are_its_own_arithmetic_and_not_a_readers(tmp_path):
@@ -1957,3 +1965,87 @@ def test_a_row_with_nothing_to_split_reports_no_inner_envelope(tmp_path, capsys)
     assert json.loads(capsys.readouterr().out)["description_quoting"] == 0
     assert main(["-C", str(tmp_path), "budget", "--tools", "ship"]) == EXIT_OK
     assert "its key, quoting" not in capsys.readouterr().out
+
+
+# -- the third thing a session pays for (RK1243) ------------------------------
+
+
+def test_the_session_start_line_is_priced_beside_the_schema(tmp_path, capsys):
+    """`--tools` prices the schema and `--file` the resident files. The notice is resident
+    too — one line handed to every session in every governed project — and had a ceiling no
+    command could ask about: a constant in `guarding.py` a test asserted a fixture against.
+
+    RK1242 raised that constant by 23% to fit a clause, which is a change to what every
+    adopting session pays, made by editing a literal. RK30's own argument one surface over:
+    a limit nobody counts is a limit that moves."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "the session-start notice" in printed
+    # Beside the room, which is RK345's pairing everywhere else: a limit that reaches an
+    # author only as a refusal is the verdict-after-the-prose this project exists to replace.
+    assert "of 320" in printed
+
+
+def test_the_notice_shares_the_cadence_and_so_is_added(tmp_path, capsys):
+    """The rule this record keeps is that two *cadences* may not be summed. The schema and
+    the notice share one, so a reader deciding whether to cut a tool description or a
+    sentence of the notice is deciding inside one budget."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    once = json.loads(capsys.readouterr().out)["once"]
+    assert once["characters"] == once["schema"] + once["notice"]
+    assert once["notice"] > 0 and once["notice_limit"] == 320
+    # And never added to the other cadence, which is what RK1095 refused.
+    assert "total" not in once
+
+
+def test_it_is_the_line_this_project_actually_gets(tmp_path, capsys):
+    """Measured off `announce` and never re-composed, which is `surface`'s rule: a sentence
+    reworded in `guarding.py` moves the figure, and this project's own paths are in it."""
+    from dataclasses import replace as _replace
+
+    from roadkeep.guarding import announce
+    from roadkeep.kernel.schema import width
+
+    config = budgeted(tmp_path)
+    said = announce({"cwd": str(config.root)}, config.root)
+    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["once"]["notice"] == width(
+        str(_replace(said, stale=()))
+    )
+
+
+def test_the_drift_sentence_is_not_priced_as_resident(tmp_path, capsys):
+    """RK234's sentence is deliberately over the ceiling and is not resident: it appears only
+    while a vendored copy has drifted and goes away with one `install`. What is priced is
+    what every session pays."""
+    from roadkeep.guarding import Notice
+    from roadkeep.kernel.schema import width
+
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    priced = json.loads(capsys.readouterr().out)["once"]["notice"]
+    drifted = width(str(Notice(files=("ROADMAP.md",), stale=(".claude/skills/roadkeep",))))
+    assert priced < drifted
+
+
+def test_the_ceiling_and_the_read_count_the_same_way(tmp_path):
+    """A read and a gate measuring one line two ways disagree on exactly the line carrying a
+    character outside the BMP — which is the marker this tool writes (RK430)."""
+    from roadkeep.budgeting import notice_budget
+    from roadkeep.guarding import _NOTICE_BUDGET
+
+    config = budgeted(tmp_path)
+    measured, limit = notice_budget(config)
+    assert limit == _NOTICE_BUDGET
+    assert measured <= limit
+
+
+def test_a_project_this_cannot_announce_for_pays_nothing(tmp_path):
+    """A real answer rather than a missing row, which is the same choice `--session` makes
+    about a project declaring no `[budgets]` file."""
+    from roadkeep.budgeting import notice_budget
+    from roadkeep.config import Config
+
+    assert notice_budget(Config.default(tmp_path)) == (0, None)

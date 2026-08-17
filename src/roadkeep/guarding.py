@@ -131,6 +131,11 @@ START_EVENTS = ("SessionStart",)
 #: everything this line exists to stop it re-deriving, which is worth more than the sixty
 #: characters. Sized for the longest invocation a wired project has — the committed launcher,
 #: `python .roadkeep/scripts/roadkeep.py` — rather than for the console script.
+#:
+#: Counted in **UTF-16 code units** since RK1243, which is how every other length in this
+#: package is counted (RK430) and how `budget --session` now reports this one: a read and a
+#: gate that measured the same line two ways would disagree on exactly the line carrying a
+#: character outside the BMP, which is the marker this tool writes.
 _NOTICE_BUDGET = 320
 
 #: Where a tool's input spells the file. Every key any writer uses, rather than the key

@@ -27,6 +27,7 @@ from roadkeep.budgeting import (
     body_budget,
     budget,
     file_budget,
+    notice_budget,
     non_goal_budget,
 )
 from roadkeep.config import Config, PROSE_ROLES
@@ -554,6 +555,7 @@ def _session_budget(config: Config, args: argparse.Namespace) -> int:
     # half, applied to the surface: `--tools` ranks what this returns and `--session` totals
     # it, so a change to what the handshake carries moves both or neither.
     sent = surface(config)
+    resident, limit = notice_budget(config)
     answer = Session(
         once=sent.characters,
         tools=len(sent.tools),
@@ -561,6 +563,11 @@ def _session_budget(config: Config, args: argparse.Namespace) -> int:
             (load.path, load.bytes)
             for load in (file_budget(config) if config.budgets else ())
         ),
+        # The third thing a session pays for (RK1243), and the one that had a ceiling nobody
+        # could ask about — measured off `announce`, so it is the line this project's sessions
+        # actually get rather than a second estimate of it.
+        notice=resident,
+        notice_limit=limit,
     )
 
     if args.json:
