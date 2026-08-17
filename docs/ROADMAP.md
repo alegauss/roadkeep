@@ -27,6 +27,7 @@
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK1223** (deps: —) **block add says nothing to open when the label is in the ledger but the roadmap, where the work goes, has none** — The refusal is true per file and wrong about the move, and the verb that names the fix is a different one you reach by failing again. → §RK1223
+- 📋 **RK1229** (deps: —) **A dep with a parenthesis is written, then no verb can reach the line it made unreadable** — amend accepts it, the rendered deps group closes early, and amend, retire, defer, repair and lint --fix all answer that no task carries the id. → §RK1229
 
 ## Block C — Query (consult without reading the file)
 
@@ -42,6 +43,7 @@
 - 📋 **RK1214** (deps: —) **a resolved engine that fails to import takes the whole command down instead of falling through to the next candidate** — The launcher promises a missing engine degrades to unenforced rather than to a broken session, and a checkout mid-refactor is found and then explodes. → §RK1214
 - 📋 **RK1217** (deps: —) **path.missing judges a shipped entry against today's tree, so a file later moved to another repo makes history a finding** — A ledger sentence is true about the tree that shipped it, and the only door offered rewrites that sentence. → §RK1217
 - 📋 **RK1222** (deps: —) **The gate reads a declared query for a grammar it cannot parse and never for a pathspec that answers about nothing** — RK1216 gave the read the words; the typo is in a governed file, and a claim nothing answers is what lint refuses for a pointer, a dead queue entry and a bad fence. → §RK1222
+- 📋 **RK1228** (deps: —) **Nothing reports source changed under an open task while the line stayed open** — lint --since flags a section edited without its line but not the mirror, so work that landed and passed its tests can leave the ledger with no entry at all. → §RK1228
 
 ## Block E — Adoption
 
@@ -53,6 +55,7 @@
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK1218** (deps: —) **add cannot carry the section it requires, so every filing is two commands with a dangling pointer between them** — add prints 'the pointer above resolves to nothing until then' and lint agrees: the roadmap is briefly in a state the project's own gate refuses, on every task filed. → §RK1218
+- 📋 **RK1230** (deps: —) **Nothing tells a shell caller which engine copy is the one wired to this project** — A stale copy in a different plugins root answers plausibly instead of refusing, and the only signal is a note inside an unrelated report. → §RK1230
 
 ## Block G — The editor surface (the backlog where the file is open)
 
