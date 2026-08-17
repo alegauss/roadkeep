@@ -1222,6 +1222,14 @@ _TABLE: Mapping[str, _Rule] = {
         "the wired launcher, hook and skill are rewritten from the checkout answering here; "
         "`[install] pinned` in roadkeep.toml is how a project that chose this version says so",
     ),
+    # A `compose` and not a `fix` (RK1222): what the pattern under that directory should be is
+    # the author's — which files a migration is about is the claim the query makes, and `**/*`
+    # is this tool guessing at it. The suffix is the part only they know.
+    "remaining.unmatched": _compose(
+        ("section", "amend", "{id}", "--body", "-"),
+        "the clause names a directory where `Path.glob` wants a pattern, so it reads no file "
+        "at all; `<that path>/**/*` is the shape, and which files it should reach is yours",
+    ),
     "engine.disagreement": _read(
         ("engines",),
         "three copies of this tool can be in play and they may differ; this reads all "

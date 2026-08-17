@@ -303,3 +303,64 @@ def test_a_query_that_ran_says_nothing_about_matching_no_file(tmp_path, capsys):
 
     assert main(["-C", str(root), "remaining", "RK1", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["unmatched"] == []
+
+
+# -- the gate half RK1216 left (RK1222) ---------------------------------------
+
+
+def declaring(root: Path, spec: str) -> Config:
+    """The same project with §RK1's query written as ``spec``."""
+    prose = PROSE.replace("src/*.py :: served", f"{spec} :: served")
+    project(root, prose=prose)
+    return Config.discover(root)
+
+
+def test_a_pathspec_that_is_a_directory_is_a_query_that_cannot_answer(tmp_path):
+    """Measured in pportal declaring its first two queries: `lib/src :: <regex>` reads as a
+    directory, which `Path.glob` matches as one entry that is not a file, so the whole query
+    answered `0 site(s) left in 0 file(s)` over trees holding 14 and 420 sites.
+
+    RK1216 gave the read the words. The typo is in a governed file, and a claim nothing can
+    answer is what `lint` refuses for a pointer, a dead queue entry and an unreadable fence.
+    """
+    config = declaring(tmp_path, "src")
+    (found,) = [one for one in lint(config).findings if one.code == "remaining.unmatched"]
+    assert "src" in found.message and "**/*" in found.message
+    assert found.id == "RK1"
+
+
+def test_a_pattern_is_the_authors_query_whatever_it_matches(tmp_path):
+    """The false positive this narrowing exists to avoid, and it is real: a migration whose
+    sites are *deleted* rather than rewritten ends with its pathspec matching nothing, and that
+    is the query working — the same zero, arrived at honestly. A finding there would fire on
+    the finished migration it was meant to tell apart from the typo."""
+    config = declaring(tmp_path, "src/**/*.rs")
+    assert [one for one in lint(config).findings if one.code.startswith("remaining")] == []
+
+
+def test_a_directory_that_is_gone_is_the_deleted_migration_and_not_a_typo(tmp_path):
+    """The other half of the same care. A spec naming a directory this repository does not
+    have is not a directory used as a pattern — it is a path that left, which the read already
+    says in words and which no gate should fail over."""
+    config = declaring(tmp_path, "lib")
+    assert not (tmp_path / "lib").exists()
+    assert [one for one in lint(config).findings if one.code.startswith("remaining")] == []
+
+
+def test_a_query_that_reaches_files_says_nothing(tmp_path):
+    """The rule is an exception and has to read as one: the fixture's own working query is
+    untouched, and `sites left` is work rather than a defect in a file."""
+    config = declaring(tmp_path, "src/*.py")
+    assert [one for one in lint(config).findings if one.code.startswith("remaining")] == []
+
+
+def test_the_door_leaves_the_pattern_to_the_author(tmp_path):
+    """A `compose` and not a `fix`: which files a migration is about is the claim the query
+    makes, and `**/*` appended by this tool would be it guessing at one (L4)."""
+    from roadkeep.remedying import BLANK, remedy
+
+    config = declaring(tmp_path, "src")
+    (found,) = [one for one in lint(config).findings if one.code == "remaining.unmatched"]
+    rule = remedy(found, config)
+    assert rule.kind == "compose"
+    assert BLANK in rule.doors[0].argv or "-" in rule.doors[0].argv

@@ -203,30 +203,6 @@ the rationale to learn what is left.
 
 ## Block D — The gate
 
-### §RK1222 The half RK1216 named and left to the gate
-
-RK1216 gave `remaining` the words: a pathspec that reached no file is named on the
-headline and published as `unmatched`, so a query that never ran no longer reads as a
-migration that finished. That fixes the *read* — and the read is asked by whoever is
-continuing the migration, who does not have the typo in front of them.
-
-The gate is the other half, and RK1216's design named it without taking it: a declared
-query is a claim in a governed file, and a claim nothing answers is what `lint` refuses
-everywhere else. A dangling pointer is `ref.dangling`, a dead queue entry
-`priority.dead`, an unreadable fence `remaining.format` — which this sits beside. A
-pathspec matching no file is that same statement. It is not *work outstanding*, which
-the gate is right to stay out of; it is a query that cannot answer.
-
-What has to be settled first is the false positive, and it is real. A migration whose
-sites are *deleted* rather than rewritten ends with its pathspec matching nothing, and
-that is the query working — the same zero, honestly. A finding would fire on the
-finished migration it was meant to tell apart from the typo: RK1216's confusion with the
-sign flipped.
-
-Two ways through. Fire only where the pathspec has **no glob metacharacter and names an
-extant directory**, which is the shape both measured cases had. Or make it a note rather
-than a finding, so nothing fails and the report still says it.
-
 ### §RK1228 The check that a section moved has no mirror
 
 `lint --since` already checks the shape where prose moved and the line did not: a

@@ -37,7 +37,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1222** (deps: —) **The gate reads a declared query for a grammar it cannot parse and never for a pathspec that answers about nothing** — RK1216 gave the read the words; the typo is in a governed file, and a claim nothing answers is what lint refuses for a pointer, a dead queue entry and a bad fence. → §RK1222
 - 📋 **RK1228** (deps: —) **Nothing reports source changed under an open task while the line stayed open** — lint --since flags a section edited without its line but not the mirror, so work that landed and passed its tests can leave the ledger with no entry at all. → §RK1228
 
 ## Block E — Adoption

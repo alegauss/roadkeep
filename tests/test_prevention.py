@@ -178,6 +178,10 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("priority.unmigrated", "gate", because=FILE),
     Prevented("engine.disagreement", "gate", because=FILE),
     Prevented("install.stale", "gate", because=WIRED),
+    # RK1222. `FILE` for a reason the constant states exactly: no write of this tool composes
+    # a query — the pathspec and the regex are the author's (L4, one level down), written into
+    # a rationale section as prose, so there is no door that could have refused this one.
+    Prevented("remaining.unmatched", "gate", because=FILE),
     # -- true of an earlier line because of a later write ---------------------
     Prevented("id.paused-and-open", "gate", because=LATER),
     Prevented("id.paused-and-gone", "gate", because=LATER),

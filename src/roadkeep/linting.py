@@ -2840,7 +2840,7 @@ def _orphans(
             )
         seen.setdefault(anchor, section.first)
         out.extend(_budget(prose, section, pointed=anchor in pointed, file=file))
-        out.extend(_query(section, file))
+        out.extend(_query(config, section, file))
         out.extend(_hollow(prose, section, file, pointed=anchor in pointed))
         out.extend(_promise(config, section, file))
         owners = section_owners(section, ids)
@@ -2935,7 +2935,7 @@ def _reached(anchor: str, claimed: dict[str, list[str]]) -> bool:
     )
 
 
-def _query(section: Section, file: str) -> list[Finding]:
+def _query(config: Config, section: Section, file: str) -> list[Finding]:
     """The `roadkeep-remaining` block a design may declare, held to its grammar (RK492).
 
     The backstop half of L1 for a fence: `remaining` refuses one it cannot read, but that verb
@@ -2974,7 +2974,65 @@ def _query(section: Section, file: str) -> list[Finding]:
                     section.anchor,
                 )
             )
+            continue
+        found += _directoried(config, section, file, tag)
     return found
+
+
+#: What makes a pathspec a **pattern** rather than a name (RK1222). `Path.glob`'s own three,
+#: and the whole of the narrowing below: a spec carrying one of these is a query the author
+#: wrote as a query, and a migration whose sites were deleted rather than rewritten ends with
+#: exactly such a spec matching nothing — which is the query working.
+_GLOBBED = ("*", "?", "[")
+
+
+def _directoried(
+    config: Config, section: Section, file: str, tag: str
+) -> list[Finding]:
+    """A pathspec that is a directory where a pattern was meant (RK1222).
+
+    RK1216 gave the *read* the words — `remaining` names a pathspec that reached no file, on
+    the headline and beside its own clause — and left the gate to this task, because the typo
+    is in a governed file and a claim nothing can answer is what `lint` refuses for a pointer,
+    a dead queue entry and an unreadable fence.
+
+    **The false positive is real and this is the narrowing that avoids it.** A migration whose
+    sites are *deleted* rather than rewritten ends with its pathspec matching nothing, and that
+    is the query working — the same zero, arrived at honestly. A finding on that would fire on
+    the finished migration it was meant to tell apart from the typo, which is RK1216's own
+    confusion with the sign flipped.
+
+    So this fires on one shape only, and it is the shape both measured cases had: a spec with
+    **no glob metacharacter** that names an **extant directory**. `lib/src :: <regex>` reads as
+    a directory, which `Path.glob` matches as one entry that is not a file, so the whole query
+    answered `0 site(s) left in 0 file(s)` over trees holding 14 and 420. Corrected to
+    `lib/src/**/*.c` the tool agrees exactly; nothing was wrong but the glob.
+
+    A spec that carries a metacharacter is the author's query and is left alone, whatever it
+    matches. A spec naming a directory that is *gone* is left alone too — that is the deleted
+    migration, and the read already says so in words.
+    """
+    from roadkeep.remaining import declared  # noqa: PLC0415 - RK260
+
+    out: list[Finding] = []
+    for clause in declared(section.body, tag):
+        spec = clause.pathspec
+        if any(one in spec for one in _GLOBBED):
+            continue
+        if not (config.root / spec).is_dir():
+            continue
+        out.append(
+            Finding(
+                "remaining.unmatched",
+                file,
+                f"§{section.anchor} queries `{spec}`, which is a directory: `Path.glob` "
+                f"matches it as one entry that is not a file, so this clause reads every "
+                f"file in it and finds none — `{spec}/**/*` is the pattern it was meant as",
+                section.first,
+                section.anchor,
+            )
+        )
+    return out
 
 
 def _promise(config: Config, section: Section, file: str) -> list[Finding]:

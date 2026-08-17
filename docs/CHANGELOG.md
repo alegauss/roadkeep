@@ -518,6 +518,7 @@
 - ✅ **RK1206** **Under an outline, the ref.unresolved remedy names the task id where the missing section is the anchor the line points at** — The pointer finding carries the anchor as its subject, so the door names the address that failed instead of the task id, and a sweep over an outline fixture holds the class.
 - ✅ **RK1214** **a resolved engine that fails to import takes the whole command down instead of falling through to the next candidate** — The launcher asks a candidate to run before trusting it: guard falls through on any failure, and the two modes that may write or execv probe first.
 - ✅ **RK1217** **path.missing judges a shipped entry against today's tree, so a file later moved to another repo makes history a finding** — A ledger path absent from HEAD that some commit once held is history and not drift; one still in HEAD is a deletion the gate keeps reporting.
+- ✅ **RK1222** **The gate reads a declared query for a grammar it cannot parse and never for a pathspec that answers about nothing** — remaining.unmatched fires on a pathspec with no metacharacter naming a directory that exists, which is the typo and never the migration whose sites were deleted.
 
 ## Block E — Adoption
 
