@@ -743,6 +743,7 @@
 - ✅ **RK1240** **One pinned key silences a finding and enables two refusals, added by three tasks reading it three ways** — The refusal and the note read [install] enforced, so quieting a stale surface no longer buys a guard on every write.
 - ✅ **RK1242** **The MCP tools the session-start note names never arrive, so the agent falls back to the CLI** — The session-start note names what else answers where a project declares the server and its tools never arrive.
 - ✅ **RK1244** **A three-way answer is carried as two fields, so a Notice can be built stating a pair that cannot happen** — The declared case is the prefix itself, so the second field RK1242 added is deleted rather than validated.
+- ✅ **RK1246** **Four messages carry the served prefix from four sites and nothing holds the four together** — A census holds every record carrying the served prefix against the site that fills it from the one reader.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

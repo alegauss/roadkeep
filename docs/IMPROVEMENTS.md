@@ -85,33 +85,6 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1246 The field four messages share
-
-Four records carry `served` — `Refusal`, `Notice`, `Review`, `Unattested` — each filled
-at its own site from `served_by(config.root)`. Four sites, one fact, nothing holding
-them together.
-
-Not a theory. RK479 found `Unattested` was the one **not** wired: it rendered a route a
-served session could not call, and somebody found it by reading the message. The test
-written then holds that one record, leaving the property asserted per instance by
-whoever remembered.
-
-RK1244 is the same family the other way round. RK1242 added a second field beside
-`served` on one of the four — a three-way answer stored as two — and the census in
-`test_spelling` swept both spellings and passed, because it compares what a message
-*offers* and has no opinion about what a record *holds*.
-
-So the missing instrument is a census of the carriers: every record with a `served`
-field and the site that fills it, asserted total. A fifth added tomorrow is red until
-somebody says which site fills it — `remedying`'s table over every code, `PREVENTION`
-over every finding, `SITES` over every composed command, applied to the field four
-messages share.
-
-Two things to decide. Whether the census reads the field name or a marker the records
-declare, a name being what drifts. And whether it asserts the *site* or only that one
-exists: the second is cheap and would have caught RK479, the first also catches a site
-filling it from something other than `served_by` — a case nothing has met yet.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

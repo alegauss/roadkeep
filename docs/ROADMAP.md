@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1246** (deps: —) **Four messages carry the served prefix from four sites and nothing holds the four together** — RK479 found the one that was not wired by somebody reading it, and RK1244 found the one carrying it twice. → §RK1246
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

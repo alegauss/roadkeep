@@ -121,14 +121,10 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 112 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 91 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 116 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 117 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 14 | 0 |
-| **Total** | 1 | 734 | 9 |
-
-**Next ready:**
-
-- 📋 **RK1246** (deps: —) **Four messages carry the served prefix from four sites and nothing holds the four together** — RK479 found the one that was not wired by somebody reading it, and RK1244 found the one carrying it twice. → §RK1246
+| **Total** | 0 | 735 | 9 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
