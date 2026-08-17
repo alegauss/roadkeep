@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1223 block add refuses where the heading is missing
-
-Reopening a block that shipped is ordinary: a follow-up is filed under the block it
-belongs to, and that block's heading survives only in the ledger, because `block drop`
-leaves history the heading it was filed under.
-
-So `block add J --title "…"` is the obvious move, and it answers `J is already declared
-in docs/CHANGELOG.md: nothing to open` — and writes nothing. Which is true of the
-changelog and false of the request: the roadmap, the one file the new line is about to
-go into, has no heading for J at all.
-
-The next call finds out. `add --block J` refuses with the exact command that works,
-`--organise roadmap`, so the door exists and is well named. It is just behind a second
-failure, and the verb that owns opening blocks is the one that sent you away.
-
-`block add` already reads every file to decide what to skip. When the label is declared
-somewhere but missing from a file that would take it, that is not nothing to open — it
-is a heading to open, in the files that lack it. Either open it there, or refuse with
-the same sentence `add` uses instead of a phrase that reads as "you are done here".
-
-Worth checking whether the same shape hides in `--after`: it is documented as refused
-per file, which is the same per-file truth answering a request that was about the block.
-
 ### §RK1229 A line the tool wrote and cannot repair
 
 `amend --deps` accepted `FreeWilly DD133 (Docker drops its pipe mid-build)` and wrote

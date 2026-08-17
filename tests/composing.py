@@ -87,6 +87,9 @@ FOREIGN = (
 #: statement that thirty-six others have never been run.
 SITES: tuple[Site, ...] = (
     Site("adopting.py:Created.stated", "unreached", NO_FIXTURE),
+    # RK1223. Run by `test_blocking`, which executes the `--organise` call this refusal names
+    # rather than matching it — the reading this whole file is about.
+    Site("blocking.py:BlockExists.__init__", "run"),
     # The `add` that files a task prints the `section add` closing the pointer it just made.
     Site("authoring.py:Insertion.added", "run"),
     Site("capturing.py:Capture.filing", "unreached", NO_FIXTURE),

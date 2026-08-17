@@ -85,6 +85,7 @@ from roadkeep.kernel.document import (
     save_all,
 )
 from roadkeep.kernel.schema import Schema
+from roadkeep.provenance import invocation
 
 __all__ = [
     "BlockExists",
@@ -200,13 +201,45 @@ class BlockExists(ValueError):
     Reported as a refusal rather than a silent success, because a caller reaching for this
     verb believes the block is missing — and a command that exits 0 having written nothing
     teaches that it wrote something.
+
+    **And the files that lack it are named, with the flag that reaches them** (RK1223).
+    Reopening a shipped block is ordinary: a follow-up is filed under the block it belongs to,
+    and that block's heading survives only in the ledger, because `drop_block` leaves history
+    the heading it was filed under. So `block add J --title "…"` is the obvious move, and on a
+    roadmap whose own blocks have all been withdrawn it answered *`J is already declared in
+    docs/CHANGELOG.md: nothing to open`* — true of the changelog, false of the request, and
+    reading as *you are done here* about the one file the new line was about to go into.
+
+    The reason was already computed and thrown away: this verb skips a file that declares no
+    block at all, and records why — `--organise <role> writes the first one`. That row went
+    into :attr:`Opened.skipped` on the success path and nowhere on this one, so the caller
+    learned it from the *next* command's refusal instead, which is a second failure to reach a
+    door this verb owns.
+
+    Named rather than opened, which is RK405's rule and is not weakened here: whether a file is
+    to be organised by blocks is a statement only the author can make, and a heading composed
+    into a file that has none would be this tool inventing a convention (see
+    :func:`open_block`). What changes is that the statement is *asked for* here rather than
+    somewhere else.
     """
 
-    def __init__(self, label: str, where: Sequence[str]) -> None:
+    def __init__(
+        self, label: str, where: Sequence[str], lacking: Sequence[tuple[str, str]] = ()
+    ) -> None:
         self.label = label
         self.where = tuple(where)
+        #: `(file, role)` per governed file that would take the heading and declares no block.
+        self.lacking = tuple(lacking)
+        said = f"{label} is already declared in {', '.join(self.where)}"
+        if not self.lacking:
+            super().__init__(f"{said}: nothing to open")
+            return
+        files = ", ".join(one for one, _ in self.lacking)
+        flags = " ".join(f"--organise {role}" for _, role in self.lacking)
         super().__init__(
-            f"{label} is already declared in {', '.join(self.where)}: nothing to open"
+            f"{said}, and {files} declares no block at all: that file is where the work "
+            f"goes, so this is a heading to open rather than nothing — "
+            f"`{invocation()} block add {label} --title \"<its title>\" {flags}`"
         )
 
 
@@ -1228,6 +1261,10 @@ def open_block(
     placed: dict[str, int] = {}
     rendered: dict[str, str] = {}
     skipped: list[tuple[str, str]] = []
+    #: `(file, role)` per file that declares no block and was therefore passed over. Kept
+    #: apart from `skipped` because the refusal needs the **role** to name the flag (RK1223),
+    #: and that row's prose is a sentence for a reader rather than an argument for a command.
+    lacking: list[tuple[str, str]] = []
     declared: list[str] = []
 
     readable = _readable(config)
@@ -1249,6 +1286,7 @@ def open_block(
                 skipped.append(
                     (where, f"declares no block; --organise {role} writes the first one")
                 )
+                lacking.append((where, role))
                 continue
             if not convention:
                 raise NotOrganisable(role, sorted(readable), spelling=True)
@@ -1270,7 +1308,9 @@ def open_block(
 
     if not changed:
         if declared:
-            raise BlockExists(label, declared)
+            # The skipped rows go with it (RK1223): a file that declares no block is not a
+            # file with nothing to open, it is the one file the work is about to go into.
+            raise BlockExists(label, declared, lacking)
         raise BlockExists(label, ["no file this project declares is organised by blocks"])
     return Opened(
         label=label,

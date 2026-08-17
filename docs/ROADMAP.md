@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1223** (deps: —) **block add says nothing to open when the label is in the ledger but the roadmap, where the work goes, has none** — The refusal is true per file and wrong about the move, and the verb that names the fix is a different one you reach by failing again. → §RK1223
 - 📋 **RK1229** (deps: —) **A dep with a parenthesis is written, then no verb can reach the line it made unreadable** — amend accepts it, the rendered deps group closes early, and amend, retire, defer, repair and lint --fix all answer that no task carries the id. → §RK1229
 - 📋 **RK1231** (deps: —) **renumber leaves the section heading it wrote, so an outline-ref project keeps a title naming the old id** — add --section writes the heading as title plus id, but renumber moves a section only when the ref IS the id — so under an outline the title keeps the old number. → §RK1231
 

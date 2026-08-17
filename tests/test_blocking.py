@@ -1357,3 +1357,84 @@ def test_the_retitled_file_still_lints_and_still_takes_a_write(tmp_path):
         ]
     ) == EXIT_OK
     assert "## Block B — Authoring, corrected" in read(config, ROADMAP)
+
+
+# -- a heading to open, not nothing to open (RK1223) ---------------------------
+
+
+def reopening(tmp_path: Path) -> Config:
+    """A project whose blocks have all been withdrawn from the roadmap and survive elsewhere.
+
+    Ordinary rather than contrived: `block drop` leaves the ledger the heading its history was
+    filed under, so a block whose last line shipped keeps a heading there and loses the
+    roadmap's — and a follow-up filed under it is the next thing that happens.
+    """
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "TT"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text("# Roadmap\n", encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(
+        "# Shipped\n\n## Block J\n\n- ✅ **TT1** **A symptom** — it works.\n", encoding="utf-8"
+    )
+    (tmp_path / "IMPROVEMENTS.md").write_text("# Improvements\n\n## Block J\n", encoding="utf-8")
+    return Config.discover(tmp_path)
+
+
+def test_the_refusal_names_the_file_the_work_goes_into_and_the_flag_that_reaches_it(tmp_path):
+    """`J is already declared in docs/CHANGELOG.md: nothing to open` is true of the changelog
+    and false of the request. The roadmap — the one file the new line is about to go into —
+    has no heading for J at all, and the phrase reads as *you are done here*.
+
+    The reason was already computed and thrown away: this verb records why it passes over a
+    file that declares no block, and that row reached the success path and not this one. So
+    the caller learned it from the *next* command's refusal, which is a second failure to
+    reach a door this verb owns.
+    """
+    config = reopening(tmp_path)
+    with pytest.raises(BlockExists) as refused:
+        open_block(config, "J", "Reopened")
+    said = str(refused.value)
+    assert "ROADMAP.md declares no block at all" in said
+    assert "--organise roadmap" in said
+    assert "nothing to open" not in said
+
+
+def test_the_command_the_refusal_names_is_one_that_works(tmp_path):
+    """Which is the whole point of naming it: RK14 and RK326 settled that a finding carries the
+    command that closes it, and a refusal is where that matters most."""
+    config = reopening(tmp_path)
+    opened = open_block(config, "J", "Reopened", organise=["roadmap"])
+    opened.save()
+    assert "## Block J" in (tmp_path / "ROADMAP.md").read_text(encoding="utf-8")
+    # And nothing was written twice: the two files that had it keep the heading they had.
+    assert [where for where, _ in opened.skipped] == ["CHANGELOG.md", "IMPROVEMENTS.md"]
+
+
+def test_a_label_every_file_already_declares_is_still_nothing_to_open(tmp_path):
+    """The sentence is kept for the state it is actually about: where no file lacks the
+    heading, there is nothing to open and saying so is right."""
+    config = reopening(tmp_path)
+    open_block(config, "J", "Reopened", organise=["roadmap"]).save()
+    with pytest.raises(BlockExists) as refused:
+        open_block(Config.discover(tmp_path), "J", "Reopened")
+    assert "nothing to open" in str(refused.value)
+
+
+def test_the_neighbour_refusal_is_not_the_same_shape(tmp_path):
+    """The check RK1223 asked for beside itself, and the answer is no. `--after` is documented
+    as refused per file, which is the same per-file truth — but the sentence names the file,
+    the neighbour it lacks and the labels it *does* declare, so it reads as an obstacle with
+    the information to clear it rather than as a request already satisfied."""
+    config = reopening(tmp_path)
+    open_block(config, "J", "Reopened", organise=["roadmap"]).save()
+    config = Config.discover(tmp_path)
+    (tmp_path / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block J — Reopened\n\n## Block K — Later\n", encoding="utf-8"
+    )
+    with pytest.raises(NoSuchNeighbour) as refused:
+        open_block(Config.discover(tmp_path), "L", "Third", after="K")
+    said = str(refused.value)
+    assert "declares: J" in said and "--after names a neighbour" in said
+    assert "nothing to open" not in said
