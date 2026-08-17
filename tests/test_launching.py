@@ -77,6 +77,67 @@ def test_the_vendored_directory_is_the_one_install_writes():
     assert load().VENDORED == PROJECT_ENGINE
 
 
+def test_the_home_variable_is_expanded_in_both_spellings(tmp_path, monkeypatch):
+    """RK1200. The harness passes `env` values through verbatim, and the spelling a project
+    reaches for is the one `install` writes into every hook `command` in the same file:
+    `${CLAUDE_PROJECT_DIR}/.roadkeep`. Measured on an adopting project — braces intact,
+    `Path(home)` naming nothing, resolution falling through to a neighbour's working tree that
+    was a version ahead and mid-refactor, with the guard running a traceback for part of a
+    session. Nothing said so, because a second candidate answering looks like a choice."""
+    bridge = load()
+    repo = tmp_path / "repo"
+    engine = repo / "vendored"
+    (engine / "scripts").mkdir(parents=True)
+    (engine / "scripts" / "roadkeep.py").write_text("", encoding="utf-8")
+    monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(repo))
+
+    for spelling in ("${CLAUDE_PROJECT_DIR}/vendored", "$CLAUDE_PROJECT_DIR/vendored"):
+        monkeypatch.setenv("ROADKEEP_HOME", spelling)
+        assert bridge._resolve() == engine / "scripts" / "roadkeep.py", spelling
+
+
+def test_the_project_directory_is_answered_even_where_the_environment_omits_it(
+    tmp_path, monkeypatch
+):
+    """The half a plain `expandvars` gets wrong: the harness interpolates that name into a
+    command line without necessarily exporting it, and this file already knows the answer."""
+    bridge = load()
+    repo = tmp_path / "repo"
+    (repo / ".claude" / "hooks").mkdir(parents=True)
+    engine = repo / "vendored"
+    (engine / "scripts").mkdir(parents=True)
+    (engine / "scripts" / "roadkeep.py").write_text("", encoding="utf-8")
+
+    monkeypatch.delenv("CLAUDE_PROJECT_DIR", raising=False)
+    monkeypatch.setattr(bridge, "_repo_root", lambda: repo)
+    monkeypatch.setenv("ROADKEEP_HOME", "${CLAUDE_PROJECT_DIR}/vendored")
+    assert bridge._resolve() == engine / "scripts" / "roadkeep.py"
+
+
+def test_a_variable_nothing_resolves_is_left_as_written(tmp_path, monkeypatch):
+    """Both readings fail and they fail differently: `${NOPE}/.roadkeep` names nothing and
+    falls through, while an empty expansion is `/.roadkeep` — a path at the filesystem root
+    that could exist and would then be run, which is this task's own defect wearing a fix."""
+    bridge = load()
+    repo = tmp_path / "repo"
+    (repo / ".roadkeep" / "scripts").mkdir(parents=True)
+    (repo / ".roadkeep" / "scripts" / "roadkeep.py").write_text("", encoding="utf-8")
+    monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(repo))
+    monkeypatch.delenv("NOPE", raising=False)
+
+    assert bridge._expanded("${NOPE}/x") == "${NOPE}/x"
+    monkeypatch.setenv("ROADKEEP_HOME", "${NOPE}/x")
+    # And what answers instead is the vendored copy, not a sibling nobody chose.
+    assert bridge._resolve() == repo / bridge.VENDORED / "scripts" / "roadkeep.py"
+
+
+def test_a_name_that_merely_starts_with_a_known_one_is_not_substituted(monkeypatch):
+    """`$CLAUDE_PROJECT_DIRECTORY` is not `$CLAUDE_PROJECT_DIR` with a suffix glued on."""
+    bridge = load()
+    monkeypatch.delenv("CLAUDE_PROJECT_DIRECTORY", raising=False)
+    assert bridge._expanded("$CLAUDE_PROJECT_DIRECTORY/x") == "$CLAUDE_PROJECT_DIRECTORY/x"
+
+
 def test_a_vendored_engine_outranks_a_sibling_and_yields_to_the_override(tmp_path, monkeypatch):
     """The order is the decision (RK1193): a copy the project vendored is one it *chose*, so it
     beats whatever `../roadkeep` happens to be — and `$ROADKEEP_HOME` still beats both, because
@@ -270,7 +331,10 @@ def test_it_never_clones():
         if isinstance(node, ast.ImportFrom) and node.module
     }
     # The whole standard-library surface it is allowed: no `urllib`, no `http`, no `socket`.
-    assert imported == {"__future__", "json", "os", "subprocess", "sys", "pathlib"}
+    # `re` joined it with RK1200, and the list is asserted whole precisely so that adding one
+    # is a decision somebody wrote down: it reads a variable reference out of a settings value,
+    # reaches nothing and opens nothing, which is the property this test is about.
+    assert imported == {"__future__", "json", "os", "re", "subprocess", "sys", "pathlib"}
 
 
 # -- the sentence that says where the engine is (RK1119) -----------------------

@@ -120,15 +120,15 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 2 | 159 | 2 |
 | C — Query (consult without reading the file) | 3 | 108 | 1 |
 | D — The gate | 6 | 177 | 2 |
-| E — Adoption | 3 | 88 | 1 |
+| E — Adoption | 2 | 89 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 108 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 2 | 7 | 0 |
-| **Total** | 18 | 701 | 9 |
+| **Total** | 17 | 702 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1200** (deps: —) **The committed launcher reads ROADKEEP_HOME verbatim and lists no candidate inside the repository** — install writes ${CLAUDE_PROJECT_DIR} into every hook command it emits, and a project pointing that same spelling at a vendored copy silently gets the sibling checkout instead. → §RK1200
+- 📋 **RK1203** (deps: —) **lint offers amend as the door for a path.missing on a changelog line, and amend refuses every shipped id** — The only remedy named for a ledger entry naming a moved path is a verb that cannot edit the ledger, so the finding has no reachable fix. → §RK1203
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

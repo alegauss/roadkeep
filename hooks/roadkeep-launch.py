@@ -86,6 +86,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -214,13 +215,56 @@ def _resolve() -> Path | None:
     which one they mean, and a pin nobody can step over for one command is a pin that gets
     deleted instead of used.
     """
-    home = os.environ.get("ROADKEEP_HOME")
+    home = _expanded(os.environ.get("ROADKEEP_HOME"))
     return (
         (_valid(Path(home)) if home else None)
         or _valid(_repo_root() / VENDORED)
         or _valid(_repo_root().parent / "roadkeep")
         or _cache_engine()
     )
+
+
+#: A variable reference in a settings value, in both spellings a file may carry (RK1200).
+#: Two patterns rather than one conditional group, because this file is read by people
+#: debugging a hook and a back-reference in a regex is not what they should have to parse.
+_BRACED = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}")
+_BARE = re.compile(r"\$([A-Za-z_][A-Za-z0-9_]*)")
+
+
+def _expanded(value: str | None) -> str | None:
+    """``ROADKEEP_HOME`` with its variables resolved, or it unchanged (RK1200).
+
+    The harness passes ``env`` values through **verbatim**, and the spelling a project
+    naturally reaches for is the one ``install`` writes into every hook ``command`` in the very
+    same file::
+
+        "env": { "ROADKEEP_HOME": "${CLAUDE_PROJECT_DIR}/.roadkeep" }
+
+    Measured on an adopting project: the braces arrived intact, ``Path(home)`` named nothing,
+    and resolution fell through to the sibling — a neighbour's working tree, a version ahead
+    and mid-refactor for part of a session, during which the guard denying hand edits of the
+    governed files was running a traceback. Nothing said so at any point, because a second
+    candidate answering is indistinguishable from a project that meant to use it.
+
+    ``CLAUDE_PROJECT_DIR`` is answered from :func:`_repo_root` and not only from the
+    environment, which is the half a plain ``expandvars`` gets wrong: the harness interpolates
+    it into the command line without necessarily exporting it, so the name a settings file
+    writes can be one this process cannot look up — and this file already knows the answer.
+
+    A variable nothing resolves is left **as written** rather than emptied. Both fail, and they
+    fail differently: `${NOPE}/.roadkeep` names nothing and falls through, while an empty
+    expansion is `/.roadkeep`, a path at the filesystem root that could exist and would then be
+    run. The silent-wrong-engine outcome is the one this whole task is about.
+    """
+    if not value:
+        return value
+    known = {"CLAUDE_PROJECT_DIR": str(_repo_root())}
+
+    def answer(match: "re.Match[str]") -> str:
+        name = match.group(1)
+        return known.get(name) or os.environ.get(name) or match.group(0)
+
+    return _BARE.sub(answer, _BRACED.sub(answer, value))
 
 
 def _guard(argv: list[str], payload: bytes | None) -> int:
