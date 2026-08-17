@@ -408,29 +408,3 @@ the wrong rules is the failure the note describes and does not prevent.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1220 The message that is a command, and the one that only starts like one
-
-`test_the_path_is_the_one_that_works` executes the stair a `ref.missing` refusal prints,
-in the order printed, which is the right shape: RK1149's whole claim is that the
-sequence runs. It finds the steps by taking every stderr line that starts with
-`invocation()`.
-
-Where that resolves to the bare console script — an environment where `pip install
-roadkeep` put `roadkeep.exe` on PATH, which is this developer's — the preamble
-`roadkeep: refused, nothing written:` starts with it too. `shlex.split` of the remainder
-yields `[':', 'refused,', …]`, and the walk fails on a step nobody printed. Where
-`invocation()` answers `python scripts/roadkeep.py` the preamble does not match and the
-test passes, so one commit is green in CI and red on a machine that installed the
-package. Observed both ways on one tree, minutes apart.
-
-Which half is wrong is worth settling before fixing. The test's heuristic is the loose
-one: `prog: message` is how every CLI on this platform prefixes an error, and this tool
-spells its own that way deliberately. So the steps want a marker the preamble cannot
-have — the refusal already wraps each in backticks and the reader already splits on
-them, so a step is a backticked span rather than a line beginning with a word.
-
-Worth checking beside it: whether any other test finds commands by matching
-`invocation()` at the head of a line, since the same environment decides those too.
-RK1209 is about to add a sweep that runs every composed command, and it will inherit
-whichever rule this settles.

@@ -56,8 +56,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1220** (deps: —) **A refusal preamble is spelled with the invocation, so the test that walks the stair it prints reads it as a step** — Any stderr line starting with the invocation is taken for a command, and where the console script is on PATH so is the preamble — green by whether one is installed. → §RK1220
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

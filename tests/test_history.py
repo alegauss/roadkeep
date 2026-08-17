@@ -15,6 +15,7 @@ from pathlib import Path
 
 import pytest
 
+from composing import runs
 from conftest import git, git_init, git_commit
 
 from roadkeep import claiming
@@ -1350,33 +1351,37 @@ def test_the_path_names_no_block_add_where_a_heading_already_declares_it(tmp_pat
 def test_the_path_is_the_one_that_works(tmp_path, capsys):
     """Executed and not matched, for the reason RK1149's retry is: a printed sequence whose
     order is wrong is a sequence that refuses at step two, and this one exists precisely
-    because each step in it was previously discovered by being refused."""
+    because each step in it was previously discovered by being refused.
+
+    **Through `composing.runs` since RK1220**, which is two fixes in one substitution.
+
+    The first is this test's own defect. It found its steps by taking every stderr line that
+    *starts with* `invocation()` — and where the console script is on PATH, so does
+    `roadkeep: refused, nothing written:`. `shlex.split` of the remainder yields `[':',
+    'refused,', …]` and the walk fails on a step nobody printed. Where `invocation()` answers
+    `python scripts/roadkeep.py` the preamble does not match and it passes, so one commit was
+    green in CI and red on a machine whose only difference was a `pip install`. Observed both
+    ways on one tree, minutes apart. `prog: message` is how every CLI on this platform prefixes
+    an error and this tool spells its own that way deliberately, so the *test's* heuristic is
+    the loose half: a step is a backticked span, which the preamble can never be.
+
+    The second is that it was the third hand-written copy of one instrument (RK1209). RK1149
+    executes its retry, RK1198 walks its four steps, this one walks the whole path — three
+    shapes of the same walk, with the next composed command covered by whichever session
+    remembered to write a fourth.
+
+    Swept for siblings, which is what RK1220 asked beside it, and there are none: the four
+    other places that strip `invocation()` off a string anchor on the `retry` row's own label
+    or assert a door does *not* carry the prefix, and neither reading can meet the preamble.
+    """
     config = outlined_blocks(tmp_path)
     root = str(config.root)
     typed = ["-C", root, "add", "--block", "Z", "--symptom", "A symptom", "--why", "A reason."]
     assert main(typed) == EXIT_USAGE
-    steps = [
-        shlex.split(one.strip()[len(invocation()) :])
-        for one in capsys.readouterr().err.replace("`", "\n").splitlines()
-        if one.strip().startswith(invocation())
-    ]
-    # Every refusal ends with the `report` line that files a defect against this tool, and it
-    # is spelled as an invocation like the rest — it is not a stair, so it is not walked.
-    steps = [one for one in steps if one[0] != "report"]
-    # The ellipsis stands for the caller's own prose, which only they can write (L4). Filling
-    # it in is this test's job and the order is not: each step runs as printed, in the order
-    # printed, and every one of them has to be accepted where it stands.
-    filled = {
-        "block": ["--title", "The model"],
-        "section": ["--title", "A title", "--body", "Prose enough to matter."],
-        "add": ["--symptom", "A symptom", "--why", "A reason."],
-    }
-    for step in steps:
-        again = step[: step.index("…")] if "…" in step else step
-        # The ellipsis stands where a flag was already typed as often as where none was, so
-        # the dangling `--title` goes with it rather than being answered twice.
-        again = again[:-1] if again[-1].startswith("--") else again
-        assert main(["-C", root, *again, *filled[again[0]]]) == EXIT_OK, step
+    # In the order printed, each accepted where it stands — which is what `runs` asserts step
+    # by step, and the whole claim this test is named for.
+    walked = runs(config.root, capsys.readouterr().err)
+    assert [one[0] for one in walked] == ["block", "section", "add", "section"], walked
     # And the line the path landed is one the gate has nothing to say about. Asked of this
     # block alone rather than of the file: `outlined_blocks` writes two blocks whose ledger
     # headings it never declares, which is a fixture the path being tested does not touch.
