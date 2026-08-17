@@ -118,17 +118,17 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 160 | 2 |
-| C — Query (consult without reading the file) | 2 | 109 | 1 |
+| C — Query (consult without reading the file) | 1 | 110 | 1 |
 | D — The gate | 1 | 182 | 2 |
 | E — Adoption | 1 | 90 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 109 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 9 | 0 |
-| **Total** | 7 | 713 | 9 |
+| **Total** | 6 | 714 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1225** (deps: —) **budget publishes every width a field has and not the one sentence it accepts** — A why that fits every number budget reported is still refused by why.sentences, so the verb that exists to save a composition costs one anyway. → §RK1225
+- 📋 **RK1226** (deps: —) **Nothing names the open half of a partial, only the half that shipped** — brief joins line, section and ledger but omits the recorded qualifier, so resuming a partial means subtracting one file from another to recover the remainder. → §RK1226
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

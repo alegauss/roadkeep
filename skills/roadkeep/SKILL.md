@@ -408,7 +408,11 @@ Every query takes `--json`. **`budget` is the pre-`add` read that saves a retry*
 line leaves its prose fields, derived from the id, the marker, the deps and the pointer —
 all of which are known before the first word exists. It answers in **both units**: the
 characters are what refuses, and the word aim beside them is the one a sentence can be
-composed towards, so write to the words and let the gate stay unreached. A character here
+composed towards, so write to the words and let the gate stay unreached. **And it names the
+rules that are not widths**, per field — how many sentences the field accepts and whether it
+must end in a stop — because a `why` that fits every number and arrives as two sentences is
+refused all the same, and a read that published only the figures cost the composition it
+exists to save. A character here
 is a **UTF-16 code unit**, which every payload declares and every refusal names when it
 differs from what an editor shows — the stricter of the two counts, so a line this accepts
 is one a gate written in Java, C# or JavaScript accepts too, and a status marker costs two

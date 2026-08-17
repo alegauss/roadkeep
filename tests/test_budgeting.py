@@ -1707,3 +1707,62 @@ def test_a_body_and_a_path_are_still_two_answers_to_one_question(tmp_path, capsy
     argv = ["-C", root, "budget", "--block", "A", "--body", "A body.", "--body-file", "x.md"]
     assert main(argv) == EXIT_USAGE
     assert "two answers to one question" in capsys.readouterr().err
+
+
+# -- the rules that are not widths (RK1225) ------------------------------------
+
+
+def test_the_rule_the_gate_enforces_is_published_with_the_widths(tmp_path):
+    """`budget` answered width — characters left in a field, room on the line, words under an
+    anchor — and said nothing about how many sentences the field accepts. `why` accepts one.
+
+    So a caller could compose a `why` that fits every number published and still be refused by
+    `why.sentences`, which is the verb whose entire purpose is to say so costing a composition
+    anyway. Observed shipping a partial whose outcome needed two clauses.
+    """
+    config = project(tmp_path)
+    share = budget(config, block="A").share("why")
+    assert share.sentences == 1
+    assert share.terminated
+    assert share.bounded == "1 sentence, ending in a stop"
+
+
+def test_the_rule_is_read_off_the_schema_and_not_stated_here(tmp_path):
+    """Per role, because `[rules.<role>]` switches both — a ledger written before the tool is
+    history, and a rule cannot be obeyed retroactively. `0` is *unbounded* and not *one*."""
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        "[rules.roadmap]\none_sentence = false\nterminator = false\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(LEDGER, encoding="utf-8")
+    share = budget(Config.discover(tmp_path), block="A").share("why")
+    assert share.sentences == 0 and not share.terminated
+    assert share.bounded == ""
+
+
+def test_what_the_budget_publishes_is_what_the_write_refuses(tmp_path, capsys):
+    """The claim worth holding: the published rule and the enforced one are one rule. A `why`
+    of two sentences that fits every width is refused, and the read said so first."""
+    root = str(tmp_path)
+    project(tmp_path)
+    assert main(["-C", root, "budget", "--block", "A"]) == EXIT_OK
+    assert "1 sentence, ending in a stop" in capsys.readouterr().out
+
+    # Two sentences, comfortably inside every number that read published.
+    assert main([
+        "-C", root, "add", "--block", "A",
+        "--symptom", "A symptom plainly long enough to read",
+        "--why", "One thing. And another.",
+    ]) == EXIT_USAGE
+    assert "why.sentences" in capsys.readouterr().err
+
+
+def test_the_payload_carries_the_rules_beside_the_numbers(tmp_path, capsys):
+    root = str(tmp_path)
+    project(tmp_path)
+    assert main(["-C", root, "budget", "--block", "A", "--json"]) == EXIT_OK
+    fields = {one["field"]: one for one in json.loads(capsys.readouterr().out)["fields"]}
+    assert fields["why"]["sentences"] == 1
+    assert fields["why"]["terminated"] is True

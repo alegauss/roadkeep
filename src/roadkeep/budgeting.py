@@ -172,6 +172,30 @@ class Share:
     #: answer: "153 written" about a paragraph that exists nowhere is a report about the wrong
     #: file, and the caller cannot tell the two apart from the number.
     drafted: bool = False
+    #: How many sentences this field accepts, or 0 where nothing bounds it (RK1225). A
+    #: **rule** and not a width, and it belongs here for the reason every width does: it is
+    #: knowable before a word exists and it refuses after one has been composed.
+    sentences: int = 0
+    #: Whether the field must end in a stop — the second rule over the same prose, published
+    #: with it because `--why`'s own help says *one sentence, ending in a stop* while this
+    #: read said only 200 and the line maximum. Two descriptions of one field disagreeing
+    #: about what binds it is the state RK1225 is about.
+    terminated: bool = False
+
+    @property
+    def bounded(self) -> str:
+        """The rules this field is held to beyond its width, as one clause or `""` (RK1225).
+
+        Composed here rather than at the printer for :attr:`aimed`'s reason: which rules a
+        field has is a fact about the share, and a second reader spelling them would be a
+        second answer about what `add` will refuse.
+        """
+        said = []
+        if self.sentences:
+            said.append(f"{self.sentences} sentence" + ("s" if self.sentences > 1 else ""))
+        if self.terminated:
+            said.append("ending in a stop")
+        return ", ".join(said)
 
     @property
     def left(self) -> int:
@@ -230,6 +254,10 @@ class Share:
             # Whether `taken` is the file's prose or the caller's draft (RK1190): the same
             # number means two different things and only this says which.
             "drafted": self.drafted,
+            # The rules that are not widths (RK1225). `0` is *unbounded* and not *one*, which
+            # is what a project switching `[rules.<role>] one_sentence` off gets.
+            "sentences": self.sentences,
+            "terminated": self.terminated,
             # Beside `left` and not instead of it (RK245): the characters are still what
             # refuses, and this is the same remainder in the unit an author can count.
             "room": self.room,
@@ -351,8 +379,12 @@ class Budget:
             taken = f", {share.taken} {held}{spent}" if share.taken else ""
             # The aim, beside the gate (RK185): the characters are what refuses and the words
             # are what a model can count towards, so both are stated and neither is converted.
+            # The rules beside the widths (RK1225): a `why` that fits every number here and
+            # arrives as two sentences is still refused, so a read that published only the
+            # figures cost the composition it exists to save.
+            held = f", {share.bounded}" if share.bounded else ""
             rows.append(
-                f"  {share.field:<11}{share.allowed} of {share.limit}{taken}"
+                f"  {share.field:<11}{share.allowed} of {share.limit}{taken}{held}"
                 f"  {share.aimed}{bound}"
             )
         rows += sourced(self.shares)
@@ -481,7 +513,13 @@ def budget_of(
     rather than on the task. ``None`` leaves the reading every caller before it had — the line's
     own prose, which is what `brief` wants and what an `amend` is about to replace.
     """
-    schema = schema or config.schema
+    # The **roadmap's** schema and not the base one (RK1225). `[limits.roadmap]` and
+    # `[rules.roadmap]` are what that file is held to (RK50, RK52), and `config.schema` carries
+    # neither — so on a project declaring either, this answered with numbers and rules nobody
+    # is judged by. Found publishing the sentence rule: a roadmap that had switched it off was
+    # still told `1 sentence`, and the widths beside it were wrong in the same direction. The
+    # same defect RK1199 fixed one role over, and `schema_for` is the reader both now use.
+    schema = schema or config.schema_for("roadmap")
     prose = schema.prose_budget(task)
     # The structure is derived from the budget rather than measured again: `prose_budget` is
     # the one place that renders the emptied line, and a second measurement is a second answer.
@@ -507,6 +545,12 @@ def budget_of(
             width(task.why if why is None else why),
             schema.source_of("why_max"),
             drafted=why is not None,
+            # The two rules this field has beyond its width (RK1225), read off the schema
+            # exactly as the numbers are: a `why` that fits every figure published here and is
+            # written as two sentences is still refused, which is this verb costing a
+            # composition it exists to save. Per role, because `[rules.<role>]` switches them.
+            sentences=1 if schema.one_sentence else 0,
+            terminated=schema.terminator,
         )
     )
     section, absence = _section_of(

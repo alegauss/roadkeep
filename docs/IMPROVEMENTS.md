@@ -128,30 +128,6 @@ and no entry carries, which also finds the ones already written.
 
 ## Block C — Query
 
-### §RK1225 A budget that omits a rule the gate enforces
-
-`budget` answers width: characters left in a field, room on the rendered line, words
-left under an anchor. It says nothing about how many sentences the field accepts, and
-`why` accepts one. So a caller can compose a `why` that fits every number the budget
-published and still be refused by `why.sentences` — which is the shape RK265 named,
-arriving through a different door.
-
-Observed while shipping a partial. The outcome needed two clauses; written as two
-sentences it was refused after the prose existed, and the retry cost a second
-composition of the same thought. The refusal itself is good: the second sentence does
-belong in the section the line points at. What is missing is that the constraint was
-knowable before a word was written, and the verb whose entire purpose is to say so did
-not say it.
-
-The fix is to publish the rule alongside the widths, per field: `sentences: 1` for
-`why`, whatever the schema holds for the others. It is a constant, not a measurement, so
-it costs nothing to derive and it makes the budget's answer complete rather than
-partial.
-
-Worth stating the same thing in the field's own help, where a caller reading `--why`
-sees "one sentence, ending in a stop" but reading `budget` sees only 200 and the line
-maximum. Two places that describe one field should not disagree about what binds it.
-
 ### §RK1226 A partial has two halves and one of them is an inference
 
 `ship --part` records the half that landed and leaves the line open, which is the right
