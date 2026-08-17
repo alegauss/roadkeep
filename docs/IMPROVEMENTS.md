@@ -204,29 +204,6 @@ the rationale to learn what is left.
 
 ## Block D — The gate
 
-### §RK1202 A gate whose failure looks exactly like its consent
-
-Measured in pportal on 2026-08-16. A file containing the bytes `not json at all`,
-redirected into `guard`, produces no output and exit 0. That is byte for byte what a
-governed path being allowed looks like, and what a session with no engine looks like,
-and what a payload naming an ungoverned file looks like. Four states, one answer.
-
-The cost is not hypothetical. A pportal session probed this guard by piping a payload
-from PowerShell, whose pipe does not deliver the UTF-8 the reader wants, saw exit 0, and
-wrote a project note asserting nothing denied a hand-edit there. The guard was working:
-the same payload written to a BOM-less file and redirected in gets the full denial. The
-note was wrong for four days and the design it accused was fine.
-
-The asymmetry is what makes it bad rather than merely quiet. `allow` must be silence,
-since printing `permissionDecision: "allow"` would grant a write the harness had not
-decided to grant. Nothing forces a *failure* to be silent too. A payload that will not
-parse is not a decision about a tool call; it is the gate not running, and the only
-audience is a person checking it is alive.
-
-The remedy is one line to stderr on a payload that does not parse, which the harness
-ignores and a person reads. Exit 0 should stay: a gate that fails a turn because it
-could not read its own input is the failure the launcher exists to avoid.
-
 ### §RK1203 The path.missing door on a ledger line names a verb that refuses it
 
 Found adopting Turing, whose ledger holds 755 entries written before the tool existed.

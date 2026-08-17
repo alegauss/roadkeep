@@ -37,7 +37,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1202** (deps: —) **guard exits 0 and prints nothing on a payload it could not parse, which is the answer it gives for allowed** — A gate whose refusal and whose failure are the same silence cannot be told apart by testing it, so a probe that misencodes stdin reads as proof the guard is absent. → §RK1202
 - 📋 **RK1203** (deps: —) **lint offers amend as the door for a path.missing on a changelog line, and amend refuses every shipped id** — The only remedy named for a ledger entry naming a moved path is a verb that cannot edit the ledger, so the finding has no reachable fix. → §RK1203
 - 📋 **RK1206** (deps: —) **Under an outline, the ref.unresolved remedy names the task id where the missing section is the anchor the line points at** — The finding prints the anchor and the command under it prints the id, so running it writes a section the line does not point at. → §RK1206
 - 📋 **RK1214** (deps: —) **a resolved engine that fails to import takes the whole command down instead of falling through to the next candidate** — The launcher promises a missing engine degrades to unenforced rather than to a broken session, and a checkout mid-refactor is found and then explodes. → §RK1214

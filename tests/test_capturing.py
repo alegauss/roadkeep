@@ -500,12 +500,23 @@ def test_report_never_offers_to_report_itself(tmp_path, capsys):
 
 
 def test_the_hook_is_never_given_prose_to_answer_a_protocol_with(tmp_path, capsys, monkeypatch):
-    """`guard` and `mcp` answer a harness, not an agent. A sentence on their stderr is read
-    by nobody, and on their stdout it would be a parse error."""
+    """`guard` and `mcp` answer a harness, not an agent, so the **capture offer** is withheld
+    there: an affordance whose whole point is that a session act on it is read by nobody on a
+    protocol surface, and on their stdout it would be a parse error.
+
+    Narrowed from *stderr is empty* by RK1202, and the narrowing is the finding rather than a
+    concession to it. `_may_offer`'s rule is about an agent-facing offer; the claim that the
+    stream is therefore unusable is a step further and is wrong — a guard that could not read
+    its payload has exactly one audience, a person checking the thing is alive, and telling
+    them nothing is what made a working guard look absent for four days.
+    """
     root = project(tmp_path)
     monkeypatch.setattr("sys.stdin", io.StringIO("not json at all"))
     assert main(["-C", str(root), "guard"]) == EXIT_OK
-    assert capsys.readouterr().err == ""
+    err = capsys.readouterr().err
+    assert f"{invocation()} report --symptom" not in err
+    # And what does belong there: the sentence that keeps the failure from reading as consent.
+    assert "not a write being allowed" in err
 
 
 def test_a_crash_is_printed_and_closed_with_the_offer(tmp_path, capsys, monkeypatch):

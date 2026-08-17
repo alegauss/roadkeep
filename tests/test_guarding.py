@@ -890,6 +890,63 @@ def test_a_payload_that_is_not_an_object_is_answered_with_silence(tmp_path, monk
     assert run(monkeypatch, capsys, ["Edit", ROADMAP], root) == {}
 
 
+# -- and the failure told apart from the consent (RK1202) ---------------------
+
+
+@pytest.mark.parametrize(
+    "sent, names",
+    [
+        ("not json at all", "not JSON"),
+        ("", "empty"),
+        ("[1, 2]", "not an object"),
+    ],
+    ids=["unparseable", "nothing", "wrong-shape"],
+)
+def test_a_payload_the_gate_could_not_read_says_so_on_stderr(
+    tmp_path, monkeypatch, capsys, sent, names
+):
+    """The defect. `allow` must be silence — printing `permissionDecision: "allow"` would
+    *grant* the write and wave through every permission rule the user set — so consent has to
+    be an empty stdout. Nothing forced the failure to be silent too, and it was: four states
+    (allowed, no engine, ungoverned, unreadable) with one byte-identical answer.
+
+    Measured in pportal: a session piped a payload from PowerShell, whose pipe does not deliver
+    UTF-8, saw exit 0 and filed a note asserting nothing denied a hand edit there. The guard was
+    working, the note stood for four days, and the design it accused was fine.
+    """
+    root = project(tmp_path)
+    monkeypatch.setattr("sys.stdin", io.StringIO(sent))
+    # Exit 0 stays: a gate that fails a turn because it could not read its own input is the
+    # failure the launcher exists to avoid.
+    assert main(["-C", str(root), "guard"]) == EXIT_OK
+    out, err = capsys.readouterr()
+    # stdout is untouched, because that is the channel consent is spelled in.
+    assert out == ""
+    assert names in err
+    # The clause that never varies, and the one that was missing.
+    assert "not a write being allowed" in err
+
+
+def test_the_bytes_that_arrived_are_named_so_a_mangled_pipe_is_visible(
+    tmp_path, monkeypatch, capsys
+):
+    """What tells a re-encoding pipe from an empty one: a BOM, a shell's quoting or an HTML
+    error page is recognisable from its opening, and a count alone is not."""
+    root = project(tmp_path)
+    monkeypatch.setattr("sys.stdin", io.StringIO("﻿{}"))
+    assert main(["-C", str(root), "guard"]) == EXIT_OK
+    err = capsys.readouterr().err
+    assert "3 character(s)" in err and "ufeff" in err.lower()
+
+
+def test_a_payload_the_gate_did_read_says_nothing_at_all(tmp_path, monkeypatch, capsys):
+    """The sentence is an exception and has to read as one: an ordinary allowed call is
+    silent on both streams, which is what makes the noisy case worth looking at."""
+    root = project(tmp_path)
+    assert run(monkeypatch, capsys, write(str(tmp_path / "untracked.txt")), root) == {}
+    assert capsys.readouterr().err == ""
+
+
 def test_the_command_survives_the_config_error_every_other_command_exits_on(
     tmp_path, monkeypatch, capsys
 ):

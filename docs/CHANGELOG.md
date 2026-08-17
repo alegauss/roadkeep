@@ -512,6 +512,7 @@
 - ✅ **RK1172** **The gate's checks are functions gathered by convention, each with its own signature, so adding one is invisible** — the rules are a declared domain keyed by what each reads, the reporting phase is a second list, and a test holds both — a rule _examine calls by name is a red.
 - 🗑 **RK1173** **A rule's remedy is a second table keyed by the same code, kept in step by a test rather than by the record** — superseded by RK1172: Measured after the dep: 15 rules against 56 codes, and within emits five, so a door on the rule is one door for five and a code-keyed map on it is remedying relocated.
 - ✅ **RK1192** **A launcher and skill older than the version answering are reported by nothing the gate runs** — The gate reports `install.stale` for a vendored launcher, hook or skill behind the engine answering here, naming `install`; `[install] pinned` is how a project that chose its version says so.
+- ✅ **RK1202** **guard exits 0 and prints nothing on a payload it could not parse, which is the answer it gives for allowed** — A payload the guard could not read says so on stderr, naming the bytes that arrived and that this is the gate failing rather than a write allowed; stdout and exit 0 are untouched.
 
 ## Block E — Adoption
 

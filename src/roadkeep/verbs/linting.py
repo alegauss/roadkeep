@@ -342,14 +342,94 @@ def _guard(config: Config, args: argparse.Namespace) -> int:
 
 
 def _payload() -> Mapping[str, object]:
-    """The hook payload, or nothing at all — a guard that raises denies every write."""
+    """The hook payload, or nothing at all — a guard that raises denies every write.
+
+    **And a line on stderr saying which** (RK1202). Silence is the right answer to a tool call
+    this gate declines to judge: `permissionDecision: "allow"` would *grant* the write, waving
+    through the permission rules the user set for every other file, so consent has to be an
+    empty stdout. Nothing forced the *failure* to be silent too, and it was — a payload that
+    will not parse produced no output and exit 0, byte for byte what an allowed path produces,
+    and what a session with no engine produces, and what an ungoverned file produces. Four
+    states, one answer, and the only one of them that is not a decision is this one.
+
+    Measured in pportal. A session probed its guard by piping a payload from PowerShell, whose
+    pipe does not deliver the UTF-8 this reader wants, saw exit 0 and filed a project note
+    asserting nothing denied a hand edit there. The guard was working: the same bytes written
+    to a BOM-less file and redirected in get the full denial. The note stood for four days,
+    against a design that was fine.
+
+    So the asymmetry is closed on the side that has no reason to be quiet. **Exit 0 stays** —
+    a gate that fails a turn because it could not read its own input is the failure the
+    launcher exists to avoid — and the harness ignores stderr, so the only audience is the
+    person checking the thing is alive, which is exactly who was misled.
+
+    The count and the opening bytes are named because they are what tells that person which
+    of the two happened: a re-encoding pipe delivers the wrong bytes, and an empty read
+    delivers none.
+    """
     try:
-        data = json.loads(sys.stdin.read() or "{}")
-    except (ValueError, OSError):
-        # `ValueError` covers both halves: a payload that is not JSON, and one that is not
-        # UTF-8 — stdin is strict on the way in (see `main`), and neither is worth a crash.
-        return {}
-    return data if isinstance(data, Mapping) else {}
+        raw = sys.stdin.read()
+    except (ValueError, OSError) as error:
+        # `ValueError` covers the half a `read` can fail on: stdin is strict UTF-8 on the way
+        # in (see `main`), so a payload in another encoding raises here rather than arriving
+        # substituted — which is the failure this whole function is about, one layer down.
+        return _unread(f"stdin could not be read ({error})", _ENCODING)
+    if not raw.strip():
+        return _unread("stdin was empty, so no hook payload arrived", _NOTHING)
+    try:
+        data = json.loads(raw)
+    except ValueError as error:
+        return _unread(f"stdin is not JSON ({error}); {_opening(raw)}", _ENCODING)
+    if not isinstance(data, Mapping):
+        # Valid JSON and not a payload: a list or a bare string parses and names no tool call.
+        # The bytes arrived intact, so no encoding advice — this one is the caller's shape.
+        return _unread(f"stdin is JSON but not an object; {_opening(raw)}", "")
+    return data
+
+
+#: What to try where the bytes themselves are wrong (RK1202). The measured cause: PowerShell's
+#: pipe does not deliver the UTF-8 this reader wants, and the same payload written to a
+#: BOM-less file and redirected in gets the full answer.
+_ENCODING = (
+    "A pipe that re-encodes is the usual cause, so write the payload to a UTF-8 file "
+    "without a BOM and redirect it instead of piping."
+)
+#: And where nothing arrived at all, which is not a broken pipe but a call the harness did not
+#: make. Named apart, because telling somebody to check their encoding when they typed the
+#: command by hand is advice about a problem they do not have.
+_NOTHING = (
+    "The harness sends one on stdin, so this reads as the command being run by hand; "
+    "redirect a payload in to exercise it."
+)
+
+
+def _opening(raw: str) -> str:
+    """What arrived, bounded — the fact that tells a mangled pipe from an empty one (RK1202)."""
+    head = raw[:_SHOWN].replace("\n", "\\n")
+    more = "…" if len(raw) > _SHOWN else ""
+    return f"{len(raw)} character(s) beginning {head!r}{more}"
+
+
+#: How much of an unreadable payload the sentence quotes. Enough to recognise a BOM, a shell's
+#: quoting or an HTML error page, and short enough that a hook's stderr stays one line.
+_SHOWN = 40
+
+
+def _unread(said: str, remedy: str) -> Mapping[str, object]:
+    """Say that the gate did not run, and answer as though it had nothing to say (RK1202).
+
+    Both halves matter. The empty mapping is what every caller already handles — no event, no
+    tool, no decision — so nothing downstream learns a fourth state. The sentence is what stops
+    that emptiness from being read as consent by the one reader who can act on it, and the
+    clause that never varies is the one that was missing: **this is not a write being allowed.**
+    """
+    print(
+        f"roadkeep: guard did not judge this call: {said}. This is the gate failing to read "
+        f"its input, not a write being allowed."
+        + (f" {remedy}" if remedy else ""),
+        file=sys.stderr,
+    )
+    return {}
 
 
 def declare_gate(subcommands: argparse._SubParsersAction) -> None:
