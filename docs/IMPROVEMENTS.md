@@ -126,6 +126,56 @@ The second looks right and wants checking against the arm's own claim: `--dep` a
 `--marker` move the allowance too, so honouring one and not the others makes three flags
 mean two things.
 
+### §RK1225 A budget that omits a rule the gate enforces
+
+`budget` answers width: characters left in a field, room on the rendered line, words
+left under an anchor. It says nothing about how many sentences the field accepts, and
+`why` accepts one. So a caller can compose a `why` that fits every number the budget
+published and still be refused by `why.sentences` — which is the shape RK265 named,
+arriving through a different door.
+
+Observed while shipping a partial. The outcome needed two clauses; written as two
+sentences it was refused after the prose existed, and the retry cost a second
+composition of the same thought. The refusal itself is good: the second sentence does
+belong in the section the line points at. What is missing is that the constraint was
+knowable before a word was written, and the verb whose entire purpose is to say so did
+not say it.
+
+The fix is to publish the rule alongside the widths, per field: `sentences: 1` for
+`why`, whatever the schema holds for the others. It is a constant, not a measurement, so
+it costs nothing to derive and it makes the budget's answer complete rather than
+partial.
+
+Worth stating the same thing in the field's own help, where a caller reading `--why`
+sees "one sentence, ending in a stop" but reading `budget` sees only 200 and the line
+maximum. Two places that describe one field should not disagree about what binds it.
+
+### §RK1226 A partial has two halves and one of them is an inference
+
+`ship --part` records the half that landed and leaves the line open, which is the right
+shape: the ledger gains an entry qualified by what shipped, and the roadmap keeps a task
+whose sentence is still partly true. What nothing holds is the other half.
+
+The qualifier names the landed side. Reading the ⏳ line later tells you the problem is
+not solved; reading the ledger tells you what was done. Neither tells you what remains,
+so the remainder is reconstructed by subtracting one from the other — across two files,
+from prose written for different purposes, by whoever picks the line up. That
+reconstruction happened here several sessions after the partial, and it needed the
+improvements section read in full to recover a remainder that the person shipping had
+known precisely.
+
+`brief` is where this belongs, because it already joins the line, the section and the
+ledger. Surfacing the recorded qualifier on a partial would make the subtraction
+explicit instead of implicit, and it costs a lookup the verb already performs.
+
+The stronger version is to let `--part` name the remainder as well, so the open half is
+data rather than an inference. That is a field on the entry, which is a change to the
+model and not only to a report, so it is worth deciding whether the qualifier is one
+string or two.
+
+Either way the property to keep is that resuming a partial should not require reading
+the rationale to learn what is left.
+
 ## Block D — The gate
 
 ### §RK1202 A gate whose failure looks exactly like its consent
@@ -355,6 +405,31 @@ into two.
 
 The measurement this needs first: how often a refusal is the second or third for one
 filing, which the tool sees and nobody counts.
+
+### §RK1227 The anchor a rationale cites and nothing resolves
+
+Found in Shio, filing SH763. Its rationale cited `§XVII.100` — an anchor a task had
+removed when it shipped — and `roadkeep section amend` wrote it without complaint. The
+failure surfaced two commits later as a **red JS gate** in that project, from
+`improvements-debt.test.mjs`, on a docs-only commit that had touched nothing else.
+
+The write validated everything about the prose except the one thing prose can be wrong
+about mechanically. Length: checked. Paragraph shape: checked. Whether `§XVII.100`
+resolves to a heading in the file being written: not asked, though the file is open and
+the answer is a lookup.
+
+Three properties make this worth fixing here rather than in the adopting project. It is
+**decidable** — an anchor either exists in the governed file or it does not, which is
+the same question `lint` already answers for a task line's `ref`. It is **cheap** — the
+section index is built to insert the section at all. And the alternative discovery path
+is the worst kind: a gate in somebody else's repository, red for a reason whose cause is
+three commits back in a different file, reached only by running the suite.
+
+The shape to copy is `add --ref`, which resolves before it writes and refuses naming the
+free anchors. `amend` should ask the same question of every anchor reference in the body
+it is handed, and refuse with the same list.
+
+Worth checking on the way: whether `add --section-body` has the same hole.
 
 ## Block F — The plugin
 
