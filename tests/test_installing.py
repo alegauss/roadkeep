@@ -1312,11 +1312,14 @@ def test_the_payload_carries_it_without_the_flag(tmp_path, capsys, monkeypatch):
 # -- the write a stale copy should not make (RK1235) --------------------------
 
 
-PINNED = 'prefix = "DX"\n[files]\nroadmap = "ROADMAP.md"\n[install]\npinned = true\n'
+#: A project that declared the registered plugin is the copy that should write here — the
+#: standing RK1235's refusal and RK1238's note both need, and its own key since RK1240:
+#: `pinned` is a decision about a different pair of copies entirely.
+ENFORCED = 'prefix = "DX"\n[files]\nroadmap = "ROADMAP.md"\n[install]\nenforced = true\n'
 BACKLOG = "# Roadmap\n\n## Block A\n\n"
 
 
-def _pinned(tmp_path: Path, config: str = PINNED) -> Path:
+def _enforcing(tmp_path: Path, config: str = ENFORCED) -> Path:
     (tmp_path / "roadkeep.toml").write_text(config, encoding="utf-8")
     (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
     return tmp_path
@@ -1345,7 +1348,7 @@ def test_a_write_from_a_copy_behind_the_pinned_one_is_refused(tmp_path, capsys, 
     loud. The failure is quiet: a copy behind the wired one does not fail, it agrees with a
     rule that has moved and writes a line its own version thinks legal — reported by the
     project's gate afterwards, as the file's problem rather than as the pen's."""
-    root = _pinned(tmp_path)
+    root = _enforcing(tmp_path)
     _reading(monkeypatch, _pair(plugin_version="0.1.0"))
     assert main(_added(root)) == EXIT_GATE
     # Nothing written, which is the only thing a guard before the lock is for.
@@ -1359,7 +1362,7 @@ def test_the_refusal_names_the_copy_to_run_it_through(tmp_path, capsys, monkeypa
     exists and going to find it."""
     from composing import runs
 
-    root = _pinned(tmp_path)
+    root = _enforcing(tmp_path)
     _reading(monkeypatch, _pair(plugin_version="0.1.0"))
     main(_added(root))
     said = capsys.readouterr().err
@@ -1374,7 +1377,7 @@ def test_a_project_that_declared_no_pin_is_not_guarded(tmp_path, monkeypatch):
     saying which copy is right (L6); without it, refusing would be this tool guessing at a
     setup it cannot see — a developer's checkout, a CI ref, a vendored version, all three
     legitimate and all three `behind`."""
-    root = _pinned(tmp_path, config='prefix = "DX"\n[files]\nroadmap = "ROADMAP.md"\n')
+    root = _enforcing(tmp_path, config='prefix = "DX"\n[files]\nroadmap = "ROADMAP.md"\n')
     _reading(monkeypatch, _pair(plugin_version="0.1.0"))
     assert main(_added(root)) == EXIT_OK
 
@@ -1383,7 +1386,7 @@ def test_a_modified_checkout_is_not_behind_and_still_writes(tmp_path, monkeypatc
     """The other condition, and the reason RK418's third state had to exist first. A checkout
     with uncommitted work is at no commit the plugin could match, so `behind` asserts a
     direction nothing measured — and it is where a developer lives every day."""
-    root = _pinned(tmp_path)
+    root = _enforcing(tmp_path)
     _reading(monkeypatch, _pair(modified=True))
     assert main(_added(root)) == EXIT_OK
 
@@ -1396,7 +1399,7 @@ def test_the_wiring_writes_are_how_the_pin_gets_satisfied(tmp_path, monkeypatch)
 
     _reading(monkeypatch, _pair(plugin_version="0.1.0"))
     parser = build_parser()
-    config = Config.discover(_pinned(tmp_path))
+    config = Config.discover(_enforcing(tmp_path))
     for argv in (["install"], ["init"], ["uninstall"], ["capture", "filed", "one.json", "--as", "RK1"]):
         assert _behind(config, parser.parse_args(argv)) is None, argv
 
@@ -1423,7 +1426,7 @@ def test_every_write_this_surface_has_is_guarded_or_says_why_not():
 def test_a_read_is_never_asked_which_copy_it_came_from(tmp_path, monkeypatch):
     """Reads answer from whatever copy the caller reached, which is `provenance`'s rule and
     not this one's: what is refused is a *write* judged by rules the pen does not hold."""
-    root = _pinned(tmp_path)
+    root = _enforcing(tmp_path)
     _reading(monkeypatch, _pair(plugin_version="0.1.0"))
     assert main(["-C", str(root), "list"]) == EXIT_OK
 
@@ -1532,11 +1535,11 @@ def test_the_unplaced_reading_is_the_same_verdict_with_poorer_facts(tmp_path, mo
 # -- and the gate that judged it (RK1238) -------------------------------------
 
 
-def _linted(tmp_path: Path, config: str = PINNED):
+def _linted(tmp_path: Path, config: str = ENFORCED):
     from roadkeep.config import Config
     from roadkeep.linting import lint
 
-    return lint(Config.discover(_pinned(tmp_path, config)))
+    return lint(Config.discover(_enforcing(tmp_path, config)))
 
 
 def test_a_clean_report_says_whose_clean_it_is(tmp_path, monkeypatch):
@@ -1586,7 +1589,7 @@ def test_the_note_is_printed_on_a_report_that_passes(tmp_path, monkeypatch, caps
     produces on every turn that changed nothing."""
     from composing import runs
 
-    root = _pinned(tmp_path)
+    root = _enforcing(tmp_path)
     _reading(monkeypatch, _pair(plugin_version="0.1.4"))
     assert main(["-C", str(root), "lint"]) == EXIT_OK
     printed = capsys.readouterr().out
@@ -1602,8 +1605,90 @@ def test_the_door_names_all_three_rather_than_the_update(tmp_path, monkeypatch):
     from roadkeep.remedying import remedy
 
     _reading(monkeypatch, _pair(plugin_version="0.1.4"))
-    config = Config.discover(_pinned(tmp_path))
+    config = Config.discover(_enforcing(tmp_path))
     (said,) = [one for one in _linted(tmp_path).notes if one.code == "gate.behind"]
     rule = remedy(said, config)
     assert rule.kind == "read"
     assert [one.argv for one in rule.doors] == [("engines",)]
+
+
+# -- two keys, because they are about two pairs of copies (RK1240) ------------
+
+
+BOTH = (
+    'prefix = "DX"\n[files]\nroadmap = "ROADMAP.md"\n'
+    "[install]\npinned = true\nenforced = true\n"
+)
+JUST_PINNED = 'prefix = "DX"\n[files]\nroadmap = "ROADMAP.md"\n[install]\npinned = true\n'
+
+
+def test_quieting_a_finding_does_not_buy_a_refusal_on_every_write(tmp_path, capsys, monkeypatch):
+    """The defect this splits. `pinned` is RK1192's decision about the surfaces vendored into
+    a project, measured against the engine answering; RK1235 and RK1238 borrowed it for the
+    engine measured against the registered plugin, which is a different pair of copies.
+
+    So a project that pinned to stop a finding it found noisy was being read as having asked
+    for a write refusal — and the way back was unsetting the key and taking the noise again.
+    """
+    root = _enforcing(tmp_path, config=JUST_PINNED)
+    _reading(monkeypatch, _pair(plugin_version="0.1.0"))
+    assert main(_added(root)) == EXIT_OK
+    assert [one for one in _linted(tmp_path, JUST_PINNED).notes if one.code == "gate.behind"] == []
+
+
+def test_holding_the_engine_does_not_quiet_the_surfaces(tmp_path, monkeypatch):
+    """And the other direction: `enforced` says the registered plugin is the copy that should
+    write, which says nothing about whether this project's vendored launcher, hook and skill
+    are where it wants them."""
+    from roadkeep.config import Config
+
+    config = Config.discover(_enforcing(tmp_path))
+    assert config.install_enforced and not config.install_pinned
+    # `_wired` reads `pinned` and nothing else, so the finding it silences is still live here.
+    assert not config.install_pinned
+
+
+def test_a_project_may_declare_both(tmp_path):
+    from roadkeep.config import Config
+
+    config = Config.discover(_enforcing(tmp_path, config=BOTH))
+    assert config.install_pinned and config.install_enforced
+
+
+def test_neither_key_is_on_by_default(tmp_path):
+    """Off by default is the same choice `pinned` made and for its reason: nothing changes
+    for a project that has not spoken, and it matters more here — a refusal nobody asked for
+    is worse than a finding nobody asked for."""
+    from roadkeep.config import Config
+
+    config = Config.discover(
+        _enforcing(tmp_path, config='prefix = "DX"\n[files]\nroadmap = "ROADMAP.md"\n')
+    )
+    assert not config.install_pinned and not config.install_enforced
+
+
+def test_a_value_that_is_not_a_boolean_is_refused_the_same_way_for_both(tmp_path):
+    from roadkeep.config import Config, ConfigError
+
+    for key in ("pinned", "enforced"):
+        _enforcing(
+            tmp_path,
+            config=f'prefix = "DX"\n[files]\nroadmap = "ROADMAP.md"\n[install]\n{key} = "yes"\n',
+        )
+        with pytest.raises(ConfigError) as refused:
+            Config.discover(tmp_path)
+        assert f"install.{key} must be true or false" in str(refused.value)
+
+
+def test_a_third_key_under_install_is_still_refused(tmp_path):
+    """The table stays closed, which is what makes a typo in either of these a refusal rather
+    than a setting silently off."""
+    from roadkeep.config import Config, ConfigError
+
+    _enforcing(
+        tmp_path,
+        config='prefix = "DX"\n[files]\nroadmap = "ROADMAP.md"\n[install]\nenforce = true\n',
+    )
+    with pytest.raises(ConfigError) as refused:
+        Config.discover(tmp_path)
+    assert "install.enforce" in str(refused.value)

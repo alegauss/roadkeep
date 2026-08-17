@@ -395,9 +395,12 @@ def _behind(config: Config, args: argparse.Namespace) -> int | None:
 
     * the verdict is `behind` and not merely `unpinnable` — the modified checkout is where a
       developer lives, and RK418 separated the two exactly so this could tell them apart; and
-    * `[install] pinned` is declared — that key is the project *saying* which copy is right
-      (RK1192, L6), and it is the whole standing this has. Without it, refusing would be this
-      tool guessing at a setup it cannot see.
+    * `[install] enforced` is declared — the project *saying* the registered plugin is the
+      copy that should write here (L6), and the whole standing this has. Without it, refusing
+      would be this tool guessing at a setup it cannot see. Its own key since RK1240: it read
+      `pinned` first, which is a decision about a **different pair** — the surfaces vendored
+      into a project against the engine answering — so a project that had quieted one finding
+      was being read as having asked for a refusal on every write.
 
     So it costs an attribute read on every project that has not asked, which is every project
     by default. Past that flag it costs a **version comparison**, and git only where the two
@@ -414,7 +417,7 @@ def _behind(config: Config, args: argparse.Namespace) -> int | None:
     `EXIT_GATE` and not `EXIT_USAGE`: nothing about the caller's input has to change. The
     argv is right and the copy running it is not.
     """
-    if not config.install_pinned or getattr(args, "wiring", False):
+    if not config.install_enforced or getattr(args, "wiring", False):
         return None
     from roadkeep.installing import behind, engines  # noqa: PLC0415 - RK260
 

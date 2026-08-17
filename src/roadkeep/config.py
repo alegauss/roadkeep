@@ -126,7 +126,7 @@ _TOOLS_KEYS = frozenset({"characters", "session"})
 #: `[install]` — whether this project holds its wired launcher, hook and skill at the version
 #: they are (RK1192). Its own table and not a `[rules]` entry, because every key there is a
 #: prose rule one governed *file* is not held to, and this is about the harness around them.
-_INSTALL_KEYS = frozenset({"pinned"})
+_INSTALL_KEYS = frozenset({"pinned", "enforced"})
 #: `[claims]` — how long a claim on a line reads as held (RK151). Its own table for the reason
 #: `[headings]` has one: a bare `held` beside `prefix` would read as one of the limits, and it
 #: is not a limit on any field — it is the one number in the claim mechanism that is a
@@ -470,6 +470,13 @@ class Config:
     #: It silences the *finding* and not the state: `install --check` and `engines` both
     #: still answer, because what is pinned is a decision and not a fact about the files.
     install_pinned: bool = False
+    #: `[install] enforced` — whether the engine writing here is held to the plugin the
+    #: harness registered (RK1240). A **different pair** from the one above: `pinned` is about
+    #: the surfaces vendored into this project against the engine answering, and this is about
+    #: that engine against the registered plugin. RK1235's write refusal and RK1238's gate
+    #: note read this one; borrowing `pinned` read a project that had quieted a finding as
+    #: having asked for a refusal on every write.
+    install_enforced: bool = False
     #: `[headings] permanent` — whether this project's block headings outlive the work filed
     #: under them (RK1121). Here and not on the schema: it shapes no line, it decides whether a
     #: door is offered, which is `held`'s kind of fact rather than the grammar's.
@@ -540,6 +547,7 @@ class Config:
         permanent = _permanent_headings(data.get("headings"), problems)
         standing = _standing_blocks(data.get("blocks"), problems)
         pinned = _pinned_surfaces(data.get("install"), problems)
+        enforced = _enforced_engine(data.get("install"), problems)
 
         schema = None
         if not problems:
@@ -585,6 +593,7 @@ class Config:
             permanent_headings=permanent,
             standing=standing,
             install_pinned=pinned,
+            install_enforced=enforced,
             source=source,
         )
 
@@ -937,9 +946,39 @@ def _pinned_surfaces(raw: object, problems: list[str]) -> bool:
     if not isinstance(raw, Mapping):
         return False
     _reject_unknown(raw, _INSTALL_KEYS, "install.", problems)
-    value = raw.get("pinned", False)
+    return _install_flag(raw, "pinned", problems)
+
+
+def _enforced_engine(raw: object, problems: list[str]) -> bool:
+    """`[install] enforced` — whether the engine writing here is held to the registered one.
+
+    Split from `pinned` (RK1240), and the reason is that the two are about **different pairs
+    of copies**. `pinned` is a decision about the surfaces vendored into this project against
+    the engine answering here — RK1192's subject, and what its docstring declares. RK1235's
+    write refusal and RK1238's gate note are about the engine answering here against the
+    plugin the harness registered, which is a comparison that key never mentioned.
+
+    Borrowing it read a project that had quieted one finding as having asked for a refusal on
+    every write, and in the direction that costs most: :attr:`~roadkeep.installing.Engines.
+    verdict` calls **any** version difference `behind`, so a project deliberately sitting on
+    an older vendored copy whose plugin cache moved forward was refused and sent to the copy
+    it had chosen against.
+
+    Its own key removes both. Declaring this is a project saying *the registered plugin is the
+    copy that should write here*, which is exactly the standing a refusal that names
+    `engines --invoke` needs — and off by default, so nothing fires for a project that has
+    not said so.
+    """
+    if not isinstance(raw, Mapping):
+        return False
+    return _install_flag(raw, "enforced", problems)
+
+
+def _install_flag(raw: Mapping[str, object], key: str, problems: list[str]) -> bool:
+    """One boolean under `[install]`, refused the same way for both (RK1240)."""
+    value = raw.get(key, False)
     if not isinstance(value, bool):
-        problems.append("install.pinned must be true or false")
+        problems.append(f"install.{key} must be true or false")
         return False
     return value
 

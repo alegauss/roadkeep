@@ -1407,16 +1407,16 @@ def _judged(config: Config) -> list[Note]:
     a clean summary alike (RK35) — so a clean report says *whose* clean it is.
 
     Both of RK1235's conditions and for its reasons: `behind` and never `unpinnable`, because
-    a modified checkout is where a developer lives; and only where `[install] pinned` is
-    declared, that key being the project saying which copy is right (L6) rather than this tool
-    guessing at a setup it cannot see. Filed at `roadkeep.toml`, which is where that decision
-    is written and the file a reader would open to change it.
+    a modified checkout is where a developer lives; and only where `[install] enforced` is
+    declared, that key being the project saying the registered plugin is the copy that should
+    write here (L6, RK1240) rather than this tool guessing at a setup it cannot see. Filed at
+    `roadkeep.toml`, which is where that decision is written and what a reader would open.
 
     **2 ms**, and that is why it can be on the gate at all: :func:`~roadkeep.installing.behind`
     compares versions before it asks git anything (RK1237), so the case this fires on — two
     copies at two versions — is answered without a subprocess.
     """
-    if not config.install_pinned:
+    if not config.install_enforced:
         return []
     from roadkeep.installing import behind, engines  # noqa: PLC0415 - RK260
 

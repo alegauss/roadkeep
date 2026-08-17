@@ -740,6 +740,7 @@
 - ✅ **RK1235** **A copy behind the wired one still writes, and the note that says so is read after the line has landed** — A governed write is refused where the project pinned a version and this copy is behind it, naming the copy to run it through.
 - ✅ **RK1237** **The pin guard runs three git calls in front of every write and nobody measured them** — The guard asks the version first and pays for git only where two copies claim one, which is 2 ms against 45.
 - ✅ **RK1238** **The pen is guarded against a stale copy and the gate that judges it is the same stale copy** — lint carries a gate.behind note beside its verdict on a pinned project, so a clean report says whose clean it is.
+- ✅ **RK1240** **One pinned key silences a finding and enables two refusals, added by three tasks reading it three ways** — The refusal and the note read [install] enforced, so quieting a stale surface no longer buys a guard on every write.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1240** (deps: —) **One pinned key silences a finding and enables two refusals, added by three tasks reading it three ways** — A project that pinned to quiet install.stale acquires a write refusal it never asked for, and unsetting it takes the noise back. → §RK1240
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

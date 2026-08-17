@@ -58,14 +58,16 @@ rule and not this one's. **And `engines --invoke` prints, on one line and alone,
 command that reaches the copy wired to this project** — reach for it before composing any
 shell call, because the tools here always find the right copy and a shell does not: a
 stale one in another plugins root does not fail, it agrees with a rule that has moved. On a
-project that declared `[install] pinned`, it no longer only agrees: a write from a copy
-`behind` the pinned one is **refused before the lock**, and the refusal names that read.
-Only `behind` and only where the pin was declared — a modified checkout is where a
+project that declared `[install] enforced`, it no longer only agrees: a write from a copy
+`behind` the registered plugin is **refused before the lock**, and the refusal names that
+read. Only `behind` and only where that key was declared — a modified checkout is where a
 developer lives — and `init`, `install`, `uninstall` and `capture filed` still write, being
-how a pin gets satisfied and how a defect in this tool gets filed. The **gate** says so too,
+how the wiring gets fixed and how a defect in this tool gets filed. The **gate** says so too,
 on the same two conditions: `lint` carries a `gate.behind` note beside its verdict, clean
 verdicts included, because a copy old enough to have its writes refused is old enough that
-its *pass* is that copy's pass and not the pinned one's.
+its *pass* is that copy's pass. `enforced` is **not** `pinned`: that one is about the
+surfaces vendored into a project against the engine answering, and this one about that
+engine against the registered plugin — two pairs, so two keys.
 
 `roadkeep <add|status|amend|restate|ship|retire|record|non-goal|section> --help` has the
 flags. What they guarantee, so it costs you no thought: the id, the `→ §<id>` pointer, the
