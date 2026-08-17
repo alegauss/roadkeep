@@ -725,9 +725,24 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
         if not out:
             # The one refusal the narrow read has of its own: an empty stdout here reads as a
             # command that failed quietly, and this form exists to be captured.
+            #
+            # **Both spellings, because the first address chooses the system** (RK1211). This
+            # named `I.1` by hand, on the one file with no family to read a system off — which
+            # is exactly why `next_family` answers None here at all. So one half of the command
+            # declined to guess and the other half guessed, and following the guess made the
+            # file this tool then cannot read: measured on a project holding `1` and `1.1`,
+            # offered `I.1`, which took its top levels to `1` and `I` — two systems tying at 1,
+            # RK1210's nondeterminism, entered through a message that never mentions it.
+            #
+            # Naming both is what shows the choice exists. Naming one keeps a decision that is
+            # the author's (L4, L6): a project outlining `1`, `2`, `3` is as ordinary as one
+            # outlining `I`, `II`, `III`, and every address after the first is spelled the way
+            # the first one was.
             print(
-                "roadkeep: no outline family exists yet, so none is spent — `add --ref I.1` "
-                "opens the first",
+                "roadkeep: no outline family exists yet, so none is spent — the first "
+                "address decides the system every address after it is spelled in, and that "
+                "is yours: `add --ref I.1` or `add --ref 1.1`, whichever this project "
+                "numbers in",
                 file=sys.stderr,
             )
             return EXIT_USAGE

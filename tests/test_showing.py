@@ -463,6 +463,22 @@ def test_a_project_with_no_family_yet_says_so_rather_than_printing_nothing(tmp_p
     assert "no outline family exists yet" in out.err
 
 
+def test_the_first_address_names_both_systems_because_it_chooses_one(tmp_path, capsys):
+    """RK1211. This sentence spelled `I.1` by hand, on the one file with no family to read a
+    system off — which is why `next_family` answers None here at all. One half of the command
+    declined to guess and the other half guessed, and taking the guess on a project numbering
+    `1`, `1.1` made its top levels `1` and `I`: two systems tying at 1, which is RK1210's
+    nondeterminism entered through a message that never mentions it."""
+    root = _outline(tmp_path)
+    (root / "IMPROVEMENTS.md").write_text("# Improvements\n", encoding="utf-8")
+    assert main(["-C", str(root), "anchors", "--next"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    # Both, and the reason: a first address chooses the system for every address after it,
+    # and which system a project numbers in is the project's (L4, L6).
+    assert "--ref I.1" in said and "--ref 1.1" in said
+    assert "whichever this project numbers in" in said
+
+
 # -- the neighbour a refusal never named (RK1025) ----------------------------
 
 

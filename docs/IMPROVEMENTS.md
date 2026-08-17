@@ -79,29 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1211 The one address this tool spells for you
-
-`anchors --next` on an outline with nothing in it answers *no outline family exists yet,
-so none is spent — `add --ref I.1` opens the first*. `I` is roman, and it is written
-into that sentence by hand rather than derived: the file has no family to read a system
-off, which is why `next_family` answers None here at all.
-
-So one half of this command declines to guess and the other half guesses. `numeral`
-reads roman and decimal, `spell` writes back in whichever was read, and both exist
-because the numbering is the author's (L4, L6): a project outlining `1`, `2`, `3` is as
-ordinary as one outlining `I`, `II`, `III`, and it is told to open `I.1`.
-
-Following that advice makes the file this tool then cannot read. Measured: a project
-holding `1` and `1.1` was offered `I.1`, took it, and its top levels became `1` and `I`
-— two systems tying at 1, which is RK1210's nondeterminism. The message is the door into
-that defect, and the defect is invisible from the message.
-
-Two readings are available. Naming no address — *`section add <your first family>` opens
-the outline* — costs the caller the one decision only they can make. Naming both —
-*`I.1` or `1.1`, whichever this project numbers in* — shows the choice exists, which
-today's sentence hides. What it must not do is keep one spelling: a first address
-chooses the system for every address after it, and this tool has no opinion (L4).
-
 ### §RK1216 A query that never ran, reported as a migration finished
 
 Measured in pportal on 2026-08-16, declaring the first queries that project has. Two

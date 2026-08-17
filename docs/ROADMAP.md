@@ -28,7 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1211** (deps: —) **anchors --next on an empty outline names a roman first address by hand, on a project that may number decimally** — The file has no family to read a system off, which is why next_family answers None there; the sentence beside it guesses anyway, and taking it mixes two systems. → §RK1211
 - 📋 **RK1216** (deps: —) **remaining reports 0 sites for a pathspec that matched no files, which is what it reports for work that is finished** — The count is the headline and the file tally is beside it, so a mistyped glob reads as a migration complete rather than as a query that never ran. → §RK1216
 
 ## Block D — The gate
