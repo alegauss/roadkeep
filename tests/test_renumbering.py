@@ -388,3 +388,84 @@ def test_the_renumber_payload_carries_the_list(tmp_path, capsys):
     assert main(argv) == EXIT_OK
     wrote = json.loads(capsys.readouterr().out)["wrote"]
     assert ROADMAP in wrote and IMPROVEMENTS in wrote
+
+
+# -- the heading the tool wrote is the one it renumbers (RK1231) ---------------
+
+
+OUTLINE_BOUND = (
+    'prefix = "TT"\nref_scheme = "outline"\n[files]\nroadmap = "ROADMAP.md"\n'
+    'changelog = "CHANGELOG.md"\nimprovements = "IMPROVEMENTS.md"\n'
+)
+
+
+def bound(tmp_path: Path, title: str = "A design (TT9001)") -> Config:
+    """An outline project whose heading carries the binding `add --section` composes.
+
+    Under an outline the anchor is an address and the **id in the heading is the binding**
+    (RK262) — which is the tool's own writing, not a convention an author chose.
+    """
+    (tmp_path / "roadkeep.toml").write_text(OUTLINE_BOUND, encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A\n\n"
+        "- 📋 **TT9001** (deps: —) **A symptom** — Because of a reason. → §XXVI.14\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "CHANGELOG.md").write_text("# Shipped\n\n## Block A\n", encoding="utf-8")
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        f"# Improvements\n\n## Block A\n\n### XXVI A family\n\nProse.\n\n"
+        f"### XXVI.14 {title}\n\nProse enough to matter.\n",
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_the_binding_moves_and_the_address_stays(tmp_path):
+    """Seen for real: `renumber SH9001 SH789` returned `section: null`, the line and its
+    pointer moved, and the prose file kept `### XXVI.14 … (SH9001)` — a heading naming a task
+    that does not exist. The repair was a second command, and finding it meant reading
+    `section: null` as a signal rather than as *no section was involved*.
+
+    `renumber` moves the section only `if entry.task.ref == task_id`, and under an outline the
+    ref is an address, so the branch is skipped. That branch is right about the **anchor**: an
+    outline heading is not this line's to move. The trailing `(<id>)` is a different question,
+    and one the tool answered when it wrote the id there.
+    """
+    config = bound(tmp_path)
+    moved = renumber(config, "TT9001", to="TT789")
+    moved.save()
+
+    prose = (tmp_path / "IMPROVEMENTS.md").read_text(encoding="utf-8")
+    assert "### XXVI.14 A design (TT789)" in prose
+    assert "TT9001" not in prose
+    # The address stayed, which is the half the old branch was right about.
+    assert moved.section is not None and moved.section.anchor == "XXVI.14"
+
+
+def test_the_report_names_the_anchor_and_not_the_new_id(tmp_path, capsys):
+    """Where the ref *is* the id the two are one string, and under an outline they are not —
+    so printing the id would name a heading that is not there."""
+    bound(tmp_path)
+    assert main(["-C", str(tmp_path), "renumber", "TT9001", "--to", "TT789"]) == EXIT_OK
+    assert "section  §XXVI.14" in capsys.readouterr().out
+
+
+def test_a_title_the_author_wrote_is_not_a_binding(tmp_path):
+    """`owners`' reading and not a second one: a heading that never carried this id is the
+    author's own words, and rewriting it would be this tool editing prose (L4)."""
+    config = bound(tmp_path, title="A design about TT9001 elsewhere")
+    moved = renumber(config, "TT9001", to="TT789")
+    moved.save()
+    prose = (tmp_path / "IMPROVEMENTS.md").read_text(encoding="utf-8")
+    # Untouched: the id appears in the title as prose, not as the trailing binding.
+    assert "### XXVI.14 A design about TT9001 elsewhere" in prose
+
+
+def test_an_id_scheme_project_is_unchanged(tmp_path):
+    """The branch that already worked, and the reason the two are separate functions: there
+    the anchor *is* the id, so the whole address moves and no binding was ever appended."""
+    config = project(tmp_path)
+    moved = renumber(config, "RK90", to="RK99")
+    moved.save()
+    assert moved.section is not None and moved.section.anchor == "RK99"
+    assert "§RK99" in (tmp_path / IMPROVEMENTS).read_text(encoding="utf-8")

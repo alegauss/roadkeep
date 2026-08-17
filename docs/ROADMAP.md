@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1231** (deps: —) **renumber leaves the section heading it wrote, so an outline-ref project keeps a title naming the old id** — add --section writes the heading as title plus id, but renumber moves a section only when the ref IS the id — so under an outline the title keeps the old number. → §RK1231
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1233** (deps: —) **The open half of a partial is still an inference the reader makes, where the landed half is recorded** — RK1226 put both sides on one answer and left the remainder as prose to subtract; naming it costs a decision about whether the qualifier is one string or two. → §RK1233

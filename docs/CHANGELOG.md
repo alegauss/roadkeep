@@ -221,6 +221,7 @@
 - ✅ **RK1215** **defer refuses a partially shipped line in the ledger's words about a second entry it would not write** — defer and resume take a line whose ledger entry is a half, and the gate reads that qualifier off the changelog rather than off whichever file is second.
 - ✅ **RK1223** **block add says nothing to open when the label is in the ledger but the roadmap, where the work goes, has none** — A label declared elsewhere and missing from a file that would take it is a heading to open: the refusal names that file and the --organise flag that reaches it.
 - ✅ **RK1229** **A dep with a parenthesis is written, then no verb can reach the line it made unreadable** — A dep whose rendered group does not read back, or carrying the pointer arrow, is refused at input — so the line the tool could write and no verb could reach is not written.
+- ✅ **RK1231** **renumber leaves the section heading it wrote, so an outline-ref project keeps a title naming the old id** — renumber rewrites the trailing (<id>) the tool itself wrote, leaving an outline anchor where it is, and the report names that anchor rather than the new id.
 
 ## Block C — Query
 

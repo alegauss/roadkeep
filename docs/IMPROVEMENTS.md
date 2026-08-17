@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1231 The heading the tool wrote is the one it does not renumber
-
-`add --section` composes the rationale heading itself, appending the task's id:
-`sections.py` builds `f"{title.strip()} ({task.id})"`. The id in a heading is the tool's
-own writing, not a convention an author chose.
-
-`renumber` does not maintain it. It moves the line, its deps and the section — but the
-section only `if entry.task.ref == task_id`. Under an outline ref scheme the ref is an
-address like `XXVI.14`, never the id, so that branch is skipped and the heading keeps
-the number the task no longer has. The comment beside it is right about the anchor: an
-outline heading is not this line's to move. The title is a different question, and one
-the tool already answered when it wrote the id there.
-
-Seen for real. `renumber SH9001 SH789` in an adopting project returned `section: null`,
-the line and its pointer moved, and `IMPROVEMENTS.md` kept `### XXVI.14 … (SH9001)` — a
-heading naming a task that does not exist. The repair was a second command,
-`section-amend --title`, and finding it meant reading `section: null` as a signal rather
-than as "no section was involved".
-
-Two candidate fixes, and the cheaper may be enough. Rewrite the trailing `(<id>)` on
-renumber, leaving the anchor untouched. Or have `lint` report a heading whose id no line
-and no entry carries, which also finds the ones already written.
-
 ## Block C — Query
 
 ### §RK1233 The remainder as data, not as a subtraction

@@ -52,6 +52,7 @@ from roadkeep.claiming import Held
 from roadkeep.backlog import Backlog, NotOpen, Whereabouts
 from roadkeep.config import Config
 from roadkeep.kernel.document import Document, Entry, save_all
+from roadkeep.kernel.schema import Task
 from roadkeep.ids import id_scanner, next_id
 from roadkeep.markers import refresh
 from roadkeep.sections import Section, checked, descending, find, heading_of
@@ -177,7 +178,10 @@ class Renumbering:
             f"  {self.rendered}",
         ]
         if self.section is not None:
-            rows.append(f"  section  §{self.to} → {prose}:{self.section.first}")
+            # The section's **own** anchor and not `to` (RK1231): where the ref is the id the
+            # two are the same string, and under an outline they are not — the address stayed
+            # and the binding moved, so printing the id would name a heading that is not there.
+            rows.append(f"  section  §{self.section.anchor} → {prose}:{self.section.first}")
         if self.subsections:
             rows.append(
                 f"  nested   {', '.join('§' + a for a in self.subsections)} "
@@ -274,6 +278,19 @@ def renumber(config: Config, task_id: str, to: str | None = None) -> Renumbering
     prose = _section_document(config, task_id, to) if entry.task.ref == task_id else None
     if prose is not None:
         changed["improvements"], section, subsections = prose
+    elif entry.task.ref:
+        # The **binding**, where the anchor is not the id (RK1231). Under an outline the ref is
+        # an address like `XXVI.14`, so the branch above is skipped and the heading keeps the
+        # number the task no longer has — `### XXVI.14 … (SH9001)` after `renumber SH9001
+        # SH789`, a heading naming a task that does not exist. The comment above is right that
+        # an outline heading is not this line's to move; the trailing `(<id>)` is a different
+        # question, and one this tool answered when it *wrote* the id there (RK262).
+        #
+        # Reported through the same `section` field, because it is the same fact — this write
+        # touched the design — and `section: null` was what an author had to read as a signal.
+        rebound = _rebound(config, entry.task.ref, entry.task, to)
+        if rebound is not None:
+            changed["improvements"], section = rebound
 
     derived = ()
     if "roadmap" in documents:
@@ -362,6 +379,44 @@ def _locate(
         ", ".join(config.relative(config.path(role)) for role in documents),
         Whereabouts.of(config, task_id),
     )
+
+
+def _rebound(
+    config: Config, anchor: str, task: Task, to: str
+) -> tuple[Document, Section] | None:
+    """This section's heading with the id it names moved, the address untouched (RK1231).
+
+    The half `_section_document` cannot do, and the two are deliberately not one function: that
+    one rewrites an **address**, which is only this line's to move where the anchor *is* the id;
+    this rewrites a **binding**, which is the tool's own writing wherever it appears. Under an
+    outline both facts are true of one heading and only the second travels with the id.
+
+    The binding is composed by :func:`~roadkeep.sections._bound` and never spelled here — a
+    second place that knew the `(<id>)` shape is exactly what drifts from the writer. Applied
+    to the document directly, the way its sibling applies an address, and **not** through
+    `amend`: that verb re-binds from the roadmap *on disk*, which at this moment still carries
+    the old id, so it would render `A design (SH789) (SH9001)`.
+
+    `None` where there is nothing to do: no prose file, no section at that anchor, or a heading
+    that never carried this id — an author's own title mentioning it is not a binding, which is
+    :func:`~roadkeep.sections.owners`' reading and not a second one.
+    """
+    from roadkeep.sections import _bound, owners  # noqa: PLC0415 - RK260
+
+    if not config.has("improvements") or not config.path("improvements").is_file():
+        return None
+    document = config.document("improvements")
+    section = find(document, anchor)
+    if section is None or task.id not in owners(section, document.schema.id_pattern()):
+        return None
+    bare = section.title.replace(f"({task.id})", "").strip()
+    rebound = replace(
+        section,
+        title=_bound(document.schema, anchor, bare, replace(task, id=to)),
+    )
+    return document.replace_line(
+        section.first - 1, heading_of(document.schema, rebound)
+    ), rebound
 
 
 def _section_document(
