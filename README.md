@@ -119,16 +119,16 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 159 | 2 |
 | C — Query (consult without reading the file) | 1 | 108 | 1 |
-| D — The gate | 7 | 175 | 2 |
+| D — The gate | 6 | 176 | 2 |
 | E — Adoption | 2 | 87 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 108 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 2 | 7 | 0 |
-| **Total** | 14 | 698 | 9 |
+| **Total** | 13 | 699 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1192** (deps: —) **A launcher and skill older than the version answering are reported by nothing the gate runs** — `install --check` answers it and is a command nobody thinks to run; lint fires every turn through the Stop hook, and a stale launcher is the state that leaves a session with no door in. → §RK1192
+- 📋 **RK1193** (deps: —) **Every adopting repository has to write its own installer to pin the engine it runs** — The launcher resolves an engine but nothing vendors one, so two repos now carry the same 147-line script and it will drift. → §RK1193
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

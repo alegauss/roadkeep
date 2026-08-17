@@ -339,6 +339,74 @@ def test_check_reports_the_drift_and_writes_nothing(project, source):
     assert read(project / PROJECT_SKILL) == "stale\n", "a check that repaired reports clean"
 
 
+# -- and the gate asking it, because nobody runs the check (RK1192) ------------
+
+
+def wired(project: Path) -> Path:
+    """A project installed from **the checkout that answers**, which is what the gate reads.
+
+    The `source` fixture is a copy beside the project, and `stale` re-plans from `_source()` —
+    the engine running this process — deliberately (RK1192): three copies are allowed to
+    differ and `engines` adjudicates that, so the gate compares against the one that would do
+    the writing. Installing from anywhere else makes every surface differ by its launcher
+    path, which is a true answer to a question these tests are not asking.
+    """
+    return declaring(project, CLEAN)
+
+
+def test_the_gate_reports_a_surface_the_check_would_have(project):
+    """The defect: `install --check` answers this exactly and is a command nobody thinks to
+    run. Measured on another project — a committed launcher predating RK1116 forwarded only
+    `guard` and `mcp`, the server had not connected, and the skill named that launcher as the
+    entry point. Every door shut at once, and the way out was guessing a version directory
+    under the plugin cache. `lint` fires every turn through the `Stop` hook, so it asks."""
+    from roadkeep.config import Config
+    from roadkeep.linting import lint
+
+    install(wired(project), source=HERE)
+    assert lint(Config.discover(project)).clean, "installed and clean is the starting state"
+
+    (project / PROJECT_SKILL).write_text("stale\n", encoding="utf-8")
+    report = lint(Config.discover(project))
+    (found,) = [one for one in report.findings if one.code == "install.stale"]
+    # Filed at the surface, unlike `budget.tool`: there is a path a reader can open, and it is
+    # the file that drifted.
+    assert found.file == PROJECT_SKILL
+    assert "install" in found.message
+
+
+def test_a_project_that_pinned_its_version_is_not_told_every_turn(project):
+    """The half this could not ship without. The gate fires on every turn, so a project that
+    has *decided* to sit on an older surface would be told about its own decision for as long
+    as it holds — and a finding a reader learns to skip is how a gate stops being read."""
+    from roadkeep.config import Config
+    from roadkeep.linting import lint
+
+    install(wired(project), source=HERE)
+    (project / PROJECT_SKILL).write_text("stale\n", encoding="utf-8")
+    (project / "roadkeep.toml").write_text(
+        CLEAN[0] + "\n[install]\npinned = true\n", encoding="utf-8"
+    )
+    assert lint(Config.discover(project)).clean
+
+    # It silences the finding and never the state: the check still reports the drift, because
+    # what was declared is a decision about which version to run and not that the files agree.
+    assert [s.path for s in plan(project, source=HERE).changing] == [
+        project / PROJECT_SKILL
+    ]
+
+
+def test_an_unwired_project_has_no_vendored_copy_to_be_behind(project, source):
+    """Every plugin-served project, which is most of them: there is no copy to drift, and the
+    one `is_file` that says so is what the whole check costs them."""
+    from roadkeep.config import Config
+    from roadkeep.linting import lint
+
+    declaring(project, CLEAN)
+    assert not (project / PROJECT_SKILL).exists()
+    assert lint(Config.discover(project)).clean
+
+
 def test_check_is_the_gate_and_the_exit_code_is_the_contract(project, source, capsys):
     argv = ["-C", str(project), "install", "--source", str(source)]
     assert main(argv) == 0

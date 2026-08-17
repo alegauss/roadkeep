@@ -63,6 +63,12 @@ SURFACE = "about the served schema: what spends it is a source edit, not a write
 #: grammar either — `[grammar.<role>]` is the author's declaration (L6) — and the finding is
 #: an inference over a whole file, which no single write is in a position to make.
 RULE = "about the declared rule, inferred from every record at once: no write sees the set"
+#: About a **vendored copy of this tool's own surfaces** (RK1192). Not `FILE`, which says no
+#: write composes the bytes — `install` composes exactly these — and not `LATER`, which is about
+#: a line an earlier write left correct. What makes this true is the *engine* moving past a copy
+#: that was right when it was written, which is a fact about two versions and about no record at
+#: all, so there is no write of a line that could have refused it.
+WIRED = "about a vendored surface: the install that wrote it was right, and the engine moved on"
 
 SYMPTOM = "A second symptom that is plainly long enough"
 WHY = "Because of some other reason."
@@ -171,6 +177,7 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("priority.config", "gate", because=FILE),
     Prevented("priority.unmigrated", "gate", because=FILE),
     Prevented("engine.disagreement", "gate", because=FILE),
+    Prevented("install.stale", "gate", because=WIRED),
     # -- true of an earlier line because of a later write ---------------------
     Prevented("id.paused-and-open", "gate", because=LATER),
     Prevented("id.paused-and-gone", "gate", because=LATER),

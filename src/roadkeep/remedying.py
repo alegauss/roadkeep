@@ -1200,6 +1200,15 @@ _TABLE: Mapping[str, _Rule] = {
         ("export", "--readme"),
         "the target carries no roadkeep markers, so nothing there is governed yet",
     ),
+    # A `run` and not a `read`, which is the whole point of putting this at the gate (RK1192):
+    # `install --check` reported it and nobody ran that, so the finding names the command that
+    # closes it and `repair` closes it. The plain verb, because the surfaces are written
+    # together or not at all and the variant is read off the disk rather than off a flag.
+    "install.stale": _run(
+        ("install",),
+        "the wired launcher, hook and skill are rewritten from the checkout answering here; "
+        "`[install] pinned` in roadkeep.toml is how a project that chose this version says so",
+    ),
     "engine.disagreement": _read(
         ("engines",),
         "three copies of this tool can be in play and they may differ; this reads all "

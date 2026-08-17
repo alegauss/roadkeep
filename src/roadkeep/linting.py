@@ -806,6 +806,10 @@ def _rules() -> tuple[_Rule, ...]:
         _Rule("tree", lambda scan: _paths(scan.config, scan.documents, scan.tree)),
         _Rule("governed", lambda scan: _projections(scan.config, scan.governed, scan.targets)),
         _Rule("tree", budgeted),
+        # Its own rule and not a tail of `budgeted` (RK1192): what a surface costs and whether
+        # it is the one this engine ships are two questions, and a check folded into another's
+        # return is one nobody finds by reading the list of what this gate asks.
+        _Rule("config", lambda scan: _wired(scan.config)),
     )
 
 
@@ -1311,6 +1315,63 @@ def _budgets(config: Config, tree: Tree) -> tuple[list[Finding], list[Note]]:
                 )
             )
     return out + _served(config), notes
+
+
+def _wired(config: Config) -> list[Finding]:
+    """The vendored surfaces behind the engine answering here (RK1192).
+
+    `install --check` already answers this exactly, and that is the whole problem: it is a
+    command nobody thinks to run. Nothing prompts it, no failure names it, and a project
+    reaches it only by already suspecting what it reports.
+
+    Measured on another project. Its committed launcher predated RK1116, so it forwarded
+    `guard` and `mcp` and nothing else; the MCP server had not connected; and the skill that
+    session read named that launcher as the entry point. Every door was shut at once, and the
+    way out was guessing a version directory under the plugin cache — the one route no
+    document mentions, because it is not meant to be one.
+
+    So the gate asks it, being what runs anyway: `lint` fires every turn through the `Stop`
+    hook, it already reports drift between what a file says and what this tool would write,
+    and a wired surface behind the version answering is drift of exactly that kind. The
+    remedy is `install`, which is the complete command, so `repair` closes it too.
+
+    **Against the engine answering here and never the newest one.** :func:`~roadkeep.installing.stale`
+    plans from `_source()`, the checkout this process is, so what is compared is the copy that
+    would do the writing. Three copies are allowed to differ and `engines` is what adjudicates
+    that (RK415); a second opinion here about which version is *right* would be this gate
+    taking a side in a question another verb exists to report.
+
+    **Filed at the surface**, unlike `budget.tool` one function down: there is a path a reader
+    can open, and it is the file that drifted.
+
+    Silent where nothing is vendored, which is every plugin-served project — there is no copy
+    to be behind. Silent too where `[install] pinned` says the version is the project's choice
+    (L6): a finding on every turn about a decision already taken is noise, and a gate carrying
+    noise is one that stops being read.
+
+    Cheap, and measured before it was put on a per-turn path: :func:`~roadkeep.installing.stale`
+    is **0.07 ms** unwired — one `is_file` — and **0.86 ms** wired, against RK176's 43 ms
+    floor. It declines the workflow gauge, which is the 40 ms of that, by the same field that
+    makes the workflow the adopter's after the first write.
+    """
+    if config.install_pinned:
+        return []
+    from roadkeep.installing import stale  # noqa: PLC0415 - RK260
+
+    # Every failure inside is silence, as it is for the session-start notice this shares a
+    # reader with (RK82, RK234): a gate that fails because a checkout moved is worse than one
+    # that says nothing, and `install --check` still answers on demand.
+    return [
+        Finding(
+            "install.stale",
+            where,
+            f"this surface is behind the roadkeep answering here, so a session reads a "
+            f"skill, hook or launcher older than the engine it names — "
+            f"`{invocation()} install` rewrites the ones this checkout ships",
+            subject=where,
+        )
+        for where in stale(config.root)
+    ]
 
 
 def _served(config: Config) -> list[Finding]:

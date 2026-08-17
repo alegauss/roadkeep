@@ -988,12 +988,21 @@ def _standing(base: Path) -> int | None:
     so the strict workflow is the honest one — and None again where the gate itself refused,
     because `install` writes four surfaces and a lint that raised is not a reason to write
     none of them.
+
+    **`install.stale` is not debt and is subtracted** (RK1192). The gate now reports a wired
+    surface behind the engine answering, and its remedy is this very command — so counting one
+    here would bake the work `install` is running *in order to do* into the baseline it writes,
+    and the number would go down by itself on the next push. Every other finding is the
+    project's own backlog and is exactly what a baseline is for; this one is the state that
+    ends the moment these surfaces are written.
     """
     try:
         config = Config.discover(base)
         if config.source is None:
             return None
-        return lint(config).problems
+        return sum(
+            1 for one in lint(config).findings if one.code != "install.stale"
+        )
     except (ValueError, OSError):
         return None
 

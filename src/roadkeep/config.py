@@ -103,6 +103,8 @@ _TOP_KEYS = frozenset(
         "grammar",
         # RK1180. Which labels are standing categories rather than projects.
         "blocks",
+        # RK1192. Whether the wired surfaces are held where they are, deliberately.
+        "install",
     }
 )
 #: `[grammar.<role>]` — the shape of a role's records, which L6 declared everything about
@@ -121,6 +123,10 @@ _GRAMMAR_KEYS = frozenset({"extends", "markers", "drop"})
 #: refused by the tool that grew, which is the tool whose description somebody just edited —
 #: and `budget --tools` already ranks them, so the read that composes the fix exists.
 _TOOLS_KEYS = frozenset({"characters", "session"})
+#: `[install]` — whether this project holds its wired launcher, hook and skill at the version
+#: they are (RK1192). Its own table and not a `[rules]` entry, because every key there is a
+#: prose rule one governed *file* is not held to, and this is about the harness around them.
+_INSTALL_KEYS = frozenset({"pinned"})
 #: `[claims]` — how long a claim on a line reads as held (RK151). Its own table for the reason
 #: `[headings]` has one: a bare `held` beside `prefix` would read as one of the limits, and it
 #: is not a limit on any field — it is the one number in the claim mechanism that is a
@@ -452,6 +458,18 @@ class Config:
     #: it. Per label and not `[headings] permanent`, which is the same fact about a whole project:
     #: a backlog can hold nine blocks that finish and one that never does.
     standing: frozenset[str] = frozenset()
+    #: `[install] pinned` — whether this project holds its wired surfaces at the version they
+    #: are, deliberately (RK1192). Off by default, so nothing changes for a project that has
+    #: not said, and the gate reports a launcher, hook or skill behind the engine answering
+    #: here — which is the state that leaves a session with no door in, and which until now
+    #: only `install --check` reported, a command nobody thinks to run.
+    #:
+    #: Declared by a project that has chosen its version and is not the tool's to overrule.
+    #: The alternative to this key is a finding a reader learns to skip, which is how a gate
+    #: stops being read — the same argument `[headings] permanent` makes one table over.
+    #: It silences the *finding* and not the state: `install --check` and `engines` both
+    #: still answer, because what is pinned is a decision and not a fact about the files.
+    install_pinned: bool = False
     #: `[headings] permanent` — whether this project's block headings outlive the work filed
     #: under them (RK1121). Here and not on the schema: it shapes no line, it decides whether a
     #: door is offered, which is `held`'s kind of fact rather than the grammar's.
@@ -521,6 +539,7 @@ class Config:
         held = _held(data.get("claims"), problems)
         permanent = _permanent_headings(data.get("headings"), problems)
         standing = _standing_blocks(data.get("blocks"), problems)
+        pinned = _pinned_surfaces(data.get("install"), problems)
 
         schema = None
         if not problems:
@@ -565,6 +584,7 @@ class Config:
             held=held,
             permanent_headings=permanent,
             standing=standing,
+            install_pinned=pinned,
             source=source,
         )
 
@@ -895,6 +915,31 @@ def _permanent_headings(raw: object, problems: list[str]) -> bool:
     value = raw.get("permanent", False)
     if not isinstance(value, bool):
         problems.append("headings.permanent must be true or false")
+        return False
+    return value
+
+
+def _pinned_surfaces(raw: object, problems: list[str]) -> bool:
+    """`[install] pinned` — whether this project holds its wired surfaces where they are.
+
+    The half RK1192 could not ship without. The gate now reports a launcher, hook or skill
+    behind the engine answering here, and it fires every turn through the `Stop` hook — so a
+    project that has *decided* to sit on an older surface would be told about that decision
+    on every turn for as long as it holds. A finding a reader learns to skip is how a gate
+    stops being read, which costs more than the check is worth.
+
+    Off by default, exactly as `[headings] permanent` is and for its reason: nothing changes
+    for a project that has not spoken, and the key exists so the project can. And it silences
+    the *finding* and never the state — `install --check` still reports the drift on demand
+    and `engines` still adjudicates the three copies, because what is declared here is a
+    decision about which version to run and not a claim that the files agree.
+    """
+    if not isinstance(raw, Mapping):
+        return False
+    _reject_unknown(raw, _INSTALL_KEYS, "install.", problems)
+    value = raw.get("pinned", False)
+    if not isinstance(value, bool):
+        problems.append("install.pinned must be true or false")
         return False
     return value
 

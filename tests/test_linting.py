@@ -2609,7 +2609,13 @@ def test_the_project_reading_rules_are_a_declared_domain():
     """
     from roadkeep import linting
 
-    kinds = {"tree", "role", "documents", "prose_role", "anchors", "revision", "governed"}
+    # `config` joined them with RK1192, and it is the shape the docstring above predicts: a rule
+    # that reads something new says so. `install.stale` compares the surfaces on disk against the
+    # engine answering, so it reads neither a document nor the governed tree — declaring `tree`
+    # to reuse a kind would be the implicit parameter list this field replaced, one word shorter.
+    kinds = {
+        "tree", "role", "documents", "prose_role", "anchors", "revision", "governed", "config"
+    }
     declared = {rule.reads for rule in linting._rules()}
     assert declared <= kinds, {"reads something the scan has no field for": declared - kinds}
     # Every kind is used: a name nothing declares is a shape somebody removed and left behind.

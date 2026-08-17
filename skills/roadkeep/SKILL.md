@@ -25,7 +25,12 @@ tool list rather than typing it: the whole write path and the reads a task needs
 refusals, with the fields arriving as a schema instead of flag names typed from memory.
 `init`, `adopt` and `install` run once per project and want the CLI — the last of them
 wires this file, the tools and the guard into a project running the tool from a checkout,
-and `install --check` is what holds its copy of this file in step. `install --committed`
+and `install --check` is what holds its copy of this file in step — though you will rarely
+type it, because **the gate now asks**: a vendored launcher, hook or skill behind the
+roadkeep answering here is `install.stale`, filed at that file, and `install` is what closes
+it. A project holding its version on purpose says `[install] pinned = true` and the finding
+stops; the check and `engines` still answer, a pin being a decision and not a claim that the
+files agree. `install --committed`
 wires a launcher committed to the repository instead of a path into a checkout, which is
 what reaches a session that can install no plugin and clone nothing — Claude Code on the
 web; its **guard** stands down where the harness has the plugin wired for that project, so

@@ -128,29 +128,6 @@ mean two things.
 
 ## Block D — The gate
 
-### §RK1192 The check nobody runs
-
-`install --check` already answers this exactly, and that is the problem: it is a command
-nobody thinks to run. Nothing prompts it, no failure names it, and a project only
-reaches it by already suspecting what it reports.
-
-Measured, in a session on another project. The committed launcher there predated RK1116,
-so it forwarded only `guard` and `mcp`; the MCP server had not connected; and the skill
-that session read named that launcher as the entry point. Every door was shut, and the
-way out was guessing a version directory under the plugin cache — the one route no
-document mentions, because it is not supposed to be one.
-
-The gate is what runs anyway. `lint` fires on every turn through the `Stop` hook, it
-already reports drift between what a file says and what the tool would write, and a
-wired surface behind the version answering is drift of that kind. The finding names
-`install`, which is the complete command that closes it, so `repair` closes it too.
-
-Two things to settle. **The comparison is against the answering engine and not the
-newest one**: three copies are allowed to differ and `engines` adjudicates that, so this
-must not become a second opinion about which version is right. And **a project that
-deliberately pins an older surface must be able to say so**, or the finding is noise a
-reader learns to skip — which is how a gate stops being read.
-
 ### §RK1202 A gate whose failure looks exactly like its consent
 
 Measured in pportal on 2026-08-16. A file containing the bytes `not json at all`,
