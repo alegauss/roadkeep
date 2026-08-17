@@ -57,7 +57,7 @@ from roadkeep.rendering import (
     _load_json,
     _nothing_json,
 )
-from roadkeep.serving import surface
+from roadkeep.serving import detail, surface
 from roadkeep.showing import show
 from roadkeep.verbs.declaring import (
     _DESIGNED_HELP,
@@ -355,7 +355,9 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
         return _non_goal_budget(config, args)
     if args.file is not None:
         return _file_budget(config, args)
-    if args.tools:
+    # `is not None` and not truth (RK1236): bare `--tools` is the empty string now that the
+    # flag takes a value, which is `--file`'s reading one subject over.
+    if args.tools is not None:
         return _tools_budget(config, args)
     if args.session:
         return _session_budget(config, args)
@@ -599,6 +601,25 @@ def _tools_budget(config: Config, args: argparse.Namespace) -> int:
     actually sent rather than a second estimate of it: a description reworded in `cli.py`
     moves this figure, which is the whole reason the number is worth reading.
     """
+    if args.tools:
+        # Named, so the question is which of *this* tool's fields spent the bytes (RK1236) —
+        # the one the ranking below cannot answer, and the one a caller has the moment `lint`
+        # names a tool that is over.
+        try:
+            one = detail(config, args.tools)
+        except KeyError:
+            print(
+                f"roadkeep: refused: {args.tools!r} is not a tool this project serves — "
+                f"`{invocation()} budget --tools` ranks every one, and `--json` lists them",
+                file=sys.stderr,
+            )
+            return EXIT_USAGE
+        if args.json:
+            print(json.dumps(one.payload(CHARACTER_UNIT, config.tool_characters), indent=2))
+        else:
+            print(one.stated(CHARACTER_UNIT, config.tool_characters))
+        return EXIT_OK
+
     # The same measurement `--session` totals (RK1096), so the ranking and the total cannot
     # come to disagree about what a client is sent.
     sent = surface(config)
@@ -1283,12 +1304,17 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     # is about prose a *write* is measured against; this one is about what the surface itself
     # costs a session, which is the same argument RK30 makes about a resident file and had
     # never been made about the schema this server publishes.
+    # A value and not a flag (RK1236), which is `--file`'s shape one subject over and for its
+    # reason: bare is the ranking over every tool, and named is the ranking inside one — the
+    # question a caller has the moment the gate names a tool and not before.
     budget_parser.add_argument(
         "--tools",
-        action="store_true",
+        nargs="?",
+        const="",
+        metavar="TOOL",
         help=(
-            "what this project's tool list costs a session that connects the server: the "
-            "count, the characters, and which they are"
+            "what the tool list costs a session — bare, every tool ranked; named, e.g. "
+            "ship, what each of that one's fields spent"
         ),
     )
     budget_parser.add_argument(

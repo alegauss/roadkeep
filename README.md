@@ -123,12 +123,12 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 91 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 111 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 1 | 9 | 0 |
-| **Total** | 2 | 724 | 9 |
+| H — The tool's own shape (what one verb costs to change) | 0 | 10 | 0 |
+| **Total** | 1 | 725 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1236** (deps: —) **The tool over its ceiling is named and which of its arguments spent the bytes is not** — Twice in one block the repair was a throwaway ranking script, and the first guess at the prose was wrong. → §RK1236
+- 📋 **RK1237** (deps: —) **The pin guard runs three git calls in front of every write and nobody measured them** — RK1192 measured its per-turn check before shipping it; RK1235 put this one on the write path and did not. → §RK1237
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

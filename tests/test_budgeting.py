@@ -1766,3 +1766,92 @@ def test_the_payload_carries_the_rules_beside_the_numbers(tmp_path, capsys):
     fields = {one["field"]: one for one in json.loads(capsys.readouterr().out)["fields"]}
     assert fields["why"]["sentences"] == 1
     assert fields["why"]["terminated"] is True
+
+
+# -- and which of that tool's fields spent it (RK1236) ------------------------
+
+
+def test_the_tool_that_is_over_names_the_field_that_spent_the_bytes(tmp_path, capsys):
+    """The ranking answers *which tool is over*, which is never the question a caller has at
+    that moment — `lint` already named the tool.
+
+    Measured twice in one block: RK1190 put `budget` at 2637 against 2600 and RK1233 put
+    `ship` at 2659, and both times the answer came from a throwaway script that serialised
+    each property and sorted by length. The first repair guessed the argument just added,
+    which was the smallest of six, and the ceiling was still crossed.
+    """
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools", "ship"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert printed.startswith("ship ")
+    # Every field it publishes has a row, and the description has one too — a cost with no
+    # argument to name it is still a cost.
+    assert "why" in printed and "(description)" in printed
+
+
+def test_the_rows_are_largest_first_and_in_the_units_the_gate_counts(tmp_path, capsys):
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools", "ship", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    sizes = [row["characters"] for row in payload["by_field"]]
+    assert sizes == sorted(sizes, reverse=True)
+    assert payload["unit"] == "utf-16-code-units"
+    # The same number the ranking prints for this tool, because both come off `descriptor`.
+    assert main(["-C", str(tmp_path), "budget", "--tools", "--json"]) == EXIT_OK
+    ranked = json.loads(capsys.readouterr().out)
+    (row,) = [one for one in ranked["by_tool"] if one["name"] == "ship"]
+    assert row["characters"] == payload["characters"]
+
+
+def test_the_parts_do_not_sum_to_the_total_and_the_difference_is_named(tmp_path, capsys):
+    """Deliberate and visible: a descriptor is JSON, so its name, its keys, its `required`
+    list and its brackets are bytes no argument spent. A breakdown that quietly balanced
+    would have assigned structure to whichever field rounded best."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools", "ship", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    fields = sum(row["characters"] for row in payload["by_field"])
+    assert payload["envelope"] == payload["characters"] - fields
+    assert payload["envelope"] > 0
+
+
+def test_the_row_names_the_file_the_help_string_is_edited_in(tmp_path, capsys):
+    """The address RK1192 found actionable, and the one argparse cannot give: an action
+    records no source location, so what is resolvable is the module the handler was defined
+    in — which is the module its parser is built in."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools", "ship", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["declared_in"].endswith("verbs/shipping.py")
+
+
+def test_the_room_is_stated_against_the_ceiling_that_refuses(tmp_path, capsys):
+    """`[tools] characters` is what `lint` holds a tool to, so the read that aims the next
+    cut states the same number — the pairing RK345 makes everywhere else."""
+    budgeted(tmp_path)
+    (tmp_path / "roadkeep.toml").write_text(
+        (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+        + "\n[tools]\ncharacters = 4000\n",
+        encoding="utf-8",
+    )
+    assert main(["-C", str(tmp_path), "budget", "--tools", "ship"]) == EXIT_OK
+    assert "of 4000" in capsys.readouterr().out
+
+
+def test_a_name_no_tool_answers_to_is_refused_and_says_where_the_names_are(tmp_path, capsys):
+    from composing import runs
+
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools", "shipp"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "not a tool this project serves" in said
+    # Executed as printed (RK1209): the ranking it sends the caller to is accepted, which is
+    # what makes it a door rather than a sentence.
+    assert runs(tmp_path, said) == (["budget", "--tools"],)
+
+
+def test_bare_is_still_the_ranking_over_every_tool(tmp_path, capsys):
+    """The empty string is what a value-taking flag makes of a bare one, and it is a subject
+    that was asked for — the reading `--file` already has one subject over."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--tools"]) == EXIT_OK
+    assert "tool(s) and the handshake" in capsys.readouterr().out

@@ -471,7 +471,10 @@ declares costs in lines and bytes and what is left — bare, every declared budg
 *before* editing one, never `wc` and a subtraction; `lint` is still what refuses.
 **`budget --tools` is the fifth**, and the only one about this surface rather than about
 prose: what the tool list costs a session that connects the server, in characters and by
-tool, largest first. Nothing refuses it — the number is stated so that adding a tool or a
+tool, largest first; **named — `budget --tools ship` — what each of that one tool's fields
+spent**, and the module its `help=` strings are written in, which is the question you have
+the moment `lint` says a tool is over and the ranking cannot answer. Nothing refuses it —
+the number is stated so that adding a tool or a
 sentence to a description stops looking free, which is the argument `[budgets]` makes about
 a file that loads every turn. Every
 verb that prints a section's size states **two** figures where they differ — `48 words,

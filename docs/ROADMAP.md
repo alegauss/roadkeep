@@ -40,8 +40,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1236** (deps: —) **The tool over its ceiling is named and which of its arguments spent the bytes is not** — Twice in one block the repair was a throwaway ranking script, and the first guess at the prose was wrong. → §RK1236
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

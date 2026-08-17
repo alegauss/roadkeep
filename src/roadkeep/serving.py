@@ -1061,6 +1061,113 @@ def surface(config: Config) -> Surface:
     )
 
 
+#: What the ranking calls the tool's own sentence, which is a cost with no argument to name
+#: it. Parenthesised so it cannot be mistaken for a field a caller could set.
+DESCRIPTION = "(description)"
+
+
+@dataclass(frozen=True, slots=True)
+class Detail:
+    """One tool's cost, by the field that spent it (RK1236).
+
+    :class:`Surface` ranks the tools and answers *which one is over*, which is never the
+    question a caller has at that moment — the finding already named the tool. What was
+    missing is which of its arguments the bytes went to, and twice in one block the answer
+    came from a throwaway script that serialised each property and sorted by length.
+
+    The parts do not sum to the total, deliberately and visibly: a descriptor is JSON, so its
+    name, its keys, its `required` list and its brackets are bytes no argument spent. They are
+    reported as one **envelope** row rather than distributed, because a breakdown that
+    quietly balanced would be a breakdown that had assigned structure to whichever field
+    rounded best.
+    """
+
+    name: str
+    #: Every property and the description, largest first — the ranking a caller reads.
+    parts: tuple[tuple[str, int], ...]
+    #: The whole descriptor, which is what `--tools` ranks and `lint` refuses (RK1059).
+    characters: int
+    #: The module declaring this verb's parser, which is where a `help=` string is edited.
+    where: str
+
+    @property
+    def envelope(self) -> int:
+        """The JSON around the fields: the name, the keys, the brackets, `required`."""
+        return self.characters - sum(size for _part, size in self.parts)
+
+    def stated(self, unit: str, each: int | None) -> str:
+        room = "" if each is None else f", {each - self.characters:+} of {each}"
+        rows = [f"{self.name}    {self.characters} {unit}{room}  ({self.where})"]
+        rows += [f"  {size:>6}  {part}" for part, size in self.parts]
+        rows.append(f"  {self.envelope:>6}  (the JSON around them: name, keys, required)")
+        return chr(10).join(rows)
+
+    def payload(self, unit: str, each: int | None) -> dict[str, Any]:
+        return {
+            "tool": self.name,
+            "characters": self.characters,
+            "unit": unit,
+            "each": each,
+            "declared_in": self.where,
+            "by_field": [{"field": part, "characters": size} for part, size in self.parts],
+            "envelope": self.envelope,
+        }
+
+
+def detail(config: Config, name: str) -> Detail:
+    """One published tool, ranked by what each field of it costs (RK1236).
+
+    Measured off :func:`descriptor` for :func:`surface`'s own reason: the payload itself and
+    never a second estimate of it, so a sentence reworded in `verbs/` moves this figure.
+
+    Each part is the field **as it is sent** — `json.dumps` of its schema, keyed — so the
+    numbers are in the units the ceiling counts and a row can be subtracted from the total.
+    """
+    parsers = _parsers()
+    for tool in TOOLS:
+        if tool.name != name:
+            continue
+        payload = descriptor(tool, config, parsers)
+        parts = {
+            DESCRIPTION: width(json.dumps({"description": payload["description"]},
+                                          ensure_ascii=False))
+        }
+        for field, schema in payload["inputSchema"]["properties"].items():
+            parts[field] = width(json.dumps({field: schema}, ensure_ascii=False))
+        return Detail(
+            name=name,
+            parts=tuple(sorted(parts.items(), key=lambda row: (-row[1], row[0]))),
+            characters=width(json.dumps(payload, ensure_ascii=False)),
+            where=_declared_in(tool, parsers, config),
+        )
+    raise KeyError(name)
+
+
+def _declared_in(
+    tool: Tool, parsers: Mapping[str, argparse.ArgumentParser], config: Config
+) -> str:
+    """Which file declares this verb, which is where a `help=` string is edited.
+
+    The address RK1192 found actionable, and the one argparse itself cannot give: an action
+    records no source location, so what is resolvable is the module the *handler* was defined
+    in — which is the module its parser is built in, every verb family declaring both.
+
+    Relative to the project where the engine is inside it, which is the developing checkout
+    and the only reader who can act on this at all; absolute otherwise, because a path
+    shortened against a tree it is not under would name a file that is not there.
+    """
+    handler = _subparser(tool.command, parsers).get_default("handler")
+    module = sys.modules.get(getattr(handler, "__module__", ""))
+    found = getattr(module, "__file__", None)
+    if found is None:
+        return "unknown"
+    where = Path(found).resolve()
+    try:
+        return where.relative_to(config.root).as_posix()
+    except ValueError:
+        return where.as_posix()
+
+
 def instructions() -> str:
     """What a client is told once, at the handshake (RK79, RK1060).
 

@@ -1195,10 +1195,13 @@ _TABLE: Mapping[str, _Rule] = {
         "is; this prints it beside what the resident files cost each turn, and what closes "
         "it is a verb withdrawn or a ceiling re-argued in `roadkeep.toml`",
     ),
+    # `{id}` is the tool, which this finding carries as its subject (RK1236). The ranking over
+    # every tool answers *which one is over* and the finding already said that; what the reader
+    # needs next is which of this tool's fields spent the bytes, and the file it is written in.
     "budget.tool": _read(
-        ("budget", "--tools"),
-        "one served tool is past what `[tools] characters` allows; this ranks every tool "
-        "and prints the room, and the shortening is prose in `cli.py`",
+        ("budget", "--tools", "{id}"),
+        "one served tool is past what `[tools] characters` allows; this ranks that tool's "
+        "own fields and names the module each is written in",
     ),
     # `--readme` is the row and the *target's* flag is what `_varied` swaps in (RK1110). With a
     # third projection the literal became a remedy contradicting the message above it — the

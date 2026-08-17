@@ -38,6 +38,7 @@ sequence executable without changing it.
 
 from __future__ import annotations
 
+import argparse
 import ast
 import re
 import shlex
@@ -98,6 +99,9 @@ SITES: tuple[Site, ...] = (
     # RK1235. Run by `test_installing`, which executes the read this refusal names — the
     # door that keeps a pinned project's guard from being a wall.
     Site("cli.py:_behind", "run"),
+    # RK1236. Run by `test_budgeting`, which executes the ranking this refusal names when a
+    # tool it does not serve is asked about.
+    Site("verbs/querying.py:_tools_budget", "run"),
     Site("cli.py:_crossed", "unreached", NO_FIXTURE),
     Site("cli.py:_unrecognised", "unreached", NO_FIXTURE),
     Site("config.py:_skew", "unreached", NO_FIXTURE),
@@ -297,11 +301,15 @@ def supplied(argv: list[str], *, template: bool = False) -> list[str]:
     ).choices
     parser = verbs.get(argv[0]) if argv else None
     for token in argv[1:]:
+        # Subparsers and never *any* action carrying `choices`: an option declaring a value
+        # set — `--role`, `--marker` — carries a list, and `.get` on it raises. Found by the
+        # first composed command whose verb has one (RK1236), which is the same descent
+        # `serving._parsers` makes and the reason it names the type.
         nested = next(
             (
                 one.choices.get(token)
                 for one in getattr(parser, "_actions", ())  # noqa: SLF001
-                if getattr(one, "choices", None)
+                if isinstance(one, argparse._SubParsersAction)  # noqa: SLF001
             ),
             None,
         )

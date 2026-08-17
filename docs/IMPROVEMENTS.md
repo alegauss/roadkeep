@@ -112,27 +112,3 @@ correct.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1236 The argument that spent the budget
-
-`budget --tools` ranks the served tools and prints the room each has left, which answers
-*which tool is over*. Twice in one block that was not the question being asked.
-
-Measured here both times. RK1190 put `budget` at 2637 against 2600 and RK1233 put `ship` at
-2659. In both the tool was named by the finding itself, and what was missing was **which of
-its arguments spent the bytes**. Both times the answer came from a throwaway script that
-imported `descriptor`, serialised each property and sorted by length; both times it found
-one `--help` string carrying four fifths of the overrun beside five already terse.
-
-Without it the repair is a reader guessing at their own prose. The first attempt
-shortened the argument just added, which was the smallest of the six, and the ceiling
-was still crossed; the one that worked shortened a sentence written three tasks earlier.
-
-So `--tools` grows a form taking a tool: the same ranking one level down, over one
-`inputSchema`'s properties plus the description, in the units the ceiling counts.
-Nothing new is measured — `descriptor` builds exactly what is published.
-
-To settle: whether the tool is a flag or `--tools`' own value, since `budget --tools
-ship` reads as a filter and is what a caller reaches for. And whether a row names the
-argument or the `help=` string it came from — an address a reader can open is what made
-RK1192 actionable.
