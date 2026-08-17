@@ -48,6 +48,7 @@ from roadkeep.locking import exclusive
 from roadkeep.picking import Choice, Claim, hold, pick, take
 from roadkeep.kernel.schema import Task
 from roadkeep.remaining import Clause
+from roadkeep.shipping import as_recorded
 from roadkeep.showing import View, show
 
 #: How many blocker chains a brief carries. Lower than the graph's own limit on purpose:
@@ -289,7 +290,8 @@ class Brief:
             if self.budget is None or ship.allowed != self.budget.share("why").allowed:
                 rows.append(
                     f"  shipping why {ship.left} of {ship.allowed} left on the ledger line a "
-                    f"`ship` writes, which is the limit that refuses it"
+                    f"`ship` writes, which is the limit that refuses it — less a `--part` "
+                    f"qualifier, which is structure this cannot know you will pass"
                 )
         settled = {one.dep: one for one in self.settled}
         for resolution in self.deps:
@@ -490,7 +492,16 @@ def _gather(
         shipping=None
         if view.shipped or not config.has("changelog")
         else budget_of(
-            config, task, open_line=False, schema=config.schema_for("changelog")
+            config,
+            # The task **as the ledger will hold it** and not as the roadmap holds it
+            # (RK1199): `ship` drops the deps and the pointer before it renders, so pricing
+            # the roadmap's task under the ledger's schema measured a structure ten
+            # characters wider than the line — an allowance with ten it could not spend, and
+            # a reader who trusted it and then watched `ship` accept more was told two things.
+            # Through `ship`'s own function, so the figure and the write cannot come apart.
+            as_recorded(task, config.schema.shipped_marker, None),
+            open_line=False,
+            schema=config.schema_for("changelog"),
         ),
     )
 

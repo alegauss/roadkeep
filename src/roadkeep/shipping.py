@@ -2360,7 +2360,7 @@ def _partial(
         # landed is no more entitled to the problem statement than the whole (RK142).
         raise NoOutcome(task_id, entry.task.why)
     landed = replace(
-        _as_recorded(entry.task, config.schema.shipped_marker, why), part=part
+        as_recorded(entry.task, config.schema.shipped_marker, why), part=part
     )
     insertion = place(ledger, landed, role="changelog", config=config)
     # ⏳ where the project declares it, and the line's own marker where it does not: the
@@ -2470,7 +2470,7 @@ def _depart(
     if completing is None and lines is not None:
         raise NoCompletion(task_id, where)
 
-    recorded = _as_recorded(entry.task, marker, why)
+    recorded = as_recorded(entry.task, marker, why)
     if completing is not None:
         # The same write `record amend` makes, so the same count (RK193). A completion drops
         # the qualifier *and states a different outcome*, and a wrapped entry's `why` is only
@@ -2683,12 +2683,22 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
     )
 
 
-def _as_recorded(task: Task, marker: str, why: str | None) -> Task:
+def as_recorded(task: Task, marker: str, why: str | None) -> Task:
     """The same task as the ledger states it: one marker, no deps, no pointer.
 
     The pointer is dropped because the section it names is deleted in the same command,
     and the deps because a dependency is a planning fact that a departed line has none
     left to state — both of which the ledger schema (`as_ledger`) already refuses.
+
+    **Public since RK1199**, and that is the whole of that defect. `brief` priced the ledger
+    line by handing :func:`~roadkeep.budgeting.budget_of` the *roadmap's* task under the
+    ledger's schema — and `Schema.render` appends `→ §<anchor>` whenever the task carries one,
+    the pointer being split off before the grammar's own slot loop runs. So the structure it
+    measured was ten characters wider than the line this function hands `ship`: `→ §RK1199` is
+    exactly those ten, and the figure that existed to be composed against had ten it could not
+    spend. `ref_required` is not the gate to close it with — that flag says a pointer is not
+    *demanded*, and a schema that refused to render one a line carries would stop the file
+    round-tripping (L3). The gate is this function, asked by both.
     """
     return replace(
         task,

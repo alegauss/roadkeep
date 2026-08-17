@@ -79,38 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1199 The second figure, and the ten it does not have
-
-Measured on one task, with both numbers printed by this tool about the same line and
-nothing between them changing its symptom.
-
-`brief --claim` said:
-
-    budget    why 19 of 160 left
-    shipping  why 29 of 170 left on the ledger line a `ship` writes, which is the limit
-              that refuses it
-
-The `ship` that followed said:
-
-    why: 183 characters, limit is 180 (the line's own limit of 320 leaves 299 for prose,
-    and the symptom takes 119)
-
-RK1174 put that second figure there precisely so the ceiling a ship enforces would
-arrive before the write, and 320 − 299 = 21 of structure against the roadmap line's 31
-is the difference the two verbs already agree on. The remaining ten are not: `brief`
-predicts 170 where `ship` allows 180, so it is measuring the ledger line against a
-structure ten characters wider than the one written.
-
-The direction is the safe one — under-reporting never refuses a sentence that would have
-been accepted — and it is still wrong in the way that matters. The figure exists to be
-composed against, so ten characters it does not have to spend is a clause cut for
-nothing, and a reader who trusts it and then sees `ship` allow more has been told two
-things.
-
-Worth establishing first: whether the ten are the dep annotation, which a ledger line
-does not carry and a roadmap line does, and whether the same gap appears on a `--part`
-and on a line with deps, where the structures differ again.
-
 ### §RK1210 The address decided by hash order
 
 Measured on a file whose top levels are `1`, `1.1` and `I`. Eight runs of `next_family`

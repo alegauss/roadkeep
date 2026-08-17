@@ -533,10 +533,10 @@ def test_an_indented_task_line_is_a_task_and_keeps_its_indentation():
 
 
 def test_the_ledger_entry_a_nested_line_ships_into_starts_at_column_zero():
-    from roadkeep.shipping import _as_recorded
+    from roadkeep.shipping import as_recorded
 
     nested = Task(id="RK9", status=IDEA, block="A", symptom="A symptom", why="a reason.", indent="  ")
-    assert _as_recorded(nested, SHIPPED, None).indent == ""
+    assert as_recorded(nested, SHIPPED, None).indent == ""
 
 
 @pytest.mark.parametrize("fence", ["```", "~~~", "```toml", "   ```"])

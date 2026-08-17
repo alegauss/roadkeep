@@ -564,3 +564,58 @@ def test_the_second_line_is_silent_where_the_two_agree(tmp_path, capsys):
 
     assert main(["-C", str(tmp_path), "brief", "RK4", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["shipping"] is None
+
+
+# -- and the ten that figure did not have (RK1199) -----------------------------
+
+
+def test_the_figure_is_the_line_the_ship_actually_writes(tmp_path, capsys):
+    """The defect, held as the only thing that can hold it: the prediction and the refusal,
+    asked of one line with nothing between them changing it.
+
+    `brief` priced the roadmap's task under the ledger's schema, and `Schema.render` appends
+    `→ §<anchor>` whenever the task carries one — the pointer being split off before the
+    grammar's slot loop runs, so no `drop` reaches it. Ten characters of structure the ledger
+    line does not have, in the direction that never refuses a legal sentence and is wrong
+    anyway: the figure exists to be composed against, so ten it cannot spend is a clause cut
+    for nothing.
+    """
+    from roadkeep.verbs.refusing import EXIT_USAGE
+
+    # Under the block, because this one ships: a line appended after `## Non-goals` is filed
+    # under nothing and refused for that instead of for the length being measured.
+    long = (
+        "- 📋 **RK7** (deps: RK1, RK2, RK4) **A symptom long enough that the line's own "
+        "remainder is what binds the why rather than its declared maximum** — Because. → §RK7\n"
+    )
+    config = project(
+        tmp_path, roadmap=ROADMAP.replace("\n## Non-goals", f"{long}\n## Non-goals")
+    )
+    root = str(tmp_path)
+
+    assert main(["-C", root, "brief", "RK7", "--json"]) == EXIT_OK
+    allowed = next(
+        s for s in json.loads(capsys.readouterr().out)["shipping"]["fields"]
+        if s["field"] == "why"
+    )["allowed"]
+
+    # One character past what the brief promised, and the refusal names the same number.
+    assert main(["-C", root, "ship", "RK7", "--why", "x" * (allowed + 1) + "."]) == EXIT_USAGE
+    assert f"limit is {allowed}" in capsys.readouterr().err
+    # And exactly what it promised lands, which is the half an under-report hides.
+    assert main(["-C", root, "ship", "RK7", "--why", "x" * (allowed - 1) + "."]) == EXIT_OK
+    capsys.readouterr()
+    assert "RK7" in config.path("changelog").read_text(encoding="utf-8")
+
+
+def test_the_qualifier_a_brief_cannot_know_about_is_named_and_not_folded_in(tmp_path, capsys):
+    """A `--part` is structure the caller opts into after this read, and it is not free — 18
+    characters on the measured pair. Predicting it would be a guess and staying silent is how
+    RK1199 happened, so the row says which line it priced."""
+    long = (
+        "- 📋 **RK7** (deps: RK1, RK2, RK4) **A symptom long enough that the line's own "
+        "remainder is what binds the why rather than its declared maximum** — Because. → §RK7\n"
+    )
+    project(tmp_path, roadmap=ROADMAP + long)
+    assert main(["-C", str(tmp_path), "brief", "RK7"]) == EXIT_OK
+    assert "--part" in capsys.readouterr().out

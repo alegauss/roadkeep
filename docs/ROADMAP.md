@@ -28,7 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1199** (deps: —) **The shipping allowance brief prints is ten characters narrower than the limit ship then enforces** — RK1174 put the ledger's own ceiling in front of the write, and it is measured against a structure ten wider than the line ship writes — so a clause is cut that would have fit. → §RK1199
 - 📋 **RK1210** (deps: —) **next_family answers a different free address per process where two numbering systems tie on the same file** — max breaks the tie by set iteration order, which is per-process hash randomisation, so a derived address is not a function of the bytes it is derived from. → §RK1210
 - 📋 **RK1211** (deps: —) **anchors --next on an empty outline names a roman first address by hand, on a project that may number decimally** — The file has no family to read a system off, which is why next_family answers None there; the sentence beside it guesses anyway, and taking it mixes two systems. → §RK1211
 - 📋 **RK1216** (deps: —) **remaining reports 0 sites for a pathspec that matched no files, which is what it reports for work that is finished** — The count is the headline and the file tally is beside it, so a mistyped glob reads as a migration complete rather than as a query that never ran. → §RK1216
