@@ -1044,3 +1044,122 @@ def test_the_door_leaves_the_judgement_to_the_caller(tmp_path):
     rule = remedy(said, config)
     assert rule.kind == "decide"
     assert {one.argv[0] for one in rule.doors} == {"ship", "show"}
+
+
+# -- the block that finished and nobody closed (RK1234) -----------------------
+
+
+def naming_both(first: str, second: str) -> str:
+    """Both lines of Block A carrying a section, and each naming one artefact.
+
+    The default fixture leaves §RK2 absent on purpose, which is also what keeps every test
+    above reading one note: a block holding a line with no section cannot qualify.
+    """
+    return naming_source(first) + (
+        f"\n### §RK2 The second design\n\nThe reasoning it needed, built in `{second}`.\n"
+    )
+
+
+def test_a_block_whose_every_line_moved_is_said_once_about_the_block(tmp_path):
+    """The reading RK1228's design named and left: one line moving is ordinary, and every
+    line in a block moving while none shipped is a block somebody finished and did not close.
+
+    It is what the incident actually looked like — it surfaced two blocks later, when a block
+    that should have been finished still counted one open line.
+    """
+    config = repo(tmp_path, files={"lib/one.py": "x = 1\n", "lib/two.py": "y = 1\n"})
+    write(tmp_path, "IMPROVEMENTS.md", naming_both("lib/one.py", "lib/two.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name both artefacts")
+
+    write(tmp_path, "lib/one.py", "x = 2\n")
+    write(tmp_path, "lib/two.py", "y = 2\n")
+    said = [one for one in lint(config, since="HEAD").notes if one.code == "block.worked"]
+    assert len(said) == 1, said
+    assert said[0].id == "A"
+    assert "2 open line(s)" in said[0].message
+
+
+def test_the_block_reading_replaces_its_members(tmp_path):
+    """Saying the weak thing twice and then the strong one about the same two lines is noise.
+    Per line this is a coincidence; per block it is a diagnosis, so the diagnosis stands
+    alone — the shape `_collective` already has."""
+    config = repo(tmp_path, files={"lib/one.py": "x = 1\n", "lib/two.py": "y = 1\n"})
+    write(tmp_path, "IMPROVEMENTS.md", naming_both("lib/one.py", "lib/two.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name both artefacts")
+
+    write(tmp_path, "lib/one.py", "x = 2\n")
+    write(tmp_path, "lib/two.py", "y = 2\n")
+    codes = [one.code for one in lint(config, since="HEAD").notes]
+    assert "block.worked" in codes
+    assert "task.worked" not in codes
+
+
+def test_one_line_of_the_block_standing_still_leaves_the_per_line_reading(tmp_path):
+    """"Every" is the whole strength of the signal: a block where one line's source did not
+    move is a block somebody is still working in, which is the ordinary case."""
+    config = repo(tmp_path, files={"lib/one.py": "x = 1\n", "lib/two.py": "y = 1\n"})
+    write(tmp_path, "IMPROVEMENTS.md", naming_both("lib/one.py", "lib/two.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name both artefacts")
+
+    write(tmp_path, "lib/one.py", "x = 2\n")
+    said = lint(config, since="HEAD").notes
+    assert [one.id for one in said if one.code == "task.worked"] == ["RK1"]
+    assert [one for one in said if one.code == "block.worked"] == []
+
+
+def test_a_line_naming_no_path_makes_the_block_unreachable(tmp_path):
+    """The question the design left open, answered narrowly on purpose. Counting a prose-only
+    line as satisfied would let a block of one such line report on an unrelated edit; counting
+    it unsatisfied costs the aggregate on any block holding one, which is the cheaper loss
+    because this should fire rarely and be worth reading when it does."""
+    config = repo(tmp_path, files={"lib/one.py": "x = 1\n"})
+    # §RK2 exists and names nothing, which is the case that is neither moved nor unmoved.
+    write(
+        tmp_path,
+        "IMPROVEMENTS.md",
+        naming_source("lib/one.py") + "\n### §RK2 The second design\n\nNo artefact at all.\n",
+    )
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name one artefact")
+
+    write(tmp_path, "lib/one.py", "x = 2\n")
+    said = lint(config, since="HEAD").notes
+    assert [one for one in said if one.code == "block.worked"] == []
+    assert [one.id for one in said if one.code == "task.worked"] == ["RK1"]
+
+
+def test_a_block_of_one_line_keeps_the_line_s_own_reading(tmp_path):
+    """On a block holding one line, "every line moved" *is* the per-line note with a
+    heading's lineno — and the member's reading is the truer one, because one line moving is
+    exactly the coincidence RK1228 refuses to over-read."""
+    config = repo(tmp_path, files={"lib/one.py": "x = 1\n"})
+    write(tmp_path, "ROADMAP.md", ROADMAP.replace(ROADMAP.splitlines(True)[-1], ""))
+    write(tmp_path, "IMPROVEMENTS.md", naming_source("lib/one.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: one line under the block")
+
+    write(tmp_path, "lib/one.py", "x = 2\n")
+    said = lint(config, since="HEAD").notes
+    assert [one for one in said if one.code == "block.worked"] == []
+    assert [one.id for one in said if one.code == "task.worked"] == ["RK1"]
+
+
+def test_the_block_door_reads_the_lines_before_shipping_any(tmp_path):
+    """The same judgement one level up, so the same shape — and a different first reading:
+    the caller is handed the block to read, not a `ship` on a line."""
+    from roadkeep.remedying import remedy
+
+    config = repo(tmp_path, files={"lib/one.py": "x = 1\n", "lib/two.py": "y = 1\n"})
+    write(tmp_path, "IMPROVEMENTS.md", naming_both("lib/one.py", "lib/two.py"))
+    git(tmp_path, "add", "-A")
+    git(tmp_path, "commit", "--quiet", "-m", "docs: name both artefacts")
+    write(tmp_path, "lib/one.py", "x = 2\n")
+    write(tmp_path, "lib/two.py", "y = 2\n")
+
+    (said,) = [one for one in lint(config, since="HEAD").notes if one.code == "block.worked"]
+    rule = remedy(said, config)
+    assert rule.kind == "decide"
+    assert {one.argv[0] for one in rule.doors} == {"list", "unclosed"}

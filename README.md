@@ -119,16 +119,16 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 162 | 2 |
 | C — Query (consult without reading the file) | 0 | 112 | 1 |
-| D — The gate | 1 | 184 | 2 |
+| D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 91 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 110 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 9 | 0 |
-| **Total** | 2 | 722 | 9 |
+| **Total** | 1 | 723 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1234** (deps: —) **task.worked fires per line, so the block that quietly finished is still only visible one commit at a time** — The incident it was filed from surfaced two blocks later, and the aggregate reading the design named is the one that would have said so. → §RK1234
+- 📋 **RK1235** (deps: —) **A copy behind the wired one still writes, and the note that says so is read after the line has landed** — RK1230 named the copy to call and left the write unguarded; refusing on any disagreement would break the three setups that differ on purpose. → §RK1235
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

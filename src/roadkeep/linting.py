@@ -1600,6 +1600,18 @@ def _worked(
 
     Nothing here is semantic. The signal is a coincidence of two facts this run already holds:
     the paths a section names, which `show` resolves, and the diff, which `--since` has.
+
+    **The block reading replaces its members** (RK1234). Per line this fires once and reads as
+    a coincidence, which is what it is; per block it reads as a diagnosis, and saying the weak
+    thing five times and then the strong one about the same five lines is noise. So a block
+    that qualifies emits `block.worked` and its members emit nothing.
+
+    Qualifying is deliberately narrow, because the aggregate should be worth reading every
+    time it appears. **Every** open line in the block names at least one path and every one of
+    those lines moved: one line whose section names no path makes the block unreachable, which
+    is the honest cost of not letting a prose-only line report on an unrelated edit. And two
+    lines at minimum — on a block holding one, "every line moved" is the per-line note with a
+    heading's lineno, so the members' own reading is the truer one.
     """
     if not sections or not documents.get("roadmap"):
         return []
@@ -1608,14 +1620,16 @@ def _worked(
     moved = changed_paths(config, since)
     if not moved:
         return []
+    roadmap = documents["roadmap"]
     where = config.relative(config.path("roadmap"))
     by_anchor = {one.anchor: one for one in sections}
-    out: list[Note] = []
-    for entry in documents["roadmap"].entries:
+    named_by_id: dict[str, set[str]] = {}
+    touched_by_id: dict[str, list[str]] = {}
+    for entry in roadmap.entries:
         section = by_anchor.get(entry.task.ref or entry.task.id)
         if section is None:
             continue
-        named = {
+        named_by_id[entry.task.id] = {
             one.path
             for one in paths_in(
                 section.body,
@@ -1626,20 +1640,50 @@ def _worked(
                 known=lambda: known_directories(config),
             )
         }
-        touched = sorted(named & moved)
-        if not touched:
+        touched_by_id[entry.task.id] = sorted(named_by_id[entry.task.id] & moved)
+    out: list[Note] = []
+    aggregated: set[str] = set()
+    for heading in roadmap.headings:
+        label = heading.label
+        if label is None:
             continue
+        held = roadmap.block(label)
+        if len(held) < 2:
+            continue
+        if not all(named_by_id.get(one.task.id) for one in held):
+            continue
+        if not all(touched_by_id.get(one.task.id) for one in held):
+            continue
+        aggregated.update(one.task.id for one in held)
+        out.append(
+            Note(
+                "block.worked",
+                where,
+                f"this change touches a path every one of the {len(held)} open line(s) filed "
+                f"here names, and none of them shipped — a block finished and not closed "
+                f"looks exactly like this",
+                heading.lineno,
+                label,
+            )
+        )
+    for entry in roadmap.entries:
+        if entry.task.id in aggregated or not touched_by_id.get(entry.task.id):
+            continue
+        section = by_anchor[entry.task.ref or entry.task.id]
         out.append(
             Note(
                 "task.worked",
                 where,
-                f"this change touches {', '.join(touched)}, which §{section.anchor} names, "
-                f"and the line is still open — `ship` if that is what landed",
+                f"this change touches {', '.join(touched_by_id[entry.task.id])}, which "
+                f"§{section.anchor} names, and the line is still open — `ship` if that is "
+                f"what landed",
                 entry.lineno,
                 entry.task.id,
             )
         )
-    return out
+    # Both readings address one file, so they are reported in its order and not in the order
+    # the two passes happened to compute them.
+    return sorted(out, key=lambda one: one.lineno)
 
 
 def _unpaired(config: Config, sections: tuple[Section, ...], since: str) -> list[Note]:

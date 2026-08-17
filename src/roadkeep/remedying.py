@@ -1248,6 +1248,15 @@ _TABLE: Mapping[str, _Rule] = {
         (("ship", "{id}", "--why", BLANK), "this is what landed, and the entry is owed"),
         (("show", "{id}"), "read what the section claims before deciding it was that"),
     ),
+    # The same judgement one level up (RK1234), so the same shape — but the first reading is
+    # no longer `ship` on a line: a whole block whose every line moved is either work that
+    # landed under all of them, or one commit that crossed the area they all name.
+    "block.worked": _decide(
+        "source under every open line of this block moved and none of them shipped, which is "
+        "either a block finished and not closed or one change crossing what they all name:",
+        (("list", "--block", "{id}"), "read the lines this is about before shipping any"),
+        (("unclosed",), "which of them commits already name, which is the other half"),
+    ),
     "engine.disagreement": _read(
         ("engines",),
         "three copies of this tool can be in play and they may differ; this reads all "

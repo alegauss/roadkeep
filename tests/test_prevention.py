@@ -191,6 +191,9 @@ PREVENTION: tuple[Prevented, ...] = (
     # what makes the note true is an edit somewhere else entirely — source moving under a
     # task while its line stands still. No door of this tool sees that pair.
     Prevented("task.worked", "gate", because=LATER),
+    # RK1234. The same statement about a block, so the same reason: what makes it true is
+    # every one of those lines' source moving, and no write of this tool observes a diff.
+    Prevented("block.worked", "gate", because=LATER),
     # -- true of an earlier line because of a later write ---------------------
     Prevented("id.paused-and-open", "gate", because=LATER),
     Prevented("id.paused-and-gone", "gate", because=LATER),
