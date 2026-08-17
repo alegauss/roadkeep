@@ -40,8 +40,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1245** (deps: —) **The read that exists to compare two costs prints them in two different units** — The notice is a message handed to a session exactly as a resident file is, and they are counted two ways. → §RK1245
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

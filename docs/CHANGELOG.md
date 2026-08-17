@@ -773,3 +773,4 @@
 - ✅ **RK1239** **The description row is the largest a tool has and nothing says which of its parts to shorten** — The description row is split by where each clause is written, so a tool's always-passed flag names its own help.
 - ✅ **RK1241** **The description split does not name its own unaccounted bytes where the tool total does** — The description split names its own unaccounted bytes, so both levels of the breakdown balance exactly.
 - ✅ **RK1243** **The line every session is handed has a budget nothing reads and a constant somebody edits** — budget --session prices the SessionStart notice beside the schema, in the unit its ceiling is now held in.
+- ✅ **RK1245** **The read that exists to compare two costs prints them in two different units** — Both cadences are reported in code units, with the bytes the gate refuses on named rather than converted away.

@@ -1003,6 +1003,15 @@ class Load:
     #: normalised, and this is the honest remainder a loader on *this* machine really pays.
     #: 0 on an LF checkout, which is every question about the two being the same question.
     translated: int = 0
+    #: The same text in UTF-16 code units, or `None` where there is no answer — the file is
+    #: absent, or it is not UTF-8 (RK1245). Beside `bytes` and never instead of it: `bytes` is
+    #: what `[budgets]` declares and `lint` refuses on, and this is what a *reader* pays,
+    #: which is the comparison `budget --session` exists to make against the served schema.
+    #:
+    #: Charged by nothing. :func:`~roadkeep.config.spent` stays bytes-only for the reason its
+    #: own docstring gives — an instruction file is not a format this tool decodes (L4) — so
+    #: this is a second reading of the same normalised bytes and never a second budget.
+    characters: int | None = None
 
     @property
     def over(self) -> bool:
@@ -1036,8 +1045,10 @@ class Session:
     once: int
     #: How many tools that schema describes, which is what the figure is *of*.
     tools: int
-    #: `(path, bytes)` per resident file, in the order `file_budget` answers.
-    resident: tuple[tuple[str, int], ...] = ()
+    #: `(path, bytes, characters)` per resident file, in the order `file_budget` answers —
+    #: the second being what `[budgets]` declares and `lint` refuses on, the third what a
+    #: reader pays, or `None` where the file does not decode (RK1245).
+    resident: tuple[tuple[str, int, int | None], ...] = ()
     #: The `SessionStart` notice, in the same unit as :attr:`once` (RK1243). The third thing
     #: a session pays for, and the one nothing counted: it is resident for the whole session
     #: in every governed project, it has a ceiling, and until now the ceiling was a constant
@@ -1051,7 +1062,33 @@ class Session:
 
     @property
     def turn(self) -> int:
-        return sum(cost for _path, cost in self.resident)
+        """What a turn costs **a reader**, in the unit the once-per-session figures are in.
+
+        Code units and not bytes (RK1245), which is the whole point of the read: this verb
+        exists so an author can decide between cutting a tool description and cutting a
+        paragraph, and until now it asked them to make that comparison across two units. On
+        ASCII prose the two agree and the defect is invisible; on a paragraph carrying the
+        status markers this tool writes, bytes are three times code units and the choice a
+        reader makes from these numbers is the wrong one.
+
+        A file that does not decode falls back to its bytes, which is the closest true thing
+        available and is named as such in the row beneath.
+        """
+        return sum(
+            taken if characters is None else characters
+            for _path, taken, characters in self.resident
+        )
+
+    @property
+    def declared(self) -> int:
+        """The same files in the unit `[budgets]` declares, which is what `lint` refuses on.
+
+        Stated and never converted into the figure above: the gate reads bytes for the reason
+        :func:`~roadkeep.config.spent` gives — a budget is what a *loader* pays and an
+        instruction file is not a format this tool decodes (L4). Two honest readings of one
+        set of files, so the report can be compared without the gate being moved.
+        """
+        return sum(taken for _path, taken, _characters in self.resident)
 
     @property
     def at_connect(self) -> int:
@@ -1066,7 +1103,7 @@ class Session:
 
     def stated(self, unit: str) -> str:
         rows = [
-            f"session    {self.at_connect} {unit} once, {self.turn} bytes on every turn — "
+            f"session    {self.at_connect} {unit} once, {self.turn} on every turn — "
             f"two cadences, so they are not added",
             f"  once     {self.once:>6}  {self.tools} tool(s) and the handshake, at connect",
         ]
@@ -1077,11 +1114,24 @@ class Session:
                 else f", {self.notice_limit - self.notice:+} of {self.notice_limit}"
             )
             rows.append(f"  once     {self.notice:>6}  the session-start notice{room}")
-        rows += [f"  turn     {cost:>6}  {path}" for path, cost in self.resident]
+        rows += [
+            f"  turn     {taken if characters is None else characters:>6}  {path}"
+            f"{'' if characters is not None else '  (bytes: this file is not UTF-8)'}"
+            for path, taken, characters in self.resident
+        ]
         if not self.resident:
             # The state `--file` raises on, said rather than left as an absent row: a project
             # with no `[budgets]` pays the schema and nothing else, which is a real answer.
             rows.append("  turn          0  this project declares no [budgets] file")
+        elif self.declared != self.turn:
+            # Named once and not per row (RK1245): the gate's unit is one fact about the set,
+            # and repeating it beside each file would spend the report on the difference
+            # rather than on the comparison the reader came for. Silent where they agree,
+            # which is every ASCII project and is where there is nothing to say.
+            rows.append(
+                f"  bytes    {self.declared:>6}  what `[budgets]` declares and `lint` "
+                f"refuses on — a loader's unit, not a reader's"
+            )
         return chr(10).join(rows)
 
     def payload(self, unit: str) -> dict[str, object]:
@@ -1099,9 +1149,14 @@ class Session:
                 "notice_limit": self.notice_limit,
             },
             "each_turn": {
-                "bytes": self.turn,
+                # The reader's unit, so the two cadences are comparable (RK1245) — with the
+                # gate's own figure beside it rather than converted away.
+                "characters": self.turn,
+                "unit": unit,
+                "bytes": self.declared,
                 "files": [
-                    {"path": path, "bytes": cost} for path, cost in self.resident
+                    {"path": path, "bytes": taken, "characters": characters}
+                    for path, taken, characters in self.resident
                 ],
             },
         }
@@ -1196,7 +1251,25 @@ def _load(config: Config, budget: ConfigBudget) -> Load:
         parts=_parts(counted) if raw is not None else (),
         present=raw is not None,
         translated=0 if raw is None else translated(raw),
+        characters=None if raw is None else _characters(counted),
     )
+
+
+def _characters(counted: bytes) -> int | None:
+    """The normalised bytes as UTF-16 code units, or `None` where they are not UTF-8 (RK1245).
+
+    `None` and never a guess: a file this cannot decode is one where the question *what does
+    a reader pay for it* has no answer here, and its bytes alone are then the honest row.
+    Nothing is refused either way — the gate reads bytes and is untouched.
+
+    The **normalised** bytes, which is the convention the total is counted on (RK1105): a
+    figure counted off the checkout's own terminator would disagree with the number printed
+    beside it on exactly the machines a budget is a fact about.
+    """
+    try:
+        return width(counted.decode("utf-8"))
+    except UnicodeDecodeError:
+        return None
 
 
 def _parts(raw: bytes) -> tuple[Part, ...]:

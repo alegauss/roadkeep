@@ -2049,3 +2049,84 @@ def test_a_project_this_cannot_announce_for_pays_nothing(tmp_path):
     from roadkeep.config import Config
 
     assert notice_budget(Config.default(tmp_path)) == (0, None)
+
+
+# -- one comparison, one unit (RK1245) ----------------------------------------
+
+
+#: A paragraph carrying the status markers this tool writes, which is where the two units
+#: come apart: each marker is one code point outside the BMP — four bytes, two code units.
+MARKED = "# Guide\n\n" + ("📋 designed, 💭 idea, ⏳ partial, 🛠 in progress, ✅ shipped\n" * 4)
+
+
+def test_both_cadences_are_reported_in_one_unit(tmp_path, capsys):
+    """The whole purpose of this read is a comparison — cut a tool description, or cut a
+    paragraph — and until now it asked the reader to make it across two units.
+
+    The split was defensible while the two cadences were also two kinds of thing: a JSON
+    payload a client validates, and a file on disk. RK1243's notice broke that, being a
+    message handed to a session exactly as `agents.md` is."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["once"]["unit"] == payload["each_turn"]["unit"] == "utf-16-code-units"
+
+
+def test_the_gate_still_reads_bytes_and_the_report_says_so(tmp_path, capsys):
+    """Stated and never converted: `[budgets]` declares bytes and `lint` refuses on them, for
+    the reason `spent` gives — a budget is what a *loader* pays, and an instruction file is
+    not a format this tool decodes (L4). Two honest readings of one set of files, so the
+    report can be compared without the gate being moved."""
+    budgeted(tmp_path)
+    (tmp_path / "agents.md").write_text(MARKED, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)["each_turn"]
+    # On this prose they differ, which is the case the whole task is about.
+    assert payload["bytes"] > payload["characters"]
+    assert payload["bytes"] == sum(one["bytes"] for one in payload["files"])
+    assert payload["characters"] == sum(one["characters"] for one in payload["files"])
+
+
+def test_the_loaders_unit_is_named_once_and_not_per_row(tmp_path, capsys):
+    """One fact about the set. Repeating it beside each file would spend the report on the
+    difference rather than on the comparison the reader came for."""
+    budgeted(tmp_path)
+    (tmp_path / "agents.md").write_text(MARKED, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert printed.count("a loader's unit, not a reader's") == 1
+
+
+def test_it_says_nothing_where_the_two_agree(tmp_path, capsys):
+    """Which is every ASCII project, and is where there is nothing to say."""
+    budgeted(tmp_path)
+    (tmp_path / "agents.md").write_text("# Guide\n\nPlain prose, no markers.\n", encoding="utf-8")
+    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    assert "a loader's unit" not in capsys.readouterr().out
+
+
+def test_a_file_that_does_not_decode_falls_back_to_its_bytes(tmp_path, capsys):
+    """`None` and never a guess: a file this cannot decode is one where *what does a reader
+    pay for it* has no answer here, and its bytes alone are the honest row. Nothing is
+    refused either way — the gate reads bytes and is untouched."""
+    from roadkeep.budgeting import file_budget
+
+    config = budgeted(tmp_path)
+    (tmp_path / "agents.md").write_bytes(b"# Guide\n\n\xff\xfe not utf-8 at all\n")
+    (load,) = [one for one in file_budget(config) if one.path == "agents.md"]
+    assert load.characters is None
+    assert load.bytes > 0
+    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    assert "this file is not UTF-8" in capsys.readouterr().out
+
+
+def test_the_reading_is_of_the_same_normalised_bytes_the_total_is(tmp_path):
+    """RK1105's convention, kept: a figure counted off the checkout's own terminator would
+    disagree with the number printed beside it on exactly the machines a budget is about."""
+    from roadkeep.budgeting import file_budget
+
+    config = budgeted(tmp_path)
+    (tmp_path / "agents.md").write_bytes(b"# Guide\r\n\r\nTwo lines.\r\n")
+    (load,) = [one for one in file_budget(config) if one.path == "agents.md"]
+    assert load.characters == len("# Guide\n\nTwo lines.\n")
+    assert load.translated == 3

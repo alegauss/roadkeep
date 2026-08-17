@@ -560,7 +560,9 @@ def _session_budget(config: Config, args: argparse.Namespace) -> int:
         once=sent.characters,
         tools=len(sent.tools),
         resident=tuple(
-            (load.path, load.bytes)
+            # Both readings of one file (RK1245): the gate's bytes, and the code units a
+            # reader pays — so the cadences below can be compared without the gate moving.
+            (load.path, load.bytes, load.characters)
             for load in (file_budget(config) if config.budgets else ())
         ),
         # The third thing a session pays for (RK1243), and the one that had a ceiling nobody
