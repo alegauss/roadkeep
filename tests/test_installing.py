@@ -1307,3 +1307,116 @@ def test_the_payload_carries_it_without_the_flag(tmp_path, capsys, monkeypatch):
 
     assert main(["-C", str(root), "engines", "--invoke", "--json"]) == EXIT_OK
     assert set(json.loads(capsys.readouterr().out)) == {"invoke"}
+
+
+# -- the write a stale copy should not make (RK1235) --------------------------
+
+
+PINNED = 'prefix = "DX"\n[files]\nroadmap = "ROADMAP.md"\n[install]\npinned = true\n'
+BACKLOG = "# Roadmap\n\n## Block A\n\n"
+
+
+def _pinned(tmp_path: Path, config: str = PINNED) -> Path:
+    (tmp_path / "roadkeep.toml").write_text(config, encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
+    return tmp_path
+
+
+def _reading(monkeypatch, found):
+    """Patched on `installing`, which is where the guard imports it from."""
+    from roadkeep import installing
+
+    monkeypatch.setattr(installing, "engines", lambda root=".": found)
+
+
+def _added(root: Path) -> list[str]:
+    return ["-C", str(root), "add", "--block", "A", "--symptom",
+            "A symptom plainly long enough", "--why", "Because."]
+
+
+def test_a_write_from_a_copy_behind_the_pinned_one_is_refused(tmp_path, capsys, monkeypatch):
+    """RK1230 named the copy to call and left the write unguarded, which its design said out
+    loud. The failure is quiet: a copy behind the wired one does not fail, it agrees with a
+    rule that has moved and writes a line its own version thinks legal — reported by the
+    project's gate afterwards, as the file's problem rather than as the pen's."""
+    root = _pinned(tmp_path)
+    _reading(monkeypatch, _pair(plugin_version="0.1.0"))
+    assert main(_added(root)) == EXIT_GATE
+    # Nothing written, which is the only thing a guard before the lock is for.
+    assert (root / "ROADMAP.md").read_text(encoding="utf-8") == BACKLOG
+    assert "refused, nothing written" in capsys.readouterr().err
+
+
+def test_the_refusal_names_the_copy_to_run_it_through(tmp_path, capsys, monkeypatch):
+    """"Either way it names `engines --invoke`, or it is a wall with no door." The caller
+    re-runs the same command through the copy that is right, rather than learning a copy
+    exists and going to find it."""
+    from composing import runs
+
+    root = _pinned(tmp_path)
+    _reading(monkeypatch, _pair(plugin_version="0.1.0"))
+    main(_added(root))
+    said = capsys.readouterr().err
+    assert "engines --invoke" in said
+    # Executed as printed, which is the whole difference between a door and a sentence
+    # (RK1209): the read it names is accepted here and its answer is the copy to use.
+    assert runs(root, said) == (["engines", "--invoke"],)
+
+
+def test_a_project_that_declared_no_pin_is_not_guarded(tmp_path, monkeypatch):
+    """The standing this refusal has, and its whole extent. `[install] pinned` is the project
+    saying which copy is right (L6); without it, refusing would be this tool guessing at a
+    setup it cannot see — a developer's checkout, a CI ref, a vendored version, all three
+    legitimate and all three `behind`."""
+    root = _pinned(tmp_path, config='prefix = "DX"\n[files]\nroadmap = "ROADMAP.md"\n')
+    _reading(monkeypatch, _pair(plugin_version="0.1.0"))
+    assert main(_added(root)) == EXIT_OK
+
+
+def test_a_modified_checkout_is_not_behind_and_still_writes(tmp_path, monkeypatch):
+    """The other condition, and the reason RK418's third state had to exist first. A checkout
+    with uncommitted work is at no commit the plugin could match, so `behind` asserts a
+    direction nothing measured — and it is where a developer lives every day."""
+    root = _pinned(tmp_path)
+    _reading(monkeypatch, _pair(modified=True))
+    assert main(_added(root)) == EXIT_OK
+
+
+def test_the_wiring_writes_are_how_the_pin_gets_satisfied(tmp_path, monkeypatch):
+    """A door and not a wall, in the direction that matters most: `install` is how a project
+    takes the version it pinned, so refusing it would leave the pin with no way to be met."""
+    from roadkeep.cli import _behind
+    from roadkeep.config import Config
+
+    _reading(monkeypatch, _pair(plugin_version="0.1.0"))
+    parser = build_parser()
+    config = Config.discover(_pinned(tmp_path))
+    for argv in (["install"], ["init"], ["uninstall"], ["capture", "filed", "one.json", "--as", "RK1"]):
+        assert _behind(config, parser.parse_args(argv)) is None, argv
+
+
+def test_every_write_this_surface_has_is_guarded_or_says_why_not():
+    """The census, because the exemption is a hand list and a verb added beside them would
+    otherwise join it by accident: a write is governed unless its parser declares `wiring`,
+    and these four are the ones that change which copies exist or record what this tool did
+    wrong."""
+    parser = build_parser()
+    (actions,) = [one for one in parser._actions if getattr(one, "choices", None)]
+    exempt = {
+        name
+        for name, one in actions.choices.items()
+        if not one.get_default("reads_only") and one.get_default("wiring")
+    }
+    assert exempt == {"init", "install", "uninstall"}
+    # `capture` declares it one level down, on the action that writes.
+    filed = actions.choices["capture"]
+    (nested,) = [one for one in filed._actions if getattr(one, "choices", None)]
+    assert nested.choices["filed"].get_default("wiring")
+
+
+def test_a_read_is_never_asked_which_copy_it_came_from(tmp_path, monkeypatch):
+    """Reads answer from whatever copy the caller reached, which is `provenance`'s rule and
+    not this one's: what is refused is a *write* judged by rules the pen does not hold."""
+    root = _pinned(tmp_path)
+    _reading(monkeypatch, _pair(plugin_version="0.1.0"))
+    assert main(["-C", str(root), "list"]) == EXIT_OK

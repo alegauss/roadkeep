@@ -121,14 +121,10 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 112 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 91 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 110 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 111 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 9 | 0 |
-| **Total** | 1 | 723 | 9 |
-
-**Next ready:**
-
-- 📋 **RK1235** (deps: —) **A copy behind the wired one still writes, and the note that says so is read after the line has landed** — RK1230 named the copy to call and left the write unguarded; refusing on any disagreement would break the three setups that differ on purpose. → §RK1235
+| **Total** | 0 | 724 | 9 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

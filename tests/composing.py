@@ -95,6 +95,9 @@ SITES: tuple[Site, ...] = (
     Site("capturing.py:Capture.filing", "unreached", NO_FIXTURE),
     Site("capturing.py:handoff", "unreached", NO_FIXTURE),
     Site("capturing.py:offer", "deliberate", NOT_A_STEP),
+    # RK1235. Run by `test_installing`, which executes the read this refusal names — the
+    # door that keeps a pinned project's guard from being a wall.
+    Site("cli.py:_behind", "run"),
     Site("cli.py:_crossed", "unreached", NO_FIXTURE),
     Site("cli.py:_unrecognised", "unreached", NO_FIXTURE),
     Site("config.py:_skew", "unreached", NO_FIXTURE),

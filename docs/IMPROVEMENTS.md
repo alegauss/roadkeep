@@ -85,36 +85,6 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1235 The write a stale copy should not make
-
-RK1230 gave a shell caller the copy to invoke and left the write unguarded, which its
-design said out loud: *worth deciding whether a stale copy should refuse to write at
-all.*
-
-The failure is quiet. A copy behind the wired one does not fail — it agrees with a rule
-that has moved and writes a line its own version thinks legal, which the project's gate
-then reports. `engines` exits 1 on the disagreement, and nothing consults it before a
-write.
-
-What makes it hard is that most disagreement is legitimate. A developer runs a checkout
-on purpose; CI runs the action at a pinned ref; `install --vendor` exists so a project
-can hold a version. Refusing every write from a copy that is not the registered plugin
-breaks all three, and a refusal firing on correct setups gets routed around.
-
-So the question is not *whether* to refuse but *what* on. Two candidates, to measure
-first.
-
-**Behind, not merely different.** `engines` already tells `behind` from `unpinnable`,
-and only the first claims one copy's rules are older — leaving the modified checkout,
-which is where a developer lives, untouched.
-
-**And only where the project asked.** `[install] pinned` (RK1192) exists for a project
-that has chosen its version. Declaring it is that project saying which copy is right,
-which is the standing such a refusal needs and the only thing keeping it from being a
-guess.
-
-Either way it names `engines --invoke`, or it is a wall with no door.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

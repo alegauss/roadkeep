@@ -365,6 +365,9 @@ def dispatch(config: Config, args: argparse.Namespace) -> int:
         return refused
     if _only_reads(args):
         return args.handler(config, args)
+    refused = _behind(config, args)
+    if refused is not None:
+        return refused
     with exclusive(config.root):
         code = args.handler(config, args)
         # Still under the lock, and after the handler rather than before: what is recorded
@@ -373,6 +376,59 @@ def dispatch(config: Config, args: argparse.Namespace) -> int:
         # digests, which is the right answer and not a special case.
         attest(config)
         return code
+
+
+def _behind(config: Config, args: argparse.Namespace) -> int | None:
+    """Refuse a governed write from a copy older than the one this project pinned (RK1235).
+
+    RK1230 handed a shell caller the command reaching the right copy and left the write
+    unguarded, which its own design said out loud. The failure it leaves is quiet: a copy
+    behind the wired one does not fail, it agrees with a rule that has *moved* and writes a
+    line its own version thinks legal — which the project's gate then reports, after the line
+    has landed and by then as the file's problem rather than as the pen's. `engines` already
+    exits 1 on that, and nothing consulted it before a write.
+
+    **Two conditions, and both are the point.** Most disagreement between three copies is
+    legitimate: a developer runs a checkout on purpose, CI runs the action at a ref,
+    `install --vendor` exists so a project can hold a version. A refusal firing on those gets
+    routed around within a week, so this fires only where
+
+    * the verdict is `behind` and not merely `unpinnable` — the modified checkout is where a
+      developer lives, and RK418 separated the two exactly so this could tell them apart; and
+    * `[install] pinned` is declared — that key is the project *saying* which copy is right
+      (RK1192, L6), and it is the whole standing this has. Without it, refusing would be this
+      tool guessing at a setup it cannot see.
+
+    So it costs an attribute read on every project that has not asked, which is every project
+    by default; `engines` is only reached past that flag.
+
+    **A door and not a wall**, which is the other half of the design: the message carries
+    `engines --invoke`, so the caller re-runs the same command through the copy that is right
+    rather than learning that a copy exists. And `wiring=True` writes are let through — `init`,
+    `install` and `uninstall` are how a project changes *which copies exist*, and `capture
+    filed` records what this tool did wrong. Refusing those would leave the pin with no way
+    to be satisfied and a defect in this tool with no way to be filed.
+
+    `EXIT_GATE` and not `EXIT_USAGE`: nothing about the caller's input has to change. The
+    argv is right and the copy running it is not.
+    """
+    if not config.install_pinned or getattr(args, "wiring", False):
+        return None
+    from roadkeep.installing import BEHIND, engines  # noqa: PLC0415 - RK260
+
+    read = engines(config.root)
+    if read.verdict != BEHIND:
+        return None
+    print(
+        f"roadkeep: refused, nothing written: this copy is {read.running.version} at "
+        f"{read.running.revision} and the project pinned "
+        f"{read.plugin.version if read.plugin else '—'} — a write from here would be judged "
+        f"by rules it does not hold\n"
+        f"  the copy to run this command through is what `{invocation()} engines --invoke` "
+        f"prints, so the same argv reaches the pen the pin names",
+        file=sys.stderr,
+    )
+    return EXIT_GATE
 
 
 def _only_reads(args: argparse.Namespace) -> bool:

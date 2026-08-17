@@ -516,7 +516,7 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
         ),
     )
     capture_filed.add_argument("--json", action="store_true", help=_JSON_HELP)
-    capture_filed.set_defaults(handler=_capture_filed)
+    capture_filed.set_defaults(handler=_capture_filed, wiring=True)
 
     init_parser = subcommands.add_parser(
         "init",
@@ -556,7 +556,7 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
         ),
     )
     init_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    init_parser.set_defaults(handler=_init)
+    init_parser.set_defaults(handler=_init, wiring=True)
 
     adopt_parser = subcommands.add_parser(
         "adopt",
@@ -678,7 +678,7 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
         ),
     )
     install_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    install_parser.set_defaults(handler=_install)
+    install_parser.set_defaults(handler=_install, wiring=True)
 
     engines_parser = subcommands.add_parser(
         "engines",
@@ -731,7 +731,7 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
         ),
     )
     uninstall_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    uninstall_parser.set_defaults(handler=_uninstall)
+    uninstall_parser.set_defaults(handler=_uninstall, wiring=True)
 
     mcp_parser = subcommands.add_parser(
         "mcp",
