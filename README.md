@@ -121,10 +121,14 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 112 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 91 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 111 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 111 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 0 | 9 | 0 |
-| **Total** | 0 | 724 | 9 |
+| H — The tool's own shape (what one verb costs to change) | 1 | 9 | 0 |
+| **Total** | 2 | 724 | 9 |
+
+**Next ready:**
+
+- 📋 **RK1236** (deps: —) **The tool over its ceiling is named and which of its arguments spent the bytes is not** — Twice in one block the repair was a throwaway ranking script, and the first guess at the prose was wrong. → §RK1236
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
