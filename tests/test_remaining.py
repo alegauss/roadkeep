@@ -252,3 +252,54 @@ def test_sites_left_are_work_and_never_a_finding(tmp_path):
     root = project(tmp_path)
     report = lint(Config.discover(root))
     assert report.clean
+
+
+# -- a query that never ran, told apart from work that is done (RK1216) --------
+
+
+def test_a_pathspec_that_reached_no_file_is_said_and_not_left_to_a_second_number(
+    tmp_path, capsys
+):
+    """The defect, measured in pportal: `lib/src :: <regex>` names a directory, which
+    `Path.glob` matches as one entry that is not a file, so the whole query answered `0
+    site(s) left in 0 file(s)` over a tree holding 420. The regex was right and only the glob
+    was wrong — and `0` is documented to mean the pattern stopped matching, so the reading an
+    author gets is that the migration is finished."""
+    prose = PROSE.replace("src/*.py :: served", "src :: served")
+    root = project(tmp_path, prose=prose)
+    assert main(["-C", str(root), "remaining", "RK1"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    # On the headline, because the headline is the number being misread: a note under the
+    # clauses is the `in 0 file(s)` problem again one line further down.
+    first = printed.splitlines()[0]
+    assert "matched no file" in first and "did not run" in first
+    assert "← matched no file" in printed
+
+
+def test_the_clause_that_reached_nothing_is_named_among_ones_that_did(tmp_path, capsys):
+    """A three-clause query short by one is the worse case: the total still looks like a
+    total, and the zero is one number among several rather than the whole answer."""
+    prose = PROSE.replace(
+        "src/*.py :: served", "src/*.py :: served\nlib :: served\nsrc/*.py :: nothing"
+    )
+    root = project(tmp_path, prose=prose)
+    assert main(["-C", str(root), "remaining", "RK1", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["total"] > 0
+    # Its own key: a consumer deciding whether a migration is finished reads `total`, and the
+    # one state where `total` means nothing has to be answerable without hunting for a zero.
+    assert payload["unmatched"] == ["lib"]
+    # A pattern that matched nothing in files it *did* read is the other zero, and it is not
+    # this one — that clause is the honest "no sites left".
+    assert [one["files"] for one in payload["query"]] == [2, 0, 2]
+
+
+def test_a_query_that_ran_says_nothing_about_matching_no_file(tmp_path, capsys):
+    """The sentence is an exception and has to read as one: a clean count is unchanged."""
+    root = project(tmp_path)
+    assert main(["-C", str(root), "remaining", "RK1"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "matched no file" not in printed
+
+    assert main(["-C", str(root), "remaining", "RK1", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["unmatched"] == []

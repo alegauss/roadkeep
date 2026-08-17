@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1216** (deps: —) **remaining reports 0 sites for a pathspec that matched no files, which is what it reports for work that is finished** — The count is the headline and the file tally is beside it, so a mistyped glob reads as a migration complete rather than as a query that never ran. → §RK1216
-
 ## Block D — The gate
 
 - 📋 **RK1192** (deps: —) **A launcher and skill older than the version answering are reported by nothing the gate runs** — `install --check` answers it and is a command nobody thinks to run; lint fires every turn through the Stop hook, and a stale launcher is the state that leaves a session with no door in. → §RK1192

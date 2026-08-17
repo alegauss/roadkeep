@@ -79,32 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1216 A query that never ran, reported as a migration finished
-
-Measured in pportal on 2026-08-16, declaring the first queries that project has. Two
-sections were given `lib/src :: <regex>`, which reads as a directory and which Path.glob
-matches as one file entry that is not a file. Both answered:
-
-    PP30  0 site(s) left in 0 file(s)
-
-The regexes were right. Counted by hand over the same trees they find 14 and 420.
-Corrected to `lib/src/**/*.c` the tool agrees exactly, so nothing was wrong but the
-glob.
-
-What makes it worth a line is which way the failure points. remaining's own docstring
-says a query answering 0 says the pattern no longer matches, and that is the reading an
-author gets: the migration is done. The true reading here was the opposite - the query
-never ran over anything. A tool whose failure mode is indistinguishable from success, on
-the one question it exists to answer, is reporting a number nobody can trust without
-re-deriving it, which is what the query was meant to replace.
-
-The tell is already printed - `in 0 file(s)` sits beside the count - so this is about
-which of the two the eye lands on, not about missing information. Two candidates. Say it
-in words when the pathspec matched nothing, since a query over no files is a different
-event from a pattern with no sites. Or refuse it: an author who declares a query over a
-path that does not exist has made a typo, and lint already refuses a pointer at a
-section nothing answers for the same reason.
-
 ## Block D — The gate
 
 ### §RK1192 The check nobody runs

@@ -330,6 +330,7 @@
 - ✅ **RK1199** **The shipping allowance brief prints is ten characters narrower than the limit ship then enforces** — `brief` prices the ledger line through `as_recorded`, the function `ship` renders from, so the pointer's ten characters are gone from the figure and a `--part` is named as structure it cannot know.
 - ✅ **RK1210** **next_family answers a different free address per process where two numbering systems tie on the same file** — Two numbering systems among a file's top levels is two numberings, so `next_family` answers None there — the address no longer depends on which string a set iterated first.
 - ✅ **RK1211** **anchors --next on an empty outline names a roman first address by hand, on a project that may number decimally** — The empty-outline sentence names both `I.1` and `1.1` and says the first address decides the system, so the one message that guessed no longer walks a decimal project into RK1210.
+- ✅ **RK1216** **remaining reports 0 sites for a pathspec that matched no files, which is what it reports for work that is finished** — A pathspec that reached no file is named on the headline and beside its clause, and published as `unmatched`, so a query that never ran no longer reads like a migration that finished.
 
 ## Block D — The gate
 

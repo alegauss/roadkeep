@@ -33,6 +33,16 @@ matches, not that the work is done: the author chose the pattern, and a migratio
 site is spelled differently is one this reports clean. That is stated rather than defended
 against, for the reason the size field was refused — the alternative is a number the tool
 asserts and nobody can check.
+
+**And a zero that means neither of those is named** (RK1216). The sentence above has one more
+reading it cannot carry: a pathspec that reached **no file at all**, where the pattern was
+never run over anything. Measured in pportal declaring its first two queries — `lib/src ::
+<regex>` on both, a directory that `Path.glob` matches as one entry that is not a file — and
+both answered `0 site(s) left in 0 file(s)` over trees holding 14 and 420 sites. The count
+this verb exists to be trusted with had a failure mode indistinguishable from success, and
+the tell was a second number beside it. So :attr:`Remaining.unmatched` says it in words, on
+the headline and per clause. Refusing was the other candidate and is not this module's to
+make: a query is a claim in a file, and a claim nothing answers is the gate's kind of finding.
 """
 
 from __future__ import annotations
@@ -130,6 +140,33 @@ class Remaining:
         return sum(self.scanned)
 
     @property
+    def unmatched(self) -> tuple[str, ...]:
+        """The pathspecs that reached no file at all, in declaration order (RK1216).
+
+        The distinction :attr:`scanned` was added to make and nothing then said out loud.
+        Measured on pportal declaring its first two queries: both were given `lib/src ::
+        <regex>`, which reads as a directory and which `Path.glob` matches as one entry that
+        is not a file, so both answered `0 site(s) left in 0 file(s)`. The regexes were right
+        — counted by hand the same trees hold 14 and 420, and corrected to `lib/src/**/*.c`
+        this tool agrees exactly. Nothing was wrong but the glob.
+
+        Which way the failure points is the whole finding. `0` is documented here to mean
+        *the pattern stopped matching*, so the reading an author gets is **the migration is
+        done**, and the truth was the opposite: the query never ran over anything. A failure
+        mode indistinguishable from success, on the one question the verb exists to answer.
+
+        The tell was already printed — `in 0 file(s)` sits beside the count — so this is
+        about which of the two the eye lands on. Named rather than left to that arithmetic,
+        and named per pathspec, because a query of three clauses where one reached nothing is
+        short by an unknown amount while still looking like a total.
+        """
+        return tuple(
+            clause.pathspec
+            for clause, read in zip(self.clauses, self.scanned, strict=False)
+            if not read
+        )
+
+    @property
     def counting(self) -> str:
         """`left` or `of evidence` — never a verdict either way (RK1184).
 
@@ -140,11 +177,23 @@ class Remaining:
         return "left" if self.kind == FENCE else "of evidence"
 
     def __str__(self) -> str:
+        # On the **headline**, because the headline is the number being misread (RK1216): a
+        # note under the clauses is the `in 0 file(s)` problem again one line down.
+        never = ""
+        if self.unmatched:
+            never = (
+                f" — {len(self.unmatched)} pathspec(s) matched no file, so this count is "
+                f"a query that did not run and not work that is done"
+            )
         lines = [
-            f"{self.task_id}  {self.total} site(s) {self.counting} in {self.files} file(s)"
+            f"{self.task_id}  {self.total} site(s) {self.counting} in {self.files} "
+            f"file(s){never}"
         ]
         for clause, read in zip(self.clauses, self.scanned, strict=False):
-            lines.append(f"  query    {clause}  ({read} file(s))")
+            # Marked per clause too, so a three-clause query says *which* one reached nothing
+            # rather than leaving the reader to find the zero among the counts.
+            missed = "  ← matched no file" if not read else ""
+            lines.append(f"  query    {clause}  ({read} file(s)){missed}")
         for site in self.sites[:SHOWN]:
             lines.append(f"  site     {site}")
         if self.total > SHOWN:
@@ -169,6 +218,11 @@ class Remaining:
             # all, and the truncation above is about a terminal (RK146).
             "sites": [{"file": s.file, "line": s.lineno, "text": s.text} for s in self.sites],
             "unread": list(self.unread),
+            # The pathspecs that reached no file (RK1216). Its own key beside the per-clause
+            # `files`, because a consumer deciding whether a migration is finished is reading
+            # `total` — and the one state where `total` means nothing at all has to be
+            # answerable without summing a list to find a zero in it.
+            "unmatched": list(self.unmatched),
         }
 
 
