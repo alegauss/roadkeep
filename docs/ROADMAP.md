@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1223** (deps: —) **block add says nothing to open when the label is in the ledger but the roadmap, where the work goes, has none** — The refusal is true per file and wrong about the move, and the verb that names the fix is a different one you reach by failing again. → §RK1223
+
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1221** (deps: —) **budget on an id the roadmap holds reads the four fields describing a line and discards them without a word** — The arm that finds the entry answers off the file, so a draft symptom or a dep passed beside an id narrows nothing and the caller reads a number believing it did. → §RK1221
