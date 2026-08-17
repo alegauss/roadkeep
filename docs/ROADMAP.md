@@ -34,9 +34,13 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK1247** (deps: —) **The one message that stops an Edit defaults its prefix to a route the session may not have** — RK447 ended the guess between two prefixes, and this default is that guess still standing on the message that blocks a turn. → §RK1247
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+- 📋 **RK1248** (deps: —) **The one row whose ceiling this package hardcodes states its room and the rows the project declared do not** — RK345 wrote --file to state exactly that room, and the session read prints the same files without it. → §RK1248
 
 ## Non-goals
 

@@ -85,6 +85,64 @@ already written, not authorship.
 
 ## Block F — The plugin
 
+### §RK1247 The default RK447 argued against
+
+Four records carry `served` and one defaults differently. `Notice`, `Review` and
+`Unattested` default to `""` — no server, so no tool table to print. `Refusal` defaults
+to `WIRED`.
+
+Its comment says why: the bare prefix is what every wired project has, and what a
+`Refusal` built by hand means. True while RK333 was choosing *between two prefixes*, and
+RK447 ended that. A project that pip-installed roadkeep and never ran `install` has
+neither scope and no tools at all, and naming a route it cannot call spends a turn being
+told the tool does not exist before reaching the command that works — worse than naming
+none.
+
+So the default is the guess RK447 removed, still standing on the message that stops an
+`Edit`. Unreachable through the hook, where `guard` and `_mentioned` both pass
+`served_by` and RK1246's census holds them to it. What it reaches is every caller
+building one without the field — a test, a future door, a consumer — each getting the
+answer RK447 argued against.
+
+The fix is a default of `""`, making the four say one thing and the absent case the
+honest one. Check first whether a test leans on the current default to reach the served
+branch without saying so: those calls change meaning rather than break.
+
+Worth deciding at the same time whether a default belongs here at all: the field is
+filled at every real site, so its value only ever describes a construction the package
+never makes.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+### §RK1248 The row with a ceiling and no room
+
+`budget --session` now prints one row per thing a session pays for, and one of them
+states its room:
+
+    once        286  the session-start notice, +34 of 320
+    turn       6856  agents.md
+    turn        458  .claude/CLAUDE.md
+
+The notice says what it has left. The files do not, and they are the ones with a limit
+declared in `roadkeep.toml` that `lint` actually refuses on. So the row whose ceiling is
+a constant in this package's source reports its room, and the rows whose ceiling the
+project itself wrote report a bare number.
+
+RK345's whole argument is the other way round: a limit that reaches an author only as a
+refusal is the verdict-after-the-prose this project exists to replace, and `--file` was
+written to state exactly this room. Two reads over the same files, one pairing the
+figure with the limit and one not.
+
+The asymmetry arrived by accident. RK1243 added the notice row and gave it a room clause
+because it had one number to compare against; nobody looked up to see that the rows
+above it had two apiece.
+
+Cheap: `Load.costs` already carries `limit`, `left` and `over` per unit, so the room is
+a field and not an arithmetic.
+
+To settle: which unit's room to print, now that RK1245 reports these rows in code units
+while `[budgets]` declares bytes. The limit is the byte one, so the room is a byte
+figure beside a code-unit total — which is either honest or the same confusion RK1245
+removed, and deciding that is most of the task.
