@@ -37,7 +37,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1206** (deps: —) **Under an outline, the ref.unresolved remedy names the task id where the missing section is the anchor the line points at** — The finding prints the anchor and the command under it prints the id, so running it writes a section the line does not point at. → §RK1206
 - 📋 **RK1214** (deps: —) **a resolved engine that fails to import takes the whole command down instead of falling through to the next candidate** — The launcher promises a missing engine degrades to unenforced rather than to a broken session, and a checkout mid-refactor is found and then explodes. → §RK1214
 - 📋 **RK1217** (deps: —) **path.missing judges a shipped entry against today's tree, so a file later moved to another repo makes history a finding** — A ledger sentence is true about the tree that shipped it, and the only door offered rewrites that sentence. → §RK1217
 - 📋 **RK1222** (deps: —) **The gate reads a declared query for a grammar it cannot parse and never for a pathspec that answers about nothing** — RK1216 gave the read the words; the typo is in a governed file, and a claim nothing answers is what lint refuses for a pointer, a dead queue entry and a bad fence. → §RK1222

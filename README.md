@@ -119,16 +119,16 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 159 | 2 |
 | C — Query (consult without reading the file) | 3 | 108 | 1 |
-| D — The gate | 5 | 178 | 2 |
+| D — The gate | 4 | 179 | 2 |
 | E — Adoption | 2 | 89 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 108 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 2 | 7 | 0 |
-| **Total** | 16 | 703 | 9 |
+| **Total** | 15 | 704 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1206** (deps: —) **Under an outline, the ref.unresolved remedy names the task id where the missing section is the anchor the line points at** — The finding prints the anchor and the command under it prints the id, so running it writes a section the line does not point at. → §RK1206
+- 📋 **RK1209** (deps: —) **No test runs the commands this tool composes, so a refusal naming a call that refuses stays green** — Four tasks found one each and three wrote the same harness by hand; invocation() names the 56 sites, and what a sweep adds is filling the placeholders. → §RK1209
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

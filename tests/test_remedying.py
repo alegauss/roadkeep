@@ -1354,3 +1354,96 @@ def test_the_ledger_finding_names_a_verb_that_reaches_the_ledger(tmp_path):
     filled = [one if one != BLANK else "it works, elsewhere now." for one in door.argv]
     assert main(["-C", str(tmp_path), *filled]) == EXIT_OK
     assert lint(Config.discover(tmp_path)).clean
+
+
+# -- the address a door substitutes is the one the finding read (RK1206) -------
+
+
+OUTLINED_CONFIG = (
+    'prefix = "TT"\nref_scheme = "outline"\n[files]\nroadmap = "ROADMAP.md"\n'
+    'changelog = "CHANGELOG.md"\nimprovements = "IMPROVEMENTS.md"\n'
+)
+
+
+def outlined(tmp_path: Path) -> Config:
+    """A project whose anchors are **not** its ids, which this repository can never be.
+
+    The whole reason RK1206 was invisible here: under `ref_scheme = "id"` the anchor *is* the
+    id, so a door composed from either field is right and the two cannot be told apart. The
+    corpora at `tests/corpora.py` are the other way to see it, and they are not always there.
+    """
+    (tmp_path / "roadkeep.toml").write_text(OUTLINED_CONFIG, encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A\n\n"
+        "- 📋 **TT1** (deps: —) **A symptom** — Because of a reason. → §I.1\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "CHANGELOG.md").write_text("# Shipped\n\n## Block A\n", encoding="utf-8")
+    # The family exists and the child does not, which is the state this task is about. Without
+    # it `section add I.1` is refused for a different and correct reason — an anchor states its
+    # own place, so a child whose parent is missing needs the family opened first — and the
+    # fixture would be measuring that stair instead of the address.
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A\n\n### I A family\n\nProse enough to matter.\n",
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_the_pointer_door_names_the_anchor_and_not_the_task_id(tmp_path):
+    """The defect, and it can only be seen on a project whose anchors are not its ids: `TT1`
+    points at `§I.1`, the section is missing, and the command underneath read `section add TT1
+    --title …`. Run as printed it writes a section the line does not point at, so the finding
+    survives with a second orphan beside it.
+
+    RK14 and RK326 settled that every finding carries the command that closes it, and the
+    whole value of that is the command being *runnable*.
+    """
+    from roadkeep.cli import EXIT_OK, main
+
+    config = outlined(tmp_path)
+    (found,) = [one for one in lint(config).findings if one.code == "ref.unresolved"]
+    # The report still addresses the line, which is what a reader clicks.
+    assert found.id == "TT1" and "§I.1" in found.message
+
+    (door,) = remedy(found, config).doors
+    assert "I.1" in door.argv and "TT1" not in door.argv, door.argv
+    filled = [one if one != BLANK else "A design" for one in door.argv]
+    assert main(["-C", str(tmp_path), *filled, "--body", "Prose enough to matter."]) == EXIT_OK
+    # And the finding is gone, which is the only proof the door was the right one.
+    assert not [one for one in lint(Config.discover(tmp_path)).findings
+                if one.code == "ref.unresolved"]
+
+
+def test_no_door_addressing_a_section_substitutes_an_address_the_finding_never_named(tmp_path):
+    """The sweep RK1206 asked for, because this class is invisible on an id-scheme repository
+    by construction. A door that addresses a section must substitute an address the finding's
+    own sentence contains — anything else is a value the row composed rather than read.
+
+    Held over an outline fixture for that reason, and stated as *the message mentions it*
+    rather than as a field comparison: what makes a door wrong here is precisely that it names
+    something the reader was never shown.
+    """
+    config = outlined(tmp_path)
+    # A second line whose pointer resolves nowhere either, so more than one code is in play.
+    roadmap = config.path("roadmap")
+    roadmap.write_text(
+        roadmap.read_text(encoding="utf-8")
+        + "- 📋 **TT2** (deps: —) **Another symptom** — Because of another. → §II.3\n",
+        encoding="utf-8",
+    )
+    config = Config.discover(tmp_path)
+
+    wrong = []
+    for found in lint(config).findings:
+        rule = remedy(found, config)
+        if rule is None:
+            continue
+        for door in rule.doors:
+            if tuple(door.argv[:1]) != ("section",):
+                continue
+            # The address is the argument after the action word.
+            named = door.argv[2] if len(door.argv) > 2 else ""
+            if named and named != BLANK and named not in found.message:
+                wrong.append((found.code, named, found.message))
+    assert wrong == [], wrong

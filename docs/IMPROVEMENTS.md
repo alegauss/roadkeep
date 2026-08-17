@@ -204,30 +204,6 @@ the rationale to learn what is left.
 
 ## Block D — The gate
 
-### §RK1206 The remedy composed from a field the finding did not read
-
-The finding names one address and its remedy names another. On a project whose
-`ref_scheme` is `outline`, a line pointing at `§I.1` with no such section is reported as
-`TT1: points at §I.1, which is not in docs/IMPROVEMENTS.md` — correctly — and the
-command underneath it reads `section add TT1 --title …`. `TT1` is the task's id; the
-missing section is `I.1`. Run as printed, it writes a section the line does not point
-at, and the finding survives with a second orphan beside it.
-
-RK14 and RK326 settled that every finding carries the command that closes it, and the
-whole value of that is that the command is *runnable*. A remedy composed from the id is
-right under `ref_scheme = "id"`, where the anchor is the id — which is this repository,
-and so the shape its own conformance fixture can never catch. It is wrong under an
-outline, where the pointer is the address and the id is not one.
-
-The fix is that the remedy is composed from the same field the finding reads. The gate
-has the anchor in hand: it is what the resolution failed on, and it is already printed
-in the sentence one line above. Nothing needs deriving.
-
-Worth checking at the same time whether any other finding composes an address rather
-than reading one, since this class is invisible here by construction: a repository on
-the id scheme cannot tell the two apart, and the corpora at `tests/corpora.py` are what
-can.
-
 ### §RK1214 An engine that is found and then explodes
 
 Measured in pportal on 2026-08-16, mid-task. A `section add` that had worked four times

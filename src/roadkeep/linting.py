@@ -2571,6 +2571,15 @@ def _pointers(
                         f"section that does not exist reads as a design that does",
                         entry.lineno,
                         entry.task.id,
+                        # The remedy is about the **anchor** and the report is about the line
+                        # (RK1206). Under `ref_scheme = "id"` the two are the same string, so
+                        # composing the door from the id was right here and wrong everywhere
+                        # else: on an outline, `TT1` points at `§I.1`, and `section add TT1`
+                        # writes a section the line does not point at — leaving the finding
+                        # standing with a second orphan beside it. `subject` is the field
+                        # RK420 added for exactly this split, so the prefix stays the id a
+                        # reader clicks and the substitution becomes the address that failed.
+                        subject=ref,
                     )
                 )
             elif len(found) > 1:

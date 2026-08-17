@@ -514,6 +514,7 @@
 - ✅ **RK1192** **A launcher and skill older than the version answering are reported by nothing the gate runs** — The gate reports `install.stale` for a vendored launcher, hook or skill behind the engine answering here, naming `install`; `[install] pinned` is how a project that chose its version says so.
 - ✅ **RK1202** **guard exits 0 and prints nothing on a payload it could not parse, which is the answer it gives for allowed** — A payload the guard could not read says so on stderr, naming the bytes that arrived and that this is the gate failing rather than a write allowed; stdout and exit 0 are untouched.
 - ✅ **RK1203** **lint offers amend as the door for a path.missing on a changelog line, and amend refuses every shipped id** — The path.missing door names `record amend`, which reaches the ledger the finding is always about, and a test runs it end to end rather than matching its argv.
+- ✅ **RK1206** **Under an outline, the ref.unresolved remedy names the task id where the missing section is the anchor the line points at** — The pointer finding carries the anchor as its subject, so the door names the address that failed instead of the task id, and a sweep over an outline fixture holds the class.
 
 ## Block E — Adoption
 
