@@ -34,9 +34,13 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK1244** (deps: —) **A three-way answer is carried as two fields, so a Notice can be built stating a pair that cannot happen** — The constraint lives in the one function that sets both, not in the shape, and the census built the impossible pair without noticing. → §RK1244
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+- 📋 **RK1243** (deps: —) **The line every session is handed has a budget nothing reads and a constant somebody edits** — budget --session prices two of the three things a session pays for, and RK1242 moved the third by 23 percent unobserved. → §RK1243
 
 ## Non-goals
 
