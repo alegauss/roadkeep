@@ -85,6 +85,61 @@ already written, not authorship.
 
 ## Block F — The plugin
 
+### §RK1238 The gate that is as old as the pen
+
+RK1235 refuses a governed **write** from a copy behind the one a project pinned. The
+gate is untouched, and it is the same copy.
+
+So on a pinned project running a stale engine the writes stop and `lint` keeps answering
+from rules that have moved. It reports clean and the action CI runs at its own ref
+disagrees. That is RK1235's failure with the halves swapped: there a line landed and the
+gate caught it; here the gate is what speaks out of date, and nothing downstream is
+left.
+
+A refused write is a message, read at the moment somebody asked for something. A gate
+that passes is silence, and silence is what the `Stop` hook produces on every turn that
+changed nothing.
+
+The cheap reading is built: `behind` is 2 ms where the versions differ, which is this
+case. What is not obvious is the **shape** of the answer, and it is the whole task.
+
+A refusal is wrong: `lint` exiting 2 because a copy is old turns one stale plugin into a
+repository nobody can commit in, which is what `guard` survives by design.
+
+A finding is wrong too, for RK1192's reason: it fires every turn until somebody updates,
+and a gate carrying noise stops being read.
+
+Probably right is a **note** beside the verdict it qualifies — `this gate is 0.1.0 and
+the project pinned 0.1.4` — so a clean report says whose clean it is: `engines`' own
+sentence, printed where the answer is.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+### §RK1239 The row a reader cannot act on
+
+RK1236 ranks a tool's fields and names the module to edit. On the two tools measured
+here the largest row after `why` is `(description)` — 377 of `budget`'s 2568, 359 of
+`ship`'s 2555 — and that row is the one a reader cannot act on from what is printed.
+
+A tool's description is not one string. `_description` takes the subparser's
+`description=` and then **appends a sentence per always-passed flag**, built from that
+flag's own `help`. So `record_add`'s description carries prose written for `--role`, and
+an author who shortens the `description=` in front of them cuts a fraction of what the
+row measured.
+
+The row is honest about the total and silent about the composition — RK1236's own defect
+one level down: the number is right and the next move is a guess.
+
+What it should say is the split — the parser's own sentence, and each appended clause
+with the flag it came from — because those are edited in different places and only one
+of them is where the caller is looking.
+
+Cheap: `_description` already builds it from parts and throws the seam away. Returning
+them is a shape change to one function with one caller.
+
+To settle: whether the split appears in the rows or only under `--json`. The terminal
+report is already eight lines for a tool with six fields, and a nested breakdown of one
+row may be what `--json` is for — the reading `--tools` bare already takes about the
+tools it does not name.
