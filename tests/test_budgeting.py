@@ -1622,3 +1622,88 @@ def test_the_row_says_which_line_the_number_is_about(tmp_path, capsys):
 
     assert main(["-C", str(tmp_path), "budget", "RK1", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["stated"] == []
+
+
+# -- one call for a transaction that is validated as one (RK1224) --------------
+
+
+def with_prose(tmp_path: Path) -> Config:
+    """A project that declares a prose file, which is what makes a section row exist at all.
+
+    `project` above declares a roadmap and a ledger, so `Budget.section` is `None` there and a
+    draft body has nothing to be measured against — the state RK303 reports as an absence
+    rather than a zero.
+    """
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(LEDGER, encoding="utf-8")
+    (tmp_path / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A — The model\n", encoding="utf-8"
+    )
+    return Config.discover(tmp_path)
+
+
+def test_one_call_prices_the_line_and_the_body_add_writes_together(tmp_path):
+    """Filing one Shio task took four calls: one refused for a missing `ref`, then three for
+    `why` — 176, 171 and 170 characters against 167. Each refusal was correct, each named the
+    exact overflow, and each threw away the 250-word `--section-body` beside it.
+
+    The field that failed was **three characters** too long and the payload re-sent to fix it
+    was two orders of magnitude larger. The all-or-nothing transaction is right and is not what
+    changes; what was missing is a way to price both halves at once.
+    """
+    config = with_prose(tmp_path)
+    answer = budget(
+        config, block="A", symptom="A symptom", why="Because.", body="word " * 300
+    )
+    # The line's own fields, and the body of the section its pointer names (RK301).
+    assert answer.share("why").drafted
+    assert answer.section is not None and answer.section.draft == 300
+    assert answer.section.over > 0
+
+
+def test_the_exit_speaks_for_both_halves(tmp_path, capsys):
+    """A body three words over is a call the `add` refuses whole, so an exit that spoke only
+    for the line would answer a question narrower than the one being asked."""
+    root = str(tmp_path)
+    with_prose(tmp_path)
+    fits = ["-C", root, "budget", "--block", "A", "--why", "Short.", "--body", "A body."]
+    assert main(fits) == EXIT_OK
+    capsys.readouterr()
+
+    over = [*fits[:-1], " ".join(["word"] * 400)]
+    assert main(over) == EXIT_GATE
+    assert "over" in capsys.readouterr().out
+
+
+def test_the_body_no_longer_needs_an_anchor_to_be_measured_against(tmp_path, capsys):
+    """The last thing standing between this verb and one call for a whole `add --section`: the
+    line subject already reports the section its pointer names, so a draft handed to it has
+    somewhere to be measured."""
+    root = str(tmp_path)
+    with_prose(tmp_path)
+    assert main(["-C", root, "budget", "--block", "A", "--body", "A body."]) == EXIT_OK
+    assert "draft" in capsys.readouterr().out
+
+
+def test_a_subject_with_no_section_still_refuses_a_draft_body(tmp_path, capsys):
+    """RK465's rule kept where it applies: a draft measured against nothing is a number the
+    caller misreads, and `--file` prices an every-turn file rather than any prose."""
+    root = str(tmp_path)
+    with_prose(tmp_path)
+    (tmp_path / "agents.md").write_text("x\n", encoding="utf-8")
+    assert main(["-C", root, "budget", "--file", "agents.md", "--body", "A body."]) != EXIT_OK
+
+
+def test_a_body_and_a_path_are_still_two_answers_to_one_question(tmp_path, capsys):
+    """Unchanged by the widening: `--body` and `--body-file` are two sources for one draft, and
+    honouring either silently is how a caller comes to believe the file is what was measured."""
+    root = str(tmp_path)
+    with_prose(tmp_path)
+    argv = ["-C", root, "budget", "--block", "A", "--body", "A body.", "--body-file", "x.md"]
+    assert main(argv) == EXIT_USAGE
+    assert "two answers to one question" in capsys.readouterr().err

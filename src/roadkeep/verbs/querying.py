@@ -359,6 +359,10 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
         return _tools_budget(config, args)
     if args.session:
         return _session_budget(config, args)
+    clash = _one_body("--body", args.body, args.body_file)
+    if clash is not None:
+        print(f"roadkeep: {clash}", file=sys.stderr)
+        return EXIT_USAGE
     try:
         answer = budget(
             config,
@@ -372,6 +376,14 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
             # Read here and not in `budgeting`, which touches no stream: the pipe is this
             # surface's affordance and the module measures whatever it is handed (RK1190).
             why=_piped(args.why),
+            # And the other half of the same transaction (RK1224): `add --section` writes a
+            # line and a body together, so pricing them in two calls made the retry for a
+            # three-character overflow carry the whole paragraph again.
+            body=(
+                None
+                if args.body is None and args.body_file is None
+                else _body_reader(args.body, args.body_file)()
+            ),
         )
     except REFUSALS as error:
         return _refused(error)
@@ -380,8 +392,12 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
     # and its two readings were a printer here and a builder in `rendering.py` — one answer in two
     # files, with neither holding both.
     print(json.dumps(answer.payload(), indent=2) if args.json else answer)
+    # Both halves of the transaction decide it (RK1224): a body three words over is a call the
+    # `add` refuses whole, so an exit that spoke only for the line would answer a question
+    # narrower than the one the caller asked.
     return _verdict(
         any(share.over for share in answer.shares if share.drafted)
+        or bool(answer.section is not None and answer.section.over)
     )
 
 
@@ -1249,7 +1265,7 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     # `section add`'s reason (RK381): a body is the longest thing an author composes, and a
     # path is what a caller reaches for when the prose will not fit in a shell argument.
     budget_parser.add_argument(
-        "--body", help="a draft body, with --anchor: what it costs that section"
+        "--body", help="a draft body: what it costs the section this call is about"
     )
     budget_parser.add_argument(
         "--body-file",
@@ -1323,12 +1339,18 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         ("session", "both halves of what a session pays, against their cadences"),
     )
     narrows(budget_parser, "role", "anchor")
-    # Both halves of the section draft are the anchor's (RK1190/RK489): `--body` beside
-    # `--file` or `--tools` is prose measured against nothing, and RK465's finding is that a
-    # narrowing flag nobody reads is worse than a refused one — the caller reads a number it
-    # believes it handed a draft to.
-    narrows(budget_parser, "body", "anchor")
-    narrows(budget_parser, "body_file", "anchor")
+    # `--body` is **not** narrowed to `--anchor` (RK1224). It was, and that was the last thing
+    # standing between this verb and one call for a whole `add --section`: the line subject
+    # already reports the section its pointer names (RK301), so a draft body handed to it has
+    # somewhere to be measured — and without that, the transaction `add` validates as one unit
+    # took two reads to price. Measured filing one Shio task: four calls, three of them `why`
+    # overflows of 176, 171 and 170 against 167, each throwing away the 250-word body that
+    # travelled beside it. The field that failed was three characters too long and the payload
+    # re-sent to fix it was two orders of magnitude larger.
+    #
+    # Still refused beside a subject with no section at all — `--file`, `--tools`, `--session`
+    # — which is what `_one_answer` decides from `answers` above, and which is RK465's rule
+    # kept where it applies: a draft measured against nothing is a number the caller misreads.
     narrows(budget_parser, "lead", "non_goal")
 
     show_parser = subcommands.add_parser(

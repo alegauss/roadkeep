@@ -405,6 +405,7 @@ def budget(
     family: str | None = None,
     ref: str | None = None,
     why: str | None = None,
+    body: str | None = None,
 ) -> Budget:
     """The prose budget of a line, named by id or described by the fields an `add` takes.
 
@@ -438,7 +439,9 @@ def budget(
         family=family,
         ref=ref,
     )
-    answer = budget_of(config, task, open_line=open_line, ref_assumed=assumed, why=why)
+    answer = budget_of(
+        config, task, open_line=open_line, ref_assumed=assumed, why=why, body=body
+    )
     # Named here and not inside `_subject`, which answers with a task: which flags the caller
     # supplied is a fact about the *call*, and the record that publishes it is this one.
     held = config.document("roadmap").by_id().get(task_id or "")
@@ -459,6 +462,7 @@ def budget_of(
     ref_assumed: bool = False,
     schema: Schema | None = None,
     why: str | None = None,
+    body: str | None = None,
 ) -> Budget:
     """The same answer about a task the caller already holds — what `brief` hands over.
 
@@ -505,7 +509,9 @@ def budget_of(
             drafted=why is not None,
         )
     )
-    section, absence = _section_of(config, task.ref or task.id, assumed=ref_assumed)
+    section, absence = _section_of(
+        config, task.ref or task.id, assumed=ref_assumed, body=body
+    )
     return Budget(
         task=task,
         open_line=open_line,
@@ -524,7 +530,7 @@ def budget_of(
 
 
 def _section_of(
-    config: Config, anchor: str, *, assumed: bool = False
+    config: Config, anchor: str, *, assumed: bool = False, body: str | None = None
 ) -> tuple[Body | None, str]:
     """This anchor's body budget, or None and why there is none.
 
@@ -549,7 +555,7 @@ def _section_of(
     which is the read a child address wants (RK1029).
     """
     try:
-        answer = body_budget(config, anchor)
+        answer = body_budget(config, anchor, body=body)
     except AmbiguousAnchor as error:
         return None, str(error)
     except KeyError:

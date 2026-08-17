@@ -435,9 +435,13 @@ amended by its own anchor. **If a body is refused anyway, do not count by hand**
 `body.too-long` names what each paragraph costs and which is the longest, so the second
 draft is composed once — and a `0` there is a table or a fence, which is prose no cut can
 reach. **And do not count by hand before one is refused either**: every prose argument here
-is a draft this read *measures* — `budget --block <x> --why "<draft>"` and `budget --anchor
-<a> --body "<draft>"` (or `--body-file`, or `-` for stdin) answer with the overrun and exit
-1 where it is over, which is the refusal without the write. Nothing is composed, so a draft
+is a draft this read *measures* — and **one call prices the whole `add --section`
+transaction**, which `add` validates as one unit and refuses as one: `budget --block <x>
+--why "<draft>" --body "<draft>"` answers for the line *and* the body it would write, while
+`budget --anchor <a> --body "<draft>"` asks about a section on its own (or `--body-file`, or
+`-` for stdin). Both answer with the overrun and exit 1 where it is over, which is the
+refusal without the write — and a `why` three characters over re-sending the whole rationale
+beside it is what pricing the two halves separately cost. Nothing is composed, so a draft
 twice its limit is a number rather than an error, and the schema published for these fields
 carries **no `maxLength`** on purpose: a ceiling there would refuse the very draft you are
 asking about. Reach for it after the first refusal and instead of the second — the retry
