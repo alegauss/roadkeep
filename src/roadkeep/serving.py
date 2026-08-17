@@ -366,7 +366,10 @@ TOOLS: tuple[Tool, ...] = (
     # `superseded_design` because the agent that finds the design stale is this one (RK310):
     # it claimed the line, read the section, and is the only reader who will ever know — and
     # the trace it would otherwise leave is a hand-edit to the file the guard denies.
-    Tool("ship", ("id", "why", "part", "lines", "superseded_design")),
+    # `remainder` rides with `part` (RK1233): the agent shipping a half is the one that will
+    # pick the line up later, and over this transport there is no file to read the rest out of
+    # — which is the subtraction the whole task exists to remove.
+    Tool("ship", ("id", "why", "part", "remainder", "lines", "superseded_design")),
     Tool("retire", ("id", "reason", "superseded_by")),
     Tool("defer", ("id", "reason")),
     Tool("resume", ("id", "marker")),

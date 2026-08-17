@@ -135,7 +135,7 @@ from roadkeep.ids import IdRef, next_id
 from roadkeep.markers import refresh
 from roadkeep.provenance import invocation
 from roadkeep.renumbering import NotAnId, SameId, family_of
-from roadkeep.kernel.schema import PARTIAL, Task
+from roadkeep.kernel.schema import PARTIAL, SchemaError, Task
 from roadkeep.sections import (
     Section,
     declaring,
@@ -1032,6 +1032,11 @@ class Partial:
     #: declares that marker, and every dependent's annotation re-derived from it (RK8).
     roadmap: Document
     part: str
+    #: What the caller said is **left**, where they said it (RK1233). Written into the open
+    #: line's own `why`, so the remainder is a field rather than a subtraction the next reader
+    #: makes across two files. `None` is every call before this argument and every one that
+    #: declines it — the line keeps the sentence it had, which is what it always did.
+    remainder: str | None = None
     #: What the roadmap line's marker became — ⏳, or the one it already carried at a
     #: project that declares no such marker. Reported because the two differ and a caller
     #: reading "partial" would otherwise not know which of them happened.
@@ -1074,6 +1079,11 @@ class Partial:
             f"{self.task_id} ({self.part}) → {ledger}:{self.ledger.lineno} "
             f"under Block {self.block}",
             f"  open     {roadmap}:{self.lineno} {self.status} — the rest of it is still a task",
+            *(
+                # The other half, where the caller named it (RK1233): the line now *states*
+                # what is left, so the next reader is handed it rather than subtracting.
+                [f"  left     {self.remainder}"] if self.remainder else []
+            ),
             f"  finish   {invocation()} ship {self.task_id}  (drops the qualifier)",
         ]
         if self.refreshed:
@@ -1086,6 +1096,9 @@ class Partial:
         return {
             "id": self.task_id,
             "part": self.part,
+            # What is left, where the caller said it (RK1233). Null and not omitted: a
+            # consumer reading a missing key cannot tell "not stated" from "older server".
+            "remainder": self.remainder,
             "changelog": {
                 "file": config.relative(config.path("changelog")),
                 "line": self.ledger.lineno,
@@ -2050,6 +2063,7 @@ def ship(
     *,
     why: str | None = None,
     part: str | None = None,
+    remainder: str | None = None,
     lines: int | None = None,
     superseded: str | None = None,
 ) -> Departure | Closure | Partial:
@@ -2099,7 +2113,7 @@ def ship(
             )
         if superseded is not None:
             raise NoSupersession(task_id, part)
-        return _partial(config, task_id, part, why)
+        return _partial(config, task_id, part, why, remainder)
     recorded = _already_recorded(config, task_id)
     if recorded is None:
         return _depart(
@@ -2311,7 +2325,7 @@ def _supersede(
 
 
 def _partial(
-    config: Config, task_id: str, part: str, why: str | None
+    config: Config, task_id: str, part: str, why: str | None, remainder: str | None = None
 ) -> Partial:
     """Record the half that landed and leave the line open (RK121)."""
     roadmap = config.document("roadmap")
@@ -2367,7 +2381,30 @@ def _partial(
     # marker set is the project's (L6), and a command that invented one would write a line
     # its own gate refuses. Either way the line stays open, which is the claim.
     status = PARTIAL if PARTIAL in config.schema.markers else entry.task.status
-    remaining = roadmap.replace_task(entry, replace(entry.task, status=status))
+    # The **open half, as data** (RK1233). `--part` records what landed and RK1226 put that on
+    # the brief; what stayed an inference is the remainder — a reader handed `landed the parser
+    # half` beside a symptom describing the whole, working out the rest. `--remainder` is the
+    # caller's sentence for what is left, written into the line's own `why` in this same
+    # transaction, so the open line states it and `brief` prints both halves as fields.
+    #
+    # The **roadmap line** and never a second field on the entry, which is the decision RK1226
+    # declined to take and RK1233 settles: a forward-looking clause in the ledger is history
+    # stating work that has not happened, and nothing would update it when the rest ships. The
+    # open line is maintained by definition — `amend` reaches it and the final `ship` removes it.
+    #
+    # The `why` and not the symptom, because the symptom is the falsifiable claim `amend`
+    # refuses to touch (RK7): a task half-delivered is still that symptom's task, and narrowing
+    # the claim itself is `restate`'s act and not a shipment's.
+    #
+    # Validated like any other `why` before it is rendered: `replace_task` re-renders from data
+    # and checks nothing, so a remainder over its limit would land as a line the gate refuses.
+    reopened = replace(entry.task, status=status)
+    if remainder is not None:
+        reopened = replace(reopened, why=remainder)
+        violations = config.schema_for("roadmap").validate(reopened)
+        if violations:
+            raise SchemaError(tuple(violations))
+    remaining = roadmap.replace_task(entry, reopened)
     derived = refresh(
         Backlog.during(config, roadmap=remaining, ledger=insertion.document)
     )
@@ -2376,6 +2413,7 @@ def _partial(
         ledger=insertion,
         roadmap=derived.document,
         part=part,
+        remainder=remainder,
         status=status,
         refreshed=derived.changed,
         marker=config.schema.shipped_marker,

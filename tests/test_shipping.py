@@ -2326,3 +2326,84 @@ def test_a_project_block_still_finishes(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "ship", "RK9", "--why", "It works now."]) == EXIT_OK
     printed = capsys.readouterr().out
     assert "is finished" in printed and "caught up" not in printed
+
+
+# -- the remainder as data, not as a subtraction (RK1233) ----------------------
+
+
+def test_the_open_line_states_what_is_left(tmp_path):
+    """RK1226 put the landed half on the brief and left the other one an inference: a reader
+    handed `landed the parser half` beside a symptom describing the whole works out the rest.
+
+    Better than reading two files, and still a reconstruction — done by whoever picks the line
+    up, from prose written for another purpose. `--remainder` is the caller's own sentence for
+    what is left, written into the line's `why` in the same transaction.
+    """
+    config = project(tmp_path)
+    landed = ship(
+        config, "RK1", part="the parser half", why="the parser reads it now.",
+        remainder="The writer half is still to do.",
+    )
+    landed.save()
+    line = config.path("roadmap").read_text(encoding="utf-8")
+    assert "The writer half is still to do." in line
+    # The symptom is untouched: a task half-delivered is still that symptom's task, and
+    # narrowing the falsifiable claim is `restate`'s act and not a shipment's (RK7).
+    assert "A first symptom" in line
+
+
+def test_the_ledger_states_only_what_happened(tmp_path):
+    """The decision RK1226 declined to take and this settles: the remainder goes on the
+    **roadmap line** and never on the entry. A forward-looking clause in the ledger is history
+    stating work that has not happened, and nothing would update it when the rest ships."""
+    config = project(tmp_path)
+    ship(
+        config, "RK1", part="the parser half", why="the parser reads it now.",
+        remainder="The writer half is still to do.",
+    ).save()
+    recorded = config.path("changelog").read_text(encoding="utf-8")
+    assert "the parser half" in recorded
+    assert "The writer half is still to do." not in recorded
+
+
+def test_both_halves_are_fields_on_one_answer(tmp_path):
+    """The property RK1226 named and this completes: resuming a partial should not require
+    reading the rationale to learn what is left."""
+    from roadkeep.briefing import brief
+
+    config = project(tmp_path)
+    ship(
+        config, "RK1", part="the parser half", why="the parser reads it now.",
+        remainder="The writer half is still to do.",
+    ).save()
+    gathered = brief(Config.discover(tmp_path), "RK1")
+    assert gathered.landed == ("the parser half",)
+    assert gathered.task.why == "The writer half is still to do."
+
+
+def test_a_remainder_is_held_to_the_limits_a_why_is(tmp_path):
+    """`replace_task` re-renders from data and checks nothing, so a remainder over its limit
+    would land as a line the project's own gate refuses."""
+    config = project(tmp_path)
+    with pytest.raises(SchemaError) as refused:
+        ship(config, "RK1", part="half", why="half works.", remainder="x" * 400)
+    # Every rule a `why` has, not only its width: the remainder is that field.
+    assert "why.too-long" in [one.code for one in refused.value.violations]
+    # Nothing written, which is what "validates all three edits first" means.
+    assert "RK1" not in config.path("changelog").read_text(encoding="utf-8")
+
+
+def test_declining_it_leaves_the_sentence_the_line_had(tmp_path):
+    """Every call before this argument, and every one that does not want it."""
+    config = project(tmp_path)
+    ship(config, "RK1", part="the parser half", why="the parser reads it now.").save()
+    assert "Because of a reason." in config.path("roadmap").read_text(encoding="utf-8")
+
+
+def test_a_remainder_without_a_part_is_refused(tmp_path, capsys):
+    """A remainder on a whole shipment is a sentence about a line being removed, and honouring
+    it silently would write the caller's words into a `why` the same transaction deletes."""
+    project(tmp_path)
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "It works.", "--remainder", "left"]
+    assert main(argv) == EXIT_USAGE
+    assert "--remainder is what is left after --part" in capsys.readouterr().err

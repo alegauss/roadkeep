@@ -137,7 +137,13 @@ and the entry describe different work, which is two tasks sharing an id and `ren
 to fix. **Half of it landing is a third answer, not a full ship with a hedge in the
 sentence**: `ship <id> --part "<which half>"` records the entry as `✅ **<id> (which
 half)**` and *leaves the line open* at ⏳ with its section intact, and the later `ship
-<id>` completes it — replacing that entry in place and dropping the qualifier, which is
+<id>` completes it. **Pass `--remainder "<what is left>"` beside it**, because the entry
+records the half that landed and nothing else records the other one: without it the next
+reader recovers the rest by subtracting the ledger from the line, several sessions later,
+from prose written for another purpose. It becomes the open line's `why`, so `brief`
+prints both halves as fields — the entry says what happened and the line says what is
+owed. The symptom is untouched: a task half-delivered is still that symptom's task. The
+later `ship <id>` completes it — replacing that entry in place and dropping the qualifier, which is
 the only thing that keeps "local half" from outliving the local half. That replacement
 states a *different* sentence, so on a ledger written before the tool, where the partial's
 bullet **wraps**, it takes `--lines <n>` for the same reason `record amend` does, carries

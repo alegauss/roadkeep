@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1233** (deps: —) **The open half of a partial is still an inference the reader makes, where the landed half is recorded** — RK1226 put both sides on one answer and left the remainder as prose to subtract; naming it costs a decision about whether the qualifier is one string or two. → §RK1233
-
 ## Block D — The gate
 
 - 📋 **RK1234** (deps: —) **task.worked fires per line, so the block that quietly finished is still only visible one commit at a time** — The incident it was filed from surfaced two blocks later, and the aggregate reading the design named is the one that would have said so. → §RK1234

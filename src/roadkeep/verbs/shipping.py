@@ -47,6 +47,16 @@ from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, REFUSALS, _r
 
 
 def _ship(config: Config, args: argparse.Namespace) -> int:
+    if args.remainder is not None and args.part is None:
+        # Refused rather than ignored (RK465, RK1233): a remainder on a whole shipment is a
+        # sentence about a line that is being removed, and honouring it silently would write
+        # the caller's words into a `why` the same transaction then deletes.
+        print(
+            "roadkeep: --remainder is what is left after --part, and this ship removes the "
+            "line: pass --part <what landed> too, or leave it off",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
     try:
         shipment = ship(
             config,
@@ -56,6 +66,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
             # can be written without it, which is how `--superseded-design` published a dash.
             why=args.why,
             part=args.part,
+            remainder=args.remainder,
             lines=args.lines,
             superseded=args.superseded_design,
         )
@@ -419,8 +430,14 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
         "--part",
         help=(
             "record only the half that landed and leave the line open, e.g. 'local "
-            "half'; a later ship with no --part completes it and removes the qualifier"
+            "half'; a later ship with no --part completes it"
         ),
+    )
+    # The open half, as data (RK1233). Beside `--part` and narrowed to it, because a
+    # remainder on a whole shipment is a sentence about a line that is being removed.
+    ship_parser.add_argument(
+        "--remainder",
+        help="what is still left, with --part: it becomes the open line's why",
     )
     ship_parser.add_argument(
         "--lines",
