@@ -204,29 +204,6 @@ the rationale to learn what is left.
 
 ## Block D — The gate
 
-### §RK1203 The path.missing door on a ledger line names a verb that refuses it
-
-Found adopting Turing, whose ledger holds 755 entries written before the tool existed.
-`lint` reports `path.missing` on a **changelog** entry — T759 names
-`frontend/apps/site/scripts/emit-model-catalog.mjs`, true when it shipped and false
-since the catalog moved to its own repository — and emits exactly one door: `amend T759
---why …`, kind `compose`, with the matching MCP call.
-
-Following it produces `no open task T759 in docs/ROADMAP.md: it is already in the
-changelog`. `amend` loads the roadmap, looks the id up in `roadmap.by_id()` and raises
-`NotOpen` for anything the ledger holds; it was built to correct an open line and says
-so. So the one remedy offered for this finding is the one verb that structurally cannot
-perform it, and an agent that trusts the door spends a call learning the door is shut.
-
-Two things are wrong and only one is the door. A ledger entry recording a path that was
-real at ship time is not drift — it is what history is *for* — so the check itself wants
-a notion of "true when written". And the remedy, if one is offered at all, has to name a
-verb that reaches the ledger: `record amend` exists for that file, and the 200-character
-cap on `amend --why` would refuse this 1,600-character entry even if it did.
-
-Minimum: stop emitting an unfollowable door. Better: let a ledger path be resolved
-against the commit that shipped it.
-
 ### §RK1206 The remedy composed from a field the finding did not read
 
 The finding names one address and its remedy names another. On a project whose

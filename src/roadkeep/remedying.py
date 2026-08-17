@@ -1136,10 +1136,23 @@ _TABLE: Mapping[str, _Rule] = {
         "a declared file is not on disk: scaffold it, or take the entry out of "
         "`[files]` in roadkeep.toml",
     ),
+    # `record amend` and never `amend` (RK1203). This finding fires on the **ledger alone** —
+    # `_paths` reads `documents["changelog"]` and nothing else, a roadmap naming an artefact
+    # its task exists to write being the opposite claim — so the door named here was not merely
+    # wrong for one role, it was wrong on every finding this code can produce. `amend` loads
+    # the roadmap, looks the id up in `roadmap.by_id()` and raises `NotOpen` for anything the
+    # ledger holds; it was built to correct an open line and says so. Found adopting Turing,
+    # where T759 names a script that moved to its own repository: the one remedy offered was
+    # the one verb that structurally cannot perform it, and following it spends a call to learn
+    # the door is shut.
+    #
+    # `--lines` is named in the sentence rather than put in the argv, because how many lines an
+    # entry spans is a fact about that entry and not a constant this table could carry — and on
+    # the corpus that found this the entry was 1,600 characters across several of them.
     "path.missing": _compose(
-        ("amend", "{id}", "--why", BLANK),
-        "the line names a path the repository does not have; the path is prose, so the "
-        "correction is the sentence",
+        ("record", "amend", "{id}", "--why", BLANK),
+        "a shipped entry names a path the repository no longer has; the path is prose, so "
+        "the correction is the sentence — add `--lines <n>` where the entry wraps",
     ),
     "budget.absent": _compose(
         ("budget",),

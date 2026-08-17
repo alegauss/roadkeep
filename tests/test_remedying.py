@@ -1311,3 +1311,46 @@ def test_the_four_readings_are_four_doors():
     answers to a four-way question is the tool making one of them for them."""
     found = remedy(Finding("body.promise", "IMPROVEMENTS.md", "", 1, "RK1"))
     assert len(found.doors) == 4
+
+
+def test_the_ledger_finding_names_a_verb_that_reaches_the_ledger(tmp_path):
+    """RK1203. `path.missing` fires on the **changelog alone** — `_paths` reads that document
+    and no other, a roadmap naming an artefact its task exists to write being the opposite
+    claim — so the `amend` this row used to name was not wrong for one role, it was wrong on
+    every finding the code can produce.
+
+    Found adopting Turing, whose ledger holds 755 entries written before the tool existed:
+    T759 names a script that later moved to its own repository, and following the door gives
+    `no open task T759 in docs/ROADMAP.md: it is already in the changelog`. `amend` loads the
+    roadmap, looks the id up and raises `NotOpen` for anything the ledger holds — it was built
+    to correct an open line and says so.
+
+    Run rather than matched, which is the only way this stays fixed: an argv that looks
+    complete and refuses is worse than none, because the caller spends the turn finding out.
+    """
+    from roadkeep.cli import EXIT_OK, main
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    # A directory the repository does have, holding a file it does not: a token under one it
+    # has never heard of is not read as a claim at all (RK217), which is the right rule and
+    # would make this fixture prove nothing.
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "kept.py").write_text("x = 1\n", encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text("# Roadmap\n\n## Block A\n\n", encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(
+        "# Shipped\n\n## Block A\n\n"
+        "- ✅ **RK1** **A symptom** — it works, in `src/gone.py`.\n",
+        encoding="utf-8",
+    )
+    config = Config.discover(tmp_path)
+    (found,) = [one for one in lint(config).findings if one.code == "path.missing"]
+
+    door = remedy(found, config).doors[0]
+    assert tuple(door.argv[:2]) == ("record", "amend"), door.argv
+    # The blank is the caller's prose (L4); everything else is a command that lands.
+    filled = [one if one != BLANK else "it works, elsewhere now." for one in door.argv]
+    assert main(["-C", str(tmp_path), *filled]) == EXIT_OK
+    assert lint(Config.discover(tmp_path)).clean

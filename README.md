@@ -119,16 +119,16 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 159 | 2 |
 | C — Query (consult without reading the file) | 3 | 108 | 1 |
-| D — The gate | 6 | 177 | 2 |
+| D — The gate | 5 | 178 | 2 |
 | E — Adoption | 2 | 89 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 108 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 2 | 7 | 0 |
-| **Total** | 17 | 702 | 9 |
+| **Total** | 16 | 703 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1203** (deps: —) **lint offers amend as the door for a path.missing on a changelog line, and amend refuses every shipped id** — The only remedy named for a ledger entry naming a moved path is a verb that cannot edit the ledger, so the finding has no reachable fix. → §RK1203
+- 📋 **RK1206** (deps: —) **Under an outline, the ref.unresolved remedy names the task id where the missing section is the anchor the line points at** — The finding prints the anchor and the command under it prints the id, so running it writes a section the line does not point at. → §RK1206
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
