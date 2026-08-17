@@ -151,30 +151,6 @@ and no entry carries, which also finds the ones already written.
 
 ## Block C — Query
 
-### §RK1221 The flags one arm of a two-arm read never looks at
-
-`_subject` has two arms. With an id the roadmap holds it returns that entry's task; with
-anything else it composes one out of `--block`, `--dep`, `--marker` and `--symptom`. So
-on the first arm all four are read and discarded: `budget RK12 --symptom "<a rewrite I
-am weighing>"` answers about the symptom already on the line and says so nowhere.
-
-That arm is right about the *file*: an id the roadmap holds has a symptom, and reporting
-the caller's instead would answer about a line nobody has. What is wrong is the silence,
-and RK465 named the shape — a narrowing flag nobody reads is worse than a refused one,
-because the caller reads a number believing it narrowed it. RK1190 sharpened it:
-`--symptom` is now a draft to measure, so passing one beside an id is what an author
-weighing an `amend` does.
-
-Three readings, and they are not equally good. **Refuse** it, as `answers` and `narrows`
-refuse two subjects, which is consistent and costs the caller a second command to get
-the number they wanted. **Honour** it — measure the draft against the line's other
-fields — which is what the flag now means everywhere else and is what an `amend` is
-about to do. **Say** it, leaving the answer alone and naming what was ignored.
-
-The second looks right and wants checking against the arm's own claim: `--dep` and
-`--marker` move the allowance too, so honouring one and not the others makes three flags
-mean two things.
-
 ### §RK1225 A budget that omits a rule the gate enforces
 
 `budget` answers width: characters left in a field, room on the rendered line, words

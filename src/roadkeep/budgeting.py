@@ -298,6 +298,9 @@ class Budget:
     #: as the project that declares no prose file at all. Empty in every other state,
     #: including that one, for the reason `show` states its absences apart.
     section_absence: str = ""
+    #: The flags whose value came from the caller rather than from the line (RK1221). Empty on
+    #: every call that named none, which is `brief`'s and every read of a line as it stands.
+    stated: tuple[str, ...] = ()
 
     def share(self, field: str) -> Share:
         return next(one for one in self.shares if one.field == field)
@@ -316,6 +319,14 @@ class Budget:
             f"{self.task.id}  {self.task.status}  deps {deps}  ({state})",
             f"  line       {self.line_max}, of which {self.structure} is structure",
         ]
+        if self.stated:
+            # Said, because the number now depends on it (RK1221): a caller who passed
+            # `--symptom` and reads an allowance has to be able to see that it was theirs, and
+            # one whose flag matched the file changed nothing and is not told they did.
+            rows.append(
+                f"  yours      {', '.join(self.stated)} — measured as the line an `amend` "
+                f"carrying them would write, not as the line on file"
+            )
         # Only where the caller could have named the anchor and did not (RK265). Said beside the
         # structure it moved, because a number resting on a guess and one resting on the id read
         # identically otherwise — and the guess is the one an `add --ref` can still correct.
@@ -376,6 +387,10 @@ class Budget:
             # Why it is null, where that is a defect rather than a project shape (RK303). Empty
             # otherwise, so a client can tell the two nulls apart without a second call.
             "section_absence": self.section_absence,
+            # Which flags the caller's own values came from (RK1221), so a consumer comparing
+            # this against the file can tell an answer about the line from an answer about the
+            # line an `amend` would write.
+            "stated": list(self.stated),
         }
 
 
@@ -423,8 +438,16 @@ def budget(
         family=family,
         ref=ref,
     )
-    return budget_of(
-        config, task, open_line=open_line, ref_assumed=assumed, why=why
+    answer = budget_of(config, task, open_line=open_line, ref_assumed=assumed, why=why)
+    # Named here and not inside `_subject`, which answers with a task: which flags the caller
+    # supplied is a fact about the *call*, and the record that publishes it is this one.
+    held = config.document("roadmap").by_id().get(task_id or "")
+    return (
+        answer
+        if held is None
+        else replace(
+            answer, stated=_stated(held.task, block, deps, status, symptom, ref)
+        )
     )
 
 
@@ -536,6 +559,33 @@ def _section_of(
     return answer, ""
 
 
+def _stated(
+    task: Task,
+    block: str,
+    deps: Sequence[str],
+    status: str | None,
+    symptom: str,
+    ref: str | None,
+) -> tuple[str, ...]:
+    """Which of the caller's fields differ from the line's own, by flag name (RK1221).
+
+    The answer names them, which is the half of RK465 a silent override would still be missing:
+    a caller who passed `--symptom` and gets a number back has to be able to see that it was
+    *their* symptom that produced it, and a caller who passed one identical to the file's has
+    changed nothing and should not be told they did.
+    """
+    given = (
+        ("--block", block, task.block),
+        ("--symptom", symptom, task.symptom),
+        ("--marker", status, task.status),
+        ("--ref", ref, task.ref),
+    )
+    named = [flag for flag, stated, held in given if stated and stated != held]
+    if deps and tuple(deps) != tuple(dep.render() for dep in task.deps):
+        named.append("--dep")
+    return tuple(named)
+
+
 def _subject(
     config: Config,
     task_id: str | None,
@@ -547,26 +597,45 @@ def _subject(
     family: str | None,
     ref: str | None = None,
 ) -> tuple[Task, bool, bool]:
-    """The line the budget is about, whether the roadmap holds it, and whether it guessed."""
+    """The line the budget is about, whether the roadmap holds it, and whether it guessed.
+
+    **Every field the caller states wins over the file's** (RK1221), which until then was true
+    of `--ref` alone. The other arm composes a line out of `--block`, `--dep`, `--marker` and
+    `--symptom`; this one read all four and discarded them, so `budget RK12 --symptom "<a
+    rewrite I am weighing>"` answered about the symptom already on the line and said so
+    nowhere. RK465 named that shape — a narrowing flag nobody reads is worse than a refused
+    one, because the caller reads a number believing it narrowed it — and RK1190 sharpened it,
+    `--symptom` now being a draft to *measure*, which is exactly what an author weighing an
+    `amend` passes.
+
+    Honoured rather than refused, and all four rather than one: the deps and the marker move
+    the allowance as the symptom does, so taking one and ignoring the others would make four
+    flags mean two things. What comes back is the line an `amend` carrying those arguments
+    would write, which is the question that was being asked.
+
+    Re-composed and never `replace`d, so the rule each field is subject to is applied by the
+    one function that owns it (RK265): a `--ref` under the id scheme is refused here exactly as
+    the `amend` will refuse it, and so is a block no heading declares.
+    """
     if task_id is not None:
         entry = config.document("roadmap").by_id().get(task_id)
         if entry is not None:
-            if ref is None:
-                return entry.task, True, False
-            # Re-composed rather than `replace`d, so that a `--ref` under the id scheme is
-            # refused here by the one function that owns the rule (RK265) instead of being
-            # silently taken — the budget for an `amend` has to refuse what the `amend` will.
             task = entry.task
+            stated = _stated(task, block, deps, status, symptom, ref)
+            if not stated:
+                # Nothing of the caller's to apply, which is every call before RK1221 and the
+                # one `brief` makes: the entry's own task, untouched and uncomposed.
+                return task, True, False
             return (
                 compose(
                     config,
                     task_id=task.id,
-                    block=task.block,
-                    symptom=task.symptom,
+                    block=block or task.block,
+                    symptom=symptom or task.symptom,
                     why=task.why,
-                    status=task.status,
-                    deps=tuple(dep.render() for dep in task.deps),
-                    ref=ref,
+                    status=status or task.status,
+                    deps=tuple(deps) if deps else tuple(dep.render() for dep in task.deps),
+                    ref=ref if ref is not None else task.ref,
                 ),
                 True,
                 False,

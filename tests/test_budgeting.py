@@ -1553,3 +1553,72 @@ def test_the_served_draft_publishes_no_ceiling_that_would_refuse_it(tmp_path):
     # And the write still publishes one, which is what makes the absence a decision.
     (writing,) = [one for one in TOOLS if one.name == "add"]
     assert "maxLength" in descriptor(writing, config)["inputSchema"]["properties"]["why"]
+
+
+# -- the flags one arm of a two-arm read never looked at (RK1221) --------------
+
+
+def test_a_field_the_caller_states_wins_over_the_line_on_file(tmp_path):
+    """`_subject` has two arms. With an id the roadmap holds it returned that entry's task, so
+    `--block`, `--dep`, `--marker` and `--symptom` were read and discarded: `budget RK1
+    --symptom "<a rewrite I am weighing>"` answered about the symptom already on the line and
+    said so nowhere.
+
+    RK465 named the shape — a narrowing flag nobody reads is worse than a refused one, because
+    the caller reads a number believing it narrowed it — and RK1190 sharpened it: `--symptom`
+    is a draft to *measure*, which is exactly what an author weighing an `amend` passes.
+    """
+    config = project(tmp_path)
+    held = budget(config, "RK1")
+    # A symptom of the caller's, and the `why` allowance moves with it: what the symptom takes
+    # is what the why loses, which is the whole reason the flag is worth honouring here.
+    # Long enough that the *line* binds the why rather than its own maximum, which is the
+    # interaction being asserted: a short symptom moves `taken` and leaves `allowed` at 200.
+    theirs = budget(config, "RK1", symptom="A" * config.schema.symptom_max)
+    assert theirs.share("symptom").taken > held.share("symptom").taken
+    # And the `why` allowance moves with it, which is the whole reason the flag is worth
+    # honouring here rather than merely refusing: what the symptom takes is what the why loses.
+    assert theirs.share("why").allowed < held.share("why").allowed
+
+
+def test_all_four_are_honoured_because_all_four_move_the_number(tmp_path):
+    """One flag taken and the others ignored would make four flags mean two things — which is
+    the caveat this task's own design ends on."""
+    config = project(tmp_path)
+    held = budget(config, "RK1")
+    # The deps group is part of the line, so it moves what the prose has between the two of
+    # them, exactly as it does on the arm that composes a new line.
+    assert budget(config, "RK1", deps=["RK2", "RK4"]).prose < held.prose
+
+
+def test_what_came_from_the_caller_is_named_and_what_matched_the_file_is_not(tmp_path):
+    """The half a silent override would still be missing: a caller who passed `--symptom` and
+    reads an allowance has to see that it was theirs, and one whose flag matched the file
+    changed nothing and should not be told they did."""
+    config = project(tmp_path)
+    assert budget(config, "RK1").stated == ()
+    assert budget(config, "RK1", symptom="A different one").stated == ("--symptom",)
+
+    # Identical to what the line already says: nothing was overridden, so nothing is claimed.
+    same = config.document("roadmap").by_id()["RK1"].task.symptom
+    assert budget(config, "RK1", symptom=same).stated == ()
+
+
+def test_a_read_of_the_line_as_it_stands_is_untouched(tmp_path):
+    """Every call before this one, and the one `brief` makes: no field of the caller's, so the
+    entry's own task comes back uncomposed and the answer is what it always was."""
+    config = project(tmp_path)
+    plain = budget(config, "RK1")
+    assert plain.stated == ()
+    assert plain.task == config.document("roadmap").by_id()["RK1"].task
+
+
+def test_the_row_says_which_line_the_number_is_about(tmp_path, capsys):
+    config = project(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "RK1", "--symptom", "Short"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "yours      --symptom" in out
+    assert "an `amend` carrying them would write" in out
+
+    assert main(["-C", str(tmp_path), "budget", "RK1", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["stated"] == []

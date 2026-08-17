@@ -118,17 +118,17 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 3 | 159 | 2 |
-| C — Query (consult without reading the file) | 3 | 108 | 1 |
+| C — Query (consult without reading the file) | 2 | 109 | 1 |
 | D — The gate | 2 | 181 | 2 |
 | E — Adoption | 2 | 89 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 109 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 9 | 0 |
-| **Total** | 11 | 709 | 9 |
+| **Total** | 10 | 710 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1221** (deps: —) **budget on an id the roadmap holds reads the four fields describing a line and discards them without a word** — The arm that finds the entry answers off the file, so a draft symptom or a dep passed beside an id narrows nothing and the caller reads a number believing it did. → §RK1221
+- 📋 **RK1222** (deps: —) **The gate reads a declared query for a grammar it cannot parse and never for a pathspec that answers about nothing** — RK1216 gave the read the words; the typo is in a governed file, and a claim nothing answers is what lint refuses for a pointer, a dead queue entry and a bad fence. → §RK1222
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

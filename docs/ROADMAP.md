@@ -32,7 +32,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1221** (deps: —) **budget on an id the roadmap holds reads the four fields describing a line and discards them without a word** — The arm that finds the entry answers off the file, so a draft symptom or a dep passed beside an id narrows nothing and the caller reads a number believing it did. → §RK1221
 - 📋 **RK1225** (deps: —) **budget publishes every width a field has and not the one sentence it accepts** — A why that fits every number budget reported is still refused by why.sentences, so the verb that exists to save a composition costs one anyway. → §RK1225
 - 📋 **RK1226** (deps: —) **Nothing names the open half of a partial, only the half that shipped** — brief joins line, section and ledger but omits the recorded qualifier, so resuming a partial means subtracting one file from another to recover the remainder. → §RK1226
 
