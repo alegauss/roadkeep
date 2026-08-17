@@ -1323,10 +1323,16 @@ def _pinned(tmp_path: Path, config: str = PINNED) -> Path:
 
 
 def _reading(monkeypatch, found):
-    """Patched on `installing`, which is where the guard imports it from."""
+    """Patched on `installing`, which is where the guard imports both from.
+
+    Both readings and not one (RK1237): the guard asks `behind` on every write and reaches
+    `engines` only to compose the refusal, so a fake standing in for one of them would leave
+    the other answering about this developer's own checkout.
+    """
     from roadkeep import installing
 
     monkeypatch.setattr(installing, "engines", lambda root=".": found)
+    monkeypatch.setattr(installing, "behind", lambda root=".": found.verdict == BEHIND)
 
 
 def _added(root: Path) -> list[str]:
@@ -1420,3 +1426,104 @@ def test_a_read_is_never_asked_which_copy_it_came_from(tmp_path, monkeypatch):
     root = _pinned(tmp_path)
     _reading(monkeypatch, _pair(plugin_version="0.1.0"))
     assert main(["-C", str(root), "list"]) == EXIT_OK
+
+
+# -- what the guard in front of the write costs (RK1237) ----------------------
+
+
+def _asked(monkeypatch, plugin, *, calls: list[bool]) -> None:
+    """A registry answering ``plugin``, with every `engine()` reading recorded.
+
+    The cache on `engine` is per process and this suite is one, so it is cleared here: a
+    second test would otherwise measure the first one's answer and pass by measuring nothing.
+    """
+    from roadkeep import installing
+    from roadkeep.provenance import Engine, engine
+
+    engine.cache_clear()
+    monkeypatch.setattr(installing, "installed", lambda base: plugin)
+
+    def reading(placed: bool = True) -> Engine:
+        calls.append(placed)
+        return Engine(
+            version="0.1.1",
+            home=Path("/tree/src/roadkeep"),
+            commit="abc1234" if placed else None,
+        )
+
+    monkeypatch.setattr(installing, "engine", reading)
+    monkeypatch.setattr("roadkeep.provenance.engine", reading)
+
+
+def _installed(version: str, commit: str | None = "abc1234"):
+    from roadkeep.provenance import Installed
+
+    return Installed(version=version, home=Path("/cache"), commit=commit, scope="user")
+
+
+def test_a_copy_at_another_version_is_answered_without_asking_git(tmp_path, monkeypatch):
+    """The measurement RK1235 shipped without: `engines` is 45 ms — `ls-files`, `rev-parse`
+    and `status --porcelain` at 14, 14 and 16 — against RK176's 43 ms floor for a whole
+    command, and cached per *process*, which on a CLI is once per write and never twice.
+
+    The version is a module attribute, and it is what decides the case this guard is for."""
+    from roadkeep.installing import behind
+
+    calls: list[bool] = []
+    _asked(monkeypatch, _installed("0.1.0"), calls=calls)
+    assert behind(tmp_path) is True
+    assert calls == [False], "the placed reading is the one that costs, and nothing needed it"
+
+
+def test_no_plugin_is_answered_without_asking_git_either(tmp_path, monkeypatch):
+    from roadkeep.installing import behind
+
+    calls: list[bool] = []
+    _asked(monkeypatch, None, calls=calls)
+    assert behind(tmp_path) is False
+    assert calls == [False]
+
+
+def test_two_copies_at_one_version_are_worth_the_sha(tmp_path, monkeypatch):
+    """The case the cheap reading cannot decide, and the one RK418 exists for: two
+    `src/roadkeep/` trees fourteen files apart answered the same number."""
+    from roadkeep.installing import behind
+
+    calls: list[bool] = []
+    _asked(monkeypatch, _installed("0.1.1", commit="def5678"), calls=calls)
+    assert behind(tmp_path) is True
+    assert calls == [False, True], "the versions matched, so the sha is what tells them apart"
+
+
+def test_the_narrowing_this_task_filed_was_the_wrong_one(tmp_path, monkeypatch):
+    """Filed as *drop `status --porcelain`*, and that reading was wrong. `modified` is exactly
+    what separates `unpinnable` from `behind`, and this guard has to make that separation: a
+    developer's checkout with uncommitted work, at the plugin's version and on another commit,
+    is where a developer lives and refusing it is the failure the design exists to avoid."""
+    from roadkeep.installing import Engines
+    from roadkeep.provenance import Engine
+
+    working = Engines(
+        running=Engine(
+            version="0.1.1", home=Path("/tree"), commit="abc1234", modified=True
+        ),
+        plugin=_installed("0.1.1", commit="def5678"),
+    )
+    assert working.verdict == UNPINNABLE
+    # Which is not `behind`, so the write stands — and dropping the read that says so would
+    # have turned every such checkout into a refusal.
+    assert working.verdict != BEHIND
+
+
+def test_the_unplaced_reading_is_the_same_verdict_with_poorer_facts(tmp_path, monkeypatch):
+    """One verdict and never two (RK300): what changes between the two calls is the facts,
+    never the judgement — an unplaced engine is the state a marketplace row with no sha
+    already puts every reader in, and `verdict` already answers for it."""
+    from roadkeep.provenance import engine
+
+    engine.cache_clear()
+    unplaced = engine(placed=False)
+    assert unplaced.version and unplaced.commit is None and unplaced.modified is False
+    # And both questions are cached, so a process asking each asks it once.
+    assert engine(placed=False) is unplaced
+    engine.cache_clear()

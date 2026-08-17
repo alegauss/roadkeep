@@ -898,6 +898,43 @@ def engines(root: str | Path = ".") -> Engines:
     return Engines(running=engine(), plugin=installed(base), gates=gated_at(base))
 
 
+def behind(root: str | Path = ".") -> bool:
+    """Whether the copy running is older than the one registered here, paying for git only
+    where the cheap facts cannot decide (RK1237).
+
+    RK1235 put :func:`engines` in front of every governed write on a pinned project and never
+    measured it. It is **45 ms** — three git subprocesses, 14 for `ls-files`, 14 for
+    `rev-parse` and 16 for `status --porcelain` — against RK176's 43 ms floor for a whole
+    command, and cached per *process*, which is once per write on a CLI and never twice.
+
+    The narrowing RK1237 filed was to drop `status --porcelain`, and that reading was wrong:
+    `modified` is exactly what separates `unpinnable` from `behind`, and this guard has to
+    make that separation — a developer's checkout with uncommitted work at the plugin's
+    version but on another commit is `unpinnable`, and refusing it is the failure the whole
+    design exists to avoid.
+
+    What is actually free is the **version**, which is a module attribute. :attr:`Engines.
+    verdict` already decides on it first and reaches for a sha only where the two match, so
+    the fix is not a second rule but a cheaper *reading* handed to the same one: ask with the
+    commit unknown, which is the state a marketplace row with no sha already produces, and
+    escalate only where that answer was `agreed` and a plugin exists to disagree. A project
+    running a copy at another version — the case this guard is for — pays nothing.
+
+    Measured after: **2 ms** where no plugin is registered or the versions differ, against 45
+    for the reading it replaces — the registry is a JSON file and the version is an attribute.
+    Only two copies claiming one version pay for git, and that is the one case where nothing
+    cheaper could tell them apart.
+
+    One verdict and never two, which is :meth:`~roadkeep.kernel.document.Document.holds`'
+    rule (RK300): what changes between the two calls is the facts, never the judgement.
+    """
+    base = Path(root).resolve()
+    cheap = Engines(running=engine(placed=False), plugin=installed(base))
+    if cheap.plugin is None or cheap.verdict == BEHIND:
+        return cheap.verdict == BEHIND
+    return engines(base).verdict == BEHIND
+
+
 #: A workflow step calling this action, in either of the two spellings a repository writes:
 #: `<owner>/roadkeep@<ref>` in an adopting project, and `./` in the tree that *is* the action.
 #: The owner is not matched, because a fork publishes the same action under another name and

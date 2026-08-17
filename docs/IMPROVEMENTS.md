@@ -85,30 +85,6 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1237 What the guard in front of the write costs
-
-RK1235 put a guard in front of every governed write and never measured it. RK1192 did
-the opposite for its own per-turn check — 0.07 ms unwired, 0.86 ms wired, against a 43
-ms floor — and stated the numbers in the docstring, which is the standard this fell
-short of.
-
-What the guard reaches is not small. Past `[install] pinned` it calls `engines`, which
-calls `engine()`, which runs **three git subprocesses**: `ls-files`, `rev-parse` and
-`status --porcelain`. Cached per process — and a CLI write *is* a process, so a project
-that pinned pays all three on every `add`, `ship` and `amend`. The MCP server is the
-other case and the better one: it is long-lived, so the cache holds.
-
-The measurement decides the shape rather than the other way round. If it is
-milliseconds, the docstring gets its numbers and nothing else changes. If it is not, the
-narrowing is already visible: the verdict this guard acts on is `behind`, which is
-decided by the version and then by the sha — and `status --porcelain` only separates
-`unpinnable`, a state this guard treats as agreement. A reading that stopped before it
-would drop a third of the cost and answer the same question.
-
-What not to do is cache it in the store: a copy's revision is exactly the fact that
-changes under you, and a stale answer would refuse writes from the copy that is now
-correct.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

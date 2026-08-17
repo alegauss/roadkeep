@@ -400,7 +400,9 @@ def _behind(config: Config, args: argparse.Namespace) -> int | None:
       tool guessing at a setup it cannot see.
 
     So it costs an attribute read on every project that has not asked, which is every project
-    by default; `engines` is only reached past that flag.
+    by default. Past that flag it costs a **version comparison**, and git only where the two
+    versions match — :func:`~roadkeep.installing.behind` is what pays for the sha, and its
+    docstring carries the measurement RK1235 shipped without (RK1237).
 
     **A door and not a wall**, which is the other half of the design: the message carries
     `engines --invoke`, so the caller re-runs the same command through the copy that is right
@@ -414,11 +416,13 @@ def _behind(config: Config, args: argparse.Namespace) -> int | None:
     """
     if not config.install_pinned or getattr(args, "wiring", False):
         return None
-    from roadkeep.installing import BEHIND, engines  # noqa: PLC0415 - RK260
+    from roadkeep.installing import behind, engines  # noqa: PLC0415 - RK260
 
-    read = engines(config.root)
-    if read.verdict != BEHIND:
+    if not behind(config.root):
         return None
+    # Only now, and only to say the two versions: the refusal is already decided, so the read
+    # that composes its message is off the path every allowed write takes (RK1237).
+    read = engines(config.root)
     print(
         f"roadkeep: refused, nothing written: this copy is {read.running.version} at "
         f"{read.running.revision} and the project pinned "

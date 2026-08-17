@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1237** (deps: —) **The pin guard runs three git calls in front of every write and nobody measured them** — RK1192 measured its per-turn check before shipping it; RK1235 put this one on the write path and did not. → §RK1237
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

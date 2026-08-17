@@ -543,11 +543,23 @@ def _absolute(path: Path) -> str:
     return f"'{shown}'" if " " in shown else shown
 
 
-@lru_cache(maxsize=1)
-def engine() -> Engine:
-    """Describe the copy of this package that is running. Cached: one git call per process."""
+@lru_cache(maxsize=2)
+def engine(placed: bool = True) -> Engine:
+    """Describe the copy of this package that is running. Cached: one git call per process.
+
+    ``placed=False`` answers the two facts that cost nothing — the version and the directory
+    — and leaves the commit unknown, which is the state a marketplace row with no sha already
+    puts every reader in (RK1237). Measured here: `ls-files`, `rev-parse` and `status
+    --porcelain` are 14, 14 and 16 ms, so a placed reading is **45 ms**, against a floor of 43
+    for a whole command. That is affordable once per session and not once per write, and the
+    caller that pays it per write is :func:`~roadkeep.installing.behind`, which asks unplaced
+    first and only pays where the versions match.
+
+    Two entries in the cache and not one: a process that asks both questions asks each once,
+    and the cheap answer is not a cache miss for the expensive one.
+    """
     home = Path(roadkeep.__file__).resolve().parent
-    commit, modified = _placed(home)
+    commit, modified = _placed(home) if placed else (None, False)
     return Engine(version=roadkeep.__version__, home=home, commit=commit, modified=modified)
 
 
