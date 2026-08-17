@@ -35,6 +35,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1234** (deps: —) **task.worked fires per line, so the block that quietly finished is still only visible one commit at a time** — The incident it was filed from surfaced two blocks later, and the aggregate reading the design named is the one that would have said so. → §RK1234
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

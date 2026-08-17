@@ -156,6 +156,30 @@ The second looks right and wants checking against L4: `ship --part` may not comp
 
 ## Block D — The gate
 
+### §RK1234 The block that finished and nobody closed
+
+RK1228 reports a coincidence: this change touched a path an open task's section names,
+and the line is still open. It is a note, deliberately, because a path named in a
+section changes for a rename or a neighbouring fix as readily as for the task.
+
+What it cannot see is the block. The incident it was filed from surfaced *two blocks
+later*, when a block that should have been finished still counted one open line. The
+design named the stronger reading and left it: **a block whose every open line has had
+its paths touched by this change.** One line moving is ordinary; every line in a block
+moving while none shipped is a block somebody finished and did not close.
+
+Two things to settle first. Whether it is a second note or the same one aggregated —
+saying the per-line thing five times and then again about the block is noise, so the
+block reading probably *replaces* its members, which is the shape `_collective` already
+has.
+
+And what "every" means where a block holds a line whose section names no path. Counting
+it unsatisfied makes the signal unreachable on any block with one prose-only task;
+ignoring it makes a block of one such line report on an unrelated edit. The honest
+reading is probably that a block qualifies only where every open line names a path and
+all of them moved — narrow on purpose, because this should fire rarely and be worth
+reading when it does.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
