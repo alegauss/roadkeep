@@ -1210,3 +1210,100 @@ def test_the_version_is_read_out_of_the_line_and_not_off_its_end():
     assert _version_in(said) == "0.1.963"
     assert _version_in("roadkeep 1.2\n") == "1.2"
     assert _version_in("no numbers here") == ""
+
+
+def _registry(tmp_path: Path, monkeypatch, project: Path, home: Path, version: str) -> None:
+    """The harness's own file, naming one install for this project — its format, not ours."""
+    config = tmp_path / "config"
+    (config / "plugins").mkdir(parents=True, exist_ok=True)
+    (config / "plugins" / "installed_plugins.json").write_text(
+        json.dumps(
+            {
+                "version": 2,
+                "plugins": {
+                    "roadkeep@alegauss": [
+                        {
+                            "scope": "project",
+                            "projectPath": str(project),
+                            "installPath": str(home),
+                            "version": version,
+                            "lastUpdated": "2026-08-17T00:00:00Z",
+                        }
+                    ]
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(config))
+
+
+
+# -- the copy a shell command should invoke (RK1230) ---------------------------
+
+
+def test_the_wired_copy_is_named_in_one_line(tmp_path, capsys, monkeypatch):
+    """The MCP tools always reach the right copy; the shell does not, and a session that needs
+    the shell has to know which one — `lint --fix` is withheld from the tool surface, so any
+    repair goes there. Nothing said which.
+
+    Observed across one long session: commands were run against a copy found by *listing* a
+    plugins cache directory, while the engine the project writes with lived under a different
+    plugins root entirely. The stale copy did not fail; it agreed with a rule that had moved.
+    """
+    root = tmp_path / "project"
+    root.mkdir()
+    wired = tmp_path / "plugins" / "roadkeep" / "0.1.999"
+    (wired / "scripts").mkdir(parents=True)
+    _registry(tmp_path, monkeypatch, root, wired, version="0.1.999")
+
+    assert main(["-C", str(root), "engines", "--invoke"]) == EXIT_OK
+    said = capsys.readouterr().out
+    # One line and nothing else, so a shell can read it into a variable rather than
+    # recognise it inside a table — which is what a caller was reduced to grepping.
+    assert said.splitlines() == [f"python {(wired / LAUNCHER).as_posix()}"]
+
+
+def test_it_answers_the_running_copy_where_nothing_is_wired(tmp_path, capsys, monkeypatch):
+    """With no plugin registered, the copy the caller reaches *is* the one that answers, and
+    naming a second would be inventing a disagreement."""
+    from roadkeep.provenance import invocation
+
+    root = tmp_path / "project"
+    root.mkdir()
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "empty"))
+    assert main(["-C", str(root), "engines", "--invoke"]) == EXIT_OK
+    assert capsys.readouterr().out.strip() == invocation()
+
+
+def test_the_line_carries_no_verdict(tmp_path, capsys, monkeypatch):
+    """This answers *which copy to call*, which a caller has to know before they know whether
+    the copies agree — so an exit code about agreement would make a shell substitution fail on
+    a project that is merely behind. `engines` bare is where the disagreement is read."""
+    root = tmp_path / "project"
+    root.mkdir()
+    wired = tmp_path / "plugins" / "roadkeep" / "0.0.1"
+    (wired / "scripts").mkdir(parents=True)
+    _registry(tmp_path, monkeypatch, root, wired, version="0.0.1")
+
+    # The copies plainly disagree, which `engines` reports and exits 1 on.
+    assert main(["-C", str(root), "engines"]) == EXIT_GATE
+    capsys.readouterr()
+    # And the one line still answers, at exit 0.
+    assert main(["-C", str(root), "engines", "--invoke"]) == EXIT_OK
+    assert capsys.readouterr().out.strip().endswith(LAUNCHER)
+
+
+def test_the_payload_carries_it_without_the_flag(tmp_path, capsys, monkeypatch):
+    """A consumer already reading this answer should not make a second call for the one field
+    it acts on — and the served surface appends `--json` to every call, so the flag has to
+    work with it rather than be refused beside it."""
+    root = tmp_path / "project"
+    root.mkdir()
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "empty"))
+
+    assert main(["-C", str(root), "engines", "--json"]) == EXIT_OK
+    assert "invoke" in json.loads(capsys.readouterr().out)
+
+    assert main(["-C", str(root), "engines", "--invoke", "--json"]) == EXIT_OK
+    assert set(json.loads(capsys.readouterr().out)) == {"invoke"}

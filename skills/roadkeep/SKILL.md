@@ -54,7 +54,10 @@ reads all three** and answers `agreed`, `behind` or `unpinnable` — the last be
 version and a modified checkout, which is no commit the plugin could match and so is not
 agreement; it exits 1 on either of the two that are not. Reach for it when a hook denies a
 write the command you just ran would have made, because then the refusal is that copy's
-rule and not this one's.
+rule and not this one's. **And `engines --invoke` prints, on one line and alone, the
+command that reaches the copy wired to this project** — reach for it before composing any
+shell call, because the tools here always find the right copy and a shell does not: a
+stale one in another plugins root does not fail, it agrees with a rule that has moved.
 
 `roadkeep <add|status|amend|restate|ship|retire|record|non-goal|section> --help` has the
 flags. What they guarantee, so it costs you no thought: the id, the `→ §<id>` pointer, the

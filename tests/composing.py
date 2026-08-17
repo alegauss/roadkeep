@@ -103,6 +103,9 @@ SITES: tuple[Site, ...] = (
     Site("deferring.py:Resumption.requeue", "unreached", NO_FIXTURE),
     Site("history.py:Addresses.stated", "unreached", NO_FIXTURE),
     Site("history.py:opens", "unreached", NO_FIXTURE),
+    # RK1230. Run by `test_installing`, which asserts the line it composes *is* the copy the
+    # registry names — the one composed command here whose whole point is being pasted.
+    Site("installing.py:Engines.invoke", "run"),
     Site("installing.py:Plan.verdict", "unreached", NO_FIXTURE),
     Site("installing.py:Removal.verdict", "unreached", NO_FIXTURE),
     Site("installing.py:_governed", "unreached", NO_FIXTURE),

@@ -110,6 +110,16 @@ def _engines(config: Config, args: argparse.Namespace) -> int:
     sentence to learn the pen and the judge are 133 versions apart is one that will not ask.
     """
     found = engines(config.root)
+    if args.invoke:
+        # One line and no verdict (RK1230): this answers *which copy to call*, which is a
+        # question a caller has before they know whether the copies agree — and an exit code
+        # about agreement would make a shell substitution fail on a project that is merely
+        # behind. `engines` bare is where the disagreement is read.
+        # `--json` is honoured rather than refused, because the served surface appends it to
+        # every call (RK319): a flag that only worked on a terminal would be one this project's
+        # own agent could not use, which is the caller the whole task is about.
+        print(json.dumps({"invoke": found.invoke()}, indent=2) if args.json else found.invoke())
+        return EXIT_OK
     # Both registers off the record (RK1170), the exit code included: whether the pen and the
     # judge are the same copy is a property of the reading and not a second decision here.
     if args.json:
@@ -679,6 +689,17 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
             "allowed to differ — a cache may lag a checkout — and what is not survivable is "
             "not being able to say which one answered. Exits 1 where the two that state a "
             "version state different ones, so a session can ask this and act on it."
+        ),
+    )
+    # The one line a caller pastes (RK1230). Its own flag rather than a row in the table:
+    # what a shell needs is a value it can read into a variable, and the table is exactly the
+    # thing a session was reduced to grepping — or, worse, to finding by listing a cache.
+    engines_parser.add_argument(
+        "--invoke",
+        action="store_true",
+        help=(
+            "print only the command that reaches the copy wired to this project, so a shell "
+            "invocation needs no directory listing to find it"
         ),
     )
     engines_parser.add_argument("--json", action="store_true", help=_JSON_HELP)

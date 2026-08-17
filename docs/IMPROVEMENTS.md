@@ -158,33 +158,6 @@ reading when it does.
 
 ## Block F — The plugin
 
-### §RK1230 The copy a shell command should invoke
-
-The MCP tools always reach the right copy. The shell does not, and a session that needs
-the shell — `lint --fix` is withheld from the tool surface, so any repair goes there —
-has to know which copy to invoke. Nothing says which.
-
-Observed across one long session. Commands were run against
-`~/.claude/plugins/cache/alegauss/roadkeep/0.1.886/src`, found by listing that
-directory, while the engine this project actually writes with is
-`~/.claude-pessoal/plugins/cache/alegauss/roadkeep/0.1.922/src` — a different plugins
-root entirely. `installed_plugins.json` under `.claude` lists 0.1.886 for this project,
-which is what made the wrong copy look confirmed rather than guessed.
-
-The only signal was one line inside an unrelated `lint --fix` report: *this gate is
-0.1.886 and the plugin wired to this project is 0.1.922*. Everything before that ran on
-the wrong engine and answered plausibly, which is the part that matters — a stale copy
-does not fail, it agrees with a rule that has moved.
-
-`engines` answers the question exactly, and it was found only after the disagreement was
-noticed. Two things would have closed the gap earlier: a refusal rather than a note when
-a shell invocation is not the wired copy, and a one-line way to print the path to invoke
-— so a caller composing a shell command has somewhere to read it that is not a directory
-listing.
-
-Worth deciding whether a stale copy should refuse to write at all, since a write from
-the wrong rules is the failure the note describes and does not prevent.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

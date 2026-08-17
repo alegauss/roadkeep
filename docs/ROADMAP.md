@@ -40,8 +40,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1230** (deps: —) **Nothing tells a shell caller which engine copy is the one wired to this project** — A stale copy in a different plugins root answers plausibly instead of refusing, and the only signal is a note inside an unrelated report. → §RK1230
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

@@ -544,7 +544,11 @@ TOOLS: tuple[Tool, ...] = (
     # the agent is the one it happens to: its writes go through whatever `roadkeep` the
     # session reaches and its hand edits are denied by whatever the harness installed, and
     # measured live those were 133 versions apart with nothing anywhere saying so.
-    Tool("engines", ()),
+    # `invoke` rides with it (RK1230), and this surface is exactly who needs it: the tools
+    # here always reach the right copy and a `Bash` call does not — `lint --fix` is withheld
+    # from this list, so every repair goes through a shell, and the copy to name there was
+    # findable only by listing a plugins cache. Measured on a session that listed the wrong one.
+    Tool("engines", ("invoke",)),
     # The one query on this list that is not its own subcommand (RK275). `merge` is git's driver
     # contract — three positional paths and an exit code git reads — and none of that belongs in
     # a tool an agent calls, so the verb stays unexposed. `--check` is not that verb sharing a

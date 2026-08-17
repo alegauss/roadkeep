@@ -794,6 +794,31 @@ class Engines:
         """
         return self.verdict == AGREED
 
+    def invoke(self) -> str:
+        """The shell command that reaches the copy **wired to this project** (RK1230).
+
+        The MCP tools always reach the right copy; the shell does not, and a session that
+        needs the shell has to know which one to invoke — `lint --fix` is withheld from the
+        tool surface, so any repair goes there. Nothing said which.
+
+        Observed across one long session: commands were run against a copy found by *listing*
+        a plugins cache directory, while the engine the project writes with lived under a
+        different plugins root entirely. The stale copy did not fail. It agreed with a rule
+        that had moved, and answered plausibly, which is the part that matters.
+
+        One line and nothing else, so it can be read into a shell variable rather than
+        recognised inside a report. :meth:`stated` already prints the same paths in a table,
+        and a table is the thing a caller was reduced to grepping.
+
+        The **plugin's** where one is registered, because that is what "wired to this project"
+        means — the copy the hook and the skill run. Where none is, the honest answer is the
+        running engine's own invocation: with nothing wired, the copy the caller reaches *is*
+        the one that answers, and naming a second would be inventing a disagreement.
+        """
+        if self.plugin is not None and self.plugin.home is not None:
+            return f"python {(self.plugin.home / LAUNCHER).as_posix()}"
+        return invocation()
+
     def stated(self) -> str:
         """The three copies, and where they differ (RK415, RK418).
 
@@ -855,6 +880,10 @@ class Engines:
                 "scope": plugin.scope,
             },
             "gates": [{"file": where, "ref": ref} for where, ref in self.gates],
+            # The command a shell caller runs (RK1230), on the ordinary payload as well as
+            # behind its own flag: a consumer already reading this answer should not have to
+            # make a second call for the one field it acts on.
+            "invoke": self.invoke(),
             "agree": self.agree,
             # Which of the three, because the boolean above cannot carry the state RK418
             # added: a checkout with uncommitted work is at no commit the plugin could match,

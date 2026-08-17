@@ -733,6 +733,7 @@
 - ✅ **RK1167** **Two registry rows for one project make the first win, so engines names a version that was replaced and is not on disk** — the row that answers is the newest whose install is still on disk, so a pruned version stops being what engines reports.
 - ✅ **RK1189** **A wired plugin stood the committed launcher's MCP server down, so the harness marked that server failed** — The mcp mode serves wherever it is started and names a missing engine on stderr, the deferral being the guard's rule alone.
 - ✅ **RK1218** **add cannot carry the section it requires, so every filing is two commands with a dangling pointer between them** — The one-call form has existed since RK93 and nothing named it: every add that omits --section now offers it beside the follow-up it would have avoided.
+- ✅ **RK1230** **Nothing tells a shell caller which engine copy is the one wired to this project** — `engines --invoke` prints on one line the command that reaches the copy wired to this project, so composing a shell call needs no listing of a plugins cache.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
