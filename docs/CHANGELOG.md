@@ -326,6 +326,7 @@
 - ✅ **RK1185** **`brief` hands over a task's design and deps but never its criterion, so it is read at the ship** — the criterion rides with the brief as its clauses and what each matches now, so the claim the work is measured against arrives before the first edit rather than at the ship.
 - ✅ **RK1188** **No verb says what the blocks are called, so choosing where a task goes means reading the file the hook denies** — `block list` prints every declared block with its title, open count and state in file order, naming the labels only the ledger declares — the read `add --block` assumes, served over MCP.
 - ✅ **RK1219** **Share declares payload twice, so the definition a reader edits may be the one Python has already discarded** — The dead copy of `Share.payload` is gone, and `tests/test_shadowing.py` sweeps every module and class of the package for a name its own body binds twice.
+- ✅ **RK1190** **budget states the allowance and cannot be handed a draft, so prose three words over is found by being refused** — Every prose argument `budget` takes is a draft it measures — `--why`, `--symptom` and `--body` answer with the overrun and exit 1, and the served schema publishes no ceiling to refuse one.
 
 ## Block D — The gate
 

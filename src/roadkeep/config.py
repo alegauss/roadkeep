@@ -355,7 +355,10 @@ PATH_ARGUMENTS: Mapping[str, Mapping[str, str]] = {
         "path": "repo",
     },
     "claim": {"path": "repo", "add_path": "repo"},
-    "budget": {"file": "project"},
+    # Two classes on one verb, and the pair is what makes the distinction concrete (RK1190):
+    # `--file` names an every-turn file *of the project* and is resolved against the root,
+    # while `--body-file` is a draft the caller is holding and is read the way `cat` reads one.
+    "budget": {"file": "project", "body_file": "caller"},
     "replay": {"path": "caller"},
     "adopt": {"path": "project", "alongside": "project"},
     "install": {"source": "caller"},

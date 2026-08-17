@@ -49,6 +49,28 @@ body at 366 words against 300. Both limits are facts about the file and the role
 before a word, so both are read here rather than met at the door. Not a `--dry-run` on the
 write verbs, which would want the prose first — the whole point is to be answerable without it.
 
+**And the draft is measured here too, which is the half RK190 left** (RK1190). Every number
+above is knowable before the first word, and *none of them measures the words that then get
+written* — so the only thing that ever compared a paragraph against its limit was the write
+that refused it. Measured on one session driving another project: eight refusals on length,
+several of them three and four retries for a single task, each costing the whole field again.
+The refusals are good; none of them is reachable until something has been sent.
+
+So every subject that has a limit takes the draft it is for — `--why` and `--symptom` on a
+line, `--body` beside `--anchor` — and answers with the overrun rather than with the refusal.
+It is **counted by the writer's own counter**: :func:`~roadkeep.kernel.schema.width` for a
+field and the section reader's own words for a body, because a second counter that disagreed
+with the door by one would be worse than no read at all. Nothing is composed and nothing is
+validated — a draft twice its limit is a **number**, where an `add` carrying it is a refusal,
+and that difference is the whole verb. Over MCP it is the same read: `isError` where the draft
+is over, because a caller gating on the answer should not have to parse prose for the one bit
+it asked for.
+
+Stdin is accepted here and nowhere else in this shape (RK329's objection, and why it does not
+apply): a pipe does not rewind, so the writing verbs read one late and refuse the paragraph
+back to the caller — this writes nothing, so a refusal costs a re-send of something that was
+never going to land.
+
 **Validated in characters, published in words** (RK185). A model has no characters: the
 tokenizer exposes tokens, so "200 characters" is a target reached by trial and every retry
 is a re-guess. Words survive tokenization well enough to be aimed at, so every number above
@@ -81,7 +103,10 @@ from roadkeep.kernel.schema import (
     words,
 )
 from roadkeep.scoping import NoSuchNonGoal, NotGoverned, address, leads, read
-from roadkeep.sections import binding, declaring, find
+#: `words` here is the char-to-word conversion this module publishes as an aim; the section
+#: reader's `words` is what a body is actually charged. Two arithmetics, so the import that
+#: would have shadowed one is aliased rather than the two being reconciled (RK1190).
+from roadkeep.sections import binding, declaring, find, words as prose_words
 
 #: Re-exported, not re-declared (RK201). The conversion moved down to `schema`, where the
 #: refusal that states a surplus can reach it: the aim and the surplus are the same
@@ -141,10 +166,28 @@ class Share:
     #: printer, because a per-role limit means the answer differs by which file is asked
     #: about, and only the reader that resolved the schema knows which one that was.
     source: str = ""
+    #: Whether :attr:`taken` is prose the caller handed over to be measured rather than prose
+    #: the file holds (RK1190). It changes no arithmetic — a draft is measured against the same
+    #: allowance the write enforces, which is the whole claim — and it changes every word of the
+    #: answer: "153 written" about a paragraph that exists nowhere is a report about the wrong
+    #: file, and the caller cannot tell the two apart from the number.
+    drafted: bool = False
 
     @property
     def left(self) -> int:
         return max(0, self.allowed - self.taken)
+
+    @property
+    def over(self) -> int:
+        """What this field exceeds its allowance by — 0 where it fits (RK1190).
+
+        The number :attr:`left` cannot carry, because that one floors at zero: a symptom of 200
+        against 120 reported `200 written, 0 left`, and the deficit an author has to cut was the
+        subtraction between two figures on the same row. Not the refusal's arithmetic borrowed —
+        the refusal states this same surplus from the other side, off :attr:`allowed`, which is
+        the one number both moments are derived from.
+        """
+        return max(0, self.taken - self.allowed)
 
     @property
     def aim(self) -> int:
@@ -180,6 +223,13 @@ class Share:
             "aim": self.aim,
             "taken": self.taken,
             "left": self.left,
+            # What `left` floors away (RK1190). Published always and not only when non-zero, for
+            # the reason `stats` prints `uncounted` at zero: a field that appears only when it
+            # is set is a field a reader learns to stop looking for.
+            "over": self.over,
+            # Whether `taken` is the file's prose or the caller's draft (RK1190): the same
+            # number means two different things and only this says which.
+            "drafted": self.drafted,
             # Beside `left` and not instead of it (RK245): the characters are still what
             # refuses, and this is the same remainder in the unit an author can count.
             "room": self.room,
@@ -281,7 +331,13 @@ class Budget:
             # The field's own limit is what the schema publishes; what this line allows is what
             # refuses. Both, and which one binds, because that difference is the whole finding.
             bound = "  ← the line binds, not the field" if share.bound_by_line else ""
-            taken = f", {share.taken} written, {share.left} left" if share.taken else ""
+            # "drafted" and not "written" where the prose is the caller's (RK1190): the number
+            # is the same and the two sentences are about different files, one of which has
+            # nothing in it yet. And the surplus rather than a floored `0 left`, which is what
+            # made a field three words over read as one exactly full.
+            held = "drafted" if share.drafted else "written"
+            spent = f", {share.over} over" if share.over else f", {share.left} left"
+            taken = f", {share.taken} {held}{spent}" if share.taken else ""
             # The aim, beside the gate (RK185): the characters are what refuses and the words
             # are what a model can count towards, so both are stated and neither is converted.
             rows.append(
@@ -333,6 +389,7 @@ def budget(
     symptom: str = "",
     family: str | None = None,
     ref: str | None = None,
+    why: str | None = None,
 ) -> Budget:
     """The prose budget of a line, named by id or described by the fields an `add` takes.
 
@@ -348,6 +405,13 @@ def budget(
     it late is how a budget approves a sentence the `add` then refuses (RK265). An id the
     roadmap holds keeps its own anchor unless this names another, which is the `amend` that
     moves the pointer and the prose in one call.
+
+    ``why`` is the draft of that field (RK1190), and it is the one argument here that is
+    **measured rather than composed**: `symptom` goes through
+    :func:`~roadkeep.authoring.compose` because it is structure to the `why` — what it takes is
+    what the other loses — while a `why` moves no other number, so putting it through the
+    composer would buy nothing and cost the refusal this read exists to replace. ``None`` means
+    no draft, which the empty string is not: `--why ""` asks what an empty field costs.
     """
     task, open_line, assumed = _subject(
         config,
@@ -359,7 +423,9 @@ def budget(
         family=family,
         ref=ref,
     )
-    return budget_of(config, task, open_line=open_line, ref_assumed=assumed)
+    return budget_of(
+        config, task, open_line=open_line, ref_assumed=assumed, why=why
+    )
 
 
 def budget_of(
@@ -369,6 +435,7 @@ def budget_of(
     open_line: bool,
     ref_assumed: bool = False,
     schema: Schema | None = None,
+    why: str | None = None,
 ) -> Budget:
     """The same answer about a task the caller already holds — what `brief` hands over.
 
@@ -381,6 +448,11 @@ def budget_of(
     author was usually about to make: a `ship` writes a **ledger** line, whose allowance comes
     from `[limits.changelog]` and from a structure with no deps and no pointer in it. Measured
     on one task: 162 characters for the line that exists and 172 for the line it ships to.
+
+    ``why`` is a draft to measure and not a field to set (RK1190): it changes what the answer
+    *reports* about that share and nothing it is derived from, which is why it arrives here
+    rather than on the task. ``None`` leaves the reading every caller before it had — the line's
+    own prose, which is what `brief` wants and what an `amend` is about to replace.
     """
     schema = schema or config.schema
     prose = schema.prose_budget(task)
@@ -395,6 +467,9 @@ def budget_of(
                 min(schema.symptom_max, prose),
                 width(task.symptom),
                 schema.source_of("symptom_max"),
+                # A symptom on a line the roadmap does not hold came from the caller: there is
+                # no file it could have come from, and `_subject` composed the task out of it.
+                drafted=not open_line and bool(task.symptom),
             )
         )
     shares.append(
@@ -402,8 +477,9 @@ def budget_of(
             "why",
             schema.why_max,
             schema.why_budget(task),
-            width(task.why),
+            width(task.why if why is None else why),
             schema.source_of("why_max"),
+            drafted=why is not None,
         )
     )
     section, absence = _section_of(config, task.ref or task.id, assumed=ref_assumed)
@@ -547,6 +623,31 @@ class Body:
     #: question this whole tool is built to answer before the prose exists.
     under: str = ""
     under_taken: int = 0
+    #: A body the caller handed over to be measured, in words (RK1190). ``None`` is every call
+    #: before this argument existed and means "no draft", which is not the same as an empty one.
+    #:
+    #: Its own field and never folded into :attr:`taken`, which is the difference from
+    #: :class:`Share`: there, `allowed` is derived from the line and a draft can simply stand in
+    #: for what is written. Here `allowed` is derived from :attr:`taken` — a replacement body is
+    #: charged what its subsections spend and credited what its own prose gives back — so a
+    #: draft written into that field would move the allowance it is being measured against.
+    draft: int | None = None
+
+    @property
+    def over(self) -> int:
+        """What the draft exceeds the replacement allowance by — 0 where it fits (RK1190).
+
+        Against :attr:`allowed`, which is exactly what a write here accepts: the declared limit,
+        less what this section's own subsections spend, less what a binding ancestor has taken
+        elsewhere. Not against :attr:`left`, which asks a different question — how much *more*
+        a written section could hold — and would price an amend as though it were an insert.
+        """
+        return 0 if self.draft is None else max(0, self.draft - self.allowed)
+
+    @property
+    def draft_left(self) -> int:
+        """What the allowance still has under the draft — 0 where the draft is over."""
+        return 0 if self.draft is None else max(0, self.allowed - self.draft)
 
     @property
     def under_left(self) -> int:
@@ -633,7 +734,20 @@ class Body:
             if self.under
             else ""
         )
-        return f"{self.limit} words{where}{spent}{nested}  {aim}{binds}"
+        # The draft last, because it is the only row that is a verdict (RK1190): everything
+        # above is a fact about the file and this is what the paragraph in hand costs against it.
+        return f"{self.limit} words{where}{spent}{nested}  {aim}{binds}{self._drafted()}"
+
+    def _drafted(self) -> str:
+        """The row the draft adds, or nothing where none was handed over (RK1190)."""
+        if self.draft is None:
+            return ""
+        verdict = (
+            f"{self.over} over — cut about {self.over} word(s)"
+            if self.over
+            else f"fits, {self.draft_left} word(s) spare"
+        )
+        return f"\n  draft      {self.draft} words against {self.allowed}: {verdict}"
 
     def payload(self) -> dict[str, object]:
         """One shape at both doors (RK301): the standalone read and the field on a line's own."""
@@ -662,6 +776,11 @@ class Body:
             "under": self.under or None,
             "under_taken": self.under_taken,
             "under_left": self.under_left if self.under else None,
+            # The body the caller handed over, measured against `allowed` (RK1190). Null and not
+            # zero where none was: an empty draft is a body of no words, which is a different
+            # answer from no draft at all.
+            "draft": self.draft,
+            "over": self.over,
         }
 
 
@@ -922,7 +1041,9 @@ def _parts(raw: bytes) -> tuple[Part, ...]:
     )
 
 
-def body_budget(config: Config, anchor: str, role: str | None = None) -> Body:
+def body_budget(
+    config: Config, anchor: str, role: str | None = None, body: str | None = None
+) -> Body:
     """What a section body may say, in words, before one is written (RK283).
 
     The longest thing an author composes and the limit that cost the most to meet at the
@@ -943,6 +1064,12 @@ def body_budget(config: Config, anchor: str, role: str | None = None) -> Body:
     the number right about a file that was picked rather than named. ``role`` is the way
     through, because naming which of the two is meant is the only thing that resolves it and
     no verb here may resolve it by picking (L4).
+
+    ``body`` is the draft this anchor is about to be given (RK1190), counted by the same reader
+    the written prose is counted by rather than by a second one here: the gate, the write and
+    this read all have to agree about what a word is, and the only way they can is by asking
+    once. It is never composed and never validated — what comes back is
+    :attr:`Body.over`, where an actual `section add` would come back a refusal.
     """
     named, where = role, config.relative(config.source or config.root)
     if role is None:
@@ -973,6 +1100,8 @@ def body_budget(config: Config, anchor: str, role: str | None = None) -> Body:
         written=section is not None,
         under=binds,
         under_taken=spends,
+        # Counted by the reader that counts the written prose, never by a second one here.
+        draft=None if body is None else prose_words(body),
     )
 
 

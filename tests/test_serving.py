@@ -364,11 +364,15 @@ def test_every_divergent_verb_is_one_the_cli_still_spells_that_way():
 
 
 def test_the_verbs_that_diverge_are_named_and_not_counted():
-    # The list is the point: a fifth is a deliberate addition and not something a copied
+    # The list is the point: a sixth is a deliberate addition and not something a copied
     # override brought along. `non-goal` is `[non_goals]`' two limits (RK70), `list` is the
-    # one read whose `role` and `marker` mean every governed file (RK304, RK314), and `ship`
-    # and `record amend` are the two whose `why` can carry a span no ceiling fits (RK1055).
-    assert set(serving._DIVERGENT) == {"non-goal", "list", "ship", "record amend"}
+    # one read whose `role` and `marker` mean every governed file (RK304, RK314), `ship`
+    # and `record amend` are the two whose `why` can carry a span no ceiling fits (RK1055),
+    # and `budget` is the one verb whose prose fields are drafts to *measure* — where a
+    # published ceiling refuses exactly the overrun the read reports (RK1190).
+    assert set(serving._DIVERGENT) == {
+        "non-goal", "list", "ship", "record amend", "budget"
+    }
     # Every other tool gets the common table, which is what makes those legible as exceptions.
     for tool in TOOLS:
         if tool.command not in serving._DIVERGENT and tool.argv_head[0] not in serving._DIVERGENT:

@@ -421,7 +421,15 @@ naming that flag, rather than counted as prose somebody wrote too long: a subsec
 amended by its own anchor. **If a body is refused anyway, do not count by hand**:
 `body.too-long` names what each paragraph costs and which is the longest, so the second
 draft is composed once — and a `0` there is a table or a fence, which is prose no cut can
-reach. `budget --non-goal [--lead "…"]` is the roadmap's other bullet, whose two
+reach. **And do not count by hand before one is refused either**: every prose argument here
+is a draft this read *measures* — `budget --block <x> --why "<draft>"` and `budget --anchor
+<a> --body "<draft>"` (or `--body-file`, or `-` for stdin) answer with the overrun and exit
+1 where it is over, which is the refusal without the write. Nothing is composed, so a draft
+twice its limit is a number rather than an error, and the schema published for these fields
+carries **no `maxLength`** on purpose: a ceiling there would refuse the very draft you are
+asking about. Reach for it after the first refusal and instead of the second — the retry
+after a refusal is a guess, and this is the same arithmetic answered before the write.
+`budget --non-goal [--lead "…"]` is the roadmap's other bullet, whose two
 limits are the list's own and not the task line's. **`budget --file <p>` is the fourth
 subject**, and the one that is not about prose at all: what an every-turn file `[budgets]`
 declares costs in lines and bytes and what is left — bare, every declared budget. Read it

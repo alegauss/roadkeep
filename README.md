@@ -118,17 +118,17 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 159 | 2 |
-| C — Query (consult without reading the file) | 5 | 103 | 1 |
+| C — Query (consult without reading the file) | 4 | 104 | 1 |
 | D — The gate | 6 | 175 | 2 |
 | E — Adoption | 2 | 87 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 108 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 1 | 7 | 0 |
-| **Total** | 15 | 693 | 9 |
+| **Total** | 14 | 694 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1190** (deps: —) **budget states the allowance and cannot be handed a draft, so prose three words over is found by being refused** — RK190 made the allowance knowable before the first word; measuring the draft against it still costs a write, and the retry after each refusal is a guess. → §RK1190
+- 📋 **RK1192** (deps: —) **A launcher and skill older than the version answering are reported by nothing the gate runs** — `install --check` answers it and is a command nobody thinks to run; lint fires every turn through the Stop hook, and a stale launcher is the state that leaves a session with no door in. → §RK1192
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

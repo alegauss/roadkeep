@@ -27,6 +27,7 @@ from roadkeep.budgeting import (
     words,
 )
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
+from roadkeep.verbs.refusing import EXIT_GATE
 from roadkeep.linting import lint
 from roadkeep.config import Config
 from roadkeep.sections import SectionError, amend
@@ -1424,3 +1425,131 @@ def test_a_loads_bytes_are_its_own_arithmetic_and_not_a_readers(tmp_path):
     )
     (lines_only,) = file_budget(Config.discover(tmp_path))
     assert lines_only.bytes == 0
+
+
+# -- the draft, measured rather than refused (RK1190) --------------------------
+
+
+def test_a_why_draft_is_measured_against_the_allowance_it_will_be_refused_by(tmp_path):
+    """The defect. RK190 made the allowance knowable before the first word and left the draft
+    unmeasurable, so the only thing that ever compared prose against its limit was the write
+    that refused it — one retry per guess, each costing the whole field again."""
+    config = project(tmp_path)
+    allowed = budget(config, block="A").share("why").allowed
+
+    fits = budget(config, block="A", why="x" * (allowed - 1))
+    assert (fits.share("why").over, fits.share("why").left) == (0, 1)
+
+    over = budget(config, block="A", why="x" * (allowed + 12))
+    assert over.share("why").over == 12
+    # And `left` still floors at zero, which is exactly why `over` had to exist: the deficit
+    # was a subtraction between two numbers on one row.
+    assert over.share("why").left == 0
+
+
+def test_a_draft_is_named_as_one_and_never_as_prose_a_file_holds(tmp_path):
+    """The same count means two things and only this says which: `153 written` about a
+    paragraph that exists nowhere is a report about the wrong file."""
+    config = project(tmp_path)
+    assert budget(config, block="A", why="a draft").share("why").drafted
+    assert not budget(config, "RK1").share("why").drafted
+    # The symptom is the caller's on a line the roadmap does not hold, and the file's on one
+    # it does — read off `open_line`, because that is the whole difference.
+    assert budget(config, block="A", symptom="drafted").share("symptom").drafted
+    assert not budget(config, "RK1").share("symptom").drafted
+
+
+def test_nothing_is_composed_so_a_draft_twice_its_limit_is_a_number(tmp_path):
+    """The whole verb, in one assertion. An `add` carrying this refuses; this answers."""
+    config = project(tmp_path)
+    answer = budget(config, block="A", why="word " * 400)
+    assert answer.share("why").over > 0
+    assert answer.task.why == ""
+
+
+def test_an_empty_draft_is_not_the_absence_of_one(tmp_path):
+    """`--why ""` asks what an empty field costs, which is a question; `None` is no question."""
+    config = project(tmp_path)
+    assert budget(config, block="A", why="").share("why").drafted
+    assert not budget(config, block="A").share("why").drafted
+
+
+def test_a_body_draft_is_measured_by_the_reader_that_measures_the_written_one(tmp_path):
+    """A second counter that disagreed with the door by one would be worse than no read
+    (RK136): a table row costs nothing here exactly as it costs nothing when it is written."""
+    config = outlined_with_a_full_section(tmp_path)
+    prose = "One two three four five."
+    assert body_budget(config, "IX", body=prose).draft == 5
+    # A table row is data and costs nothing here, exactly as it costs nothing written.
+    assert body_budget(config, "IX", body=f"{prose}\n\n| a | b |\n").draft == 5
+
+
+def test_a_body_draft_is_priced_against_what_a_replacement_may_say(tmp_path):
+    """`allowed` and never `left` (RK1036): a written section's draft replaces its own prose,
+    so pricing it against the room for *more* would refuse an amend as though it were an
+    insert."""
+    config = outlined_with_a_full_section(tmp_path)
+    answer = body_budget(config, "IX", body="word " * 30)
+    assert answer.written and answer.allowed == 30
+    assert (answer.draft, answer.over) == (30, 0)
+
+    tight = body_budget(config, "IX", body="word " * 33)
+    assert tight.over == 3
+
+
+def test_no_draft_leaves_every_answer_exactly_as_it_was(tmp_path):
+    """The argument is additive or it is a second reading of a number four verbs already
+    print: `brief` hands over this record and asked for no draft."""
+    config = project(tmp_path)
+    assert budget(config, "RK1").payload() == budget(config, "RK1", why=None).payload()
+    (tmp_path / "outline").mkdir()
+    outlined = outlined_with_a_full_section(tmp_path / "outline")
+    assert body_budget(outlined, "IX").draft is None
+    assert body_budget(outlined, "IX").over == 0
+
+
+def test_the_call_exits_non_zero_where_the_draft_does_not_fit(tmp_path, capsys):
+    """The one bit the caller asked for, as an exit code rather than as prose to parse — and
+    `isError` over MCP, where the refusal it replaces costs the whole payload again."""
+    root = str(tmp_path)
+    project(tmp_path)
+    assert main(["-C", root, "budget", "--block", "A", "--why", "short"]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", root, "budget", "--block", "A", "--why", "x" * 400]) == EXIT_GATE
+    assert "over" in capsys.readouterr().out
+
+    (tmp_path / "outline").mkdir()
+    outlined_with_a_full_section(tmp_path / "outline")
+    where = str(tmp_path / "outline")
+    assert main(["-C", where, "budget", "--anchor", "IX", "--body", "w " * 400]) == EXIT_GATE
+    assert "over" in capsys.readouterr().out
+
+
+def test_a_line_the_file_holds_over_its_own_limit_is_the_gate_s_and_not_this_verb_s(tmp_path):
+    """The narrowing that keeps this a read: exit 1 is about a draft this call was handed, so
+    `budget <id>` still describes a file rather than passing a verdict on it."""
+    config = project(tmp_path)
+    long_why = "x" * (budget(config, "RK1").share("why").allowed + 40)
+    roadmap = config.path("roadmap")
+    roadmap.write_text(
+        roadmap.read_text(encoding="utf-8").replace("Because of a reason.", long_why),
+        encoding="utf-8",
+    )
+    assert budget(Config.discover(tmp_path), "RK1").share("why").over == 40
+    assert main(["-C", str(tmp_path), "budget", "RK1"]) == EXIT_OK
+
+
+def test_the_served_draft_publishes_no_ceiling_that_would_refuse_it(tmp_path):
+    """The defect this task would otherwise have shipped: naming the dest `why` inherited
+    `maxLength`, so the client would refuse exactly the overrun the read exists to report —
+    the refusal-before-the-answer arriving one layer out, from this server's own schema."""
+    from roadkeep.serving import TOOLS, descriptor
+
+    config = project(tmp_path)
+    (tool,) = [one for one in TOOLS if one.name == "budget"]
+    fields = descriptor(tool, config)["inputSchema"]["properties"]
+    assert "maxLength" not in fields["why"]
+    assert "maxLength" not in fields["symptom"]
+    # And the write still publishes one, which is what makes the absence a decision.
+    (writing,) = [one for one in TOOLS if one.name == "add"]
+    assert "maxLength" in descriptor(writing, config)["inputSchema"]["properties"]["why"]

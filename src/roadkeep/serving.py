@@ -466,8 +466,15 @@ TOOLS: tuple[Tool, ...] = (
         # `session` joins them for `tools`' reason and one more (RK1097): it is the read the
         # gate's own message sends a caller to, and a door this surface serves whose call it
         # withholds is the shape `Door.call` returns None for.
-        ("id", "block", "deps", "status", "symptom", "anchor", "role", "non_goal", "lead",
-         "file", "tools", "session"),
+        # `why` and `body` are the drafts (RK1190), and this transport is where they matter
+        # most: `maxLength` publishes a character ceiling and the write measures against an
+        # allowance the line moves, so the agent composing here learned the difference by
+        # being refused — and a refusal over MCP costs the whole payload again.
+        # `body_file` is **not** exposed, for the reason `section add` does not expose its
+        # own: a path is the affordance of a shell with a long paragraph in it, and over a
+        # transport with no argument length to work around it is a second way to say `body`.
+        ("id", "block", "deps", "status", "symptom", "why", "anchor", "role", "body",
+         "non_goal", "lead", "file", "tools", "session"),
         conditional=("ref",),
     ),
     # `designed` is exposed on both for the reason it exists (RK83): the caller that asks
@@ -850,6 +857,37 @@ _SPAN_BOUNDS = {
 }
 
 
+#: The one verb whose prose fields are **drafts to measure** and not fields to write (RK1190).
+#: Every other table above publishes `maxLength`, and here that number is the defect: a client
+#: validating a draft against the ceiling would refuse exactly the over-long paragraph this read
+#: exists to report on, so the caller learns the overrun by being refused — which is the state
+#: the whole verb was built to end, arriving one layer out and from this server's own schema.
+#:
+#: So no ceiling, and the limit said in the note as :data:`_SPAN_BOUNDS` says it. `body` needs no
+#: row: its bound was already a note and never a keyword (RK258), so a draft was always passable.
+_DRAFT_BOUNDS = {
+    **_BOUNDS,
+    "symptom": lambda config: {"note": _measuring(config.schema.symptom_max)},
+    "why": lambda config: {"note": _measuring(config.schema.why_max)},
+    # `body` had no ceiling to remove and still needed a row: :func:`_paragraphed` ends with
+    # *"`budget` states it per call, before the body exists"*, which is a pointer at this verb
+    # published on this verb — and the body here does exist, being the draft in the caller's hand.
+    "body": lambda config: {
+        "note": f"{config.schema.section_max} words bounds the write, not this read."
+    },
+}
+
+
+def _measuring(limit: int) -> str:
+    """What a draft field publishes instead of a ceiling (RK1190).
+
+    Short on purpose: the verb's own description already says every draft here is measured and
+    never composed, and this is the one thing a *schema* has to add — that the missing keyword
+    is a decision. The budget this tool is held to is the reason it is one sentence (RK1059).
+    """
+    return f"**No `maxLength`**: a draft — {limit} bounds the write, not this read."
+
+
 #: The verbs that mean something of their own by a field name every other verb shares, and the
 #: table that says what (RK316). By the **full command** and then by its first word, which is
 #: the order the divergences now need: `non-goal add` and `non-goal drop` share `[non_goals]`'
@@ -863,6 +901,7 @@ _DIVERGENT: Mapping[str, Mapping[str, Any]] = {
     "list": _FILE_BOUNDS,
     "ship": _SPAN_BOUNDS,
     "record amend": _SPAN_BOUNDS,
+    "budget": _DRAFT_BOUNDS,
 }
 
 

@@ -68,7 +68,8 @@ from roadkeep.verbs.declaring import (
     narrows,
     withheld,
 )
-from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
+from roadkeep.verbs.reading import _body_reader, _one_body, _piped
+from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, REFUSALS, _refused
 from roadkeep.weighing import Weighed, weigh
 
 
@@ -368,6 +369,9 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
             symptom=args.symptom,
             family=args.family,
             ref=args.ref,
+            # Read here and not in `budgeting`, which touches no stream: the pipe is this
+            # surface's affordance and the module measures whatever it is handed (RK1190).
+            why=_piped(args.why),
         )
     except REFUSALS as error:
         return _refused(error)
@@ -376,22 +380,57 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
     # and its two readings were a printer here and a builder in `rendering.py` — one answer in two
     # files, with neither holding both.
     print(json.dumps(answer.payload(), indent=2) if args.json else answer)
-    return EXIT_OK
+    return _verdict(
+        any(share.over for share in answer.shares if share.drafted)
+    )
+
+
+def _verdict(over: bool) -> int:
+    """Exit 1 where a draft this call was handed does not fit (RK1190).
+
+    `EXIT_GATE`, and it is that code's own meaning: the write this read stands in for would have
+    refused, and a caller asking *will this fit* should not have to parse prose for the one bit
+    it asked for. Over MCP the same code becomes `isError`, which is what makes the answer usable
+    by the agent this whole read exists for.
+
+    **Only about a draft**, which is the narrowing that keeps this a read. A line the roadmap
+    already holds over its allowance is a `lint` finding and the gate's business; reporting it
+    here as a failure would make `budget <id>` exit non-zero over a file it was only asked to
+    describe, and make one verb answer for two different questions with one code.
+    """
+    return EXIT_GATE if over else EXIT_OK
 
 
 def _body_budget(config: Config, args: argparse.Namespace) -> int:
-    """What a section body may say, before it is written (RK283)."""
+    """What a section body may say, before it is written — and what a draft of it costs.
+
+    The draft is read the way every writing verb reads one (RK381, RK329): a literal, a path,
+    or the pipe that `-` names. Unlike those verbs it is **optional here**, so an omitted
+    `--body` reads nothing at all rather than blocking on a stream nobody opened — the whole
+    subject of this call is a limit, which is answerable with no prose in hand (RK1190).
+    """
+    clash = _one_body("--body", args.body, args.body_file)
+    if clash is not None:
+        print(f"roadkeep: {clash}", file=sys.stderr)
+        return EXIT_USAGE
     try:
-        answer = body_budget(config, args.anchor, args.role)
+        # Inside the try for `section add`'s reason: prose that is not UTF-8 raises
+        # UnicodeDecodeError, which is a ValueError and is refused with the same code.
+        draft = (
+            None
+            if args.body is None and args.body_file is None
+            else _body_reader(args.body, args.body_file)()
+        )
+        answer = body_budget(config, args.anchor, args.role, draft)
     except REFUSALS as error:
         return _refused(error)
     if args.json:
         print(json.dumps({"subject": "section", **answer.payload()}, indent=2))
-        return EXIT_OK
+        return _verdict(bool(answer.over))
     state = "written" if answer.written else "the section add would write"
     print(f"§{answer.anchor}  {answer.role}  ({state})")
     print(f"  body       {answer.stated(named=False)}")
-    return EXIT_OK
+    return _verdict(bool(answer.over))
 
 
 def _file_budget(config: Config, args: argparse.Namespace) -> int:
@@ -1129,11 +1168,11 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         "budget",
         help="how many characters a line has left for prose, before one is written",
         description=(
-            "Report what a line leaves its prose fields. Every number is derived from "
-            "the id, the marker, the deps and the pointer — all of which are known before "
-            "the first word exists — so the budget is a fact about the line you are about "
-            "to write rather than a verdict on one you already wrote. With an id that the "
-            "roadmap holds, it is that line's own, which is what an amend has."
+            "Report what a line leaves its prose fields. Every number is derived from the "
+            "id, the marker, the deps and the pointer — all known before the first word — "
+            "so it is a fact about the line you are about to write. The draft arguments "
+            "(--symptom, --why, --body) are measured, never composed, take '-' "
+            "for stdin and exit 1 when over: the refusal, without the write."
         ),
     )
     budget_parser.add_argument(
@@ -1150,7 +1189,7 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         default=[],
         dest="deps",
         metavar="DEP",
-        help="a dep the line would carry, repeatable: the group is what moves the budget",
+        help="a dep the line would carry, repeatable: the group is what moves the number",
     )
     _marker_flag(
         budget_parser, "the marker the line would carry (default: the first declared)"
@@ -1158,7 +1197,14 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     budget_parser.add_argument(
         "--symptom",
         default="",
-        help="the symptom, where it is written: what it takes is what the why loses",
+        help="the symptom, drafted or written: what it takes is what the why loses",
+    )
+    # The draft, at the door that already states the allowance (RK1190). Measured and never
+    # composed: a `why` twice its limit is a number here and a refusal on `add`, and that
+    # difference is the whole reason this argument exists rather than a `--dry-run`.
+    budget_parser.add_argument(
+        "--why",
+        help="a draft of the why, measured against its allowance instead of refused by it",
     )
     budget_parser.add_argument(
         "--prefix",
@@ -1177,12 +1223,24 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     budget_parser.add_argument(
         "--anchor",
         metavar="ANCHOR",
-        help="a section, e.g. RK12: what its body may say in words, and what it has spent",
+        help="a section, e.g. RK12: what its body may say in words, and what it spends",
     )
     budget_parser.add_argument(
         "--role",
         choices=PROSE_ROLES,
-        help="which prose file --anchor is measured against (default: the one holding it)",
+        help="which prose file --anchor is priced against (default: the one holding it)",
+    )
+    # The section's own draft, beside the field's (RK1190). Two flags rather than one, for
+    # `section add`'s reason (RK381): a body is the longest thing an author composes, and a
+    # path is what a caller reaches for when the prose will not fit in a shell argument.
+    budget_parser.add_argument(
+        "--body", help="a draft body, with --anchor: what it costs that section"
+    )
+    budget_parser.add_argument(
+        "--body-file",
+        dest="body_file",
+        metavar="PATH",
+        help="read the draft body from a file instead, with --anchor",
     )
     budget_parser.add_argument(
         "--non-goal",
@@ -1199,13 +1257,12 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         action="store_true",
         help=(
             "what this project's tool list costs a session that connects the server: the "
-            "count, the characters, and which tools they are — the read RK30 makes about "
-            "an every-turn file, about the surface"
+            "count, the characters, and which they are"
         ),
     )
     budget_parser.add_argument(
         "--lead",
-        help="a non-goal that exists, with --non-goal: what its argument has left",
+        help="a non-goal that exists, with --non-goal: what its reason has left",
     )
     # The fourth subject, and the one limit this format holds that had no pre-write read
     # (RK345): every other budget is derived from a line, and this one from the file on disk.
@@ -1215,8 +1272,8 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         const="",
         metavar="PATH",
         help=(
-            "an every-turn file `[budgets]` declares, e.g. agents.md: what it costs in "
-            "lines and bytes and what is left — bare, every declared budget"
+            "an every-turn file `[budgets]` declares, e.g. agents.md: what it costs and "
+            "what is left — bare, every declared budget"
         ),
     )
     # The sixth, and the one neither of the two above could be asked about (RK1095): what a
@@ -1227,14 +1284,15 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         "--session",
         action="store_true",
         help=(
-            "what one session pays: the served schema once at the handshake and every "
-            "`[budgets]` file on each turn, named against the cadence each is paid at"
+            "what one session pays: the served schema once at connect and every "
+            "`[budgets]` file each turn, against the cadence of each"
         ),
     )
     budget_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     withheld(
         budget_parser,
         family="`add`'s reason read back: the answer is about the id this project would issue next, and a prefix typed here asks about one it would not",
+        body_file="`section add`'s reason read back (RK1190): a path is the affordance of a shell with a paragraph too long for an argument, and over a transport with no such limit it is a second way to spell `body`",
     )
     budget_parser.set_defaults(handler=_budget, reads_only=True)
     # Four subjects and one verb (RK283/RK345), declared rather than checked by hand (RK489).
@@ -1250,6 +1308,12 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         ("session", "both halves of what a session pays, against their cadences"),
     )
     narrows(budget_parser, "role", "anchor")
+    # Both halves of the section draft are the anchor's (RK1190/RK489): `--body` beside
+    # `--file` or `--tools` is prose measured against nothing, and RK465's finding is that a
+    # narrowing flag nobody reads is worse than a refused one — the caller reads a number it
+    # believes it handed a draft to.
+    narrows(budget_parser, "body", "anchor")
+    narrows(budget_parser, "body_file", "anchor")
     narrows(budget_parser, "lead", "non_goal")
 
     show_parser = subcommands.add_parser(
