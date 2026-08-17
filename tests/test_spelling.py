@@ -140,13 +140,6 @@ def shapes(root: Path) -> dict[str, tuple[object, object]]:
                 files=(ROADMAP, CHANGELOG), served=served, stale=(VENDORED,)
             )
         ),
-        # RK1242. The project that declares the server itself, which is the one whose tools
-        # can fail to arrive — the shape that names a fallback beside them.
-        "Notice.declared": both(
-            lambda served: Notice(
-                files=(ROADMAP, CHANGELOG), served=served, declared=True
-            )
-        ),
         "Unattested": both(
             lambda served: Unattested(files=(("roadmap", ROADMAP),), served=served)
         ),

@@ -1171,7 +1171,7 @@ def test_the_note_says_what_answers_when_the_tools_do_not_arrive():
     agent that trusted it would have waited, searched again, or reported the capability as
     unavailable.
     """
-    said = str(Notice(files=(ROADMAP, CHANGELOG), served=WIRED, declared=True))
+    said = str(Notice(files=(ROADMAP, CHANGELOG), served=WIRED))
     assert "mcp__roadkeep__brief" in said
     assert "if they never arrive" in said
     assert invocation() in said
@@ -1192,7 +1192,7 @@ def test_a_plugin_served_project_is_not_given_a_fallback():
 def test_a_project_with_no_tools_at_all_says_nothing_new():
     """The third state (RK444) is already the shell, so a sentence about tools not arriving
     would be about tools this line never named."""
-    said = str(Notice(files=(ROADMAP, CHANGELOG), declared=True))
+    said = str(Notice(files=(ROADMAP, CHANGELOG)))
     assert "never arrive" not in said
 
 
@@ -1200,19 +1200,29 @@ def test_the_clause_fits_the_line_a_session_pays_for():
     """The budget is a number a test holds, and RK1242 raised it — which is the deliberate
     act a counted limit exists to make visible. Sized for the longest invocation a wired
     project has, which is the committed launcher and not the console script."""
-    said = str(Notice(files=(ROADMAP, CHANGELOG), served=WIRED, declared=True))
+    said = str(Notice(files=(ROADMAP, CHANGELOG), served=WIRED))
     longest = width(said) - width(invocation()) + width("python .roadkeep/scripts/roadkeep.py")
     assert longest <= _NOTICE_BUDGET, longest
 
 
-def test_whether_the_project_declares_the_server_is_read_where_the_prefix_is(tmp_path):
-    """One predicate and never two: `serving` already asks this to choose between two
-    prefixes, and the notice asks the same cached answer to decide whether to name a
-    fallback at all."""
-    from roadkeep.provenance import declared_by, serving
+def test_the_declared_case_is_the_prefix_and_not_a_second_field(tmp_path):
+    """RK1244. RK1242 carried this as a field beside `served`, which is a three-way answer
+    stored as two — and the pair `mcp__plugin_…` with `declared = True` is a project whose
+    server is both, which `serving` cannot produce and a caller could construct.
+
+    `WIRED` **is** the declared case, by that function's own first branch, so there was never
+    a second fact to hold and the field was deleted rather than validated."""
+    from dataclasses import fields
+
+    from roadkeep.provenance import serving
 
     (tmp_path / ".mcp.json").write_text(
         '{"mcpServers": {"roadkeep": {"command": "python"}}}', encoding="utf-8"
     )
-    assert declared_by(tmp_path) is True
     assert serving(tmp_path) == WIRED
+    assert "declared" not in {one.name for one in fields(Notice)}
+    # And the clause follows the prefix, which is the only place the fact now lives.
+    assert "never arrive" in str(Notice(files=(ROADMAP,), served=WIRED))
+    assert "never arrive" not in str(
+        Notice(files=(ROADMAP,), served="mcp__plugin_roadkeep_roadkeep__")
+    )

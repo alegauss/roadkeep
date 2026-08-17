@@ -121,14 +121,10 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 112 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 91 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 115 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 116 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 13 | 0 |
-| **Total** | 1 | 732 | 9 |
-
-**Next ready:**
-
-- 📋 **RK1244** (deps: —) **A three-way answer is carried as two fields, so a Notice can be built stating a pair that cannot happen** — The constraint lives in the one function that sets both, not in the shape, and the census built the impossible pair without noticing. → §RK1244
+| **Total** | 0 | 733 | 9 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

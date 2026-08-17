@@ -413,25 +413,13 @@ def serving(root: Path) -> str | None:
     cannot call: the notice that every session reads, and the denial that stops an edit. So
     the answer here is allowed to be ``None``, and each caller says what it does with that.
     """
+    # And this branch is why `WIRED` **is** the declared case, which is a fact callers read
+    # off the prefix rather than asking twice (RK1244): a project that declares the server
+    # gets the bare name, and nothing else does.
     if _declared_by(root):
         return WIRED
     plugin = _plugin_name()
     return None if plugin is None else f"mcp__plugin_{plugin}_{SERVER}__"
-
-
-def declared_by(root: Path) -> bool:
-    """Whether this project declares the server itself, rather than a plugin providing it.
-
-    :func:`serving`'s other reading, exposed because a second caller wanted it (RK1242): the
-    connection that can fail on its own is the launcher **this repository wrote**, spawned by
-    the harness from a `.mcp.json` the project committed, and a plugin's server is the
-    harness's own machinery. `serving` already asks this to choose between two prefixes; the
-    notice asks it to decide whether to name a fallback at all.
-
-    Public and not a second read of the file: it is the same cached predicate, which is what
-    keeps the two answers from drifting the moment one of them learns a third case.
-    """
-    return _declared_by(root)
 
 
 def served_by(root: Path) -> str:

@@ -85,33 +85,6 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1244 Two fields from a three-way answer
-
-`serving` answers one question with three outcomes: this project declares the server, a
-plugin provides it, or there are none. RK444 made that third state its own precisely so
-no caller had to guess.
-
-`Notice` now carries two fields off it — `served`, the prefix, and `declared`, added by
-RK1242 to decide whether to name a fallback. Two fields from a three-way answer, and not
-every pair they admit is real: a plugin prefix beside `declared = True` is a project
-whose server is both, which `serving` cannot produce and a caller can construct without
-noticing. The census in `test_spelling` built that combination and it passed, nothing
-checking the pair.
-
-Nothing is broken today: `announce` reads both off the same cached predicate, so they
-agree wherever the code puts them there. What is missing is the reason they must — the
-constraint lives in a function and not in the shape, so the next caller composing a
-`Notice` by hand is one plausible argument away from a line offering a shell fallback to
-a project with no launcher.
-
-The fix is to carry the answer and not its projections: one field holding which of the
-three this is, with the prefix derived from it. `Refusal` carries `served` for the same
-reason and would follow.
-
-Check first whether a fourth case is coming: a project that declares the server *and*
-runs inside a plugin tree is conceivable, and if it is real then three is already the
-wrong number.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

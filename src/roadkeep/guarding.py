@@ -90,7 +90,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from roadkeep.config import Config, ConfigError, find_config
-from roadkeep.provenance import WIRED, declared_by, invocation, served_by
+from roadkeep.provenance import WIRED, invocation, served_by
 from roadkeep.remedying import Door, alongside, offered
 
 if TYPE_CHECKING:  # annotations only, and already strings — see the docstring's sixth decision
@@ -599,11 +599,6 @@ class Notice:
     #: inside `__str__`: which engine answers is a fact about the project, decided where the
     #: project is read, and a `Notice` built by a test says which case it is testing.
     served: str = ""
-    #: Whether this project declares the server **itself**, rather than getting it from the
-    #: plugin the engine runs out of (RK1242). The one case whose connection can fail on its
-    #: own: the harness spawns a launcher this repository wrote, and where that does not
-    #: finish, the tools named above never arrive at all.
-    declared: bool = False
 
     def __str__(self) -> str:
         # And the first message of the session is the first place the invocation has to be one
@@ -645,7 +640,13 @@ class Notice:
         # connection that can fail this way is the launcher this repository wrote, spawned by
         # the harness, and a plugin's server is the harness's own machinery. So this appears on
         # the projects the failure was measured on and stays off the rest.
-        if self.served and self.declared:
+        #
+        # Read off `served` and never carried beside it (RK1244). RK1242 added a second field
+        # for this, which was a three-way answer stored as two — and the pair `mcp__plugin_…`
+        # with `declared = True` is a project whose server is both, which `serving` cannot
+        # produce and a caller could construct without noticing. `WIRED` **is** the declared
+        # case, by that function's own first branch, so there was never a second fact to hold.
+        if self.served == WIRED:
             said += f" `{invocation()}` is the same engine if they never arrive."
         # The invocation stays here whatever the clause above chose (RK444): `install` runs
         # once per project and is deliberately not on the served surface — so it is one more
@@ -686,14 +687,7 @@ def announce(payload: Mapping[str, object], root: str | Path = ".") -> Notice | 
     # bare prefix is the right guess wherever nothing says otherwise, but this line is read
     # by every adopting session including the ones with no tools at all, and there naming a
     # prefix nobody can call is worse than naming the shell.
-    return Notice(
-        files=files,
-        stale=stale(config.root),
-        served=served_by(config.root),
-        # The same read `serving` makes to choose the prefix, asked for the second thing it
-        # decides (RK1242): whether the server that has to connect is this project's.
-        declared=declared_by(config.root),
-    )
+    return Notice(files=files, stale=stale(config.root), served=served_by(config.root))
 
 
 def guard(payload: Mapping[str, object], root: str | Path = ".") -> Refusal | None:
