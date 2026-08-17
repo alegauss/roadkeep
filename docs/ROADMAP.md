@@ -40,6 +40,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK1235** (deps: —) **A copy behind the wired one still writes, and the note that says so is read after the line has landed** — RK1230 named the copy to call and left the write unguarded; refusing on any disagreement would break the three setups that differ on purpose. → §RK1235
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

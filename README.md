@@ -121,10 +121,10 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 1 | 111 | 1 |
 | D — The gate | 1 | 184 | 2 |
 | E — Adoption | 0 | 91 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 110 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 110 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 9 | 0 |
-| **Total** | 3 | 720 | 9 |
+| **Total** | 4 | 720 | 9 |
 
 **Next ready:**
 
