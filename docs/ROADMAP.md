@@ -38,8 +38,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1250** (deps: —) **The read consulted before an edit lacks the figure the read consulted after it now has** — Load.characters is computed for --session and thrown away by --file, which is the read RK345 built for that moment. → §RK1250
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

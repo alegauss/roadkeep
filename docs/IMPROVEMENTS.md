@@ -88,31 +88,3 @@ already written, not authorship.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1250 The reading only one of two readers got
-
-RK345 built `--file` for one moment: an author about to edit an always-loaded file,
-asked before the paragraph exists. RK1245 then gave `--session` the reading that moment
-actually needs — what the text costs a *reader*, in the unit a model is counted in — and
-`--file` did not get it.
-
-So the two reads over the same `Load` records now answer differently. `--session`, which
-exists to compare a resident file against the served schema, reports code units;
-`--file`, which exists to be consulted before an edit, reports lines and bytes:
-
-    agents.md  budgeted  (on disk)
-      lines      104 of 125, 21 left
-      bytes      6906 of 8400, 1494 left
-
-Nothing here is wrong — those are the declared limits and what `lint` refuses on. What
-is missing is the figure the author is deciding against, on the read they are more
-likely to have open. The number is already on the record: `Load.characters`, computed
-for the other read, thrown away by this one.
-
-The asymmetry is the kind RK1096 names — two readers of one measurement, one of them
-knowing something the other does not — and it arrived exactly that way, by a task adding
-a field for the caller in front of it.
-
-To settle: whether the code-unit figure is a third row beside `lines` and `bytes`, or a
-clause on the total. A third row reads as a third declared limit, which it is not; a
-clause says it is a reading rather than a ceiling, which is what it is.

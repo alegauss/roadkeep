@@ -472,6 +472,21 @@ def _file_budget(config: Config, args: argparse.Namespace) -> int:
             # pays, so a word figure beside it would be a number this project never stated.
             over = f", {cost.over} over" if cost.over else f", {cost.left} left"
             print(f"  {cost.unit:<11}{cost.taken} of {cost.limit}{over}")
+        if load.characters is not None:
+            # The figure the author is actually deciding against (RK1250), on the read RK345
+            # built for the moment before an edit — `--session` has had it since RK1245 and
+            # this one, the more likely to be open, threw it away.
+            #
+            # A **row** and not a clause on a cost, which is RK258's line kept rather than
+            # crossed: that task refused a word figure *beside a declared unit*, because
+            # `[budgets]` is stated in what the loader pays and an aim next to it would be a
+            # number this project never wrote. This is not next to one and is not an aim — it
+            # is a reading, in the same place and the same shape as `checkout` below, and its
+            # clause says outright that nothing limits it.
+            print(
+                f"  {'reader':<11}{load.characters} utf-16-code-units, what a model is "
+                f"charged — a reading, and nothing here limits it"
+            )
         if load.translated:
             # The remainder the ceiling does not charge (RK1105). Printed under the units and
             # not beside one, because it is a fact about the checkout and not about the budget:

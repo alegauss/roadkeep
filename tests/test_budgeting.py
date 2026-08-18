@@ -2267,3 +2267,68 @@ def test_the_gate_still_names_the_unit_it_refused_on(tmp_path):
     codes = [one.code for one in lint(Config.discover(tmp_path)).findings]
     assert "budget.lines" in codes
     assert "budget.bytes" not in codes
+
+
+# -- the reading the read before an edit was missing (RK1250) -----------------
+
+
+def test_the_read_before_an_edit_states_what_a_model_is_charged(tmp_path, capsys):
+    """RK345 built `--file` for one moment — an author about to edit an always-loaded file,
+    asked before the paragraph exists. RK1245 gave `--session` the figure that moment needs
+    and this read, the more likely to be open, threw it away."""
+    budgeted(tmp_path)
+    (tmp_path / "agents.md").write_text(MARKED, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "budget", "--file", "agents.md"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "reader" in printed
+    assert "utf-16-code-units" in printed
+
+
+def test_it_is_a_reading_and_says_so_rather_than_reading_as_a_third_limit(tmp_path, capsys):
+    """RK258's line kept rather than crossed: that task refused a word figure *beside a
+    declared unit*, because `[budgets]` is stated in what the loader pays and an aim next to
+    it would be a number this project never wrote.
+
+    This is not beside a cost and is not an aim — it is the same shape as the `checkout` row
+    RK1105 added, and its clause says outright that nothing limits it."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--file", "agents.md"]) == EXIT_OK
+    (row,) = [one for one in capsys.readouterr().out.splitlines() if "reader" in one]
+    assert "nothing here limits it" in row
+    # And never spelled like the rows above it, which are `<taken> of <limit>`.
+    assert " of " not in row
+
+
+def test_the_payload_keeps_it_out_of_the_declared_units(tmp_path, capsys):
+    """A caller iterating `units` is iterating limits, and a reading among them is one it
+    would compare against a ceiling that does not exist."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--file", "agents.md", "--json"]) == EXIT_OK
+    (found,) = json.loads(capsys.readouterr().out)["files"]
+    assert found["characters"] > 0
+    assert {one["unit"] for one in found["units"]} == {"lines", "bytes"}
+
+
+def test_it_is_the_same_number_the_session_read_reports(tmp_path, capsys):
+    """One measurement and two readers (RK1096), which is the property this task is about:
+    the figure was already on the record and only one of the two printed it."""
+    budgeted(tmp_path)
+    (tmp_path / "agents.md").write_text(MARKED, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "budget", "--file", "agents.md", "--json"]) == EXIT_OK
+    (one,) = json.loads(capsys.readouterr().out)["files"]
+    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    (other,) = [
+        row
+        for row in json.loads(capsys.readouterr().out)["each_turn"]["files"]
+        if row["path"] == "agents.md"
+    ]
+    assert one["characters"] == other["characters"]
+
+
+def test_a_file_that_does_not_decode_prints_no_reading(tmp_path, capsys):
+    """`None` is the answer where the question has none, and a row saying so would be a row
+    about this tool rather than about the file."""
+    budgeted(tmp_path)
+    (tmp_path / "agents.md").write_bytes(b"# Guide\n\n\xff\xfe not utf-8\n")
+    assert main(["-C", str(tmp_path), "budget", "--file", "agents.md"]) == EXIT_OK
+    assert "reader" not in capsys.readouterr().out

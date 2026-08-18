@@ -539,6 +539,10 @@ def _load_json(load: Load) -> dict[str, object]:
         # What this checkout pays over the counted number (RK1105), so a caller comparing two
         # machines has the difference as a field instead of inferring it from a mismatch.
         "translated": load.translated,
+        # The same text in the unit a model is charged in (RK1250), and `null` where it does
+        # not decode. Outside `units` deliberately: everything in that list is a declared
+        # limit and this is a reading, so a caller iterating limits must not meet it.
+        "characters": load.characters,
     }
 
 
