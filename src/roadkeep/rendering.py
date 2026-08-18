@@ -535,7 +535,14 @@ def _load_json(load: Load) -> dict[str, object]:
         # In the order the report shows them (RK1252) — ranked by the limit about to refuse,
         # so a consumer acting on the first row acts on the same section a reader would.
         "parts": [
-            {"heading": part.heading, "lines": part.lines, "bytes": part.bytes}
+            {
+                "heading": part.heading,
+                "lines": part.lines,
+                "bytes": part.bytes,
+                # The reading, per section (RK1253) — beside the two declared units and never
+                # the key this list is ordered by, which is the ceiling's.
+                "characters": part.characters,
+            }
             for part in load.ranked
         ],
         # What this checkout pays over the counted number (RK1105), so a caller comparing two

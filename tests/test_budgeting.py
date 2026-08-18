@@ -2054,6 +2054,15 @@ def test_a_project_this_cannot_announce_for_pays_nothing(tmp_path):
 # -- one comparison, one unit (RK1245) ----------------------------------------
 
 
+#: The same, in two `##` sections — what the per-section breakdown needs, since a file with
+#: one section has its total printed twice and no breakdown at all.
+SECTIONED = (
+    "# Guide\n\n## First\n\n"
+    + "📋 designed, 💭 idea, ⏳ partial\n" * 3
+    + "\n## Second\n\n"
+    + "🛠 in progress, ✅ shipped\n" * 2
+)
+
 #: A paragraph carrying the status markers this tool writes, which is where the two units
 #: come apart: each marker is one code point outside the BMP — four bytes, two code units.
 MARKED = "# Guide\n\n" + ("📋 designed, 💭 idea, ⏳ partial, 🛠 in progress, ✅ shipped\n" * 4)
@@ -2313,7 +2322,7 @@ def test_it_is_the_same_number_the_session_read_reports(tmp_path, capsys):
     """One measurement and two readers (RK1096), which is the property this task is about:
     the figure was already on the record and only one of the two printed it."""
     budgeted(tmp_path)
-    (tmp_path / "agents.md").write_text(MARKED, encoding="utf-8")
+    (tmp_path / "agents.md").write_text(SECTIONED, encoding="utf-8")
     assert main(["-C", str(tmp_path), "budget", "--file", "agents.md", "--json"]) == EXIT_OK
     (one,) = json.loads(capsys.readouterr().out)["files"]
     assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
@@ -2486,7 +2495,10 @@ def test_the_reading_is_printed_under_the_breakdown_and_not_over_it(tmp_path, ca
     _sectioned(tmp_path, LINES_TIGHT)
     assert main(["-C", str(tmp_path), "budget", "--file", "agents.md"]) == EXIT_OK
     printed = capsys.readouterr().out.splitlines()
-    assert printed.index([one for one in printed if "reader" in one][0]) > printed.index(
+    # The reading's own row and not the breakdown's column header, which also says `reader`
+    # since RK1253 — the two are different statements and only one of them is a total.
+    total = [one for one in printed if "utf-16-code-units" in one][0]
+    assert printed.index(total) > printed.index(
         [one for one in printed if "## Tall" in one][0]
     )
 
@@ -2506,3 +2518,86 @@ def test_a_file_declaring_no_limit_keeps_the_order_it_always_had(tmp_path):
     load = Load(path="x", costs=(), parts=_parts(b"## A\nyyyy\n## B\nz\n"))
     assert load.tightest is None
     assert [one.heading for one in load.ranked] == ["## A", "## B"]
+
+
+# -- the reading, per section (RK1253) ----------------------------------------
+
+
+def test_each_section_carries_what_a_model_is_charged_for_it(tmp_path, capsys):
+    """RK1252 ranked the breakdown by the ceiling, which is right, and left the reading with
+    no per-section figure at all — so the one total whose purpose is comparison against the
+    served schema was the one total with no breakdown."""
+    budgeted(tmp_path)
+    (tmp_path / "agents.md").write_text(SECTIONED, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "budget", "--file", "agents.md", "--json"]) == EXIT_OK
+    (found,) = json.loads(capsys.readouterr().out)["files"]
+    assert all(one["characters"] is not None for one in found["parts"])
+    # And it is the reading and not a second byte count: markers are two code units and four
+    # bytes each, which is the whole reason the two columns are not one.
+    assert any(one["characters"] < one["bytes"] for one in found["parts"])
+
+
+def test_the_sections_sum_to_the_file(tmp_path):
+    """One measurement at two levels (RK1096), which is what makes the column subtractable:
+    a breakdown that did not sum to the total above it would be a second estimate of it."""
+    from roadkeep.budgeting import file_budget
+
+    budgeted(tmp_path)
+    (tmp_path / "agents.md").write_text(SECTIONED, encoding="utf-8")
+    (load,) = [one for one in file_budget(Config.discover(tmp_path)) if one.path == "agents.md"]
+    assert sum(one.characters for one in load.parts) == load.characters
+
+
+def test_the_reading_is_a_column_and_never_the_sort_key(tmp_path):
+    """The decision RK1253 left open, taken the way RK1252 took its own: the order belongs to
+    the limit about to refuse, and a list sorted by a figure nothing refuses would answer a
+    question the gate never asks while looking like the one that does."""
+    from roadkeep.budgeting import file_budget
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n'
+        '[budgets]\n"agents.md" = { lines = 30, bytes = 1000000 }\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
+    # `Wide` is the largest in bytes and in code units; `Tall` is the largest in lines, which
+    # is the declared ceiling — so an order following the reading would name the other one.
+    (tmp_path / "agents.md").write_text(
+        "# Guide\n\n## Wide\n\n" + ("x" * 200 + "\n") * 3 + "\n## Tall\n\n" + "y\n" * 20,
+        encoding="utf-8",
+    )
+    (load,) = file_budget(Config.discover(tmp_path))
+    assert load.tightest.unit == "lines"
+    assert load.ranked[0].heading == "## Tall"
+    assert load.ranked[0].characters < load.ranked[1].characters
+
+
+def test_three_figures_are_given_a_header(tmp_path, capsys):
+    """Two columns of bare numbers said which was which by position and by width; three do
+    not, and the leading one now varies with the ceiling."""
+    budgeted(tmp_path)
+    (tmp_path / "agents.md").write_text(SECTIONED, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "budget", "--file", "agents.md"]) == EXIT_OK
+    printed = capsys.readouterr().out.splitlines()
+    (header,) = [one for one in printed if one.strip().startswith(("lines", "bytes"))
+                 and "reader" in one]
+    # Named in the order printed, ranking unit first (RK1252).
+    assert header.split() == ["lines", "bytes", "reader"] or header.split() == [
+        "bytes", "lines", "reader"
+    ]
+
+
+def test_a_file_that_does_not_decode_has_no_column_at_all(tmp_path, capsys):
+    """`None` for the whole file or for none of it: a UTF-8 continuation byte is never a
+    newline, so splitting on line boundaries cannot break a sequence — if the file decodes
+    every section does, and the two absences are one fact."""
+    from roadkeep.budgeting import file_budget
+
+    budgeted(tmp_path)
+    (tmp_path / "agents.md").write_bytes(b"## A\n\xff\xfe\n## B\nz\n")
+    (load,) = [one for one in file_budget(Config.discover(tmp_path)) if one.path == "agents.md"]
+    assert load.characters is None
+    assert all(one.characters is None for one in load.parts)
+    assert main(["-C", str(tmp_path), "budget", "--file", "agents.md"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "reader" not in printed

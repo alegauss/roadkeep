@@ -526,12 +526,21 @@ def _print_parts(load: Load) -> None:
     if len(load.parts) < 2:
         return
     unit = "bytes" if load.tightest is None else load.tightest.unit
+    other = "bytes" if unit == "lines" else "lines"
     ranked = load.ranked
+    # Three figures need a header, where two did not (RK1253): the leading column varies with
+    # the ceiling and the third is a reading rather than a limit, so a row of bare numbers no
+    # longer says which is which. Named in the order they are printed, ranking unit first.
+    reading = "  reader" if ranked[0].characters is not None else ""
+    print(f"    {unit:>6}  {other:>6}{reading}")
     for part in ranked[:_LARGEST_PARTS]:
         first, second = (part.lines, part.bytes) if unit == "lines" else (part.bytes, part.lines)
-        # Both columns at one width, because which of them leads now varies: a `>3` sized for
-        # lines truncates nothing but misaligns the byte figure it may now hold.
-        print(f"    {first:>6}  {second:>6}  {part.heading or '(before the first ##)'}")
+        # Both declared columns at one width, because which of them leads now varies: a `>3`
+        # sized for lines misaligns the byte figure it may now hold.
+        said = f"    {first:>6}  {second:>6}"
+        if part.characters is not None:
+            said += f"  {part.characters:>6}"
+        print(f"{said}  {part.heading or '(before the first ##)'}")
     if len(ranked) > _LARGEST_PARTS:
         print(f"    … and {len(ranked) - _LARGEST_PARTS} more — `--json` lists every one")
 

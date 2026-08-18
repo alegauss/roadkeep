@@ -982,6 +982,20 @@ class Part:
     heading: str
     lines: int
     bytes: int
+    #: The section in UTF-16 code units, or `None` where the file does not decode (RK1253).
+    #: The reading :attr:`Load.characters` is, one level down — charged by nothing and
+    #: **never ranked on**: the order is the ceiling's (RK1252), and a list sorted by a figure
+    #: nothing refuses would answer a question the gate never asks while looking like the one
+    #: that does. A column, so the author cutting to fit the served comparison has the weight
+    #: of each section without the list changing what it is about.
+    #:
+    #: `None` for the whole file or for none of it, which :func:`_parts` enforces rather than
+    #: discovers. One direction is free: a UTF-8 continuation byte is never a newline, so
+    #: splitting on line boundaries cannot break a sequence, and a file that decodes has
+    #: sections that all do. The other is not — one bad byte makes the *file* undecodable
+    #: while its other sections read fine, and reporting those would be a breakdown that does
+    #: not sum to the total above it. So the absence is the file's and never a section's.
+    characters: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -1396,6 +1410,10 @@ def _parts(raw: bytes) -> tuple[Part, ...]:
     Only `##`, because that is the level `agents.md` organises by — a `###` under one belongs
     to it, and splitting there would report a heading's own body as a sibling of its parent.
     """
+    # The reading is the file's or nobody's (RK1253): one bad byte makes the whole undecodable
+    # while its other sections read fine, and a column present on four rows of seven is a
+    # breakdown that does not sum to the total it sits under.
+    decodes = _characters(raw) is not None
     sections: list[tuple[str, list[bytes]]] = [("", [])]
     for line in raw.splitlines(keepends=True):
         if line.startswith(b"## "):
@@ -1404,7 +1422,12 @@ def _parts(raw: bytes) -> tuple[Part, ...]:
     return tuple(
         sorted(
             (
-                Part(heading=name, lines=len(body), bytes=sum(len(one) for one in body))
+                Part(
+                    heading=name,
+                    lines=len(body),
+                    bytes=sum(len(one) for one in body),
+                    characters=_characters(b"".join(body)) if decodes else None,
+                )
                 for name, body in sections
                 if body
             ),
