@@ -38,6 +38,9 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
+- 📋 **RK1249** (deps: —) **The summary row claims bytes is what the gate refuses on while the row above it names lines** — The gate emits one finding per declared unit, so the sentence is a third statement neither of the other two agrees with. → §RK1249
+- 📋 **RK1250** (deps: —) **The read consulted before an edit lacks the figure the read consulted after it now has** — Load.characters is computed for --session and thrown away by --file, which is the read RK345 built for that moment. → §RK1250
+
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

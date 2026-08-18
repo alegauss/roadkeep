@@ -88,3 +88,60 @@ already written, not authorship.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+### §RK1249 The row that took the last word
+
+`budget --session` closes with a row explaining why bytes appear beside a code-unit
+figure:
+
+    turn       6856  agents.md  21 lines left of 125
+    bytes      7366  what `[budgets]` declares and `lint` refuses on — a loader's unit, not a reader's
+
+Both lines are true and together they mislead. The summary says bytes is what refuses;
+the row above it says the limit about to refuse here is `lines`. A reader takes the last
+word for the general rule and concludes the byte figure is the gate, when on this
+project it is the one with the most room left.
+
+`[budgets]` declares two units and `lint` emits `budget.lines` and `budget.bytes`, each
+naming its own. So the sentence is not a simplification of the gate; it is a third
+statement of it that neither the gate nor the row above agrees with.
+
+The row is worth keeping. It exists because RK1245 put the figures in code units and a
+reader seeing a byte total needs to know where it came from — what it should not do is
+claim which unit refuses, which is a per-file fact the row above already carries.
+
+The wording is the whole task: something that says *these are the same files in the unit
+`[budgets]` counts* and stops there. Both halves of the current clause are the overreach
+— "refuses on" is the claim, and "a loader's unit, not a reader's" is the sentence that
+makes it sound like a rule rather than a conversion.
+
+Worth checking whether the row belongs at all where every file's tightest limit is
+already in bytes: there the two say one thing twice.
+
+### §RK1250 The reading only one of two readers got
+
+RK345 built `--file` for one moment: an author about to edit an always-loaded file,
+asked before the paragraph exists. RK1245 then gave `--session` the reading that moment
+actually needs — what the text costs a *reader*, in the unit a model is counted in — and
+`--file` did not get it.
+
+So the two reads over the same `Load` records now answer differently. `--session`, which
+exists to compare a resident file against the served schema, reports code units;
+`--file`, which exists to be consulted before an edit, reports lines and bytes:
+
+    agents.md  budgeted  (on disk)
+      lines      104 of 125, 21 left
+      bytes      6906 of 8400, 1494 left
+
+Nothing here is wrong — those are the declared limits and what `lint` refuses on. What
+is missing is the figure the author is deciding against, on the read they are more
+likely to have open. The number is already on the record: `Load.characters`, computed
+for the other read, thrown away by this one.
+
+The asymmetry is the kind RK1096 names — two readers of one measurement, one of them
+knowing something the other does not — and it arrived exactly that way, by a task adding
+a field for the caller in front of it.
+
+To settle: whether the code-unit figure is a third row beside `lines` and `bytes`, or a
+clause on the total. A third row reads as a third declared limit, which it is not; a
+clause says it is a reading rather than a ceiling, which is what it is.
