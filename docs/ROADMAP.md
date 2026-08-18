@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1258** (deps: —) **a block's first task files its rationale AS the family heading; every later one gets a child, and no verb picks** — One call that opens the family and files the task under it as .1, so a block's first line and its fifth have the same shape. → §RK1258
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

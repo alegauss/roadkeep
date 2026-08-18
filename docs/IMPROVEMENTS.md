@@ -77,6 +77,30 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1258 The first task in a block is shaped differently, and nobody chose that
+
+`anchors --only-next` answers with a top-level family, and `add --ref XXXI` files the
+task's rationale **as** that family: one `## XXXI <task title>` holding the prose. Every
+later task in the block gets `--ref XXXI.1`, a `### ` child under it. So a block's first
+task is structurally different from its siblings, and the difference is not a choice
+anybody made — it is what the only available address produces.
+
+Reaching the ordinary shape afterwards does not work either. `section_add --anchor
+XXXI.1` charges the subtree to the parent, so a family with a lead paragraph and one
+full-length task section is refused at 470 words against a 250 limit — while families
+built the other way sit at 1239 words and are fine. Two doors to one structure, with
+different limits on each.
+
+Found in Shio, where it cost a red build. Its guards read rationale headings as `###
+<FAMILY>.<n>`, which every task had produced until a block's first one produced `##
+<FAMILY>`; three checks read past it and only the noisiest complained. Those guards are
+widened now — but nobody met the shape in a hundred tasks because it appears only on a
+block's first line, and it appears because no verb offers the alternative.
+
+What is missing is one call that says *open the family, and file this task under it as
+`.1`* — `add --ref XXXI.1 --section`, creating both. Then a block's first task and its
+fifth look the same, which is what a reader assumes.
+
 ## Block C — Query
 
 ## Block D — The gate
