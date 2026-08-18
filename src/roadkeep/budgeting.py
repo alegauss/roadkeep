@@ -1048,6 +1048,28 @@ class Load:
         )
 
     @property
+    def ranked(self) -> tuple[Part, ...]:
+        """The sections, largest first **in the unit that will refuse this file** (RK1252).
+
+        :func:`_parts` sorted by bytes always, and RK1248 made the cost of that visible: the
+        limit about to refuse may be `lines`, and a breakdown ranked by bytes then names a
+        section that is not the one to cut. `agents.md` at 104 of 125 lines and 6906 of 8400
+        bytes is a line problem, and its longest section by bytes is a table.
+
+        Keyed on :attr:`tightest` and not on a preference, so the ranking and the room are one
+        decision — which is what stops the report advising against the ceiling it just stated.
+        Bytes where nothing is declared, which is the order this always had.
+
+        Ties by heading, as :func:`_parts` does, because a tie is two right answers and the
+        stable one is the one a second run reproduces.
+        """
+        cost = self.tightest
+        unit = "bytes" if cost is None else cost.unit
+        return tuple(
+            sorted(self.parts, key=lambda part: (-getattr(part, unit), part.heading))
+        )
+
+    @property
     def room(self) -> str:
         """What the tightest declared limit has left, as the clause `--session` prints.
 
@@ -1365,6 +1387,11 @@ def _parts(raw: bytes) -> tuple[Part, ...]:
     file is not a format this tool decodes (L4). Handed the same normalised bytes the total is
     counted from (RK1105) — this sentence said the opposite while that was true of both, and a
     breakdown on the checkout's own terminator would sum past the number printed above it.
+
+    The order here is the *record's* since RK1252: this one produces both figures and
+    :attr:`Load.ranked` sorts them by whichever limit is about to refuse. Sorted at all,
+    still, because a caller reading `Load.parts` directly gets a stable order rather than
+    the accident of the file's own layout.
 
     Only `##`, because that is the level `agents.md` organises by — a `###` under one belongs
     to it, and splitting there would report a heading's own body as a sibling of its parent.

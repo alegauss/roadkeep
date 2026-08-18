@@ -38,8 +38,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1252** (deps: —) **The breakdown that says where to cut ranks by a unit the total above it is no longer in** — RK1092 built the ranking for an author at the ceiling, and RK1250 changed the number that ceiling is stated in. → §RK1252
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

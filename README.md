@@ -123,12 +123,8 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 91 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 118 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 1 | 18 | 0 |
-| **Total** | 1 | 740 | 9 |
-
-**Next ready:**
-
-- 📋 **RK1252** (deps: —) **The breakdown that says where to cut ranks by a unit the total above it is no longer in** — RK1092 built the ranking for an author at the ceiling, and RK1250 changed the number that ceiling is stated in. → §RK1252
+| H — The tool's own shape (what one verb costs to change) | 0 | 19 | 0 |
+| **Total** | 0 | 741 | 9 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

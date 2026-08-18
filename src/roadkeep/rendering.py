@@ -532,9 +532,11 @@ def _load_json(load: Load) -> dict[str, object]:
         # Every section and not the largest few (RK1092), for `by_tool`'s reason: a caller
         # reading this to decide what to cut is reading a payload, and the terminal is
         # reading a report. Empty where the file is not on disk.
+        # In the order the report shows them (RK1252) — ranked by the limit about to refuse,
+        # so a consumer acting on the first row acts on the same section a reader would.
         "parts": [
             {"heading": part.heading, "lines": part.lines, "bytes": part.bytes}
-            for part in load.parts
+            for part in load.ranked
         ],
         # What this checkout pays over the counted number (RK1105), so a caller comparing two
         # machines has the difference as a field instead of inferring it from a mismatch.

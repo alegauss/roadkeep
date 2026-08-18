@@ -2408,3 +2408,101 @@ def test_the_three_surfaces_agree_about_an_absent_file(tmp_path, capsys):
     assert "not on disk" in capsys.readouterr().out
     assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
     assert "not on disk" in capsys.readouterr().out
+
+
+# -- the ranking under the total (RK1252) -------------------------------------
+
+
+def _sectioned(tmp_path: Path, config: str) -> Config:
+    """Two sections where the byte order and the line order disagree — a short section of
+    long lines against a long section of short ones, which is the case the sort key decides.
+    """
+    (tmp_path / "roadkeep.toml").write_text(config, encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
+    (tmp_path / "agents.md").write_text(
+        "# Guide\n\n"
+        "## Wide\n\n" + ("x" * 200 + "\n") * 3 + "\n"
+        "## Tall\n\n" + "y\n" * 20,
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+BYTES_TIGHT = (
+    'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n'
+    '[budgets]\n"agents.md" = { lines = 10000, bytes = 700 }\n'
+)
+LINES_TIGHT = (
+    'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n'
+    '[budgets]\n"agents.md" = { lines = 30, bytes = 1000000 }\n'
+)
+
+
+def test_the_ranking_follows_the_limit_about_to_refuse(tmp_path):
+    """RK1092 built this list for an author at the ceiling, and it sorted by bytes always.
+    RK1248 made the cost visible: the limit about to refuse may be `lines`, and a breakdown
+    ranked by bytes then names a section that is not the one to cut."""
+    from roadkeep.budgeting import file_budget
+
+    (wide,) = file_budget(_sectioned(tmp_path, BYTES_TIGHT))
+    assert wide.tightest.unit == "bytes"
+    assert [one.heading for one in wide.ranked][:1] == ["## Wide"]
+
+
+def test_the_same_file_ranks_the_other_way_where_lines_are_the_ceiling(tmp_path):
+    """The same sections, the other declared limit, the other answer — which is the whole
+    point of keying the order on `tightest` rather than on a preference."""
+    from roadkeep.budgeting import file_budget
+
+    (tall,) = file_budget(_sectioned(tmp_path, LINES_TIGHT))
+    assert tall.tightest.unit == "lines"
+    assert [one.heading for one in tall.ranked][:1] == ["## Tall"]
+
+
+def test_the_ranking_and_the_room_are_one_decision(tmp_path):
+    """Keyed on the same property, so the report cannot advise against the ceiling it just
+    stated: `room` names the unit and `ranked` orders by it."""
+    from roadkeep.budgeting import file_budget
+
+    (load,) = file_budget(_sectioned(tmp_path, LINES_TIGHT))
+    assert "lines left of" in load.room
+    assert load.ranked[0].lines >= load.ranked[-1].lines
+
+
+def test_the_column_a_reader_scans_is_the_one_it_is_sorted_on(tmp_path, capsys):
+    """The ranking unit leads the row, because a list ordered by a column that is not the
+    first reads as unordered."""
+    _sectioned(tmp_path, LINES_TIGHT)
+    assert main(["-C", str(tmp_path), "budget", "--file", "agents.md"]) == EXIT_OK
+    rows = [one for one in capsys.readouterr().out.splitlines() if one.startswith("    ")]
+    leading = [int(one.split()[0]) for one in rows if one.split()[0].isdigit()]
+    assert leading == sorted(leading, reverse=True), rows
+
+
+def test_the_reading_is_printed_under_the_breakdown_and_not_over_it(tmp_path, capsys):
+    """Between the limits and the sections it was the total a reader met immediately before a
+    list ranked in another unit, so the adjacency said *this is what those are of*. The
+    breakdown belongs to the ceiling above it; the reading belongs to neither."""
+    _sectioned(tmp_path, LINES_TIGHT)
+    assert main(["-C", str(tmp_path), "budget", "--file", "agents.md"]) == EXIT_OK
+    printed = capsys.readouterr().out.splitlines()
+    assert printed.index([one for one in printed if "reader" in one][0]) > printed.index(
+        [one for one in printed if "## Tall" in one][0]
+    )
+
+
+def test_the_payload_lists_them_in_the_order_the_report_shows(tmp_path, capsys):
+    """A consumer acting on the first row should act on the section a reader would."""
+    _sectioned(tmp_path, LINES_TIGHT)
+    assert main(["-C", str(tmp_path), "budget", "--file", "agents.md", "--json"]) == EXIT_OK
+    (found,) = json.loads(capsys.readouterr().out)["files"]
+    assert [one["heading"] for one in found["parts"]][:1] == ["## Tall"]
+
+
+def test_a_file_declaring_no_limit_keeps_the_order_it_always_had(tmp_path):
+    """Bytes where nothing is declared, which is what `_parts` sorted by from the start."""
+    from roadkeep.budgeting import Load, _parts
+
+    load = Load(path="x", costs=(), parts=_parts(b"## A\nyyyy\n## B\nz\n"))
+    assert load.tightest is None
+    assert [one.heading for one in load.ranked] == ["## A", "## B"]

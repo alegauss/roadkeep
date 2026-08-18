@@ -88,30 +88,3 @@ already written, not authorship.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1252 The ranking under the new total
-
-RK1250 gave `--file` the figure an author is actually deciding against, and the
-breakdown directly under it still answers in the other unit:
-
-    reader     6856 utf-16-code-units, what a model is charged — a reading, and nothing here limits it
-        3010   42  ## Layout
-         881   15  (before the first ##)
-
-So the read says *you are at 6856* and then ranks the sections by bytes. RK1092 built
-that ranking for one purpose — an author at the ceiling deciding where to cut — and the
-number it sorts by is now not the number above it.
-
-Which is RK1245's defect one level down, arriving the same way: a task added the reading
-its own caller needed and did not look at what sat beneath. On ASCII prose the two
-orders agree and it is invisible; a section carrying markers or box-drawing sorts
-differently in each, so the largest by bytes is not always the largest to cut.
-
-`Part` carries `lines` and `bytes`. The reading is one decode of text this record
-already holds normalised, which is what `Load.characters` is.
-
-To settle: whether the ranking *sorts* by the new figure or merely reports it. Sorting
-makes the list answer the question the total poses; reporting keeps the order `lint`
-would name a byte overrun in. Probably sort by the reading and print both, since the
-byte column is what `[budgets]` counts and the order is what the reader acts on — but
-that is two numbers in a row already carrying two.
