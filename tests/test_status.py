@@ -788,3 +788,80 @@ def test_every_verb_that_takes_an_id_by_position_says_so():
     (actions,) = [one for one in build_parser()._actions if getattr(one, "choices", None)]
     for name in ("show", "brief", "retire", "renumber", "amend"):
         assert "id" in _positionals(actions.choices[name]), name
+
+
+# -- the violation that is true of the fix (RK1255) ---------------------------
+
+
+def _limit(config) -> int:
+    return config.schema.why_max
+
+
+def test_a_terminator_with_no_room_for_it_says_so_at_the_first_refusal(tmp_path, capsys):
+    """The pair that costs two round trips for one sentence, and the second of them is
+    knowable at the first: a `why` at exactly its limit and unterminated is refused for the
+    terminator, the caller adds the character the refusal asked for, and it comes back one
+    over.
+
+    Reproduced against `ship` before the fix: 200 of 200, then 201 of 200."""
+    config = project(tmp_path)
+    at_the_limit = "x" * _limit(config)
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", at_the_limit]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "why.no-terminator" in err
+    assert "no room for it" in err
+    assert "cut 1 character in all" in err
+
+
+def test_the_length_rule_is_unmoved(tmp_path, capsys):
+    """Nothing about what is accepted changes. The text as sent is not over, and a violation
+    on it would be this tool refusing a sentence nobody wrote."""
+    config = project(tmp_path)
+    at_the_limit = "x" * _limit(config)
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", at_the_limit]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "why.too-long" not in err
+
+
+def test_a_sentence_with_room_is_told_nothing_extra(tmp_path, capsys):
+    """Almost always, which is why it is a clause on a refusal already being printed rather
+    than a sentence every caller reads (RK16)."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "It works now"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "why is a sentence: end it" in err
+    assert "no room" not in err
+
+
+def test_a_text_already_over_gets_the_whole_cut_and_not_the_shorter_one(tmp_path, capsys):
+    """Said past the limit too, and not only at it: a caller told to delete five who deletes
+    five and stops lands exactly at the limit and meets this on the next call — the same two
+    round trips, one step later. So the number is the whole cut and supersedes the one beside
+    it rather than sitting next to it as a second answer."""
+    config = project(tmp_path)
+    over = "x" * (_limit(config) + 5)
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", over]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "delete 5 characters" in err
+    assert "cut 6 characters in all" in err
+    assert "one of them is the terminator" in err
+
+
+def test_the_fix_it_names_is_accepted(tmp_path, capsys):
+    """The property the whole task is about: obeying the refusal once is enough. Driven end
+    to end, because a number that is right and off by one is what this replaced."""
+    config = project(tmp_path)
+    limit = _limit(config)
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "x" * limit]) == EXIT_USAGE
+    capsys.readouterr()
+    # Cut the one character it named, then end the sentence — one call, and it lands.
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "x" * (limit - 1) + "."]) == EXIT_OK
+
+
+def test_a_terminated_sentence_at_the_limit_is_never_told_to_cut(tmp_path, capsys):
+    """The boundary from the other side: the rule is about the terminator this text lacks,
+    so a text that has one is a text this clause has no opinion about."""
+    config = project(tmp_path)
+    limit = _limit(config)
+    assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "x" * (limit - 1) + "."]) == EXIT_OK
+    assert "no room" not in capsys.readouterr().err

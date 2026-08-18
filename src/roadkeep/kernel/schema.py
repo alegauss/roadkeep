@@ -1757,7 +1757,11 @@ class Schema:
         why = measured.strip()
         if why and self.terminator and not why.endswith(_TERMINATORS):
             out.append(
-                Violation("why.no-terminator", "why", "why is a sentence: end it")
+                Violation(
+                    "why.no-terminator",
+                    "why",
+                    f"why is a sentence: end it{_costs_a_character(measured, budget)}",
+                )
             )
         if self.one_sentence and _sentence_count(why) > 1:
             out.append(
@@ -1979,6 +1983,39 @@ CODEPOINT_KINDS = {
         "consequence instead",
     ),
 }
+
+
+def _costs_a_character(text: str, budget: int) -> str:
+    """What ending this sentence costs, where there is no room for it (RK1255).
+
+    The pair that costs two round trips for one sentence, and the second of them is knowable
+    at the first. A `why` at exactly its limit and unterminated is refused for the terminator;
+    the caller adds the character the refusal asked for and is refused again, now one over.
+    Reproduced against `ship`: 200 of 200 unterminated, then 201 of 200.
+
+    Nothing about what is accepted changes. The **length** rule is unmoved — the text as sent
+    is not over, and a violation on it would be this tool refusing a sentence nobody wrote.
+    What changes is that the refusal for the rule that *is* broken states the cost of obeying
+    it, which the same call already has every number for.
+
+    Silent where there is room, which is almost always: this fires at the limit and past it,
+    so it is a clause on a refusal already being printed rather than a sentence every caller
+    reads (RK16).
+    """
+    room = budget - width(text.rstrip())
+    if room > 0:
+        return ""
+    # Said where the text is already **over** too, and not only at the boundary: a caller
+    # told to delete five, who deletes five and stops, lands exactly at the limit and meets
+    # this refusal on the next call — the same two round trips, one step later. So the number
+    # here is the whole cut, and it is stated as superseding the one beside it rather than
+    # sitting next to it as a second answer.
+    needed = 1 - room
+    plural = "" if needed == 1 else "s"
+    return (
+        f", and there is no room for it: cut {needed} character{plural} in all — "
+        f"the text is {width(text.rstrip())} of {budget}, and one of them is the terminator"
+    )
 
 
 def _sentence_count(text: str) -> int:

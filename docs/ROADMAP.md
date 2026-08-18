@@ -38,8 +38,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1255** (deps: —) **A refusal names one violation while the next is already true, so one sentence costs several round trips** — The refusal names every violation it can see in one answer, which is the argument the tool already makes about validating before writing. → §RK1255
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
