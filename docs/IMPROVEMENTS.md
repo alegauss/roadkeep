@@ -88,3 +88,25 @@ already written, not authorship.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+### §RK1257 The field with no door (block retitle)
+
+A block's title is metadata, not a claim. `block add` refuses a label it already
+declares — correctly, since reopening one is a different act — and there is no `block
+rename`. So a wrong title has one exit: `retire` the tasks under it, `block drop`,
+`block add` with the new title, `add` them back. That spends an id, writes a departure
+that never happened, and deletes a rationale section that was right. It is what
+`restate` exists to avoid for a symptom, and the argument carries over: the field is not
+a claim the line makes, so correcting it should not read as abandoning work.
+
+Found in Shio, and how it was found is the argument. A block was opened as *"what SH780
+and SH807 fixed in one place and not the others"*, and a guard there refuses a heading
+in the rationale file whose named ids have all shipped, since one reads as rationale for
+finished work. The title was wrong on a rule its author had not considered — not a typo,
+not a change of scope, a heading that should read differently. Its task was finishable
+that session, so shipping it and dropping the block cleared the guard. Otherwise the
+only exit was the expensive one.
+
+`block retitle <label> --title` writes all declared files or none, as `block add` and
+`block drop` do — the ledger included, since it keeps the heading history was filed
+under and must keep it spelled the same way.

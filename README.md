@@ -123,8 +123,12 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 91 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 118 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 0 | 23 | 0 |
-| **Total** | 0 | 745 | 9 |
+| H — The tool's own shape (what one verb costs to change) | 1 | 23 | 0 |
+| **Total** | 1 | 745 | 9 |
+
+**Next ready:**
+
+- 📋 **RK1257** (deps: —) **no verb renames a block, so a title that reads wrong costs an id, a false departure and a good section** — block retitle, writing every declared file or none: the title is metadata, not the claim the line makes, and restate's argument applies to it unchanged. → §RK1257
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
