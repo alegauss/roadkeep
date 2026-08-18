@@ -1063,6 +1063,35 @@ class Load:
         return f"{cost.left} {cost.unit} left of {cost.limit}"
 
 
+def _resident(load: Load) -> str:
+    """One every-turn file as a `--session` row: the figure, the path, and what they are.
+
+    **Three states and not a reason with a default** (RK1251). RK1245 gave :class:`Load` a
+    `characters` field and printed *bytes, because this file is not UTF-8* wherever it was
+    `None` — which is true of a file that does not decode and false of a file that is not
+    there, and `None` is what both leave. So a project whose declared `agents.md` is missing
+    was told this tool could not read it.
+
+    Both other surfaces already say it plainly: `budget --file` prints `not on disk — the
+    entry holds nothing`, and `lint` reports `budget.absent`, a finding that exists precisely
+    because a budget with nothing under it is the one reading that makes a missing file look
+    like room. This row was the third statement of that state and the only wrong one.
+
+    So the absent row **states no room either**, which is the other half RK1251 named: `10
+    lines left of 10` is arithmetically true and is the sentence `budget.absent` exists to
+    contradict. :attr:`Load.present` carries the distinction and always did.
+    """
+    if not load.present:
+        return f"{0:>6}  {load.path}  not on disk — the entry holds nothing"
+    figure = load.bytes if load.characters is None else load.characters
+    said = f"{figure:>6}  {load.path}"
+    if load.characters is None:
+        said += "  (bytes: this file is not UTF-8)"
+    # The room the project's own `[budgets]` line declares (RK1248), in the unit it declared
+    # it in — which is named, because the figure to its left is not in it.
+    return f"{said}  {load.room}" if load.room else said
+
+
 @dataclass(frozen=True, slots=True)
 class Session:
     """Both halves of what a session pays, against the cadence each is paid at (RK1095).
@@ -1151,15 +1180,7 @@ class Session:
                 else f", {self.notice_limit - self.notice:+} of {self.notice_limit}"
             )
             rows.append(f"  once     {self.notice:>6}  the session-start notice{room}")
-        rows += [
-            f"  turn     {load.bytes if load.characters is None else load.characters:>6}  "
-            f"{load.path}"
-            f"{'' if load.characters is not None else '  (bytes: this file is not UTF-8)'}"
-            # The room the project's own `[budgets]` line declares (RK1248), in the unit it
-            # declared it in — which is named, because the figure to its left is not in it.
-            f"{f'  {load.room}' if load.room else ''}"
-            for load in self.resident
-        ]
+        rows += [f"  turn     {_resident(load)}" for load in self.resident]
         if not self.resident:
             # The state `--file` raises on, said rather than left as an absent row: a project
             # with no `[budgets]` pays the schema and nothing else, which is a real answer.
@@ -1206,6 +1227,10 @@ class Session:
                         "path": load.path,
                         "bytes": load.bytes,
                         "characters": load.characters,
+                        # Which of the two absences a null `characters` is (RK1251): a file
+                        # that is not there and one this could not decode are different
+                        # states, and a caller reading only the null cannot tell them apart.
+                        "present": load.present,
                         # The tightest declared limit and what it has left, so a caller acts
                         # on the one that refuses rather than on the first declared (RK1248).
                         "limit": None

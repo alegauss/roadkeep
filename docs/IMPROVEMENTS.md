@@ -89,33 +89,6 @@ already written, not authorship.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-### §RK1251 Two absences, one None
-
-`budget --session` on a project whose declared file is not there:
-
-    turn          0  agents.md  (bytes: this file is not UTF-8)  10 lines left of 10
-
-The file is absent. It is not undecodable, and it is not bytes. `Load.characters` is
-`None` in two different situations — the file is not on disk, and the file does not
-decode — and the row reads that `None` as the second one.
-
-Both other surfaces get it right and say so plainly. `--file` prints `not on disk — the
-entry holds nothing`; `lint` reports `budget.absent`, and its finding exists because a
-budget with nothing under it is the one reading that makes a missing file look like
-room. This row is the third statement of that state and the only wrong one.
-
-It arrived through a shortcut. RK1245 gave `Load` a `characters` field and made the
-fallback *where it is None, print bytes and say why*, and the only reason named was the
-decoding one, because that is the case the task was about. `Load.present` was already
-there, carrying exactly the distinction the row needed.
-
-The fix is to read `present` first, and the row then has three states rather than a
-reason and a default: on disk and decodable, on disk and not, not there. Which is what
-the record already holds, so nothing new is measured.
-
-Worth settling at the same time whether the absent row should show `10 lines left of 10`
-at all. It is true and it is the sentence `budget.absent` exists to contradict.
-
 ### §RK1252 The ranking under the new total
 
 RK1250 gave `--file` the figure an author is actually deciding against, and the

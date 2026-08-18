@@ -38,7 +38,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1251** (deps: —) **A declared file that is not on disk is reported as one this tool could not decode** — Load.characters is None in two situations and the row reads it as the one RK1245 was about, though present already separates them. → §RK1251
 - 📋 **RK1252** (deps: —) **The breakdown that says where to cut ranks by a unit the total above it is no longer in** — RK1092 built the ranking for an author at the ceiling, and RK1250 changed the number that ceiling is stated in. → §RK1252
 
 ## Non-goals

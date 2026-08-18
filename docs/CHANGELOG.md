@@ -779,3 +779,4 @@
 - ✅ **RK1248** **The one row whose ceiling this package hardcodes states its room and the rows the project declared do not** — Every resident row states what its own declared limit has left, in the unit that limit is written in.
 - ✅ **RK1249** **The summary row claims bytes is what the gate refuses on while the row above it names lines** — The summary row states the conversion and stops, leaving which unit refuses to the gate and the per-file row.
 - ✅ **RK1250** **The read consulted before an edit lacks the figure the read consulted after it now has** — The read consulted before an edit states what a model is charged, as a reading beside the limits and never as one.
+- ✅ **RK1251** **A declared file that is not on disk is reported as one this tool could not decode** — A resident row has three states, so a file that is not there says so and states no room.

@@ -2332,3 +2332,79 @@ def test_a_file_that_does_not_decode_prints_no_reading(tmp_path, capsys):
     (tmp_path / "agents.md").write_bytes(b"# Guide\n\n\xff\xfe not utf-8\n")
     assert main(["-C", str(tmp_path), "budget", "--file", "agents.md"]) == EXIT_OK
     assert "reader" not in capsys.readouterr().out
+
+
+# -- two absences, one None (RK1251) ------------------------------------------
+
+
+def _declared_but(tmp_path: Path, **files: bytes) -> Config:
+    """A project budgeting `agents.md` and whatever else, with only what is passed on disk."""
+    declared = dict.fromkeys(("agents.md", *files))
+    entries = "\n".join(f'"{name}" = {{ lines = 10, bytes = 8000 }}' for name in declared)
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n[budgets]\n' + entries + "\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
+    for name, body in files.items():
+        (tmp_path / name).write_bytes(body)
+    return Config.discover(tmp_path)
+
+
+def test_a_file_that_is_not_on_disk_is_not_called_undecodable(tmp_path, capsys):
+    """The defect. `Load.characters` is `None` for a file that does not decode *and* for one
+    that is not there, and the row read that `None` as the first — so a project whose declared
+    `agents.md` is missing was told this tool could not read it.
+
+    Both other surfaces already say it plainly: `--file` prints `not on disk`, and `lint`
+    reports `budget.absent`."""
+    _declared_but(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    (row,) = [one for one in capsys.readouterr().out.splitlines() if "agents.md" in one]
+    assert "not on disk" in row
+    assert "UTF-8" not in row
+
+
+def test_the_absent_row_states_no_room_either(tmp_path, capsys):
+    """The other half. `10 lines left of 10` is arithmetically true and is the sentence
+    `budget.absent` exists to contradict: a budget with nothing under it is the one reading
+    that makes a missing file look like room."""
+    _declared_but(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    (row,) = [one for one in capsys.readouterr().out.splitlines() if "agents.md" in one]
+    assert "left of" not in row
+
+
+def test_a_file_that_is_there_and_does_not_decode_still_says_which(tmp_path, capsys):
+    """The state RK1245 was about, unchanged: it is on disk, its bytes are what a loader pays,
+    and the row says so rather than reporting a code-unit figure it does not have."""
+    _declared_but(tmp_path, **{"agents.md": b"# x\n\n\xff\xfe not utf-8\n"})
+    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    (row,) = [one for one in capsys.readouterr().out.splitlines() if "agents.md" in one]
+    assert "not UTF-8" in row
+    assert "not on disk" not in row
+    # And its room stands, because there is a file under the budget.
+    assert "left of" in row
+
+
+def test_the_payload_says_which_absence_a_null_is(tmp_path, capsys):
+    """A caller reading only the null cannot tell the two apart, which is the defect one
+    surface in."""
+    _declared_but(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    (found,) = json.loads(capsys.readouterr().out)["each_turn"]["files"]
+    assert found["characters"] is None
+    assert found["present"] is False
+
+
+def test_the_three_surfaces_agree_about_an_absent_file(tmp_path, capsys):
+    """The property this restores: `--file`, `--session` and the gate are three readings of
+    one state, and two of them were right."""
+    from roadkeep.linting import lint
+
+    config = _declared_but(tmp_path)
+    assert "budget.absent" in {one.code for one in lint(config).findings}
+    assert main(["-C", str(tmp_path), "budget", "--file", "agents.md"]) == EXIT_OK
+    assert "not on disk" in capsys.readouterr().out
+    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    assert "not on disk" in capsys.readouterr().out
