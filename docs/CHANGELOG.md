@@ -777,3 +777,4 @@
 - ✅ **RK1243** **The line every session is handed has a budget nothing reads and a constant somebody edits** — budget --session prices the SessionStart notice beside the schema, in the unit its ceiling is now held in.
 - ✅ **RK1245** **The read that exists to compare two costs prints them in two different units** — Both cadences are reported in code units, with the bytes the gate refuses on named rather than converted away.
 - ✅ **RK1248** **The one row whose ceiling this package hardcodes states its room and the rows the project declared do not** — Every resident row states what its own declared limit has left, in the unit that limit is written in.
+- ✅ **RK1249** **The summary row claims bytes is what the gate refuses on while the row above it names lines** — The summary row states the conversion and stops, leaving which unit refuses to the gate and the per-file row.

@@ -1165,13 +1165,19 @@ class Session:
             # with no `[budgets]` pays the schema and nothing else, which is a real answer.
             rows.append("  turn          0  this project declares no [budgets] file")
         elif self.declared != self.turn:
-            # Named once and not per row (RK1245): the gate's unit is one fact about the set,
+            # Named once and not per row (RK1245): the conversion is one fact about the set,
             # and repeating it beside each file would spend the report on the difference
             # rather than on the comparison the reader came for. Silent where they agree,
             # which is every ASCII project and is where there is nothing to say.
+            #
+            # And it stops at the conversion (RK1249). It used to say bytes is *what `lint`
+            # refuses on*, which is a third statement of the gate that neither the gate nor
+            # the rows above agree with: `[budgets]` declares two units, `lint` emits
+            # `budget.lines` and `budget.bytes` each naming its own, and the row above this
+            # one already says which of them will refuse *this* file. A summary taking the
+            # last word reads as the general rule, so what it may claim is only what it knows.
             rows.append(
-                f"  bytes    {self.declared:>6}  what `[budgets]` declares and `lint` "
-                f"refuses on — a loader's unit, not a reader's"
+                f"  bytes    {self.declared:>6}  the same files in the unit `[budgets]` counts"
             )
         return chr(10).join(rows)
 

@@ -2094,7 +2094,7 @@ def test_the_loaders_unit_is_named_once_and_not_per_row(tmp_path, capsys):
     (tmp_path / "agents.md").write_text(MARKED, encoding="utf-8")
     assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
     printed = capsys.readouterr().out
-    assert printed.count("a loader's unit, not a reader's") == 1
+    assert printed.count("the unit `[budgets]` counts") == 1
 
 
 def test_it_says_nothing_where_the_two_agree(tmp_path, capsys):
@@ -2102,7 +2102,7 @@ def test_it_says_nothing_where_the_two_agree(tmp_path, capsys):
     budgeted(tmp_path)
     (tmp_path / "agents.md").write_text("# Guide\n\nPlain prose, no markers.\n", encoding="utf-8")
     assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
-    assert "a loader's unit" not in capsys.readouterr().out
+    assert "the unit `[budgets]` counts" not in capsys.readouterr().out
 
 
 def test_a_file_that_does_not_decode_falls_back_to_its_bytes(tmp_path, capsys):
@@ -2222,3 +2222,48 @@ def test_the_room_is_this_records_arithmetic_and_not_a_readers(tmp_path):
     (one,) = [field for field in fields(Session) if field.name == "resident"]
     assert "Load" in str(one.type)
     assert {"room", "tightest"} <= {name for name in dir(Load)}
+
+
+# -- and it stops at the conversion (RK1249) ----------------------------------
+
+
+def test_the_summary_row_does_not_say_which_unit_refuses(tmp_path, capsys):
+    """It used to. `[budgets]` declares two units and `lint` emits `budget.lines` and
+    `budget.bytes`, each naming its own — so *bytes is what `lint` refuses on* was a third
+    statement of the gate that neither the gate nor the rows above agreed with.
+
+    A summary takes the last word and reads as the general rule, which is what made two true
+    sentences mislead together."""
+    budgeted(tmp_path)
+    (tmp_path / "agents.md").write_text(MARKED, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "the unit `[budgets]` counts" in printed
+    assert "refuses on" not in printed
+
+
+def test_the_row_that_does_say_which_unit_refuses_is_the_per_file_one(tmp_path, capsys):
+    """Which is where the fact lives: it is per file, because the tightest of two declared
+    limits is a property of that file's own content (RK1248)."""
+    budgeted(tmp_path)
+    (tmp_path / "agents.md").write_text(MARKED, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    (row,) = [one for one in capsys.readouterr().out.splitlines() if "agents.md" in one]
+    assert "left of" in row or "over by" in row
+
+
+def test_the_gate_still_names_the_unit_it_refused_on(tmp_path):
+    """The statement the summary was competing with, asserted where it is actually made: one
+    finding per declared unit, each carrying its own name."""
+    from roadkeep.linting import lint
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n'
+        '[budgets]\n"agents.md" = { lines = 2, bytes = 100000 }\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
+    (tmp_path / "agents.md").write_text("x\n" * 5, encoding="utf-8")
+    codes = [one.code for one in lint(Config.discover(tmp_path)).findings]
+    assert "budget.lines" in codes
+    assert "budget.bytes" not in codes

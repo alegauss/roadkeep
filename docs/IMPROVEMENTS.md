@@ -89,35 +89,6 @@ already written, not authorship.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-### §RK1249 The row that took the last word
-
-`budget --session` closes with a row explaining why bytes appear beside a code-unit
-figure:
-
-    turn       6856  agents.md  21 lines left of 125
-    bytes      7366  what `[budgets]` declares and `lint` refuses on — a loader's unit, not a reader's
-
-Both lines are true and together they mislead. The summary says bytes is what refuses;
-the row above it says the limit about to refuse here is `lines`. A reader takes the last
-word for the general rule and concludes the byte figure is the gate, when on this
-project it is the one with the most room left.
-
-`[budgets]` declares two units and `lint` emits `budget.lines` and `budget.bytes`, each
-naming its own. So the sentence is not a simplification of the gate; it is a third
-statement of it that neither the gate nor the row above agrees with.
-
-The row is worth keeping. It exists because RK1245 put the figures in code units and a
-reader seeing a byte total needs to know where it came from — what it should not do is
-claim which unit refuses, which is a per-file fact the row above already carries.
-
-The wording is the whole task: something that says *these are the same files in the unit
-`[budgets]` counts* and stops there. Both halves of the current clause are the overreach
-— "refuses on" is the claim, and "a loader's unit, not a reader's" is the sentence that
-makes it sound like a rule rather than a conversion.
-
-Worth checking whether the row belongs at all where every file's tightest limit is
-already in bytes: there the two say one thing twice.
-
 ### §RK1250 The reading only one of two readers got
 
 RK345 built `--file` for one moment: an author about to edit an always-loaded file,
