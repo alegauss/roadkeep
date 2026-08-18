@@ -38,6 +38,8 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
+- 📋 **RK1253** (deps: —) **The total whose whole purpose is comparison is the one with no section breakdown** — RK1252 ranked the breakdown by the ceiling, which is right, and left the reading with no per-section figure at all. → §RK1253
+
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

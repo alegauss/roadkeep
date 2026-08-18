@@ -88,3 +88,29 @@ already written, not authorship.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+### §RK1253 The total with no breakdown
+
+RK1252 asked whether the section breakdown should rank by the code-unit reading or by
+the declared ceiling, and answered *ceiling*: the list exists for an author about to be
+refused, and what refuses is `[budgets]`. That is right and it leaves the other half
+undone.
+
+`--file` now closes with the reading — what a model is charged for this file — and no
+per-section figure exists in that unit. So the one total whose purpose is comparison
+against the served schema is the one with no breakdown, and an author asked to cut code
+units picks a section by lines or bytes and hopes the orders agree.
+
+`Part` carries `lines` and `bytes`. It carries no `characters`, and `_parts` is
+deliberately bytes-only — its docstring says an instruction file is not a format this
+tool decodes (L4). `Load` already crossed that line once, for the whole-file figure, on
+the argument that a reading charged by nothing is not a budget; the same argument
+reaches a section.
+
+Worth its own task rather than a line in RK1252 because the sort key then has three
+candidates and only two are ceilings. A breakdown ranked by a figure nothing refuses
+answers a question the gate never asks — which may still be the right list, the schema
+comparison being a real decision.
+
+To settle: whether the reading gets its own ranking or only a column. And whether a
+section that does not decode is possible at all, given the whole file is decoded first.
