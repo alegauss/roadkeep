@@ -700,3 +700,91 @@ def test_the_two_that_rename_it_accept_the_name_the_rest_use():
             # fields `amend` deliberately keeps apart one field with two spellings.
             continue
         assert "--why" in names, (names, where)
+
+
+# -- and the surface that is not only its flags (RK1254) ----------------------
+
+
+def test_a_positional_spelled_as_a_flag_is_named_as_a_position(tmp_path, capsys):
+    """The mirror of the sentence above, which RK1026 did not make. `show --id RK1` was
+    answered with `takes --no-body, --json` — short, correct, and unable to contain the answer
+    `show RK1`, because a verb's surface is not only its flags.
+
+    Met four times on one throwaway project: `show --id`, `retire --id`, `renumber --from`,
+    `brief --task`. Invited rather than hypothetical — `add` really does take `--id`, so a
+    caller who learned it there spells it that way where the id is positional."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "show", "--id", "RK1"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "`id` is taken by position" in err
+    # And the answer is a runnable call, not a name to work out the placement of.
+    from roadkeep.provenance import invocation
+
+    assert f"{invocation()} show <id>" in err
+
+
+def test_the_positionals_are_their_own_row_and_not_folded_into_takes(tmp_path, capsys):
+    """Which of the two an argument is was exactly what the caller had wrong, so one list
+    holding both would spell `<id>` beside `--json` as though the difference were
+    punctuation."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "brief", "--task", "RK1"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    takes = err.split("takes")[1].split("by order")[0]
+    assert "<id>" not in takes
+    assert "by order <id>" in err
+
+
+def test_a_verb_with_no_positionals_grows_no_row(tmp_path, capsys):
+    """A heading over nothing is a line every caller reads and no caller uses (RK16)."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "lint", "--fixx"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "did you mean `--fix`?" in err
+    assert "by order" not in err
+
+
+def test_a_flag_that_is_a_near_miss_is_still_answered_as_a_flag(tmp_path, capsys):
+    """The order of the two guesses, and it is not arbitrary: a caller who typed `--blockk`
+    wanted `--block`, and sending them to a positional because the bare word also scores
+    would be a worse answer than the one that already worked."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "list", "--blockk", "A"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "did you mean `--block`?" in err
+    assert "taken by position" not in err
+
+
+def test_a_flag_matching_nothing_still_gets_the_row(tmp_path, capsys):
+    """`--from` is not `id` by any distance, so no sentence is composed — and the row is
+    still what tells the caller the verb takes one."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "renumber", "--from", "RK1", "--to", "RK9"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "taken by position" not in err
+    assert "by order <id>" in err
+
+
+def test_the_names_are_the_ones_help_prints(tmp_path, capsys):
+    """The metavar where a parser declares one, so a refusal and a `--help` screen do not
+    spell one argument two ways."""
+    from roadkeep.cli import _positionals, build_parser
+
+    (verb,) = [
+        one.choices["record"]
+        for one in build_parser()._actions
+        if getattr(one, "choices", None)
+    ]
+    # A family reaches its own subcommands through an action whose choices are verbs, and
+    # naming that here would offer a command as a value.
+    assert _positionals(verb) == ()
+
+
+def test_every_verb_that_takes_an_id_by_position_says_so():
+    """The property rather than the four instances: whatever a verb declares by position is
+    what its refusal names, read off the parser and never a second list."""
+    from roadkeep.cli import _positionals, build_parser
+
+    (actions,) = [one for one in build_parser()._actions if getattr(one, "choices", None)]
+    for name in ("show", "brief", "retire", "renumber", "amend"):
+        assert "id" in _positionals(actions.choices[name]), name

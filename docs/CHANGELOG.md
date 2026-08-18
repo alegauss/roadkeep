@@ -782,3 +782,4 @@
 - ✅ **RK1251** **A declared file that is not on disk is reported as one this tool could not decode** — A resident row has three states, so a file that is not there says so and states no room.
 - ✅ **RK1252** **The breakdown that says where to cut ranks by a unit the total above it is no longer in** — The section breakdown is ranked by the limit about to refuse, and the reading sits under it rather than over it.
 - ✅ **RK1253** **The total whose whole purpose is comparison is the one with no section breakdown** — Every section carries what a model is charged for it, as a column beside the two ceilings and never as the order.
+- ✅ **RK1254** **A positional spelled as a flag is answered with a list of flags that cannot contain it** — An unrecognised flag that names a positional says so, and every verb's refusal lists what it takes by order.

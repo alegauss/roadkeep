@@ -173,6 +173,25 @@ def _options(parser: argparse.ArgumentParser) -> tuple[str, ...]:
     )
 
 
+def _positionals(parser: argparse.ArgumentParser) -> tuple[str, ...]:
+    """Every argument one verb takes by position, in the order its parser declares (RK1254).
+
+    :func:`_options`' other half, and the reason it needed one: a verb's surface is not only
+    its flags, so a refusal built from options alone answers `show --id RK1` with a list that
+    cannot contain `show RK1`.
+
+    The **metavar** where the parser declares one and the dest otherwise, because that is what
+    `--help` calls it and a refusal spelling it a second way would be a third name for one
+    argument. A subcommand slot is not one of these: `section` reaches `section add` through
+    an action whose choices are verbs, and naming it here would offer a command as a value.
+    """
+    return tuple(
+        (action.metavar or action.dest)
+        for action in parser._actions
+        if not action.option_strings and not isinstance(action, argparse._SubParsersAction)
+    )
+
+
 def _first(argv: Sequence[str], token: str) -> int | None:
     """Where a token was typed, or None — `--flag=value` included, which argv splits."""
     for index, one in enumerate(argv):
@@ -199,6 +218,13 @@ def _unrecognised(
     A stray positional keeps its own sentence: `show RK1 RK2` is one argument too many, and
     naming the flags of a verb that takes an id would be advice about a mistake nobody made.
 
+    **And the mirror of that, which was not made** (RK1254). `show --id RK1` was answered with
+    `takes --no-body, --json` — short, correct, and unable to contain `show RK1`, because a
+    verb's surface is not only its flags. Met four times over on one throwaway project:
+    `show --id`, `retire --id`, `renumber --from`, `brief --task`. The mistake is invited
+    rather than hypothetical — `add` really does take `--id`, so a caller who learned it
+    there spells it that way on the verbs where the id is positional.
+
     **Which surface answers is decided by where the flag was typed** (RK1032). A flag before
     the verb is the top level's — `roadkeep --vers lint` is somebody reaching for
     `--version`, and answering with `lint`'s options would send them to a `--help` that has
@@ -220,14 +246,34 @@ def _unrecognised(
             f"`{door} --help` is what it does take"
         )
     declared = _options(reached)
+    # Matched **dashes off** (RK1254): `--id` against `id` is not an edit-distance hit and is
+    # the same word, which is the whole shape this is about — `add` declares `--id`, so a
+    # caller who learned it there spells it that way where the id is positional.
+    by_position = _positionals(reached)
     near = difflib.get_close_matches(flags[0], declared, n=1, cutoff=_A_TYPO)
-    guess = f" — did you mean `{near[0]}`?" if near else ""
-    takes = ", ".join(declared) or "no options of its own"
-    return (
-        f"roadkeep: `{verb}` declares no {flags[0]}{guess}\n"
-        f"  takes    {takes}\n"
-        f"  see      `{door} --help`"
+    guessed = difflib.get_close_matches(
+        flags[0].lstrip("-"), by_position, n=1, cutoff=_A_TYPO
     )
+    if near:
+        guess = f" — did you mean `{near[0]}`?"
+    elif guessed:
+        # Named as a *position* and not as a flag, because that is the fact the caller got
+        # wrong: printing `` `id` `` alone would read as one more option to pass.
+        guess = f" — `{guessed[0]}` is taken by position: `{door} <{guessed[0]}>`"
+    else:
+        guess = ""
+    takes = ", ".join(declared) or "no options of its own"
+    rows = [
+        f"roadkeep: `{verb}` declares no {flags[0]}{guess}",
+        f"  takes    {takes}",
+    ]
+    if by_position:
+        # Its own row and never folded into `takes` (RK1254): which of the two an argument is
+        # is exactly what the caller had wrong, and one list holding both would spell `<id>`
+        # beside `--json` as though the difference were punctuation.
+        rows.append(f"  by order {' '.join(f'<{one}>' for one in by_position)}")
+    rows.append(f"  see      `{door} --help`")
+    return chr(10).join(rows)
 
 
 def _crossed(argv: Sequence[str]) -> str | None:
