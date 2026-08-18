@@ -38,6 +38,8 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
+- 📋 **RK1254** (deps: —) **A positional spelled as a flag is answered with a list of flags that cannot contain it** — add takes --id, so a caller who learned it there tries it where the id is positional, and the refusal names only options. → §RK1254
+
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

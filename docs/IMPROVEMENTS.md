@@ -88,3 +88,33 @@ already written, not authorship.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+### §RK1254 The surface that is not only its flags
+
+Met by driving the tool rather than reading it. Four verbs, four refusals, and each time
+the caller had spelled a **positional** as a flag:
+
+    roadkeep: `show` declares no --id
+      takes    --no-body, --json
+
+The answer is `show PX1`, and it is not in the list, because the list is the verb's
+*options* and the id is an argument. `renumber --from PX2`, `brief --task PX1` and
+`retire --id PX1` answer the same way: the surface named is short, correct, and missing
+what the caller needs.
+
+RK1026's own argument one step further along: a refusal naming no alternative is one an
+agent works around, and the verb's own surface is the short answer. That holds — what it
+misses is that a verb's surface is not only its flags.
+
+The mistake is invited. `add` takes `--id`, so a caller who learned it there tries it on
+`show`, `retire` and `amend`, where the id is positional — the sequence that produced
+this.
+
+The docstring already anticipates the mirror case: *a stray positional keeps its own
+sentence — naming the flags of a verb that takes an id would be advice about a mistake
+nobody made.* The reverse is the same reasoning and was not made.
+
+To settle: whether the positionals are a second row or fold into `takes`. A second row
+says which is which, which is the fact the caller got wrong; folding is shorter and
+would let `show <id>` read as a flag. And whether `difflib` should reach them too, so
+`--identifier` finds `id` rather than nothing.
