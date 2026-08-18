@@ -102,6 +102,11 @@ def _refused(error: Exception) -> int:
         # Every violation at once, each naming its limit: a refusal that reports one
         # problem per run turns a single fix into a conversation.
         print("roadkeep: refused, nothing written:", file=sys.stderr)
+        if error.beside:
+            # First, and above the fields (RK1256): it is the half a caller cannot fix by
+            # editing prose, so a reader who stops at the first line has stopped at the one
+            # that decides whether the rest is worth rewriting.
+            print(f"  {error.beside}", file=sys.stderr)
         for violation in error.violations:
             print(f"  {violation}", file=sys.stderr)
         retry = _retrying(error)

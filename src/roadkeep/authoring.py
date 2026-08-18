@@ -565,20 +565,14 @@ def place(
         if config is None:
             raise ValueError(f"place(role={role!r}) needs a config to resolve it against")
         where = config.relative(config.path(role))
-    try:
-        document.schema.check(task)
-    except SchemaError as error:
-        # Around `check` rather than before it, so a line that is missing a pointer *and*
-        # over on its `why` still hears both (RK312): the schema reports every violation at
-        # once, and an early refusal here would trade that for the one sentence it improves.
-        raise (
-            error
-            if config is None
-            else sections.naming_the_anchor(config, task.block, error)
-        ) from None
+    # Computed before `check` and raised after it (RK1256), which is the seam this closes.
+    # `UnknownBlock` and `SchemaError` are two whole halves — each names every problem of its
+    # own class — and a call wrong in both was refused twice, learning one class per round
+    # trip. The block is answerable here regardless of the prose: it is a heading in a
+    # document already read, so nothing about it waits on the fields being legal.
     declared = document.declaring(task.block)
-    if not declared:
-        raise UnknownBlock(
+    unopened = (
+        UnknownBlock(
             task.block,
             sorted({h.label for h in document.headings if h.label}),
             where,
@@ -588,6 +582,28 @@ def place(
             # asked for (RK412). Empty only for the caller that gave a path alone.
             organise=role,
         )
+        if not declared
+        else None
+    )
+    try:
+        document.schema.check(task)
+    except SchemaError as error:
+        # Around `check` rather than before it, so a line that is missing a pointer *and*
+        # over on its `why` still hears both (RK312): the schema reports every violation at
+        # once, and an early refusal here would trade that for the one sentence it improves.
+        refusal = (
+            error
+            if config is None
+            else sections.naming_the_anchor(config, task.block, error)
+        )
+        if unopened is not None:
+            # The other half, carried rather than merged: `UnknownBlock` renders a remedy
+            # a bare violation line would lose, and folding it into `violations` would make
+            # a rule of this schema out of a fact about a heading.
+            refusal.beside = str(unopened)
+        raise refusal from None
+    if unopened is not None:
+        raise unopened
     if len(declared) > 1:
         # The ambiguity is not resolved by position (RK391) — see `RepeatedHeading`. Here
         # rather than at `add`, because this is the seam every line write passes and `ship`,

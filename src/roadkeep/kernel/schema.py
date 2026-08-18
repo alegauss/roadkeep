@@ -638,6 +638,17 @@ class SchemaError(ValueError):
         #: a field access rather than a `getattr` guess, and a violation stays a rule broken
         #: rather than growing a field only one code would ever fill.
         self.offered = ""
+        #: A refusal from the **other** class of check that is also true of this call
+        #: (RK1256), as the sentence that refusal renders. Empty here and always: the kernel
+        #: knows one class — its own rules — and what it declares is the channel, so the
+        #: caller that can see both fills it and a reader is a field access.
+        #:
+        #: Filled only where the second answer is *answerable*. `add --block ZZ` with an
+        #: over-long `why` has both, because the block is checked against a document already
+        #: read and nothing about it depends on the prose; `ship` on an id nothing carries
+        #: does not, because there is no task to validate a `why` against and a second
+        #: sentence would be about a line that does not exist.
+        self.beside = ""
         super().__init__("; ".join(str(v) for v in self.violations))
 
 

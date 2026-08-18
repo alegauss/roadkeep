@@ -865,3 +865,78 @@ def test_a_terminated_sentence_at_the_limit_is_never_told_to_cut(tmp_path, capsy
     limit = _limit(config)
     assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "x" * (limit - 1) + "."]) == EXIT_OK
     assert "no room" not in capsys.readouterr().err
+
+
+# -- the seam between two whole halves (RK1256) -------------------------------
+
+
+def test_an_undeclared_block_is_named_beside_the_fields_that_are_wrong(tmp_path, capsys):
+    """Two classes of check refuse a write, each complete on its own and neither aware of the
+    other: `add --block ZZ` with an over-long `why` reported the `why` and hid the block, so
+    the caller shortened the sentence, re-sent, and only then learned the block does not
+    exist — the one problem editing prose cannot fix."""
+    project(tmp_path)
+    argv = ["-C", str(tmp_path), "add", "--block", "ZZ", "--symptom", "A symptom plainly long enough"]
+    assert main([*argv, "--why", "x" * 400]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "no heading declares Block ZZ" in err
+    assert "why.too-long" in err
+
+
+def test_the_block_leads_because_it_is_the_half_prose_cannot_fix(tmp_path, capsys):
+    """A reader who stops at the first line has stopped at the one that decides whether the
+    rest is worth rewriting."""
+    project(tmp_path)
+    argv = ["-C", str(tmp_path), "add", "--block", "ZZ", "--symptom", "A symptom plainly long enough"]
+    assert main([*argv, "--why", "x" * 400]) == EXIT_USAGE
+    printed = capsys.readouterr().err.splitlines()
+    assert printed.index([one for one in printed if "no heading declares" in one][0]) < printed.index(
+        [one for one in printed if "why.too-long" in one][0]
+    )
+
+
+def test_the_remedy_the_block_refusal_carries_survives_being_carried(tmp_path, capsys):
+    """Carried rather than merged: `UnknownBlock` renders a command a bare violation line
+    would lose, and folding it into `violations` would make a rule of the schema out of a
+    fact about a heading."""
+    project(tmp_path)
+    argv = ["-C", str(tmp_path), "add", "--block", "ZZ", "--symptom", "A symptom plainly long enough"]
+    assert main([*argv, "--why", "x" * 400]) == EXIT_USAGE
+    assert 'block add ZZ --title "<its title>"' in capsys.readouterr().err
+
+
+def test_each_half_alone_is_unchanged(tmp_path, capsys):
+    """Nothing about what is accepted moves, and neither refusal grows a line where the other
+    class is clean."""
+    project(tmp_path)
+    good = ["--symptom", "A symptom plainly long enough", "--why", "Because of a reason."]
+    assert main(["-C", str(tmp_path), "add", "--block", "ZZ", *good]) == EXIT_USAGE
+    alone = capsys.readouterr().err
+    assert "no heading declares Block ZZ" in alone
+    assert "refused, nothing written" not in alone
+
+    argv = ["-C", str(tmp_path), "add", "--block", "A", "--symptom", "A symptom plainly long enough"]
+    assert main([*argv, "--why", "x" * 400]) == EXIT_USAGE
+    fields = capsys.readouterr().err
+    assert "why.too-long" in fields
+    assert "no heading declares" not in fields
+
+
+def test_an_id_nothing_carries_still_answers_alone(tmp_path, capsys):
+    """The direction that is **not** symmetric, and the reason this is one rule and not two:
+    a `ship` on an id nothing carries has no task to validate a `why` against, so a second
+    sentence would be about a line that does not exist — worse than silence."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "ship", "RK999", "--why", "x" * 400]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "no open task RK999" in err
+    assert "why.too-long" not in err
+
+
+def test_the_channel_is_empty_wherever_nobody_fills_it(tmp_path):
+    """The kernel knows one class — its own rules — so what it declares is the channel, and a
+    caller that can see both is what fills it."""
+    from roadkeep.kernel.schema import SchemaError, Violation
+
+    error = SchemaError((Violation("why.too-long", "why", "too long"),))
+    assert error.beside == ""

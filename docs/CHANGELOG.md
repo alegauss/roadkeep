@@ -784,3 +784,4 @@
 - ✅ **RK1253** **The total whose whole purpose is comparison is the one with no section breakdown** — Every section carries what a model is charged for it, as a column beside the two ceilings and never as the order.
 - ✅ **RK1254** **A positional spelled as a flag is answered with a list of flags that cannot contain it** — An unrecognised flag that names a positional says so, and every verb's refusal lists what it takes by order.
 - ✅ **RK1255** **A refusal names one violation while the next is already true, so one sentence costs several round trips** — A refusal for a missing terminator states what ending the sentence costs where there is no room for it.
+- ✅ **RK1256** **A structural refusal and a schema refusal never appear together, so a call wrong twice is refused twice** — An undeclared block is named beside the fields that are wrong, where the block is answerable regardless of the prose.

@@ -38,8 +38,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1256** (deps: —) **A structural refusal and a schema refusal never appear together, so a call wrong twice is refused twice** — RK1255 made the schema half whole, and the seam between the two classes of check is where a round trip is still spent. → §RK1256
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
