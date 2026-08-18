@@ -39,6 +39,7 @@
 ## Block H — The tool's own shape (what one verb costs to change)
 
 - 📋 **RK1254** (deps: —) **A positional spelled as a flag is answered with a list of flags that cannot contain it** — add takes --id, so a caller who learned it there tries it where the id is positional, and the refusal names only options. → §RK1254
+- 📋 **RK1255** (deps: —) **A refusal names one violation while the next is already true, so one sentence costs several round trips** — The refusal names every violation it can see in one answer, which is the argument the tool already makes about validating before writing. → §RK1255
 
 ## Non-goals
 

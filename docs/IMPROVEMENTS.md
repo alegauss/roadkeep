@@ -118,3 +118,28 @@ To settle: whether the positionals are a second row or fold into `takes`. A seco
 says which is which, which is the fact the caller got wrong; folding is shorter and
 would let `show <id>` read as a flag. And whether `difflib` should reach them too, so
 `--identifier` finds `id` rather than nothing.
+
+### §RK1255 Every violation in one refusal
+
+Measured over one long session driving a backlog: seven calls were refused, each for a
+single violation while the next was already true. A `ship` whose `--why` lacked a full
+stop was told about the terminator; the sentence came back one character longer and was
+told it was now two characters over the limit. Two round trips for one sentence.
+
+The same shape recurs across fields. An `add` refused for a 263-word body comes back at
+249 and is then refused for a 121-character symptom — knowable when the body was
+counted. Each round trip is a whole invocation, every flag retyped.
+
+This is the argument the tool already makes about itself. `add` says a limit reported
+after the prose exists is a limit discovered too late to save the tokens it was meant to
+save, and validates every field before writing anything for exactly that reason. The
+validation is whole; only the reporting stops at the first failure.
+
+So the refusal names every violation it can see, in one answer, with the same per-field
+detail each carries now. Nothing about what is accepted changes and nothing is written
+that was not written before — a caller simply learns in one refusal what it currently
+takes several to find out.
+
+Filing this section was itself refused for being seven words too long, which is the
+evidence and not a joke: the symptom beside it was already over its own limit at that
+moment, and went unreported.
