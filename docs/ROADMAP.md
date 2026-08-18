@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1247** (deps: —) **The one message that stops an Edit defaults its prefix to a route the session may not have** — RK447 ended the guess between two prefixes, and this default is that guess still standing on the message that blocks a turn. → §RK1247
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

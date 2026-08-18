@@ -277,9 +277,18 @@ class Refusal:
     #: being refused and one hook process serves every repository the session touches.
     #:
     #: `""` is the third state and not a missing value (RK447): this session has no server
-    #: for them, so there is no tool table to print. The default is the bare prefix because
-    #: that is what every wired project has and what a `Refusal` built by hand means.
-    served: str = WIRED
+    #: for them, so there is no tool table to print.
+    #:
+    #: And it is the **default** since RK1247, where it used to be the bare prefix on the
+    #: argument that this is what every wired project has. That argument is RK333's, from
+    #: when the choice was *between two prefixes*; RK447 ended it. A project that
+    #: pip-installed roadkeep and never ran `install` has neither scope and no tools at all,
+    #: and naming a route it cannot call spends a turn being told the tool does not exist
+    #: before it reaches the command that works — worse than naming none. Unreachable through
+    #: the hook, where both doors pass `served_by` and `tests/carrying.py` holds them to it;
+    #: what the default reaches is every caller building one without the field, and each of
+    #: those was getting the answer RK447 argued against. The four carriers now say one thing.
+    served: str = ""
 
     @property
     def decision(self) -> str:

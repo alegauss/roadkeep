@@ -82,6 +82,26 @@ def test_a_site_setting_it_from_a_literal_is_not_a_site():
 
 
 @pytest.mark.parametrize("carrier", CARRIERS, ids=lambda one: one.where)
+def test_every_carrier_defaults_to_having_no_route(carrier):
+    """RK1247. `Refusal` defaulted to the bare prefix and the other three to `""`, which is
+    RK333's argument — from when the choice was *between two prefixes* — outliving RK447,
+    which ended it: a project with neither scope has no tools at all, and naming a route it
+    cannot call is worse than naming none.
+
+    Held here rather than in one module, because what makes it a rule is that the four agree:
+    a fifth carrier defaulting the other way is this defect arriving again, and the row that
+    declares it is already in this table.
+    """
+    from dataclasses import fields
+    from importlib import import_module
+
+    module, record = carrier.where.split(":")
+    built = getattr(import_module(f"roadkeep.{module[:-3]}"), record)
+    (field,) = [one for one in fields(built) if one.name == FIELD]
+    assert field.default == "", carrier.where
+
+
+@pytest.mark.parametrize("carrier", CARRIERS, ids=lambda one: one.where)
 def test_every_row_names_a_module_and_a_class_that_exist(carrier):
     """A table addressing something that has moved is a table that stops being read. The
     population test above catches a *renamed field*; this catches a row whose address the

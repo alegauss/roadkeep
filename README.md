@@ -121,14 +121,14 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 112 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 91 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 117 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 118 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 1 | 14 | 0 |
-| **Total** | 2 | 735 | 9 |
+| **Total** | 1 | 736 | 9 |
 
 **Next ready:**
 
-- 📋 **RK1247** (deps: —) **The one message that stops an Edit defaults its prefix to a route the session may not have** — RK447 ended the guess between two prefixes, and this default is that guess still standing on the message that blocks a turn. → §RK1247
+- 📋 **RK1248** (deps: —) **The one row whose ceiling this package hardcodes states its room and the rows the project declared do not** — RK345 wrote --file to state exactly that room, and the session read prints the same files without it. → §RK1248
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

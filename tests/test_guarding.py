@@ -310,18 +310,27 @@ def test_the_plugin_name_is_read_from_the_manifest_and_not_from_the_directory(tm
 
 
 def test_every_named_tool_is_one_the_server_serves():
-    """The same argument the CLI commands get: a name nothing answers is worse than none."""
+    """The same argument the CLI commands get: a name nothing answers is worse than none.
+
+    `served=WIRED` explicitly since RK1247, where it used to be the field's default: `tools`
+    is empty on a refusal with no prefix, so this loop would run zero times and pass by
+    measuring nothing — which is what a test leaning on a default to reach a branch does.
+    """
     served = {tool.name for tool in TOOLS}
     for role in ("roadmap", "changelog", "improvements", "strategy"):
-        for door in Refusal(tool="Edit", path="x", role=role).tools:
-            named = door.named("mcp__roadkeep__")
-            assert named.removeprefix("mcp__roadkeep__") in served, named
+        doors = Refusal(tool="Edit", path="x", role=role, served=WIRED).tools
+        assert doors, role
+        for door in doors:
+            named = door.named(WIRED)
+            assert named.removeprefix(WIRED) in served, named
 
 
 def test_a_nested_command_is_promoted_under_the_name_that_answers():
     # `section add` is a tool (RK59) and `section` is not, so matching the first word alone
     # would name `mcp__roadkeep__section` — a route nothing answers.
-    reason = str(Refusal(tool="Edit", path="docs/IMPROVEMENTS.md", role="improvements"))
+    reason = str(
+        Refusal(tool="Edit", path="docs/IMPROVEMENTS.md", role="improvements", served=WIRED)
+    )
     assert "mcp__roadkeep__section_add" in reason
     assert "mcp__roadkeep__section " not in reason
 

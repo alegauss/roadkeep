@@ -513,9 +513,17 @@ def test_the_read_is_served_over_stdio_and_named_by_the_guard():
     # teaches half of what the roadmap asks for.
     assert "non_goal_list" in {tool.name for tool in TOOLS}
     assert not next(t for t in TOOLS if t.name == "non_goal_list").writes
-    reason = str(Refusal(tool="Edit", path="docs/ROADMAP.md", role="roadmap"))
-    assert f"{invocation()} non-goal list" in reason
-    assert "mcp__roadkeep__non_goal_list" in reason
+    # Both spellings, so both are named: the shell form on a session with no server, and the
+    # served one where there is a prefix. `served=` is passed rather than defaulted (RK1247),
+    # the default having been the guess RK447 removed.
+    assert f"{invocation()} non-goal list" in str(
+        Refusal(tool="Edit", path="docs/ROADMAP.md", role="roadmap")
+    )
+    assert "mcp__roadkeep__non_goal_list" in str(
+        Refusal(
+            tool="Edit", path="docs/ROADMAP.md", role="roadmap", served="mcp__roadkeep__"
+        )
+    )
 
 
 # -- the bound a client validates against ------------------------------------
