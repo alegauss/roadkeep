@@ -38,8 +38,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1248** (deps: —) **The one row whose ceiling this package hardcodes states its room and the rows the project declared do not** — RK345 wrote --file to state exactly that room, and the session read prints the same files without it. → §RK1248
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

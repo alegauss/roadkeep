@@ -776,3 +776,4 @@
 - ✅ **RK1241** **The description split does not name its own unaccounted bytes where the tool total does** — The description split names its own unaccounted bytes, so both levels of the breakdown balance exactly.
 - ✅ **RK1243** **The line every session is handed has a budget nothing reads and a constant somebody edits** — budget --session prices the SessionStart notice beside the schema, in the unit its ceiling is now held in.
 - ✅ **RK1245** **The read that exists to compare two costs prints them in two different units** — Both cadences are reported in code units, with the bytes the gate refuses on named rather than converted away.
+- ✅ **RK1248** **The one row whose ceiling this package hardcodes states its room and the rows the project declared do not** — Every resident row states what its own declared limit has left, in the unit that limit is written in.

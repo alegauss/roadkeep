@@ -123,12 +123,8 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 91 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 118 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 1 | 14 | 0 |
-| **Total** | 1 | 736 | 9 |
-
-**Next ready:**
-
-- 📋 **RK1248** (deps: —) **The one row whose ceiling this package hardcodes states its room and the rows the project declared do not** — RK345 wrote --file to state exactly that room, and the session read prints the same files without it. → §RK1248
+| H — The tool's own shape (what one verb costs to change) | 0 | 15 | 0 |
+| **Total** | 0 | 737 | 9 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

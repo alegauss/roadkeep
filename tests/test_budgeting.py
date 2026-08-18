@@ -2130,3 +2130,95 @@ def test_the_reading_is_of_the_same_normalised_bytes_the_total_is(tmp_path):
     (load,) = [one for one in file_budget(config) if one.path == "agents.md"]
     assert load.characters == len("# Guide\n\nTwo lines.\n")
     assert load.translated == 3
+
+
+# -- and the room the project's own line declares (RK1248) --------------------
+
+
+def test_a_resident_file_states_what_its_own_budget_has_left(tmp_path, capsys):
+    """RK1243 gave the notice row a room clause because it had one number to compare against,
+    and nobody looked up: the rows above it are the ones whose ceiling the *project* wrote and
+    `lint` refuses on, and they printed a bare figure.
+
+    RK345's argument runs the other way — a limit that reaches an author only as a refusal is
+    the verdict-after-the-prose this project exists to replace."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "agents.md" in printed
+    assert "left of" in printed
+
+
+def test_the_unit_of_the_room_is_named_because_the_figure_is_not_in_it(tmp_path, capsys):
+    """RK1245's lesson kept: the row's number is code units and the limit is the project's own
+    unit, so the clause says which — mixing them silently is what that task removed."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    (row,) = [
+        one for one in capsys.readouterr().out.splitlines() if "agents.md" in one
+    ]
+    assert "lines left of" in row or "bytes left of" in row
+
+
+def test_the_tightest_limit_is_the_one_named(tmp_path, capsys):
+    """Tightest measured as the share taken, not the count left: a file 21 lines and 1494
+    bytes from its ceilings is nearer the first, and the one that refuses is the one to name.
+    """
+    from roadkeep.budgeting import file_budget
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n'
+        '[budgets]\n"agents.md" = { lines = 10, bytes = 100000 }\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
+    (tmp_path / "agents.md").write_text("x\n" * 9, encoding="utf-8")
+    config = Config.discover(tmp_path)
+    (load,) = file_budget(config)
+    # 9 of 10 lines against 18 of 100000 bytes: lines is what refuses, and it is what is said.
+    assert load.tightest.unit == "lines"
+    assert load.room == "1 lines left of 10"
+
+
+def test_a_file_over_its_budget_says_so_rather_than_reporting_no_room(tmp_path):
+    """`left` clamps at zero, so an overrun and a file exactly at its ceiling would read the
+    same — which is the one state a reader has to act on."""
+    from roadkeep.budgeting import file_budget
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n'
+        '[budgets]\n"agents.md" = { lines = 2 }\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
+    (tmp_path / "agents.md").write_text("x\n" * 5, encoding="utf-8")
+    (load,) = file_budget(Config.discover(tmp_path))
+    assert load.room == "over by 3 lines of 2"
+
+
+def test_the_payload_names_the_limit_a_caller_would_act_on(tmp_path, capsys):
+    """A consumer gating on this reads the payload, and the field it needs is which limit is
+    about to refuse — not the first one the config happened to declare."""
+    budgeted(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    (found,) = [
+        one
+        for one in json.loads(capsys.readouterr().out)["each_turn"]["files"]
+        if one["path"] == "agents.md"
+    ]
+    assert found["limit"]["unit"] in ("lines", "bytes")
+    assert found["limit"]["declared"] > 0
+    assert found["limit"]["left"] >= 0 and found["limit"]["over"] == 0
+
+
+def test_the_room_is_this_records_arithmetic_and_not_a_readers(tmp_path):
+    """RK1096's rule, which is why `Session` now carries the records rather than a widening
+    tuple of their fields: this read wanted a third and then a fourth, and a projection is
+    what RK1244 had just finished removing one surface over."""
+    from dataclasses import fields
+
+    from roadkeep.budgeting import Load, Session
+
+    (one,) = [field for field in fields(Session) if field.name == "resident"]
+    assert "Load" in str(one.type)
+    assert {"room", "tightest"} <= {name for name in dir(Load)}

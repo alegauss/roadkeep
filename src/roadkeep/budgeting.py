@@ -1027,6 +1027,41 @@ class Load:
         """
         return next((cost.taken for cost in self.costs if cost.unit == "bytes"), 0)
 
+    @property
+    def tightest(self) -> Cost | None:
+        """The declared unit that will refuse first, or `None` where none is declared.
+
+        The room in one clause (RK1248). `--file` prints a row per unit because it is *about*
+        this file; `--session` prints a row per file because it is about the session, and a
+        line carrying every unit's room would spend the comparison it exists for on a
+        breakdown the other read already gives.
+
+        **Tightest and not first**, measured as the share taken rather than the count left: a
+        file 21 lines and 1494 bytes from its ceilings is nearer the first of them, and the
+        one that refuses is the one to name. Ties go to the earlier unit, which is `lines`,
+        because a tie is two right answers and picking is not this property's decision.
+        """
+        return min(
+            (cost for cost in self.costs if cost.limit),
+            key=lambda cost: (-(cost.taken / cost.limit), self.costs.index(cost)),
+            default=None,
+        )
+
+    @property
+    def room(self) -> str:
+        """What the tightest declared limit has left, as the clause `--session` prints.
+
+        Here and not at the reader for :attr:`bytes`' reason (RK1096): the subtraction is
+        :class:`Cost`'s and the choice of which cost is this record's, so a caller composing
+        either would be performing this record's arithmetic.
+        """
+        cost = self.tightest
+        if cost is None:
+            return ""
+        if cost.over:
+            return f"over by {cost.over} {cost.unit} of {cost.limit}"
+        return f"{cost.left} {cost.unit} left of {cost.limit}"
+
 
 @dataclass(frozen=True, slots=True)
 class Session:
@@ -1045,10 +1080,12 @@ class Session:
     once: int
     #: How many tools that schema describes, which is what the figure is *of*.
     tools: int
-    #: `(path, bytes, characters)` per resident file, in the order `file_budget` answers —
-    #: the second being what `[budgets]` declares and `lint` refuses on, the third what a
-    #: reader pays, or `None` where the file does not decode (RK1245).
-    resident: tuple[tuple[str, int, int | None], ...] = ()
+    #: Every resident file, in the order `file_budget` answers. The records themselves since
+    #: RK1248 and no longer a widening tuple of their fields: this read wanted a third of them
+    #: and then a fourth, and a projection is what RK1244 had just finished removing one
+    #: surface over — :class:`Load` already *is* what one every-turn file costs against what
+    #: it declared, which is exactly what a row here is about.
+    resident: tuple[Load, ...] = ()
     #: The `SessionStart` notice, in the same unit as :attr:`once` (RK1243). The third thing
     #: a session pays for, and the one nothing counted: it is resident for the whole session
     #: in every governed project, it has a ceiling, and until now the ceiling was a constant
@@ -1075,8 +1112,8 @@ class Session:
         available and is named as such in the row beneath.
         """
         return sum(
-            taken if characters is None else characters
-            for _path, taken, characters in self.resident
+            load.bytes if load.characters is None else load.characters
+            for load in self.resident
         )
 
     @property
@@ -1088,7 +1125,7 @@ class Session:
         instruction file is not a format this tool decodes (L4). Two honest readings of one
         set of files, so the report can be compared without the gate being moved.
         """
-        return sum(taken for _path, taken, _characters in self.resident)
+        return sum(load.bytes for load in self.resident)
 
     @property
     def at_connect(self) -> int:
@@ -1115,9 +1152,13 @@ class Session:
             )
             rows.append(f"  once     {self.notice:>6}  the session-start notice{room}")
         rows += [
-            f"  turn     {taken if characters is None else characters:>6}  {path}"
-            f"{'' if characters is not None else '  (bytes: this file is not UTF-8)'}"
-            for path, taken, characters in self.resident
+            f"  turn     {load.bytes if load.characters is None else load.characters:>6}  "
+            f"{load.path}"
+            f"{'' if load.characters is not None else '  (bytes: this file is not UTF-8)'}"
+            # The room the project's own `[budgets]` line declares (RK1248), in the unit it
+            # declared it in — which is named, because the figure to its left is not in it.
+            f"{f'  {load.room}' if load.room else ''}"
+            for load in self.resident
         ]
         if not self.resident:
             # The state `--file` raises on, said rather than left as an absent row: a project
@@ -1155,8 +1196,22 @@ class Session:
                 "unit": unit,
                 "bytes": self.declared,
                 "files": [
-                    {"path": path, "bytes": taken, "characters": characters}
-                    for path, taken, characters in self.resident
+                    {
+                        "path": load.path,
+                        "bytes": load.bytes,
+                        "characters": load.characters,
+                        # The tightest declared limit and what it has left, so a caller acts
+                        # on the one that refuses rather than on the first declared (RK1248).
+                        "limit": None
+                        if load.tightest is None
+                        else {
+                            "unit": load.tightest.unit,
+                            "declared": load.tightest.limit,
+                            "left": load.tightest.left,
+                            "over": load.tightest.over,
+                        },
+                    }
+                    for load in self.resident
                 ],
             },
         }

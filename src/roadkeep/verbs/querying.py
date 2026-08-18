@@ -559,12 +559,9 @@ def _session_budget(config: Config, args: argparse.Namespace) -> int:
     answer = Session(
         once=sent.characters,
         tools=len(sent.tools),
-        resident=tuple(
-            # Both readings of one file (RK1245): the gate's bytes, and the code units a
-            # reader pays — so the cadences below can be compared without the gate moving.
-            (load.path, load.bytes, load.characters)
-            for load in (file_budget(config) if config.budgets else ())
-        ),
+        # The records themselves (RK1248): both readings of one file (RK1245) plus the room
+        # its own `[budgets]` line declares, all of which `Load` already holds.
+        resident=file_budget(config) if config.budgets else (),
         # The third thing a session pays for (RK1243), and the one that had a ceiling nobody
         # could ask about — measured off `announce`, so it is the line this project's sessions
         # actually get rather than a second estimate of it.

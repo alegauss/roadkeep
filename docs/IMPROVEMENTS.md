@@ -88,34 +88,3 @@ already written, not authorship.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1248 The row with a ceiling and no room
-
-`budget --session` now prints one row per thing a session pays for, and one of them
-states its room:
-
-    once        286  the session-start notice, +34 of 320
-    turn       6856  agents.md
-    turn        458  .claude/CLAUDE.md
-
-The notice says what it has left. The files do not, and they are the ones with a limit
-declared in `roadkeep.toml` that `lint` actually refuses on. So the row whose ceiling is
-a constant in this package's source reports its room, and the rows whose ceiling the
-project itself wrote report a bare number.
-
-RK345's whole argument is the other way round: a limit that reaches an author only as a
-refusal is the verdict-after-the-prose this project exists to replace, and `--file` was
-written to state exactly this room. Two reads over the same files, one pairing the
-figure with the limit and one not.
-
-The asymmetry arrived by accident. RK1243 added the notice row and gave it a room clause
-because it had one number to compare against; nobody looked up to see that the rows
-above it had two apiece.
-
-Cheap: `Load.costs` already carries `limit`, `left` and `over` per unit, so the room is
-a field and not an arithmetic.
-
-To settle: which unit's room to print, now that RK1245 reports these rows in code units
-while `[budgets]` declares bytes. The limit is the byte one, so the room is a byte
-figure beside a code-unit total — which is either honest or the same confusion RK1245
-removed, and deciding that is most of the task.
