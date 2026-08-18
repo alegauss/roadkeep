@@ -123,8 +123,12 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 91 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 118 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 0 | 22 | 0 |
-| **Total** | 0 | 744 | 9 |
+| H — The tool's own shape (what one verb costs to change) | 1 | 22 | 0 |
+| **Total** | 1 | 744 | 9 |
+
+**Next ready:**
+
+- 📋 **RK1256** (deps: —) **A structural refusal and a schema refusal never appear together, so a call wrong twice is refused twice** — RK1255 made the schema half whole, and the seam between the two classes of check is where a round trip is still spent. → §RK1256
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

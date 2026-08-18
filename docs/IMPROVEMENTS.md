@@ -88,3 +88,36 @@ already written, not authorship.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+### §RK1256 The seam between two whole halves
+
+Measured while shipping RK1255, and a different mechanism from the one that line named.
+Two classes of check refuse a write, each complete on its own and neither aware of the
+other:
+
+    add --block ZZ --why <400 chars>
+      why: 400 characters, limit is 200 …
+      why: why is a sentence: end it
+
+`ZZ` is not a block this project declares. The caller shortens the sentence, re-sends,
+and only then learns the block does not exist — which is the one problem editing prose
+cannot fix. The other direction is the same:
+
+    ship PX999 --why <400 chars>
+      roadkeep: no open task PX999 …
+
+The `why` is unreported, so the next call is refused for it.
+
+The schema half is already whole and RK1255 confirmed it: symptom, why, part and body
+are reported together, and several rules on one field are too. What stops at one is the
+seam — a structural refusal raises and returns, and `Schema.validate` never runs; or
+validation refuses first and the structural check is never reached.
+
+The fix is not obviously "report both". A `ship` on an id nothing carries has no task to
+validate a `why` against, so the second answer would be about a line that does not exist
+— which is worse than silence. The `add` direction is the tractable one: the block is
+checked against a document already read, and nothing about it depends on the prose.
+
+To settle: whether this is one rule or two, since the two directions differ in whether
+the second check is even answerable. And whether a structural failure should suppress
+the schema's report or follow it.
