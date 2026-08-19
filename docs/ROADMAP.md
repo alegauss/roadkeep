@@ -47,8 +47,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1257** (deps: —) **no verb renames a block, so a title that reads wrong costs an id, a false departure and a good section** — block retitle, writing every declared file or none: the title is metadata, not the claim the line makes, and restate's argument applies to it unchanged. → §RK1257
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
