@@ -447,9 +447,9 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
         "add",
         help="write a new section under its block, reflowed to the prose width",
         description=(
-            "Write one rationale section: the prose on stdin or `--body`, within the word "
-            "budget, filled to the configured width, and placed under the task's own block "
-            "or beneath the section it extends. A table or a list is inserted as written."
+            "Write one rationale section: the prose in `--body`, within the word budget, "
+            "filled to the configured width, and placed under the task's own block or "
+            "beneath the section it extends. A table or a list is inserted as written."
         ),
     )
     section_add.add_argument(

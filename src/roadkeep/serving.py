@@ -1409,20 +1409,55 @@ def _subparser(
 
 
 def _property(
-    action: argparse.Action, config: Config, bounds_for: Mapping[str, Any] = _BOUNDS
+    action: argparse.Action,
+    config: Config,
+    bounds_for: Mapping[str, Any] = _BOUNDS,
+    *,
+    piped: bool = False,
 ) -> dict[str, Any]:
-    """One argparse argument, as the JSON Schema a client validates before calling."""
+    """One argparse argument, as the JSON Schema a client validates before calling.
+
+    ``piped`` says this argument is one the CLI documents as reading stdin, which is the one
+    sentence this surface may not repeat (RK1260): there is no stdin here and no shell, so a
+    clause about how a backtick survives one described a channel the agent loading the schema
+    cannot reach — and it did so in every session that connects, per tool. What stands in its
+    place is what the transport actually does, which :func:`_companioned` then refuses by.
+    """
     bounds = dict(bounds_for.get(action.dest, lambda _: {})(config))
     # A bound the schema has no keyword for. `maxLength` says how long the field may be and
     # cannot say what else the length depends on, so the part that is a *joint* rule is
     # appended to the sentence the CLI already prints for the flag rather than dropped.
     note = bounds.pop("note", "")
-    described = {"description": _joined((action.help or "").strip(), note)}
+    help_ = (action.help or "").strip()
+    if piped:
+        help_ = _unpiped(help_)
+    described = {"description": _joined(help_, note)}
     if isinstance(action, argparse._StoreTrueAction):  # noqa: SLF001
         return {"type": "boolean", **described}
     if isinstance(action, argparse._AppendAction):  # noqa: SLF001
         return {"type": "array", "items": {"type": "string", **bounds}, **described}
     return {"type": "string", **bounds, **described}
+
+
+def _unpiped(help_: str) -> str:
+    """The CLI's sentence with its pipe clause replaced by what is true here (RK1260).
+
+    Declared clauses only, and the clause is removed **wherever it sits** rather than assumed
+    to end the sentence: `--section-body` says "; omitted or '-' reads stdin. Read only with
+    --section", and a rewrite that took the tail would have taken the half that still holds.
+    A help string carrying none is left exactly as written — this transport does not edit prose
+    it did not compose (L4), and a `Prose` whose spelling drifted out of the list is a test
+    failure where the list lives rather than a schema quietly still promising a pipe.
+    """
+    from roadkeep.verbs.declaring import (  # noqa: PLC0415 - RK1171
+        PIPE_CLAUSES,
+        SERVED_PIPE,
+    )
+
+    for clause in PIPE_CLAUSES:
+        if clause in help_:
+            return help_.replace(clause, "", 1).rstrip() + SERVED_PIPE
+    return help_
 
 
 def _required(action: argparse.Action) -> bool:
@@ -1515,11 +1550,15 @@ def descriptor(
     # every other command by `[limits]`, and `why` is a field both of them name (RK70) — plus the
     # one command whose `role` means *which governed file* rather than which prose file (RK304).
     bounds_for = _bounds_for(tool)
+    # Which of this command's arguments the CLI documents as reading the pipe (RK1260), off the
+    # declaration `_companioned` already refuses by — so the schema and the refusal cannot come
+    # to say two different things about the same field.
+    piped = {prose.dest for prose in prose_of(tool.command, parsers)}
     properties: dict[str, Any] = {}
     required: list[str] = []
     for dest in tool.exposed(config):
         action = _action(parser, dest)
-        properties[dest] = _property(action, config, bounds_for)
+        properties[dest] = _property(action, config, bounds_for, piped=dest in piped)
         if _required(action):
             required.append(dest)
     payload: dict[str, Any] = {

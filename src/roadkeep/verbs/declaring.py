@@ -23,6 +23,28 @@ from roadkeep.verbs.refusing import EXIT_USAGE
 #: Appended to every prose argument that reads the pipe (RK329), so the convention is one
 #: sentence in nine help strings rather than nine sentences that drift.
 _PIPE = "; '-' reads stdin, which is how an apostrophe or a backtick survives a shell"
+#: Every spelling a prose argument gives that clause, longest first (RK1260). Held here
+#: because the surface that has to **unsay** it is not the one that wrote it: over MCP there
+#: is no stdin and no shell, so this sentence described a channel the caller loading it cannot
+#: use — token per tool per session, spent on advice addressed to somebody else. Matching a
+#: sentence written four ways in three modules is what a list replaces, and
+#: `tests/test_serving.py` holds it against the declarations rather than against these bytes:
+#: a prose argument whose help stops carrying exactly one of these is red here, not silently
+#: unrewritten there.
+PIPE_CLAUSES = (
+    "; '-' reads stdin, and stdin is the default unless --title is the only thing being changed",
+    "; omitted or '-' reads stdin, which is how a paragraph gets in",
+    "; omitted or '-' reads stdin",
+    _PIPE,
+)
+#: And nothing stands in its place, which is the second half of the same argument. A clause
+#: saying *there is no pipe here* describes an absence to a caller who was never going to
+#: reach for one — and it would be paid per tool per session, which is the cost this removes.
+#: What the field is instead, the schema already says: `"type": "string"`. A caller that sends
+#: `-` anyway, copying a CLI example, is answered by `serving._companioned`, which names the
+#: argument — a refusal at the one moment it is about something, rather than a sentence in
+#: every session that connects.
+SERVED_PIPE = ""
 #: Appended to every prose argument that also answers to a path (RK381), so the convention is
 #: one sentence in three help strings rather than three that drift. What it buys over the pipe
 #: is the **retry**: a refusal on a short field re-reads the file and costs that field alone.

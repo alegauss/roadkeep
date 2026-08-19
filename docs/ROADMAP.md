@@ -40,7 +40,7 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1260** (deps: —) **the MCP schemas offer '-' and stdin, an input channel no MCP client can provide** — Four fields explain how a quote survives a shell there is none of, and the surface where prose is composed has no file argument to make a refused body cheap to resend. → §RK1260
+- ⏳ **RK1260** (deps: —) **the MCP schemas offer '-' and stdin, an input channel no MCP client can provide** — The MCP verbs still expose no --section-body-file or --body-file, withheld as a path this transport does not share — which a stdio server always does. → §RK1260
 
 ## Block G — The editor surface (the backlog where the file is open)
 

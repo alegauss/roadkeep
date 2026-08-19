@@ -58,11 +58,12 @@ from roadkeep.rendering import (
     _load_json,
     _nothing_json,
 )
-from roadkeep.serving import detail, surface
+from roadkeep.serving import Prose, detail, surface
 from roadkeep.showing import show
 from roadkeep.verbs.declaring import (
     _DESIGNED_HELP,
     _JSON_HELP,
+    _PIPE,
     _counting_flags,
     _marker_flag,
     answers,
@@ -1267,8 +1268,8 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
             "Report what a line leaves its prose fields. Every number is derived from the "
             "id, the marker, the deps and the pointer — all known before the first word — "
             "so it is a fact about the line you are about to write. The draft arguments "
-            "(--symptom, --why, --body) are measured, never composed, take '-' "
-            "for stdin and exit 1 when over: the refusal, without the write."
+            "(--symptom, --why, --body) are measured, never composed, and exit 1 when "
+            "over: the refusal, without the write."
         ),
     )
     budget_parser.add_argument(
@@ -1300,7 +1301,10 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     # difference is the whole reason this argument exists rather than a `--dry-run`.
     budget_parser.add_argument(
         "--why",
-        help="a draft of the why, measured against its allowance instead of refused by it",
+        help=(
+            "a draft of the why, measured against its allowance instead of refused by it"
+            + _PIPE
+        ),
     )
     budget_parser.add_argument(
         "--prefix",
@@ -1330,7 +1334,8 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     # `section add`'s reason (RK381): a body is the longest thing an author composes, and a
     # path is what a caller reaches for when the prose will not fit in a shell argument.
     budget_parser.add_argument(
-        "--body", help="a draft body: what it costs the section this call is about"
+        "--body",
+        help="a draft body: what it costs the section this call is about" + _PIPE,
     )
     budget_parser.add_argument(
         "--body-file",
@@ -1395,7 +1400,19 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         family="`add`'s reason read back: the answer is about the id this project would issue next, and a prefix typed here asks about one it would not",
         body_file="`section add`'s reason read back (RK1190): a path is the affordance of a shell with a paragraph too long for an argument, and over a transport with no such limit it is a second way to spell `body`",
     )
-    budget_parser.set_defaults(handler=_budget, reads_only=True)
+    # Declared although this verb writes nothing (RK1260). `reads_stdin` is not about the
+    # write lock: it is what a surface with no pipe reads to refuse `-` by name instead of
+    # measuring a one-character draft and answering about it. Two of the three drafts reach the
+    # pipe — `--symptom` never did, though the description above claimed all three, which is
+    # what the declaration makes checkable.
+    budget_parser.set_defaults(
+        handler=_budget,
+        reads_only=True,
+        reads_stdin=(
+            Prose(dest="why", omitted=False),
+            Prose(dest="body", omitted=False, unless="body_file"),
+        ),
+    )
     # Four subjects and one verb (RK283/RK345), declared rather than checked by hand (RK489).
     # Named rather than inferred from the positional: under the id scheme `RK12` is both a
     # line and an anchor, and a command that guessed which one was meant would be a budget

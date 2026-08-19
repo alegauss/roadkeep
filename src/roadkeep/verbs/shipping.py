@@ -454,7 +454,7 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
             "what the design this deletes turned out to be wrong about, e.g. 'the resize "
             "endpoint it called a new subsystem had shipped two blocks earlier'; appended "
             "to the ledger's sentence with the section's address, since the entry is the "
-            "one place both survive the deletion"
+            "one place both survive the deletion" + _PIPE
         ),
     )
     ship_parser.add_argument("--json", action="store_true", help="every edit, as data")

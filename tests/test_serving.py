@@ -413,6 +413,84 @@ def test_the_cli_still_declares_it_so_the_refusal_is_the_one_that_explains():
     assert "refused" in (action.help or "")
 
 
+# -- advice for a shell that is not there (RK1260) ----------------------------
+
+#: The one served string that may still name a shell: the flag whose whole answer is a shell
+#: invocation, which is a fact about what it prints and not an input channel it offers.
+_A_SHELL_IS_THE_SUBJECT = ("engines", "invoke")
+
+
+def test_no_served_schema_offers_a_channel_this_transport_has_not():
+    """The symptom, over every tool at once: `'-' reads stdin, which is how an apostrophe or a
+    backtick survives a shell` was published in thirteen field descriptions and two tool ones,
+    to a caller that sends JSON and has neither."""
+    config = Config.default()
+    parsers = serving._parsers()
+    for tool in TOOLS:
+        described = descriptor(tool, config, parsers)
+        assert "stdin" not in described["description"], tool.name
+        for name, prop in described["inputSchema"]["properties"].items():
+            if (tool.name, name) == _A_SHELL_IS_THE_SUBJECT:
+                continue
+            text = prop["description"]
+            assert "stdin" not in text and "shell" not in text, f"{tool.name}.{name}"
+
+
+def test_the_clause_is_taken_out_and_nothing_is_put_in_its_place():
+    """Saying *there is no pipe here* is describing an absence, paid per tool per session, to a
+    caller that was never going to reach for one. What the field is, the schema already says in
+    `type`; a `-` sent anyway is `_companioned`'s to refuse, which is one moment and not every
+    session."""
+    served = _served("ship", Config.default())["why"]
+    assert served["type"] == "string"
+    assert "pipe" not in served["description"]
+    # And the CLI keeps its own sentence, which is true where there *is* a shell.
+    assert "stdin" in (serving._action(serving._subparser("ship"), "why").help or "")
+
+
+def test_the_removal_is_what_pays_for_the_verbs_that_gained_a_clause():
+    """`budget` reads the pipe on two drafts and said so nowhere, so the CLI gained two clauses
+    — and this surface, which is the one holding a budget, gained none of them."""
+    schemas = descriptor(next(one for one in TOOLS if one.name == "budget"), Config.default())
+    for field in ("why", "body"):
+        assert "stdin" not in schemas["inputSchema"]["properties"][field]["description"]
+
+
+def test_the_clause_removed_is_the_one_declared_and_never_a_guessed_tail():
+    """`--section-body` writes the pipe clause mid-sentence, and the half after it still holds:
+    a rewrite that took everything from the semicolon would have dropped `Read only with
+    --section`, which is the rule that makes the argument make sense."""
+    served = _served("add", Config.default())["section_body"]["description"]
+    assert "Read only with --section" in served and "reads stdin" not in served
+
+
+def test_every_prose_argument_declares_a_clause_this_surface_can_unsay():
+    """The half that fails on the *next* one. `_unpiped` matches declared spellings only, so a
+    help string reworded out of the list would go on promising a pipe over MCP and nothing
+    would say so — which is how `--superseded-design` came to read the pipe for five hundred
+    tasks while its own help never mentioned one."""
+    config, parsers = Config.default(), serving._parsers()
+    for tool in TOOLS:
+        for prose in prose_of(tool.command, parsers):
+            if prose.dest not in tool.exposed(config):
+                continue
+            where = f"{tool.name}.{prose.dest}"
+            help_ = serving._action(parsers[tool.command], prose.dest).help or ""
+            # Both halves: the CLI says it, and this surface can take it back out. Asserted
+            # over the rewrite rather than over the list, so a fifth spelling added to
+            # `PIPE_CLAUSES` and a help string reworded to match are one change and not two.
+            assert "stdin" in help_, where
+            assert "stdin" not in serving._unpiped(help_), where
+
+
+def test_the_verb_that_measures_a_draft_declares_the_pipe_it_reads():
+    """`budget` reaches `sys.stdin` on two of its three drafts and declared none, so `-` over
+    MCP was measured as a one-character draft and answered about. Read-only is not the
+    question: this declaration is what a surface with no pipe refuses by."""
+    dests = {prose.dest for prose in prose_of("budget")}
+    assert dests == {"why", "body"}
+
+
 def _served(name: str, config: Config) -> dict:
     tool = next(one for one in TOOLS if one.name == name)
     return descriptor(tool, config)["inputSchema"]["properties"]
@@ -483,7 +561,9 @@ def test_the_why_says_which_limit_actually_binds(tmp_path):
     assert "240" in why["description"]
     # The flag's own sentence survives it: the note is appended, never a replacement.
     flag = serving._action(serving._subparser("add"), "why")
-    assert why["description"].startswith(flag.help.strip())
+    # Its pipe clause respelled for this surface and nothing else (RK1260): what the note is
+    # appended to is the CLI's sentence as this transport may truthfully publish it.
+    assert why["description"].startswith(serving._unpiped(flag.help.strip()))
 
 
 def test_the_marker_enum_is_the_projects_declared_open_set(tmp_path):
@@ -1248,9 +1328,12 @@ def test_the_paths_that_could_reach_it_are_the_ones_declared():
     # `--why` per prose-writing verb since RK329, because the field a shell most reliably
     # eats is the sentence and not the paragraph. `restate` since RK1187: its `--symptom` is
     # the same sentence under a different name, and was the one prose argument the convention
-    # had skipped — so this set is now every verb here that takes prose at all.
+    # had skipped — so this set is now every verb here that takes prose at all. And `budget`
+    # since RK1260, which is the one that writes nothing: it reads the pipe on two of its three
+    # drafts, so a surface without one has to refuse `-` there rather than measure it.
     reaching = {tool.name for tool in TOOLS if prose_of(tool.command)}
     assert reaching == {
+        "budget",
         "add",
         "amend",
         "restate",
