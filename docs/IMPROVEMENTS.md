@@ -101,13 +101,124 @@ What is missing is one call that says *open the family, and file this task under
 `.1`* — `add --ref XXXI.1 --section`, creating both. Then a block's first task and its
 fifth look the same, which is what a reader assumes.
 
+### §RK1261 The number that names the wrong field
+
+Shipping a task whose design turned out wrong takes two arguments, and the refusal that
+comes back describes one. Observed today: `--why` held 183 characters and
+`--superseded-design` held 166, and the answer was `why: 385 characters, limit is 200
+... delete 185 characters — about 29 words`. Read literally it asks for a `--why` of 15
+characters, which is not what any of it means. The 385 is the rendered sentence — both
+fields plus the parenthetical and the section address the ledger adds — attributed to
+the field whose name is on the front.
+
+The cost is a wrong edit. The obvious response is to cut the outcome sentence, which is
+the half that has to survive: the ledger's entry is what remains after the design is
+deleted. The half that can go is the supersession note, and nothing in the message
+points there.
+
+Two fixes, and the first is most of it. Name the parts in the number: what `--why` took,
+what `--superseded-design` took, what the render added, and which one has room. `add`
+already does this shape for symptom and why sharing a line, so the vocabulary exists.
+
+The second is `budget`, which reports a shipping budget today without knowing that a
+supersession will be appended to it. A task about to lose its design is exactly when
+that budget is consulted, so the number it gives is wrong precisely when it is asked.
+
+### §RK1262 The flag the message did not name
+
+`ship <id> --part "..." --why "..." --remainder "..."` refuses a remainder with no
+terminator, and it should: the remainder becomes the open line's why, and a why is a
+sentence. What it says while refusing is `why: why is a sentence: end it`.
+
+Both arguments on that command line are whys by the time the check runs - the one the
+ledger entry takes and the one the reopened line takes - so the message is true and
+still does not identify which string to fix. Measured from a session that had just
+terminated its --why correctly, read the error as being about that argument, and had to
+reason from the fact that nothing else could be wrong.
+
+The field name the check reports should be the flag the caller typed, not the role the
+value plays inside the transaction. Everywhere else a refusal names the thing on the
+command line, which is why this one reads as a contradiction rather than as a hint.
+
+Small, and the sort of thing that only shows up under a caller who is not looking at the
+source - which is the caller this tool has.
+
+### §RK1263 amend rewrites a section to change a word
+
+Clearing a corpus of dangling section pointers is eight sections whose prose is right
+except for one reference each. `section amend` is the only door — the hook denies the
+hand edit, and rightly — and it takes the whole body.
+
+So the fix for one stale pointer is: copy the section's table, json5 fence and block
+quote out of the file, retype the one clause, pass all of it back. Eight times. Each
+round-trip can drop a pipe from a row or a backtick from a fence, and nothing checks —
+the body is prose to the tool, so a mangled fence validates exactly like a clean one.
+
+It fights the word limit from the wrong side too. A legacy section already sits near the
+limit for reasons the pointer has nothing to do with, so a four-character edit is
+refused for length, and the way out is shortening prose the caller never came to touch.
+
+What is missing is a way to say which bytes change. A `--replace old --with new` form,
+refusing unless the old string occurs exactly once, makes the common case a one-line
+call whose blast radius is visible in the call itself. The whole-body form stays for a
+real rewrite, and the same shape serves `amend --why`, where correcting one clause of a
+long ledger sentence means retyping it.
+
+Filing this hit it once more: quoting a stale pointer as the example was refused as a
+dangling citation.
+
 ## Block C — Query
 
 ## Block D — The gate
 
 ## Block E — Adoption
 
+### §RK1259 The pause a project cannot take yet
+
+`defer` exists because a pause spelled as a retirement is terminal, and it refuses when
+`[files]` declares no `deferred` path. The refusal is exact — add the key, create the
+file with its block headings — and it arrives at the worst possible moment.
+
+Observed on an adopting project: its one open line was an idea waiting on a number no
+task can produce — real traffic against a site not yet deployed. `pick` offered it and
+would go on offering it, `brief` explained it, and neither said the only verb able to
+set it aside was unconfigured here. The reason sentence was composed first and refused
+second, which is the failure this tool names everywhere else: a limit reported after the
+prose exists is a limit discovered too late.
+
+Two doors, and they are not equivalent. `adopt` and `init` could write the store with
+everything else, at the cost of a fourth governed file most projects never open. Or the
+refusal becomes its own remedy: `repair` already applies findings whose fix is one
+command, and this fix is one command — write the key, create the file, mirror the block
+headings that already exist. Then the cost is a confirmation instead of a detour into
+toml with a half-written sentence in hand.
+
+Either way the cheap half is the earlier surface. `brief` and `pick` read the config
+already, so they can say a line cannot be paused before anyone tries.
+
 ## Block F — The plugin
+
+### §RK1260 Advice for a shell that is not there
+
+Four field descriptions carry the same clause: `'-' reads stdin, which is how an
+apostrophe or a backtick survives a shell`. It is good advice and it is addressed to
+someone who is not there. Over MCP there is no stdin and no shell — the caller sends
+JSON, where an apostrophe survives on its own — so the sentence spends tokens in every
+schema an agent loads to describe a channel that agent cannot use.
+
+The half that costs more is what stands in its place. The CLI answers a refusal cheaply:
+`--section-body-file` means a body rejected at 257 words is edited in the file and
+resent as a path. The MCP `add` has no such argument, so the same refusal costs the
+whole 250-word body again — and length refusals are the common case, by design, because
+this tool refuses before it writes. The surface where prose is most often composed is
+the one where a rejected draft is most expensive to resend, which inverts the CLI's own
+reasoning that a limit discovered late is a limit that failed to save anything.
+
+Two candidate shapes, and they compose. Say the true thing per surface, so the MCP
+schema describes JSON rather than shell quoting. And give the MCP verbs the file
+argument the CLI already has, at which point a refusal costs an edit and a path in both
+places. Neither needs a new concept — only the file path already implemented, exposed
+where the agents are.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

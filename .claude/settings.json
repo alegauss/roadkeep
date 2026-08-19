@@ -1,3 +1,10 @@
 {
-  "enabledMcpjsonServers": ["roadkeep"]
+  "enabledMcpjsonServers": [
+    "roadkeep"
+  ],
+  "permissions": {
+    "additionalDirectories": [
+      "d:\\Git\\viglet\\cloud\\.claude\\skills\\cloud-roadmap-docs"
+    ]
+  }
 }
