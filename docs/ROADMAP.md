@@ -36,8 +36,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1259** (deps: —) **adoption writes no deferred store, so the first defer refuses at the moment its reason is already written** — init and adopt configure every file a project can use except this one, and the refusal names a toml key and a skeleton no verb offers to write. → §RK1259
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK1260** (deps: —) **the MCP schemas offer '-' and stdin, an input channel no MCP client can provide** — Four fields explain how a quote survives a shell there is none of, and the surface where prose is composed has no file argument to make a refused body cheap to resend. → §RK1260

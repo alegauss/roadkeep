@@ -18,7 +18,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from roadkeep.adopting import SCAFFOLD_ROLES, STRATEGY_ROLE, adopt, init
+from roadkeep.adopting import DEFERRED_ROLE, SCAFFOLD_ROLES, STRATEGY_ROLE, adopt, init
 from roadkeep.capturing import (
     Filed,
     REPORTS,
@@ -65,7 +65,11 @@ def _init(config: Config, args: argparse.Namespace) -> int:
             # Named at the door and never derived (RK1186): which prose files a project wants
             # is the author's decision, and a scaffold that guessed would create a file
             # somebody has to notice is empty before they can delete it.
-            roles=(*SCAFFOLD_ROLES, STRATEGY_ROLE) if args.strategy else SCAFFOLD_ROLES,
+            roles=(
+                *SCAFFOLD_ROLES,
+                *((STRATEGY_ROLE,) if args.strategy else ()),
+                *((DEFERRED_ROLE,) if args.deferred else ()),
+            ),
         )
     except (ValueError, OSError) as error:
         return _refused(error)
@@ -553,6 +557,15 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
             "scaffold the strategy file too: a prose role for a document that outlives "
             "every task filed under it, where an improvements section is one task's "
             "rationale and goes when the line ships"
+        ),
+    )
+    init_parser.add_argument(
+        "--deferred",
+        action="store_true",
+        help=(
+            "scaffold the deferred store too: the file `defer` moves a line to, which "
+            "keeps the id, the deps and the section a retirement deletes. Without it that "
+            "verb refuses, and the remedy is a toml key and a skeleton written by hand"
         ),
     )
     init_parser.add_argument("--json", action="store_true", help=_JSON_HELP)

@@ -80,6 +80,17 @@ DEFAULT_PATHS: Mapping[str, str] = {
 #: governed file's default name, and the one that scaffolds is not one of them.
 STRATEGY_PATH = "docs/STRATEGY.md"
 
+#: Where the deferred store goes when a scaffold is asked for one (RK1259). Beside the table
+#: for :data:`STRATEGY_PATH`'s reason and for the one this file already gives above it: a
+#: project that never pauses anything has no store rather than an empty one, so the layout it
+#: *has* does not include this and the layout `init --deferred` writes does.
+#:
+#: The verb exists because the alternative is where the refusal lands. `defer` will not
+#: scaffold on the way past — a store invented at the moment one is needed is a format decided
+#: by a verb — so until this the remedy was a toml key and a skeleton no command offered to
+#: write, read out at the moment a pause reason had just been composed.
+DEFERRED_PATH = "docs/DEFERRED.md"
+
 _TOP_KEYS = frozenset(
     {
         "prefix",

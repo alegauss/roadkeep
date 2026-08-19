@@ -119,6 +119,74 @@ def test_the_strategy_file_is_scaffolded_only_where_it_is_asked_for(tmp_path: Pa
     assert 'strategy = "docs/STRATEGY.md"' in asked.config.read_text(encoding="utf-8")
 
 
+def test_the_deferred_store_is_scaffolded_only_where_it_is_asked_for(tmp_path: Path) -> None:
+    """RK1259, and the same two halves one role over.
+
+    Opt-in for the reason the strategy file is, plus one of its own: a project that never
+    pauses anything has no store rather than an empty one. What it closes is the other side —
+    `defer` refuses where no store is declared and will not scaffold one on the way past, so
+    the remedy was a toml key and a skeleton no verb offered to write.
+    """
+    from roadkeep.adopting import DEFERRED_ROLE, SCAFFOLD_ROLES, init
+
+    bare = init(tmp_path / "plain", blocks=("A",))
+    assert "deferred" not in bare.config.read_text(encoding="utf-8")
+
+    asked = init(
+        tmp_path / "pausing", blocks=("A — The model",), roles=(*SCAFFOLD_ROLES, DEFERRED_ROLE)
+    )
+    assert [one.name for one in asked.files] == [
+        "ROADMAP.md",
+        "CHANGELOG.md",
+        "IMPROVEMENTS.md",
+        "DEFERRED.md",
+    ]
+    assert 'deferred = "docs/DEFERRED.md"' in asked.config.read_text(encoding="utf-8")
+    # The block headings, mirrored as they are into every other file this writes: a line is
+    # set aside under the heading it was open under, and no write invents one (RK37).
+    store = (tmp_path / "pausing" / "docs" / "DEFERRED.md").read_text(encoding="utf-8")
+    assert store.startswith("# Set aside\n") and "## Block A — The model" in store
+
+
+def test_the_pause_door_the_scaffold_opened_is_one_defer_can_walk_through(
+    tmp_path: Path, capsys
+) -> None:
+    """The claim the file listing cannot make, and the whole point of the task: the verb that
+    was refused now runs on a project this command created."""
+    from roadkeep.adopting import DEFERRED_ROLE, SCAFFOLD_ROLES, init
+
+    init(tmp_path, blocks=("A",), roles=(*SCAFFOLD_ROLES, DEFERRED_ROLE))
+    assert main([
+        "-C", str(tmp_path), "add", "--block", "A", "--symptom", "A symptom",
+        "--why", "Because of a reason.", "--section", "A design",
+        "--section-body", "Prose the author wrote.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+    assert main([
+        "-C", str(tmp_path), "defer", "RK1", "--reason", "It waits on traffic nothing produces.",
+    ]) == EXIT_OK
+    assert "RK1" in (tmp_path / "docs" / "DEFERRED.md").read_text(encoding="utf-8")
+    assert main(["-C", str(tmp_path), "lint"]) == EXIT_OK
+
+
+def test_the_flag_reaches_the_scaffold_from_the_command_line(tmp_path: Path, capsys) -> None:
+    assert main(["-C", str(tmp_path), "init", "--deferred"]) == EXIT_OK
+    capsys.readouterr()
+    assert 'deferred = "docs/DEFERRED.md"' in (
+        tmp_path / "roadkeep.toml"
+    ).read_text(encoding="utf-8")
+
+
+def test_an_unconfigured_project_is_not_missing_a_deferred_file(tmp_path: Path) -> None:
+    """The measurement `STRATEGY_PATH` was moved for, asked of the constant beside it: this
+    says where `init --deferred` would put a store, never what a project already has."""
+    from roadkeep.config import Config
+
+    config = Config.discover(tmp_path)
+    assert config.source is None
+    assert "deferred" not in config.missing()
+
+
 def test_an_unconfigured_project_is_not_missing_a_strategy_file(tmp_path: Path) -> None:
     """The measurement that moved `STRATEGY_PATH` out of `DEFAULT_PATHS` (RK1186).
 

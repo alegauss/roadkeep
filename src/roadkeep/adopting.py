@@ -63,6 +63,7 @@ from roadkeep.config import (
     CLAIM_HELD,
     CONFIG_NAME,
     DEFAULT_PATHS,
+    DEFERRED_PATH,
     STRATEGY_PATH,
     PROSE_ROLES,
     PYPROJECT,
@@ -92,6 +93,15 @@ SCAFFOLD_ROLES = ("roadmap", "changelog", "improvements")
 #: get an empty file it never opens, which is the scaffold inventing a decision.
 STRATEGY_ROLE = "strategy"
 
+#: The fifth, written only where `init --deferred` asks for it (RK1259). Opt-in for
+#: :data:`STRATEGY_ROLE`'s reason and one of its own: a project that never pauses anything has
+#: no store rather than an empty one, so writing it by default hands most adopters a fourth
+#: governed file they never open. What it fixes is the other side of that — `defer` refuses
+#: where the key is undeclared, correctly and without scaffolding, and the remedy it named was
+#: a toml key and a skeleton no verb offered to write. Now one does, and it is the command that
+#: writes every other governed file.
+DEFERRED_ROLE = "deferred"
+
 #: The heading each scaffolded file opens with. Structural, not prose — the block headings
 #: below it are what `add`, `ship` and `section add` file text under.
 _TITLES = {
@@ -99,6 +109,7 @@ _TITLES = {
     "changelog": "Shipped Ledger",
     "improvements": "Improvements",
     "strategy": "Strategy",
+    "deferred": "Set aside",
 }
 
 #: The fields `adopt` measures against their limits, and where each one is read from.
@@ -745,10 +756,14 @@ def init(
     ledger and the prose files are filed under the same headings the roadmap is and a write
     never invents one (RK37).
 
-    ``roles`` is which files to write, and the strategy one is opt-in (RK1186): every reader
-    of a pointer has resolved against it since RK172, and this was the one command that could
-    not create it — so a project wanting a document *above* the task line hand-edited the
-    configuration and made the file, which are the two steps a scaffold exists to remove.
+    ``roles`` is which files to write, and two of them are opt-in. The strategy file (RK1186):
+    every reader of a pointer has resolved against it since RK172, and this was the one command
+    that could not create it — so a project wanting a document *above* the task line hand-edited
+    the configuration and made the file, which are the two steps a scaffold exists to remove.
+    And the deferred store (RK1259), for the same two steps read out by a different door:
+    `defer` refuses where no store is declared and does not scaffold one on the way past, so
+    until this the remedy was a toml key and a skeleton no verb offered to write — arriving,
+    every time, with a pause reason already composed.
     """
     base = Path(root).resolve()
     existing = _configured(base)
@@ -769,9 +784,9 @@ def init(
             raise RepeatedBlock(label)
         seen.add(label)
 
-    # The scaffold's own table, which is `DEFAULT_PATHS` plus the one role that is not part
-    # of a project's implied layout (RK1186).
-    where = {**DEFAULT_PATHS, STRATEGY_ROLE: STRATEGY_PATH}
+    # The scaffold's own table, which is `DEFAULT_PATHS` plus the two roles that are not part
+    # of a project's implied layout (RK1186, RK1259).
+    where = {**DEFAULT_PATHS, STRATEGY_ROLE: STRATEGY_PATH, DEFERRED_ROLE: DEFERRED_PATH}
     paths = {role: base / where[role] for role in roles}
     text = render_config(schema, {role: where[role] for role in roles})
     _verify(text, schema, base, paths)
@@ -836,7 +851,7 @@ def render_config(schema: Schema, paths: Mapping[str, str]) -> str:
     # (RK1186). `SCAFFOLD_ROLES` alone was the same list twice — what a bare `init`
     # writes and what the config may declare — and `--strategy` made the second one
     # wrong: the file was written and the key was not, which `_verify` refuses whole.
-    written = (*SCAFFOLD_ROLES, STRATEGY_ROLE)
+    written = (*SCAFFOLD_ROLES, STRATEGY_ROLE, DEFERRED_ROLE)
     lines += [f"{role} = {_quote(paths[role])}" for role in written if role in paths]
     lines += [
         "",

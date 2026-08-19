@@ -149,29 +149,6 @@ dangling citation.
 
 ## Block E — Adoption
 
-### §RK1259 The pause a project cannot take yet
-
-`defer` exists because a pause spelled as a retirement is terminal, and it refuses when
-`[files]` declares no `deferred` path. The refusal is exact — add the key, create the
-file with its block headings — and it arrives at the worst possible moment.
-
-Observed on an adopting project: its one open line was an idea waiting on a number no
-task can produce — real traffic against a site not yet deployed. `pick` offered it and
-would go on offering it, `brief` explained it, and neither said the only verb able to
-set it aside was unconfigured here. The reason sentence was composed first and refused
-second, which is the failure this tool names everywhere else: a limit reported after the
-prose exists is a limit discovered too late.
-
-Two doors, and they are not equivalent. `adopt` and `init` could write the store with
-everything else, at the cost of a fourth governed file most projects never open. Or the
-refusal becomes its own remedy: `repair` already applies findings whose fix is one
-command, and this fix is one command — write the key, create the file, mirror the block
-headings that already exist. Then the cost is a confirmation instead of a detour into
-toml with a half-written sentence in hand.
-
-Either way the cheap half is the earlier surface. `brief` and `pick` read the config
-already, so they can say a line cannot be paused before anyone tries.
-
 ## Block F — The plugin
 
 ### §RK1260 Advice for a shell that is not there
