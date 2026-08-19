@@ -199,28 +199,6 @@ the shape — a declaration in every file that takes one, or none.
 
 ## Block F — The plugin
 
-### §RK1260 Advice for a shell that is not there
-
-Four field descriptions carry the same clause: `'-' reads stdin, which is how an
-apostrophe or a backtick survives a shell`. It is good advice and it is addressed to
-someone who is not there. Over MCP there is no stdin and no shell — the caller sends
-JSON, where an apostrophe survives on its own — so the sentence spends tokens in every
-schema an agent loads to describe a channel that agent cannot use.
-
-The half that costs more is what stands in its place. The CLI answers a refusal cheaply:
-`--section-body-file` means a body rejected at 257 words is edited in the file and
-resent as a path. The MCP `add` has no such argument, so the same refusal costs the
-whole 250-word body again — and length refusals are the common case, by design, because
-this tool refuses before it writes. The surface where prose is most often composed is
-the one where a rejected draft is most expensive to resend, which inverts the CLI's own
-reasoning that a limit discovered late is a limit that failed to save anything.
-
-Two candidate shapes, and they compose. Say the true thing per surface, so the MCP
-schema describes JSON rather than shell quoting. And give the MCP verbs the file
-argument the CLI already has, at which point a refusal costs an edit and a path in both
-places. Neither needs a new concept — only the file path already implemented, exposed
-where the agents are.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

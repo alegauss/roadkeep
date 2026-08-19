@@ -491,6 +491,59 @@ def test_the_verb_that_measures_a_draft_declares_the_pipe_it_reads():
     assert dests == {"why", "body"}
 
 
+def test_the_three_verbs_that_write_a_body_offer_the_path_to_one(tmp_path):
+    """RK1260's other half. The clause was removed because there is no pipe here; what stood in
+    its place at a terminal — a path, so a refusal costs the corrected field alone — was
+    withheld on the ground that this transport does not share the caller's disk, which a
+    server speaking over the caller's own stdin always does."""
+    described = listed(project(tmp_path, config=PROSE))
+    for tool, field in (
+        ("add", "section_body_file"),
+        ("section_add", "body_file"),
+        ("section_amend", "body_file"),
+    ):
+        published = described[tool]["inputSchema"]["properties"][field]
+        assert published["type"] == "string", tool
+        # The sentence says the retry it buys and names no channel: a pipe not rewinding is why
+        # the terminal retry is expensive, and this caller's is expensive for its own reason.
+        assert "pipe" not in published["description"], tool
+        assert "corrected field alone" in published["description"], tool
+        # And the one thing a path means differently here: `-C` selects the project and this
+        # process sits where the harness launched it, so the two are not one tree.
+        assert "absolute path" in published["description"], tool
+
+
+def test_a_body_that_arrived_as_a_path_never_went_to_the_pipe(tmp_path):
+    """`Prose.reached_by` read `gated_by` and not `unless`, which no exposed argument could
+    reach until now — so the first `add` naming a body by path would have been refused for
+    having sent a field to a pipe that is not there, with the prose sitting in the file."""
+    tree = project(tmp_path, config=PROSE, improvements=DESIGN)
+    drafted = tmp_path / "draft.md"
+    drafted.write_text("The rationale, drafted before it was filed.\n", encoding="utf-8")
+    written = called(
+        tree,
+        "add",
+        block="A",
+        symptom="the served surface withheld the path its own refusals ask for",
+        why="Because of a reason.",
+        section="A drafted rationale",
+        # Absolute, which is what the published note names: the path is read from this
+        # process's own directory and not from the project `-C` selected.
+        section_body_file=str(drafted),
+    )
+    assert not written["isError"], text_of(written)
+    assert "drafted before it was filed" in (tmp_path / IMPROVEMENTS).read_text(encoding="utf-8")
+
+
+def test_the_read_that_prices_a_draft_still_takes_it_as_one(tmp_path):
+    """`budget --body-file` stays withheld, and the reason is now its own: this read exists
+    because a refusal over the transport costs the whole payload, and the three writes above
+    take a path — so the only draft left to price is the one that arrived in the call."""
+    assert "body_file" not in listed(project(tmp_path))["budget"]["inputSchema"]["properties"]
+    why = serving.withheld()["budget"]["body_file"]
+    assert "RK1260" in why and "corrected field alone" in why
+
+
 def _served(name: str, config: Config) -> dict:
     tool = next(one for one in TOOLS if one.name == name)
     return descriptor(tool, config)["inputSchema"]["properties"]
@@ -605,7 +658,9 @@ def test_a_write_that_needs_prose_takes_it_as_a_bounded_string(tmp_path):
     # `section add` reads stdin in a shell; over MCP the body is an argument, and the word
     # budget refuses it exactly the same way.
     properties = listed(project(tmp_path))["section_add"]["inputSchema"]["properties"]
-    assert set(properties) == {"anchor", "title", "body", "role"}
+    # And beside it the path (RK1260): the string is how a body arrives and the file is how a
+    # refused one is corrected without arriving twice.
+    assert set(properties) == {"anchor", "title", "body", "body_file", "role"}
     assert properties["body"]["type"] == "string"
 
 
@@ -682,6 +737,9 @@ def test_the_derived_fields_are_not_offered(tmp_path):
         # the reason `section add`'s body is: stdin belongs to the protocol.
         "section",
         "section_body",
+        # And the path to it (RK1260), which is a *source* for a field the tool derives
+        # nothing about — the one thing this test's rule is not about.
+        "section_body_file",
     }
 
 

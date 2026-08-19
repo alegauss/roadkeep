@@ -354,7 +354,6 @@ def declare_lines(subcommands: argparse._SubParsersAction) -> None:
     withheld(
         add_parser,
         family="the id's prefix is `[ids]`' and `next-id` derives it; a caller choosing one is a caller numbering into another project's range",
-        section_body_file="a path on the caller's disk, which this transport does not share — the body crosses as text or not at all",
         capture='a path to a local artefact this transport does not share, and the verb that writes one is not a tool here',
     )
     add_parser.set_defaults(

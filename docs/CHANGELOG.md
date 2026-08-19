@@ -747,7 +747,7 @@
 - ✅ **RK1244** **A three-way answer is carried as two fields, so a Notice can be built stating a pair that cannot happen** — The declared case is the prefix itself, so the second field RK1242 added is deleted rather than validated.
 - ✅ **RK1246** **Four messages carry the served prefix from four sites and nothing holds the four together** — A census holds every record carrying the served prefix against the site that fills it from the one reader.
 - ✅ **RK1247** **The one message that stops an Edit defaults its prefix to a route the session may not have** — The refusal defaults to naming no route, so the four messages that block a turn say one thing.
-- ✅ **RK1260 (the schemas)** **the MCP schemas offer '-' and stdin, an input channel no MCP client can provide** — The pipe clause is unsaid per surface, so 1168 characters of advice about a shell no MCP caller has are no longer published to every session that connects.
+- ✅ **RK1260** **the MCP schemas offer '-' and stdin, an input channel no MCP client can provide** — The three verbs that write a body take a path over MCP too, so a rationale refused at 257 words costs an edit and a path instead of the other 250 characters again.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

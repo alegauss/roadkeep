@@ -1398,7 +1398,7 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     withheld(
         budget_parser,
         family="`add`'s reason read back: the answer is about the id this project would issue next, and a prefix typed here asks about one it would not",
-        body_file="`section add`'s reason read back (RK1190): a path is the affordance of a shell with a paragraph too long for an argument, and over a transport with no such limit it is a second way to spell `body`",
+        body_file="this read exists because a refusal over the transport costs the whole payload again, and the three verbs that write a body now take a path (RK1260), which is refused for the corrected field alone — so the draft still worth pricing here is the one that arrived in the call",
     )
     # Declared although this verb writes nothing (RK1260). `reads_stdin` is not about the
     # write lock: it is what a surface with no pipe reads to refuse `-` by name instead of

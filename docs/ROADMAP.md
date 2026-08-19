@@ -41,8 +41,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 🛠 **RK1260** (deps: —) **the MCP schemas offer '-' and stdin, an input channel no MCP client can provide** — The MCP verbs still expose no --section-body-file or --body-file, withheld as a path this transport does not share — which a stdio server always does. → §RK1260
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

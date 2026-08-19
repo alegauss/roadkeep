@@ -481,7 +481,6 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
     # left out *is* the pipe, which the help above states and RK171 makes readable by a surface.
     withheld(
         section_add,
-        body_file="`add`'s reason: a path this transport does not share",
         level="the heading depth is the file's shape and the writer derives it, so a caller setting one is a caller writing a heading the renderer would not",
     )
     section_add.set_defaults(
@@ -528,10 +527,8 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
     section_amend.add_argument("--json", action="store_true", help=_JSON_HELP)
     # `omitted=False` and not an oversight: an amend with neither field is refused below rather
     # than defaulted to the pipe, so only the documented `-` reaches the read here.
-    withheld(
-        section_amend,
-        body_file="`section add`'s reason, which the verb correcting a body does not change: the text crosses as text",
-    )
+    # Nothing is withheld: `--body-file` is served (RK1260), and this verb's whole subject is a
+    # paragraph somebody has already drafted — which is the one a path is cheapest to name.
     section_amend.set_defaults(
         handler=_section_amend,
         reads_stdin=(Prose(dest="body", omitted=False, unless="body_file"),),

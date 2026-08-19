@@ -139,8 +139,16 @@ class Prose:
     unless: str = ""
 
     def reached_by(self, arguments: Mapping[str, Any]) -> bool:
-        """Whether this argv sends the handler to the pipe."""
+        """Whether this argv sends the handler to the pipe.
+
+        :attr:`unless` is read here for the reason `cli._reaches` reads it (RK1176), and it
+        became reachable when this surface started offering the path (RK1260): a body named as
+        a file is a body that arrived, so an `add` whose section body is a path is not one
+        :func:`_companioned` may refuse for having gone to a pipe that is not there.
+        """
         if self.gated_by and self.gated_by not in arguments:
+            return False
+        if self.unless and self.unless in arguments:
             return False
         if self.dest not in arguments:
             return self.omitted
@@ -284,9 +292,15 @@ TOOLS: tuple[Tool, ...] = (
     # made every `add` on such a project refuse `ref.missing` — the RK141/RK144 deadlock again,
     # with a source checkout as the only remaining door. Closed where the scheme derives the
     # pointer, which is where offering it would be choosing what the tool computes.
+    # `section_body_file` is exposed for the reason the body is, read one step further (RK1260):
+    # the rationale is the longest thing an author writes and its limit is the one most often
+    # met, so over a transport where a refusal costs the whole payload again this is the surface
+    # where a path is worth most — and a stdio server shares the caller's disk, which is what
+    # the withheld reason said it did not.
     Tool(
         "add",
-        ("block", "symptom", "why", "deps", "status", "section", "section_body"),
+        ("block", "symptom", "why", "deps", "status", "section", "section_body",
+         "section_body_file"),
         conditional=("task_id", "ref"),
     ),
     # The key to a deadlock the agent meets first (RK141): `ship` refuses an undeclared
@@ -415,11 +429,15 @@ TOOLS: tuple[Tool, ...] = (
     # that meets the deadlock is this one: the gate names a defect in `roadkeep.toml`, both
     # verbs above refuse having never opened it, and the hand edit is what the guard denies.
     Tool("priority migrate", ()),
-    Tool("section add", ("anchor", "title", "body", "role")),
+    # `body_file` rides with the body on both (RK1260), and these are the two verbs whose whole
+    # input is a paragraph: a section refused at 257 words costs the other 250 again here, where
+    # at a terminal it costs an edit and a path. The same disk either way — this server speaks
+    # over the caller's own stdin, so the file it is handed is one it can open.
+    Tool("section add", ("anchor", "title", "body", "body_file", "role")),
     # The correction an open task's design needs (RK123). Exposed for the reason the whole
     # write path is: the agent that narrowed a hypothesis is the one the hook denies a hand
     # edit to, and until this verb existed the only way through was shipping the task.
-    Tool("section amend", ("anchor", "title", "body", "role")),
+    Tool("section amend", ("anchor", "title", "body", "body_file", "role")),
     # The address `section amend` refuses to spell as a correction (RK377), and `renumber`
     # cannot reach under an outline. Exposed beside them because the state it repairs is one
     # an adopting corpus arrives with — 13 doubled addresses in Turing — and the only other
@@ -473,9 +491,10 @@ TOOLS: tuple[Tool, ...] = (
         # most: `maxLength` publishes a character ceiling and the write measures against an
         # allowance the line moves, so the agent composing here learned the difference by
         # being refused — and a refusal over MCP costs the whole payload again.
-        # `body_file` is **not** exposed, for the reason `section add` does not expose its
-        # own: a path is the affordance of a shell with a long paragraph in it, and over a
-        # transport with no argument length to work around it is a second way to say `body`.
+        # `body_file` is **not** exposed, and it is the one path this surface still withholds
+        # (RK1260): the three verbs that *write* a body take one now, and a body refused there
+        # costs the corrected field alone — so the payload this read exists to save re-sending
+        # is the draft that arrived in the call, which is the only one left to price.
         ("id", "block", "deps", "status", "symptom", "why", "anchor", "role", "body",
          "non_goal", "lead", "file", "tools", "session"),
         conditional=("ref",),
@@ -738,6 +757,15 @@ _BOUNDS = {
     # count would refuse prose this tool accepts, which is a bound on the client (RK183's rule).
     "body": lambda config: {"note": _paragraphed(config)},
     "section_body": lambda config: {"note": _paragraphed(config)},
+    # The same paragraph named by path (RK1260), and the one thing a caller here has to know
+    # that a caller at a terminal does not: this is a `caller` path in `PATH_ARGUMENTS`, so it
+    # is read from the answering process's own directory and never resolved against the project
+    # `-C` selected. Two trees over MCP, and a relative path that found a file in the wrong one
+    # would be measured, filled and written with nothing in the answer naming what it read —
+    # which is `Config.locate`'s own argument, arriving on the class of path it excludes.
+    # One bound and two dests, for `status`/`marker`'s reason: the dest is a spelling.
+    "section_body_file": lambda config: {"note": _pathed(config)},
+    "body_file": lambda config: {"note": _pathed(config)},
     # One bound and two dests, because the dest is a spelling and the set is the fact (RK314).
     # `budget --status` is dest `status` and the `status` command's own positional is dest
     # `marker` — the same closed set, and keying by dest published it to the tool that *prices*
@@ -1275,6 +1303,25 @@ def _listed_markers(config: Config) -> dict[str, Any]:
             if marker not in seen:
                 seen.append(marker)
     return {"enum": seen} if seen else {}
+
+
+def _pathed(config: Config) -> str:  # noqa: ARG001 - the table's signature, not this fact's
+    """The one thing a path means differently here than at a terminal (RK1260).
+
+    `PATH_ARGUMENTS` classes a body file as the **caller's**, read the way `cat` reads one — and
+    at a terminal the caller's directory and the project are usually the same tree, so the
+    distinction never shows. Over MCP they are two: `-C` selects the project and this process
+    sits wherever the harness launched it, which is `Config.locate`'s own argument arriving on
+    the class of path it excludes. So the resolution is published rather than assumed, and the
+    spelling that cannot be wrong is named.
+
+    Takes a config it does not read, because the table is one signature and a lambda-shaped
+    exception would be the second thing a reader of :data:`_BOUNDS` has to know.
+    """
+    return (
+        "Opened by this server, from its own directory and not the project `-C` names — so an "
+        "absolute path is the one spelling that cannot mean two files."
+    )
 
 
 def _paragraphed(config: Config) -> str:

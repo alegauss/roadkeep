@@ -46,11 +46,16 @@ PIPE_CLAUSES = (
 #: every session that connects.
 SERVED_PIPE = ""
 #: Appended to every prose argument that also answers to a path (RK381), so the convention is
-#: one sentence in three help strings rather than three that drift. What it buys over the pipe
-#: is the **retry**: a refusal on a short field re-reads the file and costs that field alone.
+#: one sentence in three help strings rather than three that drift. What it buys is the
+#: **retry**: a refusal on a short field re-reads the file and costs that field alone.
+#:
+#: Said without naming the pipe, because the sentence is now published on both surfaces
+#: (RK1260): a pipe not rewinding is why the terminal retry is expensive and re-sending the
+#: payload is why the served one is, so the *cost* is the fact both callers share and the
+#: channel is the half only one of them has. One sentence, and no substitution to keep in step.
 _BODY_FILE = (
-    "read the {what} from this file instead — a pipe does not rewind, so a refusal on a "
-    "short field costs the paragraph again; a path costs the corrected field alone"
+    "read the {what} from this file instead — a refusal on a short field then costs the "
+    "corrected field alone and never the paragraph again"
 )
 #: One sentence, on both `pick` and `brief`, because it is one flag (RK83): a caller asking
 #: to execute a block wants work whose design is written, and the markers already say which.
