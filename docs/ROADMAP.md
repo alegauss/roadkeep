@@ -36,6 +36,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK1264** (deps: —) **the scaffold is the only writer of [files], so a project past init cannot declare a role it turns out to want** — init --deferred refuses on a configured tree, so the store stays a hand edit there and no earlier surface can offer a door it has no verb to open. → §RK1264
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK1260** (deps: —) **the MCP schemas offer '-' and stdin, an input channel no MCP client can provide** — Four fields explain how a quote survives a shell there is none of, and the surface where prose is composed has no file argument to make a refused body cheap to resend. → §RK1260
