@@ -278,6 +278,7 @@ RECORDS: dict[str, dict[str, str | None]] = {
         "needs": "needs",
         "needs_role": None,
         "opens": "needs_path",
+        "opened": "opened",
         "promise": "promise",
         "bound": "bound",
         "wrote": "wrote",

@@ -117,18 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 4 | 162 | 2 |
+| B — Authoring (insert, never hand-edit) | 3 | 163 | 2 |
 | C — Query (consult without reading the file) | 0 | 112 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 1 | 91 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 118 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 23 | 1 |
-| **Total** | 6 | 745 | 10 |
+| **Total** | 5 | 746 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1258** (deps: —) **a block's first task files its rationale AS the family heading; every later one gets a child, and no verb picks** — One call that opens the family and files the task under it as .1, so a block's first line and its fifth have the same shape. → §RK1258
+- 📋 **RK1259** (deps: —) **adoption writes no deferred store, so the first defer refuses at the moment its reason is already written** — init and adopt configure every file a project can use except this one, and the refusal names a toml key and a skeleton no verb offers to write. → §RK1259
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

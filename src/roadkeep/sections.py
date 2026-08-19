@@ -1321,6 +1321,7 @@ def add(
     *,
     level: int | None = None,
     task: Task | None = None,
+    opens: tuple[str, str] | None = None,
 ) -> Written:
     """Place one section under its block or its anchor, reflowed. Validates first.
 
@@ -1339,6 +1340,15 @@ def add(
     so its owner cannot be read back off disk — and read off disk it would be absent,
     which is `anchor.unknown`, a refusal about a line that is one save away. Omitted, the
     owner is read from the roadmap, which is every other caller.
+
+    ``opens`` is the family this same write declares first, as ``(anchor, title)`` (RK1258) —
+    the one caller being a block's **first** task, whose child address extends a top level no
+    prose file has opened. Without it that call is refused (:class:`UnknownParent`) and the
+    only address available is the family itself, so a block's first design was filed *as* the
+    family heading and every later one as a child of it: two shapes for one thing, and the
+    difference was never a choice anybody made. What is opened is a **container** — a heading
+    and no prose — which is the ordinary structure of a rationale file and the one shape
+    ``body.empty`` does not name, that finding being about a leaf a pointer resolves to.
     """
     document = config.document(role)
     where = config.relative(config.path(role))
@@ -1381,15 +1391,14 @@ def add(
 
     # The file as it was read, for the delta :func:`_refuse_overflow` charges (RK1033).
     was = document
+    # After every refusal the child can raise and before its placement is computed (RK1258):
+    # the family has to exist for :func:`_extended` to find it, and a transaction that opened
+    # one and then refused the design would leave a heading nobody asked for.
+    if opens is not None:
+        document = _opening(config, role, document, opens, where)
     lines = _render(document.schema, anchor, title, body, _depth(document, anchor, level))
     index = _placement(document, anchor, task, where, role)
-    payload = list(lines)
-    if index > 0 and not blank(document.lines[index - 1]):
-        payload.insert(0, "")
-    if index < len(document.lines):
-        payload.append("")
-    for offset, raw in enumerate(payload):
-        document = document.insert_line(index + offset, raw)
+    document = _inserted(document, index, lines)
 
     placed = find(document, anchor)
     assert placed is not None  # rendered by this function a moment ago
@@ -3171,6 +3180,47 @@ def _render(
 ) -> tuple[str, ...]:
     heading = f"{'#' * level} {anchor_text(schema, anchor)} {title.strip()}"
     return (heading, "", *_body_lines(schema, body))
+
+
+def _inserted(document: Document, index: int, lines: Sequence[str]) -> Document:
+    """Put these lines at ``index``, separated from what is already there.
+
+    Factored out for the second writer (RK1258): a family opened in the same transaction is
+    placed exactly as the design under it is, and two copies of the blank-line rule is how one
+    of them comes to write a heading flush against the paragraph above it.
+    """
+    payload = list(lines)
+    if index > 0 and not blank(document.lines[index - 1]):
+        payload.insert(0, "")
+    if index < len(document.lines):
+        payload.append("")
+    for offset, raw in enumerate(payload):
+        document = document.insert_line(index + offset, raw)
+    return document
+
+
+def _opening(
+    config: Config, role: str, document: Document, opens: tuple[str, str], where: str
+) -> Document:
+    """Declare the family this write's design extends, as a heading and nothing else (RK1258).
+
+    A container and not a section with prose, and the difference is the whole shape: what a
+    reader wants under `## XXXI` is the tasks, and what the tool may not do is compose the
+    paragraph that would otherwise have to sit there (L4). The title is the **block's own**,
+    which is a string the author already wrote — read at the door and passed in, so this
+    function derives no words either.
+
+    The address is asked the three questions every destination is asked, against the document
+    this transaction holds: a family the file, a sibling or history already spent is a refusal
+    here, before the child is placed inside it.
+    """
+    family, title = opens
+    unspent(config, role, family, document=document, where=where)
+    heading = (
+        f"{'#' * _depth(document, family, None)} "
+        f"{anchor_text(document.schema, family)} {title.strip()}"
+    )
+    return _inserted(document, _placement(document, family, None, where, role), (heading,))
 
 
 def _body_lines(schema: Schema, body: str) -> tuple[str, ...]:

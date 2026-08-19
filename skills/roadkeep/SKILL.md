@@ -95,10 +95,18 @@ which is what `--section-body-file` is for); the shipped marker never reaches th
 writes the rationale in the same transaction — the prose on stdin or `--section-body`,
 both files validated before either is written — and an `add` without it answers with the
 `section add` that closes the pointer it just created, rather than leaving the gate to say
-so. Under an outline that is **two** calls where the anchor extends a family the prose file
-has not opened: the family first, then the design, both named and in order, because a
-`section add` on a child whose **immediate** parent is missing is refused — a nearer
-ancestor existing is not enough, and the refusal names every generation in between.
+so. Under an outline it opens a block's **first** family too: `add --ref XXXI.1 --section`
+declares `XXXI` in the same write — titled from the block, those words being already written
+one file over — and files the design under it as a child, so a block's first design has the
+shape its fifth has instead of *being* the family heading. What it opens is a container, a
+heading with no prose, which is the one shape `body.empty` does not name; `section amend
+<family> --title` is the correction where the block's words are the wrong ones. Without
+`--section` that is still **two** calls, both named and in order, because a `section add` on
+a child whose **immediate** parent is missing is refused — a nearer ancestor existing is not
+enough, and the refusal names every generation in between. Two missing generations is a
+guess either way: the address between them names a subtree whose title nobody has written,
+so it stays refused, and a block whose prose has already started is a typo in a numeral
+rather than a family to open.
 **`ship <id> --why "<what now works>"` makes its three edits** (ledger entry, roadmap
 line gone, `§<id>` deleted) plus the dependents' annotations, or none. It **names any
 section whose prose cited what it deleted**: the ship is right and that citation is your

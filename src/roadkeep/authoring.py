@@ -253,6 +253,12 @@ class Insertion:
     #: `UnknownParent` — so without this the command handed over is one that cannot run, which
     #: is RK197's own claim about a *file* nobody created, made one level down.
     opens: str | None = None
+    #: The family this write **declared**, where the design it wrote is a block's first
+    #: (RK1258). Distinct from :attr:`opens`, which is a call still owed: this one already ran,
+    #: inside the same transaction, and what it left is a heading with no prose under it. Said
+    #: out loud because the write touched a second address the caller did not name, and because
+    #: the words it took are the block's — which is the one thing an author may want to correct.
+    opened: str | None = None
     #: The id a sentence promised that deriving this one stepped over (RK431). Set only
     #: where the id was *derived* — a caller that named its own spent nothing — and only
     #: where the number below it is a mention no line ever took.
@@ -356,6 +362,14 @@ class Insertion:
         # declares `strategy` alone.
         prose = _prose_file(config, self.prose)
         rows = [self.rendered]
+        if self.opened is not None:
+            # Above the design and not below it, because that is the order the file now reads
+            # in — and with the correction named, the title being the block's rather than one
+            # this write composed (RK1258).
+            rows.append(
+                f"opened   §{self.opened} → {prose}, titled from Block "
+                f"{self.entry.task.block}  (`section amend {self.opened} --title` renames it)"
+            )
         if self.section is not None:
             rows.append(
                 f"design   §{self.section.anchor} → {prose}:{self.section.first}  "
@@ -446,6 +460,10 @@ class Insertion:
             "rendered": self.rendered,
             "length": measured_width(self.rendered),
             "section": None if self.section is None else self.section.payload(prose),
+            # The family this write declared on the way in (RK1258): null on every add that
+            # extended one already there, so a client tells a heading it now owns from one it
+            # merely wrote under. An address and not a section — what is there is a heading.
+            "opened": self.opened,
             # Not a section this write *created* (RK452): an existing outline heading stopped
             # belonging to nobody, and a caller reading one key for both would report a
             # paragraph that was never written.
@@ -990,10 +1008,55 @@ def _with_section(
     role = prose_role(config)
     if role is None:
         raise NoProseFile(task.id)
+    opens = _opens_the_family(config, role, task)
     placed = sections.add(
-        config, role, task.ref, title, body() if callable(body) else body, task=task
+        config,
+        role,
+        task.ref,
+        title,
+        body() if callable(body) else body,
+        task=task,
+        opens=opens,
     )
-    return replace(insertion, prose=placed.document, section=placed.section)
+    return replace(
+        insertion,
+        prose=placed.document,
+        section=placed.section,
+        opened=None if opens is None else opens[0],
+    )
+
+
+def _opens_the_family(config: Config, role: str, task: Task) -> tuple[str, str] | None:
+    """The family a block's first `add --section` declares in the same write (RK1258).
+
+    ``(anchor, title)``, or None wherever the call already runs as it stands — which is every
+    `add` on a project under the id scheme, and every one into a block whose prose has started.
+
+    Four conditions, and each of them is what keeps this from guessing. The anchor's
+    **immediate parent** has to be the one thing missing (:func:`_unopened`), and it has to be
+    a *top level*: a hole two generations deep is RK1208's refusal and stays one, because the
+    address in between names a subtree whose title nobody has written. The block has to have
+    **no family at all** — this is a block's first task by definition, and a block that already
+    numbers its prose somewhere is a caller who typed the wrong numeral, which is a typo and
+    not an opening. And the block's heading has to give a title, since that title is what the
+    family takes.
+
+    The title is the block's own and never composed (L4): a family under an outline is the
+    block's prose, so the words are already written down one file over. Wrong words are
+    `section amend <family> --title`, which is a door that exists — where composing them here
+    would be the tool holding an opinion no verb could correct it out of.
+    """
+    from roadkeep.blocking import _title  # noqa: PLC0415 - RK260
+    from roadkeep.history import families_of_block  # noqa: PLC0415 - RK260
+
+    if not task.ref or (family := _unopened(config, role, task.ref)) is None:
+        return None
+    if "." in family or families_of_block(config, task.block):
+        return None
+    heading = config.document("roadmap").heading(task.block)
+    if heading is None or not (title := _title(heading)):
+        return None
+    return family, title
 
 
 def prose_role(config: Config, *, on_disk: bool = False) -> str | None:

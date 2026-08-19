@@ -33,6 +33,7 @@ from roadkeep.authoring import (
     restate,
     set_status,
 )
+from roadkeep import sections
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.backlog import NotOpen
@@ -1181,6 +1182,123 @@ def test_a_pointer_the_strategy_file_answers_reports_no_follow_up_on_the_command
     ]
     assert main(argv) == EXIT_OK
     assert "needs" not in capsys.readouterr().out
+
+
+# -- a block's first design has the shape every later one has (RK1258) --------
+
+
+def strategy(config: Config) -> str:
+    with config.path("strategy").open("r", encoding="utf-8", newline="") as handle:
+        return handle.read()
+
+
+def first_in_block_b(tmp_path: Path, ref: str = "XI.1", **extra: object) -> Config:
+    """Block B has no line and so no family: the case this task is named for."""
+    config = outlined(tmp_path)
+    task(
+        config,
+        block="B",
+        ref=ref,
+        section=("The first design", "Prose the author wrote, and the tool did not."),
+        **extra,
+    )
+    return config
+
+
+def test_a_block_s_first_design_is_a_child_and_not_the_family_itself(tmp_path):
+    """The defect, and it is a shape rather than a refusal: the only address available for a
+    block's first task was the family, so its design was filed *as* `## XI` while every later
+    one was `### XI.n`. One call now writes both, and the two look the same."""
+    config = first_in_block_b(tmp_path)
+    written = strategy(config)
+    # Bare, which is what this writer renders: the `§` in the fixture is an author's, kept
+    # verbatim by the reader and never reproduced by the write (RK1235).
+    assert "## XI Authoring" in written
+    assert "### XI.1 The first design" in written
+    # Its fifth, for the comparison the whole task is about: same depth, same address shape.
+    task(config, block="B", ref="XI.2", section=("A later design", "More of the same."))
+    later = strategy(config)
+    assert later.count("\n## XI ") == 1 and later.count("\n### XI.") == 2
+
+
+def test_the_family_takes_the_block_s_own_words_and_the_tool_writes_none(tmp_path):
+    """L4 holds: the title is a string the author already wrote one file over, and the family
+    carries no paragraph — a container, which is what a heading over designs is."""
+    config = first_in_block_b(tmp_path)
+    written = strategy(config)
+    opened = written.split("## XI Authoring")[1]
+    assert opened.lstrip("\n").startswith("### XI.1")
+
+
+def test_the_family_this_write_opened_is_named_in_both_registers(tmp_path, capsys):
+    outlined(tmp_path)
+    argv = [
+        "-C", str(tmp_path), "add", "--block", "B",
+        "--symptom", "A second symptom", "--why", "Because of another.", "--ref", "XI.1",
+        "--section", "The first design", "--section-body", "Prose the author wrote.",
+        "--json",
+    ]
+    assert main(argv) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    # An address and not a section: what is there is a heading, and reporting it under
+    # `section` would claim a paragraph this write did not compose.
+    assert payload["opened"] == "XI" and payload["section"]["anchor"] == "XI.1"
+    assert payload["needs"] is None
+
+
+def test_an_add_that_extends_a_family_already_there_opens_nothing(tmp_path, capsys):
+    # The ordinary case, unchanged: §X.1 is declared, so nothing above §X.1.4 is missing.
+    outlined(tmp_path)
+    argv = [
+        "-C", str(tmp_path), "add", "--block", "A",
+        "--symptom", "A second symptom", "--why", "Because of another.", "--ref", "X.1.4",
+        "--section", "A design", "--section-body", "Prose the author wrote.", "--json",
+    ]
+    assert main(argv) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["opened"] is None
+
+
+def test_a_block_whose_prose_has_started_is_a_typo_and_not_an_opening(tmp_path):
+    """Block A already numbers its prose, so a fresh top-level named there is a caller who
+    typed the wrong numeral — which is RK1208's refusal and stays one."""
+    config = outlined(tmp_path)
+    with pytest.raises(sections.UnknownParent):
+        task(
+            config,
+            block="A",
+            ref="XI.1",
+            section=("A design", "Prose the author wrote, and the tool did not."),
+        )
+
+
+def test_a_hole_two_generations_deep_is_still_refused(tmp_path):
+    # The middle address names a subtree whose title nobody has written, so there is nothing
+    # to derive it from — one generation is the block's family and two is a guess.
+    config = outlined(tmp_path)
+    with pytest.raises(sections.UnknownParent):
+        task(
+            config,
+            block="B",
+            ref="XI.1.1",
+            section=("A design", "Prose the author wrote, and the tool did not."),
+        )
+
+
+def test_the_family_it_opened_charges_the_design_nothing(tmp_path):
+    """The second half of the defect: reaching this shape by hand billed the child's words to
+    the parent, so one full-length design under a family with a lead paragraph was refused at
+    almost twice the limit — while the same file built the other way was fine."""
+    config = first_in_block_b(tmp_path)
+    from roadkeep.sections import binding
+
+    assert binding(config, "strategy", "XI") is None
+
+
+def test_the_gate_is_clean_on_the_two_headings_this_wrote(tmp_path):
+    config = first_in_block_b(tmp_path)
+    from roadkeep.linting import lint
+
+    assert not [one for one in lint(config).findings if "XI" in one.message]
 
 
 # -- the write that could not reach the file it was told about (RK230) --------
