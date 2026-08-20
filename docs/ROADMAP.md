@@ -26,11 +26,17 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1285** (deps: —) **a refusal prints a door from the field beside one from the case, and the two say opposite things** — A refusal states one door for the case it is about, so two writers never print advice that disagrees. → §RK1285
+
 ## Block C — Query (consult without reading the file)
+
+- 📋 **RK1286** (deps: —) **the read that exists to fit in a tool result is the one thing here with no budget, and it grew four rows** — What a brief costs a tool result is measured and declared, so the read that replaces reading the file has a ceiling. → §RK1286
 
 ## Block D — The gate
 
 ## Block E — Adoption
+
+- 📋 **RK1284** (deps: —) **the reading behind a decisions limit sees only that file, so a number it accepts refuses every later ship** — The reading behind a decisions limit counts the claims a ship would carry in, so a number accepted is one that lands. → §RK1284
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

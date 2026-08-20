@@ -117,14 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 174 | 2 |
-| C — Query (consult without reading the file) | 0 | 116 | 1 |
+| B — Authoring (insert, never hand-edit) | 1 | 174 | 2 |
+| C — Query (consult without reading the file) | 1 | 116 | 1 |
 | D — The gate | 0 | 185 | 2 |
-| E — Adoption | 0 | 95 | 1 |
+| E — Adoption | 1 | 95 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 0 | 771 | 10 |
+| **Total** | 3 | 771 | 10 |
+
+**Next ready:**
+
+- 📋 **RK1284** (deps: —) **the reading behind a decisions limit sees only that file, so a number it accepts refuses every later ship** — The reading behind a decisions limit counts the claims a ship would carry in, so a number accepted is one that lands. → §RK1284
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

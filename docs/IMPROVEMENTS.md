@@ -77,11 +77,85 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1285 Two writers, one message, opposite advice
+
+A refusal composed of two writers can contradict itself, and one now does. The sentence
+RK1281 added says the remainder cannot go in the rationale section, because this ship
+deletes it; the violation printed under it says the remainder belongs there. Both are
+the tool's, one line apart.
+
+`RemainderRefused` met the same shape and answered it: the violations are the schema's,
+and where one of them names the wrong *field* for the call being made, the record
+renames it before printing. The field is right here and the **advice clause** is wrong —
+which is the same defect at the other end of the same message.
+
+The clause is not part of the rule. `symptom.too-long` is a code, a count and a limit;
+"the remainder belongs in the improvements section" is a door, appended because that is
+where an over-long symptom's words usually go. Every other refusal in this tool that
+carries a door composes it from the case, and this one is composed from the field.
+
+So the repair is to make it a door like the others: a symptom refused where the section
+is being deleted has none, and the record that knows so already says it. Suppressing the
+clause or moving the door onto the carrier is what the design has to choose.
+
+What it must not do is leave two sentences that disagree and trust the reader to rank
+them.
+
 ## Block C — Query
+
+### §RK1286 The one read nobody prices
+
+Every resident file has a budget and the served surface has two, because RK30's argument
+is that a limit nobody counts is a limit that moves. The read those budgets exist to
+protect has none of its own.
+
+`brief` starts a task, and its whole claim is that it fits in a tool result — an answer
+that does not is one a session replaces by re-reading the file, which is the cost RK29
+removed. It grew this session: the ledger allowance, the two clauses composing that
+sentence, the decisions role's limit, and the claim a decision inherits. Four arithmetic
+rows where there was one, each argued and none counted.
+
+That is exactly the shape `[budgets]` was declared against, one read out instead of one
+file. Nothing here says the answer is too long — it says nobody knows, and the tool that
+prices `agents.md` to the byte and every served description to the character has no
+figure for the read it recommends over reading the file.
+
+So `brief` is measured, in the unit a tool result is paid in, and the number is declared
+where every other ceiling is. What that number should be is a reading somebody takes,
+not one this line guesses.
+
+The bound is the *widest* brief and not the median: a task with a pointer, a design,
+deps, criteria at two altitudes and every role declared is the one that overflows, and
+the one a reader meets on the hardest task.
 
 ## Block D — The gate
 
 ## Block E — Adoption
+
+### §RK1284 What a limit inherits, measured before it is declared
+
+RK1281 named three arms and built two. The refusal says which doors are real and `brief`
+prices the claim before the write; the third — refusing the limit where it is declared —
+is the one the verb for declaring limits was built for, and it does not see this.
+
+`govern limits.symptom <n> --role decisions` measures the decisions file's own lines. On
+a project that has filed no decision that is zero sites, so any number is accepted, and
+every `ship --decides` afterwards is refused over a claim the roadmap already carries.
+Reproduced on a scaffold: 20 accepted against a 46-character symptom sitting open one
+file away.
+
+It is RK1279's hole at a different set. There the reading walked a written-out list of
+roles and missed one; here it walks the right file and misses what will be *carried
+into* it. For this one role the corpus is not only what the file holds — it is every
+open line that may ship with a decision.
+
+So the reading for that role's `symptom` is the roadmap's claims as well as the
+decisions file's own. Nothing else changes: the widest of the two populations is the
+number, the refusal already names it, and no other key inherits anything.
+
+What it must not become is a reading of what *might* be written everywhere. This one
+inheritance is declared in code — `_decided` composes the claim from the line — so it is
+derivable rather than guessed, which is the whole difference.
 
 ## Block F — The plugin
 
