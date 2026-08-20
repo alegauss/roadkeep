@@ -30,6 +30,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1282** (deps: —) **the shape prints one declared value for a table the project declared several times, and says nothing about the rest** — A table declared per address reports how many declared it, so one value of several is never printed as the one. → §RK1282
+
 ## Block D — The gate
 
 ## Block E — Adoption
