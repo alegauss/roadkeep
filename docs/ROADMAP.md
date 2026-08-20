@@ -26,7 +26,7 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1269** (deps: —) **a decision that outlives the work explaining it has no governed file, so an ADR is kept by hand or not at all** — A `decisions` role is the line-and-section pair whose one departure is being superseded, so a decision record is a schema at insertion instead of a convention. → §RK1269
+- 🛠 **RK1269** (deps: —) **a decision that outlives the work explaining it has no governed file, so an ADR is kept by hand or not at all** — A `decisions` role is the line-and-section pair whose one departure is being superseded, so a decision record is a schema at insertion instead of a convention. → §RK1269
 
 ## Block C — Query (consult without reading the file)
 
@@ -45,6 +45,8 @@
 - 📋 **RK1271** (deps: RK1270) **the editor completes nothing in `roadkeep.toml`, so every key is typed from memory** — The panel offers the keys the package printed and hovers their reason, so a declaration is composed against its shape instead of checked after it exists. → §RK1271
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+- 📋 **RK1273** (deps: —) **a served field's description states one rule twice, so the ceiling is spent on a paragraph nobody reads twice** — The note a bound composes says what the flag's own help does not, so a served description states each rule once and the ceiling measures prose that earns it. → §RK1273
 
 ## Non-goals
 
