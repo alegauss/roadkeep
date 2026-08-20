@@ -157,29 +157,4 @@ other turn — it fires on a path nobody touches twice a year.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-### §RK1277 Two clocks in one payload
-
-Two facts arrive in one payload and they move on different clocks. Which keys this build
-accepts moves when the *engine* moves, so caching it until an explicit refresh is right
-and was the reason for the cache. Whether this project declared one moves when the
-**file** moves, and it is in the same object.
-
-So a hover says "not declared here" about a key somebody declared a minute ago, and goes
-on saying it until the person presses refresh — for a reason no reader can see, since
-the row beside it is correct.
-
-RK1017 drew the line this crosses. It kept two caches on purpose — the engine's, reread
-only on the explicit ask, and the file's, dropped on every save — because the two
-questions have different answers about when they went stale. This read joined the wrong
-one.
-
-And the watcher never sees the file at all. It matches Markdown, which was every
-governed file when it was written; the config joined `lint`'s checked list since, so an
-external edit to it re-runs nothing. A save inside the editor is covered by the save
-hook and an edit from a terminal is not, which is the harder half to notice.
-
-The repair is the split RK1017 already made: the shape stays on the engine's clock and
-what the project declared is read on the file's, or the whole read moves to the file's
-clock and an upgrade is what the refresh button is for.
-
 ## Block H — The tool's own shape (what one verb costs to change)

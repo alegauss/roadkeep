@@ -58,7 +58,13 @@ function stub() {
     workspace: {
       workspaceFolders: undefined,
       getConfiguration: () => ({ get: () => process.env.ROADKEEP_COMMAND || "" }),
-      createFileSystemWatcher: () => ({ onDidChange() {}, dispose() {} }),
+      createFileSystemWatcher: () => ({
+        onDidChange() {},
+        // RK1277. The config's watcher takes a creation too — a project declaring its first
+        // `[budgets]` is a file that appears rather than one that changes.
+        onDidCreate() {},
+        dispose() {},
+      }),
       onDidSaveTextDocument: () => ({ dispose() {} }),
     },
     Diagnostic: class {
@@ -157,7 +163,8 @@ Module._load = function (request, parent, isMain) {
 
 async function main() {
   const root = process.argv[2];
-  const { activate, Backlog, Gate, Settings, compose } = require("./extension.js");
+  const extension = require("./extension.js");
+  const { activate, Backlog, Gate, Settings, compose } = extension;
   // `activate` is exercised for what it wires — a stub with no window records the calls and
   // hands nothing back, so the provider under test is built directly.
   editor.workspace.workspaceFolders = [{ uri: editor.Uri.file(root) }];
@@ -236,6 +243,25 @@ async function main() {
       })),
       hover: hovered ? hovered.contents.value : null,
     };
+    if (process.env.ROADKEEP_REDECLARED) {
+      // RK1277. The config is written *after* the shape was read, and the cache is dropped
+      // the way a save of that file drops it — so what the second reading answers is whether
+      // the two facts in one payload are now on the same clock.
+      const fs = require("fs");
+      fs.appendFileSync(
+        path.join(root, "roadkeep.toml"),
+        process.env.ROADKEEP_REDECLARED,
+        "utf8"
+      );
+      out.settings.stale = (await settings.provideHover(document, { line: at })).contents.value;
+      settings.reread();
+      out.settings.fresh = (await settings.provideHover(document, { line: at })).contents.value;
+      // And which saves drop it, which is the half that keeps RK1017's cost off a keystroke.
+      out.settings.declares = {
+        config: extension.declares({ uri: { fsPath: path.join(root, "roadkeep.toml") } }),
+        prose: extension.declares({ uri: { fsPath: path.join(root, "docs", "ROADMAP.md") } }),
+      };
+    }
   }
 
   if (process.env.ROADKEEP_CYCLES) {

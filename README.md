@@ -122,13 +122,13 @@ called unbuilt were already in the ledger.
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 95 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 119 | 1 |
-| G — The editor surface (the backlog where the file is open) | 1 | 12 | 0 |
+| G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 4 | 765 | 10 |
+| **Total** | 3 | 766 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1277** (deps: —) **the config completion caches a fact about the file on the engine's clock, so a declared key still reads as undeclared** — The shape is cached on the clock of what moves it, so a key declared a minute ago is not still reported undeclared. → §RK1277
+- 📋 **RK1278** (deps: —) **the config shape prints the default beside a key the project set, so the number shown is not the one in use** — The shape carries what this project declared beside what this build defaults to, so a hover on a set key states the number in use. → §RK1278
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

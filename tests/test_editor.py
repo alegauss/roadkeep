@@ -190,6 +190,9 @@ def test_the_extension_exports_the_two_hooks_and_names_what_else_it_exports():
         # the same argument the two names above are exported under.
         "Settings",
         "compose",
+        # RK1277. Which saves drop the shape, exported for the same reason: the predicate is
+        # the whole of what keeps a keystroke off a subprocess, and it is not renderable.
+        "declares",
     ]
     assert "function activate(" in source and "function deactivate(" in source
 
@@ -203,6 +206,7 @@ def _harness(
     declared: str | None = None,
     cycles: bool = False,
     settings: list[str] | None = None,
+    redeclared: str = "",
 ) -> dict:
     """Run the stubbed host against **this checkout's** roadkeep and read its report back.
 
@@ -239,6 +243,10 @@ def _harness(
     if settings is not None:
         # The lines of a `roadkeep.toml` being typed, the cursor on the last of them (RK1271).
         env["ROADKEEP_SETTINGS"] = json.dumps(settings)
+    if redeclared:
+        # What is appended to the config after the shape was read (RK1277), so the two facts
+        # in one payload can be asked which clock they are on.
+        env["ROADKEEP_REDECLARED"] = redeclared
     said = subprocess.run(
         [NODE, str(EDITOR / "harness.js"), str(root)],
         capture_output=True,
@@ -644,3 +652,55 @@ def test_a_read_that_failed_offers_nothing_rather_than_a_guess(tmp_path):
 
     assert said["offered"] == []
     assert said["hover"] is None
+
+
+# -- two clocks in one payload (RK1277) ---------------------------------------
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_the_shape_is_cached_on_the_clock_of_what_moves_it(tmp_path):
+    """RK1277. One payload carries two facts that move at different rates — which keys this
+    build accepts, and whether this project declared one — and the first version cached both
+    on the slower of the two. So a hover said "not declared here" about a key somebody had
+    declared a minute earlier, for a reason no reader could see: the row beside it was right."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    said = _harness(
+        root,
+        settings=["[ids]", "pad"],
+        redeclared="\n[ids]\npad = 3\n",
+    )["settings"]
+
+    # Read before the write, and still saying so afterwards: that is the defect, held here so
+    # a cache moved back onto the engine's clock is a red rather than a stale hover.
+    assert "not declared here" in said["stale"]
+    # Dropped the way a save of that file drops it, and the same call now answers the file.
+    assert "declared here" in said["fresh"]
+    assert "not declared here" not in said["fresh"]
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_only_a_save_of_the_config_drops_the_shape(tmp_path):
+    # The other half, and the cost RK1017 fixed: every other save leaves it alone, so a
+    # keystroke in a governed file does not buy a subprocess this read did not need.
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    said = _harness(root, settings=["[ids]", "pad"], redeclared="\n")["settings"]
+
+    assert said["declares"]["config"] is True
+    assert said["declares"]["prose"] is False
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_the_config_has_a_watcher_of_its_own_and_not_a_wider_glob(tmp_path):
+    """The half a save hook does not cover: an edit from a terminal. Its own watcher and not a
+    wider pattern — every other TOML in a workspace is somebody else's, and a glob matching
+    them would re-run the gate on a lockfile."""
+    source = EXTENSION.read_text(encoding="utf-8")
+    assert '"{roadkeep.toml,pyproject.toml}"' in source
+    # And the Markdown one stays exactly as narrow as it was.
+    assert '"**/*.md"' in source
+    assert "*.toml" not in source.replace('"{roadkeep.toml,pyproject.toml}"', "")
+

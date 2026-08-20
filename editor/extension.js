@@ -248,8 +248,18 @@ class Gate {
  * parsing, and it is deliberately the whole of it — a client that resolved values would be
  * the second reader of this format, which is what `config` exists to make unnecessary.
  *
- * Cached until the file changes, like every other read this view makes: the shape moves when
- * the *engine* moves, so an upgrade is what `reread` is for and a save is not.
+ * **Cached on the file's clock and not the engine's** (RK1277). One payload carries two facts
+ * that move at different rates — which keys this build accepts, which moves when the engine
+ * does, and whether this project declared one, which moves when the file does — and the first
+ * version cached both on the slower of the two. So a hover said "not declared here" about a
+ * key somebody had declared a minute earlier, and went on saying it until the person pressed
+ * refresh, for a reason no reader could see: the row beside it was correct.
+ *
+ * RK1017 drew this line and kept two caches on purpose, the engine's reread only on the
+ * explicit ask and the file's dropped on every save. Splitting the payload would buy nothing
+ * — `declared` comes out of the same call — so the whole read moves to the faster clock, and
+ * it is dropped only where the **config** was written: every other save leaves it alone,
+ * which is the cost RK1017 exists to keep off a keystroke.
  */
 class Settings {
   constructor(root) {
@@ -257,7 +267,7 @@ class Settings {
     this.shape = null;
   }
 
-  /** Forget the shape — for a refresh, which is the ask an upgrade arrives through. */
+  /** Forget the shape — for a config write, and for the refresh an upgrade arrives through. */
   reread() {
     this.shape = null;
   }
@@ -633,6 +643,24 @@ class Backlog {
   }
 }
 
+/**
+ * Whether a saved document is where this project's declaration lives (RK1277).
+ *
+ * By name and not by a rule: `roadkeep.toml` is the tool's own file — the manifest already
+ * activates on it — and `pyproject.toml` is the other place the same declaration can sit.
+ * Neither is a per-project choice, so naming them here is not the compiled-in rule this
+ * surface may not carry; a governed file's *path* still comes from a payload and always will.
+ */
+const DECLARATIONS = ["roadkeep.toml", "pyproject.toml"];
+
+function declares(document) {
+  const spelled = String((document && document.uri && document.uri.fsPath) || "").replace(
+    /\\/g,
+    "/"
+  );
+  return DECLARATIONS.some((one) => spelled.endsWith(`/${one}`) || spelled === one);
+}
+
 function activate(context) {
   const folder = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0];
   if (!folder) {
@@ -654,8 +682,23 @@ function activate(context) {
     new vscode.RelativePattern(folder, "**/*.md")
   );
   watcher.onDidChange(() => both());
+  // And the config, which this watcher never saw (RK1277). Markdown was every governed file
+  // when the glob was written; the config joined `lint`'s checked list since, so an edit from
+  // a terminal re-ran nothing at all — the half a save hook does not cover and the harder one
+  // to notice. Its **own** watcher and not a wider glob: every other TOML in a workspace is
+  // somebody else's, and a pattern that matched them would re-run the gate on a lockfile.
+  const declaring = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(folder, "{roadkeep.toml,pyproject.toml}")
+  );
+  const redeclared = () => {
+    settings.reread();
+    return both();
+  };
+  declaring.onDidChange(redeclared);
+  declaring.onDidCreate(redeclared);
   context.subscriptions.push(
     watcher,
+    declaring,
     diagnostics,
     vscode.window.registerTreeDataProvider("roadkeep.backlog", backlog),
     vscode.languages.registerCodeActionsProvider({ scheme: "file" }, gate, {
@@ -672,7 +715,12 @@ function activate(context) {
       { scheme: "file", pattern: "**/roadkeep.toml" },
       settings,
     ),
-    vscode.workspace.onDidSaveTextDocument(() => both()),
+    // A save inside the editor covers what the watchers do from outside it, and the config
+    // one has to drop the shape as well (RK1277) — only where *that* file was written, which
+    // is what keeps every other save at the cost RK1017 fixed it to.
+    vscode.workspace.onDidSaveTextDocument((document) =>
+      declares(document) ? redeclared() : both()
+    ),
     // The button is the explicit ask, so it re-reads the engine too — an upgrade is what
     // moves that answer, and a person pressing refresh is the one who just did it.
     vscode.commands.registerCommand("roadkeep.refresh", () => {
@@ -724,4 +772,4 @@ function deactivate() {}
 // worth proving about this surface — grouped by block, blocked separated and named, a
 // finding anchored at its column, an incomplete door offered to nobody — is not renderable
 // and breaks silently.
-module.exports = { activate, deactivate, Backlog, Gate, Settings, compose };
+module.exports = { activate, deactivate, Backlog, Gate, Settings, compose, declares };

@@ -42,8 +42,6 @@
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-- 📋 **RK1277** (deps: —) **the config completion caches a fact about the file on the engine's clock, so a declared key still reads as undeclared** — The shape is cached on the clock of what moves it, so a key declared a minute ago is not still reported undeclared. → §RK1277
-
 ## Block H — The tool's own shape (what one verb costs to change)
 
 ## Non-goals
