@@ -117,18 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 172 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 173 | 2 |
 | C — Query (consult without reading the file) | 1 | 114 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 95 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 119 | 1 |
 | G — The editor surface (the backlog where the file is open) | 1 | 12 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 4 | 764 | 10 |
+| **Total** | 3 | 765 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1276** (deps: —) **a criteria address refused for a paused id says the work shipped, so a pause reads like a typo** — The refusal names the store and `resume` where a line is paused, which is the answer every other write reaching a line by id gives. → §RK1276
+- 📋 **RK1277** (deps: —) **the config completion caches a fact about the file on the engine's clock, so a declared key still reads as undeclared** — The shape is cached on the clock of what moves it, so a key declared a minute ago is not still reported undeclared. → §RK1277
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -232,6 +232,7 @@
 - ✅ **RK1268** **a definition of done is addressed by block, so what finishes one task is written nowhere a verb reads** — A criterion is addressed to a task as well as to a block, and `brief` prints both.
 - ✅ **RK1269** **a decision that outlives the work explaining it has no governed file, so an ADR is kept by hand or not at all** — A decisions role files an ADR as the line-and-section pair this format already writes.
 - ✅ **RK1274** **a decision is never marked superseded, so the file records that one was made and not that it stopped holding** — A verb marks one decision replaced by another, writing the forward pointer and the marker in one call (design §RK1274 recorded in `src/roadkeep/shipping.py`).
+- ✅ **RK1276** **a criteria address refused for a paused id says the work shipped, so a pause reads like a typo** — A criteria address refused for an id names where that line went, so a pause reads as a pause.
 
 ## Block C — Query
 

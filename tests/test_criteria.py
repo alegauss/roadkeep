@@ -477,3 +477,51 @@ def test_the_listing_names_the_flag_that_opens_the_list_it_found_empty(tmp_path,
     project(tmp_path)
     assert main(["-C", str(tmp_path), "criterion", "list", "--task", "RK1"]) == EXIT_OK
     assert "criterion add --task RK1" in capsys.readouterr().out
+
+
+def test_which_of_the_three_absences_it_is_gets_said(tmp_path):
+    """RK1276. An id can be missing from the roadmap because it shipped, because it was
+    retired, or because it is **paused** — and a pause is not a departure: the line keeps its
+    id, its deps, its symptom and its section, so its criteria are still the right question.
+    Told the question was answered by shipping, an author who paused it yesterday spends a
+    second id."""
+    from roadkeep.deferring import defer
+
+    project(tmp_path)
+    (tmp_path / "roadkeep.toml").write_text(
+        (tmp_path / "roadkeep.toml").read_text(encoding="utf-8").replace(
+            f'changelog = "{CHANGELOG}"',
+            f'changelog = "{CHANGELOG}"\ndeferred = "docs/DEFERRED.md"',
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "docs" / "DEFERRED.md").write_text(
+        "# Set aside\n\n## Block A — The model\n\n## Block B — Authoring\n",
+        encoding="utf-8",
+        newline="",
+    )
+    config = Config.discover(tmp_path)
+    defer(config, "RK1", reason="Not now.").save()
+
+    config = Config.discover(tmp_path)
+    with pytest.raises(KeyError) as caught:
+        criteria.add(config, "RK1", "Never asked", "Because it is paused.")
+
+    said = str(caught.value)
+    # The verb that brings it back, and never the sentence about shipping.
+    assert "`resume` brings it back" in said
+    assert "already shipped" not in said
+
+
+def test_a_shipped_id_is_still_told_the_ledger_holds_it(tmp_path):
+    # The other half: the same reader answers all three, so the case that was right stays.
+    from roadkeep.shipping import ship
+
+    config = written(tmp_path, "A", "Every file round-trips", "The gate holds it.")
+    ship(config, "RK1", why="It works now.").save()
+
+    config = Config.discover(tmp_path)
+    with pytest.raises(KeyError) as caught:
+        criteria.add(config, "RK1", "Never asked", "Because it shipped.")
+
+    assert "the changelog records it as" in str(caught.value)

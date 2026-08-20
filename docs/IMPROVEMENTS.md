@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1276 A pause is not a departure, at the one door that says it is
-
-`criterion add --task <id>` resolves the address against the roadmap, correctly: a list
-about work the ledger already holds is a question somebody answered by shipping. The
-refusal says exactly that, and for one of the three absences it is false.
-
-An id can be missing from the roadmap for three reasons and they are not one fact. It
-shipped, it was retired, or it is **paused** — and a paused line keeps its id, its deps,
-its symptom and its section, which is what separates a pause from a departure (RK96).
-Its criteria are still the right question; the answer is `resume`, not a rewritten
-claim.
-
-The message sends the reader the other way: told the question was answered by shipping,
-an author who paused the line yesterday reaches for a second id.
-
-Every other write that reaches a line by id already draws this distinction: `amend`,
-`restate` and `status` each refuse a paused one **naming the store and `resume`**, so a
-refusal about a pause never reads like one about a typo. This is the same refusal at the
-one door that has not learnt it, and the reader that knows the answer already exists —
-`Whereabouts` is what the departure verbs ask.
-
-Scope: the message and nothing else. Whether a paused task's list should be writable at
-all is a separate question, and the answer this repair assumes is the one every sibling
-verb gives — no, and say where the line went.
-
 ## Block C — Query
 
 ### §RK1278 The declared value, beside the default

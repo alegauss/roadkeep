@@ -501,7 +501,7 @@ def add(config: Config, about: str, lead: str, why: str) -> Written:
         raise NotGoverned(config.relative(config.source or config.root))
     document = config.document("roadmap")
     where = config.relative(config.path("roadmap"))
-    label = _addressed(document, about, where)
+    label = _addressed(config, document, about, where)
     check(config, lead, why)
 
     head = lead.strip()
@@ -547,7 +547,7 @@ def amend(config: Config, about: str, lead: str, why: str) -> Amended:
         raise NotGoverned(config.relative(config.source or config.root))
     document = config.document("roadmap")
     where = config.relative(config.path("roadmap"))
-    label = _resolved(document, about, lead, where)
+    label = _resolved(config, document, about, lead, where)
 
     existing = read(document, label)
     matches = tuple(one for one in existing if address(one.lead) == address(lead))
@@ -594,7 +594,7 @@ def drop(config: Config, about: str, lead: str) -> Dropped:
         raise NotGoverned(config.relative(config.source or config.root))
     document = config.document("roadmap")
     where = config.relative(config.path("roadmap"))
-    label = _resolved(document, about, lead, where)
+    label = _resolved(config, document, about, lead, where)
 
     existing = read(document, label)
     matches = tuple(one for one in existing if address(one.lead) == address(lead))
@@ -639,7 +639,7 @@ def _holding(document: Document, lead: str) -> tuple[str, ...]:
     return tuple(out)
 
 
-def _resolved(document: Document, about: str, lead: str, where: str) -> str:
+def _resolved(config: Config, document: Document, about: str, lead: str, where: str) -> str:
     """Which list this lead is in: the one named, or the one list that carries it.
 
     The address is optional on the two verbs that reach an existing bullet, and required on the
@@ -648,7 +648,7 @@ def _resolved(document: Document, about: str, lead: str, where: str) -> str:
     a remedy that could not spell the address would be the guess RK420 exists to remove.
     """
     if about:
-        return _addressed(document, about, where)
+        return _addressed(config, document, about, where)
     holding = _holding(document, lead)
     if len(holding) > 1:
         raise AmbiguousLead(
@@ -664,7 +664,7 @@ def leads_everywhere(document: Document) -> tuple[str, ...]:
     return tuple(one.lead for one in read(document))
 
 
-def _addressed(document: Document, about: str, where: str) -> str:
+def _addressed(config: Config, document: Document, about: str, where: str) -> str:
     """The address, if the roadmap declares it. A criteria list is never its own door.
 
     A heading nobody planned under is a list about work that does not exist, and the typo that
@@ -673,15 +673,25 @@ def _addressed(document: Document, about: str, where: str) -> str:
     is declared by a heading and outlives its lines, while a task is a line — so the id has to
     be one this file still carries, a list about work the ledger already holds being a question
     somebody answered by shipping.
+
+    **Which of the three absences it is, is said** (RK1276). An id can be missing from the
+    roadmap because it shipped, because it was retired, or because it is **paused** — and a
+    pause is not a departure: the line keeps its id, its deps, its symptom and its section
+    (RK96), so its criteria are still the right question and the answer is `resume`. A message
+    that named shipping for all three sent an author who paused the line yesterday to spend a
+    second id. `Whereabouts` is the reader every other write reaching a line by id already
+    asks, so this asks it rather than composing a fourth reading of the same three files.
     """
+    from roadkeep.backlog import Whereabouts  # noqa: PLC0415 - RK260
+
     label = about.strip().lstrip("#").strip()
     if addresses_task(document.schema, label):
         if label not in document.by_id():
             carried = ", ".join(sorted(document.by_id())) or "none"
             raise KeyError(
                 f"no open line {label} in {where}: a criterion addressed to a task says what "
-                f"would finish that line, and the ids this file carries are {carried} — a task "
-                f"that already shipped is one the question was answered about"
+                f"would finish that line, and the ids this file carries are {carried} — "
+                f"{Whereabouts.of(config, label).sentence}"
             )
         return label
     declared = {one.label for one in document.headings if one.label}

@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1276** (deps: —) **a criteria address refused for a paused id says the work shipped, so a pause reads like a typo** — The refusal names the store and `resume` where a line is paused, which is the answer every other write reaching a line by id gives. → §RK1276
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1278** (deps: —) **the config shape prints the default beside a key the project set, so the number shown is not the one in use** — The shape carries what this project declared beside what this build defaults to, so a hover on a set key states the number in use. → §RK1278
