@@ -649,6 +649,16 @@ class SchemaError(ValueError):
         #: does not, because there is no task to validate a `why` against and a second
         #: sentence would be about a line that does not exist.
         self.beside = ""
+        #: How the fields below relate to the **flags the caller typed** (RK1262). Empty here
+        #: and always, for the reason the two above are: the kernel validates a task and knows
+        #: nothing about an argv, so what it declares is the channel and the caller that holds
+        #: both fills it.
+        #:
+        #: Filled only where the two spellings differ. A `why` refused on an `add` came from
+        #: `--why` and needs no sentence; a `why` refused on a `ship --part` came from
+        #: `--remainder`, which *becomes* that field, and there the field name alone names the
+        #: wrong argument — with the right one adjacent on the same command line.
+        self.about = ""
         super().__init__("; ".join(str(v) for v in self.violations))
 
 

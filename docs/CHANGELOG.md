@@ -224,6 +224,7 @@
 - ✅ **RK1231** **renumber leaves the section heading it wrote, so an outline-ref project keeps a title naming the old id** — renumber rewrites the trailing (<id>) the tool itself wrote, leaving an outline anchor where it is, and the report names that anchor rather than the new id.
 - ✅ **RK1258** **a block's first task files its rationale AS the family heading; every later one gets a child, and no verb picks** — add --ref <family>.1 --section opens the family in the same write, titled from the block, so a block's first design is a child exactly like every later one.
 - ✅ **RK1261** **a ship refusal blames --why for characters that came from --superseded-design** — A ship refused for length names what each of the two arguments took and which has room, and the shipping allowance quotes what a supersession will spend.
+- ✅ **RK1262** **a refused --remainder is reported as a why, so the retry has to guess which of the two strings was short a full stop** — A refused remainder is reported under the flag that carried it, with one sentence saying which of the call's two sentences the rule is about.
 
 ## Block C — Query
 

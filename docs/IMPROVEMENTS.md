@@ -77,25 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1262 The flag the message did not name
-
-`ship <id> --part "..." --why "..." --remainder "..."` refuses a remainder with no
-terminator, and it should: the remainder becomes the open line's why, and a why is a
-sentence. What it says while refusing is `why: why is a sentence: end it`.
-
-Both arguments on that command line are whys by the time the check runs - the one the
-ledger entry takes and the one the reopened line takes - so the message is true and
-still does not identify which string to fix. Measured from a session that had just
-terminated its --why correctly, read the error as being about that argument, and had to
-reason from the fact that nothing else could be wrong.
-
-The field name the check reports should be the flag the caller typed, not the role the
-value plays inside the transaction. Everywhere else a refusal names the thing on the
-command line, which is why this one reads as a contradiction rather than as a hint.
-
-Small, and the sort of thing that only shows up under a caller who is not looking at the
-source - which is the caller this tool has.
-
 ### §RK1263 amend rewrites a section to change a word
 
 Clearing a corpus of dangling section pointers is eight sections whose prose is right

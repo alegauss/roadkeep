@@ -135,7 +135,7 @@ from roadkeep.ids import IdRef, next_id
 from roadkeep.markers import refresh
 from roadkeep.provenance import invocation
 from roadkeep.renumbering import NotAnId, SameId, family_of
-from roadkeep.kernel.schema import PARTIAL, SchemaError, Task, over_by, width
+from roadkeep.kernel.schema import PARTIAL, SchemaError, Task, Violation, over_by, width
 from roadkeep.sections import (
     Section,
     declaring,
@@ -365,6 +365,42 @@ class NoDesign(ValueError):
             f"{task_id} carries no pointer, so no design was superseded: the clause names "
             f"the address of the rationale this shipment overtook, and this line never had "
             f"one — the outcome belongs in --why"
+        )
+
+
+class RemainderRefused(SchemaError):
+    """The open half's sentence, refused under the name the caller typed (RK1262).
+
+    `ship <id> --part … --why … --remainder …` validates the remainder as the reopened line's
+    `why`, because that is what it becomes — and the refusal then read `why: why is a sentence:
+    end it`. Both arguments on that command line are whys by the time the check runs, so the
+    message is **true and still does not say which string to fix**. Measured from a session that
+    had terminated its `--why` correctly, read the error as being about that argument, and got
+    to the right edit only by reasoning that nothing else could be wrong.
+
+    Everywhere else the field a refusal names is the flag that carried the value, which is why
+    this one reads as a contradiction rather than as a hint. So the violations about that field
+    are reported under `remainder`, and one sentence says where the rule came from — the code
+    stays `why.*`, being the rule that was broken and the token anything greppable keys on.
+
+    A :class:`SchemaError` subclass, so a caller catching that class keeps catching this: what
+    changed is what the refusal *says*, not which class of refusal it is.
+    """
+
+    #: The field the reopened line carries this value in, and the one being renamed.
+    BECOMES = "why"
+
+    def __init__(self, task_id: str, violations: tuple[Violation, ...]) -> None:
+        renamed = tuple(
+            replace(one, field="remainder") if one.field == self.BECOMES else one
+            for one in violations
+        )
+        super().__init__(renamed)
+        self.task_id = task_id
+        self.about = (
+            f"--remainder becomes {task_id}'s {self.BECOMES} when the partial lands, so it is "
+            f"held to that field's rules and named below as itself — the --why on this call is "
+            f"the ledger entry's own sentence and is not what this refuses"
         )
 
 
@@ -2454,6 +2490,13 @@ def _partial(
         reopened = replace(reopened, why=remainder)
         violations = config.schema_for("roadmap").validate(reopened)
         if violations:
+            # Under the flag that carried it, but only where the rule broken is one this
+            # argument could have broken (RK1262): a line already carrying drift in some other
+            # field is not the remainder's fault, and framing it as one would send the caller
+            # to edit the string they had just written correctly — this task's own defect,
+            # pointed the other way.
+            if any(one.field == RemainderRefused.BECOMES for one in violations):
+                raise RemainderRefused(task_id, tuple(violations))
             raise SchemaError(tuple(violations))
     remaining = roadmap.replace_task(entry, reopened)
     derived = refresh(

@@ -107,6 +107,11 @@ def _refused(error: Exception) -> int:
             # editing prose, so a reader who stops at the first line has stopped at the one
             # that decides whether the rest is worth rewriting.
             print(f"  {error.beside}", file=sys.stderr)
+        if error.about:
+            # Above the fields for the same reason and a narrower one (RK1262): it says which
+            # argument the rows below are about, and a reader who reads them first has already
+            # started editing the wrong one.
+            print(f"  {error.about}", file=sys.stderr)
         for violation in error.violations:
             print(f"  {violation}", file=sys.stderr)
         retry = _retrying(error)

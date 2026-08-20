@@ -52,6 +52,7 @@ from roadkeep.shipping import (
     Closure,
     NoRestatement,
     NotOpen,
+    RemainderRefused,
     SupersessionCrowded,
     Wrapped,
     record,
@@ -2467,6 +2468,69 @@ def test_a_remainder_is_held_to_the_limits_a_why_is(tmp_path):
     assert "why.too-long" in [one.code for one in refused.value.violations]
     # Nothing written, which is what "validates all three edits first" means.
     assert "RK1" not in config.path("changelog").read_text(encoding="utf-8")
+
+
+def test_a_refused_remainder_is_reported_under_the_flag_that_carried_it(tmp_path):
+    """RK1262. It is validated as the reopened line's `why`, because that is what it becomes —
+    so the refusal read `why: why is a sentence: end it` with a correctly terminated `--why`
+    adjacent on the same command line. True, and no help in deciding which string to fix."""
+    config = project(tmp_path)
+    with pytest.raises(RemainderRefused) as refused:
+        ship(
+            config,
+            "RK1",
+            part="half",
+            why="Half of it works.",
+            remainder="the other half is still open",
+        )
+
+    # The field is the flag, and the code is still the rule that was broken: one is what to
+    # edit and the other is what anything greppable keys on.
+    assert [(one.field, one.code) for one in refused.value.violations] == [
+        ("remainder", "why.no-terminator")
+    ]
+    # And one sentence saying where a `why` rule came from, above the rows rather than in them.
+    assert "--remainder becomes RK1's why when the partial lands" in refused.value.about
+    assert "the --why on this call is the ledger entry's own sentence" in refused.value.about
+
+
+def test_the_ledger_sentences_own_refusal_still_names_why(tmp_path):
+    """The other half of the same distinction: `--why` *is* the field it is checked as, so
+    renaming it would move the defect rather than close it."""
+    config = project(tmp_path)
+    with pytest.raises(SchemaError) as refused:
+        ship(
+            config,
+            "RK1",
+            part="half",
+            why="Half of it works",
+            remainder="The other half is still open.",
+        )
+
+    assert [one.field for one in refused.value.violations] == ["why"]
+    assert not isinstance(refused.value, RemainderRefused)
+    assert not refused.value.about
+
+
+def test_a_line_already_carrying_drift_is_not_blamed_on_the_remainder(tmp_path):
+    """The guard, which is this task's own defect pointed the other way: a rule broken by some
+    field the caller never passed is not the remainder's, and framing it as one would send them
+    to edit the string they had just written correctly."""
+    # A pointer naming another line's anchor: refused on the roadmap, and invisible on the
+    # ledger entry, whose pointer `as_recorded` drops — so this is a violation only the
+    # re-validation of the reopened line can raise.
+    config = project(tmp_path, roadmap=BACKLOG.replace(RK1, RK1.replace("→ §RK1", "→ §RK9")))
+    with pytest.raises(SchemaError) as refused:
+        ship(
+            config,
+            "RK1",
+            part="half",
+            why="Half of it works.",
+            remainder="The other half is still open.",
+        )
+
+    assert not isinstance(refused.value, RemainderRefused)
+    assert "ref" in [one.field for one in refused.value.violations]
 
 
 def test_declining_it_leaves_the_sentence_the_line_had(tmp_path):

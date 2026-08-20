@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1262** (deps: —) **a refused --remainder is reported as a why, so the retry has to guess which of the two strings was short a full stop** — one message naming the wrong flag costs a whole ship call, and the two arguments it could mean are adjacent on the same command line. → §RK1262
 - 📋 **RK1263** (deps: —) **section amend replaces the whole body, so fixing one citation means re-emitting every table and code fence verbatim** — The edit is one clause and the risk is the other 200 lines, which a retyped fence loses silently. → §RK1263
 - 📋 **RK1265** (deps: —) **a non-goal states what is not built, and nothing states what must be true for a block to be finished** — So a criterion is written into a rationale section that ship deletes, and the only test for doneness left is a line count reaching zero. → §RK1265
 
