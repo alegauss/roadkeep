@@ -630,6 +630,10 @@ SPELLINGS = {
     # It reads the pipe for the reason the sentence does — the address carries a `§`, which a
     # shell reads before this program does.
     ("--superseded-design",): "the clause naming an overtaken design, on `ship` alone",
+    # RK1269. Not the sentence about what shipped and not a clause inside it: the constraint
+    # the deleted design leaves behind, which lands as one line in a file of its own. It reads
+    # the pipe because a constraint names types, files and prior ids.
+    ("--decides",): "the decision a deleted design leaves behind, on `ship` alone",
     # RK1187. The falsifiable claim the line *is*, with a limit of its own — `amend` excludes
     # it for that reason and `restate` is its door. It reads the pipe because it carries the
     # backtick and the apostrophe a `why` does, which is not the same as being one.
@@ -692,12 +696,14 @@ def test_the_two_that_rename_it_accept_the_name_the_rest_use():
     for names, where in prose_fields().items():
         if names in (("--body",), ("--section-body",)):
             continue  # a paragraph is a different field, with its own limit
-        if names in (("--superseded-design",), ("--symptom",)):
+        if names in (("--superseded-design",), ("--symptom",), ("--decides",)):
             # A clause about another address rather than this line's own sentence (RK1176),
             # and the claim the line is rather than the reason for it (RK1187). The alias rule
             # does not reach either: both are prose that reads the pipe, and neither is a
             # second name *of* anything — a `--symptom` accepting `--why` would make the two
-            # fields `amend` deliberately keeps apart one field with two spellings.
+            # fields `amend` deliberately keeps apart one field with two spellings. And
+            # `--decides` writes a different file entirely (RK1269), so a `--why` spelling
+            # of it would be one flag naming two records.
             continue
         assert "--why" in names, (names, where)
 

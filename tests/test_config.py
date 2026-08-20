@@ -54,7 +54,7 @@ def test_the_tool_configures_itself():
     assert config.source == HERE / CONFIG_NAME
     assert config.schema.prefix == "RK"
     assert config.missing() == ()
-    assert set(config.paths) == {"roadmap", "changelog", "improvements"}
+    assert set(config.paths) == {"roadmap", "changelog", "improvements", "decisions"}
 
 
 def test_its_own_documents_validate_under_its_own_config():

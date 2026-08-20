@@ -55,7 +55,14 @@ PYPROJECT = "pyproject.toml"
 #: not empty — `strategy` missing means Shio, not a Shio with an empty strategy. The
 #: same is true of `deferred` (RK96), which is why it is not in :data:`DEFAULT_PATHS`:
 #: a project that never pauses anything has no store, rather than an empty one.
-ROLES = ("roadmap", "changelog", "improvements", "strategy", "deferred")
+#:
+#: `decisions` is the sixth and the one adopters ask for by name (RK1269): read as this format
+#: an ADR is the pair already written here — an id, a marker, one falsifiable claim and a
+#: reason — and the only difference is the departure. A roadmap line leaves by three doors and
+#: a decision leaves by one, being superseded, so nothing in that file is ever deleted and it
+#: grows only by decisions somebody actually made. **A named role and not an open tuple**: a
+#: role no machinery knows is a file with no schema, which is the convention this tool replaces.
+ROLES = ("roadmap", "changelog", "improvements", "strategy", "deferred", "decisions")
 
 #: The governed files a `→ §<anchor>` pointer may address (RK172). Both, because `[files]`
 #: declares strategy as a governed role and a line pointing at it is already in the model.
@@ -90,6 +97,12 @@ STRATEGY_PATH = "docs/STRATEGY.md"
 #: by a verb — so until this the remedy was a toml key and a skeleton no command offered to
 #: write, read out at the moment a pause reason had just been composed.
 DEFERRED_PATH = "docs/DEFERRED.md"
+
+#: Where the decision record goes when one is asked for (RK1269). Beside the two above and for
+#: their reason: a project that has recorded no decision has no file, and `declare decisions`
+#: is what writes one — never a `ship --decides` on the way past, a store invented at the moment
+#: one is needed being a format decided by a verb.
+DECISIONS_PATH = "docs/DECISIONS.md"
 
 _TOP_KEYS = frozenset(
     {

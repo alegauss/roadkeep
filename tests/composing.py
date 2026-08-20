@@ -154,6 +154,10 @@ SITES: tuple[Site, ...] = (
     Site("shipping.py:AlsoPaused.__init__", "unreached", NO_FIXTURE),
     Site("shipping.py:Delivered.__str__", "unreached", NO_FIXTURE),
     Site("shipping.py:Divergent.__init__", "unreached", NO_FIXTURE),
+    # RK1269. Run by `test_composing`, which executes the `declare decisions` this refusal
+    # names and then makes the `ship --decides` land — the whole reading of this file, on the
+    # one door where the remedy is a role a project has not opened yet.
+    Site("shipping.py:NoDecisions.__init__", "run"),
     Site("shipping.py:PartRecorded.__init__", "unreached", NO_FIXTURE),
     Site("shipping.py:Partial.stated", "unreached", NO_FIXTURE),
     Site("shipping.py:SecondPartial.__init__", "unreached", NO_FIXTURE),

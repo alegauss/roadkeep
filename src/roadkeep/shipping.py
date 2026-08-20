@@ -170,6 +170,8 @@ __all__ = [
     "Divergent",
     "Dropped",
     "NoCompletion",
+    "NoDecision",
+    "NoDecisions",
     "NoDesign",
     "NoOutcome",
     "NoQualifier",
@@ -520,6 +522,43 @@ class RecordingCrowded(ValueError):
             f"recording clause is derived whole: {clause} spends "
             f"{width(composed) - width(outcome)} of it, and none of that is prose to cut. So "
             f"the outcome is what gives way, which has {max(room, 0)} characters here"
+        )
+
+
+class NoDecisions(KeyError):
+    """`--decides` on a project that declares no decisions file (RK1269).
+
+    Refused and never scaffolded on the way past, which is `defer`'s rule about the deferred
+    store and its reason: a governed file invented at the moment one is needed is a format
+    decided by a verb, and the door that writes one is `declare`. So the refusal names it, and
+    the sentence the caller just composed is the one thing that has to be retyped — which is
+    why it is refused **before** the ledger is read and not after the entry lands.
+    """
+
+    def __init__(self, task_id: str, where: str) -> None:
+        self.task_id = task_id
+        super().__init__(
+            f"{where} declares no decisions file, so {task_id} has nowhere to record what "
+            f"outlives it: `{invocation()} declare decisions` opens the role and writes the "
+            f"file with this project's own block headings, and then this call lands"
+        )
+
+
+class NoDecision(ValueError):
+    """`--decides` on a `ship --part` (RK310's refusal, one file over — RK1269).
+
+    A partial keeps its section, so nothing has been deleted and there is no reading of the
+    design that survived it. The completion is the call that deletes, and it is the one that
+    knows which constraint outlived the code.
+    """
+
+    def __init__(self, task_id: str, part: str) -> None:
+        self.task_id = task_id
+        self.part = part
+        super().__init__(
+            f"a partial keeps {task_id}'s design, so nothing has outlived it yet: pass "
+            f"--decides on the `ship {task_id}` that completes ({part}), which is the call "
+            f"that deletes the section"
         )
 
 
@@ -935,6 +974,10 @@ class Departure:
     #: named. Beside the field above and not inside it: one says the reasoning was wrong and
     #: the other says where the part that was right went, and a shipment may report both.
     recorded_in: str | None = None
+    #: The line this departure filed into the decisions role (RK1269), or `None`. An
+    #: :class:`Insertion` and not the sentence, because it is a **write** and the answer owes a
+    #: file and a line for it exactly as it does for the ledger's.
+    decided: Insertion | None = None
     #: The priority entry this departure took out with the line (RK327), or `None` where the
     #: queue never named it. Removed inside the same rewrite rather than reported, because it
     #: is derived dead by the departure — unlike :attr:`dependents` and :attr:`cited`, which
@@ -997,7 +1040,15 @@ class Departure:
         Read off :func:`~roadkeep.kernel.document.save_all`'s own return and never rebuilt from the
         config — a second list of the files a transaction touches is one that can be wrong.
         """
-        written = save_all(self.ledger.document, self.roadmap, self.prose)
+        # The decisions line goes **second**, between the two records and before the deletion
+        # (RK1269): it is the only trace of what the section held that outlives the code, so a
+        # crash after the roadmap or the prose write would take it with the design it survived.
+        written = save_all(
+            self.ledger.document,
+            None if self.decided is None else self.decided.document,
+            self.roadmap,
+            self.prose,
+        )
         if self.root is not None:
             # Last, and never a condition of the writes: a terminal marker is not the
             # in-progress one, so the rule every marker write obeys says *release* (RK162).
@@ -1056,6 +1107,13 @@ class Departure:
         # makes the address the only surviving trace, and this is where it went.
         if self.recorded_in is not None:
             rows.append(f"  recorded the part that outlives it: {self.recorded_in}")
+        # The fourth file, reported as a write and not as a note (RK1269): it has a line
+        # number, so a reviewer reads the diff against it the way they read the ledger's.
+        if self.decided is not None:
+            rows.append(
+                f"  decided  {config.relative(config.path('decisions'))}:"
+                f"{self.decided.lineno}  {self.decided.rendered}"
+            )
         if self.refreshed:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
         rows += _dequeued_rows(self.dequeued)
@@ -1112,6 +1170,15 @@ class Departure:
             "dequeued": self.dequeued,
             # And the task's own criteria that went with it (RK1268), for the same reason.
             "unmet": list(self.unmet),
+            # The fourth file (RK1269), shaped as the ledger's own block above: a write with a
+            # file and a line, never the sentence alone.
+            "decisions": None
+            if self.decided is None
+            else {
+                "file": config.relative(config.path("decisions")),
+                "line": self.decided.lineno,
+                "rendered": self.decided.rendered,
+            },
             "scope": _scope_json(self.scope, wrote),
             "event": self.event(config),
         }
@@ -1341,6 +1408,10 @@ class Closure:
     #: The task's own criteria, which left with the line (RK1268) — :class:`Departure`'s field
     #: and its argument: this door is the rest of a transaction, so it owes the same edits.
     unmet: tuple[str, ...] = ()
+    #: The line filed into the decisions role (RK1269). Reached on this door and not by the
+    #: two clauses beside it: those restate a ledger sentence this path does not write, and a
+    #: decision is a line in a file of its own, filed where the section is deleted.
+    decided: Insertion | None = None
     #: The tree split by whose claim names it (RK294), as :class:`Departure` carries it. Read
     #: here too because the moment is the same one — this door is `ship` on a line whose entry
     #: is already on disk, and the commit it precedes stages exactly the same files.
@@ -1368,7 +1439,13 @@ class Closure:
         the rule reads as a release either way. Last and never a condition of the writes, for
         the reason its sibling states.
         """
-        written = save_all(self.remaining, self.prose)
+        # The decision first, for the reason its sibling states (RK1269): it is the only
+        # trace of what the section held, and the prose write is the deletion.
+        written = save_all(
+            None if self.decided is None else self.decided.document,
+            self.remaining,
+            self.prose,
+        )
         if self.root is not None:
             claiming.follow(self.root, self.task_id, self.marker, self.remaining.entries)
         return _spelled(self.root, written)
@@ -1411,6 +1488,11 @@ class Closure:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
         rows += _dequeued_rows(self.dequeued)
         rows += _unmet_rows(self.unmet)
+        if self.decided is not None:
+            rows.append(
+                f"  decided  {config.relative(config.path('decisions'))}:"
+                f"{self.decided.lineno}  {self.decided.rendered}"
+            )
         rows += _scope_rows(self.scope, wrote)
         rows += _event_rows(self.event(config), "  ", config=config)
         return "\n".join(rows)
@@ -1450,6 +1532,14 @@ class Closure:
             "dequeued": self.dequeued,
             # And the task's own criteria that went with it (RK1268), for the same reason.
             "unmet": list(self.unmet),
+            # The fourth file this door may write (RK1269), shaped as `recorded` above is.
+            "decisions": None
+            if self.decided is None
+            else {
+                "file": config.relative(config.path("decisions")),
+                "line": self.decided.lineno,
+                "rendered": self.decided.rendered,
+            },
             "scope": _scope_json(self.scope, wrote),
             "event": self.event(config),
         }
@@ -2250,6 +2340,7 @@ def ship(
     lines: int | None = None,
     superseded: str | None = None,
     recorded_in: str | None = None,
+    decides: str | None = None,
 ) -> Departure | Closure | Partial:
     """Move one task from the backlog to the ledger. Validates all three edits first.
 
@@ -2295,12 +2386,23 @@ def ship(
     path, so this writes no prose (L4). Refused at the same two doors, and at a third of its
     own: a path this repository does not have, which is `path.missing` asked before the entry
     lands rather than by the gate afterwards (RK497).
+
+    `decides` is the sixth, and the only one that writes a **fourth file** (RK1269). The other
+    two type the deleted section — stale, or moved — and this one takes the third of its three
+    contents out whole: the decision, the constraint that has to stay true after the code
+    moves. It lands as one line in the decisions role, under the same block and the same
+    limits, with the task's own symptom as the claim and this sentence as the reason — which
+    is a record this format already writes, an ADR being the pair it has had all along. Never
+    the section copied over, which is the accreting rationale file this tool exists to refuse;
+    refused where the project declares no such role, naming `declare decisions`, and on a
+    partial, whose section stays and so has outlived nothing yet.
     """
     _refuse_absent(
         config,
         **{
             "--why": why,
             "--part": part,
+            "--decides": decides,
             "--superseded-design": superseded,
             # Backticked so the one definition of missing can see it (RK497, RK1267): the
             # reader takes paths out of *prose*, and this argument is a bare token until the
@@ -2320,6 +2422,8 @@ def ship(
             raise NoSupersession(task_id, part)
         if recorded_in is not None:
             raise NoSupersession(task_id, part, "--recorded-in")
+        if decides is not None:
+            raise NoDecision(task_id, part)
         return _partial(config, task_id, part, why, remainder)
     recorded = _already_recorded(config, task_id)
     if recorded is None:
@@ -2331,6 +2435,7 @@ def ship(
             lines,
             superseded=superseded,
             recorded_in=recorded_in,
+            decides=decides,
         )
     if why is not None:
         raise NoRestatement(task_id, recorded)
@@ -2340,7 +2445,10 @@ def ship(
         raise NoRestatement(task_id, recorded, "--recorded-in")
     if lines is not None:
         raise NoCompletion(task_id, config.relative(config.path("changelog")))
-    return _close(config, task_id, recorded)
+    # And this one is **not** refused here (RK1269): the two flags above land in a ledger
+    # sentence this path does not write, and a decision lands in a file of its own — which
+    # this path does write, because it is the closure that deletes the section.
+    return _close(config, task_id, recorded, decides=decides)
 
 
 def retire(
@@ -2653,6 +2761,7 @@ def _depart(
     replacement: str | None = None,
     superseded: str | None = None,
     recorded_in: str | None = None,
+    decides: str | None = None,
 ) -> Departure:
     """The one transaction both doors are: validate everything, then write nothing yet."""
     roadmap = config.document("roadmap")
@@ -2803,6 +2912,9 @@ def _depart(
     remaining = remove_entry(roadmap, entry)
     # One more change to a document already in hand (RK327): the queue names work, this line
     # is the work, and no state exists where the line has left and the order still names it.
+    # Composed before the roadmap is touched, like everything else here: a decisions file that
+    # refuses this line costs three untouched files rather than a departure half made.
+    decided = _decided(config, entry.task, decides)
     remaining, dequeued = queueing.without(remaining, config, task_id)
     # And the task's own criteria list, in the same rewrite and for the same reason (RK1268):
     # the heading is addressed by an id this write is spending, so leaving it would file a
@@ -2834,6 +2946,7 @@ def _depart(
         marker=marker,
         superseded=superseded,
         recorded_in=recorded_in,
+        decided=decided,
         dequeued=dequeued,
         unmet=unmet,
         dependents=tuple(
@@ -2845,6 +2958,33 @@ def _depart(
         # Read off the roadmap as it *was*, and before `save` releases the claim (RK294): the
         # line still carries 🛠 here, and a claim is only ever read against that marker.
         scope=claiming.departing(config, task_id, roadmap.entries),
+    )
+
+
+def _decided(config: Config, task: Task, decides: str | None) -> Insertion | None:
+    """The one line a departure files into the decisions role, or `None` (RK1269).
+
+    An ADR read as this format is an id, a marker, one falsifiable claim and a reason, so the
+    record is composed the way the ledger's is: the task's own symptom is the claim — a
+    decision is *about* the problem the line stated, and restating it here would be the second
+    sentence RK142 refuses to inherit for the other file — and the author's `--decides` is the
+    reason. Under the role's own grammar, so the marker is the project's ✅ and the deps and
+    the pointer are refused rather than dropped: the section this line survives is being
+    deleted in the same transaction, and a pointer to it could not resolve.
+
+    Validated here and written by nobody yet, which is what makes the fourth edit part of the
+    same all-or-none: a `--decides` over its limit costs a refusal and leaves four files
+    exactly as they were.
+    """
+    if decides is None:
+        return None
+    if not config.has("decisions"):
+        raise NoDecisions(task.id, config.relative(config.source or config.root))
+    return place(
+        config.document("decisions"),
+        as_recorded(task, config.schema_for("decisions").shipped_marker, decides),
+        role="decisions",
+        config=config,
     )
 
 
@@ -2989,10 +3129,19 @@ def _already_recorded(config: Config, task_id: str) -> Entry | None:
     return recorded
 
 
-def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
-    """Everything a departure does except the entry, which is already on disk (RK62)."""
+def _close(
+    config: Config, task_id: str, recorded: Entry, decides: str | None = None
+) -> Closure:
+    """Everything a departure does except the entry, which is already on disk (RK62).
+
+    `decides` reaches here and the other two clauses do not (RK1269), and the split is what
+    each is about: those land in the ledger's sentence, which this path deliberately leaves
+    alone, and this one is a line in a file of its own — filed at the moment the section is
+    deleted, which is an edit this door does make.
+    """
     roadmap = config.document("roadmap")
     entry = roadmap.by_id()[task_id]
+    decided = _decided(config, entry.task, decides)
     remaining = remove_entry(roadmap, entry)
     remaining, dequeued = queueing.without(remaining, config, task_id)
     # The rest of the transaction that stopped halfway (RK62, RK1268): the entry is on disk,
@@ -3021,6 +3170,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
         ),
         dequeued=dequeued,
         unmet=unmet,
+        decided=decided,
         scope=claiming.departing(config, task_id, roadmap.entries),
         root=config.root,
     )

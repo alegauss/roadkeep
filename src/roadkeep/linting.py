@@ -154,7 +154,10 @@ from roadkeep.provenance import invocation
 #: could not tell us", and the two have to be different things (RK217).
 _UNASKED = object()
 
-LINE_ROLES = ("roadmap", "changelog", "deferred")
+#: `decisions` is the fourth (RK1269), and for the store's own argument: a decision record is
+#: a line, so a file this gate did not read would be the one place the format is a convention
+#: again — which is precisely what an ADR kept by hand already was.
+LINE_ROLES = ("roadmap", "changelog", "deferred", "decisions")
 
 #: The two whose lines are still alive, so their rationale section is still there: open
 #: work, and work set aside (RK96). The ledger is not among them — `ship` and `retire`

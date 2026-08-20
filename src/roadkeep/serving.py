@@ -393,9 +393,20 @@ TOOLS: tuple[Tool, ...] = (
     # `recorded_in` for the same reason pointed the other way (RK1267): the agent deleting the
     # section is the one that just moved the half of it worth keeping, so the destination is
     # known here and nowhere later.
+    # `decides` for the same reason again (RK1269): the constraint that outlives the code is
+    # read out of the design by the agent about to delete it, and nowhere later.
     Tool(
         "ship",
-        ("id", "why", "part", "remainder", "lines", "superseded_design", "recorded_in"),
+        (
+            "id",
+            "why",
+            "part",
+            "remainder",
+            "lines",
+            "superseded_design",
+            "recorded_in",
+            "decides",
+        ),
     ),
     Tool("retire", ("id", "reason", "superseded_by")),
     Tool("defer", ("id", "reason")),

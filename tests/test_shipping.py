@@ -51,6 +51,7 @@ from roadkeep.shipping import (
     AlreadyShipped,
     Closure,
     NoRestatement,
+    NoDecision,
     NotOpen,
     RecordingCrowded,
     RemainderRefused,
@@ -2741,3 +2742,145 @@ def test_a_remainder_without_a_part_is_refused(tmp_path, capsys):
     argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "It works.", "--remainder", "left"]
     assert main(argv) == EXIT_USAGE
     assert "--remainder is what is left after --part" in capsys.readouterr().err
+
+
+# -- the decision the deleted design leaves behind (RK1269) -------------------
+
+DECISIONS = "docs/DECISIONS.md"
+
+DECIDED = """# Decisions
+
+## Block A — The model
+
+## Block B — Authoring
+"""
+
+
+def _deciding(tmp_path: Path) -> Config:
+    """The fixture plus a declared `decisions` role, which is the whole opt-in."""
+    config = project(tmp_path)
+    (tmp_path / "roadkeep.toml").write_text(
+        (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+        + f'decisions = "{DECISIONS}"\n',
+        encoding="utf-8",
+    )
+    with (tmp_path / DECISIONS).open("w", encoding="utf-8", newline="") as handle:
+        handle.write(DECIDED)
+    return Config.discover(tmp_path)
+
+
+def test_a_decision_that_outlives_the_work_gets_a_governed_line(tmp_path):
+    """The defect. A section holds three contents with three half-lives and `ship` deleted all
+    three alike: the investigation dies with the ship, the criterion becomes a test, and the
+    decision is the constraint that has to stay true after the code moves — kept by hand, in a
+    file nothing governs, or not at all."""
+    config = _deciding(tmp_path)
+    departure = ship(
+        config,
+        "RK1",
+        why="The first symptom no longer happens.",
+        decides="The store is the repository: no database and no service.",
+    )
+    departure.save()
+
+    decided = read(Config.discover(tmp_path), DECISIONS)
+    # An ADR read as this format: an id, a marker, one falsifiable claim and a reason.
+    assert (
+        "- ✅ **RK1** **A first symptom** — The store is the repository: no database "
+        "and no service." in decided
+    )
+    # No deps and no pointer, the section it survived being deleted in the same transaction.
+    assert "(deps:" not in decided and "→ §" not in decided
+    # And the other three edits are exactly what they were.
+    assert "**RK1**" not in read(Config.discover(tmp_path), ROADMAP)
+    assert "✅ **RK1**" in read(Config.discover(tmp_path), CHANGELOG)
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_a_project_with_no_decisions_role_is_refused_and_told_which_door(tmp_path):
+    # Refused and never scaffolded on the way past, which is `defer`'s rule about the store:
+    # a governed file invented at the moment one is needed is a format decided by a verb.
+    config = project(tmp_path)
+    before = files(config)
+    with pytest.raises(KeyError) as caught:
+        ship(config, "RK1", why="It works now.", decides="A constraint that outlives it.")
+
+    assert "declare decisions" in str(caught.value)
+    assert files(Config.discover(tmp_path)) == before
+
+
+def test_a_partial_has_outlived_nothing_because_its_section_stays(tmp_path):
+    # The section is still being read by the rest of the work, so no reading of it has
+    # survived a deletion yet. The refusal names the call that does delete.
+    config = _deciding(tmp_path)
+    before = files(config)
+    with pytest.raises(NoDecision) as caught:
+        ship(
+            config,
+            "RK1",
+            why="Half of it works.",
+            part="local half",
+            decides="Too early to say.",
+        )
+
+    assert "ship RK1" in str(caught.value) and "local half" in str(caught.value)
+    assert files(Config.discover(tmp_path)) == before
+    assert read(Config.discover(tmp_path), DECISIONS) == DECIDED
+
+
+def test_a_closure_deletes_the_section_so_it_takes_the_decision_too(tmp_path):
+    """The one flag of the three that reaches this door (RK62, RK1269): the other two restate
+    a ledger sentence this path leaves alone, and a decision is a line in a file of its own —
+    filed where the section is deleted, which this call does."""
+    config = _deciding(tmp_path)
+    (tmp_path / CHANGELOG).write_text(INTERRUPTED, encoding="utf-8", newline="")
+    config = Config.discover(tmp_path)
+    closure = ship(config, "RK1", decides="The reader keeps every source line verbatim.")
+    closure.save()
+
+    assert "The reader keeps every source line verbatim." in read(
+        Config.discover(tmp_path), DECISIONS
+    )
+    assert "**RK1**" not in read(Config.discover(tmp_path), ROADMAP)
+
+
+def test_a_decision_over_the_limit_costs_a_refusal_and_no_write(tmp_path):
+    # The fourth edit is part of the same all-or-none: it is composed and validated before the
+    # roadmap is touched, so a sentence past the role's own limit leaves four untouched files.
+    config = _deciding(tmp_path)
+    before = files(config)
+    with pytest.raises(SchemaError):
+        ship(
+            config,
+            "RK1",
+            why="The first symptom no longer happens.",
+            decides="A constraint " * 40,
+        )
+
+    assert files(Config.discover(tmp_path)) == before
+    assert read(Config.discover(tmp_path), DECISIONS) == DECIDED
+
+
+def test_the_flag_reaches_the_command_line_and_answers_as_a_write(tmp_path, capsys):
+    config = _deciding(tmp_path)
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "ship",
+                "RK1",
+                "--why",
+                "The first symptom no longer happens.",
+                "--decides",
+                "The store is the repository.",
+                "--json",
+            ]
+        )
+        == EXIT_OK
+    )
+    payload = json.loads(capsys.readouterr().out)
+    # A file and a line, as the ledger's own block is: this is a write and not a note.
+    assert payload["decisions"]["file"] == DECISIONS
+    assert payload["decisions"]["line"] > 0
+    assert "The store is the repository." in payload["decisions"]["rendered"]

@@ -383,6 +383,15 @@ DEFAULT_GRAMMARS: Mapping[str, Grammar] = {
     # line keeps the deps that are still deps, the symptom, and the pointer whose section
     # is carried rather than deleted — which is what separates a pause from a departure.
     "deferred": Grammar(markers=("deferred",), states="deferred"),
+    # The ledger's shape, and that is the finding rather than a shortcut (RK1269): a decision
+    # record is an id, a marker, one falsifiable claim and a reason, which is a line this
+    # format already writes. ✅ is a decision that stands and 🗑 one superseded — `retire
+    # --superseded-by`'s own two markers, so the departure needs no third. No deps, a
+    # decision being a constraint and not planned work; no pointer, because the line is
+    # written at the moment the section it came from is deleted, so there is nothing left
+    # for it to address — and never the section copied whole, which is the accreting
+    # rationale file this tool exists to refuse.
+    "decisions": Grammar(markers=("shipped", "retired"), drop=("deps", "ref"), states="shipped"),
 }
 
 

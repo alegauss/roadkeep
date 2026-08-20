@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 🛠 **RK1269** (deps: —) **a decision that outlives the work explaining it has no governed file, so an ADR is kept by hand or not at all** — A `decisions` role is the line-and-section pair whose one departure is being superseded, so a decision record is a schema at insertion instead of a convention. → §RK1269
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1270** (deps: —) **nothing prints what `roadkeep.toml` may declare, so its keys live only in the parser that rejects them** — A verb answers the config's own shape — table, key, type, default, declared or not — so a reader outside the package compiles no second copy. → §RK1270

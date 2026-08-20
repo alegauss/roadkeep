@@ -230,6 +230,7 @@
 - ✅ **RK1266** **four non-goal codes report a defect and name no command that closes it** — The scrape sees a code whose head carries a hyphen and reads the module that declares one, so all four non-goal codes name the command that closes them.
 - ✅ **RK1267** **ship deletes the design and nothing records where the reasoning that outlives the code went** — A ship now names the file the deleted design's durable half moved to (design §RK1267 recorded in `src/roadkeep/shipping.py`).
 - ✅ **RK1268** **a definition of done is addressed by block, so what finishes one task is written nowhere a verb reads** — A criterion is addressed to a task as well as to a block, and `brief` prints both.
+- ✅ **RK1269** **a decision that outlives the work explaining it has no governed file, so an ADR is kept by hand or not at all** — A decisions role files an ADR as the line-and-section pair this format already writes.
 
 ## Block C — Query
 

@@ -25,6 +25,7 @@ upstream = "alegauss/roadkeep"
 roadmap = "docs/ROADMAP.md"
 changelog = "docs/CHANGELOG.md"
 improvements = "docs/IMPROVEMENTS.md"
+decisions = "docs/DECISIONS.md"
 # no strategy: Turing has one, this project does not — absent, not empty
 
 [limits]

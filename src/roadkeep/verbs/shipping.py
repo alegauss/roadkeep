@@ -70,6 +70,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
             lines=args.lines,
             superseded=args.superseded_design,
             recorded_in=args.recorded_in,
+            decides=args.decides,
         )
         # The files this transaction wrote, answered by the write itself (RK309) — the half
         # of the commit's contents no author declares, and never a second list rebuilt here.
@@ -465,6 +466,15 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
         dest="recorded_in",
         help="the file the deleted design's durable half moved to; must resolve",
     )
+    # RK1269. It reads the pipe for `--why`'s reason: a constraint names types, files and
+    # prior ids, so it carries the backtick and the apostrophe a shell reads first.
+    ship_parser.add_argument(
+        "--decides",
+        help=(
+            "the constraint the deleted design leaves behind, filed as one line in the "
+            "decisions role" + _PIPE
+        ),
+    )
     ship_parser.add_argument("--json", action="store_true", help="every edit, as data")
     ship_parser.set_defaults(
         handler=_ship,
@@ -474,6 +484,9 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
             # argument, and this one reached the ledger as a literal `-` because the handler
             # resolved `--why` by hand and this was added after that line was written.
             Prose(dest="superseded_design", omitted=False),
+            # RK1269, and declared here rather than remembered: a prose argument that is not
+            # on this tuple is one the pipe silently does not reach.
+            Prose(dest="decides", omitted=False),
         ),
     )
 

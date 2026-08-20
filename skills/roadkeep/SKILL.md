@@ -1,6 +1,6 @@
 ---
 name: roadkeep
-description: "Call the roadkeep CLI instead of editing a project's governed ROADMAP.md, CHANGELOG.md, IMPROVEMENTS.md or STRATEGY.md. Use when adding, shipping, retiring or recording a task, changing a marker, writing a rationale section, picking what to work on next, or reading a backlog, ledger or dependency graph — and whenever an edit to one of those files was denied or `roadkeep lint` reported a violation. Trigger words: roadmap, backlog, changelog, task line, block, ship, retire, next task, roadkeep."
+description: "Call the roadkeep CLI instead of editing a project's governed ROADMAP.md, CHANGELOG.md, IMPROVEMENTS.md, DECISIONS.md or STRATEGY.md. Use when adding, shipping, retiring or recording a task, changing a marker, writing a rationale section or a decision record, picking what to work on next, or reading a backlog, ledger or dependency graph — and whenever an edit to one of those files was denied or `roadkeep lint` reported a violation. Trigger words: roadmap, backlog, changelog, decision, ADR, task line, block, ship, retire, next task, roadkeep."
 ---
 
 # roadkeep — call the command, never type the format
@@ -127,7 +127,12 @@ the file it moved to — the docstring above the code, the test a criterion beca
 appended to the same sentence beside that clause and derived whole, so a decision that
 outlives the work explaining it keeps an address; refused at those same two doors and on
 a path this repository does not have. Never a section copied into a second file, which is
-the accreting rationale this tool exists to refuse.
+the accreting rationale this tool exists to refuse. **And the third of its three contents
+is the decision**: `--decides "<the constraint>"` files one line into the `decisions` role
+— an id, a marker, the task's own claim and your sentence, which is what an ADR is read as
+this format. It writes a fourth file, so it lands before the deletion and refuses the whole
+transaction where the role is undeclared, naming `declare decisions`; it reaches the
+closure door too, that one deleting the section as well, and is refused on a `--part`.
 And `--why` is **required**, because the roadmap's sentence states a problem and
 the ledger's states an outcome, so inheriting it files a defect report under a heading
 meaning "done" (`record amend <id> --why` is the repair where one already did). **A path
@@ -191,8 +196,9 @@ that refuses to run twice, so a role declined at scaffold time was otherwise a h
 configuration this tool owns. It writes the role's file with the block headings the roadmap
 already carries and inserts the one key, leaving every other byte of `roadkeep.toml` alone;
 refused where the role is declared, and it never repoints one — moving a governed file is not
-this write. Any of the five roles, so a project that wants a strategy document reaches it
-too — and
+this write. Any of the six roles, so a project that wants a strategy document or a
+`decisions` file reaches it too — that last one being the ADR every adopter asks for, and no
+scaffold ever writes it: a project has no decisions on the day it is created. And
 `resume <id> [--marker <m>]` is the return direction the ledger has none of — the reason
 wraps the `why` on the way out and is unwrapped on the way back, and the open marker is
 what the store could not keep, so `--marker` is where you say which it was (`--marker ⏳`

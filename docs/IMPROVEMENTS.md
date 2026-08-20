@@ -77,32 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1269 The decisions role — an ADR is this format already
-
-Adopters ask for ADR by name, and read as this format an ADR is the pair already written
-here: an id, a marker, one falsifiable claim, a `why`, and a section carrying the
-argument. `retire --superseded-by` is its Superseded-by, built and shipped. The only
-difference is the departure — a roadmap line leaves by three doors and a decision leaves
-by one, so nothing is ever deleted and the file grows only by decisions somebody
-actually made.
-
-So this is a role and not a second grammar. RK1064 made a role's shape declarable, RK340
-gives a prose file its own namespace, sections already carry the word budget, the
-round-trip and the pointer check, and `declare` retrofits a role a scaffold left out.
-What it costs is `ROLES` in `config.py` being a closed tuple that every reader of a role
-reads.
-
-Keep it named, and do not open that tuple to any word an adopter types: a role no
-machinery knows is a file with no schema, which is the convention this tool exists to
-replace.
-
-`ship --decides` is the door that files into it — one line, under the same limits,
-written at the moment the section is deleted and by the one reader who knows what
-survived it. Never the section copied whole.
-
-And it is priced: every verb costs the session at connect, so the read surface stays
-`show` and `brief` rather than a second query family.
-
 ## Block C — Query
 
 ### §RK1270 The config's shape, printed by the parser that enforces it

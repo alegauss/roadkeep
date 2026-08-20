@@ -199,6 +199,7 @@ GOVERNED = (
     "roadkeep.toml",
     "docs/ROADMAP.md",
     "docs/CHANGELOG.md",
+    "docs/DECISIONS.md",
     "docs/IMPROVEMENTS.md",
     "README.md",
     "agents.md",

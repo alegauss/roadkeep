@@ -194,3 +194,35 @@ def test_every_door_the_gate_offers_on_this_project_lands(tmp_path, capsys):
             capsys.readouterr()
     # And the gate is clean, which is the only proof the doors were the right ones.
     assert lint(Config.discover(root)).clean, [str(one) for one in lint(Config.discover(root)).findings]
+
+
+def test_the_role_a_decision_needs_is_opened_by_the_command_the_refusal_names(tmp_path, capsys):
+    """RK1269. `ship --decides` refuses where the project declares no decisions file, and the
+    remedy is a role rather than a field — so the whole value of printing it is that it runs
+    and the call that was refused then lands, in that order."""
+    root = outlined(tmp_path)
+    (root / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A\n\n### I A family\n\nProse enough to matter.\n",
+        encoding="utf-8",
+    )
+    (root / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A\n\n"
+        "- 📋 **TT1** (deps: —) **A symptom** — Because of a reason. → §I.1\n",
+        encoding="utf-8",
+    )
+    shipping = [
+        "-C", str(root), "ship", "TT1",
+        "--why", "The symptom no longer happens.",
+        "--decides", "The store is the repository: no database and no service.",
+    ]
+    assert main(shipping) == EXIT_USAGE
+    said = capsys.readouterr().err
+    ran = runs(root, said)
+    assert ran and ran[0][:2] == ["declare", "decisions"], said
+    # And the refused call now lands, which is the half a matched sentence cannot claim.
+    assert main(shipping) == EXIT_OK
+    capsys.readouterr()
+    assert "The store is the repository" in (root / "docs" / "DECISIONS.md").read_text(
+        encoding="utf-8"
+    )
+    assert lint(Config.discover(root)).clean

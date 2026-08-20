@@ -111,7 +111,14 @@ __all__ = [
 
 #: The governed files a block heading can belong in, in the order the answer reports them.
 #: A role is only written when its file already declares one — see the module docstring.
-BLOCK_ROLES = ("roadmap", "changelog", "deferred", "improvements", "strategy")
+BLOCK_ROLES = (
+    "roadmap",
+    "changelog",
+    "deferred",
+    "improvements",
+    "strategy",
+    "decisions",
+)
 
 #: What separates the label from the title where a file declares no separator of its own.
 #: Only reachable when the first block heading is the label alone, which no corpus writes.

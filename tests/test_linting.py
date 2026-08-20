@@ -124,6 +124,9 @@ def test_this_repository_passes_its_own_gate(checkout):
     assert report.checked == (
         "docs/ROADMAP.md",
         "docs/CHANGELOG.md",
+        # RK1269. Declared here so this repository's docs prove the role the way they prove
+        # every other one: a governed file no fixture exercises is a schema nothing tests.
+        "docs/DECISIONS.md",
         "docs/IMPROVEMENTS.md",
         # The one file here the tool does not own, read because it carries the markers that
         # say it restates the backlog (RK104). `docs/index.html` carries none, so it is not

@@ -62,6 +62,7 @@ from roadkeep import queueing, scoping
 from roadkeep.config import (
     CLAIM_HELD,
     CONFIG_NAME,
+    DECISIONS_PATH,
     DEFAULT_PATHS,
     DEFERRED_PATH,
     STRATEGY_PATH,
@@ -103,6 +104,23 @@ STRATEGY_ROLE = "strategy"
 #: writes every other governed file.
 DEFERRED_ROLE = "deferred"
 
+#: The sixth, and the one no scaffold ever writes (RK1269). `declare decisions` is its only
+#: door: `init` opens a project's backlog, and a project has no decisions on the day it is
+#: created — a file scaffolded there is an empty ADR directory, which is the convention this
+#: role exists to replace rather than reproduce.
+DECISIONS_ROLE = "decisions"
+
+#: Where each role's file goes when nobody names a path: `DEFAULT_PATHS` plus the three roles
+#: that are not part of a project's implied layout (RK1186, RK1259, RK1269). One table and no
+#: longer two identical literals — the scaffold and `declare` write the same file at the same
+#: place, and a role added to one of two copies is the role whose default depends on the door.
+_DEFAULT_FOR = {
+    **DEFAULT_PATHS,
+    STRATEGY_ROLE: STRATEGY_PATH,
+    DEFERRED_ROLE: DEFERRED_PATH,
+    DECISIONS_ROLE: DECISIONS_PATH,
+}
+
 #: The heading each scaffolded file opens with. Structural, not prose — the block headings
 #: below it are what `add`, `ship` and `section add` file text under.
 _TITLES = {
@@ -111,6 +129,7 @@ _TITLES = {
     "improvements": "Improvements",
     "strategy": "Strategy",
     "deferred": "Set aside",
+    "decisions": "Decisions",
 }
 
 #: The fields `adopt` measures against their limits, and where each one is read from.
@@ -875,11 +894,8 @@ def init(
             raise RepeatedBlock(label)
         seen.add(label)
 
-    # The scaffold's own table, which is `DEFAULT_PATHS` plus the two roles that are not part
-    # of a project's implied layout (RK1186, RK1259).
-    where = {**DEFAULT_PATHS, STRATEGY_ROLE: STRATEGY_PATH, DEFERRED_ROLE: DEFERRED_PATH}
-    paths = {role: base / where[role] for role in roles}
-    text = render_config(schema, {role: where[role] for role in roles})
+    paths = {role: base / _DEFAULT_FOR[role] for role in roles}
+    text = render_config(schema, {role: _DEFAULT_FOR[role] for role in roles})
     _verify(text, schema, base, paths)
 
     target = base / CONFIG_NAME
@@ -945,8 +961,7 @@ def declare(
         raise RoleDeclared(role, config.relative(config.path(role)))
     if config.source is None:
         raise Unconfigured(config.root)
-    where = {**DEFAULT_PATHS, STRATEGY_ROLE: STRATEGY_PATH, DEFERRED_ROLE: DEFERRED_PATH}
-    target = config.locate(path or where[role])
+    target = config.locate(path or _DEFAULT_FOR[role])
     if target.exists():
         raise WouldOverwrite([target], config.root)
     if (parent := blocking(target)) is not None:
@@ -2037,6 +2052,13 @@ GAINS: tuple[tuple[str, Callable[[Config, Document | None], bool], str], ...] = 
         "no `## Priority` section, so `pick` offers the lowest ready id: order is "
         "derived from the numbers, and work nobody wants next is offered first "
         "whenever its id happens to be lowest — a cost a long backlog feels",
+    ),
+    (
+        "decisions",
+        lambda config, _document: not config.has("decisions"),
+        "no decisions file, so a constraint that outlives the work explaining it has "
+        "nowhere governed to go: `ship --decides` refuses, and an ADR is kept by hand "
+        "or not at all — which is the convention every schema here replaces",
     ),
 )
 

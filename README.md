@@ -117,18 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 170 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 171 | 2 |
 | C — Query (consult without reading the file) | 1 | 112 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 1 | 93 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 119 | 1 |
 | G — The editor surface (the backlog where the file is open) | 1 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 4 | 757 | 10 |
+| **Total** | 3 | 758 | 10 |
 
 **Next ready:**
 
-- 🛠 **RK1269** (deps: —) **a decision that outlives the work explaining it has no governed file, so an ADR is kept by hand or not at all** — A `decisions` role is the line-and-section pair whose one departure is being superseded, so a decision record is a schema at insertion instead of a convention. → §RK1269
+- 📋 **RK1270** (deps: —) **nothing prints what `roadkeep.toml` may declare, so its keys live only in the parser that rejects them** — A verb answers the config's own shape — table, key, type, default, declared or not — so a reader outside the package compiles no second copy. → §RK1270
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
