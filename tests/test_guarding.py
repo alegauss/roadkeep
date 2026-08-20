@@ -1298,3 +1298,43 @@ def test_a_tree_with_no_config_has_nothing_to_advise_about(tmp_path):
 
     assert advise(write(str(tmp_path / "roadkeep.toml"), cwd=tmp_path), tmp_path) is None
 
+
+
+def test_one_reading_of_the_project_answers_both(tmp_path, monkeypatch):
+    """RK1283. `guard` resolved the config per target and threw it away on the way to `None`,
+    and `advise` then discovered the same file again — one `find_config` walk and one
+    `tomllib` parse per *allowed* write, which is the path every `Edit` a session makes goes
+    down. Counted rather than timed: the shape is the claim."""
+    from roadkeep import guarding
+
+    root = project(tmp_path)
+    reads = []
+    real = guarding.owning
+    monkeypatch.setattr(guarding, "owning", lambda path: reads.append(path) or real(path))
+
+    found = guarding.decide(write(str(root / "roadkeep.toml"), cwd=root), root)
+    assert found.advice is not None and found.refusal is None
+    # One target, one reading — where it used to be one for the refusal and one for the note.
+    assert len(reads) == 1
+
+
+def test_a_governed_target_beside_the_config_is_refused_and_not_advised(
+    tmp_path, monkeypatch, capsys
+):
+    # The order is a rule and not an ordering: the advice is held while any target may still
+    # be governed, because a call producing both would be two messages about one write.
+    from roadkeep import guarding
+
+    root = project(tmp_path)
+    payload = {
+        "hook_event_name": "PreToolUse",
+        "tool_name": "MultiEdit",
+        "cwd": str(root),
+        "tool_input": {
+            "file_path": str(root / "roadkeep.toml"),
+            "notebook_path": str(root / ROADMAP),
+        },
+    }
+    found = guarding.decide(payload, root)
+    assert found.refusal is not None
+    assert found.advice is None

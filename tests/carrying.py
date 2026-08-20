@@ -69,7 +69,7 @@ CARRIERS: tuple[Carrier, ...] = (
         # and the sentence names the verb four of its tables now have — so the door it spells
         # has to be one this session can call, exactly as a refusal's does.
         "guarding.py:Advice",
-        ("advise",),
+        ("decide",),
         "a write this gate allows, and the door four of its tables have (RK1280)",
     ),
     Carrier(
@@ -79,9 +79,11 @@ CARRIERS: tuple[Carrier, ...] = (
     ),
     Carrier(
         # Two sites and both real: a tool that names the path it writes is denied, and a
-        # `Bash` command that only mentions one is asked about (RK128).
+        # `Bash` command that only mentions one is asked about (RK128). `decide` and no
+        # longer `guard` since RK1283 — that one is now the refusal half of this reading,
+        # which is what makes an allowed write cost one config parse rather than two.
         "guarding.py:Refusal",
-        ("guard", "_mentioned"),
+        ("decide", "_mentioned"),
         "one write denied, and the commands that do it properly (RK22)",
     ),
     Carrier(

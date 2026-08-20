@@ -24,10 +24,9 @@ from roadkeep.fixing import Fix, fix
 from roadkeep.guarding import (
     START_EVENTS,
     STOP_EVENTS,
-    advise,
     announce,
     attested,
-    guard,
+    decide,
     review,
 )
 from roadkeep.history import HistoryUnavailable
@@ -329,7 +328,11 @@ def _guard(config: Config, args: argparse.Namespace) -> int:
         if said:
             print(json.dumps({"decision": "block", "reason": "\n\n".join(said)}, indent=2))
         return EXIT_OK
-    refusal = guard(payload, root)
+    # One reading of the project for both answers (RK1283): this is the hook the harness
+    # waits for before every `Edit`, and the config parse it used to make twice is the part
+    # of an allowed call that is not free.
+    barrier = decide(payload, root)
+    refusal = barrier.refusal
     if refusal is not None:
         print(
             json.dumps(
@@ -351,9 +354,8 @@ def _guard(config: Config, args: argparse.Namespace) -> int:
     # `allow` would grant the write and wave through the permission rules the user set for
     # every other file, which is the invariant this whole branch is written around — so what
     # is emitted is the message alone, and the harness decides as it would have anyway.
-    advice = advise(payload, root)
-    if advice is not None:
-        print(json.dumps({"systemMessage": str(advice)}, indent=2))
+    if barrier.advice is not None:
+        print(json.dumps({"systemMessage": str(barrier.advice)}, indent=2))
     return EXIT_OK
 
 

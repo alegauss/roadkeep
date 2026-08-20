@@ -740,58 +740,84 @@ class Advice:
         )
 
 
+@dataclass(frozen=True, slots=True)
+class Barrier:
+    """What one `PreToolUse` call answers: a refusal, a sentence, or neither (RK1283).
+
+    One record because it is **one walk**. `guard` resolved the config per target and threw it
+    away on the way to `None`, and `advise` then discovered the same file again — one
+    `find_config` walk and one `tomllib` parse per *allowed* write, on the path every `Edit` a
+    session makes goes down. What the barrier has always been careful about is what an allowed
+    call costs; this is that care, kept while the sentence was added.
+
+    The order is a rule and not an ordering (RK1280): the advice is held rather than returned
+    while any target may still be governed, because a call producing both would be two
+    messages about one write.
+    """
+
+    refusal: Refusal | None = None
+    advice: Advice | None = None
+
+
+def decide(payload: Mapping[str, object], root: str | Path = ".") -> Barrier:
+    """Both answers, from one reading of the project (RK22, RK1280, RK1283).
+
+    ``root`` is only the fallback for a payload with no ``cwd`` — the paths in the tool input
+    decide which project's configuration applies, because one hook process serves every
+    repository the session touches.
+    """
+    tool = payload.get("tool_name")
+    if not isinstance(tool, str) or tool not in GUARDED_TOOLS:
+        return Barrier()
+    base = _cwd(payload, root)
+    if tool in ASK_TOOLS:
+        # A command only *mentions* a path, so there is nothing here to advise about either:
+        # a sentence about four tables attached to a call that may be reading the file is
+        # prose about a write nobody made.
+        return Barrier(refusal=_mentioned(payload.get("tool_input"), base, tool))
+    advice: Advice | None = None
+    for path in _targets(payload.get("tool_input"), base):
+        config = owning(path)
+        if config is None:
+            continue
+        role = role_at(config, path)
+        if role is not None:
+            return Barrier(
+                refusal=Refusal(
+                    tool=tool,
+                    path=config.relative(path),
+                    role=role,
+                    exists=path.is_file(),
+                    served=served_by(config.root),
+                )
+            )
+        if config.source is not None and _comparable(path) == _comparable(config.source):
+            advice = Advice(
+                path=config.relative(config.source), served=served_by(config.root)
+            )
+    return Barrier(advice=advice)
+
+
 def advise(payload: Mapping[str, object], root: str | Path = ".") -> Advice | None:
     """The one thing to say about a write this gate allows, or ``None`` (RK1280).
 
-    Narrow twice over. Only the project's **own declaration** — the file `Config.discover`
-    resolved, so a `pyproject.toml` that configures nothing here says nothing — and only where
-    :func:`guard` already answered `None`, which the caller establishes: a path that is both
-    refused and advised would be two messages about one call.
+    Narrow twice over. Only the project's **own declaration** — the config this path resolves
+    to, so a `pyproject.toml` that configures nothing here says nothing — and only where
+    nothing was refused, which :func:`decide` establishes in one pass.
+
+    Kept as its own name for :func:`guard`'s reason: it is the question a reader outside this
+    module asks, and the tests that hold this boundary are written against it.
     """
-    tool = payload.get("tool_name")
-    if not isinstance(tool, str) or tool not in GUARDED_TOOLS or tool in ASK_TOOLS:
-        return None
-    base = _cwd(payload, root)
-    try:
-        config = Config.discover(base)
-    except (ConfigError, OSError, tomllib.TOMLDecodeError):
-        return None
-    if config.source is None:
-        return None
-    for path in _targets(payload.get("tool_input"), base):
-        if _comparable(path) == _comparable(config.source):
-            return Advice(
-                path=config.relative(config.source), served=served_by(config.root)
-            )
-    return None
+    return decide(payload, root).advice
 
 
 def guard(payload: Mapping[str, object], root: str | Path = ".") -> Refusal | None:
     """Decide one `PreToolUse` call: ``None`` allows, a :class:`Refusal` denies.
 
-    ``root`` is only the fallback for a payload with no ``cwd`` — the paths in the tool
-    input decide which project's configuration applies, because one hook process serves
-    every repository the session touches.
+    :func:`decide`'s refusal half, kept as its own name because that is the question every
+    caller outside this module asks and the one the tests are written against.
     """
-    tool = payload.get("tool_name")
-    if not isinstance(tool, str) or tool not in GUARDED_TOOLS:
-        return None
-    base = _cwd(payload, root)
-    if tool in ASK_TOOLS:
-        return _mentioned(payload.get("tool_input"), base, tool)
-    for path in _targets(payload.get("tool_input"), base):
-        found = governed(path)
-        if found is None:
-            continue
-        config, role = found
-        return Refusal(
-            tool=tool,
-            path=config.relative(path),
-            role=role,
-            exists=path.is_file(),
-            served=served_by(config.root),
-        )
-    return None
+    return decide(payload, root).refusal
 
 
 def _mentioned(raw: object, base: Path, tool: str) -> Refusal | None:
@@ -916,26 +942,52 @@ def _this_turn(config: Config, report: Report) -> Report:
     return replace(report, findings=tuple(kept))
 
 
-def governed(path: str | Path) -> tuple[Config, str] | None:
-    """The project that owns ``path`` and the role it holds there, or ``None``.
+def owning(path: str | Path) -> Config | None:
+    """The project whose declaration covers ``path``, or ``None`` (RK1283).
 
-    Discovery walks up from the file itself, so the answer does not depend on where the
-    hook process happened to be started. `roadkeep.toml` is *not* governed: it is the
-    per-project declaration (L6), which a human edits by hand on purpose.
+    The half :func:`governed` and :func:`advise` share, split out because both of them wanted
+    it on the same call: the barrier resolved the config per target, threw it away on the way
+    to `None`, and the advice then discovered the same file again — one `find_config` walk and
+    one `tomllib` parse per **allowed** write, which is the path every `Edit` a session makes
+    goes down.
+
+    Discovery walks up from the file itself, so the answer does not depend on where the hook
+    process happened to be started.
     """
-    target = Path(path)
-    found = find_config(target.parent)
+    found = find_config(Path(path).parent)
     if found is None:
         return None
     try:
-        config = Config.load(found)
+        return Config.load(found)
     except (ConfigError, OSError, tomllib.TOMLDecodeError):
         return None
-    wanted = _comparable(target)
+
+
+def role_at(config: Config, path: str | Path) -> str | None:
+    """Which governed role this path holds in that project, or ``None``.
+
+    `roadkeep.toml` is *not* governed: it is the per-project declaration (L6), which a human
+    edits by hand on purpose — and since RK1280 is told what four of its tables now have.
+    """
+    wanted = _comparable(Path(path))
     for role, declared in config.paths.items():
         if _comparable(declared) == wanted:
-            return config, role
+            return role
     return None
+
+
+def governed(path: str | Path) -> tuple[Config, str] | None:
+    """The project that owns ``path`` and the role it holds there, or ``None``.
+
+    The pair the two readers above compose, kept because it is the question every caller
+    outside this module asks — one path, one answer — and because the tests that hold this
+    boundary are written against it.
+    """
+    config = owning(path)
+    if config is None:
+        return None
+    role = role_at(config, path)
+    return None if role is None else (config, role)
 
 
 def _comparable(path: Path) -> str:

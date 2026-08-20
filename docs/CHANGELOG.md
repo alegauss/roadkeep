@@ -767,6 +767,7 @@
 - ✅ **RK1247** **The one message that stops an Edit defaults its prefix to a route the session may not have** — The refusal defaults to naming no route, so the four messages that block a turn say one thing.
 - ✅ **RK1260** **the MCP schemas offer '-' and stdin, an input channel no MCP client can provide** — The three verbs that write a body take a path over MCP too, so a rationale refused at 257 words costs an edit and a path instead of the other 250 characters again.
 - ✅ **RK1280** **the guard allows a hand edit to the config and says nothing, so a limit with a door is still typed past it** — A hand edit to the config is allowed and told which of its numbers have a verb, deciding nothing (design §RK1280 recorded in `src/roadkeep/guarding.py`).
+- ✅ **RK1283** **the guard parses the config twice on every allowed write, once to refuse nothing and once to advise** — The barrier reads the project once per call, so an allowed write costs one config parse.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
