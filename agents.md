@@ -43,7 +43,8 @@ so it carries no task numbers — `origin <id>` answers where a rule came from:
   locking claiming storing  scan-to-save is one span, who holds a line, one grammar
   scoping criteria queueing reverting  the non-goal, what finishes a block, the queue, the undone
   backlog counting picking showing graph briefing budgeting exporting history weighing
-  ranking remaining  the query surface, plus what git answers
+  ranking remaining describing  the query surface, what git answers, and what `roadkeep.toml`
+                     may say
   linting fixing remedying repairing  the gate, the derived-only fixer, the door every
                   finding names, and the verb that runs the whole report back
   adopting installing  `init` scaffolds, `declare` retrofits a role, `adopt` estimates,

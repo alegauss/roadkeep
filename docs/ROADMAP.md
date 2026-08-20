@@ -31,7 +31,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1270** (deps: —) **nothing prints what `roadkeep.toml` may declare, so its keys live only in the parser that rejects them** — A verb answers the config's own shape — table, key, type, default, declared or not — so a reader outside the package compiles no second copy. → §RK1270
 - 📋 **RK1275** (deps: —) **the shipping allowance names one of the three writes a ship composes, so two sentences are written blind** — The pre-write read answers for every clause and every file a departure writes, so an allowance quoted is the one that binds. → §RK1275
 
 ## Block D — The gate
@@ -44,7 +43,7 @@
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-- 📋 **RK1271** (deps: RK1270) **the editor completes nothing in `roadkeep.toml`, so every key is typed from memory** — The panel offers the keys the package printed and hovers their reason, so a declaration is composed against its shape instead of checked after it exists. → §RK1271
+- 📋 **RK1271** (deps: RK1270 ✅) **the editor completes nothing in `roadkeep.toml`, so every key is typed from memory** — The panel offers the keys the package printed and hovers their reason, so a declaration is composed against its shape instead of checked after it exists. → §RK1271
 
 ## Block H — The tool's own shape (what one verb costs to change)
 

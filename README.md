@@ -118,17 +118,17 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 171 | 2 |
-| C — Query (consult without reading the file) | 2 | 112 | 1 |
+| C — Query (consult without reading the file) | 1 | 113 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 1 | 93 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 119 | 1 |
 | G — The editor surface (the backlog where the file is open) | 1 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 6 | 758 | 10 |
+| **Total** | 5 | 759 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1270** (deps: —) **nothing prints what `roadkeep.toml` may declare, so its keys live only in the parser that rejects them** — A verb answers the config's own shape — table, key, type, default, declared or not — so a reader outside the package compiles no second copy. → §RK1270
+- 📋 **RK1271** (deps: RK1270 ✅) **the editor completes nothing in `roadkeep.toml`, so every key is typed from memory** — The panel offers the keys the package printed and hovers their reason, so a declaration is composed against its shape instead of checked after it exists. → §RK1271
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -747,6 +747,30 @@ def _gaps(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _config_shape(config: Config, args: argparse.Namespace) -> int:
+    """What `roadkeep.toml` may declare, and what this project did (RK1270).
+
+    Never refused over the project's *state* — a tree with no config at all is answered, that
+    being the caller who most needs the list — and refused over the **argument**, a table name
+    this build does not have being a typo rather than a table somebody has yet to declare.
+    """
+    from roadkeep.describing import payload, shape, stated  # noqa: PLC0415 - RK260
+
+    try:
+        # Straight through, and the default is `None` rather than `""` for exactly one
+        # reason: the top level's own name *is* the empty string, so a default of `""` would
+        # make `--table ""` unaskable — the one table a reader starts from.
+        found = shape(config, args.table)
+    except KeyError as error:
+        return _refused(error)
+
+    if args.json:
+        print(json.dumps(payload(found), indent=2))
+    else:
+        print(stated(found))
+    return EXIT_OK
+
+
 def _anchors(config: Config, args: argparse.Namespace) -> int:
     """Live and retired addresses across this project's prose (RK247, RK297).
 
@@ -1565,6 +1589,30 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     )
     gaps_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     gaps_parser.set_defaults(handler=_gaps, reads_only=True)
+
+    config_parser = subcommands.add_parser(
+        "config",
+        help="what roadkeep.toml may declare: every table, key, type and default",
+        description=(
+            "Print the shape of this project's own configuration, answered by the package "
+            "that refuses everything else (RK1270). One row per key — its table, its type, "
+            "what this build uses when nobody declares it, and whether this project did — "
+            "with the sentence the source already carries above each table. What is listed "
+            "is what *this* copy accepts, which is how a key it predates is told from a typo, "
+            "so the build that answered is named. It reads and never writes."
+        ),
+    )
+    config_parser.add_argument(
+        "--table",
+        default=None,
+        help=(
+            "one table, spelled as the answer spells it — omitted, every one; the top level "
+            "is the empty string, and a table declared per role or per path carries the "
+            "placeholder, e.g. rules.<role>"
+        ),
+    )
+    config_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    config_parser.set_defaults(handler=_config_shape, reads_only=True)
 
     anchors_parser = subcommands.add_parser(
         "anchors",

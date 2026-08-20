@@ -277,6 +277,9 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # calls `--next` "the read an `add --ref` makes every time", and the tool that
         # refuses a wrong anchor was served while the read preventing it was not.
         "anchors",
+        # RK1270. The read whose subject is the config rather than a governed file: the caller
+        # that has to declare a key is the agent this transport is reached from.
+        "config",
         "origin",
         "reversals",
         "claims",

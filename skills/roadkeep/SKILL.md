@@ -22,7 +22,7 @@ tool list rather than typing it: the whole write path and the reads a task needs
 `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_amend`,
 `non_goal_drop`, `criterion_add`, `criterion_amend`, `criterion_drop`, `criterion_list`,
 `section_add`, `section_amend`, `section_move`, `section_drop`, `budget`,
-`brief`, `pick`, `list`, `deps`, `lint`, `engines`, `merge_check` — same engine and same
+`brief`, `pick`, `list`, `deps`, `lint`, `config`, `engines`, `merge_check` — same engine and same
 refusals, with the fields arriving as a schema instead of flag names typed from memory.
 `init`, `adopt` and `install` run *before* a project is governed, or on its wiring, and want
 the CLI — `declare` above is the one write on a configured tree, which is why it is served
@@ -544,7 +544,12 @@ is the largest row, it is split by where each clause is written: a tool that alw
 flag carries that flag's own `help`, edited somewhere else. Nothing refuses it —
 the number is stated so that adding a tool or a
 sentence to a description stops looking free, which is the argument `[budgets]` makes about
-a file that loads every turn. Every
+a file that loads every turn. **And `config` is the read about `roadkeep.toml` itself**:
+every table, key, TOML type and default this build accepts, with the sentence its
+source already carries and whether *this* project declared it — `--table <name>` for one,
+`--table ""` for the top level. Reach for it before writing a key rather than after the
+refusal, and read the build it names: a key nothing declares is a typo, a key this copy
+predates is an upgrade, and the file cannot tell them apart. Every
 verb that prints a section's size states **two** figures where they differ — `48 words,
 310 with subsections (limit 300)` — because the argument is what an `amend` can shorten
 and the subtree is what a reader pays; cutting to the second number cuts prose that was

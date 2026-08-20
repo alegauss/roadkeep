@@ -8,6 +8,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- ✅ **RK1270** **nothing prints what `roadkeep.toml` may declare, so its keys live only in the parser that rejects them** — The shape of `roadkeep.toml` is read off the frozensets that refuse it, never a second copy.
+
 ## Block D — The gate
 
 ## Block E — Adoption

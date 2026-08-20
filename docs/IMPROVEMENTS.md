@@ -127,28 +127,6 @@ verb gives — no, and say where the line went.
 
 ## Block C — Query
 
-### §RK1270 The config's shape, printed by the parser that enforces it
-
-`_TOP_KEYS`, `_LIMIT_KEYS`, `_MARKER_KEYS` and six more frozensets are the complete
-statement of what this file may say, and their only reader is `_reject_unknown`. That is
-enough to refuse a typo and not enough to answer the question asked before anything is
-typed: what may go here, and what does it mean.
-
-Every consumer needing that answer has so far written it again. The scaffold `init`
-emits knows the tables; `declare` knows `[files]`; a completion list in an editor would
-know all of them. Each copy is L6 broken from a different side — the shape of a
-project's own declaration decided somewhere other than the package that reads it.
-
-So the package prints it, once. One payload per key: its table, its type, its default,
-whether this project declared it, and the sentence already attached to the frozenset as
-a `#:` comment — harvested from the source, never restated beside it.
-
-What this is not is a schema for somebody else's validator. The shape published is what
-*this build* accepts, and that is the distinction `ConfigError`'s skew clause exists
-for: a key nothing declared is a typo, a key this build predates is an upgrade, and the
-file cannot tell them apart. A payload naming the build that answered lets a reader
-conclude the second one — the sentence that refusal wanted and had no way to reach.
-
 ### §RK1275 The allowance for a transaction, not for a line
 
 RK1261's finding, re-opened by the two flags filed after it. `brief` quotes what a

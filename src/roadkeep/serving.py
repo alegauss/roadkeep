@@ -593,6 +593,10 @@ TOOLS: tuple[Tool, ...] = (
     # tool list is context an agent pays for on every turn — so the line is the skill, which
     # is the same authority that decides which command to call in the first place.
     Tool("anchors", ("family", "block", "role", "only_next", "claims")),
+    # The one read whose subject is `roadkeep.toml` rather than a governed file (RK1270). Served
+    # because the caller that has to declare a key is the agent this transport is reached from,
+    # and the file it would otherwise guess at is the one every other rule here is read out of.
+    Tool("config", ("table",)),
     Tool("origin", ("id", "why")),
     Tool("reversals", ("task_id",)),
     # `--prune` writes the registry, so it is withheld exactly as `lint --fix` is (RK16).

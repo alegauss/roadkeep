@@ -81,6 +81,9 @@ QUESTIONS: tuple[Question, ...] = (
         ("unclosed",),
     ),
     Question("which rationale addresses are spent, and what is the next free one", ("anchors",)),
+    # RK1270. The one read whose subject is `roadkeep.toml`, which every other rule here is
+    # read out of and which nothing printed the shape of.
+    Question("what may roadkeep.toml declare, and what did this project declare", ("config",)),
     Question("what does this rationale section say, and what does it cost", ("section", "show", "RK1")),
     Question("who is holding a line right now", ("claims",)),
     Question("which paths does this task own, and does the tree still agree", ("claim", "RK1")),
