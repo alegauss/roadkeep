@@ -26,9 +26,13 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1274** (deps: —) **a decision is never marked superseded, so the file records that one was made and not that it stopped holding** — A verb supersedes one decision by another, writing the forward pointer and the marker in one call, so the role's one departure exists. → §RK1274
+- 📋 **RK1276** (deps: —) **a criteria address refused for a paused id says the work shipped, so a pause reads like a typo** — The refusal names the store and `resume` where a line is paused, which is the answer every other write reaching a line by id gives. → §RK1276
+
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1270** (deps: —) **nothing prints what `roadkeep.toml` may declare, so its keys live only in the parser that rejects them** — A verb answers the config's own shape — table, key, type, default, declared or not — so a reader outside the package compiles no second copy. → §RK1270
+- 📋 **RK1275** (deps: —) **the shipping allowance names one of the three writes a ship composes, so two sentences are written blind** — The pre-write read answers for every clause and every file a departure writes, so an allowance quoted is the one that binds. → §RK1275
 
 ## Block D — The gate
 

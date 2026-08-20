@@ -77,6 +77,54 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1274 The door a decision leaves by
+
+A decision leaves by one door, which is what separates the role from the ledger — and
+that door was described and not built. The grammar declares 🗑 legal in the decisions
+file, because `retire --superseded-by` is the ADR's Superseded-by read as this format;
+nothing writes it there. Measured on the file this repository just opened: every line is
+✅ and no call can make one anything else.
+
+So the role records that a decision was made and never that it stopped holding, which is
+the half an ADR is kept for. A reader finds a constraint and cannot tell a live one from
+one three decisions have since replaced.
+
+`retire` is the wrong verb and its shape is the right one. That one starts from an open
+roadmap line, and a decision has none: the line it came from is in the ledger before the
+decision is written. So the door starts from the decisions file itself, takes the entry
+being replaced and the one replacing it, and does what `record add --supersedes` already
+does one file over — write the forward pointer onto the entry that is now stale and
+change its marker, in one write, because two records of one reversal that do not name
+each other is the state RK395 closed for the ledger.
+
+Nothing is deleted, which is the role's whole rule: both lines stay and the marker says
+which is live.
+
+### §RK1276 A pause is not a departure, at the one door that says it is
+
+`criterion add --task <id>` resolves the address against the roadmap, correctly: a list
+about work the ledger already holds is a question somebody answered by shipping. The
+refusal says exactly that, and for one of the three absences it is false.
+
+An id can be missing from the roadmap for three reasons and they are not one fact. It
+shipped, it was retired, or it is **paused** — and a paused line keeps its id, its deps,
+its symptom and its section, which is what separates a pause from a departure (RK96).
+Its criteria are still the right question; the answer is `resume`, not a rewritten
+claim.
+
+The message sends the reader the other way: told the question was answered by shipping,
+an author who paused the line yesterday reaches for a second id.
+
+Every other write that reaches a line by id already draws this distinction: `amend`,
+`restate` and `status` each refuse a paused one **naming the store and `resume`**, so a
+refusal about a pause never reads like one about a typo. This is the same refusal at the
+one door that has not learnt it, and the reader that knows the answer already exists —
+`Whereabouts` is what the departure verbs ask.
+
+Scope: the message and nothing else. Whether a paused task's list should be writable at
+all is a separate question, and the answer this repair assumes is the one every sibling
+verb gives — no, and say where the line went.
+
 ## Block C — Query
 
 ### §RK1270 The config's shape, printed by the parser that enforces it
@@ -100,6 +148,29 @@ What this is not is a schema for somebody else's validator. The shape published 
 for: a key nothing declared is a typo, a key this build predates is an upgrade, and the
 file cannot tell them apart. A payload naming the build that answered lets a reader
 conclude the second one — the sentence that refusal wanted and had no way to reach.
+
+### §RK1275 The allowance for a transaction, not for a line
+
+RK1261's finding, re-opened by the two flags filed after it. `brief` quotes what a
+`ship` has left for its sentence and names one thing that will be appended to it: the
+supersession clause, at 30 characters here. Two more writes have since landed and
+neither is in that number.
+
+`--recorded-in` composes into the same sentence. Its wrapper is derivable exactly as the
+supersession's is — the anchor is the pointer the line already carries — and only the
+path's own length is the caller's, which is the shape `--part` is already described in.
+So the figure quoted at the moment a task is about to lose its design is wrong by a
+clause whose size this tool knows.
+
+`--decides` is the other half and it is not that line at all: it writes a line in the
+decisions role, under that role's own limits, and no read quotes them. So the one
+sentence this format asks an author to compose blind is the one recording what outlives
+the code — refused after it is written, which is the failure L1 exists to remove.
+
+Both are the same repair at two addresses: the pre-write read answers for the whole
+transaction, which is what it already claims to do for `add --section`. What it must not
+do is guess — a path nobody has typed has no length, so the wrapper is quoted and the
+value is the author's, said as such.
 
 ## Block D — The gate
 
