@@ -178,26 +178,6 @@ which is a different fact from one declared as zero and is said as such.
 
 ## Block E — Adoption
 
-### §RK1279 The roles a line lives in, derived
-
-`_limits` walks the roles a task line can live in and spells them: roadmap, changelog,
-deferred, decisions. That tuple is `ROLES` minus the prose ones, written out — and the
-sixth role was added the same week, which is how long a literal like this stays right.
-
-The failure it produces is the quiet one. A seventh role that carries lines gets no
-reading, so `govern` reports a widest measured over four files where five hold lines and
-accepts a limit the fifth already breaks. Nothing goes red: the number lands, the write
-succeeds, and the gate reports it on the next run — which is precisely the sequence this
-verb was built to prevent, arriving through the reading rather than through the write.
-
-The same guard is already written twice in that function: the loop skips a prose role it
-can never see, because the literal was assembled by hand and the check was added against
-it. Two statements of one set, one of them unreachable.
-
-`ROLES` and `PROSE_ROLES` are the declaration, and the difference between them is what a
-line file is. Deriving it there is one expression and no second list — the reading this
-module makes everywhere else about the config, made about the config's own roles.
-
 ## Block F — The plugin
 
 ### §RK1280 The one file the guard allows, and what it could say

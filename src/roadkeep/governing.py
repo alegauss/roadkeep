@@ -254,7 +254,7 @@ def _limits(
     the rendered line for `line` — because a number compared against the wrong unit is the one
     kind of reading that looks right.
     """
-    from roadkeep.config import PROSE_ROLES  # noqa: PLC0415 - RK260
+    from roadkeep.config import PROSE_ROLES, ROLES  # noqa: PLC0415 - RK260
 
     if key == "prose":
         # A width and not a ceiling, which is the one key in this table nothing refuses: it
@@ -271,10 +271,15 @@ def _limits(
         )
     if key == "section":
         return _sections(config, address, key, declared)
-    roles = (role,) if role else ("roadmap", "changelog", "deferred", "decisions")
+    # Derived and never listed (RK1279): a line file is a declared role that is not a prose
+    # one, so the sixth role was measured the day it arrived and the seventh will be. The
+    # written-out tuple this replaces was already stale-by-construction — `decisions` landed
+    # the same week — and it failed *quietly*, reporting a widest over four files where five
+    # hold lines and accepting a limit the fifth already breaks.
+    roles = (role,) if role else tuple(one for one in ROLES if one not in PROSE_ROLES)
     worst, where, sites = 0, "", 0
     for one in roles:
-        if not config.has(one) or one in PROSE_ROLES:
+        if not config.has(one):
             continue
         document = config.document(one)
         for entry in document.entries:

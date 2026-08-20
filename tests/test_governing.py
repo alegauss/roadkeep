@@ -232,3 +232,34 @@ def test_a_role_of_its_own_is_the_table_the_address_names(tmp_path):
     # The shared table is untouched, which is the whole reason the role is an argument.
     assert "why = 200" in after
     assert Config.discover(tmp_path).schema_for("changelog").why_max == 150
+
+
+def test_the_roles_a_line_reading_walks_are_the_declared_ones(tmp_path):
+    """RK1279. A written-out tuple of the roles that carry lines was stale by construction —
+    the sixth landed the same week — and it failed *quietly*: a role left out is a file the
+    reading never opens, so a limit it already breaks is accepted and the gate reports it on
+    the next run, which is the sequence this verb exists to prevent."""
+    from roadkeep.config import PROSE_ROLES, ROLES
+
+    project(
+        tmp_path,
+        config=CONFIG.replace(
+            'changelog = "docs/CHANGELOG.md"',
+            'changelog = "docs/CHANGELOG.md"\ndecisions = "docs/DECISIONS.md"',
+        ),
+    )
+    # The declaration is the set, so this is the whole claim: every line role and no other.
+    walked = tuple(one for one in ROLES if one not in PROSE_ROLES)
+    assert "decisions" in walked and "improvements" not in walked
+
+    # And the reading opens the sixth: a symptom only that file carries is what decides.
+    (tmp_path / "docs" / "DECISIONS.md").write_text(
+        "# Decisions\n\n## Block A — The model\n\n"
+        "- ✅ **RK9** **A decision whose claim is very much wider than the roadmap's own one**"
+        " — Because it is.\n",
+        encoding="utf-8",
+        newline="",
+    )
+    found = governing.reading(Config.discover(tmp_path), "limits.symptom")
+    assert found.sites == 2
+    assert found.where.endswith("DECISIONS.md:5"), found.where
