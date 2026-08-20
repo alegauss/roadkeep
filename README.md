@@ -117,18 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 2 | 171 | 2 |
+| B — Authoring (insert, never hand-edit) | 1 | 172 | 2 |
 | C — Query (consult without reading the file) | 2 | 113 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 95 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 119 | 1 |
 | G — The editor surface (the backlog where the file is open) | 1 | 12 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 6 | 762 | 10 |
+| **Total** | 5 | 763 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1274** (deps: —) **a decision is never marked superseded, so the file records that one was made and not that it stopped holding** — A verb supersedes one decision by another, writing the forward pointer and the marker in one call, so the role's one departure exists. → §RK1274
+- 📋 **RK1275** (deps: —) **the shipping allowance names one of the three writes a ship composes, so two sentences are written blind** — The pre-write read answers for every clause and every file a departure writes, so an allowance quoted is the one that binds. → §RK1275
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

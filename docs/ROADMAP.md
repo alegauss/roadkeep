@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1274** (deps: —) **a decision is never marked superseded, so the file records that one was made and not that it stopped holding** — A verb supersedes one decision by another, writing the forward pointer and the marker in one call, so the role's one departure exists. → §RK1274
 - 📋 **RK1276** (deps: —) **a criteria address refused for a paused id says the work shipped, so a pause reads like a typo** — The refusal names the store and `resume` where a line is paused, which is the answer every other write reaching a line by id gives. → §RK1276
 
 ## Block C — Query (consult without reading the file)

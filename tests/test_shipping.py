@@ -42,6 +42,7 @@ from roadkeep.kernel.schema import (
 from roadkeep.shipping import AlreadyRecorded, NoQualifier, NoSuchPath, SecondPartial
 from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
+    AlreadySuperseded,
     Divergent,
     NoCompletion,
     NoDesign,
@@ -52,6 +53,7 @@ from roadkeep.shipping import (
     Closure,
     NoRestatement,
     NoDecision,
+    NotDecided,
     NotOpen,
     RecordingCrowded,
     RemainderRefused,
@@ -60,6 +62,7 @@ from roadkeep.shipping import (
     record,
     retire,
     ship,
+    supersede,
     supersession_cost,
 )
 from roadkeep.shipping import amend as amend_record
@@ -2884,3 +2887,98 @@ def test_the_flag_reaches_the_command_line_and_answers_as_a_write(tmp_path, caps
     assert payload["decisions"]["file"] == DECISIONS
     assert payload["decisions"]["line"] > 0
     assert "The store is the repository." in payload["decisions"]["rendered"]
+
+
+# -- the door a decision leaves by (RK1274) -----------------------------------
+
+
+def _decided(tmp_path: Path) -> Config:
+    """The fixture with two decisions already filed, which is what a supersession needs."""
+    config = _deciding(tmp_path)
+    ship(config, "RK1", why="It works now.", decides="The store is the repository.").save()
+    config = Config.discover(tmp_path)
+    ship(config, "RK2", why="It works too.", decides="The store is a service after all.").save()
+    return Config.discover(tmp_path)
+
+
+def test_a_decision_that_stopped_holding_is_marked_and_never_deleted(tmp_path):
+    """The defect. The grammar declared 🗑 legal in that file because `retire --superseded-by`
+    is the ADR's Superseded-by read as this format, and nothing wrote it there — so the role
+    recorded that a decision was made and never that it stopped holding, which is the half an
+    ADR is kept for."""
+    config = _decided(tmp_path)
+    found = supersede(config, "RK1", by="RK2")
+    found.save()
+
+    decided = read(Config.discover(tmp_path), DECISIONS)
+    assert "🗑 **RK1**" in decided
+    assert "(superseded by RK2)." in decided
+    # Both stay, which is the role's whole rule: the marker says which is live.
+    assert "✅ **RK2**" in decided
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_the_reason_is_the_entry_that_replaced_it_and_not_a_field(tmp_path):
+    # Derived end to end (RK8, L4): why one decision replaced another is the argument in the
+    # replacing entry, already written and one line away, so there is nothing to compose.
+    config = _decided(tmp_path)
+    found = supersede(config, "RK1", by="RK2")
+
+    assert found.replacement == "RK2"
+    assert "superseded by RK2" in found.rendered
+    assert "The store is the repository" in found.rendered, "the original sentence stays"
+
+
+def test_a_decision_is_superseded_once_and_the_chain_reads_forwards(tmp_path):
+    # Nothing here is deleted, so an entry carrying two forward pointers is a chain a reader
+    # would have to date to walk — and this file records no dates, which is a non-goal.
+    config = _decided(tmp_path)
+    supersede(config, "RK1", by="RK2").save()
+    config = Config.discover(tmp_path)
+    before = read(config, DECISIONS)
+    with pytest.raises(AlreadySuperseded) as caught:
+        supersede(config, "RK1", by="RK2")
+
+    assert "superseded once" in str(caught.value)
+    assert read(Config.discover(tmp_path), DECISIONS) == before
+
+
+def test_a_replacement_this_file_does_not_record_is_refused_by_name(tmp_path):
+    """`NotRecorded` one file over, and separate for its reason: a caller holding a decision's
+    address would be sent to the ledger by a message that was right about the other file."""
+    config = _decided(tmp_path)
+    with pytest.raises(NotDecided) as caught:
+        supersede(config, "RK1", by="RK9")
+
+    said = str(caught.value)
+    assert "records no decision RK9" in said and "--by" in said
+    assert "ship --decides" in said, "the door that files one is what a caller needs"
+
+
+def test_a_decision_cannot_replace_itself_and_the_refusal_is_this_door_s(tmp_path):
+    # `retire`'s message names that verb and its abandoned door, neither of which exists here.
+    config = _decided(tmp_path)
+    with pytest.raises(ValueError) as caught:
+        supersede(config, "RK1", by="RK1")
+
+    said = str(caught.value)
+    assert "cannot supersede itself" in said
+    assert "retire" not in said and "abandoned" not in said
+
+
+def test_a_project_with_no_decisions_role_has_nothing_to_supersede(tmp_path):
+    config = project(tmp_path)
+    with pytest.raises(KeyError) as caught:
+        supersede(config, "RK1", by="RK2")
+
+    assert "declare decisions" in str(caught.value)
+
+
+def test_the_verb_reaches_the_command_line_and_names_the_file_it_wrote(tmp_path, capsys):
+    _decided(tmp_path)
+    assert main(["-C", str(tmp_path), "supersede", "RK1", "--by", "RK2"]) == EXIT_OK
+    said = capsys.readouterr().out
+
+    assert "RK1 superseded by RK2" in said
+    assert "nothing in this file is ever deleted" in said
+    assert f"git add -- {DECISIONS}" in said

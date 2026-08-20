@@ -5,6 +5,7 @@
 ## Block B — Authoring (insert, never hand-edit)
 
 - ✅ **RK1269** **a decision that outlives the work explaining it has no governed file, so an ADR is kept by hand or not at all** — ROLES is closed and named: a role no machinery knows is a file with no schema.
+- ✅ **RK1274** **a decision is never marked superseded, so the file records that one was made and not that it stopped holding** — A decision is superseded once, and both entries stay: the marker says which one is live.
 
 ## Block C — Query (consult without reading the file)
 

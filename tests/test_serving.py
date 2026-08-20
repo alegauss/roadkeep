@@ -201,6 +201,9 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         "renumber",
         "ship",
         "retire",
+        # RK1274. The decisions role's one departure, beside the two a line has: the session
+        # that replaced a constraint is the one that knows which it replaced.
+        "supersede",
         # The third and fourth doors a line leaves and returns by (RK91) — beside the two
         # terminal ones, because a session that has to choose between them is at that spot.
         "defer",
@@ -1079,6 +1082,9 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "renumber",
         "ship",
         "retire",
+        # RK1274. The decisions role's one departure, beside the two a line has: the session
+        # that replaced a constraint is the one that knows which it replaced.
+        "supersede",
         # The third and fourth doors a line leaves and returns by (RK91) — beside the two
         # terminal ones, because a session that has to choose between them is at that spot.
         "defer",

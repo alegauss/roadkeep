@@ -371,6 +371,28 @@ def _reversals(config: Config, args: argparse.Namespace) -> int:
     return EXIT_GATE if answer.gated else EXIT_OK
 
 
+def _supersede(config: Config, args: argparse.Namespace) -> int:
+    """The one door a decision leaves by (RK1274), which is not a departure from a backlog.
+
+    Nothing is deleted and nothing is composed: both entries stay, the marker says which is
+    live, and the clause naming the replacement is derived — so this handler passes two ids
+    and reads the answer off the record like every other write here.
+    """
+    from roadkeep.shipping import supersede  # noqa: PLC0415 - RK260
+
+    try:
+        found = supersede(config, args.id, by=args.by)
+        wrote = found.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    if args.json:
+        print(json.dumps(found.payload(config, wrote), indent=2))
+    else:
+        print(found.stated(config, wrote))
+    return EXIT_OK
+
+
 def _retire(config: Config, args: argparse.Namespace) -> int:
     """Record a line leaving without shipping, and say where its replacement is (RK32, RK244).
 
@@ -730,6 +752,29 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
     reversals_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     reversals_parser.set_defaults(handler=_reversals, reads_only=True)
 
+
+    supersede_parser = subcommands.add_parser(
+        "supersede",
+        help="mark one decision replaced by another, in the file that holds both",
+        description=(
+            "The decisions role's one departure. A roadmap line leaves by three doors and a "
+            "decision leaves by being replaced, so nothing in that file is ever deleted: this "
+            "appends the forward pointer to the entry that is now stale and moves its marker, "
+            "in one write. Both ids have to be decisions this file already records — the "
+            "replacement is written by `ship --decides` before it can replace anything — and "
+            "there is no reason field, because why one decision replaced another is the "
+            "argument in the entry that replaced it, one line away."
+        ),
+    )
+    supersede_parser.add_argument("id", help="the decision being replaced, e.g. RK5")
+    supersede_parser.add_argument(
+        "--by",
+        required=True,
+        metavar="ID",
+        help="the decision that replaces it, already filed in the same file",
+    )
+    supersede_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    supersede_parser.set_defaults(handler=_supersede)
 
     retire_parser = subcommands.add_parser(
         "retire",

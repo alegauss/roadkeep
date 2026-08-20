@@ -18,7 +18,7 @@ When this session's roadkeep tools are available, **prefer them** — named
 `mcp__plugin_<plugin>_roadkeep__*` where a plugin provides it, so read the prefix off the
 tool list rather than typing it: the whole write path and the reads a task needs are there
 — `add`, `block_add`, `block_drop`, `block_merge`, `declare`, `claim`, `scope`, `status`, `amend`,
-`restate`, `ship`, `retire`, `defer`, `resume`, `record_add`, `record_amend`,
+`restate`, `ship`, `retire`, `supersede`, `defer`, `resume`, `record_add`, `record_amend`,
 `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_amend`,
 `non_goal_drop`, `criterion_add`, `criterion_amend`, `criterion_drop`, `criterion_list`,
 `section_add`, `section_amend`, `section_move`, `section_drop`, `budget`,
@@ -133,6 +133,11 @@ is the decision**: `--decides "<the constraint>"` files one line into the `decis
 this format. It writes a fourth file, so it lands before the deletion and refuses the whole
 transaction where the role is undeclared, naming `declare decisions`; it reaches the
 closure door too, that one deleting the section as well, and is refused on a `--part`.
+**And that file's one departure is `supersede <id> --by <id>`**: a decision leaves by being
+replaced, so both entries stay and the marker says which is live — the forward pointer and
+the retired marker in one write, both ids being decisions already filed. No reason field:
+why one replaced another is the argument in the entry that replaced it, one line away. A
+decision is superseded once, and what replaces the replacement supersedes that one.
 And `--why` is **required**, because the roadmap's sentence states a problem and
 the ledger's states an outcome, so inheriting it files a defect report under a heading
 meaning "done" (`record amend <id> --why` is the repair where one already did). **A path

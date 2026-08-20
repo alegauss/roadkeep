@@ -295,7 +295,9 @@ def test_every_write_command_is_either_wired_or_exempted():
     # grammar's are: they write the roadmap and the staging line is what a commit reads.
     # 40 since `govern` (RK1272), wired for `declare`'s reason: the one file it writes is
     # `roadkeep.toml`, and a number moved there changes what every other write is held to.
-    assert len(declared) == 40 and len(wired) == 34
+    # 41 since `supersede` (RK1274), wired for every bullet grammar's: it writes the decisions
+    # file, and the staging line is what a commit about a replaced constraint reads.
+    assert len(declared) == 41 and len(wired) == 35
 
 
 def test_every_wired_write_reaches_the_one_printer():

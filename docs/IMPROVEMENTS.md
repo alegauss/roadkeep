@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1274 The door a decision leaves by
-
-A decision leaves by one door, which is what separates the role from the ledger — and
-that door was described and not built. The grammar declares 🗑 legal in the decisions
-file, because `retire --superseded-by` is the ADR's Superseded-by read as this format;
-nothing writes it there. Measured on the file this repository just opened: every line is
-✅ and no call can make one anything else.
-
-So the role records that a decision was made and never that it stopped holding, which is
-the half an ADR is kept for. A reader finds a constraint and cannot tell a live one from
-one three decisions have since replaced.
-
-`retire` is the wrong verb and its shape is the right one. That one starts from an open
-roadmap line, and a decision has none: the line it came from is in the ledger before the
-decision is written. So the door starts from the decisions file itself, takes the entry
-being replaced and the one replacing it, and does what `record add --supersedes` already
-does one file over — write the forward pointer onto the entry that is now stale and
-change its marker, in one write, because two records of one reversal that do not name
-each other is the state RK395 closed for the ledger.
-
-Nothing is deleted, which is the role's whole rule: both lines stay and the marker says
-which is live.
-
 ### §RK1276 A pause is not a departure, at the one door that says it is
 
 `criterion add --task <id>` resolves the address against the roadmap, correctly: a list

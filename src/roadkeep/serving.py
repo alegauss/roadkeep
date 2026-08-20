@@ -409,6 +409,10 @@ TOOLS: tuple[Tool, ...] = (
         ),
     ),
     Tool("retire", ("id", "reason", "superseded_by")),
+    # The decisions role's one departure (RK1274), served for the reason `ship --decides` is:
+    # the session that just replaced a constraint is the one that knows which it replaced, and
+    # over this transport the alternative is a hand edit the guard denies.
+    Tool("supersede", ("id", "by")),
     Tool("defer", ("id", "reason")),
     Tool("resume", ("id", "marker")),
     # `supersedes` rides with it because the revert is one transaction (RK395): the entry that

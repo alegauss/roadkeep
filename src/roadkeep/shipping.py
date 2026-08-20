@@ -163,6 +163,7 @@ from roadkeep.sections import drop as drop_section
 __all__ = [
     "AlreadyRecorded",
     "AlreadyShipped",
+    "AlreadySuperseded",
     "Ambiguous",
     "Closure",
     "Corrected",
@@ -181,6 +182,7 @@ __all__ = [
     "NoSuchReplacement",
     "NotDuplicated",
     "NotOpen",
+    "NotDecided",
     "NotRecorded",
     "NotRedundant",
     "Partial",
@@ -190,6 +192,7 @@ __all__ = [
     "Refiled",
     "SecondPartial",
     "Section",
+    "Superseded",
     "Shipment",
     "Unchosen",
     "Wrapped",
@@ -200,6 +203,7 @@ __all__ = [
     "record",
     "retire",
     "ship",
+    "supersede",
 ]
 
 
@@ -2507,6 +2511,155 @@ def _holding(backlog: Backlog, task_id: str) -> str | None:
 #: one prose slot, and the clause is a fact this command holds rather than prose it writes
 #: (L4, RK8). The wording is `retire`'s, the shape being that verb with the target file changed.
 _SUPERSEDED = "superseded by {replacement}"
+
+
+class NotDecided(KeyError):
+    """An id the decisions file does not carry, at the door that only reads it (RK1274).
+
+    :class:`NotRecorded` one file over, and separate for its reason: a caller superseding a
+    decision holds *that* file's address, and being told the ledger does not have it would
+    send them to the file where it correctly is not. Which of the two ids is missing is named,
+    because this call takes two and a message that said neither would be read twice.
+    """
+
+    def __init__(self, task_id: str, where: str, flag: str) -> None:
+        self.task_id = task_id
+        self.flag = flag
+        super().__init__(
+            f"{where} records no decision {task_id}, which is what {flag} names: a decision "
+            f"is written by `ship --decides` at the moment a design is deleted, so the one "
+            f"replacing this must already be filed before it can replace anything"
+        )
+
+
+class AlreadySuperseded(ValueError):
+    """A decision this file already marks as replaced (RK1274).
+
+    Refused rather than pointed a second time, which is the role's whole rule read forwards:
+    nothing here is ever deleted, so an entry carrying two forward pointers is a chain a
+    reader has to date to walk — and the file records no dates (a non-goal). One decision is
+    superseded once; what replaces its replacement supersedes *that*.
+    """
+
+    def __init__(self, task_id: str, where: str, lineno: int, marker: str) -> None:
+        self.task_id = task_id
+        self.lineno = lineno
+        super().__init__(
+            f"{where}:{lineno} already marks {task_id} {marker}: a decision is superseded "
+            f"once and the entry that replaced it is named in its own sentence — what "
+            f"replaces the replacement supersedes that one, which is the chain read forwards"
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class Superseded:
+    """One decision marked replaced, and the entry that replaced it."""
+
+    task_id: str
+    replacement: str
+    document: Document
+    lineno: int
+    #: The sentence as it now reads, which is the whole of what the write changed.
+    rendered: str = ""
+
+    def save(self) -> tuple[Path, ...]:
+        return self.document.save()
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path("decisions"))
+        rows = [
+            f"{where}:{self.lineno}  {self.task_id} superseded by {self.replacement}",
+            f"  {self.rendered}",
+            # The rule, said at the one door that could be mistaken for a deletion: both
+            # lines stay and the marker is what says which is live.
+            f"  kept     {self.replacement} stands and {self.task_id} is history — nothing "
+            f"in this file is ever deleted",
+        ]
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "id": self.task_id,
+            "superseded_by": self.replacement,
+            "file": config.relative(config.path("decisions")),
+            "line": self.lineno,
+            "rendered": self.rendered,
+            **_wrote_json(config, wrote),
+        }
+
+
+def supersede(config: Config, task_id: str, *, by: str) -> Superseded:
+    """Mark one decision replaced by another, in the file that holds both (RK1274).
+
+    The role's **one** departure, and what separates it from the ledger. A roadmap line leaves
+    by three doors; a decision leaves by being replaced, so nothing here is deleted and the
+    file grows only by decisions somebody actually made.
+
+    `retire` is the wrong verb and its shape is the right one: that one starts from an open
+    roadmap line, and a decision has none — the line it came from was in the ledger before
+    the decision was written. So this starts from the decisions file itself and makes the two
+    edits `record add --supersedes` makes one file over: the forward pointer onto the entry
+    that is now stale, and its marker, in one write. Two records of one reversal that do not
+    name each other is the state RK395 closed for the ledger, and this is that closure here.
+
+    Derived end to end (RK8, L4): the clause names the replacing entry and the marker is the
+    role's own retired one, so there is no sentence for a caller to spell two ways — and no
+    reason field, because *why* one decision replaced another is the argument in the entry
+    that replaced it, already written and one line away.
+    """
+    if not config.has("decisions"):
+        raise NoDecisions(task_id, config.relative(config.source or config.root))
+    where = config.relative(config.path("decisions"))
+    document = config.document("decisions")
+    if task_id == by:
+        # Its own refusal and not `retire`'s, which names that verb and the abandoned door:
+        # neither exists here, and a message about them would send the caller to the backlog.
+        raise ValueError(
+            f"{task_id} cannot supersede itself: what replaces a decision is a *second* "
+            f"decision, filed by the `ship --decides` of the work that changed it — and this "
+            f"call is the one that then says which of the two is live"
+        )
+    standing = _only(document, task_id, where, "the id")
+    replacement = _only(document, by, where, "--by")
+    schema = config.schema_for("decisions")
+    if standing.task.status != schema.shipped_marker:
+        raise AlreadySuperseded(task_id, where, standing.lineno, standing.task.status)
+    wanted = replace(
+        standing.task,
+        status=schema.retired_marker,
+        why=_parenthesised(standing.task.why, _SUPERSEDED.format(replacement=by)),
+    )
+    # `replace_task` and not a span rewrite, for `_supersede`'s reason (RK1053): the clause
+    # lands in the `why`, which is the first line's text, so re-rendering that line reproduces
+    # every field this entry holds and anything beneath it is not this write's to touch.
+    updated = document.replace_task(standing, document.schema.check(wanted))
+    return Superseded(
+        task_id=task_id,
+        replacement=replacement.task.id,
+        document=updated,
+        lineno=standing.lineno,
+        rendered=updated.by_id()[task_id].raw.rstrip("\r\n"),
+    )
+
+
+def _only(document: Document, task_id: str, where: str, flag: str) -> Entry:
+    """The one entry an id names in the decisions file, refused where there are none or two.
+
+    `_supersede`'s two refusals, kept here rather than shared with it: that one reads the
+    ledger and names `record` in what it says, and a caller holding a decision's address
+    would be sent to the wrong file by a message that was right about the other one.
+    """
+    twins = tuple(entry for entry in document.entries if entry.task.id == task_id)
+    if not twins:
+        raise NotDecided(task_id, where, flag)
+    if len(twins) > 1:
+        raise Ambiguous(task_id, where, tuple(entry.lineno for entry in twins))
+    return twins[0]
 
 
 def record(
