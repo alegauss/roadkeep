@@ -156,6 +156,10 @@ def test_the_host_reads_only_keys_a_payload_promises():
         | set(INSIDE["budget"][1])
         | set(INSIDE["stats"][1])
         | set(PROMISED["engines"])
+        # RK1271. The shape of the config file, which the completion and hover providers read
+        # key by key — so a renamed field there is red here before it is a dead list in TOML.
+        | set(PROMISED["config"])
+        | set(INSIDE["config"][1])
         | {"notice", "group", "engine", "detail", "count"}
     )
     # The receivers a payload is bound to, named rather than matched by `.value.` alone: an
@@ -181,6 +185,10 @@ def test_the_extension_exports_the_two_hooks_and_names_what_else_it_exports():
         "deactivate",
         "Backlog",
         "Gate",
+        # RK1271. The config providers, for the harness and for nothing an editor calls: what
+        # a completion *offers* at a position is not renderable and breaks silently, which is
+        # the same argument the two names above are exported under.
+        "Settings",
         "compose",
     ]
     assert "function activate(" in source and "function deactivate(" in source
@@ -190,7 +198,11 @@ NODE = shutil.which("node")
 
 
 def _harness(
-    root, typed: list[str] | None = None, declared: str | None = None, cycles: bool = False
+    root,
+    typed: list[str] | None = None,
+    declared: str | None = None,
+    cycles: bool = False,
+    settings: list[str] | None = None,
 ) -> dict:
     """Run the stubbed host against **this checkout's** roadkeep and read its report back.
 
@@ -224,6 +236,9 @@ def _harness(
         env["ROADKEEP_TYPED"] = json.dumps(typed)
     if cycles:
         env["ROADKEEP_CYCLES"] = "1"
+    if settings is not None:
+        # The lines of a `roadkeep.toml` being typed, the cursor on the last of them (RK1271).
+        env["ROADKEEP_SETTINGS"] = json.dumps(settings)
     said = subprocess.run(
         [NODE, str(EDITOR / "harness.js"), str(root)],
         capture_output=True,
@@ -547,3 +562,85 @@ def test_the_tree_says_how_much_work_there_is_without_computing_it(tmp_path):
     assert "📋 2" in said["label"] and "🛠 1" in said["label"]
     assert "uncounted" not in said["label"], "a zero is not news"
     assert said["detail"] == "docs/ROADMAP.md"
+
+
+# -- completion in the config file, carrying no rule (RK1271) -----------------
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_a_key_is_offered_under_the_table_the_cursor_is_in(tmp_path):
+    """The half before the save. The gate half already worked — the config is in `lint`'s
+    checked list and its findings carry a door — and what was absent is the moment somebody
+    is typing, where the analysis costs nothing and the gate costs the edit twice."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    said = _harness(root, settings=["[limits]", "sym"])["settings"]
+
+    assert said["table"] == "limits"
+    offered = {one["label"]: one for one in said["offered"]}
+    assert "symptom" in offered and "why" in offered
+    # Only this table's, which is the whole of what a completion is: `pad` belongs to `[ids]`.
+    assert "pad" not in offered
+    assert offered["symptom"]["inserted"] == "symptom = "
+    assert offered["symptom"]["detail"] == "integer"
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_a_header_line_offers_the_tables_and_the_placeholders_among_them(tmp_path):
+    # The subject of a `[` line is the address, so what is offered is the table names — the
+    # ones carrying `<role>` and `<path>` included, that placeholder being how the shape says
+    # a name the project chooses goes there.
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    said = _harness(root, settings=["prefix = \"RK\"", "[li"])["settings"]
+
+    labels = [one["label"] for one in said["offered"]]
+    assert "limits" in labels and "markers" in labels
+    assert any("<role>" in one for one in labels), labels
+    assert all(one["inserted"].startswith("[") for one in said["offered"])
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_a_hover_says_what_the_source_already_said_about_the_key(tmp_path):
+    """Harvested and never restated: the sentence a hover shows is the `#:` comment above the
+    frozenset that refuses everything else, so the two cannot come to disagree."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    said = _harness(root, settings=["[ids]", "pad"])["settings"]
+
+    assert said["hover"] is not None
+    assert "ids.pad" in said["hover"]
+    assert "the shape of an id" in said["hover"]
+    # And whether *this* project declared it, which is the fact a listing of the shape alone
+    # cannot carry — a scaffold declares no `[ids]`.
+    assert "not declared here" in said["hover"]
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_a_table_spelled_per_role_is_offered_the_keys_the_shape_published(tmp_path):
+    # `[limits.changelog]` is the `limits` this build published: the payload names it once,
+    # with the placeholder, and a client matching the literal would offer nothing at all.
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    said = _harness(root, settings=["[limits.changelog]", "wh"])["settings"]
+
+    assert said["table"] == "limits.changelog"
+    assert "why" in {one["label"] for one in said["offered"]}
+
+
+@pytest.mark.skipif(not NODE, reason="node is not on PATH")
+def test_a_read_that_failed_offers_nothing_rather_than_a_guess(tmp_path):
+    """The property this surface is held to (L6): a completion list written here would be nine
+    frozensets restated in a language the parser never reads. So a payload that did not arrive
+    leaves an empty list — a guess would be the compiled-in rule, arriving by the back door."""
+    root = tmp_path / "project"
+    root.mkdir()
+    assert main(["-C", str(root), "init"]) == EXIT_OK
+    said = _harness(root, declared="", settings=["[limits]", "sym"])["settings"]
+
+    assert said["offered"] == []
+    assert said["hover"] is None

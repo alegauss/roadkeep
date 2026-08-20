@@ -231,6 +231,142 @@ class Gate {
 }
 
 /**
+ * Completion and hover in `roadkeep.toml`, from the shape the package prints (RK1270, RK1271).
+ *
+ * The half before the save. The gate half already worked and needed nothing built — the
+ * config is in `lint`'s checked list, its findings carry `file:line:column` and the door that
+ * closes them, and the two providers above are registered for any file the gate names. What
+ * was absent is the moment before: which key it was, answered while somebody is typing.
+ *
+ * **It carries no rule, and that is the whole reason this waited on a verb.** A completion
+ * list written here would be nine frozensets restated in a language the parser never reads —
+ * the widest L6 break this surface could make, and the easy thing to write. Every table,
+ * every key, every type, every default and every sentence below came out of one payload.
+ *
+ * What it does know is **TOML**, which is not a roadkeep rule: a line starting with `[` opens
+ * a table, and a key belongs to the last one opened above it. That is the whole of the
+ * parsing, and it is deliberately the whole of it — a client that resolved values would be
+ * the second reader of this format, which is what `config` exists to make unnecessary.
+ *
+ * Cached until the file changes, like every other read this view makes: the shape moves when
+ * the *engine* moves, so an upgrade is what `reread` is for and a save is not.
+ */
+class Settings {
+  constructor(root) {
+    this.root = root;
+    this.shape = null;
+  }
+
+  /** Forget the shape — for a refresh, which is the ask an upgrade arrives through. */
+  reread() {
+    this.shape = null;
+  }
+
+  async keys() {
+    if (this.shape === null) {
+      const answer = await payload(this.root, ["config"]);
+      // An empty list and never an invented one: a read that failed knows nothing about
+      // which keys exist, and offering a guess is the compiled-in rule this must not be.
+      this.shape = answer.error ? [] : answer.value.keys;
+    }
+    return this.shape;
+  }
+
+  /**
+   * Which table the cursor is in, `""` for the top level and `null` for a header line.
+   *
+   * Read upwards from the line above the cursor, because the header that owns a key is the
+   * last one before it — and a `<role>` or a `<path>` in the payload's own name is matched by
+   * its stem, that placeholder being the address the project chooses and never a key.
+   */
+  table(document, line) {
+    for (let at = line - 1; at >= 0; at -= 1) {
+      const text = document.lineAt(at).text.trim();
+      const opened = /^\[\s*([^\]]+?)\s*\]$/.exec(text);
+      if (opened) {
+        return opened[1];
+      }
+    }
+    return "";
+  }
+
+  /** The payload's name for a table the file spells concretely — `limits.changelog` is the
+   * `limits` this build published, and `budgets."agents.md"` is `budgets.<path>`. */
+  named(written, tables) {
+    if (tables.includes(written)) {
+      return written;
+    }
+    const stem = written.split(".")[0];
+    return tables.find((one) => one === stem || one.startsWith(`${stem}.`)) || written;
+  }
+
+  async provideCompletionItems(document, position) {
+    const keys = await this.keys();
+    if (!keys.length) {
+      return [];
+    }
+    const tables = [...new Set(keys.map((one) => one.table))];
+    const line = document.lineAt(position.line).text;
+    // On a header line the subject is the table itself, so what is offered is the addresses
+    // and not the keys — including the placeholders, which say a name goes there.
+    if (line.trimStart().startsWith("[")) {
+      return tables
+        .filter((one) => one)
+        .map((one) => this.item(one, `[${one}]`, `table`, ""));
+    }
+    const under = this.named(this.table(document, position.line), tables);
+    return keys
+      .filter((one) => one.table === under)
+      .map((one) =>
+        this.item(one.key, `${one.key} = `, one.type || "table", this.detail(one))
+      );
+  }
+
+  async provideHover(document, position) {
+    const range = document.getWordRangeAtPosition(position);
+    if (!range) {
+      return null;
+    }
+    const word = document.getText(range);
+    const keys = await this.keys();
+    const tables = [...new Set(keys.map((one) => one.table))];
+    const under = this.named(this.table(document, position.line), tables);
+    // This table's own row first, and any row carrying the name second: a hover on a header
+    // line has no table of its own, and `why` under two tables is two rows and one word.
+    const found =
+      keys.find((one) => one.table === under && one.key === word) ||
+      keys.find((one) => one.key === word || one.table === word);
+    if (!found) {
+      return null;
+    }
+    return new vscode.Hover(new vscode.MarkdownString(this.detail(found)), range);
+  }
+
+  /** What a row says, in the tool's own words — the type, the default, whether this project
+   * declared it, and the sentence its source already carried. Nothing composed here. */
+  detail(row) {
+    const parts = [];
+    if (row.type) {
+      parts.push(`\`${row.type}\``);
+    }
+    parts.push(row.default === null ? "no default" : `default \`${row.default}\``);
+    parts.push(row.declared ? "declared here" : "not declared here");
+    const head = `**${row.address}** — ${parts.join(", ")}`;
+    return row.note ? `${head}\n\n${row.note}` : head;
+  }
+
+  item(label, inserted, kind, detail) {
+    const one = new vscode.CompletionItem(label, vscode.CompletionItemKind.Property);
+    one.insertText = inserted;
+    one.detail = kind;
+    if (detail) {
+      one.documentation = new vscode.MarkdownString(detail);
+    }
+    return one;
+  }
+}
+
+/**
  * Ask for one field with its budget counting down beside it.
  *
  * `createInputBox` and not `showInputBox`, because the latter's only live hook is
@@ -506,6 +642,7 @@ function activate(context) {
   const backlog = new Backlog(root);
   const diagnostics = vscode.languages.createDiagnosticCollection("roadkeep");
   const gate = new Gate(root, diagnostics);
+  const settings = new Settings(root);
   const both = async () => {
     backlog.refresh();
     const said = await gate.check();
@@ -524,11 +661,25 @@ function activate(context) {
     vscode.languages.registerCodeActionsProvider({ scheme: "file" }, gate, {
       providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
     }),
+    // Narrowed to the one file, by name and not by language: a workspace with no TOML
+    // support installed still has this file, and every other TOML here is somebody else's.
+    vscode.languages.registerCompletionItemProvider(
+      { scheme: "file", pattern: "**/roadkeep.toml" },
+      settings,
+      "[",
+    ),
+    vscode.languages.registerHoverProvider(
+      { scheme: "file", pattern: "**/roadkeep.toml" },
+      settings,
+    ),
     vscode.workspace.onDidSaveTextDocument(() => both()),
     // The button is the explicit ask, so it re-reads the engine too — an upgrade is what
     // moves that answer, and a person pressing refresh is the one who just did it.
     vscode.commands.registerCommand("roadkeep.refresh", () => {
       backlog.reread();
+      // And the shape, for the same reason: what this build accepts moves when the engine
+      // does, and a person pressing refresh is the one who just upgraded it.
+      settings.reread();
       return both();
     }),
     vscode.commands.registerCommand("roadkeep.repair", async () => {
@@ -573,4 +724,4 @@ function deactivate() {}
 // worth proving about this surface — grouped by block, blocked separated and named, a
 // finding anchored at its column, an incomplete door offered to nobody — is not renderable
 // and breaks silently.
-module.exports = { activate, deactivate, Backlog, Gate, compose };
+module.exports = { activate, deactivate, Backlog, Gate, Settings, compose };

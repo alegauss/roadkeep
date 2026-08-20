@@ -53,6 +53,9 @@ PROMISED = {
     "budget": ("id", "fields", "line_max", "prose"),
     # Which copy answered, which an editor shows above the rows it answered with (RK1009).
     "engines": ("writing", "verdict", "agree"),
+    # The shape of the config file itself (RK1270), which a completion list reads key by key
+    # (RK1271) — and `version`, because what is offered is what *this* build accepts.
+    "config": ("version", "source", "keys"),
 }
 
 #: The keys inside the one object each of those carries a list of. Held apart from the top
@@ -67,6 +70,9 @@ INSIDE = {
     # `left`, `limit`, `aim` and `unit` are what a prompt counts down beside the words
     # somebody is typing — the whole of L1 arriving before the sentence exists.
     "budget": ("fields", ("field", "limit", "left", "aim", "unit")),
+    # `address` is what a completion inserts and `note` is what a hover shows, so both are
+    # keys a reader outside this process now depends on (RK1271).
+    "config": ("keys", ("table", "key", "address", "type", "default", "declared", "note")),
 }
 
 

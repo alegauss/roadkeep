@@ -18,4 +18,6 @@
 
 ## Block G — The editor surface (the backlog where the file is open)
 
+- ✅ **RK1271** **the editor completes nothing in `roadkeep.toml`, so every key is typed from memory** — A reader outside the package renders a payload and never a rule: no list, no limit, no parser.
+
 ## Block H — The tool's own shape (what one verb costs to change)

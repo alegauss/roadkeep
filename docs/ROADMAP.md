@@ -43,8 +43,6 @@
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-- 📋 **RK1271** (deps: RK1270 ✅) **the editor completes nothing in `roadkeep.toml`, so every key is typed from memory** — The panel offers the keys the package printed and hovers their reason, so a declaration is composed against its shape instead of checked after it exists. → §RK1271
-
 ## Block H — The tool's own shape (what one verb costs to change)
 
 ## Non-goals

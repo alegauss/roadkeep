@@ -179,27 +179,4 @@ prose, and the tool does not write prose.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-### §RK1271 Completion in the config file, carrying no rule
-
-The host states the property this may not break: it carries no rule, and
-`tests/test_editor.py` holds it — a literal marker, id or governed filename in
-JavaScript is L6 broken from the outside rather than the inside. A completion list
-written as a schema under `editor/` is exactly that, and the widest one yet: nine
-frozensets restated in a language the parser never reads.
-
-RK1270 is therefore the whole design, and this is the rendering. A
-`CompletionItemProvider` and a `HoverProvider` over the config file, both reading the
-one payload, cached until the file changes like every other read the host makes.
-
-The gate half already works and needs nothing built: the config is in `lint`'s checked
-list, its findings carry `file:line:column` and the door that closes them, and the
-diagnostic and quick-fix providers are registered for any file the gate names. What is
-absent is the half before the save.
-
-Which is the write prompt's argument met one file over: a view that only reads sends its
-user somewhere else to type the format from memory, and that is the failure this project
-is about moved one window across. The saving is the analysis — which key it was,
-answered before a line exists, costs nothing; answered by the gate afterwards it costs
-the edit twice.
-
 ## Block H — The tool's own shape (what one verb costs to change)

@@ -122,13 +122,13 @@ called unbuilt were already in the ledger.
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 1 | 93 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 119 | 1 |
-| G — The editor surface (the backlog where the file is open) | 1 | 11 | 0 |
+| G — The editor surface (the backlog where the file is open) | 0 | 12 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 5 | 759 | 10 |
+| **Total** | 4 | 760 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1271** (deps: RK1270 ✅) **the editor completes nothing in `roadkeep.toml`, so every key is typed from memory** — The panel offers the keys the package printed and hovers their reason, so a declaration is composed against its shape instead of checked after it exists. → §RK1271
+- 📋 **RK1272** (deps: —) **`[limits]`, `[budgets]` and `[markers]` have no verb, so the file governing every write is the ungoverned one** — A verb declares one, printing the reading it is chosen against first, so a limit is measured where it is typed instead of guessed and lowered later. → §RK1272
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

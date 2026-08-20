@@ -73,6 +73,24 @@ function stub() {
       }
     },
     CodeActionKind: { QuickFix: "quickfix" },
+    // What the config providers hand back (RK1271). Recorded rather than drawn, for the
+    // reason the tree is: what a completion *offers* is not renderable and breaks silently.
+    CompletionItem: class {
+      constructor(label, kind) {
+        Object.assign(this, { label, kind });
+      }
+    },
+    CompletionItemKind: { Property: 9 },
+    MarkdownString: class {
+      constructor(value) {
+        this.value = value;
+      }
+    },
+    Hover: class {
+      constructor(contents, range) {
+        Object.assign(this, { contents, range });
+      }
+    },
     languages: {
       createDiagnosticCollection: () => ({
         entries: new Map(),
@@ -85,6 +103,8 @@ function stub() {
         dispose() {},
       }),
       registerCodeActionsProvider: () => ({ dispose() {} }),
+      registerCompletionItemProvider: () => ({ dispose() {} }),
+      registerHoverProvider: () => ({ dispose() {} }),
     },
     window: {
       registerTreeDataProvider() {},
@@ -137,7 +157,7 @@ Module._load = function (request, parent, isMain) {
 
 async function main() {
   const root = process.argv[2];
-  const { activate, Backlog, Gate, compose } = require("./extension.js");
+  const { activate, Backlog, Gate, Settings, compose } = require("./extension.js");
   // `activate` is exercised for what it wires — a stub with no window records the calls and
   // hands nothing back, so the provider under test is built directly.
   editor.workspace.workspaceFolders = [{ uri: editor.Uri.file(root) }];
@@ -190,6 +210,32 @@ async function main() {
         actions.map((one) => ({ code: said.code, title: one.title, argv: one.command.arguments }))
       );
     }
+  }
+
+  if (process.env.ROADKEEP_SETTINGS) {
+    // The half before the save (RK1271). A document is stubbed rather than opened: what is
+    // under test is which rows the provider picks for a position, and a real editor buffer
+    // would add a file format this surface deliberately does not parse.
+    const lines = JSON.parse(process.env.ROADKEEP_SETTINGS);
+    const document = {
+      lineAt: (at) => ({ text: lines[at] }),
+      getText: (range) => range.word,
+      getWordRangeAtPosition: (position) => ({ word: lines[position.line].trim() }),
+    };
+    const settings = new Settings(root);
+    const at = lines.length - 1;
+    const offered = await settings.provideCompletionItems(document, { line: at });
+    const hovered = await settings.provideHover(document, { line: at });
+    out.settings = {
+      table: settings.table(document, at),
+      offered: offered.map((one) => ({
+        label: one.label,
+        inserted: one.insertText,
+        detail: one.detail,
+        documentation: one.documentation ? one.documentation.value : "",
+      })),
+      hover: hovered ? hovered.contents.value : null,
+    };
   }
 
   if (process.env.ROADKEEP_CYCLES) {
