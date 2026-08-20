@@ -1334,7 +1334,44 @@ def _budgets(config: Config, tree: Tree) -> tuple[list[Finding], list[Note]]:
                     subject=where,
                 )
             )
-    return out + _served(config), notes
+    return out + _served(config) + _reads(config), notes
+
+
+def _reads(config: Config) -> list[Finding]:
+    """Every open line's brief against what one may cost a tool result (RK1286).
+
+    `_served`' argument about a **read** rather than about the schema. RK30 held the resident
+    prose, RK1059 the served surface, and the one answer this project recommends *over*
+    reading the file had no figure at all — while growing four arithmetic rows in one session,
+    each argued and none counted.
+
+    The widest and not the median, said per line so the report names the one that overflows:
+    a brief that fits on the average task and not on the hardest one is a brief a session
+    replaces by re-reading the file exactly when that file is longest.
+
+    Filed against `roadkeep.toml`, which declared it and is the only file involved — a brief
+    is composed per call and there is no path a reader could open to see it, which is
+    `_served`'s own reason. Silent where nothing is declared, and **composed only there**:
+    pricing a brief per open line on a project that asked for no ceiling is work the gate has
+    no question to spend it on.
+    """
+    if config.brief_read is None:
+        return []
+    from roadkeep.budgeting import brief_budget  # noqa: PLC0415 - RK260
+
+    where = config.relative(config.source or config.root)
+    return [
+        Finding(
+            "read.over",
+            where,
+            f"{one.id}'s brief is {one.characters} characters against a budget of "
+            f"{config.brief_read}: this is the read that replaces reading the file, so one "
+            f"that does not fit a tool result is a task a session opens the roadmap for — "
+            f"`{invocation()} budget --brief` ranks every one and names what each costs",
+            subject=one.id,
+        )
+        for one in brief_budget(config).over
+    ]
 
 
 def _wired(config: Config) -> list[Finding]:

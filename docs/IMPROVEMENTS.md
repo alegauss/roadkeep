@@ -79,31 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1286 The one read nobody prices
-
-Every resident file has a budget and the served surface has two, because RK30's argument
-is that a limit nobody counts is a limit that moves. The read those budgets exist to
-protect has none of its own.
-
-`brief` starts a task, and its whole claim is that it fits in a tool result — an answer
-that does not is one a session replaces by re-reading the file, which is the cost RK29
-removed. It grew this session: the ledger allowance, the two clauses composing that
-sentence, the decisions role's limit, and the claim a decision inherits. Four arithmetic
-rows where there was one, each argued and none counted.
-
-That is exactly the shape `[budgets]` was declared against, one read out instead of one
-file. Nothing here says the answer is too long — it says nobody knows, and the tool that
-prices `agents.md` to the byte and every served description to the character has no
-figure for the read it recommends over reading the file.
-
-So `brief` is measured, in the unit a tool result is paid in, and the number is declared
-where every other ceiling is. What that number should be is a reading somebody takes,
-not one this line guesses.
-
-The bound is the *widest* brief and not the median: a task with a pointer, a design,
-deps, criteria at two altitudes and every role declared is the one that overflows, and
-the one a reader meets on the hardest task.
-
 ## Block D — The gate
 
 ## Block E — Adoption

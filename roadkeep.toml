@@ -149,3 +149,6 @@ held = 60
 # declaring it: nine ships in one session offered `block drop` six times — D, B, F, B, C, E —
 # and no block has ever been dropped here.
 permanent = true
+
+[reads]
+brief = 3300

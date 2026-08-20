@@ -10,6 +10,7 @@
 ## Block C — Query (consult without reading the file)
 
 - ✅ **RK1270** **nothing prints what `roadkeep.toml` may declare, so its keys live only in the parser that rejects them** — The shape of `roadkeep.toml` is read off the frozensets that refuse it, never a second copy.
+- ✅ **RK1286** **the read that exists to fit in a tool result is the one thing here with no budget, and it grew four rows** — The read that replaces reading the file is bounded by the widest brief, never the median.
 
 ## Block D — The gate
 

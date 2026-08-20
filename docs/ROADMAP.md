@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1286** (deps: —) **the read that exists to fit in a tool result is the one thing here with no budget, and it grew four rows** — What a brief costs a tool result is measured and declared, so the read that replaces reading the file has a ceiling. → §RK1286
-
 ## Block D — The gate
 
 ## Block E — Adoption

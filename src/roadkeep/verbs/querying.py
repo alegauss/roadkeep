@@ -361,6 +361,8 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
     # flag takes a value, which is `--file`'s reading one subject over.
     if args.tools is not None:
         return _tools_budget(config, args)
+    if args.brief is not None:
+        return _brief_budget(config, args)
     if args.session:
         return _session_budget(config, args)
     clash = _one_body("--body", args.body, args.body_file)
@@ -612,6 +614,56 @@ def _session_budget(config: Config, args: argparse.Namespace) -> int:
         print(json.dumps(answer.payload(CHARACTER_UNIT), indent=2))
     else:
         print(answer.stated(CHARACTER_UNIT))
+    return EXIT_OK
+
+
+def _brief_budget(config: Config, args: argparse.Namespace) -> int:
+    """What a brief costs a tool result, per open line or for the one named (RK1286).
+
+    The sixth subject, and the one about a **read** rather than about prose or a file. Every
+    resident file has a budget and the served surface has two, on RK30's argument that a limit
+    nobody counts is a limit that moves — and the read this project recommends over reading
+    the file had none, while growing four arithmetic rows in one session.
+    """
+    from roadkeep.budgeting import brief_budget  # noqa: PLC0415 - RK260
+
+    try:
+        found = brief_budget(config, args.brief or None)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "unit": CHARACTER_UNIT,
+                    "limit": found.limit,
+                    "briefs": [
+                        {"id": one.id, "characters": one.characters, "over": one.over(found.limit)}
+                        for one in found.briefs
+                    ],
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+    if not found.briefs:
+        print(
+            f"roadkeep: no open line to brief, so there is nothing to price — "
+            f"`{invocation()} list` says what the backlog holds"
+        )
+        return EXIT_OK
+    ceiling = (
+        "no [reads] brief — this project declares no ceiling for the read that replaces "
+        "reading the file"
+        if found.limit is None
+        else f"{found.limit} allowed, {len(found.over)} over"
+    )
+    rows = [f"{len(found.briefs)} brief(s), widest first, in {CHARACTER_UNIT}: {ceiling}"]
+    for one in found.briefs:
+        room = "" if found.limit is None else f"  {found.limit - one.characters:+d}"
+        rows.append(f"  {one.id:<10} {one.characters}{room}")
+    print("\n".join(rows))
     return EXIT_OK
 
 
@@ -1326,9 +1378,8 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         "budget",
         help="how many characters a line has left for prose, before one is written",
         description=(
-            "Report what a line leaves its prose fields. Every number is derived from the "
-            "id, the marker, the deps and the pointer — all known before the first word — "
-            "so it is a fact about the line you are about to write. The draft arguments "
+            "Report what a line leaves its prose fields, derived from the id, the marker, "
+            "the deps and the pointer — all known before the first word. The drafts "
             "(--symptom, --why, --body) are measured, never composed, and exit 1 when "
             "over: the refusal, without the write."
         ),
@@ -1447,6 +1498,13 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     # session pays is the tool list once and every resident file on each turn, and deciding
     # between cutting a description and cutting a paragraph meant two commands and a
     # subtraction. Two figures against their cadences rather than one that hides a multiplier.
+    budget_parser.add_argument(
+        "--brief",
+        nargs="?",
+        const="",
+        metavar="ID",
+        help="what a brief costs a tool result — bare, every open line, widest first",
+    )
     budget_parser.add_argument(
         "--session",
         action="store_true",

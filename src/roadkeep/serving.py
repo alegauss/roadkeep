@@ -542,8 +542,11 @@ TOOLS: tuple[Tool, ...] = (
         # (RK1260): the three verbs that *write* a body take one now, and a body refused there
         # costs the corrected field alone — so the payload this read exists to save re-sending
         # is the draft that arrived in the call, which is the only one left to price.
+        # `brief` is the sixth (RK1286), and the one subject about a **read**: what the answer
+        # this project recommends over reading the file costs a tool result. Exposed for
+        # `tools`' reason exactly — the caller paying it is the one on the other end of it.
         ("id", "block", "deps", "status", "symptom", "why", "anchor", "role", "body",
-         "non_goal", "lead", "file", "tools", "session"),
+         "non_goal", "lead", "file", "tools", "session", "brief"),
         conditional=("ref",),
     ),
     # `designed` is exposed on both for the reason it exists (RK83): the caller that asks

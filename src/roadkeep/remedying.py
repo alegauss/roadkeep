@@ -1298,6 +1298,15 @@ _TABLE: Mapping[str, _Rule] = {
         "the counted bytes are the commit's and this checkout pays more; this prints both "
         "beside the ceiling, and lowering it is a line in roadkeep.toml",
     ),
+    # RK1286. `{id}` is the task whose brief is over, which this finding carries as its
+    # subject: the ranking answers *which one*, and the finding already said that — what the
+    # reader needs next is what that one brief costs and where the size went.
+    "read.over": _read(
+        ("budget", "--brief", "{id}"),
+        "this is the read that replaces reading the file, so one that does not fit a tool "
+        "result is a task a session opens the roadmap for; what closes it is a shorter "
+        "design, a narrower field, or a ceiling re-argued in `roadkeep.toml`",
+    ),
     "budget.session": _read(
         ("budget", "--session"),
         "the whole served surface is past what `[tools] session` allows and no single tool "

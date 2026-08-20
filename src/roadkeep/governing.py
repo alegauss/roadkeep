@@ -44,7 +44,7 @@ __all__ = ["Declared", "Measured", "NoSuchKey", "Violated", "govern", "reading"]
 #: The four tables this verb writes, and the whole of what it claims. Every other table in
 #: `describing.TABLES` holds a name, a path or a flag — a decision with no reading behind it,
 #: which is a `declare` or a hand edit and never a measurement.
-GOVERNED = ("limits", "budgets.<path>", "tools", "claims")
+GOVERNED = ("limits", "budgets.<path>", "tools", "claims", "reads")
 
 
 class NoSuchKey(KeyError):
@@ -218,6 +218,8 @@ def reading(config: Config, address: str, *, file: str = "", role: str = "") -> 
         return _budgets(config, address, key, declared, file=file)
     if table == "tools":
         return _tools(config, address, key, declared)
+    if table == "reads":
+        return _reads(config, address, declared)
     return Measured(
         address=address,
         unit="minutes",
@@ -237,6 +239,8 @@ def _current(config: Config, table: str, key: str, *, file: str, role: str) -> i
         return getattr(config.schema_for(role or "roadmap"), _LIMIT_KEYS[key])
     if table == "tools":
         return config.tool_characters if key == "characters" else config.tool_session
+    if table == "reads":
+        return config.brief_read
     if table == "claims":
         return config.held
     for budget in config.budgets:
@@ -450,6 +454,37 @@ def _tools(config: Config, address: str, key: str, declared: int | None) -> Meas
         worst=sent.characters,
         where=f"{len(sent.tools)} tool(s) and the handshake",
         sites=1,
+        declared=declared,
+    )
+
+
+def _reads(config: Config, address: str, declared: int | None) -> Measured:
+    """What the widest brief costs now — `budget --brief`'s own reading, taken here (RK1286).
+
+    The read this project recommends over reading the file, priced the way every other number
+    in this table is: by the reader that owns the question. The **widest** and not the median
+    is the reading, for that verb's reason — a brief that fits on the average task and not on
+    the hardest one is a brief a session replaces exactly when the file is longest.
+    """
+    from roadkeep.budgeting import brief_budget  # noqa: PLC0415 - RK260
+
+    found = brief_budget(config)
+    if found.widest is None:
+        return Measured(
+            address=address,
+            unit="utf-16 code units, per brief",
+            declared=declared,
+            unmeasured=(
+                "no open line to brief, so there is nothing to price — a ceiling declared "
+                "now is one the first task filed measures itself against"
+            ),
+        )
+    return Measured(
+        address=address,
+        unit="utf-16 code units, per brief",
+        worst=found.widest.characters,
+        where=found.widest.id,
+        sites=len(found.briefs),
         declared=declared,
     )
 

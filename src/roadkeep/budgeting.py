@@ -1318,6 +1318,78 @@ def notice_budget(config: Config) -> tuple[int, int | None]:
     return width(str(replace(said, stale=()))), _NOTICE_BUDGET
 
 
+@dataclass(frozen=True, slots=True)
+class Briefed:
+    """What one task's brief costs a tool result, in the unit a model is charged (RK1286)."""
+
+    id: str
+    characters: int
+
+    def over(self, limit: int | None) -> bool:
+        return limit is not None and self.characters > limit
+
+
+@dataclass(frozen=True, slots=True)
+class Reads:
+    """Every open line's brief, widest first, against what one may cost (RK1286).
+
+    The one read this project recommends over reading the file, and the one thing here with no
+    figure. Every resident file has a budget and the served surface has two, on RK30's
+    argument that a limit nobody counts is a limit that moves — and `brief` grew four
+    arithmetic rows in one session with nothing counting any of them.
+
+    **Widest first and not the median.** A brief that fits on the average task and not on the
+    hardest one is a brief a session replaces by re-reading the file exactly when the file is
+    longest, which is the cost RK29 removed. So the bound is the widest, and the listing is
+    ordered to put it where a reader looks.
+    """
+
+    briefs: tuple[Briefed, ...] = ()
+    #: `[reads] brief`, or `None` where the project declared none — opt-in, as every other
+    #: table whose absence means *ungoverned* rather than *zero* is.
+    limit: int | None = None
+
+    @property
+    def widest(self) -> Briefed | None:
+        return self.briefs[0] if self.briefs else None
+
+    @property
+    def over(self) -> tuple[Briefed, ...]:
+        return tuple(one for one in self.briefs if one.over(self.limit))
+
+
+def brief_budget(config: Config, task_id: str | None = None) -> Reads:
+    """What a brief costs, per open line or for the one named (RK1286).
+
+    Measured off :func:`~roadkeep.briefing.brief`'s own rendering and never re-composed, which
+    is :func:`~roadkeep.serving.surface`'s rule one read over: a row added to that answer moves
+    this figure, which is the whole reason the number is worth reading.
+
+    In UTF-16 code units, the unit every other figure in this module is in (RK430) and the one
+    a model is charged — so the read and the gate that refuses cannot disagree about an answer
+    carrying a marker outside the BMP.
+
+    Open lines only. A shipped id has no brief left to start work from, and a paused one is a
+    line `pick` can never offer — pricing either would be measuring an answer nobody asks for.
+    """
+    from roadkeep.briefing import NothingToBrief, brief  # noqa: PLC0415 - RK260
+
+    roadmap = config.document("roadmap")
+    wanted = [task_id] if task_id is not None else list(roadmap.by_id())
+    out: list[Briefed] = []
+    for one in wanted:
+        try:
+            out.append(Briefed(id=one, characters=width(brief(config, one).stated(config))))
+        except (NothingToBrief, KeyError, OSError):
+            # An id no line carries is not this read's to refuse: it is asked about the
+            # backlog, and a caller naming a shipped task is answered by `show`.
+            continue
+    return Reads(
+        briefs=tuple(sorted(out, key=lambda one: one.characters, reverse=True)),
+        limit=config.brief_read,
+    )
+
+
 def file_budget(config: Config, path: str | None = None) -> tuple[Load, ...]:
     """What the always-loaded files have left, before an edit is composed (RK345).
 

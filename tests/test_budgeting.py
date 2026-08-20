@@ -2601,3 +2601,107 @@ def test_a_file_that_does_not_decode_has_no_column_at_all(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "budget", "--file", "agents.md"]) == EXIT_OK
     printed = capsys.readouterr().out
     assert "reader" not in printed
+
+
+# -- what a brief costs a tool result (RK1286) --------------------------------
+
+
+def _reading(tmp_path: Path, *, ceiling: int | None = None) -> Config:
+    """The fixture, optionally declaring what one brief may cost."""
+    config = project(tmp_path)
+    if ceiling is not None:
+        (tmp_path / "roadkeep.toml").write_text(
+            (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+            + f"\n[reads]\nbrief = {ceiling}\n",
+            encoding="utf-8",
+        )
+    return Config.discover(config.root)
+
+
+def test_the_read_that_replaces_reading_the_file_is_priced(tmp_path):
+    """RK1286. Every resident file has a budget and the served surface has two, on RK30's
+    argument that a limit nobody counts is a limit that moves — and the one answer this
+    project recommends *over* reading the file had no figure at all."""
+    from roadkeep.budgeting import brief_budget
+
+    found = brief_budget(_reading(tmp_path))
+
+    assert {one.id for one in found.briefs} == {"RK1", "RK2"}
+    assert all(one.characters > 0 for one in found.briefs)
+    # Widest first, because a brief that fits on the average task and not on the hardest one
+    # is a brief a session replaces exactly when the file is longest.
+    assert found.briefs == tuple(sorted(found.briefs, key=lambda o: -o.characters))
+    assert found.widest is found.briefs[0]
+    # Opt-in: absent means ungoverned and never zero, which is every other table's rule.
+    assert found.limit is None and found.over == ()
+
+
+def test_the_figure_is_the_answer_itself_and_never_re_composed(tmp_path):
+    # `surface`'s rule one read over: a row added to a brief moves this number, which is the
+    # whole reason it is worth reading.
+    from roadkeep.briefing import brief
+    from roadkeep.budgeting import brief_budget
+    from roadkeep.kernel.schema import width
+
+    config = _reading(tmp_path)
+    (one,) = [each for each in brief_budget(config, "RK1").briefs if each.id == "RK1"]
+    assert one.characters == width(brief(config, "RK1").stated(config))
+
+
+def test_a_brief_over_the_declared_ceiling_is_a_finding(tmp_path):
+    config = _reading(tmp_path, ceiling=1)
+    report = lint(config)
+
+    assert not report.clean
+    over = [one for one in report.findings if one.code == "read.over"]
+    assert len(over) == 2, [str(one) for one in report.findings]
+    # Filed against the file that declared it: a brief is composed per call and there is no
+    # path a reader could open to see it, which is `budget.tool`'s own reason.
+    assert all(one.file == "roadkeep.toml" for one in over)
+    assert {one.subject for one in over} == {"RK1", "RK2"}
+
+
+def test_the_finding_names_the_read_that_prices_the_one_over(tmp_path):
+    # RK420: every code resolves to a door, and this one carries the id already substituted.
+    from roadkeep.remedying import remedy
+
+    config = _reading(tmp_path, ceiling=1)
+    found = next(one for one in lint(config).findings if one.code == "read.over")
+    door = remedy(found, config)
+
+    assert door is not None
+    assert ["budget", "--brief", found.subject] in [list(one.argv) for one in door.doors]
+
+
+def test_the_gate_composes_nothing_where_no_ceiling_is_declared(tmp_path, monkeypatch):
+    """Pricing a brief per open line on a project that asked for no ceiling is work the gate
+    has no question to spend it on — which is why the check is opt-in and not merely silent."""
+    from roadkeep import linting
+
+    asked = []
+    monkeypatch.setattr(
+        linting, "_reads", lambda config: asked.append(config) or []
+    )
+    assert lint(_reading(tmp_path)).clean
+    # The function is reached and answers empty; what it must not do is compose a brief.
+    from roadkeep.budgeting import brief_budget
+
+    assert brief_budget(_reading(tmp_path)).limit is None
+
+
+def test_the_verb_ranks_every_open_line_and_narrows_to_one(tmp_path, capsys):
+    _reading(tmp_path, ceiling=9000)
+    assert main(["-C", str(tmp_path), "budget", "--brief"]) == EXIT_OK
+    every = capsys.readouterr().out
+    assert "RK1" in every and "RK2" in every and "9000 allowed, 0 over" in every
+
+    assert main(["-C", str(tmp_path), "budget", "--brief", "RK1"]) == EXIT_OK
+    one = capsys.readouterr().out
+    assert "RK1" in one and "RK2" not in one
+
+
+def test_a_backlog_with_nothing_open_is_answered_and_not_refused(tmp_path, capsys):
+    # The caller who most needs the figure is the one about to file the first task.
+    project(tmp_path, roadmap="# Roadmap\n\n## Block A — The model\n")
+    assert main(["-C", str(tmp_path), "budget", "--brief"]) == EXIT_OK
+    assert "nothing to price" in capsys.readouterr().out

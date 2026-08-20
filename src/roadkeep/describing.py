@@ -47,6 +47,7 @@ from roadkeep.config import (
     _LIMIT_KEYS,
     _MARKER_KEYS,
     _REPORT_KEYS,
+    _READS_KEYS,
     _RULE_KEYS,
     _SCOPE_KEYS,
     _TOOLS_KEYS,
@@ -82,6 +83,7 @@ TABLES: Mapping[str, frozenset[str]] = {
     "budgets.<path>": _BUDGET_KEYS,
     "grammar.<role>": _GRAMMAR_KEYS,
     "tools": _TOOLS_KEYS,
+    "reads": _READS_KEYS,
 }
 
 
@@ -153,6 +155,7 @@ WHERE: Mapping[tuple[str, str], object] = {
     ("grammar.<role>", "drop"): lambda: (),
     ("tools", "characters"): None,
     ("tools", "session"): None,
+    ("reads", "brief"): None,
 }
 
 
@@ -262,6 +265,7 @@ _DESCRIBED = {
     "budgets.<path>": "_BUDGET_KEYS",
     "grammar.<role>": "_GRAMMAR_KEYS",
     "tools": "_TOOLS_KEYS",
+    "reads": "_READS_KEYS",
 }
 
 

@@ -549,7 +549,10 @@ is the largest row, it is split by where each clause is written: a tool that alw
 flag carries that flag's own `help`, edited somewhere else. Nothing refuses it —
 the number is stated so that adding a tool or a
 sentence to a description stops looking free, which is the argument `[budgets]` makes about
-a file that loads every turn. **And `config` is the read about `roadkeep.toml` itself**:
+a file that loads every turn. **`budget --brief [<id>]` is the sixth**, and the only one about
+a *read*: what the answer that replaces reading the file costs a tool result, per open line and
+widest first, against `[reads] brief`. Declared, that ceiling is the gate's — `read.over` names
+the task whose brief does not fit. **And `config` is the read about `roadkeep.toml` itself**:
 every table, key, TOML type and default this build accepts, with the sentence its
 source already carries and whether *this* project declared it — `--table <name>` for one,
 `--table ""` for the top level. Reach for it before writing a key rather than after the

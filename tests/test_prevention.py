@@ -167,6 +167,10 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("budget.translated", "gate", because=FILE),
     Prevented("budget.tool", "gate", because=SURFACE),
     Prevented("budget.session", "gate", because=SURFACE),
+    # RK1286. `SURFACE` for the same reason one read further out: a brief is composed per
+    # call from the line, its design and four allowances, so there is no moment of writing
+    # for L1 to refuse at — what grew it is a row added to the answer, somewhere else.
+    Prevented("read.over", "gate", because=SURFACE),
     # RK1106. `LATER` and not `HAND`: the write that put the citation in was right when it ran,
     # and what made it dangle is a `ship` or a `section drop` somewhere else — which those two
     # verbs do report, at the moment they create it. This is the backstop for the caller who
