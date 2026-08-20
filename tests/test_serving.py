@@ -217,6 +217,13 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # The correction the other two bullet grammars had and this one did not (RK368).
         "non_goal_amend",
         "non_goal_drop",
+        # The roadmap's third list (RK1265), and the positive twin of the three above: what
+        # must be true for a block to be finished, which nothing stated at all — so a block
+        # closed on emptiness and reopened six times.
+        "criterion_add",
+        "criterion_amend",
+        "criterion_drop",
+        "criterion_list",
         # The queue, once it had a governed home (RK325): the agent that ships a queued
         # id is the one that has to take it out, and the file it lives in is one the
         # guard denies an edit to.
@@ -379,7 +386,7 @@ def test_the_verbs_that_diverge_are_named_and_not_counted():
     # is the one whose `role` means a file this project does **not** have (RK1264), which is
     # every other reader of that dest inverted.
     assert set(serving._DIVERGENT) == {
-        "non-goal", "list", "ship", "record amend", "budget", "declare"
+        "non-goal", "list", "ship", "record amend", "budget", "declare", "criterion"
     }
     # Every other tool gets the common table, which is what makes those legible as exceptions.
     for tool in TOOLS:
@@ -1058,6 +1065,11 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         # The correction the other two bullet grammars had and this one did not (RK368).
         "non_goal_amend",
         "non_goal_drop",
+        # The three writes on the roadmap's third list (RK1265). `criterion list` is not
+        # among them and stays read-only, which is what keeps asking free (L5).
+        "criterion_add",
+        "criterion_amend",
+        "criterion_drop",
         "priority_add",
         "priority_drop",
         # And the door between the two declarations (RK427), which writes the roadmap:
@@ -1411,6 +1423,10 @@ def test_the_paths_that_could_reach_it_are_the_ones_declared():
         "record_amend",
         "non_goal_add",
         "non_goal_amend",
+        # The same two fields on the roadmap's third list (RK1265): a criterion's reason is
+        # prose, so it reaches the pipe at a terminal and is refused by name here.
+        "criterion_add",
+        "criterion_amend",
         "retire",
         "defer",
         "section_add",

@@ -427,6 +427,15 @@ TOOLS: tuple[Tool, ...] = (
     # an append, which moves the bullet to the end of a list a reader takes for the plan's shape.
     Tool("non-goal amend", ("lead", "why")),
     Tool("non-goal drop", ("lead",)),
+    # The roadmap's third list (RK1265), and the three writes are exposed for the reason the
+    # non-goals' are: the caller that has to say what finishes a block is the agent driving it,
+    # and a bullet only a hand edit could write is one the guard denies outright. `list` rides
+    # with them and not with `brief`: that command prints this task's block, and the question
+    # *which blocks claim what* is asked before a task exists to brief.
+    Tool("criterion add", ("block", "lead", "why")),
+    Tool("criterion amend", ("lead", "block", "why")),
+    Tool("criterion drop", ("lead", "block")),
+    Tool("criterion list", ("block",)),
     # The other list this file holds that is not task lines (RK325). Exposed for the reason
     # the non-goals are: the agent that ships a queued id is the one that has to take it out,
     # and the file it now lives in is the one the guard denies an edit to.
@@ -885,6 +894,24 @@ _SCOPE_BOUNDS = {
 }
 
 
+#: The roadmap's third list, whose two limits are `[criteria]`' and not `[limits]`' (RK1265).
+#: :data:`_SCOPE_BOUNDS`' argument exactly, and it is the one that measures: published through
+#: the common table, a criterion's `why` carried the **task line's** note — 529 characters
+#: about `line_max`, a rendered line this bullet is not part of, and a `budget` call that
+#: answers about a different field. Wrong twice over: the number would refuse prose this
+#: server accepts on a project declaring a wider list, and the sentence describes arithmetic
+#: no criterion is subject to.
+_CRITERIA_BOUNDS = {
+    "lead": lambda config: {
+        "maxLength": (config.criteria or Scope()).lead,
+        "note": _aimed((config.criteria or Scope()).lead),
+    },
+    "why": lambda config: {
+        "maxLength": (config.criteria or Scope()).why,
+        "note": _aimed((config.criteria or Scope()).why),
+    },
+}
+
 #: The two verbs whose `why` has a **second shape** (RK1049, RK1053, RK1055). With `--lines`
 #: above one the field carries a wrapped ledger entry whole, and only its first line is measured
 #: against `limits.<role>.why` — so no character ceiling describes both calls, and publishing the
@@ -967,6 +994,7 @@ _DIVERGENT: Mapping[str, Mapping[str, Any]] = {
     "record amend": _SPAN_BOUNDS,
     "budget": _DRAFT_BOUNDS,
     "declare": _ABSENT_BOUNDS,
+    "criterion": _CRITERIA_BOUNDS,
 }
 
 

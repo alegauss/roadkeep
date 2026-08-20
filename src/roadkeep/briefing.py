@@ -34,7 +34,7 @@ answers for that line (:func:`roadkeep.picking.hold`).
 from __future__ import annotations
 
 import textwrap
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from roadkeep.backlog import Backlog, DepStatus, Readiness, Resolution, Standing
 from roadkeep.budgeting import Budget, budget_of
@@ -42,7 +42,7 @@ from roadkeep.config import Config, Scope
 from roadkeep.kernel.document import Document
 from roadkeep.graph import Chain, Graph, Leverage
 from roadkeep.history import Commit
-from roadkeep import scoping
+from roadkeep import criteria, scoping
 from roadkeep.claiming import Held
 from roadkeep.locking import exclusive
 from roadkeep.picking import Choice, Claim, hold, pick, take
@@ -92,6 +92,22 @@ class NothingToBrief(KeyError):
         self.reason = reason
         named = ", ".join(f"{one.id} ({one.since} ago)" for one in held)
         super().__init__(f"nothing to brief: {reason}" + (f" — held: {named}" if named else ""))
+
+
+@dataclass(frozen=True, slots=True)
+class DoneWhen:
+    """What would finish one block: the leads carried, and what was left (RK1265).
+
+    :class:`NonGoals`' two fields for its reason, and a third thing this one has to state
+    without a field — **an empty list is not an empty answer here**. A block nobody wrote a
+    criterion for and a block whose criteria were all dropped are different facts, and `brief`
+    prints neither row rather than inventing a sentence about which: the difference is
+    `criterion list`'s to report, where a caller went to ask.
+    """
+
+    leads: tuple[str, ...] = ()
+    #: How many the block's list held beyond the ones carried. 0 means these are all.
+    elided: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -174,6 +190,11 @@ class Brief:
     chains: tuple[Chain, ...]
     leverage: Leverage
     non_goals: NonGoals
+    #: What would finish **this task's block** (RK1265), as leads in file order and bounded
+    #: the way the non-goals are. Beside them because they are the same kind of statement
+    #: pointed opposite ways — one binds what may be proposed, the other says when the body
+    #: of work is done — and a task starts against both or against neither.
+    done_when: DoneWhen = field(default_factory=lambda: DoneWhen())
     #: The pick that chose this id, absent where the caller named one (RK154). The whole
     #: answer and not the sentence it used to be: `held` is the ids a live claim was stepped
     #: around, and with no owner field a caller recognises its own only by reading them. One
@@ -357,6 +378,11 @@ class Brief:
             # arrives before the first edit rather than at the `ship`. Never a verdict: `0`
             # is the ordinary state of a task about to start.
             rows.append(f"  proves   {clause}  ({found} site(s) now)")
+        rows += [f"  done     {lead}" for lead in self.done_when.leads]
+        if self.done_when.elided:
+            rows.append(
+                f"  done     ... and {self.done_when.elided} more under Done when"
+            )
         rows += [f"  not      {lead}" for lead in self.non_goals.leads]
         if self.non_goals.elided:
             # Where the list was cut, and not silently: a bounded list that reads as the whole
@@ -420,6 +446,8 @@ class Brief:
             },
             "non_goals": list(self.non_goals.leads),
             "non_goals_elided": self.non_goals.elided,
+            "done_when": list(self.done_when.leads),
+            "done_when_elided": self.done_when.elided,
             # What the design says would prove this done, with what each clause matches now
             # (RK1185). The clauses and the counts and never the sites: this answer is bounded
             # to a tool result, and the addresses are `evidence`'s once the work is under way.
@@ -521,6 +549,7 @@ def _gather(
         chains=graph.chains(task_id)[:CHAINS] if entry is not None else (),
         leverage=graph.leverage(task_id),
         non_goals=non_goals(config, backlog.roadmap),
+        done_when=done_when(config, backlog.roadmap, task.block),
         choice=chosen,
         claim=claim,
         settled=_settled(config, view, backlog.resolve(task) if entry is not None else ()),
@@ -569,6 +598,29 @@ def non_goals(config: Config, document: Document) -> NonGoals:
         elided=max(0, len(every) - NON_GOALS),
     )
 
+
+
+def done_when(config: Config, document: Document, block: str) -> DoneWhen:
+    """What finishes this task's block, in file order and bounded (RK1265).
+
+    :func:`non_goals`' shape one list over, and bounded for its reasons: each lead is cut to
+    the project's own `[criteria]` limit with the cut shown, and a list past :data:`NON_GOALS`
+    reports how many it left. *Which* characters are the lead is `criteria`'s answer and not
+    one guessed here — the module that writes a criterion says what its address is.
+
+    Scoped to the task's own block and never to the backlog: a criterion is about a body of
+    work, so printing another block's would be answering a question the caller did not ask
+    with a claim about somebody else's finish line.
+    """
+    limit = (config.criteria or Scope()).lead
+    every = criteria.leads(document, block)
+    return DoneWhen(
+        leads=tuple(
+            textwrap.shorten(lead, width=limit, placeholder=ELLIPSIS)
+            for lead in every[:NON_GOALS]
+        ),
+        elided=max(0, len(every) - NON_GOALS),
+    )
 
 
 def _criterion(config: Config, view: View) -> tuple[tuple[Clause, int], ...]:

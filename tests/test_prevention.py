@@ -179,6 +179,18 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("grammar.unreadable", "gate", because=RULE),
     Prevented("block.unorganised", "gate", because=FILE),
     Prevented("export.unmarked", "gate", because=FILE),
+    # RK1265. The roadmap's third list, and its two prose fields are refused at the door the
+    # way every other prose field is — the probes are what make that a measurement.
+    Prevented(
+        "criterion.lead",
+        "refused",
+        ("criterion", "add", "--block", "A", "--lead", LONG, "--why", WHY),
+    ),
+    Prevented(
+        "criterion.why",
+        "refused",
+        ("criterion", "add", "--block", "A", "--lead", "A short lead", "--why", LONG),
+    ),
     Prevented("priority.config", "gate", because=FILE),
     Prevented("priority.unmigrated", "gate", because=FILE),
     Prevented("engine.disagreement", "gate", because=FILE),
@@ -238,6 +250,11 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("line.non-canonical", "gate", because=HAND),
     Prevented("line.unparsed", "gate", because=HAND),
     Prevented("priority.duplicate", "gate", because=HAND),
+    # RK1265, and `id.duplicate`'s reason exactly one list over: `add` refuses a lead its
+    # block already carries, and nothing renders a bullet with no bold head — so both states
+    # arrive by a hand edit or a merge, which is what the gate is for.
+    Prevented("criterion.duplicate", "gate", because=HAND),
+    Prevented("criterion.shape", "gate", because=HAND),
     Prevented("priority.shape", "gate", because=HAND),
     Prevented("ref.ambiguous", "gate", because=HAND),
     Prevented("ref.format", "gate", because=HAND),
@@ -265,6 +282,7 @@ CONFIG = """prefix = "RK"
 roadmap = "ROADMAP.md"
 changelog = "CHANGELOG.md"
 improvements = "IMPROVEMENTS.md"
+[criteria]
 """
 #: Two open lines under Block A, because `deps.collective` is *many* and one member is not
 #: many: the probe adds a third and the finding is about what `Block A` then expands to.

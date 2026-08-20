@@ -98,6 +98,21 @@ KINDS = ("fix", "run", "read", "compose", "decide", "restore")
 BLANK = "…"
 
 
+def _spelled_word(word: str) -> str:
+    """One argv token as a line a shell reads back as that token (RK1265).
+
+    **Whitespace and nothing else**, which is narrower than `shlex.quote`'s own rule and
+    deliberately so: what this fixes is a token that would run as several arguments, and the
+    other characters that reader quotes are already in doors that print correctly today —
+    `<command> --help` is one of them, and `'<command>' --help` reads as a literal somebody
+    typed. The :data:`BLANK` is never quoted either, for :attr:`Door.quoted`'s reason: it
+    marks a field the author fills, and `'…'` reads as a value already chosen.
+    """
+    if BLANK in word or not word or not any(c.isspace() for c in word):
+        return word
+    return shlex.quote(word)
+
+
 @lru_cache(maxsize=1)
 def _reading() -> Mapping[str, frozenset[str]]:
     """Every verb this CLI declares read-only, and the flags that turn each into a write.
@@ -186,12 +201,20 @@ class Door:
 
         A :attr:`foreign` door is already whole: it names another tool, so there is no
         invocation of this one to put in front of it.
+
+        **A token carrying a space is quoted, and only such a token** (RK1265). Every door
+        before the criteria carried argv of single words — an id, a code, a flag, or a
+        :data:`BLANK` the author fills — so joining on spaces was the whole of it; the lead of
+        a criterion is the caller's own prose and is what a remedy substitutes, so an unquoted
+        line runs as eight arguments. The blank is left bare for :attr:`quoted`'s reason: a
+        `'…'` reads as a value somebody chose, and it is the one token that is not one.
         """
+        words = tuple(_spelled_word(word) for word in self.argv)
         if self.foreign:
-            return " ".join(self.argv)
+            return " ".join(words)
         from .provenance import invocation
 
-        return " ".join((invocation(), *self.argv))
+        return " ".join((invocation(), *words))
 
     @property
     def quoted(self) -> str:
@@ -640,6 +663,49 @@ _TABLE: Mapping[str, _Rule] = {
         ("priority", "add", BLANK),
         "the bullet addresses no work: drop it by hand-free re-add — `priority add <id>` "
         "or `priority add 'Block X'`",
+    ),
+    # ------------------------------------------------------------------ the roadmap's third list
+    # RK1265. The lead is the address, so the three that are about one bullet all reach it by
+    # that lead — which the emission site passes as the finding's subject. `--block` is left off
+    # every door on purpose: the verb resolves it from the one list carrying the lead, and a
+    # remedy that had to spell a block it cannot read would be the blank RK420 exists to remove.
+    "criterion.duplicate": _run(
+        ("criterion", "drop", "{id}"),
+        "two bullets in one block lead the same way: the later goes and the first stays, "
+        "which is where the reader already found it",
+    ),
+    # The shape, and the one pair that cannot be a single door: the lead is the address, so a
+    # bullet whose head is its first sentence is repaired by removing it and writing one — an
+    # `amend` would impose the shape and move the address while doing it.
+    "criterion.shape": _decide(
+        "the bullet carries no bold lead, so it has no address this format can write around",
+        (
+            ("criterion", "drop", "{id}"),
+            "take the bullet out, then `criterion add --block … --lead … --why …` writes it "
+            "in the shape — honest about the lead changing",
+        ),
+        (
+            ("criterion", "list"),
+            "read the list first where the lead as this file reads it is not obvious",
+        ),
+    ),
+    "criterion.why": _compose(
+        ("criterion", "amend", "{id}", "--why", "-"),
+        "past the limit for a criterion's reason; the shorter sentence is yours and arrives "
+        "on stdin",
+    ),
+    # The lead and not the reason, so `amend` is the wrong door: that verb refuses to touch an
+    # address, and a shorter lead is a different criterion.
+    "criterion.lead": _decide(
+        "the lead is the address, so shortening it is a different criterion and not an edit",
+        (
+            ("criterion", "drop", "{id}"),
+            "remove it, then `criterion add --block … --lead … --why …` with the shorter head",
+        ),
+        (
+            ("criterion", "list"),
+            "read what the block already claims before rewriting one of it",
+        ),
     ),
     "priority.config": _read(
         ("priority", "list"),

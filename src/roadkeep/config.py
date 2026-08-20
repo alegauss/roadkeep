@@ -106,6 +106,8 @@ _TOP_KEYS = frozenset(
         "ledger",
         "rules",
         "non_goals",
+        # RK1265. The positive twin of the list above, governed on its own declaration.
+        "criteria",
         "headings",
         "report",
         "claims",
@@ -454,6 +456,12 @@ class Config:
     #: `[non_goals]` — declared when this project's non-goals are governed too (RK70), and
     #: **None** when they are prose, which is what every project's were before it opted in.
     non_goals: Scope | None = None
+    #: `[criteria]` — the same two numbers about the **positive twin** (RK1265): what must be
+    #: true for a block to be finished, where a non-goal says what is not built. Opt-in for the
+    #: reason that one is, and separately: a project may govern one list and not the other, and
+    #: a criterion that inherited the non-goals' limits would be judged by numbers measured on
+    #: a different corpus.
+    criteria: Scope | None = None
     #: `[report] upstream` — where a capture of a defect *in this tool* would be filed
     #: (RK87), as `owner/repo`. Configuration and not a constant, so a fork reports to
     #: itself (L6); **None** means `report --issue` refuses rather than guessing a
@@ -558,6 +566,7 @@ class Config:
         tool_characters, tool_session = _tool_budget(data.get("tools"), problems)
         grammars = _grammars(data.get("grammar"), problems)
         non_goals = _scope(data.get("non_goals"), problems)
+        criteria = _scope(data.get("criteria"), problems, "criteria")
         upstream = _upstream(data.get("report"), problems)
         held = _held(data.get("claims"), problems)
         permanent = _permanent_headings(data.get("headings"), problems)
@@ -604,6 +613,7 @@ class Config:
             rules=rules,
             refs=refs,
             non_goals=non_goals,
+            criteria=criteria,
             upstream=upstream,
             held=held,
             permanent_headings=permanent,
@@ -1354,25 +1364,29 @@ def _read_limits(raw: Mapping[str, object], where: str, problems: list[str]) -> 
     return out
 
 
-def _scope(raw: object, problems: list[str]) -> Scope | None:
+def _scope(raw: object, problems: list[str], table: str = "non_goals") -> Scope | None:
     """`[non_goals]` — declared at all means governed, and each number may be left default.
 
     An empty table is legal and is the shortest way to opt in: what a project is declaring
     is *that* the list is a schema, and the two limits are what it may then also tune (L6).
+
+    ``table`` is which of the two lists is being read (RK1265). `[criteria]` is the same two
+    numbers about the positive twin, so the reader is one function and only the problems it
+    reports name the key — two copies would be two opt-ins that came to accept different shapes.
     """
     if raw is None:
         return None
     if not isinstance(raw, Mapping):
-        problems.append("non_goals must be a table of lead = …, why = …")
+        problems.append(f"{table} must be a table of lead = …, why = …")
         return None
-    _reject_unknown(raw, _SCOPE_KEYS, "non_goals.", problems)
+    _reject_unknown(raw, _SCOPE_KEYS, f"{table}.", problems)
     numbers: dict[str, int] = {}
     for key in sorted(_SCOPE_KEYS):
         if key not in raw:
             continue
         value = raw[key]
         if not isinstance(value, int) or isinstance(value, bool) or value < 1:
-            problems.append(f"non_goals.{key} must be a positive integer")
+            problems.append(f"{table}.{key} must be a positive integer")
             continue
         numbers[key] = value
     return Scope(**numbers)

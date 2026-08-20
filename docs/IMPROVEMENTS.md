@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1265 The positive twin of a non-goal
-
-`non-goal` is the one durable statement this tool has: addressed by its lead, no marker,
-no dep, no pointer — *a constraint has no status to state* — and printed where a
-proposal would otherwise repeat it. It is also the only one, and it is negative. Nothing
-says what must be **true** for a block to be finished.
-
-Measured in a repository using this tool: a block with **131 recorded entries**,
-declared closed and reopened **six times**, every close a line count reaching zero. Its
-definition of done *was* written — as a rationale section on the task that introduced it
-— and `ship` deleted it, correctly, because `IMPROVEMENTS` holds rationale for unshipped
-work. Zero occurrences today; what survived is one implementation sentence, and the
-criterion moved to a file this tool does not govern.
-
-RK1180 covers the lifecycle half: a standing block is *caught up* rather than finished.
-This is the other half — a standing block still cannot say what would finish it, and a
-block that is not standing closes on emptiness.
-
-So: the same shape as a non-goal, mirrored. One list per block, addressed by its lead,
-written by its own door, printed by `brief` for that block, and untouched by `ship`.
-
-The scope caution is the design risk — it must stay a list of leads, not a document
-store. A criterion that needs a page belongs in the project's own docs; what belongs
-here is the line a `close` can read.
-
 ## Block C — Query
 
 ## Block D — The gate

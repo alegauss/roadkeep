@@ -103,7 +103,7 @@ from typing import Any
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
-from roadkeep import queueing, scoping
+from roadkeep import criteria, queueing, scoping
 from roadkeep.backlog import Backlog, DepStatus, Stage, id_order
 from roadkeep.blocking import removable
 from roadkeep.config import PROSE_ROLES, ROLES, Config, spent, translated
@@ -800,6 +800,11 @@ def _rules() -> tuple[_Rule, ...]:
         _Rule("role", characters),
         _Rule("documents", lambda scan: _across(scan.config, scan.documents)),
         _Rule("documents", lambda scan: _scope(scan.config, scan.documents.get("roadmap"))),
+        # The positive twin of the rule above (RK1265), read from the same document and
+        # opt-in on its own declaration: a project may govern one list and not the other.
+        _Rule(
+            "documents", lambda scan: _criteria(scan.config, scan.documents.get("roadmap"))
+        ),
         _Rule("documents", queued),
         _Rule("documents", lambda scan: _collective(scan.config, scan.documents)),
         _Rule("tree", lambda scan: _disagreeing(scan.config, scan.tree)),
@@ -2015,6 +2020,78 @@ def _scope(config: Config, roadmap: Document | None) -> list[Finding]:
             )
         seen.setdefault(lead, non_goal.first)
     return out
+
+
+def _criteria(config: Config, roadmap: Document | None) -> list[Finding]:
+    """The criteria, for a project that declared them governed (RK1265).
+
+    :func:`_scope`'s three checks one list over, and silent otherwise for its reason: an
+    adopting project's `Done when` prose was written before this grammar, and a gate that
+    reported on it before anybody opted in is a gate that gets bypassed.
+
+    The address is the **pair** here, so a lead is judged against the leads of its own block: a
+    criterion reading "Every write has a door" under two blocks is two claims about two bodies
+    of work and not one written twice, which is the one place this differs from the non-goals
+    and the reason the seen-set is keyed by both.
+    """
+    if roadmap is None or config.criteria is None:
+        return []
+    file = config.relative(config.path("roadmap"))
+    out: list[Finding] = []
+    for lineno, raw in criteria.rejects(roadmap):
+        out.append(
+            Finding(
+                criteria.SHAPE,
+                file,
+                f"a governed criterion is `- **<lead>** <why>`, so this bullet has no lead "
+                f"to be addressed by: {raw.strip()[:60]!r}",
+                lineno,
+                # The **lead as this file reads it**, which is the address every door here
+                # takes (RK420): where the shape did not hold, `criteria` still gives the
+                # bullet one, so the remedy is a complete command rather than a blank.
+                subject=_leading(roadmap, lineno),
+            )
+        )
+    seen: dict[tuple[str, str], int] = {}
+    for one in criteria.read(roadmap):
+        # The two lengths, only where the shape held — `_scope`'s rule and its whole argument:
+        # the unshaped bullet already carries the finding above, whose remedy is the rewrite.
+        if one.shaped:
+            for violation in criteria.validate(config, one.lead, one.why):
+                out.append(
+                    Finding(
+                        violation.code,
+                        file,
+                        violation.message,
+                        one.first,
+                        subject=one.lead,
+                    )
+                )
+        address = (one.block, criteria.address(one.lead))
+        first = seen.get(address)
+        if first is not None:
+            out.append(
+                Finding(
+                    "criterion.duplicate",
+                    file,
+                    f"already led on line {first} under Block {one.block}: the lead is the "
+                    f"address, so two bullets carrying it are two answers about one claim",
+                    one.first,
+                    subject=one.lead,
+                )
+            )
+        seen.setdefault(address, one.first)
+    return out
+
+
+def _leading(roadmap: Document, lineno: int) -> str:
+    """The lead of the criterion at this line, for the door a shape finding names (RK1265).
+
+    Read back rather than threaded through :func:`criteria.rejects`: that reader answers the
+    gate's question — which bullets are unshaped — and the address is a second question the
+    same records already hold.
+    """
+    return next((one.lead for one in criteria.read(roadmap) if one.first == lineno), "")
 
 
 def _configured(config: Config) -> str:

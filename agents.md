@@ -41,7 +41,7 @@ so it carries no task numbers — `origin <id>` answers where a rule came from:
   authoring blocking shipping markers sections  the writes, whole
   deferring renumbering merging  the doors that are not terminal, and the merge git cannot make
   locking claiming storing  scan-to-save is one span, who holds a line, one grammar
-  scoping queueing reverting  the non-goal, the queue, the undone
+  scoping criteria queueing reverting  the non-goal, what finishes a block, the queue, the undone
   backlog counting picking showing graph briefing budgeting exporting history weighing
   ranking remaining  the query surface, plus what git answers
   linting fixing remedying repairing  the gate, the derived-only fixer, the door every

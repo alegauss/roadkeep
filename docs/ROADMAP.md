@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1265** (deps: —) **a non-goal states what is not built, and nothing states what must be true for a block to be finished** — So a criterion is written into a rationale section that ship deletes, and the only test for doneness left is a line count reaching zero. → §RK1265
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

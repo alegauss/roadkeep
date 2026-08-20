@@ -291,7 +291,9 @@ def test_every_write_command_is_either_wired_or_exempted():
     # only place a commit learns that the ledger's copy moved with the roadmap's.
     # 36 since `declare` (RK1264), wired for `refs`' reason exactly: it writes a governed file
     # and `roadkeep.toml`, and the config is the half of that commit a reviewer would miss.
-    assert len(declared) == 36 and len(wired) == 30
+    # 39 since the criteria's three writes (RK1265), each wired for the reason every bullet
+    # grammar's are: they write the roadmap and the staging line is what a commit reads.
+    assert len(declared) == 39 and len(wired) == 33
 
 
 def test_every_wired_write_reaches_the_one_printer():

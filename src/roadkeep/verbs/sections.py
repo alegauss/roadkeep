@@ -34,6 +34,13 @@ from roadkeep.queueing import (
     migrate as migrate_priority,
 )
 from roadkeep.scoping import add as add_non_goal, amend as amend_non_goal, drop as drop_non_goal
+from roadkeep.criteria import (
+    add as add_criterion,
+    amend as amend_criterion,
+    blocks as criteria_blocks,
+    drop as drop_criterion,
+    read as criteria_read,
+)
 from roadkeep.sections import (
     namespaced,
     AmbiguousTitle,
@@ -411,6 +418,126 @@ def _non_goal_drop(config: Config, args: argparse.Namespace) -> int:
     else:
         print(dropped.stated(config, wrote))
     return EXIT_OK
+
+
+def _criterion_add(config: Config, args: argparse.Namespace) -> int:
+    try:
+        written = add_criterion(config, args.block, lead=args.lead, why=_piped(args.why))
+        wrote = written.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    if args.json:
+        print(json.dumps(written.payload(config, wrote), indent=2))
+    else:
+        print(written.stated(config, wrote))
+    return EXIT_OK
+
+
+def _criterion_amend(config: Config, args: argparse.Namespace) -> int:
+    try:
+        amended = amend_criterion(config, args.block or "", args.lead, _piped(args.why))
+        wrote = amended.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    if args.json:
+        print(json.dumps(amended.payload(config, wrote), indent=2))
+    else:
+        print(amended.stated(config, wrote))
+    return EXIT_OK
+
+
+def _criterion_drop(config: Config, args: argparse.Namespace) -> int:
+    try:
+        dropped = drop_criterion(config, args.block or "", args.lead)
+        wrote = dropped.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    if args.json:
+        print(json.dumps(dropped.payload(config, wrote), indent=2))
+    else:
+        print(dropped.stated(config, wrote))
+    return EXIT_OK
+
+
+def _criterion_list(config: Config, args: argparse.Namespace) -> int:
+    """What would finish a block — one block's list, or every one this file declares.
+
+    Reading is never refused, exactly as `non-goal list` is not: a project that has not opted in
+    prints an empty answer and says so, because a read that refused would leave the caller
+    unable to discover that the list is the thing they have not declared.
+    """
+    try:
+        document = config.document("roadmap")
+        wanted = tuple(criteria_read(document, args.block or ""))
+        declared = criteria_blocks(document)
+    except (KeyError, OSError) as error:
+        return _refused(error)
+
+    where = config.relative(config.path("roadmap"))
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "file": where,
+                    "governed": config.criteria is not None,
+                    "blocks": list(declared),
+                    "criteria": [
+                        {
+                            "block": one.block,
+                            "lead": one.lead,
+                            "why": one.why,
+                            "line": one.first,
+                            "shaped": one.shaped,
+                        }
+                        for one in wanted
+                    ],
+                },
+                indent=2,
+            )
+        )
+        return EXIT_OK
+    rows = _criterion_rows(config, where, wanted, declared, args.block)
+    print("\n".join(rows))
+    return EXIT_OK
+
+
+def _criterion_rows(
+    config: Config,
+    where: str,
+    wanted: tuple,
+    declared: tuple[str, ...],
+    block: str | None,
+) -> list[str]:
+    """The listing, and the sentence an empty one is (RK1265).
+
+    Three empties and they are not one answer: the project has not opted in, the block was
+    never asked the question, or it was asked and every criterion has since been dropped. A
+    reader who cannot tell them apart learns nothing from a blank list.
+    """
+    if not wanted:
+        if config.criteria is None:
+            return [
+                f"{where}: no [criteria] in this project's roadkeep.toml, so what finishes a "
+                f"block is ungoverned — declare the table to open the list"
+            ]
+        if block and block in declared:
+            return [f"{where}: Block {block} declares a list and it is empty"]
+        if block:
+            return [
+                f"{where}: no criteria for Block {block} — `criterion add --block {block} "
+                f"--lead … --why …` opens the list"
+            ]
+        return [f"{where}: no block declares what would finish it"]
+    rows = [f"{len(wanted)} criterion(s) in {where}, in file order"]
+    for one in wanted:
+        rows.append(f"  Block {one.block}  {one.lead}")
+        rows.append(f"    {one.why}")
+        if not one.shaped:
+            rows.append("    unshaped: the lead is this bullet's first sentence, not a bold head")
+    return rows
 
 
 def _priority_add(config: Config, args: argparse.Namespace) -> int:
@@ -898,6 +1025,114 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
     )
     scope_drop.add_argument("--json", action="store_true", help=_JSON_HELP)
     scope_drop.set_defaults(handler=_non_goal_drop)
+
+    criterion_parser = subcommands.add_parser(
+        "criterion",
+        help="what must be true for a block to be finished — the non-goal's positive twin",
+        description=(
+            "The roadmap's third list. A non-goal says what is not built; nothing said what "
+            "would make a block done, so the only test left was a line count reaching zero — "
+            "measured where a block was declared closed and reopened six times. One list per "
+            "block, addressed by its lead, under a `## Done when — Block X` heading `ship` "
+            "never touches. Opt in with `[criteria]`."
+        ),
+    )
+    # Four actions and the same shape as `non-goal`'s three, `list` included for that verb's
+    # reason: one noun with its verbs, because `criterion` and `criteria` are two addresses for
+    # one list and a near-twin is a command typed wrong.
+    criteria_actions = criterion_parser.add_subparsers(dest="action", required=True)
+
+    criterion_add = criteria_actions.add_parser(
+        "add",
+        help="insert one criterion under its block's heading, filled to the prose width",
+        description=(
+            "Compose, validate and insert one criterion, addressed by its lead within its "
+            "block. It **opens the block's list** where there is none, as `priority add` "
+            "writes its own heading — but never the block: a label the roadmap does not "
+            "declare is refused, so a typo opens nothing."
+        ),
+    )
+    criterion_add.add_argument(
+        "--block", required=True, help="the block label this finishes, e.g. B"
+    )
+    criterion_add.add_argument(
+        "--lead",
+        required=True,
+        help="what must be true — the bolded head a brief prints, unique in its block",
+    )
+    criterion_add.add_argument(
+        "--why",
+        required=True,
+        help="how it is checked, in this file's own limit" + _PIPE,
+    )
+    criterion_add.add_argument(
+        "--json",
+        action="store_true",
+        help="the bullet, with the file and line it landed on",
+    )
+    criterion_add.set_defaults(
+        handler=_criterion_add, reads_stdin=(Prose(dest="why", omitted=False),)
+    )
+
+    criterion_amend = criteria_actions.add_parser(
+        "amend",
+        help="rewrite one criterion's reason where it already sits",
+        description=(
+            "Correct a criterion's reason where it sits. `add` appends, so drop-and-re-add "
+            "moves a line in a list read as the shape of what finishing means. The lead is "
+            "not a field — it is the address, so a changed one is a `drop` and an `add`."
+        ),
+    )
+    criterion_amend.add_argument(
+        "lead", help="the lead, as the file reads it; the trailing stop and case do not matter"
+    )
+    criterion_amend.add_argument(
+        "--block",
+        help="which block's list it is in (default: the one that carries the lead)",
+    )
+    criterion_amend.add_argument(
+        "--why", required=True, help="the corrected reason, in this file's own limit" + _PIPE
+    )
+    criterion_amend.add_argument("--json", action="store_true", help=_JSON_HELP)
+    criterion_amend.set_defaults(
+        handler=_criterion_amend, reads_stdin=(Prose(dest="why", omitted=False),)
+    )
+
+    criterion_list = criteria_actions.add_parser(
+        "list",
+        help="what would finish a block — one block's list, or every one declared",
+        description=(
+            "Print what a block has to satisfy. Presence, not enforcement — whether the work "
+            "satisfies a criterion is a judgement this tool has no model for (L4). Never "
+            "refused, and it says which empty it found: ungoverned, unasked, or all dropped."
+        ),
+    )
+    criterion_list.add_argument(
+        "--block", help="one block's list (default: every block that declares one)"
+    )
+    criterion_list.add_argument(
+        "--json", action="store_true", help="the criteria, with the file and their lines"
+    )
+    criterion_list.set_defaults(handler=_criterion_list, reads_only=True)
+
+    criterion_drop = criteria_actions.add_parser(
+        "drop",
+        help="remove the criterion a lead addresses, wrapped lines included",
+        description=(
+            "Delete one criterion whole — the half a changed lead needs, the lead being the "
+            "address. The heading stays: a block whose criteria all went is one somebody "
+            "asked the question about, which is not a block nobody asked."
+        ),
+    )
+    criterion_drop.add_argument(
+        "lead", help="the lead, as the file reads it; the trailing stop and case do not matter"
+    )
+    criterion_drop.add_argument(
+        "--block",
+        help="which block's list it is in (default: the one that carries the lead)",
+    )
+    criterion_drop.add_argument("--json", action="store_true", help=_JSON_HELP)
+    criterion_drop.set_defaults(handler=_criterion_drop)
 
     queue_parser = subcommands.add_parser(
         "priority",

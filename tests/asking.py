@@ -70,6 +70,7 @@ QUESTIONS: tuple[Question, ...] = (
     Question("has this work already shipped under another id", ("delivered", "A")),
     Question("which shipped entries were later undone", ("reversals",)),
     Question("what has this project decided not to do", ("non-goal", "list")),
+    Question("what would finish this block", ("criterion", "list")),
     Question("what are the blocks called, so I know where this task goes", ("block", "list")),
     Question("in what order does this project want its open work", ("priority", "list")),
     Question("what id does the next task take", ("next-id",)),

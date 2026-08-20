@@ -226,6 +226,7 @@
 - ✅ **RK1261** **a ship refusal blames --why for characters that came from --superseded-design** — A ship refused for length names what each of the two arguments took and which has room, and the shipping allowance quotes what a supersession will spend.
 - ✅ **RK1262** **a refused --remainder is reported as a why, so the retry has to guess which of the two strings was short a full stop** — A refused remainder is reported under the flag that carried it, with one sentence saying which of the call's two sentences the rule is about.
 - ✅ **RK1263** **section amend replaces the whole body, so fixing one citation means re-emitting every table and code fence verbatim** — A one-clause correction names the two strings and edits the prose on disk, so a table or a fence the call never names is never retyped.
+- ✅ **RK1265** **a non-goal states what is not built, and nothing states what must be true for a block to be finished** — A block states what must be true for it to be finished, as a list per block the ship never deletes, and brief prints it before the first edit.
 
 ## Block C — Query
 

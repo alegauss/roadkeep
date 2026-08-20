@@ -61,7 +61,13 @@ def emitted() -> set[str]:
     # declaration that drives them — and the list being hand-written is why this had to be
     # edited at all, which is RK1074's argument arriving in one more file.
     found: set[str] = set()
-    for name in (address("linting"), address("schema"), address("referring")):
+    # `criteria.py` joined them for `referring.py`'s reason (RK1265): it names its own three
+    # codes as constants, so `linting` emits them through a variable and the scrape over that
+    # file alone could not see a single one. The module that *declares* a code is the honest
+    # place to read it from, which is what the two additions above already say.
+    for name in (
+        address("linting"), address("schema"), address("referring"), address("criteria")
+    ):
         text = (SOURCE / name).read_text(encoding="utf-8")
         found |= set(re.findall(r'"([a-z]+\.[a-z][a-z-]*)"', text))
     return (found | composed()) - _NOT_CODES

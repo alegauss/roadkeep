@@ -20,7 +20,8 @@ tool list rather than typing it: the whole write path and the reads a task needs
 — `add`, `block_add`, `block_drop`, `block_merge`, `declare`, `claim`, `scope`, `status`, `amend`,
 `restate`, `ship`, `retire`, `defer`, `resume`, `record_add`, `record_amend`,
 `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_amend`,
-`non_goal_drop`, `section_add`, `section_amend`, `section_move`, `section_drop`, `budget`,
+`non_goal_drop`, `criterion_add`, `criterion_amend`, `criterion_drop`, `criterion_list`,
+`section_add`, `section_amend`, `section_move`, `section_drop`, `budget`,
 `brief`, `pick`, `list`, `deps`, `lint`, `engines`, `merge_check` — same engine and same
 refusals, with the fields arriving as a schema instead of flag names typed from memory.
 `init`, `adopt` and `install` run *before* a project is governed, or on its wiring, and want
@@ -356,7 +357,20 @@ address, so a constraint whose lead changes is one dropped and one written. **Ca
 `non-goal list` before an `add`** — the list binds what may be proposed, so reading it
 after the line exists is reading it too late; it prints on a project that never opted in,
 and nothing checks a proposal against it for you, that being a judgement about meaning and
-this tool having no model (L4). **The roadmap's third list is the queue**: `priority add
+this tool having no model (L4). **That list's positive twin is `criterion`**, where
+`[criteria]` declares it governed: a non-goal says what is not built and this says what must
+be **true** for a block to be finished, which nothing else states — a definition of done
+written into a rationale section is one `ship` correctly deletes, and then a block closes on
+emptiness. `criterion add --block <x> --lead "…" --why "…"` writes one, **opening that
+block's `## Done when — Block X` heading** where there is none, as `priority add` does — but
+never the block, a label the roadmap does not declare being refused. The address is the
+**pair**, so one lead under two blocks is two claims and not a duplicate; `criterion amend
+<lead> [--block <x>] --why "…"` and `criterion drop <lead> [--block <x>]` are the other two,
+with `--block` needed only where two lists carry the lead, and the heading survives the last
+bullet — a block whose criteria all went is one somebody asked the question about. `brief`
+prints the task's own block's list, so a task started through it never has to ask, and
+`criterion list [--block <x>]` is the read across blocks — it says which empty it found. **The
+roadmap's fourth list is the queue**: `priority add
 <token> [--first|--after <t>]` and `priority drop <token>` write the `## Priority`
 section, whose entries are bare tokens — an id or `Block X`, no reason field, because why
 something jumps the order is the commit that moved it. A heading declares the list, as a
