@@ -1991,6 +1991,10 @@ def _scope(config: Config, roadmap: Document | None) -> list[Finding]:
                 f"a governed non-goal is `- **<lead>** <why>`, so this bullet has no lead "
                 f"to be addressed by: {raw.strip()[:60]!r}",
                 lineno,
+                # The **lead as this file reads it** (RK1266), which is the address every
+                # door here takes: `scoping` gives an unshaped bullet one on purpose, so the
+                # remedy is a complete command rather than a blank.
+                subject=_led(roadmap, lineno),
             )
         )
     seen: dict[str, int] = {}
@@ -2002,7 +2006,15 @@ def _scope(config: Config, roadmap: Document | None) -> list[Finding]:
         # this module never wrote is made of.
         if non_goal.shaped:
             for violation in scoping.validate(config, non_goal.lead, non_goal.why):
-                out.append(Finding(violation.code, file, violation.message, non_goal.first))
+                out.append(
+                    Finding(
+                        violation.code,
+                        file,
+                        violation.message,
+                        non_goal.first,
+                        subject=non_goal.lead,
+                    )
+                )
         # The address is checked for every bullet, because every bullet now has one: two
         # constraints a reader looks up by the same words are two answers about one scope
         # whichever shape they are written in, and `drop` would take the later one either way.
@@ -2016,6 +2028,7 @@ def _scope(config: Config, roadmap: Document | None) -> list[Finding]:
                     f"already led on line {first}: the lead is the address, so two bullets "
                     f"carrying it are two answers about one scope",
                     non_goal.first,
+                    subject=non_goal.lead,
                 )
             )
         seen.setdefault(lead, non_goal.first)
@@ -2082,6 +2095,16 @@ def _criteria(config: Config, roadmap: Document | None) -> list[Finding]:
             )
         seen.setdefault(address, one.first)
     return out
+
+
+def _led(roadmap: Document, lineno: int) -> str:
+    """The lead of the non-goal at this line, for the door a shape finding names (RK1266).
+
+    :func:`_leading`'s twin one list over, and read back for its reason: `scoping.rejects`
+    answers the gate's question — which bullets are unshaped — and the address is a second
+    question the same records already hold.
+    """
+    return next((one.lead for one in scoping.read(roadmap) if one.first == lineno), "")
 
 
 def _leading(roadmap: Document, lineno: int) -> str:

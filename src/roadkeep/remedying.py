@@ -664,6 +664,49 @@ _TABLE: Mapping[str, _Rule] = {
         "the bullet addresses no work: drop it by hand-free re-add — `priority add <id>` "
         "or `priority add 'Block X'`",
     ),
+    # ------------------------------------------------------------------ the roadmap's other bullet
+    # RK1266, and the rows are RK1265's read across: the two lists are one grammar, so what
+    # closes a criterion closes a constraint with the verb's name changed. Missing until now
+    # because the scrape could not see a code with a hyphen in its head — the gate reported all
+    # four and the suite was green, which is the state a totality test exists to make impossible.
+    #
+    # `--lead` is not passed on any of them: the lead **is** the address, so the verb takes it
+    # as its one positional and the finding supplies it as the subject.
+    "non-goal.duplicate": _run(
+        ("non-goal", "drop", "{id}"),
+        "two bullets lead the same way: the later goes and the first stays, which is where "
+        "the reader already found it",
+    ),
+    # The pair, for the reason `scoping.Unshaped` refuses an amend on one: the render would
+    # impose the shape and move the address while doing it.
+    "non-goal.shape": _decide(
+        "the bullet carries no bold lead, so it has no address this format can write around",
+        (
+            ("non-goal", "drop", "{id}"),
+            "take the bullet out, then `non-goal add --lead … --why …` writes it in the "
+            "shape — honest about the lead changing",
+        ),
+        (
+            ("non-goal", "list"),
+            "read the list first where the lead as this file reads it is not obvious",
+        ),
+    ),
+    "non-goal.why": _compose(
+        ("non-goal", "amend", "{id}", "--why", "-"),
+        "past the limit for a constraint's reason; the shorter sentence is yours and arrives "
+        "on stdin",
+    ),
+    "non-goal.lead": _decide(
+        "the lead is the address, so shortening it is a different constraint and not an edit",
+        (
+            ("non-goal", "drop", "{id}"),
+            "remove it, then `non-goal add --lead … --why …` with the shorter head",
+        ),
+        (
+            ("non-goal", "list"),
+            "read what this project already refuses before rewriting one of it",
+        ),
+    ),
     # ------------------------------------------------------------------ the roadmap's third list
     # RK1265. The lead is the address, so the three that are about one bullet all reach it by
     # that lead — which the emission site passes as the finding's subject. `--block` is left off

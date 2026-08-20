@@ -117,18 +117,14 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 167 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 168 | 2 |
 | C — Query (consult without reading the file) | 0 | 112 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 93 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 119 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 23 | 1 |
-| **Total** | 1 | 753 | 10 |
-
-**Next ready:**
-
-- 📋 **RK1266** (deps: —) **three non-goal codes report a defect and name no command that closes it** — The scrape that holds every code to a door reads three modules and these are declared in a fourth, so the gap is invisible. → §RK1266
+| **Total** | 0 | 754 | 10 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

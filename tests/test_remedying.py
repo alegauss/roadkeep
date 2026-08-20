@@ -61,15 +61,32 @@ def emitted() -> set[str]:
     # declaration that drives them — and the list being hand-written is why this had to be
     # edited at all, which is RK1074's argument arriving in one more file.
     found: set[str] = set()
-    # `criteria.py` joined them for `referring.py`'s reason (RK1265): it names its own three
-    # codes as constants, so `linting` emits them through a variable and the scrape over that
-    # file alone could not see a single one. The module that *declares* a code is the honest
-    # place to read it from, which is what the two additions above already say.
+    # `criteria.py` joined them for `referring.py`'s reason (RK1265) and `scoping.py` for the
+    # same one (RK1266): both name their codes as **module constants**, so `linting` emits
+    # them through a variable and a scrape over that file alone saw not one of the six. The
+    # module that *declares* a code is the honest place to read it from — which is what the
+    # two additions above already say, and what nobody had said about the older of the two
+    # bullet grammars: three codes reported by the gate, no row for any of them, and a green
+    # suite for as long as they had existed.
+    #
+    # This is a list and never a glob. The files here are where codes are **composed** or
+    # **declared**, and widening it to the package would drag in every dotted literal there
+    # is — the noise `composed`'s own docstring refuses one read over.
     for name in (
-        address("linting"), address("schema"), address("referring"), address("criteria")
+        address("linting"),
+        address("schema"),
+        address("referring"),
+        address("criteria"),
+        address("scoping"),
     ):
         text = (SOURCE / name).read_text(encoding="utf-8")
-        found |= set(re.findall(r'"([a-z]+\.[a-z][a-z-]*)"', text))
+        # **The hyphen on both halves** (RK1266). The tail already allowed one and the head
+        # did not, so a whole grammar's codes fell out of the domain: `non-goal.duplicate` is
+        # a literal in `linting.py` — a file this has read since the beginning — and was never
+        # once matched. Measured before it was widened: over the five files here the change
+        # admits exactly the four `non-goal.*` codes and nothing else, so the looser pattern
+        # is not the noise `composed`'s own docstring refuses one read over.
+        found |= set(re.findall(r'"([a-z][a-z-]*\.[a-z][a-z-]*)"', text))
     return (found | composed()) - _NOT_CODES
 
 
@@ -115,6 +132,41 @@ def test_every_code_the_package_can_emit_has_a_door():
         f"A check added to the gate states its repair in roadkeep.remedying, or the "
         f"only route left is the hand-edit the guard denies."
     )
+
+
+def test_the_scrape_sees_a_code_whose_head_carries_a_hyphen():
+    """RK1266, and the half a totality test cannot assert about itself.
+
+    The domain was `[a-z]+\\.[a-z][a-z-]*`: a hyphen allowed after the dot and refused before
+    it. Every `non-goal.*` code fell outside it — including `non-goal.duplicate`, a literal in
+    a file this has scraped since the beginning — so four codes were reported by the gate,
+    answered by nothing, and green for as long as they existed. A totality test is only as
+    total as its domain, and the domain is the thing nothing else was watching.
+
+    Asserted over the codes rather than over the pattern: a regex compared to a regex is the
+    same claim twice, and what has to hold is that these four are *in* what the scrape reads.
+    """
+    from roadkeep import scoping
+
+    hyphenated = {scoping.LEAD, scoping.WHY, scoping.SHAPE, "non-goal.duplicate"}
+    assert all("-" in code.split(".")[0] for code in hyphenated), hyphenated
+    assert hyphenated <= emitted(), sorted(hyphenated - emitted())
+    # And they are answered, which is the finding this task actually closed.
+    assert hyphenated <= set(codes()), sorted(hyphenated - set(codes()))
+
+
+def test_the_module_that_declares_a_code_is_one_the_scrape_reads():
+    """The other half (RK1265, RK1266): a code named as a module constant reaches `linting`
+    through a variable, so scraping the reporter alone sees none of them. Both bullet
+    grammars declare theirs that way, and both are read here now — a third grammar added
+    tomorrow is a red in `test_every_code_the_package_can_emit_has_a_door` only if somebody
+    adds its module too, which is the limit this states rather than papers over."""
+    from roadkeep import criteria, scoping
+
+    for module in (scoping, criteria):
+        declared = {module.LEAD, module.WHY, module.SHAPE}
+        assert declared <= emitted(), sorted(declared - emitted())
+        assert declared <= set(codes()), sorted(declared - set(codes()))
 
 
 def test_every_site_supplies_the_subject_its_own_remedy_substitutes():

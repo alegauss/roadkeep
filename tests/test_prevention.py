@@ -179,6 +179,18 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("grammar.unreadable", "gate", because=RULE),
     Prevented("block.unorganised", "gate", because=FILE),
     Prevented("export.unmarked", "gate", because=FILE),
+    # RK1266. The roadmap's other bullet, and the same two prose fields refused at the same
+    # door — added when the scrape stopped missing a code with a hyphen in its head.
+    Prevented(
+        "non-goal.lead",
+        "refused",
+        ("non-goal", "add", "--lead", LONG, "--why", WHY),
+    ),
+    Prevented(
+        "non-goal.why",
+        "refused",
+        ("non-goal", "add", "--lead", "A short lead", "--why", LONG),
+    ),
     # RK1265. The roadmap's third list, and its two prose fields are refused at the door the
     # way every other prose field is — the probes are what make that a measurement.
     Prevented(
@@ -255,6 +267,11 @@ PREVENTION: tuple[Prevented, ...] = (
     # arrive by a hand edit or a merge, which is what the gate is for.
     Prevented("criterion.duplicate", "gate", because=HAND),
     Prevented("criterion.shape", "gate", because=HAND),
+    # RK1266, and the twins of the two above: `non-goal add` refuses a lead the list already
+    # carries, and nothing renders a bullet with no bold head — `scoping.Unshaped` is the
+    # refusal that says so at the one verb that would have.
+    Prevented("non-goal.duplicate", "gate", because=HAND),
+    Prevented("non-goal.shape", "gate", because=HAND),
     Prevented("priority.shape", "gate", because=HAND),
     Prevented("ref.ambiguous", "gate", because=HAND),
     Prevented("ref.format", "gate", because=HAND),
@@ -283,6 +300,7 @@ roadmap = "ROADMAP.md"
 changelog = "CHANGELOG.md"
 improvements = "IMPROVEMENTS.md"
 [criteria]
+[non_goals]
 """
 #: Two open lines under Block A, because `deps.collective` is *many* and one member is not
 #: many: the probe adds a third and the finding is about what `Block A` then expands to.
@@ -294,6 +312,10 @@ ROADMAP = """# Roadmap
 - 📋 **RK2** (deps: —) **A second symptom that is long enough** — Because of one more. → §RK2
 
 ## Block B — Authoring
+
+## Non-goals
+
+- **No web UI and no server.** Files and a CLI.
 """
 LEDGER = """# Shipped
 
