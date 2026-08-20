@@ -364,10 +364,17 @@ class Settings {
     // to change is asking what it says now, and the default is the fact that stops mattering
     // the moment somebody set one. `set` is null for a key nobody declared, which is a
     // different fact from one declared as zero and is why the two are separate keys.
-    if (row.declared && row.set !== null && row.set !== undefined) {
+    // Three answers and not two (RK1282): a table written per role or per path can carry
+    // several, and one of them shown as *the* value is a number a reader can act on and
+    // should not — the count is the fact, and the per-address read takes the address.
+    if (!row.declared) {
+      parts.push("not declared here");
+    } else if (row.addresses > 1) {
+      parts.push(`declared at ${row.addresses} addresses here`);
+    } else if (row.set !== null && row.set !== undefined) {
       parts.push(`declared here as \`${row.set}\``);
     } else {
-      parts.push(row.declared ? "declared here" : "not declared here");
+      parts.push("declared here");
     }
     const head = `**${row.address}** — ${parts.join(", ")}`;
     return row.note ? `${head}\n\n${row.note}` : head;

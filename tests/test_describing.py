@@ -286,3 +286,50 @@ def test_the_listing_prints_the_value_where_there_is_one(tmp_path, capsys):
     assert "default 120  (declared 90)" in said
     # And the row for a key nobody declared says so with nothing after it.
     assert "(—)" in said
+
+
+def test_a_table_written_at_several_addresses_reports_how_many(tmp_path):
+    """RK1282. A placeholder table is declared once per something the project names, and the
+    shape publishes one address — so the value it reported was one of however many the file
+    carried, chosen by whichever came last, with nothing saying there were others. Precise and
+    wrong is worse than thin and true: a number a reader can act on and should not."""
+    config = project(
+        tmp_path,
+        extra='[budgets]\n"one.md" = { lines = 10 }\n"two.md" = { lines = 20 }\n',
+    )
+    rows = {one.address: one for one in describing.shape(config, "budgets.<path>").keys}
+
+    assert rows["budgets.<path>.lines"].declared is True
+    assert rows["budgets.<path>.lines"].at == 2
+    # Neither of the two, which is the whole repair: which applies is `budget --file`'s.
+    assert rows["budgets.<path>.lines"].set is None
+
+
+def test_one_address_still_says_what_it_says(tmp_path):
+    # The count is the answer only where there is more than one, so the ordinary case keeps
+    # the value RK1278 added.
+    config = project(tmp_path, extra='[budgets]\n"one.md" = { lines = 10 }\n')
+    rows = {one.address: one for one in describing.shape(config, "budgets.<path>").keys}
+
+    assert rows["budgets.<path>.lines"].at == 1
+    assert rows["budgets.<path>.lines"].set == "10"
+
+
+def test_the_listing_says_the_count_where_it_cannot_say_the_value(tmp_path, capsys):
+    project(
+        tmp_path,
+        extra='[budgets]\n"one.md" = { lines = 10 }\n"two.md" = { lines = 20 }\n',
+    )
+    assert main(["-C", str(tmp_path), "config", "--table", "budgets.<path>"]) == EXIT_OK
+    said = capsys.readouterr().out
+
+    assert "declared at 2 addresses" in said
+    assert "declared 20" not in said, "the last one is not the answer"
+
+
+def test_this_project_budgets_two_files_and_the_row_says_so(tmp_path):
+    # The measurement the task was filed from, held against the live tree: two budgets, and a
+    # row that used to print the second one's numbers as though they were the project's.
+    rows = {one.address: one for one in describing.shape(Config.discover(HERE)).keys}
+    assert rows["budgets.<path>.lines"].at == 2
+    assert rows["budgets.<path>.lines"].set is None

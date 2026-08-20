@@ -173,8 +173,14 @@ class Key:
     declared: bool
     #: What it wrote there, rendered the way the default is (RK1278) — `None` where nobody
     #: declared it, which is a different fact from one declared as zero and is said as such.
-    #: A table's own row carries none: what a table *is* is the keys under it.
+    #: A table's own row carries none: what a table *is* is the keys under it. `None` too
+    #: where **several** addresses declared it (RK1282) — one of them printed as the value is
+    #: a number a reader can act on and should not, and :attr:`at` is the fact instead.
     set: str | None = None
+    #: How many addresses declared it (RK1282). 0 or 1 for an ordinary table, and above one
+    #: where a placeholder table was written per role or per path; which of them applies is
+    #: `budget --file`'s and `govern`'s, both of which take the address.
+    at: int = 0
     #: The sentence the source already carries above the set this key belongs to, harvested
     #: and never restated. `""` where the source is not readable or carries none.
     note: str = ""
@@ -271,6 +277,21 @@ def _opening(note: str) -> str:
     return parts[0].strip()
 
 
+def _how(one: Key) -> str:
+    """What a listing says about a key this project declared, or did not (RK1278, RK1282).
+
+    Three answers and not two, because a placeholder table is declared per address: nothing,
+    the value where exactly one address wrote it, and the count where several did. The last
+    is the one this exists for — printing one of them looked exactly like a key with one
+    value, and `budget --file` and `govern` are the reads that take the address.
+    """
+    if not one.declared:
+        return "—"
+    if one.at > 1:
+        return f"declared at {one.at} addresses"
+    return "declared" if one.set is None else f"declared {one.set}"
+
+
 def _rendered(value: object) -> str:
     """A default as the file would spell it, so what is printed is what may be typed."""
     if isinstance(value, bool):
@@ -295,8 +316,8 @@ def _named(value: object) -> str:
     return "table"
 
 
-def _declared(source: Path | None) -> Mapping[tuple[str, str], object]:
-    """Every `(table, key)` the project wrote, and **what it wrote there** (RK1278).
+def _declared(source: Path | None) -> Mapping[tuple[str, str], tuple[object, ...]]:
+    """Every `(table, key)` the project wrote, and **every value it wrote there** (RK1278).
 
     The file and not the parsed :class:`~roadkeep.config.Config`, and the difference is the
     question: a config carries the *effective* value, where a limit left out and a limit
@@ -306,6 +327,12 @@ def _declared(source: Path | None) -> Mapping[tuple[str, str], object]:
     beside a key somebody set is two true statements arranged to read as one false one — met
     by the reader hovering the key they are about to change, which is the moment the value
     matters and the default does not.
+
+    A **tuple** and not one value (RK1282). A table spelled with a placeholder is declared once
+    per something the project names, so one published address can carry several — this project
+    budgets two files — and reporting the last of them looked exactly like a key with one
+    value. The count is the fact; which of the several applies is `budget --file`'s and
+    `govern`'s, both of which take the address.
 
     What comes back is TOML's own scalar, string or list, rendered by the same writer the
     default is: resolving it into what the schema makes of it would be this module re-deciding
@@ -319,39 +346,40 @@ def _declared(source: Path | None) -> Mapping[tuple[str, str], object]:
         return {}
     if "tool" in raw and "roadkeep" in raw.get("tool", {}):
         raw = raw["tool"]["roadkeep"]
-    out: dict[tuple[str, str], object] = {}
+    out: dict[tuple[str, str], list[object]] = {}
     for name, value in raw.items():
         # A table's own row carries no value of its own: what it *is* is the keys under it,
         # and a rendered dict there would be the whole subtree printed as a default.
-        out[("", name)] = None if isinstance(value, Mapping) else value
+        out.setdefault(("", name), []).append(None if isinstance(value, Mapping) else value)
         if isinstance(value, Mapping):
-            out.update(_under(name, value))
-    return out
+            for address, each in _under(name, value):
+                out.setdefault(address, []).append(each)
+    return {key: tuple(values) for key, values in out.items()}
 
 
-def _under(name: str, value: Mapping[str, object]) -> dict[tuple[str, str], object]:
+def _under(
+    name: str, value: Mapping[str, object]
+) -> tuple[tuple[tuple[str, str], object], ...]:
     """One table's declared keys and their values, descending the level a placeholder adds.
 
-    Under `budgets.<path>` or `limits.<role>` the address is one the project chooses, so every
-    such table is walked and the **last** one wins — which is honest rather than arbitrary: two
-    roles declaring one key is two values, and a listing keyed by the published address has one
-    row to put them in. The row says what the shape accepts there; `budget` and `govern` answer
-    per role and per file.
+    Pairs and not a mapping (RK1282): under `budgets.<path>` or `limits.<role>` the address is
+    one the project chooses, so two of them can write the same published key — and a mapping
+    here would keep the last, which is the value that looked like the answer.
     """
     generic = next((one for one in TABLES if one.startswith(f"{name}.")), None)
     under = generic or name
     known = TABLES.get(under, frozenset())
-    out: dict[tuple[str, str], object] = {}
+    out: list[tuple[tuple[str, str], object]] = []
     for key, inner in value.items():
         # A sub-table under a name this table has no key for is the **same** table declared
         # once per something the project chose — `[limits.changelog]`, `[budgets."agents.md"]`
         # — so its keys land on the published address rather than on the name it was spelled
         # with, which is not a key and never appears in the shape.
         if isinstance(inner, Mapping) and key not in known:
-            out.update({(under, each): value for each, value in inner.items()})
+            out.extend(((under, each), one) for each, one in inner.items())
             continue
-        out[(under, key)] = inner
-    return out
+        out.append(((under, key), inner))
+    return tuple(out)
 
 
 def shape(config: Config, table: str | None = None) -> Shape:
@@ -383,15 +411,19 @@ def shape(config: Config, table: str | None = None) -> Shape:
             # parse that answers *whether* a key is declared already has *what* — and
             # printing the default beside a key somebody set is two true statements arranged
             # to read as one false one.
-            declared = written.get((name, key))
+            declared = written.get((name, key), ())
+            # One value or a count, never one of several (RK1282): a placeholder table is
+            # declared per address, so the number is the answer only where there is one.
+            only = declared[0] if len(declared) == 1 else None
             out.append(
                 Key(
                     table=name,
                     name=key,
                     type="" if value is None else _named(value),
                     default=None if value is None else _rendered(value),
-                    declared=(name, key) in written,
-                    set=None if declared is None else _rendered(declared),
+                    declared=bool(declared),
+                    set=None if only is None else _rendered(only),
+                    at=len(declared),
                     note=note,
                 )
             )
@@ -424,9 +456,7 @@ def stated(found: Shape) -> str:
             # What the project set, where it set one (RK1278): the number in use is the one a
             # reader hovering the key they are about to change is asking about, and the
             # default is the fact that stops mattering the moment there is a value.
-            mark = "—" if not one.declared else (
-                f"declared {one.set}" if one.set is not None else "declared"
-            )
+            mark = _how(one)
             rows.append(f"  {one.name:<12} {spelled}{default}  ({mark})")
     return "\n".join(rows)
 
@@ -447,6 +477,9 @@ def payload(found: Shape) -> dict[str, object]:
                 # And what was declared (RK1278) — `null` where nobody did, which is a
                 # different fact from a value of zero and is said as such.
                 "set": one.set,
+                # And how many addresses wrote one (RK1282), which is the fact where the
+                # value is not: above one, `set` is null and this is why.
+                "addresses": one.at,
                 "note": one.note,
             }
             for one in found.keys

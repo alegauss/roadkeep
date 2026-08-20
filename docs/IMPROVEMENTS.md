@@ -103,31 +103,6 @@ task's design has to make.
 
 ## Block C — Query
 
-### §RK1282 One value where the project wrote several
-
-A table spelled with a placeholder is declared once per something the project names —
-`[budgets."agents.md"]`, `[limits.changelog]` — and the shape publishes it under one
-address. So the value it reports is one of however many the file carries, chosen by
-whichever came last, and nothing beside it says there were others.
-
-Measured here: this project budgets two files, and `config --table budgets.<path>`
-answers `lines` as 12 and `bytes` as 800 — the second entry's numbers, presented exactly
-like a key with one value. A reader takes that for the project's budget. The one it is
-about declares 125 and 8400.
-
-The fact was always ambiguous and the row is what made it look answered. Before, that
-column said `declared` and nothing more, which was thin and true; now it is precise and
-wrong, which is worse — a number a reader can act on and should not.
-
-Three shapes are honest and one is not. Say how many addresses declared it, and let the
-per-address answer stay `budget --file` and `govern`'s. Say nothing, going back to the
-bare word for placeholder tables alone. Or key the row by the address the project wrote,
-which is a listing whose length is the project's and not the build's — and which stops
-the shape being *the shape*, since a caller asking what may be declared is not asking
-what was.
-
-What it must not keep doing is print one of several as though it were the one.
-
 ## Block D — The gate
 
 ## Block E — Adoption

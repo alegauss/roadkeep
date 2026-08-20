@@ -76,7 +76,18 @@ INSIDE = {
     # number in use, so it is a key a reader outside this process now depends on.
     "config": (
         "keys",
-        ("table", "key", "address", "type", "default", "declared", "set", "note"),
+        (
+            "table",
+            "key",
+            "address",
+            "type",
+            "default",
+            "declared",
+            "set",
+            # RK1282. How many addresses wrote one, which is the fact where the value is not.
+            "addresses",
+            "note",
+        ),
     ),
 }
 
