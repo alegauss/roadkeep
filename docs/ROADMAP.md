@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1266** (deps: —) **three non-goal codes report a defect and name no command that closes it** — The scrape that holds every code to a door reads three modules and these are declared in a fourth, so the gap is invisible. → §RK1266
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

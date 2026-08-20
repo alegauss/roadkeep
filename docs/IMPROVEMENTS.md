@@ -77,6 +77,32 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1266 The codes the totality test cannot see
+
+The gate's own law is that a finding names the command that closes it, and
+`tests/test_remedying.py` holds it total: every code the package can emit has a row in
+`remedying._TABLE`, or the suite is red. That totality is real for every code the scrape
+can see, and the scrape is where the hole is.
+
+`emitted()` reads three files — `linting.py`, `schema.py`, `referring.py` — for string
+literals shaped like a code. A code declared as a module constant and emitted through a
+variable is invisible to it. `scoping` declares three that way: `non-goal.lead`,
+`non-goal.why` and `non-goal.shape`. `linting._scope` reports all three, none has a row,
+and the suite has been green throughout.
+
+Found while building the twin. RK1265 gave the criteria the same shape and the same
+three codes, and only the one spelled as a literal at its emission site was caught.
+Adding `criteria.py` to the scrape closed that half and made the older half visible.
+
+The work is two steps and the second is the point. Add `scoping.py` to the scraped
+modules, which turns three silent codes into three red rows. Then write the rows: the
+lead is the address, so a shortened one is a `drop` and an `add` rather than an amend,
+and the reason has `non-goal amend <lead> --why -` — the pair RK1265 spelled one list
+over.
+
+Not a widening to every module: the three files read are where codes are composed, and
+what it should also read is where they are declared.
+
 ## Block C — Query
 
 ## Block D — The gate
