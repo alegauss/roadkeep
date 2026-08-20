@@ -135,7 +135,7 @@ from roadkeep.ids import IdRef, next_id
 from roadkeep.markers import refresh
 from roadkeep.provenance import invocation
 from roadkeep.renumbering import NotAnId, SameId, family_of
-from roadkeep.kernel.schema import PARTIAL, SchemaError, Task
+from roadkeep.kernel.schema import PARTIAL, SchemaError, Task, over_by, width
 from roadkeep.sections import (
     Section,
     declaring,
@@ -365,6 +365,57 @@ class NoDesign(ValueError):
             f"{task_id} carries no pointer, so no design was superseded: the clause names "
             f"the address of the rationale this shipment overtook, and this line never had "
             f"one — the outcome belongs in --why"
+        )
+
+
+class SupersessionCrowded(ValueError):
+    """A ledger sentence over its limit, reported as the field that has to survive (RK1261).
+
+    `--why` and `--superseded-design` render as one sentence and are refused as one field, so
+    the message named `why` and quoted a total neither argument was. Measured here: 183
+    characters of outcome beside 166 of supersession note answered `why: 385 characters, limit
+    is 200 … delete 185 characters — about 29 words`, which read literally asks for a
+    15-character outcome. Read as advice it asks for the **wrong edit** — the obvious response
+    is to cut the outcome sentence, and that is the half the entry keeps once the design is
+    deleted. The note is the half that can go, and nothing in the message pointed there.
+
+    So the parts are named and the room is attributed to the one that has it. Raised only where
+    the composition is what overflowed: a `--why` over the allowance on its own is
+    `why.too-long` about the field it really is about, which is :meth:`Schema.why_budget`'s own
+    rule — an overrun in one field is never charged to another — applied one file over.
+    """
+
+    def __init__(
+        self,
+        task_id: str,
+        *,
+        authored: str,
+        note: str,
+        composed: str,
+        limit: int,
+        source: str = "",
+    ) -> None:
+        self.task_id = task_id
+        self.limit = limit
+        # Derived by subtraction rather than by re-composing the wrapper: `_parenthesised` is
+        # the only writer of that shape (L3's rule about one writer), and a second spelling of
+        # its brackets here would be the number that drifts when the clause is reworded.
+        structure = width(composed) - width(authored) - width(note)
+        room = limit - width(authored) - structure
+        #: What the author is being asked to do, which is the whole point of naming the parts.
+        edit = (
+            f"which has {room} characters beside this --why"
+            if room > 0
+            else "which has none beside this --why, so the outcome is what has to be shorter "
+            "first"
+        )
+        super().__init__(
+            f"{task_id}'s ledger sentence is "
+            f"{over_by(width(composed), limit, measured=composed, source=source)}, and two "
+            f"arguments compose it: --why took {width(authored)}, --superseded-design took "
+            f"{width(note)}, and parenthesising them into one sentence added {structure}. The "
+            f"outcome is what the entry keeps once the design is deleted, so it is the note "
+            f"that gives way, {edit}"
         )
 
 
@@ -2492,6 +2543,10 @@ def _depart(
     # by `completing`, so the count cannot open the span on a path that places a new line.
     why, below = _unwrapped(why, lines if completing is not None else None)
 
+    # The author's half, kept so a refusal about the composed sentence can name the parts
+    # (RK1261): from here on `why` may be two arguments and a wrapper, and by the time a gate
+    # reads it there is one field to blame.
+    authored = why
     if superseded is not None:
         # Derived up to the address and prose from there on, the split every field this tool
         # fills in takes (RK8, RK310): the anchor is the pointer the line is losing, which is
@@ -2509,6 +2564,22 @@ def _depart(
         raise NoCompletion(task_id, where)
 
     recorded = as_recorded(entry.task, marker, why)
+    if superseded is not None:
+        # Before `place` validates, because from there on the two arguments are one field
+        # (RK1261). The allowance is the ledger's own and not `why_max` — `why_budget` is what
+        # refuses, so a message quoting anything else would name a number the write does not
+        # use, which is the defect RK183 closed for the roadmap's line.
+        grammar = config.schema_for("changelog")
+        allowed = grammar.why_budget(recorded)
+        if width(why) > allowed >= width(authored):
+            raise SupersessionCrowded(
+                task_id,
+                authored=authored,
+                note=superseded,
+                composed=why,
+                limit=allowed,
+                source=grammar.source_of("why_max"),
+            )
     if completing is not None:
         # The same write `record amend` makes, so the same count (RK193). A completion drops
         # the qualifier *and states a different outcome*, and a wrapped entry's `why` is only
@@ -2584,6 +2655,23 @@ def _superseding(why: str, anchor: str, superseded: str) -> str:
     subject is a design that no longer exists.
     """
     return _parenthesised(why, f"design §{anchor} superseded: {superseded}")
+
+
+def supersession_cost(anchor: str) -> int:
+    """What `--superseded-design` costs the ledger's sentence before its note (RK1261).
+
+    The other half of that task, and the one that arrives in time to be useful: `brief` quotes
+    a shipping allowance without knowing a supersession will be appended to it, and a task
+    about to lose its design is exactly when that allowance is read — so the number was wrong
+    precisely when it was asked for. Unlike a `--part` qualifier, this one is **knowable**: the
+    anchor is the pointer the line already carries, so only the note's own length is the
+    caller's.
+
+    Measured by composing with an empty note rather than by counting brackets, so it cannot
+    drift when the clause is reworded — :func:`_superseding` stays the only writer of it.
+    """
+    stem = "x."
+    return width(_superseding(stem, anchor, "")) - width(stem)
 
 
 def _parenthesised(why: str, clause: str) -> str:

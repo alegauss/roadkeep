@@ -223,6 +223,7 @@
 - ✅ **RK1229** **A dep with a parenthesis is written, then no verb can reach the line it made unreadable** — A dep whose rendered group does not read back, or carrying the pointer arrow, is refused at input — so the line the tool could write and no verb could reach is not written.
 - ✅ **RK1231** **renumber leaves the section heading it wrote, so an outline-ref project keeps a title naming the old id** — renumber rewrites the trailing (<id>) the tool itself wrote, leaving an outline anchor where it is, and the report names that anchor rather than the new id.
 - ✅ **RK1258** **a block's first task files its rationale AS the family heading; every later one gets a child, and no verb picks** — add --ref <family>.1 --section opens the family in the same write, titled from the block, so a block's first design is a child exactly like every later one.
+- ✅ **RK1261** **a ship refusal blames --why for characters that came from --superseded-design** — A ship refused for length names what each of the two arguments took and which has room, and the shipping allowance quotes what a supersession will spend.
 
 ## Block C — Query
 

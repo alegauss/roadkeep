@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1261 The number that names the wrong field
-
-Shipping a task whose design turned out wrong takes two arguments, and the refusal that
-comes back describes one. Observed today: `--why` held 183 characters and
-`--superseded-design` held 166, and the answer was `why: 385 characters, limit is 200
-... delete 185 characters — about 29 words`. Read literally it asks for a `--why` of 15
-characters, which is not what any of it means. The 385 is the rendered sentence — both
-fields plus the parenthetical and the section address the ledger adds — attributed to
-the field whose name is on the front.
-
-The cost is a wrong edit. The obvious response is to cut the outcome sentence, which is
-the half that has to survive: the ledger's entry is what remains after the design is
-deleted. The half that can go is the supersession note, and nothing in the message
-points there.
-
-Two fixes, and the first is most of it. Name the parts in the number: what `--why` took,
-what `--superseded-design` took, what the render added, and which one has room. `add`
-already does this shape for symptom and why sharing a line, so the vocabulary exists.
-
-The second is `budget`, which reports a shipping budget today without knowing that a
-supersession will be appended to it. A task about to lose its design is exactly when
-that budget is consulted, so the number it gives is wrong precisely when it is asked.
-
 ### §RK1262 The flag the message did not name
 
 `ship <id> --part "..." --why "..." --remainder "..."` refuses a remainder with no

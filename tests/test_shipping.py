@@ -52,10 +52,12 @@ from roadkeep.shipping import (
     Closure,
     NoRestatement,
     NotOpen,
+    SupersessionCrowded,
     Wrapped,
     record,
     retire,
     ship,
+    supersession_cost,
 )
 from roadkeep.shipping import amend as amend_record
 
@@ -1737,9 +1739,11 @@ def test_a_closure_writes_no_sentence_for_the_clause_to_join(tmp_path):
 def test_the_clause_is_held_to_the_sentences_own_limit(tmp_path):
     # No second limit and no second field: the clause lands in the `why`, so the ledger's own
     # `why` limit is what refuses it — with the number, as every other over-length write is.
+    # **And with the parts** (RK1261): the total is neither argument's, so a refusal naming only
+    # `why` asked for an outcome shorter than any of it and pointed at the half that survives.
     config = project(tmp_path, extra_config="\n[limits]\nwhy = 80\n")
     before = files(config)
-    with pytest.raises(SchemaError) as caught:
+    with pytest.raises(SupersessionCrowded) as caught:
         ship(
             config,
             "RK1",
@@ -1747,8 +1751,80 @@ def test_the_clause_is_held_to_the_sentences_own_limit(tmp_path):
             superseded="a clause long enough to push the whole sentence past the limit",
         )
 
-    assert "why" in str(caught.value) and "80" in str(caught.value)
+    said = str(caught.value)
+    assert "80" in said
+    # Each argument's own cost, and the wrapper's, so the three add up to the total refused.
+    assert "--why took 36" in said
+    assert "--superseded-design took 62" in said
+    assert f"added {supersession_cost('RK1')}" in said
+    assert "125 characters" in said and 36 + 62 + supersession_cost("RK1") == 125
+    # And the edit, which is the whole finding: the outcome is what the entry keeps once the
+    # design is deleted, so the deletion comes out of the note.
+    assert "it is the note that gives way" in said
     assert files(Config.discover(tmp_path)) == before
+
+
+def test_an_outcome_over_the_limit_on_its_own_is_still_reported_as_the_field(tmp_path):
+    """`why_budget`'s rule one file over: an overrun in one field is never charged to another.
+
+    A `--why` that does not fit without the clause is `why.too-long` about `--why`, and naming
+    the supersession there would send the author to cut the half that was not the problem —
+    which is this task's own finding, pointed the other way."""
+    config = project(tmp_path, extra_config="\n[limits]\nwhy = 40\n")
+    with pytest.raises(SchemaError) as caught:
+        ship(
+            config,
+            "RK1",
+            why="The first symptom no longer happens, and neither does the second one.",
+            superseded="the lookup it proposed already existed",
+        )
+
+    said = str(caught.value)
+    assert "why" in said and "40" in said
+    assert "--superseded-design took" not in said
+
+
+def test_the_note_is_told_how_much_room_it_has_and_when_it_has_none(tmp_path):
+    # The room is the limit less the outcome and the wrapper, so a caller reading it composes
+    # the retry once. Where the outcome alone leaves nothing, that is said instead of a `0`.
+    config = project(tmp_path, extra_config="\n[limits]\nwhy = 80\n")
+    with pytest.raises(SupersessionCrowded) as caught:
+        ship(
+            config,
+            "RK1",
+            why="The first symptom no longer happens.",
+            superseded="a clause long enough to push the whole sentence past the limit",
+        )
+    # 80 less the 36-character outcome and the wrapper the anchor makes.
+    assert f"has {80 - 36 - supersession_cost('RK1')} characters beside this --why" in str(
+        caught.value
+    )
+
+    with pytest.raises(SupersessionCrowded) as crowded:
+        ship(
+            config,
+            "RK1",
+            why="The first symptom no longer happens, and that is the whole outcome here.",
+            superseded="a short clause",
+        )
+    said = str(crowded.value)
+    assert "has none beside this --why" in said
+    assert "the outcome is what has to be shorter first" in said
+
+
+def test_the_shipping_allowance_names_what_a_supersession_will_take(tmp_path, capsys):
+    """RK1261's other half. A task about to lose its design is exactly when this figure is
+    read, and it was quoted without knowing a clause would be appended to the same sentence.
+
+    Derived and not hedged, unlike the `--part` qualifier beside it: the anchor is the pointer
+    the line already carries, so only the note's own length is the caller's."""
+    project(tmp_path, extra_config="\n[limits.changelog]\nwhy = 150\n")
+    assert main(["-C", str(tmp_path), "brief", "RK1"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "shipping why" in out
+    # ` (design §RK1 superseded: )` — measured through the composer, so a reworded clause
+    # moves this number rather than leaving it behind.
+    assert f"less the {supersession_cost('RK1')} a `--superseded-design` clause spends" in out
 
 
 def test_the_flag_reaches_the_command_line_and_reports_what_it_wrote(tmp_path, capsys):

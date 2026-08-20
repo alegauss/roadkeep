@@ -117,18 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 4 | 163 | 2 |
+| B — Authoring (insert, never hand-edit) | 3 | 164 | 2 |
 | C — Query (consult without reading the file) | 0 | 112 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 1 | 92 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 119 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 23 | 1 |
-| **Total** | 5 | 748 | 10 |
+| **Total** | 4 | 749 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1261** (deps: —) **a ship refusal blames --why for characters that came from --superseded-design** — The two render as one sentence and are reported as one field, so the count never matches what was passed and the remedy points at the half that has to survive. → §RK1261
+- 📋 **RK1262** (deps: —) **a refused --remainder is reported as a why, so the retry has to guess which of the two strings was short a full stop** — one message naming the wrong flag costs a whole ship call, and the two arguments it could mean are adjacent on the same command line. → §RK1262
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

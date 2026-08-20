@@ -48,7 +48,7 @@ from roadkeep.locking import exclusive
 from roadkeep.picking import Choice, Claim, hold, pick, take
 from roadkeep.kernel.schema import Task
 from roadkeep.remaining import Clause
-from roadkeep.shipping import as_recorded
+from roadkeep.shipping import as_recorded, supersession_cost
 from roadkeep.showing import View, show
 
 #: How many blocker chains a brief carries. Lower than the graph's own limit on purpose:
@@ -305,10 +305,22 @@ class Brief:
             # seeing, and repeating the same one under another name teaches nobody anything.
             ship = self.shipping.share("why")
             if self.budget is None or ship.allowed != self.budget.share("why").allowed:
+                # And what a supersession takes out of the same sentence (RK1261). The other
+                # hedge stays a hedge because a qualifier is prose this cannot know; this one
+                # is *derived*, the anchor being the pointer the line already carries — and a
+                # task about to lose its design is exactly when this allowance is read, so an
+                # answer that omitted it was wrong precisely when it was asked for.
+                superseding = (
+                    ""
+                    if task.ref is None
+                    else f", and less the {supersession_cost(task.ref)} a "
+                    f"`--superseded-design` clause spends in the same sentence"
+                )
                 rows.append(
                     f"  shipping why {ship.left} of {ship.allowed} left on the ledger line a "
                     f"`ship` writes, which is the limit that refuses it — less a `--part` "
                     f"qualifier, which is structure this cannot know you will pass"
+                    f"{superseding}"
                 )
         settled = {one.dep: one for one in self.settled}
         for resolution in self.deps:
