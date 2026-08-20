@@ -38,7 +38,11 @@
 
 ## Block E — Adoption
 
+- 📋 **RK1279** (deps: —) **the reading behind a limit walks a hand-written list of roles, so a role added later is measured by nobody** — The roles a line reading walks are derived from the declared set, so a role added is a role measured. → §RK1279
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK1280** (deps: —) **the guard allows a hand edit to the config and says nothing, so a limit with a door is still typed past it** — A hand edit to the config is allowed and told which numbers have a verb, so the checkable half is not typed blind. → §RK1280
 
 ## Block G — The editor surface (the backlog where the file is open)
 
