@@ -46,8 +46,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1273** (deps: —) **a served field's description states one rule twice, so the ceiling is spent on a paragraph nobody reads twice** — The note a bound composes says what the flag's own help does not, so a served description states each rule once and the ceiling measures prose that earns it. → §RK1273
-
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:

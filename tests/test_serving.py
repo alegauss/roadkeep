@@ -409,6 +409,24 @@ def test_the_span_verbs_publish_no_ceiling_and_their_siblings_still_do(tmp_path)
     assert placed["maxLength"] == config.schema.why_max
 
 
+def test_the_affordance_is_stated_once_and_by_the_half_a_terminal_prints(tmp_path):
+    """RK1273. The note was written to be the only statement of the whole-span rule, both
+    flags' `help` came to carry it too, and nothing noticed — 941 characters on the served
+    verb with the least room of any here, refusing its next flag over a duplicate.
+
+    Asserted on the two halves and not on a length: a byte count would pass again the moment
+    somebody re-added the sentence three words shorter."""
+    config = Config.discover(project(tmp_path))
+    for name, command in (("ship", "ship"), ("record_amend", "record amend")):
+        described = _served(name, config)["why"]["description"]
+        assert described.count("whole span") == 1, f"{name} states it twice"
+        # And the surviving copy is the flag's own help, which `--help` prints: a fact kept
+        # only in the note is one a terminal never sees.
+        assert "whole span" in (serving._action(serving._subparser(command), "why").help or "")
+    # What the note keeps is the bound, which is the half no help states.
+    assert "No `maxLength` here" in _served("ship", config)["why"]["description"]
+
+
 def test_the_count_the_pointer_stopped_needing_is_off_the_surface(tmp_path):
     # RK1056: RK1053 narrowed `--supersedes` to the entry's first line, so every call this
     # property can appear in is refused — and a published property whose whole description

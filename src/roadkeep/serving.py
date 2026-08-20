@@ -926,8 +926,14 @@ _CRITERIA_BOUNDS = {
 #: against `limits.<role>.why` — so no character ceiling describes both calls, and publishing the
 #: single-line one refuses a span this server takes. That is RK183's rule, and the answer is the
 #: one `body` and `section_body` already give for the same shape: no `maxLength`, and the bound
-#: said in the note. The affordance is said there too, because a schema is the whole of what an
-#: agent has: unsaid, it composes the `<br>`-joined line RK1049 exists to remove.
+#: said in the note.
+#:
+#: **The affordance is not said here** (RK1273). It was, on the argument that a schema is the
+#: whole of what an agent has — and then both flags' own `help` came to carry it, so one field's
+#: description stated one rule twice, at 941 characters on the verb that has the least room of
+#: any served here. A note says what the *bound* is; a help says what the flag does; and where
+#: the two overlap the note gives way, being the half a terminal never prints — a fact kept only
+#: here is a fact lost at `--help`.
 _SPAN_BOUNDS = {
     **_BOUNDS,
     "why": lambda config: {
@@ -936,11 +942,9 @@ _SPAN_BOUNDS = {
             f"limit is per line**: {config.schema.why_max} characters is what refuses a "
             f"one-line field, counted in UTF-16 code units, and the rendered line "
             f"({config.schema.line_max}) is what binds — `budget` answers both before a word "
-            f"is written (RK190). Passing `--lines` above one on an entry that wraps, this "
-            f"field is the **whole span**: the first line is the sentence and is measured, "
-            f"and the lines after it are written back under the bullet verbatim, unmeasured "
-            f"because no field holds them. So the total has no ceiling and one published "
-            f"here would refuse a call this tool accepts."
+            f"is written (RK190). A span passed with `--lines` above one is measured on its "
+            f"first line alone, so the total has no ceiling and one published here would "
+            f"refuse a call this tool accepts."
         )
     },
 }

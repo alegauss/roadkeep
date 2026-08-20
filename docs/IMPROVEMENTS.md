@@ -180,25 +180,3 @@ answered before a line exists, costs nothing; answered by the gate afterwards it
 the edit twice.
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1273 One rule, one writer, in a served description
-
-`ship --why` publishes 941 characters over MCP, and two of its sentences say one thing.
-The flag's own help already carries the whole-span affordance — the first line is the
-outcome and the rest is written back as the tail — and `_SPAN_BOUNDS` then says it again
-at four times the length, because the note was written to be the *only* statement of it
-and the help was extended afterwards.
-
-Measured by the ceiling that exists to find exactly this: `ship` sits at 2,598 of 2,600,
-and the next flag on that verb is refused by a duplicate rather than by anything the
-verb does. RK1059 set the number close on purpose, so the finding is right and the
-remedy is not a larger number.
-
-The rule is the one every other pair of writers here already keeps: a note composed by a
-bound says what the bound is, and a help says what the flag does. Where the two overlap
-the note gives way, being the half only one transport reads — a terminal never sees it,
-so a fact moved into it is a fact lost at `--help`.
-
-What this is not: shortening prose because a limit is close. The clause is deleted from
-the note because it is already written one line above it in the same string, and the
-saving is the same either way.
