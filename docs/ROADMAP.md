@@ -26,19 +26,25 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1267** (deps: —) **ship deletes the design and nothing records where the reasoning that outlives the code went** — A shipment may name the file that now carries the argument, checked to resolve as any path a ledger sentence names, so the durable half of a deleted section keeps an address. → §RK1267
+- 🛠 **RK1267** (deps: —) **ship deletes the design and nothing records where the reasoning that outlives the code went** — A shipment may name the file that now carries the argument, checked to resolve as any path a ledger sentence names, so the durable half of a deleted section keeps an address. → §RK1267
 - 📋 **RK1268** (deps: —) **a definition of done is addressed by block, so what finishes one task is written nowhere a verb reads** — A criterion may be addressed to a task as well as to a block, and `brief` prints the task's own beside its block's, so a line carries what it must satisfy. → §RK1268
 - 📋 **RK1269** (deps: —) **a decision that outlives the work explaining it has no governed file, so an ADR is kept by hand or not at all** — A `decisions` role is the line-and-section pair whose one departure is being superseded, so a decision record is a schema at insertion instead of a convention. → §RK1269
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1270** (deps: —) **nothing prints what `roadkeep.toml` may declare, so its keys live only in the parser that rejects them** — A verb answers the config's own shape — table, key, type, default, declared or not — so a reader outside the package compiles no second copy. → §RK1270
+
 ## Block D — The gate
 
 ## Block E — Adoption
 
+- 📋 **RK1272** (deps: —) **`[limits]`, `[budgets]` and `[markers]` have no verb, so the file governing every write is the ungoverned one** — A verb declares one, printing the reading it is chosen against first, so a limit is measured where it is typed instead of guessed and lowered later. → §RK1272
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
+
+- 📋 **RK1271** (deps: RK1270) **the editor completes nothing in `roadkeep.toml`, so every key is typed from memory** — The panel offers the keys the package printed and hovers their reason, so a declaration is composed against its shape instead of checked after it exists. → §RK1271
 
 ## Block H — The tool's own shape (what one verb costs to change)
 

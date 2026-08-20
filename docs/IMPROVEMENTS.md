@@ -153,12 +153,78 @@ And it is priced: every verb costs the session at connect, so the read surface s
 
 ## Block C — Query
 
+### §RK1270 The config's shape, printed by the parser that enforces it
+
+`_TOP_KEYS`, `_LIMIT_KEYS`, `_MARKER_KEYS` and six more frozensets are the complete
+statement of what this file may say, and their only reader is `_reject_unknown`. That is
+enough to refuse a typo and not enough to answer the question asked before anything is
+typed: what may go here, and what does it mean.
+
+Every consumer needing that answer has so far written it again. The scaffold `init`
+emits knows the tables; `declare` knows `[files]`; a completion list in an editor would
+know all of them. Each copy is L6 broken from a different side — the shape of a
+project's own declaration decided somewhere other than the package that reads it.
+
+So the package prints it, once. One payload per key: its table, its type, its default,
+whether this project declared it, and the sentence already attached to the frozenset as
+a `#:` comment — harvested from the source, never restated beside it.
+
+What this is not is a schema for somebody else's validator. The shape published is what
+*this build* accepts, and that is the distinction `ConfigError`'s skew clause exists
+for: a key nothing declared is a typo, a key this build predates is an upgrade, and the
+file cannot tell them apart. A payload naming the build that answered lets a reader
+conclude the second one — the sentence that refusal wanted and had no way to reach.
+
 ## Block D — The gate
 
 ## Block E — Adoption
 
+### §RK1272 A verb for the tables only a hand has ever written
+
+`declare` retrofits a role into `[files]` and `priority migrate` moves the queue out of
+the config; every other table is edited by hand. In an agent session that is not a hand
+edit, it is no edit at all — the write path is the served surface, and nothing on it
+writes this file.
+
+The tables worth a verb are the ones whose value is a judgement about a number:
+`[limits]`, `[budgets]`, `[tools]`, `[claims]`. Each already has the read that decides
+it. `budget --file` prints what an every-turn file costs against what it may; `budget
+--tools` ranks the served descriptions and prints the room; the P90 of the lines that
+already read well is what put `symptom` at 120. The reading and the number live in
+different places, so the reading happens once and the number is defended in a comment
+afterwards — this project's own `[tools]` entry is four paragraphs of exactly that,
+re-argued three times in one session.
+
+So the verb prints the reading and takes the number in the same call, and refuses one
+the current corpus already violates rather than writing a limit whose first act is a
+finding. It writes the declaration and never the argument for it: why 120 and not 130 is
+prose, and the tool does not write prose.
+
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)
+
+### §RK1271 Completion in the config file, carrying no rule
+
+The host states the property this may not break: it carries no rule, and
+`tests/test_editor.py` holds it — a literal marker, id or governed filename in
+JavaScript is L6 broken from the outside rather than the inside. A completion list
+written as a schema under `editor/` is exactly that, and the widest one yet: nine
+frozensets restated in a language the parser never reads.
+
+RK1270 is therefore the whole design, and this is the rendering. A
+`CompletionItemProvider` and a `HoverProvider` over the config file, both reading the
+one payload, cached until the file changes like every other read the host makes.
+
+The gate half already works and needs nothing built: the config is in `lint`'s checked
+list, its findings carry `file:line:column` and the door that closes them, and the
+diagnostic and quick-fix providers are registered for any file the gate names. What is
+absent is the half before the save.
+
+Which is the write prompt's argument met one file over: a view that only reads sends its
+user somewhere else to type the format from memory, and that is the failure this project
+is about moved one window across. The saving is the analysis — which key it was,
+answered before a line exists, costs nothing; answered by the gate afterwards it costs
+the edit twice.
 
 ## Block H — The tool's own shape (what one verb costs to change)
