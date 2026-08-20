@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1281** (deps: —) **a decision inherits the roadmap claim, so a tighter limit on that file refuses a ship over a field no flag writes** — A decision inherits the line claim under a limit the caller can reach before the write, or not at all. → §RK1281
+
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1278** (deps: —) **the config shape prints the default beside a key the project set, so the number shown is not the one in use** — The shape carries what this project declared beside what this build defaults to, so a hover on a set key states the number in use. → §RK1278
