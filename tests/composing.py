@@ -159,6 +159,10 @@ SITES: tuple[Site, ...] = (
     Site("shipping.py:AlsoPaused.__init__", "unreached", NO_FIXTURE),
     Site("shipping.py:Delivered.__str__", "unreached", NO_FIXTURE),
     Site("shipping.py:Divergent.__init__", "unreached", NO_FIXTURE),
+    # RK1281. The `govern` it names is the second of two doors and the one that is not a
+    # complete argv: which number a wider limit should be is the reading that verb takes, so
+    # the command as printed carries a placeholder and is filled the way every blank is.
+    Site("shipping.py:InheritedClaim.__init__", "unreached", NO_FIXTURE),
     # RK1269. Run by `test_composing`, which executes the `declare decisions` this refusal
     # names and then makes the `ship --decides` land — the whole reading of this file, on the
     # one door where the remedy is a role a project has not opened yet.

@@ -45,6 +45,7 @@ from roadkeep.sections import SectionOccupied
 from roadkeep.shipping import (
     AlreadySuperseded,
     Divergent,
+    InheritedClaim,
     NoCompletion,
     NoDesign,
     NoOutcome,
@@ -3032,3 +3033,65 @@ def test_the_recording_wrapper_is_measured_through_the_composer(tmp_path):
     assert recording_cost("RK1") == width(_recording("x.", "RK1", "")) - width("x.")
     # Longer anchors cost more, which is the whole reason it is derived per line.
     assert recording_cost("RK1000") > recording_cost("RK1")
+
+
+def test_a_decision_refused_over_the_inherited_claim_names_the_doors_that_are_real(tmp_path):
+    """RK1281. `--decides` composes the decision from the task's own claim, which is right —
+    a decision is *about* the problem the line stated. What it inherits with it is the claim's
+    length, measured against a limit no flag on that call reaches, and the refusal then offered
+    the remedy every symptom overrun gets: the rationale section this ship is deleting."""
+    config = _deciding(tmp_path, extra_config="\n[limits.decisions]\nsymptom = 10\n")
+    before = files(config)
+    with pytest.raises(InheritedClaim) as caught:
+        ship(config, "RK1", why="It works now.", decides="The store is the repository.")
+
+    # `about` and not `str`, which `RemainderRefused` established: the violations are the
+    # schema's and this is the sentence saying which door they open (RK420).
+    said = caught.value.about
+    assert "--decides writes no symptom" in said
+    # The two doors that are real, and never the one that is not.
+    assert "restate RK1" in said and "govern limits.symptom" in said
+    assert "carried into docs/DECISIONS.md whole" in said
+    # The whole transaction costs nothing, which is every other refusal here.
+    assert files(Config.discover(tmp_path)) == before
+    assert read(Config.discover(tmp_path), DECISIONS) == DECIDED
+
+
+def test_the_refusal_is_still_the_schema_s_and_carries_its_numbers(tmp_path):
+    # A `SchemaError` subclass, so a caller catching that class keeps catching this: what
+    # changed is what the refusal says, and never which class of refusal it is.
+    config = _deciding(tmp_path, extra_config="\n[limits.decisions]\nsymptom = 10\n")
+    with pytest.raises(SchemaError) as caught:
+        ship(config, "RK1", why="It works now.", decides="A constraint.")
+
+    assert any(one.code == "symptom.too-long" for one in caught.value.violations)
+
+
+def test_a_why_over_the_limit_there_is_still_refused_as_itself(tmp_path):
+    """The other half of that catch: only a *symptom* violation is the inherited one. A `why`
+    the caller typed too long is prose they can shorten, and re-labelling it would send them
+    to `restate` over a field they wrote on this very call."""
+    config = _deciding(tmp_path, extra_config="\n[limits.decisions]\nwhy = 30\n")
+    with pytest.raises(SchemaError) as caught:
+        ship(config, "RK1", why="It works now.", decides="A constraint " * 10)
+
+    assert not isinstance(caught.value, InheritedClaim)
+
+
+def test_the_brief_prices_the_claim_the_decision_would_inherit(tmp_path, capsys):
+    # The read that could have said it beforehand priced the `why` and stopped, so the refusal
+    # arrived at the write with nothing before it.
+    config = _deciding(tmp_path, extra_config="\n[limits.decisions]\nsymptom = 10\n")
+    assert main(["-C", str(config.root), "brief", "RK1"]) == EXIT_OK
+    said = capsys.readouterr().out
+
+    assert "deciding symptom" in said and "of 10 there" in said
+    assert "`--decides` does not write one" in said
+
+
+def test_a_decisions_file_as_wide_as_the_roadmap_says_nothing(tmp_path, capsys):
+    # Printed only where it binds: two numbers for one field is the fact worth seeing, and
+    # repeating the same one under another name teaches nobody anything (RK1174).
+    _deciding(tmp_path)
+    assert main(["-C", str(tmp_path), "brief", "RK1"]) == EXIT_OK
+    assert "deciding symptom" not in capsys.readouterr().out

@@ -117,18 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 173 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 174 | 2 |
 | C — Query (consult without reading the file) | 0 | 116 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 95 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 120 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 2 | 769 | 10 |
+| **Total** | 1 | 770 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1281** (deps: —) **a decision inherits the roadmap claim, so a tighter limit on that file refuses a ship over a field no flag writes** — A decision inherits the line claim under a limit the caller can reach before the write, or not at all. → §RK1281
+- 📋 **RK1283** (deps: —) **the guard parses the config twice on every allowed write, once to refuse nothing and once to advise** — The barrier reads this project once per call, so an allowed write costs one config parse and not two. → §RK1283
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

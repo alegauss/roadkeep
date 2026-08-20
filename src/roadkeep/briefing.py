@@ -371,6 +371,18 @@ class Brief:
                 f"`--decides` files, which is the decisions role's own limit and not the "
                 f"ledger's — the constraint that outlives the code, refused by that number"
             )
+            # The **claim** that line inherits, where the decisions file is narrower than the
+            # roadmap (RK1281): `--decides` writes no symptom, so a ship refused over one is
+            # refused for a field no flag on the call reaches — and the read that could have
+            # said so beforehand priced the `why` and stopped. Printed only where it binds,
+            # which is two numbers for one field being the fact worth seeing (RK1174).
+            claim = self.deciding.share("symptom")
+            if self.budget is not None and claim.allowed < self.budget.share("symptom").allowed:
+                rows.append(
+                    f"  deciding symptom {claim.taken} of {claim.allowed} there, inherited "
+                    f"from this line's own claim — `--decides` does not write one, so "
+                    f"`restate` or a wider limit are the two doors if it does not fit"
+                )
         settled = {one.dep: one for one in self.settled}
         for resolution in self.deps:
             rows.append(

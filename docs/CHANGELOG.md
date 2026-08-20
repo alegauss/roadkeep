@@ -233,6 +233,7 @@
 - ✅ **RK1269** **a decision that outlives the work explaining it has no governed file, so an ADR is kept by hand or not at all** — A decisions role files an ADR as the line-and-section pair this format already writes.
 - ✅ **RK1274** **a decision is never marked superseded, so the file records that one was made and not that it stopped holding** — A verb marks one decision replaced by another, writing the forward pointer and the marker in one call (design §RK1274 recorded in `src/roadkeep/shipping.py`).
 - ✅ **RK1276** **a criteria address refused for a paused id says the work shipped, so a pause reads like a typo** — A criteria address refused for an id names where that line went, so a pause reads as a pause.
+- ✅ **RK1281** **a decision inherits the roadmap claim, so a tighter limit on that file refuses a ship over a field no flag writes** — A decision refused over its inherited claim names the two real doors, and `brief` prices it first.
 
 ## Block C — Query
 

@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1281** (deps: —) **a decision inherits the roadmap claim, so a tighter limit on that file refuses a ship over a field no flag writes** — A decision inherits the line claim under a limit the caller can reach before the write, or not at all. → §RK1281
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1281 The claim a decision inherits, and the limit it meets
-
-`ship --decides` composes the decision from the task's own claim and the author's
-sentence, which is right: a decision is *about* the problem the line stated, and
-restating it would be the second sentence RK142 refuses to inherit one file over.
-
-What that inherits is the claim's **length**, measured against a limit the caller cannot
-reach. A project declaring `[limits.decisions] symptom = 40` refuses a ship whose
-roadmap symptom is 54, over a field no flag on that call writes — and the message offers
-the remedy every symptom overrun gets: put the remainder in the improvements section.
-That section is being deleted by this ship. The only door left is `restate`, which
-rewrites the roadmap's claim to satisfy the decisions file, and the roadmap line is the
-one thing here that was already correct.
-
-Reproduced on a scaffold, not supposed. It costs the whole transaction: the ledger entry
-and the deletion are refused with it, so a project that tightened that one limit has a
-`--decides` it cannot use and a `ship` that works only without it.
-
-Two ends and only one is the tool's. `brief` prices the ledger sentence and now the
-decision's `why`, and it never priced this — so the refusal arrives at the write with no
-read that could have said it. Whether the claim is *shortened* for that file, or the
-limit is refused at declaration, or the read simply names it, is the decision this
-task's design has to make.
-
 ## Block C — Query
 
 ## Block D — The gate

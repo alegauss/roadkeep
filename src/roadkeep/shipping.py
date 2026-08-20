@@ -170,6 +170,7 @@ __all__ = [
     "Departure",
     "Divergent",
     "Dropped",
+    "InheritedClaim",
     "NoCompletion",
     "NoDecision",
     "NoDecisions",
@@ -546,6 +547,37 @@ class NoDecisions(KeyError):
             f"{where} declares no decisions file, so {task_id} has nowhere to record what "
             f"outlives it: `{invocation()} declare decisions` opens the role and writes the "
             f"file with this project's own block headings, and then this call lands"
+        )
+
+
+class InheritedClaim(SchemaError):
+    """A decision refused over the claim it inherited, and the two doors that are real (RK1281).
+
+    `ship --decides` composes the decision from the task's own claim and the author's sentence,
+    which is right: a decision is *about* the problem the line stated, and restating it would
+    be the second sentence RK142 refuses to inherit one file over. What it inherits with it is
+    the claim's **length**, measured against a limit the caller cannot reach — and the refusal
+    then offered the remedy every symptom overrun gets, which is to put the remainder in the
+    rationale section. That section is the one this ship is deleting.
+
+    So the refusal stands and its door changes. Two are real: `restate` rewrites the claim in
+    both files, and a wider `[limits.decisions] symptom` says the decisions file takes what the
+    roadmap already does. Neither is composed here — which of them is right depends on whether
+    the claim or the limit was wrong, and that is a judgement (L4).
+
+    A :class:`SchemaError` subclass, so a caller catching that class keeps catching this: what
+    changed is what the refusal *says*, and never which class of refusal it is.
+    """
+
+    def __init__(self, task_id: str, refused: SchemaError, where: str) -> None:
+        super().__init__(refused.violations)
+        self.task_id = task_id
+        self.about = (
+            f"--decides writes no symptom: {task_id}'s claim is the roadmap line's, carried "
+            f"into {where} whole, so the remainder cannot go in the rationale section this "
+            f"ship is deleting. Either `restate {task_id} --symptom \"…\"`, which rewrites "
+            f"the claim in both files, or declare a wider limit — `{invocation()} govern "
+            f"limits.symptom <n> --role decisions` takes the reading first"
         )
 
 
@@ -3134,12 +3166,21 @@ def _decided(config: Config, task: Task, decides: str | None) -> Insertion | Non
         return None
     if not config.has("decisions"):
         raise NoDecisions(task.id, config.relative(config.source or config.root))
-    return place(
-        config.document("decisions"),
-        as_recorded(task, config.schema_for("decisions").shipped_marker, decides),
-        role="decisions",
-        config=config,
-    )
+    try:
+        return place(
+            config.document("decisions"),
+            as_recorded(task, config.schema_for("decisions").shipped_marker, decides),
+            role="decisions",
+            config=config,
+        )
+    except SchemaError as error:
+        # The claim is inherited and the remedy is not the one every symptom overrun gets
+        # (RK1281): that message sends the author to the rationale section, which *this ship
+        # is deleting*, and `--decides` writes no symptom for them to shorten. Re-raised
+        # rather than widened, because the refusal is right and only its door was wrong.
+        if any(one.field == "symptom" for one in error.violations):
+            raise InheritedClaim(task.id, error, config.relative(config.path("decisions")))
+        raise
 
 
 def _superseding(why: str, anchor: str, superseded: str) -> str:
