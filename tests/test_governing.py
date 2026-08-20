@@ -263,3 +263,63 @@ def test_the_roles_a_line_reading_walks_are_the_declared_ones(tmp_path):
     found = governing.reading(Config.discover(tmp_path), "limits.symptom")
     assert found.sites == 2
     assert found.where.endswith("DECISIONS.md:5"), found.where
+
+
+# -- what a limit inherits, measured before it is declared (RK1284) -----------
+
+
+def _with_decisions(tmp_path: Path, *, extra: str = "") -> Config:
+    """The fixture plus a declared `decisions` role, which is what makes a claim carried."""
+    config = project(
+        tmp_path,
+        config=CONFIG.replace(
+            'changelog = "docs/CHANGELOG.md"',
+            'changelog = "docs/CHANGELOG.md"\ndecisions = "docs/DECISIONS.md"',
+        )
+        + extra,
+    )
+    (tmp_path / "docs" / "DECISIONS.md").write_text(
+        "# Decisions\n\n## Block A — The model\n", encoding="utf-8", newline=""
+    )
+    return Config.discover(config.root)
+
+
+def test_the_reading_counts_the_claims_a_ship_would_carry_in(tmp_path):
+    """RK1281 named three arms and built two; this is the third. A decisions file with nothing
+    in it measured zero sites, so any number was accepted — and every `ship --decides`
+    afterwards was refused over a claim the roadmap already carried."""
+    found = governing.reading(_with_decisions(tmp_path), "limits.symptom", role="decisions")
+
+    assert found.sites == 1, "the open line is the population, and the file holds none"
+    assert found.worst == 51
+    assert "(inherited)" in found.where and "ROADMAP" in found.where
+
+
+def test_a_number_the_carried_claim_breaks_is_refused_at_declaration(tmp_path):
+    config = _with_decisions(tmp_path)
+    before = written(config)
+    with pytest.raises(governing.Violated) as caught:
+        governing.govern(config, "limits.symptom", 20, role="decisions")
+
+    assert "(inherited) measures 51" in str(caught.value)
+    assert written(Config.discover(tmp_path)) == before
+
+
+def test_one_inheritance_is_counted_and_no_other(tmp_path):
+    """`_decided` composes the record with `as_recorded`, which keeps the symptom and replaces
+    the `why` — so the symptom is inherited whole and nothing else is. A reading of what
+    *might* be written anywhere would be a guess; this is the one the code states."""
+    config = _with_decisions(tmp_path)
+    # The `why` is the author's on that call, so nothing is carried into its limit.
+    assert governing.reading(config, "limits.why", role="decisions").sites == 0
+    # And no other role inherits: the changelog's claim comes from the same line, but its
+    # limit already measures that line under the shared table.
+    assert governing.reading(config, "limits.symptom", role="changelog").sites == 0
+
+
+def test_the_shared_table_counts_the_roadmap_once(tmp_path):
+    # A call with no role already walks every line file, so counting the carried claims there
+    # too would be one population reported twice.
+    config = _with_decisions(tmp_path)
+    assert governing.reading(config, "limits.symptom").sites == 1
+    assert "(inherited)" not in governing.reading(config, "limits.symptom").where

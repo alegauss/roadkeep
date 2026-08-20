@@ -290,6 +290,17 @@ def _limits(
             if measured > worst:
                 worst = measured
                 where = f"{config.relative(config.path(one))}:{entry.lineno}"
+    # And what a write would **carry into** this file (RK1284), which for one role is not the
+    # same population as what it holds. `ship --decides` composes the decision from the open
+    # line's own claim, so a decisions file with nothing in it measured zero sites and
+    # accepted any number — after which every ship carrying a claim wider than it was refused
+    # over a field no flag on that call writes. RK1279's hole at a different set: there the
+    # reading missed a file, and here it reads the right one and misses what is coming.
+    for entry, carried in _carried(config, key, role):
+        sites += 1
+        if carried > worst:
+            worst = carried
+            where = f"{config.relative(config.path('roadmap'))}:{entry.lineno} (inherited)"
     return Measured(
         address=address,
         unit="utf-16 code units",
@@ -297,6 +308,28 @@ def _limits(
         where=where,
         sites=sites,
         declared=declared,
+    )
+
+
+def _carried(config: Config, key: str, role: str) -> tuple[tuple[object, int], ...]:
+    """Every open claim a `ship --decides` would carry into the decisions file (RK1284).
+
+    One role and one field, and both are declared in code rather than guessed:
+    :func:`~roadkeep.shipping._decided` composes the record with `as_recorded`, which keeps
+    the task's **symptom** and replaces the `why`. So the symptom is inherited whole and
+    nothing else is, which is what makes this derivable — a reading of what *might* be
+    written anywhere would be a guess, and this is the one inheritance the code states.
+
+    Empty for every other role and every other key, and — the case that matters — for a call
+    with **no** role at all: the shared `[limits]` already walks every line file including the
+    roadmap, so adding the carried claims there would be one population reported twice.
+    """
+    if role != "decisions" or key != "symptom" or not config.has("roadmap"):
+        return ()
+    return tuple(
+        (entry, width(entry.task.symptom))
+        for entry in config.document("roadmap").entries
+        if entry.task.symptom
     )
 
 

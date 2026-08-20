@@ -132,31 +132,6 @@ the one a reader meets on the hardest task.
 
 ## Block E — Adoption
 
-### §RK1284 What a limit inherits, measured before it is declared
-
-RK1281 named three arms and built two. The refusal says which doors are real and `brief`
-prices the claim before the write; the third — refusing the limit where it is declared —
-is the one the verb for declaring limits was built for, and it does not see this.
-
-`govern limits.symptom <n> --role decisions` measures the decisions file's own lines. On
-a project that has filed no decision that is zero sites, so any number is accepted, and
-every `ship --decides` afterwards is refused over a claim the roadmap already carries.
-Reproduced on a scaffold: 20 accepted against a 46-character symptom sitting open one
-file away.
-
-It is RK1279's hole at a different set. There the reading walked a written-out list of
-roles and missed one; here it walks the right file and misses what will be *carried
-into* it. For this one role the corpus is not only what the file holds — it is every
-open line that may ship with a decision.
-
-So the reading for that role's `symptom` is the roadmap's claims as well as the
-decisions file's own. Nothing else changes: the widest of the two populations is the
-number, the refusal already names it, and no other key inherits anything.
-
-What it must not become is a reading of what *might* be written everywhere. This one
-inheritance is declared in code — `_decided` composes the claim from the line — so it is
-derivable rather than guessed, which is the whole difference.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

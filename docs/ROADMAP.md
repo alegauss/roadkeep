@@ -36,8 +36,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1284** (deps: —) **the reading behind a decisions limit sees only that file, so a number it accepts refuses every later ship** — The reading behind a decisions limit counts the claims a ship would carry in, so a number accepted is one that lands. → §RK1284
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

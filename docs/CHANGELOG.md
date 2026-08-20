@@ -643,6 +643,7 @@
 - ✅ **RK1264** **the scaffold is the only writer of [files], so a project past init cannot declare a role it turns out to want** — A configured project declares a role it turns out to want, getting the file with its block headings and one inserted key, so no retrofit is a hand edit.
 - ✅ **RK1272** **`[limits]`, `[budgets]` and `[markers]` have no verb, so the file governing every write is the ungoverned one** — A verb takes the reading and declares the number in one call, refusing one this corpus already breaks (design §RK1272 recorded in `src/roadkeep/governing.py`).
 - ✅ **RK1279** **the reading behind a limit walks a hand-written list of roles, so a role added later is measured by nobody** — The roles a limit is measured over are derived from the declared set, so a role added is a role read.
+- ✅ **RK1284** **the reading behind a decisions limit sees only that file, so a number it accepts refuses every later ship** — The reading behind a decisions limit counts the claims a ship would carry into that file.
 
 ## Block F — The Claude Code plugin
 
