@@ -32,6 +32,7 @@
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1275** (deps: —) **the shipping allowance names one of the three writes a ship composes, so two sentences are written blind** — The pre-write read answers for every clause and every file a departure writes, so an allowance quoted is the one that binds. → §RK1275
+- 📋 **RK1278** (deps: —) **the config shape prints the default beside a key the project set, so the number shown is not the one in use** — The shape carries what this project declared beside what this build defaults to, so a hover on a set key states the number in use. → §RK1278
 
 ## Block D — The gate
 
@@ -42,6 +43,8 @@
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
+
+- 📋 **RK1277** (deps: —) **the config completion caches a fact about the file on the engine's clock, so a declared key still reads as undeclared** — The shape is cached on the clock of what moves it, so a key declared a minute ago is not still reported undeclared. → §RK1277
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
