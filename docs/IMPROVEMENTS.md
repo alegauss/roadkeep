@@ -109,28 +109,6 @@ task's design has to make.
 
 ## Block F — The plugin
 
-### §RK1280 The one file the guard allows, and what it could say
-
-The guard's own sentence is that `roadkeep.toml` is not governed, "which a human edits
-by hand on purpose". That was right when nothing else could write it, and half of it
-stopped being true: four of its tables now have a verb that takes the reading first and
-refuses a number this corpus already breaks.
-
-So the two writers disagree about what is checkable. A `symptom = 90` typed in is
-accepted and reported by the gate on the next run; the same number through the verb is
-refused before it lands, naming the line that measures more. The first is the
-arrangement this project exists to replace, and it is still the default.
-
-**Denying it is the wrong answer** and the reason is in the shape of the file. A hook
-sees a path, not a table: `[files]`, `[markers]`, `[refs]`, `[grammar]` and the rest
-have no verb and are not going to get one, so a denial would make the config unwritable
-in the sessions that need it most — including the one where `install` has not run yet.
-
-What is missing is the notice. The guard already has the register for it: it allows, and
-says what would have answered. An edit to this file is where a reader most needs to be
-told that four of its numbers have a door, and the one sentence costs nothing on every
-other turn — it fires on a path nobody touches twice a year.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

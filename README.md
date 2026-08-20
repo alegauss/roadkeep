@@ -121,14 +121,14 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 116 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 95 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 119 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 120 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 2 | 768 | 10 |
+| **Total** | 1 | 769 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1280** (deps: —) **the guard allows a hand edit to the config and says nothing, so a limit with a door is still typed past it** — A hand edit to the config is allowed and told which numbers have a verb, so the checkable half is not typed blind. → §RK1280
+- 📋 **RK1281** (deps: —) **a decision inherits the roadmap claim, so a tighter limit on that file refuses a ship over a field no flag writes** — A decision inherits the line claim under a limit the caller can reach before the write, or not at all. → §RK1281
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

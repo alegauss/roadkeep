@@ -36,8 +36,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1280** (deps: —) **the guard allows a hand edit to the config and says nothing, so a limit with a door is still typed past it** — A hand edit to the config is allowed and told which numbers have a verb, so the checkable half is not typed blind. → §RK1280
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

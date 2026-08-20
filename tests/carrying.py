@@ -65,6 +65,14 @@ CARRIERS: tuple[Carrier, ...] = (
         "the bytes a verb did not write, said once at the end of a turn (RK479)",
     ),
     Carrier(
+        # RK1280. The one record that decides nothing: a hand edit to the config is allowed,
+        # and the sentence names the verb four of its tables now have — so the door it spells
+        # has to be one this session can call, exactly as a refusal's does.
+        "guarding.py:Advice",
+        ("advise",),
+        "a write this gate allows, and the door four of its tables have (RK1280)",
+    ),
+    Carrier(
         "guarding.py:Notice",
         ("announce",),
         "the line every session is handed before it reads anything (RK82)",

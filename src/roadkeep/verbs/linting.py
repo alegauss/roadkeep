@@ -21,7 +21,15 @@ from pathlib import Path
 from roadkeep.config import Config
 from roadkeep.kernel.document import write_atomically
 from roadkeep.fixing import Fix, fix
-from roadkeep.guarding import START_EVENTS, STOP_EVENTS, announce, attested, guard, review
+from roadkeep.guarding import (
+    START_EVENTS,
+    STOP_EVENTS,
+    advise,
+    announce,
+    attested,
+    guard,
+    review,
+)
 from roadkeep.history import HistoryUnavailable
 from roadkeep.linting import lint
 from roadkeep.merging import markers, merge, register, role_of, wiring
@@ -338,6 +346,14 @@ def _guard(config: Config, args: argparse.Namespace) -> int:
                 indent=2,
             )
         )
+        return EXIT_OK
+    # Allowed, and one path still has something to say (RK1280). **No decision at all**: an
+    # `allow` would grant the write and wave through the permission rules the user set for
+    # every other file, which is the invariant this whole branch is written around — so what
+    # is emitted is the message alone, and the harness decides as it would have anyway.
+    advice = advise(payload, root)
+    if advice is not None:
+        print(json.dumps({"systemMessage": str(advice)}, indent=2))
     return EXIT_OK
 
 

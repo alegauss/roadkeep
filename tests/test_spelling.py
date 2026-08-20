@@ -25,7 +25,7 @@ import pytest
 
 from roadkeep.attesting import Unattested
 from roadkeep.config import Config
-from roadkeep.guarding import Notice, Refusal, Review
+from roadkeep.guarding import Advice, Notice, Refusal, Review
 from roadkeep.linting import lint
 from roadkeep.provenance import invocation
 
@@ -140,6 +140,9 @@ def shapes(root: Path) -> dict[str, tuple[object, object]]:
                 files=(ROADMAP, CHANGELOG), served=served, stale=(VENDORED,)
             )
         ),
+        # RK1280. The one that decides nothing and still names a door, so it is swept for
+        # every other rendering's reason: a route this session cannot call is worse than none.
+        "Advice": both(lambda served: Advice(path="roadkeep.toml", served=served)),
         "Unattested": both(
             lambda served: Unattested(files=(("roadmap", ROADMAP),), served=served)
         ),
@@ -236,7 +239,10 @@ def test_the_sweep_reaches_every_message_that_blocks_a_turn(tmp_path):
         and obj.__module__ == module.__name__
         and any(one.name == "served" for one in dataclasses.fields(obj))
     }
-    assert len(carrying) == 4, sorted(carrying)
+    # 5 since `Advice` (RK1280): the record that allows and still names a door, which needs
+    # the prefix for every other carrier's reason — a route this session cannot call is worse
+    # than naming none.
+    assert len(carrying) == 5, sorted(carrying)
     built = shapes(project(tmp_path))
     reached = {one.split(".")[0] for one in built}
     assert {one.rsplit(".", 1)[1] for one in carrying} == reached

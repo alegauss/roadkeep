@@ -1235,3 +1235,66 @@ def test_the_declared_case_is_the_prefix_and_not_a_second_field(tmp_path):
     assert "never arrive" not in str(
         Notice(files=(ROADMAP,), served="mcp__plugin_roadkeep_roadkeep__")
     )
+
+# -- the one file the guard allows, and what it says about it (RK1280) --------
+
+
+def test_a_hand_edit_to_the_config_is_allowed_and_told_which_numbers_have_a_verb(
+    tmp_path, monkeypatch, capsys
+):
+    """The guard does not govern `roadkeep.toml` — a human edits it by hand on purpose — and
+    half of that stopped being true: four of its tables have a verb that takes the reading
+    first and refuses a number this corpus already breaks. So the two writers disagreed about
+    what is checkable, and the unchecked one was the default."""
+    root = project(tmp_path)
+    answer = run(monkeypatch, capsys, write(str(root / "roadkeep.toml"), cwd=root), root)
+
+    # **No decision at all**: an `allow` would grant the write and wave through the permission
+    # rules the user set for every other file, which is the invariant this branch is built on.
+    assert "hookSpecificOutput" not in answer
+    assert "permissionDecision" not in json.dumps(answer)
+    said = answer["systemMessage"]
+    assert "this is not a refusal" in said
+    assert "govern" in said and "config" in said
+    # The four tables a reading decides, and none of the ones that have no verb.
+    assert "[limits]" in said and "[claims]" in said
+    assert "[markers]" not in said and "[files]" not in said
+
+
+def test_every_other_allowed_write_stays_silent(tmp_path, monkeypatch, capsys):
+    # The cost of the sentence is that it fires on one path a session touches twice a year;
+    # a hook that spoke on every allowed write is a hook every write pays for.
+    root = project(tmp_path)
+    assert run(monkeypatch, capsys, write(str(root / "README.md"), cwd=root), root) == {}
+
+
+def test_a_governed_file_is_still_refused_and_never_advised(tmp_path, monkeypatch, capsys):
+    # Two messages about one call is the thing this must not become: the refusal already
+    # names the commands, and the advice is about the file the refusal does not reach.
+    root = project(tmp_path)
+    answer = run(monkeypatch, capsys, write(str(root / ROADMAP), cwd=root), root)
+
+    assert answer["hookSpecificOutput"]["permissionDecision"] == "deny"
+    assert "systemMessage" not in answer
+
+
+def test_a_shell_command_naming_the_config_is_not_advised(tmp_path, monkeypatch, capsys):
+    """`ask` is the answer where a command only *mentions* a path (RK128), and what it does
+    with it is nobody's to guess — so a sentence about four tables would be prose attached to
+    a call that may not be writing anything at all."""
+    from roadkeep.guarding import advise
+
+    payload = {
+        "hook_event_name": "PreToolUse",
+        "tool_name": "Bash",
+        "cwd": str(tmp_path),
+        "tool_input": {"command": "cat roadkeep.toml"},
+    }
+    assert advise(payload, project(tmp_path)) is None
+
+
+def test_a_tree_with_no_config_has_nothing_to_advise_about(tmp_path):
+    from roadkeep.guarding import advise
+
+    assert advise(write(str(tmp_path / "roadkeep.toml"), cwd=tmp_path), tmp_path) is None
+

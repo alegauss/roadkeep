@@ -699,6 +699,73 @@ def announce(payload: Mapping[str, object], root: str | Path = ".") -> Notice | 
     return Notice(files=files, stale=stale(config.root), served=served_by(config.root))
 
 
+@dataclass(frozen=True, slots=True)
+class Advice:
+    """A hand edit that is allowed, and the door four of its tables now have (RK1280).
+
+    The guard does not govern `roadkeep.toml` — "which a human edits by hand on purpose" —
+    and half of that stopped being true: `[limits]`, `[budgets]`, `[tools]` and `[claims]`
+    have a verb that takes the reading first and refuses a number this corpus already breaks.
+    So the two writers disagree about what is checkable, and the unchecked one is the default.
+
+    **Denying it is the wrong answer**, and the reason is the shape of the file: a hook sees a
+    path and not a table. `[files]`, `[markers]`, `[refs]` and `[grammar]` have no verb and
+    are not going to get one, so a denial would make the config unwritable in the sessions
+    that need it most — including the one where `install` has not run yet.
+
+    What this is instead is the register the barrier deliberately has no other use for: it
+    **decides nothing**. `permissionDecision: "allow"` would grant the write and wave through
+    the permission rules the user set for every other file (RK1202), so this carries no
+    decision at all — only the sentence, on the one path a session touches twice a year.
+    """
+
+    #: As the project spells it, for :class:`Refusal`'s reason: a message quoting an absolute
+    #: path is a message about one machine.
+    path: str
+    #: The prefix this session's tools arrive under, or `""` — :class:`Refusal`'s field and
+    #: its argument exactly, so the door named is one this session can actually call.
+    served: str = ""
+
+    def __str__(self) -> str:
+        from roadkeep.governing import GOVERNED  # noqa: PLC0415 - RK260
+
+        tables = ", ".join(f"[{one.split('.')[0]}]" for one in GOVERNED)
+        governing = Door(("govern", "<key>", "<n>"), "").named(self.served)
+        listing = Door(("config",), "").named(self.served)
+        return (
+            f"{self.path} is yours to edit and this is not a refusal — but {tables} are "
+            f"numbers a reading decides, and `{governing}` takes that reading and refuses "
+            f"one this project already breaks, where a hand edit lands it and the gate "
+            f"reports it on the next run. `{listing}` says what may be declared here."
+        )
+
+
+def advise(payload: Mapping[str, object], root: str | Path = ".") -> Advice | None:
+    """The one thing to say about a write this gate allows, or ``None`` (RK1280).
+
+    Narrow twice over. Only the project's **own declaration** — the file `Config.discover`
+    resolved, so a `pyproject.toml` that configures nothing here says nothing — and only where
+    :func:`guard` already answered `None`, which the caller establishes: a path that is both
+    refused and advised would be two messages about one call.
+    """
+    tool = payload.get("tool_name")
+    if not isinstance(tool, str) or tool not in GUARDED_TOOLS or tool in ASK_TOOLS:
+        return None
+    base = _cwd(payload, root)
+    try:
+        config = Config.discover(base)
+    except (ConfigError, OSError, tomllib.TOMLDecodeError):
+        return None
+    if config.source is None:
+        return None
+    for path in _targets(payload.get("tool_input"), base):
+        if _comparable(path) == _comparable(config.source):
+            return Advice(
+                path=config.relative(config.source), served=served_by(config.root)
+            )
+    return None
+
+
 def guard(payload: Mapping[str, object], root: str | Path = ".") -> Refusal | None:
     """Decide one `PreToolUse` call: ``None`` allows, a :class:`Refusal` denies.
 
