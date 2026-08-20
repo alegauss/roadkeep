@@ -77,6 +77,80 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1267 Where the durable half of a deleted design goes
+
+RK310 opened this door and stopped at the stale half: `--superseded-design` records that
+a deleted design was *wrong*, and nothing records where the part that was right went.
+
+The deletion is correct and the measurement behind it stands — a rationale file reaching
+539 KB one honest paragraph at a time is what this tool exists to refuse. What is wrong
+is that it is untyped. A section holds three contents with three half-lives: the
+investigation, which dies with the ship; the criterion, which becomes a test; and the
+decision, the constraint that has to stay true after the code moves. `ship` treats all
+three alike.
+
+The cost is measured here rather than supposed. RK1265 records a definition of done
+written as a rationale section, deleted correctly, surviving in zero places — and the
+block it governed was then closed and reopened six times.
+
+This repository's own answer is the module docstring, which cannot drift from the code
+it sits above. Nothing asks for it and nothing checks it. `--recorded-in <path>` is that
+trace, appended to the ledger's sentence beside RK310's and for RK310's reason — the
+entry is where the address and the outcome already meet — and refused on a path this
+repository does not have, as every other path a ledger sentence names already is.
+
+Not an archive: a flag that copied the section into a second file is the 539 KB with
+better manners.
+
+### §RK1268 A definition of done, addressed to the task
+
+`criteria` addresses the pair (block, lead) on purpose: a criterion is about a body of
+work, and a flat list would make finished a property of the backlog. That argument holds
+and this does not overturn it — it adds the other unit.
+
+The unit an agent executes is the task. What it wants before writing code is the spec:
+the problem, what is out of scope, what must be true when it is done, and how that is
+checked. Three of those four are here — the `symptom`, `non-goal list` and the design
+section — and the fourth is per block.
+
+Half of it already exists per task, and it is the half nobody can check off by reading:
+`evidence <id>` runs a fenced query the design declares and counts the sites that must
+exist. So the executable claim is per task while the readable one is per block, which is
+the wrong way round — the checkable sentence is the cheap one to write and the one a
+reviewer reads.
+
+The address becomes the pair with an id in it, under the rule the list already has: a
+lead is unique inside its own list. `brief` prints the block's list today, so the task's
+own sits beside it and a task started that way never asks twice. It still binds nothing
+— presence, not enforcement — because whether the work satisfies a sentence is a
+judgement this tool has no model for (L4).
+
+### §RK1269 The decisions role — an ADR is this format already
+
+Adopters ask for ADR by name, and read as this format an ADR is the pair already written
+here: an id, a marker, one falsifiable claim, a `why`, and a section carrying the
+argument. `retire --superseded-by` is its Superseded-by, built and shipped. The only
+difference is the departure — a roadmap line leaves by three doors and a decision leaves
+by one, so nothing is ever deleted and the file grows only by decisions somebody
+actually made.
+
+So this is a role and not a second grammar. RK1064 made a role's shape declarable, RK340
+gives a prose file its own namespace, sections already carry the word budget, the
+round-trip and the pointer check, and `declare` retrofits a role a scaffold left out.
+What it costs is `ROLES` in `config.py` being a closed tuple that every reader of a role
+reads.
+
+Keep it named, and do not open that tuple to any word an adopter types: a role no
+machinery knows is a file with no schema, which is the convention this tool exists to
+replace.
+
+`ship --decides` is the door that files into it — one line, under the same limits,
+written at the moment the section is deleted and by the one reader who knows what
+survived it. Never the section copied whole.
+
+And it is priced: every verb costs the session at connect, so the read surface stays
+`show` and `brief` rather than a second query family.
+
 ## Block C — Query
 
 ## Block D — The gate
