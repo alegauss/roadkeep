@@ -109,6 +109,29 @@ task's design has to make.
 
 ## Block F — The plugin
 
+### §RK1283 One reading per call, on the path that is hot
+
+The barrier reads the project once per allowed write and now reads it twice. `guard`
+walks the paths a payload names and asks `governed` for each, which finds the config and
+loads it; where nothing is governed it answers `None`, and `advise` then discovers the
+same config and walks the same paths again.
+
+The second read lands on the **hot** path and the first does not. A refusal is rare; an
+allowed write is every `Edit` a session makes here, and this hook runs before each. What
+the barrier has always been careful about is what an allowed call costs — the argument
+for a closed tool list, and for `_mentioned` deciding by substring rather than parsing.
+
+Measured as a shape rather than in milliseconds, which is the honest claim here: one
+`find_config` walk up the tree plus one `tomllib` parse, per write, for a sentence that
+fires on one path. The parse is the part that is not free.
+
+The reading exists and is thrown away. `governed` already resolved the config for each
+target and `guard` discarded it on the way to `None`, so what is missing is a shape that
+carries it out — the same thing `Whereabouts` is one module over, and the same repair.
+
+What must not change is the order: the advice fires only where the refusal did not, and
+a call that produced both would be two messages about one write.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

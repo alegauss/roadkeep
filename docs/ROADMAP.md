@@ -36,6 +36,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK1283** (deps: —) **the guard parses the config twice on every allowed write, once to refuse nothing and once to advise** — The barrier reads this project once per call, so an allowed write costs one config parse and not two. → §RK1283
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
