@@ -351,6 +351,7 @@
 - ✅ **RK1233** **The open half of a partial is still an inference the reader makes, where the landed half is recorded** — A partial shipment states what is left, as a field on the open line rather than a subtraction the next reader performs.
 - ✅ **RK1270** **nothing prints what `roadkeep.toml` may declare, so its keys live only in the parser that rejects them** — A `config` verb prints every table, key, type and default this build accepts, and what this project declared (design §RK1270 recorded in `src/roadkeep/describing.py`).
 - ✅ **RK1275** **the shipping allowance names one of the three writes a ship composes, so two sentences are written blind** — A brief prices every clause and every file a ship composes, not the ledger sentence alone (design §RK1275 recorded in `src/roadkeep/briefing.py`).
+- ✅ **RK1278** **the config shape prints the default beside a key the project set, so the number shown is not the one in use** — The shape says what this project declared beside what this build defaults to, so a set key states its value.
 
 ## Block D — The gate
 

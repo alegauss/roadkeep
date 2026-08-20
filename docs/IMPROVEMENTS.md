@@ -103,30 +103,6 @@ task's design has to make.
 
 ## Block C — Query
 
-### §RK1278 The declared value, beside the default
-
-The shape answers two of the three things a reader wants about a key and stops at the
-third. It says what this build uses when nobody declares it, and it says whether this
-project declared it — and where the answer to the second is yes, the number printed is
-still the first one.
-
-So a project that set `symptom = 90` is told `default 120, declared here`, which is two
-true statements arranged to read as one false one. The reader most likely to meet it is
-the one hovering the key they are about to change, which is the moment the value matters
-and the default does not.
-
-The reason it is absent is the reason `declared` is read back off the file: a parsed
-config carries the *effective* value and cannot say which of the two it is. That reading
-is right and half-used — the same parse that answers whether a key is written also has
-what was written there.
-
-What it must not become is a second parse. What TOML hands back is a scalar, a string or
-a list, and rendering one is what `_rendered` already does; resolving it into what the
-schema makes of it would be this reader re-deciding what the parser decided.
-
-The absence is a value, not an emptiness: a key nobody declared has no declared value,
-which is a different fact from one declared as zero and is said as such.
-
 ## Block D — The gate
 
 ## Block E — Adoption

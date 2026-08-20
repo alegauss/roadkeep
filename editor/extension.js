@@ -360,7 +360,15 @@ class Settings {
       parts.push(`\`${row.type}\``);
     }
     parts.push(row.default === null ? "no default" : `default \`${row.default}\``);
-    parts.push(row.declared ? "declared here" : "not declared here");
+    // The number in use, where there is one (RK1278): a reader hovering a key they are about
+    // to change is asking what it says now, and the default is the fact that stops mattering
+    // the moment somebody set one. `set` is null for a key nobody declared, which is a
+    // different fact from one declared as zero and is why the two are separate keys.
+    if (row.declared && row.set !== null && row.set !== undefined) {
+      parts.push(`declared here as \`${row.set}\``);
+    } else {
+      parts.push(row.declared ? "declared here" : "not declared here");
+    }
     const head = `**${row.address}** — ${parts.join(", ")}`;
     return row.note ? `${head}\n\n${row.note}` : head;
   }

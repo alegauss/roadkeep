@@ -171,6 +171,10 @@ class Key:
     default: str | None
     #: Did *this* project declare it, read back off the file the project wrote.
     declared: bool
+    #: What it wrote there, rendered the way the default is (RK1278) — `None` where nobody
+    #: declared it, which is a different fact from one declared as zero and is said as such.
+    #: A table's own row carries none: what a table *is* is the keys under it.
+    set: str | None = None
     #: The sentence the source already carries above the set this key belongs to, harvested
     #: and never restated. `""` where the source is not readable or carries none.
     note: str = ""
@@ -291,40 +295,62 @@ def _named(value: object) -> str:
     return "table"
 
 
-def _declared(source: Path | None) -> frozenset[tuple[str, str]]:
-    """Every `(table, key)` the project actually wrote, read back off its own file.
+def _declared(source: Path | None) -> Mapping[tuple[str, str], object]:
+    """Every `(table, key)` the project wrote, and **what it wrote there** (RK1278).
 
     The file and not the parsed :class:`~roadkeep.config.Config`, and the difference is the
     question: a config carries the *effective* value, where a limit left out and a limit
     declared at the default are the same number and a different fact about the project.
+
+    The value comes with it because the same parse already had it, and printing the default
+    beside a key somebody set is two true statements arranged to read as one false one — met
+    by the reader hovering the key they are about to change, which is the moment the value
+    matters and the default does not.
+
+    What comes back is TOML's own scalar, string or list, rendered by the same writer the
+    default is: resolving it into what the schema makes of it would be this module re-deciding
+    what the parser decided, which is the second reading it exists to make unnecessary.
     """
     if source is None:
-        return frozenset()
+        return {}
     try:
         raw = tomllib.loads(source.read_text(encoding="utf-8"))
     except (OSError, tomllib.TOMLDecodeError):
-        return frozenset()
+        return {}
     if "tool" in raw and "roadkeep" in raw.get("tool", {}):
         raw = raw["tool"]["roadkeep"]
-    out: set[tuple[str, str]] = set()
+    out: dict[tuple[str, str], object] = {}
     for name, value in raw.items():
-        if not isinstance(value, Mapping):
-            out.add(("", name))
-            continue
-        out.add(("", name))
-        out |= _under(name, value)
-    return frozenset(out)
+        # A table's own row carries no value of its own: what it *is* is the keys under it,
+        # and a rendered dict there would be the whole subtree printed as a default.
+        out[("", name)] = None if isinstance(value, Mapping) else value
+        if isinstance(value, Mapping):
+            out.update(_under(name, value))
+    return out
 
 
-def _under(name: str, value: Mapping[str, object]) -> set[tuple[str, str]]:
-    """One table's declared keys, descending the one level a `<role>` or `<path>` adds."""
+def _under(name: str, value: Mapping[str, object]) -> dict[tuple[str, str], object]:
+    """One table's declared keys and their values, descending the level a placeholder adds.
+
+    Under `budgets.<path>` or `limits.<role>` the address is one the project chooses, so every
+    such table is walked and the **last** one wins — which is honest rather than arbitrary: two
+    roles declaring one key is two values, and a listing keyed by the published address has one
+    row to put them in. The row says what the shape accepts there; `budget` and `govern` answer
+    per role and per file.
+    """
     generic = next((one for one in TABLES if one.startswith(f"{name}.")), None)
-    if generic is None:
-        return {(name, key) for key in value}
-    out: set[tuple[str, str]] = set()
-    for inner in value.values():
-        if isinstance(inner, Mapping):
-            out |= {(generic, key) for key in inner}
+    under = generic or name
+    known = TABLES.get(under, frozenset())
+    out: dict[tuple[str, str], object] = {}
+    for key, inner in value.items():
+        # A sub-table under a name this table has no key for is the **same** table declared
+        # once per something the project chose — `[limits.changelog]`, `[budgets."agents.md"]`
+        # — so its keys land on the published address rather than on the name it was spelled
+        # with, which is not a key and never appears in the shape.
+        if isinstance(inner, Mapping) and key not in known:
+            out.update({(under, each): value for each, value in inner.items()})
+            continue
+        out[(under, key)] = inner
     return out
 
 
@@ -353,6 +379,11 @@ def shape(config: Config, table: str | None = None) -> Shape:
         for key in sorted(keys):
             reader = WHERE[(name, key)]
             value = None if reader is None else reader()
+            # What the project wrote, beside what this build would use (RK1278): the same
+            # parse that answers *whether* a key is declared already has *what* — and
+            # printing the default beside a key somebody set is two true statements arranged
+            # to read as one false one.
+            declared = written.get((name, key))
             out.append(
                 Key(
                     table=name,
@@ -360,6 +391,7 @@ def shape(config: Config, table: str | None = None) -> Shape:
                     type="" if value is None else _named(value),
                     default=None if value is None else _rendered(value),
                     declared=(name, key) in written,
+                    set=None if declared is None else _rendered(declared),
                     note=note,
                 )
             )
@@ -389,7 +421,12 @@ def stated(found: Shape) -> str:
         for one in under:
             default = "no default" if one.default is None else f"default {one.default}"
             spelled = f"{one.type}, " if one.type else ""
-            mark = "declared" if one.declared else "—"
+            # What the project set, where it set one (RK1278): the number in use is the one a
+            # reader hovering the key they are about to change is asking about, and the
+            # default is the fact that stops mattering the moment there is a value.
+            mark = "—" if not one.declared else (
+                f"declared {one.set}" if one.set is not None else "declared"
+            )
             rows.append(f"  {one.name:<12} {spelled}{default}  ({mark})")
     return "\n".join(rows)
 
@@ -407,6 +444,9 @@ def payload(found: Shape) -> dict[str, object]:
                 "type": one.type,
                 "default": one.default,
                 "declared": one.declared,
+                # And what was declared (RK1278) — `null` where nobody did, which is a
+                # different fact from a value of zero and is said as such.
+                "set": one.set,
                 "note": one.note,
             }
             for one in found.keys

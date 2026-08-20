@@ -30,8 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1278** (deps: —) **the config shape prints the default beside a key the project set, so the number shown is not the one in use** — The shape carries what this project declared beside what this build defaults to, so a hover on a set key states the number in use. → §RK1278
-
 ## Block D — The gate
 
 ## Block E — Adoption

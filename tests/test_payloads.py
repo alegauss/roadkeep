@@ -72,7 +72,12 @@ INSIDE = {
     "budget": ("fields", ("field", "limit", "left", "aim", "unit")),
     # `address` is what a completion inserts and `note` is what a hover shows, so both are
     # keys a reader outside this process now depends on (RK1271).
-    "config": ("keys", ("table", "key", "address", "type", "default", "declared", "note")),
+    # `set` joined when the shape learned what a declared key says (RK1278): a hover shows the
+    # number in use, so it is a key a reader outside this process now depends on.
+    "config": (
+        "keys",
+        ("table", "key", "address", "type", "default", "declared", "set", "note"),
+    ),
 }
 
 

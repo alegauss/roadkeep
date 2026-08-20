@@ -226,3 +226,63 @@ def test_this_project_reads_its_own_configuration_back(tmp_path):
     # to show: accepted, unused, and named.
     assert rows["limits.part"].declared is False
     assert rows["limits.part"].default
+
+
+# -- the value beside the default (RK1278) ------------------------------------
+
+
+def test_a_key_the_project_set_says_what_it_says_now(tmp_path):
+    """The defect. `default 120, declared here` is two true statements arranged to read as one
+    false one, and the reader most likely to meet it is the one hovering the key they are
+    about to change — the moment the value matters and the default does not."""
+    config = project(tmp_path, extra="[limits]\nsymptom = 90\n")
+    rows = {one.address: one for one in describing.shape(config, "limits").keys}
+
+    assert rows["limits.symptom"].default == "120", "this build's, unchanged"
+    assert rows["limits.symptom"].set == "90"
+    # An absence and not an emptiness: a key nobody declared has no declared value, which is
+    # a different fact from one declared as zero.
+    assert rows["limits.why"].set is None and rows["limits.why"].declared is False
+
+
+def test_the_declared_value_is_rendered_by_the_same_writer_as_the_default(tmp_path):
+    # Never resolved into what the schema makes of it, which would be this module re-deciding
+    # what the parser decided: what TOML hands back is a scalar, a string or a list.
+    config = project(
+        tmp_path,
+        extra='[headings]\nword = "Fase"\npermanent = true\n[markers]\nopen = ["A", "B"]\n',
+    )
+    rows = {one.address: one for one in describing.shape(config).keys}
+
+    assert rows["headings.word"].set == '"Fase"'
+    assert rows["headings.permanent"].set == "true"
+    assert rows["markers.open"].set == '["A", "B"]'
+
+
+def test_a_table_carries_no_value_of_its_own(tmp_path):
+    # What a table *is* is the keys under it, so a rendered subtree there would be the whole
+    # of `[limits]` printed as though somebody had declared it as a value.
+    config = project(tmp_path, extra="[limits]\nsymptom = 90\n")
+    rows = {one.address: one for one in describing.shape(config, "").keys}
+
+    assert rows["limits"].declared is True
+    assert rows["limits"].set is None
+
+
+def test_a_table_declared_per_role_reports_what_that_role_set(tmp_path):
+    # `[limits.changelog]` is the `limits` this build published, so the row keyed by the
+    # placeholder is where the value it carries lands.
+    config = project(tmp_path, extra="[limits.changelog]\nwhy = 150\n")
+    rows = {one.address: one for one in describing.shape(config, "limits").keys}
+
+    assert rows["limits.why"].set == "150"
+
+
+def test_the_listing_prints_the_value_where_there_is_one(tmp_path, capsys):
+    project(tmp_path, extra="[limits]\nsymptom = 90\n")
+    assert main(["-C", str(tmp_path), "config", "--table", "limits"]) == EXIT_OK
+    said = capsys.readouterr().out
+
+    assert "default 120  (declared 90)" in said
+    # And the row for a key nobody declared says so with nothing after it.
+    assert "(—)" in said

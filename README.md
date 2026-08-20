@@ -118,17 +118,17 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 173 | 2 |
-| C — Query (consult without reading the file) | 1 | 114 | 1 |
+| C — Query (consult without reading the file) | 0 | 115 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 95 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 119 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 3 | 766 | 10 |
+| **Total** | 2 | 767 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1278** (deps: —) **the config shape prints the default beside a key the project set, so the number shown is not the one in use** — The shape carries what this project declared beside what this build defaults to, so a hover on a set key states the number in use. → §RK1278
+- 📋 **RK1280** (deps: —) **the guard allows a hand edit to the config and says nothing, so a limit with a door is still typed past it** — A hand edit to the config is allowed and told which numbers have a verb, so the checkable half is not typed blind. → §RK1280
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
