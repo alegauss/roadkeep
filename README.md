@@ -117,18 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 174 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 175 | 2 |
 | C — Query (consult without reading the file) | 1 | 116 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 96 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 2 | 772 | 10 |
+| **Total** | 1 | 773 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1285** (deps: —) **a refusal prints a door from the field beside one from the case, and the two say opposite things** — A refusal states one door for the case it is about, so two writers never print advice that disagrees. → §RK1285
+- 📋 **RK1286** (deps: —) **the read that exists to fit in a tool result is the one thing here with no budget, and it grew four rows** — What a brief costs a tool result is measured and declared, so the read that replaces reading the file has a ceiling. → §RK1286
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

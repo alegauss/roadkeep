@@ -24,7 +24,7 @@ from roadkeep.provenance import invocation
 
 from roadkeep import claiming
 from roadkeep.kernel import document
-from roadkeep.authoring import UnknownBlock, set_status
+from roadkeep.authoring import UnknownBlock, add, set_status
 from roadkeep.backlog import Backlog, DepStatus
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
@@ -3095,3 +3095,35 @@ def test_a_decisions_file_as_wide_as_the_roadmap_says_nothing(tmp_path, capsys):
     _deciding(tmp_path)
     assert main(["-C", str(tmp_path), "brief", "RK1"]) == EXIT_OK
     assert "deciding symptom" not in capsys.readouterr().out
+
+
+def test_the_door_the_schema_appends_is_dropped_where_it_is_false(tmp_path):
+    """RK1285. `RemainderRefused`'s shape at the other end of the same message: there the
+    *field* a violation named was wrong for the call, and here the **door** is — the schema
+    appends "the remainder belongs in the improvements section" to every over-long prose
+    field, and this is the one call where that section is the thing being deleted."""
+    from roadkeep.kernel.schema import ELSEWHERE
+
+    config = _deciding(tmp_path, extra_config="\n[limits.decisions]\nsymptom = 10\n")
+    with pytest.raises(InheritedClaim) as caught:
+        ship(config, "RK1", why="It works now.", decides="A constraint.")
+
+    said = str(caught.value)
+    # The rule survives whole — a code, a count and a limit — and only the advice goes.
+    assert "symptom.too-long" in said and "limit is 10" in said
+    assert ELSEWHERE.strip("; ") not in said
+    # Removed by identity and never by guessing at the words: one writer, and a rewording
+    # moves both ends at once.
+    assert ELSEWHERE not in said
+
+
+def test_every_other_over_long_field_keeps_the_door_it_always_had(tmp_path):
+    # The clause is right nearly everywhere, which is why it is appended at all: an `add`
+    # whose symptom is too long has exactly that remedy.
+    from roadkeep.kernel.schema import ELSEWHERE
+
+    config = project(tmp_path, extra_config="\n[limits]\nsymptom = 10\n")
+    with pytest.raises(SchemaError) as caught:
+        add(config, block="A", symptom="A symptom far too long for this", why="Because.")
+
+    assert ELSEWHERE in str(caught.value)

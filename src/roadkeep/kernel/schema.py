@@ -671,6 +671,15 @@ class SchemaError(ValueError):
         super().__init__("; ".join(str(v) for v in self.violations))
 
 
+#: The door appended to an over-long prose field: where the words that will not fit go. A
+#: **named constant and not an inline clause** (RK1285), because it is advice and not the rule
+#: — `<field>.too-long` is a code, a count and a limit — and one caller now has a case where
+#: it is false: `ship --decides` is refused over a claim it inherited, and the section this
+#: names is the one that ship is deleting. So the carrier removes it by identity rather than
+#: by guessing at its words, and a rewording moves both ends at once.
+ELSEWHERE = "; the remainder belongs in the improvements section rather than compressed away"
+
+
 @dataclass(frozen=True, slots=True)
 class Violation:
     """One rule, broken once. ``code`` is stable; ``message`` is for a human."""
@@ -1926,9 +1935,14 @@ class Schema:
                 Violation(
                     f"{field}.too-long",
                     field,
-                    f"{over_by(width(measured), limit, because=because, measured=measured, source=source)}; "
-                    f"the remainder "
-                    f"belongs in the improvements section rather than compressed away",
+                    over_by(
+                        width(measured),
+                        limit,
+                        because=because,
+                        measured=measured,
+                        source=source,
+                    )
+                    + ELSEWHERE,
                 )
             )
         return out

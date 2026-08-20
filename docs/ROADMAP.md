@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1285** (deps: —) **a refusal prints a door from the field beside one from the case, and the two say opposite things** — A refusal states one door for the case it is about, so two writers never print advice that disagrees. → §RK1285
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1286** (deps: —) **the read that exists to fit in a tool result is the one thing here with no budget, and it grew four rows** — What a brief costs a tool result is measured and declared, so the read that replaces reading the file has a ceiling. → §RK1286

@@ -149,7 +149,15 @@ from roadkeep.ids import IdRef, next_id
 from roadkeep.markers import refresh
 from roadkeep.provenance import invocation
 from roadkeep.renumbering import NotAnId, SameId, family_of
-from roadkeep.kernel.schema import PARTIAL, SchemaError, Task, Violation, over_by, width
+from roadkeep.kernel.schema import (
+    ELSEWHERE,
+    PARTIAL,
+    SchemaError,
+    Task,
+    Violation,
+    over_by,
+    width,
+)
 from roadkeep.sections import (
     Section,
     declaring,
@@ -570,7 +578,18 @@ class InheritedClaim(SchemaError):
     """
 
     def __init__(self, task_id: str, refused: SchemaError, where: str) -> None:
-        super().__init__(refused.violations)
+        # The clause the schema appends is removed **by identity** (RK1285): `ELSEWHERE` is
+        # the one writer of it, so a rewording moves both ends at once — and here it is
+        # false, which is the case that made it a constant. `RemainderRefused`'s shape at the
+        # other end of the same message: there the field named was wrong, here the door is.
+        super().__init__(
+            tuple(
+                replace(one, message=one.message.removesuffix(ELSEWHERE))
+                if one.field == "symptom"
+                else one
+                for one in refused.violations
+            )
+        )
         self.task_id = task_id
         self.about = (
             f"--decides writes no symptom: {task_id}'s claim is the roadmap line's, carried "

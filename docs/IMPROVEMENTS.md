@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1285 Two writers, one message, opposite advice
-
-A refusal composed of two writers can contradict itself, and one now does. The sentence
-RK1281 added says the remainder cannot go in the rationale section, because this ship
-deletes it; the violation printed under it says the remainder belongs there. Both are
-the tool's, one line apart.
-
-`RemainderRefused` met the same shape and answered it: the violations are the schema's,
-and where one of them names the wrong *field* for the call being made, the record
-renames it before printing. The field is right here and the **advice clause** is wrong —
-which is the same defect at the other end of the same message.
-
-The clause is not part of the rule. `symptom.too-long` is a code, a count and a limit;
-"the remainder belongs in the improvements section" is a door, appended because that is
-where an over-long symptom's words usually go. Every other refusal in this tool that
-carries a door composes it from the case, and this one is composed from the field.
-
-So the repair is to make it a door like the others: a symptom refused where the section
-is being deleted has none, and the record that knows so already says it. Suppressing the
-clause or moving the door onto the carrier is what the design has to choose.
-
-What it must not do is leave two sentences that disagree and trust the reader to rank
-them.
-
 ## Block C — Query
 
 ### §RK1286 The one read nobody prices

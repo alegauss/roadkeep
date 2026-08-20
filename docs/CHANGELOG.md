@@ -234,6 +234,7 @@
 - ✅ **RK1274** **a decision is never marked superseded, so the file records that one was made and not that it stopped holding** — A verb marks one decision replaced by another, writing the forward pointer and the marker in one call (design §RK1274 recorded in `src/roadkeep/shipping.py`).
 - ✅ **RK1276** **a criteria address refused for a paused id says the work shipped, so a pause reads like a typo** — A criteria address refused for an id names where that line went, so a pause reads as a pause.
 - ✅ **RK1281** **a decision inherits the roadmap claim, so a tighter limit on that file refuses a ship over a field no flag writes** — A decision refused over its inherited claim names the two real doors, and `brief` prices it first.
+- ✅ **RK1285** **a refusal prints a door from the field beside one from the case, and the two say opposite things** — A refusal drops the door the schema appends where that door is false for the call being made.
 
 ## Block C — Query
 
