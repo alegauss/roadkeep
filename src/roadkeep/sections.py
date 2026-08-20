@@ -119,6 +119,61 @@ class NoSuchSection(ValueError):
         super().__init__(said)
 
 
+class NotOneOccurrence(ValueError):
+    """`--replace` naming a string this prose does not hold exactly once (RK1263).
+
+    The refusal that makes the narrow edit safe. A substitution applied to whatever it happens
+    to match is a write whose blast radius the caller cannot see, which is the property the
+    whole-body form at least had — so the count is the contract: none means the string was
+    mistyped or already corrected, and several mean the call is ambiguous about which.
+
+    Neither is answered by picking one. The first occurrence is a guess, and `str.replace`'s own
+    default — all of them — is the edit a caller reaching for a one-clause fix least expects.
+    """
+
+    def __init__(self, old: str, found: int, where: str) -> None:
+        self.old = old
+        self.found = found
+        said = (
+            f"{where} does not carry {old!r}"
+            if found == 0
+            else f"{where} carries {old!r} {found} times"
+        )
+        advice = (
+            "check the spelling against `section show`, which prints the prose as it is"
+            if found == 0
+            else "pass a longer string that occurs once, or --body for the whole prose"
+        )
+        super().__init__(f"--replace names one occurrence and {said}: {advice}")
+
+
+@dataclass(frozen=True, slots=True)
+class Substitution:
+    """One string out and one string in, for an edit whose blast radius is the call (RK1263).
+
+    `amend` takes the whole body, so correcting one stale citation meant copying the section's
+    table, fence and block quote out of the file, retyping the clause and passing all of it
+    back — eight times over, on a corpus of eight sections whose prose was right except for one
+    reference each. Every round trip can drop a pipe from a row or a backtick from a fence, and
+    nothing checks: a body is prose to this tool, so a mangled fence validates exactly like a
+    clean one.
+
+    A pair and not two arguments threaded separately, because :meth:`applied` is the rule — one
+    occurrence or a refusal — and a caller holding the halves apart is a caller who could apply
+    it without asking. The whole-body form stays for a real rewrite.
+    """
+
+    old: str
+    new: str
+
+    def applied(self, prose: str, where: str) -> str:
+        """The prose with its one occurrence replaced, or :class:`NotOneOccurrence`."""
+        found = prose.count(self.old)
+        if found != 1:
+            raise NotOneOccurrence(self.old, found, where)
+        return prose.replace(self.old, self.new, 1)
+
+
 class SectionExists(ValueError):
     """One anchor, one section: two would make the pointer ambiguous.
 
@@ -1611,6 +1666,7 @@ def amend(
     *,
     title: str | None = None,
     body: str | None = None,
+    substitute: Substitution | None = None,
 ) -> Rewritten:
     """Rewrite one live section's heading text or its prose, in place (RK123).
 
@@ -1635,6 +1691,17 @@ def amend(
     unchanged symptom is still that symptom's rationale; one rewritten because the symptom
     changed is a line the other verb will not let you rewrite. A second guard here would be
     a second opinion about a question already answered one file over.
+
+    ``substitute`` is the **narrow** form of the same write (RK1263): one string out, one in,
+    derived from the prose already on disk so a table or a fence is never retyped. What it
+    changes about the rules is one thing, and it is the reason this parameter is not just sugar
+    at the verb layer — a section already over the word limit for reasons the edit has nothing
+    to do with was refused for a four-character correction, and the way out was shortening
+    prose the caller never came to touch. So an edit that does not *grow* the prose inherits
+    the overrun instead of being charged it, which is `lint --baseline`'s argument arriving at
+    a door: the standing debt stays a finding, and this call is not what it is about. Only
+    here, because only here is the growth bounded by the replacement's own delta — a
+    whole-body rewrite that happens to come back no longer is still a body somebody composed.
     """
     document = config.document(role)
     span = _span(document, anchor)
@@ -1660,7 +1727,11 @@ def amend(
     wanted_title = (
         section.title if title is None else _bound(document.schema, anchor, title, owner)
     )
+    # The prose on disk is what a substitution is applied to, which is the whole point: the
+    # bytes the caller never named are the bytes that cannot be lost (RK1263).
     wanted_body = own if body is None else body
+    if substitute is not None:
+        wanted_body = substitute.applied(own, f"§{anchor}")
     changed = tuple(
         name
         for name, before, after in (
@@ -1683,6 +1754,8 @@ def amend(
         # The addresses this body may cite (RK1227), read from the project because `_check`
         # takes a schema and cannot.
         resolves=resolvable(config, anchor),
+        # What the prose already spent, where this edit did not compose it (RK1263).
+        standing=None if substitute is None else words(own),
     )
     updated = _rewrite(
         document,
@@ -1705,7 +1778,15 @@ def amend(
     # `add` already writes a top-level anchor's own prose (RK166), `_rewrite` above already
     # replaces only that prose, and where nothing points at the anchor `_check` has already
     # charged it — so there is nothing further to ask.
-    if _pointed_at(config, anchor) and amended.words > document.schema.section_max:
+    # And the same inheritance one measurement over (RK1263): the subtree is what a pointed-at
+    # section is billed, so a narrow edit inside an already-over subtree is refused here for
+    # words in somebody's subsections — which is the deadlock above with one more layer of
+    # prose the caller never came to touch.
+    if (
+        _pointed_at(config, anchor)
+        and amended.words > document.schema.section_max
+        and not (substitute is not None and amended.words <= section.words)
+    ):
         counted = over_by(
             amended.words,
             document.schema.section_max,
@@ -1738,6 +1819,7 @@ def amend_untitled(
     *,
     body: str | None = None,
     retitle: str | None = None,
+    substitute: Substitution | None = None,
 ) -> Rewritten:
     """Rewrite an unanchored section's prose or its heading, in place (RK1107).
 
@@ -1771,7 +1853,12 @@ def amend_untitled(
         body=own,
     )
     wanted_title = section.title if retitle is None else retitle.strip()
+    # The narrow form reaches here too (RK1263), and this is the region it is most obviously
+    # for: a `## Table of contents` is a table whose every row is a heading somebody's ship
+    # moved, and retyping the whole of it to correct one row is the risk that task is about.
     wanted_body = own if body is None else body
+    if substitute is not None:
+        wanted_body = substitute.applied(own, repr(section.title))
     changed = tuple(
         name
         for name, before, after in (
@@ -2728,6 +2815,21 @@ def _address_violation(schema: Schema, anchor: str) -> Violation | None:
     return None
 
 
+def _inherited(body: str, standing: int | None) -> bool:
+    """Whether this overrun was already in the file before the call (RK1263).
+
+    ``standing`` is what the prose spent before the edit, and `None` is every caller that
+    composed the whole body — there the overrun is theirs by construction. Where it is a
+    number, an edit that leaves the count where it was or below it is one the file's standing
+    debt refuses, not the caller: `lint` still reports the section, and the finding is about
+    the paragraph rather than about the four characters somebody corrected inside it.
+
+    Not *equal* and not a tolerance: the comparison is `<=`, so shortening an over-long section
+    towards the limit is always allowed and growing it never is.
+    """
+    return standing is not None and words(body) <= standing
+
+
 def _check(
     schema: Schema,
     anchor: str,
@@ -2738,6 +2840,7 @@ def _check(
     elsewhere: Whereabouts | None = None,
     known: frozenset[str] | None = None,
     resolves: frozenset[str] | None = None,
+    standing: int | None = None,
 ) -> None:
     """Every rule a section is refused by, under **this file's** schema (RK147).
 
@@ -2804,7 +2907,7 @@ def _check(
             )
     if not body.strip():
         out.append(Violation("body.empty", "body", "a section with no prose is a heading"))
-    elif words(body) > schema.section_max:
+    elif words(body) > schema.section_max and not _inherited(body, standing):
         out.append(
             Violation(
                 "body.too-long",

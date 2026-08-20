@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1263 amend rewrites a section to change a word
-
-Clearing a corpus of dangling section pointers is eight sections whose prose is right
-except for one reference each. `section amend` is the only door — the hook denies the
-hand edit, and rightly — and it takes the whole body.
-
-So the fix for one stale pointer is: copy the section's table, json5 fence and block
-quote out of the file, retype the one clause, pass all of it back. Eight times. Each
-round-trip can drop a pipe from a row or a backtick from a fence, and nothing checks —
-the body is prose to the tool, so a mangled fence validates exactly like a clean one.
-
-It fights the word limit from the wrong side too. A legacy section already sits near the
-limit for reasons the pointer has nothing to do with, so a four-character edit is
-refused for length, and the way out is shortening prose the caller never came to touch.
-
-What is missing is a way to say which bytes change. A `--replace old --with new` form,
-refusing unless the old string occurs exactly once, makes the common case a one-line
-call whose blast radius is visible in the call itself. The whole-body form stays for a
-real rewrite, and the same shape serves `amend --why`, where correcting one clause of a
-long ledger sentence means retyping it.
-
-Filing this hit it once more: quoting a stale pointer as the example was refused as a
-dangling citation.
-
 ### §RK1265 The positive twin of a non-goal
 
 `non-goal` is the one durable statement this tool has: addressed by its lead, no marker,

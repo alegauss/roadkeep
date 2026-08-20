@@ -49,11 +49,13 @@ from roadkeep.sections import (
     _elsewhere,
     NoSuchSection,
     NotASibling,
+    NotOneOccurrence,
     SameAnchor,
     SectionClaimed,
     SectionExists,
     SectionError,
     SectionOccupied,
+    Substitution,
     UnknownParent,
     add,
     amend,
@@ -2801,6 +2803,167 @@ def sigilled(tmp_path: Path) -> Config:
         with path.open("w", encoding="utf-8", newline="") as handle:
             handle.write(body)
     return Config.discover(tmp_path)
+
+
+# -- the narrow edit, whose reach is the call (RK1263) -------------------------
+
+#: A design whose prose is right except for one clause, and whose other lines are exactly what
+#: a round trip through an argument loses: a table, a fence, and a block quote.
+FRAGILE = """# Improvements
+
+## Table of contents
+
+| section | what it argues |
+|---------|------------------|
+| RK1     | the wrong answer |
+
+## Block A — The model
+
+### §RK1 A first design
+
+The reasoning, which names the wrong module.
+
+| slot | what it holds |
+|------|---------------|
+| a    | one           |
+
+```json5
+{ trailing: "comma", }
+```
+
+> and a quotation nobody would retype
+"""
+
+
+def test_a_substitution_edits_the_prose_already_on_disk(tmp_path):
+    """RK1263. `amend` takes the whole body, so a one-clause correction meant copying the table
+    and the fence out of the file and passing all of it back — eight times, on a corpus of
+    eight sections whose prose was right except for one reference each."""
+    config = project(tmp_path, improvements=FRAGILE)
+    out = amend(
+        config,
+        "improvements",
+        "RK1",
+        substitute=Substitution(old="the wrong module", new="`sections.py`"),
+    )
+    out.document.save()
+
+    assert out.changed == ("body",)
+    written = read(Config.discover(tmp_path))
+    assert "which names `sections.py`." in written
+    # The bytes the call never named, byte-identical: this is the whole property.
+    for line in FRAGILE.splitlines():
+        if line.startswith(("|", "```", ">", "{")):
+            assert line in written, line
+
+
+def test_a_string_the_prose_does_not_carry_once_is_refused(tmp_path):
+    """The refusal that makes the narrow form safe. Applied to whatever it happens to match, a
+    substitution is a write whose reach the caller cannot see — which is the one property the
+    whole-body form did have."""
+    config = project(tmp_path, improvements=FRAGILE)
+    with pytest.raises(NotOneOccurrence) as absent:
+        amend(config, "improvements", "RK1", substitute=Substitution(old="absent", new="x"))
+    assert "does not carry 'absent'" in str(absent.value)
+    assert absent.value.found == 0
+
+    with pytest.raises(NotOneOccurrence) as twice:
+        amend(config, "improvements", "RK1", substitute=Substitution(old="a", new="x"))
+    assert "times" in str(twice.value)
+    assert twice.value.found > 1
+    # Neither wrote, which is what refusing before the rewrite means.
+    assert read(Config.discover(tmp_path)) == FRAGILE
+
+
+def test_a_narrow_edit_inherits_an_overrun_it_did_not_cause(tmp_path):
+    """The other half of the same deadlock: a legacy section sits over the limit for reasons the
+    stale pointer has nothing to do with, so a four-character correction was refused for length
+    and the way out was shortening prose the caller never came to touch."""
+    config = project(tmp_path, improvements=FRAGILE, extra="[limits]\nsection = 3\n")
+    out = amend(
+        config,
+        "improvements",
+        "RK1",
+        substitute=Substitution(old="the wrong module", new="the right module"),
+    )
+    out.document.save()
+    assert "the right module" in read(Config.discover(tmp_path))
+
+
+def test_growing_it_is_still_charged_and_so_is_a_whole_body(tmp_path):
+    """`lint --baseline`'s argument and not an exemption: the standing debt is forgiven and the
+    growth is not, and a whole-body rewrite that comes back no longer is still prose somebody
+    composed — so only the form whose growth is bounded by its own delta inherits anything."""
+    config = project(tmp_path, improvements=FRAGILE, extra="[limits]\nsection = 3\n")
+    with pytest.raises(SectionError) as grown:
+        amend(
+            config,
+            "improvements",
+            "RK1",
+            substitute=Substitution(old="the wrong module", new="a considerably longer name"),
+        )
+    assert "body.too-long" in [one.code for one in grown.value.violations]
+
+    with pytest.raises(SectionError) as whole:
+        amend(config, "improvements", "RK1", body="Four words, over three.")
+    assert "body.too-long" in [one.code for one in whole.value.violations]
+
+
+def test_an_unanchored_region_takes_the_narrow_edit_too(tmp_path):
+    """The region it is most obviously for: a `## Table of contents` is a table whose every row
+    is a heading somebody's ship moved, and retyping all of it to correct one row is the risk."""
+    config = project(tmp_path, improvements=FRAGILE)
+    out = amend_untitled(
+        config,
+        "improvements",
+        "Table of contents",
+        substitute=Substitution(old="the wrong answer", new="the right answer"),
+    )
+    out.document.save()
+    written = read(Config.discover(tmp_path))
+    assert "| the right answer |" in written
+    # The row's own alignment, and the header above it, untouched.
+    assert "|---------|------------------|" in written
+
+
+def test_the_command_takes_the_pair_and_refuses_half_of_it(tmp_path, capsys):
+    config = project(tmp_path, improvements=FRAGILE)
+    argv = ["-C", str(tmp_path), "section", "amend", "RK1"]
+    assert main([*argv, "--replace", "the wrong module", "--with", "the right one"]) == EXIT_OK
+    assert "the right one" in read(Config.discover(tmp_path))
+    capsys.readouterr()
+
+    # Both halves or neither: one of the two names no edit.
+    assert main([*argv, "--with", "x"]) == EXIT_USAGE
+    assert "--with needs --replace" in capsys.readouterr().err
+    assert main([*argv, "--replace", "x"]) == EXIT_USAGE
+    assert "--replace needs --with" in capsys.readouterr().err
+    # And the empty string, which is in every prose there is.
+    assert main([*argv, "--replace", "", "--with", "x"]) == EXIT_USAGE
+    assert "the empty string is in every prose" in capsys.readouterr().err
+
+
+def test_the_whole_prose_and_one_clause_of_it_are_two_edits(tmp_path, capsys):
+    """`_one_body`'s rule for the third answer: a substitution applied to a body that just
+    arrived would name a string in prose the file does not hold yet."""
+    project(tmp_path, improvements=FRAGILE)
+    assert (
+        main(
+            [
+                "-C", str(tmp_path), "section", "amend", "RK1",
+                "--body", "Something else entirely.",
+                "--replace", "the wrong module", "--with", "x",
+            ]
+        )
+        == EXIT_USAGE
+    )
+    assert "not passed beside --body" in capsys.readouterr().err
+
+
+def test_the_amend_with_nothing_at_all_names_the_narrow_form_too(tmp_path, capsys):
+    project(tmp_path, improvements=FRAGILE)
+    assert main(["-C", str(tmp_path), "section", "amend", "RK1"]) == EXIT_USAGE
+    assert "--replace with --with" in capsys.readouterr().err
 
 
 def test_a_body_amend_leaves_the_heading_byte_identical(tmp_path):

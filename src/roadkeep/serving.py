@@ -437,7 +437,14 @@ TOOLS: tuple[Tool, ...] = (
     # The correction an open task's design needs (RK123). Exposed for the reason the whole
     # write path is: the agent that narrowed a hypothesis is the one the hook denies a hand
     # edit to, and until this verb existed the only way through was shipping the task.
-    Tool("section amend", ("anchor", "title", "body", "body_file", "role")),
+    # `replace` and `replacement` ride with them (RK1263), and this transport is where the
+    # whole-body form costs most: a refusal on a 250-word body re-sends the table and the fence
+    # with it, and a one-clause correction names two strings. Exposed because the caller with
+    # eight sections to correct is this one, the hand edit being what the guard denies.
+    Tool(
+        "section amend",
+        ("anchor", "title", "body", "body_file", "replace", "replacement", "role"),
+    ),
     # The address `section amend` refuses to spell as a correction (RK377), and `renumber`
     # cannot reach under an outline. Exposed beside them because the state it repairs is one
     # an adopting corpus arrives with — 13 doubled addresses in Turing — and the only other
@@ -611,6 +618,10 @@ _DESTS: Mapping[str, Mapping[str, str]] = {
     "resume": {"--status": "marker"},
     "retire": {"--why": "reason"},
     "reversals": {"--id": "task_id"},
+    # The one row whose dest is not a rename but a **keyword** (RK1263): `--with` reads as the
+    # preposition the pair needs and `with` is not a name Python lets an attribute be spelled,
+    # so the flag and the dest differ for a reason no other row has.
+    "section amend": {"--with": "replacement"},
 }
 
 

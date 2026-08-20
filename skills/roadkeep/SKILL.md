@@ -269,9 +269,16 @@ re-reads it, costing the corrected field alone. Prefer the path over the heredoc
 you drafted before filing it; naming both the prose and its path is refused. **`section
 amend <id>` is how a live design is corrected**: `--body -` or `--body-file` replaces its
 own prose, `--title` its heading, the subtree and the anchor are untouched, and it is the
-only door for prose. A body-only amend leaves the **heading line's bytes** alone too — the
-reader takes a `§` an author wrote under an outline and the writer would not reproduce it,
-so re-rendering a heading nobody named silently restyled the file. **The anchor is
+only door for prose. **Reach for `--replace "<old>" --with "<new>"` on a one-clause
+correction** and never re-emit the body for one: it edits the prose already on disk, so a
+table, a fence or a block quote the call does not name is prose that cannot be lost retyping
+it — refused unless the old string occurs exactly once, which is what keeps the edit's reach
+visible in the call. It is also the one form that **inherits** an overrun: a legacy section
+already over the word limit for reasons the correction has nothing to do with takes the edit,
+where the whole-body form is refused and the way out was shortening prose you never came to
+touch. Growing it is still charged. A body-only amend leaves the **heading line's bytes** alone
+too — the reader takes a `§` an author wrote under an outline and the writer would not
+reproduce it, so re-rendering a heading nobody named silently restyled the file. **The anchor is
 `section move <anchor> --to <address>`**, and only under an outline: `renumber` moves an
 id and leaves the pointer as typed under every other scheme, so an address had no verb at
 all and the one state that needs one is the address two prose files both declare —

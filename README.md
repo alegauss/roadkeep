@@ -117,18 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 2 | 165 | 2 |
+| B — Authoring (insert, never hand-edit) | 1 | 166 | 2 |
 | C — Query (consult without reading the file) | 0 | 112 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 1 | 92 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 119 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 23 | 1 |
-| **Total** | 3 | 750 | 10 |
+| **Total** | 2 | 751 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1263** (deps: —) **section amend replaces the whole body, so fixing one citation means re-emitting every table and code fence verbatim** — The edit is one clause and the risk is the other 200 lines, which a retyped fence loses silently. → §RK1263
+- 📋 **RK1264** (deps: —) **the scaffold is the only writer of [files], so a project past init cannot declare a role it turns out to want** — init --deferred refuses on a configured tree, so the store stays a hand edit there and no earlier surface can offer a door it has no verb to open. → §RK1264
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

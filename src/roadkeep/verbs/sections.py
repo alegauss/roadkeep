@@ -39,6 +39,7 @@ from roadkeep.sections import (
     AmbiguousTitle,
     NoSuchSection,
     Shown,
+    Substitution,
     add as add_section,
     amend as amend_section,
     amend_untitled,
@@ -188,16 +189,63 @@ def _refs(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _substitution(args: argparse.Namespace) -> Substitution | str | None:
+    """The narrow edit this argv asked for, `None` for none, or why it is refused (RK1263).
+
+    A string return and not an exception, for the reason every other usage refusal on this
+    surface is one: the pair being incomplete is an argv this process cannot honour and never a
+    rule about a file, so it is answered before anything is opened.
+
+    Both halves or neither. `--replace` alone is a caller who has not said what to put there,
+    and `--with` alone is one who has not said what it replaces — and the second is the one
+    worth refusing loudly, an empty `--replace` otherwise matching at position zero on every
+    prose there is.
+    """
+    old, new = args.replace, args.replacement
+    if old is None and new is None:
+        return None
+    if old is None or new is None:
+        missing, given = ("--replace", "--with") if old is None else ("--with", "--replace")
+        return (
+            f"{given} needs {missing}: a substitution is the string to find and the string to "
+            f"put there, and one of the two names no edit"
+        )
+    if not old:
+        return (
+            "--replace takes the text to find, and the empty string is in every prose there "
+            "is: pass the clause being corrected"
+        )
+    return Substitution(old=old, new=new)
+
+
 def _section_amend(config: Config, args: argparse.Namespace) -> int:
-    if args.title is None and args.body is None and args.body_file is None:
+    substitute = _substitution(args)
+    if isinstance(substitute, str):
+        print(f"roadkeep: {substitute}", file=sys.stderr)
+        return EXIT_USAGE
+    if (
+        args.title is None
+        and args.body is None
+        and args.body_file is None
+        and substitute is None
+    ):
         # Refused rather than defaulted to stdin: an `amend` with neither field is a
         # command that would block on a pipe nobody meant to open.
         print(
-            "roadkeep: nothing to amend: pass --body (or '-' for stdin), --body-file or --title",
+            "roadkeep: nothing to amend: pass --body (or '-' for stdin), --body-file, "
+            "--replace with --with, or --title",
             file=sys.stderr,
         )
         return EXIT_USAGE
     clash = _one_body("--body", args.body, args.body_file)
+    if clash is None and substitute is not None and (args.body or args.body_file):
+        # A third answer to the question `_one_body` asks about two (RK1263): the whole prose
+        # and one clause of it are two edits, and applying a substitution to a body that just
+        # arrived would name a string in prose the file does not hold yet.
+        clash = (
+            "--replace edits the prose already in the file, so it is not passed beside "
+            "--body or --body-file: pass the whole prose or the clause to change, not both"
+        )
     if clash is not None:
         print(f"roadkeep: {clash}", file=sys.stderr)
         return EXIT_USAGE
@@ -220,11 +268,21 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
             titled(config.document(args.role), args.anchor) is not None
         ):
             rewritten = amend_untitled(
-                config, args.role, args.anchor, body=body, retitle=args.title
+                config,
+                args.role,
+                args.anchor,
+                body=body,
+                retitle=args.title,
+                substitute=substitute,
             )
         else:
             rewritten = amend_section(
-                config, args.role, args.anchor, title=args.title, body=body
+                config,
+                args.role,
+                args.anchor,
+                title=args.title,
+                body=body,
+                substitute=substitute,
             )
         wrote = rewritten.document.save()
     except REFUSALS as error:
@@ -520,6 +578,23 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
         dest="body_file",
         metavar="PATH",
         help=_BODY_FILE.format(what="replacement prose"),
+    )
+    # The narrow form (RK1263), and the one to reach for on a one-clause correction: the prose
+    # already on disk is what it edits, so a table, a fence or a block quote the call never
+    # names is prose that cannot be lost retyping it.
+    section_amend.add_argument(
+        "--replace",
+        metavar="OLD",
+        help=(
+            "the text to correct, edited in the prose already on disk — refused unless it "
+            "occurs exactly once, so the edit's reach is visible in the call"
+        ),
+    )
+    section_amend.add_argument(
+        "--with",
+        dest="replacement",
+        metavar="NEW",
+        help="what --replace becomes; the empty string deletes it",
     )
     section_amend.add_argument(
         "--role", default="improvements", help="which prose file (default: improvements)"
