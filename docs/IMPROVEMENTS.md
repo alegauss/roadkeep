@@ -108,29 +108,6 @@ here is the line a `close` can read.
 
 ## Block E — Adoption
 
-### §RK1264 The opt-in only a fresh project can take
-
-`init --deferred` writes the deferred store and its `[files]` key together (RK1259),
-which closes the case for a project being created. The project that met the defect was
-not one: its configuration existed, so `init` answers `AlreadyConfigured` and the remedy
-there is still the toml key and the skeleton by hand.
-
-That is not special to this role. `[files]` is written once, by the one command that
-refuses to run twice, so every role a project declines at scaffold time — strategy as
-much as deferred — is one it retrofits by editing configuration the tool otherwise owns.
-`adopt` reads and estimates and writes no config by design (RK1040); `install` wires
-surfaces, not roles. There is no third door.
-
-It also blocks the cheaper half of RK1259's own design. `brief` and `pick` were to say a
-line cannot be paused before anyone tries, and they can — but a project with no store
-cannot act on that sentence, so the row is permanent and unsilenceable at a project
-doing nothing wrong. A notice whose only remedy is a hand edit is one a reader learns to
-skip, which is worse than the refusal it was meant to arrive before.
-
-What is missing is one write: declare a role, create its file with the block headings
-the other files already carry, refuse where the key is already declared. `block add` is
-the shape — a declaration in every file that takes one, or none.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

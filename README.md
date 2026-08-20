@@ -120,15 +120,15 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 1 | 166 | 2 |
 | C — Query (consult without reading the file) | 0 | 112 | 1 |
 | D — The gate | 0 | 185 | 2 |
-| E — Adoption | 1 | 92 | 1 |
+| E — Adoption | 0 | 93 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 119 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 11 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 23 | 1 |
-| **Total** | 2 | 751 | 10 |
+| **Total** | 1 | 752 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1264** (deps: —) **the scaffold is the only writer of [files], so a project past init cannot declare a role it turns out to want** — init --deferred refuses on a configured tree, so the store stays a hand edit there and no earlier surface can offer a door it has no verb to open. → §RK1264
+- 📋 **RK1265** (deps: —) **a non-goal states what is not built, and nothing states what must be true for a block to be finished** — So a criterion is written into a rationale section that ship deletes, and the only test for doneness left is a line count reaching zero. → §RK1265
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

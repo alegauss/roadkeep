@@ -628,6 +628,7 @@
 - ✅ **RK1224** **A refusal on one over-long field discards the section body sent with it, so the retry re-sends every word** — budget --body no longer needs an anchor, so one call prices the line and the body add validates as one unit — the retry no longer carries the rationale again.
 - ✅ **RK1227** **section amend accepts prose citing an anchor that does not exist, so a docs-only commit turns an adopter's gate red** — section add and section amend resolve every anchor the body cites and refuse ref.dangling with the addresses named, which is the code the gate reports for the same defect.
 - ✅ **RK1259** **adoption writes no deferred store, so the first defer refuses at the moment its reason is already written** — init --deferred scaffolds the store and its key together, so the pause door a project opts into is written by the command that writes every other governed file.
+- ✅ **RK1264** **the scaffold is the only writer of [files], so a project past init cannot declare a role it turns out to want** — A configured project declares a role it turns out to want, getting the file with its block headings and one inserted key, so no retrofit is a hand edit.
 
 ## Block F — The Claude Code plugin
 

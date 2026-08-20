@@ -178,6 +178,12 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # The key RK141/RK144's pair never cut (RK403): a doubled heading is the state every
         # write refuses with `merge by hand`, and over MCP there is no hand-edit at all.
         "block_merge",
+        # The same argument one table further out (RK1264): `[files]` is written once, by the
+        # command that refuses to run twice, so a role declined at scaffold time was a hand
+        # edit to configuration — and `init` and `adopt` stay withheld beside it, the line
+        # between them being *when*: those run before a project is governed and this is a
+        # write on one that already is.
+        "declare",
         # `brief --claim` under the name of the act (RK149, RK150): the write a session makes
         # first, split off so the two reads below keep the hint that makes them free to ask.
         "claim",
@@ -364,14 +370,16 @@ def test_every_divergent_verb_is_one_the_cli_still_spells_that_way():
 
 
 def test_the_verbs_that_diverge_are_named_and_not_counted():
-    # The list is the point: a sixth is a deliberate addition and not something a copied
+    # The list is the point: a seventh is a deliberate addition and not something a copied
     # override brought along. `non-goal` is `[non_goals]`' two limits (RK70), `list` is the
     # one read whose `role` and `marker` mean every governed file (RK304, RK314), `ship`
     # and `record amend` are the two whose `why` can carry a span no ceiling fits (RK1055),
-    # and `budget` is the one verb whose prose fields are drafts to *measure* — where a
-    # published ceiling refuses exactly the overrun the read reports (RK1190).
+    # `budget` is the one verb whose prose fields are drafts to *measure* — where a
+    # published ceiling refuses exactly the overrun the read reports (RK1190) — and `declare`
+    # is the one whose `role` means a file this project does **not** have (RK1264), which is
+    # every other reader of that dest inverted.
     assert set(serving._DIVERGENT) == {
-        "non-goal", "list", "ship", "record amend", "budget"
+        "non-goal", "list", "ship", "record amend", "budget", "declare"
     }
     # Every other tool gets the common table, which is what makes those legible as exceptions.
     for tool in TOOLS:
@@ -1028,6 +1036,9 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         "block_drop",
         "block_amend",
         "block_merge",
+        # It writes two files and neither is a read: the role's own, and one key into
+        # `roadkeep.toml` (RK1264).
+        "declare",
         "status",
         "amend",
         "restate",

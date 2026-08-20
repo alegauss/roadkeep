@@ -75,7 +75,15 @@ characters = 2600
 # which over MCP does not exist at all, so this is the one door that surface has. 55,700,
 # above the widest by 1,477 and about a verb and a half at the 986-character average, which
 # is the same discipline and not a looser one.
-session = 55700
+# Re-argued at 57 tools (RK1264), and re-measured again rather than extrapolated: 55,941 here,
+# 56,310 in Shio, 56,637 in Turing — a 1.24% spread, which is the reading above holding for a
+# third time and is why this stays a number about the package rather than about this project.
+# The headroom is `declare`'s, and it is the verb the last two arguments were written for read
+# one table further out: `[files]` is written once, by the command that refuses to run twice, so
+# a role declined at scaffold time — a deferred store, a strategy file — was retrofitted only by
+# hand-editing this file, which over MCP is the edit the guard denies and so no edit at all.
+# 58,100, above the widest by 1,463 and about a verb and a half at the 981-character average.
+session = 58100
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

@@ -67,10 +67,11 @@ from roadkeep.config import (
     STRATEGY_PATH,
     PROSE_ROLES,
     PYPROJECT,
+    ROLES,
     Config,
     Scope,
 )
-from roadkeep.kernel.document import LEDGER_SHAPES, Document, checkbox
+from roadkeep.kernel.document import LEDGER_SHAPES, Document, Heading, checkbox
 from roadkeep.kernel.schema import (
     CODE_POINTS,
     DEFAULT_HEADING_WORD,
@@ -130,6 +131,49 @@ class AlreadyConfigured(ValueError):
             f"{source} already configures roadkeep: `init` writes a scaffold and would "
             f"overwrite the declaration this project is already governed by — `adopt "
             f"<file>` reports what an existing backlog must change instead"
+        )
+
+
+class RoleDeclared(ValueError):
+    """`declare` on a role this project already has a file for (RK1264).
+
+    The one state where the answer is not a write. A key already declared points somewhere, and
+    a second one would either overwrite that path or leave two — so the refusal names what it
+    found, which is also the answer to *why did nothing happen*.
+    """
+
+    def __init__(self, role: str, where: str) -> None:
+        self.role = role
+        super().__init__(
+            f"this project already declares {role} = \"{where}\": `declare` adds a role to "
+            f"`[files]` and one that is there needs no adding — the file is what to edit"
+        )
+
+
+class NoSuchRole(ValueError):
+    """A word that is not one of the five roles this format governs (RK1264)."""
+
+    def __init__(self, role: str, roles: Sequence[str]) -> None:
+        self.role = role
+        super().__init__(
+            f"{role!r} is not a role this format governs: `[files]` names "
+            f"{', '.join(roles)}, and a key beside those is one nothing reads"
+        )
+
+
+class Unconfigured(ValueError):
+    """`declare` on a tree with no `roadkeep.toml` (RK1264).
+
+    The mirror of :class:`AlreadyConfigured`, and the pair is the whole shape of these two
+    doors: `init` writes the declaration and refuses where one exists, this adds a role to one
+    and refuses where there is none.
+    """
+
+    def __init__(self, root: Path) -> None:
+        self.root = root
+        super().__init__(
+            f"{root.as_posix()} declares no roadkeep.toml, so there is no `[files]` to add a "
+            f"role to: `init` writes the scaffold and its configuration together"
         )
 
 
@@ -429,6 +473,53 @@ class Created:
             "prefixes": list(families),
             "blocks": list(self.blocks),
         }
+
+
+@dataclass(frozen=True, slots=True)
+class Retrofitted:
+    """What `declare` wrote: one role's file, and the key that governs it (RK1264)."""
+
+    role: str
+    path: Path
+    config: Path
+    #: The block headings mirrored in, as the roadmap already spells them. Read and never
+    #: composed, for `block add`'s reason: the level and the separator are the project's.
+    blocks: tuple[str, ...]
+
+    def stated(self, config: Config) -> str:
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
+        rows = [
+            f"declared {self.role} = \"{config.relative(self.path)}\"  "
+            f"{self.config.name}",
+            f"created  {config.relative(self.path)}  {len(self.blocks)} block heading(s)",
+        ]
+        # The verb this role exists for, which is the question a caller has next and the one
+        # the refusal that sent them here was about.
+        opens = _ROLE_OPENS.get(self.role)
+        if opens is not None:
+            rows.append(f"opens    `{invocation()} {opens}`")
+        rows.append(f"stage    git add -- {config.relative(self.path)} {self.config.name}")
+        return "\n".join(rows)
+
+    def payload(self, config: Config) -> dict[str, object]:
+        return {
+            "role": self.role,
+            "path": config.relative(self.path),
+            "config": self.config.as_posix(),
+            "blocks": list(self.blocks),
+        }
+
+
+#: What each retrofit-able role unlocks, named in the report (RK1264). Not every role has one:
+#: `improvements` is where a pointer resolves rather than a verb's destination, and a strategy
+#: file is written by `section add --role strategy` like any other prose.
+_ROLE_OPENS = {
+    DEFERRED_ROLE: "defer <id> --reason …",
+    STRATEGY_ROLE: "section add <anchor> --role strategy --title …",
+    "improvements": "section add <id> --title …",
+    "changelog": "ship <id> --why …",
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -818,6 +909,113 @@ def init(
         path.write_text(bodies[role], encoding="utf-8", newline="")
         written.append(path)
     return Created(config=target, files=tuple(written), blocks=labels)
+
+
+def declare(
+    config: Config, role: str, path: str | None = None
+) -> Retrofitted:
+    """Add one role to a configured project's `[files]`, and write its file (RK1264).
+
+    The door `init` could not be. `[files]` is written once, by the one command that refuses to
+    run twice, so every role a project declined at scaffold time — `strategy` as much as
+    `deferred` — was one it retrofitted by hand-editing configuration this tool otherwise owns.
+    `adopt` reads and estimates and writes no config by design (RK1040) and `install` wires
+    surfaces rather than roles, so there was no third door: on a configured tree `init
+    --deferred` answers :class:`AlreadyConfigured`, and the remedy was the toml key and the
+    skeleton by hand — which over MCP is the hand edit the guard denies and no edit at all.
+
+    **`block add` is the shape**, and deliberately: the file is written with the headings the
+    project's other files already carry, read off the roadmap and never composed here, so a
+    project spelling `### Fase 2 - Execução` gets those and not this module's punctuation. A
+    role whose file arrived with no headings is a role every `add`, `ship` and `section add`
+    then refuses with "no heading declares", which is a scaffold handing over a deadlock.
+
+    Nothing is invented about *which* roles: :data:`~roadkeep.config.ROLES` is the set, and one
+    already declared is refused rather than repointed — moving a governed file is not this
+    write, and a second key for one role is two paths where every reader expects one.
+
+    The file lands **before** the key, which is `namespaced`'s order and its reason: a file
+    written whose key never landed is an untracked Markdown file and the state the project was
+    already in, while a key declared over a file that does not exist is `file.missing` on the
+    next lint — so the failure falls on the side that changes nothing.
+    """
+    if role not in ROLES:
+        raise NoSuchRole(role, ROLES)
+    if config.has(role):
+        raise RoleDeclared(role, config.relative(config.path(role)))
+    if config.source is None:
+        raise Unconfigured(config.root)
+    where = {**DEFAULT_PATHS, STRATEGY_ROLE: STRATEGY_PATH, DEFERRED_ROLE: DEFERRED_PATH}
+    target = config.locate(path or where[role])
+    if target.exists():
+        raise WouldOverwrite([target], config.root)
+    if (parent := blocking(target)) is not None:
+        raise BlockedParent([(target, parent)], config.root)
+    # Refused before anything is written, because a path TOML cannot carry is a key that would
+    # read back as something else — the check `_quote` makes for `init`, made here for the one
+    # value this write puts in a file.
+    row = f"{role} = {_quote(config.relative(target))}\n"
+    declaring = _mirrored(config)
+    body = "\n".join(
+        [f"# {_TITLES[role]}", "", *(f"{'#' * one.level} {one.text}\n" for one in declaring)]
+    )
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(body, encoding="utf-8", newline="")
+    config.source.write_text(_with_role(config.source, row), encoding="utf-8", newline="")
+    return Retrofitted(
+        role=role,
+        path=target,
+        config=config.source,
+        blocks=tuple(one.label or "" for one in declaring),
+    )
+
+
+def _mirrored(config: Config) -> tuple[Heading, ...]:
+    """The block headings this project's roadmap carries, for a file that has none of its own.
+
+    Reused verbatim — the level and the text the roadmap wrote — which is what keeps this from
+    being a second spelling of a heading (`blocking._heading`'s rule, arrived at from the other
+    side): there is no own heading in a file that does not exist yet, so the roadmap's is the
+    only honest answer to how this project spells one.
+
+    Empty where the roadmap declares none, which is a project whose first `block add` has not
+    happened — and then the new file is a title, exactly as `init` would have left it.
+    """
+    return tuple(one for one in config.document("roadmap").headings if one.label)
+
+
+def _with_role(source: Path, row: str) -> str:
+    """This project's `roadkeep.toml` with one `[files]` key added, byte for byte otherwise.
+
+    A targeted insertion and never a serialiser, which is `sections._with_namespace`'s rule and
+    `bump_version`'s before it: a `tomllib` round-trip drops the comments a scaffolded config is
+    mostly made of, and rewriting somebody's file to add a line is the destructive formatting L3
+    refuses one layer down.
+
+    Placed after the table's **last key** rather than before its first or after the whole table:
+    the first would put a retrofitted role above the roadmap, and the last would land it under
+    whatever table follows — the one way this write can be silently wrong.
+    """
+    text = source.read_text(encoding="utf-8")
+    lines = text.splitlines(keepends=True)
+    at, last = None, None
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("["):
+            # The table this key belongs to, and then the next one, which ends the search: a
+            # `[files]` appearing twice is a config `tomllib` itself refuses.
+            at = index if stripped == "[files]" else at
+            if at is not None and index > at:
+                break
+        elif at is not None and index > at and "=" in stripped:
+            last = index
+    if at is None:
+        raise ValueError(
+            f"{source.as_posix()} declares no `[files]` table, so there is no place for a "
+            f"role: a configured project has one, and this file may have been hand-edited"
+        )
+    into = (last if last is not None else at) + 1
+    return "".join([*lines[:into], row, *lines[into:]])
 
 
 def render_config(schema: Schema, paths: Mapping[str, str]) -> str:

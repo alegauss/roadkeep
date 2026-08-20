@@ -93,6 +93,11 @@ FOREIGN = (
 #: statement that thirty-six others have never been run.
 SITES: tuple[Site, ...] = (
     Site("adopting.py:Created.stated", "unreached", NO_FIXTURE),
+    # RK1264, and the row above it is the same shape one door over: what `declare` composes is
+    # the verb the role it just wrote opens, with the id and the reason left as placeholders —
+    # so `test_adopting` builds the state and asserts the line, and running it as printed is
+    # what a filled argv would have to buy first.
+    Site("adopting.py:Retrofitted.stated", "unreached", NO_FIXTURE),
     # RK1223. Run by `test_blocking`, which executes the `--organise` call this refusal names
     # rather than matching it — the reading this whole file is about.
     Site("blocking.py:BlockExists.__init__", "run"),

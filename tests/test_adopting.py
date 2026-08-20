@@ -169,6 +169,135 @@ def test_the_pause_door_the_scaffold_opened_is_one_defer_can_walk_through(
     assert main(["-C", str(tmp_path), "lint"]) == EXIT_OK
 
 
+# -- declare: the role a configured project turns out to want (RK1264) --------
+
+
+def test_a_configured_project_can_declare_the_role_the_scaffold_declined(tmp_path: Path) -> None:
+    """RK1264. `[files]` is written once, by the command that refuses to run twice, so a role
+    declined at scaffold time was retrofitted by hand-editing configuration this tool otherwise
+    owns — and `init --deferred` on a configured tree answers `AlreadyConfigured`."""
+    from roadkeep.adopting import AlreadyConfigured, DEFERRED_ROLE, SCAFFOLD_ROLES, declare, init
+
+    init(tmp_path, blocks=("A — The model", "B — Authoring"))
+    config = Config.discover(tmp_path)
+    assert not config.has("deferred")
+    # The door that was closed, still closed: this is the state the task is about.
+    with pytest.raises(AlreadyConfigured):
+        init(tmp_path, roles=(*SCAFFOLD_ROLES, DEFERRED_ROLE))
+
+    written = declare(config, "deferred")
+    assert written.role == "deferred"
+    assert 'deferred = "docs/DEFERRED.md"' in (tmp_path / "roadkeep.toml").read_text(
+        encoding="utf-8"
+    )
+    # The block headings the roadmap carries, spelled as that file spells one — a governed file
+    # with none is one every write then refuses with "no heading declares".
+    store = (tmp_path / "docs" / "DEFERRED.md").read_text(encoding="utf-8")
+    assert store.startswith("# Set aside\n")
+    assert "## Block A — The model" in store
+    assert "## Block B — Authoring" in store
+    assert written.blocks == ("A", "B")
+
+
+def test_the_role_it_declared_is_one_the_refused_verb_can_now_reach(tmp_path: Path, capsys) -> None:
+    """The claim the file listing cannot make, and the whole point: the verb whose refusal sent
+    the caller here runs on the project this command changed, and the gate still passes."""
+    from roadkeep.adopting import declare
+
+    init(tmp_path, blocks=("A",))
+    assert main([
+        "-C", str(tmp_path), "add", "--block", "A", "--symptom", "A symptom",
+        "--why", "Because of a reason.", "--section", "A design",
+        "--section-body", "Prose the author wrote.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+    # Refused, and the refusal is what this task is the remedy for.
+    assert main([
+        "-C", str(tmp_path), "defer", "RK1", "--reason", "It waits on nothing that happens.",
+    ]) != EXIT_OK
+    capsys.readouterr()
+
+    declare(Config.discover(tmp_path), "deferred")
+    assert main([
+        "-C", str(tmp_path), "defer", "RK1", "--reason", "It waits on nothing that happens.",
+    ]) == EXIT_OK
+    assert "RK1" in (tmp_path / "docs" / "DEFERRED.md").read_text(encoding="utf-8")
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "lint"]) == EXIT_OK
+
+
+def test_the_config_keeps_every_byte_it_did_not_come_to_change(tmp_path: Path) -> None:
+    """A targeted insertion and never a serialiser, which is `_with_namespace`'s rule and
+    `bump_version`'s before it: a `tomllib` round-trip drops the comments a scaffolded config is
+    mostly made of. Placed after the table's last key, never under whatever table follows."""
+    from roadkeep.adopting import declare
+
+    init(tmp_path, blocks=("A",))
+    source = tmp_path / "roadkeep.toml"
+    before = source.read_text(encoding="utf-8")
+    declare(Config.discover(tmp_path), "strategy")
+    after = source.read_text(encoding="utf-8")
+
+    assert after.replace('strategy = "docs/STRATEGY.md"\n', "", 1) == before
+    files = after[after.index("[files]") :]
+    # Inside `[files]` and after its last key: the next table heading comes later.
+    assert files.index("strategy =") < files.index("\n[")
+
+
+def test_a_role_already_declared_is_refused_and_so_is_one_nothing_governs(tmp_path: Path) -> None:
+    from roadkeep.adopting import NoSuchRole, RoleDeclared, declare
+
+    init(tmp_path, blocks=("A",))
+    config = Config.discover(tmp_path)
+    with pytest.raises(RoleDeclared) as held:
+        declare(config, "roadmap")
+    # It names what it found, which is also the answer to "why did nothing happen".
+    assert 'roadmap = "docs/ROADMAP.md"' in str(held.value)
+
+    with pytest.raises(NoSuchRole) as absent:
+        declare(config, "notes")
+    assert "is not a role this format governs" in str(absent.value)
+    # Nothing written by either: the tree is the scaffold and no more.
+    assert not (tmp_path / "docs" / "DEFERRED.md").exists()
+
+
+def test_a_file_already_there_is_never_overwritten(tmp_path: Path) -> None:
+    """`init`'s own rule at this door: the role is undeclared and the path is taken, which is a
+    project that made the file by hand and never got the key — so the write refuses and the
+    file it would have clobbered is the reason."""
+    from roadkeep.adopting import WouldOverwrite, declare
+
+    init(tmp_path, blocks=("A",))
+    standing = tmp_path / "docs" / "DEFERRED.md"
+    standing.write_text("# Set aside\n\nprose somebody wrote\n", encoding="utf-8")
+    with pytest.raises(WouldOverwrite):
+        declare(Config.discover(tmp_path), "deferred")
+    assert "prose somebody wrote" in standing.read_text(encoding="utf-8")
+    assert "deferred" not in (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+
+
+def test_the_path_is_the_callers_where_they_name_one(tmp_path: Path) -> None:
+    from roadkeep.adopting import declare
+
+    init(tmp_path, blocks=("A",))
+    written = declare(Config.discover(tmp_path), "deferred", "docs/paused/LATER.md")
+    assert written.path == tmp_path / "docs" / "paused" / "LATER.md"
+    assert 'deferred = "docs/paused/LATER.md"' in (tmp_path / "roadkeep.toml").read_text(
+        encoding="utf-8"
+    )
+    assert Config.discover(tmp_path).has("deferred")
+
+
+def test_the_command_reports_the_verb_the_role_opens(tmp_path: Path, capsys) -> None:
+    init(tmp_path, blocks=("A",))
+    assert main(["-C", str(tmp_path), "declare", "deferred"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert 'declared deferred = "docs/DEFERRED.md"' in out
+    # The question a caller has next, which is the one the refusal that sent them here was about.
+    assert "defer <id> --reason" in out
+    assert "stage    git add --" in out
+
+
 def test_the_flag_reaches_the_scaffold_from_the_command_line(tmp_path: Path, capsys) -> None:
     assert main(["-C", str(tmp_path), "init", "--deferred"]) == EXIT_OK
     capsys.readouterr()

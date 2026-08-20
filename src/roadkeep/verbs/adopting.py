@@ -18,7 +18,14 @@ import sys
 import tempfile
 from pathlib import Path
 
-from roadkeep.adopting import DEFERRED_ROLE, SCAFFOLD_ROLES, STRATEGY_ROLE, adopt, init
+from roadkeep.adopting import (
+    DEFERRED_ROLE,
+    SCAFFOLD_ROLES,
+    STRATEGY_ROLE,
+    adopt,
+    declare,
+    init,
+)
 from roadkeep.capturing import (
     Filed,
     REPORTS,
@@ -34,7 +41,7 @@ from roadkeep.capturing import (
     stamp,
 )
 from roadkeep.backlog import Backlog
-from roadkeep.config import Config
+from roadkeep.config import ROLES, Config
 from roadkeep.installing import (
     engines,
     install,
@@ -78,6 +85,24 @@ def _init(config: Config, args: argparse.Namespace) -> int:
         print(json.dumps(created.payload(args.directory, families), indent=2))
     else:
         print(created.stated(families))
+    return EXIT_OK
+
+
+def _declare(config: Config, args: argparse.Namespace) -> int:
+    """`init`'s door for a project that is already configured (RK1264).
+
+    Unlike `_init` this one **wants** the discovered config: the role is added to the project
+    the caller is standing in, and the headings it mirrors are that project's own.
+    """
+    try:
+        written = declare(config, args.role, args.path)
+    except (ValueError, OSError) as error:
+        return _refused(error)
+
+    if args.json:
+        print(json.dumps(written.payload(config), indent=2))
+    else:
+        print(written.stated(config))
     return EXIT_OK
 
 
@@ -570,6 +595,34 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
     )
     init_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     init_parser.set_defaults(handler=_init, wiring=True)
+
+    declare_parser = subcommands.add_parser(
+        "declare",
+        help="add one governed role to a project that is already configured",
+        description=(
+            "Write one role's file and the `[files]` key governing it, on a project past "
+            "`init`. Reach for it when a verb refuses over an undeclared role: `init` writes "
+            "`[files]` once and refuses to run twice, so a role declined at scaffold time was "
+            "otherwise a hand edit. The file arrives with the block headings the roadmap "
+            "carries, spelled as that file spells one — a governed file with none is one every "
+            "write refuses. The config keeps every other byte: the key is inserted, not "
+            "re-serialised. Refused where the role is already declared."
+        ),
+    )
+    # Not argparse `choices`, for `--role`'s own reason (RK304) read one step further: what is
+    # answerable here is the roles this *project* has not declared, which a parser built once
+    # per process cannot say — so the closed set is published per project in the tool schema and
+    # refused by name in the command.
+    declare_parser.add_argument(
+        "role",
+        help=f"which governed file to declare, one of {', '.join(ROLES)}",
+    )
+    declare_parser.add_argument(
+        "--path",
+        help="where it goes, project-relative (default: this role's own docs/ path)",
+    )
+    declare_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    declare_parser.set_defaults(handler=_declare)
 
     adopt_parser = subcommands.add_parser(
         "adopt",

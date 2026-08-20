@@ -289,7 +289,9 @@ def test_every_write_command_is_either_wired_or_exempted():
     # 35 since `block amend` (RK1204), which is wired for its three siblings' reason: it
     # rewrites a heading in every file that declares the label, and the staging line is the
     # only place a commit learns that the ledger's copy moved with the roadmap's.
-    assert len(declared) == 35 and len(wired) == 29
+    # 36 since `declare` (RK1264), wired for `refs`' reason exactly: it writes a governed file
+    # and `roadkeep.toml`, and the config is the half of that commit a reviewer would miss.
+    assert len(declared) == 36 and len(wired) == 30
 
 
 def test_every_wired_write_reaches_the_one_printer():

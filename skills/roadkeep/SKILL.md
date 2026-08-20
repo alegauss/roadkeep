@@ -17,13 +17,15 @@ When this session's roadkeep tools are available, **prefer them** — named
 `mcp__roadkeep__*` where a project's own `.mcp.json` declares the server and
 `mcp__plugin_<plugin>_roadkeep__*` where a plugin provides it, so read the prefix off the
 tool list rather than typing it: the whole write path and the reads a task needs are there
-— `add`, `block_add`, `block_drop`, `block_merge`, `claim`, `scope`, `status`, `amend`,
+— `add`, `block_add`, `block_drop`, `block_merge`, `declare`, `claim`, `scope`, `status`, `amend`,
 `restate`, `ship`, `retire`, `defer`, `resume`, `record_add`, `record_amend`,
 `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_amend`,
 `non_goal_drop`, `section_add`, `section_amend`, `section_move`, `section_drop`, `budget`,
 `brief`, `pick`, `list`, `deps`, `lint`, `engines`, `merge_check` — same engine and same
 refusals, with the fields arriving as a schema instead of flag names typed from memory.
-`init`, `adopt` and `install` run once per project and want the CLI — the last of them
+`init`, `adopt` and `install` run *before* a project is governed, or on its wiring, and want
+the CLI — `declare` above is the one write on a configured tree, which is why it is served
+and they are not. The last of them
 wires this file, the tools and the guard into a project running the tool from a checkout,
 and `install --check` is what holds its copy of this file in step — though you will rarely
 type it, because **the gate now asks**: a vendored launcher, hook or skill behind the
@@ -175,7 +177,15 @@ pause is none of those three**: `defer <id> --reason "…"` moves the line to th
 store, keeping the id, the deps, the symptom and the section a departure deletes — refused
 where `[files]` declares no `deferred` path, and never scaffolding one on the way past, a
 store invented at the moment one is needed being a format decided by a verb; `init
---deferred` writes the key and the skeleton together, which is where a project opts in — and
+--deferred` writes the key and the skeleton together on a project being *created*, and
+**`declare deferred` is that same opt-in on one already configured** — the door to reach for
+when any verb refuses over an undeclared role, `[files]` being written once by the command
+that refuses to run twice, so a role declined at scaffold time was otherwise a hand edit to
+configuration this tool owns. It writes the role's file with the block headings the roadmap
+already carries and inserts the one key, leaving every other byte of `roadkeep.toml` alone;
+refused where the role is declared, and it never repoints one — moving a governed file is not
+this write. Any of the five roles, so a project that wants a strategy document reaches it
+too — and
 `resume <id> [--marker <m>]` is the return direction the ledger has none of — the reason
 wraps the `why` on the way out and is unwrapped on the way back, and the open marker is
 what the store could not keep, so `--marker` is where you say which it was (`--marker ⏳`

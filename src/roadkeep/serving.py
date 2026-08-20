@@ -331,6 +331,13 @@ TOOLS: tuple[Tool, ...] = (
     # an agent that reaches it over MCP, where there is no hand-edit at all, had no door out.
     # `prose` rides with it (RK237) for the same reason it rides with `block drop`.
     Tool("block merge", ("label", "prose")),
+    # The declaration `init` could not make twice (RK1264), and the three keys above read one
+    # table over: `[files]` is written once, by the command that refuses to run twice, so a role
+    # declined at scaffold time was retrofitted by hand-editing configuration — which on this
+    # surface is the hand edit the guard denies and so no edit at all. `init` and `adopt` stay
+    # withheld beside it and the line between them is *when*: those run before a project is
+    # governed, and this is a write on one that already is, reached from a `defer` refusal.
+    Tool("declare", ("role", "path")),
     # The write a session makes first, and the one flag that became a tool (RK149, RK150): it
     # is `brief --claim`, so the answer is everything needed to start the task *and* the
     # marker that stops the next agent being handed it — while `brief` and `pick` below stay
@@ -942,12 +949,24 @@ def _measuring(limit: int) -> str:
 #: one. Every key is asserted to name a subcommand this CLI accepts, so the one way this can
 #: be wrong — a rename leaving nothing matched and the defaults silently published — is a test
 #: failure and not a client refusing a call the tool would have taken.
+#: The one verb whose `role` means a file this project **does not have** (RK1264). Every other
+#: reader of that dest narrows to the declared ones, and this is the exact inverse: `declare`
+#: refuses a role already in `[files]`, so publishing the declared set would be an enum of the
+#: only five values the tool is certain to reject.
+#:
+#: Narrower than the parser accepts, which :func:`_roles` warns against and this is the case it
+#: does not cover: what the narrowing leaves out is not a legal call refused on the client but a
+#: value every call of which is `RoleDeclared` — so no answerable argv is lost, which is the
+#: property RK183's rule is actually about.
+_ABSENT_BOUNDS = {**_BOUNDS, "role": lambda config: _undeclared(config)}
+
 _DIVERGENT: Mapping[str, Mapping[str, Any]] = {
     "non-goal": _SCOPE_BOUNDS,
     "list": _FILE_BOUNDS,
     "ship": _SPAN_BOUNDS,
     "record amend": _SPAN_BOUNDS,
     "budget": _DRAFT_BOUNDS,
+    "declare": _ABSENT_BOUNDS,
 }
 
 
@@ -1290,6 +1309,17 @@ def _roles(config: Config, universe: Sequence[str]) -> dict[str, Any]:
     """
     declared = [role for role in universe if config.has(role)]
     return {"enum": declared} if declared else {}
+
+
+def _undeclared(config: Config) -> dict[str, Any]:
+    """The roles `declare` could still add, as the enum a client validates against (RK1264).
+
+    :func:`_roles`' complement, and empty for the same reason it publishes nothing: a project
+    declaring all five has no role left to add, and `"enum": []` is a keyword no value satisfies
+    — a client holding it could not make the call that earns the refusal saying so.
+    """
+    absent = [role for role in ROLES if not config.has(role)]
+    return {"enum": absent} if absent else {}
 
 
 def _listed_markers(config: Config) -> dict[str, Any]:

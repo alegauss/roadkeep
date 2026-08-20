@@ -34,8 +34,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1264** (deps: —) **the scaffold is the only writer of [files], so a project past init cannot declare a role it turns out to want** — init --deferred refuses on a configured tree, so the store stays a hand edit there and no earlier surface can offer a door it has no verb to open. → §RK1264
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
