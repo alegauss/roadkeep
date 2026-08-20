@@ -48,7 +48,7 @@ from roadkeep.locking import exclusive
 from roadkeep.picking import Choice, Claim, hold, pick, take
 from roadkeep.kernel.schema import Task
 from roadkeep.remaining import Clause
-from roadkeep.shipping import as_recorded, supersession_cost
+from roadkeep.shipping import as_recorded, recording_cost, supersession_cost
 from roadkeep.showing import View, show
 
 #: How many blocker chains a brief carries. Lower than the graph's own limit on purpose:
@@ -225,6 +225,12 @@ class Brief:
     #: None where the project declares no changelog, and on a shipped line, which has no ship
     #: left to compose for.
     shipping: Budget | None = None
+    #: What the **decision** that same ship may file will have for prose (RK1275). Its own
+    #: field and not a clause of the row above, because it is not that sentence at all: a
+    #: `--decides` writes a line in the decisions role, under that role's own limits, and the
+    #: one sentence this format asked an author to compose blind was the one recording what
+    #: outlives the code. None where the project declares no such role.
+    deciding: Budget | None = None
     #: What this line has left for prose (RK190). Here because a brief is the call that
     #: starts a task, and the next write on the line it handed over is an `amend` — so the
     #: number that would otherwise arrive as a refusal is already on the desk. None for a
@@ -339,18 +345,32 @@ class Brief:
                 # is *derived*, the anchor being the pointer the line already carries — and a
                 # task about to lose its design is exactly when this allowance is read, so an
                 # answer that omitted it was wrong precisely when it was asked for.
-                superseding = (
-                    ""
-                    if task.ref is None
-                    else f", and less the {supersession_cost(task.ref)} a "
-                    f"`--superseded-design` clause spends in the same sentence"
-                )
                 rows.append(
                     f"  shipping why {ship.left} of {ship.allowed} left on the ledger line a "
                     f"`ship` writes, which is the limit that refuses it — less a `--part` "
                     f"qualifier, which is structure this cannot know you will pass"
-                    f"{superseding}"
                 )
+                # Both clauses and no longer one (RK1275): two flags landed in that sentence
+                # after this row learned to name the first, so the figure was wrong by an
+                # amount this tool knows. A row of their own rather than a third subordinate
+                # clause — the line above is already the longest a brief prints.
+                if task.ref is not None:
+                    rows.append(
+                        f"  shipping less {supersession_cost(task.ref)} for a "
+                        f"`--superseded-design` clause and {recording_cost(task.ref)} for a "
+                        f"`--recorded-in` wrapper, both into that same sentence — the note "
+                        f"and the path are yours and are not in either number"
+                    )
+        if self.deciding is not None:
+            # The third write, and the one that is not that sentence at all (RK1275): a
+            # `--decides` files a line in the decisions role under that role's own limits, so
+            # a reader given only the ledger's number was composing the durable half blind.
+            decided = self.deciding.share("why")
+            rows.append(
+                f"  deciding why {decided.left} of {decided.allowed} on the line "
+                f"`--decides` files, which is the decisions role's own limit and not the "
+                f"ledger's — the constraint that outlives the code, refused by that number"
+            )
         settled = {one.dep: one for one in self.settled}
         for resolution in self.deps:
             rows.append(
@@ -488,6 +508,10 @@ class Brief:
             # exists — unlike the printed line, which is silent when the two agree: a key costs a
             # client nothing to skip and a consumer comparing them wants both numbers present.
             "shipping": None if self.shipping is None else self.shipping.payload(),
+            # The third write, published for the reason above (RK1275): a client comparing the
+            # two sentences a ship composes wants both numbers, and this one is not that
+            # sentence at all — it is the decisions role's own limit on its own line.
+            "deciding": None if self.deciding is None else self.deciding.payload(),
             # Same key and same shape as `pick`'s (RK154): one fact spelled two ways is two facts.
             "held": [{"id": h.id, "age": round(h.age), "since": h.since} for h in self.held],
             "claimed": None
@@ -593,6 +617,17 @@ def _gather(
             as_recorded(task, config.schema.shipped_marker, None),
             open_line=False,
             schema=config.schema_for("changelog"),
+        ),
+        # The third write the same ship may make (RK1275), priced the same way and under the
+        # role's own schema: `--decides` renders a decision the way `ship` renders an entry,
+        # so the figure comes through `as_recorded` for the reason the one above does.
+        deciding=None
+        if view.shipped or not config.has("decisions")
+        else budget_of(
+            config,
+            as_recorded(task, config.schema_for("decisions").shipped_marker, None),
+            open_line=False,
+            schema=config.schema_for("decisions"),
         ),
     )
 

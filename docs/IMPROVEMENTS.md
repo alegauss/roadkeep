@@ -104,29 +104,6 @@ verb gives — no, and say where the line went.
 
 ## Block C — Query
 
-### §RK1275 The allowance for a transaction, not for a line
-
-RK1261's finding, re-opened by the two flags filed after it. `brief` quotes what a
-`ship` has left for its sentence and names one thing that will be appended to it: the
-supersession clause, at 30 characters here. Two more writes have since landed and
-neither is in that number.
-
-`--recorded-in` composes into the same sentence. Its wrapper is derivable exactly as the
-supersession's is — the anchor is the pointer the line already carries — and only the
-path's own length is the caller's, which is the shape `--part` is already described in.
-So the figure quoted at the moment a task is about to lose its design is wrong by a
-clause whose size this tool knows.
-
-`--decides` is the other half and it is not that line at all: it writes a line in the
-decisions role, under that role's own limits, and no read quotes them. So the one
-sentence this format asks an author to compose blind is the one recording what outlives
-the code — refused after it is written, which is the failure L1 exists to remove.
-
-Both are the same repair at two addresses: the pre-write read answers for the whole
-transaction, which is what it already claims to do for `add --section`. What it must not
-do is guess — a path nobody has typed has no length, so the wrapper is quoted and the
-value is the author's, said as such.
-
 ### §RK1278 The declared value, beside the default
 
 The shape answers two of the three things a reader wants about a key and stops at the

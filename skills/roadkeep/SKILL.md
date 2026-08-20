@@ -579,7 +579,10 @@ declares none its files share one namespace, so a free address taken from either
 the other already spent; `--role` narrows the listing and never that number, and any
 address two files both declare is named as `doubled` before you pick one. `brief` prints
 the `why`'s share of the line it hands over, so a task started through it never has to
-ask. **`weight [--block <x>]` is the other pre-`add` read**: what comparable tasks cost,
+ask — **and the whole of what the ship will compose**: the ledger sentence's allowance, what
+each of the two clauses appended to it costs before your words, and the decisions role's own
+limit on the line `--decides` files, which is not that sentence at all. **`weight [--block
+<x>]` is the other pre-`add` read**: what comparable tasks cost,
 derived from the commits that shipped them, so whether the line being written is one task
 or two is a question with an answer. An entry whose commit wrote several is named under
 `batched` and left out of the percentiles, so a squashed adoption import skews nothing.

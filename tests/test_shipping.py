@@ -38,6 +38,7 @@ from roadkeep.kernel.schema import (
     Dep,
     Schema,
     SchemaError,
+    width,
 )
 from roadkeep.shipping import AlreadyRecorded, NoQualifier, NoSuchPath, SecondPartial
 from roadkeep.sections import SectionOccupied
@@ -61,6 +62,7 @@ from roadkeep.shipping import (
     Wrapped,
     record,
     retire,
+    recording_cost,
     ship,
     supersede,
     supersession_cost,
@@ -1830,7 +1832,10 @@ def test_the_shipping_allowance_names_what_a_supersession_will_take(tmp_path, ca
     assert "shipping why" in out
     # ` (design §RK1 superseded: )` — measured through the composer, so a reworded clause
     # moves this number rather than leaving it behind.
-    assert f"less the {supersession_cost('RK1')} a `--superseded-design` clause spends" in out
+    # Both clauses since RK1275, on a row of their own: two flags land in that sentence, and
+    # the wrapper of each is derivable from the anchor the line already carries.
+    assert f"less {supersession_cost('RK1')} for a `--superseded-design` clause" in out
+    assert f"and {recording_cost('RK1')} for a `--recorded-in` wrapper" in out
 
 
 def test_the_flag_reaches_the_command_line_and_reports_what_it_wrote(tmp_path, capsys):
@@ -2759,12 +2764,21 @@ DECIDED = """# Decisions
 """
 
 
-def _deciding(tmp_path: Path) -> Config:
-    """The fixture plus a declared `decisions` role, which is the whole opt-in."""
-    config = project(tmp_path)
+def _deciding(tmp_path: Path, *, extra_config: str = "") -> Config:
+    """The fixture plus a declared `decisions` role, which is the whole opt-in.
+
+    The role's key is inserted into `[files]` rather than appended, so a caller passing an
+    `extra_config` that opens a table does not land the path under it — which is a config that
+    parses and declares something else, and the quietest possible fixture bug.
+    """
+    config = project(tmp_path, extra_config=extra_config)
     (tmp_path / "roadkeep.toml").write_text(
-        (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
-        + f'decisions = "{DECISIONS}"\n',
+        (tmp_path / "roadkeep.toml")
+        .read_text(encoding="utf-8")
+        .replace(
+            f'improvements = "{IMPROVEMENTS}"',
+            f'improvements = "{IMPROVEMENTS}"\ndecisions = "{DECISIONS}"',
+        ),
         encoding="utf-8",
     )
     with (tmp_path / DECISIONS).open("w", encoding="utf-8", newline="") as handle:
@@ -2982,3 +2996,39 @@ def test_the_verb_reaches_the_command_line_and_names_the_file_it_wrote(tmp_path,
     assert "RK1 superseded by RK2" in said
     assert "nothing in this file is ever deleted" in said
     assert f"git add -- {DECISIONS}" in said
+
+
+def test_the_allowance_prices_the_whole_transaction_and_not_one_line(tmp_path, capsys):
+    """RK1275. Two flags landed in the ledger's sentence after this row learned to name the
+    first, and a third writes a different file entirely — so the one sentence this format
+    asked an author to compose blind was the one recording what outlives the code."""
+    # The ledger's own limit, so the shipping row is printed at all: it is silent where the
+    # two allowances agree, two numbers for one field being the fact worth seeing.
+    config = _deciding(tmp_path, extra_config="\n[limits.changelog]\nwhy = 150\n")
+    assert main(["-C", str(config.root), "brief", "RK1"]) == EXIT_OK
+    out = capsys.readouterr().out
+
+    # The ledger's sentence, and both clauses that compose into it.
+    assert "shipping why" in out
+    assert f"less {supersession_cost('RK1')} for a `--superseded-design` clause" in out
+    assert f"and {recording_cost('RK1')} for a `--recorded-in` wrapper" in out
+    # And the third write, which is not that sentence: its own role, its own limit.
+    assert "deciding why" in out and "decisions role's own limit" in out
+
+
+def test_a_project_with_no_decisions_role_is_quoted_no_number_for_one(tmp_path, capsys):
+    # Absent and not zero: a role this project does not declare has no line to compose for,
+    # which is the same silence every other absent role gets here.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "brief", "RK1"]) == EXIT_OK
+    assert "deciding why" not in capsys.readouterr().out
+
+
+def test_the_recording_wrapper_is_measured_through_the_composer(tmp_path):
+    """Never by counting brackets, which is `supersession_cost`'s rule: a reworded clause moves
+    the number rather than leaving it behind."""
+    from roadkeep.shipping import _recording
+
+    assert recording_cost("RK1") == width(_recording("x.", "RK1", "")) - width("x.")
+    # Longer anchors cost more, which is the whole reason it is derived per line.
+    assert recording_cost("RK1000") > recording_cost("RK1")

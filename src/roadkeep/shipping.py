@@ -201,6 +201,7 @@ __all__ = [
     "move",
     "readdress",
     "record",
+    "recording_cost",
     "retire",
     "ship",
     "supersede",
@@ -3178,6 +3179,22 @@ def supersession_cost(anchor: str) -> int:
     """
     stem = "x."
     return width(_superseding(stem, anchor, "")) - width(stem)
+
+
+def recording_cost(anchor: str) -> int:
+    """What `--recorded-in` costs that same sentence before the path (RK1275).
+
+    :func:`supersession_cost`'s twin, and filed for the reason that one was: two flags landed
+    in the ledger's sentence after the allowance learned to name one of them, so the figure a
+    brief quotes was wrong by a clause whose size this tool knows. The **wrapper** is knowable
+    for the same reason — the anchor is the pointer the line already carries — and the path is
+    the caller's, which is the shape a `--part` qualifier is already described in.
+
+    Measured through :func:`_recording` and never by counting brackets, so a reworded clause
+    moves this number rather than leaving it behind.
+    """
+    stem = "x."
+    return width(_recording(stem, anchor, "")) - width(stem)
 
 
 def _parenthesised(why: str, clause: str) -> str:

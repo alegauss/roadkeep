@@ -349,6 +349,7 @@
 - ✅ **RK1226** **Nothing names the open half of a partial, only the half that shipped** — brief names every qualifier the ledger records for an open line, so resuming a partial no longer means reading the design to recover what is left.
 - ✅ **RK1233** **The open half of a partial is still an inference the reader makes, where the landed half is recorded** — A partial shipment states what is left, as a field on the open line rather than a subtraction the next reader performs.
 - ✅ **RK1270** **nothing prints what `roadkeep.toml` may declare, so its keys live only in the parser that rejects them** — A `config` verb prints every table, key, type and default this build accepts, and what this project declared (design §RK1270 recorded in `src/roadkeep/describing.py`).
+- ✅ **RK1275** **the shipping allowance names one of the three writes a ship composes, so two sentences are written blind** — A brief prices every clause and every file a ship composes, not the ledger sentence alone (design §RK1275 recorded in `src/roadkeep/briefing.py`).
 
 ## Block D — The gate
 

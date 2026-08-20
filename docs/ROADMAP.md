@@ -30,7 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1275** (deps: —) **the shipping allowance names one of the three writes a ship composes, so two sentences are written blind** — The pre-write read answers for every clause and every file a departure writes, so an allowance quoted is the one that binds. → §RK1275
 - 📋 **RK1278** (deps: —) **the config shape prints the default beside a key the project set, so the number shown is not the one in use** — The shape carries what this project declared beside what this build defaults to, so a hover on a set key states the number in use. → §RK1278
 
 ## Block D — The gate

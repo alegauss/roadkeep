@@ -118,17 +118,17 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 172 | 2 |
-| C — Query (consult without reading the file) | 2 | 113 | 1 |
+| C — Query (consult without reading the file) | 1 | 114 | 1 |
 | D — The gate | 0 | 185 | 2 |
 | E — Adoption | 0 | 95 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 119 | 1 |
 | G — The editor surface (the backlog where the file is open) | 1 | 12 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 5 | 763 | 10 |
+| **Total** | 4 | 764 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1275** (deps: —) **the shipping allowance names one of the three writes a ship composes, so two sentences are written blind** — The pre-write read answers for every clause and every file a departure writes, so an allowance quoted is the one that binds. → §RK1275
+- 📋 **RK1276** (deps: —) **a criteria address refused for a paused id says the work shipped, so a pause reads like a typo** — The refusal names the store and `resume` where a line is paused, which is the answer every other write reaching a line by id gives. → §RK1276
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
