@@ -2042,10 +2042,11 @@ def _criteria(config: Config, roadmap: Document | None) -> list[Finding]:
     adopting project's `Done when` prose was written before this grammar, and a gate that
     reported on it before anybody opted in is a gate that gets bypassed.
 
-    The address is the **pair** here, so a lead is judged against the leads of its own block: a
+    The address is the **pair** here, so a lead is judged against the leads of its own list: a
     criterion reading "Every write has a door" under two blocks is two claims about two bodies
     of work and not one written twice, which is the one place this differs from the non-goals
-    and the reason the seen-set is keyed by both.
+    and the reason the seen-set is keyed by both. A task's list is the same pair with an id in
+    it (RK1268), and keys the same way for the same reason.
     """
     if roadmap is None or config.criteria is None:
         return []
@@ -2080,14 +2081,15 @@ def _criteria(config: Config, roadmap: Document | None) -> list[Finding]:
                         subject=one.lead,
                     )
                 )
-        address = (one.block, criteria.address(one.lead))
+        address = (one.about, criteria.address(one.lead))
         first = seen.get(address)
         if first is not None:
             out.append(
                 Finding(
                     "criterion.duplicate",
                     file,
-                    f"already led on line {first} under Block {one.block}: the lead is the "
+                    f"already led on line {first} under "
+                    f"{criteria.named(config.schema, one.about)}: the lead is the "
                     f"address, so two bullets carrying it are two answers about one claim",
                     one.first,
                     subject=one.lead,

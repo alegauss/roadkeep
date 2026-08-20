@@ -28,6 +28,24 @@ judged. Two things are its own:
 The scope caution the design names is held by the two limits and by nothing else: this is a
 list of leads, and a criterion needing a page belongs in the project's own documents. What
 belongs here is the line a reader can check off.
+
+**And the other unit is the task** (RK1268). The pair above is right and this does not
+overturn it — it adds the address an agent actually executes against. What a task wants before
+the first edit is the spec: the problem, what is out of scope, what must be true when it is
+done, and how that is checked. Three of the four were already addressable per task — the
+`symptom`, `non-goal list` and the design section — and the fourth was per block, so the
+checkable sentence was the one written at the wrong altitude. Half of it was per task already,
+and it is the half nobody can read: `evidence <id>` runs a fenced query the design declares and
+counts the sites, so the *executable* claim was per task while the *readable* one was per
+block, which is the wrong way round.
+
+So a region is addressed by a block label **or** by an id, and nothing else changes: the same
+heading prefix, the same bullet, the same two limits, and the same rule that a lead is unique
+inside its own list. It binds nothing — presence, not enforcement — because whether the work
+satisfies a sentence is a judgement this tool has no model for (L4). What it does own is the
+departure: a line that ships takes its own list with it, in the transaction that removes the
+line, for the reason the queue entry does (RK327) — there is no state where the line has left
+and a heading still asks what would finish it.
 """
 
 from __future__ import annotations
@@ -57,14 +75,17 @@ __all__ = [
     "AmbiguousLead",
     "add",
     "address",
+    "addresses_task",
     "blocks",
     "check",
     "drop",
     "heading_for",
     "leads",
+    "named",
     "read",
     "render",
     "validate",
+    "without",
 ]
 
 #: Any heading whose text starts like this holds a block's criteria. A prefix match for
@@ -108,14 +129,19 @@ class NotGoverned(KeyError):
 
 
 class DuplicateLead(ValueError):
-    """The lead is the address **within its block**, so a second one is two answers."""
+    """The lead is the address **within its own list**, so a second one is two answers.
 
-    def __init__(self, lead: str, block: str, where: str, lineno: int) -> None:
+    ``about`` arrives already spelled — `Block A` or an id (RK1268) — because the two
+    addresses read differently and a message that prefixed both with the block word would
+    name a block that does not exist.
+    """
+
+    def __init__(self, lead: str, about: str, where: str, lineno: int) -> None:
         self.lead = lead
-        self.block = block
+        self.about = about
         self.lineno = lineno
         super().__init__(
-            f"{where}:{lineno} already leads with {lead!r} under Block {block}: the lead is "
+            f"{where}:{lineno} already leads with {lead!r} under {about}: the lead is "
             f"how a criterion is addressed, so a second one carrying it is two answers about "
             f"the same claim"
         )
@@ -128,12 +154,12 @@ class NoSuchCriterion(KeyError):
     up by the words a reader remembers, and the stop inside the bold is invisible.
     """
 
-    def __init__(self, lead: str, block: str, where: str, leads: tuple[str, ...]) -> None:
+    def __init__(self, lead: str, about: str, where: str, leads: tuple[str, ...]) -> None:
         self.lead = lead
-        self.block = block
+        self.about = about
         known = ", ".join(repr(one) for one in leads) or "none"
         super().__init__(
-            f"no criterion under Block {block} in {where} leads with {lead!r}: the list "
+            f"no criterion under {about} in {where} leads with {lead!r}: the list "
             f"carries {known}"
         )
 
@@ -159,9 +185,12 @@ class Unshaped(ValueError):
 
 @dataclass(frozen=True, slots=True)
 class Criterion:
-    """One bullet under a block's `Done when` heading, as data and as the file spells it."""
+    """One bullet under a `Done when` heading, as data and as the file spells it."""
 
-    block: str
+    #: What the list is addressed to: a block label, or a task id (RK1268). One field and not
+    #: two, because every reader here asks *which list is this in* and a pair of nullable
+    #: fields would make that question a branch at every call site.
+    about: str
     lead: str
     why: str
     #: 1-based, and a span because a filled bullet wraps: `first` is the line the `- ` is on.
@@ -212,8 +241,8 @@ class Written:
         rows = []
         if self.opened:
             rows.append(
-                f"opened   {heading_for(config.schema, self.criterion.block)} — this block "
-                f"had no list, and writing the first criterion is what opens one"
+                f"opened   {heading_for(config.schema, self.criterion.about)} — this had "
+                f"no list, and writing the first criterion is what opens one"
             )
         rows.append(f"{where}:{self.lineno}  {len(self.rendered)} line(s)")
         rows += [f"  {line}" for line in self.rendered]
@@ -224,7 +253,9 @@ class Written:
         from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
 
         return {
-            "block": self.criterion.block,
+            # The address as one field, which is what it is (RK1268): a caller branching on
+            # a block key that is sometimes an id would be reading the shape out of the value.
+            "about": self.criterion.about,
             "lead": self.criterion.lead,
             "why": self.criterion.why,
             "opened": self.opened,
@@ -277,7 +308,7 @@ class Amended:
         from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
 
         return {
-            "block": self.criterion.block,
+            "about": self.criterion.about,
             "lead": self.criterion.lead,
             "was": self.before,
             "now": self.criterion.why,
@@ -319,10 +350,10 @@ class Dropped:
             )
         # The heading stays, and it says so: an emptied list is a question somebody answered
         # and a missing one is a question nobody asked.
-        if not read(self.document, span.block):
+        if not read(self.document, span.about):
             rows.append(
-                f"  {heading_for(config.schema, span.block)} kept and now empty: a block "
-                f"whose criteria all went is not a block nobody wrote one for"
+                f"  {heading_for(config.schema, span.about)} kept and now empty: a list "
+                f"whose criteria all went is not one nobody wrote for"
             )
         rows += _staging_rows(config.relative(one) for one in wrote)
         return "\n".join(rows)
@@ -332,7 +363,7 @@ class Dropped:
 
         span = self.criterion
         return {
-            "block": span.block,
+            "about": span.about,
             "lead": span.lead,
             "why": span.why,
             "file": config.relative(config.path("roadmap")),
@@ -343,15 +374,15 @@ class Dropped:
         }
 
 
-def read(document: Document, block: str = "") -> tuple[Criterion, ...]:
-    """Every criterion, in file order — the whole roadmap, or one block's list.
+def read(document: Document, about: str = "") -> tuple[Criterion, ...]:
+    """Every criterion, in file order — the whole roadmap, or one address's list.
 
     Every bullet, including the ones the shape does not hold, for `scoping.read`'s reason: a
     criterion the gate reports and no verb can address is a finding whose remedy the tool
     refuses (RK16).
     """
     out = tuple(one for span in _regions(document) for one in _bullets(document, *span))
-    return out if not block else tuple(one for one in out if one.block == block)
+    return out if not about else tuple(one for one in out if one.about == about)
 
 
 def rejects(document: Document) -> tuple[tuple[int, str], ...]:
@@ -360,18 +391,33 @@ def rejects(document: Document) -> tuple[tuple[int, str], ...]:
 
 
 def blocks(document: Document) -> tuple[str, ...]:
-    """Every block whose list this file declares, in file order.
+    """Every address whose list this file declares, in file order — a label or an id (RK1268).
 
-    A block with a heading and no bullet is **still** a declared list, which is the state
-    `criterion drop` leaves and the one a reader has to be able to tell from a block nobody has
-    written a criterion for: the first says the question was asked, the second that it was not.
+    A heading with no bullet is **still** a declared list, which is the state `criterion drop`
+    leaves and the one a reader has to be able to tell from work nobody has written a criterion
+    for: the first says the question was asked, the second that it was not.
     """
     return tuple(label for _, label in _regions(document))
 
 
-def leads(document: Document, block: str) -> tuple[str, ...]:
-    """The lead of every criterion under one block, in file order — what `brief` prints."""
-    return tuple(one.lead for one in read(document, block))
+def leads(document: Document, about: str) -> tuple[str, ...]:
+    """The lead of every criterion under one address, in file order — what `brief` prints."""
+    return tuple(one.lead for one in read(document, about))
+
+
+def addresses_task(schema: Schema, about: str) -> bool:
+    """Whether an address is a task id rather than a block label (RK1268).
+
+    Asked of the schema and never by looking for a digit: the two shapes are the project's own
+    — `[ids]` may declare padding and a suffix, and a label may be `D.1` — so a reader deciding
+    it here would be a second spelling of both, which is the drift `address` exists to prevent.
+    """
+    return schema.id_pattern().match(about) is not None
+
+
+def named(schema: Schema, about: str) -> str:
+    """How a report spells one of the two addresses: `Block A`, or the id as it is written."""
+    return about if addresses_task(schema, about) else schema.block_named(about)
 
 
 def address(lead: str) -> str:
@@ -383,9 +429,9 @@ def address(lead: str) -> str:
     return lead.strip().rstrip(".").casefold()
 
 
-def heading_for(schema: Schema, block: str) -> str:
-    """The heading line this writes for a block's list, spelled with the project's own word."""
-    return _HEADING_FORM.format(named=schema.block_named(block))
+def heading_for(schema: Schema, about: str) -> str:
+    """The heading line this writes for a list, spelled with the project's own word or an id."""
+    return _HEADING_FORM.format(named=named(schema, about))
 
 
 def render(config: Config, lead: str, why: str) -> tuple[str, ...]:
@@ -438,8 +484,8 @@ def check(config: Config, lead: str, why: str) -> None:
         raise SchemaError(violations)
 
 
-def add(config: Config, block: str, lead: str, why: str) -> Written:
-    """Insert one criterion under its block's heading, after the last one there.
+def add(config: Config, about: str, lead: str, why: str) -> Written:
+    """Insert one criterion under its heading, after the last one there.
 
     **It writes the heading where the block has none**, which is `priority add`'s rule (RK427)
     and not `add`'s: a task line goes under a heading no write invents, because a block is a
@@ -447,21 +493,22 @@ def add(config: Config, block: str, lead: str, why: str) -> Written:
     first one, there being nothing else the heading could mean. Said out loud in the answer, a
     heading appearing in a governed file being the edit a reader should never discover.
 
-    The block itself is never invented: it has to be one the roadmap already declares, so a
-    typo in a label opens no list.
+    The address is never invented either way: a block has to be one the roadmap already
+    declares, and a task has to be a line it still carries (RK1268), so a typo in either opens
+    no list.
     """
     if config.criteria is None:
         raise NotGoverned(config.relative(config.source or config.root))
     document = config.document("roadmap")
     where = config.relative(config.path("roadmap"))
-    label = _declared(document, block, where)
+    label = _addressed(document, about, where)
     check(config, lead, why)
 
     head = lead.strip()
     existing = read(document, label)
     twin = next((one for one in existing if address(one.lead) == address(head)), None)
     if twin is not None:
-        raise DuplicateLead(head, label, where, twin.first)
+        raise DuplicateLead(head, named(config.schema, label), where, twin.first)
 
     opened = _heading_index(document, label) is None
     updated = document
@@ -477,7 +524,7 @@ def add(config: Config, block: str, lead: str, why: str) -> Written:
     return Written(
         document=updated,
         criterion=Criterion(
-            block=label,
+            about=label,
             lead=head,
             why=" ".join(why.split()),
             first=at + 1,
@@ -488,7 +535,7 @@ def add(config: Config, block: str, lead: str, why: str) -> Written:
     )
 
 
-def amend(config: Config, block: str, lead: str, why: str) -> Amended:
+def amend(config: Config, about: str, lead: str, why: str) -> Amended:
     """Rewrite one criterion's reason where it already sits, keeping its place.
 
     `scoping.amend`'s door and its whole argument: `add` appends, so drop-and-re-add moves a
@@ -500,13 +547,16 @@ def amend(config: Config, block: str, lead: str, why: str) -> Amended:
         raise NotGoverned(config.relative(config.source or config.root))
     document = config.document("roadmap")
     where = config.relative(config.path("roadmap"))
-    label = _resolved(document, block, lead, where)
+    label = _resolved(document, about, lead, where)
 
     existing = read(document, label)
     matches = tuple(one for one in existing if address(one.lead) == address(lead))
     if not matches:
         raise NoSuchCriterion(
-            lead.strip(), label, where, tuple(one.lead for one in existing)
+            lead.strip(),
+            named(config.schema, label),
+            where,
+            tuple(one.lead for one in existing),
         )
     standing = matches[0]
     if not standing.shaped:
@@ -532,25 +582,28 @@ def amend(config: Config, block: str, lead: str, why: str) -> Amended:
     )
 
 
-def drop(config: Config, block: str, lead: str) -> Dropped:
-    """Remove the criterion a lead addresses in this block, whole, wrapped lines included.
+def drop(config: Config, about: str, lead: str) -> Dropped:
+    """Remove the criterion a lead addresses in this list, whole, wrapped lines included.
 
-    The heading stays. A block whose criteria have all been dropped is one somebody asked the
-    question about and answered "none of these any more", which is not the same as a block
-    nobody asked — and a verb that took the heading with the last bullet would erase that
-    difference as a side effect of a correction.
+    The heading stays. A list whose criteria have all been dropped is one somebody asked the
+    question about and answered "none of these any more", which is not the same as one nobody
+    asked — and a verb that took the heading with the last bullet would erase that difference
+    as a side effect of a correction.
     """
     if config.criteria is None:
         raise NotGoverned(config.relative(config.source or config.root))
     document = config.document("roadmap")
     where = config.relative(config.path("roadmap"))
-    label = _resolved(document, block, lead, where)
+    label = _resolved(document, about, lead, where)
 
     existing = read(document, label)
     matches = tuple(one for one in existing if address(one.lead) == address(lead))
     if not matches:
         raise NoSuchCriterion(
-            lead.strip(), label, where, tuple(one.lead for one in existing)
+            lead.strip(),
+            named(config.schema, label),
+            where,
+            tuple(one.lead for one in existing),
         )
     going = matches[-1]
     return Dropped(
@@ -559,66 +612,81 @@ def drop(config: Config, block: str, lead: str) -> Dropped:
 
 
 class AmbiguousLead(ValueError):
-    """One lead, two blocks, and no `--block` to say which (RK1265).
+    """One lead, two lists, and neither `--block` nor `--task` to say which (RK1265, RK1268).
 
     The address is the pair, so a lead alone answers only where one list carries it. Refused
     rather than resolved to the first: a criterion is what finishes a body of work, and closing
-    the wrong block's is the quiet corruption the whole grammar exists to prevent.
+    the wrong one's is the quiet corruption the whole grammar exists to prevent.
     """
 
-    def __init__(self, lead: str, blocks: tuple[str, ...]) -> None:
+    def __init__(self, lead: str, holders: tuple[str, ...]) -> None:
         self.lead = lead
-        self.blocks = blocks
-        named = ", ".join(blocks)
+        self.blocks = holders
+        spelled = ", ".join(holders)
         super().__init__(
-            f"{lead!r} leads a criterion under Block {named}: the address is the block and "
-            f"the lead together, so pass --block to say which of them this is about"
+            f"{lead!r} leads a criterion under {spelled}: the address is the list and "
+            f"the lead together, so pass --block or --task to say which of them this is about"
         )
 
 
 def _holding(document: Document, lead: str) -> tuple[str, ...]:
-    """Every block whose list carries this lead, in file order and each named once."""
+    """Every address whose list carries this lead, in file order and each named once."""
     wanted = address(lead)
     out: list[str] = []
     for one in read(document):
-        if address(one.lead) == wanted and one.block not in out:
-            out.append(one.block)
+        if address(one.lead) == wanted and one.about not in out:
+            out.append(one.about)
     return tuple(out)
 
 
-def _resolved(document: Document, block: str, lead: str, where: str) -> str:
-    """Which block this lead is in: the one named, or the one list that carries it.
+def _resolved(document: Document, about: str, lead: str, where: str) -> str:
+    """Which list this lead is in: the one named, or the one list that carries it.
 
-    `--block` optional on the two verbs that address an existing bullet, and required on the
+    The address is optional on the two verbs that reach an existing bullet, and required on the
     one that creates it — there is nothing to look up before a criterion exists. What it buys
     is a **complete door**: the gate's `criterion.duplicate` names the drop that closes it, and
-    a remedy that could not spell the block would be the guess RK420 exists to remove.
+    a remedy that could not spell the address would be the guess RK420 exists to remove.
     """
-    if block:
-        return _declared(document, block, where)
+    if about:
+        return _addressed(document, about, where)
     holding = _holding(document, lead)
     if len(holding) > 1:
-        raise AmbiguousLead(lead.strip(), holding)
+        raise AmbiguousLead(
+            lead.strip(), tuple(named(document.schema, one) for one in holding)
+        )
     if not holding:
         raise NoSuchCriterion(lead.strip(), "?", where, leads_everywhere(document))
     return holding[0]
 
 
 def leads_everywhere(document: Document) -> tuple[str, ...]:
-    """Every lead this file carries, in file order — what a refusal names when no block is."""
+    """Every lead this file carries, in file order — what a refusal names when no list is."""
     return tuple(one.lead for one in read(document))
 
 
-def _declared(document: Document, block: str, where: str) -> str:
-    """The label, if the roadmap declares that block. A criteria list is never its own door.
+def _addressed(document: Document, about: str, where: str) -> str:
+    """The address, if the roadmap declares it. A criteria list is never its own door.
 
     A heading nobody planned under is a list about work that does not exist, and the typo that
-    produces one is invisible afterwards: the bullets read exactly like a block's.
+    produces one is invisible afterwards: the bullets read exactly like a block's. Which is why
+    a **task** address is held to the same rule and to the stricter half of it (RK1268): a block
+    is declared by a heading and outlives its lines, while a task is a line — so the id has to
+    be one this file still carries, a list about work the ledger already holds being a question
+    somebody answered by shipping.
     """
-    label = block.strip().lstrip("#").strip()
-    named = {one.label for one in document.headings if one.label}
-    if label not in named:
-        known = ", ".join(sorted(named)) or "none"
+    label = about.strip().lstrip("#").strip()
+    if addresses_task(document.schema, label):
+        if label not in document.by_id():
+            carried = ", ".join(sorted(document.by_id())) or "none"
+            raise KeyError(
+                f"no open line {label} in {where}: a criterion addressed to a task says what "
+                f"would finish that line, and the ids this file carries are {carried} — a task "
+                f"that already shipped is one the question was answered about"
+            )
+        return label
+    declared = {one.label for one in document.headings if one.label}
+    if label not in declared:
+        known = ", ".join(sorted(declared)) or "none"
         raise KeyError(
             f"no block {label!r} in {where}: a criteria list says what finishes a block this "
             f"file plans, and the labels declared here are {known} — `block add` opens one"
@@ -626,19 +694,21 @@ def _declared(document: Document, block: str, where: str) -> str:
     return label
 
 
-def _open(document: Document, schema: Schema, block: str) -> Document:
-    """Write a block's `Done when` heading, after the last one there is or after the blocks.
+def _open(document: Document, schema: Schema, about: str) -> Document:
+    """Write a `Done when` heading, after the last one there is or after the blocks.
 
     Kept together and after every block, never beside the block it is about: any heading ends
     the region above it, so one placed under a block's tasks would cut that block's subtree in
     two — which `block drop`, `block merge` and the gate all read as the block ending there.
+    A task's list is placed by the same rule and for the same reason (RK1268): it is addressed
+    by an id, so nothing about it wants to sit next to the line.
     """
     at = _regions_end(document)
     updated = document
     if at > 0 and not blank(document.lines[at - 1]):
         updated = updated.insert_line(at, "")
         at += 1
-    updated = updated.insert_line(at, heading_for(schema, block))
+    updated = updated.insert_line(at, heading_for(schema, about))
     return updated.insert_line(at + 1, "")
 
 
@@ -673,11 +743,14 @@ def _trimmed(document: Document) -> int:
 
 
 def _regions(document: Document) -> tuple[tuple[int, str], ...]:
-    """Every `Done when` heading, as `(0-based index, block label)`, in file order.
+    """Every `Done when` heading, as `(0-based index, address)`, in file order.
 
-    A heading whose tail names no block this project could spell is skipped rather than
-    guessed at: the label is read with `Schema.heading_pattern`, so `Fase 2` answers wherever
-    `Block A` does and a `## Done when` with nothing after it addresses nothing.
+    A heading whose tail names neither a block this project could spell nor an id it could
+    number is skipped rather than guessed at: both shapes are read off the schema, so `Fase 2`
+    answers wherever `Block A` does and a `## Done when` with nothing after it addresses
+    nothing. The block is tried first — the two shapes cannot collide, an id carrying a prefix
+    the label grammar has no room for, and the order is what makes that a fact rather than a
+    coincidence nobody would notice changing.
     """
     out: list[tuple[int, str]] = []
     for heading in document.headings:
@@ -685,15 +758,17 @@ def _regions(document: Document) -> tuple[tuple[int, str], ...]:
         if match is None:
             continue
         tail = match.group("tail").strip().lstrip("—-–").strip()
-        named = document.schema.heading_pattern().match(tail)
-        if named is not None:
-            out.append((heading.lineno - 1, named.group("label")))
+        block = document.schema.heading_pattern().match(tail)
+        if block is not None:
+            out.append((heading.lineno - 1, block.group("label")))
+        elif document.schema.id_pattern().match(tail):
+            out.append((heading.lineno - 1, tail))
     return tuple(out)
 
 
-def _heading_index(document: Document, block: str) -> int | None:
-    """The 0-based index of this block's `Done when` heading, or None where it has none."""
-    return next((at for at, label in _regions(document) if label == block), None)
+def _heading_index(document: Document, about: str) -> int | None:
+    """The 0-based index of this address's `Done when` heading, or None where it has none."""
+    return next((at for at, label in _regions(document) if label == about), None)
 
 
 def _region_end(document: Document, start: int) -> int:
@@ -704,10 +779,10 @@ def _region_end(document: Document, start: int) -> int:
     return len(document.lines)
 
 
-def _bullets(document: Document, start: int, block: str) -> tuple[Criterion, ...]:
+def _bullets(document: Document, start: int, about: str) -> tuple[Criterion, ...]:
     """Every bullet under one heading, spans joined, each one addressable.
 
-    `scoping._bullets` with the block carried through: the continuations are folded in before
+    `scoping._bullets` with the address carried through: the continuations are folded in before
     a lead is taken, which is what lets it come from the whole bullet instead of from its first
     physical line.
     """
@@ -724,7 +799,7 @@ def _bullets(document: Document, start: int, block: str) -> tuple[Criterion, ...
     for first, span in spans:
         joined = " ".join(line.strip() for line in span)
         where = {
-            "block": block,
+            "about": about,
             "first": first,
             "last": first + len(span) - 1,
             "lines": tuple(span),
@@ -747,7 +822,7 @@ def _bullets(document: Document, start: int, block: str) -> tuple[Criterion, ...
 
 
 def _placement(
-    document: Document, block: str, existing: tuple[Criterion, ...]
+    document: Document, about: str, existing: tuple[Criterion, ...]
 ) -> tuple[int, bool]:
     """Where the bullet goes, and whether a blank line has to go in front of it.
 
@@ -756,12 +831,43 @@ def _placement(
     """
     if existing:
         return existing[-1].last, False
-    start = _heading_index(document, block)
+    start = _heading_index(document, about)
     assert start is not None  # the heading this call just wrote, or the one that was there
     end = _region_end(document, start)
     while end > start + 1 and blank(document.lines[end - 1]):
         end -= 1
     return end, True
+
+
+def without(document: Document, task_id: str) -> tuple[Document, tuple[str, ...]]:
+    """The same roadmap with one task's whole list gone, and the leads it held (RK1268).
+
+    `queueing.without`'s shape and its whole argument: every caller is a **departure**, so the
+    heading and its bullets go inside the transaction that removes the line rather than through
+    a second read and a second write — and there is no state where the line has left and a
+    heading still asks what would finish it.
+
+    A block's list is untouched here, and that difference is the point: a block outlives the
+    lines filed under it, so an emptied one is a question somebody answered, while a task's list
+    is addressed by an id that this write is spending.
+
+    Silent where the task declared none, which is the ordinary departure — a refusal there would
+    make the list an obstacle at the one moment the author is finishing.
+    """
+    at = _heading_index(document, task_id)
+    if at is None:
+        return document, ()
+    held = tuple(one.lead for one in read(document, task_id))
+    end = _region_end(document, at)
+    # The blank the heading was separated by goes with it, for `_remove_span`'s reason: both
+    # spellings round-trip, so a doubled blank is the one drift nothing downstream would catch.
+    while end > at + 1 and blank(document.lines[end - 1]):
+        end -= 1
+    updated = document.remove_lines(at, end)
+    lines = updated.lines
+    if at > 0 and at < len(lines) and blank(lines[at - 1]) and blank(lines[at]):
+        updated = updated.remove_line(at)
+    return updated, held
 
 
 def _remove_span(document: Document, going: Criterion) -> Document:

@@ -134,7 +134,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from roadkeep import claiming, queueing
+from roadkeep import claiming, criteria, queueing
 from roadkeep.authoring import (
     Insertion,
     place,
@@ -940,6 +940,9 @@ class Departure:
     #: is derived dead by the departure — unlike :attr:`dependents` and :attr:`cited`, which
     #: are somebody else's lines and somebody else's prose.
     dequeued: str | None = None
+    #: The leads of this task's own criteria list, which left with the line (RK1268). Empty on
+    #: every departure of a task nobody wrote one for, which is the ordinary case.
+    unmet: tuple[str, ...] = ()
     #: Open lines that still name this id. Reported and not refused: a supersession is
     #: legitimate and those lines are the author's next edit, which `lint` (RK14) gates.
     dependents: tuple[str, ...] = ()
@@ -1023,6 +1026,7 @@ class Departure:
         from roadkeep.rendering import (  # noqa: PLC0415 - RK260
             _cited_rows,
             _dequeued_rows,
+            _unmet_rows,
             _emptied_rows,
             _event_rows,
             _prose_file,
@@ -1055,6 +1059,7 @@ class Departure:
         if self.refreshed:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
         rows += _dequeued_rows(self.dequeued)
+        rows += _unmet_rows(self.unmet)
         # Last before the event line, because it is about the commit this ship precedes rather
         # than about the three edits above it (RK294).
         rows += _scope_rows(self.scope, wrote)
@@ -1105,6 +1110,8 @@ class Departure:
             # What left the order with the line (RK327), named because a plan that silently
             # got shorter is a change with no sentence about it.
             "dequeued": self.dequeued,
+            # And the task's own criteria that went with it (RK1268), for the same reason.
+            "unmet": list(self.unmet),
             "scope": _scope_json(self.scope, wrote),
             "event": self.event(config),
         }
@@ -1331,6 +1338,9 @@ class Closure:
     #: field of the departure is: the line leaves, so the order naming it could only fire on
     #: nothing — and a door that is `ship` minus the ledger edit is still a departure.
     dequeued: str | None = None
+    #: The task's own criteria, which left with the line (RK1268) — :class:`Departure`'s field
+    #: and its argument: this door is the rest of a transaction, so it owes the same edits.
+    unmet: tuple[str, ...] = ()
     #: The tree split by whose claim names it (RK294), as :class:`Departure` carries it. Read
     #: here too because the moment is the same one — this door is `ship` on a line whose entry
     #: is already on disk, and the commit it precedes stages exactly the same files.
@@ -1377,6 +1387,7 @@ class Closure:
         from roadkeep.rendering import (  # noqa: PLC0415 - RK260
             _cited_rows,
             _dequeued_rows,
+            _unmet_rows,
             _emptied_rows,
             _event_rows,
             _prose_file,
@@ -1399,6 +1410,7 @@ class Closure:
         if self.refreshed:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
         rows += _dequeued_rows(self.dequeued)
+        rows += _unmet_rows(self.unmet)
         rows += _scope_rows(self.scope, wrote)
         rows += _event_rows(self.event(config), "  ", config=config)
         return "\n".join(rows)
@@ -1436,6 +1448,8 @@ class Closure:
             },
             "refreshed": list(self.refreshed),
             "dequeued": self.dequeued,
+            # And the task's own criteria that went with it (RK1268), for the same reason.
+            "unmet": list(self.unmet),
             "scope": _scope_json(self.scope, wrote),
             "event": self.event(config),
         }
@@ -2790,6 +2804,11 @@ def _depart(
     # One more change to a document already in hand (RK327): the queue names work, this line
     # is the work, and no state exists where the line has left and the order still names it.
     remaining, dequeued = queueing.without(remaining, config, task_id)
+    # And the task's own criteria list, in the same rewrite and for the same reason (RK1268):
+    # the heading is addressed by an id this write is spending, so leaving it would file a
+    # question about work the ledger already answers. A block's list is untouched — that one
+    # outlives its lines, which is the whole difference between the two addresses.
+    remaining, unmet = criteria.without(remaining, task_id)
     prose, dropped, kept, taken, cited, emptied = _drop_section(
         config, entry.task.ref, leaving=task_id
     )
@@ -2816,6 +2835,7 @@ def _depart(
         superseded=superseded,
         recorded_in=recorded_in,
         dequeued=dequeued,
+        unmet=unmet,
         dependents=tuple(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
         ),
@@ -2975,6 +2995,9 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
     entry = roadmap.by_id()[task_id]
     remaining = remove_entry(roadmap, entry)
     remaining, dequeued = queueing.without(remaining, config, task_id)
+    # The rest of the transaction that stopped halfway (RK62, RK1268): the entry is on disk,
+    # so what is left is every edit the roadmap side owes — the list among them.
+    remaining, unmet = criteria.without(remaining, task_id)
     prose, dropped, kept, taken, cited, emptied = _drop_section(
         config, entry.task.ref, leaving=task_id
     )
@@ -2997,6 +3020,7 @@ def _close(config: Config, task_id: str, recorded: Entry) -> Closure:
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
         ),
         dequeued=dequeued,
+        unmet=unmet,
         scope=claiming.departing(config, task_id, roadmap.entries),
         root=config.root,
     )

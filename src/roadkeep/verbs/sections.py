@@ -36,9 +36,11 @@ from roadkeep.queueing import (
 from roadkeep.scoping import add as add_non_goal, amend as amend_non_goal, drop as drop_non_goal
 from roadkeep.criteria import (
     add as add_criterion,
+    addresses_task as criteria_addresses_task,
     amend as amend_criterion,
     blocks as criteria_blocks,
     drop as drop_criterion,
+    named as criteria_named,
     read as criteria_read,
 )
 from roadkeep.sections import (
@@ -420,9 +422,46 @@ def _non_goal_drop(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _addressed(args: argparse.Namespace) -> str:
+    """Which list this call is about: `--block <x>`, `--task <id>`, or neither (RK1268).
+
+    One resolver for all three write verbs, so the refusal for naming both is written once and
+    the empty answer — meaning *look the lead up* — reaches `criteria._resolved` unchanged.
+    Refused rather than resolved to one of them: two addresses on one call is a caller who
+    believes both took effect, and the wrong one is a claim about somebody else's finish line.
+    """
+    block = getattr(args, "block", None) or ""
+    task = getattr(args, "task", None) or ""
+    if block and task:
+        raise ValueError(
+            "--block and --task are the two addresses a criteria list has, so a call naming "
+            "both says which one twice: a criterion belongs to a body of work or to a line"
+        )
+    return task or block
+
+
+def _required_address(args: argparse.Namespace) -> str:
+    """The address, where the verb has nothing to look one up by (RK1268).
+
+    `criterion add` creates the bullet, so there is no lead on file to resolve against — and
+    refused here rather than by argparse, because a `required` mutually exclusive group answers
+    on the command line and says nothing over MCP, where both fields exist and neither is
+    marked required. One rule, one message, both transports.
+    """
+    about = _addressed(args)
+    if not about:
+        raise ValueError(
+            "a criterion is addressed to a body of work or to a line, so this call needs "
+            "--block <x> or --task <id>: `add` writes the bullet, and there is no lead on "
+            "file yet for the address to be looked up from"
+        )
+    return about
+
+
 def _criterion_add(config: Config, args: argparse.Namespace) -> int:
     try:
-        written = add_criterion(config, args.block, lead=args.lead, why=_piped(args.why))
+        about = _required_address(args)
+        written = add_criterion(config, about, lead=args.lead, why=_piped(args.why))
         wrote = written.save()
     except REFUSALS as error:
         return _refused(error)
@@ -436,7 +475,7 @@ def _criterion_add(config: Config, args: argparse.Namespace) -> int:
 
 def _criterion_amend(config: Config, args: argparse.Namespace) -> int:
     try:
-        amended = amend_criterion(config, args.block or "", args.lead, _piped(args.why))
+        amended = amend_criterion(config, _addressed(args), args.lead, _piped(args.why))
         wrote = amended.save()
     except REFUSALS as error:
         return _refused(error)
@@ -450,7 +489,7 @@ def _criterion_amend(config: Config, args: argparse.Namespace) -> int:
 
 def _criterion_drop(config: Config, args: argparse.Namespace) -> int:
     try:
-        dropped = drop_criterion(config, args.block or "", args.lead)
+        dropped = drop_criterion(config, _addressed(args), args.lead)
         wrote = dropped.save()
     except REFUSALS as error:
         return _refused(error)
@@ -470,10 +509,11 @@ def _criterion_list(config: Config, args: argparse.Namespace) -> int:
     unable to discover that the list is the thing they have not declared.
     """
     try:
+        about = _addressed(args)
         document = config.document("roadmap")
-        wanted = tuple(criteria_read(document, args.block or ""))
+        wanted = tuple(criteria_read(document, about))
         declared = criteria_blocks(document)
-    except (KeyError, OSError) as error:
+    except (KeyError, OSError, ValueError) as error:
         return _refused(error)
 
     where = config.relative(config.path("roadmap"))
@@ -486,7 +526,7 @@ def _criterion_list(config: Config, args: argparse.Namespace) -> int:
                     "blocks": list(declared),
                     "criteria": [
                         {
-                            "block": one.block,
+                            "about": one.about,
                             "lead": one.lead,
                             "why": one.why,
                             "line": one.first,
@@ -499,7 +539,7 @@ def _criterion_list(config: Config, args: argparse.Namespace) -> int:
             )
         )
         return EXIT_OK
-    rows = _criterion_rows(config, where, wanted, declared, args.block)
+    rows = _criterion_rows(config, where, wanted, declared, about)
     print("\n".join(rows))
     return EXIT_OK
 
@@ -509,11 +549,11 @@ def _criterion_rows(
     where: str,
     wanted: tuple,
     declared: tuple[str, ...],
-    block: str | None,
+    about: str | None,
 ) -> list[str]:
     """The listing, and the sentence an empty one is (RK1265).
 
-    Three empties and they are not one answer: the project has not opted in, the block was
+    Three empties and they are not one answer: the project has not opted in, the address was
     never asked the question, or it was asked and every criterion has since been dropped. A
     reader who cannot tell them apart learns nothing from a blank list.
     """
@@ -523,17 +563,21 @@ def _criterion_rows(
                 f"{where}: no [criteria] in this project's roadkeep.toml, so what finishes a "
                 f"block is ungoverned — declare the table to open the list"
             ]
-        if block and block in declared:
-            return [f"{where}: Block {block} declares a list and it is empty"]
-        if block:
+        if about and about in declared:
+            return [f"{where}: {criteria_named(config.schema, about)} declares a list and it "
+                    f"is empty"]
+        if about:
+            # The flag the caller typed, so the remedy is the call they can run (RK420): an
+            # address that is an id is reached by `--task` and never by `--block`.
+            flag = "--task" if criteria_addresses_task(config.schema, about) else "--block"
             return [
-                f"{where}: no criteria for Block {block} — `criterion add --block {block} "
-                f"--lead … --why …` opens the list"
+                f"{where}: no criteria for {criteria_named(config.schema, about)} — "
+                f"`criterion add {flag} {about} --lead … --why …` opens the list"
             ]
-        return [f"{where}: no block declares what would finish it"]
+        return [f"{where}: nothing declares what would finish it"]
     rows = [f"{len(wanted)} criterion(s) in {where}, in file order"]
     for one in wanted:
-        rows.append(f"  Block {one.block}  {one.lead}")
+        rows.append(f"  {criteria_named(config.schema, one.about)}  {one.lead}")
         rows.append(f"    {one.why}")
         if not one.shaped:
             rows.append("    unshaped: the lead is this bullet's first sentence, not a bold head")
@@ -1052,13 +1096,16 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
             "declare is refused, so a typo opens nothing."
         ),
     )
-    criterion_add.add_argument(
-        "--block", required=True, help="the block label this finishes, e.g. B"
-    )
+    # RK1268. Exactly one address, and both flags optional to argparse: the pair is refused by
+    # `_addressed`, which is one rule written once for the four verbs and reaches this
+    # transport too — a mutually exclusive group answers on the command line and says nothing
+    # over MCP, where both fields exist and either can arrive.
+    criterion_add.add_argument("--block", help="the block label this finishes, e.g. B")
+    criterion_add.add_argument("--task", help="the id this finishes, e.g. RK42")
     criterion_add.add_argument(
         "--lead",
         required=True,
-        help="what must be true — the bolded head a brief prints, unique in its block",
+        help="what must be true — the bolded head a brief prints, unique in its list",
     )
     criterion_add.add_argument(
         "--why",
@@ -1090,6 +1137,7 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
         "--block",
         help="which block's list it is in (default: the one that carries the lead)",
     )
+    criterion_amend.add_argument("--task", help="which task's list it is in, by id")
     criterion_amend.add_argument(
         "--why", required=True, help="the corrected reason, in this file's own limit" + _PIPE
     )
@@ -1108,8 +1156,9 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
         ),
     )
     criterion_list.add_argument(
-        "--block", help="one block's list (default: every block that declares one)"
+        "--block", help="one block's list (default: everything that declares one)"
     )
+    criterion_list.add_argument("--task", help="one task's list, by id")
     criterion_list.add_argument(
         "--json", action="store_true", help="the criteria, with the file and their lines"
     )
@@ -1131,6 +1180,7 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
         "--block",
         help="which block's list it is in (default: the one that carries the lead)",
     )
+    criterion_drop.add_argument("--task", help="which task's list it is in, by id")
     criterion_drop.add_argument("--json", action="store_true", help=_JSON_HELP)
     criterion_drop.set_defaults(handler=_criterion_drop)
 

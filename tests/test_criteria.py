@@ -151,7 +151,7 @@ def test_one_lead_under_two_blocks_is_two_claims(tmp_path):
     config = written(tmp_path, "A", "Every write has a door", "The guard denies the rest.")
     config = written(config, "B", "Every write has a door", "The guard denies the rest.")
 
-    assert [(one.block, one.lead) for one in criteria.read(config.document("roadmap"))] == [
+    assert [(one.about, one.lead) for one in criteria.read(config.document("roadmap"))] == [
         ("A", "Every write has a door"),
         ("B", "Every write has a door"),
     ]
@@ -178,7 +178,7 @@ def test_the_block_is_resolved_where_one_list_carries_the_lead(tmp_path):
     out = criteria.drop(config, "", "every write has a door")
     out.save()
 
-    assert out.criterion.block == "B"
+    assert out.criterion.about == "B"
     assert "Every write has a door" not in read(Config.discover(tmp_path))
 
 
@@ -368,5 +368,112 @@ def test_the_brief_prints_the_block_this_task_is_in(tmp_path, capsys):
 
     assert main(["-C", str(tmp_path), "brief", "RK1"]) == EXIT_OK
     out = capsys.readouterr().out
-    assert "done     Every file round-trips" in out
+    assert "done     Block A: Every file round-trips" in out
     assert "Every write has a door" not in out
+
+
+# -- the other unit: a criterion addressed to the task (RK1268) ---------------
+
+
+def test_a_criterion_is_addressed_to_a_line_as_well_as_to_a_block(tmp_path):
+    """The defect. The unit an agent executes is the task, and three quarters of the spec were
+    already addressable per line — the symptom, the non-goals and the design — while the
+    checkable sentence was per block, which is the wrong altitude for the one that is cheap to
+    write and read."""
+    config = project(tmp_path)
+    criteria.add(config, "RK1", "The pointer resolves after the write", "The gate holds it.").save()
+
+    body = read(Config.discover(tmp_path))
+    assert "## Done when — RK1" in body
+    assert "- **The pointer resolves after the write** The gate holds it." in body
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_the_two_addresses_are_two_lists_and_one_lead_may_lead_both(tmp_path):
+    # The rule the list already had, one address wider: a lead is unique inside its own list,
+    # so the same words under a block and under a line are two claims about two units.
+    config = written(tmp_path, "A", "Every write has a door", "The guard denies the rest.")
+    criteria.add(config, "RK1", "Every write has a door", "This line's own.").save()
+
+    config = Config.discover(tmp_path)
+    assert criteria.leads(config.document("roadmap"), "A") == ("Every write has a door",)
+    assert criteria.leads(config.document("roadmap"), "RK1") == ("Every write has a door",)
+    assert lint(config).findings == ()
+
+
+def test_an_id_no_line_carries_opens_no_list(tmp_path):
+    # `_addressed`'s rule for a block, held on the stricter half: a block outlives its lines
+    # and a task *is* one, so a list about work the ledger already holds is a question
+    # somebody answered by shipping.
+    config = project(tmp_path)
+    before = read(config)
+    with pytest.raises(KeyError) as caught:
+        criteria.add(config, "RK9", "Never true", "Nothing checks it.")
+
+    assert "no open line RK9" in str(caught.value)
+    assert read(Config.discover(tmp_path)) == before
+
+
+def test_the_brief_prints_the_task_s_own_beside_its_block_s(tmp_path, capsys):
+    """The design's requirement: the two altitudes side by side, each carrying its address —
+    printed as one list they would read as one claim, which is the conflation this ends."""
+    config = written(tmp_path, "A", "Every file round-trips", "The gate holds it.")
+    criteria.add(config, "RK1", "The pointer resolves", "The gate holds that too.").save()
+
+    assert main(["-C", str(tmp_path), "brief", "RK1"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "done     RK1: The pointer resolves" in out
+    assert "done     Block A: Every file round-trips" in out
+
+
+def test_the_line_takes_its_own_list_with_it_when_it_ships(tmp_path):
+    """The queue entry's rule one list over (RK327): the heading is addressed by an id this
+    write spends, so there is no state where the line has left and a heading still asks what
+    would finish it. The block's list stays — that one outlives its lines."""
+    from roadkeep.shipping import ship
+
+    config = written(tmp_path, "A", "Every file round-trips", "The gate holds it.")
+    criteria.add(config, "RK1", "The pointer resolves", "The gate holds that too.").save()
+    config = Config.discover(tmp_path)
+    departure = ship(config, "RK1", why="The first symptom no longer happens.")
+    departure.save()
+
+    body = read(Config.discover(tmp_path))
+    assert "## Done when — RK1" not in body
+    assert "## Done when — Block A" in body
+    assert departure.unmet == ("The pointer resolves",)
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_naming_both_addresses_is_refused_before_anything_is_read(tmp_path, capsys):
+    # Two addresses on one call is a caller who believes both took effect, and the wrong one
+    # is a claim about somebody else's finish line.
+    project(tmp_path)
+    assert main(
+        [
+            "-C", str(tmp_path), "criterion", "add",
+            "--block", "A", "--task", "RK1",
+            "--lead", "Ambiguous", "--why", "Nothing decides it.",
+        ]
+    ) != EXIT_OK
+    assert "--block and --task" in capsys.readouterr().err
+
+
+def test_add_with_no_address_names_both_doors(tmp_path, capsys):
+    # `add` writes the bullet, so there is no lead on file for the address to be looked up
+    # from — refused here and not by argparse, the same rule reaching MCP where a required
+    # group says nothing.
+    project(tmp_path)
+    assert main(
+        ["-C", str(tmp_path), "criterion", "add", "--lead", "Nowhere", "--why", "Unplaced."]
+    ) != EXIT_OK
+    said = capsys.readouterr().err
+    assert "--block <x> or --task <id>" in said
+
+
+def test_the_listing_names_the_flag_that_opens_the_list_it_found_empty(tmp_path, capsys):
+    # RK420's rule: a remedy is a command the caller can run, so an address that is an id is
+    # reached by `--task` and never by `--block`.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "criterion", "list", "--task", "RK1"]) == EXIT_OK
+    assert "criterion add --task RK1" in capsys.readouterr().out

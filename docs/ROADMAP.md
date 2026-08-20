@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1268** (deps: —) **a definition of done is addressed by block, so what finishes one task is written nowhere a verb reads** — A criterion may be addressed to a task as well as to a block, and `brief` prints the task's own beside its block's, so a line carries what it must satisfy. → §RK1268
 - 📋 **RK1269** (deps: —) **a decision that outlives the work explaining it has no governed file, so an ADR is kept by hand or not at all** — A `decisions` role is the line-and-section pair whose one departure is being superseded, so a decision record is a schema at insertion instead of a convention. → §RK1269
 
 ## Block C — Query (consult without reading the file)

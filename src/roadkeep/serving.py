@@ -438,10 +438,13 @@ TOOLS: tuple[Tool, ...] = (
     # and a bullet only a hand edit could write is one the guard denies outright. `list` rides
     # with them and not with `brief`: that command prints this task's block, and the question
     # *which blocks claim what* is asked before a task exists to brief.
-    Tool("criterion add", ("block", "lead", "why")),
-    Tool("criterion amend", ("lead", "block", "why")),
-    Tool("criterion drop", ("lead", "block")),
-    Tool("criterion list", ("block",)),
+    # `task` rides beside `block` on all four (RK1268): the unit an agent executes is the line,
+    # so the address it wants is the one this transport is reached from — and a field that
+    # existed only on the CLI would be a criterion an agent could read and never write.
+    Tool("criterion add", ("block", "task", "lead", "why")),
+    Tool("criterion amend", ("lead", "block", "task", "why")),
+    Tool("criterion drop", ("lead", "block", "task")),
+    Tool("criterion list", ("block", "task")),
     # The other list this file holds that is not task lines (RK325). Exposed for the reason
     # the non-goals are: the agent that ships a queued id is the one that has to take it out,
     # and the file it now lives in is the one the guard denies an edit to.

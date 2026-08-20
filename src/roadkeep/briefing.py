@@ -96,18 +96,26 @@ class NothingToBrief(KeyError):
 
 @dataclass(frozen=True, slots=True)
 class DoneWhen:
-    """What would finish one block: the leads carried, and what was left (RK1265).
+    """What would finish this task and what would finish its block (RK1265, RK1268).
 
     :class:`NonGoals`' two fields for its reason, and a third thing this one has to state
     without a field — **an empty list is not an empty answer here**. A block nobody wrote a
     criterion for and a block whose criteria were all dropped are different facts, and `brief`
     prints neither row rather than inventing a sentence about which: the difference is
     `criterion list`'s to report, where a caller went to ask.
+
+    Two lists and not one, because they are two altitudes and the answer would otherwise
+    conflate them: the block's says when the body of work is finished and the task's own says
+    when this line is, and an agent starting the line is asking the second.
     """
 
     leads: tuple[str, ...] = ()
     #: How many the block's list held beyond the ones carried. 0 means these are all.
     elided: int = 0
+    #: The task's own list, addressed by its id (RK1268), bounded the same way.
+    own: tuple[str, ...] = ()
+    #: How many the task's own list held beyond the ones carried. 0 means these are all.
+    own_elided: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -378,10 +386,20 @@ class Brief:
             # arrives before the first edit rather than at the `ship`. Never a verdict: `0`
             # is the ordinary state of a task about to start.
             rows.append(f"  proves   {clause}  ({found} site(s) now)")
-        rows += [f"  done     {lead}" for lead in self.done_when.leads]
+        # The task's own first and the block's under it, each carrying its address (RK1268):
+        # two altitudes printed as one list is a reader taking the block's finish line for
+        # this line's, which is the conflation the second address exists to end.
+        rows += [f"  done     {self.view.task.id}: {lead}" for lead in self.done_when.own]
+        if self.done_when.own_elided:
+            rows.append(
+                f"  done     {self.view.task.id}: ... and {self.done_when.own_elided} more "
+                f"under Done when"
+            )
+        named = config.schema.block_named(self.view.task.block)
+        rows += [f"  done     {named}: {lead}" for lead in self.done_when.leads]
         if self.done_when.elided:
             rows.append(
-                f"  done     ... and {self.done_when.elided} more under Done when"
+                f"  done     {named}: ... and {self.done_when.elided} more under Done when"
             )
         rows += [f"  not      {lead}" for lead in self.non_goals.leads]
         if self.non_goals.elided:
@@ -448,6 +466,10 @@ class Brief:
             "non_goals_elided": self.non_goals.elided,
             "done_when": list(self.done_when.leads),
             "done_when_elided": self.done_when.elided,
+            # The task's own, as its own key (RK1268): a caller merging the two would be
+            # asserting the block's finish line about this line.
+            "done_when_own": list(self.done_when.own),
+            "done_when_own_elided": self.done_when.own_elided,
             # What the design says would prove this done, with what each clause matches now
             # (RK1185). The clauses and the counts and never the sites: this answer is bounded
             # to a tool result, and the addresses are `evidence`'s once the work is under way.
@@ -549,7 +571,7 @@ def _gather(
         chains=graph.chains(task_id)[:CHAINS] if entry is not None else (),
         leverage=graph.leverage(task_id),
         non_goals=non_goals(config, backlog.roadmap),
-        done_when=done_when(config, backlog.roadmap, task.block),
+        done_when=done_when(config, backlog.roadmap, task.block, task.id),
         choice=chosen,
         claim=claim,
         settled=_settled(config, view, backlog.resolve(task) if entry is not None else ()),
@@ -600,8 +622,10 @@ def non_goals(config: Config, document: Document) -> NonGoals:
 
 
 
-def done_when(config: Config, document: Document, block: str) -> DoneWhen:
-    """What finishes this task's block, in file order and bounded (RK1265).
+def done_when(
+    config: Config, document: Document, block: str, task_id: str = ""
+) -> DoneWhen:
+    """What finishes this task and what finishes its block, in file order and bounded (RK1265).
 
     :func:`non_goals`' shape one list over, and bounded for its reasons: each lead is cut to
     the project's own `[criteria]` limit with the cut shown, and a list past :data:`NON_GOALS`
@@ -610,17 +634,24 @@ def done_when(config: Config, document: Document, block: str) -> DoneWhen:
 
     Scoped to the task's own block and never to the backlog: a criterion is about a body of
     work, so printing another block's would be answering a question the caller did not ask
-    with a claim about somebody else's finish line.
+    with a claim about somebody else's finish line. And to the task's own list beside it
+    (RK1268), which is the narrower version of exactly that argument: the line is the unit
+    being executed, so what would finish *it* is the answer a brief was opened for.
     """
     limit = (config.criteria or Scope()).lead
-    every = criteria.leads(document, block)
-    return DoneWhen(
-        leads=tuple(
-            textwrap.shorten(lead, width=limit, placeholder=ELLIPSIS)
-            for lead in every[:NON_GOALS]
-        ),
-        elided=max(0, len(every) - NON_GOALS),
-    )
+
+    def bounded(every: tuple[str, ...]) -> tuple[tuple[str, ...], int]:
+        return (
+            tuple(
+                textwrap.shorten(lead, width=limit, placeholder=ELLIPSIS)
+                for lead in every[:NON_GOALS]
+            ),
+            max(0, len(every) - NON_GOALS),
+        )
+
+    leads, elided = bounded(criteria.leads(document, block))
+    own, own_elided = bounded(criteria.leads(document, task_id) if task_id else ())
+    return DoneWhen(leads=leads, elided=elided, own=own, own_elided=own_elided)
 
 
 def _criterion(config: Config, view: View) -> tuple[tuple[Clause, int], ...]:

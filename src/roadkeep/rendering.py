@@ -221,6 +221,18 @@ def _dequeued_rows(token: str | None) -> list[str]:
     return [f"  dequeued {token} left the priority queue with the line"]
 
 
+def _unmet_rows(leads: Sequence[str]) -> list[str]:
+    """What a departure took out of the task's own criteria list (RK1268).
+
+    `_dequeued_rows`' sentence one list over and for its reason: the heading is addressed by an
+    id this write spends, so it goes inside the transaction — and a definition of done that
+    disappeared with no line about it is exactly the deletion this task was filed against.
+    """
+    if not leads:
+        return []
+    return [f"  finished {lead} — its criterion left with the line" for lead in leads]
+
+
 def _carried_json(config: Config, carried: Carried | None) -> dict[str, str | None] | None:
     """The same answer as fields, so a caller reads the file rather than parsing a sentence."""
     if carried is None:

@@ -372,10 +372,17 @@ block's `## Done when — Block X` heading** where there is none, as `priority a
 never the block, a label the roadmap does not declare being refused. The address is the
 **pair**, so one lead under two blocks is two claims and not a duplicate; `criterion amend
 <lead> [--block <x>] --why "…"` and `criterion drop <lead> [--block <x>]` are the other two,
-with `--block` needed only where two lists carry the lead, and the heading survives the last
-bullet — a block whose criteria all went is one somebody asked the question about. `brief`
-prints the task's own block's list, so a task started through it never has to ask, and
-`criterion list [--block <x>]` is the read across blocks — it says which empty it found. **The
+with the address needed only where two lists carry the lead, and the heading survives the last
+bullet — a block whose criteria all went is one somebody asked the question about. **And the
+other unit is the line**: `--task <id>` addresses the same four verbs to a task, which is what
+an agent about to execute one wants — the spec is the symptom, the non-goals, the design and
+this, and only this was written one altitude up. The id has to be a line the roadmap still
+carries, naming both addresses is refused, and the list **leaves with the line**: a ship or a
+retirement takes the whole `## Done when — <id>` region in its own transaction, where a
+block's list stays, that one outliving its lines. `brief`
+prints both, each carrying its address, so a task started through it never has to ask, and
+`criterion list [--block <x>|--task <id>]` is the read across them — it says which empty it
+found. **The
 roadmap's fourth list is the queue**: `priority add
 <token> [--first|--after <t>]` and `priority drop <token>` write the `## Priority`
 section, whose entries are bare tokens — an id or `Block X`, no reason field, because why
