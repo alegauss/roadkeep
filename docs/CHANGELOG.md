@@ -228,6 +228,7 @@
 - ✅ **RK1263** **section amend replaces the whole body, so fixing one citation means re-emitting every table and code fence verbatim** — A one-clause correction names the two strings and edits the prose on disk, so a table or a fence the call never names is never retyped.
 - ✅ **RK1265** **a non-goal states what is not built, and nothing states what must be true for a block to be finished** — A block states what must be true for it to be finished, as a list per block the ship never deletes, and brief prints it before the first edit.
 - ✅ **RK1266** **four non-goal codes report a defect and name no command that closes it** — The scrape sees a code whose head carries a hyphen and reads the module that declares one, so all four non-goal codes name the command that closes them.
+- ✅ **RK1267** **ship deletes the design and nothing records where the reasoning that outlives the code went** — A ship now names the file the deleted design's durable half moved to (design §RK1267 recorded in `src/roadkeep/shipping.py`).
 
 ## Block C — Query
 

@@ -69,6 +69,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
             remainder=args.remainder,
             lines=args.lines,
             superseded=args.superseded_design,
+            recorded_in=args.recorded_in,
         )
         # The files this transaction wrote, answered by the write itself (RK309) — the half
         # of the commit's contents no author declares, and never a second list rebuilt here.
@@ -456,6 +457,13 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
             "to the ledger's sentence with the section's address, since the entry is the "
             "one place both survive the deletion" + _PIPE
         ),
+    )
+    # RK1267. No pipe: a path carries nothing a shell reads first, and the clause around it
+    # is derived, so there is no prose here for stdin to be the door to.
+    ship_parser.add_argument(
+        "--recorded-in",
+        dest="recorded_in",
+        help="the file the deleted design's durable half moved to; must resolve",
     )
     ship_parser.add_argument("--json", action="store_true", help="every edit, as data")
     ship_parser.set_defaults(

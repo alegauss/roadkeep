@@ -390,7 +390,13 @@ TOOLS: tuple[Tool, ...] = (
     # `remainder` rides with `part` (RK1233): the agent shipping a half is the one that will
     # pick the line up later, and over this transport there is no file to read the rest out of
     # — which is the subtraction the whole task exists to remove.
-    Tool("ship", ("id", "why", "part", "remainder", "lines", "superseded_design")),
+    # `recorded_in` for the same reason pointed the other way (RK1267): the agent deleting the
+    # section is the one that just moved the half of it worth keeping, so the destination is
+    # known here and nowhere later.
+    Tool(
+        "ship",
+        ("id", "why", "part", "remainder", "lines", "superseded_design", "recorded_in"),
+    ),
     Tool("retire", ("id", "reason", "superseded_by")),
     Tool("defer", ("id", "reason")),
     Tool("resume", ("id", "marker")),

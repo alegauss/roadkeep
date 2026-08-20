@@ -122,7 +122,13 @@ moved under it**: `--superseded-design "<what it was wrong about>"` is the trace
 parenthesised into the ledger's own sentence with the anchor, because the deletion
 otherwise leaves the one reader who could ever know it was stale — you — with nowhere to
 say so; refused on a line that pointed at no design and on a `--part`, whose section
-stays. And `--why` is **required**, because the roadmap's sentence states a problem and
+stays. **And the half of it that was right went somewhere**: `--recorded-in <path>` names
+the file it moved to — the docstring above the code, the test a criterion became —
+appended to the same sentence beside that clause and derived whole, so a decision that
+outlives the work explaining it keeps an address; refused at those same two doors and on
+a path this repository does not have. Never a section copied into a second file, which is
+the accreting rationale this tool exists to refuse.
+And `--why` is **required**, because the roadmap's sentence states a problem and
 the ledger's states an outcome, so inheriting it files a defect report under a heading
 meaning "done" (`record amend <id> --why` is the repair where one already did). **A path
 ledger prose names has to resolve**: `ship`, `retire` and both `record` verbs refuse a

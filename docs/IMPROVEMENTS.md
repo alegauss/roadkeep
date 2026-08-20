@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1267 Where the durable half of a deleted design goes
-
-RK310 opened this door and stopped at the stale half: `--superseded-design` records that
-a deleted design was *wrong*, and nothing records where the part that was right went.
-
-The deletion is correct and the measurement behind it stands — a rationale file reaching
-539 KB one honest paragraph at a time is what this tool exists to refuse. What is wrong
-is that it is untyped. A section holds three contents with three half-lives: the
-investigation, which dies with the ship; the criterion, which becomes a test; and the
-decision, the constraint that has to stay true after the code moves. `ship` treats all
-three alike.
-
-The cost is measured here rather than supposed. RK1265 records a definition of done
-written as a rationale section, deleted correctly, surviving in zero places — and the
-block it governed was then closed and reopened six times.
-
-This repository's own answer is the module docstring, which cannot drift from the code
-it sits above. Nothing asks for it and nothing checks it. `--recorded-in <path>` is that
-trace, appended to the ledger's sentence beside RK310's and for RK310's reason — the
-entry is where the address and the outcome already meet — and refused on a path this
-repository does not have, as every other path a ledger sentence names already is.
-
-Not an archive: a flag that copied the section into a second file is the 539 KB with
-better manners.
-
 ### §RK1268 A definition of done, addressed to the task
 
 `criteria` addresses the pair (block, lead) on purpose: a criterion is about a body of

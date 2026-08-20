@@ -52,6 +52,7 @@ from roadkeep.shipping import (
     Closure,
     NoRestatement,
     NotOpen,
+    RecordingCrowded,
     RemainderRefused,
     SupersessionCrowded,
     Wrapped,
@@ -1869,6 +1870,199 @@ def test_the_json_answers_the_clause_as_a_field(tmp_path, capsys):
     )
     payload = json.loads(capsys.readouterr().out)
     assert payload["improvements"]["superseded"] == "the lookup it proposed already existed"
+
+
+# -- where the durable half of the deleted design went (RK1267) ---------------
+
+
+def _with_module(tmp_path: Path) -> Config:
+    """The fixture plus the file a design's decision would be recorded in.
+
+    `src/` and not a bare name for `_with_source`'s reason (RK55, RK217): a token whose
+    directory the repository has never heard of is not read as a path at all, so a fixture
+    without one would prove the refusal by accident rather than by the rule.
+    """
+    config = project(tmp_path)
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "engine.py").write_text(
+        '"""The decision, above the code."""\n', encoding="utf-8"
+    )
+    return config
+
+
+def test_the_deleted_designs_durable_half_gets_an_address(tmp_path):
+    """The defect. `--superseded-design` types the deletion as *stale* and nothing typed it
+    as *moved*, so a definition of done written as a design is deleted correctly and survives
+    in zero places — RK1265's measurement, after which its block was reopened six times."""
+    config = _with_module(tmp_path)
+    ship(
+        config,
+        "RK1",
+        why="The first symptom no longer happens.",
+        recorded_in="src/engine.py",
+    ).save()
+
+    ledger = read(config, CHANGELOG)
+    assert "(design §RK1 recorded in `src/engine.py`)." in ledger
+    # The sentence still ends like one: the clause is inside the terminator, which is what
+    # keeps the composed `why` legal under the rules that refuse two of them.
+    assert "happens (design §RK1 recorded in `src/engine.py`)." in ledger
+    assert "§RK1" not in read(config, IMPROVEMENTS)
+
+
+def test_both_clauses_land_in_one_sentence_in_the_order_the_pair_reads(tmp_path):
+    # What was wrong, then where the part that was right went — decided by the composer and
+    # never by which flag the caller typed first.
+    config = _with_module(tmp_path)
+    ship(
+        config,
+        "RK1",
+        why="The first symptom no longer happens.",
+        superseded="the lookup it proposed already existed",
+        recorded_in="src/engine.py",
+    ).save()
+
+    assert (
+        "(design §RK1 superseded: the lookup it proposed already existed) "
+        "(design §RK1 recorded in `src/engine.py`)." in read(config, CHANGELOG)
+    )
+
+
+def test_a_destination_the_repository_lacks_is_refused_and_writes_nothing(tmp_path):
+    # The gate's `path.missing` asked before the entry lands (RK497, L1): an address recorded
+    # into the one file that says the work is done has to resolve, or the trace points nowhere
+    # and the next reader searches git for a file nobody wrote.
+    config = _with_module(tmp_path)
+    before = files(config)
+    with pytest.raises(NoSuchPath) as refused:
+        ship(
+            config,
+            "RK1",
+            why="The first symptom no longer happens.",
+            recorded_in="src/gone.py",
+        )
+
+    assert refused.value.named == "--recorded-in"
+    assert refused.value.missing == ("src/gone.py",)
+    assert files(Config.discover(tmp_path)) == before
+
+
+def test_a_line_with_no_pointer_has_no_design_for_the_half_to_have_left(tmp_path):
+    # The same absence `--superseded-design` is refused over, said about this clause: a
+    # refusal naming the other flag reads as a bug in the tool rather than as an answer.
+    config = project(
+        tmp_path,
+        roadmap=BACKLOG.replace(" → §RK1", ""),
+        extra_config="\n[rules.roadmap]\nref = false\n",
+    )
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "engine.py").write_text("x = 1\n", encoding="utf-8")
+    before = files(config)
+    with pytest.raises(NoDesign) as caught:
+        ship(config, "RK1", why="It works now.", recorded_in="src/engine.py")
+
+    said = str(caught.value)
+    assert "--recorded-in names" in said and "--superseded-design" not in said
+    assert files(Config.discover(tmp_path)) == before
+
+
+def test_a_partial_has_not_decided_where_anything_went_yet(tmp_path):
+    # The section stays while the rest of the work still reads it (RK121), so nothing has been
+    # deleted and there is no half to have moved. The refusal names the call that does delete.
+    config = _with_module(tmp_path)
+    before = files(config)
+    with pytest.raises(NoSupersession) as caught:
+        ship(
+            config,
+            "RK1",
+            why="Half of it works.",
+            part="local half",
+            recorded_in="src/engine.py",
+        )
+
+    assert "--recorded-in" in str(caught.value) and "ship RK1" in str(caught.value)
+    assert files(Config.discover(tmp_path)) == before
+
+
+def test_a_closure_writes_no_sentence_for_the_destination_to_join(tmp_path):
+    # The ledger already holds the entry and this call only closes the line (RK62). Refused
+    # rather than dropped: a flag silently ignored is a flag the caller believes took effect.
+    config = _with_module(tmp_path)
+    (tmp_path / CHANGELOG).write_text(INTERRUPTED, encoding="utf-8", newline="")
+    before = files(Config.discover(tmp_path))
+    with pytest.raises(NoRestatement) as caught:
+        ship(config, "RK1", recorded_in="src/engine.py")
+
+    assert "--recorded-in" in str(caught.value)
+    assert files(Config.discover(tmp_path)) == before
+
+
+def test_the_clause_that_cannot_be_cut_asks_the_outcome_to_give_way(tmp_path):
+    """RK1261's finding with the halves swapped. There the note is the author's and can be
+    shortened; here the clause is an address and a path, derived whole, so a message pointing
+    at it would ask for an edit no argument on the call can make."""
+    config = project(tmp_path, extra_config="\n[limits]\nwhy = 80\n")
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "engine.py").write_text("x = 1\n", encoding="utf-8")
+    before = files(config)
+    with pytest.raises(RecordingCrowded) as caught:
+        ship(
+            config,
+            "RK1",
+            why="The first symptom no longer happens, and the second one has stopped too.",
+            recorded_in="src/engine.py",
+        )
+
+    said = str(caught.value)
+    assert "80" in said and "none of that is prose to cut" in said
+    assert "the outcome is what gives way" in said
+    assert files(Config.discover(tmp_path)) == before
+
+
+def test_the_flag_reaches_the_command_line_and_answers_as_a_field(tmp_path, capsys):
+    config = _with_module(tmp_path)
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "ship",
+                "RK1",
+                "--why",
+                "The first symptom no longer happens.",
+                "--recorded-in",
+                "src/engine.py",
+                "--json",
+            ]
+        )
+        == EXIT_OK
+    )
+    payload = json.loads(capsys.readouterr().out)
+    # Read off the transaction, never parsed back out of the rendered sentence.
+    assert payload["improvements"]["recorded_in"] == "src/engine.py"
+    assert "recorded in `src/engine.py`" in read(config, CHANGELOG)
+
+
+def test_the_report_states_the_destination_beside_the_drop(tmp_path, capsys):
+    # Where the deletion is reported, because the deletion is what makes the address the only
+    # surviving trace of the section.
+    config = _with_module(tmp_path)
+    assert (
+        main(
+            [
+                "-C",
+                str(tmp_path),
+                "ship",
+                "RK1",
+                "--why",
+                "The first symptom no longer happens.",
+                "--recorded-in",
+                "src/engine.py",
+            ]
+        )
+        == EXIT_OK
+    )
+    assert "recorded the part that outlives it: src/engine.py" in capsys.readouterr().out
 
 
 # -- the parent a ship just emptied (RK400) -----------------------------------

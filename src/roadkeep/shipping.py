@@ -39,6 +39,20 @@ already the one place the section's address and the outcome meet — and the val
 *pattern*: a ledger where a third of the claimed designs turn out stale is a fact about how
 far ahead this tool should let anybody design.
 
+**And the half of it that was right goes somewhere, which nothing recorded either** (RK1267).
+That flag types the deleted section as *stale*, and a section holds three contents with three
+half-lives: the investigation, which dies with the ship; the criterion, which becomes a test;
+and the decision, the constraint that stays true after the code moves. Deleting is right — a
+rationale file reaching 539 KB one honest paragraph at a time is what this tool exists to
+refuse — and untyped deletion is what is not: RK1265 records a definition of done written as a
+section, deleted correctly, surviving nowhere, after which the block it governed was closed and
+reopened six times. `--recorded-in <path>` is that trace, beside `--superseded-design` and
+composed by the same writer, because the entry is where the address and the outcome already
+meet. It is derived whole — the anchor is the pointer the line is losing and the destination is
+a path — so it writes no prose (L4), and it is refused on a path this repository does not have,
+as every other path a ledger sentence names already is (RK497). Never an archive: a flag that
+copied the section into a second file is the 539 KB with better manners.
+
 **Half of it is a state, and retiring the rest is not a verdict on the half** (RK121, RK129).
 A ledger entry carrying a qualifier is the first half of *this* decision, so the departure
 completes it in place — and only where the departure is a **ship**. Reaching the same code
@@ -332,8 +346,9 @@ class NoRestatement(ValueError):
     so the sentence has nothing to restate. Refused rather than dropped: a flag silently
     ignored is a flag the caller believes took effect.
 
-    Two flags reach it, both of which land in that one sentence: `--why` is the sentence and
-    `--superseded-design` is the clause appended to it (RK310).
+    Three flags reach it, all of which land in that one sentence: `--why` is the sentence,
+    `--superseded-design` is the clause appended to it (RK310), and `--recorded-in` is the
+    second clause beside that one (RK1267).
     """
 
     def __init__(self, task_id: str, recorded: Entry, flag: str = "--why") -> None:
@@ -351,20 +366,38 @@ class NoRestatement(ValueError):
 
 
 class NoDesign(ValueError):
-    """`--superseded-design` on a line that pointed at no design (RK310).
+    """A clause about the deleted design, on a line that pointed at none (RK310, RK1267).
 
-    The clause names the address of the rationale this shipment overtook, and a line with no
-    pointer has none: there is nothing that went stale, and an entry saying a design was
-    superseded would send the next reader of the ledger looking through git for prose nobody
-    ever wrote.
+    Both clauses name the address of the rationale this shipment deletes, and a line with no
+    pointer has none: there is nothing that went stale and nothing being deleted, so an entry
+    saying either would send the next reader of the ledger looking through git for prose
+    nobody ever wrote.
+
+    The flag is a field because the two say different things about the same absence, and a
+    refusal naming the other one reads as a bug in the tool rather than as an answer.
     """
 
-    def __init__(self, task_id: str) -> None:
+    #: What each flag's clause claims about the section, and where its value belongs instead.
+    _CLAIMS = {
+        "--superseded-design": (
+            "no design was superseded",
+            "the address of the rationale this shipment overtook",
+            "the outcome belongs in --why",
+        ),
+        "--recorded-in": (
+            "no design is being deleted",
+            "the address of the rationale whose durable half moved",
+            "there is nothing for the path to be the destination of",
+        ),
+    }
+
+    def __init__(self, task_id: str, flag: str = "--superseded-design") -> None:
         self.task_id = task_id
+        self.flag = flag
+        absent, names, instead = self._CLAIMS[flag]
         super().__init__(
-            f"{task_id} carries no pointer, so no design was superseded: the clause names "
-            f"the address of the rationale this shipment overtook, and this line never had "
-            f"one — the outcome belongs in --why"
+            f"{task_id} carries no pointer, so {absent}: {flag} names {names}, and this "
+            f"line never had one — {instead}"
         )
 
 
@@ -455,22 +488,59 @@ class SupersessionCrowded(ValueError):
         )
 
 
+class RecordingCrowded(ValueError):
+    """A ledger sentence over its limit because the recording clause joined it (RK1267).
+
+    :class:`SupersessionCrowded`'s sibling with the giving-way half swapped, and that is the
+    whole difference: there the note is the author's and can be cut, and here the clause is an
+    address and a path — derived whole, so nothing in it is prose anybody can shorten. So the
+    outcome is what has to give, and the message says so rather than quoting a total neither
+    argument is and leaving the author to guess which end to cut.
+
+    Raised only where the composition is what overflowed, for the reason that one is: a `--why`
+    already over its allowance is `why.too-long` about the field it is really about.
+    """
+
+    def __init__(
+        self,
+        task_id: str,
+        *,
+        outcome: str,
+        clause: str,
+        composed: str,
+        limit: int,
+        source: str = "",
+    ) -> None:
+        self.task_id = task_id
+        self.limit = limit
+        room = limit - (width(composed) - width(outcome))
+        super().__init__(
+            f"{task_id}'s ledger sentence is "
+            f"{over_by(width(composed), limit, measured=composed, source=source)}, and the "
+            f"recording clause is derived whole: {clause} spends "
+            f"{width(composed) - width(outcome)} of it, and none of that is prose to cut. So "
+            f"the outcome is what gives way, which has {max(room, 0)} characters here"
+        )
+
+
 class NoSupersession(ValueError):
-    """`--superseded-design` on a `ship --part` (RK310).
+    """A clause about a deleted design, on a `ship --part` (RK310, RK1267).
 
     A partial keeps its section, because the design still has work left to describe (RK121).
     So a premise that turned out stale is not yet settled: what the rest of the work reads
     the design for may still be right, and the completion is the moment the whole of it is
-    known. Refused rather than carried, there being no second entry for the clause to be
-    corrected onto.
+    known — and the same holds of where the durable half went, which is not decided while the
+    section is still being read. Refused rather than carried, there being no second entry for
+    the clause to be corrected onto.
     """
 
-    def __init__(self, task_id: str, part: str) -> None:
+    def __init__(self, task_id: str, part: str, flag: str = "--superseded-design") -> None:
         self.task_id = task_id
         self.part = part
+        self.flag = flag
         super().__init__(
             f"a partial keeps {task_id}'s design, because the rest of the work still reads "
-            f"it: pass --superseded-design on the `ship {task_id}` that completes ({part}), "
+            f"it: pass {flag} on the `ship {task_id}` that completes ({part}), "
             f"which is the call that deletes the section"
         )
 
@@ -861,6 +931,10 @@ class Departure:
     #: wrote it — the clause this transaction appended to the ledger's sentence. `None` on
     #: every ordinary shipment, which is the ordinary case: the design held.
     superseded: str | None = None
+    #: Where the deleted design's durable half now lives (RK1267), as the path the caller
+    #: named. Beside the field above and not inside it: one says the reasoning was wrong and
+    #: the other says where the part that was right went, and a shipment may report both.
+    recorded_in: str | None = None
     #: The priority entry this departure took out with the line (RK327), or `None` where the
     #: queue never named it. Removed inside the same rewrite rather than reported, because it
     #: is derived dead by the departure — unlike :attr:`dependents` and :attr:`cited`, which
@@ -974,6 +1048,10 @@ class Departure:
         # another open line still points at can be just as overtaken as one that went.
         if self.superseded is not None:
             rows.append(f"  overtook the design it read: {self.superseded}")
+        # Under it and in the same place for the same reason (RK1267): the deletion is what
+        # makes the address the only surviving trace, and this is where it went.
+        if self.recorded_in is not None:
+            rows.append(f"  recorded the part that outlives it: {self.recorded_in}")
         if self.refreshed:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
         rows += _dequeued_rows(self.dequeued)
@@ -1018,6 +1096,10 @@ class Departure:
                 # written under: the two are one fact, and a caller reading them off the
                 # rendered sentence would be parsing prose.
                 "superseded": self.superseded,
+                # And where the half of it that was right went (RK1267), read off the same
+                # anchor: the pair is what types the deletion, so one without the other is
+                # half an answer to the question this write exists to record.
+                "recorded_in": self.recorded_in,
             },
             "refreshed": list(self.refreshed),
             # What left the order with the line (RK327), named because a plan that silently
@@ -2153,6 +2235,7 @@ def ship(
     remainder: str | None = None,
     lines: int | None = None,
     superseded: str | None = None,
+    recorded_in: str | None = None,
 ) -> Departure | Closure | Partial:
     """Move one task from the backlog to the ledger. Validates all three edits first.
 
@@ -2188,8 +2271,29 @@ def ship(
     outcome already meet: derived up to the address, prose from there on (L4), and refused at
     the two doors where it would be untrue — a line that pointed at no design, and a partial,
     whose section stays because the rest of the work still reads it.
+
+    `recorded_in` is the fifth, and the other half of that one (RK1267). A section holds the
+    investigation, the criterion and the decision, and the flag above types the deletion only
+    as *stale*: nothing said where the part that outlives the code went, so a definition of
+    done written as a design is deleted correctly and survives nowhere. The clause is composed
+    by the same writer, into the same sentence, after the supersession where both were passed —
+    and it is derived whole, the anchor being the pointer the line is losing and the value a
+    path, so this writes no prose (L4). Refused at the same two doors, and at a third of its
+    own: a path this repository does not have, which is `path.missing` asked before the entry
+    lands rather than by the gate afterwards (RK497).
     """
-    _refuse_absent(config, **{"--why": why, "--part": part, "--superseded-design": superseded})
+    _refuse_absent(
+        config,
+        **{
+            "--why": why,
+            "--part": part,
+            "--superseded-design": superseded,
+            # Backticked so the one definition of missing can see it (RK497, RK1267): the
+            # reader takes paths out of *prose*, and this argument is a bare token until the
+            # clause is composed — which happens after every refusal this call can raise.
+            "--recorded-in": None if recorded_in is None else f"`{recorded_in}`",
+        },
+    )
     if part is not None:
         if lines is not None:
             # Before the ledger is read at all (RK1128): what refuses here is the flag pair and
@@ -2200,16 +2304,26 @@ def ship(
             )
         if superseded is not None:
             raise NoSupersession(task_id, part)
+        if recorded_in is not None:
+            raise NoSupersession(task_id, part, "--recorded-in")
         return _partial(config, task_id, part, why, remainder)
     recorded = _already_recorded(config, task_id)
     if recorded is None:
         return _depart(
-            config, task_id, config.schema.shipped_marker, why, lines, superseded=superseded
+            config,
+            task_id,
+            config.schema.shipped_marker,
+            why,
+            lines,
+            superseded=superseded,
+            recorded_in=recorded_in,
         )
     if why is not None:
         raise NoRestatement(task_id, recorded)
     if superseded is not None:
         raise NoRestatement(task_id, recorded, "--superseded-design")
+    if recorded_in is not None:
+        raise NoRestatement(task_id, recorded, "--recorded-in")
     if lines is not None:
         raise NoCompletion(task_id, config.relative(config.path("changelog")))
     return _close(config, task_id, recorded)
@@ -2524,6 +2638,7 @@ def _depart(
     replacement_in: str | None = None,
     replacement: str | None = None,
     superseded: str | None = None,
+    recorded_in: str | None = None,
 ) -> Departure:
     """The one transaction both doors are: validate everything, then write nothing yet."""
     roadmap = config.document("roadmap")
@@ -2601,24 +2716,47 @@ def _depart(
             raise NoDesign(task_id)
         why = _superseding(why, entry.task.ref, superseded)
 
+    # After the supersession and never before it (RK1267): the two clauses read as a pair —
+    # what the design was wrong about, then where the part that was right went — and the
+    # order the ledger publishes them in is decided here rather than by which flag was typed
+    # first. Derived whole, there being no prose in an address and a path (L4).
+    overtaken = why
+    if recorded_in is not None:
+        if entry.task.ref is None:
+            raise NoDesign(task_id, "--recorded-in")
+        why = _recording(why, entry.task.ref, recorded_in)
+
     # The count is about the entry a completion rewrites, so it is refused wherever there is
     # no such entry rather than dropped (RK193): every other path places a new one.
     if completing is None and lines is not None:
         raise NoCompletion(task_id, where)
 
     recorded = as_recorded(entry.task, marker, why)
-    if superseded is not None:
+    if superseded is not None or recorded_in is not None:
         # Before `place` validates, because from there on the two arguments are one field
         # (RK1261). The allowance is the ledger's own and not `why_max` — `why_budget` is what
         # refuses, so a message quoting anything else would name a number the write does not
         # use, which is the defect RK183 closed for the roadmap's line.
         grammar = config.schema_for("changelog")
         allowed = grammar.why_budget(recorded)
-        if width(why) > allowed >= width(authored):
+        # Each clause against the sentence it joined, in the order they were composed, so the
+        # refusal names the one that pushed the total over and attributes the room to what can
+        # actually give way (RK1267) — a single check over the pair would charge the overrun
+        # to whichever class was written first.
+        if superseded is not None and width(overtaken) > allowed >= width(authored):
             raise SupersessionCrowded(
                 task_id,
                 authored=authored,
                 note=superseded,
+                composed=overtaken,
+                limit=allowed,
+                source=grammar.source_of("why_max"),
+            )
+        if recorded_in is not None and width(why) > allowed >= width(overtaken):
+            raise RecordingCrowded(
+                task_id,
+                outcome=overtaken,
+                clause=f"`{recorded_in}` under §{entry.task.ref}",
                 composed=why,
                 limit=allowed,
                 source=grammar.source_of("why_max"),
@@ -2676,6 +2814,7 @@ def _depart(
         refreshed=derived.changed,
         marker=marker,
         superseded=superseded,
+        recorded_in=recorded_in,
         dequeued=dequeued,
         dependents=tuple(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
@@ -2698,6 +2837,17 @@ def _superseding(why: str, anchor: str, superseded: str) -> str:
     subject is a design that no longer exists.
     """
     return _parenthesised(why, f"design §{anchor} superseded: {superseded}")
+
+
+def _recording(why: str, anchor: str, path: str) -> str:
+    """The outcome with the deleted design's new address named inside it (RK1267).
+
+    Derived end to end, which is what separates it from :func:`_superseding`: the anchor is the
+    pointer the line is losing and the path is a file this repository has, so there is no half
+    of this clause the author writes and none of it is prose (L4). Backticked because that is
+    how every other path in a ledger sentence is spelled, and how the gate recognises one.
+    """
+    return _parenthesised(why, f"design §{anchor} recorded in `{path}`")
 
 
 def supersession_cost(anchor: str) -> int:
