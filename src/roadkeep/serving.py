@@ -597,6 +597,10 @@ TOOLS: tuple[Tool, ...] = (
     # because the caller that has to declare a key is the agent this transport is reached from,
     # and the file it would otherwise guess at is the one every other rule here is read out of.
     Tool("config", ("table",)),
+    # And the write beside that read (RK1272), which is the one table an agent could describe
+    # and not touch: `[limits]`, `[budgets]`, `[tools]` and `[claims]` were a hand edit, and
+    # over this transport a hand edit is no edit at all.
+    Tool("govern", ("key", "at", "role", "file")),
     Tool("origin", ("id", "why")),
     Tool("reversals", ("task_id",)),
     # `--prune` writes the registry, so it is withheld exactly as `lint --fix` is (RK16).

@@ -635,6 +635,7 @@
 - ✅ **RK1227** **section amend accepts prose citing an anchor that does not exist, so a docs-only commit turns an adopter's gate red** — section add and section amend resolve every anchor the body cites and refuse ref.dangling with the addresses named, which is the code the gate reports for the same defect.
 - ✅ **RK1259** **adoption writes no deferred store, so the first defer refuses at the moment its reason is already written** — init --deferred scaffolds the store and its key together, so the pause door a project opts into is written by the command that writes every other governed file.
 - ✅ **RK1264** **the scaffold is the only writer of [files], so a project past init cannot declare a role it turns out to want** — A configured project declares a role it turns out to want, getting the file with its block headings and one inserted key, so no retrofit is a hand edit.
+- ✅ **RK1272** **`[limits]`, `[budgets]` and `[markers]` have no verb, so the file governing every write is the ungoverned one** — A verb takes the reading and declares the number in one call, refusing one this corpus already breaks (design §RK1272 recorded in `src/roadkeep/governing.py`).
 
 ## Block F — The Claude Code plugin
 

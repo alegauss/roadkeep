@@ -150,6 +150,11 @@ SITES: tuple[Site, ...] = (
     Site("sections.py:_where_a_top_level_is", "unreached", NO_FIXTURE),
     Site("sections.py:_where_the_anchor_is", "run"),
     Site("serving.py:_rerouted", "unreached", NO_FIXTURE),
+    # RK1272. Both name a read rather than a repair — `config` lists the keys an address was
+    # not among, and `init` is what a tree with no config needs — so what a fixture would have
+    # to build first is a project that has neither, which is the state `init` is *for*.
+    Site("governing.py:NoSuchKey.__init__", "unreached", NO_FIXTURE),
+    Site("governing.py:govern", "unreached", NO_FIXTURE),
     Site("shipping.py:AlreadyRecorded.__init__", "unreached", NO_FIXTURE),
     Site("shipping.py:AlsoPaused.__init__", "unreached", NO_FIXTURE),
     Site("shipping.py:Delivered.__str__", "unreached", NO_FIXTURE),

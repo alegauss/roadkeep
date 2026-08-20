@@ -38,8 +38,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1272** (deps: —) **`[limits]`, `[budgets]` and `[markers]` have no verb, so the file governing every write is the ungoverned one** — A verb declares one, printing the reading it is chosen against first, so a limit is measured where it is typed instead of guessed and lowered later. → §RK1272
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

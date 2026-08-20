@@ -293,7 +293,9 @@ def test_every_write_command_is_either_wired_or_exempted():
     # and `roadkeep.toml`, and the config is the half of that commit a reviewer would miss.
     # 39 since the criteria's three writes (RK1265), each wired for the reason every bullet
     # grammar's are: they write the roadmap and the staging line is what a commit reads.
-    assert len(declared) == 39 and len(wired) == 33
+    # 40 since `govern` (RK1272), wired for `declare`'s reason: the one file it writes is
+    # `roadkeep.toml`, and a number moved there changes what every other write is held to.
+    assert len(declared) == 40 and len(wired) == 34
 
 
 def test_every_wired_write_reaches_the_one_printer():

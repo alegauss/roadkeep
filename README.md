@@ -120,15 +120,15 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 2 | 171 | 2 |
 | C — Query (consult without reading the file) | 2 | 113 | 1 |
 | D — The gate | 0 | 185 | 2 |
-| E — Adoption | 1 | 93 | 1 |
+| E — Adoption | 0 | 94 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 119 | 1 |
 | G — The editor surface (the backlog where the file is open) | 1 | 12 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 6 | 760 | 10 |
+| **Total** | 5 | 761 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1272** (deps: —) **`[limits]`, `[budgets]` and `[markers]` have no verb, so the file governing every write is the ungoverned one** — A verb declares one, printing the reading it is chosen against first, so a limit is measured where it is typed instead of guessed and lowered later. → §RK1272
+- 📋 **RK1274** (deps: —) **a decision is never marked superseded, so the file records that one was made and not that it stopped holding** — A verb supersedes one decision by another, writing the forward pointer and the marker in one call, so the role's one departure exists. → §RK1274
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

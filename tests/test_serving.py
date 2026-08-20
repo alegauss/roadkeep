@@ -280,6 +280,9 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # RK1270. The read whose subject is the config rather than a governed file: the caller
         # that has to declare a key is the agent this transport is reached from.
         "config",
+        # RK1272. And the write beside it, which is the one table an agent could describe and
+        # not touch: the four whose value is a judgement about a number.
+        "govern",
         "origin",
         "reversals",
         "claims",
@@ -1067,6 +1070,9 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         # It writes two files and neither is a read: the role's own, and one key into
         # `roadkeep.toml` (RK1264).
         "declare",
+        # The other write into that file (RK1272), and the one that takes a reading first:
+        # with no value it only reads, which is a call and not a second tool.
+        "govern",
         "status",
         "amend",
         "restate",

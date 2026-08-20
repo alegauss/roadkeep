@@ -94,7 +94,13 @@ characters = 2600
 # `why` note, which is 529 characters of arithmetic no criterion is subject to. That reading is
 # the argument: a tool over budget is a description nobody edited, and this table is what makes
 # somebody look. 61,300, above the widest by 1,460 and a verb and a half at the 970 average.
-session = 61300
+# Re-argued at 63 tools (RK1270, RK1272), and this is the last raise that will read like the
+# four above it: 61,353 here, 61,722 in Shio, 62,061 in Turing — 1.15%, the same spread for the
+# fifth time. What the headroom buys is the two verbs about this file itself: `config` prints
+# what may be declared and `govern` declares it against the reading, which is the pair that
+# makes *this comment* the last of its kind — from here the argument for a number goes in the
+# commit that wrote it, where `govern` says it belongs. 63,500, above the widest by 1,439.
+session = 63500
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

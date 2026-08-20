@@ -178,27 +178,6 @@ which is a different fact from one declared as zero and is said as such.
 
 ## Block E — Adoption
 
-### §RK1272 A verb for the tables only a hand has ever written
-
-`declare` retrofits a role into `[files]` and `priority migrate` moves the queue out of
-the config; every other table is edited by hand. In an agent session that is not a hand
-edit, it is no edit at all — the write path is the served surface, and nothing on it
-writes this file.
-
-The tables worth a verb are the ones whose value is a judgement about a number:
-`[limits]`, `[budgets]`, `[tools]`, `[claims]`. Each already has the read that decides
-it. `budget --file` prints what an every-turn file costs against what it may; `budget
---tools` ranks the served descriptions and prints the room; the P90 of the lines that
-already read well is what put `symptom` at 120. The reading and the number live in
-different places, so the reading happens once and the number is defended in a comment
-afterwards — this project's own `[tools]` entry is four paragraphs of exactly that,
-re-argued three times in one session.
-
-So the verb prints the reading and takes the number in the same call, and refuses one
-the current corpus already violates rather than writing a limit whose first act is a
-finding. It writes the declaration and never the argument for it: why 120 and not 130 is
-prose, and the tool does not write prose.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

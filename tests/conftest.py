@@ -167,6 +167,7 @@ gets told apart from structure, since no scan can do it.
 from __future__ import annotations
 
 import atexit
+import re
 import shutil
 import os
 import subprocess
@@ -713,6 +714,12 @@ def shelled(text: str, engine: str = "") -> list[str]:
     from roadkeep.provenance import invocation
 
     spelled = engine or invocation()
-    return [
-        one for one in text.splitlines() if any(f"{spelled} {verb}" in one for verb in verbs())
+    # The verb has to **end** where the token ends (RK1272): this was a substring match, and
+    # `roadkeep governs` then read as the verb `govern` with an argument — the same sentence
+    # this predicate was written to exempt, failing for a reason that had nothing to do with
+    # it. Latent until a verb was named after a word the prose already used, which is what a
+    # boundary here removes for every verb rather than for the one that met it.
+    wanted = [
+        re.compile(rf"{re.escape(spelled)} {re.escape(verb)}(?![\w-])") for verb in verbs()
     ]
+    return [one for one in text.splitlines() if any(found.search(one) for found in wanted)]

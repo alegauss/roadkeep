@@ -396,6 +396,9 @@ PATH_ARGUMENTS: Mapping[str, Mapping[str, str]] = {
     # `--file` names an every-turn file *of the project* and is resolved against the root,
     # while `--body-file` is a draft the caller is holding and is read the way `cat` reads one.
     "budget": {"file": "project", "body_file": "caller"},
+    # The same `--file` one verb over (RK1272), and the same class: a `[budgets]` entry is
+    # addressed by the path the config declares, which is project-relative by construction.
+    "govern": {"file": "project"},
     "replay": {"path": "caller"},
     "adopt": {"path": "project", "alongside": "project"},
     "install": {"source": "caller"},

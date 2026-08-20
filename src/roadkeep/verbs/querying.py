@@ -747,6 +747,43 @@ def _gaps(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _govern(config: Config, args: argparse.Namespace) -> int:
+    """A governed number, read and then declared in the same call (RK1272).
+
+    The read alone where no value is passed, which is the half that already existed under four
+    other verbs and nowhere near the declaration. Writes and so is not `reads_only`.
+    """
+    from roadkeep.governing import govern, reading  # noqa: PLC0415 - RK260
+
+    try:
+        if args.at is None:
+            found = reading(config, args.key, file=args.file or "", role=args.role or "")
+            print(json.dumps(_reading_json(found), indent=2) if args.json else found.stated())
+            return EXIT_OK
+        written = govern(config, args.key, args.at, file=args.file or "", role=args.role or "")
+    except REFUSALS as error:
+        return _refused(error)
+
+    if args.json:
+        print(json.dumps(written.payload(config), indent=2))
+    else:
+        print(written.stated(config))
+    return EXIT_OK
+
+
+def _reading_json(found) -> dict:
+    """The measurement alone, shaped as the write's own `reading` block is (RK1272)."""
+    return {
+        "address": found.address,
+        "unit": found.unit,
+        "sites": found.sites,
+        "worst": found.worst,
+        "where": found.where,
+        "declared": found.declared,
+        "unmeasured": found.unmeasured or None,
+    }
+
+
 def _config_shape(config: Config, args: argparse.Namespace) -> int:
     """What `roadkeep.toml` may declare, and what this project did (RK1270).
 
@@ -1589,6 +1626,39 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     )
     gaps_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     gaps_parser.set_defaults(handler=_gaps, reads_only=True)
+
+    govern_parser = subcommands.add_parser(
+        "govern",
+        help="declare one number roadkeep.toml governs, against the reading that decides it",
+        description=(
+            "Take the reading and write the number in one call. `[limits]`, `[budgets]`, "
+            "`[tools]` and `[claims]` hold the values that are a judgement about a figure, "
+            "and each already had the read that decides it somewhere else. With no value it "
+            "prints the reading alone. A limit this project already breaks is refused rather "
+            "than written, and the argument for the number is yours: the commit is where "
+            "why this one and not the next belongs."
+        ),
+    )
+    govern_parser.add_argument(
+        "key",
+        help="the address, as `config` prints one — e.g. limits.symptom, tools.session",
+    )
+    govern_parser.add_argument(
+        "at",
+        nargs="?",
+        type=int,
+        help="the number to declare; omitted, the reading is printed and nothing is written",
+    )
+    govern_parser.add_argument(
+        "--role",
+        help="which role's limits, for a `[limits.<role>]` table (default: the shared one)",
+    )
+    govern_parser.add_argument(
+        "--file",
+        help="which every-turn file, for a `[budgets]` entry — the path the config spells",
+    )
+    govern_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    govern_parser.set_defaults(handler=_govern)
 
     config_parser = subcommands.add_parser(
         "config",

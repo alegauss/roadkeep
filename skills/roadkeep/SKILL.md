@@ -22,7 +22,7 @@ tool list rather than typing it: the whole write path and the reads a task needs
 `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_amend`,
 `non_goal_drop`, `criterion_add`, `criterion_amend`, `criterion_drop`, `criterion_list`,
 `section_add`, `section_amend`, `section_move`, `section_drop`, `budget`,
-`brief`, `pick`, `list`, `deps`, `lint`, `config`, `engines`, `merge_check` — same engine and same
+`brief`, `pick`, `list`, `deps`, `lint`, `config`, `govern`, `engines`, `merge_check` — same engine and same
 refusals, with the fields arriving as a schema instead of flag names typed from memory.
 `init`, `adopt` and `install` run *before* a project is governed, or on its wiring, and want
 the CLI — `declare` above is the one write on a configured tree, which is why it is served
@@ -549,7 +549,15 @@ every table, key, TOML type and default this build accepts, with the sentence it
 source already carries and whether *this* project declared it — `--table <name>` for one,
 `--table ""` for the top level. Reach for it before writing a key rather than after the
 refusal, and read the build it names: a key nothing declares is a typo, a key this copy
-predates is an upgrade, and the file cannot tell them apart. Every
+predates is an upgrade, and the file cannot tell them apart. **`govern <address> [<n>]` is
+the write beside it**, and the only one on that file besides `declare`: the four tables whose
+value is a judgement about a number — `[limits]`, `[budgets]`, `[tools]`, `[claims]` — each
+already had the read that decides it somewhere else, so this takes the reading and writes the
+number in one call. With no number it prints the reading alone; `--role` and `--file` name the
+table a project declares per role or per path. A limit this corpus already breaks is
+**refused**, not written, because one whose first act is a finding is one somebody lowers,
+reads the report and raises again. The argument is yours and goes in the commit: the tool
+writes the declaration and never the prose (L4). Every
 verb that prints a section's size states **two** figures where they differ — `48 words,
 310 with subsections (limit 300)` — because the argument is what an `amend` can shorten
 and the subtree is what a reader pays; cutting to the second number cuts prose that was
