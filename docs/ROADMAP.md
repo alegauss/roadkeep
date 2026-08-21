@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1300** (deps: —) **the ship that finishes a block says finished and does not carry the criteria that decide whether it is** — The finished event carries that block's criteria, so the reading RK1265 exists for arrives at the one moment it is owed instead of from a sentence in a skill. → §RK1300
+
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1298** (deps: —) **brief answers with two budget objects that differ in six fields and repeat every other row** — The shipping figures are the pre-write ones with the marker swapped, so the section row and every field row are paid for twice against a ceiling written to fit a tool result. → §RK1298
