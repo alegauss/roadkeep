@@ -120,11 +120,15 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 175 | 2 |
 | C — Query (consult without reading the file) | 0 | 121 | 1 |
 | D — The gate | 0 | 187 | 2 |
-| E — Adoption | 0 | 97 | 1 |
+| E — Adoption | 3 | 97 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 0 | 781 | 10 |
+| **Total** | 3 | 781 | 10 |
+
+**Next ready:**
+
+- 📋 **RK1294** (deps: —) **a re-run stacks the argument it already placed, so the same sentence appears twice above one number** — An argument identical to the one already above the key is not written a second time, and the answer says so instead of reporting a write. → §RK1294
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -83,6 +83,89 @@ already written, not authorship.
 
 ## Block E — Adoption
 
+### §RK1294 RK1294 The same reason, arriving twice
+
+RK1293 made the argument for a governed number something the tool places, and placing it
+twice is what a re-run does. Measured on a scaffold: `govern limits.symptom 100
+--because "First reason."` run twice leaves
+
+```
+# First reason.
+# First reason.
+symptom = 100
+```
+
+and the second answer says `reason   written above the key, in your words` as if
+something new arrived. Stacking is the right rule for a *different* argument — a raise
+is a decision about the previous decision, and this project's own `[tools]` entry is
+five of them written that way by hand. It is the wrong rule for the *same* sentence,
+which is not a second decision but the same one arriving twice: a retried call over a
+transport that dropped the first answer, a `replay` of a capture, or an agent re-running
+a command it is not sure took.
+
+The number is idempotent already — declaring 100 over 100 leaves one row — and the
+argument beside it should be too. What is asked for is the narrow comparison: an
+argument that is byte-for-byte the block already directly above the key is not written
+again, and the answer says the reason already stands rather than claiming a write.
+Anything wider is a judgement about whether two sentences mean the same thing, which is
+a model, and this tool has none (L4).
+
+### §RK1295 RK1295 An answer for a write that did not happen
+
+`Declared.argued` is `bool(because)` and the placing is `_argued(config, because)`,
+which wraps the prose and returns nothing at all when the prose is nothing at all. A
+`--because "   "` therefore reports
+
+```
+  reason   written above the key, in your words
+```
+
+over a file that gained no comment. Reproduced on a scaffold: `govern claims.held 90
+--because "   "` prints that line and leaves `[claims]` exactly as it was.
+
+Small, and the class is not. Every answer here is a statement about what the file now
+holds — `stage` names what to add, `removed` names a line that is gone, `decided` names
+a row that arrived — and a caller that cannot see the file is the caller this transport
+is reached from. An answer that reports a write which did not happen is the one defect
+this project cannot let stand anywhere, because the answer *is* the contract: an agent
+that reads "written above the key" has no reason to look, and the number keeps standing
+with nothing beside it while the session that declared it believes otherwise.
+
+The fix is one expression — the field says whether comment lines were placed, not
+whether an argument was passed — and what it buys is the other branch firing: the
+`--because` sentence naming the flag, on the call that tried to use it and gave it
+nothing to place.
+
+### §RK1296 RK1296 A reason kept where nothing hands it back
+
+RK1293 moved the argument for a governed number out of the commit body and into the file
+this tool owns, on the reasoning that a commit body composed by a tool this project does
+not own is a place the argument cannot be kept. It is kept there now, and the read that
+asks about the number does not return it. Measured here, immediately after declaring
+one:
+
+```
+$ roadkeep govern reads.brief
+reads.brief  utf-16 code units, per brief
+  reading  none — no open line to brief …
+  declared 3300
+```
+
+Directly above `brief = 3300` sit the four lines this session wrote arguing for exactly
+that number, and neither answer carries a byte of them. The agent asking why the ceiling
+is 3300 is told "3300", and the only way to the reason is opening the config — the read
+L5 exists to replace, on the one file every other rule is read out of.
+
+`Measured` should carry the argument standing above the key, the way it already carries
+what the corpus says and what the project declares: the contiguous comment block
+directly above the row, verbatim and unwrapped, absent where there is none. Then
+`stated()` prints it under the reading and `--json` carries it as a field, and a raise
+is argued against the argument it replaces rather than against a number with no history.
+
+Two things it is not: a rewrite of the comment, `--because` being the only writer; and
+an interpretation of what the comment means. What comes back is the lines that are
+there.
+
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)
