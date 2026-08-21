@@ -83,32 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1295 RK1295 An answer for a write that did not happen
-
-`Declared.argued` is `bool(because)` and the placing is `_argued(config, because)`,
-which wraps the prose and returns nothing at all when the prose is nothing at all. A
-`--because "   "` therefore reports
-
-```
-  reason   written above the key, in your words
-```
-
-over a file that gained no comment. Reproduced on a scaffold: `govern claims.held 90
---because "   "` prints that line and leaves `[claims]` exactly as it was.
-
-Small, and the class is not. Every answer here is a statement about what the file now
-holds — `stage` names what to add, `removed` names a line that is gone, `decided` names
-a row that arrived — and a caller that cannot see the file is the caller this transport
-is reached from. An answer that reports a write which did not happen is the one defect
-this project cannot let stand anywhere, because the answer *is* the contract: an agent
-that reads "written above the key" has no reason to look, and the number keeps standing
-with nothing beside it while the session that declared it believes otherwise.
-
-The fix is one expression — the field says whether comment lines were placed, not
-whether an argument was passed — and what it buys is the other branch firing: the
-`--because` sentence naming the flag, on the call that tried to use it and gave it
-nothing to place.
-
 ### §RK1296 RK1296 A reason kept where nothing hands it back
 
 RK1293 moved the argument for a governed number out of the commit body and into the file

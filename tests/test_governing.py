@@ -481,3 +481,19 @@ def test_the_payload_tells_a_placed_argument_from_one_already_standing(tmp_path,
 
     assert main(argv) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["standing"] is True
+
+
+def test_an_argument_that_wrapped_to_nothing_is_not_reported_as_written(tmp_path):
+    """Every answer here is a statement about what the file now holds, and the caller this
+    transport is reached from cannot open the file to check one (RK1295). So the field is read
+    off the comment lines and never off the flag: `--because "   "` placed nothing, and the
+    branch that fires is the one naming the flag that writes one."""
+    config = project(tmp_path)
+    declared = governing.govern(config, "limits.symptom", 90, because="   ")
+
+    assert declared.argued is False
+    assert "--because" in declared.stated(Config.discover(tmp_path))
+    after = written(Config.discover(tmp_path))
+    assert "symptom = 90" in after
+    # And the file gained no empty comment either — nothing was placed at all.
+    assert "#\n" not in after

@@ -151,10 +151,11 @@ class Declared:
     lineno: int
     #: What it said before, or `None` where the key is new.
     before: int | None = None
-    #: Whether the author's argument was written above the key (RK1293). A field because the
+    #: Whether an argument stands above the key after this call (RK1293). A field because the
     #: answer says which of the two happened: the reason is theirs either way, and where none
     #: arrived the line saying so is the one thing that keeps the number from being a figure
-    #: nobody can date.
+    #: nobody can date. Read off the **lines** and never off the flag (RK1295) — a `--because`
+    #: that wrapped to nothing placed nothing, and the caller cannot see the file to tell.
     argued: bool = False
     #: Whether that argument was **already** the one above the key, so this call wrote none
     #: (RK1294). The number is idempotent and the reason beside it is too: a retried call, a
@@ -555,9 +556,11 @@ def govern(
         )
     table, key = _addressed(config, address)
     written = _spelled(table, key, file=file, role=role)
-    text, lineno, before, stands = _inserted(
-        config.source, written, at, _argued(config, because)
-    )
+    # The lines, not the flag: an argument that wrapped to nothing placed nothing, and an
+    # answer reporting a write that did not happen is the one thing no read here may do
+    # (RK1295) — the caller this transport is reached from cannot see the file to tell.
+    argument = _argued(config, because)
+    text, lineno, before, stands = _inserted(config.source, written, at, argument)
     config.source.write_text(text, encoding="utf-8", newline="")
     return Declared(
         address=address,
@@ -565,7 +568,7 @@ def govern(
         measured=measured,
         lineno=lineno,
         before=before,
-        argued=bool(because),
+        argued=bool(argument),
         standing=stands,
     )
 

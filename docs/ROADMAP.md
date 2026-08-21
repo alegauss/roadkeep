@@ -32,7 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1295** (deps: —) **an argument that is only whitespace is reported as written above the key and is not** — The answer says an argument was placed when comment lines were placed, so a call that gave the flag nothing to write is told which flag writes one. → §RK1295
 - 📋 **RK1296** (deps: —) **the argument a number carries is kept in the file and never returned by the read that asks about the number** — The reading carries the argument standing above the key, so why a number is what it is costs a command and not a file to open. → §RK1296
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

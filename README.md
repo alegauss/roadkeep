@@ -120,15 +120,15 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 175 | 2 |
 | C — Query (consult without reading the file) | 0 | 121 | 1 |
 | D — The gate | 0 | 187 | 2 |
-| E — Adoption | 2 | 98 | 1 |
+| E — Adoption | 1 | 99 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 2 | 782 | 10 |
+| **Total** | 1 | 783 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1295** (deps: —) **an argument that is only whitespace is reported as written above the key and is not** — The answer says an argument was placed when comment lines were placed, so a call that gave the flag nothing to write is told which flag writes one. → §RK1295
+- 📋 **RK1296** (deps: —) **the argument a number carries is kept in the file and never returned by the read that asks about the number** — The reading carries the argument standing above the key, so why a number is what it is costs a command and not a file to open. → §RK1296
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
