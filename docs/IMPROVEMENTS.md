@@ -83,6 +83,29 @@ already written, not authorship.
 
 ## Block E — Adoption
 
+### §RK1293 A decision the workflow cannot keep
+
+`docs/DECISIONS.md` records that the argument for a limit goes in the commit that wrote
+it, never in a comment beside the number. The first limit declared under that rule is
+`[reads] brief = 3300`, and the commit that wrote it says nothing about the number at
+all — not the reading it was taken against, not why 3300 and not 2700.
+
+The decision is not being disobeyed. It is unkeepable here: the commit body is composed
+by a tool this repository does not own, from the diff, and a diff shows a number
+changing and never the argument for it. What the author controls is the title.
+
+Which makes the rule worse than the practice it replaced. `[tools]` carries five
+paragraphs of re-argument and every one of them is still readable; `[reads]` carries a
+number whose whole justification exists in one session's scrollback.
+
+The argument has to live somewhere this tool owns, and it already has the shape: an id,
+a marker, one falsifiable claim and a reason, in a file nothing deletes. A limit
+declared against a reading *is* a decision, and `govern` is one call away from filing it
+as one.
+
+Which leaves the recorded decision wrong rather than unimplemented — and there is a verb
+for that now, which is the half this task must not skip.
+
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)
