@@ -28,7 +28,11 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1288** (deps: —) **a line whose brief will not compose is dropped from the ranking in silence, and the widest may be it** — A brief the read cannot compose is named rather than dropped, so the widest is never one that went unmeasured. → §RK1288
+
 ## Block D — The gate
+
+- 📋 **RK1287** (deps: —) **the gate composes one brief per open line, so a project that declared a ceiling pays it on every commit** — The gate prices briefs at a cost that does not scale with the backlog, or says what it sampled. → §RK1287
 
 ## Block E — Adoption
 
