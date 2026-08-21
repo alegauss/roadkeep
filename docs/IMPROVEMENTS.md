@@ -79,6 +79,29 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1297 A pick nobody here can execute
+
+In the portal's backlog, `pick` answered PP18 five calls running. What is left of it
+needs a DualSense on the desk; PP93 needs a PS4 and a PS5 to measure against each other.
+Both are ready by every fact the file holds — nothing blocks them, and nothing that
+could ship would. The caller worked around it in silence five times — the failure this
+tool exists to prevent, an impossibility kept in a head because the format has nowhere
+to write it.
+
+Three states already say *do not offer this*, and all three are facts about the work:
+`BLOCKED` waits on a task, `OUTSIDE` on work this backlog does not track, `PAUSED` on a
+decision. This one is a fact about **who is executing and where** — the person at the
+desk and the agent in the checkout read one file and cannot have one answer, and every
+tier is a pure function of it.
+
+RK83 is this argument one axis over: ready and implementable were told apart by a token
+the markers already carried, a flag that narrows what may be offered and never what is
+true, and a count of what it set aside. The same three fit here — a requirement token on
+the line, a vocabulary `roadkeep.toml` declares (L6), and what this checkout has.
+
+`defer` is the only door today and it is the wrong one: a pause is symmetric, so the
+line leaves for the person who could have finished it.
+
 ## Block D — The gate
 
 ## Block E — Adoption

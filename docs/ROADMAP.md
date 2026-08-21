@@ -28,6 +28,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1297** (deps: —) **a line no caller in this checkout can execute reads as ready, so `pick` offers it again every call** — Readiness is a fact about the work and this one is about who is executing, so nothing in the file can hold it and every caller pays the same dead end. → §RK1297
+
 ## Block D — The gate
 
 ## Block E — Adoption
