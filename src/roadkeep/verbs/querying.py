@@ -664,11 +664,18 @@ def _brief_budget(config: Config, args: argparse.Namespace) -> int:
             f"`{invocation()} list` says what the backlog holds"
         )
         return EXIT_OK
+    # The verdict says what it was taken over (RK1292). `0 over` beside a listing that names
+    # a line nobody could measure is a claim the ranking is not entitled to: the widest is
+    # the bound, and an unmeasured line is the shape most likely to be it. The gate has no
+    # such problem — there the absence is its own finding and the exit code is 1 either way —
+    # and here one string carried both the count and the confidence. Silent where nothing
+    # went unmeasured, which keeps the ordinary answer exactly as short as it was.
+    qualified = f", {len(found.unpriced)} unpriced" if found.unpriced else ""
     ceiling = (
         "no [reads] brief — this project declares no ceiling for the read that replaces "
         "reading the file"
         if found.limit is None
-        else f"{found.limit} allowed, {len(found.over)} over"
+        else f"{found.limit} allowed, {len(found.over)} over{qualified}"
     )
     rows = [f"{len(found.briefs)} brief(s), widest first, in {CHARACTER_UNIT}: {ceiling}"]
     for one in found.briefs:

@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1292** (deps: —) **the header says nothing is over the ceiling while the listing under it names a line nobody could measure** — A count of what exceeds a ceiling says what it was taken over, so a verdict never covers a line nobody measured. → §RK1292
-
 ## Block D — The gate
 
 ## Block E — Adoption

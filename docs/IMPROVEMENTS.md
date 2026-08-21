@@ -79,28 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1292 A verdict wider than the reading behind it
-
-The header states a verdict the ranking is not entitled to. `3300 allowed, 0 over` is
-printed beside a listing that just said one line could not be measured — so the count of
-what exceeds the ceiling is taken over the lines that answered, and reported as though
-it were taken over the backlog.
-
-That is RK1288's finding at the printer. The reading learnt to name what it could not
-compose, on the argument that the widest is the bound and an unmeasured line is the
-shape most likely to be it; the sentence above the listing kept counting as if nothing
-had been left out. A reader who trusts `0 over` and stops there has been told the
-ceiling holds by a report whose own next line says it does not know.
-
-The gate does not have this problem, and the difference is instructive: there the
-absence is `read.unpriced`, its own finding, and the exit code is 1 either way. Here one
-string carries both the count and the confidence, and only the count was corrected.
-
-What the header owes is the qualification, not a different number. `0 over, 1 unpriced`
-is the same arithmetic with the claim narrowed to what it covers — and where nothing
-went unmeasured it reads exactly as it does today, which is the property that keeps the
-ordinary answer short.
-
 ## Block D — The gate
 
 ## Block E — Adoption

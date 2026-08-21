@@ -2884,3 +2884,27 @@ def test_an_open_line_named_is_still_priced(tmp_path):
     found = brief_budget(_reading(tmp_path), "RK1")
     assert [one.id for one in found.briefs] == ["RK1"]
     assert found.unpriced == ()
+
+
+def test_the_verdict_says_what_it_was_taken_over(tmp_path, capsys):
+    """RK1292. `0 over` beside a listing naming a line nobody could measure is a claim the
+    ranking is not entitled to — the widest is the bound, and an unmeasured line is the shape
+    most likely to be it. RK1288's finding at the printer: the reading learnt to name what it
+    could not compose and the sentence above the listing kept counting as if it had not."""
+    from roadkeep.shipping import ship
+
+    config = _reading(tmp_path, ceiling=9000)
+    ship(config, "RK1", why="It works now.").save()
+    assert main(["-C", str(config.root), "budget", "--brief", "RK1"]) == EXIT_OK
+    said = capsys.readouterr().out
+
+    assert "0 over, 1 unpriced" in said
+
+
+def test_an_answer_that_measured_everything_reads_as_it_always_did(tmp_path, capsys):
+    # Silent where nothing went unmeasured, which is what keeps the ordinary answer short.
+    _reading(tmp_path, ceiling=9000)
+    assert main(["-C", str(tmp_path), "budget", "--brief"]) == EXIT_OK
+    said = capsys.readouterr().out
+
+    assert "0 over" in said and "unpriced" not in said
