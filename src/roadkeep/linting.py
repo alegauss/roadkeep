@@ -1375,6 +1375,20 @@ def _reads(config: Config) -> tuple[list[Finding], list[Note]]:
         )
         for one in found.over
     ]
+    # A line the ranking could not measure is the one most likely to have been the widest
+    # (RK1288), so its absence is a finding and not a note: `read.over` is derived from this
+    # ranking, and a project can be over its ceiling on a line nothing reported.
+    out += [
+        Finding(
+            "read.unpriced",
+            where,
+            f"{one.id}'s brief would not compose, so it is not in the ranking `[reads] "
+            f"brief` is held against: {one.because} — the widest is the bound, and a line "
+            f"this read could not measure is the shape most likely to be it",
+            subject=one.id,
+        )
+        for one in found.unpriced
+    ]
     notes = (
         [
             Note(

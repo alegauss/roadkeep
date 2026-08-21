@@ -663,6 +663,10 @@ def _brief_budget(config: Config, args: argparse.Namespace) -> int:
     for one in found.briefs:
         room = "" if found.limit is None else f"  {found.limit - one.characters:+d}"
         rows.append(f"  {one.id:<10} {one.characters}{room}")
+    # Named under the ranking (RK1288): a line the read could not compose is the one most
+    # likely to have been the widest, so the top of the rest is not the answer while it is
+    # unaccounted for — and what refused it is the tool's own sentence, not one composed here.
+    rows += [f"  {one.id:<10} unpriced — {one.because}" for one in found.unpriced]
     print("\n".join(rows))
     return EXIT_OK
 

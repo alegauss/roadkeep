@@ -1330,6 +1330,16 @@ class Briefed:
 
 
 @dataclass(frozen=True, slots=True)
+class Unpriced:
+    """One line whose brief would not compose, and what refused it (RK1288)."""
+
+    id: str
+    #: The tool's own answer, verbatim: what each unmeasured line was refused for is a
+    #: sentence some module already wrote, so naming it costs a row and not a decision.
+    because: str
+
+
+@dataclass(frozen=True, slots=True)
 class Reads:
     """Every open line's brief, widest first, against what one may cost (RK1286).
 
@@ -1345,6 +1355,13 @@ class Reads:
     """
 
     briefs: tuple[Briefed, ...] = ()
+    #: The lines whose briefs would not compose (RK1288). Dropped by a bare `continue`
+    #: before, which made the one number this read exists for wrong in the direction that
+    #: matters: the widest is the bound, and a line that could not be composed is exactly the
+    #: shape most likely to be it — so the ranking named the top of the rest and called it
+    #: the answer. No silent caps, and the gate inherits that: `read.over` is derived from
+    #: this ranking, so a project could be over its ceiling on a line nothing reported.
+    unpriced: tuple[Unpriced, ...] = ()
     #: How many open lines this reading did **not** price (RK1287). Above zero only on the
     #: gate's bounded read, and never a silence: a listing that omits without saying so reads
     #: as one that covered everything, which is the law this project holds about every capped
@@ -1397,22 +1414,31 @@ def brief_budget(
     elif offered:
         chosen = pick(config)
         named = [one.task.id for one in (chosen.entry,) if one is not None]
-        wanted = [*named, *chosen.alternatives]
+        # And the lines a live claim kept out of that ranking: a held line is one somebody is
+        # working on, which is the strongest evidence there is that its brief gets asked for.
+        # Without them a session holding the only open line priced nothing and said `0 of 1`,
+        # which reads as a check doing nothing rather than as one that had nothing to do.
+        held = [one.id for one in chosen.held]
+        wanted = list(dict.fromkeys([*named, *chosen.alternatives, *held]))
         elided = max(0, len(every) - len(wanted))
     else:
         wanted, elided = every, 0
     out: list[Briefed] = []
+    refused: list[Unpriced] = []
     for one in wanted:
         try:
             out.append(Briefed(id=one, characters=width(brief(config, one).stated(config))))
-        except (NothingToBrief, KeyError, OSError):
-            # An id no line carries is not this read's to refuse: it is asked about the
-            # backlog, and a caller naming a shipped task is answered by `show`.
-            continue
+        except (NothingToBrief, KeyError, OSError) as error:
+            # Named and never dropped (RK1288). An id no line carries is still not this
+            # read's to *refuse* — it is asked about the backlog, and a caller naming a
+            # shipped task is answered by `show` — but a line the ranking could not measure
+            # is the one most likely to have been the widest, so its absence is the answer.
+            refused.append(Unpriced(id=one, because=str(error) or type(error).__name__))
     return Reads(
         briefs=tuple(sorted(out, key=lambda one: one.characters, reverse=True)),
         limit=config.brief_read,
         elided=elided,
+        unpriced=tuple(refused),
     )
 
 

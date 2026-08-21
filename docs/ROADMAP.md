@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1288** (deps: —) **a line whose brief will not compose is dropped from the ranking in silence, and the widest may be it** — A brief the read cannot compose is named rather than dropped, so the widest is never one that went unmeasured. → §RK1288
-
 ## Block D — The gate
 
 ## Block E — Adoption

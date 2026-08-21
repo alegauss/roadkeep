@@ -1298,6 +1298,14 @@ _TABLE: Mapping[str, _Rule] = {
         "the counted bytes are the commit's and this checkout pays more; this prints both "
         "beside the ceiling, and lowering it is a line in roadkeep.toml",
     ),
+    # RK1288. `{id}` is the line the ranking could not measure, and the door is the read that
+    # tries it alone: the whole answer is what refused it, which that call prints beside the
+    # ranking rather than as one row inside a report about eight other things.
+    "read.unpriced": _read(
+        ("budget", "--brief", "{id}"),
+        "the ranking could not compose this brief, so the widest is unaccounted for; this "
+        "asks for that one and prints what refused it",
+    ),
     # RK1287. A note and not a defect: the gate priced what a session is about to brief and
     # says how many it left out, which is `deps.collective`'s shape — the door is the read
     # that answers the whole question, and there is nothing here to repair.

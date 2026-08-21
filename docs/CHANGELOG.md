@@ -356,6 +356,7 @@
 - ✅ **RK1278** **the config shape prints the default beside a key the project set, so the number shown is not the one in use** — The shape says what this project declared beside what this build defaults to, so a set key states its value.
 - ✅ **RK1282** **the shape prints one declared value for a table the project declared several times, and says nothing about the rest** — A table declared at several addresses reports how many, so one of them is never printed as the value.
 - ✅ **RK1286** **the read that exists to fit in a tool result is the one thing here with no budget, and it grew four rows** — A brief is measured in the unit a tool result is paid in, and `[reads] brief` is the ceiling the gate holds (design §RK1286 recorded in `src/roadkeep/budgeting.py`).
+- ✅ **RK1288** **a line whose brief will not compose is dropped from the ranking in silence, and the widest may be it** — A brief the ranking cannot compose is named, so the widest is never one that went unmeasured.
 
 ## Block D — The gate
 

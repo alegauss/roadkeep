@@ -79,29 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1288 What the ranking left out
-
-The ranking drops what it cannot compose and says nothing. A line whose brief raises — a
-pointer into a prose file that will not open, a graph the resolver refuses — is skipped
-by a bare `continue`, and the answer comes back as though that line had been measured
-and came in under the rest.
-
-Which makes the one number this read exists for wrong in the one direction that matters.
-The widest is the bound; a line that could not be composed is exactly the shape most
-likely to be the widest, and the report ranks the others and calls the top of them the
-answer.
-
-This project has a law about that and it is not a preference: no silent caps. Where a
-read bounds coverage — top-N, no-retry, sampling — it says what it dropped, because a
-listing that omits in silence reads as one that covered everything. The gate inherits
-it: `read.over` is derived from this ranking, so a project can be over its ceiling on a
-line nothing reports.
-
-The absence is the finding. What each unmeasured line was refused for is the tool's own
-answer already — the exception carries it — so naming them costs a row and not a
-decision, and whether that row is a second code or a note beside the ranking is what the
-design has to choose.
-
 ## Block D — The gate
 
 ## Block E — Adoption

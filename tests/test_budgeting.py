@@ -2742,3 +2742,50 @@ def test_a_backlog_with_nothing_open_is_answered_and_not_refused(tmp_path, capsy
     project(tmp_path, roadmap="# Roadmap\n\n## Block A — The model\n")
     assert main(["-C", str(tmp_path), "budget", "--brief"]) == EXIT_OK
     assert "nothing to price" in capsys.readouterr().out
+
+
+def test_a_brief_the_read_cannot_compose_is_named_and_never_dropped(tmp_path, monkeypatch):
+    """RK1288. A bare `continue` made the one number this read exists for wrong in the
+    direction that matters: the widest is the bound, and a line that could not be composed is
+    exactly the shape most likely to be it — so the ranking named the top of the rest."""
+    import roadkeep.briefing as briefing
+    from roadkeep.budgeting import brief_budget
+
+    config = _reading(tmp_path)
+    assert brief_budget(config).unpriced == (), "the fixture composes both"
+
+    # Provoked at the composer, which is the seam a real refusal arrives through: a pointer
+    # into prose this project does not have, or a graph the resolver declines.
+    real = briefing.brief
+
+    def refusing(config, task_id=None, **rest):
+        if task_id == "RK2":
+            raise KeyError("RK2 points at prose this project does not have")
+        return real(config, task_id, **rest)
+
+    monkeypatch.setattr(briefing, "brief", refusing)
+    found = brief_budget(config)
+
+    assert {one.id for one in found.briefs} == {"RK1"}
+    assert [one.id for one in found.unpriced] == ["RK2"]
+    # The tool's own sentence and not one composed here: naming it costs a row, not a decision.
+    assert "prose this project does not have" in found.unpriced[0].because
+
+
+def test_the_gate_reports_the_line_it_could_not_measure(tmp_path, monkeypatch):
+    # `read.over` is derived from this ranking, so a project can be over its ceiling on a line
+    # nothing reports — which makes the absence a finding rather than a note.
+    import roadkeep.briefing as briefing
+
+    config = _reading(tmp_path, ceiling=9000)
+    monkeypatch.setattr(
+        briefing,
+        "brief",
+        lambda *a, **k: (_ for _ in ()).throw(KeyError("nothing composes")),
+    )
+    report = lint(config)
+
+    unpriced = [one for one in report.findings if one.code == "read.unpriced"]
+    assert unpriced, [str(one) for one in report.findings]
+    assert "would not compose" in unpriced[0].message
+    assert "nothing composes" in unpriced[0].message

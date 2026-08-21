@@ -171,6 +171,9 @@ PREVENTION: tuple[Prevented, ...] = (
     # call from the line, its design and four allowances, so there is no moment of writing
     # for L1 to refuse at — what grew it is a row added to the answer, somewhere else.
     Prevented("read.over", "gate", because=SURFACE),
+    # RK1288. The absence beside it, and `SURFACE` for the same reason: what refused the
+    # brief is a fact about the answer being composed, not about any line a write put there.
+    Prevented("read.unpriced", "gate", because=SURFACE),
     # RK1106. `LATER` and not `HAND`: the write that put the citation in was right when it ran,
     # and what made it dangle is a `ship` or a `section drop` somewhere else — which those two
     # verbs do report, at the moment they create it. This is the backstop for the caller who
