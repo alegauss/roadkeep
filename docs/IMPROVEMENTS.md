@@ -101,6 +101,26 @@ what goes is the repetition.
 
 ## Block D — The gate
 
+### §RK1299 One row per fact, not one per line
+
+Measured on winwright the moment its first block finished. `lint --json` on a clean
+tree: 25,823 characters, 0 problems, 42 notes. Every note is `deps.collective`, and
+between them they state six facts - Block A names 2 open tasks, Block C 8, Block D 10,
+Block E 14, Block G 7, Block K 19. A line depending on three blocks contributes three
+rows, and eleven lines depending on Block G contribute the same sentence eleven times.
+Each row also carries a `remedy` object whose `what` is the same 78 characters every
+time, and whose `argv` differs only in the id.
+
+The text form of the same run is 5,149 characters, so the payload a tool result actually
+reads is five times the one a terminal gets, for a verdict of `clean`. RK1286 gave
+`brief` a ceiling because it is the read that replaces reading the file; the gate runs
+at the end of every turn, which is more often, and has none.
+
+RK1165 already settled the shape of the answer for `gaps`: a run of rows saying one
+thing becomes one row with its count. Here that is one row per block naming the
+expansion once, with the lines that depend on it listed, and the remedy prose stated
+once for the class rather than per row.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
