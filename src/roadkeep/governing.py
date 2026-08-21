@@ -151,6 +151,11 @@ class Declared:
     lineno: int
     #: What it said before, or `None` where the key is new.
     before: int | None = None
+    #: Whether the author's argument was written above the key (RK1293). A field because the
+    #: answer says which of the two happened: the reason is theirs either way, and where none
+    #: arrived the line saying so is the one thing that keeps the number from being a figure
+    #: nobody can date.
+    argued: bool = False
 
     def stated(self, config: Config) -> str:
         where = config.relative(config.source) if config.source else "roadkeep.toml"
@@ -159,9 +164,14 @@ class Declared:
             [
                 f"{where}:{self.lineno}  {self.address} = {self.at}{was}",
                 self.measured.stated(standing=False),
-                # The one thing this does not write, said so the author knows it is theirs:
-                # why this number and not the next one is prose, and the tool writes none (L4).
-                "  reason   yours — the commit is where why this number belongs",
+                # The prose is the author's and the placing is this verb's (RK1293). Said
+                # either way, because a number with no argument beside it is one nobody can
+                # date — and the rule that sent it to the commit was unkeepable here, the
+                # commit body being composed by a tool this project does not own.
+                "  reason   written above the key, in your words"
+                if self.argued
+                else "  reason   none — `--because \"…\"` writes yours above the key, and a "
+                "number with none is one nobody can date",
                 # And the file, which is the half a reviewer would otherwise miss (RK298,
                 # RK1130): a number moved in `roadkeep.toml` changes what every write is held
                 # to, and it is the one file a commit about a limit is really about.
@@ -176,6 +186,7 @@ class Declared:
             "was": self.before,
             "file": config.relative(config.source) if config.source else None,
             "line": self.lineno,
+            "argued": self.argued,
             "reading": {
                 "unit": self.measured.unit,
                 "sites": self.measured.sites,
@@ -490,7 +501,13 @@ def _reads(config: Config, address: str, declared: int | None) -> Measured:
 
 
 def govern(
-    config: Config, address: str, at: int, *, file: str = "", role: str = ""
+    config: Config,
+    address: str,
+    at: int,
+    *,
+    file: str = "",
+    role: str = "",
+    because: str = "",
 ) -> Declared:
     """Declare one governed number, against the reading that decides it (RK1272).
 
@@ -516,10 +533,15 @@ def govern(
         )
     table, key = _addressed(config, address)
     written = _spelled(table, key, file=file, role=role)
-    text, lineno, before = _inserted(config.source, written, at)
+    text, lineno, before = _inserted(config.source, written, at, _argued(config, because))
     config.source.write_text(text, encoding="utf-8", newline="")
     return Declared(
-        address=address, at=at, measured=measured, lineno=lineno, before=before
+        address=address,
+        at=at,
+        measured=measured,
+        lineno=lineno,
+        before=before,
+        argued=bool(because),
     )
 
 
@@ -542,7 +564,7 @@ def _spelled(table: str, key: str, *, file: str, role: str) -> tuple[str, str, s
 
 
 def _inserted(
-    source: Path, written: tuple[str, str, str], at: int
+    source: Path, written: tuple[str, str, str], at: int, because: tuple[str, ...] = ()
 ) -> tuple[str, int, int | None]:
     """The config with one key set, byte for byte otherwise (`adopting._with_role`'s rule).
 
@@ -554,6 +576,10 @@ def _inserted(
     number is a file `tomllib` reads one way and a reader reads the other. Where the value is
     an inline table the *other* unit inside it is carried across, for the same reason — a
     `bytes` declared last year is not something a `lines` call decided to drop.
+
+    The author's argument lands **above** the row wherever the row lands, and **stacks** on
+    whatever argued the number before it (RK1293): a raise is a decision about the previous
+    decision, and this project's own `[tools]` entry is five of them written that way by hand.
     """
     heading, key, unit = written
     text = source.read_text(encoding="utf-8")
@@ -571,16 +597,21 @@ def _inserted(
             if _named(stripped) == key.strip('"'):
                 before = _number(stripped, unit)
                 lines[index] = _row(key, at, unit, standing=stripped)
-                return "".join(lines), index + 1, before
+                lines[index:index] = because
+                return "".join(lines), index + len(because) + 1, before
     row = _row(key, at, unit)
     if table is None:
         # The table is opened where the key is written, which is `criterion add`'s rule about a
         # heading: a project that never declared one has no place for the first number, and a
         # verb that refused would send the author to the hand edit this exists to end.
-        opened = _opened(lines, heading, row)
+        opened = _opened(lines, heading, row, because)
         return "".join(opened), len(opened), None
     into = (last if last is not None else table) + 1
-    return "".join([*lines[:into], row, *lines[into:]]), into + 1, None
+    return (
+        "".join([*lines[:into], *because, row, *lines[into:]]),
+        into + len(because) + 1,
+        None,
+    )
 
 
 def _row(key: str, at: int, unit: str = "", standing: str = "") -> str:
@@ -616,9 +647,39 @@ def _number(line: str, unit: str = "") -> int | None:
     return int(found.group()) if found else None
 
 
-def _opened(lines: list[str], heading: str, row: str) -> list[str]:
+def _opened(
+    lines: list[str], heading: str, row: str, because: tuple[str, ...] = ()
+) -> list[str]:
     """The file with a new table appended, separated by one blank line and no more."""
     end = len(lines)
     while end > 0 and not lines[end - 1].strip():
         end -= 1
-    return [*lines[:end], "\n", f"{heading}\n", row]
+    return [*lines[:end], "\n", f"{heading}\n", *because, row]
+
+
+def _argued(config: Config, because: str) -> tuple[str, ...]:
+    """The author's argument as comment lines, filled to this project's own width (RK1293).
+
+    Filled and never one long line, because the file it lands in is read by a person and every
+    comment already in it wraps. The width is the project's `[limits] prose` — the one number
+    here about how wide written prose is — so a config whose author chose 72 gets 72 rather
+    than a column this module picked.
+
+    The prose is the author's verbatim (L4). What this composes is the `#` and the wrapping,
+    which is the same split every field of every write here already takes.
+    """
+    if not because:
+        return ()
+    import textwrap  # noqa: PLC0415 - RK260
+
+    return tuple(
+        f"{line}\n"
+        for line in textwrap.wrap(
+            " ".join(because.split()),
+            width=config.schema.prose_width,
+            initial_indent="# ",
+            subsequent_indent="# ",
+            break_long_words=False,
+            break_on_hyphens=False,
+        )
+    )

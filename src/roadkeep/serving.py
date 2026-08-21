@@ -607,7 +607,10 @@ TOOLS: tuple[Tool, ...] = (
     # And the write beside that read (RK1272), which is the one table an agent could describe
     # and not touch: `[limits]`, `[budgets]`, `[tools]` and `[claims]` were a hand edit, and
     # over this transport a hand edit is no edit at all.
-    Tool("govern", ("key", "at", "role", "file")),
+    # `--because` is served for that same reason and no weaker one (RK1293): the argument for a
+    # number was ruled into the commit body, which on this transport is composed by a tool this
+    # project does not own — so withholding it is deciding the agent's numbers carry no reason.
+    Tool("govern", ("key", "at", "role", "file", "because")),
     Tool("origin", ("id", "why")),
     Tool("reversals", ("task_id",)),
     # `--prune` writes the registry, so it is withheld exactly as `lint --fix` is (RK16).

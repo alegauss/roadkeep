@@ -834,7 +834,14 @@ def _govern(config: Config, args: argparse.Namespace) -> int:
             found = reading(config, args.key, file=args.file or "", role=args.role or "")
             print(json.dumps(_reading_json(found), indent=2) if args.json else found.stated())
             return EXIT_OK
-        written = govern(config, args.key, args.at, file=args.file or "", role=args.role or "")
+        written = govern(
+            config,
+            args.key,
+            args.at,
+            file=args.file or "",
+            role=args.role or "",
+            because=args.because or "",
+        )
     except REFUSALS as error:
         return _refused(error)
 
@@ -1715,8 +1722,8 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
             "`[tools]` and `[claims]` hold the values that are a judgement about a figure, "
             "and each already had the read that decides it somewhere else. With no value it "
             "prints the reading alone. A limit this project already breaks is refused rather "
-            "than written, and the argument for the number is yours: the commit is where "
-            "why this one and not the next belongs."
+            "than written. Why this number and not the next is yours to write and this "
+            "verb's to place: `--because` puts your sentence above the key."
         ),
     )
     govern_parser.add_argument(
@@ -1736,6 +1743,11 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     govern_parser.add_argument(
         "--file",
         help="which every-turn file, for a `[budgets]` entry — the path the config spells",
+    )
+    govern_parser.add_argument(
+        "--because",
+        default="",
+        help="your argument for this number, wrapped into comments above the key",
     )
     govern_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     govern_parser.set_defaults(handler=_govern)

@@ -120,15 +120,11 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 175 | 2 |
 | C — Query (consult without reading the file) | 0 | 121 | 1 |
 | D — The gate | 0 | 187 | 2 |
-| E — Adoption | 1 | 96 | 1 |
+| E — Adoption | 0 | 97 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 1 | 780 | 10 |
-
-**Next ready:**
-
-- 📋 **RK1293** (deps: —) **the argument for a limit is ruled into the commit body, which a tool this project does not own composes** — The argument for a governed number is filed where this tool can keep it, and the decision that said otherwise is superseded. → §RK1293
+| **Total** | 0 | 781 | 10 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

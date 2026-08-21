@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1293** (deps: —) **the argument for a limit is ruled into the commit body, which a tool this project does not own composes** — The argument for a governed number is filed where this tool can keep it, and the decision that said otherwise is superseded. → §RK1293
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

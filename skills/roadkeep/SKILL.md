@@ -564,8 +564,10 @@ already had the read that decides it somewhere else, so this takes the reading a
 number in one call. With no number it prints the reading alone; `--role` and `--file` name the
 table a project declares per role or per path. A limit this corpus already breaks is
 **refused**, not written, because one whose first act is a finding is one somebody lowers,
-reads the report and raises again. The argument is yours and goes in the commit: the tool
-writes the declaration and never the prose (L4). Every
+reads the report and raises again. **`--because "…"` is where why this number and not the
+next goes**: your sentence, wrapped into comments above the key and stacked on whatever
+argued it before — the verb places the argument and never writes it (L4), and a number
+declared with none is one nobody can date. Every
 verb that prints a section's size states **two** figures where they differ — `48 words,
 310 with subsections (limit 300)` — because the argument is what an `amend` can shorten
 and the subtree is what a reader pays; cutting to the second number cuts prose that was

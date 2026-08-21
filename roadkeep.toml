@@ -151,4 +151,8 @@ held = 60
 permanent = true
 
 [reads]
+# The widest brief here measures 2549 code units and costs 22.8 ms; 3300 is that plus
+# the room two more done-when clauses take, and under it a brief stays cheaper to ask
+# for than the lint that would find the overrun too late. Raise it against a fresh
+# reading, never against a brief that grew.
 brief = 3300

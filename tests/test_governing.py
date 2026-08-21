@@ -200,8 +200,8 @@ def test_the_verb_reads_with_no_value_and_writes_with_one(tmp_path, capsys):
     # The file, which is the half a reviewer would miss: a number moved here changes what
     # every other write is held to.
     assert "stage    git add -- roadkeep.toml" in wrote
-    # And the argument, which the tool does not write (L4).
-    assert "reason   yours" in wrote
+    # And the argument, which the tool places and does not write (L4, RK1293).
+    assert "reason   none" in wrote
 
 
 def test_the_payload_carries_the_reading_the_number_was_written_against(tmp_path, capsys):
@@ -323,3 +323,99 @@ def test_the_shared_table_counts_the_roadmap_once(tmp_path):
     config = _with_decisions(tmp_path)
     assert governing.reading(config, "limits.symptom").sites == 1
     assert "(inherited)" not in governing.reading(config, "limits.symptom").where
+
+
+# -- the argument for the number, placed and never written (RK1293) ------------
+
+
+def test_the_argument_lands_above_the_key_in_the_author_s_own_words(tmp_path):
+    """The decision this supersedes said the argument goes in the commit that wrote the
+    number. On an agent session the commit body is composed by a tool this project does not
+    own, and the number arrived in one whose body never named it — so the argument was kept
+    nowhere. Here it is placed where the number is, which is where a reader takes it."""
+    config = project(tmp_path)
+    governing.govern(config, "limits.symptom", 90, because="P90 of the lines that read well.")
+
+    after = written(Config.discover(tmp_path))
+    assert "# P90 of the lines that read well.\nsymptom = 90\n" in after
+
+
+def test_a_new_argument_stacks_on_the_one_that_argued_the_number_before(tmp_path):
+    """A raise is a decision about the previous decision, and this project's own `[tools]`
+    entry is five of them written that way by hand. Replacing would lose the reason the
+    number was lower, which is the half a reader of a raise is actually looking for."""
+    config = project(tmp_path)
+    governing.govern(config, "limits.why", 150, because="First, because the fixture is short.")
+    governing.govern(Config.discover(tmp_path), "limits.why", 160, because="Then, longer.")
+
+    after = written(Config.discover(tmp_path))
+    assert "# why 120 and not 130, argued here" in after
+    assert "# First, because the fixture is short.\n# Then, longer.\nwhy = 160\n" in after
+
+
+def test_the_argument_is_wrapped_to_the_width_this_project_declares(tmp_path):
+    """Filled and never one long line, because the file it lands in is read by a person and
+    every comment already in it wraps. The width is the project's, not this module's."""
+    config = project(tmp_path)
+    long = " ".join(["argument"] * 40)
+    governing.govern(config, "limits.symptom", 90, because=long)
+
+    lines = [line for line in written(Config.discover(tmp_path)).splitlines() if "argument" in line]
+    assert len(lines) > 1
+    assert all(line.startswith("# ") for line in lines)
+    assert all(len(line) <= config.schema.prose_width for line in lines)
+
+
+def test_a_table_opened_by_the_write_carries_the_argument_under_its_heading(tmp_path):
+    config = project(tmp_path)
+    governing.govern(config, "claims.held", 90, because="A day is what a session lasts here.")
+
+    after = written(Config.discover(tmp_path))
+    assert "[claims]\n# A day is what a session lasts here.\nheld = 90\n" in after
+    assert Config.discover(tmp_path).held == 90
+
+
+def test_the_line_reported_is_the_one_the_number_landed_on(tmp_path):
+    """A reviewer reads the diff against it, and comments above the key move it down."""
+    config = project(tmp_path)
+    declared = governing.govern(config, "limits.symptom", 90, because="One line of argument.")
+
+    lines = written(Config.discover(tmp_path)).splitlines()
+    assert lines[declared.lineno - 1] == "symptom = 90"
+
+
+def test_a_number_declared_with_no_argument_is_told_it_is_undated(tmp_path, capsys):
+    """The other half, and the reason this is a field rather than a silence: a number with
+    nothing beside it is one nobody can date, and the answer says so where it happened."""
+    config = project(tmp_path)
+    assert main(["-C", str(config.root), "govern", "limits.symptom", "90"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "--because" in said and "nobody can date" in said
+
+    assert (
+        main(
+            [
+                "-C",
+                str(config.root),
+                "govern",
+                "limits.why",
+                "150",
+                "--because",
+                "The fixture's own reason.",
+            ]
+        )
+        == EXIT_OK
+    )
+    said = capsys.readouterr().out
+    assert "in your words" in said
+    assert "# The fixture's own reason." in written(Config.discover(config.root))
+
+
+def test_the_payload_says_whether_the_number_was_argued(tmp_path, capsys):
+    config = project(tmp_path)
+    argv = ["-C", str(config.root), "govern", "limits.symptom", "90", "--json"]
+    assert main([*argv, "--because", "Because."]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["argued"] is True
+
+    assert main(argv) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["argued"] is False
