@@ -28,7 +28,11 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1289** (deps: —) **the note's total is the backlog minus whatever would not compose, so it understates by the lines it warns about** — The reading carries how many open lines there are, so a report never reconstructs it from a subtraction. → §RK1289
+
 ## Block D — The gate
+
+- 📋 **RK1290** (deps: —) **the note saying what the gate did not price fires on every clean run of any real backlog** — The note about a bounded reading fires where the shortfall is news, so a clean run does not repeat one sentence. → §RK1290
 
 ## Block E — Adoption
 
