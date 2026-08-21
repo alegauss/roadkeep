@@ -79,28 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1291 One rule, kept by one of two forms
-
-The read states a rule and keeps it in one of its two forms. Asked for every line it
-walks the open ones, on the argument that a shipped id has no brief left to start work
-from and a paused one is a line `pick` can never offer — pricing either would be
-measuring an answer nobody asks for.
-
-Named, it prices whatever it is handed. `budget --brief` on a task that shipped two
-commits ago answers 632 against a ceiling of 3300, and that number is about a different
-shape: a shipped brief carries no allowances, no deps and no design, because the ship
-deleted them. It is a figure with a unit and no meaning, printed under a header that
-says how much room is left.
-
-The rule is right and the form that breaks it is the one a person types. A caller naming
-an id is usually naming one they are about to work on — and where they are not, the
-answer they need is that this line has no brief to price, which `brief` itself already
-says: it briefs a shipped id as `shipped` and quotes no cost for starting it.
-
-So the named form asks the same question the unnamed one does, and answers the other
-case as the absence it is. What it must not do is hand back a number that looks like
-every other number in the table and is not comparable to any of them.
-
 ### §RK1292 A verdict wider than the reading behind it
 
 The header states a verdict the ranking is not entitled to. `3300 allowed, 0 over` is

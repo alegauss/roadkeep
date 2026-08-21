@@ -118,17 +118,17 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 175 | 2 |
-| C — Query (consult without reading the file) | 2 | 119 | 1 |
+| C — Query (consult without reading the file) | 1 | 120 | 1 |
 | D — The gate | 0 | 187 | 2 |
 | E — Adoption | 0 | 96 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 2 | 778 | 10 |
+| **Total** | 1 | 779 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1291** (deps: —) **the read prices open lines and prices whatever it is named, so a shipped id answers a figure comparable to nothing** — The named read keeps the rule the read states, so a line with no brief to start work from is said and not priced. → §RK1291
+- 📋 **RK1292** (deps: —) **the header says nothing is over the ceiling while the listing under it names a line nobody could measure** — A count of what exceeds a ceiling says what it was taken over, so a verdict never covers a line nobody measured. → §RK1292
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

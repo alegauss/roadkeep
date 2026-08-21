@@ -2847,3 +2847,40 @@ def test_the_note_says_priced_refused_and_not_asked_for(tmp_path, monkeypatch):
 
     assert "of 2 open line(s)" in note.message
     assert "1 refused" in note.message
+
+
+def test_the_named_read_keeps_the_rule_the_unnamed_one_states(tmp_path):
+    """RK1291. Asked for every line this walks the open ones, on the argument that a shipped id
+    has no brief left to start work from — and named, it priced whatever it was handed. A
+    shipped brief carries no allowances, no deps and no design, because the ship deleted them:
+    the figure is comparable to nothing and is printed under a header saying what room is
+    left."""
+    from roadkeep.budgeting import brief_budget
+    from roadkeep.shipping import ship
+
+    config = _reading(tmp_path, ceiling=9000)
+    ship(config, "RK1", why="It works now.").save()
+    config = Config.discover(config.root)
+
+    found = brief_budget(config, "RK1")
+    assert found.briefs == ()
+    assert [one.id for one in found.unpriced] == ["RK1"]
+    # `Whereabouts`' own sentence, which every other refusal about a missing id already asks.
+    assert "the changelog records it as" in found.unpriced[0].because
+
+
+def test_an_id_no_file_mentions_is_the_same_absence(tmp_path):
+    from roadkeep.budgeting import brief_budget
+
+    found = brief_budget(_reading(tmp_path), "RK9999")
+    assert [one.id for one in found.unpriced] == ["RK9999"]
+    assert "no file mentions it" in found.unpriced[0].because
+
+
+def test_an_open_line_named_is_still_priced(tmp_path):
+    # The other half: a caller naming an id is usually naming one they are about to work on.
+    from roadkeep.budgeting import brief_budget
+
+    found = brief_budget(_reading(tmp_path), "RK1")
+    assert [one.id for one in found.briefs] == ["RK1"]
+    assert found.unpriced == ()

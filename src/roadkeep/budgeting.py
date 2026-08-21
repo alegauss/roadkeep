@@ -1417,6 +1417,28 @@ def brief_budget(
     roadmap = config.document("roadmap")
     every = list(roadmap.by_id())
     if task_id is not None:
+        # The named form keeps the rule the unnamed one states (RK1291): a shipped line has
+        # no brief left to start work from and a paused one is a line `pick` can never offer,
+        # so an id that is not open answers as the absence it is rather than with a figure
+        # comparable to nothing — a shipped brief carries no allowances, no deps and no
+        # design, because the ship deleted them. `Whereabouts` is the reader every other
+        # refusal about a missing id already asks (RK1213, RK1276).
+        if task_id not in roadmap.by_id():
+            from roadkeep.backlog import Whereabouts  # noqa: PLC0415 - RK260
+
+            return Reads(
+                limit=config.brief_read,
+                unpriced=(
+                    Unpriced(
+                        id=task_id,
+                        because=(
+                            f"not an open line — {Whereabouts.of(config, task_id).sentence}, "
+                            f"and a brief is what starts work on one"
+                        ),
+                    ),
+                ),
+                open_lines=len(every),
+            )
         wanted, elided = [task_id], 0
     elif offered:
         chosen = pick(config)
