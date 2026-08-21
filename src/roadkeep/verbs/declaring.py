@@ -63,6 +63,13 @@ _DESIGNED_HELP = (
     "offer only work whose design is written, setting aside the markers "
     "`[markers] undesigned` names (only without an id)"
 )
+#: One sentence, on both `pick` and `brief`, for `_DESIGNED_HELP`'s reason — and repeatable
+#: because a caller has a set and not a switch (RK1297). What it does not say is "declare what
+#: you have": the default is nothing, and the flag is the exception a person at the desk types.
+_HAVE_HELP = (
+    "declare a requirement this caller has, repeatable: a ready line whose `(needs: …)` "
+    "names anything undeclared is set aside and named, never offered (only without an id)"
+)
 #: Top-level options that take a value, so the token after one is not the verb. Two, because
 #: `--version` is an action and every other flag belongs to a subcommand that was never reached.
 _VALUED = ("-C", "--directory")

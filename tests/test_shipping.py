@@ -203,6 +203,26 @@ def test_the_ledger_entry_drops_the_deps_and_the_pointer(tmp_path):
     )
 
 
+def test_the_ledger_entry_drops_the_requirements_too(tmp_path):
+    # RK1297, and the deps' own reason one group over: a requirement says what has to be
+    # present for work to be finishable, and a line that left has nothing to finish — the
+    # DualSense was on the desk, or this never shipped.
+    from roadkeep.shipping import as_recorded
+
+    from roadkeep.kernel.schema import SHIPPED, Task
+
+    line = Task(
+        id="RK9",
+        status="📋",
+        block="A",
+        symptom="A symptom",
+        why="Because of a reason.",
+        requires=("ps5",),
+        ref="RK9",
+    )
+    assert as_recorded(line, SHIPPED, None).requires == ()
+
+
 def test_the_rationale_section_is_deleted_with_its_subsections(tmp_path):
     config = project(tmp_path)
     shipment = ship(config, "RK1", why="Because of a reason.")

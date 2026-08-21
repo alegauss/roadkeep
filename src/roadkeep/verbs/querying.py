@@ -62,6 +62,7 @@ from roadkeep.serving import Prose, detail, surface
 from roadkeep.showing import show
 from roadkeep.verbs.declaring import (
     _DESIGNED_HELP,
+    _HAVE_HELP,
     _JSON_HELP,
     _PIPE,
     _counting_flags,
@@ -287,9 +288,16 @@ def _writes(config: Config, args: argparse.Namespace) -> int:
 
 
 def _brief(config: Config, args: argparse.Namespace) -> int:
-    if args.id is not None and (args.block is not None or args.designed):
+    if args.id is not None and (args.block is not None or args.designed or args.have):
         # Two answers to one question: the id names a task and the others name a search.
-        narrowed = "--block" if args.block is not None else "--designed"
+        # `--have` joins them for the same reason and not a weaker one (RK1297): it narrows
+        # what may be *chosen*, and a caller that named the line has already chosen — the
+        # refusal it would otherwise want is `brief <id>`'s own, which this verb does not make.
+        narrowed = (
+            "--block"
+            if args.block is not None
+            else ("--designed" if args.designed else "--have")
+        )
         print(
             f"roadkeep: give an id or {narrowed}, not both: an id is already the answer "
             f"{narrowed} would look for",
@@ -297,7 +305,9 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
         )
         return EXIT_USAGE
     try:
-        gathered = brief(config, args.id, args.block, args.designed, args.claim)
+        gathered = brief(
+            config, args.id, args.block, args.designed, args.claim, args.have
+        )
     except NothingToBrief as nothing:
         # The one branch a loop actually reads, and the one `--json` did not cover (RK409).
         # `brief --block <x>` is how a worker asks what to do next, and "nothing is open in
@@ -760,10 +770,10 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
     claim: Claim | None = None
     try:
         if args.claim:
-            claim = take(config, args.block, args.designed)
+            claim = take(config, args.block, args.designed, available=args.have)
             choice = claim.choice
         else:
-            choice = pick(config, args.block, args.designed)
+            choice = pick(config, args.block, args.designed, available=args.have)
     except REFUSALS as error:
         # The whole tuple and not `(KeyError, OSError)`: with `--claim` this command writes a
         # marker, so every refusal that guards a marker — a stale file, a sibling stating
@@ -1390,6 +1400,13 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         help=_DESIGNED_HELP,
     )
     brief_parser.add_argument(
+        "--have",
+        action="append",
+        default=[],
+        metavar="REQUIREMENT",
+        help=_HAVE_HELP,
+    )
+    brief_parser.add_argument(
         "--claim",
         action="store_true",
         help=(
@@ -1628,6 +1645,13 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         "--designed",
         action="store_true",
         help=_DESIGNED_HELP,
+    )
+    pick_parser.add_argument(
+        "--have",
+        action="append",
+        default=[],
+        metavar="REQUIREMENT",
+        help=_HAVE_HELP,
     )
     pick_parser.add_argument(
         "--claim",

@@ -113,6 +113,13 @@ BACKSTOP: tuple[Backstopped, ...] = (
         "ref.mismatch",
         "ref.missing",
         "ref.sigil",
+        # RK1297. Four rows and one shape: a `(requires: …)` group is validated at the write
+        # and read back by the gate off the same `Schema.validate`, so a line that reached a
+        # file by any other route is reported under the name the write refused it by.
+        "requires.duplicate",
+        "requires.format",
+        "requires.unknown",
+        "requires.unrenderable",
         "status.shipped",
         "status.unknown",
         "status.unrepresentable",

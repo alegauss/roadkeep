@@ -256,6 +256,15 @@ def _reads_deps(_present: bool) -> str:
     return r"(?: \(deps: (?P<deps>[^)]*)\))?"
 
 
+def _reads_requires(_present: bool) -> str:
+    # Optional, and the asymmetry against `deps` is the whole reason this slot is cheap: an
+    # empty group is never *written*, so every line in every backlog that states no
+    # requirement is byte-for-byte the line this format had before the slot existed. A
+    # `present` gate would have been the other design and it buys nothing — a file where
+    # nobody writes one already renders none.
+    return r"(?: \(requires: (?P<requires>[^)]*)\))?"
+
+
 def _reads_symptom(present: bool) -> str:
     # Absent is a bare separator and not an empty match, which is the pair `_writes_symptom`
     # keeps: a markerless, symptomless ledger line is `- **T1** — because.` (RK48).
@@ -285,6 +294,14 @@ def _writes_deps(_schema: Schema, task: Task) -> str:
     return f" (deps: {', '.join(d.render() for d in task.deps) or NO_DEPS})"
 
 
+def _writes_requires(_schema: Schema, task: Task) -> str:
+    # Nothing at all where there are none, which is `_writes_deps`' em dash reversed and
+    # deliberately: `(deps: —)` says *this line was asked and waits on nothing*, and every
+    # roadmap answers that question. Almost none answer this one, so a `(requires: —)` on
+    # every line would be an axis charged to the backlogs that do not use it (RK1297).
+    return f" (requires: {', '.join(task.requires)})" if task.requires else ""
+
+
 def _writes_symptom(schema: Schema, task: Task) -> str:
     # Both shapes here rather than a `present` gate, mirroring `_reads_symptom`: a file
     # without the slot still has the separator, so "absent" means an unwritten bold and
@@ -307,6 +324,10 @@ TEMPLATE: tuple[Slot, ...] = (
     # and the symptom both leave something behind when a file has neither (RK43, RK48), and
     # each says so in its own pair rather than by being gated away.
     Slot("deps", _reads_deps, _writes_deps, lambda schema: schema.deps_field),
+    # After the deps and before the symptom, because the two groups answer adjacent
+    # questions — what this line waits on, and what it needs present to be done at all —
+    # and a reader scanning for "can I start this" reads both before the prose (RK1297).
+    Slot("requires", _reads_requires, _writes_requires),
     Slot("symptom", _reads_symptom, _writes_symptom),
     Slot("why", _reads_why, _writes_why),
 )
@@ -730,6 +751,17 @@ class Task:
     symptom: str
     why: str
     deps: tuple[Dep, ...] = ()
+    #: What has to be **present** for this line to be finishable at all (RK1297) — a
+    #: DualSense on the desk, a PS4 and a PS5 to measure against each other. Tokens of a
+    #: vocabulary `roadkeep.toml` declares, never prose (L4), and not deps: a dep is work
+    #: this backlog or another one does, and shipping something satisfies it. Nothing
+    #: satisfies one of these; a caller either has it or does not, which is why it is a
+    #: fact about the line and the answer is a fact about who is asking.
+    #:
+    #: `requires` and not `needs`, which is the word the line would read best with: an
+    #: `Insertion.needs` one module up is the follow-up an `add` left owing, and it prints a
+    #: row under that name beside the rows this field produces. One word, one thing.
+    requires: tuple[str, ...] = ()
     ref: str | None = None
     #: Which part of the work this entry records, where only part of it landed (RK121).
     #: A **ledger** field and the third state the model did not have: open in the roadmap
@@ -885,6 +917,13 @@ class Schema:
     #: refuses a line for carrying one: what it changes is what an answer *says*, and what
     #: `--designed` sets aside, since the bias belongs to the caller and not to the ranking.
     undesigned: tuple[str, ...] = UNDESIGNED
+    #: The vocabulary a `(requires: …)` group draws on, `[requirements] declared` (RK1297).
+    #: Empty by default, which makes the axis opt-in *and* makes it refusable: a project
+    #: that has declared nothing refuses every token, so the first one an author writes
+    #: is answered with the `govern`-shaped edit that declares it rather than with a line
+    #: nobody can act on. Held here beside :attr:`undesigned` for the same reason — both are
+    #: a project's own words for a distinction `pick` acts on, and neither is a format.
+    requirements: tuple[str, ...] = ()
     symptom_max: int = 120
     why_max: int = 200
     #: How long a partial entry's qualifier may be (RK121). Short by design — it names
@@ -1430,6 +1469,7 @@ class Schema:
         out: list[Violation] = []
         out.extend(self._check_identity(task))
         out.extend(self._check_deps(task))
+        out.extend(self._check_requires(task))
         out.extend(self._check_symptom(task))
         out.extend(self._check_why(task))
         out.extend(self._check_ref(task))
@@ -1661,6 +1701,70 @@ class Schema:
                 f"no verb reaches it — put the parenthetical in the section, not the dep",
             )
         ]
+
+    def _check_requires(self, task: Task) -> list[Violation]:
+        """Every requirement is one of this project's declared words (RK1297).
+
+        The rule L1 asks for: a token is refused **where the line is created**, so a
+        requirement nobody can act on never reaches the file. An undeclared token is the
+        interesting refusal and it is not a typo check — `pick` sets a line aside by
+        matching these words against what the caller says it has, so a token no vocabulary
+        carries would silence the line for every caller and be visible to none.
+
+        The vocabulary is empty by default, which is what makes the axis opt-in: a project
+        that never declared one refuses the first requirement it is handed, and the message
+        names the table rather than listing nothing.
+        """
+        out: list[Violation] = []
+        seen: set[str] = set()
+        for token in task.requires:
+            if not token or token.strip() != token:
+                out.append(
+                    Violation(
+                        "requires.format",
+                        "requires",
+                        f"{token!r} is not a requirement: the group is a comma-separated "
+                        f"list of declared words, and an empty one names nothing",
+                    )
+                )
+            elif any(char in token for char in "(),") or ARROW in token:
+                # The deps group's rule one slot over, and the same failure: the group
+                # closes at the first ')' and the pointer is split at the first arrow, so a
+                # line carrying either stops parsing and no verb reaches it again.
+                out.append(
+                    Violation(
+                        "requires.unrenderable",
+                        "requires",
+                        f"{token!r} cannot survive the line it is written into: the "
+                        f"requires group closes at the first ')', separates on ',' and the "
+                        f"pointer is split at the first '{ARROW}' — a requirement is one word",
+                    )
+                )
+            elif token not in self.requirements:
+                out.append(
+                    Violation(
+                        "requires.unknown",
+                        "requires",
+                        f"{token!r} is not declared: `pick` sets a line aside by matching "
+                        f"these words against what a caller has, so an undeclared one "
+                        f"hides the line from everybody — {self._declared_requirements()}",
+                    )
+                )
+            if token in seen:
+                out.append(
+                    Violation("requires.duplicate", "requires", f"{token!r} listed twice")
+                )
+            seen.add(token)
+        return out
+
+    def _declared_requirements(self) -> str:
+        """What `[requirements] declared` says, ready to print after a refusal."""
+        if not self.requirements:
+            return (
+                "this project declares no [requirements], so the group has no vocabulary "
+                "to draw on yet"
+            )
+        return f"[requirements] declared names {', '.join(self.requirements)}"
 
     def _check_deps(self, task: Task) -> list[Violation]:
         if task.deps and not self.deps_field:

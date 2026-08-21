@@ -1124,6 +1124,29 @@ _TABLE: Mapping[str, _Rule] = {
         ("amend", "{id}", "--dep", BLANK),
         "the range names no line this backlog carries",
     ),
+    # RK1297. All four are `--requires`, which replaces the whole group, and that is the
+    # honest door even for `requires.unknown` — where the other repair is to declare the word
+    # in `[requirements]`. Naming a config edit here would be this table offering a hand edit
+    # to the one file the guard denies, and the choice between the two is the author's: a
+    # misspelt requirement is a line to correct, and a real one is a vocabulary to widen.
+    "requires.format": _compose(
+        ("amend", "{id}", "--requires", BLANK),
+        "the token is not a requirement this grammar reads: one word, no padding",
+    ),
+    "requires.unrenderable": _compose(
+        ("amend", "{id}", "--requires", BLANK),
+        "the token carries a bracket, a comma or an arrow, so the line it is written into "
+        "stops parsing; a requirement is one word",
+    ),
+    "requires.unknown": _compose(
+        ("amend", "{id}", "--requires", BLANK),
+        "`[requirements] declared` does not name it, so `pick` matches it against nothing "
+        "and the line is offered to nobody — restate it, or declare the word",
+    ),
+    "requires.duplicate": _compose(
+        ("amend", "{id}", "--requires", BLANK),
+        "one requirement stated twice; `--requires` is repeatable, so state each once",
+    ),
     # RK1229. A `compose`, because what the dep should say instead is the caller's: the
     # parenthetical they wrote is usually a sentence about *why* the dependency exists, which
     # belongs in the section the line points at and not inside a rendered group.

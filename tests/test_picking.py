@@ -27,11 +27,23 @@ from roadkeep.kernel.schema import DESIGNED, IDEA, IN_PROGRESS, SHIPPED
 HERE = Path(__file__).resolve().parents[1]
 
 
-def line(task_id: str, deps: str = "—", block: str = "A", status: str = DESIGNED) -> str:
+def line(
+    task_id: str,
+    deps: str = "—",
+    block: str = "A",
+    status: str = DESIGNED,
+    requires: str = "",
+) -> str:
+    group = f" (requires: {requires})" if requires else ""
     return (
-        f"- {status} **{task_id}** (deps: {deps}) **A symptom for {task_id}** "
+        f"- {status} **{task_id}** (deps: {deps}){group} **A symptom for {task_id}** "
         f"— a reason. → §{task_id}\n"
     )
+
+
+#: A project that declares the vocabulary the requirement tests quote from (RK1297). Written
+#: out rather than defaulted, because the axis being opt-in is half of what is under test.
+DECLARED = '[requirements]\ndeclared = ["dualsense", "ps5"]\n\n'
 
 
 def project(tmp_path: Path, roadmap: str, changelog: str = "", extra: str = "") -> Config:
@@ -522,6 +534,132 @@ def test_a_project_that_names_no_undesigned_marker_never_skips(tmp_path):
     )
     choice = pick(config, designed=True)
     assert choice.entry.task.id == "RK4" and not choice.needs_design
+
+
+# -- ready and executable-here are two different states (RK1297) --------------
+
+
+def test_the_same_line_comes_back_until_the_file_or_the_caller_changes(tmp_path):
+    """The defect, as the shape it actually had: five calls, five identical answers.
+
+    Every tier is a pure function of the file, so a caller that cannot finish the line it
+    was handed has nothing to do about it — and the roadmap is right, which is why no
+    `ship`, `defer` or `resume` was ever the answer.
+    """
+    config = project(tmp_path, BLOCKS + line("RK4"), extra=DECLARED)
+    assert {pick(config).entry.task.id for _ in range(5)} == {"RK4"}
+
+
+def test_a_requirement_this_caller_lacks_is_never_offered(tmp_path):
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK4", requires="dualsense") + line("RK9"),
+        extra=DECLARED,
+    )
+    choice = pick(config)
+    assert choice.entry.task.id == "RK9"
+    # `ready` is a fact about the file, so the caller's world does not change it — the
+    # same rule `--designed` obeys one axis over.
+    assert choice.ready == 2
+    assert [(one.id, one.missing) for one in choice.lacking] == [("RK4", ("dualsense",))]
+
+
+def test_the_caller_that_has_it_gets_the_line_the_other_could_not(tmp_path):
+    """The half that makes this an axis and not a second `defer`: the pause is symmetric
+    and this is not, so the person at the desk is offered what the agent was not."""
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK4", requires="dualsense") + line("RK9"),
+        extra=DECLARED,
+    )
+    choice = pick(config, available=["dualsense"])
+    assert choice.entry.task.id == "RK4"
+    assert choice.lacking == ()
+
+
+def test_one_requirement_of_two_is_still_missing(tmp_path):
+    config = project(
+        tmp_path, BLOCKS + line("RK4", requires="dualsense, ps5"), extra=DECLARED
+    )
+    choice = pick(config, available=["ps5"])
+    assert not choice.found
+    # Only what is actually absent: telling the caller to find a PS5 it just declared is
+    # the answer that gets ignored the second time it is printed.
+    assert choice.lacking[0].missing == ("dualsense",)
+
+
+def test_a_started_line_this_caller_cannot_continue_is_stepped_around(tmp_path):
+    """Before the tiers and not after, for the claim's reason: tier 1 prefers a 🛠 line,
+    which is exactly the line somebody started at the desk and this caller cannot finish."""
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK4", status=IN_PROGRESS, requires="ps5") + line("RK9"),
+        extra=DECLARED,
+    )
+    choice = pick(config)
+    assert choice.entry.task.id == "RK9"
+    assert choice.tier is Tier.LOWEST
+
+
+def test_a_backlog_of_hardware_work_says_so_and_names_what_is_missing(tmp_path):
+    """The fifth absence, and the only one whose remedy is a person (RK1297)."""
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK4", requires="dualsense") + line("RK9", requires="ps5"),
+        extra=DECLARED,
+    )
+    choice = pick(config)
+    assert not choice.found and choice.tier is None
+    assert choice.reason.startswith(
+        "every ready task needs something this caller does not have: dualsense, ps5"
+    )
+    assert choice.ready == 2
+
+
+def test_a_line_that_requires_nothing_is_unaffected(tmp_path):
+    # The axis is opt-in at every level: a project declaring a vocabulary does not make
+    # every line subject to it, and a caller declaring nothing is the ordinary case.
+    config = project(tmp_path, BLOCKS + line("RK4"), extra=DECLARED)
+    choice = pick(config)
+    assert choice.entry.task.id == "RK4" and choice.lacking == ()
+
+
+def test_the_command_names_the_lines_it_set_aside(tmp_path, capsys):
+    project(
+        tmp_path, BLOCKS + line("RK4", requires="ps5") + line("RK9"), extra=DECLARED
+    )
+    assert main(["-C", str(tmp_path), "pick"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.splitlines()[0].startswith("RK9")
+    # Named, never counted: the id is what gets handed to whoever has the thing.
+    assert "absent   RK4 is ready and requires ps5" in out
+
+
+def test_the_payload_carries_the_ids_and_what_each_would_take(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK4", requires="ps5"), extra=DECLARED)
+    assert main(["-C", str(tmp_path), "pick", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["pick"] is None
+    assert payload["lacking"] == [{"id": "RK4", "missing": ["ps5"]}]
+
+
+def test_the_flag_declares_what_the_caller_has(tmp_path, capsys):
+    project(tmp_path, BLOCKS + line("RK4", requires="ps5"), extra=DECLARED)
+    assert main(["-C", str(tmp_path), "pick", "--have", "ps5", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["pick"]["id"] == "RK4" and payload["lacking"] == []
+
+
+def test_a_claim_never_takes_a_line_this_caller_cannot_finish(tmp_path):
+    """`take` answers and writes in one transaction, so the filter has to hold inside the
+    lock: a marker moved onto hardware work nobody here can do is the stalled line the
+    next five calls report."""
+    config = project(tmp_path, BLOCKS + line("RK4", requires="ps5"), extra=DECLARED)
+    from roadkeep.picking import take
+
+    taken = take(config)
+    assert not taken.taken
+    assert (tmp_path / "ROADMAP.md").read_text(encoding="utf-8").count(IN_PROGRESS) == 0
 
 
 # -- the line the picker offers is a line the claim can take (RK1114) ----------

@@ -54,7 +54,7 @@ aside — and the only way a caller can recognise a claim as its own.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from enum import StrEnum
 
@@ -96,6 +96,21 @@ class Stalled:
 
 
 @dataclass(frozen=True, slots=True)
+class Lacking:
+    """A ready line this caller cannot finish, and what it would take (RK1297).
+
+    Named and never merely counted, for the reason :attr:`Choice.held` is: a number the
+    caller cannot read is a line it asks about twice. Here the id is not even the actionable
+    half — :attr:`missing` is, because what closes this is somebody with a DualSense on the
+    desk rather than any command the caller could run.
+    """
+
+    id: str
+    #: The declared requirements this caller did not say it has, in the line's own order.
+    missing: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
 class Choice:
     """The answer, or the reasoned absence of one."""
 
@@ -124,6 +139,12 @@ class Choice:
     #: because a claim names nobody: a caller can only tell one of these is its own by
     #: reading the id, and a number it cannot read is a line it will ask about twice.
     held: tuple[Held, ...] = ()
+    #: The ready lines a requirement this caller does not have kept out of the ranking
+    #: (RK1297). Beside `held` and `undesigned` because it is the third thing that narrows an
+    #: offer without narrowing the truth — `ready` still counts these — and apart from both
+    #: because it is the only one nothing the caller does will change: a claim expires and a
+    #: design gets written, and a PS5 does not arrive because a command was run.
+    lacking: tuple[Lacking, ...] = ()
     #: What became of the block the question was scoped to (RK429). Absent on an unscoped
     #: pick, where there is no label to have a state — and carried even when a line *was*
     #: chosen, so a caller reading the payload never has to ask a second command what the
@@ -156,6 +177,7 @@ def pick(
     *,
     backlog: Backlog | None = None,
     claims: bool = True,
+    available: Sequence[str] = (),
 ) -> Choice:
     """Apply the three tiers to the roadmap, and say which one answered.
 
@@ -168,6 +190,13 @@ def pick(
     (RK83), for a caller who asked to *execute* rather than to plan. It narrows what may
     be chosen and nothing else: ``ready`` still counts every ready line, because the
     number of lines this backlog could start is not a fact the caller's intent changes.
+
+    ``available`` is what the caller says it has, and it is the axis the other two are not
+    (RK1297): a line whose `(needs: …)` names anything absent from it is set aside, counted
+    and **named**. Empty by default, and that default is the decision — the caller who
+    cannot press a button is the one who does not think to say so, and a `pick` that offered
+    hardware work to it was the five identical answers this exists to stop. A person at the
+    desk says `--have`, and gets the line the agent could not have.
 
     ``backlog`` answers over files somebody else read — the state a transaction is about to
     write, or a revision (RK104) — and ``claims = False`` asks the question the tiers were
@@ -212,6 +241,19 @@ def pick(
     held = tuple(claimed[e.task.id] for e in ordered if e.task.id in claimed)
     if held:
         ordered = [e for e in ordered if e.task.id not in claimed]
+    # Before the tiers, for the claim's own reason (RK1297): tier 1 prefers a 🛠 line, and a
+    # started line whose hardware is not on this desk is exactly the one that comes back
+    # every call — somebody began it where the controller was, and this caller cannot
+    # continue it. Stepped around here, so the tiers rank only what could actually be done.
+    has = frozenset(available)
+    lacking = tuple(
+        Lacking(entry.task.id, missing)
+        for entry in ordered
+        if (missing := tuple(one for one in entry.task.requires if one not in has))
+    )
+    if lacking:
+        short = {one.id for one in lacking}
+        ordered = [e for e in ordered if e.task.id not in short]
     # Narrowed after the ordering and not before it, so `ready` keeps counting what the
     # file holds: the caller's intent decides what may be offered, never what is true.
     offered = [e for e in ordered if not config.schema.needs_design(e.task.status)]
@@ -226,6 +268,7 @@ def pick(
         "stalled": survey.stalled,
         "undesigned": set_aside,
         "held": held,
+        "lacking": lacking,
         "standing": standing,
     }
     if not ordered:
@@ -237,6 +280,7 @@ def pick(
                 open_lines=bool(considered),
                 held=held,
                 set_aside=set_aside,
+                lacking=lacking,
                 standing=standing,
             ),
             ready=len(survey.ready),
@@ -278,7 +322,13 @@ class Claim:
         return self.change is not None
 
 
-def take(config: Config, block: str | None = None, designed: bool = False) -> Claim:
+def take(
+    config: Config,
+    block: str | None = None,
+    designed: bool = False,
+    *,
+    available: Sequence[str] = (),
+) -> Claim:
     """Answer and claim in one indivisible step (RK119).
 
     The lock is around **both**, and that is the whole mechanism: a pick that answered and
@@ -298,7 +348,7 @@ def take(config: Config, block: str | None = None, designed: bool = False) -> Cl
     marker — and two writers of one rule is how the doors came to disagree to begin with.
     """
     with exclusive(config.root):
-        choice = pick(config, block, designed)
+        choice = pick(config, block, designed, available=available)
         if choice.entry is None:
             return Claim(choice=choice)
         change = set_status(config, choice.entry.task.id, IN_PROGRESS)
@@ -333,9 +383,10 @@ def _absence(
     open_lines: bool,
     held: tuple[Held, ...],
     set_aside: int,
+    lacking: tuple[Lacking, ...] = (),
     standing: Standing | None = None,
 ) -> str:
-    """Why nothing was offered — four sentences, because they are four different states.
+    """Why nothing was offered — five sentences, because they are five different states.
 
     Telling them apart is the whole point of the scope (RK40): a block with nothing left is
     finished, one whose lines are all blocked is not, one whose ready lines are all ideas is
@@ -347,7 +398,18 @@ def _absence(
     typed the wrong letter reads the same words — so where a label was named, the sentence
     is :attr:`Standing.sentence` and states which. Unscoped there is no label to have a
     state, and the old sentence is still the whole truth.
+
+    The fifth is the one whose remedy is a **person** and not a command (RK1297). Every
+    other sentence here ends by somebody shipping, resuming, designing or letting a claim
+    go; this one ends by whoever has the hardware asking for the same line, which is why it
+    names what is missing rather than what to run — and why it goes first, being the only
+    one that tells the caller reading it that the work is not theirs to do.
     """
+    if lacking and not held and not set_aside:
+        return (
+            f"every ready task{scope} needs something this caller does not have: "
+            f"{_missing(lacking)} — `--have` is how a caller that has one says so"
+        )
     if held and not set_aside:
         return f"every ready task{scope} is claimed by a worker who has not finished it"
     if set_aside:
@@ -358,6 +420,16 @@ def _absence(
     if not open_lines:
         return f"nothing is open{scope}" if standing is None else standing.sentence
     return f"every open task{scope} is blocked, so there is nothing to start"
+
+
+def _missing(lacking: Sequence[Lacking]) -> str:
+    """Every requirement standing between this caller and the ranking, once each.
+
+    The union and not a line-by-line list: the sentence is about what the caller has to
+    acquire, and one word repeated across six lines is one thing to go and get. Which lines
+    those are is :attr:`Choice.lacking`, printed under it and named there.
+    """
+    return ", ".join(dict.fromkeys(one for entry in lacking for one in entry.missing))
 
 
 @dataclass(frozen=True, slots=True)
@@ -476,6 +548,7 @@ class Picked:
             _claim_rows,
             _event_rows,
             _held_rows,
+            _lacking_rows,
             _stalled_rows,
             _undesigned_rows,
         )
@@ -487,6 +560,7 @@ class Picked:
                     f"nothing to pick: {choice.reason}",
                     f"  backlog  {choice.counts}",
                     *_undesigned_rows(choice),
+                    *_lacking_rows(choice),
                     *_held_rows(choice),
                     *_stalled_rows(choice),
                 ]
@@ -502,6 +576,7 @@ class Picked:
         if choice.alternatives:
             rows.append(f"  or       {', '.join(choice.alternatives)}")
         rows += _undesigned_rows(choice)
+        rows += _lacking_rows(choice)
         rows += _held_rows(choice)
         rows += _stalled_rows(choice)
         taken = _claim_rows(self.claim, config)
@@ -558,6 +633,12 @@ class Picked:
             "held": [
                 {"id": one.id, "age": round(one.age), "since": one.since}
                 for one in choice.held
+            ],
+            # The ready lines this caller cannot finish, and what each would take (RK1297).
+            # A list and not a count, for `held`'s reason and one more: a loop that hands
+            # work back to a person has to be able to say *which* work and *what for*.
+            "lacking": [
+                {"id": one.id, "missing": list(one.missing)} for one in choice.lacking
             ],
             "claimed": None
             if self.claim is None

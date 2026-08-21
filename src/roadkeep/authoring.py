@@ -63,6 +63,7 @@ from roadkeep.kernel.document import (
     save_all,
     blank,
     read_deps,
+    read_requires,
 )
 from roadkeep.ids import CARRIERS, IdRef, Promise, carried, derivation, scan
 from roadkeep.markers import derive, refresh
@@ -501,6 +502,7 @@ def compose(
     why: str,
     status: str | None = None,
     deps: Sequence[str] = (),
+    requires: Sequence[str] = (),
     ref: str | None = None,
 ) -> Task:
     """The fields, as a :class:`Task`. Fills in what is derivable; validates nothing.
@@ -522,6 +524,10 @@ def compose(
         symptom=symptom,
         why=why,
         deps=read_deps(", ".join(deps), schema) if deps else (),
+        # Through the file's own reader for `deps`' reason (RK1297): what an author types
+        # and what the parser reads back out of the line are split by one function, so a
+        # group the writer and the reader disagree about is not a state this can reach.
+        requires=read_requires(", ".join(requires)) if requires else (),
         ref=ref,
     )
 
@@ -728,6 +734,7 @@ def add(
     why: str,
     status: str | None = None,
     deps: Sequence[str] = (),
+    requires: Sequence[str] = (),
     ref: str | None = None,
     task_id: str | None = None,
     family: str | None = None,
@@ -743,6 +750,11 @@ def add(
     the project declares, which is the only answer for the projects that declare one. It
     is never inferred from the block: a track is not a block, and a tool that mapped one
     to the other would be holding an opinion about someone else's backlog.
+
+    ``requires`` is what has to be *present* for the work to be finishable (RK1297) — never
+    derived and never inferred, because nothing in either file can see the room the caller
+    is in. Every token is refused here unless `[requirements] declared` names it (L1), so a
+    requirement `pick` could never match is not a line this door writes.
 
     The dep annotations are derived here too (RK8), so `--dep RK1` renders `RK1 ✅` when
     RK1 has shipped and the author never types a marker. Only this line is derived: no
@@ -788,6 +800,7 @@ def add(
         why=why,
         status=status,
         deps=deps,
+        requires=requires,
         ref=ref,
     )
     # The pointer, against the same history `section add` reads (RK1177). One command earlier
@@ -1377,10 +1390,11 @@ def amend(
     *,
     why: str | None = None,
     deps: Sequence[str] | None = None,
+    requires: Sequence[str] | None = None,
     ref: str | None = None,
     lines: int | None = None,
 ) -> Amendment:
-    """Correct one open line's `why`, `deps` or `ref`. Validated at input, or nothing (RK65).
+    """Correct one open line's `why`, `deps`, `requires` or `ref`. At input, or nothing (RK65).
 
     The three fields a project that adopted the tool has to be able to fix: a pointer it never
     had, a dep naming an id that is in neither file, and the compression of a `why` that was a
@@ -1420,6 +1434,12 @@ def amend(
         deps=entry.task.deps
         if deps is None
         else read_deps(", ".join(deps), roadmap.schema),
+        # The whole group or nothing, exactly as `--dep` replaces its own (RK1297): a
+        # requirement that no longer holds is removed by restating the ones that do, and a
+        # flag that only ever added would leave a line nothing could ever offer again.
+        requires=entry.task.requires
+        if requires is None
+        else read_requires(", ".join(requires)),
         ref=entry.task.ref if ref is None else ref,
     )
     if deps is not None:

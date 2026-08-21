@@ -387,6 +387,61 @@ def test_a_dependency_of_another_project_is_refused():
     assert codes == {"deps.format"}
 
 
+# -- what has to be present for the work to be finishable (RK1297) ------------
+
+#: A schema whose project opted into the axis. Bare `SCHEMA` declares nothing, which is what
+#: every project is until it writes the table — and is half of what these tests are about.
+EQUIPPED = Schema(requirements=("dualsense", "ps5"))
+
+
+def test_a_line_that_requires_nothing_renders_no_group():
+    # The property the whole slot rests on: every line in every existing backlog is
+    # byte-for-byte what it was before this group existed, so nothing stopped parsing.
+    assert "(requires:" not in SCHEMA.render(task())
+
+
+def test_the_group_renders_and_reads_back_identically():
+    line = EQUIPPED.render(task(requires=("dualsense", "ps5")))
+    assert "(deps: —) (requires: dualsense, ps5) **" in line
+    text = "# Roadmap\n\n## Block A — The model\n\n" + line + "\n"
+    parsed = Document.parse(text, EQUIPPED).entries[0].task
+    assert parsed.requires == ("dualsense", "ps5")
+    # L3, at the slot: what the writer wrote is what the reader read.
+    assert EQUIPPED.render(parsed) == line
+
+
+def test_a_requirement_no_project_declared_is_refused():
+    codes = {v.code for v in SCHEMA.validate(task(requires=("ps5",)))}
+    assert codes == {"requires.unknown"}
+    assert EQUIPPED.validate(task(requires=("ps5",))) == ()
+
+
+def test_the_refusal_names_the_table_when_the_vocabulary_is_empty():
+    message = SCHEMA.validate(task(requires=("ps5",)))[0].message
+    assert "declares no [requirements]" in message
+
+
+def test_a_requirement_the_line_could_not_carry_is_refused():
+    # The deps group's rule one slot over: the group closes at the first ')', so a token
+    # carrying one is a line that stops parsing and no verb reaches again.
+    codes = {v.code for v in EQUIPPED.validate(task(requires=("ps5)",)))}
+    assert codes == {"requires.unrenderable"}
+
+
+def test_the_same_requirement_twice_is_refused():
+    codes = {v.code for v in EQUIPPED.validate(task(requires=("ps5", "ps5")))}
+    assert codes == {"requires.duplicate"}
+
+
+def test_the_group_is_charged_to_the_line_before_a_word_is_written():
+    # `prose_budget` renders the line with both prose fields emptied, so a slot added to
+    # the format is a slot the author is told about rather than one they discover at 320.
+    bare, equipped = task(), task(requires=("dualsense",))
+    assert EQUIPPED.prose_budget(equipped) == EQUIPPED.prose_budget(bare) - len(
+        " (requires: dualsense)"
+    )
+
+
 def test_a_missing_ref_is_refused_by_default_and_optional_by_configuration():
     assert {v.code for v in SCHEMA.validate(task(ref=None))} == {"ref.missing"}
     assert Schema(ref_required=False).validate(task(ref=None)) == ()
@@ -905,7 +960,16 @@ def test_the_two_faces_are_the_same_sequence_of_slots():
     # started being two again, which is the state RK1063 was filed from.
     from roadkeep.kernel.schema import TEMPLATE, grammar
 
-    assert [slot.name for slot in TEMPLATE] == ["status", "head", "deps", "symptom", "why"]
+    assert [slot.name for slot in TEMPLATE] == [
+        "status",
+        "head",
+        "deps",
+        # RK1297, and the reason this list is written out rather than counted: a slot whose
+        # group is optional on both faces is exactly the kind that can be added with one.
+        "requires",
+        "symptom",
+        "why",
+    ]
     for slot in TEMPLATE:
         assert callable(slot.reads) and callable(slot.writes), slot.name
     # And the pattern really is the concatenation, so a slot cannot be read out of order.

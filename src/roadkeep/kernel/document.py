@@ -1631,6 +1631,13 @@ def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
     if raw_deps is not None and raw_deps != NO_DEPS:
         deps = read_deps(raw_deps, schema)
 
+    # Read wherever the grammar finds one and judged by the schema, which is the split every
+    # other slot takes (RK1297): a token no `[requirements]` declares still round-trips and
+    # is reported as `requires.unknown`, because dropping the line instead would take an
+    # otherwise perfect task out of every count — `read_deps`' rule, one group over.
+    raw_requires = match.group("requires")
+    requires = read_requires(raw_requires) if raw_requires is not None else ()
+
     return Task(
         id=match.group("id"),
         # The qualifier a partial entry carries (RK121). Read wherever the grammar finds
@@ -1646,6 +1653,7 @@ def _read_bullet(body: str, schema: Schema, block: str) -> Task | str | None:
         symptom=match.group("symptom") if schema.symptom_field else "",
         why=match.group("why"),
         deps=deps,
+        requires=requires,
         ref=ref,
         indent=indent,
     )
@@ -1673,6 +1681,21 @@ def read_deps(raw: str, schema: Schema) -> tuple[Dep, ...]:
         else:
             out.append(Dep(token))
     return tuple(out)
+
+
+def read_requires(raw: str) -> tuple[str, ...]:
+    """Split the requirement group; never reject the line over it (RK1297).
+
+    Public for `read_deps`' reason: `add` reads the requirements an author types with the
+    code that reads the ones already in a file, and a group the writer and the reader split
+    differently is a group that stops round-tripping on the next write.
+
+    It takes no schema, which is the one difference from its neighbour and is the point: a
+    requirement is a word, not a reference, so there is nothing to classify here — whether
+    the project declared it is :meth:`Schema._check_needs`' question and is asked of a line
+    that already parsed.
+    """
+    return tuple(token for token in raw.split(", ") if token)
 
 
 def _diagnose(head: str, schema: Schema, marked: bool) -> str:

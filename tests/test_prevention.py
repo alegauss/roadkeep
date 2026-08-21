@@ -126,6 +126,13 @@ PREVENTION: tuple[Prevented, ...] = (
     # carries it — a state the tool wrote, no verb of it reaches, and its own guard forbids
     # repairing by hand.
     Prevented("deps.unrenderable", "refused", ("amend", "RK1", "--dep", "DD1 (a note)")),
+    # RK1297. All four measured against a project that declares no `[requirements]`, which is
+    # every project until one opts in — so `requires.unknown` is what an undeclared vocabulary
+    # refuses, and the three shape rows are refused ahead of it by their own arm.
+    Prevented("requires.unknown", "refused", _add("--requires", "ps5", "--symptom", SYMPTOM, "--why", WHY)),
+    Prevented("requires.format", "refused", _add("--requires", " ps5", "--symptom", SYMPTOM, "--why", WHY)),
+    Prevented("requires.unrenderable", "refused", _add("--requires", "ps5)", "--symptom", SYMPTOM, "--why", WHY)),
+    Prevented("requires.duplicate", "refused", _add("--requires", "ps5", "--requires", "ps5", "--symptom", SYMPTOM, "--why", WHY)),
     # The two RK1012 gave the gate, refused at the door since `section add` existed: a
     # section with no prose is a heading, and a section is named by its heading.
     Prevented(

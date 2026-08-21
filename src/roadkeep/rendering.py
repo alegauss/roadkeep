@@ -529,6 +529,12 @@ def _nothing_json(nothing: NothingToBrief, args: argparse.Namespace) -> dict[str
         # question it asked; this says which of them answered.
         "standing": None if nothing.standing is None else nothing.standing.payload(),
         "held": [{"id": one.id, "since": one.since} for one in nothing.held],
+        # `held`'s argument one axis over (RK1297): the absence a caller can act on least by
+        # itself is the one whose remedy is another person, so the ids and the requirements
+        # are exactly what an empty answer has to carry out of the call.
+        "lacking": [
+            {"id": one.id, "missing": list(one.missing)} for one in nothing.lacking
+        ],
     }
 
 
@@ -683,6 +689,25 @@ def _undesigned_rows(choice: Choice) -> list[str]:
     if not choice.undesigned:
         return []
     return [f"  skipped  {choice.undesigned} ready and still needing designing"]
+
+
+def _lacking_rows(choice: Choice) -> list[str]:
+    """The ready lines this caller has no way to finish, one row each (RK1297).
+
+    A row per line and not a count, unlike `--designed`'s above, and the difference is who
+    the row is for: an undesigned line comes back to this caller the moment it writes the
+    design, and one of these comes back to *somebody else* — so the id is what gets handed
+    over and the requirement is what it is handed over for.
+
+    `absent` and not `waiting`, because nothing here is pending: the line is ready, the
+    backlog is right, and what is missing is in the room rather than in the files. Nor
+    `needs`, which is the row an `add` prints for the section it left owing (RK1297).
+    """
+    return [
+        f"  absent   {one.id} is ready and requires {', '.join(one.missing)}, "
+        f"which this caller did not declare"
+        for one in choice.lacking
+    ]
 
 
 def _stalled_rows(choice: Choice) -> list[str]:

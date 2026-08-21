@@ -3427,6 +3427,12 @@ def as_recorded(task: Task, marker: str, why: str | None) -> Task:
         task,
         status=marker,
         deps=(),
+        # And the requirements, for the deps' own reason one group over (RK1297): a
+        # requirement says what has to be present for work to be finishable, and a line that
+        # left has nothing to finish — the DualSense was on the desk or the work did not
+        # ship. Cleared here rather than refused by the ledger's schema, because the slot is
+        # written off the field and a ledger entry carrying one would render it.
+        requires=(),
         ref=None,
         why=why if why is not None else task.why,
         # And at column zero (RK49): the nesting said which roadmap line this one belonged

@@ -133,6 +133,8 @@ _TOP_KEYS = frozenset(
         "blocks",
         # RK1192. Whether the wired surfaces are held where they are, deliberately.
         "install",
+        # RK1297. What a line may say has to be *present* before it can be finished.
+        "requirements",
     }
 )
 #: `[grammar.<role>]` — the shape of a role's records, which L6 declared everything about
@@ -166,6 +168,11 @@ _INSTALL_KEYS = frozenset({"pinned", "enforced"})
 #: is not a limit on any field — it is the one number in the claim mechanism that is a
 #: judgement about how long work takes.
 _CLAIMS_KEYS = frozenset({"held"})
+#: `[requirements]` — the words a `(needs: …)` group may draw on (RK1297). Its own table for
+#: `[markers]`' reason: the vocabulary is one part of a shape whose other parts are a caller's
+#: (`pick --have`) and a line's, and a bare `requirements` beside `priority` would read as a
+#: list this backlog is subject to rather than one its lines quote from.
+_REQUIREMENTS_KEYS = frozenset({"declared"})
 #: `[headings]` — the word a project files work under (RK75). Its own table and not a top
 #: key, because the heading is a shape with more than one part and the next question about
 #: it (a sub-block that carries no word at all) belongs under the same heading.
@@ -601,6 +608,7 @@ class Config:
         held = _held(data.get("claims"), problems)
         permanent = _permanent_headings(data.get("headings"), problems)
         standing = _standing_blocks(data.get("blocks"), problems)
+        requirements = _requirements(data.get("requirements"), problems)
         pinned = _pinned_surfaces(data.get("install"), problems)
         enforced = _enforced_engine(data.get("install"), problems)
 
@@ -615,6 +623,7 @@ class Config:
                     **markers,
                     **ledger,
                     **limits,
+                    requirements=requirements,
                     # Where each of those numbers was written, so a refusal over one names
                     # the line somebody reviews rather than only the number (RK1067).
                     origins=_origins(source, _scalars(data.get("limits"))),  # RK1067
@@ -1431,6 +1440,45 @@ _REPORT_KEYS = frozenset({"upstream"})
 #: `owner/repo`, which is what `gh --repo` takes. Checked because the alternative to a
 #: shape here is a shape guessed by whatever the operator pipes the capture into.
 _UPSTREAM = re.compile(r"^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$")
+
+
+def _requirements(raw: object, problems: list[str]) -> tuple[str, ...]:
+    """`[requirements] declared` — the vocabulary a `(needs: …)` group quotes from (RK1297).
+
+    Empty undeclared, which is what makes the axis opt-in and refusable at once: a project
+    that never wrote this table refuses the first requirement an author types, and the
+    refusal names the table instead of listing nothing. Nothing here is defaulted for the
+    reason `[non_goals]` is not — a built-in vocabulary would be this tool deciding what a
+    backlog's world contains, and `hardware` means nothing to a project that ships prose.
+
+    Every token is held to the shape the line can carry, and it is checked *here* rather
+    than only at the write: a word with a comma in it splits into two on the way back out,
+    so a vocabulary nothing could quote would be declared once and refuse every `add` after
+    it, in a file the author is not looking at.
+    """
+    if raw is None:
+        return ()
+    if not isinstance(raw, Mapping):
+        problems.append("requirements must be a table")
+        return ()
+    _reject_unknown(raw, _REQUIREMENTS_KEYS, "requirements.", problems)
+    declared = tuple(
+        dict.fromkeys(_string_list(raw.get("declared"), "requirements.declared", problems))
+    )
+    bad = [one for one in declared if not one or one.strip() != one or _UNQUOTABLE.search(one)]
+    if bad:
+        problems.append(
+            f"requirements.declared names {', '.join(repr(one) for one in bad)}, which a "
+            f"line cannot carry: the group closes at the first ')' and separates on ',', so "
+            f"a requirement is one word with neither"
+        )
+    return tuple(one for one in declared if one not in bad)
+
+
+#: What a requirement may not contain, for the reason the deps group has the same rule: the
+#: `(needs: …)` slot closes at the first `)` and splits on `, `, so either inside a token is a
+#: line that stops parsing and no verb reaches again.
+_UNQUOTABLE = re.compile(r"[(),]")
 
 
 def _held(raw: object, problems: list[str]) -> int:

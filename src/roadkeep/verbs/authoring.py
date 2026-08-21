@@ -86,6 +86,7 @@ def _add(config: Config, args: argparse.Namespace) -> int:
             why=_piped(args.why),
             status=args.status,
             deps=args.deps,
+            requires=args.requires,
             ref=args.ref,
             task_id=args.task_id,
             family=args.family,
@@ -143,6 +144,7 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
             args.id,
             why=_piped(args.why),
             deps=args.deps,
+            requires=args.requires,
             ref=args.ref,
             lines=args.lines,
         )
@@ -292,6 +294,17 @@ def declare_lines(subcommands: argparse._SubParsersAction) -> None:
         metavar="DEP",
         help="a dep, repeatable: an id, 'Block X', a range, or work outside the backlog",
     )
+    add_parser.add_argument(
+        "--requires",
+        action="append",
+        default=[],
+        dest="requires",
+        metavar="REQUIREMENT",
+        help=(
+            "what must be present to finish this, repeatable and declared in "
+            "`[requirements]`: not a dep — `pick` offers it only to a caller that has one"
+        ),
+    )
     _marker_flag(
         add_parser,
         "the status marker (default: the first marker roadkeep.toml declares)",
@@ -412,6 +425,13 @@ def declare_lines(subcommands: argparse._SubParsersAction) -> None:
         dest="deps",
         metavar="DEP",
         help="a dep, repeatable: given at all, it replaces the whole group",
+    )
+    amend_parser.add_argument(
+        "--requires",
+        action="append",
+        dest="requires",
+        metavar="REQUIREMENT",
+        help="a requirement, repeatable: given at all, it replaces the whole group",
     )
     amend_parser.add_argument(
         "--ref", help="the rationale anchor, for ref_scheme = 'outline'"

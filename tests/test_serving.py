@@ -774,6 +774,9 @@ def test_the_derived_fields_are_not_offered(tmp_path):
         "symptom",
         "why",
         "deps",
+        # The line's other statement about whether it can be started (RK1297), and the one
+        # field here that is neither derived nor inferable: no file can see the room.
+        "requires",
         "status",
         # The rationale is the other half of one write (RK93), so it is offered here for
         # the reason `section add`'s body is: stdin belongs to the protocol.

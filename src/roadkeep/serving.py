@@ -299,7 +299,10 @@ TOOLS: tuple[Tool, ...] = (
     # the withheld reason said it did not.
     Tool(
         "add",
-        ("block", "symptom", "why", "deps", "status", "section", "section_body",
+        # `requires` rides with `deps` (RK1297): the two groups are the line's two statements
+        # about whether it can be started, and the agent this surface serves is the one
+        # filing the task it just discovered it cannot finish.
+        ("block", "symptom", "why", "deps", "requires", "status", "section", "section_body",
          "section_body_file"),
         conditional=("task_id", "ref"),
     ),
@@ -363,7 +366,10 @@ TOOLS: tuple[Tool, ...] = (
     Tool("status", ("id", "marker")),
     # `lines` for `record amend`'s reason one file over (RK195): this is the door an adopting
     # project reaches for, and an adopted roadmap is the only place a wrapped line comes from.
-    Tool("amend", ("id", "why", "deps", "ref", "lines")),
+    # `requires` beside `deps` for `add`'s reason, and one the remedy table makes binding
+    # (RK1297): all four `requires.*` findings name this flag as their door, and a door only
+    # a terminal can open is a finding the agent that caused it cannot close.
+    Tool("amend", ("id", "why", "deps", "requires", "ref", "lines")),
     # The field `amend` excludes, at its own door (RK178). Exposed beside it because the agent
     # that discovers a premise is false is the one executing the line, and the exit designed
     # for it — retire plus add — spends an id and deletes a section that was already right.
@@ -552,8 +558,13 @@ TOOLS: tuple[Tool, ...] = (
     # `designed` is exposed on both for the reason it exists (RK83): the caller that asks
     # to execute a block over MCP is the one that was handed a design session, and a flag
     # only the CLI can reach is a flag the agent this ships for cannot pass.
-    Tool("brief", ("id", "block", "designed")),
-    Tool("pick", ("block", "designed")),
+    # `have` rides with it for that argument read backwards (RK1297): the caller this
+    # surface serves is the one with no hands, so it is the caller that passes **nothing**
+    # and gets the hardware lines set aside. Exposed all the same, because an agent working
+    # a checkout where the machine does have the thing is the one that can say so — and a
+    # flag it could not pass would make that a fact only a terminal can state.
+    Tool("brief", ("id", "block", "designed", "have")),
+    Tool("pick", ("block", "designed", "have")),
     Tool("list", ("block", "role", "marker")),
     Tool("deps", ("id",)),
     # `baseline` and nothing else (RK84): it is the flag that makes the answer readable on a

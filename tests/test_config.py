@@ -429,6 +429,39 @@ def test_an_unknown_key_is_refused_and_names_the_allowed_ones(tmp_path):
     assert "prefix" in str(caught.value)  # the allowed set, so the fix is one edit
 
 
+# -- the vocabulary a `(requires: …)` group quotes from (RK1297) --------------
+
+
+def test_a_project_that_declares_nothing_has_an_empty_vocabulary(tmp_path):
+    # Which is what makes the axis opt-in *and* refusable: every requirement is unknown
+    # until a project writes the table, so the first one is answered rather than accepted.
+    assert Config.load(write(tmp_path, "")).schema.requirements == ()
+
+
+def test_the_declared_words_reach_the_schema(tmp_path):
+    path = write(tmp_path, '[requirements]\ndeclared = ["ps5", "dualsense"]\n')
+    assert Config.load(path).schema.requirements == ("ps5", "dualsense")
+
+
+def test_a_word_stated_twice_is_carried_once(tmp_path):
+    path = write(tmp_path, '[requirements]\ndeclared = ["ps5", "ps5"]\n')
+    assert Config.load(path).schema.requirements == ("ps5",)
+
+
+def test_a_word_no_line_could_carry_is_refused_where_it_is_typed(tmp_path):
+    # Refused here rather than only at the write: a vocabulary nothing can quote would be
+    # declared once and refuse every `add` after it, in a file nobody is looking at.
+    path = write(tmp_path, '[requirements]\ndeclared = ["a ps5 (borrowed)"]\n')
+    with pytest.raises(ConfigError, match="which a line cannot carry"):
+        Config.load(path)
+
+
+def test_an_unknown_key_in_requirements_is_refused_like_every_other_table(tmp_path):
+    path = write(tmp_path, '[requirements]\nhave = ["ps5"]\n')
+    with pytest.raises(ConfigError, match="requirements.have"):
+        Config.load(path)
+
+
 def test_the_pointer_scheme_is_a_declared_choice(tmp_path):
     assert Config.discover(HERE).schema.ref_scheme == "id"
     outline = write(tmp_path, 'ref_scheme = "outline"\n')

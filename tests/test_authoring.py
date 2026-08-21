@@ -123,6 +123,56 @@ def task(config: Config, **overrides: object) -> object:
     return add(config, **fields)  # type: ignore[arg-type]
 
 
+#: The two lines a project opting into the axis writes (RK1297). `declares` puts them above
+#: `[files]`, which is where a table has to go or its keys belong to that one.
+EQUIPPED = ("[requirements]", 'declared = ["dualsense", "ps5"]', "")
+
+
+# -- what has to be present for the work to be finishable (RK1297) ------------
+
+
+def test_the_group_is_written_and_the_pointer_still_lands_after_it(tmp_path):
+    config = project(tmp_path, declares=EQUIPPED)
+    added = task(config, requires=["ps5"])
+    assert added.rendered == (
+        "- 📋 **RK2** (deps: —) (requires: ps5) **A second symptom** "
+        "— Because of another reason. → §RK2"
+    )
+
+
+def test_a_requirement_the_project_never_declared_is_refused_and_writes_nothing(tmp_path):
+    config = project(tmp_path)
+    before = source(config)
+    with pytest.raises(SchemaError, match="requires.unknown"):
+        task(config, requires=["ps5"])
+    assert source(config) == before
+
+
+def test_amend_replaces_the_whole_requires_group(tmp_path):
+    # `--dep`'s rule one group over: a requirement that no longer holds is removed by
+    # restating the ones that do, and a flag that only ever added would leave a line
+    # nothing could offer again.
+    config = project(tmp_path, declares=EQUIPPED)
+    task(config, requires=["ps5", "dualsense"])
+    amended = amend(config, "RK2", requires=["ps5"])
+    assert "(requires: ps5) **" in amended.entry.raw
+    assert "dualsense" not in amended.entry.raw
+
+
+def test_amend_can_take_the_group_away_entirely(tmp_path):
+    config = project(tmp_path, declares=EQUIPPED)
+    task(config, requires=["ps5"])
+    amended = amend(config, "RK2", requires=[])
+    assert "(requires:" not in amended.entry.raw
+
+
+def test_a_line_that_requires_nothing_is_byte_identical_to_one_written_before(tmp_path):
+    # The property every existing backlog depends on: a slot nobody fills renders nothing,
+    # so no adopted file stopped round-tripping the day this shipped.
+    config = project(tmp_path, declares=EQUIPPED)
+    assert "(requires:" not in task(config).rendered
+
+
 # -- where the line lands ----------------------------------------------------
 
 

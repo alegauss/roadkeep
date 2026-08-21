@@ -34,6 +34,7 @@ answers for that line (:func:`roadkeep.picking.hold`).
 from __future__ import annotations
 
 import textwrap
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 from roadkeep.backlog import Backlog, DepStatus, Readiness, Resolution, Standing
@@ -45,7 +46,7 @@ from roadkeep.history import Commit
 from roadkeep import criteria, scoping
 from roadkeep.claiming import Held
 from roadkeep.locking import exclusive
-from roadkeep.picking import Choice, Claim, hold, pick, take
+from roadkeep.picking import Choice, Claim, Lacking, hold, pick, take
 from roadkeep.kernel.schema import Task
 from roadkeep.remaining import Clause
 from roadkeep.shipping import as_recorded, recording_cost, supersession_cost
@@ -79,8 +80,14 @@ class NothingToBrief(KeyError):
         reason: str,
         held: tuple[Held, ...] = (),
         standing: Standing | None = None,
+        lacking: tuple[Lacking, ...] = (),
     ) -> None:
         self.held = held
+        #: The ready lines this caller has no way to finish, and what each would take
+        #: (RK1297). Carried for `held`'s reason and one further: a claim ends by itself,
+        #: and this absence ends only when the ids reach somebody who has the thing — so a
+        #: caller that cannot name them cannot even hand the work over.
+        self.lacking = lacking
         #: What became of the block this was scoped to (RK429), where one was named. The
         #: sentence above already states it; this is the same fact as a word, so a loop
         #: driving a block to completion branches on `finished` rather than on English.
@@ -91,7 +98,15 @@ class NothingToBrief(KeyError):
         #: reason, one of which goes wrong the first time either half is reworded.
         self.reason = reason
         named = ", ".join(f"{one.id} ({one.since} ago)" for one in held)
-        super().__init__(f"nothing to brief: {reason}" + (f" — held: {named}" if named else ""))
+        # Beside the held ids and on the same line, because this register is one string
+        # (RK1297): the sentence already says a requirement is missing, and these are the
+        # lines it is missing *for* — the half a caller needs to hand the work to somebody.
+        short = ", ".join(f"{one.id} ({', '.join(one.missing)})" for one in lacking)
+        super().__init__(
+            f"nothing to brief: {reason}"
+            + (f" — held: {named}" if named else "")
+            + (f" — absent: {short}" if short else "")
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -543,6 +558,7 @@ def brief(
     block: str | None = None,
     designed: bool = False,
     claim: bool = False,
+    available: Sequence[str] = (),
 ) -> Brief:
     """Join every answer about one task, and take it where the caller asked to.
 
@@ -551,6 +567,10 @@ def brief(
     it to work whose design is written (RK83) — the two flags together are what "execute
     Block C" means, and neither reaches a brief the caller addressed by id.
 
+    ``available`` is what this caller has (RK1297), and it reaches the pick for the reason
+    the two above do: a brief is the call that *starts* work, so the one filter whose answer
+    is "not by you" belongs where the line is chosen and not where it is described.
+
     ``claim`` moves the marker to in-progress (RK149). One lock covers the write **and** the
     reading that follows it, so the brief describes the line as it was taken rather than as
     some later state found it — the four reads being milliseconds, which is what makes
@@ -558,22 +578,28 @@ def brief(
     """
     if claim:
         with exclusive(config.root):
-            return _gather(config, *_claimed(config, task_id, block, designed))
+            return _gather(config, *_claimed(config, task_id, block, designed, available))
     if task_id is None:
-        chosen = pick(config, block, designed)
+        chosen = pick(config, block, designed, available=available)
         if chosen.entry is None:
-            raise NothingToBrief(chosen.reason, chosen.held, chosen.standing)
+            raise NothingToBrief(
+                chosen.reason, chosen.held, chosen.standing, chosen.lacking
+            )
         return _gather(config, chosen.entry.task.id, chosen, None)
     return _gather(config, task_id, None, None)
 
 
 def _claimed(
-    config: Config, task_id: str | None, block: str | None, designed: bool
+    config: Config,
+    task_id: str | None,
+    block: str | None,
+    designed: bool,
+    available: Sequence[str] = (),
 ) -> tuple[str, Choice | None, Claim]:
     """Take a line, by the tiers or by the id the caller gave, and say which happened."""
     if task_id is not None:
         return task_id, None, hold(config, task_id)
-    taken = take(config, block, designed)
+    taken = take(config, block, designed, available=available)
     if taken.choice is None or taken.choice.entry is None:
         # The same absence `pick` reports and not a refusal: a caller asking for work and
         # being told there is none got the fact it asked for, and nothing was written.
@@ -582,6 +608,7 @@ def _claimed(
             "" if taken.choice is None else taken.choice.reason,
             held,
             None if taken.choice is None else taken.choice.standing,
+            () if taken.choice is None else taken.choice.lacking,
         )
     return taken.choice.entry.task.id, taken.choice, taken
 
