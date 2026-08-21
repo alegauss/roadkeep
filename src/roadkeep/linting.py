@@ -1334,33 +1334,36 @@ def _budgets(config: Config, tree: Tree) -> tuple[list[Finding], list[Note]]:
                     subject=where,
                 )
             )
-    return out + _served(config) + _reads(config), notes
+    over, said = _reads(config)
+    return out + _served(config) + over, notes + said
 
 
-def _reads(config: Config) -> list[Finding]:
-    """Every open line's brief against what one may cost a tool result (RK1286).
+def _reads(config: Config) -> tuple[list[Finding], list[Note]]:
+    """The briefs a session is about to ask for, against what one may cost (RK1286, RK1287).
 
     `_served`' argument about a **read** rather than about the schema. RK30 held the resident
     prose, RK1059 the served surface, and the one answer this project recommends *over*
     reading the file had no figure at all — while growing four arithmetic rows in one session,
     each argued and none counted.
 
-    The widest and not the median, said per line so the report names the one that overflows:
-    a brief that fits on the average task and not on the hardest one is a brief a session
-    replaces by re-reading the file exactly when that file is longest.
+    **Bounded, and it says by how much.** A brief costs tens of milliseconds, so pricing every
+    open line put a project that declared a ceiling at O(open) of them on every commit. What
+    this prices is `pick`'s own answer and the alternatives it already names — the reads a
+    session is about to make — and the note says how many lines that left out and which
+    command prices them all. Never a silent cap: a report that omits without saying so reads
+    as one that covered everything.
 
     Filed against `roadkeep.toml`, which declared it and is the only file involved — a brief
     is composed per call and there is no path a reader could open to see it, which is
-    `_served`'s own reason. Silent where nothing is declared, and **composed only there**:
-    pricing a brief per open line on a project that asked for no ceiling is work the gate has
-    no question to spend it on.
+    `_served`'s own reason. Silent where nothing is declared, and **composed only there**.
     """
     if config.brief_read is None:
-        return []
+        return [], []
     from roadkeep.budgeting import brief_budget  # noqa: PLC0415 - RK260
 
     where = config.relative(config.source or config.root)
-    return [
+    found = brief_budget(config, offered=True)
+    out = [
         Finding(
             "read.over",
             where,
@@ -1370,8 +1373,24 @@ def _reads(config: Config) -> list[Finding]:
             f"`{invocation()} budget --brief` ranks every one and names what each costs",
             subject=one.id,
         )
-        for one in brief_budget(config).over
+        for one in found.over
     ]
+    notes = (
+        [
+            Note(
+                "read.priced",
+                where,
+                f"{len(found.briefs)} of {len(found.briefs) + found.elided} open line(s) "
+                f"priced against `[reads] brief` — the ones `pick` offers next, so what is "
+                f"left out is what nobody is about to brief, and the next run prices "
+                f"whatever the answer has become; `{invocation()} budget --brief` ranks "
+                f"every one now",
+            )
+        ]
+        if found.elided
+        else []
+    )
+    return out, notes
 
 
 def _wired(config: Config) -> list[Finding]:

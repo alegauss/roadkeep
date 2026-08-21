@@ -546,6 +546,7 @@
 - ✅ **RK1232** **A full run asks for every core, so the machine has nothing left while the suite is running** — `auto` answers half the cores, so a full run leaves the machine to the session that started it and two sessions in one checkout stop asking for 56 workers on 28 threads.
 - ✅ **RK1228** **Nothing reports source changed under an open task while the line stayed open** — lint --since notes task.worked where this change touches a path an open task's section names, which is the mirror of the check that prose moved without its line.
 - ✅ **RK1234** **task.worked fires per line, so the block that quietly finished is still only visible one commit at a time** — lint --since reads the block: every open line's source moved and none shipped is said once, and replaces the per-line notes.
+- ✅ **RK1287** **the gate composes one brief per open line, so a project that declared a ceiling pays it on every commit** — The gate prices the briefs `pick` offers next and names how many open lines that left out.
 
 ## Block E — Adoption
 

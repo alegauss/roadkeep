@@ -119,16 +119,16 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 175 | 2 |
 | C — Query (consult without reading the file) | 1 | 117 | 1 |
-| D — The gate | 1 | 185 | 2 |
+| D — The gate | 0 | 186 | 2 |
 | E — Adoption | 0 | 96 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 2 | 774 | 10 |
+| **Total** | 1 | 775 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1287** (deps: —) **the gate composes one brief per open line, so a project that declared a ceiling pays it on every commit** — The gate prices briefs at a cost that does not scale with the backlog, or says what it sampled. → §RK1287
+- 📋 **RK1288** (deps: —) **a line whose brief will not compose is dropped from the ranking in silence, and the widest may be it** — A brief the read cannot compose is named rather than dropped, so the widest is never one that went unmeasured. → §RK1288
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

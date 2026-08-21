@@ -1298,6 +1298,14 @@ _TABLE: Mapping[str, _Rule] = {
         "the counted bytes are the commit's and this checkout pays more; this prints both "
         "beside the ceiling, and lowering it is a line in roadkeep.toml",
     ),
+    # RK1287. A note and not a defect: the gate priced what a session is about to brief and
+    # says how many it left out, which is `deps.collective`'s shape — the door is the read
+    # that answers the whole question, and there is nothing here to repair.
+    "read.priced": _read(
+        ("budget", "--brief"),
+        "the gate prices the briefs `pick` offers next, so a backlog's length never reaches "
+        "it; this ranks every open line and names what each costs",
+    ),
     # RK1286. `{id}` is the task whose brief is over, which this finding carries as its
     # subject: the ranking answers *which one*, and the finding already said that — what the
     # reader needs next is what that one brief costs and where the size went.

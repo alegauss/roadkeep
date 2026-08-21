@@ -32,8 +32,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1287** (deps: —) **the gate composes one brief per open line, so a project that declared a ceiling pays it on every commit** — The gate prices briefs at a cost that does not scale with the backlog, or says what it sampled. → §RK1287
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

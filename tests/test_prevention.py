@@ -291,6 +291,10 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("ref.missing", "gate", because=MEANT),
     Prevented("deps.block", "gate", because=MEANT),
     Prevented("deps.collective", "gate", because=MEANT),
+    # RK1287. `MEANT` for `deps.collective`'s reason exactly: it is a note and not a defect,
+    # said because a report that omits without saying so reads as one that covered
+    # everything — and the door beside it is the read that answers the whole question.
+    Prevented("read.priced", "gate", because=MEANT),
 )
 
 #: The codes a write could refuse and does not. Asserted against the rows in both

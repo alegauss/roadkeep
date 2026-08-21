@@ -2654,11 +2654,48 @@ def test_a_brief_over_the_declared_ceiling_is_a_finding(tmp_path):
 
     assert not report.clean
     over = [one for one in report.findings if one.code == "read.over"]
-    assert len(over) == 2, [str(one) for one in report.findings]
+    assert over, [str(one) for one in report.findings]
     # Filed against the file that declared it: a brief is composed per call and there is no
     # path a reader could open to see it, which is `budget.tool`'s own reason.
     assert all(one.file == "roadkeep.toml" for one in over)
-    assert {one.subject for one in over} == {"RK1", "RK2"}
+    # The ones `pick` offers next, which on this fixture is the whole ready tier (RK1287).
+    assert {one.subject for one in over} <= {"RK1", "RK2"}
+
+
+def test_the_gate_prices_what_a_session_is_about_to_ask_for(tmp_path):
+    """RK1287. A brief costs tens of milliseconds, so pricing every open line put a project
+    that declared a ceiling at O(open) of them on every commit. What is left out is what
+    nobody is about to brief — and the next run prices whatever the answer has become."""
+    from roadkeep.budgeting import brief_budget
+
+    config = _reading(tmp_path, ceiling=9000)
+    bounded = brief_budget(config, offered=True)
+    whole = brief_budget(config)
+
+    assert {one.id for one in bounded.briefs} <= {one.id for one in whole.briefs}
+    assert bounded.elided == len(whole.briefs) - len(bounded.briefs)
+    # And the deliberate read is still every one: a person who asked for the ranking gets it.
+    assert whole.elided == 0
+
+
+def test_what_the_gate_left_out_is_a_note_and_never_a_silence(tmp_path):
+    """No silent caps: a report that omits without saying so reads as one that covered
+    everything, and `read.over` is derived from this ranking — so a project can be over its
+    ceiling on a line nothing reports unless the count is stated."""
+    config = _reading(tmp_path, ceiling=9000)
+    (config.root / "ROADMAP.md").write_text(
+        BACKLOG + "".join(
+            f"- {DESIGNED} **RK{n}** (deps: —) **A symptom numbered {n}** — Because.\n"
+            for n in range(3, 9)
+        ),
+        encoding="utf-8",
+    )
+    report = lint(Config.discover(config.root))
+    priced = [one for one in report.notes if one.code == "read.priced"]
+
+    assert priced, [str(one) for one in report.notes]
+    assert "open line(s) priced" in priced[0].message
+    assert "budget --brief" in priced[0].message
 
 
 def test_the_finding_names_the_read_that_prices_the_one_over(tmp_path):
@@ -2680,7 +2717,7 @@ def test_the_gate_composes_nothing_where_no_ceiling_is_declared(tmp_path, monkey
 
     asked = []
     monkeypatch.setattr(
-        linting, "_reads", lambda config: asked.append(config) or []
+        linting, "_reads", lambda config: (asked.append(config), ([], []))[1]
     )
     assert lint(_reading(tmp_path)).clean
     # The function is reached and answers empty; what it must not do is compose a brief.

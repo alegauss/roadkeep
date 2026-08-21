@@ -104,28 +104,6 @@ design has to choose.
 
 ## Block D — The gate
 
-### §RK1287 A reading that scales with the backlog
-
-The reading is per open line and the gate takes it whole. A brief costs tens of
-milliseconds here — it builds a graph, resolves deps and composes four allowances — so a
-project that declares `[reads] brief` pays that once per open line on every `lint`,
-which is every commit and every turn's end.
-
-Opt-in was the mitigation and it is only half of one. It keeps the cost off projects
-that never asked, and says nothing to the project that asked while it had four open
-lines and now has two hundred. That gate is six seconds slower than it was and nothing
-in the report mentions why.
-
-The widest is the answer, and the widest is not free to find. Three shapes are honest.
-Sample and say so, which this project's own law about silent caps requires. Cache the
-figure against the file, as the editor host caches on the clock of what moves it. Or
-measure only the lines a write touched, which is `--baseline`'s reading already made
-about a revision.
-
-What it must not keep doing is scale with the backlog and report a duration to nobody.
-The gate has one job a slow one stops doing: it runs at the end of every turn, and the
-first thing anybody does with a gate that costs six seconds is stop running it.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

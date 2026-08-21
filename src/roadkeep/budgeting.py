@@ -1345,6 +1345,11 @@ class Reads:
     """
 
     briefs: tuple[Briefed, ...] = ()
+    #: How many open lines this reading did **not** price (RK1287). Above zero only on the
+    #: gate's bounded read, and never a silence: a listing that omits without saying so reads
+    #: as one that covered everything, which is the law this project holds about every capped
+    #: answer it gives.
+    elided: int = 0
     #: `[reads] brief`, or `None` where the project declared none — opt-in, as every other
     #: table whose absence means *ungoverned* rather than *zero* is.
     limit: int | None = None
@@ -1358,7 +1363,9 @@ class Reads:
         return tuple(one for one in self.briefs if one.over(self.limit))
 
 
-def brief_budget(config: Config, task_id: str | None = None) -> Reads:
+def brief_budget(
+    config: Config, task_id: str | None = None, *, offered: bool = False
+) -> Reads:
     """What a brief costs, per open line or for the one named (RK1286).
 
     Measured off :func:`~roadkeep.briefing.brief`'s own rendering and never re-composed, which
@@ -1371,11 +1378,29 @@ def brief_budget(config: Config, task_id: str | None = None) -> Reads:
 
     Open lines only. A shipped id has no brief left to start work from, and a paused one is a
     line `pick` can never offer — pricing either would be measuring an answer nobody asks for.
+
+    ``offered`` is the **bounded** reading, and it is the gate's (RK1287). A brief costs tens
+    of milliseconds, so pricing every open line put a project that declared a ceiling at O(open)
+    of them on every commit — six seconds on a two-hundred-line backlog, and the first thing
+    anybody does with a gate that costs six seconds is stop running it. What this prices instead
+    is the briefs a session is **about to ask for**: `pick`'s own answer and the alternatives it
+    already names, which is a bound this module does not invent and one that moves with that
+    verb. What it leaves out is :attr:`Reads.elided` — never dropped in silence.
     """
     from roadkeep.briefing import NothingToBrief, brief  # noqa: PLC0415 - RK260
+    from roadkeep.picking import pick  # noqa: PLC0415 - RK260
 
     roadmap = config.document("roadmap")
-    wanted = [task_id] if task_id is not None else list(roadmap.by_id())
+    every = list(roadmap.by_id())
+    if task_id is not None:
+        wanted, elided = [task_id], 0
+    elif offered:
+        chosen = pick(config)
+        named = [one.task.id for one in (chosen.entry,) if one is not None]
+        wanted = [*named, *chosen.alternatives]
+        elided = max(0, len(every) - len(wanted))
+    else:
+        wanted, elided = every, 0
     out: list[Briefed] = []
     for one in wanted:
         try:
@@ -1387,6 +1412,7 @@ def brief_budget(config: Config, task_id: str | None = None) -> Reads:
     return Reads(
         briefs=tuple(sorted(out, key=lambda one: one.characters, reverse=True)),
         limit=config.brief_read,
+        elided=elided,
     )
 
 
