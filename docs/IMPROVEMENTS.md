@@ -79,6 +79,26 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1298 One budget and its deltas, not two tables
+
+Measured on winwright, a greenfield adopter with 106 open lines: `brief WW1` answered
+with a `budget` object and a `shipping` object whose rows are the same rows. They differ
+in six values - the marker, `open_line`, `structure`, `ref`, `prose`, and one field's
+`drafted` flag - and everything else repeats: both `section` sub-objects are
+byte-identical, and both carry a full row per prose field with the same limit, aim,
+taken, unit and source. The second copy is the first with the shipped marker swapped in,
+which is arithmetic the caller could do and never asked for.
+
+That is worth a line because RK1286 gave this read a ceiling for exactly one reason: it
+is the answer that replaces reading the file, so what it spends is what the agent has
+left for the task itself. A table paid for twice is the largest thing in that payload
+which is not information, and it grows with every field a project declares a limit on.
+
+What it should answer instead is one budget plus the deltas the ship would apply - the
+six values above, named - rather than a second table a reader has to diff against the
+first to find out that five of its rows say nothing new. The figures stay reachable;
+what goes is the repetition.
+
 ## Block D — The gate
 
 ## Block E — Adoption

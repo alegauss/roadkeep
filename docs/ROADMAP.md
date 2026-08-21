@@ -28,6 +28,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1298** (deps: —) **brief answers with two budget objects that differ in six fields and repeat every other row** — The shipping figures are the pre-write ones with the marker swapped, so the section row and every field row are paid for twice against a ceiling written to fit a tool result. → §RK1298
+
 ## Block D — The gate
 
 ## Block E — Adoption
