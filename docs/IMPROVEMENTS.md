@@ -83,36 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1296 RK1296 A reason kept where nothing hands it back
-
-RK1293 moved the argument for a governed number out of the commit body and into the file
-this tool owns, on the reasoning that a commit body composed by a tool this project does
-not own is a place the argument cannot be kept. It is kept there now, and the read that
-asks about the number does not return it. Measured here, immediately after declaring
-one:
-
-```
-$ roadkeep govern reads.brief
-reads.brief  utf-16 code units, per brief
-  reading  none — no open line to brief …
-  declared 3300
-```
-
-Directly above `brief = 3300` sit the four lines this session wrote arguing for exactly
-that number, and neither answer carries a byte of them. The agent asking why the ceiling
-is 3300 is told "3300", and the only way to the reason is opening the config — the read
-L5 exists to replace, on the one file every other rule is read out of.
-
-`Measured` should carry the argument standing above the key, the way it already carries
-what the corpus says and what the project declares: the contiguous comment block
-directly above the row, verbatim and unwrapped, absent where there is none. Then
-`stated()` prints it under the reading and `--json` carries it as a field, and a raise
-is argued against the argument it replaces rather than against a number with no history.
-
-Two things it is not: a rewrite of the comment, `--because` being the only writer; and
-an interpretation of what the comment means. What comes back is the lines that are
-there.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

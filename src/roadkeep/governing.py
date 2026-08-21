@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from roadkeep.config import Config
@@ -112,6 +112,12 @@ class Measured:
     #: Absent where nothing measures this key — `[claims] held` is a judgement about how long
     #: work takes, which no file here holds evidence about (said, never invented).
     unmeasured: str = ""
+    #: The argument standing above the key, one string per comment line and the `#` stripped
+    #: (RK1296). Kept in the file by `--because` and handed back here, because a reason the
+    #: read does not return is one the caller opens the config for — the read L5 exists to
+    #: replace, on the one file every other rule is read out of. Verbatim: what the comment
+    #: *means* is not this tool's to say (L4).
+    because: tuple[str, ...] = ()
 
     def over(self, at: int) -> bool:
         return bool(self.sites) and self.worst > at
@@ -136,6 +142,13 @@ class Measured:
                 "  declared none — this build's default applies"
                 if self.declared is None
                 else f"  declared {self.declared}"
+            )
+            # Under the number and not beside it, because it is prose and wraps: the first
+            # line is labelled and the rest are indented to it, which is how every wrapped
+            # answer here is read (RK1296).
+            rows.extend(
+                f"  {'because' if index == 0 else '       '}  {line}"
+                for index, line in enumerate(self.because)
             )
         return "\n".join(rows)
 
@@ -247,22 +260,26 @@ def reading(config: Config, address: str, *, file: str = "", role: str = "") -> 
     written = any(one.name == key and one.declared for one in shape(config, table).keys)
     declared = _current(config, table, key, file=file, role=role) if written else None
     if table == "limits":
-        return _limits(config, address, key, declared, role=role)
-    if table == "budgets.<path>":
-        return _budgets(config, address, key, declared, file=file)
-    if table == "tools":
-        return _tools(config, address, key, declared)
-    if table == "reads":
-        return _reads(config, address, declared)
-    return Measured(
-        address=address,
-        unit="minutes",
-        declared=declared,
-        unmeasured=(
-            "how long a claim reads as held is a judgement about how long work takes, "
-            "and no file here holds evidence about that"
-        ),
-    )
+        found = _limits(config, address, key, declared, role=role)
+    elif table == "budgets.<path>":
+        found = _budgets(config, address, key, declared, file=file)
+    elif table == "tools":
+        found = _tools(config, address, key, declared)
+    elif table == "reads":
+        found = _reads(config, address, declared)
+    else:
+        found = Measured(
+            address=address,
+            unit="minutes",
+            declared=declared,
+            unmeasured=(
+                "how long a claim reads as held is a judgement about how long work takes, "
+                "and no file here holds evidence about that"
+            ),
+        )
+    # And the argument, joined here rather than inside six branches: what argues a number is
+    # the same question wherever the number is measured, and the answer is in one file (RK1296).
+    return replace(found, because=_because(config, table, key, file=file, role=role))
 
 
 def _current(config: Config, table: str, key: str, *, file: str, role: str) -> int | None:
@@ -589,6 +606,39 @@ def _spelled(table: str, key: str, *, file: str, role: str) -> tuple[str, str, s
     if table == "limits" and role:
         return f"[limits.{role}]", key, ""
     return f"[{table}]", key, ""
+
+
+def _because(
+    config: Config, table: str, key: str, *, file: str, role: str
+) -> tuple[str, ...]:
+    """The argument standing above one key in `roadkeep.toml`, verbatim (RK1296).
+
+    The contiguous comment run directly above the row, with the `#` and one space taken off
+    and nothing else touched. Whether those lines were placed by `--because` or written by
+    hand years ago is not a question this can answer and not one worth asking: what argues
+    the number is what is above it.
+
+    A project with no config, a table nobody declared or a key nobody wrote each answer with
+    nothing, which is the same answer a key with no comment above it gives — and correct in
+    all four, an argument being absent either way.
+    """
+    if config.source is None or not config.source.exists():
+        return ()
+    heading, spelled, _ = _spelled(table, key, file=file, role=role)
+    lines = config.source.read_text(encoding="utf-8").splitlines()
+    inside = False
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("["):
+            if inside:
+                return ()
+            inside = stripped == heading
+        elif inside and "=" in stripped and _named(stripped) == spelled.strip('"'):
+            start = index
+            while start > 0 and lines[start - 1].lstrip().startswith("#"):
+                start -= 1
+            return tuple(line.lstrip()[1:].strip() for line in lines[start:index])
+    return ()
 
 
 def _above(lines: list[str], index: int, because: tuple[str, ...]) -> bool:

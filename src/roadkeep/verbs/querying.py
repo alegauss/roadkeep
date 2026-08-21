@@ -862,6 +862,7 @@ def _reading_json(found) -> dict:
         "where": found.where,
         "declared": found.declared,
         "unmeasured": found.unmeasured or None,
+        "because": list(found.because),
     }
 
 

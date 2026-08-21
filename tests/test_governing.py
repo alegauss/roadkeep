@@ -497,3 +497,67 @@ def test_an_argument_that_wrapped_to_nothing_is_not_reported_as_written(tmp_path
     assert "symptom = 90" in after
     # And the file gained no empty comment either — nothing was placed at all.
     assert "#\n" not in after
+
+
+# -- the argument, handed back by the read that asks about the number (RK1296) -
+
+
+def test_the_read_returns_the_argument_the_write_kept(tmp_path):
+    """RK1293 moved the reason out of the commit body and into the file this tool owns, and
+    the read that asks about the number did not return it — so why a number is what it is
+    still cost opening the config, which is the read L5 exists to replace."""
+    config = project(tmp_path)
+    governing.govern(config, "claims.held", 90, because="A day is what a session lasts here.")
+
+    found = governing.reading(Config.discover(tmp_path), "claims.held")
+    assert found.because == ("A day is what a session lasts here.",)
+    assert "because  A day is what a session lasts here." in found.stated()
+
+
+def test_a_wrapped_argument_comes_back_a_line_at_a_time_and_indented_under_the_first(tmp_path):
+    config = project(tmp_path)
+    governing.govern(config, "limits.symptom", 90, because=" ".join(["argument"] * 40))
+
+    found = governing.reading(Config.discover(tmp_path), "limits.symptom")
+    assert len(found.because) > 1
+    assert not any(line.startswith("#") for line in found.because)
+    rows = found.stated().splitlines()
+    assert rows[-1].startswith("           ") and rows[-1].strip().startswith("argument")
+
+
+def test_a_key_with_nothing_above_it_answers_with_nothing(tmp_path):
+    # The same answer four absences give: no config, no table, no key, no comment.
+    config = project(tmp_path)  # `why` sits under `symptom`, with no comment of its own
+    assert governing.reading(config, "limits.why").because == ()
+    assert "because" not in governing.reading(config, "limits.why").stated()
+
+
+def test_the_argument_read_back_is_the_one_above_this_key_and_not_the_one_above_another(
+    tmp_path,
+):
+    """Two keys in one table, argued separately: a run of comments belongs to the row it sits
+    directly above, and reading the table's first argument for its second would date a number
+    against a decision that was never about it."""
+    config = project(tmp_path)
+    governing.govern(config, "limits.symptom", 90, because="About the symptom.")
+    governing.govern(Config.discover(tmp_path), "limits.why", 150, because="About the why.")
+
+    read = Config.discover(tmp_path)
+    assert governing.reading(read, "limits.symptom").because == ("About the symptom.",)
+    assert governing.reading(read, "limits.why").because == ("About the why.",)
+
+
+def test_a_hand_written_comment_is_an_argument_too(tmp_path):
+    """Whether the lines were placed by `--because` or written by hand years ago is not a
+    question this can answer and not one worth asking: what argues the number is what is
+    above it. This project's own `[tools]` entry is five hand-written raises."""
+    config = project(tmp_path, config=CONFIG.replace("[limits]\nsymptom", "[limits]\n# argued by hand\nsymptom"))
+    assert governing.reading(config, "limits.symptom").because == ("argued by hand",)
+
+
+def test_the_payload_carries_the_argument_a_line_at_a_time(tmp_path, capsys):
+    config = project(tmp_path)
+    governing.govern(config, "claims.held", 90, because="One sentence.")
+
+    assert main(["-C", str(config.root), "govern", "claims.held", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["because"] == ["One sentence."]

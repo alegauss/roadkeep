@@ -655,6 +655,7 @@
 - ✅ **RK1293** **the argument for a limit is ruled into the commit body, which a tool this project does not own composes** — govern --because "…" wraps the author's sentence into comments above the key, stacked on whatever argued the number before, so a governed number carries its reason where its reader is.
 - ✅ **RK1294** **a re-run stacks the argument it already placed, so the same sentence appears twice above one number** — An argument byte-for-byte identical to the bottom of the stack already above the key is not written again, and the answer says the reason already stands.
 - ✅ **RK1295** **an argument that is only whitespace is reported as written above the key and is not** — The answer reads the comment lines that were placed rather than the flag that was passed, so an argument that wrapped to nothing is told which flag writes one.
+- ✅ **RK1296** **the argument a number carries is kept in the file and never returned by the read that asks about the number** — The reading carries the comment run standing above the key, verbatim and a line at a time, so the argument the write kept is what the read hands back.
 
 ## Block F — The Claude Code plugin
 

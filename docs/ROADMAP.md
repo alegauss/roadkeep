@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1296** (deps: —) **the argument a number carries is kept in the file and never returned by the read that asks about the number** — The reading carries the argument standing above the key, so why a number is what it is costs a command and not a file to open. → §RK1296
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
