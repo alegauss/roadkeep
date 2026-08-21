@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1290** (deps: —) **the note saying what the gate did not price fires on every clean run of any real backlog** — The note about a bounded reading fires where the shortfall is news, so a clean run does not repeat one sentence. → §RK1290
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

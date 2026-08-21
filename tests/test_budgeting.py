@@ -2686,16 +2686,31 @@ def test_what_the_gate_left_out_is_a_note_and_never_a_silence(tmp_path):
     (config.root / "ROADMAP.md").write_text(
         BACKLOG + "".join(
             f"- {DESIGNED} **RK{n}** (deps: —) **A symptom numbered {n}** — Because.\n"
-            for n in range(3, 9)
+            for n in range(3, 15)
         ),
         encoding="utf-8",
     )
     report = lint(Config.discover(config.root))
     priced = [one for one in report.notes if one.code == "read.priced"]
 
+    # Fourteen open lines and four priced, so the ceiling is held against a minority — which
+    # is the shortfall the threshold exists to name (RK1290).
     assert priced, [str(one) for one in report.notes]
     assert "open line(s) priced" in priced[0].message
     assert "budget --brief" in priced[0].message
+
+
+def test_the_note_is_quiet_where_the_gate_saw_the_majority(tmp_path):
+    """RK1290. `_collective`'s shape and not a tuned ratio: below the threshold this gate saw
+    most of the backlog and there is no surprise to report. Without one it fired on every
+    clean run of any real backlog, and a reader who meets the same sentence every time stops
+    reading the notes — so the next one that matters arrives under a heading they skip."""
+    config = _reading(tmp_path, ceiling=9000)
+    report = lint(config)
+
+    assert report.clean
+    # Two open lines and the gate priced one of them: left out is not *more* than priced.
+    assert [one for one in report.notes if one.code == "read.priced"] == []
 
 
 def test_the_finding_names_the_read_that_prices_the_one_over(tmp_path):

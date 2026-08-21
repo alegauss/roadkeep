@@ -549,6 +549,7 @@
 - ✅ **RK1228** **Nothing reports source changed under an open task while the line stayed open** — lint --since notes task.worked where this change touches a path an open task's section names, which is the mirror of the check that prose moved without its line.
 - ✅ **RK1234** **task.worked fires per line, so the block that quietly finished is still only visible one commit at a time** — lint --since reads the block: every open line's source moved and none shipped is said once, and replaces the per-line notes.
 - ✅ **RK1287** **the gate composes one brief per open line, so a project that declared a ceiling pays it on every commit** — The gate prices the briefs `pick` offers next and names how many open lines that left out.
+- ✅ **RK1290** **the note saying what the gate did not price fires on every clean run of any real backlog** — The note about a bounded reading fires where the shortfall is news, not on every clean run.
 
 ## Block E — Adoption
 

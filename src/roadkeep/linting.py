@@ -1403,7 +1403,16 @@ def _reads(config: Config) -> tuple[list[Finding], list[Note]]:
                 f"every one now",
             )
         ]
-        if found.elided
+        # **More left out than priced** (RK1290), which is `_collective`'s shape and not a
+        # tuned ratio: below it this gate saw the majority of the backlog and there is no
+        # surprise to report, and above it the ceiling is held against a minority — which is
+        # the fact worth a line. Without a threshold it fired on every clean run of any real
+        # backlog, and a reader who meets the same sentence every time stops reading the
+        # notes, so the next one that matters arrives under a heading they learnt to skip.
+        #
+        # Never about the **refused**: those are `read.unpriced` findings, and a threshold
+        # here silences nothing this report would otherwise have said.
+        if found.elided > len(found.briefs)
         else []
     )
     return out, notes

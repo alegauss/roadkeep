@@ -119,16 +119,12 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 175 | 2 |
 | C — Query (consult without reading the file) | 0 | 119 | 1 |
-| D — The gate | 1 | 186 | 2 |
+| D — The gate | 0 | 187 | 2 |
 | E — Adoption | 0 | 96 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 1 | 777 | 10 |
-
-**Next ready:**
-
-- 📋 **RK1290** (deps: —) **the note saying what the gate did not price fires on every clean run of any real backlog** — The note about a bounded reading fires where the shortfall is news, so a clean run does not repeat one sentence. → §RK1290
+| **Total** | 0 | 778 | 10 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

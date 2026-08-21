@@ -81,28 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1290 A note with no threshold
-
-The note fires whenever the bounded reading left anything out, which on any real backlog
-is every run. A project that declared a ceiling and holds twenty open lines prints it on
-every commit, every turn's end, and every CI job — a sentence that never changes, under
-a report that is otherwise clean.
-
-RK16 already settled this shape one note over. `_collective` expands a `Block X` dep
-only where it names **two or more** open tasks, because at one there is no surprise to
-report and a note per token is output nobody reads. The threshold is the whole design of
-that note, and this one shipped without one.
-
-What makes it worse than noise is what noise does to a report: a reader who sees the
-same line under every clean run stops reading the notes, and the next one that matters
-arrives under a heading they have learnt to skip. A gate is read exactly as carefully as
-its quietest run trains somebody to read it.
-
-The fact is still worth stating and the question is when. It is news the first time a
-backlog outgrows what the gate prices, and news again where the shortfall is large
-enough that the ceiling is effectively unheld — and it is not news on the run after
-that. Which of those two the threshold is written against is the design's to decide.
-
 ## Block E — Adoption
 
 ## Block F — The plugin
