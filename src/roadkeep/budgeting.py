@@ -1362,11 +1362,18 @@ class Reads:
     #: the answer. No silent caps, and the gate inherits that: `read.over` is derived from
     #: this ranking, so a project could be over its ceiling on a line nothing reported.
     unpriced: tuple[Unpriced, ...] = ()
-    #: How many open lines this reading did **not** price (RK1287). Above zero only on the
+    #: How many open lines this reading did **not** ask for (RK1287). Above zero only on the
     #: gate's bounded read, and never a silence: a listing that omits without saying so reads
     #: as one that covered everything, which is the law this project holds about every capped
     #: answer it gives.
     elided: int = 0
+    #: How many open lines there are (RK1289). **Carried and never reconstructed**: the note
+    #: added `elided` to what it priced and called that the backlog, which is the backlog only
+    #: while every line it asked for answered — a line that refused leaves the ranking without
+    #: ever being elided, so four wanted of ten with one refusing printed "3 of 9". Three
+    #: numbers that add up beats two arranged so the sum is wrong, and this reading walked
+    #: every open id to compute the bound in the first place.
+    open_lines: int = 0
     #: `[reads] brief`, or `None` where the project declared none — opt-in, as every other
     #: table whose absence means *ungoverned* rather than *zero* is.
     limit: int | None = None
@@ -1439,6 +1446,7 @@ def brief_budget(
         limit=config.brief_read,
         elided=elided,
         unpriced=tuple(refused),
+        open_lines=len(every),
     )
 
 

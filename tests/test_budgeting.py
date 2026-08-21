@@ -2789,3 +2789,46 @@ def test_the_gate_reports_the_line_it_could_not_measure(tmp_path, monkeypatch):
     assert unpriced, [str(one) for one in report.findings]
     assert "would not compose" in unpriced[0].message
     assert "nothing composes" in unpriced[0].message
+
+
+def test_the_total_is_carried_and_never_reconstructed(tmp_path, monkeypatch):
+    """RK1289. The note added `elided` to what it priced and called that the backlog, which is
+    the backlog only while every line it asked for answered: a line that refused leaves the
+    ranking without ever being elided, so the denominator lost exactly the lines the report is
+    most concerned about."""
+    import roadkeep.briefing as briefing
+    from roadkeep.budgeting import brief_budget
+
+    config = _reading(tmp_path, ceiling=9000)
+    real = briefing.brief
+
+    def refusing(config, task_id=None, **rest):
+        if task_id == "RK1":
+            raise KeyError("nothing composes")
+        return real(config, task_id, **rest)
+
+    monkeypatch.setattr(briefing, "brief", refusing)
+    found = brief_budget(config, offered=True)
+
+    # Three numbers that add up, where two arranged so the sum is wrong was the defect.
+    assert len(found.briefs) + len(found.unpriced) + found.elided == found.open_lines
+    assert found.open_lines == 2
+    assert len(found.unpriced) == 1
+
+
+def test_the_note_says_priced_refused_and_not_asked_for(tmp_path, monkeypatch):
+    import roadkeep.briefing as briefing
+
+    config = _reading(tmp_path, ceiling=9000)
+    real = briefing.brief
+    monkeypatch.setattr(
+        briefing,
+        "brief",
+        lambda cfg, task_id=None, **rest: (_ for _ in ()).throw(KeyError("nothing composes"))
+        if task_id == "RK1"
+        else real(cfg, task_id, **rest),
+    )
+    (note,) = [one for one in lint(config).notes if one.code == "read.priced"]
+
+    assert "of 2 open line(s)" in note.message
+    assert "1 refused" in note.message

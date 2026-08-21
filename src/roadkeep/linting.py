@@ -1394,8 +1394,10 @@ def _reads(config: Config) -> tuple[list[Finding], list[Note]]:
             Note(
                 "read.priced",
                 where,
-                f"{len(found.briefs)} of {len(found.briefs) + found.elided} open line(s) "
-                f"priced against `[reads] brief` — the ones `pick` offers next, so what is "
+                f"{len(found.briefs)} of {found.open_lines} open line(s) priced against "
+                f"`[reads] brief`"
+                + (f", {len(found.unpriced)} refused" if found.unpriced else "")
+                + f", {found.elided} not asked for — the ones `pick` offers next, so what is "
                 f"left out is what nobody is about to brief, and the next run prices "
                 f"whatever the answer has become; `{invocation()} budget --brief` ranks "
                 f"every one now",

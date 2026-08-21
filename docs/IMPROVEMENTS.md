@@ -79,27 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1289 A total reconstructed from two counts
-
-`elided` is the count of open lines the bounded reading did not ask for, and the note
-adds it to the ones it priced to say how many there are. That sum is the backlog only
-while every line it asked for answered.
-
-A line that would not compose is asked for and not priced. It leaves the ranking and it
-was never elided, so the denominator loses it: four wanted of ten open with one refusing
-prints "3 of 9". The number a reader takes for the size of their backlog is short by
-exactly the lines the report is most concerned about, which is the population RK1288
-added a finding for one paragraph earlier.
-
-Two counts and one subtraction, arranged so that neither is wrong on its own and the sum
-is. `elided` answers *what the bound left out* and is right; the note asks *how big is
-this backlog*, which is a third fact and one the reading already holds — it walked every
-open id to compute the bound in the first place.
-
-So the total is carried rather than reconstructed. What the note says then is three
-numbers that add up: priced, refused, and not asked for — and the reader is not left
-subtracting one report from another to find out whether the shortfall was a refusal.
-
 ## Block D — The gate
 
 ### §RK1290 A note with no threshold

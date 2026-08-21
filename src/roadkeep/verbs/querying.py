@@ -642,12 +642,23 @@ def _brief_budget(config: Config, args: argparse.Namespace) -> int:
                         {"id": one.id, "characters": one.characters, "over": one.over(found.limit)}
                         for one in found.briefs
                     ],
+                    # What the ranking could not measure (RK1288), which is the fact the
+                    # widest is wrong without: `[]` is an answer and never an absence.
+                    "unpriced": [
+                        {"id": one.id, "because": one.because} for one in found.unpriced
+                    ],
+                    # Carried and never reconstructed (RK1289): priced, refused and not asked
+                    # for are three numbers that add up to this one.
+                    "elided": found.elided,
+                    "open_lines": found.open_lines,
                 },
                 indent=2,
             )
         )
         return EXIT_OK
-    if not found.briefs:
+    # Both, because a ranking that is empty and a ranking whose every line refused are two
+    # answers (RK1288): the second has everything to report and nothing in the first column.
+    if not (found.briefs or found.unpriced):
         print(
             f"roadkeep: no open line to brief, so there is nothing to price — "
             f"`{invocation()} list` says what the backlog holds"
