@@ -653,6 +653,7 @@
 - ✅ **RK1279** **the reading behind a limit walks a hand-written list of roles, so a role added later is measured by nobody** — The roles a limit is measured over are derived from the declared set, so a role added is a role read.
 - ✅ **RK1284** **the reading behind a decisions limit sees only that file, so a number it accepts refuses every later ship** — The reading behind a decisions limit counts the claims a ship would carry into that file.
 - ✅ **RK1293** **the argument for a limit is ruled into the commit body, which a tool this project does not own composes** — govern --because "…" wraps the author's sentence into comments above the key, stacked on whatever argued the number before, so a governed number carries its reason where its reader is.
+- ✅ **RK1294** **a re-run stacks the argument it already placed, so the same sentence appears twice above one number** — An argument byte-for-byte identical to the bottom of the stack already above the key is not written again, and the answer says the reason already stands.
 
 ## Block F — The Claude Code plugin
 

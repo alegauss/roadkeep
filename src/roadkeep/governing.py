@@ -156,6 +156,11 @@ class Declared:
     #: arrived the line saying so is the one thing that keeps the number from being a figure
     #: nobody can date.
     argued: bool = False
+    #: Whether that argument was **already** the one above the key, so this call wrote none
+    #: (RK1294). The number is idempotent and the reason beside it is too: a retried call, a
+    #: replayed capture or an agent unsure its command took would otherwise leave the same
+    #: sentence twice, which reads as two decisions and is one.
+    standing: bool = False
 
     def stated(self, config: Config) -> str:
         where = config.relative(config.source) if config.source else "roadkeep.toml"
@@ -168,15 +173,31 @@ class Declared:
                 # either way, because a number with no argument beside it is one nobody can
                 # date — and the rule that sent it to the commit was unkeepable here, the
                 # commit body being composed by a tool this project does not own.
-                "  reason   written above the key, in your words"
-                if self.argued
-                else "  reason   none — `--because \"…\"` writes yours above the key, and a "
-                "number with none is one nobody can date",
+                self._reason(),
                 # And the file, which is the half a reviewer would otherwise miss (RK298,
                 # RK1130): a number moved in `roadkeep.toml` changes what every write is held
                 # to, and it is the one file a commit about a limit is really about.
                 f"  stage    git add -- {where}",
             ]
+        )
+
+    def _reason(self) -> str:
+        """Which of the three happened to the argument, said in the answer (RK1293, RK1294).
+
+        Three and not two, because "already there" is neither a write nor an absence: a caller
+        told nothing was written would write it again, and a caller told it was would believe
+        a second decision had been recorded.
+        """
+        if self.standing:
+            return (
+                "  reason   already above the key — the same sentence, so it was not "
+                "written a second time"
+            )
+        if self.argued:
+            return "  reason   written above the key, in your words"
+        return (
+            '  reason   none — `--because "…"` writes yours above the key, and a number '
+            "with none is one nobody can date"
         )
 
     def payload(self, config: Config) -> dict[str, object]:
@@ -187,6 +208,7 @@ class Declared:
             "file": config.relative(config.source) if config.source else None,
             "line": self.lineno,
             "argued": self.argued,
+            "standing": self.standing,
             "reading": {
                 "unit": self.measured.unit,
                 "sites": self.measured.sites,
@@ -533,7 +555,9 @@ def govern(
         )
     table, key = _addressed(config, address)
     written = _spelled(table, key, file=file, role=role)
-    text, lineno, before = _inserted(config.source, written, at, _argued(config, because))
+    text, lineno, before, stands = _inserted(
+        config.source, written, at, _argued(config, because)
+    )
     config.source.write_text(text, encoding="utf-8", newline="")
     return Declared(
         address=address,
@@ -542,6 +566,7 @@ def govern(
         lineno=lineno,
         before=before,
         argued=bool(because),
+        standing=stands,
     )
 
 
@@ -563,9 +588,19 @@ def _spelled(table: str, key: str, *, file: str, role: str) -> tuple[str, str, s
     return f"[{table}]", key, ""
 
 
+def _above(lines: list[str], index: int, because: tuple[str, ...]) -> bool:
+    """Whether `because` is already the last thing standing above `index` (RK1294).
+
+    The **tail** of the comment run and not the whole of it: a key under a table's own
+    scaffolded explanation has that text above it for good, and the argument stacked onto it
+    last session is above it too. What a re-run would duplicate is the bottom of that stack.
+    """
+    return bool(because) and tuple(lines[max(index - len(because), 0) : index]) == because
+
+
 def _inserted(
     source: Path, written: tuple[str, str, str], at: int, because: tuple[str, ...] = ()
-) -> tuple[str, int, int | None]:
+) -> tuple[str, int, int | None, bool]:
     """The config with one key set, byte for byte otherwise (`adopting._with_role`'s rule).
 
     A targeted edit and never a serialiser: a `tomllib` round-trip drops the comments a
@@ -580,6 +615,12 @@ def _inserted(
     The author's argument lands **above** the row wherever the row lands, and **stacks** on
     whatever argued the number before it (RK1293): a raise is a decision about the previous
     decision, and this project's own `[tools]` entry is five of them written that way by hand.
+
+    **Except where it is that same argument**, byte for byte, in which case nothing is written
+    and the fourth return says so (RK1294). The number is idempotent already; the sentence
+    beside it is a second decision only when it is a second sentence, and a retried call, a
+    replayed capture or an unsure re-run is not one. Byte-for-byte and no wider: whether two
+    sentences mean the same thing is a judgement, and this tool has no model (L4).
     """
     heading, key, unit = written
     text = source.read_text(encoding="utf-8")
@@ -597,20 +638,23 @@ def _inserted(
             if _named(stripped) == key.strip('"'):
                 before = _number(stripped, unit)
                 lines[index] = _row(key, at, unit, standing=stripped)
-                lines[index:index] = because
-                return "".join(lines), index + len(because) + 1, before
+                stands = _above(lines, index, because)
+                placed = () if stands else because
+                lines[index:index] = placed
+                return "".join(lines), index + len(placed) + 1, before, stands
     row = _row(key, at, unit)
     if table is None:
         # The table is opened where the key is written, which is `criterion add`'s rule about a
         # heading: a project that never declared one has no place for the first number, and a
         # verb that refused would send the author to the hand edit this exists to end.
         opened = _opened(lines, heading, row, because)
-        return "".join(opened), len(opened), None
+        return "".join(opened), len(opened), None, False
     into = (last if last is not None else table) + 1
     return (
         "".join([*lines[:into], *because, row, *lines[into:]]),
         into + len(because) + 1,
         None,
+        False,
     )
 
 

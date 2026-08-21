@@ -83,33 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1294 RK1294 The same reason, arriving twice
-
-RK1293 made the argument for a governed number something the tool places, and placing it
-twice is what a re-run does. Measured on a scaffold: `govern limits.symptom 100
---because "First reason."` run twice leaves
-
-```
-# First reason.
-# First reason.
-symptom = 100
-```
-
-and the second answer says `reason   written above the key, in your words` as if
-something new arrived. Stacking is the right rule for a *different* argument — a raise
-is a decision about the previous decision, and this project's own `[tools]` entry is
-five of them written that way by hand. It is the wrong rule for the *same* sentence,
-which is not a second decision but the same one arriving twice: a retried call over a
-transport that dropped the first answer, a `replay` of a capture, or an agent re-running
-a command it is not sure took.
-
-The number is idempotent already — declaring 100 over 100 leaves one row — and the
-argument beside it should be too. What is asked for is the narrow comparison: an
-argument that is byte-for-byte the block already directly above the key is not written
-again, and the answer says the reason already stands rather than claiming a write.
-Anything wider is a judgement about whether two sentences mean the same thing, which is
-a model, and this tool has none (L4).
-
 ### §RK1295 RK1295 An answer for a write that did not happen
 
 `Declared.argued` is `bool(because)` and the placing is `_argued(config, because)`,

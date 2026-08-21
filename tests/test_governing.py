@@ -419,3 +419,65 @@ def test_the_payload_says_whether_the_number_was_argued(tmp_path, capsys):
 
     assert main(argv) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["argued"] is False
+
+
+def test_the_same_argument_arriving_twice_is_written_once(tmp_path):
+    """The number is idempotent and the reason beside it now is too (RK1294). A retried call,
+    a replayed capture or an agent unsure its command took would otherwise leave the same
+    sentence twice, which reads as two decisions about the number and is one."""
+    config = project(tmp_path)
+    governing.govern(config, "limits.symptom", 90, because="The one reason.")
+    again = governing.govern(Config.discover(tmp_path), "limits.symptom", 90, because="The one reason.")
+
+    assert again.standing is True
+    assert written(Config.discover(tmp_path)).count("# The one reason.") == 1
+    assert "already above the key" in again.stated(Config.discover(tmp_path))
+
+
+def test_a_different_argument_still_stacks_on_the_one_before_it(tmp_path):
+    """The narrow comparison and no wider: what is refused is the identical sentence, not a
+    second decision that happens to be about the same number."""
+    config = project(tmp_path)
+    governing.govern(config, "limits.symptom", 90, because="The first reason.")
+    later = governing.govern(Config.discover(tmp_path), "limits.symptom", 80, because="The second.")
+
+    assert later.standing is False
+    after = written(Config.discover(tmp_path))
+    assert "# The first reason.\n# The second.\nsymptom = 80\n" in after
+
+
+def test_the_argument_is_matched_against_the_bottom_of_the_stack_and_not_the_whole_of_it(
+    tmp_path,
+):
+    """A key under a table's own scaffolded explanation has that text above it for good, and
+    the argument stacked onto it last session is above it too. What a re-run would duplicate
+    is the bottom of that run, which is what the comparison reads."""
+    config = project(tmp_path)  # `[limits]` here already carries a hand-written comment
+    governing.govern(config, "limits.symptom", 90, because="Mine, under theirs.")
+    again = governing.govern(Config.discover(tmp_path), "limits.symptom", 90, because="Mine, under theirs.")
+
+    assert again.standing is True
+    after = written(Config.discover(tmp_path))
+    assert "# why 120 and not 130, argued here" in after
+    assert after.count("# Mine, under theirs.") == 1
+
+
+def test_the_line_reported_is_the_row_when_nothing_was_placed(tmp_path):
+    """A reviewer reads the diff against it, and on a call that placed nothing the row did
+    not move — reporting where it would have gone is reporting a write that did not happen."""
+    config = project(tmp_path)
+    governing.govern(config, "limits.symptom", 90, because="One line of argument.")
+    again = governing.govern(Config.discover(tmp_path), "limits.symptom", 90, because="One line of argument.")
+
+    lines = written(Config.discover(tmp_path)).splitlines()
+    assert lines[again.lineno - 1] == "symptom = 90"
+
+
+def test_the_payload_tells_a_placed_argument_from_one_already_standing(tmp_path, capsys):
+    config = project(tmp_path)
+    argv = ["-C", str(config.root), "govern", "limits.why", "150", "--because", "Because.", "--json"]
+    assert main(argv) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["standing"] is False
+
+    assert main(argv) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["standing"] is True
