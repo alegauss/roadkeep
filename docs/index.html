@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>roadkeep — stop paying tokens to keep your docs</title>
-<meta name="description" content="A Claude Code plugin that turns the format of your ROADMAP.md, CHANGELOG.md, IMPROVEMENTS.md and STRATEGY.md into a schema a command enforces — so keeping them is procedural and deterministic instead of context the model spends remembering, reading and checking.">
+<meta name="description" content="A Claude Code plugin that turns the format of your ROADMAP.md, CHANGELOG.md, IMPROVEMENTS.md, STRATEGY.md, DEFERRED.md and DECISIONS.md into a schema a command enforces — so keeping them is procedural and deterministic instead of context the model spends remembering, reading and checking.">
 
 <!-- Open Graph / social -->
 <meta property="og:type" content="website">
@@ -540,9 +540,10 @@
     <h1>Claude Code should spend its context on the work,<br><span class="grad">not on policing your docs.</span></h1>
     <p class="sub">
       roadkeep turns the format of your <b>ROADMAP.md</b>, <b>CHANGELOG.md</b>,
-      <b>IMPROVEMENTS.md</b> and <b>STRATEGY.md</b> into a schema a command enforces. So keeping
-      them stops being something the model has to remember, read and judge, and becomes what a
-      tool does: <b>procedural, deterministic, and paid for once</b>.
+      <b>IMPROVEMENTS.md</b>, <b>STRATEGY.md</b>, <b>DEFERRED.md</b> and <b>DECISIONS.md</b> into
+      a schema a command enforces. So keeping them stops being something the model has to
+      remember, read and judge, and becomes what a tool does: <b>procedural, deterministic, and
+      paid for once</b>.
     </p>
     <p class="note">
       One call writes the line. One exit code decides whether anything drifted.
@@ -556,6 +557,7 @@
       <span class="chip">🗂 <b>Your existing Markdown</b> — no migration</span>
       <span class="chip">🚫 <b>Zero</b> runtime dependencies</span>
       <span class="chip">⛔ Hand-edits <b>denied at the source</b></span>
+      <span class="chip">🔧 <b>64 MCP tools</b>, schemas derived from your config</span>
     </div>
   </div>
 </header>
@@ -730,7 +732,7 @@ Call instead, from the project root:
       <div class="card">
         <span class="kicker">2 · the MCP server</span>
         <h3>The schema arrives with the tool</h3>
-        <p><code>add</code>, <code>ship</code>, <code>pick</code> and <code>lint</code> over stdio, with an input schema <i>derived</i> from your <code>roadkeep.toml</code>: <code>maxLength</code> is this project's field limits, <code>enum</code> its markers, <code>pattern</code> its id shape. <b>No flags to recall, no round trip to a usage string</b> — a wrong argument is refused by the protocol.</p>
+        <p><b>64 tools</b> over stdio — the whole write path and the whole query surface — with an input schema <i>derived</i> from your <code>roadkeep.toml</code>: <code>maxLength</code> is this project's field limits, <code>enum</code> its markers, <code>pattern</code> its id shape. <b>No flags to recall, no round trip to a usage string</b> — a wrong argument is refused by the protocol. Every description is held to a character budget <code>lint</code> enforces, so the surface cannot quietly grow into the context it was meant to save.</p>
       </div>
       <div class="card">
         <span class="kicker">3 · the skill</span>
@@ -746,7 +748,11 @@ Call instead, from the project root:
 
     <p class="tbl-note reveal" style="margin-top:20px;max-width:860px;margin-left:auto;margin-right:auto">
       Four surfaces, <b>one engine</b>: every one dispatches through the same parser a terminal
-      uses, so there is one set of refusals to trust and one place a rule can change.
+      uses, so there is one set of refusals to trust and one place a rule can change. A fifth is
+      for the person in the editor — a <b>VS Code extension</b> showing the backlog as a tree,
+      ready before blocked, with the blocker named. It carries <b>no rule of its own</b>: every
+      row is a payload <code>roadkeep</code> printed, so a project whose prefix, markers or
+      limits differ needs nothing changed in it.
     </p>
   </div>
 </section>
@@ -756,7 +762,7 @@ Call instead, from the project root:
   <div class="wrap">
     <div class="sec-head reveal">
       <div class="eyebrow">Strengths</div>
-      <h2>Six ways a turn gets cheaper</h2>
+      <h2>Eight ways a turn gets cheaper</h2>
       <p>Each one is a property the tool can be held to — <b>a test, an exit code or a schema</b>, not a promise in a README.</p>
     </div>
     <div class="cards">
@@ -795,6 +801,18 @@ Call instead, from the project root:
         <span class="kicker">No setup turn</span>
         <h3>argparse and tomllib. That is the whole stack.</h3>
         <p><b>Zero runtime dependencies</b> — not <code>click</code>, not <code>pydantic</code>. Nothing to resolve means one <code>uvx</code> line runs the gate with no install and no checkout, and it governs <b>the Markdown you already have</b>: no migration, no store, no service.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico">📐</div>
+        <span class="kicker">The config is governed too</span>
+        <h3>A limit is declared against the reading that decides it</h3>
+        <p><code>config</code> prints every table, key and default your <code>roadkeep.toml</code> may carry. <code>govern &lt;key&gt; &lt;n&gt;</code> takes the <b>reading and the number in one call</b> — and <b>refuses a limit the corpus already breaks</b>, because one whose first act is a finding is one somebody lowers, reads the report and raises again. <code>--because "…"</code> keeps your argument in comments <b>above the number</b>, and the read hands it back.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico">🤝</div>
+        <span class="kicker">More than one session</span>
+        <h3>Two agents on one tree do not collide</h3>
+        <p><code>claim</code> says which lines a worker is holding and <b>what its commit owns</b>; every write prints the <code>git add --</code> line for exactly what it wrote. So a second session's work is not swept into your commit, and a line somebody else is on comes back named rather than silently overwritten. <code>merge</code> is git's own driver for a governed file: <b>entries by id</b>, so two branches appending under one heading is two additions and not a conflict.</p>
       </div>
     </div>
   </div>
@@ -861,7 +879,7 @@ Call instead, from the project root:
           <tr>
             <td class="who">ADR / MADR</td>
             <td class="good">Rationale that survives; superseded is never deleted</td>
-            <td class="why">An ADR set grows <b>monotonically</b> — that curve <i>is</i> the 539 KB below</td>
+            <td class="why">roadkeep keeps the decision too — <b>one line, not one file</b>, written by the <code>ship</code> that took it. An ADR set grows <b>monotonically</b>; that curve <i>is</i> the 539 KB below</td>
           </tr>
           <tr>
             <td class="who">Jira, Linear,<br>GitHub Issues</td>
@@ -940,6 +958,49 @@ docs/ROADMAP.md, docs/CHANGELOG.md, docs/IMPROVEMENTS.md:
       carrying which file and which line the answer came from — because an answer an agent cannot
       audit gets verified by reading the file, which is the cost the command existed to remove.
     </p>
+  </div>
+</section>
+
+<!-- DECISIONS -->
+<section style="padding-top:26px">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The decision, kept</div>
+      <h2>The rationale is deleted. The decision it reached is not.</h2>
+      <p>
+        <code>ship</code> drops the design section — that is the point, and it is why
+        <b>IMPROVEMENTS.md</b> does not become the 539 KB below. But the <i>verdict</i> inside it
+        outlives the work, and it used to go wherever the author happened to put it.
+      </p>
+    </div>
+
+    <div class="split even reveal">
+      <div class="term">
+        <div class="term-bar"><i></i><i></i><i></i><span class="t">one transaction, four files</span></div>
+<pre>$ roadkeep <span class="g">ship</span> T1 --why "…" <span class="g">--decides</span> "…"
+T1 → docs/CHANGELOG.md:5 under Block A
+  removed  docs/ROADMAP.md:5
+  dropped  §T1 (5-8) from docs/IMPROVEMENTS.md
+  <b>decided  docs/DECISIONS.md:5</b>
+  stage    git add -- docs/CHANGELOG.md docs/DECISIONS.md
+                      docs/ROADMAP.md docs/IMPROVEMENTS.md
+  event    T1  Block A  live
+
+$ roadkeep <span class="g">supersede</span> T1 --by T2
+docs/DECISIONS.md:5  T1 superseded by T2
+  - <span class="dim">🗑</span> <b>T1</b> <b>Every read of the cache layer serialises
+    through one lock</b> — Reads go through a striped lock;
+    the scheduler is not touched <span class="dim">(superseded by T2)</span>.
+  <span class="ok">kept</span>     T2 stands and T1 is history — nothing
+           in this file is ever deleted</pre>
+      </div>
+      <div class="card">
+        <span class="kicker">DECISIONS.md · a governed role</span>
+        <h3>An ADR that is one line, written by the command that took it</h3>
+        <p>A decision cannot be filed after the fact, because after the fact is when nobody remembers it — so it is <b>taken with the same call that deletes the design</b>, in the same transaction. <code>supersede</code> marks one replaced by another and <b>deletes nothing</b>: the row stays, marked 🗑, carrying the id that replaced it. <code>reversals</code> reads them back — what this ledger already decided and undid, with the argument.</p>
+        <p style="margin-top:12px;color:var(--muted);font-size:.92rem">And it is optional. <code>declare decisions</code> adds the role to a project already configured; a repository that wants none never sees it.</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1041,6 +1102,7 @@ docs/ROADMAP.md, docs/CHANGELOG.md, docs/IMPROVEMENTS.md:
             <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
           </div>
           <p style="margin-top:11px">Everything a <i>task</i> needs afterwards is already in the tools the plugin installed — <code>add</code>, <code>status</code>, <code>ship</code>, <code>brief</code>, <code>pick</code>, <code>lint</code> — validating against the schema <code>roadkeep.toml</code> just declared. No shell, no <code>PATH</code>.</p>
+          <p style="margin-top:11px">Nothing here is one-way. <code>declare &lt;role&gt;</code> adds a governed file to a project that is already configured — a strategy document, a deferred list, the decisions above — writing its file and the one key, and leaving every other byte of your config alone. <code>govern</code> moves the numbers afterwards, against the reading that decides each one.</p>
         </div>
       </div>
 
@@ -1118,9 +1180,16 @@ repos:
         round-trip is a property test over real roadmaps, including two this project does not own:
         parse → render → <b>byte-identical</b>, or the write is refused.
       </p>
+      <p style="margin-top:14px">
+        And when the tool is what is wrong, the refusal says so: every failure prints the
+        <code>report</code> line that files it — the argv, the config, the governed files —
+        <b>as facts a <code>replay</code> re-runs</b> against whatever tree is there later. A bug
+        report that is a paragraph is one nobody can reproduce; this one is an input.
+      </p>
     </div>
   </div>
 </section>
+
 
 <!-- CLOSING CTA -->
 <section style="padding-top:20px">
