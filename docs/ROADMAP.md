@@ -34,6 +34,7 @@
 - 📋 **RK1298** (deps: —) **brief answers with two budget objects that differ in six fields and repeat every other row** — The shipping figures are the pre-write ones with the marker swapped, so the section row and every field row are paid for twice against a ceiling written to fit a tool result. → §RK1298
 - 📋 **RK1301** (deps: —) **brief lists every id the task transitively unblocks, so the earliest line in a graph answers with 79 ids nobody reads** — The count is the answer and the roster is what a caller reads past, so a fresh backlog's first task spends a fifth of a bounded read on ids. → §RK1301
 - 📋 **RK1303** (deps: —) **brief spends a third of its payload on three budget blocks, two of which are byte-identical** — The read that exists to replace opening the file is the one a tool result truncates first, so what it repeats it pays for twice. → §RK1303
+- 📋 **RK1304** (deps: —) **brief says the priority queue names nothing ready and picks elsewhere, without naming the task that would make it ready** — It already computes unblocks per task; the inverse - what the priority block is waiting on - is the answer a caller has to derive by hand every time. → §RK1304
 
 ## Block D — The gate
 

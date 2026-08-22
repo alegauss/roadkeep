@@ -197,6 +197,28 @@ parse.
 Falsified if the two blocks diverge on a project with no `[limits]` table per role,
 which would make the repeat a coincidence of one corpus rather than a rule.
 
+### §RK1304 What the priority is waiting on
+
+Observed over four consecutive sessions on a port whose roadmap declares Priority as
+Block H then Block I. Every task in both blocks is blocked, so brief falls through to
+the lowest ready id and reports: picked - lowest ready id; the roadmap's queue names
+nothing ready.
+
+That sentence is true and it stops one step short. Block H holds one line, blocked on a
+single task in another block. Nothing in the answer says so. The caller who wants to
+work on the priority has to open the roadmap, read the priority list, find the block's
+lines, read their deps, and look each one up - which is the reading brief exists to
+replace, done by hand, at the exact moment the answer was least obvious.
+
+The data is already there. brief computes unblocks for the task it picked, so the graph
+is walked in that direction; what is missing is the inverse question asked of the
+priority blocks rather than of the pick. Something on the order of: priority Block H is
+1 line, blocked; RK-nnn would release it - alongside the pick rather than instead of it,
+because the pick may still be the right call when the blocker is expensive.
+
+The case that makes it worth having is the one where the blocker is cheap and nobody
+looked. Four sessions of falling through to the same partial is what prompted this.
+
 ## Block D — The gate
 
 ### §RK1299 One row per fact, not one per line
