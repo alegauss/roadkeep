@@ -126,6 +126,32 @@ its blockers are known.
 Falsified when a `--part` whose remainder waits on unshipped work leaves the caller to
 discover `amend --dep` by being handed the line twice.
 
+### §RK1311 One field, three surfaces that do not know it
+
+Observed in pportal, 2026-08-22, attaching a requirement to five existing lines.
+
+`amend --requires console` alone is refused: "nothing to amend: pass --why, --dep or
+--ref". The flag is in the parser, is documented in the help two lines above the
+message, and works - but the guard that decides whether anything was asked for does not
+count it. So the only way to attach a requirement to a line that already exists is to
+pass a field that is not changing, which for one of the five meant re-sending a `why`
+that then failed the line limit because the annotation had made the line longer. Two
+round trips for a field the verb has.
+
+The confirmation is the second half. Passing `--requires` alongside an unchanged `--why`
+answers "unchanged: every field already reads that way" - and writes the requirement
+anyway. Both cannot be true, and the one that is printed is the one that would stop a
+caller retrying. It was only visible because the roadmap line was read directly
+afterwards.
+
+`show` does not print requirements either. A line carrying `(requires: console)` shows
+deps, marker, section and budget, and nothing about the thing it is actually waiting for
+- which is the field a caller asks `show` about when `brief` stops offering the line.
+
+Three surfaces, one field, and the field itself is right: requirements are exactly what
+deps cannot express, and declaring them moved this project's queue from a task that
+could not be started to one that could.
+
 ## Block C — Query
 
 ### §RK1298 One budget and its deltas, not two tables
