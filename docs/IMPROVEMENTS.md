@@ -122,6 +122,29 @@ six values above, named - rather than a second table a reader has to diff agains
 first to find out that five of its rows say nothing new. The figures stay reachable;
 what goes is the repetition.
 
+### §RK1301 The count is the answer, and the roster is the file again
+
+Measured on quickshell, a fresh eighty-one-line backlog: `brief` with no id chose the
+first task and answered an `unblocks` object carrying the count, the total, and then
+seventy-nine ids spelled out in one list. `claim` returns the same payload, so a session
+that briefs a line and then takes it pays for that roster twice before it has opened a
+file.
+
+RK13 gave the walk its count because the count is the information: it ranks a line
+against every other one, and a caller reads it once. The roster answers a different
+question, `deps` already answers that one, and the case where the list is longest is
+exactly the case where it is least informative - a task early in the graph unblocks
+essentially the whole backlog, so the ids restate the file the read exists to replace.
+
+RK29 bounded this answer to fit a tool result and RK1286 gave it a ceiling; this field
+honours neither, spending in proportion to the backlog rather than to the task. The
+non-goals list in the same payload shows the fix - it elides past a cap and reports
+`non_goals_elided` beside what it kept - so the same treatment leaves the count whole,
+keeps a handful of ids, and sends a caller who wants the rest to `deps`.
+
+Falsified when a brief on the earliest line of an eighty-line backlog still spells more
+ids than the cap, or when the count stops being derived from the whole walk.
+
 ## Block D — The gate
 
 ### §RK1299 One row per fact, not one per line

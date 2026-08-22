@@ -31,6 +31,7 @@
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1298** (deps: —) **brief answers with two budget objects that differ in six fields and repeat every other row** — The shipping figures are the pre-write ones with the marker swapped, so the section row and every field row are paid for twice against a ceiling written to fit a tool result. → §RK1298
+- 📋 **RK1301** (deps: —) **brief lists every id the task transitively unblocks, so the earliest line in a graph answers with 79 ids nobody reads** — The count is the answer and the roster is what a caller reads past, so a fresh backlog's first task spends a fifth of a bounded read on ids. → §RK1301
 
 ## Block D — The gate
 
