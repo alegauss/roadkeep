@@ -38,10 +38,12 @@
 - 📋 **RK1305** (deps: —) **budget answers for a line and a ship and not for a retirement, so its reason is drafted blind** — A retirement's reason is budgeted before it is written, the way a line and a completion already are, so a sentence carrying a decision and its evidence is not drafted three times. → §RK1305
 - 📋 **RK1306** (deps: —) **brief states the ledger allowance but not what --recorded-in and --superseded-design spend from it** — A why composed to the published number is refused by arithmetic the caller had no way to do, which cost a round trip on five ships out of five. → §RK1306
 - 📋 **RK1307** (deps: —) **The json payload drops the sentence and the remedy the human output carries, so an MCP caller gets less than the CLI** — Every agent reaches these reads through the served payload, so the reader that most needs the remedy named is the one that never sees it. → §RK1307
+- 📋 **RK1309** (deps: —) **a new line's section budget is reachable only through brief, which needs an id, so the first body is written blind** — add's own help calls a limit reported after the prose exists too late, and the prose fields are where it still lands. → §RK1309
 
 ## Block D — The gate
 
 - 📋 **RK1299** (deps: —) **a clean lint answers with 42 note rows repeating six facts, five times the cost of its text form** — One deps.collective row per line repeats an expansion and a remedy already stated, so the JSON a tool result reads is 25,823 characters to say clean. → §RK1299
+- 📋 **RK1308** (deps: —) **lint exits 1 on install.stale, so a CI gate goes red on a backlog it has just reported clean** — The published action's contract is that exit code, and whether this checkout's wired surface matches the engine is not a fact about the branch. → §RK1308
 
 ## Block E — Adoption
 
