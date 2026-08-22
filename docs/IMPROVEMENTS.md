@@ -152,6 +152,32 @@ Three surfaces, one field, and the field itself is right: requirements are exact
 deps cannot express, and declaring them moved this project's queue from a task that
 could not be started to one that could.
 
+### §RK1312 A sentence the file wrapped is still that sentence
+
+`section amend --replace` matches the bytes on disk, and the bytes on disk are reflowed.
+A section is written to a prose width, so any sentence longer than that width is stored
+with a newline and some indentation inside it - and a caller quoting the sentence, which
+is how the prose reads to anybody looking at it, is refused for text the section plainly
+carries.
+
+Observed in pportal, 2026-08-22, twice in one task. Both times the fragment was a full
+sentence copied from `section show`, which prints the prose as it is - so the command
+the refusal recommends is the command that produces the text the refusal rejects. The
+way through was to shorten the fragment until it happened to fit inside one stored line,
+which is guesswork with a round trip attached.
+
+It also makes `--replace` weaker than it looks. A short fragment is what fits, and a
+short fragment is what "occurs exactly once" refuses - so the two rules push in opposite
+directions, and the caller lands between them.
+
+Matching against the prose with its wrapping collapsed would close it: the same
+normalisation that writes the file, applied to the needle before looking. What comes
+back out is rewrapped anyway, so nothing about the stored form has to change.
+
+Worth saying that the refusal is good otherwise: it names the section, says the text is
+not there, and points at `section show`. It is right about everything except that the
+text IS there.
+
 ## Block C — Query
 
 ### §RK1298 One budget and its deltas, not two tables
