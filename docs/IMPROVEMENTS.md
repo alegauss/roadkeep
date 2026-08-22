@@ -219,6 +219,27 @@ because the pick may still be the right call when the blocker is expensive.
 The case that makes it worth having is the one where the blocker is cheap and nobody
 looked. Four sessions of falling through to the same partial is what prompted this.
 
+### §RK1305 Budget answers for a retirement too
+
+Measured while retiring a task in an adopting project. The reason was refused three
+times in a row - 250 characters, then 212, then 205, against a limit of 200 - and each
+rewrite cut a clause out of the one field whose whole job is to carry evidence. The
+sentence that finally landed says less about the measurement that settled the decision
+than the first draft did.
+
+Each refusal did its job: it named the limit and how much to delete. What none of them
+could do is what `budget` already does before a line is added or a completion written -
+answer, before a word exists, how much room this particular retirement has. A
+retirement's reason shares the rendered line with the symptom it is retiring, and a long
+symptom leaves a short reason, so the usable maximum is not the published one and cannot
+be guessed from it.
+
+The skill asks a retirement to open with the decision, give the evidence in numbers
+where there are numbers, and say where the conclusion now lives. That is three clauses,
+drafted against a budget the author cannot ask for. Extending `budget` to answer for a
+retirement costs one more shape of the same reading and removes the loop that trims
+evidence away.
+
 ## Block D — The gate
 
 ### §RK1299 One row per fact, not one per line
