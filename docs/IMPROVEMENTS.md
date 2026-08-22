@@ -171,6 +171,32 @@ keeps a handful of ids, and sends a caller who wants the rest to `deps`.
 Falsified when a brief on the earliest line of an eighty-line backlog still spells more
 ids than the cap, or when the count stops being derived from the whole walk.
 
+### §RK1303 The three budget blocks, and the two that say the same thing
+
+A `brief` answers with three budget blocks: `budget`, the line as it stands; `shipping`,
+the line as the ledger would hold it; and `deciding`, the line as a decision record
+would. Measured on quickshell's QS8, the three came to some sixty per cent of the
+payload, and `shipping` and `deciding` were byte-identical — same fields, same limits,
+same numbers.
+
+That identity is not a coincidence of one line. Both are the same closed line: no deps,
+no pointer, the shipped marker. They differ only where a project's `[limits]` gives the
+decisions role its own numbers, which is a table most projects never write. So on every
+project that does not, the second copy states nothing the first did not.
+
+The read exists to replace opening the file, which makes it the read a tool result
+truncates first — `[reads] brief` and `budget --brief` both already exist because that
+is known. What they measure is the total; what this line is about is the share of that
+total which is a repeat.
+
+Two doors, and which is right is the design: emit `deciding` only where it differs from
+`shipping`, naming that it was elided; or fold the three into one block with the fields
+that vary marked per stage. The first is smaller and keeps the shape callers already
+parse.
+
+Falsified if the two blocks diverge on a project with no `[limits]` table per role,
+which would make the repeat a coincidence of one corpus rather than a rule.
+
 ## Block D — The gate
 
 ### §RK1299 One row per fact, not one per line
