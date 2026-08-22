@@ -39,6 +39,7 @@
 - 📋 **RK1306** (deps: —) **brief states the ledger allowance but not what --recorded-in and --superseded-design spend from it** — A why composed to the published number is refused by arithmetic the caller had no way to do, which cost a round trip on five ships out of five. → §RK1306
 - 📋 **RK1307** (deps: —) **The json payload drops the sentence and the remedy the human output carries, so an MCP caller gets less than the CLI** — Every agent reaches these reads through the served payload, so the reader that most needs the remedy named is the one that never sees it. → §RK1307
 - 📋 **RK1309** (deps: —) **a new line's section budget is reachable only through brief, which needs an id, so the first body is written blind** — add's own help calls a limit reported after the prose exists too late, and the prose fields are where it still lands. → §RK1309
+- 📋 **RK1310** (deps: —) **nothing resolves a sentence to the anchor carrying it, so a section amend addressed by text is guessed and retried** — A pointer takes an id to a section and no verb takes prose to one, and the refusal that knows the answer prints show instead. → §RK1310
 
 ## Block D — The gate
 

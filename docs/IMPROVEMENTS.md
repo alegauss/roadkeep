@@ -323,6 +323,31 @@ minted. `budget --block <x> --section` would answer it, or `add` could take the 
 alone and report what a body under it may weigh, which is one round trip instead of two
 and no wasted paragraph.
 
+### §RK1310 Finding the anchor a sentence is in
+
+Observed in pportal, 2026-08-22. A line count stated in the prose had gone stale, and
+the correction is `section amend <anchor> --replace <old> --with <new>`. The anchor was
+wrong: the claim sized one C file, the task about that file was one id, and the sentence
+sizing it lived in the section of a DIFFERENT id - the one covering three such files
+together.
+
+The refusal was a good one. It said the text does not occur in the section named and
+pointed at `section show`, which is the right next command. What it could not say is the
+thing the caller wanted: that the text occurs once, and where. Every fact needed to say
+so had just been read.
+
+The general shape is that `amend` and `section amend` are addressed BY anchor and the
+caller often knows only the text. A pointer resolves an id to a section; nothing
+resolves a sentence to one. So the loop is show, read, guess again - and for an agent
+caller each turn of it is a file printed into a context window.
+
+`section find <text>` would close it: the anchors carrying that text, with a count each,
+so a caller can see at once whether `--replace` will be accepted and by which anchor. It
+reads and writes nothing, which is why it can be cheap.
+
+The failing `amend` could also name it directly, which is the same lookup one step
+earlier and turns a refusal into an instruction.
+
 ## Block D — The gate
 
 ### §RK1299 One row per fact, not one per line
