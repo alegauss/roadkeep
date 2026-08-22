@@ -37,6 +37,7 @@
 - 📋 **RK1304** (deps: —) **brief says the priority queue names nothing ready and picks elsewhere, without naming the task that would make it ready** — It already computes unblocks per task; the inverse - what the priority block is waiting on - is the answer a caller has to derive by hand every time. → §RK1304
 - 📋 **RK1305** (deps: —) **budget answers for a line and a ship and not for a retirement, so its reason is drafted blind** — A retirement's reason is budgeted before it is written, the way a line and a completion already are, so a sentence carrying a decision and its evidence is not drafted three times. → §RK1305
 - 📋 **RK1306** (deps: —) **brief states the ledger allowance but not what --recorded-in and --superseded-design spend from it** — A why composed to the published number is refused by arithmetic the caller had no way to do, which cost a round trip on five ships out of five. → §RK1306
+- 📋 **RK1307** (deps: —) **The json payload drops the sentence and the remedy the human output carries, so an MCP caller gets less than the CLI** — Every agent reaches these reads through the served payload, so the reader that most needs the remedy named is the one that never sees it. → §RK1307
 
 ## Block D — The gate
 

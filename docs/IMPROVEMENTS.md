@@ -269,6 +269,38 @@ as `budget --block --why --body` already prices an `add`.
 Falsified if a ship carrying both clauses can be composed from `brief` alone without a
 refusal.
 
+### §RK1307 The answer the terminal gets and the payload does not
+
+Measured on quickshell, after QS12 shipped and took its own criteria with it.
+
+`criterion list --task QS12` prints, to a person:
+
+    docs/ROADMAP.md: no criteria for QS12 — `criterion add --task QS12 …` opens the list
+
+That is the whole answer: which empty, and the command that fills it. The same call with
+`--json` returns `{"criteria": [], "blocks": [...]}` and nothing else — and that array
+mixes block letters with the ids of tasks carrying criteria, so learning QS12's list is
+*gone* rather than never opened means noticing QS12 is absent from a list of something
+else.
+
+The MCP tools serve the JSON, so every agent gets strictly less than the person at the
+terminal, and loses the two things this verb is documented for: which empty, and the
+door.
+
+This is the second of its shape. RK1306 is the first: the shipping budget states the
+ledger allowance and not what the two clauses spend from it, which the refusal names
+perfectly once the write has failed. Both are the human path carrying a sentence the
+machine path drops.
+
+Two shapes, and the second is the interesting one. Add an `empty` word and a `remedy`
+argv to this payload; or treat it as a class, auditing every verb whose human output
+ends in a named command and asserting in a test that the same call's `--json` carries
+it. The first fixes one read; the second stops a third being found by an agent rather
+than here.
+
+Falsified if some payload already carries its remedy, making this one verb's oversight
+and not a boundary nobody drew.
+
 ## Block D — The gate
 
 ### §RK1299 One row per fact, not one per line
