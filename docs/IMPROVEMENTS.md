@@ -240,6 +240,35 @@ drafted against a budget the author cannot ask for. Extending `budget` to answer
 retirement costs one more shape of the same reading and removes the loop that trims
 evidence away.
 
+### §RK1306 The two clauses the shipping budget does not price
+
+Measured on quickshell: five ships, five refusals — QS8, QS9, QS10, QS87 and QS88 each
+took a `why.too-long` before landing, and every one passed `--recorded-in` or
+`--superseded-design` or both.
+
+`brief`'s `shipping` block states the ledger allowance correctly — 189 for QS87, the
+number the refusal quoted back. What it does not state is that the two optional clauses
+are spent from it. `--recorded-in src/Quickshell.Render/GlyphAtlas.cs` took 64 of QS8's,
+`--superseded-design` took 45 of QS87's, and parenthesising them added 28 more. None of
+it is visible before the write, so a `why` composed to the published allowance is
+refused by arithmetic the caller could not have done.
+
+The refusals themselves are excellent — each names what every argument cost and what is
+left for the outcome, which is why the second attempt always lands. The whole complaint
+is that there is a first attempt.
+
+The documentation already promises this: `brief` is described as printing "the whole of
+what the ship will compose — the ledger sentence's allowance, what each of the two
+clauses appended to it costs". The payload carries the first half only.
+
+Two shapes. Rows in `shipping` for each clause, costed from the id and the anchor, which
+are known — the path is not, so that row would be per-character. Or `budget <id>
+--shipping --recorded-in <path> --superseded-design "<draft>"`, pricing the exact call,
+as `budget --block --why --body` already prices an `add`.
+
+Falsified if a ship carrying both clauses can be composed from `brief` alone without a
+refusal.
+
 ## Block D — The gate
 
 ### §RK1299 One row per fact, not one per line
