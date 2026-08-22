@@ -27,6 +27,7 @@
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK1300** (deps: —) **the ship that finishes a block says finished and does not carry the criteria that decide whether it is** — The finished event carries that block's criteria, so the reading RK1265 exists for arrives at the one moment it is owed instead of from a sentence in a skill. → §RK1300
+- 📋 **RK1302** (deps: —) **ship --part leaves a line in the in-progress tier, so pick keeps offering a remainder that is waiting on unshipped work** — The partial is the one ship that deliberately leaves work open, and its answer stops before the sentence naming what that work now waits for. → §RK1302
 
 ## Block C — Query (consult without reading the file)
 
