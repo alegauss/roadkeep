@@ -128,7 +128,7 @@ called unbuilt were already in the ledger.
 
 **Next ready:**
 
-- 📋 **RK1307** (deps: —) **The json payload drops the sentence and the remedy the human output carries, so an MCP caller gets less than the CLI** — Every agent reaches these reads through the served payload, so the reader that most needs the remedy named is the one that never sees it. → §RK1307
+- 🛠 **RK1307** (deps: —) **The json payload drops the sentence and the remedy the human output carries, so an MCP caller gets less than the CLI** — Every agent reaches these reads through the served payload, so the reader that most needs the remedy named is the one that never sees it. → §RK1307
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -155,7 +155,30 @@ def _event(task_id: str, block: str, roadmap: Document, config: Config) -> dict[
                 criteria.read(roadmap, block) if standing.stage is Stage.FINISHED else ()
             )
         ],
+        # And the one command this state makes available (RK408), where it does — published
+        # here rather than composed by the printer, which is RK1307's whole shape: the row
+        # below has offered `block drop` since RK408 and the payload has never carried it, so
+        # the caller that reaches every write through the served answer was told a block is
+        # finished and left to remember the verb from somewhere other than the sentence
+        # telling them it applies. `null` where the stage allows no offer or the project
+        # declares its headings permanent (RK1121), which is an answer and not an absence.
+        "door": _drop_door(config, block, standing.stage),
     }
+
+
+def _drop_door(config: Config, block: str, stage: Stage) -> dict[str, object] | None:
+    """The heading this state makes droppable, as a door — or `None` (RK408, RK1307).
+
+    One reader for both registers: the printed offer and the payload's key are the same
+    decision, and a printer that recomputed it would be the second answer about whether a
+    heading may be withdrawn.
+    """
+    from roadkeep.remedying import Door  # noqa: PLC0415 - RK260
+
+    because = None if config.permanent_headings else _DROPPABLE.get(stage)
+    if because is None:
+        return None
+    return Door(("block", "drop", block), because).payload(_served(config))
 
 
 #: The two stages a heading is droppable in, and the clause that says which one it is
@@ -225,11 +248,13 @@ def _event_rows(
             f"{indent}         done when  {one['lead']} — {one['why']}"
             for one in event.get("criteria", ())  # type: ignore[union-attr]
         ]
-    because = None if config.permanent_headings else _DROPPABLE.get(Stage(stage))
-    if because:
+    # Read off the event rather than recomputed here (RK1307): the offer is one decision and
+    # a printer deciding it again is the second answer about whether a heading may go.
+    door = event.get("door")
+    if isinstance(door, dict):
         rows.append(
-            f"{indent}         {because} — "
-            f"`{invocation()} block drop {event['block']}` withdraws the heading, "
+            f"{indent}         {door['what']} — "
+            f"`{invocation()} {' '.join(door['argv'])}` withdraws the heading, "  # type: ignore[arg-type]
             f"where this project drops one"
         )
     return rows

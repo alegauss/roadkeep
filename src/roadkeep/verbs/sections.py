@@ -58,6 +58,8 @@ from roadkeep.sections import (
     pointers,
     titled,
 )
+from roadkeep.remedying import BLANK, Door
+from roadkeep.rendering import _served
 from roadkeep.serving import Prose
 from roadkeep.verbs.declaring import (
     _BODY_FILE,
@@ -518,12 +520,24 @@ def _criterion_list(config: Config, args: argparse.Namespace) -> int:
 
     where = config.relative(config.path("roadmap"))
     if args.json:
+        # Which empty, and the door that fills it (RK1307). The rows below have said both
+        # since RK1265 and this published neither, so the caller reading the served payload —
+        # every agent — got strictly less than the person at the terminal, and lost exactly
+        # the two things this verb is documented for. Measured on quickshell after QS12
+        # shipped and took its own criteria with it: `blocks` mixes block letters with the ids
+        # of tasks carrying criteria, so learning that QS12's list is *gone* rather than never
+        # opened meant noticing QS12 is absent from a list of something else.
+        empty, door = _criterion_empty(config, wanted, declared, about)
         print(
             json.dumps(
                 {
                     "file": where,
                     "governed": config.criteria is not None,
                     "blocks": list(declared),
+                    # `null` where the listing is not empty, which is an answer and not an
+                    # absence: a consumer branching on it never has to count the array.
+                    "empty": empty,
+                    **({} if door is None else {"remedy": door.payload(_served(config))}),
                     "criteria": [
                         {
                             "about": one.about,
@@ -544,6 +558,39 @@ def _criterion_list(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _criterion_empty(
+    config: Config, wanted: tuple, declared: tuple[str, ...], about: str | None
+) -> tuple[str | None, Door | None]:
+    """Which empty this listing is, and the door that fills it (RK1265, RK1307).
+
+    One reader for both registers, which is the whole of RK1307's shape: the rows below said
+    *which empty* and named a command, the payload published neither, and the surface every
+    agent reads is the payload. Composed here rather than in each printer, so the sentence and
+    the key cannot come to disagree about which of the four states this is.
+
+    `(None, None)` where the listing is not empty. A door only where the rows name one, which
+    is the rule this task is about read the other way: a payload richer than the text is the
+    same asymmetry pointed the other direction, and the two states that name no command name
+    none because no command of this tool closes them — declaring the table is a hand edit
+    (RK1313), and a list somebody emptied on purpose is not a defect.
+    """
+    if wanted:
+        return None, None
+    if config.criteria is None:
+        return "ungoverned", None
+    if about and about in declared:
+        return "declared", None
+    if about:
+        # The flag the caller typed, so the remedy is the call they can run (RK420): an
+        # address that is an id is reached by `--task` and never by `--block`.
+        flag = "--task" if criteria_addresses_task(config.schema, about) else "--block"
+        return "unasked", Door(
+            ("criterion", "add", flag, about, "--lead", BLANK, "--why", BLANK),
+            "the address has no list, and this opens one",
+        )
+    return "unwritten", None
+
+
 def _criterion_rows(
     config: Config,
     where: str,
@@ -556,24 +603,29 @@ def _criterion_rows(
     Three empties and they are not one answer: the project has not opted in, the address was
     never asked the question, or it was asked and every criterion has since been dropped. A
     reader who cannot tell them apart learns nothing from a blank list.
+
+    Which empty is :func:`_criterion_empty`'s answer since RK1307, so this composes the
+    sentence and decides nothing — the payload beside it says the same word.
     """
-    if not wanted:
-        if config.criteria is None:
-            return [
-                f"{where}: no [criteria] in this project's roadkeep.toml, so what finishes a "
-                f"block is ungoverned — declare the table to open the list"
-            ]
-        if about and about in declared:
-            return [f"{where}: {criteria_named(config.schema, about)} declares a list and it "
-                    f"is empty"]
-        if about:
-            # The flag the caller typed, so the remedy is the call they can run (RK420): an
-            # address that is an id is reached by `--task` and never by `--block`.
-            flag = "--task" if criteria_addresses_task(config.schema, about) else "--block"
-            return [
-                f"{where}: no criteria for {criteria_named(config.schema, about)} — "
-                f"`criterion add {flag} {about} --lead … --why …` opens the list"
-            ]
+    empty, door = _criterion_empty(config, wanted, declared, about)
+    if empty == "ungoverned":
+        return [
+            f"{where}: no [criteria] in this project's roadkeep.toml, so what finishes a "
+            f"block is ungoverned — declare the table to open the list"
+        ]
+    if empty == "declared":
+        return [f"{where}: {criteria_named(config.schema, about)} declares a list and it "
+                f"is empty"]
+    if empty == "unasked":
+        assert door is not None  # `_criterion_empty` pairs this word with that door
+        # The argv the door carries, spelled as this sentence always spelled it: `named`
+        # renders an MCP tool name where a plugin is wired (RK488), which is the right answer
+        # for a served caller and the wrong one for the register that is a shell line.
+        return [
+            f"{where}: no criteria for {criteria_named(config.schema, about)} — "
+            f"`{' '.join(door.argv)}` opens the list"
+        ]
+    if empty == "unwritten":
         return [f"{where}: nothing declares what would finish it"]
     rows = [f"{len(wanted)} criterion(s) in {where}, in file order"]
     for one in wanted:

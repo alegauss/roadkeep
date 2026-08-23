@@ -1385,7 +1385,8 @@ class Partial:
         the moment its blockers are known. That is a real shape and RK1302 left it open rather
         than guessing at it — what the measurement showed missing was the sentence, not the
         keystroke. It is a **row and not a payload key** for the reason `finish` is: the doors
-        this answer carries are all on stdout, and the surface that gap is about is RK1307's.
+        this answer carries are all on stdout — a gap RK1307 has since closed, and
+        :meth:`doors` is where both now come from.
         """
         from roadkeep.rendering import _event_rows  # noqa: PLC0415 - RK260
 
@@ -1403,20 +1404,45 @@ class Partial:
             # Before `finish`, because it is what to do **now** and that one is what to do at
             # the end: the line is open, so it is picked again before either happens.
             f"  waits    this line is offered again until it says what it is waiting on — "
-            f"`{invocation()} amend {self.task_id} --dep <id>` names it, where the rest of "
+            f"`{invocation()} {' '.join(self.doors()[0].argv)}` names it, where the rest of "
             f"the work waits on something still open",
-            f"  finish   {invocation()} ship {self.task_id}  (drops the qualifier)",
+            f"  finish   {invocation()} {' '.join(self.doors()[1].argv)}"
+            f"  (drops the qualifier)",
         ]
         if self.refreshed:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
         rows += _event_rows(self.event(config), "  ", config=config, standing=True)
         return "\n".join(rows)
 
+    def doors(self) -> tuple[Door, ...]:
+        """The two commands this half-written state makes available (RK1302, RK1307).
+
+        In the order a caller reaches them: what to do **now** with the work that is left, and
+        what closes the line at the end. One reader for both registers, because a printer that
+        composed its own argv beside a payload that composed another is two answers about the
+        same next step — which is the shape RK1307 is a class of.
+        """
+        return (
+            Door(
+                ("amend", self.task_id, "--dep", "<id>"),
+                "the remainder waits on something still open, and this names it",
+            ),
+            Door(("ship", self.task_id), "the rest of it landed, and this drops the qualifier"),
+        )
+
     def payload(self, config: Config) -> dict[str, object]:
-        """The same answer as data, saying the line is still open (RK121)."""
+        """The same answer as data, saying the line is still open (RK121).
+
+        And the two doors the rows carry (RK1307): this is the one write that deliberately
+        leaves work open, so the commands that resolve that state are the answer — and the
+        caller reaching it through the served payload is the one that had neither.
+        """
+        from roadkeep.rendering import _served  # noqa: PLC0415 - RK260
+
         return {
             "id": self.task_id,
             "part": self.part,
+            "doors": [one.payload(_served(config)) for one in self.doors()],
             # What is left, where the caller said it (RK1233). Null and not omitted: a
             # consumer reading a missing key cannot tell "not stated" from "older server".
             "remainder": self.remainder,
