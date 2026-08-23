@@ -148,6 +148,7 @@ from roadkeep.kernel.document import Document, Entry, Wrapped, counted, save_all
 from roadkeep.ids import IdRef, next_id
 from roadkeep.markers import refresh
 from roadkeep.provenance import invocation
+from roadkeep.remedying import Door
 from roadkeep.renumbering import NotAnId, SameId, family_of
 from roadkeep.kernel.schema import (
     ELSEWHERE,

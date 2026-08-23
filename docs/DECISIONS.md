@@ -19,6 +19,7 @@
 - ✅ **RK1305** **budget answers for a line and a ship and not for a retirement, so its reason is drafted blind** — A limit an author drafts against is answerable for every write off the line, and prose the tool derives into a field is named rather than left as a number.
 - ✅ **RK1315** **weigh passes every ledger commit as one argument, so git refuses the call once the ledger is long enough** — A list this tool hands git grows with the file, so it travels on stdin: two calls whatever the size is the property, and an argv ceiling is not one this tool may spend.
 - ✅ **RK1306** **brief states the ledger allowance but not what --recorded-in and --superseded-design spend from it** — A read that states an allowance states what the optional clauses spend out of it in both registers, a figure only one surface carries being one the other's caller is refused by.
+- ✅ **RK1307** **The json payload drops the sentence and the remedy the human output carries, so an MCP caller gets less than the CLI** — A command a verb's text offers is reachable in its payload, held by a gate over both registers rather than by a fix per verb.
 
 ## Block D — The gate
 

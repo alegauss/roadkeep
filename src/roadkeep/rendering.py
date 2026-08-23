@@ -155,30 +155,24 @@ def _event(task_id: str, block: str, roadmap: Document, config: Config) -> dict[
                 criteria.read(roadmap, block) if standing.stage is Stage.FINISHED else ()
             )
         ],
-        # And the one command this state makes available (RK408), where it does — published
-        # here rather than composed by the printer, which is RK1307's whole shape: the row
-        # below has offered `block drop` since RK408 and the payload has never carried it, so
-        # the caller that reaches every write through the served answer was told a block is
-        # finished and left to remember the verb from somewhere other than the sentence
-        # telling them it applies. `null` where the stage allows no offer or the project
-        # declares its headings permanent (RK1121), which is an answer and not an absence.
-        "door": _drop_door(config, block, standing.stage),
     }
 
 
-def _drop_door(config: Config, block: str, stage: Stage) -> dict[str, object] | None:
-    """The heading this state makes droppable, as a door — or `None` (RK408, RK1307).
+def _drop_door(config: Config, block: str, stage: Stage) -> Door | None:
+    """The heading this state makes droppable, or `None` (RK408).
 
-    One reader for both registers: the printed offer and the payload's key are the same
-    decision, and a printer that recomputed it would be the second answer about whether a
-    heading may be withdrawn.
+    One reader for the printed offer, and **deliberately not a payload key**: RK38 decided the
+    event carries three facts and no suggestion, on the argument that a consumer deriving the
+    next command from the stage would be handed it twice. RK1307 swept the verbs whose payload
+    dropped a door by omission and left this one alone, because a decision argued and held by a
+    test is not an omission — the case for reopening it is that `[headings] permanent` (RK1121)
+    made the offer depend on configuration the event does not carry, and that argument belongs
+    on a line of its own rather than inside a task about a different class.
     """
-    from roadkeep.remedying import Door  # noqa: PLC0415 - RK260
-
     because = None if config.permanent_headings else _DROPPABLE.get(stage)
     if because is None:
         return None
-    return Door(("block", "drop", block), because).payload(_served(config))
+    return Door(("block", "drop", block), because)
 
 
 #: The two stages a heading is droppable in, and the clause that says which one it is
@@ -248,13 +242,14 @@ def _event_rows(
             f"{indent}         done when  {one['lead']} — {one['why']}"
             for one in event.get("criteria", ())  # type: ignore[union-attr]
         ]
-    # Read off the event rather than recomputed here (RK1307): the offer is one decision and
-    # a printer deciding it again is the second answer about whether a heading may go.
-    door = event.get("door")
-    if isinstance(door, dict):
+    # Composed once and rendered here (RK1307's shape, on the one member of that class it
+    # left alone): the offer is a decision, and a printer deciding it again is a second
+    # answer about whether a heading may go.
+    door = _drop_door(config, str(event["block"]), Stage(stage))
+    if door is not None:
         rows.append(
-            f"{indent}         {door['what']} — "
-            f"`{invocation()} {' '.join(door['argv'])}` withdraws the heading, "  # type: ignore[arg-type]
+            f"{indent}         {door.what} — "
+            f"`{invocation()} {' '.join(door.argv)}` withdraws the heading, "
             f"where this project drops one"
         )
     return rows

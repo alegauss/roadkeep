@@ -33,7 +33,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 🛠 **RK1307** (deps: —) **The json payload drops the sentence and the remedy the human output carries, so an MCP caller gets less than the CLI** — Every agent reaches these reads through the served payload, so the reader that most needs the remedy named is the one that never sees it. → §RK1307
 - 📋 **RK1309** (deps: —) **a new line's section budget is reachable only through brief, which needs an id, so the first body is written blind** — add's own help calls a limit reported after the prose exists too late, and the prose fields are where it still lands. → §RK1309
 - 📋 **RK1310** (deps: —) **nothing resolves a sentence to the anchor carrying it, so a section amend addressed by text is guessed and retried** — A pointer takes an id to a section and no verb takes prose to one, and the refusal that knows the answer prints show instead. → §RK1310
 - 📋 **RK1314** (deps: —) **config prints the criteria table under the non-goals sentence, so the read names the wrong table** — Both addresses map to `_SCOPE_KEYS`, so the docstring rides with the key set and the read that says what may be declared describes `[criteria]` as the roadmap's other bullet. → §RK1314
