@@ -61,6 +61,7 @@ from roadkeep.sections import (
     amend,
     amend_untitled,
     anchored,
+    carrying,
     citing,
     drop,
     find,
@@ -3999,3 +4000,63 @@ def test_the_door_and_the_gate_report_one_code(tmp_path):
     )
     found = [one.code for one in lint(Config.discover(tmp_path)).findings]
     assert "ref.dangling" in found
+
+
+# -- finding the anchor a sentence is in (RK1310) ------------------------------
+
+
+def test_a_sentence_resolves_to_the_anchors_carrying_it(tmp_path):
+    """Observed in pportal, 2026-08-22. A line count stated in the prose had gone stale, and
+    the correction is `section amend <anchor> --replace <old> --with <new>`. The anchor was
+    wrong: the claim sized one C file, the task about that file was one id, and the sentence
+    sizing it lived in the section of a *different* id.
+
+    A pointer resolves an id to a section; nothing resolved a sentence to one, so the loop was
+    show, read, guess again — and for an agent caller each turn of it is a file printed into a
+    context window.
+    """
+    config = project(tmp_path)
+    found = carrying(config, "The reasoning the line has no room for.")
+    (carrier,) = found.carriers
+    assert (carrier.anchor, carrier.count) == ("RK1", 1)
+    assert carrier.where == IMPROVEMENTS and carrier.title == "A first design"
+    # The count is the answer, because it is what decides whether `--replace` is accepted.
+    assert found.total == 1 and [one.anchor for one in found.replaceable] == ["RK1"]
+
+
+def test_the_own_prose_is_the_extent_and_never_the_subtree(tmp_path):
+    # The extent `amend --replace` writes into: a container counted for its children would
+    # name an anchor the substitution then refuses, which is the wrong answer arriving through
+    # the read that exists to stop it.
+    config = project(tmp_path)
+    found = carrying(config, "Which belongs to the section above.")
+    assert [one.anchor for one in found.carriers] == ["RK1.1"]
+
+
+def test_nothing_carrying_it_is_an_answer_and_not_a_refusal(tmp_path):
+    # A read, so an empty result is a fact about the files: the caller's next move is theirs,
+    # exactly as an empty `list` is not a failure. What the sentence says is which files were
+    # looked in, so an empty answer is never read as a filter somebody forgot they passed.
+    config = project(tmp_path)
+    found = carrying(config, "a sentence this corpus does not hold")
+    assert found.carriers == () and found.total == 0
+    assert found.roles == ("improvements",)
+    assert "improvements" in found.stated()
+
+
+def test_the_refusal_that_knew_the_answer_now_gives_it(tmp_path, capsys):
+    """The same lookup one step earlier, which turns a refusal into an instruction. The failing
+    call has already counted the string in the section it was addressed to, and the question
+    the caller has next is *which anchor does carry it*."""
+    from roadkeep.cli import main
+    from roadkeep.verbs.refusing import EXIT_USAGE
+
+    project(tmp_path)
+    assert main([
+        "-C", str(tmp_path), "section", "amend", "0.1",
+        "--replace", "The reasoning the line has no room for.", "--with", "Corrected.",
+    ]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    # Beside the refusal and never instead of it: the call was still wrong.
+    assert "does not carry" in said
+    assert "carried  §RK1 (1x)" in said and "section find" in said

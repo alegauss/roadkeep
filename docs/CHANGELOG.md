@@ -372,6 +372,7 @@
 - ✅ **RK1306** **brief states the ledger allowance but not what --recorded-in and --superseded-design spend from it** — brief's payload names what each optional clause spends out of the ledger sentence, so a ship carrying both composes from it (design §RK1306 recorded in `src/roadkeep/briefing.py`).
 - ✅ **RK1307** **The json payload drops the sentence and the remedy the human output carries, so an MCP caller gets less than the CLI** — which empty a listing is and the door that fills it reach the payload, and a test holds the class (design §RK1307 recorded in `tests/test_doors_in_both_registers.py`).
 - ✅ **RK1309** **a new line's section budget is reachable only through brief, which needs an id, so the first body is written blind** — an add that leaves a follow-up now says what that body may weigh, in both registers, before the paragraph exists (design §RK1309 recorded in `src/roadkeep/authoring.py`).
+- ✅ **RK1310** **nothing resolves a sentence to the anchor carrying it, so a section amend addressed by text is guessed and retried** — section find names the anchors whose prose carries a string, with a count each, and the failing --replace names them too (design §RK1310 recorded in `src/roadkeep/sections.py`).
 
 ## Block D — The gate
 

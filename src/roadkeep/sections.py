@@ -1140,6 +1140,147 @@ class Shown:
 
 
 @dataclass(frozen=True, slots=True)
+class Carrier:
+    """One section whose own prose holds a sought string, and how often (RK1310)."""
+
+    anchor: str
+    role: str
+    where: str
+    line: int
+    title: str
+    count: int
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "anchor": self.anchor,
+            "role": self.role,
+            "file": self.where,
+            "line": self.line,
+            "title": self.title,
+            "count": self.count,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class Found:
+    """Which anchors carry a sentence — the lookup that had no verb (RK1310).
+
+    Observed in pportal, 2026-08-22. A line count stated in the prose had gone stale, and the
+    correction is `section amend <anchor> --replace <old> --with <new>`. The anchor was wrong:
+    the claim sized one C file, the task about that file was one id, and the sentence sizing it
+    lived in the section of a *different* id — the one covering three such files together.
+
+    The refusal was a good one. It said the text does not occur in the section named and
+    pointed at `section show`, which is the right next command. What it could not say is the
+    thing the caller wanted: that the text occurs once, and where. Every fact needed to say so
+    had just been read.
+
+    The general shape is that `amend` and `section amend` are addressed **by anchor** and the
+    caller often knows only the text. A pointer resolves an id to a section; nothing resolved a
+    sentence to one, so the loop was show, read, guess again — and for an agent caller each
+    turn of it is a file printed into a context window.
+
+    Reads and writes nothing, which is why it can be cheap: the count per anchor is the whole
+    answer, because it is what decides whether `--replace` will be accepted and by which one.
+    Never the prose — that is `section show`'s, and printing it here would be the file back.
+    """
+
+    text: str
+    carriers: tuple[Carrier, ...]
+    #: Every prose role looked in, so an empty answer is about the files and not about a filter
+    #: the caller forgot they passed.
+    roles: tuple[str, ...]
+
+    @property
+    def total(self) -> int:
+        return sum(one.count for one in self.carriers)
+
+    @property
+    def replaceable(self) -> tuple[Carrier, ...]:
+        """The anchors a `--replace` would be accepted by: exactly one occurrence (RK1263)."""
+        return tuple(one for one in self.carriers if one.count == 1)
+
+    def stated(self) -> str:
+        if not self.carriers:
+            return (
+                f"no section in {', '.join(self.roles)} carries {self.text!r} — "
+                f"`section show <anchor>` prints the prose as it is"
+            )
+        rows = [
+            f"{self.total} occurrence(s) of {self.text!r} in "
+            f"{len(self.carriers)} section(s), in file order"
+        ]
+        for one in self.carriers:
+            # The count beside the address, because it is the half that decides the next call:
+            # one is what `--replace` accepts, and more is the ambiguity it refuses.
+            takes = "  (`--replace` takes it)" if one.count == 1 else ""
+            rows.append(
+                f"  §{one.anchor}  {one.count}x  {one.where}:{one.line}  "
+                f"{one.title}{takes}"
+            )
+        return "\n".join(rows)
+
+    def payload(self, served: str = "") -> dict[str, object]:
+        from roadkeep.remedying import BLANK, Door  # noqa: PLC0415 - RK260
+
+        return {
+            "text": self.text,
+            "roles": list(self.roles),
+            "total": self.total,
+            "carriers": [one.payload() for one in self.carriers],
+            # The subset a narrow edit can address, named rather than left to be derived: the
+            # rule is `Substitution`'s and a consumer recomputing it would be its second reader.
+            "replaceable": [one.anchor for one in self.replaceable],
+            # And the door the empty sentence names (RK1307's rule, which caught this verb the
+            # day it was written): nothing carries the string, so the next read is the prose as
+            # the file spells it — and the caller reaching this through the served answer is
+            # the one the whole verb is for. Absent where something was found, there being
+            # nothing to look up.
+            **(
+                {}
+                if self.carriers
+                else {
+                    "remedy": Door(
+                        ("section", "show", BLANK),
+                        "nothing carries it, so the prose as the file spells it is the read",
+                    ).payload(served)
+                }
+            ),
+        }
+
+
+def carrying(config: Config, text: str, role: str | None = None) -> Found:
+    """Every section whose **own** prose holds ``text``, in file order (RK1310).
+
+    Own prose and not the subtree, because that is the extent `amend --replace` writes into: a
+    container counted for its children would name an anchor the substitution then refuses, which
+    is the wrong answer arriving through the read that exists to stop it.
+
+    Every declared prose role unless one is named — the sentence a caller is hunting may be in
+    either file, and a default that looked in one would answer *not found* about the other.
+    """
+    asked = [role] if role else [one for one in PROSE_ROLES if config.has(one)]
+    out: list[Carrier] = []
+    for name in asked:
+        document = config.document(name)
+        where = config.relative(config.path(name))
+        for section in anchored(document):
+            count = section.prose.count(text)
+            if count:
+                out.append(
+                    Carrier(
+                        anchor=section.anchor,
+                        role=name,
+                        where=where,
+                        line=section.first,
+                        title=section.title,
+                        count=count,
+                    )
+                )
+    return Found(text=text, carriers=tuple(out), roles=tuple(asked))
+
+
+@dataclass(frozen=True, slots=True)
 class Deleted:
     """One section removed whole, and who is left citing it (RK78, RK206).
 

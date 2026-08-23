@@ -105,7 +105,13 @@ characters = 2800
 # what may be declared and `govern` declares it against the reading, which is the pair that
 # makes *this comment* the last of its kind — from here the argument for a number goes in the
 # commit that wrote it, where `govern` says it belongs. 63,500, above the widest by 1,439.
-session = 63500
+# Raised from 63500 for the 65th verb, section find (RK1310), which costs 722 characters
+# once per session. The trade is measurable and one-sided: the loop it removes is a
+# section show per guess, and one of those is 1,214 characters of one section against
+# this read's 380 — so the surface pays back on the second guess of the first session
+# that makes one. Headroom is 110, tighter than the 32 this replaces, so a description
+# growing by a paragraph is still a finding.
+session = 64300
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

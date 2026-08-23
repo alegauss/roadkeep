@@ -26,7 +26,7 @@ from roadkeep.blocking import (
     open_block,
 )
 from roadkeep.briefing import non_goals
-from roadkeep.config import Config
+from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.queueing import (
     add as add_priority,
     declared as declared_queue,
@@ -47,11 +47,13 @@ from roadkeep.sections import (
     namespaced,
     AmbiguousTitle,
     NoSuchSection,
+    NotOneOccurrence,
     Shown,
     Substitution,
     add as add_section,
     amend as amend_section,
     amend_untitled,
+    carrying,
     drop as drop_section,
     find as find_section,
     move as move_section,
@@ -296,6 +298,13 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
                 substitute=substitute,
             )
         wrote = rewritten.document.save()
+    except NotOneOccurrence as error:
+        # The lookup one step earlier, which turns a refusal into an instruction (RK1310):
+        # this call has already counted the string in the section it was addressed to, and the
+        # question the caller has next is *which anchor does carry it*. Observed in pportal:
+        # the sentence sized one C file and lived under the id covering three of them, so the
+        # loop was show, read, guess again — a file printed into a context window per turn.
+        return _refused_elsewhere(config, error)
     except REFUSALS as error:
         return _refused(error)
 
@@ -304,6 +313,35 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
     else:
         print(rewritten.stated(config, wrote, body is not None))
     return EXIT_OK
+
+
+def _refused_elsewhere(config: Config, error: NotOneOccurrence) -> int:
+    """A `--replace` refusal, with the anchors that *do* carry the string (RK1310).
+
+    Beside the refusal and never instead of it: the call was still wrong and the exit code is
+    still a refusal — what is added is the answer the same read had already computed. Silent
+    where nothing else carries it either, which is the state the existing sentence describes
+    correctly: the string was mistyped or already corrected.
+    """
+    print(f"roadkeep: {error}", file=sys.stderr)
+    found = carrying(config, error.old)
+    if found.carriers:
+        named = ", ".join(
+            f"§{one.anchor} ({one.count}x)" for one in found.carriers[:_CARRIERS]
+        )
+        more = " …" if len(found.carriers) > _CARRIERS else ""
+        print(
+            f"  carried  {named}{more} — `section find {error.old!r}` lists them "
+            f"with their files",
+            file=sys.stderr,
+        )
+    return EXIT_USAGE
+
+
+#: How many carriers a refusal names before it defers to the read (RK1301's rule): the count
+#: is what a caller acts on and the roster past a handful is the listing this verb has a verb
+#: for. Four, which is `brief`'s own number for the same question about a different roster.
+_CARRIERS = 4
 
 
 def _section_move(config: Config, args: argparse.Namespace) -> int:
@@ -341,6 +379,27 @@ def _section_show(config: Config, args: argparse.Namespace) -> int:
     print(shown.stated(config.schema))
     for note in shown.silence():
         print(note, file=sys.stderr)
+    return EXIT_OK
+
+
+def _section_find(config: Config, args: argparse.Namespace) -> int:
+    """Which anchors carry a sentence (RK1310) — the lookup a pointer does not do.
+
+    Exit 0 on an empty answer, which is what makes it a read rather than a check: *nothing
+    carries this* is a fact about the files and the caller's next move is theirs, exactly as
+    an empty `list` is not a failure. What the sentence says is which files were looked in, so
+    an empty answer is never read as a filter somebody forgot they passed.
+    """
+    try:
+        found = carrying(config, args.text, args.role)
+    except (KeyError, OSError, ValueError) as error:
+        return _refused(error)
+
+    print(
+        json.dumps(found.payload(_served(config)), indent=2)
+        if args.json
+        else found.stated()
+    )
     return EXIT_OK
 
 
@@ -882,6 +941,31 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
     section_show.add_argument("--role", default="improvements", help="which prose file")
     section_show.add_argument("--json", action="store_true", help=_JSON_HELP)
     section_show.set_defaults(handler=_section_show, reads_only=True)
+
+    # The direction a pointer does not go (RK1310): an id resolves to a section and nothing
+    # resolved a sentence to one, so a caller who knew only the text looped through `show`,
+    # read the file and guessed the anchor again — which for an agent is a file printed into a
+    # context window per turn.
+    section_find = actions.add_parser(
+        "find",
+        help="which sections carry a sentence, and how many times each",
+        description=(
+            "Report the anchors whose own prose holds a string, with a count each, so a "
+            "`section amend --replace` is addressed rather than guessed. The count is what "
+            "decides the next call: one is what `--replace` accepts, and more is the "
+            "ambiguity it refuses. The prose itself is `section show`'s. Reads; never writes."
+        ),
+    )
+    section_find.add_argument(
+        "text", help="the string to look for, exactly as the prose spells it"
+    )
+    section_find.add_argument(
+        "--role",
+        choices=PROSE_ROLES,
+        help="one prose file (default: every one this project declares)",
+    )
+    section_find.add_argument("--json", action="store_true", help=_JSON_HELP)
+    section_find.set_defaults(handler=_section_find, reads_only=True)
 
     section_drop = actions.add_parser(
         "drop",

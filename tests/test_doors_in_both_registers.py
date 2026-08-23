@@ -88,6 +88,10 @@ CALLS: tuple[tuple[tuple[str, ...], str], ...] = (
     (("criterion", "list", "--task", "RK1"), "which empty, and the command that fills it"),
     (("criterion", "list", "--block", "B"), "the same, addressed to a block"),
     (
+        ("section", "find", "a sentence this corpus does not hold"),
+        "the read that resolves a sentence to an anchor, when it resolves to none",
+    ),
+    (
         ("ship", "RK2", "--why", "It works now.", "--part", "local half"),
         "what to do with the half that is still open, and what closes the line",
     ),
@@ -141,7 +145,11 @@ def test_every_door_the_text_names_is_in_the_payload(tmp_path, argv, about):
         # same call as an MCP tool name and a field map (RK449) carries the parts and not the
         # line, so matching the rendered string would fail on the surface this is *for*.
         for word in door.split():
-            if word in {"…", "<id>", "-"}:
+            # Placeholders are not payload content: `…` is the blank a remedy renders for a
+            # field the author fills, and `<anchor>` is the same thing spelled for a reader.
+            # Demanding either would be demanding the *rendering*, which is the one thing a
+            # served call deliberately does not carry (RK449).
+            if word in {"…", "-"} or (word.startswith("<") and word.endswith(">")):
                 continue
             assert word in payload, (
                 f"`{door}` is offered by `{' '.join(argv)}` and `{word}` is nowhere in its "

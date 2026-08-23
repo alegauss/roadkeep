@@ -33,7 +33,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1310** (deps: —) **nothing resolves a sentence to the anchor carrying it, so a section amend addressed by text is guessed and retried** — A pointer takes an id to a section and no verb takes prose to one, and the refusal that knows the answer prints show instead. → §RK1310
 - 📋 **RK1314** (deps: —) **config prints the criteria table under the non-goals sentence, so the read names the wrong table** — Both addresses map to `_SCOPE_KEYS`, so the docstring rides with the key set and the read that says what may be declared describes `[criteria]` as the roadmap's other bullet. → §RK1314
 
 ## Block D — The gate

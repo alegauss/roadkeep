@@ -85,6 +85,10 @@ QUESTIONS: tuple[Question, ...] = (
     # read out of and which nothing printed the shape of.
     Question("what may roadkeep.toml declare, and what did this project declare", ("config",)),
     Question("what does this rationale section say, and what does it cost", ("section", "show", "RK1")),
+    # RK1310. The direction a pointer does not go: an id resolves to a section and nothing
+    # resolved a sentence to one, so a caller holding only the text looped through the read
+    # above — which for an agent is a file printed into a context window, once per guess.
+    Question("which section carries this sentence", ("section", "find", "a sentence")),
     Question("who is holding a line right now", ("claims",)),
     Question("which paths does this task own, and does the tree still agree", ("claim", "RK1")),
     Question("which governed files did a verb write, and which did something else", ("writes",)),

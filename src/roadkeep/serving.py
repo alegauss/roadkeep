@@ -497,6 +497,11 @@ TOOLS: tuple[Tool, ...] = (
     # way through is the hand edit this server's own guard denies the agent making it.
     Tool("section move", ("anchor", "to", "role")),
     Tool("section drop", ("anchor", "role")),
+    # The direction a pointer does not go (RK1310), and this transport is the whole reason it
+    # is a verb: an id resolves to a section and nothing resolved a sentence to one, so a
+    # caller holding only the text looped through `section show` — which over MCP is a file
+    # printed into a context window, once per guess, against a read whose answer is a count.
+    Tool("section find", ("text", "role")),
     # The read the four `block` writes above assume has happened (RK1188), beside the other
     # read a proposal makes: `non-goal list` answers what may not be proposed and this one
     # answers where it would go. Exposed for a sharper version of their reason — the agent

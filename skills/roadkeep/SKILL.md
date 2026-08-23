@@ -520,7 +520,11 @@ against what is there rather than against a remembered version of it — and it 
 **subtree**, so on a section with children `section show <a> --own` is the half that write
 replaces. Hand the subtree back and it is refused as the wrong extent (`body.subtree`)
 naming that flag, rather than counted as prose somebody wrote too long: a subsection is
-amended by its own anchor. **If a body is refused anyway, do not count by hand**:
+amended by its own anchor. **Where you know the sentence and not the anchor, do not guess
+it**: `section find "<text>"` names the anchors whose own prose carries that string, with a
+count each — one is what `--replace` accepts and more is the ambiguity it refuses — and the
+failing `--replace` names them too, so the loop of show, read, guess again is one call.
+**If a body is refused anyway, do not count by hand**:
 `body.too-long` names what each paragraph costs and which is the longest, so the second
 draft is composed once — and a `0` there is a table or a fence, which is prose no cut can
 reach. **And do not count by hand before one is refused either**: every prose argument here

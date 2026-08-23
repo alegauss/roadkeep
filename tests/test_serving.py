@@ -239,6 +239,11 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # writes that reach everything else about a section.
         "section_move",
         "section_drop",
+        # The direction a pointer does not go (RK1310), and this transport is the reason it is
+        # a verb: an id resolves to a section and nothing resolved a sentence to one, so a
+        # caller holding only the text looped through `section show` — a file printed into a
+        # context window, once per guess, against a read whose answer is a count.
+        "section_find",
         # The reads a session that is *proposing* makes, so they head the reads: where the
         # task would go (RK1188), what may not be proposed at all (RK69), and what a
         # comparable one cost (RK71).
