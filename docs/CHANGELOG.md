@@ -371,6 +371,7 @@
 - ✅ **RK1315** **weigh passes every ledger commit as one argument, so git refuses the call once the ledger is long enough** — the commit list leaves on stdin, so the read is bounded by history and not by the operating system's argv (design §RK1315 recorded in `src/roadkeep/history.py`).
 - ✅ **RK1306** **brief states the ledger allowance but not what --recorded-in and --superseded-design spend from it** — brief's payload names what each optional clause spends out of the ledger sentence, so a ship carrying both composes from it (design §RK1306 recorded in `src/roadkeep/briefing.py`).
 - ✅ **RK1307** **The json payload drops the sentence and the remedy the human output carries, so an MCP caller gets less than the CLI** — which empty a listing is and the door that fills it reach the payload, and a test holds the class (design §RK1307 recorded in `tests/test_doors_in_both_registers.py`).
+- ✅ **RK1309** **a new line's section budget is reachable only through brief, which needs an id, so the first body is written blind** — an add that leaves a follow-up now says what that body may weigh, in both registers, before the paragraph exists (design §RK1309 recorded in `src/roadkeep/authoring.py`).
 
 ## Block D — The gate
 

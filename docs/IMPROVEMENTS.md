@@ -178,28 +178,6 @@ write moved is one the author has to be told about.
 
 ## Block C — Query
 
-### §RK1309 The budget a line does not have yet
-
-`add`'s own help states the rule this misses: "Nothing is written unless every field
-passes: a limit reported after the prose exists is a limit discovered too late to save
-the tokens it was meant to save." The prose fields are exactly where it still happens.
-
-Observed in pportal, 2026-08-22. A section body was written to a file, passed with
---section-body-file, and refused: 266 words against a limit of 250. The refusal is a
-good one - it names the overage, the remedy in words, and which paragraph is longest. It
-arrives after the paragraph has been written, which for an agent caller is the cost the
-rule is about, and the second attempt pays for the whole body again.
-
-`brief` already prints this budget well - "budget why 69 of 195 left, aim 10 more words,
-278 for prose". But `brief` speaks about a task that EXISTS. A caller composing a NEW
-line with `add --section` has no id yet, so there is nothing to brief, and the numbers
-it wants sit in roadkeep.toml under names it has to know to look for.
-
-The gap is narrow and so is the fix: the same budget, addressable before the line is
-minted. `budget --block <x> --section` would answer it, or `add` could take the heading
-alone and report what a body under it may weigh, which is one round trip instead of two
-and no wasted paragraph.
-
 ### §RK1310 Finding the anchor a sentence is in
 
 Observed in pportal, 2026-08-22. A line count stated in the prose had gone stale, and
