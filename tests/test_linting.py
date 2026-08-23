@@ -2451,11 +2451,14 @@ def test_the_whole_surface_over_its_budget_fails(tmp_path):
     135,200, and this repo's real figure reached 50,673 against nothing. A list growing by
     verbs each of which is unremarkable is the edit no per-tool rule can see.
     """
-    config = CONFIG + "\n[tools]\ncharacters = 2600\nsession = 3000\n"
+    # A per-tool ceiling no tool could reach, which is what isolates the sum: pinning it at
+    # the number this project declares made the fixture break the day one tool outgrew it,
+    # and the state under test here is *the total fails and no single tool does*.
+    config = CONFIG + "\n[tools]\ncharacters = 9000\nsession = 9500\n"
     findings = [f for f in lint(project(tmp_path, config=config)).findings]
     (whole,) = [f for f in findings if f.code == "budget.session"]
     assert not [f for f in findings if f.code == "budget.tool"], (
-        "every tool is under 2,600, which is the state this finding exists for"
+        "no tool is over its own ceiling here, which is the state this finding exists for"
     )
     assert whole.file == "roadkeep.toml" and whole.subject == "session"
     assert "no one tool is at fault" in whole.message

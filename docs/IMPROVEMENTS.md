@@ -131,27 +131,6 @@ text IS there.
 
 ## Block C — Query
 
-### §RK1305 Budget answers for a retirement too
-
-Measured while retiring a task in an adopting project. The reason was refused three
-times in a row - 250 characters, then 212, then 205, against a limit of 200 - and each
-rewrite cut a clause out of the one field whose whole job is to carry evidence. The
-sentence that finally landed says less about the measurement that settled the decision
-than the first draft did.
-
-Each refusal did its job: it named the limit and how much to delete. What none of them
-could do is what `budget` already does before a line is added or a completion written -
-answer, before a word exists, how much room this particular retirement has. A
-retirement's reason shares the rendered line with the symptom it is retiring, and a long
-symptom leaves a short reason, so the usable maximum is not the published one and cannot
-be guessed from it.
-
-The skill asks a retirement to open with the decision, give the evidence in numbers
-where there are numbers, and say where the conclusion now lives. That is three clauses,
-drafted against a budget the author cannot ask for. Extending `budget` to answer for a
-retirement costs one more shape of the same reading and removes the loop that trims
-evidence away.
-
 ### §RK1306 The two clauses the shipping budget does not price
 
 Measured on quickshell: five ships, five refusals — QS8, QS9, QS10, QS87 and QS88 each
@@ -281,6 +260,29 @@ key names, and the reader has no way to tell it from a correct row.
 
 The fix is a sentence about criteria taken from where that table is documented, read per
 table rather than per key set.
+
+### §RK1315 RK1315
+
+Measured here, 2026-08-23, at the commit that crossed it: 802 ledger entries, 798
+distinct commits, 32,718 characters of shas alone against a CreateProcess limit of
+32,767. `weigh` raises HistoryUnavailable, which the caller reports as an absent answer,
+so the verb that says what a comparable task cost stops answering at exactly the ledger
+size that makes the question worth asking.
+
+The shape is right and only the transport is wrong. `costs_of` builds one call because
+two git calls whatever the size of the ledger is the property that read was written for,
+and a range would count the commits between the ones that wrote an entry. What it did
+not have is a way to hand git a long list without spending the argv.
+
+git has one: `--stdin` reads revisions from standard input, and `--no-walk` keeps its
+meaning. That is the fix rather than batching, because batching trades the docstring's
+own claim - two calls, always - for a number of calls that grows with the file, and
+reintroduces the merge of partial results the single call exists to avoid.
+
+Not only Windows. POSIX has its own ARG_MAX and a large adopter reaches it later rather
+than never, so a limit crossed silently on one platform is a limit on all of them.
+Falsified when a ledger of ten thousand entries answers here and the call count is still
+two.
 
 ## Block D — The gate
 

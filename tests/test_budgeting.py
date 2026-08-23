@@ -2908,3 +2908,72 @@ def test_an_answer_that_measured_everything_reads_as_it_always_did(tmp_path, cap
     said = capsys.readouterr().out
 
     assert "0 over" in said and "unpriced" not in said
+
+
+# -- and the third write off the same line (RK1305) ---------------------------
+
+
+def test_the_retirement_reason_is_priced_before_it_is_written(tmp_path):
+    """Measured while retiring a task in an adopting project: the reason was refused three
+    times running — 250 characters, then 212, then 205, against a limit of 200 — and each
+    rewrite cut a clause out of the one field whose whole job is to carry evidence. The
+    sentence that finally landed says less about the measurement that settled the decision
+    than the first draft did.
+
+    Every refusal did its job. What none of them could do is what this read already did before
+    a line was added or a completion written: answer, before a word exists, how much room
+    *this* retirement has.
+    """
+    config = project(tmp_path)
+    abandoned = budget(config, "RK2", retire="")
+    superseded = budget(config, "RK2", retire="RK1")
+
+    # The ledger's line, not the roadmap's: no deps and no pointer in the structure.
+    assert abandoned.task.deps == () and abandoned.task.ref is None
+    assert abandoned.task.status == config.schema.retired_marker
+    # And the prefix `retire` writes, counted against the same limit the reason is refused by
+    # — which is why the usable maximum is neither the published one nor a ship's.
+    assert abandoned.derived == "abandoned: "
+    assert superseded.derived == "superseded by RK1: "
+    assert superseded.share("why").left < abandoned.share("why").left
+
+
+def test_the_figure_is_the_reason_retire_actually_accepts(tmp_path, capsys):
+    # The prediction and the refusal, asked of one line with nothing between them changing it
+    # — which is the only thing that can hold a pre-write number honest (RK1199's shape).
+    from roadkeep.verbs.refusing import EXIT_USAGE as REFUSED
+
+    config = project(tmp_path)
+    root = str(tmp_path)
+    left = budget(config, "RK2", retire="RK1").share("why").left
+
+    assert main(["-C", root, "retire", "RK2", "--superseded-by", "RK1",
+                 "--reason", "x" * (left + 1) + "."]) == REFUSED
+    capsys.readouterr()
+    # And exactly what it promised lands, which is the half an under-report hides.
+    assert main(["-C", root, "retire", "RK2", "--superseded-by", "RK1",
+                 "--reason", "x" * (left - 1) + "."]) == EXIT_OK
+
+
+def test_the_derived_prefix_is_named_rather_than_left_as_a_number(tmp_path, capsys):
+    # `11 written` on a field nobody has drafted reads as the caller's prose and is the tool's,
+    # and the remainder underneath is the one that binds either way.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "RK2", "--retire", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["derived"] == "abandoned: "
+    # Published on every budget and never omitted, so a client can tell a write that derives
+    # nothing from a build that did not know the field existed.
+    assert json.loads(
+        json.dumps(budget(Config.discover(tmp_path), "RK2").payload())
+    )["derived"] == ""
+
+
+def test_the_state_word_says_which_write_the_figures_are_about(tmp_path, capsys):
+    # Three states and not two: `open_line=False` meant *the line add would write next*, and
+    # a retirement's figures under that sentence describe the wrong write entirely.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "RK2", "--retire"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "(the ledger line retire writes)" in said
+    assert "derived    `abandoned: `" in said

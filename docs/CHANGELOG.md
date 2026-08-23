@@ -367,6 +367,7 @@
 - ✅ **RK1301** **brief lists every id the task transitively unblocks, so the earliest line in a graph answers with 79 ids nobody reads** — brief keeps the count whole and cuts the roster to the lowest four with the remainder named, the walk now ordering by id (design §RK1301 recorded in `src/roadkeep/briefing.py`).
 - 🗑 **RK1303** **brief spends a third of its payload on three budget blocks, two of which are byte-identical** — superseded by RK1298: RK1298 took the wider of the two doors this proposed: the second and third blocks are stated as deltas, so deciding is 38 characters.
 - ✅ **RK1304** **brief says the priority queue names nothing ready and picks elsewhere, without naming the task that would make it ready** — pick and brief name what the declared priority waits on and the ids that would release it, beside the fall-through (design §RK1304 recorded in `src/roadkeep/picking.py`).
+- ✅ **RK1305** **budget answers for a line and a ship and not for a retirement, so its reason is drafted blind** — budget answers for a retirement too, on the ledger line retire writes and less the prefix it derives into the reason (design §RK1305 recorded in `src/roadkeep/budgeting.py`).
 
 ## Block D — The gate
 

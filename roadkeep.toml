@@ -55,7 +55,12 @@ why = 200
 # refused by the tool whose description somebody just edited. `budget --tools` ranks them
 # and prints the room; the largest here is `ship` at 2,466, and the ceiling is set close
 # enough that a description growing by a paragraph is a finding rather than a rounding.
-characters = 2600
+# Raised from 2600 with the seventh subject on budget (RK1305), which overtook ship as
+# the largest tool at 2,744. The property this ceiling was set for is the headroom above
+# the largest, and it is tighter now than before: 56 characters, against 134 when ship
+# led. So a description growing by a paragraph is still a finding, and nothing else was
+# loosened to make room.
+characters = 2800
 
 # And the sum, which the paragraph above was right to call blameless and wrong to leave
 # unheld (RK1097). 52 tools under 2,600 each is a ceiling of 135,200; the real figure is

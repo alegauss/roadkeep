@@ -329,6 +329,13 @@ class Budget:
     #: The flags whose value came from the caller rather than from the line (RK1221). Empty on
     #: every call that named none, which is `brief`'s and every read of a line as it stands.
     stated: tuple[str, ...] = ()
+    #: Prose **this tool writes into a field before the caller's** (RK1305), where a write does
+    #: that. One write does: a retirement's `why` is a derived prefix plus the author's own
+    #: sentence, and the prefix is counted against the same limit the reason is refused by. So
+    #: it is neither structure — it is inside a prose field — nor the caller's, and a reader
+    #: handed `21 written` on a field nobody has drafted has no way to tell which. Empty
+    #: everywhere else, which is every budget about a line and every one about a ship.
+    derived: str = ""
 
     def share(self, field: str) -> Share:
         return next(one for one in self.shares if one.field == field)
@@ -341,7 +348,15 @@ class Budget:
         and neither held both. What the payload publishes is now what this shows, by construction
         rather than by a test.
         """
-        state = "open line" if self.open_line else "the line add would write next"
+        # Three states and not two (RK1305): `open_line=False` meant *the line `add` would
+        # write next* while this record now also answers for a line a **departure** writes, and
+        # a retirement's figures under that sentence describe the wrong write entirely.
+        if self.open_line:
+            state = "open line"
+        elif self.derived:
+            state = "the ledger line retire writes"
+        else:
+            state = "the line add would write next"
         deps = ", ".join(dep.render() for dep in self.task.deps) or "—"
         rows = [
             f"{self.task.id}  {self.task.status}  deps {deps}  ({state})",
@@ -365,6 +380,14 @@ class Budget:
                 else "none on this roadmap, so the structure counts no pointer"
             )
             rows.append(f"  pointer    {assumed} — pass --ref for the anchor this line will use")
+        if self.derived:
+            # Before the field rows, because it is what those numbers are already carrying
+            # (RK1305): `21 written` on a field nobody has drafted reads as the caller's prose
+            # and is the tool's, and the remainder underneath is the one that binds either way.
+            rows.append(
+                f"  derived    `{self.derived}` — written into the why before a word of "
+                f"yours, and counted against the same limit"
+            )
         rows.append(f"  prose      {self.prose}")
         for share in self.shares:
             # The field's own limit is what the schema publishes; what this line allows is what
@@ -423,6 +446,10 @@ class Budget:
             # this against the file can tell an answer about the line from an answer about the
             # line an `amend` would write.
             "stated": list(self.stated),
+            # What the tool wrote into a prose field before the caller's own (RK1305). Empty
+            # and never omitted, for `section_absence`'s reason: a client can then tell a write
+            # that derives nothing from a build that did not know the field existed.
+            "derived": self.derived,
         }
 
     def delta(self, base: "Budget | None", against: str | None) -> dict[str, object]:
@@ -480,6 +507,7 @@ def budget(
     ref: str | None = None,
     why: str | None = None,
     body: str | None = None,
+    retire: str | None = None,
 ) -> Budget:
     """The prose budget of a line, named by id or described by the fields an `add` takes.
 
@@ -502,6 +530,13 @@ def budget(
     what the other loses — while a `why` moves no other number, so putting it through the
     composer would buy nothing and cost the refusal this read exists to replace. ``None`` means
     no draft, which the empty string is not: `--why ""` asks what an empty field costs.
+
+    ``retire`` asks the **third** shape of the same question (RK1305): what a retirement's
+    reason has, which is the one write this read did not answer for. `""` is an abandonment and
+    an id is a supersession, because the two spend different amounts of the field before the
+    author starts — and `None` is a caller who did not ask. Measured in an adopting project at
+    three refusals in a row, 250 then 212 then 205 against 200, each rewrite cutting a clause
+    out of the one field whose job is to carry evidence.
     """
     task, open_line, assumed = _subject(
         config,
@@ -513,6 +548,8 @@ def budget(
         family=family,
         ref=ref,
     )
+    if retire is not None:
+        return _retirement(config, task, retire, why=why, body=body)
     answer = budget_of(
         config, task, open_line=open_line, ref_assumed=assumed, why=why, body=body
     )
@@ -525,6 +562,42 @@ def budget(
         else replace(
             answer, stated=_stated(held.task, block, deps, status, symptom, ref)
         )
+    )
+
+
+def _retirement(
+    config: Config, task: Task, superseded_by: str, *, why: str | None, body: str | None
+) -> Budget:
+    """What a retirement's reason has, before it is written (RK1305).
+
+    Priced under the **changelog's** grammar for the reason `brief`'s shipping figure is
+    (RK1199): a retirement writes a ledger line, whose limit is `[limits.changelog]` and whose
+    structure carries no deps and no pointer. Through :func:`~roadkeep.shipping.as_recorded`,
+    so the figure and the write cannot come apart.
+
+    And the derived prefix goes **into the field** rather than beside it, which is the one
+    thing this shape has that the other two do not: `abandoned:` and `superseded by RK41:` are
+    written by `retire` before a word of the author's, and counted against the same limit the
+    reason is refused by. So it is measured as prose the line already carries — `taken`, with
+    `left` the remainder that binds — and named on :attr:`Budget.derived`, because a reader
+    handed a non-zero `written` on a field nobody has drafted cannot tell whose it is.
+    """
+    from roadkeep.shipping import as_recorded, retiring  # noqa: PLC0415 - RK260
+
+    prefix = retiring("", superseded_by or None)
+    composed = f"{prefix}{why or ''}"
+    return replace(
+        budget_of(
+            config,
+            as_recorded(task, config.schema.retired_marker, composed),
+            open_line=False,
+            schema=config.schema_for("changelog"),
+            # Drafted only where the caller drafted: the prefix is measured either way and is
+            # the tool's, and `drafted` is the flag that says which of the two a number is.
+            why=composed if why is not None else None,
+            body=body,
+        ),
+        derived=prefix,
     )
 
 

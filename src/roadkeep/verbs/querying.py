@@ -400,6 +400,9 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
                 if args.body is None and args.body_file is None
                 else _body_reader(args.body, args.body_file)()
             ),
+            # The third write off the same line (RK1305). `is not None` and not truth, which is
+            # `--tools`' reading: bare `--retire` is the empty string and means abandoned.
+            retire=args.retire,
         )
     except REFUSALS as error:
         return _refused(error)
@@ -1501,6 +1504,21 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         dest="body_file",
         metavar="PATH",
         help="read the draft body from a file instead, with --anchor",
+    )
+    # The third write off the same line (RK1305), and the one this read did not answer for: a
+    # retirement's reason shares the ledger's limit with a derived prefix, so the usable
+    # maximum is neither the published one nor the one a ship is quoted. A value and not a
+    # flag, for `--tools`' reason: bare is the abandonment and named is the supersession, which
+    # spends more of the field before the author starts.
+    budget_parser.add_argument(
+        "--retire",
+        nargs="?",
+        const="",
+        metavar="SUPERSEDED_BY",
+        help=(
+            "what a retirement's reason has — bare, abandoned; named, superseded by that "
+            "id, which costs more of the field"
+        ),
     )
     budget_parser.add_argument(
         "--non-goal",

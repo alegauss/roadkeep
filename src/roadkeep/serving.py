@@ -551,8 +551,12 @@ TOOLS: tuple[Tool, ...] = (
         # `brief` is the sixth (RK1286), and the one subject about a **read**: what the answer
         # this project recommends over reading the file costs a tool result. Exposed for
         # `tools`' reason exactly — the caller paying it is the one on the other end of it.
+        # `retire` is the seventh (RK1305), and the write off this line that nothing priced:
+        # a retirement's reason shares the ledger's limit with a derived prefix, so the number
+        # that binds is neither the published ceiling nor the one a ship is quoted — and over
+        # this transport the refusal it replaces costs the whole payload again.
         ("id", "block", "deps", "status", "symptom", "why", "anchor", "role", "body",
-         "non_goal", "lead", "file", "tools", "session", "brief"),
+         "non_goal", "lead", "file", "tools", "session", "brief", "retire"),
         conditional=("ref",),
     ),
     # `designed` is exposed on both for the reason it exists (RK83): the caller that asks

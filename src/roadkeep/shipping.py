@@ -212,6 +212,7 @@ __all__ = [
     "record",
     "recording_cost",
     "retire",
+    "retiring",
     "ship",
     "supersede",
 ]
@@ -2549,9 +2550,7 @@ def retire(
         holder = _holding(Backlog.load(config), superseded_by)
         if holder is None:
             raise NoSuchReplacement(superseded_by, task_id)
-        why = f"superseded by {superseded_by}: {reason}"
-    else:
-        why = f"abandoned: {reason}"
+    why = retiring(reason, superseded_by)
     return _depart(
         config,
         task_id,
@@ -3243,6 +3242,26 @@ def _recording(why: str, anchor: str, path: str) -> str:
     how every other path in a ledger sentence is spelled, and how the gate recognises one.
     """
     return _parenthesised(why, f"design §{anchor} recorded in `{path}`")
+
+
+def retiring(reason: str, superseded_by: str | None) -> str:
+    """The ledger's sentence for a line that left without shipping (RK1305).
+
+    A derived prefix and the author's own sentence, which is the split every field the tool
+    fills in already makes (RK8): *superseded by RK41* is a fact this command holds, and the
+    reason is prose it will not write (L4).
+
+    Its own function so that :func:`~roadkeep.budgeting.budget` can price the sentence before
+    it exists. That prefix is **structure spent inside a prose field** — mandatory, derived,
+    and counted against the same 200 the reason is refused by — so a caller drafting against
+    the published limit is drafting against a number the write does not use. Measured while
+    retiring a task in an adopting project: the reason was refused three times running, at
+    250, 212 and 205, and each rewrite cut a clause out of the one field whose job is to carry
+    evidence. One writer, so the price and the write cannot come apart.
+    """
+    if superseded_by is not None:
+        return f"superseded by {superseded_by}: {reason}"
+    return f"abandoned: {reason}"
 
 
 def supersession_cost(anchor: str) -> int:

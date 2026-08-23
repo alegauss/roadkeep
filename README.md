@@ -118,17 +118,17 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 177 | 2 |
-| C — Query (consult without reading the file) | 6 | 125 | 2 |
+| C — Query (consult without reading the file) | 6 | 126 | 2 |
 | D — The gate | 1 | 188 | 2 |
 | E — Adoption | 1 | 100 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 10 | 791 | 11 |
+| **Total** | 10 | 792 | 11 |
 
 **Next ready:**
 
-- 📋 **RK1305** (deps: —) **budget answers for a line and a ship and not for a retirement, so its reason is drafted blind** — A retirement's reason is budgeted before it is written, the way a line and a completion already are, so a sentence carrying a decision and its evidence is not drafted three times. → §RK1305
+- 📋 **RK1306** (deps: —) **brief states the ledger allowance but not what --recorded-in and --superseded-design spend from it** — A why composed to the published number is refused by arithmetic the caller had no way to do, which cost a round trip on five ships out of five. → §RK1306
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
