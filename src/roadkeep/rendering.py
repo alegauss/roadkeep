@@ -739,6 +739,34 @@ def _lacking_rows(choice: Choice) -> list[str]:
     ]
 
 
+def _waiting_rows(choice: Choice) -> list[str]:
+    """What the declared priority is waiting on, where nothing ready answers it (RK1304).
+
+    The `reason` above already says the queue names nothing ready, and that sentence is true
+    and stops one step short: it does not say which task would change it. This is that step,
+    beside the pick rather than instead of it — the pick may still be the right call when the
+    blocker is expensive, and the case worth having is the other one.
+
+    The **ids** and not a command, unlike every other door this file prints: releasing a token
+    may take several of them and `ship` takes one, so an argv would be a fiction wherever the
+    row is most needed. A token blocked on work outside the backlog has no id to name at all
+    and says so — nothing this tool could offer would release it.
+    """
+    rows: list[str] = []
+    for one in choice.waiting:
+        lines = f"{one.lines} line{'' if one.lines == 1 else 's'}, blocked"
+        if not one.releases:
+            rows.append(f"  waiting  {one.token} — {lines} on work this backlog does not name")
+            continue
+        more = f" (of {one.of})" if one.of > len(one.releases) else ""
+        released = "it" if one.lines == 1 else "them"
+        rows.append(
+            f"  waiting  {one.token} — {lines}; "
+            f"{', '.join(one.releases)}{more} would release {released}"
+        )
+    return rows
+
+
 def _stalled_rows(choice: Choice) -> list[str]:
     """A started task that cannot be continued is the one thing a pick must not hide.
 

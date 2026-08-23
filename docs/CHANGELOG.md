@@ -366,6 +366,7 @@
 - ✅ **RK1298** **brief answers with two budget objects that differ in six fields and repeat every other row** — brief publishes one budget table and names the other two as their difference from it, so no unchanged row costs the payload twice (design §RK1298 recorded in `src/roadkeep/budgeting.py`).
 - ✅ **RK1301** **brief lists every id the task transitively unblocks, so the earliest line in a graph answers with 79 ids nobody reads** — brief keeps the count whole and cuts the roster to the lowest four with the remainder named, the walk now ordering by id (design §RK1301 recorded in `src/roadkeep/briefing.py`).
 - 🗑 **RK1303** **brief spends a third of its payload on three budget blocks, two of which are byte-identical** — superseded by RK1298: RK1298 took the wider of the two doors this proposed: the second and third blocks are stated as deltas, so deciding is 38 characters.
+- ✅ **RK1304** **brief says the priority queue names nothing ready and picks elsewhere, without naming the task that would make it ready** — pick and brief name what the declared priority waits on and the ids that would release it, beside the fall-through (design §RK1304 recorded in `src/roadkeep/picking.py`).
 
 ## Block D — The gate
 

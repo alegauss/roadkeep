@@ -15,6 +15,7 @@
 - ✅ **RK1286** **the read that exists to fit in a tool result is the one thing here with no budget, and it grew four rows** — The read that replaces reading the file is bounded by the widest brief, never the median.
 - ✅ **RK1298** **brief answers with two budget objects that differ in six fields and repeat every other row** — A read ceilinged to a tool result publishes each figure once: a second budget off the same line is stated as its delta from the first, naming the base it was measured from.
 - ✅ **RK1301** **brief lists every id the task transitively unblocks, so the earliest line in a graph answers with 79 ids nobody reads** — A bounded read publishes a count whole and a roster in a handful with what it left; the verb that answers the roster is where the rest lives.
+- ✅ **RK1304** **brief says the priority queue names nothing ready and picks elsewhere, without naming the task that would make it ready** — A read that says a queue names nothing ready says which task would change that, the walk it already makes being the one that answers.
 
 ## Block D — The gate
 

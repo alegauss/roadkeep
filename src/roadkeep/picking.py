@@ -60,7 +60,7 @@ from enum import StrEnum
 
 from roadkeep import claiming
 from roadkeep.authoring import StatusChange, set_status
-from roadkeep.backlog import Backlog, Readiness, Stage, Standing, id_order
+from roadkeep.backlog import Backlog, DepStatus, Readiness, Stage, Standing, id_order
 from roadkeep.claiming import Held
 from roadkeep.config import Config
 from roadkeep.kernel.document import Entry, declares, shading
@@ -93,6 +93,40 @@ class Stalled:
     #: separates are "somebody started this and hit a wall", which invites unblocking it, and
     #: "somebody is on this now, and the dep is what they are waiting for", which does not.
     claimed: Held | None = None
+
+
+#: How many releasing ids a waiting row names (RK1304), bounded for RK1301's reason: a
+#: priority waiting on eleven things is one whose next step is a decision and not a command,
+#: and the count says that where the roster would only spend the answer saying it.
+RELEASES = 4
+
+
+@dataclass(frozen=True, slots=True)
+class Waiting:
+    """A declared priority nothing ready answers, and what would release it (RK1304).
+
+    Observed over four consecutive sessions on a port whose roadmap declares Priority as
+    Block H then Block I. Every line in both was blocked, so the pick fell through to the
+    lowest ready id and said so: *the roadmap's queue names nothing ready*. True, and one step
+    short — Block H held one line, blocked on a single task in another block, and nothing in
+    the answer said which. The caller who wanted the priority had to open the roadmap, read
+    the queue, find the block's lines, read their deps and look each one up, which is the
+    reading this verb exists to replace, done by hand, at the moment it was least obvious.
+
+    Beside the pick and never instead of it: the pick may still be the right call when the
+    blocker is expensive. The case that makes this worth having is the other one, where it is
+    cheap and nobody looked.
+    """
+
+    #: The queue token, as the queue spells it — a `Block X` or an id.
+    token: str
+    #: Open lines the token names. Every one of them blocked, or this row would not exist.
+    lines: int
+    #: The ids whose shipping would release one of those lines: their unsatisfied deps,
+    #: deduplicated and in id order, bounded by :data:`RELEASES`.
+    releases: tuple[str, ...] = ()
+    #: How many there are in all, so a cut roster is never read as a short one.
+    of: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -145,6 +179,10 @@ class Choice:
     #: because it is the only one nothing the caller does will change: a claim expires and a
     #: design gets written, and a PS5 does not arrive because a command was run.
     lacking: tuple[Lacking, ...] = ()
+    #: What the declared priority is waiting on, where nothing ready answers it (RK1304).
+    #: Empty on every other call — a queue the pick came *from* has nothing to be waiting for,
+    #: and a project that declares none has no queue to ask about.
+    waiting: tuple[Waiting, ...] = ()
     #: What became of the block the question was scoped to (RK429). Absent on an unscoped
     #: pick, where there is no label to have a state — and carried even when a line *was*
     #: chosen, so a caller reading the payload never has to ask a second command what the
@@ -270,6 +308,10 @@ def pick(
         "held": held,
         "lacking": lacking,
         "standing": standing,
+        # Asked of the whole survey and not of `ordered` alone (RK1304): the question is what
+        # the queue's *blocked* lines are waiting on, and `ordered` is by construction the
+        # lines that are waiting on nothing.
+        "waiting": _waiting(backlog, config, ordered, considered),
     }
     if not ordered:
         return Choice(
@@ -479,6 +521,66 @@ def _survey(
     )
 
 
+def _waiting(
+    backlog: Backlog, config: Config, ordered: list[Entry], considered: list[Entry]
+) -> tuple[Waiting, ...]:
+    """What the declared priority is waiting on, where nothing ready answers it (RK1304).
+
+    Empty the moment **any** token names a ready line, which is the state `_first`'s second
+    tier fires in: the queue was answered, the pick came from it, and a row about what some
+    other token is blocked on would be a cost quoted against a question nobody asked. So this
+    is the sentence for exactly one state — the one the fall-through already names in prose
+    and stopped short of making actionable.
+
+    The blockers are read through :meth:`Backlog.resolve`, which is where :class:`Stalled`
+    reads its own: an unsatisfied dep is one answer in this tool and a second walk here would
+    be a second answer about what is holding a line.
+
+    **Only the open ones**, unlike :class:`Stalled`, and the difference is what the two rows
+    claim: that one names what is holding a line and this one names what would *release* it.
+    Nothing now open satisfies an `UNRESOLVABLE` dep by construction (RK432), a `DEFERRED` one
+    needs a `resume` before any ship, and an `UNKNOWN` id is a finding rather than a target —
+    so naming any of them here would be an offer nothing answers, which is worse than the
+    count on its own (RK16). A token left with no id says exactly that.
+    """
+    queue = declared(config)
+    if not queue:
+        return ()
+    ready = {entry.task.id for entry in ordered}
+    named: list[tuple[str, list[Entry]]] = []
+    for token in queue.tokens:
+        label = config.schema.block_of_dep(Dep(token))
+        under = [
+            entry
+            for entry in considered
+            if (entry.task.block == label if label is not None else entry.task.id == token)
+        ]
+        if any(entry.task.id in ready for entry in under):
+            return ()
+        if under:
+            named.append((token, under))
+    out: list[Waiting] = []
+    for token, under in named:
+        blockers = sorted(
+            {
+                resolution.dep.id
+                for entry in under
+                for resolution in backlog.resolve(entry.task)
+                if resolution.status is DepStatus.OPEN
+            },
+            key=lambda one: id_order(one, config.schema),
+        )
+        out.append(
+            Waiting(
+                token=token,
+                lines=len(under),
+                releases=tuple(blockers[:RELEASES]),
+                of=len(blockers),
+            )
+        )
+    return tuple(out)
+
+
 def _first(ordered: list[Entry], config: Config) -> tuple[Entry, Tier, str]:
     """The three tiers, in order, each returning the reason it fired."""
     started = [e for e in ordered if e.task.status == IN_PROGRESS]
@@ -551,6 +653,7 @@ class Picked:
             _lacking_rows,
             _stalled_rows,
             _undesigned_rows,
+            _waiting_rows,
         )
 
         choice, config = self.choice, self.config
@@ -561,6 +664,7 @@ class Picked:
                     f"  backlog  {choice.counts}",
                     *_undesigned_rows(choice),
                     *_lacking_rows(choice),
+                    *_waiting_rows(choice),
                     *_held_rows(choice),
                     *_stalled_rows(choice),
                 ]
@@ -577,6 +681,9 @@ class Picked:
             rows.append(f"  or       {', '.join(choice.alternatives)}")
         rows += _undesigned_rows(choice)
         rows += _lacking_rows(choice)
+        # Beside the pick and never instead of it (RK1304): the fall-through is still the right
+        # call when the blocker is expensive, and the caller is the one who knows which it is.
+        rows += _waiting_rows(choice)
         rows += _held_rows(choice)
         rows += _stalled_rows(choice)
         taken = _claim_rows(self.claim, config)
@@ -639,6 +746,20 @@ class Picked:
             # work back to a person has to be able to say *which* work and *what for*.
             "lacking": [
                 {"id": one.id, "missing": list(one.missing)} for one in choice.lacking
+            ],
+            # What the declared priority is waiting on (RK1304), where nothing ready answers
+            # it. `[]` on every other call and never omitted: a consumer reading a missing key
+            # cannot tell "the queue was answered" from "an older server".
+            "waiting": [
+                {
+                    "token": one.token,
+                    "lines": one.lines,
+                    "releases": list(one.releases),
+                    # The roster bounded and the count whole, which is RK1301's rule: a cut
+                    # list is never read as a short one.
+                    "of": one.of,
+                }
+                for one in choice.waiting
             ],
             "claimed": None
             if self.claim is None

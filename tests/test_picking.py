@@ -177,6 +177,71 @@ def test_a_declaration_naming_nothing_ready_falls_through_and_says_so(tmp_path):
     assert "names nothing ready" in choice.reason
 
 
+# -- and what it is waiting on, where it names nothing ready (RK1304) ---------
+
+
+def test_the_fall_through_names_the_task_that_would_release_the_priority(tmp_path):
+    """Observed over four consecutive sessions on a port whose roadmap declares Priority as
+    two blocks, every line in both blocked. The fall-through is true and stops one step short:
+    the block held one line, blocked on a single task elsewhere, and nothing in the answer said
+    which. The caller who wanted the priority opened the roadmap, read the queue, found the
+    block's lines, read their deps and looked each one up — the reading this verb replaces,
+    done by hand, at the moment it was least obvious.
+    """
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK2") + MORE + line("RK8", "RK2", block="B"),
+        extra='priority = ["Block B"]\n',
+    )
+    choice = pick(config)
+    # The pick is unchanged: this is beside it, because it may still be the right call.
+    assert (choice.entry.task.id, choice.tier) == ("RK2", Tier.LOWEST)
+    assert "names nothing ready" in choice.reason
+    (waiting,) = choice.waiting
+    assert (waiting.token, waiting.lines) == ("Block B", 1)
+    assert (waiting.releases, waiting.of) == (("RK2",), 1)
+
+
+def test_the_queue_that_was_answered_is_not_also_reported_as_waiting(tmp_path):
+    # The queue named something ready and the pick came from it, so a row about what some
+    # other token is blocked on is a cost quoted against a question nobody asked.
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK2") + MORE + line("RK8", block="B"),
+        extra='priority = ["Block B"]\n',
+    )
+    choice = pick(config)
+    assert choice.tier is Tier.PRIORITY and choice.waiting == ()
+
+
+def test_a_priority_blocked_outside_the_backlog_names_no_id_it_cannot(tmp_path):
+    # Nothing this tool could offer would release it, and an id it cannot name is worse than
+    # the count alone — the same rule that keeps `block drop` off a paused heading (RK16).
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK2") + MORE + line("RK8", "real design partners", block="B"),
+        extra='priority = ["Block B"]\n',
+    )
+    (waiting,) = pick(config).waiting
+    assert waiting.releases == () and waiting.of == 0
+
+
+def test_the_row_says_which_task_and_the_payload_carries_it(tmp_path, capsys):
+    project(
+        tmp_path,
+        BLOCKS + line("RK2") + MORE + line("RK8", "RK2", block="B"),
+        extra='priority = ["Block B"]\n',
+    )
+    assert main(["-C", str(tmp_path), "pick"]) == EXIT_OK
+    assert "  waiting  Block B — 1 line, blocked; RK2 would release it" in (
+        capsys.readouterr().out
+    )
+    assert main(["-C", str(tmp_path), "pick", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["waiting"] == [
+        {"token": "Block B", "lines": 1, "releases": ["RK2"], "of": 1}
+    ]
+
+
 def test_a_priority_entry_that_names_neither_a_task_nor_a_block_is_refused(tmp_path):
     # Refused, not ignored: a queue the author believes is in force and is not is the
     # same failure the whole tool exists to remove, one layer down.

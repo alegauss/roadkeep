@@ -118,17 +118,17 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 177 | 2 |
-| C — Query (consult without reading the file) | 7 | 124 | 2 |
+| C — Query (consult without reading the file) | 6 | 125 | 2 |
 | D — The gate | 1 | 188 | 2 |
 | E — Adoption | 1 | 100 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 11 | 790 | 11 |
+| **Total** | 10 | 791 | 11 |
 
 **Next ready:**
 
-- 📋 **RK1304** (deps: —) **brief says the priority queue names nothing ready and picks elsewhere, without naming the task that would make it ready** — It already computes unblocks per task; the inverse - what the priority block is waiting on - is the answer a caller has to derive by hand every time. → §RK1304
+- 📋 **RK1305** (deps: —) **budget answers for a line and a ship and not for a retirement, so its reason is drafted blind** — A retirement's reason is budgeted before it is written, the way a line and a completion already are, so a sentence carrying a decision and its evidence is not drafted three times. → §RK1305
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

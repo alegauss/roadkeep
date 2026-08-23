@@ -46,7 +46,7 @@ from roadkeep.history import Commit
 from roadkeep import criteria, scoping
 from roadkeep.claiming import Held
 from roadkeep.locking import exclusive
-from roadkeep.picking import Choice, Claim, Lacking, hold, pick, take
+from roadkeep.picking import Choice, Claim, Lacking, Waiting, hold, pick, take
 from roadkeep.kernel.schema import Task
 from roadkeep.remaining import Clause
 from roadkeep.shipping import as_recorded, recording_cost, supersession_cost
@@ -304,6 +304,16 @@ class Brief:
         """The ready lines a live claim kept out of the pick this brief came from."""
         return () if self.choice is None else self.choice.held
 
+    @property
+    def waiting(self) -> tuple[Waiting, ...]:
+        """What the declared priority is waiting on, where nothing ready answered it (RK1304).
+
+        Off the choice for :attr:`held`'s reason: it is a fact about the pick this brief came
+        from, so a brief called with an id has none — nothing was ranked and no queue was
+        consulted, and inventing the reading here would answer a question nobody asked.
+        """
+        return () if self.choice is None else self.choice.waiting
+
     def stated(self, config: Config) -> str:
         """Everything needed to start this task, as a reader is told it (RK29).
 
@@ -323,6 +333,7 @@ class Brief:
             _event_rows,
             _held_rows,
             _leverage_rows,
+            _waiting_rows,
         )
         from roadkeep.sections import heading_of  # noqa: PLC0415 - RK260
 
@@ -334,6 +345,10 @@ class Brief:
         if self.picked:
             rows.append(f"  picked   {self.picked}")
         if self.choice is not None:
+            # What the declared priority is waiting on, where nothing ready answered it
+            # (RK1304). Beside `picked` because that is the sentence it completes: *the queue
+            # names nothing ready* is true and does not say which task would change it.
+            rows += _waiting_rows(self.choice)
             # The ids a live claim was stepped around (RK154), on the door a session starts a task
             # with: without them the caller cannot tell one of them is its own.
             rows += _held_rows(self.choice)
@@ -568,6 +583,17 @@ class Brief:
             ),
             # Same key and same shape as `pick`'s (RK154): one fact spelled two ways is two facts.
             "held": [{"id": h.id, "age": round(h.age), "since": h.since} for h in self.held],
+            # And the same for what the priority is waiting on (RK1304), by the same rule: this
+            # verb answers the pick's question too, so it answers it in the pick's words.
+            "waiting": [
+                {
+                    "token": one.token,
+                    "lines": one.lines,
+                    "releases": list(one.releases),
+                    "of": one.of,
+                }
+                for one in self.waiting
+            ],
             "claimed": None
             if self.claim is None or self.claim.change is None
             else {
