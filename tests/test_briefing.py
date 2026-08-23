@@ -797,3 +797,51 @@ def test_the_payload_carries_it_for_a_caller_that_is_not_a_terminal(tmp_path, ca
     capsys.readouterr()
     assert main(["-C", str(tmp_path), "brief", "RK1", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["landed"] == ["the parser half"]
+
+
+# -- the two clauses the shipping budget did not price (RK1306) ---------------
+
+
+def test_a_ship_carrying_both_clauses_composes_from_the_payload_alone(tmp_path, capsys):
+    """The falsification the design named. Measured on quickshell at five ships out of five —
+    QS8, QS9, QS10, QS87 and QS88 each took a `why.too-long` before landing, and every one
+    passed `--recorded-in` or `--superseded-design` or both.
+
+    `brief` stated the ledger allowance correctly and never that the two optional clauses are
+    spent from it, so a `why` composed to the published number was refused by arithmetic the
+    caller could not have done. The refusals were excellent and each named what every argument
+    cost; the whole complaint is that there was a first attempt.
+    """
+    project(tmp_path)
+    root = str(tmp_path)
+    assert main(["-C", root, "brief", "RK1", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+
+    # The allowance, overlaid the way any consumer of a delta reads it (RK1298).
+    base = {row["field"]: row for row in payload["budget"]["fields"]}["why"]
+    allowed = payload["shipping"]["changed"]["fields"].get("why", {}).get(
+        "allowed", base["allowed"]
+    )
+    # And what each clause takes out of it, which is the half that was missing.
+    costs = {one["flag"]: one["wrapper"] for one in payload["clauses"]}
+    note, path = "the resize endpoint had shipped two blocks earlier", "ROADMAP.md"
+    room = allowed - costs["--superseded-design"] - len(note)
+    room -= costs["--recorded-in"] + len(path)
+
+    argv = ["-C", root, "ship", "RK1", "--superseded-design", note, "--recorded-in", path]
+    # One past what the payload allows is refused, which is what makes the figure a bound
+    # rather than an estimate — and the refusal is the one this task exists to have arrive
+    # before the prose rather than after it.
+    assert main([*argv, "--why", "x" * room + "."]) == EXIT_USAGE
+    capsys.readouterr()
+    # And exactly what it promised lands, first time, which is the whole claim.
+    assert main([*argv, "--why", "x" * (room - 1) + "."]) == EXIT_OK
+
+
+def test_the_clauses_are_absent_where_no_anchor_could_carry_them(tmp_path, capsys):
+    # Both figures are measured off the pointer the line carries, so a line with none has no
+    # clause to price — and a number invented there would price a clause the write cannot
+    # append. `[]` and not omitted, so a client can tell that from an older server.
+    project(tmp_path, roadmap=ROADMAP.replace(" → §RK1", "").replace(" → §RK4", ""))
+    assert main(["-C", str(tmp_path), "brief", "RK1", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["clauses"] == []

@@ -117,18 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 2 | 177 | 2 |
-| C — Query (consult without reading the file) | 5 | 127 | 2 |
-| D — The gate | 1 | 188 | 2 |
+| B — Authoring (insert, never hand-edit) | 4 | 177 | 2 |
+| C — Query (consult without reading the file) | 4 | 128 | 2 |
+| D — The gate | 2 | 188 | 2 |
 | E — Adoption | 1 | 100 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 9 | 793 | 11 |
+| **Total** | 11 | 794 | 11 |
 
 **Next ready:**
 
-- 📋 **RK1306** (deps: —) **brief states the ledger allowance but not what --recorded-in and --superseded-design spend from it** — A why composed to the published number is refused by arithmetic the caller had no way to do, which cost a round trip on five ships out of five. → §RK1306
+- 📋 **RK1307** (deps: —) **The json payload drops the sentence and the remedy the human output carries, so an MCP caller gets less than the CLI** — Every agent reaches these reads through the served payload, so the reader that most needs the remedy named is the one that never sees it. → §RK1307
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -304,6 +304,35 @@ class Brief:
         """The ready lines a live claim kept out of the pick this brief came from."""
         return () if self.choice is None else self.choice.held
 
+    def _clauses(self) -> list[dict[str, object]]:
+        """What `ship`'s two optional flags spend out of the ledger sentence (RK1306).
+
+        Derived from the anchor and nothing else, which is the whole reason a number exists to
+        publish: `--superseded-design` parenthesises a note beside the pointer the line already
+        carries and `--recorded-in` wraps a path beside it, so the brackets and the address are
+        knowable before either is written and only the caller's own prose is not.
+
+        `[]` where there is no ship to compose for, or where the line points at nothing — both
+        figures are measured off an anchor, and inventing one would price a clause the write
+        cannot append. A record per flag rather than two keys, so `yours` can say **what the
+        number leaves out**: a consumer that added neither its note nor its path would
+        under-count by exactly the prose it is holding while it reads this.
+        """
+        if self.shipping is None or self.task.ref is None:
+            return []
+        return [
+            {
+                "flag": "--superseded-design",
+                "wrapper": supersession_cost(self.task.ref),
+                "yours": "the note",
+            },
+            {
+                "flag": "--recorded-in",
+                "wrapper": recording_cost(self.task.ref),
+                "yours": "the path",
+            },
+        ]
+
     @property
     def waiting(self) -> tuple[Waiting, ...]:
         """What the declared priority is waiting on, where nothing ready answered it (RK1304).
@@ -581,6 +610,19 @@ class Brief:
                 self.shipping or self.budget,
                 "shipping" if self.shipping else ("budget" if self.budget else None),
             ),
+            # And what the two optional clauses spend **out of** that allowance (RK1306). The
+            # row above stdout has carried them since RK1261 and RK1275 and the payload never
+            # did, so the caller this project is built for — the one on the other end of the
+            # served tool — composed a `why` against the published number and was refused by
+            # arithmetic it had no way to do. Measured on quickshell at five ships out of five:
+            # QS8, QS9, QS10, QS87 and QS88 each took a `why.too-long` first, and every one
+            # passed `--recorded-in` or `--superseded-design` or both.
+            #
+            # The **wrappers** and never the whole clause, which is what makes them knowable:
+            # the anchor is the pointer the line already carries, so only the note and the path
+            # are the caller's — and those the caller is holding while it reads this. `[]`
+            # where the line points at nothing, both figures being derived from the anchor.
+            "clauses": self._clauses(),
             # Same key and same shape as `pick`'s (RK154): one fact spelled two ways is two facts.
             "held": [{"id": h.id, "age": round(h.age), "since": h.since} for h in self.held],
             # And the same for what the priority is waiting on (RK1304), by the same rule: this

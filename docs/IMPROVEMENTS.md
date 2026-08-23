@@ -129,36 +129,54 @@ Worth saying that the refusal is good otherwise: it names the section, says the 
 not there, and points at `section show`. It is right about everything except that the
 text IS there.
 
+### §RK1316 The list the withdrawal left standing
+
+Observed on a fresh tree, 2026-08-23: a criterion written under Block A, its one task
+shipped, then `block drop A`. The heading goes from the roadmap and the improvements
+file, the ledger keeps its own, and `## Done when — Block A` stays behind with its
+bullets. `criterion list` then reports them under a label `block list` does not carry,
+and `criterion add --block A` is refused `no block 'A'` — so what is left has no door
+but `criterion drop`.
+
+RK1265 is right that a block's list outlives its lines: an emptied one is a question
+somebody answered and not one nobody asked, and RK1300 prints it at the ship that
+finishes the block so the reading arrives when it is owed. Neither is about the label
+itself leaving. RK1268 settled what happens then, one address over — a task's list goes
+inside the transaction that removes the line, because there is no state where the
+address has left and a heading still asks what would finish it.
+
+So this is that rule at the block's own address. `drop_block` computes every file's edit
+before touching anything, so the region joins the roadmap's entry in `changed` beside
+the heading rather than arriving through a second write.
+
+Two things it is not. Not a refusal: the block is empty by the time this verb can run,
+and a list is not work filed under a heading. Not silent: the leads are named in the
+answer, as a departure's already are.
+
+### §RK1317 The address the renumbering did not move
+
+Observed on a fresh tree, 2026-08-23: a criterion written with `--task`, then `renumber`
+onto a free number. The line moves, its `§<id>` section moves with it, every dep naming
+it moves, and `## Done when` keeps the number nobody carries any more.
+
+RK1268 addresses a task's list by its id, and the id is what this verb spends.
+Everything else bound to it already moves here: the pointer under `ref_scheme = "id"`,
+the heading's trailing binding under an outline (RK1231), the dep annotations. The
+criteria heading is the one address the write does not know about, and the one added
+last.
+
+So it is re-addressed and never removed, which is where this differs from RK1316 and
+from the departures. A renumbering is not a departure: the work is open, the list is
+what finishes it, and deleting it would spend the one thing a collision repair exists to
+preserve. The heading is rewritten through `criteria.heading_for`; the bullets are
+untouched.
+
+Refused before anything lands, as the rest of this verb is. A `Done when` heading
+already at the destination is two lists under one address, which is the state `criterion
+add` refuses one call at a time. And reported beside the section, because a heading this
+write moved is one the author has to be told about.
+
 ## Block C — Query
-
-### §RK1306 The two clauses the shipping budget does not price
-
-Measured on quickshell: five ships, five refusals — QS8, QS9, QS10, QS87 and QS88 each
-took a `why.too-long` before landing, and every one passed `--recorded-in` or
-`--superseded-design` or both.
-
-`brief`'s `shipping` block states the ledger allowance correctly — 189 for QS87, the
-number the refusal quoted back. What it does not state is that the two optional clauses
-are spent from it. `--recorded-in src/Quickshell.Render/GlyphAtlas.cs` took 64 of QS8's,
-`--superseded-design` took 45 of QS87's, and parenthesising them added 28 more. None of
-it is visible before the write, so a `why` composed to the published allowance is
-refused by arithmetic the caller could not have done.
-
-The refusals themselves are excellent — each names what every argument cost and what is
-left for the outcome, which is why the second attempt always lands. The whole complaint
-is that there is a first attempt.
-
-The documentation already promises this: `brief` is described as printing "the whole of
-what the ship will compose — the ledger sentence's allowance, what each of the two
-clauses appended to it costs". The payload carries the first half only.
-
-Two shapes. Rows in `shipping` for each clause, costed from the id and the anchor, which
-are known — the path is not, so that row would be per-character. Or `budget <id>
---shipping --recorded-in <path> --superseded-design "<draft>"`, pricing the exact call,
-as `budget --block --why --body` already prices an `add`.
-
-Falsified if a ship carrying both clauses can be composed from `brief` alone without a
-refusal.
 
 ### §RK1307 The answer the terminal gets and the payload does not
 
@@ -285,6 +303,29 @@ offers. A line that appears on every successful run is a line people stop readin
 Two findings, two audiences, one exit code. What the gate is for is whether the governed
 lines drifted; whether this checkout's installed surface matches the engine is
 maintenance, and true of the machine rather than of the branch.
+
+### §RK1318 The address the gate never re-asks
+
+Observed on a fresh tree, 2026-08-23. Two states reach it: `block drop` withdrawing a
+label whose list stays (RK1316), and `renumber` spending the id a list is addressed to
+(RK1317). `lint` calls both trees clean.
+
+`_criteria` checks what a schema can check — shape, the two lengths, a lead stated twice
+inside one list. `criteria._addressed` validates the address at the write, which is L1
+and right; nothing re-asks once the address has stopped existing, and the write path
+cannot, the block having been there when the bullet was written.
+
+So the finding is at the heading and its subject is the address, one per region and not
+per bullet: what is orphaned is the list. This stays the backstop the two writes above
+make rare and never impossible — a hand edit, a textual merge, a tree governed before
+either of them shipped.
+
+The door is `criterion drop <lead>`, bare. The addressed form is refused, the address
+being exactly what stopped existing, so a remedy spelling `--block` would name a command
+that cannot run — which RK16 forbids. And an orphan the last drop leaves empty has no
+door at all: the heading survives its bullets by design (RK1265), so `--fix` is what
+takes that one, a heading addressed to nothing with nothing under it being derived dead
+as a shipped task's queue entry is.
 
 ## Block E — Adoption
 
