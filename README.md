@@ -118,17 +118,17 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 4 | 175 | 2 |
-| C — Query (consult without reading the file) | 10 | 122 | 1 |
+| C — Query (consult without reading the file) | 9 | 123 | 1 |
 | D — The gate | 2 | 187 | 2 |
 | E — Adoption | 1 | 100 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 17 | 785 | 10 |
+| **Total** | 16 | 786 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1298** (deps: —) **brief answers with two budget objects that differ in six fields and repeat every other row** — The shipping figures are the pre-write ones with the marker swapped, so the section row and every field row are paid for twice against a ceiling written to fit a tool result. → §RK1298
+- 📋 **RK1299** (deps: —) **a clean lint answers with 42 note rows repeating six facts, five times the cost of its text form** — One deps.collective row per line repeats an expansion and a remedy already stated, so the JSON a tool result reads is 25,823 characters to say clean. → §RK1299
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

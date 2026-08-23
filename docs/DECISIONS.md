@@ -11,6 +11,7 @@
 
 - ✅ **RK1270** **nothing prints what `roadkeep.toml` may declare, so its keys live only in the parser that rejects them** — The shape of `roadkeep.toml` is read off the frozensets that refuse it, never a second copy.
 - ✅ **RK1286** **the read that exists to fit in a tool result is the one thing here with no budget, and it grew four rows** — The read that replaces reading the file is bounded by the widest brief, never the median.
+- ✅ **RK1298** **brief answers with two budget objects that differ in six fields and repeat every other row** — A read ceilinged to a tool result publishes each figure once: a second budget off the same line is stated as its delta from the first, naming the base it was measured from.
 
 ## Block D — The gate
 

@@ -361,6 +361,7 @@
 - ✅ **RK1291** **the read prices open lines and prices whatever it is named, so a shipped id answers a figure comparable to nothing** — The named read keeps the rule the unnamed one states, so a line with no brief is said and not priced.
 - ✅ **RK1292** **the header says nothing is over the ceiling while the listing under it names a line nobody could measure** — A count of what exceeds a ceiling says what it was taken over, so no verdict covers a line nobody measured.
 - ✅ **RK1297** **a line no caller in this checkout can execute reads as ready, so `pick` offers it again every call** — A line states what must be present with `(requires: …)` from a declared vocabulary, and `pick` offers it only to a caller that passed `--have`, naming the rest.
+- ✅ **RK1298** **brief answers with two budget objects that differ in six fields and repeat every other row** — brief publishes one budget table and names the other two as their difference from it, so no unchanged row costs the payload twice (design §RK1298 recorded in `src/roadkeep/budgeting.py`).
 
 ## Block D — The gate
 

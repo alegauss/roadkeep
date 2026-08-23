@@ -542,7 +542,9 @@ def test_the_brief_states_the_ledgers_allowance_beside_the_lines_own(tmp_path, c
     assert main(["-C", str(tmp_path), "brief", "RK7", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     line = next(s for s in payload["budget"]["fields"] if s["field"] == "why")
-    ship = next(s for s in payload["shipping"]["fields"] if s["field"] == "why")
+    # Stated as its difference from the table above and not as a second copy of it (RK1298).
+    assert payload["shipping"]["against"] == "budget"
+    ship = payload["shipping"]["changed"]["fields"]["why"]
     # The ledger's line is shorter by what a dep group and a pointer cost, so the same field has
     # more room there — which is the whole finding: two numbers, and only one was ever shown.
     assert ship["allowed"] > line["allowed"]
@@ -564,6 +566,44 @@ def test_the_second_line_is_silent_where_the_two_agree(tmp_path, capsys):
 
     assert main(["-C", str(tmp_path), "brief", "RK4", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["shipping"] is None
+
+
+# -- one budget and its deltas, not three tables (RK1298) ----------------------
+
+
+def test_the_second_and_third_tables_are_deltas_of_the_first(tmp_path, capsys):
+    """The defect, held where it was measured: not that the figures were wrong, but that a read
+    ceilinged to a tool result (RK1286) spent most of it saying one thing three times.
+
+    Every row of `shipping` and `deciding` was a row of `budget` with a handful of values moved —
+    both `section` sub-objects byte-identical to it, both carrying a full row per prose field with
+    the same limit, aim, taken, unit and source. What this holds is that nothing published under
+    `budget` is published again unchanged, and that the numbers stay reachable by overlay.
+    """
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "brief", "RK4", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    base, ship = payload["budget"], payload["shipping"]
+
+    # The base names itself, so the overlay needs no convention about which key it reads.
+    assert ship["against"] == "budget"
+    changed = ship["changed"]
+    # The section is the same object and is therefore not the answer twice.
+    assert "section" not in changed
+    # Nor is any scalar that did not move: `id` and `line_max` are the line's, whichever write.
+    assert "id" not in changed and "line_max" not in changed
+    # And the ledger's line is a different structure, which is the fact the key exists to carry.
+    assert changed["structure"] != base["structure"]
+    # Per field, only what moved — never limit, aim, taken, unit and source repeated to agree.
+    was = {row["field"]: row for row in base["fields"]}
+    for field, moved in changed.get("fields", {}).items():
+        assert moved, f"{field} published with nothing changed"
+        assert all(was[field][key] != value for key, value in moved.items())
+
+    # The third table diffs against the second, so two roles under one set of limits answer
+    # `changed: {}` — which is the fact, where a third copy was that fact spelled per row.
+    if payload["deciding"] is not None:
+        assert payload["deciding"]["against"] == "shipping"
 
 
 # -- and the ten that figure did not have (RK1199) -----------------------------
@@ -594,10 +634,9 @@ def test_the_figure_is_the_line_the_ship_actually_writes(tmp_path, capsys):
     root = str(tmp_path)
 
     assert main(["-C", root, "brief", "RK7", "--json"]) == EXIT_OK
-    allowed = next(
-        s for s in json.loads(capsys.readouterr().out)["shipping"]["fields"]
-        if s["field"] == "why"
-    )["allowed"]
+    allowed = json.loads(capsys.readouterr().out)["shipping"]["changed"]["fields"]["why"][
+        "allowed"
+    ]
 
     # One character past what the brief promised, and the refusal names the same number.
     assert main(["-C", root, "ship", "RK7", "--why", "x" * (allowed + 1) + "."]) == EXIT_USAGE

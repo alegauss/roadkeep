@@ -531,14 +531,24 @@ class Brief:
             # The whole table here and one line on stdout (RK190): a tool result is read by
             # something that can hold it, and this is the number the next write is measured on.
             "budget": None if self.budget is None else self.budget.payload(),
-            # The same shape for the write about to be made (RK1174), and always published where it
-            # exists — unlike the printed line, which is silent when the two agree: a key costs a
-            # client nothing to skip and a consumer comparing them wants both numbers present.
-            "shipping": None if self.shipping is None else self.shipping.payload(),
-            # The third write, published for the reason above (RK1275): a client comparing the
-            # two sentences a ship composes wants both numbers, and this one is not that
-            # sentence at all — it is the decisions role's own limit on its own line.
-            "deciding": None if self.deciding is None else self.deciding.payload(),
+            # The write about to be made (RK1174), as its **difference** from the table above
+            # rather than as a second copy of it (RK1298). Always published where it exists —
+            # unlike the printed line, which is silent when the two agree: a consumer comparing
+            # them wants the numbers present, and what it never wanted is five rows repeated to
+            # say nothing. `against` names the base, so the overlay needs no convention.
+            "shipping": None
+            if self.shipping is None
+            else self.shipping.delta(self.budget, "budget" if self.budget else None),
+            # The third write (RK1275), diffed against the second where there is one: a project
+            # declaring both roles usually declares them the same limits, so `changed: {}` is the
+            # answer — and it is a fact, where a third identical table was the same fact spelled
+            # in every row it has.
+            "deciding": None
+            if self.deciding is None
+            else self.deciding.delta(
+                self.shipping or self.budget,
+                "shipping" if self.shipping else ("budget" if self.budget else None),
+            ),
             # Same key and same shape as `pick`'s (RK154): one fact spelled two ways is two facts.
             "held": [{"id": h.id, "age": round(h.age), "since": h.since} for h in self.held],
             "claimed": None

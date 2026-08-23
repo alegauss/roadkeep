@@ -425,6 +425,48 @@ class Budget:
             "stated": list(self.stated),
         }
 
+    def delta(self, base: "Budget | None", against: str | None) -> dict[str, object]:
+        """This budget as what it **changes** about another, never as a second copy (RK1298).
+
+        A brief prices three writes off one line — the line an `amend` rewrites, the ledger
+        entry a `ship` composes, and the decision a `--decides` files — and published all three
+        as whole tables. They differ in a handful of values; everything else repeats, per prose
+        field and with the section sub-object byte-identical. That repetition is the largest
+        thing in the payload which is not information, and it grows with every field a project
+        declares a limit on — against a read whose whole claim is that it costs less than
+        opening the file (RK1286).
+
+        So the second and third tables are stated as their difference from the first: ``against``
+        names the budget this was measured from, and ``changed`` carries only what moved. The
+        figures stay reachable by overlay and none of them is published twice.
+
+        Diffed off :meth:`payload` rather than off the fields, which is what keeps the two from
+        drifting: a key added there is diffed here without this method learning its name. Fields
+        are keyed by name because a delta addresses rows rather than ordering them, and a field
+        that moved in nothing is absent — as is ``section``, whose whole point is that it is the
+        same object. ``against`` of None means there was no base, and then ``changed`` is the
+        whole table: one shape, whichever it is.
+        """
+        mine = self.payload()
+        theirs = base.payload() if base is not None else {}
+        changed = {
+            key: value
+            for key, value in mine.items()
+            if key not in ("fields", "section") and theirs.get(key) != value
+        }
+        was = {row["field"]: row for row in theirs.get("fields", ())}  # type: ignore[union-attr]
+        fields = {}
+        for row in mine["fields"]:  # type: ignore[union-attr]
+            before = was.get(row["field"], {})
+            moved = {k: v for k, v in row.items() if k != "field" and before.get(k) != v}
+            if moved:
+                fields[row["field"]] = moved
+        if fields:
+            changed["fields"] = fields
+        if mine["section"] != theirs.get("section"):
+            changed["section"] = mine["section"]
+        return {"against": against, "changed": changed}
+
 
 def budget(
     config: Config,
