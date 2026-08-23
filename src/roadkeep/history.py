@@ -73,11 +73,11 @@ def git_available() -> bool:
     return shutil.which("git") is not None
 
 
-def _run(root: Path, *args: str) -> str:
-    return _bytes(root, *args).decode("utf-8", errors="replace")
+def _run(root: Path, *args: str, fed: Sequence[str] = ()) -> str:
+    return _bytes(root, *args, fed=fed).decode("utf-8", errors="replace")
 
 
-def _bytes(root: Path, *args: str) -> bytes:
+def _bytes(root: Path, *args: str, fed: Sequence[str] = ()) -> bytes:
     """The raw output, because one caller reads a file and not a report (RK84).
 
     Bytes and not ``text=True``: universal newlines would translate CRLF to LF, and a
@@ -85,6 +85,16 @@ def _bytes(root: Path, *args: str) -> bytes:
     ending as changed — on the two things `lint` measures in bytes, the round-trip (L3)
     and a budget (RK30). Text callers decode here instead, which is the same string
     `text=True` gave them minus the rewriting.
+
+    ``fed`` is the revisions a `--stdin` call reads, and it is the one thing here that is
+    **not** argv (RK1315). A list handed as arguments is bounded by the operating system:
+    measured on this repository at the commit that crossed it — 802 ledger entries, 798
+    distinct commits, 32,718 characters of shas alone against Windows' 32,767 — where
+    `weigh` stopped answering with `HistoryUnavailable`, which its caller reports as an
+    absent answer. So the verb that says what a comparable task cost failed at exactly the
+    ledger size that makes the question worth asking, and POSIX reaches its own `ARG_MAX`
+    later rather than never. Fed on stdin the list has no ceiling and the call count does
+    not grow with the file, which is the property `costs_of` was written for.
     """
     if not git_available():
         raise HistoryUnavailable("git is not on PATH")
@@ -95,6 +105,9 @@ def _bytes(root: Path, *args: str) -> bytes:
             capture_output=True,
             timeout=_TIMEOUT,
             check=False,
+            # `b"\n".join` and not a text `input`: this call is byte-oriented on purpose,
+            # and a rev is ASCII — encoding it here keeps the one decode at the boundary.
+            input=b"\n".join(one.encode("utf-8") for one in fed) if fed else None,
         )
     except (OSError, subprocess.TimeoutExpired) as error:
         raise HistoryUnavailable(str(error)) from error
@@ -836,9 +849,16 @@ def _labels(sections: Sequence[Section], ids: re.Pattern[str]) -> frozenset[str]
 def costs_of(config: Config, shas: tuple[str, ...]) -> dict[str, Cost]:
     """The size of each named commit, across every file it touched, in one call.
 
-    `--no-walk`, so the argument list is the commit list and not a range: the commits that
-    wrote a ledger entry are scattered through history and a range would count what sits
-    between them. A binary file's numstat is `-`, and it counts as a file and no lines.
+    `--no-walk`, so the list is the commit list and not a range: the commits that wrote a
+    ledger entry are scattered through history and a range would count what sits between
+    them. A binary file's numstat is `-`, and it counts as a file and no lines.
+
+    And the list arrives on **stdin** (RK1315), which is the one thing about this call that
+    is not free to be argv: as arguments it is bounded by the operating system, and this
+    repository crossed Windows' ceiling at 798 commits — 32,718 characters of shas, against
+    32,767 — so the read failed on size rather than on history. `--stdin` and not batching,
+    because batching trades the property stated above, *two git calls whatever the size of
+    the ledger*, for a number of calls that grows with the file.
     """
     if not shas:
         return {}
@@ -848,7 +868,8 @@ def costs_of(config: Config, shas: tuple[str, ...]) -> dict[str, Cost]:
         "--no-walk",
         f"--format={_RECORD}{_UNIT.join(['%H', '%h'])}",
         "--numstat",
-        *shas,
+        "--stdin",
+        fed=shas,
     )
     out: dict[str, Cost] = {}
     for head, rows in _records(output):

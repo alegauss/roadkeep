@@ -36,7 +36,6 @@
 - 📋 **RK1309** (deps: —) **a new line's section budget is reachable only through brief, which needs an id, so the first body is written blind** — add's own help calls a limit reported after the prose exists too late, and the prose fields are where it still lands. → §RK1309
 - 📋 **RK1310** (deps: —) **nothing resolves a sentence to the anchor carrying it, so a section amend addressed by text is guessed and retried** — A pointer takes an id to a section and no verb takes prose to one, and the refusal that knows the answer prints show instead. → §RK1310
 - 📋 **RK1314** (deps: —) **config prints the criteria table under the non-goals sentence, so the read names the wrong table** — Both addresses map to `_SCOPE_KEYS`, so the docstring rides with the key set and the read that says what may be declared describes `[criteria]` as the roadmap's other bullet. → §RK1314
-- 📋 **RK1315** (deps: —) **weigh passes every ledger commit as one argument, so git refuses the call once the ledger is long enough** — The argv is the whole commit list, so this repository crossed Windows' 32k ceiling at 798 entries and the read now fails on size rather than on history. → §RK1315
 
 ## Block D — The gate
 

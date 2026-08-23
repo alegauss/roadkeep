@@ -261,29 +261,6 @@ key names, and the reader has no way to tell it from a correct row.
 The fix is a sentence about criteria taken from where that table is documented, read per
 table rather than per key set.
 
-### §RK1315 RK1315
-
-Measured here, 2026-08-23, at the commit that crossed it: 802 ledger entries, 798
-distinct commits, 32,718 characters of shas alone against a CreateProcess limit of
-32,767. `weigh` raises HistoryUnavailable, which the caller reports as an absent answer,
-so the verb that says what a comparable task cost stops answering at exactly the ledger
-size that makes the question worth asking.
-
-The shape is right and only the transport is wrong. `costs_of` builds one call because
-two git calls whatever the size of the ledger is the property that read was written for,
-and a range would count the commits between the ones that wrote an entry. What it did
-not have is a way to hand git a long list without spending the argv.
-
-git has one: `--stdin` reads revisions from standard input, and `--no-walk` keeps its
-meaning. That is the fix rather than batching, because batching trades the docstring's
-own claim - two calls, always - for a number of calls that grows with the file, and
-reintroduces the merge of partial results the single call exists to avoid.
-
-Not only Windows. POSIX has its own ARG_MAX and a large adopter reaches it later rather
-than never, so a limit crossed silently on one platform is a limit on all of them.
-Falsified when a ledger of ten thousand entries answers here and the call count is still
-two.
-
 ## Block D — The gate
 
 ### §RK1308 Two findings, one exit code

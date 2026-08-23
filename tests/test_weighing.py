@@ -390,3 +390,46 @@ def test_a_partial_entry_is_accounted_for_by_the_commit_that_carries_it(tmp_path
     weights = weigh(config)
     assert weights.unresolved == ()
     assert [one.task_id for one in weights.weighed] == ["RK7"]
+
+
+# -- the list that outgrew the argv (RK1315) ----------------------------------
+
+
+def test_the_commit_list_is_fed_and_not_spelled_into_the_argv():
+    """Measured here at the commit that crossed it: 802 ledger entries, 798 distinct
+    commits, 32,718 characters of shas alone against Windows' CreateProcess limit of
+    32,767. `weigh` raised `HistoryUnavailable`, which its caller reports as an absent
+    answer — so the verb that says what a comparable task cost stopped answering at exactly
+    the ledger size that makes the question worth asking.
+
+    Held on the call and not on a number: a test asserting 798 would pass the day the
+    ledger shrank and fail the day it grew, and neither is about the defect. What is true
+    whatever the size is that the revisions leave on stdin and the argv stays short.
+    """
+    import roadkeep.history as history
+
+    seen: dict[str, object] = {}
+
+    def watched(root, *args, fed=()):
+        seen["args"] = args
+        seen["fed"] = fed
+        return b""
+
+    original = history._bytes
+    history._bytes = watched
+    try:
+        history.costs_of(_config(), tuple(f"{n:040x}" for n in range(2000)))
+    finally:
+        history._bytes = original
+
+    assert "--stdin" in seen["args"]
+    # Two git calls whatever the size of the ledger is the property this read was written
+    # for, so the fix is the transport and never a batch loop that grows with the file.
+    assert len(seen["fed"]) == 2000
+    assert not [one for one in seen["args"] if len(one) == 40]
+
+
+def _config():
+    from roadkeep.config import Config
+
+    return Config.discover(Path(__file__).resolve().parents[1])
