@@ -411,6 +411,15 @@ class Insertion:
                 'or       pass `--section "<its title>"` to `add` next time: both halves in '
                 "one transaction, under the same limits"
             )
+            # And **what that body may weigh**, at the moment the caller is about to write it
+            # (RK1309). The row above names the command and the limit it enforces reached the
+            # author only as a refusal: measured in pportal, 2026-08-22, a body written to a
+            # file and passed with `--section-body-file` came back 266 words against 250 — a
+            # good refusal, arriving after the paragraph, with the retry paying for every word
+            # of it again. The figure is a fact about the role and needs no id, so this is the
+            # one place it costs nothing to state: the id was just minted and the prose has
+            # not been composed, which is the whole of L1 said about one field.
+            rows.append(f"weighs   {_body_aim(config, self.needs, self.prose)}")
         elif self.bound is not None:
             # Said, because the write touched a second file the caller did not name (RK452) —
             # and because the heading now carries an id, which is the fact `ship` and the gate
@@ -479,6 +488,13 @@ class Insertion:
             # where the pointer resolves, one call normally, two where a family has to be
             # opened before the design can extend it.
             "needs_path": list(self.follow_ups()),
+            # And what the body that follow-up writes may weigh (RK1309), beside the call that
+            # writes it: the limit reached the author only as a refusal, and this is the one
+            # moment it costs nothing to state — the id is minted and the prose is not composed.
+            # `null` where the pointer already resolves, there being no body still to write.
+            "weighs": None
+            if self.needs is None
+            else _body_weight(config, self.needs, self.prose),
             # Null on almost every add, and the whole point when it is not (RK431): the id
             # below the one just written was a sentence, not a line.
             "promise": _promise_json(self.promise),
@@ -1694,6 +1710,42 @@ def restate(
         design=design,
         design_role=role,
     )
+
+
+def _body_aim(config: Config, anchor: str, role: str) -> str:
+    """What a body under this anchor may weigh, before one is written (RK1309).
+
+    `add`'s own help states the rule this closed: *a limit reported after the prose exists is
+    a limit discovered too late to save the tokens it was meant to save*. The prose fields are
+    exactly where it still landed — measured in pportal, 2026-08-22, at 266 words against 250,
+    discovered by writing 266, with the retry carrying every word again.
+
+    Through :func:`~roadkeep.budgeting.body_budget`, which is the reader the `budget` verb and
+    the gate both use, so the number here and the refusal one call later cannot disagree. Any
+    failure to price is silence rather than a broken `add`: the write has landed, and a row
+    about a limit is not worth a traceback on top of it.
+    """
+    from roadkeep.budgeting import body_budget  # noqa: PLC0415 - RK260
+
+    try:
+        return body_budget(config, anchor, role).stated()
+    except (KeyError, OSError, ValueError):
+        return ""
+
+
+def _body_weight(config: Config, anchor: str, role: str) -> dict[str, object] | None:
+    """The same figure as data (RK1309), off the same reader as the row above it.
+
+    :meth:`~roadkeep.budgeting.Body.payload` and not a shape composed here: the caller reaching
+    this through the served answer is the one the whole pre-write read is for, and a second
+    spelling of a limit is the drift this package exists to stop.
+    """
+    from roadkeep.budgeting import body_budget  # noqa: PLC0415 - RK260
+
+    try:
+        return body_budget(config, anchor, role).payload()
+    except (KeyError, OSError, ValueError):
+        return None
 
 
 def _arguing(config: Config, task: Task) -> tuple[str, str]:

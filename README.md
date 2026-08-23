@@ -128,7 +128,7 @@ called unbuilt were already in the ledger.
 
 **Next ready:**
 
-- 📋 **RK1309** (deps: —) **a new line's section budget is reachable only through brief, which needs an id, so the first body is written blind** — add's own help calls a limit reported after the prose exists too late, and the prose fields are where it still lands. → §RK1309
+- 🛠 **RK1309** (deps: —) **a new line's section budget is reachable only through brief, which needs an id, so the first body is written blind** — add's own help calls a limit reported after the prose exists too late, and the prose fields are where it still lands. → §RK1309
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

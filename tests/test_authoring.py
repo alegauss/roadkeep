@@ -1493,12 +1493,15 @@ def test_the_command_names_the_follow_up_it_leaves_behind(tmp_path, capsys):
         )
         == EXIT_OK
     )
-    _, follow, offer, staging, event = capsys.readouterr().out.splitlines()
+    _, follow, offer, weighs, staging, event = capsys.readouterr().out.splitlines()
     assert follow.startswith(f"needs    `{invocation()} section add RK2 --title")
     # And the call that would have needed no follow-up at all (RK1218), under the remedy
     # rather than instead of it: this line's pointer already dangles, so what closes *this*
     # one comes first and the flag that closes the next comes after.
     assert offer.startswith("or       pass `--section")
+    # And what that body may weigh (RK1309), beside the call that writes it: the limit reached
+    # the author only as a refusal, and this is the one moment it costs nothing to state.
+    assert weighs.startswith("weighs   ") and "words" in weighs
     assert staging.startswith("  stage    git add -- ")
     assert event == "event    RK2  Block B  live"
 
@@ -2555,3 +2558,39 @@ def test_the_check_is_a_round_trip_and_not_a_list_of_characters(tmp_path):
 
     broken = replace(fine, deps=("Docker drops its pipe)",))
     assert [one.code for one in schema.validate(broken) if one.code == "deps.unrenderable"]
+
+
+def test_the_body_a_follow_up_writes_is_weighed_before_it_exists(tmp_path, capsys):
+    """RK1309. `add`'s own help states the rule this missed: *a limit reported after the prose
+    exists is a limit discovered too late to save the tokens it was meant to save*. The prose
+    fields are exactly where it still landed — measured in pportal, 2026-08-22, at 266 words
+    against 250, discovered by writing 266, with the retry paying for every word again.
+
+    The figure is a fact about the role and needs no id, so this is the one place it costs
+    nothing to state: the id has just been minted and the paragraph is not composed yet.
+    """
+    project(tmp_path, prose=DESIGN)
+    argv = ["-C", str(tmp_path), "add", "--block", "B", "--symptom", "A second symptom",
+            "--why", "Because of another reason."]
+    assert main([*argv, "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    # Beside the call that writes the body, and null where the pointer already resolves.
+    assert payload["needs"].startswith("section add RK2")
+    assert payload["weighs"]["anchor"] == "RK2"
+    assert payload["weighs"]["written"] is False
+    assert payload["weighs"]["unit"] == "words"
+    # The whole limit is free, which is what a pre-`section add` read means.
+    assert payload["weighs"]["left"] == payload["weighs"]["limit"]
+
+
+def test_a_line_whose_pointer_already_resolves_is_weighed_nothing(tmp_path, capsys):
+    # The row and the key are about a body still to write, and `add --section` wrote it in the
+    # same transaction — a figure printed there prices a paragraph that already exists.
+    project(tmp_path, prose=DESIGN)
+    assert main([
+        "-C", str(tmp_path), "add", "--block", "B", "--symptom", "A second symptom",
+        "--why", "Because of another reason.", "--section", "A second design",
+        "--section-body", "Because the reasoning has to live somewhere.", "--json",
+    ]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["needs"] is None and payload["weighs"] is None
