@@ -363,6 +363,9 @@ def test_json_says_which_files_the_transaction_touched(tmp_path, capsys):
             "recorded": 1,
             "paused": 0,
         },
+        # Empty on a live block, which is every stage but the one the question is owed at
+        # (RK1300): a criterion decides whether `finished` is true, and this block is not.
+        "criteria": [],
     }
 
 

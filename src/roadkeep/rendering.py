@@ -29,7 +29,7 @@ from __future__ import annotations
 import argparse
 from collections.abc import Iterable, Sequence
 
-from roadkeep import claiming
+from roadkeep import claiming, criteria
 from roadkeep.adopting import Estimate
 from roadkeep.authoring import StatusChange
 from roadkeep.backlog import Backlog, Stage
@@ -136,6 +136,25 @@ def _event(task_id: str, block: str, roadmap: Document, config: Config) -> dict[
         "block": block,
         "stage": str(standing.stage),
         "standing": None if standing is None else standing.payload(),
+        # And **what decided whether the word is true** (RK1300). RK1265 put the definition of
+        # done where a ship cannot delete it and said when to read it — before the block's last
+        # open line ships — but nobody knows a line is the last one until this call answers, so
+        # the reading always happened after, and only where a project's own skill file
+        # remembered to say so. Measured on winwright: two blocks emptied in one sitting, both
+        # events said `finished` with the standing and the count, and both readings then cost a
+        # `criterion list` that this transaction had already read the file for.
+        #
+        # Only on `finished`, which is the one stage the question is owed at: `empty` is a
+        # heading opened before its lines and has nothing to have satisfied, `paused` is not
+        # done, and a standing category (RK1180) is caught up rather than finished — so a list
+        # printed there would be asked forever and answered never. Nothing is enforced and
+        # nothing could be: whether the work satisfies a criterion is a judgement (L4).
+        "criteria": [
+            {"lead": one.lead, "why": one.why}
+            for one in (
+                criteria.read(roadmap, block) if standing.stage is Stage.FINISHED else ()
+            )
+        ],
     }
 
 
@@ -196,6 +215,16 @@ def _event_rows(
     left = event.get("standing") if standing else None
     if isinstance(left, dict) and left.get("sentence"):
         rows.append(f"{indent}         {left['sentence']}")
+    # And what decides whether `finished` is true (RK1300), on the two verbs a caller drives a
+    # block with and for the reason the count above is there: the word arrives here, so the
+    # list it is a claim about has to arrive here too or it is read somewhere else or not at
+    # all. One row per criterion and the `why` with it — the lead alone is the address and not
+    # the test, and a reader deciding whether to open the next block is reading the test.
+    if standing:
+        rows += [
+            f"{indent}         done when  {one['lead']} — {one['why']}"
+            for one in event.get("criteria", ())  # type: ignore[union-attr]
+        ]
     because = None if config.permanent_headings else _DROPPABLE.get(Stage(stage))
     if because:
         rows.append(

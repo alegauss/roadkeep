@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1300 The criteria arrive when the block empties
-
-RK1265 put the definition of done somewhere a ship cannot delete it, and RK1265's own
-reasoning says when to read it: before a block's last open line ships. The trouble is
-that nobody knows a line is the last one until the ship answers. So in practice the
-reading happens after, and only because a sentence in a project's own skill file says to
-make it.
-
-Measured on winwright, twice in one sitting. Block A emptied at WW7 and Block B at WW15;
-both ships answered `finished` with the standing sentence and the count, and neither
-carried the three criteria that decide whether the word is true. Both readings then cost
-a `criterion list` call, and both were made only because that project's
-shipping-discipline skill remembers to say so - which is a rule carried by prose, in one
-project, and therefore a rule the next adopter does not have.
-
-The fix is where RK408 and RK1164 already put things: the event. When a ship flips a
-block's stage to `finished`, that block's criteria go in the payload beside the
-standing, each with its `why`. Nothing is enforced by this and nothing could be -
-whether the work satisfies a criterion is a judgement (L4) - but the list arrives at the
-one moment it is owed, in front of the person deciding whether to open the next block.
-On the empty stage it is silent: a heading declared before its lines has nothing to have
-satisfied.
-
 ### §RK1302 The door a partial leaves unnamed
 
 Measured on quickshell. QS3 delivered a corpus and a harness; its remainder was two

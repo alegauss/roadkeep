@@ -188,6 +188,9 @@ def test_json_carries_the_event_from_every_mutator(tmp_path, capsys):
             "recorded": 1,
             "paused": 0,
         },
+        # And what decides whether `finished` is true (RK1300) — empty here, this fixture
+        # declaring no `[criteria]`, and published rather than absent for `standing`'s reason.
+        "criteria": [],
     }
 
 
@@ -200,6 +203,72 @@ def test_an_open_block_is_offered_no_verb_it_would_be_refused(tmp_path, capsys):
     out = capsys.readouterr().out
     assert out.splitlines()[-2] == "  event    RK2  Block B  live"
     assert "block drop" not in out
+
+
+# -- what decides whether the word is true (RK1300) ---------------------------
+
+#: A project that declared what would make Block B done — RK1265's list, in the file where a
+#: ship cannot delete it. `[criteria]` is the opt-in, and the heading is the address.
+GOVERNED = (
+    f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n[criteria]\n'
+)
+WITH_CRITERIA = (
+    BACKLOG
+    + "\n## Done when — Block B\n\n"
+    "- **Every write has a door** the schema refuses at, and not a lint that reports after.\n"
+    "- **The round trip holds** on this repository's own files, byte for byte.\n"
+)
+
+
+def governed(tmp_path: Path) -> None:
+    project(tmp_path, roadmap=WITH_CRITERIA)
+    (tmp_path / "roadkeep.toml").write_text(GOVERNED, encoding="utf-8")
+
+
+def test_the_ship_that_finishes_a_block_carries_what_decides_it(tmp_path, capsys):
+    """RK1265 put the definition of done where a ship cannot delete it and said when to read
+    it — before the block's last open line ships. But nobody knows a line is the last one until
+    the ship answers, so the reading always happened after, and only where a project's own
+    skill file remembered to say so. Measured on winwright: two blocks emptied in one sitting,
+    both events said `finished` with the standing and the count, and both readings then cost a
+    `criterion list` call the transaction had already read the file for.
+    """
+    governed(tmp_path)
+    assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now."]) == EXIT_OK
+    out = capsys.readouterr().out.splitlines()
+    assert out[-5] == "  event    RK2  Block B  finished"
+    # Under the standing, which is the sentence the list is a claim about — and the `why` with
+    # each lead, the lead alone being the address rather than the test. Separated the way a
+    # task line separates its own two halves, which is the one spelling this format has.
+    assert out[-3] == (
+        "           done when  Every write has a door — the schema refuses at, and not a "
+        "lint that reports after."
+    )
+    assert out[-2].startswith("           done when  The round trip holds — on this")
+    # And before the offer, which is the edit the state makes available and not the reading
+    # it is owed: a list printed after `block drop` is one read once the decision is made.
+    assert "block drop B" in out[-1]
+
+
+def test_the_list_is_silent_on_every_stage_but_the_one_that_is_owed_it(tmp_path, capsys):
+    # `empty` is a heading opened before its lines and has nothing to have satisfied; `live`
+    # is not done. A list printed there is one asked forever and answered never.
+    governed(tmp_path)
+    assert main(["-C", str(tmp_path), "status", "RK2", "🛠", "--json"]) == EXIT_OK
+    event = json.loads(capsys.readouterr().out)["event"]
+    assert event["stage"] == "live" and event["criteria"] == []
+
+
+def test_the_json_carries_each_lead_with_its_reason(tmp_path, capsys):
+    governed(tmp_path)
+    assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works.", "--json"]) == EXIT_OK
+    event = json.loads(capsys.readouterr().out)["event"]
+    assert event["stage"] == "finished"
+    assert [one["lead"] for one in event["criteria"]] == [
+        "Every write has a door",
+        "The round trip holds",
+    ]
+    assert event["criteria"][1]["why"].startswith("on this repository's own files")
 
 
 # -- the word the two questions were sharing (RK438) -------------------------
@@ -246,7 +315,7 @@ def test_the_payload_is_unchanged_by_the_sentence(tmp_path, capsys):
     project(tmp_path)
     assert main(["-C", str(tmp_path), "ship", "--json", "RK1", "--why", "Works."]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    assert set(payload["event"]) == {"id", "block", "stage", "standing"}
+    assert set(payload["event"]) == {"id", "block", "stage", "standing", "criteria"}
     assert payload["event"]["stage"] == "finished"
     assert "block drop" not in json.dumps(payload)
 

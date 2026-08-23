@@ -117,18 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 4 | 175 | 2 |
+| B — Authoring (insert, never hand-edit) | 3 | 176 | 2 |
 | C — Query (consult without reading the file) | 9 | 123 | 1 |
 | D — The gate | 1 | 188 | 2 |
 | E — Adoption | 1 | 100 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 15 | 787 | 10 |
+| **Total** | 14 | 788 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1300** (deps: —) **the ship that finishes a block says finished and does not carry the criteria that decide whether it is** — The finished event carries that block's criteria, so the reading RK1265 exists for arrives at the one moment it is owed instead of from a sentence in a skill. → §RK1300
+- 📋 **RK1301** (deps: —) **brief lists every id the task transitively unblocks, so the earliest line in a graph answers with 79 ids nobody reads** — The count is the answer and the roster is what a caller reads past, so a fresh backlog's first task spends a fifth of a bounded read on ids. → §RK1301
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

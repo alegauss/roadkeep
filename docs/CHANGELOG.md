@@ -235,6 +235,7 @@
 - ✅ **RK1276** **a criteria address refused for a paused id says the work shipped, so a pause reads like a typo** — A criteria address refused for an id names where that line went, so a pause reads as a pause.
 - ✅ **RK1281** **a decision inherits the roadmap claim, so a tighter limit on that file refuses a ship over a field no flag writes** — A decision refused over its inherited claim names the two real doors, and `brief` prices it first.
 - ✅ **RK1285** **a refusal prints a door from the field beside one from the case, and the two say opposite things** — A refusal drops the door the schema appends where that door is false for the call being made.
+- ✅ **RK1300** **the ship that finishes a block says finished and does not carry the criteria that decide whether it is** — The ship that empties a block answers with that block's criteria, each with its why, so the reading arrives at the one moment it is owed (design §RK1300 recorded in `src/roadkeep/rendering.py`).
 
 ## Block C — Query
 
