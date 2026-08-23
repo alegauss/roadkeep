@@ -1532,6 +1532,57 @@ def test_the_listing_stops_at_six_and_the_count_still_names_them_all(tmp_path):
     assert note.message.endswith("RK11, RK12, RK13, RK14, RK15, RK16 …")
 
 
+#: Eleven lines behind one token — winwright's shape, where eleven rows said the same
+#: sentence and the payload was five times the text form of the same clean run (RK1299).
+CROWD_OF_WAITERS = (
+    "# Roadmap\n\n## Block A — The model\n"
+    + "".join(
+        f"- 📋 **RK{n}** (deps: —) **A symptom** — Because of a reason. → §RK{n}\n"
+        for n in range(11, 19)
+    )
+    + "\n## Block B — Authoring\n\n"
+    + "".join(
+        f"- 📋 **RK{n}** (deps: Block A) **A waiting symptom** — Because of a reason. → §RK{n}\n"
+        for n in range(21, 32)
+    )
+)
+CROWD_OF_WAITERS_PROSE = "# Design rationale\n\n## Block A — The model\n" + "".join(
+    f"\n### §RK{n} The design\n\nThe reasoning the line has no room for.\n"
+    for n in (*range(11, 19), *range(21, 32))
+)
+
+
+def test_one_row_per_fact_and_not_one_per_line(tmp_path):
+    """RK1299. The rows were never wrong; there were forty-two of them saying six things.
+
+    A clean `lint --json` on winwright was 25,823 characters against a text form of 5,149 —
+    five times the cost, for a verdict of `clean`, on the read that runs at the end of every
+    turn and has no ceiling. Every row was `deps.collective`, each carrying an expansion
+    already stated and a `remedy` whose prose was the same 78 characters.
+    """
+    report = lint(
+        project(tmp_path, roadmap=CROWD_OF_WAITERS, improvements=CROWD_OF_WAITERS_PROSE)
+    )
+    assert report.clean
+    # Eleven lines wait on Block A and the expansion is one fact, so it is stated once.
+    (note,) = report.notes
+    assert note.message.startswith("Block A is one token naming 8 open tasks: ")
+    # And the lines it was collapsed out of are named rather than dropped: the count in full,
+    # the ids to six, which is the listing rule the expansion above already follows.
+    assert "and 11 lines wait on it: RK21, RK22, RK23, RK24, RK25, RK26 …" in note.message
+    # Filed at the first of them, which is what keeps the address real and `deps RK21` runnable.
+    assert note.id == "RK21" and str(note).startswith("ROADMAP.md:15  deps.collective  RK21:")
+
+
+def test_the_lines_are_named_only_where_there_are_other_lines(tmp_path):
+    # A list of one is the id the note already carries, and printing it twice is the
+    # repetition this task is about — so the clause is silent at one, as the note itself is.
+    report = lint(project(tmp_path, roadmap=CROWDED, improvements=CROWDED_PROSE))
+    assert report.clean
+    (note,) = report.notes
+    assert "wait on it" not in note.message and note.id == "RK19"
+
+
 def test_a_collective_dep_naming_one_task_says_nothing(tmp_path):
     # There is no surprise at one, and at zero the annotation already reads ✅ because the
     # dep is satisfied (RK8). A note per token below that is output nobody reads.

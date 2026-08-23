@@ -15,6 +15,8 @@
 
 ## Block D — The gate
 
+- ✅ **RK1299** **a clean lint answers with 42 note rows repeating six facts, five times the cost of its text form** — The gate runs at the end of every turn, so a run of rows saying one thing is one row with its count, named by the lines it was collapsed out of.
+
 ## Block E — Adoption
 
 - 🗑 **RK1272** **`[limits]`, `[budgets]` and `[markers]` have no verb, so the file governing every write is the ungoverned one** — The argument for a limit goes in the commit that wrote it, never in a comment beside the number (superseded by RK1293).

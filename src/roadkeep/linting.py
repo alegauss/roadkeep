@@ -1615,6 +1615,20 @@ def _collective(config: Config, documents: dict[str, Document]) -> list[Note]:
     label with no open member being finished, paused or a heading opened before its lines,
     and only the first of those annotating ✅ (RK8, RK432). A note per token below that
     threshold would be output nobody reads, which is the failure mode RK16 exists to avoid.
+
+    **One row per token and not per line** (RK1299), which is RK1165's shape at the gate: a
+    run of rows saying one thing is one row with its count. Measured on winwright the moment
+    its first block finished — a clean `lint --json` was 25,823 characters, 42 notes, all of
+    them this code, and between them they stated six facts; eleven lines depending on Block G
+    contributed the same sentence eleven times, each with a `remedy` whose prose was the same
+    78 characters. That is five times the text form of the same run, for a verdict of `clean`,
+    on the read that runs at the end of every turn.
+
+    So the expansion is stated once and the lines waiting on it are named beside it. Filed at
+    the **first** of them, which is what keeps the address real and the remedy runnable: `deps`
+    resolves a task and not a label, so a row anchored on the token would carry a command
+    nothing answers. The other lines are named only where there are other lines — a list of
+    one is the id this note already carries, and printing it twice is the repetition this is.
     """
     roadmap = documents.get("roadmap")
     if roadmap is None:
@@ -1626,24 +1640,29 @@ def _collective(config: Config, documents: dict[str, Document]) -> list[Note]:
         store=documents.get("deferred"),
     )
     file = config.relative(config.path("roadmap"))
-    out: list[Note] = []
+    # Keyed by the token and in first-appearance order, which is file order: the rows a reader
+    # scans stay in the order the lines that raised them do. The dep travels with the group
+    # because `expand` resolves the parsed token and not the string it renders as.
+    waiting: dict[str, tuple[object, list[str]]] = {}
+    where: dict[str, int | None] = {}
     for entry in roadmap.entries:
         for dep in entry.task.deps:
             if not config.schema.classify_dep(dep).collective:
                 continue
-            members = backlog.expand(dep)
-            if len(members) < 2:
-                continue
-            shown = ", ".join(members[:6]) + (" …" if len(members) > 6 else "")
-            out.append(
-                Note(
-                    "deps.collective",
-                    file,
-                    f"{dep.id} is one token naming {len(members)} open tasks: {shown}",
-                    entry.lineno,
-                    entry.task.id,
-                )
-            )
+            found = waiting.setdefault(dep.id, (dep, []))
+            found[1].append(entry.task.id)
+            where.setdefault(dep.id, entry.lineno)
+    out: list[Note] = []
+    for token, (dep, ids) in waiting.items():
+        members = backlog.expand(dep)  # type: ignore[arg-type]
+        if len(members) < 2:
+            continue
+        shown = ", ".join(members[:6]) + (" …" if len(members) > 6 else "")
+        message = f"{token} is one token naming {len(members)} open tasks: {shown}"
+        if len(ids) > 1:
+            listed = ", ".join(ids[:6]) + (" …" if len(ids) > 6 else "")
+            message += f" — and {len(ids)} lines wait on it: {listed}"
+        out.append(Note("deps.collective", file, message, where[token], ids[0]))
     return out
 
 

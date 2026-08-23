@@ -45,7 +45,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1299** (deps: —) **a clean lint answers with 42 note rows repeating six facts, five times the cost of its text form** — One deps.collective row per line repeats an expansion and a remedy already stated, so the JSON a tool result reads is 25,823 characters to say clean. → §RK1299
 - 📋 **RK1308** (deps: —) **lint exits 1 on install.stale, so a CI gate goes red on a backlog it has just reported clean** — The published action's contract is that exit code, and whether this checkout's wired surface matches the engine is not a fact about the branch. → §RK1308
 
 ## Block E — Adoption

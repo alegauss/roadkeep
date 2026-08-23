@@ -554,6 +554,7 @@
 - ✅ **RK1234** **task.worked fires per line, so the block that quietly finished is still only visible one commit at a time** — lint --since reads the block: every open line's source moved and none shipped is said once, and replaces the per-line notes.
 - ✅ **RK1287** **the gate composes one brief per open line, so a project that declared a ceiling pays it on every commit** — The gate prices the briefs `pick` offers next and names how many open lines that left out.
 - ✅ **RK1290** **the note saying what the gate did not price fires on every clean run of any real backlog** — The note about a bounded reading fires where the shortfall is news, not on every clean run.
+- ✅ **RK1299** **a clean lint answers with 42 note rows repeating six facts, five times the cost of its text form** — A collective token's expansion is one note naming the lines that wait on it, so a clean run states each fact once instead of once per line (design §RK1299 recorded in `src/roadkeep/linting.py`).
 
 ## Block E — Adoption
 

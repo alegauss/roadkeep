@@ -119,16 +119,16 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 4 | 175 | 2 |
 | C — Query (consult without reading the file) | 9 | 123 | 1 |
-| D — The gate | 2 | 187 | 2 |
+| D — The gate | 1 | 188 | 2 |
 | E — Adoption | 1 | 100 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 16 | 786 | 10 |
+| **Total** | 15 | 787 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1299** (deps: —) **a clean lint answers with 42 note rows repeating six facts, five times the cost of its text form** — One deps.collective row per line repeats an expansion and a remedy already stated, so the JSON a tool result reads is 25,823 characters to say clean. → §RK1299
+- 📋 **RK1300** (deps: —) **the ship that finishes a block says finished and does not carry the criteria that decide whether it is** — The finished event carries that block's criteria, so the reading RK1265 exists for arrives at the one moment it is owed instead of from a sentence in a skill. → §RK1300
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
