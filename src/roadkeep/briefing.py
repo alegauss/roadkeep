@@ -61,6 +61,18 @@ CHAINS = 2
 #: write seven and eight, so this is headroom over both rather than a cut anyone will meet.
 NON_GOALS = 12
 
+#: How many of the ids a task unblocks a brief carries (RK1301). The **count** is the answer —
+#: it ranks this line against every other one and a caller reads it once — and the roster is
+#: the file back: measured on quickshell, a fresh eighty-one-line backlog, where the first task
+#: answered with seventy-nine ids spelled out, in a read RK29 bounded to a tool result and
+#: RK1286 gave a ceiling. The case where the list is longest is exactly the case where it says
+#: least, a task early in the graph unblocking essentially everything.
+#:
+#: `deps <id>` answers the roster whole and is where a caller who wants it goes. This number
+#: bounds the printed row too, so the two registers cannot come to disagree about how much of
+#: it a brief shows — it was the printer's own constant before it was a bound on the payload.
+UNBLOCKS = 4
+
 #: What a cut lead ends with. A space before it, so the mark reads as the tool's and not as
 #: an author's ellipsis — the cut has to be visible where it happens, never silent.
 ELLIPSIS = " …"
@@ -504,10 +516,15 @@ class Brief:
                 }
                 for c in self.chains
             ],
+            # The count whole and the roster bounded (RK1301), which is what the non-goals list
+            # in this same payload already does: a handful of ids, and how many were left, so a
+            # caller can tell a short list from a cut one without a second call. `deps <id>` is
+            # where the whole roster lives, and it is the read that answers that question.
             "unblocks": {
                 "count": self.leverage.count,
                 "of": self.leverage.of,
-                "transitive": list(self.leverage.transitive),
+                "transitive": list(self.leverage.transitive[:UNBLOCKS]),
+                "transitive_elided": max(0, self.leverage.count - UNBLOCKS),
             },
             "non_goals": list(self.non_goals.leads),
             "non_goals_elided": self.non_goals.elided,

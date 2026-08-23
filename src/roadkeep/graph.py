@@ -29,7 +29,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from roadkeep.backlog import Backlog, DepStatus, Readiness, Resolution
+from roadkeep.backlog import Backlog, DepStatus, Readiness, Resolution, id_order
 from roadkeep.config import Config
 from roadkeep.kernel.schema import Task
 
@@ -174,19 +174,34 @@ class Graph:
     # -- reverse: what shipping this would unblock -------------------------
 
     def leverage(self, task_id: str) -> Leverage:
-        """Which open tasks have this one in their blocker set."""
+        """Which open tasks have this one in their blocker set.
+
+        Ordered by :func:`~roadkeep.backlog.id_order`, which is the one answer `pick`, `lint`
+        and `--fix` sort by (RK109) — and not by the text, which put `RK10` and `RK11` ahead of
+        `RK2`. Nothing read it while the whole roster was published: an unordered set spelled
+        in full is the same set. RK1301 cut the roster to a handful, and a handful taken off a
+        lexical sort is an arbitrary four rather than the lowest four — so the bound is what
+        made the ordering a fact anybody reads.
+        """
+        by_id = (lambda one: id_order(one, self.backlog.config.schema))
         direct = tuple(
             sorted(
-                other
-                for other, hops in self.edges.items()
-                if any(hop.target == task_id and hop.walkable for hop in hops)
+                (
+                    other
+                    for other, hops in self.edges.items()
+                    if any(hop.target == task_id and hop.walkable for hop in hops)
+                ),
+                key=by_id,
             )
         )
         transitive = tuple(
             sorted(
-                other
-                for other in self.edges
-                if other != task_id and task_id in self.blockers(other)
+                (
+                    other
+                    for other in self.edges
+                    if other != task_id and task_id in self.blockers(other)
+                ),
+                key=by_id,
             )
         )
         return Leverage(direct=direct, transitive=transitive, of=len(self.edges) - 1)

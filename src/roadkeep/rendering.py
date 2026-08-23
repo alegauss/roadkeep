@@ -759,9 +759,16 @@ def _stalled_rows(choice: Choice) -> list[str]:
 
 
 def _leverage_rows(leverage: Leverage) -> list[str]:
-    """The reverse direction, which is the half of prioritisation a tool may supply."""
-    shown = ", ".join(leverage.transitive[:4])
-    tail = " …" if leverage.count > 4 else ""
+    """The reverse direction, which is the half of prioritisation a tool may supply.
+
+    Bounded by :data:`~roadkeep.briefing.UNBLOCKS`, which is this printer's own number lifted
+    to where the payload could read it (RK1301): the row had a cap and the payload had none,
+    so one register showed four ids and the other spelled seventy-nine of them.
+    """
+    from roadkeep.briefing import UNBLOCKS  # noqa: PLC0415 - RK260
+
+    shown = ", ".join(leverage.transitive[:UNBLOCKS])
+    tail = " …" if leverage.count > UNBLOCKS else ""
     detail = f": {shown}{tail}" if shown else ""
     return [f"  unblocks {leverage.count} of {leverage.of} open{detail}"]
 

@@ -348,8 +348,69 @@ def test_json_carries_the_whole_pack(tmp_path, capsys):
     assert payload["deps_resolved"][0]["status"] == "open"
     assert payload["chains"][0]["path"] == ["RK4", "RK1"]
     assert payload["non_goals"] == ["No web UI and no server.", "No dates."]
-    assert payload["unblocks"] == {"count": 0, "of": 1, "transitive": []}
+    assert payload["unblocks"] == {
+        "count": 0,
+        "of": 1,
+        "transitive": [],
+        # Nothing left out here, and said rather than absent (RK1301): a caller has to be able
+        # to tell a short roster from a cut one, and a key that appears only when it is set is
+        # one a reader learns to stop looking for.
+        "transitive_elided": 0,
+    }
     assert payload["picked"] is None
+
+
+# -- the count is the answer, and the roster is the file again (RK1301) -------
+
+#: One line the whole rest of the backlog waits on — the shape quickshell's first task had,
+#: where `brief` answered with the count, the total, and then seventy-nine ids.
+FANNED_OUT = (
+    f"# Roadmap\n\n## Block A — The model\n\n"
+    f"- {DESIGNED} **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1\n"
+    + "".join(
+        f"- {DESIGNED} **RK{n}** (deps: RK1) **A waiting symptom** — Because of it. → §RK{n}\n"
+        for n in range(2, 12)
+    )
+    + "\n## Non-goals\n\n- **No web UI and no server.** Files and a CLI.\n"
+)
+FANNED_OUT_PROSE = "# Improvements\n\n## Block A — The model\n" + "".join(
+    f"\n### §RK{n} A design\n\nThe reasoning the line has no room for.\n" for n in range(1, 12)
+)
+
+
+def test_the_roster_is_bounded_and_the_count_is_not(tmp_path, capsys):
+    """RK13 gave this walk its count because the count is the information: it ranks a line
+    against every other one, and a caller reads it once. The roster answers a different
+    question, `deps` already answers that one, and the case where the list is longest is
+    exactly the case where it says least — a task early in the graph unblocks essentially the
+    whole backlog, so the ids restate the file this read exists to replace.
+    """
+    project(tmp_path, roadmap=FANNED_OUT, improvements=FANNED_OUT_PROSE)
+    assert main(["-C", str(tmp_path), "brief", "RK1", "--json"]) == EXIT_OK
+    unblocks = json.loads(capsys.readouterr().out)["unblocks"]
+    # Whole, because it is the answer: ten of ten open lines wait on this one.
+    assert (unblocks["count"], unblocks["of"]) == (10, 10)
+    # Bounded, because it is not: a handful, and how many were left, which is the treatment
+    # the non-goals list in this same payload already gets.
+    #
+    # And the **lowest** four rather than an arbitrary four: the walk sorted by text, so
+    # `RK10` and `RK11` came before `RK2`. Nothing read that while the whole roster was
+    # published — an unordered set spelled in full is the same set — and the cut is what
+    # turned the ordering into a fact somebody reads.
+    assert unblocks["transitive"] == ["RK2", "RK3", "RK4", "RK5"]
+    assert unblocks["transitive_elided"] == 6
+
+
+def test_the_printed_row_and_the_payload_cut_at_the_same_place(tmp_path, capsys):
+    # One number and not two: the row had a cap and the payload had none, which is how one
+    # register showed four ids while the other spelled seventy-nine.
+    from roadkeep.briefing import UNBLOCKS
+
+    project(tmp_path, roadmap=FANNED_OUT, improvements=FANNED_OUT_PROSE)
+    assert main(["-C", str(tmp_path), "brief", "RK1"]) == EXIT_OK
+    row = next(r for r in capsys.readouterr().out.splitlines() if "unblocks" in r)
+    assert row.count("RK") == UNBLOCKS and row.endswith("…")
+    assert row.startswith("  unblocks 10 of 10 open: ")
 
 
 def test_the_command_leads_with_shipped_and_quotes_no_cost_for_it(tmp_path, capsys):
