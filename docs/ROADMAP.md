@@ -42,6 +42,7 @@
 - 📋 **RK1307** (deps: —) **The json payload drops the sentence and the remedy the human output carries, so an MCP caller gets less than the CLI** — Every agent reaches these reads through the served payload, so the reader that most needs the remedy named is the one that never sees it. → §RK1307
 - 📋 **RK1309** (deps: —) **a new line's section budget is reachable only through brief, which needs an id, so the first body is written blind** — add's own help calls a limit reported after the prose exists too late, and the prose fields are where it still lands. → §RK1309
 - 📋 **RK1310** (deps: —) **nothing resolves a sentence to the anchor carrying it, so a section amend addressed by text is guessed and retried** — A pointer takes an id to a section and no verb takes prose to one, and the refusal that knows the answer prints show instead. → §RK1310
+- 📋 **RK1314** (deps: —) **config prints the criteria table under the non-goals sentence, so the read names the wrong table** — Both addresses map to `_SCOPE_KEYS`, so the docstring rides with the key set and the read that says what may be declared describes `[criteria]` as the roadmap's other bullet. → §RK1314
 
 ## Block D — The gate
 
@@ -49,6 +50,8 @@
 - 📋 **RK1308** (deps: —) **lint exits 1 on install.stale, so a CI gate goes red on a backlog it has just reported clean** — The published action's contract is that exit code, and whether this checkout's wired surface matches the engine is not a fact about the branch. → §RK1308
 
 ## Block E — Adoption
+
+- 📋 **RK1313** (deps: —) **init writes no [criteria] and no [requirements], so the verbs that fill them refuse on a fresh project** — RK1040 scaffolds `[non_goals]` empty so its verb works on day one, and the two opt-in tables added since left `criterion add` and `--requires` behind a hand edit. → §RK1313
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

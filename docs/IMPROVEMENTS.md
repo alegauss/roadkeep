@@ -400,6 +400,28 @@ reads and writes nothing, which is why it can be cheap.
 The failing `amend` could also name it directly, which is the same lookup one step
 earlier and turns a refusal into an instruction.
 
+### §RK1314 The sentence that rode along with the key set
+
+`roadkeep config` prints, under `[criteria]`, the sentence "`[non_goals]` - the two
+fields the roadmap's other bullet has (RK70)". That is the other table's docstring, and
+it names the other table.
+
+One value reader is right, and RK1265 argued it: `[criteria]` is the same two numbers
+about the positive twin, so `_scope` takes the table name and only the problems it
+reports differ - two copies would be two opt-ins that came to accept different shapes.
+What followed the docstring across is not that. `describing` maps both addresses to
+`_SCOPE_KEYS`, so the sentence rides along with the key set.
+
+It matters because of what this read is for. `config` exists so a key is written from
+what the build accepts rather than from memory, and the sentence beside each row is the
+package's own words about that key, which is the whole reason nothing on that surface is
+a second copy of a rule. A row whose words describe a different table is worse than a
+row with none: nothing in it disagrees with itself, the two tables carry the same two
+key names, and the reader has no way to tell it from a correct row.
+
+The fix is a sentence about criteria taken from where that table is documented, read per
+table rather than per key set.
+
 ## Block D — The gate
 
 ### §RK1299 One row per fact, not one per line
@@ -446,6 +468,30 @@ lines drifted; whether this checkout's installed surface matches the engine is
 maintenance, and true of the machine rather than of the branch.
 
 ## Block E — Adoption
+
+### §RK1313 The two tables the scaffold stopped writing
+
+Observed on a tree `roadkeep init` had just created, 2026-08-23. `criterion add --block
+A` refused with "roadkeep.toml declares no [criteria]", and `add --requires hardware`
+refused with `requires.unknown`, naming a table the file does not carry.
+
+RK1040 already settled this shape. `init` writes `## Non-goals` into the roadmap and,
+for the same reason, writes `[non_goals]` empty into the config: a schema applied to
+prose nobody wrote to it reports on adoption, but a section the scaffold just emptied
+has no prose to report on, and leaving it ungoverned refuses the one verb that fills it.
+The comment above that table in `render_config` says so.
+
+RK1265 added the positive twin and RK1297 added the requirement vocabulary, and neither
+reached the render. So the two verbs that arrived last are the two a fresh project
+cannot call, and the remedy each refusal names is a hand edit to configuration this tool
+owns - which is what RK1264 built `declare` to remove, and which over MCP is not an edit
+at all.
+
+They are not one fix. `[criteria]` is an opt-in, so the empty table is the whole of it.
+`[requirements]` is a vocabulary: `declared = []` governs nothing and changes only which
+refusal the author reads, so what belongs there is the commented stanza - the shape
+`[ids]`, `[headings]` and `[ledger]` are already written in, which is written only where
+a project departs from what every project starts with.
 
 ## Block F — The plugin
 
