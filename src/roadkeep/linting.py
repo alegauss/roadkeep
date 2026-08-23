@@ -1418,7 +1418,7 @@ def _reads(config: Config) -> tuple[list[Finding], list[Note]]:
     return out, notes
 
 
-def _wired(config: Config) -> list[Finding]:
+def _wired(config: Config) -> list[Note]:
     """The vendored surfaces behind the engine answering here (RK1192).
 
     `install --check` already answers this exactly, and that is the whole problem: it is a
@@ -1454,6 +1454,21 @@ def _wired(config: Config) -> list[Finding]:
     is **0.07 ms** unwired — one `is_file` — and **0.86 ms** wired, against RK176's 43 ms
     floor. It declines the workflow gauge, which is the 40 ms of that, by the same field that
     makes the workflow the adopter's after the first write.
+
+    **A note, so the exit code does not move** (RK1308), which is `engine.disagreement`'s rule
+    one function over and for the same reason: what this gate is *for* is whether the governed
+    lines drifted, and whether this checkout's installed surface matches the engine is
+    maintenance — true of the machine rather than of the branch. Observed in pportal,
+    2026-08-22: `lint` exited 1 on a backlog `ship` had just written and that had drifted in no
+    way at all, reporting `311 line(s), 32 section(s) … clean` in the same breath. That exit
+    code is the whole contract of the CI job this project publishes, so a repository whose only
+    gate is `roadkeep lint` went red on every push, for every contributor.
+
+    The consequence to keep: `repair` walks findings, so it no longer reaches this — and that
+    is the argument rather than a loss. `install` writes into `.claude/` and not into the
+    backlog, so in a project holding one task to one commit it has to become a commit of its
+    own; a repair loop that ran it inside whatever was being shipped is the state this task
+    describes, arrived at from the other side.
     """
     if config.install_pinned:
         return []
@@ -1463,7 +1478,7 @@ def _wired(config: Config) -> list[Finding]:
     # reader with (RK82, RK234): a gate that fails because a checkout moved is worse than one
     # that says nothing, and `install --check` still answers on demand.
     return [
-        Finding(
+        Note(
             "install.stale",
             where,
             f"this surface is behind the roadkeep answering here, so a session reads a "

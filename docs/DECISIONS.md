@@ -24,6 +24,7 @@
 ## Block D — The gate
 
 - ✅ **RK1299** **a clean lint answers with 42 note rows repeating six facts, five times the cost of its text form** — The gate runs at the end of every turn, so a run of rows saying one thing is one row with its count, named by the lines it was collapsed out of.
+- ✅ **RK1308** **lint exits 1 on install.stale, so a CI gate goes red on a backlog it has just reported clean** — The gate's exit code is about the governed files; whether this checkout's installed surface matches the engine is maintenance, and says so at exit 0.
 
 ## Block E — Adoption
 

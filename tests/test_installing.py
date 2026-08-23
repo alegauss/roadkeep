@@ -368,11 +368,41 @@ def test_the_gate_reports_a_surface_the_check_would_have(project):
 
     (project / PROJECT_SKILL).write_text("stale\n", encoding="utf-8")
     report = lint(Config.discover(project))
-    (found,) = [one for one in report.findings if one.code == "install.stale"]
+    # A **note** since RK1308, so the exit code does not move: what this gate is for is whether
+    # the governed lines drifted, and whether the wired surface matches the engine is
+    # maintenance — true of the machine rather than of the branch.
+    (found,) = [one for one in report.notes if one.code == "install.stale"]
+    assert not [one for one in report.findings if one.code == "install.stale"]
     # Filed at the surface, unlike `budget.tool`: there is a path a reader can open, and it is
     # the file that drifted.
     assert found.file == PROJECT_SKILL
     assert "install" in found.message
+
+
+def test_a_stale_surface_does_not_turn_the_ci_gate_red(project, capsys):
+    """RK1308, observed in pportal 2026-08-22 mid-task: `lint` exited 1 on a backlog `ship` had
+    just written and that had drifted in no way at all, reporting `311 line(s), 32 section(s) …
+    clean` in the same breath as returning 1.
+
+    That exit code is the whole contract of the CI job this project publishes, so a repository
+    whose only gate is `roadkeep lint` went red on every push, for every contributor, until
+    somebody ran `install` — which is a write into `.claude/` and not a backlog edit, and in a
+    project holding one task to one commit has to become a commit of its own.
+    """
+    from roadkeep.cli import EXIT_OK, main
+    from roadkeep.config import Config
+    from roadkeep.linting import lint
+
+    install(wired(project), source=HERE)
+    (project / PROJECT_SKILL).write_text("stale\n", encoding="utf-8")
+
+    # Reported, and reported clean: the drift is said out loud and the verdict is about the
+    # files, which is the split `engine.disagreement` has had since RK415.
+    report = lint(Config.discover(project))
+    assert report.clean and report.problems == 0
+    assert [one.code for one in report.notes] == ["install.stale"]
+    assert main(["-C", str(project), "lint"]) == EXIT_OK
+    assert "install.stale" in capsys.readouterr().out
 
 
 def test_a_project_that_pinned_its_version_is_not_told_every_turn(project):

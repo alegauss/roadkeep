@@ -39,7 +39,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1308** (deps: —) **lint exits 1 on install.stale, so a CI gate goes red on a backlog it has just reported clean** — The published action's contract is that exit code, and whether this checkout's wired surface matches the engine is not a fact about the branch. → §RK1308
 - 📋 **RK1318** (deps: —) **the gate reads a criterion's shape and length and never whether the block or id it is addressed to still exists** — `lint` reports `criterion.orphan` at a `Done when` heading no block or open line answers, naming the drop that closes it. → §RK1318
 
 ## Block E — Adoption

@@ -249,29 +249,6 @@ table rather than per key set.
 
 ## Block D — The gate
 
-### §RK1308 Two findings, one exit code
-
-Observed in pportal, 2026-08-22, mid-task. `roadkeep lint` exited 1 on a backlog that
-had just been written by `ship` and had drifted in no way at all. The finding was
-`install.stale`: the wired skill was behind the engine answering. Nothing about the
-three governed files was wrong, and the report said so in the same breath - "311
-line(s), 32 section(s) ... clean" - while still returning 1.
-
-That exit code is the whole contract of the CI job roadkeep publishes. So a repository
-whose only gate is `roadkeep lint` goes red on every push, for every contributor, until
-somebody runs `roadkeep install` - which is not a backlog edit but a write into
-.claude/, and in a project holding one task to one commit it has to become a commit of
-its own, unrelated to whatever was being shipped.
-
-Worse, the remedy the finding names does not clear the report. After `roadkeep install`
-the run is clean and still prints `engine.disagreement`: the gate is 0.1.1100 and the
-wired plugin is 0.1.1090, which moves by `/plugin update` and not by anything lint
-offers. A line that appears on every successful run is a line people stop reading.
-
-Two findings, two audiences, one exit code. What the gate is for is whether the governed
-lines drifted; whether this checkout's installed surface matches the engine is
-maintenance, and true of the machine rather than of the branch.
-
 ### §RK1318 The address the gate never re-asks
 
 Observed on a fresh tree, 2026-08-23. Two states reach it: `block drop` withdrawing a
