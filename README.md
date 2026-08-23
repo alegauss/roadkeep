@@ -117,18 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 3 | 176 | 2 |
+| B — Authoring (insert, never hand-edit) | 2 | 177 | 2 |
 | C — Query (consult without reading the file) | 8 | 124 | 1 |
 | D — The gate | 1 | 188 | 2 |
 | E — Adoption | 1 | 100 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 24 | 1 |
-| **Total** | 13 | 789 | 10 |
+| **Total** | 12 | 790 | 10 |
 
 **Next ready:**
 
-- 📋 **RK1302** (deps: —) **ship --part leaves a line in the in-progress tier, so pick keeps offering a remainder that is waiting on unshipped work** — The partial is the one ship that deliberately leaves work open, and its answer stops before the sentence naming what that work now waits for. → §RK1302
+- 📋 **RK1303** (deps: —) **brief spends a third of its payload on three budget blocks, two of which are byte-identical** — The read that exists to replace opening the file is the one a tool result truncates first, so what it repeats it pays for twice. → §RK1303
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

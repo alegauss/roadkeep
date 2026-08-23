@@ -236,6 +236,7 @@
 - ✅ **RK1281** **a decision inherits the roadmap claim, so a tighter limit on that file refuses a ship over a field no flag writes** — A decision refused over its inherited claim names the two real doors, and `brief` prices it first.
 - ✅ **RK1285** **a refusal prints a door from the field beside one from the case, and the two say opposite things** — A refusal drops the door the schema appends where that door is false for the call being made.
 - ✅ **RK1300** **the ship that finishes a block says finished and does not carry the criteria that decide whether it is** — The ship that empties a block answers with that block's criteria, each with its why, so the reading arrives at the one moment it is owed (design §RK1300 recorded in `src/roadkeep/rendering.py`).
+- ✅ **RK1302** **ship --part leaves a line in the in-progress tier, so pick keeps offering a remainder that is waiting on unshipped work** — ship --part names the door its open half leaves, so amend --dep is read off the answer, not by being handed the line twice (design §RK1302 recorded in `src/roadkeep/shipping.py`).
 
 ## Block C — Query
 

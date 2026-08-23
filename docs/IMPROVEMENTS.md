@@ -77,32 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1302 The door a partial leaves unnamed
-
-Measured on quickshell. QS3 delivered a corpus and a harness; its remainder was two
-consumers needing a parser and a renderer, neither written. `ship --part` recorded that
-and left the line at ⏳, which is right. The next `pick` handed QS3 straight back, from
-the in-progress tier and ahead of everything, and would on every call until two other
-tasks ship.
-
-The remedy is one command, `amend <id> --dep <the work the remainder waits on>`, and
-after it `pick` moved on. Nothing said so. The partial's answer reports the entry, the
-marker and the remainder, and stops exactly where the caller needs the next sentence:
-what the line is now waiting for.
-
-That is worth closing here rather than in a habit: this is the one ship that
-deliberately leaves work open, and the state it leaves is the one the ranking trusts
-most. A caller who does not know the remedy re-picks the same line, works around it with
-an id typed by hand, and the file keeps saying in progress while nothing is.
-
-Two shapes fit. The narrow one: `--part` names the door in its answer, the way every
-other refusal here names a complete argv. The wider one: `--part --dep <id>` amends the
-group in the same transaction, since the moment the remainder is described is the moment
-its blockers are known.
-
-Falsified when a `--part` whose remainder waits on unshipped work leaves the caller to
-discover `amend --dep` by being handed the line twice.
-
 ### §RK1311 One field, three surfaces that do not know it
 
 Observed in pportal, 2026-08-22, attaching a requirement to five existing lines.

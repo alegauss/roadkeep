@@ -1369,6 +1369,22 @@ class Partial:
 
         Beside :meth:`payload` since RK1170. Nothing was removed and nothing was dropped, so a
         departure's report would be three lines of None: what happened is an entry and a marker.
+
+        **And the door the open half leaves** (RK1302). This is the one ship that deliberately
+        leaves work open, and the state it leaves is the one `pick` trusts most — so the line
+        comes back on the very next call, ahead of everything, and did until two unrelated tasks
+        shipped. Measured on quickshell: QS3 landed a corpus and a harness, its remainder waited
+        on a parser and a renderer that were not written, and the answer stopped exactly where
+        the caller needed the next sentence. The remedy is one command, `amend <id> --dep …`,
+        and nothing said so — so a caller who does not know it re-picks the same line while the
+        file goes on saying in progress.
+
+        Named the way `finish` below is named, and not taken in this transaction: `--part --dep`
+        would amend the group here, on the argument that the moment a remainder is described is
+        the moment its blockers are known. That is a real shape and RK1302 left it open rather
+        than guessing at it — what the measurement showed missing was the sentence, not the
+        keystroke. It is a **row and not a payload key** for the reason `finish` is: the doors
+        this answer carries are all on stdout, and the surface that gap is about is RK1307's.
         """
         from roadkeep.rendering import _event_rows  # noqa: PLC0415 - RK260
 
@@ -1383,6 +1399,11 @@ class Partial:
                 # what is left, so the next reader is handed it rather than subtracting.
                 [f"  left     {self.remainder}"] if self.remainder else []
             ),
+            # Before `finish`, because it is what to do **now** and that one is what to do at
+            # the end: the line is open, so it is picked again before either happens.
+            f"  waits    this line is offered again until it says what it is waiting on — "
+            f"`{invocation()} amend {self.task_id} --dep <id>` names it, where the rest of "
+            f"the work waits on something still open",
             f"  finish   {invocation()} ship {self.task_id}  (drops the qualifier)",
         ]
         if self.refreshed:

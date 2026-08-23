@@ -7,6 +7,7 @@
 - ✅ **RK1269** **a decision that outlives the work explaining it has no governed file, so an ADR is kept by hand or not at all** — ROLES is closed and named: a role no machinery knows is a file with no schema.
 - ✅ **RK1274** **a decision is never marked superseded, so the file records that one was made and not that it stopped holding** — A decision is superseded once, and both entries stay: the marker says which one is live.
 - ✅ **RK1300** **the ship that finishes a block says finished and does not carry the criteria that decide whether it is** — A block's definition of done arrives with the event that says finished, and not from a sentence in one project's own skill file.
+- ✅ **RK1302** **ship --part leaves a line in the in-progress tier, so pick keeps offering a remainder that is waiting on unshipped work** — The one write that deliberately leaves work open names what to do with that work, beside the command that finishes it.
 
 ## Block C — Query (consult without reading the file)
 

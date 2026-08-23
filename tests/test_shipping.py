@@ -1009,6 +1009,26 @@ def test_the_cli_reports_the_qualifier_and_how_to_finish(tmp_path, capsys):
     assert f"{invocation()} ship RK1" in out
 
 
+def test_the_partial_names_the_door_its_open_half_leaves(tmp_path, capsys):
+    """RK1302, measured on quickshell. QS3 landed a corpus and a harness; its remainder waited
+    on a parser and a renderer that were not written. `ship --part` recorded that and left the
+    line open, which is right — and the next `pick` handed it straight back, ahead of
+    everything, and would have on every call until two unrelated tasks shipped.
+
+    The remedy was one command and nothing said so. This is the one ship that deliberately
+    leaves work open, and the state it leaves is the one the ranking trusts most, so a caller
+    who does not know `amend --dep` re-picks the same line while the file says in progress.
+    """
+    project(tmp_path)
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "It works.", "--part", "local half"]
+    assert main(argv) == EXIT_OK
+    rows = capsys.readouterr().out.splitlines()
+    door = next(r for r in rows if r.startswith("  waits"))
+    assert f"{invocation()} amend RK1 --dep <id>" in door
+    # Before `finish`, which is what to do at the end: the line is picked again before either.
+    assert rows.index(door) < next(i for i, r in enumerate(rows) if r.startswith("  finish"))
+
+
 def test_the_cli_json_says_the_line_is_still_open(tmp_path, capsys):
     project(tmp_path)
     argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "Because of a reason.", "--part", "local half", "--json"]

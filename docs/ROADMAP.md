@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1302** (deps: —) **ship --part leaves a line in the in-progress tier, so pick keeps offering a remainder that is waiting on unshipped work** — The partial is the one ship that deliberately leaves work open, and its answer stops before the sentence naming what that work now waits for. → §RK1302
 - 📋 **RK1311** (deps: —) **amend --requires alone is refused as nothing to amend, then reports unchanged on the call that writes it** — The flag is parsed, documented and working, but the guard and the confirmation both ignore it, and show never prints the field. → §RK1311
 - 📋 **RK1312** (deps: —) **section amend --replace refuses a sentence the section carries, because the stored copy is wrapped across lines** — The fragment that fits one stored line is the fragment likeliest to occur twice, so the two rules push opposite ways. → §RK1312
 
