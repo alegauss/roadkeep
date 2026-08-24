@@ -61,6 +61,11 @@ ARGUMENT = "not a state a file can be in: the refusal is about an argument, not 
 #: An address this project's scheme cannot read is not parsed as a section at all, so the
 #: heading is prose — and prose in a prose file is allowed. Nothing is wrong with the file.
 PROSE = "an address the scheme cannot read is not a section, so the heading is prose"
+#: A heading whose title repeats its own anchor is uninformative and **legal** (RK1329): it
+#: round-trips, it names a section every reader resolves, and an adopted file may carry one.
+#: So the rule is the door's alone — a gate finding here would report on prose somebody wrote
+#: before this tool owned the file, which is the adoption gate RK66 keeps out.
+UNINFORMATIVE = "a title repeating its anchor is legal prose: refusing it would gate adoption"
 
 
 @dataclass(frozen=True)
@@ -165,6 +170,7 @@ BACKSTOP: tuple[Backstopped, ...] = (
     # *is* a heading — so the state this refuses has no spelling in the file to report.
     Backstopped("body.subtree", because=ARGUMENT),
     Backstopped("title.markup", because=ARGUMENT),
+    Backstopped("title.is-anchor", because=UNINFORMATIVE),
     Backstopped("anchor.namespace", because=PROSE),
     Backstopped(
         "anchor.format",
@@ -267,9 +273,10 @@ def test_every_named_gate_code_is_one_the_gate_can_emit():
 
 
 def test_the_unbackstopped_rows_are_the_ones_named():
-    # Keyed on the *reason* and not on the absence of a gate code: five rows have no
-    # backstop because no file can be in the state, which is an answer and not a hole.
-    harmless = (ARGUMENT, PROSE)
+    # Keyed on the *reason* and not on the absence of a gate code: some rows have no
+    # backstop because no file can be in the state, and one (RK1329) because a file in it is
+    # not wrong — which is an answer and not a hole either way.
+    harmless = (ARGUMENT, PROSE, UNINFORMATIVE)
     assert {
         one.code for one in BACKSTOP if not one.gate and one.because not in harmless
     } == UNBACKSTOPPED

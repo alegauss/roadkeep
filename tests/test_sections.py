@@ -4116,3 +4116,49 @@ def test_the_two_rules_no_longer_push_opposite_ways(tmp_path):
     with pytest.raises(NotOneOccurrence) as caught:
         amend(config, "improvements", "RK1", substitute=Substitution(long, "x"))
     assert "2 times" in str(caught.value)
+
+
+# -- a heading that names its own address twice (RK1329) -----------------------
+
+
+def test_a_title_that_is_the_anchor_is_refused_at_the_door(tmp_path):
+    """Measured across one session: nine sections filed and nine titled with their own anchor,
+    every one by a caller who had just been thinking in ids and read a bare positional beside
+    `--block` as one. Nothing refused it, any string being a legal heading, and `show` and
+    `brief` then print `§RK1320 RK1320` where the title is the line saying what the design
+    argues.
+
+    Knowable at the door, which is where this format puts a limit rather than reporting it
+    after: the write mints the id and is handed the title in the same call.
+    """
+    config = project(tmp_path)
+    with pytest.raises(SectionError) as caught:
+        add(config, "improvements", "RK3", "RK3", "Because the prose has to live somewhere.")
+    codes = [one.code for one in caught.value.violations]
+    assert codes == ["title.is-anchor"]
+    # The refusal says what the argument is *for*, which is the one thing a caller who read it
+    # as an address does not know.
+    assert "the sentence the design argues" in str(caught.value)
+    # And nothing was written, which is what makes this a door and not a report.
+    assert "RK3" not in read(config)
+
+
+def test_the_sigil_spelling_is_refused_too(tmp_path):
+    # `§RK3` is the same mistake with the sigil typed: the heading would carry the address
+    # twice over, once from the anchor this write derives and once from the caller's hand.
+    config = project(tmp_path)
+    with pytest.raises(SectionError) as caught:
+        add(config, "improvements", "RK3", "§RK3", "Because the prose has to live somewhere.")
+    assert [one.code for one in caught.value.violations] == ["title.is-anchor"]
+
+
+def test_a_title_that_merely_mentions_the_id_is_written(tmp_path):
+    # Bounded to the degenerate heading and never to a title that *names* its subject: a design
+    # called "What RK3 measured" is a sentence, and refusing it would be this rule reaching
+    # past the state it is about.
+    config = project(tmp_path)
+    add(
+        config, "improvements", "RK3", "What RK3 measured",
+        "Because the prose has to live somewhere.",
+    ).document.save()
+    assert "### §RK3 What RK3 measured" in read(Config.discover(tmp_path))

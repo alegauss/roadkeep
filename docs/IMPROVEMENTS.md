@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1329 A heading that names its own address twice
-
-Measured across this session, 2026-08-23: nine sections were filed and every one was
-titled with its own anchor. A `git log -S` finds nine, each a heading whose anchor and
-title are one id.
-
-That is a rate, and a rate is a fact about the affordance rather than about the author.
-`add --section <title>` takes the heading text; under `ref_scheme = "id"` the anchor is
-derived and cannot be passed at all, so the argument has one meaning - and a caller who
-has just been thinking in ids reads a bare positional beside `--block` as one. Nothing
-refuses it, any string being a legal heading, and the file then carries an address
-stated twice with no words in it.
-
-What it costs is small and real. `show` and `brief` print the heading, so the reader of
-a task in progress is handed `§RK1320 RK1320` where the title is the one line saying
-what the design argues. `ship` deletes the section, so the corpus keeps none - which is
-why nine went unnoticed.
-
-The write already holds both halves: it mints the id and is handed the title in the same
-call. A title equal to the anchor it just derived is knowable at the door, which is
-where this format puts a limit rather than reporting it after.
-
-Falsified if a project on the outline scheme has a reason to title a section with its
-own address, which would make this an id-scheme rule and not a rule.
-
 ### §RK1330 The trace that is always the one to cut
 
 Measured twice in one session, on both ships carrying a `--recorded-in` that wanted a

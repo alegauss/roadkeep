@@ -3101,6 +3101,26 @@ def _check(
         out.append(
             Violation("title.markup", "title", "the level is a field, not part of the text")
         )
+    elif title.strip() == anchor or title.strip() == f"§{anchor}":
+        # The address stated twice with no words in it (RK1329). Measured across one session:
+        # nine sections filed and nine titled with their own anchor, every one by a caller who
+        # had just been thinking in ids and read a bare positional beside `--block` as one.
+        # Nothing refused it, any string being a legal heading, and `show` and `brief` then
+        # print `§RK1320 RK1320` where the title is the line saying what the design argues.
+        #
+        # Knowable at the door, which is where this format puts a limit: the write mints the
+        # id and is handed the title in the same call, so the comparison is free. Not a rule
+        # about the id scheme — under an outline the anchor is passed explicitly and a title
+        # equal to it is the same degenerate heading, so this is checked against whichever
+        # address the caller is writing under.
+        out.append(
+            Violation(
+                "title.is-anchor",
+                "title",
+                f"the heading would read `§{anchor} {title.strip()}`: the anchor is already "
+                f"the address, so this argument is the sentence the design argues",
+            )
+        )
     out += promised(schema, body, known)
     # The one thing prose can be wrong about mechanically, asked where the text is created
     # (RK1227, L1). Found in Shio filing SH763: its rationale cited `§XVII.100`, an anchor a

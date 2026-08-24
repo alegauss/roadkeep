@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1329** (deps: —) **a section written with its id as the title reads §RK1320 RK1320, and nine of nine filings did it** — The anchor is derived from the id, so that argument can only be a heading text — and the write knows the address it just minted and never compares. → §RK1329
 - 📋 **RK1330** (deps: —) **the supersession trace is the clause that gives way, so a ship recording where a design went cannot say it was stale** — Both clauses come out of one ledger sentence and the recording is derived whole, so twice in one session the note that a design was overtaken was dropped. → §RK1330
 
 ## Block C — Query (consult without reading the file)
