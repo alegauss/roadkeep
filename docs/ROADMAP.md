@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1346** (deps: —) **adopt calls 361 changelog lines changing where --ledger reads all of them as conforming, and names the flag nowhere** — The plain run parses none and diagnoses a missing status marker; the same file under --ledger reports 361 conform and 0 would change. → §RK1346
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
