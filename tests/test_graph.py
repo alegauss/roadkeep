@@ -313,3 +313,34 @@ def test_json_carries_both_directions(tmp_path, capsys):
         "count": 0,
         "of": 2,
     }
+
+
+def test_the_refusal_deps_prints_is_the_one_every_other_caller_gets(tmp_path, capsys):
+    """RK1342. `NotOpen` says of itself that *the sentence has one spelling for every caller
+    that asks*, and answers three ways — in the changelog, paused with the store's own
+    sentence and the `resume` that undoes it, or nothing carries the id. `deps` caught the
+    graph's bare `KeyError` and hand-rolled two of them, so the pause RK1213 taught that class
+    to name was the one case it could not.
+
+    Measured after RK1341: `show`, `brief`, `evidence` and `remaining` all say where a paused
+    line went, and `status` — a *write* — had said so all along. This was the read left
+    silent, and the second spelling is what let it drift."""
+    config = project(
+        tmp_path,
+        A + line("RK9", "—"),
+        changelog="# Shipped\n\n## Block A — The model\n\n"
+        "- ✅ **RK2** **A shipped symptom** — it landed.\n",
+        deferred="# Deferred\n\n## Block A — The model\n\n"
+        "- ⏸ **RK6** (deps: —) **A symptom** — set aside: waiting. → §RK6\n",
+    )
+    said = {}
+    for task_id in ("RK6", "RK2", "RK99"):
+        assert main(["-C", str(config.root), "deps", task_id]) != EXIT_OK
+        said[task_id] = capsys.readouterr().err
+
+    # The paused one, which is the case the second spelling could not reach — and the door.
+    assert "the deferred store holds it" in said["RK6"]
+    assert "`resume` brings it back" in said["RK6"]
+    # And the two it already answered, unchanged: this is a refusal reused, not reworded.
+    assert "it is already in the changelog" in said["RK2"]
+    assert "nothing there carries that id" in said["RK99"]

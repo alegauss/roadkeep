@@ -18,7 +18,7 @@ import sys
 
 from roadkeep import attesting, claiming
 
-from roadkeep.backlog import Backlog, Stage, Standing
+from roadkeep.backlog import Backlog, NotOpen, Stage, Standing, Whereabouts
 from roadkeep.capturing import debt
 from roadkeep.briefing import NothingToBrief, brief
 from roadkeep.budgeting import (
@@ -1037,12 +1037,19 @@ def _deps(config: Config, args: argparse.Namespace) -> int:
     try:
         found = Dependencies.of(backlog, args.id)
     except KeyError:
-        print(
-            f"roadkeep: no open task {args.id} in {config.relative(config.path('roadmap'))}"
-            + (" (it is in the changelog)" if args.id in backlog.shipped() else ""),
-            file=sys.stderr,
+        # The shared refusal and no longer a second spelling of it (RK1342). `NotOpen` says
+        # of itself that *the sentence has one spelling for every caller that asks*, and
+        # answers three ways — in the changelog, paused with the store's own sentence and the
+        # `resume` that undoes it, or nothing carries the id. This site hand-rolled two of
+        # them, so the pause RK1213 taught that class to name was the one case it could not:
+        # a sentence with two writers agrees until one of them grows a case.
+        return _refused(
+            NotOpen(
+                args.id,
+                config.relative(config.path("roadmap")),
+                Whereabouts.of(config, args.id),
+            )
         )
-        return EXIT_USAGE
 
     if args.json:
         print(json.dumps(found.payload(), indent=2))

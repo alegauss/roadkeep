@@ -255,6 +255,7 @@
 - ✅ **RK1339** **filled drops a positional blank instead of failing loudly, so seven doors would run as a different command** — A blank the sweep cannot fill fails loudly wherever it sits, and the caller that may have a continuation is the one that says so (design recorded in `tests/composing.py`).
 - ✅ **RK1340** **a door prints a blank for the id its own finding carries, so the reader types what the tool just held** — A door carrying the id its finding holds names it, and its sentence says what the command it names actually reports (design recorded in `src/roadkeep/remedying.py`).
 - ✅ **RK1341** **a paused id is refused as never written or retired, when the store it sits in has a read that prints it** — A paused id is told which store holds it and the two verbs that read and undo it, instead of two guesses that are both false (design recorded in `src/roadkeep/showing.py`).
+- ✅ **RK1342** **deps prints its own spelling of no-open-task, so a paused line is invisible where the shared refusal names it** — The second spelling is deleted, so deps refuses through the class whose three answers include the pause and its door (design recorded in `src/roadkeep/verbs/querying.py`).
 
 ## Block C — Query
 

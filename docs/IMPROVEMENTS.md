@@ -77,33 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1342 The refusal with two writers
-
-`backlog.py` carries the refusal for an id that is not an open line, and its docstring
-makes the claim: *the sentence has one spelling for every caller that asks*. It answers
-three ways - in the changelog, paused with the store's sentence, or nothing carries that
-id.
-
-`deps` does not use it. The verb catches the bare `KeyError` that `Dependencies.of`
-raises and prints a hand-rolled copy: `no open task RK1 in docs/ROADMAP.md`, with `(it
-is in the changelog)` appended when the ledger has it. Two of the three answers, and the
-missing one is the pause.
-
-Measured after RK1341: `show`, `brief`, `evidence` and `remaining` all say where a
-paused line went, and `status` - a *write* - has said so all along. `deps` is the read
-left saying nothing, which is the same asymmetry RK1341 closed one refusal class over.
-
-The second spelling is what makes it possible. A sentence with two writers agrees until
-one of them grows a case, and this one grew the pause; RK1096 removed exactly this shape
-from the surface reads, where two of them did their own arithmetic over one measurement.
-
-The graph's bare `KeyError` is not the obstacle: the verb holds the `Backlog` when it
-catches, so the whereabouts are in scope where the sentence is composed.
-
-Falsified if the graph's `KeyError` can arrive from a caller with no backlog in hand, in
-which case the shared refusal cannot be composed there and what is missing is a lookup
-rather than the reuse.
-
 ## Block C — Query
 
 ## Block D — The gate
