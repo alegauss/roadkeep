@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1348** (deps: —) **adopt counts prose lines over a width nothing refuses, so the estimate prices work no gate would ask for** — No code of the 118 mentions prose width and governing calls it a fill width, yet adopt reports 19 over on a real file. → §RK1348
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

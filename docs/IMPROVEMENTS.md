@@ -77,6 +77,31 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1348 The ceiling that refuses nothing
+
+`adopt IMPROVEMENTS.md` on an ungoverned repository reports `prose longest 106 of 100
+code-points, 19 over`. Nothing refuses those 19. No code among the 118 mentions prose
+width, `prose_max` appears nowhere in `linting.py`, and `governing` prints of the same
+key: *a width and not a ceiling, the one key in this table nothing refuses*.
+
+So three surfaces hold one key and one of them contradicts the other two, on the read
+whose output is a cost. Nineteen paragraphs read as nineteen edits; they are nineteen
+facts about how somebody else wrapped their file.
+
+The direction is what makes it worth a line rather than a wording note. RK1343 and
+RK1345 each overstated safety, and this overstates work: an adopter weighing this format
+is handed phantom labour by the one command built to price the real kind. `prose` is
+what this tool fills a section it *writes* to, so a file it did not write cannot be over
+it.
+
+The count is the claim to drop and not the number: `longest 106 of 100` is a true and
+useful reading — what a section written here would be wrapped at, beside what this file
+does.
+
+Falsified if a gate refuses prose width somewhere outside `lint` — a hook, a served
+tool, `repair` — in which case the ceiling is real and what is wrong is the two rows
+calling it a width.
+
 ## Block C — Query
 
 ## Block D — The gate
