@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1346 The verdict under the wrong grammar
-
-Measured on an ungoverned `CHANGELOG.md`: `adopt CHANGELOG.md` reports 0 parsed and *361
-would change*, and diagnoses them as *no marker where the status goes*. The same file
-under `adopt CHANGELOG.md --ledger` reports **361 line(s), 361 conform, 0 would
-change**. The file was already conforming. The word `ledger` appears nowhere in the
-first report.
-
-That is not a missing door on a refusal. It is a wrong verdict on the read whose whole
-job is a decision, given to somebody who has not used this format and has no reason to
-doubt it. The cost of adopting reads as 361 lines of work and is nought.
-
-The diagnosis is accurate under the grammar it applied and that is what makes it
-convincing: *no marker where the status goes* is exactly true of a ledger entry read as
-a task line. A sentence right about the wrong question is the shape this tool refuses
-elsewhere - RK1343's default that applies, RK1345's zero that fits.
-
-Two shapes and they are not equal. The flag can be named where entries fail this way,
-which is cheap and leaves the reading to the caller; or the file can be read both ways
-and the better one reported, the estimator already parsing twice for the prefix and the
-scheme.
-
-Falsified if a ledger cannot be told from a backlog before one is parsed - in which case
-reading both ways is guessing, and naming the flag is the whole of what is owed.
-
 ## Block C — Query
 
 ## Block D — The gate

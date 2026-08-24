@@ -122,6 +122,45 @@ def _declare(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _better_read(config: Config, args: argparse.Namespace, estimate):
+    """The reading that fits, where the caller named no role (RK1346).
+
+    Measured on an ungoverned `CHANGELOG.md`: the backlog grammar reported 0 parsed and *361
+    would change*, and `--ledger` reported 361 conform and none changing. The file was already
+    conforming, the report said it was 361 lines of work, and the word `ledger` appeared
+    nowhere in it. The diagnosis was accurate under the grammar it applied — *no marker where
+    the status goes* is exactly true of a ledger entry read as a task line — which is what made
+    it convincing.
+
+    Not a guess: the two grammars separate by an order of magnitude on real files. Measured on
+    this repository, `docs/CHANGELOG.md` reads 843 conform as a ledger and 0 as a backlog,
+    while `docs/ROADMAP.md` reads 1 and 0 the other way. So the better reading is the one with
+    more conforming lines, and a tie keeps what was asked for.
+
+    Only where nothing was asked. `--ledger` is honoured as typed, for the reason `--prefix`
+    is: an override the tool second-guesses is not an override — and the header now names the
+    role either way, so a reader can see which grammar answered and pass the other.
+    """
+    if args.ledger or estimate.conforming:
+        return estimate
+    try:
+        other = adopt(
+            config,
+            args.path,
+            prefix=args.prefix,
+            ref_scheme=args.ref_scheme,
+            ledger=True,
+            sections=args.sections,
+            alongside=args.alongside,
+        )
+    except (ValueError, OSError):
+        # The role is an argument this file may refuse — `--ledger` with `--sections` is one
+        # pair the estimator declines — and a second reading that cannot be taken is not a
+        # finding here: what was asked for still answers.
+        return estimate
+    return other if other.conforming > estimate.conforming else estimate
+
+
 def _adopt(config: Config, args: argparse.Namespace) -> int:
     try:
         estimate = adopt(
@@ -136,6 +175,7 @@ def _adopt(config: Config, args: argparse.Namespace) -> int:
     except (ValueError, OSError) as error:
         return _refused(error)
 
+    estimate = _better_read(config, args, estimate)
     if args.json:
         print(json.dumps(_estimate_json(estimate), indent=2))
         return EXIT_OK

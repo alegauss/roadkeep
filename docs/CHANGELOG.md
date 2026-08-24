@@ -259,6 +259,7 @@
 - ✅ **RK1343** **govern tells every undeclared key that a build default applies, and three of them have no default at all** — An undeclared key is told the number that holds it, or that nothing does and which gate is off until one is written (design recorded in `src/roadkeep/governing.py`).
 - ✅ **RK1344** **two adopt gains have labels the fixed pad cannot separate, so the row runs its first word into its sentence** — The gains column is padded to the widest label of the rendering, so a label reaching the old constant no longer runs into its sentence (design recorded in `src/roadkeep/rendering.py`).
 - ✅ **RK1345** **adopt prints every field as longest 0 and 0 over where nothing parsed, which reads as fields that fit** — A field nothing parsed is reported unread in both registers, where a zero longest beside a zero over read as a measurement that fitted (design recorded in `src/roadkeep/rendering.py`).
+- ✅ **RK1346** **adopt calls 361 changelog lines changing where --ledger reads all of them as conforming, and names the flag nowhere** — A file nothing parsed is read again under the other role, and every estimate names the grammar that answered it (design recorded in `src/roadkeep/verbs/adopting.py`).
 
 ## Block C — Query
 

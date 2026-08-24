@@ -2693,3 +2693,41 @@ def test_a_field_nothing_parsed_is_unread_and_not_a_fitting_zero(tmp_path, capsy
     )
     assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "RK"]) == EXIT_OK
     assert "longest" in capsys.readouterr().out
+
+
+LEDGER_LINES = """# Shipped
+
+## Block A — The model
+
+- ✅ **RK1** **A first symptom that is plainly long enough to read** — it landed.
+- ✅ **RK2** **A second symptom that is plainly long enough to read** — it landed too.
+"""
+
+
+def test_a_file_that_parses_as_a_ledger_is_read_as_one(tmp_path, capsys) -> None:
+    """RK1346. Measured on an ungoverned `CHANGELOG.md`: the backlog grammar reported 0 parsed
+    and *361 would change*; `--ledger` reported 361 conform and none changing. The file was
+    already conforming, the report priced adopting it at 361 lines of work, and the word
+    `ledger` appeared nowhere in it.
+
+    Not a guess — the grammars separate by an order of magnitude. On this repository
+    `docs/CHANGELOG.md` reads 843 conform as a ledger and 0 as a backlog, and `docs/ROADMAP.md`
+    reads 1 and 0 the other way, so the better reading is a measurement."""
+    target = tmp_path / "CHANGELOG.md"
+    target.write_text(LEDGER_LINES, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "RK"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "read as a ledger" in printed
+    assert "2 line(s), 2 conform, 0 would change" in printed
+
+    # A backlog keeps the grammar it is in, so this narrows nothing it should not: the second
+    # reading is taken only where the first parsed nothing, and preferred only where it wins.
+    roadmap = tmp_path / "ROADMAP.md"
+    roadmap.write_text(OUTLINED, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(roadmap), "--prefix", "RK"]) == EXIT_OK
+    assert "read as a backlog" in capsys.readouterr().out
+
+    # And the flag is honoured as typed, for the reason `--prefix` is: an override the tool
+    # second-guesses is not an override. Read as a backlog because that is what was asked.
+    assert main(["-C", str(tmp_path), "adopt", str(roadmap), "--prefix", "RK", "--ledger"]) == EXIT_OK
+    assert "read as a ledger" in capsys.readouterr().out

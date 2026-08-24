@@ -953,7 +953,12 @@ def _print_estimate(estimate: Estimate) -> None:
     # No prefix on a rationale file: a section is addressed by its §, not by a family, so
     # naming one would be a claim the run never made (RK99).
     under = f"prefix {'/'.join(estimate.families)}{source}, " if estimate.families else ""
-    print(f"{where}  {under}refs by {estimate.ref_scheme}")
+    # Which grammar read the file, said always (RK1346). The two readings printed the same
+    # header, so `0 conform, 361 would change` and `361 conform, 0 would change` on one file
+    # were tellable apart only by remembering which command had been typed — and the reader
+    # this output is for has typed neither before.
+    role = " as a ledger" if estimate.ledger else ""
+    print(f"{where}  {under}refs by {estimate.ref_scheme}, read{role or ' as a backlog'}")
     print(
         f"  read     {estimate.parsed} {estimate.unit}(s), {estimate.conforming} conform, "
         f"{estimate.changing} would change"
