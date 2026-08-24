@@ -1078,7 +1078,8 @@ def _print_estimate(estimate: Estimate) -> None:
         # once it is exceeded is one nobody can declare a limit from (RK99).
         print(
             f"  {measure.field:<8} longest {measure.longest} of {measure.limit} "
-            f"{measure.unit}, {measure.over} over"
+            f"{measure.unit}"
+            + (f", {measure.over} over" if measure.refuses else ", which nothing refuses")
         )
     if estimate.non_goals is not None:
         _print_scoped(estimate.non_goals)
@@ -1298,7 +1299,10 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
                 # about the schema and the thing an adopter came to see; `longest` and `over`
                 # are the two that would be claims about a population that is empty.
                 "longest": m.longest if estimate.parsed else None,
-                "over": m.over if estimate.parsed else None,
+                # `null` where nothing refuses the limit (RK1348), as it already is where
+                # nothing was parsed: both are counts a consumer must not read as work.
+                "over": m.over if estimate.parsed and m.refuses else None,
+                "refuses": m.refuses,
                 # RK437: which counter the two figures beside it are in. `[limits]` is one
                 # table in three units, and a payload that named none left a caller to assume
                 # the wrong one on exactly the row where assuming is wrong.
@@ -1326,7 +1330,8 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
                     "limit": m.limit,
                     # Absent where no bullet parsed, as the fields above are (RK1345).
                     "longest": m.longest if estimate.non_goals.parsed else None,
-                    "over": m.over if estimate.non_goals.parsed else None,
+                    "over": m.over if estimate.non_goals.parsed and m.refuses else None,
+                    "refuses": m.refuses,
                     "unit": m.unit,
                 }
                 for m in estimate.non_goals.measures

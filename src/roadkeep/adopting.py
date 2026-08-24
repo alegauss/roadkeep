@@ -603,6 +603,14 @@ class Measure:
     #: :data:`~roadkeep.kernel.schema.CODE_POINTS`. Defaulted to the one five of the seven measures
     #: use, so the two that differ are the two that say so at construction.
     unit: str = UTF16_UNITS
+    #: Whether anything refuses a value past :attr:`limit` (RK1348). `prose` is the one that
+    #: does not: `prose_width` is what `textwrap.fill` is handed in `criteria`, `governing` and
+    #: `scoping`, and `adopt` was the only reader treating it as a ceiling — counting 19 lines
+    #: `over` on a real file where no code among the 118 this gate emits mentions prose width
+    #: at all. The longest stays, being the useful half: what a section written here is filled
+    #: to, beside what this file does. The count is what a caller cannot act on, because there
+    #: is nothing to act against.
+    refuses: bool = True
 
 
 @dataclass(frozen=True, slots=True)
@@ -1672,7 +1680,10 @@ def _prose(
                 field="prose",
                 limit=schema.prose_width,
                 longest=max(widths, default=0),
-                over=sum(1 for width in widths if width > schema.prose_width),
+                # Never a count of violations (RK1348): nothing refuses this width, so a
+                # paragraph past it is a fact about how somebody wrapped their file.
+                over=0,
+                refuses=False,
                 # Code points, because that is what `textwrap.fill` measures and this row is
                 # about the column the tool fills to (RK437). Measuring it the other way would
                 # report this repository's own paragraphs over a width it wrote them at.

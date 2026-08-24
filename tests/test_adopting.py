@@ -2751,3 +2751,38 @@ def test_the_reread_covers_the_third_role_and_names_it(tmp_path, capsys) -> None
     assert "section(s)" in printed
     # The verdict the backlog grammar gave, gone: it read nothing and said so.
     assert "was read in any shape" not in printed
+
+
+def test_the_width_nothing_refuses_is_read_and_never_counted(tmp_path, capsys) -> None:
+    """RK1348. `adopt` reported `prose longest 106 of 100 code-points, 19 over` on a real file
+    and nothing refuses those 19: no code among the 118 this gate emits mentions prose width,
+    `prose_max` is nowhere in `linting.py`, and `governing` prints of the same key that it is
+    *a width and not a ceiling, the one key in this table nothing refuses*.
+
+    `prose_width` is handed to `textwrap.fill` in `criteria`, `governing` and `scoping` — the
+    three that write prose — and `adopt` was the one reader treating it as a limit. The
+    direction is what made it worth fixing: RK1343 and RK1345 each overstated safety, and this
+    overstated *work*, on the command built to price the real kind."""
+    target = tmp_path / "IMPROVEMENTS.md"
+    # A paragraph wider than the fill width, which is what somebody else's file looks like.
+    target.write_text(
+        "# Improvements\n\n### §RK1 A design\n\n" + ("word " * 40).strip() + "\n",
+        encoding="utf-8",
+    )
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--sections"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "which nothing refuses" in printed
+    # The reading stays: what a section written here is filled to, beside what this file does.
+    assert "prose    longest" in printed
+    # And no row offers a count against it.
+    assert not [line for line in printed.splitlines() if line.startswith("  prose") and "over" in line]
+
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--sections", "--json"]) == EXIT_OK
+    measures = {m["field"]: m for m in json.loads(capsys.readouterr().out)["measures"]}
+    assert measures["prose"]["refuses"] is False
+    assert measures["prose"]["over"] is None
+    assert measures["prose"]["longest"] > measures["prose"]["limit"]
+    # The section limit beside it is a real ceiling and keeps its count, so this narrows one
+    # row rather than dropping the column.
+    assert measures["section"]["refuses"] is True
+    assert measures["section"]["over"] == 0
