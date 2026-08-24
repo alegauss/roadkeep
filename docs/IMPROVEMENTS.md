@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1339 The blank that is a field, read as a continuation
-
-`abridged` exists to tell two things apart: a trailing `…` standing for *the rest of
-your call*, which a sweep must not fill, and a blank standing for one field, which it
-must. Its own docstring says the two may not share a rule, because a composed command
-that forgot a required flag is what the sweep exists to catch.
-
-It decides on the token before the blank being a `--flag`. Seven doors put the blank in
-a positional: `show …` is which id, `priority add …` is the id or the block, `status
-{id} …` is the marker, `origin …` is the id, and `block add … --title …` is the label.
-Six come back abridged, exempted from the acceptance check on a premise false about all
-of them. The seventh is not exempted and is worse: `filled` drops the positional, so
-what runs is `block add --title A title` - a different command, which is the outcome
-that function's own comment says it refuses to produce.
-
-Nothing has failed because of it. The sweep reaches the doors this project's gate
-produces, which RK1338 measured at one row of 118, so six exemptions and one dropped
-argument have never been exercised.
-
-Falsified if a positional blank here really is a continuation somewhere - if any of the
-seven is offered to a caller who already typed that argument - in which case the rule is
-right and those doors are the ones to reword.
-
 ## Block C — Query
 
 ## Block D — The gate

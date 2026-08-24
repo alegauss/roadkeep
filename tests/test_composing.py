@@ -23,9 +23,9 @@ import pytest
 from composing import SITES, STATES, census, commands, filled, runs, supplied
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
-from roadkeep.linting import lint
+from roadkeep.linting import Finding, lint
 from roadkeep.provenance import invocation
-from roadkeep.remedying import BLANK, remedy
+from roadkeep.remedying import BLANK, codes, remedy
 
 
 # -- the census, which is the deliverable -------------------------------------
@@ -92,8 +92,11 @@ def test_a_placeholder_is_filled_and_never_stripped():
     than pretending the field was optional."""
     assert filled(["block", "add", "Z", "--title", "<its title>"])[-1] != "<its title>"
     assert filled(["block", "add", "Z", "--title", "<its title>"])[-2] == "--title"
-    # A bare ellipsis stands for "and the rest of a call", with no flag in front to fill from.
-    assert filled(["add", "--block", "Z", "…"]) == ["add", "--block", "Z"]
+    # A bare ellipsis stands for "and the rest of a call", with no flag in front to fill
+    # from — and only where the caller says so (RK1339): dropping it is right for a command
+    # read out of refusal prose and wrong for a remedy door, where the blank is a field.
+    assert filled(["add", "--block", "Z", "…"], continuation=True) == ["add", "--block", "Z"]
+    assert filled(["add", "--block", "Z", "…"])[-1] == "<unfilled positional>"
 
 
 # -- what is executed ---------------------------------------------------------
@@ -324,3 +327,49 @@ def test_the_doors_close_the_gate_and_not_only_parse(tmp_path, capsys):
     # row whose door stops being reachable shows up as a number that fell rather than as a
     # code quietly skipped. Five, against the one the sweep above reaches.
     assert len(set(closed)) >= 5, sorted(set(closed))
+
+
+#: Doors whose blank sits in a positional, which `filled` cannot supply from a table keyed by
+#: flag (RK1339). Named rather than counted, for the reason the site table above is: a number
+#: hides which, and which is the work-list. Each is a value the *finding* holds — the id, the
+#: cited anchor, the label, the marker — so what closes them is doors carrying a substitution
+#: like `{id}`, not more entries in `FILLS`.
+POSITIONAL: dict[str, str] = {
+    "priority.shape": "the id or the `Block X` the bullet should have addressed",
+    "block.format": "the label, which is what the finding says cannot be rendered",
+    "id.paused-and-gone": "which of the two ids to read, and the finding carries both",
+    "ref.dangling": "the cited anchor, which the finding names",
+    "status.unknown": "the marker to set, which is a choice among those declared",
+    "grammar.unreadable": "any one line, so the reader compares it with the rendering",
+}
+
+
+def test_a_door_the_sweep_cannot_fill_is_named_and_not_dropped():
+    """RK1339. `filled` marks a blank it cannot fill as `<unfilled --flag>` so the sweep fails
+    loudly rather than running a different command — and reached that branch only for a blank
+    after a `--flag`. A blank in a positional fell to the drop, on a reading that belongs to
+    `runs()`, which takes commands out of refusal prose and asks `abridged` which kind of
+    ellipsis it has. A remedy door is never asked, so for a door the drop was unconditional:
+    `block add … --title …` filled to `block add --title A title`.
+
+    Total against the table, so a door added with a positional blank is a red here rather than
+    a command that quietly runs without its argument."""
+    found: dict[str, list[str]] = {}
+    for code in codes():
+        rule = remedy(Finding(code, "ROADMAP.md", "", 1, "RK1"))
+        if rule is None:
+            continue
+        for door in rule.doors:
+            if any(one == "<unfilled positional>" for one in filled(list(door.argv))):
+                found.setdefault(code, []).append(" ".join(door.argv))
+    assert sorted(found) == sorted(POSITIONAL), {
+        "unnamed": sorted(set(found) - set(POSITIONAL)),
+        "named and no longer positional": sorted(set(POSITIONAL) - set(found)),
+    }
+    # And a flag blank still fails loudly, which is the half that already held: this asserts
+    # the new branch did not swallow the old one.
+    assert filled(["amend", "RK1", "--ref", "…"]) == ["amend", "RK1", "--ref", "<unfilled --ref>"]
+    # While a genuine continuation — the caller's own remaining call, in refusal prose — is
+    # still dropped, which is the case the reading was right about.
+    printed = ["add", "--block", "Z", "--ref", "XXI.1", "…"]
+    assert filled(printed, continuation=True) == printed[:-1]

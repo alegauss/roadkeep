@@ -252,6 +252,7 @@
 - ✅ **RK1336** **the session budget's door reprints the total instead of ranking the descriptions a reader has to cut** — The session budget names the ranking first and the total second, a read having gained the ordered several a choice already had (design recorded in `src/roadkeep/remedying.py`).
 - ✅ **RK1337** **the duplicate-anchor remedy names a command that exits 2 in the very state that produces the finding** — A duplicate anchor is closed by the verbs the project's own scheme has, an id-addressed section being one no move re-addresses (design recorded in `src/roadkeep/remedying.py`).
 - ✅ **RK1338** **the door-execution test runs one remedy row of 118, so a door naming a refused command is found by hand** — Five rows have their doors run against the state that produced each finding, and the loop ends where the gate is clean, not where a call parsed (design recorded in `tests/test_composing.py`).
+- ✅ **RK1339** **filled drops a positional blank instead of failing loudly, so seven doors would run as a different command** — A blank the sweep cannot fill fails loudly wherever it sits, and the caller that may have a continuation is the one that says so (design recorded in `tests/composing.py`).
 
 ## Block C — Query
 

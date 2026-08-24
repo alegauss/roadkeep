@@ -280,7 +280,7 @@ def commands(said: str) -> tuple[list[str], ...]:
     return tuple(out)
 
 
-def filled(argv: list[str]) -> list[str]:
+def filled(argv: list[str], *, continuation: bool = False) -> list[str]:
     """The same command with the author's placeholders replaced by legal values (RK1209).
 
     Filled and never stripped: `add --why …` with the flag removed is a *different* command,
@@ -302,6 +302,15 @@ def filled(argv: list[str]) -> list[str]:
             # A flag this table does not know: better to fail loudly in the sweep than to
             # quietly drop the argument and run something else.
             out.append(f"<unfilled {before}>")
+        elif not continuation:
+            # A blank in a *positional*, which the loud branch above never saw (RK1339). The
+            # drop below is right only where the ellipsis stands for the rest of the caller's
+            # own call, and that is a property of where the command was read: `runs` takes
+            # them out of refusal prose and asks `abridged` which kind it has, while a remedy
+            # door has no such ellipsis and no such question. Dropping one there turns
+            # `block add … --title …` into `block add --title A title` — a different command,
+            # which is exactly what the branch above refuses to let happen to a flag.
+            out.append("<unfilled positional>")
         # else: a bare ellipsis standing for "and the rest", which has nothing to fill.
     return out
 
@@ -392,7 +401,10 @@ def runs(root: Path, said: str, *, expect: int = 0) -> tuple[list[str], ...]:
 
     ran: list[list[str]] = []
     for printed in commands(said):
-        argv = supplied(filled(printed), template=abridged(printed))
+        # The one caller whose trailing ellipsis may be a continuation, so the one that says
+        # so: `abridged` answers it for this text, and `filled` no longer assumes it (RK1339).
+        continuation = abridged(printed)
+        argv = supplied(filled(printed, continuation=continuation), template=continuation)
         if argv[:1] == ["report"]:
             # The capture offer, which every refusal ends with and which is not a step of
             # anything: running it would file a defect report about the run being tested.
