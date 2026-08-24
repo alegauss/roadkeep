@@ -880,6 +880,30 @@ def without(document: Document, task_id: str) -> tuple[Document, tuple[str, ...]
     return updated, held
 
 
+def readdress(document: Document, was: str, now: str) -> tuple[Document, bool]:
+    """The same roadmap with one task's list addressed to the id it moved to (RK1317).
+
+    :func:`without`'s sibling, and the difference is the whole of why it is a second function:
+    a departure **spends** the address and this one *moves* it. A renumbering is not a
+    departure — the work is open, the list is what finishes it, and deleting it would spend
+    the one thing a collision repair exists to preserve.
+
+    Observed on a fresh tree, 2026-08-23: a criterion written with `--task`, then `renumber`
+    onto a free number. The line moved, its `§<id>` section moved with it, every dep naming it
+    moved, and `## Done when` kept the number nobody carries any more. Everything else bound to
+    the id already moves there — the pointer under `ref_scheme = "id"`, the heading's trailing
+    binding under an outline (RK1231), the dep annotations — and this was the one address the
+    write did not know about, being the one added last.
+
+    Only the **heading**: the bullets are the author's prose and this rewrites none of it (L4).
+    `False` where the task declared no list, which is the ordinary renumbering.
+    """
+    at = _heading_index(document, was)
+    if at is None:
+        return document, False
+    return document.replace_line(at, heading_for(document.schema, now)), True
+
+
 def _remove_span(document: Document, going: Criterion) -> Document:
     """Take the bullet out, and the blank line the removal doubled (`scoping._remove_span`)."""
     start = going.first - 1

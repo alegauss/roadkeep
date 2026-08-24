@@ -51,6 +51,7 @@ from roadkeep.authoring import refuse_reuse
 from roadkeep.claiming import Held
 from roadkeep.backlog import Backlog, NotOpen, Whereabouts
 from roadkeep.config import Config
+from roadkeep.criteria import readdress
 from roadkeep.kernel.document import Document, Entry, save_all
 from roadkeep.kernel.schema import Task
 from roadkeep.ids import id_scanner, next_id
@@ -110,6 +111,10 @@ class Renumbering:
     #: The nested anchors re-addressed with it, as they now read (`RK9.1`). A subsection is
     #: the task's own numbering, so it carries the task's address (RK113).
     subsections: tuple[str, ...] = ()
+    #: Whether this line's own `## Done when` heading moved with it (RK1317). A flag and not
+    #: the leads, unlike a departure's `unmet`: nothing was deleted, so what the author needs
+    #: is that the address moved — the bullets are still there and are still theirs.
+    criteria: bool = False
     #: Every line whose `(deps: …)` now names the new id. Named and never silent: which
     #: of two collided ids a dep meant is the one thing this transaction cannot read.
     moved: tuple[str, ...] = ()
@@ -187,6 +192,13 @@ class Renumbering:
                 f"  nested   {', '.join('§' + a for a in self.subsections)} "
                 f"(the id's own numbering)"
             )
+        if self.criteria:
+            # Said and never silent (RK1317), which is `_unmet_rows`' rule pointed the other
+            # way: a departure names the list it spends, and this names the list it moved —
+            # a heading rewritten on the author's behalf is one they cannot otherwise see.
+            rows.append(
+                f"  finished ## Done when — {self.to}, re-addressed with the line"
+            )
         if self.moved:
             rows.append(
                 f"  deps     {', '.join(self.moved)} now name {self.to} — "
@@ -219,6 +231,10 @@ class Renumbering:
             "section": None if self.section is None else self.section.payload(prose),
             # The nested headings that carried the old address, as they now read.
             "subsections": list(self.subsections),
+            # Whether this line's own criteria heading moved with it (RK1317). False and never
+            # omitted: a task that declared no list is the ordinary renumbering, and a key that
+            # appears only when it is set is one a reader learns to stop looking for.
+            "criteria": self.criteria,
             # The lines this write changed on the author's behalf, because which of two
             # collided ids a dep meant is not a fact any file holds.
             "moved": list(self.moved),
@@ -292,8 +308,18 @@ def renumber(config: Config, task_id: str, to: str | None = None) -> Renumbering
         if rebound is not None:
             changed["improvements"], section = rebound
 
+    # And the list addressed by the id this write is spending (RK1317), **re-addressed** and
+    # never removed: a renumbering is not a departure, so RK1316's rule at the block's label
+    # and RK1268's at a departing line both point the other way here. Before the annotations
+    # are refreshed, because that read parses the roadmap and a heading it did not expect is
+    # not a state to hand it.
+    criteria_moved = False
     derived = ()
     if "roadmap" in documents:
+        documents["roadmap"], criteria_moved = readdress(documents["roadmap"], task_id, to)
+        if criteria_moved:
+            changed["roadmap"] = documents["roadmap"]
+
         # Derived against the state this write creates, for the reason every other door
         # does it (RK8): a dep that now names a different id is a dep whose cached marker
         # was answered by the line that used to carry it.
@@ -315,6 +341,7 @@ def renumber(config: Config, task_id: str, to: str | None = None) -> Renumbering
         documents=changed,
         section=section,
         subsections=subsections,
+        criteria=criteria_moved,
         moved=dependents,
         refreshed=tuple(n for n in derived if n != to and n not in dependents),
         claim=held[0] if held else None,

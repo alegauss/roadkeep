@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1317 The address the renumbering did not move
-
-Observed on a fresh tree, 2026-08-23: a criterion written with `--task`, then `renumber`
-onto a free number. The line moves, its `§<id>` section moves with it, every dep naming
-it moves, and `## Done when` keeps the number nobody carries any more.
-
-RK1268 addresses a task's list by its id, and the id is what this verb spends.
-Everything else bound to it already moves here: the pointer under `ref_scheme = "id"`,
-the heading's trailing binding under an outline (RK1231), the dep annotations. The
-criteria heading is the one address the write does not know about, and the one added
-last.
-
-So it is re-addressed and never removed, which is where this differs from RK1316 and
-from the departures. A renumbering is not a departure: the work is open, the list is
-what finishes it, and deleting it would spend the one thing a collision repair exists to
-preserve. The heading is rewritten through `criteria.heading_for`; the bullets are
-untouched.
-
-Refused before anything lands, as the rest of this verb is. A `Done when` heading
-already at the destination is two lists under one address, which is the state `criterion
-add` refuses one call at a time. And reported beside the section, because a heading this
-write moved is one the author has to be told about.
-
 ### §RK1319 RK1319
 
 RK38 gave the event three facts and no suggestion, and a test states the decision: a

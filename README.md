@@ -117,18 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 2 | 180 | 2 |
+| B — Authoring (insert, never hand-edit) | 1 | 181 | 2 |
 | C — Query (consult without reading the file) | 1 | 132 | 2 |
 | D — The gate | 3 | 189 | 2 |
 | E — Adoption | 0 | 101 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 1 | 24 | 1 |
-| **Total** | 7 | 803 | 11 |
+| **Total** | 6 | 804 | 11 |
 
 **Next ready:**
 
-- 📋 **RK1317** (deps: —) **`renumber` moves a line, its section and its deps, and leaves its `## Done when` list on the number it spent** — A task's criteria heading is re-addressed to the new id in the same transaction that moves the line, its section and its deps. → §RK1317
+- 📋 **RK1318** (deps: —) **the gate reads a criterion's shape and length and never whether the block or id it is addressed to still exists** — `lint` reports `criterion.orphan` at a `Done when` heading no block or open line answers, naming the drop that closes it. → §RK1318
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

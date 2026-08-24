@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1317** (deps: —) **`renumber` moves a line, its section and its deps, and leaves its `## Done when` list on the number it spent** — A task's criteria heading is re-addressed to the new id in the same transaction that moves the line, its section and its deps. → §RK1317
 - 📋 **RK1319** (deps: —) **the event says a block finished and not that its heading may go, though the offer now depends on config it omits** — RK38 excluded the suggestion as derivable from the stage, and RK1121 made it depend on a key the payload does not carry. → §RK1319
 
 ## Block C — Query (consult without reading the file)

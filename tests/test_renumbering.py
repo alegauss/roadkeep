@@ -472,3 +472,66 @@ def test_an_id_scheme_project_is_unchanged(tmp_path):
     moved.save()
     assert moved.section is not None and moved.section.anchor == "RK99"
     assert "§RK99" in (tmp_path / IMPROVEMENTS).read_text(encoding="utf-8")
+
+
+# -- the address the renumbering did not move (RK1317) -------------------------
+
+
+def test_a_task_s_criteria_heading_moves_with_its_id(tmp_path, capsys):
+    """Observed on a fresh tree, 2026-08-23: a criterion written with `--task`, then `renumber`
+    onto a free number. The line moved, its `§<id>` section moved with it, every dep naming it
+    moved, and `## Done when` kept the number nobody carries any more.
+
+    Everything else bound to the id already moves here — the pointer under `ref_scheme = "id"`,
+    the heading's trailing binding under an outline (RK1231), the dep annotations. This was the
+    one address the write did not know about, being the one added last.
+    """
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    capsys.readouterr()
+    assert main([
+        *where, "add", "--block", "A", "--symptom", "A symptom",
+        "--why", "Because of a reason.", "--section", "A design", "--section-body", "Because.",
+    ]) == EXIT_OK
+    assert main([
+        *where, "criterion", "add", "--task", "RK1",
+        "--lead", "The parser round-trips", "--why", "on this file, byte for byte.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+
+    assert main([*where, "renumber", "RK1", "--to", "RK9"]) == EXIT_OK
+    said = capsys.readouterr().out
+    # Said and never silent: a heading rewritten on the author's behalf is one they cannot
+    # otherwise see, which is `moved`'s rule beside it.
+    assert "finished ## Done when — RK9, re-addressed with the line" in said
+
+    roadmap = (tmp_path / "docs/ROADMAP.md").read_text(encoding="utf-8")
+    assert "## Done when — RK9" in roadmap and "RK1" not in roadmap
+    # Re-addressed and **not removed**, which is where this differs from RK1316 and from a
+    # departure: the work is open, and the list is what finishes it.
+    assert "The parser round-trips" in roadmap
+    assert main([*where, "lint"]) == EXIT_OK
+
+
+def test_the_payload_says_whether_the_list_moved(tmp_path, capsys):
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    capsys.readouterr()
+    assert main([
+        *where, "add", "--block", "A", "--symptom", "A symptom",
+        "--why", "Because of a reason.", "--section", "A design", "--section-body", "Because.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+
+    # False where the task declared none, which is the ordinary renumbering — and never
+    # omitted, so a reader does not learn to stop looking for it.
+    assert main([*where, "renumber", "RK1", "--to", "RK9", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["criteria"] is False
+
+    assert main([
+        *where, "criterion", "add", "--task", "RK9",
+        "--lead", "The parser round-trips", "--why", "on this file, byte for byte.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+    assert main([*where, "renumber", "RK9", "--to", "RK20", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["criteria"] is True

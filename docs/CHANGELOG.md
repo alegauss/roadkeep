@@ -240,6 +240,7 @@
 - ✅ **RK1311** **amend --requires alone is refused as nothing to amend, then reports unchanged on the call that writes it** — the guard counts --requires, the confirmation names it among the fields that moved, and show prints the group (design §RK1311 recorded in `src/roadkeep/authoring.py`).
 - ✅ **RK1312** **section amend --replace refuses a sentence the section carries, because the stored copy is wrapped across lines** — --replace matches the prose with its wrapping collapsed, so a sentence copied from section show is the sentence it finds (design §RK1312 recorded in `src/roadkeep/sections.py`).
 - ✅ **RK1316** **`block drop` withdraws a label and leaves its `## Done when` list addressed to a block no file declares** — a block's criteria leave inside the transaction that withdraws its label, and the leads that went are named (design §RK1316 recorded in `src/roadkeep/blocking.py`).
+- ✅ **RK1317** **`renumber` moves a line, its section and its deps, and leaves its `## Done when` list on the number it spent** — a task's criteria heading is re-addressed in the transaction that moves the line, and the move is named (design §RK1317 recorded in `src/roadkeep/criteria.py`).
 
 ## Block C — Query
 
