@@ -1027,10 +1027,22 @@ _TABLE: Mapping[str, _Rule] = {
     # corpus carries this code, which is why RK473's sweep could not see it and the parser
     # check could. A `compose` and not a `run`: the free address is the author's to pick, and
     # naming which one would be this tool choosing where somebody's design lives.
-    "section.duplicate": _compose(
-        ("section", "move", "{id}", "--to", BLANK),
-        "one anchor is at two places in one file; move the later under an address of its "
-        "own, which `anchors --next` names",
+    # Outline-only as written, and offered under both schemes until RK1337. Reproduced on a
+    # scratch project at `ref_scheme = "id"`: `anchors --next` exits 2 there, having no
+    # numbering to take the next of, and `section move` refuses an id-addressed section by
+    # design — *the address is not this verb's to move*. So the door named a command the verb
+    # it names rejects. `varies` because what closes this genuinely differs by scheme, which
+    # is what that field is for.
+    "section.duplicate": _Rule(
+        "compose",
+        (
+            (
+                ("section", "move", "{id}", "--to", BLANK),
+                "one anchor is at two places in one file; move the later under an address "
+                "of its own, which `anchors --next` names",
+            ),
+        ),
+        varies="ref_scheme",
     ),
     "section.ambiguous": _read(
         ("anchors",),
@@ -1684,6 +1696,26 @@ def _varied(
         return _compose(
             ("amend", "{id}", "--ref", BLANK),
             "the anchor is not derived under this project's scheme, so it is yours to state",
+        )
+    if code == "section.duplicate" and config.schema.ref_scheme == "id":
+        # Under an id scheme both headings claim one line's address, and no verb re-addresses
+        # one of them: `section move` refuses an id-addressed section outright and
+        # `anchors --next` has no numbering to derive from. The two doors that are real are
+        # the ones `section move`'s own refusal names, and choosing between them is reading
+        # which heading is the stray — so a decision and not a command (RK1337).
+        return _decide(
+            "two headings claim one line's address and nothing derives a free one here: "
+            "either the later design belongs to a line of its own, or it is a copy",
+            (
+                ("renumber", "{id}", "--to", BLANK),
+                "the line, its heading, its subtree and every dep move together, which is "
+                "what re-addressing an id-addressed design means",
+            ),
+            (
+                ("section", "drop", "{id}"),
+                "or take the copy out — refused while a line still points at it, so the "
+                "pointer is repointed or that line ships first",
+            ),
         )
     if rule.varies == "queue" and _queue_in_config(config):
         # The order lives where no verb writes, so the mechanical pass cannot reach it and

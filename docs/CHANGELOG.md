@@ -250,6 +250,7 @@
 - ✅ **RK1334** **the served surface is measured with the handshake's provenance in it, so the budget moves with the checkout** — What names the checkout is counted into what a session pays and subtracted from what the ceiling holds, so the verdict stops moving (design recorded in `src/roadkeep/serving.py`).
 - ✅ **RK1335** **cost --tools states a total the gate no longer uses and no session ceiling, on the read used to decide a cut** — The ranking states what the gate refuses and the ceiling it refuses it against, on the read somebody runs to decide a cut (design recorded in `src/roadkeep/serving.py`).
 - ✅ **RK1336** **the session budget's door reprints the total instead of ranking the descriptions a reader has to cut** — The session budget names the ranking first and the total second, a read having gained the ordered several a choice already had (design recorded in `src/roadkeep/remedying.py`).
+- ✅ **RK1337** **the duplicate-anchor remedy names a command that exits 2 in the very state that produces the finding** — A duplicate anchor is closed by the verbs the project's own scheme has, an id-addressed section being one no move re-addresses (design recorded in `src/roadkeep/remedying.py`).
 
 ## Block C — Query
 

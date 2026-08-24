@@ -473,6 +473,11 @@ def test_the_varying_rows_are_derived_from_the_table():
     # the same verb (RK468).
     assert VARIES == {
         "ref.mismatch": "ref_scheme",
+        # RK1337, and the second row the scheme decides: under an outline a duplicate moves
+        # to a free anchor, and under an id scheme there is no free anchor to derive and
+        # `section move` refuses an id-addressed section outright — so what closes it is not
+        # the same command with a different argument but a different pair of verbs.
+        "section.duplicate": "ref_scheme",
         "id.duplicate": "role",
         "priority.shipped": "queue",
         "priority.retired": "queue",
@@ -1556,3 +1561,25 @@ def test_a_read_may_be_a_sequence_and_the_order_is_the_claim():
     # `door` stays the one-door accessor, so a caller wanting *the* command still gets None
     # here rather than silently the first of two.
     assert found.door is None
+
+
+def test_the_duplicate_anchor_door_is_the_one_this_scheme_has(tmp_path):
+    """RK1337. The row was written for an outline and offered under both schemes. Reproduced
+    at `ref_scheme = "id"`, which is what `init` writes: `anchors --next` exits 2 there,
+    having no numbering to take the next of, and `section move` refuses an id-addressed
+    section by design — *the address is not this verb's to move*. So the door named a command
+    the verb it names rejects, in the state that produces the finding.
+
+    No test caught it because `test_every_door_the_gate_offers_on_this_project_lands` runs the
+    doors this repository's gate produces, and `section.duplicate` never fires here."""
+    finding = Finding("section.duplicate", "docs/IMPROVEMENTS.md", "", 9, "RK1")
+    outlined = remedy(finding, _project(tmp_path / "outline", ref_scheme="outline"))
+    assert outlined is not None and outlined.kind == "compose"
+    assert outlined.doors[0].argv[:2] == ("section", "move")
+
+    identified = remedy(finding, _project(tmp_path / "ids", ref_scheme="id"))
+    assert identified is not None and identified.kind == "decide"
+    assert identified.decision
+    # Both doors the refusal of the old one already named, and neither is `section move`.
+    assert [door.argv[0] for door in identified.doors] == ["renumber", "section"]
+    assert "anchors --next" not in identified.spoken()
