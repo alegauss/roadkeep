@@ -182,6 +182,7 @@ SITES: tuple[Site, ...] = (
     Site("shipping.py:Partial.stated", "unreached", NO_FIXTURE),
     Site("shipping.py:SecondPartial.__init__", "unreached", NO_FIXTURE),
     Site("showing.py:_instead", "unreached", NO_FIXTURE),
+    Site("showing.py:_paused", "run"),
     Site("showing.py:_where_it_went", "unreached", NO_FIXTURE),
     Site("verbs/querying.py:_anchors", "unreached", NO_FIXTURE),
 )

@@ -18,6 +18,7 @@ from pathlib import Path
 import pytest
 
 import corpora
+from composing import runs
 from conftest import git
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
@@ -641,3 +642,47 @@ def test_a_line_requiring_nothing_says_so_with_an_empty_list(tmp_path, capsys):
     project(tmp_path)
     assert main(["-C", str(tmp_path), "show", "RK1", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["requires"] == []
+
+
+def test_a_paused_id_is_told_where_it_went_and_not_that_it_never_was(tmp_path):
+    """RK1341. `defer` moves a line out of the backlog on purpose, so a task-addressed read
+    declining it is right — `pick` skips it and `list` omits it, which is the verb's whole
+    content. What none of them said is *where it went*: `show` answered `an id in neither file
+    was never written or was retired`, and both of those are false about a line sitting in
+    `DEFERRED.md` with a reason beside it.
+
+    The store was never unreadable — `list --role deferred` prints it — so the refusal was
+    standing in front of the answer offering two guesses, which is RK16's rule broken one
+    surface over: a finding names the command that closes it, and so does a refusal."""
+    # The section too, because `resume` puts the line back where a pointer is required: a
+    # fixture whose stored line could not return would fail the door for its own reason.
+    project(tmp_path, improvements=RATIONALE + "\n### §RK9 A parked design\n\nThe reasoning.\n")
+    (tmp_path / "roadkeep.toml").write_text(
+        (tmp_path / "roadkeep.toml").read_text(encoding="utf-8").rstrip("\n")
+        + '\ndeferred = "DEFERRED.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "DEFERRED.md").write_text(
+        "# Deferred\n\n## Block A — The model\n\n"
+        "- ⏸ **RK9** (deps: —) **A symptom plainly long enough to read** — "
+        "set aside (Waiting on a decision.): Because of a reason. → §RK9\n",
+        encoding="utf-8",
+    )
+    config = Config.discover(tmp_path)
+    with pytest.raises(NoSuchTask) as caught:
+        show(config, "RK9")
+    said = caught.value.args[0]
+    # The claim that was false, gone; the file that holds it, named.
+    assert NoSuchTask.ABSENT not in said
+    assert "paused in DEFERRED.md" in said
+    # Both doors: the read that prints it, and the write that undoes the pause.
+    assert "list --role deferred" in said and "resume RK9" in said
+    # Executed and not only quoted, which is what a `run` row in the composing table claims
+    # (RK1209): a door is worth its characters only if what it prints lands, in the order
+    # printed — the read first, then the write that empties the store it read.
+    assert runs(tmp_path, said) == (["list", "--role", "deferred"], ["resume", "RK9"])
+
+    # And an id that really is absent keeps the answer it had, which is the condition's point.
+    with pytest.raises(NoSuchTask) as absent:
+        show(config, "RK99")
+    assert NoSuchTask.ABSENT in absent.value.args[0]

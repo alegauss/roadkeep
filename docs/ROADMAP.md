@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1341** (deps: —) **show refuses a paused task as never written or retired, the deferred store being a carrier it does not read** — defer RK1 then show RK1 names only the roadmap and the ledger, so a line parked with a reason is readable only by opening the file. → §RK1341
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

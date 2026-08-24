@@ -117,18 +117,14 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 194 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 195 | 2 |
 | C — Query (consult without reading the file) | 0 | 133 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 102 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 122 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 26 | 1 |
-| **Total** | 1 | 826 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1341** (deps: —) **show refuses a paused task as never written or retired, the deferred store being a carrier it does not read** — defer RK1 then show RK1 names only the roadmap and the ledger, so a line parked with a reason is readable only by opening the file. → §RK1341
+| **Total** | 0 | 827 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -281,6 +281,9 @@ def _instead(config: Config, given: str) -> str:
     refuses everywhere else — and the caller who wanted the join would get the section and
     no way to see that they had.
     """
+    paused = _paused(config, given)
+    if paused:
+        return paused
     anchor = given.lstrip("§")
     if not anchor:
         return ""
@@ -295,6 +298,38 @@ def _instead(config: Config, given: str) -> str:
             f"— {verb} reads one"
         )
     return _where_it_went(config, anchor)
+
+
+def _paused(config: Config, task_id: str) -> str:
+    """The store's answer, where the two carriers this read opens have none (RK1341).
+
+    `defer` moves a line out of the backlog on purpose, so every task-addressed read declining
+    it is right: `pick` skips it, `list` omits it, and that is the whole point of the verb.
+    What none of them said is *where it went* — `show` answered `an id in neither file was
+    never written or was retired`, and both of those are false about a line sitting in
+    `DEFERRED.md` with a reason beside it.
+
+    First of the three answers here and not last, because it is the strongest: a declared
+    carrier holding the id is a fact, where an addressable anchor is a reading of the
+    argument's shape and history is evidence the id once existed. It is also the cheapest —
+    one parse against `_where_it_went`'s `git log` — and it is asked only after the parse has
+    failed, which is the rule that keeps this whole path free.
+
+    Silent where no `deferred` role is declared, that project having no such state to be in.
+    """
+    if not config.has("deferred") or not config.path("deferred").is_file():
+        return ""
+    entry = config.document("deferred").by_id().get(task_id)
+    if entry is None:
+        return ""
+    where = config.relative(config.path("deferred"))
+    # Both doors, in the order the reader needs them: what it says, then how to undo it. The
+    # read comes first because a paused line is usually being *checked*, not resumed.
+    return (
+        f"{task_id} is paused in {where}:{entry.lineno} — "
+        f"`{invocation()} list --role deferred` prints it with the reason it was set aside, "
+        f"and `{invocation()} resume {task_id}` returns it to its block"
+    )
 
 
 def _where_it_went(config: Config, task_id: str) -> str:
