@@ -32,7 +32,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1318** (deps: —) **the gate reads a criterion's shape and length and never whether the block or id it is addressed to still exists** — `lint` reports `criterion.orphan` at a `Done when` heading no block or open line answers, naming the drop that closes it. → §RK1318
 - 📋 **RK1322** (deps: —) **the tree is split between two line terminators and nothing reads which a file is, so an append lands in the wrong one** — The gate refuses a file that mixes them and says nothing about 47 of 148 sources being CRLF, so the split is found by breaking it. → §RK1322
 - 📋 **RK1323** (deps: —) **this repository declares no [criteria], so the fixture that proves the format does not exercise a table init now writes** — The law is that a schema change validates here first, and the one list added since is proven by tests alone rather than by the artefact. → §RK1323
 

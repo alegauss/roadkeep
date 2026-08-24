@@ -712,6 +712,16 @@ _TABLE: Mapping[str, _Rule] = {
     # that lead — which the emission site passes as the finding's subject. `--block` is left off
     # every door on purpose: the verb resolves it from the one list carrying the lead, and a
     # remedy that had to spell a block it cannot read would be the blank RK420 exists to remove.
+    # The address stopped existing, so the **bare** drop is the door (RK1318): the addressed
+    # form takes a `--block` or a `--task` naming exactly what is gone, which would be a
+    # command that cannot run. A region the last drop leaves empty carries no lead, and a
+    # remedy with a blank subject answers nothing here — that one is `--fix`'s, a heading
+    # addressed to nothing with nothing under it being derived dead.
+    "criterion.orphan": _run(
+        ("criterion", "drop", "{id}"),
+        "the list is addressed to a block or an id no file answers, so what it asks about "
+        "cannot be finished — the bullets go, and the heading with the last of them",
+    ),
     "criterion.duplicate": _run(
         ("criterion", "drop", "{id}"),
         "two bullets in one block lead the same way: the later goes and the first stays, "

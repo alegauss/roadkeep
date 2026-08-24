@@ -105,29 +105,6 @@ other way to say so.
 
 ## Block D — The gate
 
-### §RK1318 The address the gate never re-asks
-
-Observed on a fresh tree, 2026-08-23. Two states reach it: `block drop` withdrawing a
-label whose list stays (RK1316), and `renumber` spending the id a list is addressed to
-(RK1317). `lint` calls both trees clean.
-
-`_criteria` checks what a schema can check — shape, the two lengths, a lead stated twice
-inside one list. `criteria._addressed` validates the address at the write, which is L1
-and right; nothing re-asks once the address has stopped existing, and the write path
-cannot, the block having been there when the bullet was written.
-
-So the finding is at the heading and its subject is the address, one per region and not
-per bullet: what is orphaned is the list. This stays the backstop the two writes above
-make rare and never impossible — a hand edit, a textual merge, a tree governed before
-either of them shipped.
-
-The door is `criterion drop <lead>`, bare. The addressed form is refused, the address
-being exactly what stopped existing, so a remedy spelling `--block` would name a command
-that cannot run — which RK16 forbids. And an orphan the last drop leaves empty has no
-door at all: the heading survives its bullets by design (RK1265), so `--fix` is what
-takes that one, a heading addressed to nothing with nothing under it being derived dead
-as a shipped task's queue entry is.
-
 ### §RK1322 RK1322
 
 Measured on this repository, 2026-08-23: 47 of 148 Python files are CRLF in the working

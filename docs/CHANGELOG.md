@@ -573,6 +573,7 @@
 - ✅ **RK1290** **the note saying what the gate did not price fires on every clean run of any real backlog** — The note about a bounded reading fires where the shortfall is news, not on every clean run.
 - ✅ **RK1299** **a clean lint answers with 42 note rows repeating six facts, five times the cost of its text form** — A collective token's expansion is one note naming the lines that wait on it, so a clean run states each fact once instead of once per line (design §RK1299 recorded in `src/roadkeep/linting.py`).
 - ✅ **RK1308** **lint exits 1 on install.stale, so a CI gate goes red on a backlog it has just reported clean** — a stale wired surface is a note, so the exit code says whether the governed lines drifted and nothing else (design §RK1308 recorded in `src/roadkeep/linting.py`).
+- ✅ **RK1318** **the gate reads a criterion's shape and length and never whether the block or id it is addressed to still exists** — lint reports criterion.orphan at a Done when heading no block or open line answers, and --fix takes the empty one (design §RK1318 recorded in `src/roadkeep/linting.py`).
 
 ## Block E — Adoption
 

@@ -806,7 +806,10 @@ def _rules() -> tuple[_Rule, ...]:
         # The positive twin of the rule above (RK1265), read from the same document and
         # opt-in on its own declaration: a project may govern one list and not the other.
         _Rule(
-            "documents", lambda scan: _criteria(scan.config, scan.documents.get("roadmap"))
+            "documents",
+            lambda scan: _criteria(
+                scan.config, scan.documents.get("roadmap"), scan.documents
+            ),
         ),
         _Rule("documents", queued),
         _Rule("documents", lambda scan: _collective(scan.config, scan.documents)),
@@ -2153,7 +2156,9 @@ def _scope(config: Config, roadmap: Document | None) -> list[Finding]:
     return out
 
 
-def _criteria(config: Config, roadmap: Document | None) -> list[Finding]:
+def _criteria(
+    config: Config, roadmap: Document | None, documents: dict[str, Document]
+) -> list[Finding]:
     """The criteria, for a project that declared them governed (RK1265).
 
     :func:`_scope`'s three checks one list over, and silent otherwise for its reason: an
@@ -2214,6 +2219,67 @@ def _criteria(config: Config, roadmap: Document | None) -> list[Finding]:
                 )
             )
         seen.setdefault(address, one.first)
+    return out + _orphaned(config, roadmap, documents, file)
+
+
+def _orphaned(
+    config: Config, roadmap: Document, documents: dict[str, Document], file: str
+) -> list[Finding]:
+    """A `Done when` list whose address stopped existing (RK1318).
+
+    The gate reads what a schema can read — shape, the two lengths, a lead stated twice inside
+    one list — and never whether the block or the id it is addressed to is still there.
+    `criteria._addressed` validates that at the write, which is L1 and right; nothing re-asks
+    once the address has gone, and the write path cannot, the block having been there when the
+    bullet was written.
+
+    Two states reached it, and both are closed at their own door now: `block drop` withdrawing
+    a label whose list stayed (RK1316), and `renumber` spending the id a list is addressed to
+    (RK1317). So this is the **backstop** those two make rare and never impossible — a hand
+    edit, a textual merge, a tree governed before either of them shipped.
+
+    One finding per **region** and not per bullet, filed at the heading: what is orphaned is
+    the list, and a bullet under it is not wrong about anything. The subject is the first
+    lead, because the door is `criterion drop <lead>` *bare* — the addressed form is refused,
+    the address being exactly what stopped existing, so a remedy spelling `--block` would name
+    a command that cannot run (RK16). A region the last drop leaves empty carries no lead and
+    therefore no door: the heading survives its bullets by design (RK1265), and `--fix` is what
+    takes that one.
+    """
+    backlog = Backlog.during(
+        config,
+        roadmap=roadmap,
+        ledger=documents.get("changelog"),
+        store=documents.get("deferred"),
+    )
+    labels = backlog.declared_blocks()
+    open_ids = {entry.task.id for entry in roadmap.entries}
+    if documents.get("deferred") is not None:
+        # A paused line still exists and a `resume` brings it back, so its list is not an
+        # orphan — the address is spent by a departure and never by setting work aside (RK92).
+        open_ids |= {entry.task.id for entry in documents["deferred"].entries}
+    out: list[Finding] = []
+    for at, about in criteria._regions(roadmap):  # noqa: SLF001 - the region reader is its own
+        addresses_task = criteria.addresses_task(config.schema, about)
+        if about in (open_ids if addresses_task else labels):
+            continue
+        named = criteria.named(config.schema, about)
+        held = criteria.read(roadmap, about)
+        out.append(
+            Finding(
+                "criterion.orphan",
+                file,
+                f"nothing answers {named} any more, so this list asks what would finish work "
+                f"that has "
+                + ("left the backlog" if addresses_task else "no heading in any file")
+                + ": a criterion is addressed by the pair, and half of it is gone",
+                at + 1,
+                # The lead of the first bullet, which is what the bare `criterion drop` takes.
+                # Empty where the region has none, and the remedy table answers no door for a
+                # blank subject — which is the state `--fix` is for.
+                subject=held[0].lead if held else "",
+            )
+        )
     return out
 
 

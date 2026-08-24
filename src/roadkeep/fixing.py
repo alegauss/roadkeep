@@ -59,7 +59,7 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from roadkeep import queueing
+from roadkeep import criteria, queueing
 from roadkeep.backlog import Backlog, id_order
 from roadkeep.config import PROSE_ROLES, Config
 from roadkeep.kernel.document import Document, StaleFile, ending, write_atomically
@@ -306,6 +306,15 @@ def _fix_file(config: Config, role: str, backlog: Backlog) -> Fix:
             return Fix(skipped=tuple(skipped), refused=(f"{file}: {problem}",))
         repairs.extend(dequeued)
 
+        # `_dequeue`'s twin, one list over (RK1318): a `Done when` heading addressed to
+        # something no file answers, **with nothing under it**, is derived dead exactly as a
+        # shipped task's queue entry is. Runs after it and proves its own output for the same
+        # reason — a removal moves every line beneath it.
+        text, emptied, problem = _unaddress(config, text, document, backlog, file)
+        if problem is not None:
+            return Fix(skipped=tuple(skipped), refused=(f"{file}: {problem}",))
+        repairs.extend(emptied)
+
     if not repairs:
         return Fix(skipped=tuple(skipped))
     try:
@@ -391,6 +400,74 @@ def _dequeue(
                 removed=True,
             )
             for entry in dead
+        ],
+        None,
+    )
+
+
+def _unaddress(
+    config: Config, text: str, before: Document, backlog: Backlog, file: str
+) -> tuple[str, list[Repair], str | None]:
+    """Remove every `Done when` heading addressed to nothing **and holding nothing** (RK1318).
+
+    :func:`_dequeue`'s twin and the same class: there is one repair, it chooses nothing, and no
+    sentence of anybody's is touched. What makes it derived rather than editorial is the pair —
+    the address no file answers, *and* no bullet under it. Either alone stays the author's:
+
+    * an orphaned list **with** bullets is `criterion drop <lead>`'s, which is the door the
+      finding names, because what goes is somebody's prose and a fixer may not spend it;
+    * an empty list under a **live** address is the state RK1265 built on purpose — a block
+      whose criteria all went is one somebody asked the question about, and deleting it would
+      turn an answer back into a silence.
+
+    So this takes the intersection, which nobody wrote and nothing reads. The heading survives
+    its bullets by design and stops surviving when the thing it asks about does too.
+
+    Silent where the project declared no `[criteria]`, which is `_criteria`'s own gate: a list
+    nothing governs is prose, and a fixer that deleted prose would be the write path this tool
+    exists to keep out of these files (L4).
+    """
+    if config.criteria is None:
+        return text, [], None
+    document = Document.parse(text, schema=before.schema, path=before.path)
+    labels = backlog.declared_blocks()
+    alive = {entry.task.id for entry in document.entries}
+    if backlog.store is not None:
+        alive |= {entry.task.id for entry in backlog.store.entries}
+    dead = [
+        (at, about)
+        for at, about in criteria._regions(document)  # noqa: SLF001 - the region reader is its own
+        if not criteria.read(document, about)
+        and about not in (alive if criteria.addresses_task(config.schema, about) else labels)
+    ]
+    if not dead:
+        return text, [], None
+
+    updated = document
+    # Highest first, so an earlier removal never moves a later one's index.
+    for at, about in sorted(dead, reverse=True):
+        updated, _ = criteria.without(updated, about)
+    written = "".join(updated.lines)
+
+    reparsed = Document.parse(written, schema=before.schema, path=before.path)
+    if {e.task.id for e in reparsed.entries} != {e.task.id for e in document.entries}:
+        return text, [], "the criteria pass changed which tasks the file holds"
+    if len(reparsed.rejects) > len(document.rejects):
+        return text, [], "the criteria pass made a line the grammar no longer reads"
+
+    return (
+        written,
+        [
+            Repair(
+                file,
+                at + 1,
+                about,
+                document.lines[at].rstrip("\r\n"),
+                "",
+                ("a criteria heading addressed to nothing, holding nothing",),
+                removed=True,
+            )
+            for at, about in dead
         ],
         None,
     )

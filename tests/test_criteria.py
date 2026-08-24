@@ -525,3 +525,65 @@ def test_a_shipped_id_is_still_told_the_ledger_holds_it(tmp_path):
         criteria.add(config, "RK1", "Never asked", "Because it shipped.")
 
     assert "the changelog records it as" in str(caught.value)
+
+
+# -- the address the gate never re-asks (RK1318) -------------------------------
+
+
+#: A list whose block no file declares — the state a hand edit or a merge leaves, and which
+#: `block drop` (RK1316) closed at its own door.
+ORPHANED = BACKLOG.replace(
+    "## Non-goals",
+    "## Done when — Block Z\n\n"
+    "- **Every write has a door** the schema refuses at.\n\n"
+    "## Non-goals",
+)
+
+
+def test_a_list_addressed_to_a_block_no_file_declares_is_reported(tmp_path):
+    """The gate reads what a schema can read — shape, the two lengths, a lead stated twice
+    inside one list — and never whether the block or the id it is addressed to is still there.
+    `criteria._addressed` validates that at the write, which is L1 and right; nothing re-asks
+    once the address has gone, and the write path cannot, the block having been there when the
+    bullet was written.
+    """
+    config = project(tmp_path, roadmap=ORPHANED)
+    found = [one for one in lint(config).findings if one.code == "criterion.orphan"]
+    (one,) = found
+    # At the **heading**, because what is orphaned is the list: a bullet under it is not
+    # wrong about anything, and one finding per bullet would be the same fact counted twice.
+    assert one.lineno == ORPHANED.splitlines().index("## Done when — Block Z") + 1
+    assert "Block Z" in one.message
+    # The subject is the first lead, which is what the bare `criterion drop` takes.
+    assert one.subject == "Every write has a door"
+
+
+def test_the_door_is_the_bare_drop_because_the_address_is_what_went(tmp_path):
+    # The addressed form takes a `--block` or a `--task` naming exactly what is gone, which
+    # would be a command that cannot run — the detour RK16 keeps out of a remedy.
+    from roadkeep.remedying import remedy
+
+    config = project(tmp_path, roadmap=ORPHANED)
+    (one,) = [f for f in lint(config).findings if f.code == "criterion.orphan"]
+    found = remedy(one, config)
+    assert found is not None
+    (door,) = found.doors
+    assert door.argv == ("criterion", "drop", "Every write has a door")
+    assert "--block" not in door.argv
+
+
+def test_a_live_address_is_not_an_orphan(tmp_path):
+    # The ordinary state, and the one this must not report on: Block A is declared and RK1 is
+    # open, so neither list is asking about work that left.
+    config = written(tmp_path, "A", "Every write has a door", "the schema refuses at.")
+    assert not [one for one in lint(config).findings if one.code == "criterion.orphan"]
+
+
+def test_an_empty_heading_under_a_live_address_stays(tmp_path):
+    """RK1265 built that state on purpose: a block whose criteria all went is one somebody
+    asked the question about, and reporting it would turn an answer back into a silence."""
+    config = written(tmp_path, "A", "Every write has a door", "the schema refuses at.")
+    criteria.drop(config, "A", "Every write has a door").save()
+    after = Config.discover(tmp_path)
+    assert "## Done when — Block A" in read(after)
+    assert not [one for one in lint(after).findings if one.code == "criterion.orphan"]

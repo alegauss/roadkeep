@@ -281,6 +281,12 @@ PREVENTION: tuple[Prevented, ...] = (
     # arrive by a hand edit or a merge, which is what the gate is for.
     Prevented("criterion.duplicate", "gate", because=HAND),
     Prevented("criterion.shape", "gate", because=HAND),
+    # RK1318, and the one criterion finding whose write path is not a criterion verb: the
+    # address existed when the bullet was written, so `criteria._addressed` was right to
+    # accept it and could not have known. What spends it is `block drop` (RK1316) or
+    # `renumber` (RK1317), and both now carry the list — so what reaches the gate is a hand
+    # edit, a textual merge, or a tree governed before either of them shipped.
+    Prevented("criterion.orphan", "gate", because=HAND),
     # RK1266, and the twins of the two above: `non-goal add` refuses a lead the list already
     # carries, and nothing renders a bullet with no bold head — `scoping.Unshaped` is the
     # refusal that says so at the one verb that would have.
