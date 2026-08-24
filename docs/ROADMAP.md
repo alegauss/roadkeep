@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1336** (deps: —) **the session budget's door reprints the total instead of ranking the descriptions a reader has to cut** — It offers cost --session, which restates the overrun, and names only withdrawing a verb or re-arguing the ceiling — not the ranking RK1335 taught to carry this ceiling. → §RK1336
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

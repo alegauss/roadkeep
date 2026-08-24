@@ -229,7 +229,10 @@ def test_a_read_is_never_something_repair_would_execute():
         assert found is not None
         if found.kind == "read":
             assert not found.runnable, code
-            assert len(found.doors) == 1, code
+            # One door, or an ordered several that says it is one (RK1336). The claim here
+            # was never about the count — it is that a read is not a repair — and the count
+            # rode along until a read needed a second step.
+            assert len(found.doors) == 1 or found.sequence, code
 
 
 def test_a_decision_is_stated_exactly_where_there_is_one():
@@ -241,9 +244,29 @@ def test_a_decision_is_stated_exactly_where_there_is_one():
             # and reading its refusal — which is the loop this whole task removes.
             assert len(found.doors) > 1, code
             assert found.decision, code
+            assert not found.sequence, code
+        elif found.sequence:
+            # RK1336's shape and the reason this branch is not `len(doors) == 1` relaxed: a
+            # row may carry several doors that are *ordered*, and until it could say so the
+            # only meaning several had was a choice. Named on the row rather than read off
+            # the count, so the two cases stay tellable apart.
+            assert len(found.doors) > 1, code
+            assert not found.decision, code
         else:
             assert len(found.doors) == 1, code
             assert not found.decision, code
+    # Exhaustive and not a widened disjunction: several doors are a choice or a sequence, and
+    # a row that claimed both or neither would be the state this invariant exists to refuse.
+    several = [
+        remedy(Finding(code, "ROADMAP.md", "", 1, "RK1")) for code in codes()
+    ]
+    assert [
+        one.code for one in several if one and len(one.doors) > 1
+    ] == [
+        one.code
+        for one in several
+        if one and (bool(one.decision) ^ one.sequence) and len(one.doors) > 1
+    ]
 
 
 # -- the shape of a remedy -------------------------------------------------
@@ -1505,3 +1528,31 @@ def test_no_door_addressing_a_section_substitutes_an_address_the_finding_never_n
             if named and named != BLANK and named not in found.message:
                 wrong.append((found.code, named, found.message))
     assert wrong == [], wrong
+
+
+def test_a_read_may_be_a_sequence_and_the_order_is_the_claim():
+    """RK1336. `budget.session` says the surface is over and no single tool is at fault, then
+    sent the reader to `cost --session` — which reprints the figure the finding just gave and
+    names no tool, when what they do next is pick one to cut. The read that ranks them is
+    `cost --tools`, and it could not answer a session question until RK1335 taught it this
+    ceiling, so the single door was right to avoid it then and wrong to afterwards.
+
+    Measured on this corpus before the change: the ceiling has been re-argued six times and a
+    served flag withdrawn once, and a whole verb never — so ranking is not the detour."""
+    found = remedy(Finding("budget.session", "roadkeep.toml", "", None, ""))
+    assert found is not None and found.kind == "read"
+    assert found.sequence and not found.decision
+    # The order is the claim: rank, then price the whole. A set would say the same about
+    # either arrangement, which is what makes this an assertion about the list.
+    assert [door.argv for door in found.doors] == [
+        ("cost", "--tools"),
+        ("cost", "--session"),
+    ]
+    # And every step reaches the reader, where the terminal register spoke only the first: a
+    # row carrying a sequence that printed its head drops the step saying what to do with
+    # what the head shows.
+    spoken = found.spoken()
+    assert "cost --tools" in spoken and "cost --session" in spoken
+    # `door` stays the one-door accessor, so a caller wanting *the* command still gets None
+    # here rather than silently the first of two.
+    assert found.door is None

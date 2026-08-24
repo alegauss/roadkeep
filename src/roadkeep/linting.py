@@ -1621,9 +1621,12 @@ def _served(config: Config) -> list[Finding]:
                 f"the served surface is {sent.held} characters — {len(sent.tools)} "
                 f"tool(s) and the handshake, less what names the checkout — against a budget "
                 f"of {config.tool_session}: "
+                # The ranking and not the total (RK1336): naming `--session` here restated the
+                # figure this sentence had just given, and the reader's next act is to pick a
+                # description. The doors beneath carry both, in the order the work goes.
                 f"every session pays this at connect before it calls anything, and no one "
-                f"tool is at fault — `{invocation()} cost --session` prints it beside "
-                f"what the resident files cost each turn",
+                f"tool is at fault — `{invocation()} cost --tools` ranks every description "
+                f"against this ceiling and prints the room each has",
                 subject="session",
             )
         )

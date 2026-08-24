@@ -445,6 +445,15 @@ class Remedy:
     #: What has to be chosen between the doors. Non-empty exactly when ``kind`` is
     #: ``decide``, because a single door has nothing to decide between.
     decision: str = ""
+    #: Whether several doors are **ordered** rather than alternative (RK1336). Until this
+    #: existed, more than one door meant one thing — a choice — and a row whose doors are
+    #: steps had nowhere to say so: `budget.session` needs the read that ranks the
+    #: descriptions before the read that prices the whole, and neither is an alternative to
+    #: the other. Named rather than inferred from the count, because a rule that spelled
+    #: *choose one of these* and *do these in turn* the same way would hide the difference
+    #: the reader most needs — which is the argument the doors table already makes about
+    #: naming why a site is not executed instead of writing "no".
+    sequence: bool = False
 
     @property
     def door(self) -> Door | None:
@@ -482,6 +491,10 @@ class Remedy:
         return {
             "kind": self.kind,
             "decision": self.decision,
+            # Both registers say which kind of several these are (RK1336): a consumer looking
+            # at two doors and a blank decision would otherwise have to guess whether to offer
+            # a choice or a sequence, which is the guess the stated register no longer makes.
+            "sequence": self.sequence,
             "doors": [door.payload(served) for door in self.doors],
         }
 
@@ -491,6 +504,13 @@ class Remedy:
             return f"{self.decision}\n" + "\n".join(
                 f"    {door.spoken(served)}" for door in self.doors
             )
+        if self.sequence:
+            # Every door and not the first (RK1336): a row carrying more than one names a
+            # sequence, and printing the head of it silently drops the step that says what to
+            # do with what the first one shows. `decide` already rendered its several because
+            # choosing between them is its whole content — this is the same rendering for a
+            # row whose several are ordered rather than alternative.
+            return "\n    ".join(door.spoken(served) for door in self.doors)
         return self.doors[0].spoken(served)
 
     def __str__(self) -> str:
@@ -515,6 +535,9 @@ class _Rule:
     #: stop. A ``fix`` door cannot — its `what` describes the *repair* — so the cause is
     #: written there and only there. `tests/test_remedying.py` holds both directions.
     cause: str = ""
+    #: Whether several doors are ordered rather than alternative (RK1336). See
+    #: :attr:`Remedy.sequence`, which this fills in.
+    sequence: bool = False
     #: Whether this row's doors name another tool's command (RK451). On the row and not on
     #: each door, because it is a property of the *kind*: `restore` is the one that leaves
     #: this tool's vocabulary, and a door-by-door flag would let a row be half foreign.
@@ -544,6 +567,18 @@ def _restore(argv: tuple[str, ...], what: str) -> _Rule:
 def _read(argv: tuple[str, ...], what: str) -> _Rule:
     """One command that answers the finding and writes nothing. See :data:`KINDS`."""
     return _Rule("read", ((argv, what),))
+
+
+def _reads(*steps: tuple[tuple[str, ...], str]) -> _Rule:
+    """Two or more reads that answer one finding, in the order the work goes (RK1336).
+
+    :func:`_read`'s plural, and the reason it exists rather than a second single door: a
+    finding whose remedy is *pick something and cut it* needs the read that ranks the
+    candidates before the read that prices the whole, and one door can only be one of those.
+    The sequence is the claim, as it already is for a `run` row — a second step is not an
+    alternative to the first.
+    """
+    return _Rule("read", steps, sequence=True)
 
 
 def _compose(argv: tuple[str, ...], what: str) -> _Rule:
@@ -1356,11 +1391,25 @@ _TABLE: Mapping[str, _Rule] = {
         "result is a task a session opens the roadmap for; what closes it is a shorter "
         "design, a narrower field, or a ceiling re-argued in `roadkeep.toml`",
     ),
-    "budget.session": _read(
-        ("cost", "--session"),
-        "the whole served surface is past what `[tools] session` allows and no single tool "
-        "is; this prints it beside what the resident files cost each turn, and what closes "
-        "it is a verb withdrawn or a ceiling re-argued in `roadkeep.toml`",
+    # Two reads and the ranking first (RK1336). The finding says no single tool is at fault,
+    # then had to send the reader somewhere no tool was named at all — when what they do next
+    # is pick one. Measured on this corpus: the ceiling has been re-argued six times and a
+    # served flag withdrawn once, and a whole verb never, so the ranking is not the detour the
+    # single door assumed. It could not have been offered before RK1335, which is what taught
+    # `--tools` to carry this ceiling rather than only the per-tool one.
+    "budget.session": _reads(
+        (
+            ("cost", "--tools"),
+            "the whole served surface is past what `[tools] session` allows and no single "
+            "tool is; this ranks every description against that ceiling and prints the room "
+            "each has, which is what picking one to cut needs",
+        ),
+        (
+            ("cost", "--session"),
+            "and this prices the surface beside what the resident files cost each turn, "
+            "which is what decides whether it is the surface to cut at all; what closes it "
+            "is descriptions shortened or a ceiling re-argued in `roadkeep.toml`",
+        ),
     ),
     # `{id}` is the tool, which this finding carries as its subject (RK1236). The ranking over
     # every tool answers *which one is over* and the finding already said that; what the reader
@@ -1622,7 +1671,7 @@ def remedy(finding: object, config: Config | None = None) -> Remedy | None:
         Door(_scoped(_substitute(argv, values), values, config), what, foreign=rule.foreign)
         for argv, what in rule.doors
     )
-    return Remedy(code, rule.kind, doors, rule.decision)
+    return Remedy(code, rule.kind, doors, rule.decision, rule.sequence)
 
 
 def _varied(

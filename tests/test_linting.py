@@ -2462,7 +2462,9 @@ def test_the_whole_surface_over_its_budget_fails(tmp_path):
     )
     assert whole.file == "roadkeep.toml" and whole.subject == "session"
     assert "no one tool is at fault" in whole.message
-    assert "cost --session" in whole.message
+    # The ranking and not the total (RK1336): the message had restated the figure it
+    # had just given, and the reader's next act is to pick a description.
+    assert "cost --tools" in whole.message
 
 
 def test_the_sum_and_the_tools_that_name_an_author_are_reported_together(tmp_path):

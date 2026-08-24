@@ -208,5 +208,7 @@ def test_the_shared_name_is_a_list_at_every_site():
     from roadkeep.remedying import Remedy
 
     rich = Remedy("line.too-long", "fix", (Door(("lint", "--fix"), "the derived"),)).payload()
-    assert set(rich) == {"kind", "decision", "doors"}
+    # `sequence` joined them in RK1336: which of the two kinds of several these doors
+    # are, published so a consumer offering them does not read it off the count.
+    assert set(rich) == {"kind", "decision", "sequence", "doors"}
     assert isinstance(rich["doors"], list)
