@@ -117,18 +117,14 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 188 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 189 | 2 |
 | C — Query (consult without reading the file) | 0 | 133 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 102 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 122 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 26 | 1 |
-| **Total** | 1 | 820 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1335** (deps: —) **cost --tools states a total the gate no longer uses and no session ceiling, on the read used to decide a cut** — It prints 64679 where budget.session refuses 64612, and publishes each 2800 but never the 64700, so the read for choosing what to cut names neither number. → §RK1335
+| **Total** | 0 | 821 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

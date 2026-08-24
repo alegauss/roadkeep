@@ -1148,7 +1148,9 @@ class Surface:
     #: state the pre-commit hook this project ships runs in.
     provenance: int = 0
 
-    def stated(self, unit: str, each: int | None, largest: int) -> str:
+    def stated(
+        self, unit: str, each: int | None, largest: int, session: int | None = None
+    ) -> str:
         """The ranking, with the room each tool has before the gate says no (RK345, RK1059).
 
         Beside :meth:`payload` since RK1170. The terminal gets the largest few and the payload
@@ -1156,8 +1158,19 @@ class Surface:
         a person is reading a report.
         """
         ranked = list(self.tools)
+        # The gate's own figure and its ceiling, on the read somebody runs *because* a budget
+        # is tight (RK1335): this is the apparatus for deciding what to cut — the ranking and
+        # the room each description has — and it stated the total `budget.session` stopped
+        # refusing after RK1334, beside the per-tool ceiling and never the session one. So the
+        # reader arriving here under session pressure was given neither deciding number.
+        held = (
+            ""
+            if session is None
+            else f" — {self.held} of {session} held, the rest naming the checkout"
+        )
         rows = [
-            f"session    {len(self.tools)} tool(s) and the handshake, {self.characters} {unit}"
+            f"session    {len(self.tools)} tool(s) and the handshake, {self.characters} "
+            f"{unit}{held}"
         ]
         for name, size in ranked[:largest]:
             # The room before the gate says no, said beside the figure it is about: a budget
@@ -1176,7 +1189,9 @@ class Surface:
             )
         return chr(10).join(rows)
 
-    def payload(self, unit: str, each: int | None) -> dict[str, object]:
+    def payload(
+        self, unit: str, each: int | None, session: int | None = None
+    ) -> dict[str, object]:
         return {
             "tools": len(self.tools),
             # The session's whole cost, which is what the verb exists to answer; the two
@@ -1184,6 +1199,13 @@ class Surface:
             "characters": self.characters,
             "tool_list": self.listed,
             "handshake": self.handshake,
+            # What `budget.session` refuses and what it refuses it against, so this read and
+            # that gate cannot come to disagree the way this read and `--session` had
+            # (RK1335). Held apart from `characters` rather than replacing it: a session is
+            # sent the whole thing, and only part of it is anybody's to edit (RK1334).
+            "provenance": self.provenance,
+            "held": self.held,
+            "session": session,
             "unit": unit,
             # Every tool and not the largest few, for the reason above.
             "by_tool": [{"name": name, "characters": size} for name, size in self.tools],

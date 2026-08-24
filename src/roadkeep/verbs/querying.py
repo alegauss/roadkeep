@@ -788,9 +788,11 @@ def _tools_budget(config: Config, args: argparse.Namespace) -> int:
     sent = surface(config)
 
     if args.json:
-        print(json.dumps(sent.payload(CHARACTER_UNIT, config.tool_characters), indent=2))
+        print(json.dumps(sent.payload(CHARACTER_UNIT, config.tool_characters, config.tool_session), indent=2))
     else:
-        print(sent.stated(CHARACTER_UNIT, config.tool_characters, _LARGEST_TOOLS))
+        print(sent.stated(
+            CHARACTER_UNIT, config.tool_characters, _LARGEST_TOOLS, config.tool_session
+        ))
     return EXIT_OK
 
 

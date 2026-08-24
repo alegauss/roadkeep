@@ -2600,3 +2600,35 @@ def test_what_names_the_checkout_is_counted_and_never_held(tmp_path, monkeypatch
         serving, "engine", lambda placed=True: replace(was, modified=not was.modified)
     )
     assert serving.surface(config).characters != real.characters
+
+
+def test_the_read_for_choosing_a_cut_names_the_ceiling_that_sent_you(capsys):
+    """RK1335. Two reads of one surface answered different questions without saying so:
+    `--session` stated `+88 of 64700` and named the 67 characters no ceiling is about, while
+    `--tools` stated the total flat, published the per-tool ceiling and named the session one
+    nowhere — 67 above the figure `budget.session` refuses after RK1334.
+
+    Which read it lands on is the argument. `--tools` is the one somebody runs *because* a
+    budget is tight: it ranks the descriptions and prints the room each has, which is the
+    whole apparatus for deciding what to cut, and the reader arriving there under session
+    pressure was handed the per-tool ceiling and not the one that sent them.
+
+    RK1096 removed two reads doing their own arithmetic over one measurement; this is that
+    shape once more, so the figures come off `Surface` rather than being recomposed here."""
+    config = Config.discover(Path(__file__).resolve().parent.parent)
+    sent = serving.surface(config)
+    assert main(["-C", str(config.root), "cost", "--tools"]) == EXIT_OK
+    printed = capsys.readouterr().out.splitlines()[0]
+    # The gate's number and its ceiling, both, on the header that had neither.
+    assert f"{sent.held} of {config.tool_session} held" in printed
+    # And the whole cost still stated, a session being sent all of it (RK1334).
+    assert str(sent.characters) in printed
+
+    assert main(["-C", str(config.root), "cost", "--tools", "--json"]) == EXIT_OK
+    paid = json.loads(capsys.readouterr().out)
+    assert paid["held"] == sent.held and paid["session"] == config.tool_session
+    assert paid["characters"] - paid["provenance"] == paid["held"]
+    # A project declaring no session ceiling says so rather than inventing one, which is how
+    # `each` already behaves beside it.
+    assert sent.payload("u", None, None)["session"] is None
+    assert "held," not in sent.stated("u", None, 1)
