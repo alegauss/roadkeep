@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1340** (deps: —) **a door prints a blank for the id its own finding carries, so the reader types what the tool just held** — id.paused-and-gone is emitted with the task id and still offers show … and origin …, while the same table already spells cost --tools {id}. → §RK1340
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

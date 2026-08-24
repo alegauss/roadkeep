@@ -77,6 +77,29 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1340 The blank where a substitution goes
+
+`id.paused-and-gone` is emitted with the task id as the finding's own — the walk over
+`PAIRS` passes `task_id` — and its two doors print `show …` and `origin …`. So the
+reader types the one value the tool just held, on a finding whose whole content is that
+this id is in two files at once. The substitution exists in the same table:
+`budget.tool` reads `cost --tools {id}`.
+
+RK1339 made the seven positional blanks a named list, and naming them is what shows they
+are not one thing. `grammar.unreadable` carries no id at all and its blank means *any
+one line*, which is the reader's choice and correctly a blank. `status.unknown` wants a
+marker, which is a choice among those declared. Those stay. The ones whose blank is a
+value the finding holds do not.
+
+The rule is the same one the tool applies to prose: it fills in what it derives and asks
+for what is the author's (L4). A blank standing where a substitution would go is that
+line drawn in the wrong place, and it costs the reader a lookup on the read whose
+purpose was to spare one (L5).
+
+Falsified if the id a carried-pair finding holds is not the argument those doors want -
+if `show` on it would print the wrong side of the pair - in which case the blank is a
+choice between two files and not a value at all.
+
 ## Block C — Query
 
 ## Block D — The gate
