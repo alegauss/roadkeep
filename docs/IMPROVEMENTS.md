@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1345 The measurement of an empty set
-
-Measured on an ungoverned repository's `CHANGELOG.md`: 717 lines, 398 recognised,
-`parsed: 0` and `changing: 361`. The report then prints `symptom longest 0 of 120
-utf-16-code-units, 0 over`, and the same for `why` and `line`. Nothing was measured.
-What an adopter reads is that their fields fit.
-
-The tool already tells this apart elsewhere. The same run on `IMPROVEMENTS.md` prints
-`unread nothing in 837 line(s) was read in any shape`, because there nothing was
-recognised either; and `govern` answers `reading none — <why>` for a key no file holds
-evidence about, rather than `0`. The gap is the middle case: lines recognised, none
-parsed, so no `unread` row fires and the measurements are of an empty set.
-
-`0 over` is the half that misleads. A count of violations over a population of nothing
-is vacuously true, and it is printed in the same column as a real one - the ROADMAP.md
-beside it reads `longest 102 of 120, 0 over`, and those two rows look alike and are not.
-
-This is RK1343's shape one verb over: an answer that is technically defensible and reads
-in the reassuring direction, on the output whose whole job is a decision by somebody who
-has not used this format.
-
-Falsified if a parsed population can be genuinely empty of a field - if `longest 0` ever
-means measured-and-nil rather than nothing-measured - in which case the number is right
-and only `0 over` is the claim to drop.
-
 ## Block C — Query
 
 ## Block D — The gate

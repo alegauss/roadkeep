@@ -2644,3 +2644,52 @@ def test_every_gain_is_separated_from_its_sentence_whatever_its_label(tmp_path, 
     # searching for the sentence: its first word appears again further along the line.
     columns = {re.match(r"\s*\S+\s+", row).end() for row in printed}
     assert len(columns) == 1, (columns, printed)
+
+
+def test_a_field_nothing_parsed_is_unread_and_not_a_fitting_zero(tmp_path, capsys) -> None:
+    """RK1345. Measured on an ungoverned `CHANGELOG.md`: 717 lines, 398 recognised, `parsed:
+    0`, `changing: 361` — and three rows reading `longest 0 of 120, 0 over`. Nothing was
+    measured, and what an adopter reads is that their fields fit.
+
+    `0 over` is the half that misleads: a count of violations over an empty population is
+    vacuously true and sits in the column a real one does. The same report tells the two apart
+    a row above — `unread nothing in 837 line(s) was read in any shape` — and `govern` answers
+    `reading none — <why>` rather than `0`. The gap was the middle case: lines recognised,
+    none parsed, so no `unread` row fires and the measures are of an empty set."""
+    target = tmp_path / "ROADMAP.md"
+    # Recognised as a bullet and refused as an entry — a `why` that is blank does not parse,
+    # which is the state that produced this on a real file.
+    target.write_text(
+        "# Roadmap\n\n## Block A\n\n"
+        "- 📋 **RK1** (deps: —) **A symptom plainly long enough to read** — \n",
+        encoding="utf-8",
+    )
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "RK"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "nothing parsed as an entry" in printed
+    # Every field it did not read is named, and none of them claims a number.
+    for field in ("symptom", "why", "line"):
+        assert field in printed
+        assert f"{field}  longest" not in printed
+    # No row claims a length over a population that is empty. The non-goals *header* keeps its
+    # `0 over`, and rightly: it says `0 bullet(s)` in the same clause, so the count the verdict
+    # is over is named before the verdict — which is the whole difference this task is about.
+    assert "longest 0 of" not in printed
+    assert "0 bullet(s), 0 unread, 0 over" in printed
+
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "RK", "--json"]) == EXIT_OK
+    measures = json.loads(capsys.readouterr().out)["measures"]
+    assert measures, "the limits stay, being what an adopter came to see"
+    for one in measures:
+        assert one["longest"] is None and one["over"] is None, one
+        assert one["limit"], one
+
+    # And where a line does parse, the numbers are back — this narrows a claim, it does not
+    # withdraw one.
+    target.write_text(
+        "# Roadmap\n\n## Block A\n\n"
+        "- 📋 **RK1** (deps: —) **A symptom plainly long enough to read** — A reason.\n",
+        encoding="utf-8",
+    )
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "RK"]) == EXIT_OK
+    assert "longest" in capsys.readouterr().out

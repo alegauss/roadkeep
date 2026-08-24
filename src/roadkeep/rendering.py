@@ -1049,7 +1049,18 @@ def _print_estimate(estimate: Estimate) -> None:
             f"  ids      {shape.count} id(s) {spells}, refused here: "
             f"[ids] {shape.declaration} {when}"
         )
-    for measure in estimate.measures:
+    if estimate.measures and not estimate.parsed:
+        # A measurement of nothing, said once instead of three times as a zero (RK1345).
+        # Printing `longest 0 of 120, 0 over` per field is defensible and reads as *your
+        # fields fit*: `0 over` is vacuously true over an empty population and sits in the
+        # same column as a real count — an ungoverned changelog measured 717 lines, 398
+        # recognised, none parsed, and said it three times. The verb already tells the two
+        # apart elsewhere, `govern` answering `reading none — <why>` rather than `0`.
+        print(
+            f"  fields   none — nothing parsed as an entry, so "
+            f"{', '.join(one.field for one in estimate.measures)} went unread"
+        )
+    for measure in estimate.measures if estimate.parsed else ():
         # Printed even at zero over: the number an adopting project is here for is the
         # *longest*, which is what a limit gets set from, and a measure that appears only
         # once it is exceeded is one nobody can declare a limit from (RK99).
@@ -1212,6 +1223,16 @@ def _print_scoped(scoped) -> None:
         f"  non-goals {scoped.parsed} bullet(s), {scoped.unparsed} unread, "
         f"{scoped.over} over — [non_goals] {governed}"
     )
+    if scoped.measures and not scoped.parsed:
+        # The same empty population as the fields above (RK1345), and the same answer. The
+        # header already says `0 bullet(s)`, which is what makes the two rows beneath it worth
+        # narrowing rather than dropping: a reader who has just been told the count is nought
+        # is the one most likely to read `0 over` as a verdict on their prose.
+        print(
+            f"    fields   none — no bullet parsed, so "
+            f"{', '.join(one.field for one in scoped.measures)} went unread"
+        )
+        return
     for measure in scoped.measures:
         print(
             f"    {measure.field:<8} longest {measure.longest} of {measure.limit} "
@@ -1260,8 +1281,12 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
             {
                 "field": m.field,
                 "limit": m.limit,
-                "longest": m.longest,
-                "over": m.over,
+                # `null` where nothing parsed, so a consumer reads an absent measurement as
+                # one rather than as a fitting zero (RK1345). The limit stays, being a fact
+                # about the schema and the thing an adopter came to see; `longest` and `over`
+                # are the two that would be claims about a population that is empty.
+                "longest": m.longest if estimate.parsed else None,
+                "over": m.over if estimate.parsed else None,
                 # RK437: which counter the two figures beside it are in. `[limits]` is one
                 # table in three units, and a payload that named none left a caller to assume
                 # the wrong one on exactly the row where assuming is wrong.
@@ -1287,8 +1312,9 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
                 {
                     "field": m.field,
                     "limit": m.limit,
-                    "longest": m.longest,
-                    "over": m.over,
+                    # Absent where no bullet parsed, as the fields above are (RK1345).
+                    "longest": m.longest if estimate.non_goals.parsed else None,
+                    "over": m.over if estimate.non_goals.parsed else None,
                     "unit": m.unit,
                 }
                 for m in estimate.non_goals.measures

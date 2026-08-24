@@ -258,6 +258,7 @@
 - ✅ **RK1342** **deps prints its own spelling of no-open-task, so a paused line is invisible where the shared refusal names it** — The second spelling is deleted, so deps refuses through the class whose three answers include the pause and its door (design recorded in `src/roadkeep/verbs/querying.py`).
 - ✅ **RK1343** **govern tells every undeclared key that a build default applies, and three of them have no default at all** — An undeclared key is told the number that holds it, or that nothing does and which gate is off until one is written (design recorded in `src/roadkeep/governing.py`).
 - ✅ **RK1344** **two adopt gains have labels the fixed pad cannot separate, so the row runs its first word into its sentence** — The gains column is padded to the widest label of the rendering, so a label reaching the old constant no longer runs into its sentence (design recorded in `src/roadkeep/rendering.py`).
+- ✅ **RK1345** **adopt prints every field as longest 0 and 0 over where nothing parsed, which reads as fields that fit** — A field nothing parsed is reported unread in both registers, where a zero longest beside a zero over read as a measurement that fitted (design recorded in `src/roadkeep/rendering.py`).
 
 ## Block C — Query
 
