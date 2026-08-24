@@ -819,9 +819,10 @@ def test_a_ship_carrying_both_clauses_composes_from_the_payload_alone(tmp_path, 
 
     # The allowance, overlaid the way any consumer of a delta reads it (RK1298).
     base = {row["field"]: row for row in payload["budget"]["fields"]}["why"]
-    allowed = payload["shipping"]["changed"]["fields"].get("why", {}).get(
-        "allowed", base["allowed"]
-    )
+    # `.get` at both levels, which is how a delta is read: a key absent means nothing moved,
+    # and `fields` itself is absent where no field did (RK1298).
+    moved = payload["shipping"]["changed"].get("fields", {})
+    allowed = moved.get("why", {}).get("allowed", base["allowed"])
     # And what each clause takes out of it, which is the half that was missing.
     costs = {one["flag"]: one["wrapper"] for one in payload["clauses"]}
     note, path = "the resize endpoint had shipped two blocks earlier", "ROADMAP.md"

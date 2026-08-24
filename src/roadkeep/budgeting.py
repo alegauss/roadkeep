@@ -551,7 +551,17 @@ def budget(
     if retire is not None:
         return _retirement(config, task, retire, why=why, body=body)
     answer = budget_of(
-        config, task, open_line=open_line, ref_assumed=assumed, why=why, body=body
+        config,
+        task,
+        open_line=open_line,
+        ref_assumed=assumed,
+        # The one caller that knows (RK1320): `--symptom` is prose this call was handed, and
+        # a line the roadmap holds carries prose nobody typed here. `or None` and not the
+        # string, because `--symptom ""` is not a draft — it is the absence of one, and the
+        # tri-state `why` has is bought by an argument this one does not take.
+        symptom=symptom or None,
+        why=why,
+        body=body,
     )
     # Named here and not inside `_subject`, which answers with a task: which flags the caller
     # supplied is a fact about the *call*, and the record that publishes it is this one.
@@ -608,6 +618,7 @@ def budget_of(
     open_line: bool,
     ref_assumed: bool = False,
     schema: Schema | None = None,
+    symptom: str | None = None,
     why: str | None = None,
     body: str | None = None,
 ) -> Budget:
@@ -627,6 +638,12 @@ def budget_of(
     *reports* about that share and nothing it is derived from, which is why it arrives here
     rather than on the task. ``None`` leaves the reading every caller before it had — the line's
     own prose, which is what `brief` wants and what an `amend` is about to replace.
+
+    ``symptom`` says the same thing about the other field, and it is **said rather than
+    derived** (RK1320). Unlike ``why`` it is not a value this measures: the symptom is
+    structure to the `why` — what it takes is what the other loses — so it has to be on the
+    task before the line is rendered, and :func:`_subject` puts it there. What arrives here is
+    only *whose it is*, which is the one fact no reading of the task can recover.
     """
     # The **roadmap's** schema and not the base one (RK1225). `[limits.roadmap]` and
     # `[rules.roadmap]` are what that file is held to (RK50, RK52), and `config.schema` carries
@@ -647,9 +664,18 @@ def budget_of(
                 min(schema.symptom_max, prose),
                 width(task.symptom),
                 schema.source_of("symptom_max"),
-                # A symptom on a line the roadmap does not hold came from the caller: there is
-                # no file it could have come from, and `_subject` composed the task out of it.
-                drafted=not open_line and bool(task.symptom),
+                # **Said and no longer derived** (RK1320). This read `not open_line and
+                # bool(task.symptom)`, on the reasoning that a symptom on a line the roadmap
+                # does not hold came from the caller — true of the pre-`add` read the flag was
+                # written for, and false of every shape added since. `brief`'s `shipping` and
+                # `deciding` price a task read off the *file* under the ledger's grammar, and
+                # RK1305's retirement does the same, so one call answered `drafted: false` and
+                # `drafted: true` about the same 93 characters off the same line.
+                #
+                # `open_line` was a proxy for *the caller composed this* and stopped being one
+                # the moment a second reason to pass False existed. The caller that composed
+                # the prose is the caller that knows, which is the argument `why` already takes.
+                drafted=symptom is not None,
             )
         )
     shares.append(

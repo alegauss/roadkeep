@@ -379,6 +379,7 @@
 - ✅ **RK1309** **a new line's section budget is reachable only through brief, which needs an id, so the first body is written blind** — an add that leaves a follow-up now says what that body may weigh, in both registers, before the paragraph exists (design §RK1309 recorded in `src/roadkeep/authoring.py`).
 - ✅ **RK1310** **nothing resolves a sentence to the anchor carrying it, so a section amend addressed by text is guessed and retried** — section find names the anchors whose prose carries a string, with a count each, and the failing --replace names them too (design §RK1310 recorded in `src/roadkeep/sections.py`).
 - ✅ **RK1314** **config prints the criteria table under the non-goals sentence, so the read names the wrong table** — each table's sentence is read where that table is documented, so a shared key set no longer lends its words (design §RK1314 recorded in `src/roadkeep/describing.py`).
+- ✅ **RK1320** **one drafted flag answers two ways about the same prose, so a number is labelled the caller's on a line the file holds** — whose prose a number is about is said by the caller that composed it, so one payload no longer answers two ways (design §RK1320 recorded in `src/roadkeep/budgeting.py`).
 
 ## Block D — The gate
 

@@ -118,17 +118,17 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 182 | 2 |
-| C — Query (consult without reading the file) | 1 | 132 | 2 |
+| C — Query (consult without reading the file) | 0 | 133 | 2 |
 | D — The gate | 2 | 190 | 2 |
 | E — Adoption | 0 | 101 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 2 | 24 | 1 |
-| **Total** | 7 | 806 | 11 |
+| **Total** | 6 | 807 | 11 |
 
 **Next ready:**
 
-- 📋 **RK1320** (deps: —) **one drafted flag answers two ways about the same prose, so a number is labelled the caller's on a line the file holds** — It is derived from open_line, which was a proxy for a caller-composed line and stopped being one when brief began pricing a ship. → §RK1320
+- 📋 **RK1321** (deps: —) **budget serves seven subjects on one tool and is now the largest, so every subject added re-argues a shared ceiling** — Two ceilings moved for it in one session, and a per-tool limit calibrated against one-subject verbs is binding on the wrong thing. → §RK1321
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

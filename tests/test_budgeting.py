@@ -2977,3 +2977,43 @@ def test_the_state_word_says_which_write_the_figures_are_about(tmp_path, capsys)
     said = capsys.readouterr().out
     assert "(the ledger line retire writes)" in said
     assert "derived    `abandoned: `" in said
+
+
+# -- whose prose a number is about, said and not derived (RK1320) --------------
+
+
+def test_one_flag_no_longer_answers_two_ways_about_one_sentence(tmp_path, capsys):
+    """Measured on this repository, one call: `brief RK1311 --json` answered
+    `budget.fields.symptom.drafted = false` and `shipping.changed.fields.symptom.drafted =
+    true` about the same 93 characters, read off the same roadmap line, in the same payload.
+
+    `Share.drafted` says whether `taken` is prose the caller handed over rather than prose the
+    file holds (RK1190). It changes no arithmetic and every word of the answer: *93 drafted*
+    about a symptom nobody typed is a report about the wrong file.
+    """
+    config = project(tmp_path)
+    line = budget(config, "RK1")
+    shipped = budget_of(
+        config,
+        line.task,
+        open_line=False,
+        schema=config.schema_for("changelog"),
+    )
+    # Same sentence, same file, one answer. `open_line` was a proxy for *the caller composed
+    # this* and stopped being one the moment a second reason to pass False existed.
+    assert line.share("symptom").taken == shipped.share("symptom").taken
+    assert line.share("symptom").drafted is False
+    assert shipped.share("symptom").drafted is False
+
+
+def test_a_symptom_the_caller_typed_is_still_theirs(tmp_path):
+    # The half this must not cost: the pre-`add` read the flag was written for, where there is
+    # no file the prose could have come from and `_subject` composed the task out of it.
+    config = project(tmp_path)
+    drafted = budget(config, block="A", symptom="A drafted symptom")
+    assert drafted.share("symptom").drafted is True
+    assert drafted.share("symptom").taken == len("A drafted symptom")
+
+    # And an empty flag is the absence of a draft rather than one: `--symptom ""` asks what an
+    # empty field costs, and nothing was handed over to be called the caller's.
+    assert budget(config, block="A").share("symptom").drafted is False

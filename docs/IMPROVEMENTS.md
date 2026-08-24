@@ -79,30 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1320 RK1320
-
-Measured on this repository, one call. `brief RK1311 --json` answers
-`budget.fields.symptom.drafted = false` and `shipping.changed.fields.symptom.drafted =
-true` about the same 93 characters, read off the same roadmap line, in the same payload.
-
-`Share.drafted` says whether `taken` is prose the caller handed over to be measured
-rather than prose the file holds (RK1190). It changes no arithmetic and every word of
-the answer: *93 drafted* about a symptom nobody typed is a report about the wrong file,
-and the caller cannot tell the two apart from the number.
-
-`budget_of` derives it as `not open_line and bool(task.symptom)`, with the reasoning
-that a symptom on a line the roadmap does not hold came from the caller - which is true
-of the pre-`add` read the flag was written for. It is false of every shape added since:
-`brief`'s `shipping` and `deciding` price a task read off the file under the ledger's
-grammar, and RK1305's retirement does the same. `open_line` was a proxy for *the caller
-composed this* and stopped being one the moment a second reason to pass False existed.
-
-The fix is to say it rather than derive it: the caller that composed the prose is the
-caller that knows, and `budget_of` already takes a `why` draft on exactly that argument.
-
-Falsified if some caller passes `open_line=False` about prose it did compose and has no
-other way to say so.
-
 ## Block D — The gate
 
 ### §RK1322 RK1322

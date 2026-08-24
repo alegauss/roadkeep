@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1320** (deps: —) **one drafted flag answers two ways about the same prose, so a number is labelled the caller's on a line the file holds** — It is derived from open_line, which was a proxy for a caller-composed line and stopped being one when brief began pricing a ship. → §RK1320
-
 ## Block D — The gate
 
 - 📋 **RK1322** (deps: —) **the tree is split between two line terminators and nothing reads which a file is, so an append lands in the wrong one** — The gate refuses a file that mixes them and says nothing about 47 of 148 sources being CRLF, so the split is found by breaking it. → §RK1322

@@ -28,6 +28,7 @@
 - ✅ **RK1309** **a new line's section budget is reachable only through brief, which needs an id, so the first body is written blind** — A limit an author is about to compose against is stated where the id is minted, not only through a read that needs the line to exist already.
 - ✅ **RK1310** **nothing resolves a sentence to the anchor carrying it, so a section amend addressed by text is guessed and retried** — A read that resolves a sentence to its anchor is a verb, because the loop it replaces prints a file into a context window once per guess.
 - ✅ **RK1314** **config prints the criteria table under the non-goals sentence, so the read names the wrong table** — A read that says what may be declared describes each table from its own words, never from the shape it shares with another.
+- ✅ **RK1320** **one drafted flag answers two ways about the same prose, so a number is labelled the caller's on a line the file holds** — A flag about whose prose a figure measures is passed by the caller that wrote it, never derived from a shape that once implied it.
 
 ## Block D — The gate
 
