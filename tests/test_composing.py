@@ -337,7 +337,6 @@ def test_the_doors_close_the_gate_and_not_only_parse(tmp_path, capsys):
 POSITIONAL: dict[str, str] = {
     "priority.shape": "the id or the `Block X` the bullet should have addressed",
     "block.format": "the label, which is what the finding says cannot be rendered",
-    "id.paused-and-gone": "which of the two ids to read, and the finding carries both",
     "ref.dangling": "the cited anchor, which the finding names",
     "status.unknown": "the marker to set, which is a choice among those declared",
     "grammar.unreadable": "any one line, so the reader compares it with the rendering",

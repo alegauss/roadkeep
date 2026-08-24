@@ -963,8 +963,15 @@ _TABLE: Mapping[str, _Rule] = {
     "id.paused-and-gone": _decide(
         "the ledger records this id as gone and the store still says it is paused; which "
         "of the two is the leftover is a fact about what actually happened:",
-        (("show", BLANK), "the entry and the pause side by side"),
-        (("origin", BLANK), "which commit wrote each, which is what dates the pair"),
+        # `{id}` and no longer a blank (RK1340): the walk over `PAIRS` passes the task id as
+        # this finding's own, so printing `…` asked the reader to type the one value the tool
+        # had just held — on a finding whose whole content is that this id is in two files.
+        # And the sentence says what `show` does: it joins a task out of the files holding a
+        # piece of it and reports the ledger's, the store's pause appearing in neither
+        # register — so *side by side* was a promise the door could not keep.
+        (("show", "{id}"), "the entry as the ledger holds it, which is the side claiming the "
+                           "work is done"),
+        (("origin", "{id}"), "which commit wrote each, which is what dates the pair"),
     ),
     # The store's own pair (RK1081). `resume` and not `defer`: the roadmap already says the
     # work is open, which is what a resume produces, so the store entry is the stale half.

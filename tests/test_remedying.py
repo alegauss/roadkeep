@@ -1583,3 +1583,22 @@ def test_the_duplicate_anchor_door_is_the_one_this_scheme_has(tmp_path):
     # Both doors the refusal of the old one already named, and neither is `section move`.
     assert [door.argv[0] for door in identified.doors] == ["renumber", "section"]
     assert "anchors --next" not in identified.spoken()
+
+
+def test_a_door_names_the_id_its_finding_carries_rather_than_a_blank():
+    """RK1340. `id.paused-and-gone` is emitted with the task id — the walk over `PAIRS` passes
+    it — and its doors printed `show …` and `origin …`, asking the reader to type the one
+    value the tool had just held, on a finding whose whole content is that this id is in two
+    files at once. The substitution is the same one `budget.tool` already spells.
+
+    The sentence moved with the argv, which is the half worth a test of its own: `show` joins
+    a task out of the files holding a piece of it and reports the ledger's side, the store's
+    pause appearing in neither of its registers — so *the entry and the pause side by side*
+    was a promise the door could not keep, and filling the blank would have made it a promise
+    that ran.
+    """
+    found = remedy(Finding("id.paused-and-gone", "docs/CHANGELOG.md", "", 5, "RK7"))
+    assert found is not None
+    assert [door.argv for door in found.doors] == [("show", "RK7"), ("origin", "RK7")]
+    assert all(BLANK not in door.argv for door in found.doors)
+    assert "side by side" not in found.spoken()
