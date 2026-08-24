@@ -261,6 +261,11 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # And the third (RK190): what the line being proposed leaves its prose, which
         # `maxLength` cannot publish because it moves with the deps and the symptom.
         "budget",
+        # The other tense (RK1321): `budget` says what a write **may** spend before a
+        # word exists, and this what the surface **does** spend already. Eight subjects
+        # under one name made that verb the largest served tool, so whichever arrived
+        # last was refused by a per-tool ceiling none of them was about.
+        "cost",
         "brief",
         "pick",
         "list",
@@ -2515,7 +2520,7 @@ def test_every_argument_the_surface_withholds_says_why():
     """The reading RK1099 asked for, run rather than written down.
 
     `unconditional` is a whitelist, so withholding is what happens when nobody acts — and RK1095
-    added `budget --session` to the parser, left it off the tool, and it stayed CLI-only through
+    added `cost --session` to the parser, left it off the tool, and it stayed CLI-only through
     two more tasks. Nothing was watching: what eventually caught it was a remedy door naming the
     flag, which is a coincidence and not a check.
 

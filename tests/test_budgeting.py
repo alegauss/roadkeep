@@ -972,7 +972,7 @@ def test_the_tool_list_states_what_it_costs_a_session(tmp_path, capsys):
     from roadkeep.serving import TOOLS
 
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools"]) == EXIT_OK
     printed = capsys.readouterr().out
     # Both messages a session is handed before its first call (RK1062), because reporting
     # one of them made the other a place an author could move text into and measure a win.
@@ -987,7 +987,7 @@ def test_the_payload_carries_every_tool_and_the_terminal_the_largest(tmp_path, c
     from roadkeep.serving import TOOLS
 
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["tools"] == len(TOOLS) == len(payload["by_tool"])
     assert payload["tool_list"] == sum(row["characters"] for row in payload["by_tool"])
@@ -1007,7 +1007,7 @@ def test_the_handshake_is_counted_as_what_it_actually_carries(tmp_path, capsys):
     from roadkeep.kernel.schema import width
 
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["handshake"] == width(instructions())
 
@@ -1018,18 +1018,26 @@ def test_the_figure_moves_with_what_the_surface_actually_publishes(tmp_path, cap
     from roadkeep.serving import descriptors
 
     config = budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     described = {one["name"] for one in descriptors(config)}
     assert {row["name"] for row in payload["by_tool"]} == described
 
 
 def test_the_fifth_subject_is_named_and_never_combined(tmp_path, capsys):
+    # Within one verb, which is what the rule is about (RK489). Since RK1321 the surface
+    # subjects live on `cost` and the prose ones on `budget`, so a pair across the two is two
+    # commands and not two answers — the refusal that matters is each verb's own.
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools", "--file"]) == EXIT_USAGE
+    assert main(["-C", str(tmp_path), "cost", "--tools", "--brief"]) == EXIT_USAGE
     said = capsys.readouterr().err
     assert "one answer per call" in said
-    assert "(--tools)" in said and "(--file)" in said
+    assert "(--tools)" in said and "(--brief)" in said
+
+    assert main(["-C", str(tmp_path), "budget", "--file", "--non-goal"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "one answer per call" in said
+    assert "(--file)" in said and "(--non-goal)" in said
 
 
 def test_a_project_declaring_no_budgets_is_still_told_what_the_surface_costs(tmp_path, capsys):
@@ -1037,7 +1045,7 @@ def test_a_project_declaring_no_budgets_is_still_told_what_the_surface_costs(tmp
     whether or not `[budgets]` exists, and a project that declared none is exactly the one
     that has never been told."""
     budgeted(tmp_path, declared=False)
-    assert main(["-C", str(tmp_path), "budget", "--tools"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools"]) == EXIT_OK
     assert "tool(s)" in capsys.readouterr().out
 
 
@@ -1050,7 +1058,9 @@ def test_a_narrowing_flag_is_refused_beside_a_subject_it_does_not_narrow(tmp_pat
     `--tools`, `--file` or `--non-goal`, changing nothing. A caller reading a number it
     believes it narrowed is worse off than one refused (RK16's argument)."""
     budgeted(tmp_path)
-    for subject in (["--tools"], ["--file"], ["--non-goal"]):
+    # `--tools` left with `cost` (RK1321), and `--role` never narrowed it: what is held here
+    # is this verb's own subjects against this verb's own narrowing flag.
+    for subject in (["--file"], ["--non-goal"]):
         assert main(["-C", str(tmp_path), "budget", *subject, "--role", "improvements"]) == EXIT_USAGE
         said = capsys.readouterr().err
         assert "--role narrows --anchor" in said and f"{subject[0]} is a different subject" in said
@@ -1300,7 +1310,7 @@ def test_a_named_ref_is_the_caller_s_and_is_answered_as_it_is(tmp_path):
 
 
 def test_the_file_budget_says_where_the_size_went(tmp_path, capsys):
-    """`budget --tools` ranks tools so an author cutting the schema knows where to cut, and
+    """`cost --tools` ranks tools so an author cutting the schema knows where to cut, and
     the resident file had only a total — so `agents.md` reaching eight bytes of room turned
     *compress the prose rather than the index* into a preference nothing had re-measured.
 
@@ -1359,7 +1369,7 @@ def test_the_session_read_names_two_cadences_and_never_adds_them(tmp_path, capsy
         '[budgets]\n"agents.md" = { bytes = 900 }\n',
         encoding="utf-8",
     )
-    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["once"]["characters"] > 0
     assert payload["each_turn"]["files"][0]["path"] == "agents.md"
@@ -1371,7 +1381,7 @@ def test_the_session_read_answers_a_project_with_no_budgeted_file(tmp_path, caps
     # `--file` raises here; this says the real answer, which is that the schema is the whole
     # of what such a session pays.
     _priced(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session"]) == EXIT_OK
     said = capsys.readouterr().out
     assert "declares no [budgets] file" in said and "once" in said
 
@@ -1380,7 +1390,7 @@ def test_the_session_read_is_a_subject_and_not_a_narrowing(tmp_path, capsys):
     # One answer per call (RK489): asked beside another subject it is refused, which is what
     # makes it a sixth subject rather than a flag on one of the two it reads.
     _priced(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--session", "--tools"]) == EXIT_USAGE
+    assert main(["-C", str(tmp_path), "cost", "--session", "--tools"]) == EXIT_USAGE
     assert "one answer per call" in capsys.readouterr().err
 
 
@@ -1398,9 +1408,9 @@ def test_the_two_surface_reads_share_one_measurement(tmp_path, capsys):
     _priced(tmp_path)
     sent = surface(Config.discover(tmp_path))
 
-    main(["-C", str(tmp_path), "budget", "--tools", "--json"])
+    main(["-C", str(tmp_path), "cost", "--tools", "--json"])
     tools = json.loads(capsys.readouterr().out)
-    main(["-C", str(tmp_path), "budget", "--session", "--json"])
+    main(["-C", str(tmp_path), "cost", "--session", "--json"])
     session = json.loads(capsys.readouterr().out)
 
     # The **schema** and not the cadence total: since RK1243 the once-per-session figure also
@@ -1789,7 +1799,7 @@ def test_the_tool_that_is_over_names_the_field_that_spent_the_bytes(tmp_path, ca
     which was the smallest of six, and the ceiling was still crossed.
     """
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools", "ship"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "ship"]) == EXIT_OK
     printed = capsys.readouterr().out
     assert printed.startswith("ship ")
     # Every field it publishes has a row, and the description has one too — a cost with no
@@ -1799,13 +1809,13 @@ def test_the_tool_that_is_over_names_the_field_that_spent_the_bytes(tmp_path, ca
 
 def test_the_rows_are_largest_first_and_in_the_units_the_gate_counts(tmp_path, capsys):
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools", "ship", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "ship", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     sizes = [row["characters"] for row in payload["by_field"]]
     assert sizes == sorted(sizes, reverse=True)
     assert payload["unit"] == "utf-16-code-units"
     # The same number the ranking prints for this tool, because both come off `descriptor`.
-    assert main(["-C", str(tmp_path), "budget", "--tools", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "--json"]) == EXIT_OK
     ranked = json.loads(capsys.readouterr().out)
     (row,) = [one for one in ranked["by_tool"] if one["name"] == "ship"]
     assert row["characters"] == payload["characters"]
@@ -1816,7 +1826,7 @@ def test_the_parts_do_not_sum_to_the_total_and_the_difference_is_named(tmp_path,
     list and its brackets are bytes no argument spent. A breakdown that quietly balanced
     would have assigned structure to whichever field rounded best."""
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools", "ship", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "ship", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     fields = sum(row["characters"] for row in payload["by_field"])
     assert payload["envelope"] == payload["characters"] - fields
@@ -1828,7 +1838,7 @@ def test_the_row_names_the_file_the_help_string_is_edited_in(tmp_path, capsys):
     records no source location, so what is resolvable is the module the handler was defined
     in — which is the module its parser is built in."""
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools", "ship", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "ship", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["declared_in"].endswith("verbs/shipping.py")
 
 
@@ -1841,7 +1851,7 @@ def test_the_room_is_stated_against_the_ceiling_that_refuses(tmp_path, capsys):
         + "\n[tools]\ncharacters = 4000\n",
         encoding="utf-8",
     )
-    assert main(["-C", str(tmp_path), "budget", "--tools", "ship"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "ship"]) == EXIT_OK
     assert "of 4000" in capsys.readouterr().out
 
 
@@ -1849,19 +1859,19 @@ def test_a_name_no_tool_answers_to_is_refused_and_says_where_the_names_are(tmp_p
     from composing import runs
 
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools", "shipp"]) == EXIT_USAGE
+    assert main(["-C", str(tmp_path), "cost", "--tools", "shipp"]) == EXIT_USAGE
     said = capsys.readouterr().err
     assert "not a tool this project serves" in said
     # Executed as printed (RK1209): the ranking it sends the caller to is accepted, which is
     # what makes it a door rather than a sentence.
-    assert runs(tmp_path, said) == (["budget", "--tools"],)
+    assert runs(tmp_path, said) == (["cost", "--tools"],)
 
 
 def test_bare_is_still_the_ranking_over_every_tool(tmp_path, capsys):
     """The empty string is what a value-taking flag makes of a bare one, and it is a subject
     that was asked for — the reading `--file` already has one subject over."""
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools"]) == EXIT_OK
     assert "tool(s) and the handshake" in capsys.readouterr().out
 
 
@@ -1877,7 +1887,7 @@ def test_the_description_row_says_which_of_its_parts_to_shorten(tmp_path, capsys
     Measured here: 725 of `merge_check`'s 871, and 427 of `claim`'s 949 — the largest row
     either tool has, and the one a reader could not act on."""
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools", "merge_check"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "merge_check"]) == EXIT_OK
     printed = capsys.readouterr().out
     assert "(description)" in printed
     # Named by the flag: what a caller needs is which text to open, and `--check`'s sentence
@@ -1893,7 +1903,7 @@ def test_the_parts_sum_to_the_sentence_and_not_to_the_serialised_row(tmp_path, c
     from roadkeep.serving import TOOLS, _described, _parsers, _subparser
 
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools", "merge_check", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "merge_check", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     parsers = _parsers()
     (tool,) = [one for one in TOOLS if one.name == "merge_check"]
@@ -1910,9 +1920,9 @@ def test_a_description_that_is_one_sentence_has_nothing_to_split(tmp_path, capsy
     """The rule `_print_parts` already keeps one read over: a single-part breakdown is the
     row's own total printed twice."""
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools", "ship", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "ship", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["description_from"] == []
-    assert main(["-C", str(tmp_path), "budget", "--tools", "ship"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "ship"]) == EXIT_OK
     assert "from description" not in capsys.readouterr().out
 
 
@@ -1939,7 +1949,7 @@ def test_the_split_names_what_its_clauses_do_not_account_for(tmp_path, capsys):
     129 for the reader to notice — the docstring said so, and the report is what a reader is
     looking at while subtracting."""
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools", "merge_check"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "merge_check"]) == EXIT_OK
     assert "its key, quoting, and the space between" in capsys.readouterr().out
 
 
@@ -1947,7 +1957,7 @@ def test_both_levels_balance_exactly(tmp_path, capsys):
     """Which is the whole claim: an accounting honest at the top and silent underneath
     teaches a reader to distrust both."""
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools", "merge_check", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "merge_check", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     fields = sum(one["characters"] for one in payload["by_field"])
     assert fields + payload["envelope"] == payload["characters"]
@@ -1961,9 +1971,9 @@ def test_a_row_with_nothing_to_split_reports_no_inner_envelope(tmp_path, capsys)
     own sentence has no seam, so naming what it does not account for would be naming the
     serialisation of a row already printed."""
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--tools", "ship", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "ship", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["description_quoting"] == 0
-    assert main(["-C", str(tmp_path), "budget", "--tools", "ship"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--tools", "ship"]) == EXIT_OK
     assert "its key, quoting" not in capsys.readouterr().out
 
 
@@ -1979,7 +1989,7 @@ def test_the_session_start_line_is_priced_beside_the_schema(tmp_path, capsys):
     adopting session pays, made by editing a literal. RK30's own argument one surface over:
     a limit nobody counts is a limit that moves."""
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session"]) == EXIT_OK
     printed = capsys.readouterr().out
     assert "the session-start notice" in printed
     # Beside the room, which is RK345's pairing everywhere else: a limit that reaches an
@@ -1992,7 +2002,7 @@ def test_the_notice_shares_the_cadence_and_so_is_added(tmp_path, capsys):
     the notice share one, so a reader deciding whether to cut a tool description or a
     sentence of the notice is deciding inside one budget."""
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session", "--json"]) == EXIT_OK
     once = json.loads(capsys.readouterr().out)["once"]
     assert once["characters"] == once["schema"] + once["notice"]
     assert once["notice"] > 0 and once["notice_limit"] == 320
@@ -2010,7 +2020,7 @@ def test_it_is_the_line_this_project_actually_gets(tmp_path, capsys):
 
     config = budgeted(tmp_path)
     said = announce({"cwd": str(config.root)}, config.root)
-    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["once"]["notice"] == width(
         str(_replace(said, stale=()))
     )
@@ -2024,7 +2034,7 @@ def test_the_drift_sentence_is_not_priced_as_resident(tmp_path, capsys):
     from roadkeep.kernel.schema import width
 
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session", "--json"]) == EXIT_OK
     priced = json.loads(capsys.readouterr().out)["once"]["notice"]
     drifted = width(str(Notice(files=("ROADMAP.md",), stale=(".claude/skills/roadkeep",))))
     assert priced < drifted
@@ -2076,7 +2086,7 @@ def test_both_cadences_are_reported_in_one_unit(tmp_path, capsys):
     payload a client validates, and a file on disk. RK1243's notice broke that, being a
     message handed to a session exactly as `agents.md` is."""
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["once"]["unit"] == payload["each_turn"]["unit"] == "utf-16-code-units"
 
@@ -2088,7 +2098,7 @@ def test_the_gate_still_reads_bytes_and_the_report_says_so(tmp_path, capsys):
     report can be compared without the gate being moved."""
     budgeted(tmp_path)
     (tmp_path / "agents.md").write_text(MARKED, encoding="utf-8")
-    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)["each_turn"]
     # On this prose they differ, which is the case the whole task is about.
     assert payload["bytes"] > payload["characters"]
@@ -2101,7 +2111,7 @@ def test_the_loaders_unit_is_named_once_and_not_per_row(tmp_path, capsys):
     difference rather than on the comparison the reader came for."""
     budgeted(tmp_path)
     (tmp_path / "agents.md").write_text(MARKED, encoding="utf-8")
-    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session"]) == EXIT_OK
     printed = capsys.readouterr().out
     assert printed.count("the unit `[budgets]` counts") == 1
 
@@ -2110,7 +2120,7 @@ def test_it_says_nothing_where_the_two_agree(tmp_path, capsys):
     """Which is every ASCII project, and is where there is nothing to say."""
     budgeted(tmp_path)
     (tmp_path / "agents.md").write_text("# Guide\n\nPlain prose, no markers.\n", encoding="utf-8")
-    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session"]) == EXIT_OK
     assert "the unit `[budgets]` counts" not in capsys.readouterr().out
 
 
@@ -2125,7 +2135,7 @@ def test_a_file_that_does_not_decode_falls_back_to_its_bytes(tmp_path, capsys):
     (load,) = [one for one in file_budget(config) if one.path == "agents.md"]
     assert load.characters is None
     assert load.bytes > 0
-    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session"]) == EXIT_OK
     assert "this file is not UTF-8" in capsys.readouterr().out
 
 
@@ -2152,7 +2162,7 @@ def test_a_resident_file_states_what_its_own_budget_has_left(tmp_path, capsys):
     RK345's argument runs the other way — a limit that reaches an author only as a refusal is
     the verdict-after-the-prose this project exists to replace."""
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session"]) == EXIT_OK
     printed = capsys.readouterr().out
     assert "agents.md" in printed
     assert "left of" in printed
@@ -2162,7 +2172,7 @@ def test_the_unit_of_the_room_is_named_because_the_figure_is_not_in_it(tmp_path,
     """RK1245's lesson kept: the row's number is code units and the limit is the project's own
     unit, so the clause says which — mixing them silently is what that task removed."""
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session"]) == EXIT_OK
     (row,) = [
         one for one in capsys.readouterr().out.splitlines() if "agents.md" in one
     ]
@@ -2209,7 +2219,7 @@ def test_the_payload_names_the_limit_a_caller_would_act_on(tmp_path, capsys):
     """A consumer gating on this reads the payload, and the field it needs is which limit is
     about to refuse — not the first one the config happened to declare."""
     budgeted(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session", "--json"]) == EXIT_OK
     (found,) = [
         one
         for one in json.loads(capsys.readouterr().out)["each_turn"]["files"]
@@ -2245,7 +2255,7 @@ def test_the_summary_row_does_not_say_which_unit_refuses(tmp_path, capsys):
     sentences mislead together."""
     budgeted(tmp_path)
     (tmp_path / "agents.md").write_text(MARKED, encoding="utf-8")
-    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session"]) == EXIT_OK
     printed = capsys.readouterr().out
     assert "the unit `[budgets]` counts" in printed
     assert "refuses on" not in printed
@@ -2256,7 +2266,7 @@ def test_the_row_that_does_say_which_unit_refuses_is_the_per_file_one(tmp_path, 
     limits is a property of that file's own content (RK1248)."""
     budgeted(tmp_path)
     (tmp_path / "agents.md").write_text(MARKED, encoding="utf-8")
-    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session"]) == EXIT_OK
     (row,) = [one for one in capsys.readouterr().out.splitlines() if "agents.md" in one]
     assert "left of" in row or "over by" in row
 
@@ -2325,7 +2335,7 @@ def test_it_is_the_same_number_the_session_read_reports(tmp_path, capsys):
     (tmp_path / "agents.md").write_text(SECTIONED, encoding="utf-8")
     assert main(["-C", str(tmp_path), "budget", "--file", "agents.md", "--json"]) == EXIT_OK
     (one,) = json.loads(capsys.readouterr().out)["files"]
-    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session", "--json"]) == EXIT_OK
     (other,) = [
         row
         for row in json.loads(capsys.readouterr().out)["each_turn"]["files"]
@@ -2368,7 +2378,7 @@ def test_a_file_that_is_not_on_disk_is_not_called_undecodable(tmp_path, capsys):
     Both other surfaces already say it plainly: `--file` prints `not on disk`, and `lint`
     reports `budget.absent`."""
     _declared_but(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session"]) == EXIT_OK
     (row,) = [one for one in capsys.readouterr().out.splitlines() if "agents.md" in one]
     assert "not on disk" in row
     assert "UTF-8" not in row
@@ -2379,7 +2389,7 @@ def test_the_absent_row_states_no_room_either(tmp_path, capsys):
     `budget.absent` exists to contradict: a budget with nothing under it is the one reading
     that makes a missing file look like room."""
     _declared_but(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session"]) == EXIT_OK
     (row,) = [one for one in capsys.readouterr().out.splitlines() if "agents.md" in one]
     assert "left of" not in row
 
@@ -2388,7 +2398,7 @@ def test_a_file_that_is_there_and_does_not_decode_still_says_which(tmp_path, cap
     """The state RK1245 was about, unchanged: it is on disk, its bytes are what a loader pays,
     and the row says so rather than reporting a code-unit figure it does not have."""
     _declared_but(tmp_path, **{"agents.md": b"# x\n\n\xff\xfe not utf-8\n"})
-    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session"]) == EXIT_OK
     (row,) = [one for one in capsys.readouterr().out.splitlines() if "agents.md" in one]
     assert "not UTF-8" in row
     assert "not on disk" not in row
@@ -2400,7 +2410,7 @@ def test_the_payload_says_which_absence_a_null_is(tmp_path, capsys):
     """A caller reading only the null cannot tell the two apart, which is the defect one
     surface in."""
     _declared_but(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "--session", "--json"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session", "--json"]) == EXIT_OK
     (found,) = json.loads(capsys.readouterr().out)["each_turn"]["files"]
     assert found["characters"] is None
     assert found["present"] is False
@@ -2415,7 +2425,7 @@ def test_the_three_surfaces_agree_about_an_absent_file(tmp_path, capsys):
     assert "budget.absent" in {one.code for one in lint(config).findings}
     assert main(["-C", str(tmp_path), "budget", "--file", "agents.md"]) == EXIT_OK
     assert "not on disk" in capsys.readouterr().out
-    assert main(["-C", str(tmp_path), "budget", "--session"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--session"]) == EXIT_OK
     assert "not on disk" in capsys.readouterr().out
 
 
@@ -2697,7 +2707,7 @@ def test_what_the_gate_left_out_is_a_note_and_never_a_silence(tmp_path):
     # is the shortfall the threshold exists to name (RK1290).
     assert priced, [str(one) for one in report.notes]
     assert "open line(s) priced" in priced[0].message
-    assert "budget --brief" in priced[0].message
+    assert "cost --brief" in priced[0].message
 
 
 def test_the_note_is_quiet_where_the_gate_saw_the_majority(tmp_path):
@@ -2722,7 +2732,7 @@ def test_the_finding_names_the_read_that_prices_the_one_over(tmp_path):
     door = remedy(found, config)
 
     assert door is not None
-    assert ["budget", "--brief", found.subject] in [list(one.argv) for one in door.doors]
+    assert ["cost", "--brief", found.subject] in [list(one.argv) for one in door.doors]
 
 
 def test_the_gate_composes_nothing_where_no_ceiling_is_declared(tmp_path, monkeypatch):
@@ -2743,11 +2753,11 @@ def test_the_gate_composes_nothing_where_no_ceiling_is_declared(tmp_path, monkey
 
 def test_the_verb_ranks_every_open_line_and_narrows_to_one(tmp_path, capsys):
     _reading(tmp_path, ceiling=9000)
-    assert main(["-C", str(tmp_path), "budget", "--brief"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--brief"]) == EXIT_OK
     every = capsys.readouterr().out
     assert "RK1" in every and "RK2" in every and "9000 allowed, 0 over" in every
 
-    assert main(["-C", str(tmp_path), "budget", "--brief", "RK1"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--brief", "RK1"]) == EXIT_OK
     one = capsys.readouterr().out
     assert "RK1" in one and "RK2" not in one
 
@@ -2755,7 +2765,7 @@ def test_the_verb_ranks_every_open_line_and_narrows_to_one(tmp_path, capsys):
 def test_a_backlog_with_nothing_open_is_answered_and_not_refused(tmp_path, capsys):
     # The caller who most needs the figure is the one about to file the first task.
     project(tmp_path, roadmap="# Roadmap\n\n## Block A — The model\n")
-    assert main(["-C", str(tmp_path), "budget", "--brief"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--brief"]) == EXIT_OK
     assert "nothing to price" in capsys.readouterr().out
 
 
@@ -2895,7 +2905,7 @@ def test_the_verdict_says_what_it_was_taken_over(tmp_path, capsys):
 
     config = _reading(tmp_path, ceiling=9000)
     ship(config, "RK1", why="It works now.").save()
-    assert main(["-C", str(config.root), "budget", "--brief", "RK1"]) == EXIT_OK
+    assert main(["-C", str(config.root), "cost", "--brief", "RK1"]) == EXIT_OK
     said = capsys.readouterr().out
 
     assert "0 over, 1 unpriced" in said
@@ -2904,7 +2914,7 @@ def test_the_verdict_says_what_it_was_taken_over(tmp_path, capsys):
 def test_an_answer_that_measured_everything_reads_as_it_always_did(tmp_path, capsys):
     # Silent where nothing went unmeasured, which is what keeps the ordinary answer short.
     _reading(tmp_path, ceiling=9000)
-    assert main(["-C", str(tmp_path), "budget", "--brief"]) == EXIT_OK
+    assert main(["-C", str(tmp_path), "cost", "--brief"]) == EXIT_OK
     said = capsys.readouterr().out
 
     assert "0 over" in said and "unpriced" not in said
@@ -3017,3 +3027,54 @@ def test_a_symptom_the_caller_typed_is_still_theirs(tmp_path):
     # And an empty flag is the absence of a draft rather than one: `--symptom ""` asks what an
     # empty field costs, and nothing was handed over to be called the caller's.
     assert budget(config, block="A").share("symptom").drafted is False
+
+
+# -- two tenses, two verbs (RK1321) --------------------------------------------
+
+
+def test_the_surface_subjects_left_the_verb_about_prose(tmp_path, capsys):
+    """Measured twice in one session: RK1305 added a seventh subject and `budget` reached
+    2,741 against a per-tool ceiling of 2,600 — overtaking `ship` at 2,466, the tool that
+    number was calibrated against — and RK1310 then added a 65th verb and the whole surface
+    reached 64,190 against 63,500. Both ceilings were re-argued rather than met, and both
+    arguments were about the same tool.
+
+    What the ceiling found is not a description that grew. `budget` answered about a line, a
+    section body, a non-goal, an every-turn file, the tool list, a session, a brief and a
+    retirement — eight questions under one name, where every other served tool answers one.
+    """
+    budgeted(tmp_path)
+    where = ["-C", str(tmp_path)]
+    # The seam is the tense: what a write **may** spend, against what a surface **does**.
+    for subject in ("--tools", "--brief", "--session"):
+        assert main([*where, "cost", subject]) == EXIT_OK
+        capsys.readouterr()
+        assert main([*where, "budget", subject]) == EXIT_USAGE
+        assert "declares no" in capsys.readouterr().err
+
+    for subject in ("--file", "--non-goal"):
+        # Whether each answers is its own test's; what is held here is which verb *has* it.
+        capsys.readouterr()
+        assert main([*where, "cost", subject]) == EXIT_USAGE
+        assert "declares no" in capsys.readouterr().err
+
+
+def test_neither_half_is_the_largest_served_tool():
+    """The design's own falsification: splitting is a name and not a bundle if either half is
+    still the largest. Measured after the split — `budget` is third, behind two write verbs
+    that answer one question each, which is what a per-tool ceiling is calibrated against."""
+    import json
+
+    from roadkeep import serving
+
+    config = Config.discover(Path(__file__).resolve().parents[1])
+    ranked = sorted(
+        ((len(json.dumps(one, ensure_ascii=False)), one["name"]) for one in serving.descriptors(config)),
+        reverse=True,
+    )
+    largest = ranked[0][1]
+    assert largest not in {"budget", "cost"}, f"{largest} is still the largest"
+    # And the half that kept the subjects is well under it, which is the room the split bought.
+    sized = dict((name, n) for n, name in ranked)
+    assert sized["budget"] < sized[largest]
+    assert sized["cost"] < sized["budget"]

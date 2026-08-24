@@ -6,7 +6,7 @@ it is no edit at all: the write path is the served surface, and nothing on it wr
 
 The tables worth a verb are the ones whose value is a **judgement about a number**: `[limits]`,
 `[budgets]`, `[tools]` and `[claims]`. Each already has the read that decides it — `budget
---file` prices an every-turn file, `budget --tools` ranks the served descriptions, and the P90
+--file` prices an every-turn file, `cost --tools` ranks the served descriptions, and the P90
 of the lines that already read well is what put `symptom` at 120. What they do not have is a
 place where the reading and the number meet, so the reading happens once and the number is
 defended in a comment afterwards: this project's own `[tools]` entry is four paragraphs of
@@ -485,7 +485,7 @@ def _budgets(
 
 
 def _tools(config: Config, address: str, key: str, declared: int | None) -> Measured:
-    """What the served surface costs now — `budget --tools`' own reading, taken here."""
+    """What the served surface costs now — `cost --tools`' own reading, taken here."""
     from roadkeep.serving import surface  # noqa: PLC0415 - RK260
 
     sent = surface(config)
@@ -510,7 +510,7 @@ def _tools(config: Config, address: str, key: str, declared: int | None) -> Meas
 
 
 def _reads(config: Config, address: str, declared: int | None) -> Measured:
-    """What the widest brief costs now — `budget --brief`'s own reading, taken here (RK1286).
+    """What the widest brief costs now — `cost --brief`'s own reading, taken here (RK1286).
 
     The read this project recommends over reading the file, priced the way every other number
     in this table is: by the reader that owns the question. The **widest** and not the median

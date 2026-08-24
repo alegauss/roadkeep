@@ -1373,7 +1373,7 @@ def _reads(config: Config) -> tuple[list[Finding], list[Note]]:
             f"{one.id}'s brief is {one.characters} characters against a budget of "
             f"{config.brief_read}: this is the read that replaces reading the file, so one "
             f"that does not fit a tool result is a task a session opens the roadmap for — "
-            f"`{invocation()} budget --brief` ranks every one and names what each costs",
+            f"`{invocation()} cost --brief` ranks every one and names what each costs",
             subject=one.id,
         )
         for one in found.over
@@ -1402,7 +1402,7 @@ def _reads(config: Config) -> tuple[list[Finding], list[Note]]:
                 + (f", {len(found.unpriced)} refused" if found.unpriced else "")
                 + f", {found.elided} not asked for — the ones `pick` offers next, so what is "
                 f"left out is what nobody is about to brief, and the next run prices "
-                f"whatever the answer has become; `{invocation()} budget --brief` ranks "
+                f"whatever the answer has become; `{invocation()} cost --brief` ranks "
                 f"every one now",
             )
         ]
@@ -1559,7 +1559,7 @@ def _served(config: Config) -> list[Finding]:
 
     Filed against `roadkeep.toml`, which is the file that declared it and the only file
     involved: the cost is composed per session from the parser, the config and the `TOOLS`
-    table, so there is no path a reader could open to see it. `budget --tools` is what
+    table, so there is no path a reader could open to see it. `cost --tools` is what
     prints it, and the message says so.
 
     Silent where nothing is declared, which is every adopting project until it looks at the
@@ -1582,7 +1582,7 @@ def _served(config: Config) -> list[Finding]:
     allowed = config.tool_characters
     where = _configured(config)
     sent = surface(config)
-    # The same payload `budget --tools` measures, through the same function (RK345): a
+    # The same payload `cost --tools` measures, through the same function (RK345): a
     # second estimate here is a gate disagreeing with the read that composed the edit. In
     # its order too — largest first — because the message sends the reader to that ranking,
     # and a report listing the offenders in a different one is two answers to one question.
@@ -1592,7 +1592,7 @@ def _served(config: Config) -> list[Finding]:
             where,
             f"the {name} tool is {size} characters, budget is {allowed}: this is sent to "
             f"every session that connects the server, so the overrun is paid before the "
-            f"first call — `{invocation()} budget --tools` ranks them",
+            f"first call — `{invocation()} cost --tools` ranks them",
             subject=name,
         )
         for name, size in sent.tools
@@ -1616,7 +1616,7 @@ def _served(config: Config) -> list[Finding]:
                 f"the served surface is {sent.characters} characters — {len(sent.tools)} "
                 f"tool(s) and the handshake — against a budget of {config.tool_session}: "
                 f"every session pays this at connect before it calls anything, and no one "
-                f"tool is at fault — `{invocation()} budget --session` prints it beside "
+                f"tool is at fault — `{invocation()} cost --session` prints it beside "
                 f"what the resident files cost each turn",
                 subject="session",
             )

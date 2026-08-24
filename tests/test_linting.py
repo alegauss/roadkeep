@@ -1964,7 +1964,7 @@ def test_a_served_tool_over_its_budget_fails(tmp_path):
     # Filed against the config, which declared it and is the only address there is: the
     # cost is composed per session and no path a reader could open holds it.
     assert {f.file for f in over} == {"roadkeep.toml"}
-    assert "connects the server" in over[0].message and "budget --tools" in over[0].message
+    assert "connects the server" in over[0].message and "cost --tools" in over[0].message
     # Largest first, because the message sends the reader to that ranking and a report in a
     # different order would be two answers to one question. Read off the sizes the messages
     # carry rather than against a named tool, which is a figure that moves with every edit.
@@ -1982,9 +1982,9 @@ def test_a_project_declaring_no_tool_budget_is_silent(tmp_path):
 
 def test_the_read_and_the_gate_answer_with_one_number(tmp_path, capsys):
     # RK345: a limit that reaches an author only as a refusal is the verdict-after-the-prose
-    # this project replaces, so `budget --tools` prints the room the gate is about to refuse.
+    # this project replaces, so `cost --tools` prints the room the gate is about to refuse.
     root = project(tmp_path, config=CONFIG + "\n[tools]\ncharacters = 300\n").root
-    assert main(["-C", str(root), "budget", "--tools", "--json"]) == EXIT_OK
+    assert main(["-C", str(root), "cost", "--tools", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["each"] == 300
     over = {f.subject for f in lint(Config.discover(root)).findings if f.code == "budget.tool"}
@@ -2462,7 +2462,7 @@ def test_the_whole_surface_over_its_budget_fails(tmp_path):
     )
     assert whole.file == "roadkeep.toml" and whole.subject == "session"
     assert "no one tool is at fault" in whole.message
-    assert "budget --session" in whole.message
+    assert "cost --session" in whole.message
 
 
 def test_the_sum_and_the_tools_that_name_an_author_are_reported_together(tmp_path):

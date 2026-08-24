@@ -123,12 +123,12 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 101 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 2 | 24 | 1 |
-| **Total** | 6 | 808 | 11 |
+| H — The tool's own shape (what one verb costs to change) | 1 | 25 | 1 |
+| **Total** | 5 | 809 | 11 |
 
 **Next ready:**
 
-- 📋 **RK1321** (deps: —) **budget serves seven subjects on one tool and is now the largest, so every subject added re-argues a shared ceiling** — Two ceilings moved for it in one session, and a per-tool limit calibrated against one-subject verbs is binding on the wrong thing. → §RK1321
+- 📋 **RK1322** (deps: —) **the tree is split between two line terminators and nothing reads which a file is, so an append lands in the wrong one** — The gate refuses a file that mixes them and says nothing about 47 of 148 sources being CRLF, so the split is found by breaking it. → §RK1322
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

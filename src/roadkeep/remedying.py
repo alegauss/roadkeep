@@ -1335,7 +1335,7 @@ _TABLE: Mapping[str, _Rule] = {
     # tries it alone: the whole answer is what refused it, which that call prints beside the
     # ranking rather than as one row inside a report about eight other things.
     "read.unpriced": _read(
-        ("budget", "--brief", "{id}"),
+        ("cost", "--brief", "{id}"),
         "the ranking could not compose this brief, so the widest is unaccounted for; this "
         "asks for that one and prints what refused it",
     ),
@@ -1343,7 +1343,7 @@ _TABLE: Mapping[str, _Rule] = {
     # says how many it left out, which is `deps.collective`'s shape — the door is the read
     # that answers the whole question, and there is nothing here to repair.
     "read.priced": _read(
-        ("budget", "--brief"),
+        ("cost", "--brief"),
         "the gate prices the briefs `pick` offers next, so a backlog's length never reaches "
         "it; this ranks every open line and names what each costs",
     ),
@@ -1351,13 +1351,13 @@ _TABLE: Mapping[str, _Rule] = {
     # subject: the ranking answers *which one*, and the finding already said that — what the
     # reader needs next is what that one brief costs and where the size went.
     "read.over": _read(
-        ("budget", "--brief", "{id}"),
+        ("cost", "--brief", "{id}"),
         "this is the read that replaces reading the file, so one that does not fit a tool "
         "result is a task a session opens the roadmap for; what closes it is a shorter "
         "design, a narrower field, or a ceiling re-argued in `roadkeep.toml`",
     ),
     "budget.session": _read(
-        ("budget", "--session"),
+        ("cost", "--session"),
         "the whole served surface is past what `[tools] session` allows and no single tool "
         "is; this prints it beside what the resident files cost each turn, and what closes "
         "it is a verb withdrawn or a ceiling re-argued in `roadkeep.toml`",
@@ -1366,7 +1366,7 @@ _TABLE: Mapping[str, _Rule] = {
     # every tool answers *which one is over* and the finding already said that; what the reader
     # needs next is which of this tool's fields spent the bytes, and the file it is written in.
     "budget.tool": _read(
-        ("budget", "--tools", "{id}"),
+        ("cost", "--tools", "{id}"),
         "one served tool is past what `[tools] characters` allows; this ranks that tool's "
         "own fields and names the module each is written in",
     ),

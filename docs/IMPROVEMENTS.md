@@ -189,30 +189,6 @@ the prefix right and the reading a misunderstanding of the transport.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-### §RK1321 RK1321
-
-Measured this session, twice. RK1305 added a seventh subject and `budget` reached 2,744
-against a per-tool ceiling of 2,600 - overtaking `ship` at 2,466, the tool that number
-was calibrated against. RK1310 then added a 65th verb and the whole surface reached
-64,190 against 63,500. Both ceilings were re-argued rather than met, and both arguments
-were about the same tool.
-
-The ceiling is doing its job: `roadkeep.toml` says it is set close enough that a
-description growing by a paragraph is a finding rather than a rounding, and it found
-this. What it found is not a description that grew. `budget` answers about a line, a
-section body, a non-goal, an every-turn file, the tool list, a session, a brief and a
-retirement - eight questions under one name, where every other served tool answers one.
-A per-tool limit is refused by the tool whose description somebody just edited (RK1059),
-and this one is refused by whichever subject was added last, which is the property that
-argument rejected for a total.
-
-There is a seam. Four of the subjects price prose a write is measured against; three
-price what a surface costs a session. `budget --tools`, `--session` and `--brief` share
-a reader and share nothing with `--block`.
-
-Falsified if splitting leaves either half still the largest tool, which would make this
-a name and not a bundle.
-
 ### §RK1324 RK1324
 
 Measured on this repository, 2026-08-23, by grepping the writers: `remedy` at five

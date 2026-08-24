@@ -151,7 +151,7 @@ _GRAMMAR_KEYS = frozenset({"extends", "markers", "drop"})
 #: Per tool and not per list, which is the decision RK464 deliberately left open. A ceiling
 #: on the total fails on whichever tool is added last and names nothing; a per-tool one is
 #: refused by the tool that grew, which is the tool whose description somebody just edited —
-#: and `budget --tools` already ranks them, so the read that composes the fix exists.
+#: and `cost --tools` already ranks them, so the read that composes the fix exists.
 _TOOLS_KEYS = frozenset({"characters", "session"})
 #: `[reads] brief` — what the one read that replaces reading the file may cost (RK1286). Its
 #: own table and not a `[budgets]` entry, for `[tools]`' reason exactly: every key there is a
@@ -468,7 +468,7 @@ class Config:
     brief_read: int | None = None
     tool_characters: int | None = None
     #: `[tools] session` — what the whole served surface may cost at the handshake: every
-    #: tool plus the instructions, which is the figure `budget --session` prints (RK1097).
+    #: tool plus the instructions, which is the figure `cost --session` prints (RK1097).
     #: **None** where the project declares none, and separate from `characters` because they
     #: refuse different edits — one description growing, against the list growing by one more
     #: verb that is individually unremarkable. Measured across three projects before it was

@@ -2125,7 +2125,7 @@ def _surface(config: Config) -> int:
     A local import for `linting._served`'s reason and not as a style: `serving` reaches `cli`,
     which reaches the verbs, which reach this module — so the name at module scope would close
     a cycle. The measurement itself is `serving.surface`, which is the same function
-    `budget --session` prints and the gate holds (RK1096), because an estimate quoting a
+    `cost --session` prints and the gate holds (RK1096), because an estimate quoting a
     second arithmetic is the disagreement that whole task removed.
 
     Zero where it cannot be composed, which is not an adoption fact: a config too broken to

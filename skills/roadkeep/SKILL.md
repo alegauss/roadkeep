@@ -545,19 +545,25 @@ limits are the list's own and not the task line's. **`budget --file <p>` is the 
 subject**, and the one that is not about prose at all: what an every-turn file `[budgets]`
 declares costs in lines and bytes and what is left — bare, every declared budget. Read it
 *before* editing one, never `wc` and a subtraction; `lint` is still what refuses.
-**`budget --tools` is the fifth**, and the only one about this surface rather than about
-prose: what the tool list costs a session that connects the server, in characters and by
-tool, largest first; **named — `budget --tools ship` — what each of that one tool's fields
-spent**, and the module its `help=` strings are written in, which is the question you have
-the moment `lint` says a tool is over and the ranking cannot answer. Where the description
+**The other tense is `cost`, and it is its own verb**: `budget` says what a write *may*
+spend before a word of it exists, and `cost` what this project's surface *does* spend
+already. Three subjects, one per cadence. **`cost --tools`** is what the tool list costs a
+session that connects the server, in characters and by tool, largest first; **named — `cost
+--tools ship` — what each of that one tool's fields spent**, and the module its `help=`
+strings are written in, which is the question you have the moment `lint` says a tool is over
+and the ranking cannot answer. Where the description
 is the largest row, it is split by where each clause is written: a tool that always passes a
 flag carries that flag's own `help`, edited somewhere else. Nothing refuses it —
 the number is stated so that adding a tool or a
 sentence to a description stops looking free, which is the argument `[budgets]` makes about
-a file that loads every turn. **`budget --brief [<id>]` is the sixth**, and the only one about
+a file that loads every turn. **`cost --brief [<id>]`** is the one about
 a *read*: what the answer that replaces reading the file costs a tool result, per open line and
 widest first, against `[reads] brief`. Declared, that ceiling is the gate's — `read.over` names
-the task whose brief does not fit. **And `config` is the read about `roadkeep.toml` itself**:
+the task whose brief does not fit. **`cost --session`** is both halves against their cadences —
+the served schema once at connect and every `[budgets]` file each turn — which is what a
+session pays before it calls anything, and the one figure neither of the other two can give.
+A bare `cost` is refused naming the three: they are three cadences, and privileging one would
+make the other two read as narrowings of it. **And `config` is the read about `roadkeep.toml` itself**:
 every table, key, TOML type and default this build accepts, with the sentence its
 source already carries and whether *this* project declared it — `--table <name>` for one,
 `--table ""` for the top level. Reach for it before writing a key rather than after the

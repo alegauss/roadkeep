@@ -1,6 +1,6 @@
 """Every pair of boolean flags a read can be given, and what it may not answer (RK467).
 
-RK465 found `budget --tools --role` by probing refusal paths; RK466 found `anchors --claims
+RK465 found `cost --tools --role` by probing refusal paths; RK466 found `anchors --claims
 --next` and `export --readme --json` the same way, and one of the three it first claimed
 turned out to be the transaction working. Three probes, two defects, one false positive —
 which is what finding a class by hand looks like, and the read-only surface has more pairs

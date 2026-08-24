@@ -112,7 +112,7 @@ SITES: tuple[Site, ...] = (
     # RK1236. Run by `test_budgeting`, which executes the ranking this refusal names when a
     # tool it does not serve is asked about.
     Site("verbs/querying.py:_tools_budget", "run"),
-    # RK1286. Both name `budget --brief`, which `test_budgeting` executes — the gate's finding
+    # RK1286. Both name `cost --brief`, which `test_budgeting` executes — the gate's finding
     # composes the door with the id substituted and the read composes the sentence a backlog
     # with nothing open gets, and `remedying.Door` is what renders the first for a terminal.
     Site("linting.py:_reads", "run"),

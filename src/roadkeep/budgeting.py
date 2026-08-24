@@ -1107,7 +1107,7 @@ class Cost:
 class Part:
     """One `##` section of an every-turn file, and what it costs (RK1092).
 
-    The read `budget --tools` makes about the served surface, made about the resident file:
+    The read `cost --tools` makes about the served surface, made about the resident file:
     that one ranks tools so an author cutting the schema knows where the size went, and this
     one had only a total. `agents.md` reached 8,392 of 8,400 bytes and the next compression
     was a preference — RK203 says compress the prose rather than the Layout index, which was
@@ -1161,7 +1161,7 @@ class Load:
     #: The same text in UTF-16 code units, or `None` where there is no answer — the file is
     #: absent, or it is not UTF-8 (RK1245). Beside `bytes` and never instead of it: `bytes` is
     #: what `[budgets]` declares and `lint` refuses on, and this is what a *reader* pays,
-    #: which is the comparison `budget --session` exists to make against the served schema.
+    #: which is the comparison `cost --session` exists to make against the served schema.
     #:
     #: Charged by nothing. :func:`~roadkeep.config.spent` stays bytes-only for the reason its
     #: own docstring gives — an instruction file is not a format this tool decodes (L4) — so
@@ -1176,7 +1176,7 @@ class Load:
     def bytes(self) -> int:
         """What a loader pays for this file, or 0 where no byte budget was declared.
 
-        A property and not a sum at the call site (RK1096): `budget --session` re-derived it
+        A property and not a sum at the call site (RK1096): `cost --session` re-derived it
         by walking `costs` for the unit it wanted, which is this record's own arithmetic
         performed by a reader — the shape RK345 removed from the two that count the file.
         """

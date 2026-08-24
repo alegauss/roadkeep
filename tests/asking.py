@@ -64,6 +64,10 @@ QUESTIONS: tuple[Question, ...] = (
     Question("does this backlog still conform to its own rules", ("lint",)),
     Question("what does this finding's code mean, as a class rather than a line", ("explain", "line.too-long")),
     Question("how much room does this line's prose have before I write a word", ("budget", "--block", "A")),
+    # RK1321. The other tense, and its own verb since `budget` grew to eight subjects and
+    # became the largest served tool: that one says what a write **may** spend before a word
+    # exists, and this what the surface **does** spend already, every session.
+    Question("what does a session pay before it calls anything", ("cost", "--session")),
     Question("what did a comparable task cost, so this is one line or two", ("weight",)),
     Question("how much of this migration is left", ("remaining", "RK1")),
     Question("what would show me this task is finished", ("evidence", "RK1")),

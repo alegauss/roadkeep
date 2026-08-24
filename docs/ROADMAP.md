@@ -44,7 +44,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1321** (deps: —) **budget serves seven subjects on one tool and is now the largest, so every subject added re-argues a shared ceiling** — Two ceilings moved for it in one session, and a per-tool limit calibrated against one-subject verbs is binding on the wrong thing. → §RK1321
 - 📋 **RK1324** (deps: —) **four key names carry the same runnable command across the payloads, so a consumer needs four readers for one idea** — RK1307 held that a door the text names is in the payload and never that it is findable, so each verb chose a name as it was written. → §RK1324
 
 ## Non-goals

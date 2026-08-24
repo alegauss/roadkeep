@@ -111,7 +111,14 @@ characters = 2800
 # this read's 380 — so the surface pays back on the second guess of the first session
 # that makes one. Headroom is 110, tighter than the 32 this replaces, so a description
 # growing by a paragraph is still a finding.
-session = 64300
+# Raised from 64300 for the split RK1321 made: budget served eight subjects under one
+# name and was the largest tool at 2,741, against a per-tool ceiling calibrated on ship
+# at 2,466. Splitting it moves the surface subjects to cost and costs one more envelope
+# and description - 64,613 against 64,300 - and buys the axis this ceiling's sibling is
+# about: the largest tool is now add at 2,593, and the headroom under [tools] characters
+# went from 57 to 207. A total names nothing and a per-tool figure names the tool
+# somebody edited (RK1059), so the number that had to give is this one.
+session = 64700
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

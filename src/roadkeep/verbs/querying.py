@@ -357,8 +357,39 @@ def _show(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _cost(config: Config, args: argparse.Namespace) -> int:
+    """What this project's surface already spends (RK1321).
+
+    `_budget`'s dispatch for the other tense. The three subjects moved here whole — the same
+    readers, the same registers — because what split was the *verb* and not any answer: eight
+    subjects under one name made `budget` the largest served tool at 2,741, against a per-tool
+    ceiling calibrated on `ship` at 2,466, so whichever arrived last was refused by a limit
+    none of them was about.
+
+    Which subject was asked for, and that exactly one was, is `answers` at this verb's own
+    `add_parser` and `dispatch`'s to refuse (RK489) — so what is left here is the dispatch.
+    """
+    # `is not None` and not truth (RK1236): bare `--tools` is the empty string, the flag
+    # taking a value, which is `--brief`'s reading one subject over.
+    if args.tools is not None:
+        return _tools_budget(config, args)
+    if args.brief is not None:
+        return _brief_budget(config, args)
+    if args.session:
+        return _session_budget(config, args)
+    # No subject is the default here, unlike `budget`, whose bare form is about the line `add`
+    # would write next. These three are three cadences — once at connect, once per turn, once
+    # per read — and privileging one would make the other two look like narrowings of it.
+    print(
+        "roadkeep: cost takes a subject: --tools for the served surface, --brief for what "
+        "that read costs a tool result, --session for both against their cadences",
+        file=sys.stderr,
+    )
+    return EXIT_USAGE
+
+
 def _budget(config: Config, args: argparse.Namespace) -> int:
-    # Which of the four subjects was asked for, and whether `--role` or `--lead` came with
+    # Which of the three subjects was asked for, and whether `--role` or `--lead` came with
     # the one it narrows, are `answers` and `narrows` at this verb's own `add_parser` and
     # `dispatch`'s to refuse (RK489). What is left here is the dispatch itself.
     if args.anchor:
@@ -367,14 +398,6 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
         return _non_goal_budget(config, args)
     if args.file is not None:
         return _file_budget(config, args)
-    # `is not None` and not truth (RK1236): bare `--tools` is the empty string now that the
-    # flag takes a value, which is `--file`'s reading one subject over.
-    if args.tools is not None:
-        return _tools_budget(config, args)
-    if args.brief is not None:
-        return _brief_budget(config, args)
-    if args.session:
-        return _session_budget(config, args)
     clash = _one_body("--body", args.body, args.body_file)
     if clash is not None:
         print(f"roadkeep: {clash}", file=sys.stderr)
@@ -527,7 +550,7 @@ _LARGEST_PARTS = 4
 def _print_parts(load: Load) -> None:
     """Where the size is, so the next compression is aimed (RK1092).
 
-    The read `budget --tools` makes about the served surface, one file over: a total says an
+    The read `cost --tools` makes about the served surface, one file over: a total says an
     edit will be refused and says nothing about what to take out, and `agents.md` reaching
     eight bytes of room turned *compress the prose* into a preference nothing had re-measured.
 
@@ -742,7 +765,7 @@ def _tools_budget(config: Config, args: argparse.Namespace) -> int:
         except KeyError:
             print(
                 f"roadkeep: refused: {args.tools!r} is not a tool this project serves — "
-                f"`{invocation()} budget --tools` ranks every one, and `--json` lists them",
+                f"`{invocation()} cost --tools` ranks every one, and `--json` lists them",
                 file=sys.stderr,
             )
             return EXIT_USAGE
@@ -1526,23 +1549,6 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         action="store_true",
         help="the two limits `non-goal add` enforces, which are the list's own",
     )
-    # The fifth subject, and the one context nothing counted (RK464). Every other budget here
-    # is about prose a *write* is measured against; this one is about what the surface itself
-    # costs a session, which is the same argument RK30 makes about a resident file and had
-    # never been made about the schema this server publishes.
-    # A value and not a flag (RK1236), which is `--file`'s shape one subject over and for its
-    # reason: bare is the ranking over every tool, and named is the ranking inside one — the
-    # question a caller has the moment the gate names a tool and not before.
-    budget_parser.add_argument(
-        "--tools",
-        nargs="?",
-        const="",
-        metavar="TOOL",
-        help=(
-            "what the tool list costs a session — bare, every tool ranked; named, e.g. "
-            "ship, what each of that one's fields spent"
-        ),
-    )
     budget_parser.add_argument(
         "--lead",
         help="a non-goal that exists, with --non-goal: what its reason has left",
@@ -1557,25 +1563,6 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         help=(
             "an every-turn file `[budgets]` declares, e.g. agents.md: what it costs and "
             "what is left — bare, every declared budget"
-        ),
-    )
-    # The sixth, and the one neither of the two above could be asked about (RK1095): what a
-    # session pays is the tool list once and every resident file on each turn, and deciding
-    # between cutting a description and cutting a paragraph meant two commands and a
-    # subtraction. Two figures against their cadences rather than one that hides a multiplier.
-    budget_parser.add_argument(
-        "--brief",
-        nargs="?",
-        const="",
-        metavar="ID",
-        help="what a brief costs a tool result — bare, every open line, widest first",
-    )
-    budget_parser.add_argument(
-        "--session",
-        action="store_true",
-        help=(
-            "what one session pays: the served schema once at connect and every "
-            "`[budgets]` file each turn, against the cadence of each"
         ),
     )
     budget_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
@@ -1597,7 +1584,7 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
             Prose(dest="body", omitted=False, unless="body_file"),
         ),
     )
-    # Four subjects and one verb (RK283/RK345), declared rather than checked by hand (RK489).
+    # The subjects this verb keeps (RK283/RK345), declared rather than checked by hand (RK489).
     # Named rather than inferred from the positional: under the id scheme `RK12` is both a
     # line and an anchor, and a command that guessed which one was meant would be a budget
     # the caller has to check before trusting.
@@ -1606,7 +1593,56 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         ("anchor", "one section's prose"),
         ("non_goal", "the roadmap's other bullet"),
         ("file", "an every-turn file"),
+    )
+
+    # The other half of what `budget` was (RK1321). Eight subjects under one name made it the
+    # largest served tool — 2,741 against a per-tool ceiling calibrated on `ship` at 2,466 —
+    # so whichever subject arrived last was refused by a limit none of them was about. The
+    # seam is the tense: `budget` says what a write **may** spend before a word exists, and
+    # this says what a surface **does** spend, already, every session.
+    cost_parser = subcommands.add_parser(
+        "cost",
+        help="what this project's surface costs a session, and where",
+        description=(
+            "Report what a caller already pays: the tool list once at connect, the files "
+            "loaded on every turn, and what the read that replaces opening a file costs a "
+            "tool result. `budget` is the other tense — what a write may spend before a "
+            "word of it exists. Reads; never writes."
+        ),
+    )
+    # A value and not a flag (RK1236): bare is the ranking over every tool, and named is the
+    # ranking inside one — the question a caller has the moment the gate names a tool.
+    cost_parser.add_argument(
+        "--tools",
+        nargs="?",
+        const="",
+        metavar="TOOL",
+        help=(
+            "what the tool list costs a session — bare, every tool ranked; named, e.g. "
+            "ship, what each of that one's fields spent"
+        ),
+    )
+    cost_parser.add_argument(
+        "--brief",
+        nargs="?",
+        const="",
+        metavar="ID",
+        help="what a brief costs a tool result — bare, every open line, widest first",
+    )
+    cost_parser.add_argument(
+        "--session",
+        action="store_true",
+        help=(
+            "what one session pays: the served schema once at connect and every "
+            "`[budgets]` file each turn, against the cadence of each"
+        ),
+    )
+    cost_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    cost_parser.set_defaults(handler=_cost, reads_only=True)
+    answers(
+        cost_parser,
         ("tools", "what this tool surface costs a session"),
+        ("brief", "what the read that replaces the file costs a tool result"),
         ("session", "both halves of what a session pays, against their cadences"),
     )
     narrows(budget_parser, "role", "anchor")

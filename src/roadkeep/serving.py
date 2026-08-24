@@ -561,9 +561,15 @@ TOOLS: tuple[Tool, ...] = (
         # that binds is neither the published ceiling nor the one a ship is quoted — and over
         # this transport the refusal it replaces costs the whole payload again.
         ("id", "block", "deps", "status", "symptom", "why", "anchor", "role", "body",
-         "non_goal", "lead", "file", "tools", "session", "brief", "retire"),
+         "non_goal", "lead", "file", "retire"),
         conditional=("ref",),
     ),
+    # The other tense (RK1321). `tools`, `session` and `brief` left `budget` with the verb
+    # they belong to: eight subjects under one name made it the largest served tool, so
+    # whichever arrived last was refused by a per-tool ceiling none of them was about. Exposed
+    # for the reason RK464 and RK1286 exposed them at all — the caller paying this surface is
+    # the one on the other end of it, and it has no `wc` here to ask with.
+    Tool("cost", ("tools", "brief", "session")),
     # `designed` is exposed on both for the reason it exists (RK83): the caller that asks
     # to execute a block over MCP is the one that was handed a design session, and a flag
     # only the CLI can reach is a flag the agent this ships for cannot pass.
@@ -756,7 +762,7 @@ def withheld() -> Mapping[str, Mapping[str, str]]:
 
     `unconditional` is a whitelist, which makes withholding the default: a flag added to `cli.py`
     and not listed there is unreachable over MCP and nothing says so. Measured, that is not
-    hypothetical — RK1095 added `budget --session` and left it off, and it stayed CLI-only through
+    hypothetical — RK1095 added `cost --session` and left it off, and it stayed CLI-only through
     two more tasks. What caught it was a *remedy door* naming the flag; a flag no door names would
     still be missing. :data:`STRUCTURAL` is excluded, being the transport rather than a decision.
 
@@ -1116,8 +1122,8 @@ _COUNTING = (
 class Surface:
     """What a session is sent, measured once (RK1096).
 
-    Two reads answer this and each did its own arithmetic: `budget --tools` summed the
-    descriptors and the handshake, and `budget --session` summed the same two under a
+    Two reads answer this and each did its own arithmetic: `cost --tools` summed the
+    descriptors and the handshake, and `cost --session` summed the same two under a
     different heading. They agreed, which is the property a duplicate has right up to the
     edit that moves one — the shape RK1073 closed for the provenance note and RK1080 for the
     partial predicate, both found the same way.
@@ -1676,7 +1682,7 @@ def _described(
     """The same sentence as the parts it is composed of, each named by where it is written.
 
     :func:`_description` joins these and every caller wanted the join, so the seam was thrown
-    away — and on the two tools measured here that seam is the largest row `budget --tools
+    away — and on the two tools measured here that seam is the largest row `cost --tools
     <name>` prints: 725 of `merge_check`'s 871, 427 of `claim`'s 949 (RK1239). A reader
     shortening the `description=` in front of them is cutting a fraction of what the row
     measured, because the rest was written as another flag's `help` in another file.

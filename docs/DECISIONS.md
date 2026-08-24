@@ -50,3 +50,5 @@
 - ✅ **RK1271** **the editor completes nothing in `roadkeep.toml`, so every key is typed from memory** — A reader outside the package renders a payload and never a rule: no list, no limit, no parser.
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+- ✅ **RK1321** **budget serves seven subjects on one tool and is now the largest, so every subject added re-argues a shared ceiling** — A verb answering eight subjects is refused by whichever arrived last; the seam is the tense, and what a write may spend is not what a surface does.
