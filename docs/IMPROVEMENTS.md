@@ -203,30 +203,6 @@ as a shipped task's queue entry is.
 
 ## Block E — Adoption
 
-### §RK1313 The two tables the scaffold stopped writing
-
-Observed on a tree `roadkeep init` had just created, 2026-08-23. `criterion add --block
-A` refused with "roadkeep.toml declares no [criteria]", and `add --requires hardware`
-refused with `requires.unknown`, naming a table the file does not carry.
-
-RK1040 already settled this shape. `init` writes `## Non-goals` into the roadmap and,
-for the same reason, writes `[non_goals]` empty into the config: a schema applied to
-prose nobody wrote to it reports on adoption, but a section the scaffold just emptied
-has no prose to report on, and leaving it ungoverned refuses the one verb that fills it.
-The comment above that table in `render_config` says so.
-
-RK1265 added the positive twin and RK1297 added the requirement vocabulary, and neither
-reached the render. So the two verbs that arrived last are the two a fresh project
-cannot call, and the remedy each refusal names is a hand edit to configuration this tool
-owns - which is what RK1264 built `declare` to remove, and which over MCP is not an edit
-at all.
-
-They are not one fix. `[criteria]` is an opt-in, so the empty table is the whole of it.
-`[requirements]` is a vocabulary: `declared = []` governs nothing and changes only which
-refusal the author reads, so what belongs there is the commented stanza - the shape
-`[ids]`, `[headings]` and `[ledger]` are already written in, which is written only where
-a project departs from what every project starts with.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

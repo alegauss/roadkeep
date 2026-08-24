@@ -1104,6 +1104,17 @@ def render_config(schema: Schema, paths: Mapping[str, str]) -> str:
         "# the roadmap's other list: declared at all means governed, and `lead` and `why`",
         "# are the two limits a bullet is held to — 80 and 320 characters unless set here",
         "[non_goals]",
+        "",
+        # The positive twin, empty and declared for the reason above it (RK1265, RK1313).
+        # RK1040 settled the shape and this table arrived after it, so a tree `init` had just
+        # created answered `criterion add --block A` with *roadkeep.toml declares no
+        # [criteria]* — and the remedy that refusal names is a hand edit to configuration this
+        # tool owns, which is what `declare` was built to remove (RK1264) and which over MCP is
+        # not an edit at all. Measured on such a tree, 2026-08-23.
+        "# what must be **true** for a block to be finished, where the list above says what is",
+        "# not built — the same two limits, declared separately: a project may govern one list",
+        "# and not the other",
+        "[criteria]",
     ]
     shape = [
         # Same rule as the heading word and the `[ledger]` absences: only what differs from
@@ -1149,6 +1160,21 @@ def render_config(schema: Schema, paths: Mapping[str, str]) -> str:
     ]
     if absent:
         lines += ["", "[ledger]", *absent]
+    # The vocabulary, **commented** and not empty (RK1297, RK1313), which is the shape `[ids]`,
+    # `[headings]` and `[ledger]` above are already written in: only what a project departs
+    # from what every project starts with. `[criteria]` is an opt-in, so an empty table is the
+    # whole of it; this is a *list of words*, and `declared = []` governs nothing — it changes
+    # only which refusal the author reads. What was missing was never the table but the fact
+    # that the axis exists: `add --requires hardware` on a fresh tree answered `requires.unknown`
+    # about a table the file does not carry, and nothing said the file could carry one.
+    lines += [
+        "",
+        "# what has to be *present* to finish a line — hardware, an account, somebody's time.",
+        "# Not a dep: `pick` offers a line needing one only to a caller that says it has it,",
+        "# with `--have`. Uncomment and name your own; an undeclared word is refused.",
+        '# [requirements]',
+        '# declared = ["hardware"]',
+    ]
     lines.append("")
     return "\n".join(lines)
 

@@ -40,8 +40,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1313** (deps: —) **init writes no [criteria] and no [requirements], so the verbs that fill them refuse on a fresh project** — RK1040 scaffolds `[non_goals]` empty so its verb works on day one, and the two opt-in tables added since left `criterion add` and `--requires` behind a hand edit. → §RK1313
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

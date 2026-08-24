@@ -35,6 +35,7 @@
 
 - 🗑 **RK1272** **`[limits]`, `[budgets]` and `[markers]` have no verb, so the file governing every write is the ungoverned one** — The argument for a limit goes in the commit that wrote it, never in a comment beside the number (superseded by RK1293).
 - ✅ **RK1293** **the argument for a limit is ruled into the commit body, which a tool this project does not own composes** — The argument for a governed number is written above the key by the verb that declares it, never in the commit body.
+- ✅ **RK1313** **init writes no [criteria] and no [requirements], so the verbs that fill them refuse on a fresh project** — A scaffold declares the opt-in tables its own verbs need, and names a vocabulary in a comment: an empty list of words governs nothing.
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

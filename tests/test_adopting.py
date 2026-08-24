@@ -2169,11 +2169,16 @@ def test_the_table_is_written_empty_so_the_numbers_stay_the_defaults(tmp_path: P
     chose, which is the argument `[ids] pad` and the `[ledger]` absences already make."""
     assert main(["-C", str(tmp_path), "init"]) == EXIT_OK
     text = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
-    # The table is the last thing written, so what follows it is what it declares: nothing.
-    assert text.rstrip().endswith("[non_goals]")
+    # Nothing follows either table but a comment, which is what they declare: nothing. Two of
+    # them since RK1313 — the positive twin arrived after RK1040 settled this shape, so a fresh
+    # tree could not call the one verb that fills it.
+    for table in ("[non_goals]", "[criteria]"):
+        after = text.split(table, 1)[1].lstrip()
+        assert not after or after.startswith("#"), f"{table} declares something"
     assert "lead =" not in text
-    scope = Config.discover(tmp_path).non_goals
-    assert (scope.lead, scope.why) == (Scope().lead, Scope().why)
+    for scope in (Config.discover(tmp_path).non_goals, Config.discover(tmp_path).criteria):
+        assert scope is not None
+        assert (scope.lead, scope.why) == (Scope().lead, Scope().why)
 
 
 def test_adopt_still_writes_no_config_at_all(tmp_path: Path, capsys) -> None:
@@ -2456,3 +2461,45 @@ def test_a_body_file_stays_relative_to_the_caller(tmp_path, monkeypatch):
         "--title", "A title for it", "--body-file", "body.md",
     ]) == EXIT_OK
     assert "somewhere else entirely" in (project / "IMPROVEMENTS.md").read_text(encoding="utf-8")
+
+
+def test_the_two_verbs_that_arrived_last_work_on_a_fresh_project(tmp_path: Path, capsys) -> None:
+    """RK1313, observed on a tree `roadkeep init` had just created, 2026-08-23. `criterion add
+    --block A` refused with *roadkeep.toml declares no [criteria]*, and `add --requires
+    hardware` refused with `requires.unknown`, naming a table the file does not carry.
+
+    RK1040 settled the shape: a section the scaffold just emptied has no prose to report on,
+    and leaving it ungoverned refuses the one verb that fills it. RK1265 added the positive
+    twin and RK1297 the requirement vocabulary, and neither reached the render — so the two
+    verbs that arrived last were the two a fresh project could not call, and the remedy each
+    refusal names is a hand edit to configuration this tool owns.
+    """
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    capsys.readouterr()
+    assert main([
+        *where, "criterion", "add", "--block", "A",
+        "--lead", "Every write has a door",
+        "--why", "the schema refuses at, and not a lint that reports after.",
+    ]) == EXIT_OK
+    assert main([*where, "lint"]) == EXIT_OK
+
+
+def test_the_vocabulary_is_commented_because_an_empty_one_governs_nothing(tmp_path: Path) -> None:
+    """The half that is *not* the same fix. `[criteria]` is an opt-in, so the empty table is
+    the whole of it; this is a list of words, and `declared = []` changes only which refusal
+    the author reads. So it takes the shape `[ids]`, `[headings]` and `[ledger]` are written in
+    — named where a project departs from what every project starts with. What was missing was
+    never the table but the fact that the axis exists."""
+    assert main(["-C", str(tmp_path), "init"]) == EXIT_OK
+    text = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+    assert "# [requirements]" in text
+    # Commented, so the parser sees nothing and `--requires` still refuses by name until a
+    # project names its own words — which is the state that made the axis discoverable.
+    assert Config.discover(tmp_path).schema.requirements == ()
+
+    commented = '# [requirements]\n# declared = ["hardware"]'
+    (tmp_path / "roadkeep.toml").write_text(
+        text.replace(commented, commented.replace("# ", "")), encoding="utf-8"
+    )
+    assert Config.discover(tmp_path).schema.requirements == ("hardware",)
