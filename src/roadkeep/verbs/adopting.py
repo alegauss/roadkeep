@@ -141,24 +141,30 @@ def _better_read(config: Config, args: argparse.Namespace, estimate):
     is: an override the tool second-guesses is not an override — and the header now names the
     role either way, so a reader can see which grammar answered and pass the other.
     """
-    if args.ledger or estimate.conforming:
+    if args.ledger or args.sections or estimate.conforming:
         return estimate
-    try:
-        other = adopt(
-            config,
-            args.path,
-            prefix=args.prefix,
-            ref_scheme=args.ref_scheme,
-            ledger=True,
-            sections=args.sections,
-            alongside=args.alongside,
-        )
-    except (ValueError, OSError):
-        # The role is an argument this file may refuse — `--ledger` with `--sections` is one
-        # pair the estimator declines — and a second reading that cannot be taken is not a
-        # finding here: what was asked for still answers.
-        return estimate
-    return other if other.conforming > estimate.conforming else estimate
+    best = estimate
+    # Both other roles and not one (RK1347): a rationale file read as a backlog reported
+    # *nothing in 837 line(s) was read in any shape*, where `--sections` read 51 conforming
+    # sections and 19 paragraphs over a limit. Tried separately because the two flags are
+    # refused together, and the estimator is what declines the pair.
+    for role in ({"ledger": True}, {"sections": True}):
+        try:
+            other = adopt(
+                config,
+                args.path,
+                prefix=args.prefix,
+                ref_scheme=args.ref_scheme,
+                alongside=args.alongside,
+                **role,
+            )
+        except (ValueError, OSError):
+            # A role this file's arguments refuse is not a finding here: what was asked for
+            # still answers, and a retry that cannot be taken says nothing about the file.
+            continue
+        if other.conforming > best.conforming:
+            best = other
+    return best
 
 
 def _adopt(config: Config, args: argparse.Namespace) -> int:

@@ -957,8 +957,15 @@ def _print_estimate(estimate: Estimate) -> None:
     # header, so `0 conform, 361 would change` and `361 conform, 0 would change` on one file
     # were tellable apart only by remembering which command had been typed — and the reader
     # this output is for has typed neither before.
-    role = " as a ledger" if estimate.ledger else ""
-    print(f"{where}  {under}refs by {estimate.ref_scheme}, read{role or ' as a backlog'}")
+    # Three roles and not two (RK1347): `unit` is what tells a rationale file apart, a
+    # sections run counting sections where the other two count lines, and naming it *a
+    # backlog* was a claim about the grammar that answered which was wrong on one run in
+    # three — worse than the silence the header kept before RK1346.
+    if estimate.unit == "section":
+        role = "prose"
+    else:
+        role = "a ledger" if estimate.ledger else "a backlog"
+    print(f"{where}  {under}refs by {estimate.ref_scheme}, read as {role}")
     print(
         f"  read     {estimate.parsed} {estimate.unit}(s), {estimate.conforming} conform, "
         f"{estimate.changing} would change"

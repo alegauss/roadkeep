@@ -2731,3 +2731,23 @@ def test_a_file_that_parses_as_a_ledger_is_read_as_one(tmp_path, capsys) -> None
     # second-guesses is not an override. Read as a backlog because that is what was asked.
     assert main(["-C", str(tmp_path), "adopt", str(roadmap), "--prefix", "RK", "--ledger"]) == EXIT_OK
     assert "read as a ledger" in capsys.readouterr().out
+
+
+def test_the_reread_covers_the_third_role_and_names_it(tmp_path, capsys) -> None:
+    """RK1347. RK1346 re-read only as a ledger, so a rationale file kept the verdict a
+    changelog had shed: `adopt IMPROVEMENTS.md` on an ungoverned repository reported *nothing
+    in 837 line(s) was read in any shape*, where `--sections` read 51 conforming sections and
+    19 paragraphs over a limit. And the header named two roles where there are three, printing
+    `read as a backlog` on a run that counted sections.
+
+    Discriminating and not a guess, which is what the retry rests on: measured on that
+    repository, `--sections` parses 51 of the rationale file and **0** of the roadmap, the
+    changelog and the README."""
+    target = tmp_path / "IMPROVEMENTS.md"
+    target.write_text(RATIONALE, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target)]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "read as prose" in printed
+    assert "section(s)" in printed
+    # The verdict the backlog grammar gave, gone: it read nothing and said so.
+    assert "was read in any shape" not in printed
