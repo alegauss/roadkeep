@@ -244,6 +244,7 @@
 - ✅ **RK1319** **the event says a block finished and not that its heading may go, though the offer now depends on config it omits** — the event carries the door its stage makes available, composed once and rendered by neither register (design §RK1319 recorded in `src/roadkeep/rendering.py`).
 - ✅ **RK1329** **a section written with its id as the title reads §RK1320 RK1320, and nine of nine filings did it** — a title equal to the anchor the write just derived is refused, and the refusal says what the argument is for (design §RK1329 recorded in `src/roadkeep/sections.py`).
 - ✅ **RK1330** **the supersession trace is the clause that gives way, so a ship recording where a design went cannot say it was stale** — A refusal naming nothing to shorten to reads as do not say it, so both crowded messages name where the note goes (design §RK1330 recorded in `src/roadkeep/shipping.py`).
+- ✅ **RK1331** **the room a crowded recording names is the outcome plus the note, but it is reported as the outcome alone** — The room is taken off the composition before it is attributed to the field the message names, so the retry it invites lands (design §RK1331 recorded in `src/roadkeep/shipping.py`).
 
 ## Block C — Query
 

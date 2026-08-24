@@ -2128,6 +2128,49 @@ def test_a_note_with_no_room_left_is_told_where_it_goes_instead(tmp_path):
     assert "goes in this ship's commit message" in told
 
 
+def test_the_room_a_recording_offers_is_what_the_field_it_names_may_take(tmp_path):
+    """RK1331. The figure was measured on the composition the clause joined and reported as
+    what the outcome has, which is the same string only when no note was typed. With one it
+    was 45 characters too generous on the measured case, and a `--why` written to it came back
+    refused with the same number printed again — a fixed point no retry converges on.
+
+    Asserted by retrying at what was offered rather than by arithmetic, because the defect was
+    never in the subtraction: it was in which sentence the remainder belonged to."""
+    root = tmp_path / "pair"
+    root.mkdir()
+    config = project(root, extra_config="\n[limits]\nwhy = 100\n")
+    (root / "src").mkdir()
+    (root / "src" / "engine.py").write_text("x = 1\n", encoding="utf-8")
+
+    def offered(why: str) -> int:
+        with pytest.raises(RecordingCrowded) as caught:
+            ship(
+                config,
+                "RK1",
+                why=why,
+                superseded="the lookup existed",
+                recorded_in="src/engine.py",
+            )
+        said = str(caught.value)
+        # Named beside the derived clause, so the two spends read as two and the author is not
+        # left subtracting one from the other to find where the characters went.
+        assert "--superseded-design a further" in said
+        room = int(said.split("which has ")[1].split(" characters")[0])
+        return room
+
+    room = offered("The symptom is gone.")
+    # The retry the message invites, at exactly the length it named: it lands, where before
+    # this it was refused and offered the very same number a second time.
+    ship(
+        config,
+        "RK1",
+        why="y" * (room - 1) + ".",
+        superseded="the lookup existed",
+        recorded_in="src/engine.py",
+    ).save()
+    assert "RK1" in (root / CHANGELOG).read_text(encoding="utf-8")
+
+
 def test_the_flag_reaches_the_command_line_and_answers_as_a_field(tmp_path, capsys):
     config = _with_module(tmp_path)
     assert (

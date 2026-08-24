@@ -562,22 +562,32 @@ class RecordingCrowded(ValueError):
         limit: int,
         source: str = "",
         note: str | None = None,
+        authored: str | None = None,
     ) -> None:
         self.task_id = task_id
         self.limit = limit
-        room = limit - (width(composed) - width(outcome))
+        # `outcome` is what the recording clause was appended to, which is the `--why` only
+        # when no note was typed. With one it is the *composition*, and reporting its room as
+        # what "the outcome" has offered a figure 45 characters too generous on the measured
+        # case: a `--why` written to the number printed came back refused with the same number
+        # printed again, a fixed point no retry converges on (RK1331). So what the note and
+        # its brackets spend is taken off before the room is attributed to the field named.
+        spent = 0 if authored is None else width(outcome) - width(authored)
+        room = limit - (width(composed) - width(outcome)) - spent
         # The pair reaches here and not :class:`SupersessionCrowded` whenever the supersession
-        # fitted and the recording is what tipped it (RK1330): `outcome` is then already
-        # carrying the note, so "the outcome is what gives way" asks the author to cut a
-        # sentence that has the note inside it and names neither half. The note is the half
-        # that can move, so where it moves to is said here too.
+        # fitted and the recording is what tipped it (RK1330): the note is the half that can
+        # move, so where it moves to is said here too.
         moves = f". And {_elsewhere(task_id)}" if note else ""
+        beside = (
+            f", and this --superseded-design a further {spent}" if note and spent else ""
+        )
         super().__init__(
             f"{task_id}'s ledger sentence is "
             f"{over_by(width(composed), limit, measured=composed, source=source)}, and the "
             f"recording clause is derived whole: {clause} spends "
-            f"{width(composed) - width(outcome)} of it, and none of that is prose to cut. So "
-            f"the outcome is what gives way, which has {max(room, 0)} characters here{moves}"
+            f"{width(composed) - width(outcome)} of it, and none of that is prose to cut"
+            f"{beside}. So the outcome is what gives way, which has {max(room, 0)} characters "
+            f"here{moves}"
         )
 
 
@@ -3176,6 +3186,7 @@ def _depart(
                 limit=allowed,
                 source=grammar.source_of("why_max"),
                 note=superseded,
+                authored=authored,
             )
     if completing is not None:
         # The same write `record amend` makes, so the same count (RK193). A completion drops
