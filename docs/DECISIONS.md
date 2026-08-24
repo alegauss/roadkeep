@@ -36,6 +36,7 @@
 - ✅ **RK1308** **lint exits 1 on install.stale, so a CI gate goes red on a backlog it has just reported clean** — The gate's exit code is about the governed files; whether this checkout's installed surface matches the engine is maintenance, and says so at exit 0.
 - ✅ **RK1318** **the gate reads a criterion's shape and length and never whether the block or id it is addressed to still exists** — An address validated at the write is re-asked by the gate, because the write was right when it ran and cannot know what a later one spent.
 - ✅ **RK1327** **a repair --fix makes with no word in REPAIRS goes unnamed in all six copies, and the gate stays green** — A list a second place has to be joined to is derived from the first: what is decidable about code is held against the code.
+- ✅ **RK1322** **the tree is split between two line terminators and nothing reads which a file is, so an append lands in the wrong one** — A checkout uniformly either terminator is editable; one that is both is not, and that is the state a tree-wide invariant refuses.
 
 ## Block E — Adoption
 

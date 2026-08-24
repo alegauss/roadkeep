@@ -911,6 +911,39 @@ def test_no_file_mixes_the_two_line_terminators():
     assert not mixed, mixed
 
 
+def test_the_tree_does_not_use_both_terminators():
+    """One terminator per **tree**, which is the half the invariant above leaves open (RK1322).
+
+    That one refuses a file holding both and says so for a reason it is right about: a Windows
+    checkout with `core.autocrlf=true` is uniformly CRLF and perfectly editable, so demanding
+    LF would redden a machine for a setting this repository does not own. Uniform is the word
+    doing the work there, and nothing was checking it.
+
+    Measured 2026-08-23: 47 of 148 tracked sources were CRLF in the working copy and 101 were
+    LF, `.gitattributes` declaring `eol=lf` and the index holding LF for every one of them. So
+    each file was internally consistent and the tree was not — and *which* a file is cannot be
+    read from its name. It cost three reds in one session, each time an append adding LF to a
+    file that held CRLF, and each time the repair was rewriting the whole file in the
+    terminator it already had.
+
+    Split and never "must be LF", exactly as above: a checkout that is uniformly either passes,
+    and what is refused is the state where an append has to guess.
+    """
+    found: dict[str, list[str]] = {}
+    for module in (*modules(), *_test_modules()):
+        raw = module.path.read_bytes()
+        crlf = raw.count(b"\r\n")
+        bare = raw.count(b"\n") - crlf
+        if crlf and not bare:
+            found.setdefault("crlf", []).append(module.where)
+        elif bare and not crlf:
+            found.setdefault("lf", []).append(module.where)
+    assert len(found) < 2, {
+        kind: f"{len(where)} file(s), e.g. {', '.join(sorted(where)[:3])}"
+        for kind, where in found.items()
+    }
+
+
 def test_no_top_level_definition_lost_its_separator():
     """A `def`, `class` or decorator at column zero has two blank lines above it (RK1195).
 

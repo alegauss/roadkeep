@@ -81,31 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1322 RK1322
-
-Measured on this repository, 2026-08-23: 47 of 148 Python files are CRLF in the working
-copy and 101 are LF. `.gitattributes` pins what git stores (RK1132) and
-`test_no_file_mixes_the_two_line_terminators` refuses a file holding both - so each file
-is internally consistent and the tree is not.
-
-The cost is paid by anything that appends. Three times in one session a heredoc added LF
-to a CRLF test file and the invariant went red; each time the fix was rewriting the
-whole file in the terminator it already had, which is a read nobody can make from the
-file's name. The skill warns about heredocs into source (RK1091) for a different reason,
-and this failure wears the same clothes.
-
-git says so too, once per commit: `CRLF will be replaced by LF the next time Git touches
-it`. A warning on every commit that touches a third of the source is one a reader learns
-to skip, which is the state RK16 keeps findings out of.
-
-Three shapes. A gate finding per file whose working copy disagrees with what
-`.gitattributes` stores, which is the reading git already does and nobody surfaces; a
-normalising pass in `--fix`, which is derived and therefore its kind of repair; or a
-read that answers which terminator a path has, so an append asks instead of guessing.
-
-Falsified if `core.autocrlf` explains the split, which would make it a checkout setting
-and not a fact about the tree.
-
 ### §RK1323 RK1323
 
 `agents.md` states it as a law: this repository's own `docs/` is the conformance
