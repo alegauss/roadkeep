@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1330 The trace that is always the one to cut
-
-Measured twice in one session, on both ships carrying a `--recorded-in` that wanted a
-`--superseded-design` beside it. RK1319: 101 for the why, 117 for the note, 30 to
-parenthesise them - 248 against 186. RK1322: 115, 77 and 30 - 222 against 181. Both
-times the note was dropped, and both times the refusal said to.
-
-The policy is right and stated, which is what makes this a line rather than a complaint:
-*the outcome is what the entry keeps once the design is deleted, so it is the note that
-gives way*. What it produces is that the trace is almost never affordable - a recording
-clause is derived whole and spends 56 or more, and the note comes last out of one
-200-character sentence.
-
-RK1261 wrote that clause for one reader. The deletion leaves the only person who could
-know the design was stale - the one who just read it - with nowhere to say so, and the
-entry is the one place both survive. If it is unaffordable whenever a recording is made,
-that reader still has nowhere, and the two flags most likely to be wanted together are
-the two that cannot be.
-
-Three shapes: the decisions role, which has its own limit; a second sentence on the
-entry, which the grammar refuses; or the note as its own field of the record.
-
-Falsified if a ship carrying both fits on a corpus with shorter paths, which would make
-this a path-length finding.
-
 ## Block C — Query
 
 ## Block D — The gate

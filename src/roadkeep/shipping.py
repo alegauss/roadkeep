@@ -455,6 +455,33 @@ class RemainderRefused(SchemaError):
         )
 
 
+def _elsewhere(task_id: str) -> str:
+    """Where a supersession note goes when the ledger sentence has no room for it (RK1330).
+
+    Both crowded refusals ended by naming what to shorten, and on the measured pair there is
+    nothing to shorten *to*: at the outcome's own declared aim of 28 words the note has -38
+    characters left even with the shortest path imaginable, so this is not a path-length
+    finding and no amount of cutting reaches a sentence that holds both. What the author is
+    really being told is that the note cannot be said here — and a refusal that names no
+    elsewhere reads as *do not say it*, which is how the trace gets dropped.
+
+    So the elsewhere is named, and it is the commit rather than a new field: `origin` already
+    answers which commit shipped a task and prints its subject, so a note put there is read
+    back by a verb, is not limited to what one line spares, and costs no format the parse, the
+    projections and the limits have to learn (which is the argument RK1261 made for keeping
+    the note out of a slot of its own, applied to where it lands instead).
+    """
+    # Worded to follow either branch of the room count, which is why it says nothing about how
+    # much is left: appended after "has 23 characters" it would contradict a sentence naming a
+    # number if it opened by claiming there was nowhere, and appended after "has none" it does
+    # not need to repeat it.
+    return (
+        f"what the design turned out to be wrong about is not lost by being said elsewhere: "
+        f"it goes in this ship's commit message, which `{invocation()} origin {task_id}` "
+        f"reads back"
+    )
+
+
 class SupersessionCrowded(ValueError):
     """A ledger sentence over its limit, reported as the field that has to survive (RK1261).
 
@@ -490,12 +517,18 @@ class SupersessionCrowded(ValueError):
         structure = width(composed) - width(authored) - width(note)
         room = limit - width(authored) - structure
         #: What the author is being asked to do, which is the whole point of naming the parts.
+        # Named on both branches and not only where the room is nought (RK1330, found by
+        # shipping RK1330): a note that overflowed by 41 characters is not said in the 23 that
+        # are left, so "you have 23" is the same *do not say it* as "you have none" wearing a
+        # number. This class exists only because the note did not fit, and that is the whole
+        # condition for the elsewhere being worth naming.
         edit = (
             f"which has {room} characters beside this --why"
             if room > 0
             else "which has none beside this --why, so the outcome is what has to be shorter "
             "first"
         )
+        edit = f"{edit}. And {_elsewhere(task_id)}"
         super().__init__(
             f"{task_id}'s ledger sentence is "
             f"{over_by(width(composed), limit, measured=composed, source=source)}, and two "
@@ -528,16 +561,23 @@ class RecordingCrowded(ValueError):
         composed: str,
         limit: int,
         source: str = "",
+        note: str | None = None,
     ) -> None:
         self.task_id = task_id
         self.limit = limit
         room = limit - (width(composed) - width(outcome))
+        # The pair reaches here and not :class:`SupersessionCrowded` whenever the supersession
+        # fitted and the recording is what tipped it (RK1330): `outcome` is then already
+        # carrying the note, so "the outcome is what gives way" asks the author to cut a
+        # sentence that has the note inside it and names neither half. The note is the half
+        # that can move, so where it moves to is said here too.
+        moves = f". And {_elsewhere(task_id)}" if note else ""
         super().__init__(
             f"{task_id}'s ledger sentence is "
             f"{over_by(width(composed), limit, measured=composed, source=source)}, and the "
             f"recording clause is derived whole: {clause} spends "
             f"{width(composed) - width(outcome)} of it, and none of that is prose to cut. So "
-            f"the outcome is what gives way, which has {max(room, 0)} characters here"
+            f"the outcome is what gives way, which has {max(room, 0)} characters here{moves}"
         )
 
 
@@ -3135,6 +3175,7 @@ def _depart(
                 composed=why,
                 limit=allowed,
                 source=grammar.source_of("why_max"),
+                note=superseded,
             )
     if completing is not None:
         # The same write `record amend` makes, so the same count (RK193). A completion drops

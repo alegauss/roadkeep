@@ -177,6 +177,7 @@ SITES: tuple[Site, ...] = (
     # names and then makes the `ship --decides` land — the whole reading of this file, on the
     # one door where the remedy is a role a project has not opened yet.
     Site("shipping.py:NoDecisions.__init__", "run"),
+    Site("shipping.py:_elsewhere", "run"),
     Site("shipping.py:PartRecorded.__init__", "unreached", NO_FIXTURE),
     Site("shipping.py:Partial.stated", "unreached", NO_FIXTURE),
     Site("shipping.py:SecondPartial.__init__", "unreached", NO_FIXTURE),

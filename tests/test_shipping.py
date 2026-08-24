@@ -20,6 +20,9 @@ from pathlib import Path
 
 import pytest
 
+from composing import runs
+from conftest import git_commit, git_init
+
 from roadkeep.provenance import invocation
 
 from roadkeep import claiming
@@ -2067,6 +2070,62 @@ def test_the_clause_that_cannot_be_cut_asks_the_outcome_to_give_way(tmp_path):
     assert "80" in said and "none of that is prose to cut" in said
     assert "the outcome is what gives way" in said
     assert files(Config.discover(tmp_path)) == before
+    # No note was typed, so there is no half to send anywhere and the door stays unsaid.
+    assert "commit message" not in said
+
+
+def test_a_note_with_no_room_left_is_told_where_it_goes_instead(tmp_path):
+    """RK1330. Both refusals ended by naming what to shorten, and on the measured pair there
+    is nothing to shorten to: at the outcome's own 28-word aim the note is 38 characters short
+    even with the shortest path imaginable, so cutting never reaches a sentence holding both.
+    A refusal naming no elsewhere reads as *do not say it*, which is how the trace is lost."""
+    config = project(tmp_path, extra_config="\n[limits]\nwhy = 80\n")
+    with pytest.raises(SupersessionCrowded) as alone:
+        ship(
+            config,
+            "RK1",
+            why="The first symptom no longer happens, and that is the whole outcome here.",
+            superseded="a short clause",
+        )
+    # Room left over is the same refusal wearing a number: the note that overflowed is not
+    # said in what remains, so the elsewhere is named on this branch too.
+    with pytest.raises(SupersessionCrowded) as spare:
+        ship(
+            config,
+            "RK1",
+            why="The first symptom no longer happens.",
+            superseded="a clause long enough to push the whole sentence past the limit",
+        )
+    assert "characters beside this --why" in str(spare.value)
+    assert "goes in this ship's commit message" in str(spare.value)
+
+    said = str(alone.value)
+    assert "the outcome is what has to be shorter first" in said
+    assert "goes in this ship's commit message" in said
+    # Executed and not only quoted, which is what a `run` row in the composing table claims
+    # (RK1209): a door is worth its characters only if what it prints lands. It needs the
+    # history it reads to exist, so the state is built here rather than left a work-list.
+    git_init(tmp_path)
+    git_commit(tmp_path, "fix: RK1 - the first symptom no longer happens")
+    assert runs(tmp_path, said) == (["origin", "RK1"],)
+
+    # The pair takes the other branch: the supersession fitted and the recording tipped it, so
+    # the outcome being measured already carries the note and neither half was named.
+    (tmp_path / "pair").mkdir()
+    paired = project(tmp_path / "pair", extra_config="\n[limits]\nwhy = 100\n")
+    (tmp_path / "pair" / "src").mkdir()
+    (tmp_path / "pair" / "src" / "engine.py").write_text("x = 1\n", encoding="utf-8")
+    with pytest.raises(RecordingCrowded) as both:
+        ship(
+            paired,
+            "RK1",
+            why="The symptom is gone.",
+            superseded="the lookup existed",
+            recorded_in="src/engine.py",
+        )
+    told = str(both.value)
+    assert "the outcome is what gives way" in told
+    assert "goes in this ship's commit message" in told
 
 
 def test_the_flag_reaches_the_command_line_and_answers_as_a_field(tmp_path, capsys):

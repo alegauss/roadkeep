@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1330** (deps: —) **the supersession trace is the clause that gives way, so a ship recording where a design went cannot say it was stale** — Both clauses come out of one ledger sentence and the recording is derived whole, so twice in one session the note that a design was overtaken was dropped. → §RK1330
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
