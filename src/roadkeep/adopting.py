@@ -1792,6 +1792,15 @@ def _measures(document: Document, schema: Schema) -> tuple[Measure, ...]:
     """Every length limit against the corpus: the longest, and how many exceed it."""
     out: list[Measure] = []
     for field, attribute in _MEASURED:
+        # A field the shape has not got is not a field to report against (RK1349). A project
+        # declaring `[ledger] symptom = false` says its entries are a why with a commit and no
+        # bold symptom — and it is not a relaxation: an entry carrying one is `line.unparsed`
+        # there. The row still printed `symptom longest 0 of 120, 0 over`, which is the
+        # vacuous count RK1345 dropped where nothing parsed and RK1348 where nothing refuses,
+        # with the population real this time and the field absent. Believed more readily than
+        # either, the two rows beside it being true.
+        if field == "symptom" and not schema.symptom_field:
+            continue
         limit = getattr(schema, attribute)
         lengths = [
             width(schema.render(entry.task) if field == "line" else getattr(entry.task, field))

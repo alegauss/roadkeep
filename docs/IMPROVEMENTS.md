@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1349 The row for a field the shape has not got
-
-A project declaring `[ledger] symptom = false` says its entries are *a why with a
-commit, with no bold symptom*. `adopt` reads them correctly - 361 entries, 361 conform -
-and then prints `symptom longest 0 of 120 utf-16-code-units, 0 over`. There is no
-symptom to be longest, and nothing can be over a limit on a field the declaration
-removed.
-
-The zero itself is right, which is what makes the row hard to see: it looked like a
-parser missing a field and it is the parser reading one that is not there. What is wrong
-is the sentence around it, and specifically `0 over` - the vacuous count RK1345 dropped
-where nothing parsed and RK1348 where nothing refuses. Here the population is real and
-the *field* is not.
-
-An adopter reads three rows and takes them as three measurements of their file. Two are;
-the third is a measurement of a field their own configuration has already declared away,
-and it is the row most likely to be believed because the other two beside it are true.
-
-The declaration is what the estimate should follow, being the same table `Document`
-parses by: a field the shape does not carry is not a field to report against.
-
-Falsified if `symptom = false` only relaxes the requirement - if an entry may carry one
-and some do - in which case the row measures a real if optional field and the zero is a
-reading rather than an absence.
-
 ## Block C — Query
 
 ## Block D — The gate

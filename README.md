@@ -117,18 +117,14 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 202 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 203 | 2 |
 | C — Query (consult without reading the file) | 0 | 133 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 102 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 122 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 26 | 1 |
-| **Total** | 1 | 834 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1349** (deps: —) **adopt reports a field the ledger declaration removed, so a row that cannot exist prints 0 over** — A project declaring [ledger] symptom = false parses 361 entries carrying none, and the estimate still shows symptom longest 0 of 120, 0 over. → §RK1349
+| **Total** | 0 | 835 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

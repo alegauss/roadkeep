@@ -2786,3 +2786,47 @@ def test_the_width_nothing_refuses_is_read_and_never_counted(tmp_path, capsys) -
     # row rather than dropping the column.
     assert measures["section"]["refuses"] is True
     assert measures["section"]["over"] == 0
+
+
+SYMPTOMLESS = """prefix = "RK"
+
+[files]
+roadmap = "ROADMAP.md"
+changelog = "CHANGELOG.md"
+
+[ledger]
+marker = false
+symptom = false
+"""
+
+
+def test_a_field_the_declaration_removed_is_not_reported_against(tmp_path, capsys) -> None:
+    """RK1349. A project declaring `[ledger] symptom = false` says its entries are a why with
+    a commit and no bold symptom. `adopt` read 361 of them correctly and then printed `symptom
+    longest 0 of 120 utf-16-code-units, 0 over` — a count against a field the declaration had
+    removed.
+
+    Not a relaxation, which is what the falsification turned on: under that declaration an
+    entry *carrying* a symptom is `line.unparsed`, so the field is gone from the shape rather
+    than optional in it. The zero was right and the sentence around it was not — and it is the
+    row most likely to be believed, the two beside it being true."""
+    (tmp_path / "roadkeep.toml").write_text(SYMPTOMLESS, encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text("# Roadmap\n\n## Block A\n", encoding="utf-8")
+    target = tmp_path / "CHANGELOG.md"
+    target.write_text(
+        "# Shipped\n\n## Block A\n\n- **RK1** — it landed, with no symptom to carry.\n",
+        encoding="utf-8",
+    )
+    assert main(["-C", str(tmp_path), "adopt", str(target)]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "1 line(s), 1 conform" in printed
+    # The measure row and not the word: a gain's sentence names the symptom in prose, which
+    # is a different claim and one this task does not touch.
+    assert not [line for line in printed.splitlines() if line.startswith("  symptom")]
+    # The fields the shape does carry are measured as they were: this drops a row, not a table.
+    assert "why      longest" in printed
+    assert "line     longest" in printed
+
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--json"]) == EXIT_OK
+    fields = [m["field"] for m in json.loads(capsys.readouterr().out)["measures"]]
+    assert fields == ["why", "line"], fields

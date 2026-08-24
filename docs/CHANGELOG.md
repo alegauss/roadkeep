@@ -262,6 +262,7 @@
 - ✅ **RK1346** **adopt calls 361 changelog lines changing where --ledger reads all of them as conforming, and names the flag nowhere** — A file nothing parsed is read again under the other role, and every estimate names the grammar that answered it (design recorded in `src/roadkeep/verbs/adopting.py`).
 - ✅ **RK1347** **the reread covers two roles of three, so a prose file is priced at nothing and labelled a backlog** — The reread tries both other roles and the header names all three, so a rationale file is priced as prose rather than as nothing (design recorded in `src/roadkeep/verbs/adopting.py`).
 - ✅ **RK1348** **adopt counts prose lines over a width nothing refuses, so the estimate prices work no gate would ask for** — The fill width is read and never counted against, so an estimate stops naming edits nothing would ask for (design recorded in `src/roadkeep/adopting.py`).
+- ✅ **RK1349** **adopt reports a field the ledger declaration removed, so a row that cannot exist prints 0 over** — A field the ledger declaration removes is not measured, so no row counts against a slot the shape has not got (design recorded in `src/roadkeep/adopting.py`).
 
 ## Block C — Query
 

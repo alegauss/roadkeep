@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1349** (deps: —) **adopt reports a field the ledger declaration removed, so a row that cannot exist prints 0 over** — A project declaring [ledger] symptom = false parses 361 entries carrying none, and the estimate still shows symptom longest 0 of 120, 0 over. → §RK1349
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
