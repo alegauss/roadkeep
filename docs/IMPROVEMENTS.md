@@ -77,6 +77,31 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1347 The third role the reread skipped
+
+RK1346 closed this for two roles and left the third, which is visible on the same
+repository it was measured on. `adopt IMPROVEMENTS.md` reports *nothing in 837 line(s)
+was read in any shape*; `adopt IMPROVEMENTS.md --sections` reports **51 section(s), 51
+conform, 0 would change**, and finds a real number under it - `prose longest 106 of 100
+code-points, 19 over`. So the file an adopter would price at nothing to import is 51
+conforming sections with 19 paragraphs to rewrap, and neither figure reaches them.
+
+Both halves of that task stopped short. `_better_read` re-reads only with `ledger=True`,
+so a prose file gets the verdict a changelog used to get; and the header names two roles
+where there are three, printing `read as a backlog` on a run that read sections.
+
+`--sections` and `--ledger` are refused together, which is what makes the retry orderly
+rather than a search: at most one alternative role applies to a file already read as
+neither, and the estimator declines the pair itself.
+
+The reason it is worth a line rather than an amendment: the header is now a claim about
+which grammar answered, and a claim that is wrong on one of three runs is worse than the
+silence it replaced.
+
+Falsified if a rationale file cannot be told from an unparsed backlog - if `--sections`
+reads sections out of anything with headings, so 51 conform says nothing - in which case
+the retry would be manufacturing a corpus rather than finding one.
+
 ## Block C — Query
 
 ## Block D — The gate

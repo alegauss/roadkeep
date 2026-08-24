@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1347** (deps: —) **the reread covers two roles of three, so a prose file is priced at nothing and labelled a backlog** — adopt IMPROVEMENTS.md reads nothing in 837 lines while --sections reads 51 conform and 19 paragraphs over, and the header says backlog either way. → §RK1347
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
