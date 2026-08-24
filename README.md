@@ -117,14 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 212 | 2 |
+| B — Authoring (insert, never hand-edit) | 1 | 212 | 2 |
 | C — Query (consult without reading the file) | 0 | 133 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 102 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 122 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 26 | 1 |
-| **Total** | 0 | 844 | 12 |
+| **Total** | 1 | 844 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1359** (deps: —) **the install report heads with the engine checkout and never names the project it wrote to** — The payload carries root beside source; the printed register heads with source alone, and uninstall's header names its project. → §RK1359
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

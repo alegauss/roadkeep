@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1359** (deps: —) **the install report heads with the engine checkout and never names the project it wrote to** — The payload carries root beside source; the printed register heads with source alone, and uninstall's header names its project. → §RK1359
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
