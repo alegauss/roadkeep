@@ -4060,3 +4060,59 @@ def test_the_refusal_that_knew_the_answer_now_gives_it(tmp_path, capsys):
     # Beside the refusal and never instead of it: the call was still wrong.
     assert "does not carry" in said
     assert "carried  §RK1 (1x)" in said and "section find" in said
+
+
+# -- a sentence the file wrapped is still that sentence (RK1312) ---------------
+
+
+def test_a_sentence_the_file_wrapped_is_still_that_sentence(tmp_path):
+    """Observed in pportal, 2026-08-22, twice in one task. A section is written to a prose
+    width, so any sentence longer than that width is stored with a newline and some indentation
+    inside it — and a caller quoting the sentence, which is how the prose reads to anybody
+    looking at it, was refused for text the section plainly carries.
+
+    Both fragments were full sentences copied from `section show`, which prints the prose as it
+    is: the command the refusal recommends is the command that produces the text it rejected.
+    """
+    long = (
+        "A claim long enough that the writer has to wrap it, which is every sentence past "
+        "the prose width this file is written to."
+    )
+    # As the file holds it: written to a prose width, so the sentence carries a newline.
+    wrapped = long.replace("which is every", "which is\nevery")
+    config = project(tmp_path, improvements=RATIONALE.replace(
+        "The reasoning the line has no room for.", wrapped
+    ))
+    # The fixture is only a fixture if the stored copy really is broken across lines.
+    assert long not in read(config)
+
+    amend(config, "improvements", "RK1", substitute=Substitution(long, "Corrected.")).document.save()
+    assert "Corrected." in read(Config.discover(tmp_path))
+
+
+def test_a_paragraph_break_is_a_barrier_and_not_a_space(tmp_path):
+    # A needle is a sentence, and one that matched across a blank line would be reaching into
+    # prose the caller was not looking at.
+    config = project(tmp_path)
+    across = "Which belongs to the section above. The reasoning the line has no room for."
+    with pytest.raises(NotOneOccurrence) as caught:
+        amend(config, "improvements", "RK1", substitute=Substitution(across, "x"))
+    assert "does not carry" in str(caught.value)
+
+
+def test_the_two_rules_no_longer_push_opposite_ways(tmp_path):
+    """The half that made this flag weaker than it looks: a short fragment is what fits inside
+    one stored line, and a short fragment is what *occurs exactly once* refuses — so the caller
+    landed between them. With the wrapping collapsed, the long unique sentence is reachable."""
+    long = (
+        "A claim long enough that the writer has to wrap it, which is every sentence past "
+        "the prose width this file is written to."
+    )
+    wrapped = long.replace("which is every", "which is\nevery")
+    config = project(tmp_path, improvements=RATIONALE.replace(
+        "The reasoning the line has no room for.", f"{wrapped}\n{wrapped}"
+    ))
+    # Twice on purpose: the count is still the contract, and it is counted in the flat text.
+    with pytest.raises(NotOneOccurrence) as caught:
+        amend(config, "improvements", "RK1", substitute=Substitution(long, "x"))
+    assert "2 times" in str(caught.value)

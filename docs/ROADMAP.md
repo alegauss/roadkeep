@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1312** (deps: —) **section amend --replace refuses a sentence the section carries, because the stored copy is wrapped across lines** — The fragment that fits one stored line is the fragment likeliest to occur twice, so the two rules push opposite ways. → §RK1312
 - 📋 **RK1316** (deps: —) **`block drop` withdraws a label and leaves its `## Done when` list addressed to a block no file declares** — The block's criteria list leaves inside the same transaction that withdraws the heading, as a task's list already leaves with its line. → §RK1316
 - 📋 **RK1317** (deps: —) **`renumber` moves a line, its section and its deps, and leaves its `## Done when` list on the number it spent** — A task's criteria heading is re-addressed to the new id in the same transaction that moves the line, its section and its deps. → §RK1317
 - 📋 **RK1319** (deps: —) **the event says a block finished and not that its heading may go, though the offer now depends on config it omits** — RK38 excluded the suggestion as derivable from the stage, and RK1121 made it depend on a key the payload does not carry. → §RK1319

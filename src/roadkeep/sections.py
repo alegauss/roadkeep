@@ -167,11 +167,86 @@ class Substitution:
     new: str
 
     def applied(self, prose: str, where: str) -> str:
-        """The prose with its one occurrence replaced, or :class:`NotOneOccurrence`."""
-        found = prose.count(self.old)
-        if found != 1:
-            raise NotOneOccurrence(self.old, found, where)
-        return prose.replace(self.old, self.new, 1)
+        """The prose with its one occurrence replaced, or :class:`NotOneOccurrence`.
+
+        **Matched with the wrapping collapsed** (RK1312). A section is written to a prose
+        width, so any sentence longer than that width is stored with a newline and some
+        indentation inside it — and a caller quoting the sentence, which is how the prose reads
+        to anybody looking at it, was refused for text the section plainly carries. Observed in
+        pportal, 2026-08-22, twice in one task: both fragments were full sentences copied from
+        `section show`, which prints the prose as it is, so the command the refusal recommends
+        is the command that produces the text the refusal rejected.
+
+        It also made this flag weaker than it looks. A short fragment is what fits inside one
+        stored line, and a short fragment is what *occurs exactly once* refuses — the two rules
+        pushed in opposite directions and the caller landed between them.
+
+        The stored form does not change: what is found is a **span** of the prose as it sits,
+        and the replacement is spliced into it, so a table or a fence the needle happens to
+        neighbour is untouched. A run of whitespace holding two newlines is a paragraph break
+        and stays a barrier — a needle is a sentence, and one that matched across a blank line
+        would be reaching into prose the caller was not looking at.
+        """
+        spans = _spans(prose, self.old)
+        if len(spans) != 1:
+            raise NotOneOccurrence(self.old, len(spans), where)
+        first, last = spans[0]
+        return prose[:first] + self.new + prose[last:]
+
+
+#: What a paragraph break becomes while a needle is looked for (RK1312) — a character no
+#: needle can carry, so a fragment holding a single space cannot match across a blank line.
+_PARAGRAPH = "\x00"
+
+#: A run of whitespace, which is what wrapping is made of. Matched whole so the run's own
+#: newline count decides whether it is a space or a barrier.
+_WHITESPACE = re.compile(r"\s+")
+
+
+def _flattened(prose: str) -> tuple[str, tuple[int, ...]]:
+    """The prose with its wrapping collapsed, and where each character came from (RK1312).
+
+    The index list is the whole point: a needle is found in the flat text and replaced in the
+    stored one, so nothing about how the file holds its paragraphs has to change. Every flat
+    character maps to the offset it started at, and the list carries one entry past the end so
+    a match ending on the last character has a stop to name.
+    """
+    out: list[str] = []
+    at: list[int] = []
+    index = 0
+    for part in _WHITESPACE.split(prose):
+        run = _WHITESPACE.match(prose, index + len(part))
+        out.append(part)
+        at.extend(range(index, index + len(part)))
+        index += len(part)
+        if run is None:
+            continue
+        # Two newlines is a paragraph break and one is a wrap: the first stays a barrier and
+        # the second becomes the space the reader sees.
+        out.append(_PARAGRAPH if run.group().count("\n") > 1 else " ")
+        at.append(index)
+        index = run.end()
+    at.append(len(prose))
+    return "".join(out), tuple(at)
+
+
+def _spans(prose: str, needle: str) -> list[tuple[int, int]]:
+    """Every span of ``prose`` whose collapsed text reads as ``needle`` (RK1312).
+
+    Empty for a needle that is only whitespace, which is not a fragment of anything: the
+    caller passed nothing to look for, and reporting the prose's every gap as a match would
+    turn a mistyped argument into an ambiguity refusal about the wrong thing.
+    """
+    wanted = " ".join(needle.split())
+    if not wanted:
+        return []
+    flat, at = _flattened(prose)
+    out: list[tuple[int, int]] = []
+    start = flat.find(wanted)
+    while start != -1:
+        out.append((at[start], at[start + len(wanted) - 1] + 1))
+        start = flat.find(wanted, start + 1)
+    return out
 
 
 class SectionExists(ValueError):
