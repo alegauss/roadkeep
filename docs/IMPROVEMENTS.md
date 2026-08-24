@@ -178,28 +178,6 @@ write moved is one the author has to be told about.
 
 ## Block C — Query
 
-### §RK1314 The sentence that rode along with the key set
-
-`roadkeep config` prints, under `[criteria]`, the sentence "`[non_goals]` - the two
-fields the roadmap's other bullet has (RK70)". That is the other table's docstring, and
-it names the other table.
-
-One value reader is right, and RK1265 argued it: `[criteria]` is the same two numbers
-about the positive twin, so `_scope` takes the table name and only the problems it
-reports differ - two copies would be two opt-ins that came to accept different shapes.
-What followed the docstring across is not that. `describing` maps both addresses to
-`_SCOPE_KEYS`, so the sentence rides along with the key set.
-
-It matters because of what this read is for. `config` exists so a key is written from
-what the build accepts rather than from memory, and the sentence beside each row is the
-package's own words about that key, which is the whole reason nothing on that surface is
-a second copy of a rule. A row whose words describe a different table is worse than a
-row with none: nothing in it disagrees with itself, the two tables carry the same two
-key names, and the reader has no way to tell it from a correct row.
-
-The fix is a sentence about criteria taken from where that table is documented, read per
-table rather than per key set.
-
 ## Block D — The gate
 
 ### §RK1318 The address the gate never re-asks

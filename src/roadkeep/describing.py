@@ -220,6 +220,16 @@ _DOC = re.compile(
     r"((?:^#:.*\n)+)^(?P<name>_?[A-Za-z][A-Za-z0-9_]*)\s*[:=]", re.MULTILINE
 )
 
+#: The same run above an **indented** name — a dataclass field (RK1314). Its own pattern and
+#: not a relaxation of the one above, because the two answer different questions: a
+#: module-level name is a key set and a field is the table itself, and the sentence a table
+#: needs is the one written about it rather than about the shape it shares with another.
+#: Harvested under a `.` prefix, so a field and a module-level name of the same spelling
+#: cannot come to answer for each other.
+_FIELD_DOC = re.compile(
+    r"((?:^[ \t]+#:.*\n)+)^[ \t]+(?P<name>_?[A-Za-z][A-Za-z0-9_]*)\s*[:=]", re.MULTILINE
+)
+
 
 def notes(source: Path | None = None) -> Mapping[str, str]:
     """The `#:` sentence above each module-level name in `config.py`, by name (RK1270).
@@ -243,15 +253,38 @@ def notes(source: Path | None = None) -> Mapping[str, str]:
         return {}
     out: dict[str, str] = {}
     for match in _DOC.finditer(text):
-        lines = [
-            line.removeprefix("#:").strip() for line in match.group(1).splitlines()
-        ]
-        out[match.group("name")] = " ".join(part for part in lines if part)
+        out[match.group("name")] = _run(match.group(1))
+    # And the fields (RK1314), under a `.` prefix. A second pass rather than a looser pattern,
+    # so the two name spaces stay apart: a field and a module-level name may share a spelling,
+    # and one answering for the other is the defect this task is an instance of. A spelling two
+    # fields carry is dropped — which of them a table meant is not a question this may guess,
+    # and an absent note is an absence where a picked one would be an invention.
+    seen: dict[str, str] = {}
+    for match in _FIELD_DOC.finditer(text):
+        name = match.group("name")
+        seen[name] = "" if name in seen else _run(match.group(1))
+    out.update({f".{name}": note for name, note in seen.items() if note})
     return out
+
+
+def _run(comment: str) -> str:
+    """One `#:` run as a single line of prose, its markers and its indentation stripped."""
+    lines = [line.strip().removeprefix("#:").strip() for line in comment.splitlines()]
+    return " ".join(part for part in lines if part)
 
 
 #: Which name's `#:` sentence describes each table. The frozenset itself wherever one exists,
 #: because that is where the author wrote it; `_TOP_KEYS` carries none and says so.
+#:
+#: **Per table and not per key set** (RK1314). Two tables share `_SCOPE_KEYS` — one value
+#: reader is right and RK1265 argued it, `[criteria]` being the same two numbers about the
+#: positive twin — and the sentence rode across with the shape: `config` printed, under
+#: `[criteria]`, *"`[non_goals]` — the two fields the roadmap's other bullet has (RK70)"*.
+#: A row whose words describe a different table is worse than a row with none: nothing in it
+#: disagrees with itself, the two carry the same two key names, and a reader has no way to
+#: tell it from a correct row — on the one surface whose whole claim is that it is not a
+#: second copy of a rule. So a table may name a **field** (`.criteria`), which is where that
+#: table is documented as itself rather than as the shape it shares.
 _DESCRIBED = {
     "files": "ROLES",
     "ids": "_IDS_KEYS",
@@ -262,7 +295,7 @@ _DESCRIBED = {
     "limits": "_LIMIT_KEYS",
     "rules.<role>": "_RULE_KEYS",
     "non_goals": "_SCOPE_KEYS",
-    "criteria": "_SCOPE_KEYS",
+    "criteria": ".criteria",
     "claims": "_CLAIMS_KEYS",
     "report": "_REPORT_KEYS",
     "budgets.<path>": "_BUDGET_KEYS",

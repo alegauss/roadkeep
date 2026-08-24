@@ -333,3 +333,40 @@ def test_this_project_budgets_two_files_and_the_row_says_so(tmp_path):
     rows = {one.address: one for one in describing.shape(Config.discover(HERE)).keys}
     assert rows["budgets.<path>.lines"].at == 2
     assert rows["budgets.<path>.lines"].set is None
+
+
+# -- per table, not per key set (RK1314) ---------------------------------------
+
+
+def test_a_table_sharing_a_key_set_does_not_borrow_the_other_s_sentence():
+    """The defect: `config` printed, under `[criteria]`, *"`[non_goals]` — the two fields the
+    roadmap's other bullet has (RK70)"*. That is the other table's docstring and it names the
+    other table.
+
+    One value reader is right and RK1265 argued it — `[criteria]` is the same two numbers about
+    the positive twin — so `_scope` takes the table name and only the problems it reports
+    differ. What followed the docstring across is not that: both addresses map to `_SCOPE_KEYS`,
+    so the sentence rode along with the key set.
+
+    It matters because of what this read is *for*: nothing on that surface is a second copy of
+    a rule, and a row whose words describe a different table is worse than a row with none —
+    nothing in it disagrees with itself, the two carry the same two key names, and the reader
+    has no way to tell it from a correct row.
+    """
+    found = describing.shape(Config.default())
+    said = {one.table: one.note for one in found.keys}
+    assert "[criteria]" in said["criteria"]
+    assert "[non_goals]" in said["non_goals"]
+    # The shape is still shared, which is the half RK1265 decided and this must not undo.
+    assert describing.TABLES["criteria"] is describing.TABLES["non_goals"]
+
+
+def test_a_field_s_own_sentence_is_harvested_under_a_prefix():
+    # A second name space and not a looser pattern: a field and a module-level name may share a
+    # spelling, and one answering for the other is this defect one layer down.
+    harvested = describing.notes()
+    assert ".criteria" in harvested
+    assert harvested[".criteria"].startswith("`[criteria]`")
+    # The module-level sets keep answering under their own names, unprefixed.
+    assert harvested["_SCOPE_KEYS"].startswith("`[non_goals]`")
+    assert ".criteria" != "criteria" and "criteria" not in harvested

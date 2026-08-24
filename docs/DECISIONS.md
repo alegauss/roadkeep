@@ -22,6 +22,7 @@
 - ✅ **RK1307** **The json payload drops the sentence and the remedy the human output carries, so an MCP caller gets less than the CLI** — A command a verb's text offers is reachable in its payload, held by a gate over both registers rather than by a fix per verb.
 - ✅ **RK1309** **a new line's section budget is reachable only through brief, which needs an id, so the first body is written blind** — A limit an author is about to compose against is stated where the id is minted, not only through a read that needs the line to exist already.
 - ✅ **RK1310** **nothing resolves a sentence to the anchor carrying it, so a section amend addressed by text is guessed and retried** — A read that resolves a sentence to its anchor is a verb, because the loop it replaces prints a file into a context window once per guess.
+- ✅ **RK1314** **config prints the criteria table under the non-goals sentence, so the read names the wrong table** — A read that says what may be declared describes each table from its own words, never from the shape it shares with another.
 
 ## Block D — The gate
 

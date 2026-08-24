@@ -33,8 +33,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1314** (deps: —) **config prints the criteria table under the non-goals sentence, so the read names the wrong table** — Both addresses map to `_SCOPE_KEYS`, so the docstring rides with the key set and the read that says what may be declared describes `[criteria]` as the roadmap's other bullet. → §RK1314
-
 ## Block D — The gate
 
 - 📋 **RK1318** (deps: —) **the gate reads a criterion's shape and length and never whether the block or id it is addressed to still exists** — `lint` reports `criterion.orphan` at a `Done when` heading no block or open line answers, naming the drop that closes it. → §RK1318
