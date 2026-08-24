@@ -561,3 +561,50 @@ def test_the_payload_carries_the_argument_a_line_at_a_time(tmp_path, capsys):
 
     assert main(["-C", str(config.root), "govern", "claims.held", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["because"] == ["One sentence."]
+
+
+BARE = """prefix = "RK"
+
+[files]
+roadmap = "docs/ROADMAP.md"
+changelog = "docs/CHANGELOG.md"
+"""
+
+
+def test_an_undeclared_key_is_told_what_holds_it_and_not_that_something_does(tmp_path, capsys):
+    """RK1343. One sentence answered every undeclared key — *declared none, this build's
+    default applies* — and three governable keys have no default at all. `reads.brief`,
+    `tools.session` and `tools.characters` are `None` on `Config` until written, and the gates
+    reading them are `if … is not None`, so an undeclared ceiling is not a lenient gate but no
+    gate. The reader running this verb is asking exactly whether anything holds them.
+
+    Measured both ways: with no `[limits]`, a 192-character symptom is refused at `120 (this
+    tool's default)`; with no `[tools]`, `lint` reports nothing about the served surface. So
+    the old sentence was true for one table and false for the rest — and false in the
+    reassuring direction, which is what `Schema.source_of` refuses to be about a limit."""
+    config = project(tmp_path, config=BARE)
+
+    assert main(["-C", str(config.root), "govern", "limits.symptom"]) == EXIT_OK
+    held = capsys.readouterr().out
+    # The number, not the fact that one exists: which figure holds them is the question.
+    assert "this tool's default of 120 holds" in held
+
+    assert main(["-C", str(config.root), "govern", "tools.session"]) == EXIT_OK
+    loose = capsys.readouterr().out
+    assert "nothing holds it" in loose
+    assert "no default" in loose
+    assert "default applies" not in loose
+    # And the consequence, which is the half a reader can act on.
+    assert "the gate reading it is off" in loose
+
+    # `prose` has no default either and no gate to be off: its own row says nothing refuses
+    # it, so the sentence stops before contradicting the line above it.
+    assert main(["-C", str(config.root), "govern", "limits.prose"]) == EXIT_OK
+    width = capsys.readouterr().out
+    assert "nothing holds it" in width and "gate reading it is off" not in width
+
+    # Both registers, so a consumer can tell a fallback from an absence (RK1343).
+    assert main(["-C", str(config.root), "govern", "tools.session", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["default"] is None
+    assert main(["-C", str(config.root), "govern", "limits.symptom", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["default"] == 120

@@ -907,6 +907,10 @@ def _reading_json(found) -> dict:
         "worst": found.worst,
         "where": found.where,
         "declared": found.declared,
+        # Beside it in both registers (RK1343): a consumer reading `declared: null` cannot
+        # tell a key this build falls back on from one nothing holds, and the two are the
+        # difference between a lenient gate and no gate.
+        "default": found.default,
         "unmeasured": found.unmeasured or None,
         "because": list(found.because),
     }

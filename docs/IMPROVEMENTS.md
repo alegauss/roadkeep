@@ -77,32 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1343 The default that is not there
-
-`govern` prints one sentence for any key a project has not declared: *declared none -
-this build's default applies*. Measured on a fresh `init`, three keys answer that and
-have no default at all. `reads.brief`, `tools.session` and `tools.characters` are `None`
-until declared, and `config.py` says so of the first: *None where the project declared
-none, which is every project until it looks*.
-
-Nothing applies. `budget.session` refuses a surface only `if config.tool_session is not
-None`, so an undeclared ceiling is not a lenient ceiling - it is no gate. The reader
-running `govern tools.session` is asking exactly whether they are held to anything, and
-is told they are.
-
-The contrast is in the same output. `limits.symptom` answers `declared 120`, which is a
-real build default, so the sentence is true where a number exists and false where the
-design is that none does - and those are the three whose whole point is that a project
-is unpriced until somebody looks. `cost --brief` gets it right one verb over: *this
-project declares no ceiling*.
-
-A read that overstates protection is worse than one that says nothing, because it ends
-the question it was asked.
-
-Falsified if an undeclared `tools.session` still refuses a surface somewhere - if a
-default lives outside `Config` and the fields are merely spelled `None` - in which case
-the sentence is right and what is missing is where the number comes from.
-
 ## Block C — Query
 
 ## Block D — The gate

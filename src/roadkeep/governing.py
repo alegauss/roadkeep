@@ -109,6 +109,16 @@ class Measured:
     sites: int = 0
     #: What this project declares now, or `None` where it declares nothing.
     declared: int | None = None
+    #: What holds the key when the project declares nothing — the number this build falls back
+    #: to, or `None` where there is no fallback at all (RK1343). Three governable keys are in
+    #: the second state by design: `reads.brief`, `tools.session` and `tools.characters` are
+    #: unpriced until somebody looks, and `budget.session` refuses a surface only where the
+    #: ceiling *is* declared, so an undeclared one is not a lenient gate but no gate. Reported
+    #: because the reader running this verb is asking exactly whether anything holds them, and
+    #: :meth:`Schema.source_of` already refuses to guess for the same reason one surface over:
+    #: a citation invented for an undeclared limit answers that question in the reassuring
+    #: direction.
+    default: int | None = None
     #: Absent where nothing measures this key — `[claims] held` is a judgement about how long
     #: work takes, which no file here holds evidence about (said, never invented).
     unmeasured: str = ""
@@ -138,11 +148,30 @@ class Measured:
                 + (f" at {self.where}" if self.where else "")
             )
         if standing:
-            rows.append(
-                "  declared none — this build's default applies"
-                if self.declared is None
-                else f"  declared {self.declared}"
-            )
+            if self.declared is not None:
+                rows.append(f"  declared {self.declared}")
+            elif self.default is not None:
+                # The number, not the fact that one exists (RK1343): *a default applies* is
+                # the half a reader cannot act on, and the whole question they came with is
+                # which figure they are held to.
+                rows.append(f"  declared none — this tool's default of {self.default} holds")
+            else:
+                # And the honest other half. Three keys reach here — `reads.brief`,
+                # `tools.session`, `tools.characters` — and their gates read `if … is not
+                # None`, so undeclared is not lenient but absent. Saying *a default applies*
+                # answered the reader's real question in the reassuring direction, which is
+                # what `Schema.source_of` refuses to do about a limit for the same reason.
+                # The gate clause only where there is a gate: `prose` and `claims.held` say
+                # in the row above that nothing measures or refuses them, and a sentence
+                # announcing a gate switched off would argue with the line it follows.
+                gate = (
+                    ""
+                    if self.unmeasured
+                    else ", so the gate reading it is off until a number is written here"
+                )
+                rows.append(
+                    f"  declared none — and nothing holds it: this key has no default{gate}"
+                )
             # Under the number and not beside it, because it is prose and wraps: the first
             # line is labelled and the rest are indented to it, which is how every wrapped
             # answer here is read (RK1296).
@@ -279,7 +308,34 @@ def reading(config: Config, address: str, *, file: str = "", role: str = "") -> 
         )
     # And the argument, joined here rather than inside six branches: what argues a number is
     # the same question wherever the number is measured, and the answer is in one file (RK1296).
-    return replace(found, because=_because(config, table, key, file=file, role=role))
+    # The fallback joins it for the same reason and from the same place (RK1343): which number
+    # holds an undeclared key is one question, and only `limits` has an answer — a bare
+    # `Schema` *is* this build's defaults, so reading them off one is reading them off the
+    # thing that enforces them rather than off a second list that would drift.
+    return replace(
+        found,
+        because=_because(config, table, key, file=file, role=role),
+        default=_fallback(table, key),
+    )
+
+
+def _fallback(table: str, key: str) -> int | None:
+    """The number this build holds an undeclared key to, where it holds one at all (RK1343).
+
+    Only `limits`, and that is the finding rather than an omission here: `[tools]`, `[reads]`
+    and `[budgets]` are `None` on `Config` until a project writes them, and the gates that
+    read them are written `if … is not None` — so an undeclared ceiling there is no ceiling.
+    Measured: with no `[limits]`, a 192-character symptom is refused at `120 (this tool's
+    default)`; with no `[tools]`, `lint` reports nothing at all about the served surface.
+
+    `prose` is absent from the schema and stays `None`, which is right and is the same fact
+    its own row already states: it is a width this tool fills to and no gate refuses.
+    """
+    if table != "limits":
+        return None
+    from roadkeep.kernel.schema import Schema  # noqa: PLC0415 - RK1065's edge, deferred
+
+    return getattr(Schema(), f"{key}_max", None)
 
 
 def _current(config: Config, table: str, key: str, *, file: str, role: str) -> int | None:
