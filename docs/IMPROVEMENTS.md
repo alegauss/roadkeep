@@ -77,32 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1350 The refusal that is a stack trace's sentence
-
-`adopt` pointed at a file that is not UTF-8 prints `'utf-8' codec can't decode byte 0xff
-in position 13: invalid start byte`. That is `UnicodeDecodeError.__str__`, reaching a
-caller unchanged: it names no file, no verb and no way forward, and the position it does
-name is an offset into bytes nobody asked about.
-
-The tool answers this well one verb over. `lint` emits `file.not-text` with a composed
-sentence and a door — *the file's content did not reach the disk; the store is the
-repository, and this puts back what it last committed*, under `git checkout -- <path>`.
-So the sentence exists, the code exists, and the read most likely to meet an unknown
-file is the one that does not use them.
-
-Which is the point: `adopt` is aimed at files this project has never seen, by somebody
-who has not used the format. It is the surface where a stray path, a PDF renamed `.md`
-or a half-written download is *expected*, and the one that answers with a stack trace's
-sentence.
-
-The neighbouring refusals are already composed — a missing path reads *1 path(s) are not
-a file this can read and nothing was measured: nosuch.md (the file to measure)* — so
-this is one uncaught decode among refusals that were written.
-
-Falsified if the file `adopt` reads can never be the store's — it measures what is not
-adopted — in which case `git checkout` is the wrong door and what is owed is the
-sentence alone.
-
 ## Block C — Query
 
 ## Block D — The gate

@@ -2830,3 +2830,37 @@ def test_a_field_the_declaration_removed_is_not_reported_against(tmp_path, capsy
     assert main(["-C", str(tmp_path), "adopt", str(target), "--json"]) == EXIT_OK
     fields = [m["field"] for m in json.loads(capsys.readouterr().out)["measures"]]
     assert fields == ["why", "line"], fields
+
+
+def test_a_file_that_does_not_decode_is_said_and_not_raised_through(tmp_path, capsys) -> None:
+    """RK1350. `UnicodeDecodeError` is a `ValueError` and the verb catches `(ValueError,
+    OSError)` to report, so the decoder's own sentence reached the caller unchanged: *'utf-8'
+    codec can't decode byte 0xff in position 13: invalid start byte* — no file, no verb, no way
+    forward, and an offset into bytes nobody asked about. `lint` answers the same file with
+    `file.not-text`, a sentence and a door, so both existed and the read most likely to meet
+    an unknown file used neither.
+
+    The door is conditional, which is the care this needs: `git checkout` is right about a
+    file the store owns and is advice about somebody else's tree otherwise — and `adopt` reads
+    both, a governed file and one this project has never seen."""
+    stray = tmp_path / "stray.md"
+    stray.write_bytes(b"PK\x03\x04\x00\x00binary\x00\xff\xfe")
+    assert main(["-C", str(tmp_path), "adopt", str(stray)]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "codec can't decode" not in said
+    assert "stray.md is not UTF-8 text" in said
+    assert "the first byte that is not sits at 13" in said
+    # Not the store's, so not the store's door.
+    assert "git checkout" not in said
+
+    # And where the project does govern it, the door `lint` names for the same state.
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "CHANGELOG.md").write_text("# Shipped\n\n## Block A\n", encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_bytes(b"# Roadmap\n\n\xff\xfe")
+    assert main(["-C", str(tmp_path), "adopt", "ROADMAP.md"]) == EXIT_USAGE
+    governed = capsys.readouterr().err
+    assert "git checkout -- ROADMAP.md" in governed
+    assert "the store being the repository" in governed

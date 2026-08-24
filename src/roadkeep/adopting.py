@@ -441,6 +441,42 @@ class NotACorpus(ValueError):
         )
 
 
+class NotText(ValueError):
+    """A file that exists and does not decode, said rather than raised through (RK1350).
+
+    `UnicodeDecodeError` is a `ValueError`, and the verb catches `(ValueError, OSError)` to
+    report — so the decoder's own sentence reached the caller unchanged: *'utf-8' codec can't
+    decode byte 0xff in position 13: invalid start byte*, naming no file, no verb and no way
+    forward, with an offset into bytes nobody asked about.
+
+    :class:`Unreadable` is the pre-check and cannot see this one: a path that exists and is a
+    file passes it, and only the read finds out. So this is its sibling at the other end,
+    named by the path from the project root for the same reason that one is.
+
+    The door is **conditional and that is the whole care here**. `lint` answers this with
+    `file.not-text` and `git checkout -- <path>`, which is right about a governed file — the
+    store is the repository, so what is on disk should be what was committed. `adopt` is aimed
+    at files this project has never seen, where the same command would be advice about
+    somebody else's tree; measured both ways, this verb reads a declared file and an unknown
+    one, so which sentence it gets is decided by which it was handed.
+    """
+
+    def __init__(self, path: str, *, governed: bool, at: int = 0) -> None:
+        self.path = path
+        self.governed = governed
+        door = (
+            f"`git checkout -- {path}` puts back what was last committed, the store being "
+            f"the repository"
+            if governed
+            else "point this at the text file it was written from, or at the one that holds "
+            "the backlog"
+        )
+        super().__init__(
+            f"{path} is not UTF-8 text and nothing was measured — the first byte that is "
+            f"not sits at {at}: {door}"
+        )
+
+
 class UnreadableBlock(ValueError):
     """A `--block` value that is not one heading declaring a label.
 
@@ -1500,7 +1536,7 @@ def adopt(
     schema = config.schema_for("changelog" if ledger else "roadmap")
     if ref_scheme is not None and ref_scheme != schema.ref_scheme:
         schema = replace(schema, ref_scheme=ref_scheme)  # raises on an unknown scheme
-    document = Document.load(target, schema)
+    document = _loaded(config, target, schema, from_root)
 
     spelled = _prefixes(document)
     declared = _families(prefix) if prefix else None
@@ -1615,7 +1651,7 @@ def _prose(
     schema = config.schema_for("improvements")
     if ref_scheme is not None and ref_scheme != schema.ref_scheme:
         schema = replace(schema, ref_scheme=ref_scheme)  # raises on an unknown scheme
-    document = Document.load(target, schema)
+    document = _loaded(config, target, schema, from_root)
     found = anchored(document)
     words = [section.words for section in found]
     # Headings where a section would be, carrying no anchor (RK281). Measured the same way —
@@ -2109,6 +2145,23 @@ def _unread(config: Config, target: Path, opened: Sequence[str] = ()) -> tuple[s
         for role, path in by_role.items()
         if path != here and role not in opened
     )
+
+
+
+def _loaded(config: Config, target: Path, schema: Schema, from_root: Path | None) -> Document:
+    """`Document.load`, with a file that does not decode said rather than raised through.
+
+    One place and not two (RK1350): both readings of a target reach the same failure, and a
+    sibling that grew the sentence would be the second spelling this repository refuses.
+    """
+    try:
+        return Document.load(target, schema)
+    except UnicodeDecodeError as error:
+        raise NotText(
+            (from_root or target).as_posix(),
+            governed=_declared(config, target),
+            at=error.start,
+        ) from error
 
 
 def _declared(config: Config, target: Path) -> bool:
