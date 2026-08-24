@@ -684,3 +684,38 @@ def test_the_gate_passes_the_bullet_this_verb_wrote(tmp_path):
     amend(config, "No web UI and no server", "A corrected reason for the constraint.").save()
 
     assert [f.code for f in lint(Config.discover(tmp_path)).findings] == []
+
+
+MISFILED = ROADMAP.rstrip("\n") + (
+    "\n- 📋 **RK9** (deps: —) **A misfiled symptom** — Because it landed here. → §RK9\n"
+)
+
+
+def test_a_task_line_under_the_heading_belongs_to_the_task_reader(tmp_path):
+    """RK1355. Both readers claimed it. A well-formed task line appended under `## Non-goals`
+    answered `block.missing` — *a task line lives under a block heading*, which is what
+    happened — and `non-goal.shape` at the same time, whose door is
+    `non-goal drop '<the whole line>'`. Run exactly as printed, that door removed the id, the
+    symptom, the why and the pointer, and reported a bullet taken out of a list it never
+    belonged to.
+
+    So the specific reading wins, as a codepoint finding already replaces every other on its
+    line: a reader handed two commands, one that repairs and one that destroys, is choosing
+    between theories rather than acting."""
+    config = project(tmp_path, roadmap=MISFILED)
+    found = read(config.document("roadmap"))
+    assert [one.lead for one in found] == [
+        "No web UI and no server.",
+        "No issue-tracker sync",
+    ], [one.lead for one in found]
+    # The line is nobody's to drop here, so the verb cannot be pointed at it.
+    assert "RK9" not in " ".join(one.lead + one.why for one in found)
+
+    # And a bullet the grammar *rejected* is still read: that is the population this section
+    # measures, and excluding it would hide the thing being looked for.
+    (tmp_path / "loose").mkdir()
+    unshaped = project(
+        tmp_path / "loose",
+        roadmap=ROADMAP.rstrip("\n") + "\n- no bold lead at all, so it has no address\n",
+    )
+    assert any(not one.shaped for one in read(unshaped.document("roadmap")))

@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1355** (deps: —) **a task line under Non-goals is read as both, and the door the non-goal finding prints deletes it** — One line gets block.missing, ref.missing and non-goal.shape, and running the last as printed removes the id, symptom, why and pointer. → §RK1355
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

@@ -15,6 +15,7 @@
 - ✅ **RK1319** **the event says a block finished and not that its heading may go, though the offer now depends on config it omits** — The door a stage makes available is published and not derived: permanent joined the stage, and the map of which stages allow it was published nowhere.
 - ✅ **RK1329** **a section written with its id as the title reads §RK1320 RK1320, and nine of nine filings did it** — A write holding both halves of a heading compares them: an address stated twice with no words in it is knowable at the door.
 - ✅ **RK1352** **the merge driver refuses over a defect its inputs already carried, so a branch is blocked by a line it never wrote** — A driver refuses what it composed; a defect a branch committed is that branch's, and the gate is what refuses it.
+- ✅ **RK1355** **a task line under Non-goals is read as both, and the door the non-goal finding prints deletes it** — Where two readers claim one line, the specific one wins and the other prints nothing about it.
 
 ## Block C — Query (consult without reading the file)
 

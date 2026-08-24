@@ -638,11 +638,25 @@ def _bullets(document: Document) -> tuple[NonGoal, ...]:
     start = _heading_index(document)
     if start is None:
         return ()
+    # A line the task grammar already read is that reader's and never this one's (RK1355).
+    # Both claimed it: a well-formed task line appended under this heading answered
+    # `block.missing` — *a task line lives under a block heading*, which is what happened —
+    # and `non-goal.shape` at the same time, whose door is `non-goal drop '<the whole line>'`.
+    # Run as printed, that door removed the id, the symptom, the why and the pointer, and
+    # reported a bullet taken out of a list it never belonged to. So the specific reading
+    # wins, as a codepoint finding already replaces every other on its line.
+    #
+    # Parsed entries only. A bullet the grammar *rejected* is an ordinary malformed non-goal,
+    # which is the population this section exists to measure — excluding those would hide the
+    # thing being looked for.
+    entries = {entry.lineno for entry in document.entries}
     spans: list[tuple[int, list[str]]] = []
     for offset, raw in enumerate(document.lines[start + 1 :], start=start + 2):
         body = raw.rstrip("\r\n")
         if body.startswith("#"):
             break  # the next heading ends the section, whatever its level
+        if offset in entries:
+            continue
         if _ANY_BULLET.match(body):
             spans.append((offset, [body]))
         elif spans and body.startswith(_CONTINUATION) and not blank(body):
