@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1352** (deps: —) **the merge driver refuses over a defect its inputs already carried, so a branch is blocked by a line it never wrote** — Two sides adding different tasks are refused for an over-long why in the base, and the reason names the line neither of them touched. → §RK1352
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
