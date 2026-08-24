@@ -3139,7 +3139,7 @@ def _depart(
         # field is a second thing every projection, every limit and every parse has to learn.
         if entry.task.ref is None:
             raise NoDesign(task_id)
-        why = _superseding(why, entry.task.ref, superseded)
+        why = _superseding(why, entry.task.ref, superseded, entry.task.id)
 
     # After the supersession and never before it (RK1267): the two clauses read as a pair —
     # what the design was wrong about, then where the part that was right went — and the
@@ -3149,7 +3149,7 @@ def _depart(
     if recorded_in is not None:
         if entry.task.ref is None:
             raise NoDesign(task_id, "--recorded-in")
-        why = _recording(why, entry.task.ref, recorded_in)
+        why = _recording(why, entry.task.ref, recorded_in, entry.task.id)
 
     # The count is about the entry a completion rewrites, so it is refused wherever there is
     # no such entry rather than dropped (RK193): every other path places a new one.
@@ -3301,7 +3301,30 @@ def _decided(config: Config, task: Task, decides: str | None) -> Insertion | Non
         raise
 
 
-def _superseding(why: str, anchor: str, superseded: str) -> str:
+def _address(anchor: str, task_id: str | None) -> str:
+    """The anchor, spelled only where it is not the id the entry already opens with (RK1332).
+
+    Both clauses wrote `design §<anchor>` into a line whose first bold run is the id, and on
+    this repository's own ledger that was 48 entries out of 48: under `ref_scheme = "id"` the
+    two strings are one, so 8 of those characters were the tool addressing a line by a name it
+    had just written. They are spent in the sentence RK1330 measured as oversubscribed — the
+    ship that closed it had 23 characters left over, and this is a third of them.
+
+    Conditional and not removed, which is the whole of the care here: under an outline the
+    anchor is `I.2` and addresses a section the line names nowhere else, so dropping it there
+    would cost the reader the one fact the deletion leaves no other copy of. The condition is
+    the two strings being equal, which needs no scheme lookup to decide — the caller passing
+    an id it already holds is enough, and a caller that passes none keeps the old spelling.
+
+    Returns the address with its trailing space, so a clause that omits it does not have to
+    know it is omitting one.
+    """
+    return "" if task_id is not None and anchor == task_id else f"§{anchor} "
+
+
+def _superseding(
+    why: str, anchor: str, superseded: str, task_id: str | None = None
+) -> str:
     """The outcome with the overtaken design named inside it, as one sentence (RK310).
 
     The note is the author's verbatim. A full stop *inside* it is still two sentences and is
@@ -3309,10 +3332,12 @@ def _superseding(why: str, anchor: str, superseded: str) -> str:
     way it does anywhere else, and there is no case for saying it in the one clause whose
     subject is a design that no longer exists.
     """
-    return _parenthesised(why, f"design §{anchor} superseded: {superseded}")
+    return _parenthesised(why, f"design {_address(anchor, task_id)}superseded: {superseded}")
 
 
-def _recording(why: str, anchor: str, path: str) -> str:
+def _recording(
+    why: str, anchor: str, path: str, task_id: str | None = None
+) -> str:
     """The outcome with the deleted design's new address named inside it (RK1267).
 
     Derived end to end, which is what separates it from :func:`_superseding`: the anchor is the
@@ -3320,7 +3345,7 @@ def _recording(why: str, anchor: str, path: str) -> str:
     of this clause the author writes and none of it is prose (L4). Backticked because that is
     how every other path in a ledger sentence is spelled, and how the gate recognises one.
     """
-    return _parenthesised(why, f"design §{anchor} recorded in `{path}`")
+    return _parenthesised(why, f"design {_address(anchor, task_id)}recorded in `{path}`")
 
 
 def retiring(reason: str, superseded_by: str | None) -> str:
@@ -3343,7 +3368,7 @@ def retiring(reason: str, superseded_by: str | None) -> str:
     return f"abandoned: {reason}"
 
 
-def supersession_cost(anchor: str) -> int:
+def supersession_cost(anchor: str, task_id: str | None = None) -> int:
     """What `--superseded-design` costs the ledger's sentence before its note (RK1261).
 
     The other half of that task, and the one that arrives in time to be useful: `brief` quotes
@@ -3357,10 +3382,10 @@ def supersession_cost(anchor: str) -> int:
     drift when the clause is reworded — :func:`_superseding` stays the only writer of it.
     """
     stem = "x."
-    return width(_superseding(stem, anchor, "")) - width(stem)
+    return width(_superseding(stem, anchor, "", task_id)) - width(stem)
 
 
-def recording_cost(anchor: str) -> int:
+def recording_cost(anchor: str, task_id: str | None = None) -> int:
     """What `--recorded-in` costs that same sentence before the path (RK1275).
 
     :func:`supersession_cost`'s twin, and filed for the reason that one was: two flags landed
@@ -3373,7 +3398,7 @@ def recording_cost(anchor: str) -> int:
     moves this number rather than leaving it behind.
     """
     stem = "x."
-    return width(_recording(stem, anchor, "")) - width(stem)
+    return width(_recording(stem, anchor, "", task_id)) - width(stem)
 
 
 def _parenthesised(why: str, clause: str) -> str:

@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1332** (deps: —) **every design clause respells an anchor the entry already carries, in the one sentence proven to have no room** — 48 of 48 entries on this corpus read design §RK<n> on a line already opening with RK<n>: 8 derived characters each, a third of what the last ship had left over. → §RK1332
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

@@ -323,12 +323,12 @@ class Brief:
         return [
             {
                 "flag": "--superseded-design",
-                "wrapper": supersession_cost(self.task.ref),
+                "wrapper": supersession_cost(self.task.ref, self.task.id),
                 "yours": "the note",
             },
             {
                 "flag": "--recorded-in",
-                "wrapper": recording_cost(self.task.ref),
+                "wrapper": recording_cost(self.task.ref, self.task.id),
                 "yours": "the path",
             },
         ]
@@ -427,8 +427,8 @@ class Brief:
                 # clause — the line above is already the longest a brief prints.
                 if task.ref is not None:
                     rows.append(
-                        f"  shipping less {supersession_cost(task.ref)} for a "
-                        f"`--superseded-design` clause and {recording_cost(task.ref)} for a "
+                        f"  shipping less {supersession_cost(task.ref, task.id)} for a "
+                        f"`--superseded-design` clause and {recording_cost(task.ref, task.id)} for a "
                         f"`--recorded-in` wrapper, both into that same sentence — the note "
                         f"and the path are yours and are not in either number"
                     )

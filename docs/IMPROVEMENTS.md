@@ -77,26 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1332 The address said twice on one line
-
-Measured on this repository's own ledger: 48 of 48 entries carrying a design clause
-spell `design §RK<n>` where `<n>` is the id the line already opens with in bold. Under
-`ref_scheme = "id"` the anchor and the id are one string, so 8 of those characters are
-the tool writing an address it has just written.
-
-382 characters across the corpus is not the argument; the sentence they are spent in is.
-RK1330 measured that one 200-character sentence carries an outcome, a supersession note
-and a recording clause, that the note is the half which gives way, and that at the
-outcome's own aim it never fits. The ship closing it had 23 characters left over, and 8
-is a third of them.
-
-Under an outline the anchor is not the id - a section address names something the line
-does not - so the clause has to keep it there. The saving is conditional on the scheme,
-which is where the configuration already decides every other spelling.
-
-Falsified if a reader loses the address under a scheme where it differs from the id,
-which would make this a rendering rule that cannot be made conditional.
-
 ## Block C — Query
 
 ## Block D — The gate

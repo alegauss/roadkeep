@@ -1681,7 +1681,7 @@ def test_the_ledger_records_which_design_this_shipment_overtook(tmp_path):
     # full stop is two, which `why.sentences` refuses at the door.
     assert (
         "- ✅ **RK1** **A first symptom** — The first symptom no longer happens "
-        "(design §RK1 superseded: the lookup it proposed already existed)."
+        "(design superseded: the lookup it proposed already existed)."
     ) in read(config, CHANGELOG)
     # The clause is the *only* trace: the three edits are the three edits, and the section
     # the entry now names is gone from the file exactly as it would otherwise be.
@@ -1690,6 +1690,38 @@ def test_the_ledger_records_which_design_this_shipment_overtook(tmp_path):
     # parsed `ref` field and the ledger's schema carries none, so the trace is not an
     # orphan the backstop then reports against a section this same call deleted.
     assert lint(config).findings == ()
+
+
+def test_the_anchor_is_spelled_only_where_it_is_not_the_id_already_on_the_line():
+    """RK1332. Both clauses wrote `design §<anchor>` into a line whose first bold run is the
+    id, and on this repository's ledger that was 48 entries out of 48: under an id scheme the
+    two strings are one, so those characters addressed a line by a name just written.
+
+    The pairing is the assertion and not either half of it. Dropping the address unconditially
+    would cost an outline reader the one fact the deletion leaves no other copy of, and the
+    condition that avoids that is the two strings being equal — decided here without reading a
+    scheme, which is why the id is passed rather than the configuration consulted.
+    """
+    from roadkeep.shipping import _recording, _superseding  # noqa: PLC0415 - the suite's edge
+
+    for compose, arg, tail in (
+        (_superseding, "a note", "superseded: a note"),
+        (_recording, "p", "recorded in `p`"),
+    ):
+        # The id scheme: the anchor is the id, so the clause says `design` and stops.
+        assert compose("x.", "RK1", arg, "RK1") == f"x (design {tail})."
+        # An outline: the anchor addresses a section the line names nowhere else, so it stays.
+        assert compose("x.", "I.2", arg, "RK1") == f"x (design §I.2 {tail})."
+        # And a caller holding no id keeps the old spelling rather than guessing.
+        assert compose("x.", "RK1", arg, None) == f"x (design §RK1 {tail})."
+
+    # The saving is what the sentence gets back, so it is asserted as a difference and not as
+    # a constant: eight is `§RK1 ` plus the space that carried it.
+    assert supersession_cost("RK1") - supersession_cost("RK1", "RK1") == len("§RK1 ")
+    assert recording_cost("RK1") - recording_cost("RK1", "RK1") == len("§RK1 ")
+    # Under an outline there is nothing to get back, which is the same statement pointed the
+    # other way: the clause is unchanged there.
+    assert recording_cost("I.2") == recording_cost("I.2", "RK1")
 
 
 def test_the_clause_names_the_anchor_and_never_the_id(tmp_path):
@@ -1773,7 +1805,7 @@ def test_the_completion_is_where_the_partials_design_is_judged(tmp_path):
 
     ledger = read(config, CHANGELOG)
     assert "(local half)" not in ledger
-    assert "(design §RK1 superseded: the second half needed none of it)" in ledger
+    assert "(design superseded: the second half needed none of it)" in ledger
 
 
 def test_a_closure_writes_no_sentence_for_the_clause_to_join(tmp_path):
@@ -1808,8 +1840,8 @@ def test_the_clause_is_held_to_the_sentences_own_limit(tmp_path):
     # Each argument's own cost, and the wrapper's, so the three add up to the total refused.
     assert "--why took 36" in said
     assert "--superseded-design took 62" in said
-    assert f"added {supersession_cost('RK1')}" in said
-    assert "125 characters" in said and 36 + 62 + supersession_cost("RK1") == 125
+    assert f"added {supersession_cost('RK1', 'RK1')}" in said
+    assert f"{36 + 62 + supersession_cost('RK1', 'RK1')} characters" in said
     # And the edit, which is the whole finding: the outcome is what the entry keeps once the
     # design is deleted, so the deletion comes out of the note.
     assert "it is the note that gives way" in said
@@ -1848,7 +1880,7 @@ def test_the_note_is_told_how_much_room_it_has_and_when_it_has_none(tmp_path):
             superseded="a clause long enough to push the whole sentence past the limit",
         )
     # 80 less the 36-character outcome and the wrapper the anchor makes.
-    assert f"has {80 - 36 - supersession_cost('RK1')} characters beside this --why" in str(
+    assert f"has {80 - 36 - supersession_cost('RK1', 'RK1')} characters beside this --why" in str(
         caught.value
     )
 
@@ -1874,12 +1906,12 @@ def test_the_shipping_allowance_names_what_a_supersession_will_take(tmp_path, ca
     assert main(["-C", str(tmp_path), "brief", "RK1"]) == EXIT_OK
     out = capsys.readouterr().out
     assert "shipping why" in out
-    # ` (design §RK1 superseded: )` — measured through the composer, so a reworded clause
+    # ` (design superseded: )` — measured through the composer, so a reworded clause
     # moves this number rather than leaving it behind.
     # Both clauses since RK1275, on a row of their own: two flags land in that sentence, and
     # the wrapper of each is derivable from the anchor the line already carries.
-    assert f"less {supersession_cost('RK1')} for a `--superseded-design` clause" in out
-    assert f"and {recording_cost('RK1')} for a `--recorded-in` wrapper" in out
+    assert f"less {supersession_cost('RK1', 'RK1')} for a `--superseded-design` clause" in out
+    assert f"and {recording_cost('RK1', 'RK1')} for a `--recorded-in` wrapper" in out
 
 
 def test_the_flag_reaches_the_command_line_and_reports_what_it_wrote(tmp_path, capsys):
@@ -1901,7 +1933,7 @@ def test_the_flag_reaches_the_command_line_and_reports_what_it_wrote(tmp_path, c
     )
     out = capsys.readouterr().out
     assert "overtook the design it read: the lookup it proposed already existed" in out
-    assert "(design §RK1 superseded:" in read(config, CHANGELOG)
+    assert "(design superseded:" in read(config, CHANGELOG)
 
 
 def test_the_json_answers_the_clause_as_a_field(tmp_path, capsys):
@@ -1956,10 +1988,10 @@ def test_the_deleted_designs_durable_half_gets_an_address(tmp_path):
     ).save()
 
     ledger = read(config, CHANGELOG)
-    assert "(design §RK1 recorded in `src/engine.py`)." in ledger
+    assert "(design recorded in `src/engine.py`)." in ledger
     # The sentence still ends like one: the clause is inside the terminator, which is what
     # keeps the composed `why` legal under the rules that refuse two of them.
-    assert "happens (design §RK1 recorded in `src/engine.py`)." in ledger
+    assert "happens (design recorded in `src/engine.py`)." in ledger
     assert "§RK1" not in read(config, IMPROVEMENTS)
 
 
@@ -1976,8 +2008,8 @@ def test_both_clauses_land_in_one_sentence_in_the_order_the_pair_reads(tmp_path)
     ).save()
 
     assert (
-        "(design §RK1 superseded: the lookup it proposed already existed) "
-        "(design §RK1 recorded in `src/engine.py`)." in read(config, CHANGELOG)
+        "(design superseded: the lookup it proposed already existed) "
+        "(design recorded in `src/engine.py`)." in read(config, CHANGELOG)
     )
 
 
@@ -2112,7 +2144,7 @@ def test_a_note_with_no_room_left_is_told_where_it_goes_instead(tmp_path):
     # The pair takes the other branch: the supersession fitted and the recording tipped it, so
     # the outcome being measured already carries the note and neither half was named.
     (tmp_path / "pair").mkdir()
-    paired = project(tmp_path / "pair", extra_config="\n[limits]\nwhy = 100\n")
+    paired = project(tmp_path / "pair", extra_config="\n[limits]\nwhy = 84\n")
     (tmp_path / "pair" / "src").mkdir()
     (tmp_path / "pair" / "src" / "engine.py").write_text("x = 1\n", encoding="utf-8")
     with pytest.raises(RecordingCrowded) as both:
@@ -2138,7 +2170,7 @@ def test_the_room_a_recording_offers_is_what_the_field_it_names_may_take(tmp_pat
     never in the subtraction: it was in which sentence the remainder belonged to."""
     root = tmp_path / "pair"
     root.mkdir()
-    config = project(root, extra_config="\n[limits]\nwhy = 100\n")
+    config = project(root, extra_config="\n[limits]\nwhy = 84\n")
     (root / "src").mkdir()
     (root / "src" / "engine.py").write_text("x = 1\n", encoding="utf-8")
 
@@ -3153,8 +3185,8 @@ def test_the_allowance_prices_the_whole_transaction_and_not_one_line(tmp_path, c
 
     # The ledger's sentence, and both clauses that compose into it.
     assert "shipping why" in out
-    assert f"less {supersession_cost('RK1')} for a `--superseded-design` clause" in out
-    assert f"and {recording_cost('RK1')} for a `--recorded-in` wrapper" in out
+    assert f"less {supersession_cost('RK1', 'RK1')} for a `--superseded-design` clause" in out
+    assert f"and {recording_cost('RK1', 'RK1')} for a `--recorded-in` wrapper" in out
     # And the third write, which is not that sentence: its own role, its own limit.
     assert "deciding why" in out and "decisions role's own limit" in out
 
