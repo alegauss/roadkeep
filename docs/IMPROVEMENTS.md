@@ -110,56 +110,6 @@ and not a gap.
 
 ## Block F — The plugin
 
-### §RK1325 RK1325
-
-Measured 2026-08-23 on a tree `roadkeep init` had just made - no `.claude`, no
-`.mcp.json`, nothing wired. `served_by` answered `mcp__plugin_roadkeep_roadkeep__` for
-it, and `mcp__roadkeep__` for this repository, which does declare one. So every door in
-that project's payload carries a `call` naming a tool that project has nothing to answer
-with.
-
-RK449 states the rule the other way: where nothing serves the door, only the argv is
-published. The fallback makes *nothing serves it* unreachable - a root with no
-declaration inherits whatever the running environment has, and the payload then asserts
-about the project what is true about the machine.
-
-Both readings are defensible and that is the decision. `served_by` takes a root and
-reads `.mcp.json` under it, which is a question about the project; its docstring says
-*the prefix this session's tools arrive under*, which is a question about the process.
-They agree on every wired project and part company on an unwired one, which is exactly
-the adopter this tool ships for.
-
-It also cost a test. An equality over a ship's event had to stop comparing the door
-whole, because whether `call` is present depends on the machine the suite runs on.
-
-Falsified if a served caller can act on a project other than the server's own, which
-would make the prefix right and the root the wrong argument.
-
-### §RK1326 RK1325
-
-Measured 2026-08-23 on a tree `roadkeep init` had just made - no `.claude`, no
-`.mcp.json`, nothing wired. `served_by(root)` answered
-`mcp__plugin_roadkeep_roadkeep__`, and this repository, which does declare one, answered
-`mcp__roadkeep__`. So the fresh project was handed the prefix of a plugin it has no
-relationship with, and every door in its payloads carries a `call` naming a tool that
-cannot act on it.
-
-RK449 states the rule the other way: where nothing serves a door, only the argv is
-published. That is exactly the state here, and the fallback answers anyway.
-
-Two readings, and they are not the same question. *Which surface serves this session* is
-a fact about the process, and the fallback is right about it: a caller inside a plugin
-session does reach these tools. *Which surface serves this project* is a fact about the
-root that was passed, and it is the question the argument makes it look like. Everything
-downstream reads it as the second - the door is published beside a project's own answer,
-and a client runs what it names.
-
-The fix is to decide which one the argument asks, and where it is the project's, to
-answer nothing when the project declares nothing.
-
-Falsified if a served call reaches whatever project the caller names, which would make
-the prefix right and the reading a misunderstanding of the transport.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

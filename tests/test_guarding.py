@@ -283,12 +283,18 @@ def test_the_project_that_declares_the_server_is_offered_the_bare_name(tmp_path)
     assert "mcp__roadkeep__add" in str(refusal)
 
 
-def test_a_project_the_plugin_serves_is_offered_the_name_that_session_has(tmp_path):
+def test_a_project_the_plugin_serves_is_offered_the_name_that_session_has(tmp_path, monkeypatch):
     """RK333, measured with `claude --plugin-dir <tree> -p …` from a project that is not
     this one: the tools come back as `mcp__plugin_roadkeep_roadkeep__add`, and the refusal
     named the bare form — a route that session cannot call, which is worse than the shell
-    form it demotes, because that one at least fails loudly."""
+    form it demotes, because that one at least fails loudly.
+
+    **In** the project, which is the situation this describes and since RK1325 the situation
+    it has to be: a plugin serves the session's own project, and a root this process was
+    merely pointed at is one it publishes no call for.
+    """
     root = project(tmp_path)  # no `.mcp.json`: nothing here declares a server
+    monkeypatch.chdir(root)
     refusal = guard(write(str(root / ROADMAP)), root)
     assert refusal is not None
     assert refusal.served == "mcp__plugin_roadkeep_roadkeep__"
@@ -1338,3 +1344,42 @@ def test_a_governed_target_beside_the_config_is_refused_and_not_advised(
     found = guarding.decide(payload, root)
     assert found.refusal is not None
     assert found.advice is None
+
+
+def test_a_project_this_process_is_not_in_is_offered_no_tool_at_all(tmp_path, monkeypatch):
+    """RK1325, measured on a tree `roadkeep init` had just made — no `.claude`, no `.mcp.json`,
+    nothing wired — reached with `-C`. It was handed `mcp__plugin_roadkeep_roadkeep__`, so every
+    door in its payload carried a call naming a tool that project has nothing to answer with.
+
+    RK449 states the rule the other way: where nothing serves the door, only the argv is
+    published. The fallback made *nothing serves it* unreachable, because a root with no
+    `.mcp.json` always got the plugin — and the falsification that decides it is that a served
+    caller **cannot** act on another project: the harness starts one server per project and its
+    tools take no root. So the root is the right argument, and the answer is about the root.
+    """
+    from roadkeep.provenance import serving
+
+    root = project(tmp_path)
+    # Somewhere this process is not: the state a `-C` reaches, and the one a test that never
+    # moved was silently in.
+    monkeypatch.chdir(Path(__file__).resolve().parents[1])
+    assert serving(root) is None
+
+    # And in it, the ordinary adopting project under the plugin, which is unaffected.
+    monkeypatch.chdir(root)
+    assert serving(root) == "mcp__plugin_roadkeep_roadkeep__"
+
+
+def test_a_project_that_declares_its_own_server_answers_wherever_this_runs(tmp_path, monkeypatch):
+    # The declared case reads the root and nothing else, so it is not bounded by this: a
+    # `.mcp.json` is a fact about the project, and a caller reaching it has the same tools
+    # whichever directory the process happens to be in.
+    from roadkeep.provenance import serving
+
+    root = project(tmp_path)
+    (root / ".mcp.json").write_text(
+        '{"mcpServers": {"roadkeep": {"command": "roadkeep", "args": ["mcp"]}}}',
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(Path(__file__).resolve().parents[1])
+    assert serving(root) == "mcp__roadkeep__"

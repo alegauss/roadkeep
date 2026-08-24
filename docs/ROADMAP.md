@@ -36,9 +36,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1325** (deps: —) **a project wiring no plugin is told its doors arrive under one, so a payload names a tool nothing there answers** — served_by falls back past the project it was handed, and RK449's rule is that a door nothing serves publishes its argv alone. → §RK1325
-- 📋 **RK1326** (deps: —) **a project with no plugin wired is told its doors arrive under one, so every call the payload names is uncallable there** — served_by falls back to the running session when the project declares nothing, and the payload it feeds is about the project. → §RK1326
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

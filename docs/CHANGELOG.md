@@ -808,6 +808,8 @@
 - ✅ **RK1260** **the MCP schemas offer '-' and stdin, an input channel no MCP client can provide** — The three verbs that write a body take a path over MCP too, so a rationale refused at 257 words costs an edit and a path instead of the other 250 characters again.
 - ✅ **RK1280** **the guard allows a hand edit to the config and says nothing, so a limit with a door is still typed past it** — A hand edit to the config is allowed and told which of its numbers have a verb, deciding nothing (design §RK1280 recorded in `src/roadkeep/guarding.py`).
 - ✅ **RK1283** **the guard parses the config twice on every allowed write, once to refuse nothing and once to advise** — The barrier reads the project once per call, so an allowed write costs one config parse.
+- 🗑 **RK1326** **a project with no plugin wired is told its doors arrive under one, so every call the payload names is uncallable there** — superseded by RK1325: the same finding, filed minutes apart by two sessions sharing this tree; RK1325 is the lower id and keeps the line.
+- ✅ **RK1325** **a project wiring no plugin is told its doors arrive under one, so a payload names a tool nothing there answers** — the plugin answers only for the project this process is in, so a root it was pointed at publishes no call (design §RK1325 recorded in `src/roadkeep/provenance.py`).
 
 ## Block G — The editor surface (the backlog where the file is open)
 

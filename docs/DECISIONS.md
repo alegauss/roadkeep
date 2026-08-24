@@ -47,6 +47,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- ✅ **RK1325** **a project wiring no plugin is told its doors arrive under one, so a payload names a tool nothing there answers** — A prefix is a fact about the project a caller can act on, and a served caller acts on one project, so a root it is not in publishes argv alone.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 - ✅ **RK1271** **the editor completes nothing in `roadkeep.toml`, so every key is typed from memory** — A reader outside the package renders a payload and never a rule: no list, no limit, no parser.

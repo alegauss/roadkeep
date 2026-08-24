@@ -121,14 +121,14 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 133 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 1 | 101 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 121 | 1 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 122 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 26 | 1 |
-| **Total** | 3 | 812 | 11 |
+| **Total** | 1 | 813 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1325** (deps: —) **a project wiring no plugin is told its doors arrive under one, so a payload names a tool nothing there answers** — served_by falls back past the project it was handed, and RK449's rule is that a door nothing serves publishes its argv alone. → §RK1325
+- 📋 **RK1328** (deps: —) **a project past init opens an opt-in table only by hand-editing the config this tool owns the writes to** — declare retrofits a role and govern writes a number, and neither opens [criteria] — which over MCP is not an edit at all, so the verb it gates stays shut. → §RK1328
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

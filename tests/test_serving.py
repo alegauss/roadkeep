@@ -144,15 +144,23 @@ def listed(tmp_path: Path) -> dict[str, dict]:
 
 
 def called(tmp_path: Path, name: str, **arguments) -> dict:
-    response = handle(
-        {
-            "jsonrpc": "2.0",
-            "id": 7,
-            "method": "tools/call",
-            "params": {"name": name, "arguments": arguments},
-        },
-        str(tmp_path),
-    )
+    """One `tools/call`, made **from inside** the project it is about.
+
+    The chdir is not decoration (RK1325): the harness starts one server per project and its
+    tools take no root, so a session's own directory *is* the project it serves — and since
+    that task, a root this process was merely pointed at publishes no tool call at all.
+    Simulating the surface from somewhere else was simulating a deployment there is none of.
+    """
+    with contextlib.chdir(tmp_path):
+        response = handle(
+            {
+                "jsonrpc": "2.0",
+                "id": 7,
+                "method": "tools/call",
+                "params": {"name": name, "arguments": arguments},
+            },
+            str(tmp_path),
+        )
     return response["result"]
 
 

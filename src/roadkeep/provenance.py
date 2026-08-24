@@ -418,8 +418,37 @@ def serving(root: Path) -> str | None:
     # gets the bare name, and nothing else does.
     if _declared_by(root):
         return WIRED
-    plugin = _plugin_name()
-    return None if plugin is None else f"mcp__plugin_{plugin}_{SERVER}__"
+    # And the plugin answers only for the project **this process is in** (RK1325). The branch
+    # above reads the root it was handed; this one reads the tree the engine runs out of, and
+    # the two are one question only while the root is the session's own. Measured on a tree
+    # `init` had just made — no `.claude`, no `.mcp.json`, nothing wired — reached with `-C`:
+    # it was handed `mcp__plugin_roadkeep_roadkeep__`, so every door in its payload carried a
+    # call naming a tool that project has nothing to answer with. RK449 states the rule the
+    # other way, and the fallback made *nothing serves it* unreachable.
+    #
+    # A served caller cannot act on another project — the harness starts one server per
+    # project and its tools take no root — so where the root is not this process's own, there
+    # is no call to publish and `None` is the answer. An adopting project under the plugin is
+    # unaffected: its root *is* the session's, which is the ordinary case this branch is for.
+    if _plugin_name() is None or not _own(root):
+        return None
+    return f"mcp__plugin_{_plugin_name()}_{SERVER}__"
+
+
+def _own(root: Path) -> bool:
+    """Whether this process is running *in* the project at ``root`` (RK1325).
+
+    The working directory and not an environment variable: `Config.discover` walks up from
+    here to find `roadkeep.toml`, so the root a caller reaches without `-C` is this directory
+    or one above it. A root that is neither is a project this process was pointed at, and a
+    plugin serving this session does not serve that one.
+    """
+    try:
+        here = Path.cwd().resolve()
+        wanted = root.resolve()
+    except OSError:
+        return False
+    return wanted == here or wanted in here.parents
 
 
 def served_by(root: Path) -> str:
