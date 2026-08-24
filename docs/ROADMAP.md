@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1342** (deps: —) **deps prints its own spelling of no-open-task, so a paused line is invisible where the shared refusal names it** — backlog.py declares one spelling for every caller and answers three ways; the deps site hand-rolls a two-way copy that knows only the changelog. → §RK1342
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
