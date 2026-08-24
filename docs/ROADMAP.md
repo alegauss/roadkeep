@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1343** (deps: —) **govern tells every undeclared key that a build default applies, and three of them have no default at all** — reads.brief, tools.session and tools.characters are None until declared, so the read says a fallback holds on the keys whose point is that none does. → §RK1343
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
