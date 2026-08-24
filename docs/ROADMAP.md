@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1344** (deps: —) **two adopt gains have labels the fixed pad cannot separate, so the row runs its first word into its sentence** — decisions and non-goals are exactly the nine the row pads to, printing decisionsno decisions file, while the doors table beside it pads to the widest. → §RK1344
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
