@@ -77,6 +77,46 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1332 The address said twice on one line
+
+Measured on this repository's own ledger: 48 of 48 entries carrying a design clause
+spell `design §RK<n>` where `<n>` is the id the line already opens with in bold. Under
+`ref_scheme = "id"` the anchor and the id are one string, so 8 of those characters are
+the tool writing an address it has just written.
+
+382 characters across the corpus is not the argument; the sentence they are spent in is.
+RK1330 measured that one 200-character sentence carries an outcome, a supersession note
+and a recording clause, that the note is the half which gives way, and that at the
+outcome's own aim it never fits. The ship closing it had 23 characters left over, and 8
+is a third of them.
+
+Under an outline the anchor is not the id - a section address names something the line
+does not - so the clause has to keep it there. The saving is conditional on the scheme,
+which is where the configuration already decides every other spelling.
+
+Falsified if a reader loses the address under a scheme where it differs from the id,
+which would make this a rendering rule that cannot be made conditional.
+
+### §RK1331 The number that cannot be retried at
+
+The refusal names a field and a number, and the number is measured on something else.
+`RecordingCrowded` computes the room as the limit less what the recording clause spends,
+which leaves what the *composition before it* may take - outcome plus supersession note
+plus the brackets around them. It then reports that figure as what "the outcome" has.
+
+Measured on the ship that closed RK1330: the message offered 126, a `--why` of exactly
+126 composes 239 against a limit of 182, and the refusal prints 126 again. The advice is
+a fixed point that never converges, which is worse than no number: an author retrying at
+the figure printed has no reason to doubt it, and the second refusal looks like the tool
+ignoring the edit rather than like the figure meaning something other than it said.
+
+Either the number is attributed to the composition it actually measures, or it is
+reduced to what the named field may take. The second is what the message promises and
+what a caller can act on without arithmetic.
+
+Falsified if the pair can reach this class with no note in it, in which case the outcome
+really is the whole of what was measured and only the wording is at fault.
+
 ## Block C — Query
 
 ## Block D — The gate

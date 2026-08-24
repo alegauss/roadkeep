@@ -117,14 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 184 | 2 |
+| B — Authoring (insert, never hand-edit) | 2 | 184 | 2 |
 | C — Query (consult without reading the file) | 0 | 133 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 102 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 122 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 26 | 1 |
-| **Total** | 0 | 816 | 12 |
+| **Total** | 2 | 816 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1331** (deps: —) **the room a crowded recording names is the outcome plus the note, but it is reported as the outcome alone** — A --why written to the number printed is refused and the refusal prints that number again: 126 composes 239 against a limit of 182, so the retry it invites cannot converge. → §RK1331
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
