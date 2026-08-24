@@ -40,11 +40,15 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK1325** (deps: —) **a project wiring no plugin is told its doors arrive under one, so a payload names a tool nothing there answers** — served_by falls back past the project it was handed, and RK449's rule is that a door nothing serves publishes its argv alone. → §RK1325
+- 📋 **RK1326** (deps: —) **a project with no plugin wired is told its doors arrive under one, so every call the payload names is uncallable there** — served_by falls back to the running session when the project declares nothing, and the payload it feeds is about the project. → §RK1326
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
 - 📋 **RK1321** (deps: —) **budget serves seven subjects on one tool and is now the largest, so every subject added re-argues a shared ceiling** — Two ceilings moved for it in one session, and a per-tool limit calibrated against one-subject verbs is binding on the wrong thing. → §RK1321
+- 📋 **RK1324** (deps: —) **four key names carry the same runnable command across the payloads, so a consumer needs four readers for one idea** — RK1307 held that a door the text names is in the payload and never that it is findable, so each verb chose a name as it was written. → §RK1324
 
 ## Non-goals
 
