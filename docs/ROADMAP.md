@@ -26,7 +26,7 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1333** (deps: —) **cost --session prints the tools total without the ceiling it is measured against, in both registers** — The notice row beside it derives +15 of 320; the tools row prints 64679 and never the 64700 that lint refuses it against, where the headroom is 21 characters. → §RK1333
+- 📋 **RK1334** (deps: —) **the served surface is measured with the handshake's provenance in it, so the budget moves with the checkout** — The same tree reads 64679 clean and 64688 dirty, and the ceiling has 12 to spare: the gate can refuse a commit for not having happened yet. → §RK1334
 
 ## Block C — Query (consult without reading the file)
 

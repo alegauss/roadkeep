@@ -1302,6 +1302,14 @@ class Session:
     #: What the notice may cost, so the room is stated beside the figure — RK345's pairing,
     #: and the reason this is a read rather than a second gate.
     notice_limit: int | None = None
+    #: What the served surface may cost, for the row that had no such pairing (RK1333). The
+    #: notice beside it derived `+15 of 320` while this one printed 64679 and stopped, though
+    #: `[tools] session` declares the ceiling and `budget.session` is the single finding that
+    #: refuses the total against it — so there was one number to name and the row named none.
+    #: Measured at 21 characters of room, which is the next sentence added to any one of 66
+    #: tool descriptions: the reader most likely to run this verb is the one it answered
+    #: least. Same pairing as :attr:`notice_limit` and for the same reason it is a read.
+    once_limit: int | None = None
 
     @property
     def turn(self) -> int:
@@ -1344,19 +1352,29 @@ class Session:
         """
         return self.once + self.notice
 
+    @staticmethod
+    def _room(taken: int, limit: int | None) -> str:
+        """The room beside a figure, in the one spelling both once-rows use (RK1333).
+
+        Shared rather than repeated because the defect was the two rows disagreeing about
+        whether a ceiling gets named at all: a second copy is what let one of them keep a
+        pairing the other never grew. A limit nothing declares stays silent, which is the
+        state a project with no `[tools]` table is in and is not a finding.
+        """
+        return "" if limit is None else f", {limit - taken:+} of {limit}"
+
     def stated(self, unit: str) -> str:
         rows = [
             f"session    {self.at_connect} {unit} once, {self.turn} on every turn — "
             f"two cadences, so they are not added",
-            f"  once     {self.once:>6}  {self.tools} tool(s) and the handshake, at connect",
+            f"  once     {self.once:>6}  {self.tools} tool(s) and the handshake, at "
+            f"connect{self._room(self.once, self.once_limit)}",
         ]
         if self.notice:
-            room = (
-                ""
-                if self.notice_limit is None
-                else f", {self.notice_limit - self.notice:+} of {self.notice_limit}"
+            rows.append(
+                f"  once     {self.notice:>6}  the session-start notice"
+                f"{self._room(self.notice, self.notice_limit)}"
             )
-            rows.append(f"  once     {self.notice:>6}  the session-start notice{room}")
         rows += [f"  turn     {_resident(load)}" for load in self.resident]
         if not self.resident:
             # The state `--file` raises on, said rather than left as an absent row: a project
@@ -1390,6 +1408,10 @@ class Session:
                 "unit": unit,
                 "of": f"{self.tools} tool(s) and the handshake, and the session-start notice",
                 "schema": self.once,
+                # Beside the figure it bounds, as the notice's is (RK1333): a consumer
+                # reading `schema` to decide whether a description may grow was getting the
+                # only number here that carried nothing to measure it against.
+                "schema_limit": self.once_limit,
                 "notice": self.notice,
                 "notice_limit": self.notice_limit,
             },

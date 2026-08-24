@@ -77,28 +77,30 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1333 The number printed against nothing
+### §RK1334 The budget that moves with the checkout
 
-`cost --session` prints two rows at the same cadence and measures only one of them. The
-notice row reads `305  the session-start notice, +15 of 320`, deriving its room from a
-declared limit; the tools row reads `64679  66 tool(s) and the handshake, at connect`
-and stops there, though `[tools] session` declares 64700 and `lint` refuses the surface
-against it. Both registers are the same: the payload carries `notice_limit` and no
-counterpart.
+The handshake is provenance and then prose: `roadkeep 0.1.1150 (81b36c78 modified,
+D:\Git\alegauss\roadkeep\src\roadkeep)`. Three of those four facts are properties of the
+checkout and not of the surface being measured - the commit, the word `modified` when
+the tree has uncommitted changes, and the absolute path the package was imported from.
 
-The asymmetry is invisible until the number matters, and it matters now - the measured
-headroom is 21 characters of 64700, which is the next sentence added to any one of 66
-tool descriptions. A reader who ran this verb to decide whether a description could grow
-was given the one figure that does not say.
+All of it is counted into the figure `budget.session` refuses against a fixed ceiling.
+Measured here: the same tree read 64679 clean and 64688 dirty, the nine characters being
+the word `modified`, against a ceiling of 64700 with twelve to spare. So a surface four
+characters larger passes on a clean tree and is refused on a dirty one - and a dirty
+tree is the state the pre-commit hook this project ships runs in. The gate would then
+refuse a commit because the commit had not happened yet.
 
-This is the finding RK1331 closed one file over, in the other direction: there a number
-was reported against a sentence it was not measured on, here a number is reported
-against nothing at all. A limit the gate holds is a limit the query naming that number
-should carry, which is what makes the answer cost no second command (L5).
+The path is the larger term and the same kind: a checkout at
+`/home/runner/work/roadkeep/ roadkeep/src/roadkeep` measures different from this one, so
+the CI verdict and the local one are answers about different numbers.
 
-Falsified if the session total is refused somewhere other than against `[tools]
-session`, in which case there is no single ceiling to name and the row is right to stay
-bare.
+What a budget on the served surface is for is the surface. Provenance still belongs in
+the handshake - it is what tells a session which tree answered - but a figure held to a
+limit has to be the part an author can act on.
+
+Falsified if the ceiling is already declared with the provenance included, in which case
+the number is right and only its drift between environments is the finding.
 
 ## Block C — Query
 

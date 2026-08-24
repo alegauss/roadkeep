@@ -246,6 +246,7 @@
 - ✅ **RK1330** **the supersession trace is the clause that gives way, so a ship recording where a design went cannot say it was stale** — A refusal naming nothing to shorten to reads as do not say it, so both crowded messages name where the note goes (design §RK1330 recorded in `src/roadkeep/shipping.py`).
 - ✅ **RK1331** **the room a crowded recording names is the outcome plus the note, but it is reported as the outcome alone** — The room is taken off the composition before it is attributed to the field the message names, so the retry it invites lands (design §RK1331 recorded in `src/roadkeep/shipping.py`).
 - ✅ **RK1332** **every design clause respells an anchor the entry already carries, in the one sentence proven to have no room** — The anchor is spelled only where it is not the id the entry already opens with, which returns 8 characters per clause under an id scheme (design recorded in `src/roadkeep/shipping.py`).
+- ✅ **RK1333** **cost --session prints the tools total without the ceiling it is measured against, in both registers** — The schema row derives its room from the ceiling the gate refuses it against, in one spelling both once-rows now share (design recorded in `src/roadkeep/budgeting.py`).
 
 ## Block C — Query
 

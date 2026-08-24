@@ -1997,6 +1997,40 @@ def test_the_session_start_line_is_priced_beside_the_schema(tmp_path, capsys):
     assert "of 320" in printed
 
 
+def test_the_schema_row_names_the_ceiling_the_gate_refuses_it_against(tmp_path, capsys):
+    """RK1333. The two rows print at one cadence and only one of them was measured: the
+    notice derived `+15 of 320` while the schema printed 64679 and stopped, though
+    `[tools] session` declares the ceiling and `budget.session` is the single finding that
+    refuses the total against it. Measured at 21 characters of room — the next sentence added
+    to any one of 66 tool descriptions — so the reader most likely to run this verb was the
+    one it answered least.
+
+    Both registers, because a consumer reading `schema` to decide whether a description may
+    grow had the same nothing to measure it against."""
+    budgeted(tmp_path)
+    toml = tmp_path / "roadkeep.toml"
+    toml.write_text(
+        # Both keys, the table refusing to hold nobody to anything.
+        toml.read_text(encoding="utf-8") + "[tools]\ncharacters = 3000\nsession = 9000\n",
+        encoding="utf-8",
+    )
+    assert main(["-C", str(tmp_path), "cost", "--session"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "of 9000" in printed
+    # The pairing is one spelling and not two, which is the shape of the defect: a second
+    # copy is what let one row keep a pairing the other never grew.
+    assert printed.count(" of ") >= 2
+
+    assert main(["-C", str(tmp_path), "cost", "--session", "--json"]) == EXIT_OK
+    once = json.loads(capsys.readouterr().out)["once"]
+    assert once["schema_limit"] == 9000
+    # A project declaring no ceiling stays silent rather than inventing one.
+    (tmp_path / "bare").mkdir()
+    budgeted(tmp_path / "bare")
+    assert main(["-C", str(tmp_path / "bare"), "cost", "--session", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["once"]["schema_limit"] is None
+
+
 def test_the_notice_shares_the_cadence_and_so_is_added(tmp_path, capsys):
     """The rule this record keeps is that two *cadences* may not be summed. The schema and
     the notice share one, so a reader deciding whether to cut a tool description or a

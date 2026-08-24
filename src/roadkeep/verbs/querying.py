@@ -644,6 +644,10 @@ def _session_budget(config: Config, args: argparse.Namespace) -> int:
         # actually get rather than a second estimate of it.
         notice=resident,
         notice_limit=limit,
+        # The ceiling `budget.session` refuses this total against, which is the single one
+        # there is (RK1333): read off the config here rather than recomputed, so the row and
+        # the gate cannot come apart the way the row and the notice's ceiling already had.
+        once_limit=config.tool_session,
     )
 
     if args.json:
