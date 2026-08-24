@@ -587,3 +587,48 @@ def test_the_copy_an_agent_reads_is_the_one_the_hook_prints(tmp_path):
     printed = str(Review(lint(config)))
     statement = _statement(printed, "repairs what is derived")
     assert _unnamed(statement) == [], statement
+
+
+# -- the direction the gate did not hold (RK1327) ------------------------------
+
+
+def test_every_pass_that_makes_a_repair_declares_its_word():
+    """RK355's own defect, one layer up. That gate holds that every declared word is *stated*
+    in each copy, and never that every repair is *declared* — so the list was checked against
+    the prose and not against the code, and RK1318 added a seventh pass with nothing going red.
+
+    A word with no repair needs prose to judge and stays outside a gate (L4). A repair with no
+    word does not: a function producing repairs is a function whose signature says so.
+    """
+    import ast
+
+    from roadkeep.fixing import _PASSES
+
+    tree = ast.parse(Path(fixing.__file__).read_text(encoding="utf-8"))
+    making = {
+        node.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef)
+        # A function that **constructs** one, not one that merely names the type: `fix`
+        # gathers what the passes made and declares no word of its own.
+        and any(
+            isinstance(inner, ast.Call)
+            and isinstance(inner.func, ast.Name)
+            and inner.func.id == "Repair"
+            for inner in ast.walk(node)
+        )
+    }
+    assert making == set(_PASSES), {
+        "makes repairs, declares no word": sorted(making - set(_PASSES)),
+        "declares a word, makes none": sorted(set(_PASSES) - making),
+    }
+
+
+def test_the_word_list_is_derived_and_not_a_second_copy():
+    # Two lists joined by hand is what left the seventh repair unnamed: the words come off the
+    # passes, so a pass added with its word is a word every copy is then held to.
+    from roadkeep.fixing import _PASSES
+
+    assert set(REPAIRS) == {word for words in _PASSES.values() for word in words}
+    # In declaration order and deduplicated, which is what the four copies read as a list.
+    assert len(REPAIRS) == len(set(REPAIRS))

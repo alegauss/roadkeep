@@ -35,6 +35,7 @@
 - ✅ **RK1299** **a clean lint answers with 42 note rows repeating six facts, five times the cost of its text form** — The gate runs at the end of every turn, so a run of rows saying one thing is one row with its count, named by the lines it was collapsed out of.
 - ✅ **RK1308** **lint exits 1 on install.stale, so a CI gate goes red on a backlog it has just reported clean** — The gate's exit code is about the governed files; whether this checkout's installed surface matches the engine is maintenance, and says so at exit 0.
 - ✅ **RK1318** **the gate reads a criterion's shape and length and never whether the block or id it is addressed to still exists** — An address validated at the write is re-asked by the gate, because the write was right when it ran and cannot know what a later one spent.
+- ✅ **RK1327** **a repair --fix makes with no word in REPAIRS goes unnamed in all six copies, and the gate stays green** — A list a second place has to be joined to is derived from the first: what is decidable about code is held against the code.
 
 ## Block E — Adoption
 

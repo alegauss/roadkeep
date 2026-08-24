@@ -18,7 +18,7 @@ Report the findings as they came, and then help with the ones that need a decisi
 - A dep nothing satisfies, a pointer resolving to nothing, a section nothing points at: those
   are structural, and `python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py" show <id>` prints the line with its section and its paths.
 - Whitespace, a marker's codepoint, dep order, an annotation, a derived pointer, a dead queue
-  entry: those are **derived**, and `python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py" lint --fix` repairs them without touching a
+  entry, an empty criteria heading nothing answers: those are **derived**, and `python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py" lint --fix` repairs them without touching a
   word. Offer it; do not run it unasked, because it writes.
 
 An over-budget instruction file is not a formatting complaint: it is the budget in

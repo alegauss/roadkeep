@@ -468,8 +468,9 @@ Markers are `[markers]` in `roadkeep.toml`: the open set is the roadmap's, and t
 and retired ones are the ledger's alone — neither is legal in a roadmap. Limits are
 `[limits]`: `roadkeep lint` names the file, line and column of anything over, and `--fix`
 repairs only what is **derived** (annotation, pointer, dep order, marker codepoint,
-whitespace, and the queue entry whose task shipped or was retired, named in the report and
-never dropped in silence). On a project that arrived with drift, an absolute count answers
+whitespace, the queue entry whose task shipped or was retired, and a criteria heading
+addressed to nothing and holding nothing — each named in the report and never dropped in
+silence). On a project that arrived with drift, an absolute count answers
 nothing: `--baseline <rev>` (`HEAD` after a write) reports **what you added** and forgives
 the standing debt by name.
 

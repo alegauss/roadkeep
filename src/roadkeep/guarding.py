@@ -511,7 +511,8 @@ class Review:
             # served surface withholds it deliberately (`lint` is exposed there without it),
             # and a prefix glued to this line would name a tool that does not exist.
             f"`{fixing}` repairs what is derived (annotation, pointer, dep "
-            f"order, marker codepoint, whitespace, dead queue entry); everything left is "
+            f"order, marker codepoint, whitespace, dead queue entry, orphaned criteria "
+            f"heading); everything left is "
             f"editorial and wants a command, not an edit."
             + (
                 " That one is the shell whatever this session serves: `--fix` writes, so "

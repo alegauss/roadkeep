@@ -8,8 +8,9 @@ that needed it most. So the findings split in two:
   (RK27), a duplicate or unordered dep, an invisible codepoint stuck to the marker, and
   whitespace around a field. Nothing here is anybody's prose, and every one of them is
   recomputed from the parsed line rather than edited in place. The queue's dead entry is
-  the same class from the roadmap's third list, and the one repair that *removes* a line
-  rather than re-rendering one (RK328, :func:`_dequeue`);
+  the same class from the roadmap's third list, and the first repair that *removes* a line
+  rather than re-rendering one (RK328, :func:`_dequeue`); the criteria heading addressed
+  to nothing and holding nothing is the second (RK1318, :func:`_unaddress`);
 * **editorial** — an over-long `why`, a symptom that is a sentence, a dep on a task in
   neither file. Each needs a decision, and a tool that made it would be writing prose (L4).
 
@@ -56,6 +57,7 @@ the rule that forbids guessing it.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -68,25 +70,39 @@ from roadkeep.kernel.schema import indentation, repaired
 from roadkeep.markers import derive
 from roadkeep.kernel.schema import Dep, DepKind, Schema, Task
 
-#: Every repair `--fix` makes, as the word each statement of the split has to contain
-#: (RK355). Six files tell a reader what is mechanical — this docstring, `agents.md`, the
-#: shipped skill, the `lint` command, the README and :class:`~roadkeep.guarding.Review`, which
-#: is the one an agent reads because the `Stop` hook prints it — and RK328's sixth repair
-#: reached three of them. So the list lives beside the code that writes it, and
-#: `tests/test_fixing.py` holds every copy against it: one direction, like RK203's index.
+#: Which words each pass may produce, declared **beside the pass it belongs to** (RK1327).
 #:
-#: A word and not a sentence, because the six phrasings are deliberate — a hook message names
-#: the repair, the README explains it — and a test comparing sentences would be a seventh
-#: statement of the list rather than a gate on the six. Nothing imports this at run time:
-#: `guarding` stays out of this module's import path, which is milliseconds RK260 already paid
-#: for, so the hook's copy is prose the test proves rather than a string it interpolates.
-REPAIRS: tuple[str, ...] = (
-    "annotation",
-    "pointer",
-    "order",
-    "codepoint",
-    "whitespace",
-    "queue",
+#: RK355 put the list here because six files tell a reader what is mechanical — this module,
+#: `agents.md`, the shipped skill, the `lint` command, the README and
+#: :class:`~roadkeep.guarding.Review`, which is the one an agent reads because the `Stop` hook
+#: prints it — and RK328's sixth repair reached three of them. What that gate holds is one
+#: direction: every declared word is stated in each copy. It never held that every repair is
+#: *declared*, so the list was checked against the prose and not against the code, and RK1318
+#: added a seventh repair with nothing going red.
+#:
+#: A word with no repair needs prose to judge and stays outside a gate (L4). A repair with no
+#: word does not, and this is where it becomes decidable: a function producing repairs and
+#: missing from these keys is a red in `tests/test_fixing.py`, and a word added here is a red
+#: in each copy until it is stated. Both directions, from one declaration.
+#:
+#: Keyed by the **pass** and not by the repair, because one of them is not one word: the
+#: re-render recomputes a line from its own parse and reports whichever of four it corrected.
+_PASSES: Mapping[str, tuple[str, ...]] = {
+    "_fix_file": ("annotation", "pointer", "order", "whitespace"),
+    "_decontrol": ("codepoint",),
+    "_unmark_file": ("codepoint",),
+    "_dequeue": ("queue",),
+    "_unaddress": ("criteria",),
+}
+
+#: Every repair `--fix` makes, in declaration order — **derived** from the passes above, so
+#: nobody joins two lists (RK1327). A word and not a sentence, because the phrasings are
+#: deliberate — a hook message names the repair, the README explains it — and a test comparing
+#: sentences would be a seventh statement of the list rather than a gate on the six. Nothing
+#: imports this at run time: `guarding` stays out of this module's import path, which is
+#: milliseconds RK260 already paid for, so the hook's copy is prose the test proves.
+REPAIRS: tuple[str, ...] = tuple(
+    dict.fromkeys(word for words in _PASSES.values() for word in words)
 )
 
 

@@ -78,7 +78,8 @@ violation, line that stopped round-tripping, dep nothing satisfies, pointer or s
 answers, over-budget every-turn file or served tool, dead queue entry, or invisible codepoint —
 as `file:line:column`, each carrying **the command that closes it** (RK14/15/30/34/326/420). CI
 runs the action this repo ships (RK17); `--fix` repairs only the **derived** — annotation,
-pointer, dep order, marker codepoint, whitespace, queue entry (RK16).
+pointer, dep order, marker codepoint, whitespace, queue entry, an orphaned criteria
+heading (RK16).
 
 ## The write path is a skill, not a preamble
 
