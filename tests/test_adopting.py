@@ -2864,3 +2864,23 @@ def test_a_file_that_does_not_decode_is_said_and_not_raised_through(tmp_path, ca
     governed = capsys.readouterr().err
     assert "git checkout -- ROADMAP.md" in governed
     assert "the store being the repository" in governed
+
+
+def test_the_estimate_counts_the_byte_level_codes_the_gate_raises(tmp_path, capsys) -> None:
+    """RK1351. On identical bytes `lint` reported `char.bom` and named `lint --fix`, while the
+    estimate named the mark zero times and listed `ref.missing` beside it — so an adopter
+    budgeted from counts the first gate after adoption disagreed with.
+
+    The cause was where the pass lived, not whether it could run: `within` says of itself
+    *everything decidable from one file alone*, and the character walk — `raw.find` over the
+    lines — is exactly that, yet it sat only in the whole gate's rule list. Both callers
+    holding one file were blind: this estimate, and the merge driver gating its own output."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(
+        "\ufeff# Roadmap\n\n## Block A\n\n"
+        "- 📋 **RK1** (deps: —) **a symptom plainly long enough to read** — A reason. → §RK1\n",
+        encoding="utf-8",
+    )
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "RK", "--json"]) == EXIT_OK
+    codes = {row["code"]: row["count"] for row in json.loads(capsys.readouterr().out)["codes"]}
+    assert codes.get("char.bom") == 1, codes

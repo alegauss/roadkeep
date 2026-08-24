@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1351** (deps: —) **the estimate lists no byte-level code, so a BOM the fixer closes is missing from what adoption costs** — On identical bytes lint reports char.bom and names lint --fix, while adopt names the mark zero times and lists ref.missing beside it. → §RK1351
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

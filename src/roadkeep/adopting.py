@@ -1567,9 +1567,16 @@ def adopt(
     # only the codes are counted.
     # Imported here and not at module level (RK260): `linting` reaches `backlog` and
     # `exporting`, and an estimate is the only caller in this module.
-    from roadkeep.linting import within  # noqa: PLC0415
+    from roadkeep.linting import characters_in, within  # noqa: PLC0415
 
-    findings = within(config, "changelog" if ledger else "roadmap", document)
+    role = "changelog" if ledger else "roadmap"
+    # The byte-level walk beside the line-level one (RK1351): a BOM or an invisible
+    # codepoint is what an unadopted file most often carries — they come from editors and
+    # exports rather than authors — and `lint` on the same bytes reported `char.bom` and
+    # named the fixer while this priced the file at nothing. Asked by name rather than
+    # folded into `within`, which the corpora settled: the merge driver gates its own
+    # output with that one, and a defect it inherited is not one it introduced.
+    findings = [*within(config, role, document), *characters_in(config, role, document)]
     counts: dict[str, int] = {}
     for finding in findings:
         # `line.unparsed` is the reject, already reported as its own row with the reason that

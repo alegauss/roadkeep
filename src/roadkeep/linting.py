@@ -1959,6 +1959,22 @@ def _section_at(sections: tuple[Section, ...], lineno: int) -> str | None:
     )
 
 
+def characters_in(config: Config, role: str, document: Document) -> list[Finding]:
+    """The byte-level walk over one file, for a caller that holds only that file (RK1351).
+
+    `within` is not the place, which one run of the corpora settled: the merge driver gates
+    its **own output** with it, and folding this in made a merge of Shio's rationale file with
+    itself refuse over a variation selector that was already there. A defect the driver
+    inherited is not one it introduced, and a project that cannot merge until it cleans a
+    codepoint is a worse answer than the blindness.
+
+    So the estimate asks for it by name. `adopt` prices what adoption costs, and a BOM the
+    fixer closes with no decision is a cost — `lint` on the same bytes reported `char.bom` and
+    named `--fix` while the estimate named it nothing at all.
+    """
+    return _characters(config, role, document)
+
+
 def _voided(document: Document) -> bool:
     """Whether this file's every byte is NUL — the shape a lost write leaves (RK451).
 

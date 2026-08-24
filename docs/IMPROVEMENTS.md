@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1351 The codes the estimate does not count
-
-Measured on identical bytes. A roadmap with a U+FEFF byte-order mark: `lint` reports
-`char.bom` — *not text, and a byte the round-trip compares* — and adds *1 of them need
-no decision: roadkeep lint --fix*. `adopt` on the same file names the mark zero times,
-while listing `ref.missing 1` two lines above.
-
-So the estimate has a codes channel and this class is not in it. That is what makes the
-gap a defect rather than a scope: an adopter budgets from those counts, and the first
-`lint` after adoption raises a finding the estimate said nothing about.
-
-It is small work and that is not the point. The fixer closes it with no decision, so the
-honest report is *one thing to fix, mechanically* — a line an adopter reads as
-reassurance. Silence reads as absence, and the next command disagrees with the report
-they decided on.
-
-The byte-level classes are the ones an unadopted file is most likely to carry: a BOM, an
-invisible codepoint, mixed line endings. They come from editors and exports rather than
-from authors, which is exactly the population `adopt` is pointed at.
-
-Falsified if these codes cannot fire before a file is governed — if `char.bom` needs a
-declared role to be raised at all — in which case the estimate cannot see it and the
-silence is the honest answer rather than a gap.
-
 ## Block C — Query
 
 ## Block D — The gate
