@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1345** (deps: —) **adopt prints every field as longest 0 and 0 over where nothing parsed, which reads as fields that fit** — An ungoverned changelog parses 0 of 717 lines with 361 changing, and the rows still print longest 0 of 120, 0 over beside a file that really was measured. → §RK1345
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
