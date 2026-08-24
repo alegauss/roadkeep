@@ -2429,7 +2429,19 @@ def _queue(
 
     out: list[Finding] = []
     notes: list[Note] = []
+    # A line the task grammar already read is that reader's (RK1357), which is the decision
+    # RK1355 recorded and the queue's own verbs already keep: `priority list` prints such a
+    # line as `unread` rather than as an entry, and `priority drop` pointed at it refuses.
+    # Only the finding claimed it — *a malformed entry of mine* — beside the `block.missing`
+    # that says what actually happened, so the gate and the read disagreed about one line.
+    #
+    # Filtered here and never in `queueing.read`: the reject is what makes the `unread` row,
+    # and a queue holding a line it cannot read is worth saying. What is dropped is the claim
+    # that the line is a defective entry, not the report that it is sitting there.
+    claimed = {entry.lineno for entry in roadmap.entries}
     for lineno, raw in found.rejects:
+        if lineno in claimed:
+            continue
         out.append(
             Finding(
                 "priority.shape",

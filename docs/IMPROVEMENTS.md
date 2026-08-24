@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1357 The third reader, and the one that destroys nothing
-
-The third bullet reader, and the one where nothing is destroyed - which is why this is a
-smaller finding than RK1355 and RK1356 and still one.
-
-Measured: a task line under `## Priority` answers `block.missing` and `ref.unresolved`
-from the task reader and `priority.shape` from the queue. But `priority list` prints it
-as `unread` rather than as an entry, and `priority drop` pointed at it **refuses** -
-*the queue holds RK1* - leaving the line whole. So the queue's own verbs decline the
-claim its finding makes.
-
-That is the disagreement: two registers over one line, the read saying *not mine* and the
-gate *a malformed entry of mine*. The decision RK1355 recorded settles which is right -
-where two readers claim one line, the specific one wins and the other prints nothing about it
-- and here the verbs already keep it while the finding does not.
-
-The guard is the one `scoping` and `criteria` now carry, so this is the third
-application of one line rather than a third rule. What it must not do is silence the
-`unread` row: a queue holding a line it cannot read is worth saying, and saying it is
-not the same as calling it a defective entry.
-
-Falsified if `priority.shape` is what tells an author the queue has an unreadable line -
-if nothing else reports it once this stops - in which case the finding is the only
-signal and the fix is the sentence rather than the claim.
-
 ## Block C — Query
 
 ## Block D — The gate

@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1357** (deps: —) **the queue's finding claims a task line its own verbs decline, so the gate and the read disagree** — priority list prints it unread and priority drop refuses it, while lint reports priority.shape beside block.missing on the same line. → §RK1357
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

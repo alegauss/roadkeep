@@ -756,3 +756,42 @@ def _legacy(tmp_path, priority: str = 'priority = ["DX2", "Block A"]\n'):
         with (docs / name).open("w", encoding="utf-8", newline="") as handle:
             handle.write(body)
     return Config.discover(tmp_path)
+
+
+MISFILED = ROADMAP.replace(
+    "- RK2\n- Block D\n",
+    "- RK2\n"
+    "- 📋 **RK9** (deps: —) **A misfiled symptom** — Because it landed here. → §RK9\n"
+    "- this bullet is neither an id nor a block and never was\n"
+    "- Block D\n",
+)
+
+
+def test_the_queue_stops_claiming_a_line_its_own_verbs_decline(tmp_path):
+    """RK1357, the third reader of this shape and the one that destroys nothing — which is why
+    the fix is not `scoping`'s and `criteria`'s. Its verbs already keep the decision RK1355
+    recorded: `priority list` prints a task line under `## Priority` as `unread` rather than as
+    an entry, and `priority drop` pointed at it refuses. Only the finding claimed it, beside
+    the `block.missing` that says what actually happened.
+
+    So the reject stays and the claim goes. A queue holding a line it cannot read is worth
+    saying, and saying it is not the same as calling that line a defective entry — which is
+    what the falsification asked this to keep."""
+    config = project(tmp_path, roadmap=MISFILED)
+    codes = {(f.code, f.lineno) for f in lint(config).findings}
+    # Derived and never counted by hand: the fixture carries a preamble, and a number typed
+    # here is one that moves the day a line is added above it.
+    lines = MISFILED.splitlines()
+    misfiled = lines.index(
+        "- 📋 **RK9** (deps: —) **A misfiled symptom** — Because it landed here. → §RK9"
+    ) + 1
+    unshaped = lines.index("- this bullet is neither an id nor a block and never was") + 1
+    assert ("priority.shape", misfiled) not in codes, sorted(codes)
+    # The line is still reported, and by the reader whose sentence is true of it.
+    assert ("block.missing", misfiled) in codes, sorted(codes)
+    # And a bullet that is genuinely neither an id nor a block keeps its own finding.
+    assert ("priority.shape", unshaped) in codes, sorted(codes)
+
+    # The read is untouched: both lines are still named as ones the queue could not take.
+    found = read(config.document("roadmap"), config)
+    assert {lineno for lineno, _ in found.rejects} == {misfiled, unshaped}
