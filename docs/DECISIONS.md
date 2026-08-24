@@ -10,6 +10,7 @@
 - ✅ **RK1302** **ship --part leaves a line in the in-progress tier, so pick keeps offering a remainder that is waiting on unshipped work** — The one write that deliberately leaves work open names what to do with that work, beside the command that finishes it.
 - ✅ **RK1311** **amend --requires alone is refused as nothing to amend, then reports unchanged on the call that writes it** — A field a write accepts is a field its guard counts, its confirmation names and the read that joins the task prints.
 - ✅ **RK1312** **section amend --replace refuses a sentence the section carries, because the stored copy is wrapped across lines** — A fragment is matched as the prose reads and replaced as the file stores it, so how a paragraph is wrapped is never the caller's problem.
+- ✅ **RK1316** **`block drop` withdraws a label and leaves its `## Done when` list addressed to a block no file declares** — A list addressed by something a write is spending leaves in that write: there is no state where the address has gone and a heading still asks.
 
 ## Block C — Query (consult without reading the file)
 

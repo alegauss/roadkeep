@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1316 The list the withdrawal left standing
-
-Observed on a fresh tree, 2026-08-23: a criterion written under Block A, its one task
-shipped, then `block drop A`. The heading goes from the roadmap and the improvements
-file, the ledger keeps its own, and `## Done when — Block A` stays behind with its
-bullets. `criterion list` then reports them under a label `block list` does not carry,
-and `criterion add --block A` is refused `no block 'A'` — so what is left has no door
-but `criterion drop`.
-
-RK1265 is right that a block's list outlives its lines: an emptied one is a question
-somebody answered and not one nobody asked, and RK1300 prints it at the ship that
-finishes the block so the reading arrives when it is owed. Neither is about the label
-itself leaving. RK1268 settled what happens then, one address over — a task's list goes
-inside the transaction that removes the line, because there is no state where the
-address has left and a heading still asks what would finish it.
-
-So this is that rule at the block's own address. `drop_block` computes every file's edit
-before touching anything, so the region joins the roadmap's entry in `changed` beside
-the heading rather than arriving through a second write.
-
-Two things it is not. Not a refusal: the block is empty by the time this verb can run,
-and a list is not work filed under a heading. Not silent: the leads are named in the
-answer, as a departure's already are.
-
 ### §RK1317 The address the renumbering did not move
 
 Observed on a fresh tree, 2026-08-23: a criterion written with `--task`, then `renumber`

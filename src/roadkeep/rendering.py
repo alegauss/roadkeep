@@ -270,16 +270,20 @@ def _dequeued_rows(token: str | None) -> list[str]:
     return [f"  dequeued {token} left the priority queue with the line"]
 
 
-def _unmet_rows(leads: Sequence[str]) -> list[str]:
-    """What a departure took out of the task's own criteria list (RK1268).
+def _unmet_rows(leads: Sequence[str], went_with: str = "the line") -> list[str]:
+    """What a departure took out of a criteria list (RK1268, RK1316).
 
     `_dequeued_rows`' sentence one list over and for its reason: the heading is addressed by an
-    id this write spends, so it goes inside the transaction — and a definition of done that
-    disappeared with no line about it is exactly the deletion this task was filed against.
+    address this write spends, so it goes inside the transaction — and a definition of done
+    that disappeared with no line about it is exactly the deletion RK1268 was filed against.
+
+    ``went_with`` is **what** was spent, because two writes now spend an address: a departure
+    spends the line and `block drop` spends the label (RK1316). One sentence with the noun
+    passed in, and not two spellings of it: the fact is the same and only the address differs.
     """
     if not leads:
         return []
-    return [f"  finished {lead} — its criterion left with the line" for lead in leads]
+    return [f"  finished {lead} — its criterion left with {went_with}" for lead in leads]
 
 
 def _carried_json(config: Config, carried: Carried | None) -> dict[str, str | None] | None:

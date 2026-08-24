@@ -1438,3 +1438,64 @@ def test_the_neighbour_refusal_is_not_the_same_shape(tmp_path):
     said = str(refused.value)
     assert "declares: J" in said and "--after names a neighbour" in said
     assert "nothing to open" not in said
+
+
+# -- the list the withdrawal left standing (RK1316) ----------------------------
+
+
+def test_a_block_s_criteria_leave_with_its_label(tmp_path, capsys):
+    """Observed on a fresh tree, 2026-08-23: a criterion written under Block A, its one task
+    shipped, then `block drop A`. The heading went from the roadmap and the improvements file,
+    the ledger kept its own, and `## Done when — Block A` stayed behind with its bullets.
+    `criterion list` then reported them under a label `block list` does not carry, and
+    `criterion add --block A` was refused `no block 'A'` — so what was left had no door but
+    `criterion drop`.
+
+    RK1265 is right that a block's list outlives its *lines*: an emptied one is a question
+    somebody answered. Neither that nor RK1300 is about the **label** itself leaving, and
+    RK1268 already settled what happens then one address over.
+    """
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    capsys.readouterr()
+    assert main([
+        *where, "criterion", "add", "--block", "A",
+        "--lead", "Every write has a door",
+        "--why", "the schema refuses at, and not a lint that reports after.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+
+    assert main([*where, "block", "drop", "A"]) == EXIT_OK
+    said = capsys.readouterr().out
+    # Named and never silent, which is `_dequeued_rows`' rule: a plan that quietly got shorter
+    # is a change with no sentence about it. With **the label**, which is what this write spends.
+    assert "finished Every write has a door — its criterion left with the label" in said
+
+    roadmap = (tmp_path / "docs/ROADMAP.md").read_text(encoding="utf-8")
+    assert "Done when" not in roadmap
+    assert main([*where, "lint"]) == EXIT_OK
+
+
+def test_the_payload_names_the_criteria_the_label_took(tmp_path, capsys):
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    capsys.readouterr()
+    assert main([
+        *where, "criterion", "add", "--block", "A",
+        "--lead", "The round trip holds",
+        "--why", "on this repository's own files, byte for byte.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+
+    assert main([*where, "block", "drop", "A", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["unmet"] == ["The round trip holds"]
+
+
+def test_a_label_that_declared_no_list_reports_none(tmp_path, capsys):
+    # `[]` and never omitted, and silent in the printed register: a block nobody wrote a
+    # criterion for is the ordinary withdrawal, and a row there would be output nobody reads.
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    capsys.readouterr()
+    assert main([*where, "block", "drop", "A", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["unmet"] == []

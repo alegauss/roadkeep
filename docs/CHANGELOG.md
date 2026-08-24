@@ -239,6 +239,7 @@
 - ✅ **RK1302** **ship --part leaves a line in the in-progress tier, so pick keeps offering a remainder that is waiting on unshipped work** — ship --part names the door its open half leaves, so amend --dep is read off the answer, not by being handed the line twice (design §RK1302 recorded in `src/roadkeep/shipping.py`).
 - ✅ **RK1311** **amend --requires alone is refused as nothing to amend, then reports unchanged on the call that writes it** — the guard counts --requires, the confirmation names it among the fields that moved, and show prints the group (design §RK1311 recorded in `src/roadkeep/authoring.py`).
 - ✅ **RK1312** **section amend --replace refuses a sentence the section carries, because the stored copy is wrapped across lines** — --replace matches the prose with its wrapping collapsed, so a sentence copied from section show is the sentence it finds (design §RK1312 recorded in `src/roadkeep/sections.py`).
+- ✅ **RK1316** **`block drop` withdraws a label and leaves its `## Done when` list addressed to a block no file declares** — a block's criteria leave inside the transaction that withdraws its label, and the leads that went are named (design §RK1316 recorded in `src/roadkeep/blocking.py`).
 
 ## Block C — Query
 

@@ -77,6 +77,7 @@ from pathlib import Path
 from roadkeep.authoring import _after_preamble, remove_entry
 from roadkeep.backlog import Backlog, Standing as Became
 from roadkeep.config import Config
+from roadkeep.criteria import without as criteria_without
 from roadkeep.kernel.document import (
     Document,
     Heading,
@@ -676,6 +677,10 @@ class Closed:
     #: Roles left alone, each with the reason — the ledger's entries above all, which are
     #: neither a refusal nor a removal and would otherwise be an unexplained silence.
     skipped: tuple[tuple[str, str], ...] = ()
+    #: The leads of the block's own criteria, which left with the label (RK1316). Named for
+    #: `Departure.unmet`'s reason one address over: a definition of done that disappeared with
+    #: no line about it is a deletion nobody reviewing the diff was told to look for.
+    unmet: tuple[str, ...] = ()
 
     def save(self) -> tuple[Path, ...]:
         """Write every file, having asked all of them first (RK116, RK6)."""
@@ -688,10 +693,16 @@ class Closed:
         """
         from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
 
+        from roadkeep.rendering import _unmet_rows  # noqa: PLC0415 - RK260
+
         rows = [
             f"{config.schema.block_named(self.label)} withdrawn",
             *_role_rows(config, self.documents, self._rows),
             *(f"  kept     {where}: {reason}" for where, reason in self.skipped),
+            # The same sentence a departure prints for a task's list (RK1268, RK1316), with
+            # the address this write spends: a definition of done that went with no line
+            # about it is the deletion that task was filed against, one address up.
+            *_unmet_rows(self.unmet, "the label"),
         ]
         rows += _staging_rows(config.relative(one) for one in wrote)
         return "\n".join(rows)
@@ -729,6 +740,10 @@ class Closed:
             "skipped": [
                 {"file": where, "reason": reason} for where, reason in self.skipped
             ],
+            # The block's own criteria, which left with the label (RK1316). `[]` and never
+            # omitted, as a departure's is: a plan that quietly got shorter is a change with
+            # no sentence about it.
+            "unmet": list(self.unmet),
             **_wrote_json(config, wrote),
         }
 
@@ -791,6 +806,19 @@ def drop_block(config: Config, label: str, *, prose: bool = False) -> Closed:
         # than an exit 0, for the reason `BlockExists` is one: a command that writes nothing
         # and reports success teaches that it wrote something.
         raise NothingToDrop(label, [where for _, where, _, _ in declaring], word=word)
+    # And the list that asked what would finish it (RK1316), inside the same transaction —
+    # which is RK1268's rule at the block's own address. RK1265 is right that a block's list
+    # outlives its *lines*: an emptied block is a question somebody answered, and RK1300 prints
+    # it at the ship that finishes one. Neither is about the **label** leaving. Observed on a
+    # fresh tree, 2026-08-23: after `block drop A` the heading was gone from the roadmap and
+    # the improvements file, and `## Done when — Block A` stood behind it — reported by
+    # `criterion list` under a label `block list` does not carry, and refused by `criterion add
+    # --block A` with `no block 'A'`, so what was left had no door but `criterion drop`.
+    if "roadmap" in changed:
+        without_list, unmet = criteria_without(changed["roadmap"], label)
+        changed["roadmap"] = without_list
+    else:
+        unmet = ()
     return Closed(
         label=label,
         documents=changed,
@@ -798,6 +826,7 @@ def drop_block(config: Config, label: str, *, prose: bool = False) -> Closed:
         rendered=rendered,
         notes=notes,
         skipped=tuple(skipped),
+        unmet=unmet,
     )
 
 
