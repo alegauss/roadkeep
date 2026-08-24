@@ -226,3 +226,101 @@ def test_the_role_a_decision_needs_is_opened_by_the_command_the_refusal_names(tm
         encoding="utf-8"
     )
     assert lint(Config.discover(root)).clean
+
+
+#: Defective lines whose remedy doors the sweep can already fill, each closing one code. The
+#: fixture is a *table* and not one hand-made defect because that is the finding RK1338
+#: measured: the door-execution test above builds a state producing exactly one finding, so
+#: one row of the remedy table had its doors run, and RK1337 was a bug in one of the others.
+#: What made the others unreachable was never the state — the suite constructs all 118 coded
+#: findings — but the call: a door whose blank is `--ref` or `--dep` cannot be filled from a
+#: constant, and one whose flag is `--why` or `--symptom` can. So these are the rows the
+#: sweep can reach today, and the number is asserted below rather than described.
+DEFECTIVE = (
+    "- 📋 **TT2** (deps: —) **A symptom plainly long enough to read** — Because of a reason\n",
+    "- 📋 **TT3** (deps: —) **A symptom plainly long enough to read** — One sentence. Two.\n",
+    "- 📋 **TT4** (deps: —) **A symptom plainly long enough to read.** — Because of a reason.\n",
+    "- 📋 **TT5** (deps: —) **"
+    + "a symptom plainly long enough to read " * 4
+    + "** — Because of a reason.\n",
+    # Terminated as well as long: without the stop, `why.no-terminator` fires first and its
+    # door rewrites the whole field, closing this one on the way past and costing the sweep a
+    # code it looked like it had covered.
+    "- 📋 **TT6** (deps: —) **A symptom plainly long enough to read** — "
+    + "Because of a reason that goes on and on and on " * 5
+    + "and it ends.\n",
+)
+
+
+def test_the_doors_close_the_gate_and_not_only_parse(tmp_path, capsys):
+    """RK1338. `test_every_door_the_gate_offers_on_this_project_lands` runs the doors of one
+    remedy row of 118: this project's gate is clean, so the doors it offers are the doors of
+    a single hand-made defect. RK1337 was a bug in one of the other 117 — `section move`
+    refuses an id-addressed section by construction — and it was found by hand.
+
+    Converging rather than iterating a snapshot, which is the stronger claim and the one worth
+    the fixture: each door is run against the state that produced its finding, and the loop
+    ends when the gate is clean. A door that parses, is accepted and leaves the finding
+    standing would pass an acceptance check and hang this one.
+    """
+    root = tmp_path
+    # The id scheme, where the pointer is derived: an outline raises `ref.missing` on every
+    # line, and that door takes an anchor no constant can supply — `filled` failing loudly
+    # rather than guessing one is the behaviour this sweep depends on, not a gap in it.
+    (root / "roadkeep.toml").write_text(
+        'prefix = "TT"\n[files]\nroadmap = "ROADMAP.md"\n'
+        'changelog = "CHANGELOG.md"\nimprovements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    (root / "CHANGELOG.md").write_text("# Shipped\n\n## Block A\n", encoding="utf-8")
+    (root / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A\n\n"
+        + "".join(
+            f"### §TT{n} A design\n\nThe reasoning the line has no room for.\n\n"
+            for n in range(2, 2 + len(DEFECTIVE))
+        ),
+        encoding="utf-8",
+    )
+    (root / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A\n\n"
+        + "".join(
+            f"{line.rstrip()} → §TT{n}\n"
+            for n, line in enumerate(DEFECTIVE, start=2)
+        ),
+        encoding="utf-8",
+    )
+    assert lint(Config.discover(root)).findings, "the fixture stopped being defective"
+
+    closed: list[str] = []
+    for _ in range(len(DEFECTIVE) * 4):
+        findings = lint(Config.discover(root)).findings
+        runnable = [
+            (f, r)
+            for f in findings
+            if (r := remedy(f, Config.discover(root))) is not None
+            # Not `fix`: `lint --fix` exits 1 while any unfixed finding still stands, so a
+            # mechanical row run mid-loop would be asserted against the wrong code. The
+            # fixer closes the derived and has its own suite; these doors close the rest,
+            # and the single `--fix` below is what the two halves meet at.
+            and r.kind in ("run", "compose")
+        ]
+        if not runnable:
+            break
+        found, rule = runnable[0]
+        for door in rule.doors:
+            argv = supplied(filled(list(door.argv)))
+            assert all(not one.startswith("<unfilled ") for one in argv), (found.code, argv)
+            assert main(["-C", str(root), *argv]) == EXIT_OK, (found.code, argv)
+            capsys.readouterr()
+        closed.append(found.code)
+
+    # What the doors left is the derived, which is the fixer's half by construction (RK16).
+    main(["-C", str(root), "lint", "--fix"])
+    capsys.readouterr()
+    # The gate closing is the proof the doors were the right ones, as it is above.
+    report = lint(Config.discover(root))
+    assert report.clean, [str(one) for one in report.findings]
+    # And the count, stated rather than described: this is where door coverage stands, so a
+    # row whose door stops being reachable shows up as a number that fell rather than as a
+    # code quietly skipped. Five, against the one the sweep above reaches.
+    assert len(set(closed)) >= 5, sorted(set(closed))

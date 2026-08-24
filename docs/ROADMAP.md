@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1338** (deps: —) **the door-execution test runs one remedy row of 118, so a door naming a refused command is found by hand** — RK1337 was one of the other 117: section move refuses an id-addressed section, and nothing reached that door because section.duplicate never fires on the fixture. → §RK1338
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
