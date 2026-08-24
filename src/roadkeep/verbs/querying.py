@@ -642,6 +642,10 @@ def _session_budget(config: Config, args: argparse.Namespace) -> int:
         # The third thing a session pays for (RK1243), and the one that had a ceiling nobody
         # could ask about — measured off `announce`, so it is the line this project's sessions
         # actually get rather than a second estimate of it.
+        # What the checkout contributes, named apart from what the surface does (RK1334): a
+        # session really is sent it, so it stays inside `once`, and no author can edit it, so
+        # the ceiling is not about it.
+        provenance=sent.provenance,
         notice=resident,
         notice_limit=limit,
         # The ceiling `budget.session` refuses this total against, which is the single one

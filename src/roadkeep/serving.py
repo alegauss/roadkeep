@@ -1139,6 +1139,14 @@ class Surface:
     tools: tuple[tuple[str, int], ...]
     #: The handshake, which is sent once beside the list and counted with it (RK1078/RK1062).
     handshake: int
+    #: The part of that handshake which is the checkout's rather than the surface's — the
+    #: version, the commit, the word `modified` and the absolute path this package was
+    #: imported from (RK1334). Counted into :attr:`characters`, because a session really is
+    #: sent it, and out of :attr:`held`, because no author can edit it: the same tree read
+    #: 64,679 clean and 64,688 dirty against a ceiling with twelve to spare, so a surface four
+    #: characters larger passed on a clean tree and was refused on a dirty one — which is the
+    #: state the pre-commit hook this project ships runs in.
+    provenance: int = 0
 
     def stated(self, unit: str, each: int | None, largest: int) -> str:
         """The ranking, with the room each tool has before the gate says no (RK345, RK1059).
@@ -1199,6 +1207,23 @@ class Surface:
         """Everything a client is sent before its first call."""
         return self.listed + self.handshake
 
+    @property
+    def held(self) -> int:
+        """The part of that a ceiling is about — everything except the provenance (RK1334).
+
+        `budget.session` refuses the surface against a number declared in `roadkeep.toml`,
+        and until now it refused :attr:`characters`, three of whose facts are properties of
+        the checkout: the commit, whether the tree has uncommitted changes, and the absolute
+        path the package was imported from. A verdict that moves with any of those is a
+        verdict about the environment, and the two that move most are the two a gate meets —
+        a pre-commit hook always runs dirty, and a CI checkout is never at the author's path.
+
+        Not a second measurement of the surface but a subtraction from the one there is, so
+        the read and the gate cannot drift: :attr:`characters` stays the truth about what a
+        session is sent, and this is the half of it somebody can act on.
+        """
+        return self.characters - self.provenance
+
 
 def surface(config: Config) -> Surface:
     """What connecting to this server costs, as both reads of it ask (RK1096).
@@ -1213,6 +1238,10 @@ def surface(config: Config) -> Surface:
     return Surface(
         tools=tuple(sorted(sizes.items(), key=lambda row: (-row[1], row[0]))),
         handshake=width(instructions()),
+        # Measured off the same composer rather than by re-deriving the line (L3's rule about
+        # one writer): `instructions` is `engine()` and then the counting prose, so what the
+        # checkout contributes is exactly what that first part costs (RK1334).
+        provenance=width(str(engine())),
     )
 
 

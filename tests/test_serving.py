@@ -2564,3 +2564,39 @@ def test_the_transport_is_not_a_decision_anybody_records():
     ], "the transport is not a field a reason could be about"
     for tool in serving.TOOLS:
         assert STRUCTURAL not in tool.unconditional, tool.name
+
+
+def test_what_names_the_checkout_is_counted_and_never_held(tmp_path, monkeypatch):
+    """RK1334. The handshake opens with which tree answered — the version, the commit, the
+    word `modified` when there are uncommitted changes, and the absolute path this package
+    was imported from — and all of it was counted into the figure `budget.session` refuses
+    against a fixed ceiling. Three of those four are properties of the checkout, so the
+    verdict moved with the environment, and the two environments a gate runs in are the two
+    that differ most: a pre-commit hook always sees a dirty tree, and a CI checkout is never
+    at the author's path.
+
+    Measured on this repository: 64,679 clean and 64,688 dirty, the nine being `modified`,
+    against a ceiling with twelve to spare — so a surface four characters larger passed on a
+    clean tree and was refused on a dirty one.
+    """
+    config = Config.discover(Path(__file__).resolve().parent.parent)
+    real = serving.surface(config)
+    # The subtraction is off the same composer that writes the line, so a reworded engine
+    # moves both halves rather than only the total (L3's rule about one writer).
+    assert real.provenance == len(serving.instructions().split("\n")[0])
+    assert real.held == real.characters - real.provenance
+
+    # The property the gate depends on: the flag moves the truth and not the ceiling's figure.
+    was = engine()
+    for modified in (True, False):
+        monkeypatch.setattr(
+            serving, "engine", lambda placed=True, m=modified: replace(was, modified=m)
+        )
+        seen = serving.surface(config)
+        assert seen.held == real.held, modified
+    # And the total does move, which is what makes the first assertion worth making: a `held`
+    # that matched `characters` would pass this test by measuring nothing.
+    monkeypatch.setattr(
+        serving, "engine", lambda placed=True: replace(was, modified=not was.modified)
+    )
+    assert serving.surface(config).characters != real.characters

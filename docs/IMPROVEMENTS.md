@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1334 The budget that moves with the checkout
-
-The handshake is provenance and then prose: `roadkeep 0.1.1150 (81b36c78 modified,
-D:\Git\alegauss\roadkeep\src\roadkeep)`. Three of those four facts are properties of the
-checkout and not of the surface being measured - the commit, the word `modified` when
-the tree has uncommitted changes, and the absolute path the package was imported from.
-
-All of it is counted into the figure `budget.session` refuses against a fixed ceiling.
-Measured here: the same tree read 64679 clean and 64688 dirty, the nine characters being
-the word `modified`, against a ceiling of 64700 with twelve to spare. So a surface four
-characters larger passes on a clean tree and is refused on a dirty one - and a dirty
-tree is the state the pre-commit hook this project ships runs in. The gate would then
-refuse a commit because the commit had not happened yet.
-
-The path is the larger term and the same kind: a checkout at
-`/home/runner/work/roadkeep/ roadkeep/src/roadkeep` measures different from this one, so
-the CI verdict and the local one are answers about different numbers.
-
-What a budget on the served surface is for is the surface. Provenance still belongs in
-the handshake - it is what tells a session which tree answered - but a figure held to a
-limit has to be the part an author can act on.
-
-Falsified if the ceiling is already declared with the provenance included, in which case
-the number is right and only its drift between environments is the finding.
-
 ## Block C — Query
 
 ## Block D — The gate

@@ -1608,13 +1608,19 @@ def _served(config: Config) -> list[Finding]:
     # `budget.tool`. Left that way rather than special-cased — one address, one documented
     # order, and the message says no single tool is at fault, which is what a reader arriving
     # at it first needs to know.
-    if config.tool_session is not None and sent.characters > config.tool_session:
+    # `held` and not `characters` (RK1334): the handshake names which tree answered, and the
+    # commit, the `modified` flag and the absolute path are the checkout's rather than the
+    # surface's. Refusing the total made the verdict move with the environment, and the two
+    # environments a gate actually runs in are the two that differ most — a pre-commit hook
+    # always sees a dirty tree, and a CI checkout is never at the author's path.
+    if config.tool_session is not None and sent.held > config.tool_session:
         out.append(
             Finding(
                 "budget.session",
                 where,
-                f"the served surface is {sent.characters} characters — {len(sent.tools)} "
-                f"tool(s) and the handshake — against a budget of {config.tool_session}: "
+                f"the served surface is {sent.held} characters — {len(sent.tools)} "
+                f"tool(s) and the handshake, less what names the checkout — against a budget "
+                f"of {config.tool_session}: "
                 f"every session pays this at connect before it calls anything, and no one "
                 f"tool is at fault — `{invocation()} cost --session` prints it beside "
                 f"what the resident files cost each turn",

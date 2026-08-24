@@ -1310,6 +1310,11 @@ class Session:
     #: tool descriptions: the reader most likely to run this verb is the one it answered
     #: least. Same pairing as :attr:`notice_limit` and for the same reason it is a read.
     once_limit: int | None = None
+    #: The part of :attr:`once` that names the checkout rather than the surface (RK1334) —
+    #: counted in, because a session is sent it, and out of what the ceiling is measured on,
+    #: because no author can edit it. Its own row so the subtraction is visible: a figure that
+    #: silently differed from the one the gate used would be RK1333's defect rebuilt.
+    provenance: int = 0
 
     @property
     def turn(self) -> int:
@@ -1368,8 +1373,15 @@ class Session:
             f"session    {self.at_connect} {unit} once, {self.turn} on every turn — "
             f"two cadences, so they are not added",
             f"  once     {self.once:>6}  {self.tools} tool(s) and the handshake, at "
-            f"connect{self._room(self.once, self.once_limit)}",
+            f"connect{self._room(self.once - self.provenance, self.once_limit)}",
         ]
+        if self.provenance:
+            # Named under the figure it is inside, so the room above reads as a subtraction
+            # somebody can check rather than as a number that disagrees with the total.
+            rows.append(
+                f"  once     {self.provenance:>6}  of that names the checkout — no ceiling "
+                f"is about it"
+            )
         if self.notice:
             rows.append(
                 f"  once     {self.notice:>6}  the session-start notice"
@@ -1412,6 +1424,11 @@ class Session:
                 # reading `schema` to decide whether a description may grow was getting the
                 # only number here that carried nothing to measure it against.
                 "schema_limit": self.once_limit,
+                # What the limit is actually measured on, beside what it is (RK1334): a
+                # consumer subtracting these itself would be deriving the gate's number,
+                # which is the duplication RK1096 removed one surface over.
+                "schema_provenance": self.provenance,
+                "schema_held": self.once - self.provenance,
                 "notice": self.notice,
                 "notice_limit": self.notice_limit,
             },

@@ -117,18 +117,14 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 187 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 188 | 2 |
 | C — Query (consult without reading the file) | 0 | 133 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 102 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 122 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 26 | 1 |
-| **Total** | 1 | 819 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1334** (deps: —) **the served surface is measured with the handshake's provenance in it, so the budget moves with the checkout** — The same tree reads 64679 clean and 64688 dirty, and the ceiling has 12 to spare: the gate can refuse a commit for not having happened yet. → §RK1334
+| **Total** | 0 | 820 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

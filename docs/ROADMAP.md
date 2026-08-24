@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1334** (deps: —) **the served surface is measured with the handshake's provenance in it, so the budget moves with the checkout** — The same tree reads 64679 clean and 64688 dirty, and the ceiling has 12 to spare: the gate can refuse a commit for not having happened yet. → §RK1334
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
