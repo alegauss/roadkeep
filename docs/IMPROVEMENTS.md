@@ -77,6 +77,31 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1355 The line with two identities
+
+A well-formed task line appended under `## Non-goals` is reported three ways on one
+line: `block.missing` and `ref.missing` read it as a task, `non-goal.shape` reads it as
+a malformed bullet. Two identities, mutually exclusive, and nothing arbitrates.
+
+The doors are where it costs. `block.missing` offers `block add RK1 --title …`, which is
+the repair. `non-goal.shape` offers `non-goal drop '<the whole line>'` — and running it,
+exactly as printed, removes the line. Measured: the id, the symptom, the why and the
+pointer are gone, and the answer reads `dropped`, a bullet taken out of a list it never
+belonged to.
+
+So the report hands a reader two commands, one that fixes and one that destroys, with no
+sentence saying which reading is right. The tool refuses this shape elsewhere: a
+codepoint finding *replaces every other finding on that line*, because two diagnoses of
+one line are a reader choosing between theories rather than acting.
+
+Which reading is true is not in doubt. `block.missing` says *a task line lives under a
+block heading*, and that is what happened — the line is a task, and it is in the wrong
+section. The non-goal reading is the file's other parser meeting the same bullet.
+
+Falsified if a marker-bearing bullet cannot be a non-goal at all - if the two readings
+are already exclusive by construction and this file merely reached both - in which case
+what is wrong is where the sections are cut and not which finding wins.
+
 ## Block C — Query
 
 ## Block D — The gate
