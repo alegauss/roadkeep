@@ -77,6 +77,29 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1333 The number printed against nothing
+
+`cost --session` prints two rows at the same cadence and measures only one of them. The
+notice row reads `305  the session-start notice, +15 of 320`, deriving its room from a
+declared limit; the tools row reads `64679  66 tool(s) and the handshake, at connect`
+and stops there, though `[tools] session` declares 64700 and `lint` refuses the surface
+against it. Both registers are the same: the payload carries `notice_limit` and no
+counterpart.
+
+The asymmetry is invisible until the number matters, and it matters now - the measured
+headroom is 21 characters of 64700, which is the next sentence added to any one of 66
+tool descriptions. A reader who ran this verb to decide whether a description could grow
+was given the one figure that does not say.
+
+This is the finding RK1331 closed one file over, in the other direction: there a number
+was reported against a sentence it was not measured on, here a number is reported
+against nothing at all. A limit the gate holds is a limit the query naming that number
+should carry, which is what makes the answer cost no second command (L5).
+
+Falsified if the session total is refused somewhere other than against `[tools]
+session`, in which case there is no single ceiling to name and the row is right to stay
+bare.
+
 ## Block C — Query
 
 ## Block D — The gate

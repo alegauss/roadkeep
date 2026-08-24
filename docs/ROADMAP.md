@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1333** (deps: —) **cost --session prints the tools total without the ceiling it is measured against, in both registers** — The notice row beside it derives +15 of 320; the tools row prints 64679 and never the 64700 that lint refuses it against, where the headroom is 21 characters. → §RK1333
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
