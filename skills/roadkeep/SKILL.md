@@ -26,7 +26,11 @@ tool list rather than typing it: the whole write path and the reads a task needs
 refusals, with the fields arriving as a schema instead of flag names typed from memory.
 `init`, `adopt` and `install` run *before* a project is governed, or on its wiring, and want
 the CLI — `declare` above is the one write on a configured tree, which is why it is served
-and they are not. The last of them
+and they are not. **It takes two vocabularies**: a *role* writes that file and the `[files]`
+key governing it, and one of the two *opt-in tables* — `criteria`, `non_goals` — opens the
+list a verb refuses over, empty, which is what opting in means; `govern` is what tunes the
+numbers in it afterwards. Reach for it when a write refuses over an undeclared role or
+table, which is the refusal that now names this command rather than a hand edit. The last of them
 wires this file, the tools and the guard into a project running the tool from a checkout,
 and `install --check` is what holds its copy of this file in step — though you will rarely
 type it, because **the gate now asks**: a vendored launcher, hook or skill behind the
@@ -674,8 +678,9 @@ left of a line needs something *present* — a controller on the desk, two conso
 measure against each other — the file has a slot for it, and until it is written the same
 line comes back every call, because every tier is a function of the file. `add --requires
 <word>` states it, `amend <id> --requires …` adds it to a line already there, and the word
-is one `[requirements] declared` names — `declare` writes neither, so a project opting in
-declares the vocabulary once. Then `pick` sets those lines aside for a caller that did not
+is one `[requirements] declared` names — the one table `declare` does *not* open, because a
+vocabulary is a list of words and an empty one governs nothing, so a project opting in
+declares its own words once. Then `pick` sets those lines aside for a caller that did not
 say it has them, **names** each with what it is missing, and still counts them ready: what
 narrows is the offer, never the truth. A caller that does have the thing passes `--have
 <word>`, repeatable, on `pick` and `brief` alike — which is the whole difference from

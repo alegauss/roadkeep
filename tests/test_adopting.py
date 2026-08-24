@@ -2503,3 +2503,104 @@ def test_the_vocabulary_is_commented_because_an_empty_one_governs_nothing(tmp_pa
         text.replace(commented, commented.replace("# ", "")), encoding="utf-8"
     )
     assert Config.discover(tmp_path).schema.requirements == ("hardware",)
+
+
+# -- the other axis one argument carries (RK1328) ------------------------------
+
+#: The table `init` writes since RK1313, taken back out to make the project that predates
+#: that scaffold — which is every project already past `init`, and most of them.
+OPENED = "[criteria]" + chr(10)
+
+
+def test_an_opt_in_table_opens_on_a_project_past_init(tmp_path: Path, capsys) -> None:
+    """Measured on this repository, declaring `[criteria]` for RK1323: the table went in by
+    hand, because no verb opened one. RK1313 closed it for a project being *scaffolded* and
+    named the half it left open — every project already past `init`, which is most of them.
+
+    `declare <role>` retrofits a file and `govern <address> <n>` writes a number against a
+    reading; an opt-in table carries no number at all — declared at all means governed — so it
+    fell between them, and the remedy each refusal named was an edit to configuration this tool
+    owns the writes to, which over MCP is not an edit at all.
+    """
+    from roadkeep.config import Config
+
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    capsys.readouterr()
+    # `init` writes it, so take it back out: this is the project that predates that scaffold.
+    written = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text(
+        written.replace(OPENED, "", 1), encoding="utf-8"
+    )
+    assert Config.discover(tmp_path).criteria is None
+
+    assert main([*where, "declare", "criteria"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "declared [criteria]" in said
+    # The verb it gates, which is what a caller came here to run — `declare`'s own rule.
+    assert "criterion add --block" in said
+    assert Config.discover(tmp_path).criteria is not None
+    assert main([*where, "lint"]) == EXIT_OK
+
+
+def test_the_table_arrives_empty_so_the_numbers_stay_the_defaults(tmp_path: Path, capsys) -> None:
+    # What a project says by writing the table is *that* the list is a schema; `lead` and `why`
+    # are what it may then tune, and `govern` is the verb for that. A number written here would
+    # read as a limit somebody chose, which is `[ids] pad`'s argument and `init`'s for this one.
+    from roadkeep.config import Config, Scope
+
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    written = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text(
+        written.replace(OPENED, "", 1), encoding="utf-8"
+    )
+    capsys.readouterr()
+    assert main([*where, "declare", "criteria"]) == EXIT_OK
+    text = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+    assert text.rstrip().endswith("[criteria]")
+    scope = Config.discover(tmp_path).criteria
+    assert (scope.lead, scope.why) == (Scope().lead, Scope().why)
+
+
+def test_a_table_already_open_is_refused_and_not_written_twice(tmp_path: Path, capsys) -> None:
+    # `RoleDeclared`'s twin: a table already there governs its list, and writing it again would
+    # either replace the numbers a project tuned or leave two of it.
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    capsys.readouterr()
+    assert main([*where, "declare", "criteria"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "already declares [criteria]" in said
+    # And it names the verb that *does* change what is in it.
+    assert "govern criteria.lead" in said
+
+
+def test_the_refusal_that_sent_a_caller_here_names_the_command(tmp_path: Path, capsys) -> None:
+    """The half this task is measured by: the refusal named a hand edit to configuration this
+    tool owns the writes to, and over MCP that is not an edit at all — which is exactly what
+    RK1264 built `declare` to remove, one table over."""
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    written = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text(
+        written.replace(OPENED, "", 1), encoding="utf-8"
+    )
+    capsys.readouterr()
+    assert main([
+        *where, "criterion", "add", "--block", "A", "--lead", "A lead", "--why", "and why.",
+    ]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "`declare criteria` opens the table" in said
+    assert "add the table to roadkeep.toml" not in said
+
+
+def test_a_word_that_is_neither_names_both_vocabularies(tmp_path: Path, capsys) -> None:
+    # One argument now carries two, and a caller who typed into the wrong one learns nothing
+    # from a refusal about the other.
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    capsys.readouterr()
+    assert main([*where, "declare", "nonsense"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "roadmap" in said and "criteria" in said

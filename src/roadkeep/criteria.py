@@ -122,9 +122,11 @@ class NotGoverned(KeyError):
 
     def __init__(self, where: str) -> None:
         super().__init__(
-            f"{where} declares no [criteria]: add the table to roadkeep.toml to govern what "
-            f"finishes a block, since a schema applied to prose nobody wrote to it reports "
-            f"on adoption"
+            # The command and no longer the edit (RK1328): this named a hand edit to
+            # configuration the tool owns the writes to, which over MCP is not an edit at all.
+            f"{where} declares no [criteria]: `declare criteria` opens the table, which is "
+            f"what governs the list — a schema applied to prose nobody wrote to it reports "
+            f"on adoption, so it is opted into and never assumed"
         )
 
 

@@ -98,6 +98,11 @@ SITES: tuple[Site, ...] = (
     # so `test_adopting` builds the state and asserts the line, and running it as printed is
     # what a filled argv would have to buy first.
     Site("adopting.py:Retrofitted.stated", "unreached", NO_FIXTURE),
+    # RK1328, and the row above it one axis over: `declare` now opens an opt-in table too, and
+    # what this composes is the verb that table gates — `criterion add` for one, `non-goal add`
+    # for the other — with the lead and the reason left as placeholders, which is the same
+    # reason the role's row is unreached.
+    Site("adopting.py:Opened.stated", "unreached", NO_FIXTURE),
     # RK1223. Run by `test_blocking`, which executes the `--organise` call this refusal names
     # rather than matching it — the reading this whole file is about.
     Site("blocking.py:BlockExists.__init__", "run"),

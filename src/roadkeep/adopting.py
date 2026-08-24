@@ -169,6 +169,45 @@ class RoleDeclared(ValueError):
         )
 
 
+#: The tables a project opts into by declaring them at all (RK1328). Two, and both are
+#: `_scope`'s: `[non_goals]` says what is not built and `[criteria]` what would finish a
+#: block, and writing either governs its list — the numbers under it are what a project may
+#: then tune. `[requirements]` is deliberately not here: that one is a *vocabulary*, and
+#: `declared = []` governs nothing and only changes which refusal the author reads (RK1313).
+OPT_IN: tuple[str, ...] = ("non_goals", "criteria")
+
+
+class TableDeclared(ValueError):
+    """`declare` on an opt-in table this project already carries (RK1328).
+
+    :class:`RoleDeclared`'s twin one table over, and the answer is not a write for its reason:
+    a table already there governs its list, and writing it again would either replace the
+    numbers a project tuned or leave two of it.
+    """
+
+    def __init__(self, table: str) -> None:
+        self.table = table
+        super().__init__(
+            f"this project already declares [{table}]: `declare` opens the table and one "
+            f"that is open needs no opening — `govern {table}.lead <n>` tunes what is in it"
+        )
+
+
+class NoSuchTable(ValueError):
+    """A word that is neither a role nor an opt-in table (RK1328).
+
+    Names **both** vocabularies, because one argument now carries two and a caller who typed
+    into the wrong one learns nothing from a refusal about the other.
+    """
+
+    def __init__(self, word: str, tables: Sequence[str]) -> None:
+        self.word = word
+        super().__init__(
+            f"{word!r} is neither a role nor a table this verb opens: `[files]` names "
+            f"{', '.join(ROLES)}, and the opt-in tables are {', '.join(tables)}"
+        )
+
+
 class NoSuchRole(ValueError):
     """A word that is not one of the five roles this format governs (RK1264)."""
 
@@ -983,6 +1022,79 @@ def declare(
         config=config.source,
         blocks=tuple(one.label or "" for one in declaring),
     )
+
+
+@dataclass(frozen=True, slots=True)
+class Opened:
+    """What `declare <table>` wrote: one opt-in table, and nothing else (RK1328)."""
+
+    table: str
+    config: Path
+
+    def stated(self, config: Config) -> str:
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
+        return chr(10).join(
+            [
+                f"declared [{self.table}]  {self.config.name}",
+                # The verb this table exists for, which is the question a caller has next and
+                # the one the refusal that sent them here was about — `declare`'s own rule.
+                f"opens    `{invocation()} {_TABLE_OPENS[self.table]}`",
+                f"stage    git add -- {self.config.name}",
+            ]
+        )
+
+    def payload(self, config: Config) -> dict[str, object]:
+        return {
+            "table": self.table,
+            "config": self.config.as_posix(),
+            "opens": _TABLE_OPENS[self.table],
+            "wrote": [config.relative(self.config)],
+        }
+
+
+#: The verb each opt-in table gates, which is what a caller came here to run.
+_TABLE_OPENS = {
+    "non_goals": "non-goal add --lead … --why …",
+    "criteria": "criterion add --block <x> --lead … --why …",
+}
+
+
+def declare_table(config: Config, table: str) -> Opened:
+    """Open one opt-in table on a configured project (RK1328).
+
+    :func:`declare`'s other axis, and the same shape read one table over: *this file, one key,
+    refused where it is already declared*. RK1313 closed this for a project being scaffolded —
+    `init` writes `[criteria]` empty — and named the half it left open, which is every project
+    already past it. Measured on this repository, declaring `[criteria]` for RK1323: the table
+    went in by hand, because no verb opened one.
+
+    A **third verb was the other shape and the surface decided it**: one more served tool costs
+    about 800 characters against 87 of headroom under `[tools] session`, which would be a third
+    ceiling re-argued in one session to hold a verb that answers what an existing one already
+    does. So the argument widens rather than the list.
+
+    **Empty and nothing else.** What a project says by writing the table is *that* the list is
+    a schema; `lead` and `why` are what it may then tune, and `govern` is the verb for that. A
+    number written here would read as a limit somebody chose, which is `[ids] pad`'s argument
+    and `init`'s for the same table.
+    """
+    if table not in OPT_IN:
+        raise NoSuchTable(table, OPT_IN)
+    if getattr(config, table) is not None:
+        raise TableDeclared(table)
+    if config.source is None:
+        raise Unconfigured(config.root)
+    text = config.source.read_text(encoding="utf-8")
+    # Appended, and never serialised: a `tomllib` round-trip drops the comments a scaffolded
+    # config is mostly made of (`_with_role`'s rule). At the end because an opt-in table has no
+    # sibling to sit beside — every other insertion here belongs *to* a table that exists.
+    blank, line = chr(10) * 2, chr(10)
+    separator = "" if text.endswith(blank) else (line if text.endswith(line) else blank)
+    config.source.write_text(
+        f"{text}{separator}[{table}]{line}", encoding="utf-8", newline=""
+    )
+    return Opened(table=table, config=config.source)
 
 
 def _mirrored(config: Config) -> tuple[Heading, ...]:

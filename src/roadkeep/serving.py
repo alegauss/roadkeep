@@ -80,6 +80,7 @@ from pathlib import Path
 from typing import Any, TextIO
 
 from roadkeep import __version__
+from roadkeep.adopting import OPT_IN
 from roadkeep.config import PROSE_ROLES, ROLES, Config, ConfigError, Scope
 from roadkeep import provenance
 from roadkeep.provenance import engine, invocation, serving
@@ -1408,13 +1409,20 @@ def _roles(config: Config, universe: Sequence[str]) -> dict[str, Any]:
 
 
 def _undeclared(config: Config) -> dict[str, Any]:
-    """The roles `declare` could still add, as the enum a client validates against (RK1264).
+    """What `declare` could still add, as the enum a client validates against (RK1264).
 
     :func:`_roles`' complement, and empty for the same reason it publishes nothing: a project
     declaring all five has no role left to add, and `"enum": []` is a keyword no value satisfies
     — a client holding it could not make the call that earns the refusal saying so.
+
+    **Two vocabularies since RK1328**: a role adds a file and its `[files]` key, an opt-in table
+    opens a list, and the argument carries both because both are *this file, one key, refused
+    where it is already declared*. Undeclared on each axis is asked of that axis — `config.has`
+    for a file, the parsed table for a list — so a project that opened one and not the other is
+    offered exactly what it is missing.
     """
     absent = [role for role in ROLES if not config.has(role)]
+    absent += [table for table in OPT_IN if getattr(config, table) is None]
     return {"enum": absent} if absent else {}
 
 

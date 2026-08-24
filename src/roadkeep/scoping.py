@@ -98,8 +98,10 @@ class NotGoverned(KeyError):
 
     def __init__(self, where: str) -> None:
         super().__init__(
-            f"{where} declares no [non_goals]: add the table to roadkeep.toml to govern the "
-            f"list, since a schema applied to prose nobody wrote to it reports on adoption"
+            # The command and no longer the edit (RK1328), which is `criteria`'s twin.
+            f"{where} declares no [non_goals]: `declare non_goals` opens the table, which is "
+            f"what governs the list — a schema applied to prose nobody wrote to it reports "
+            f"on adoption, so it is opted into and never assumed"
         )
 
 

@@ -19,6 +19,9 @@ import tempfile
 from pathlib import Path
 
 from roadkeep.adopting import (
+    OPT_IN,
+    NoSuchTable,
+    declare_table,
     DEFERRED_ROLE,
     SCAFFOLD_ROLES,
     STRATEGY_ROLE,
@@ -95,7 +98,20 @@ def _declare(config: Config, args: argparse.Namespace) -> int:
     the caller is standing in, and the headings it mirrors are that project's own.
     """
     try:
-        written = declare(config, args.role, args.path)
+        # One argument, two vocabularies (RK1328): a **role** retrofits a file and its
+        # `[files]` key, and an opt-in **table** opens a list this project may then govern.
+        # Both are *this file, one key, refused where it is already declared*, which is why
+        # the argument widens rather than the verb list — a third served tool costs about 800
+        # characters against 87 of headroom, and the ceiling is not what should give.
+        if args.role in OPT_IN:
+            written = declare_table(config, args.role)
+        elif args.role in ROLES:
+            written = declare(config, args.role, args.path)
+        else:
+            # The word is in neither, and the refusal names both: one argument now carries two
+            # vocabularies, and a caller who typed into the wrong one learns nothing from a
+            # message about the other. `declare` keeps `NoSuchRole` for its own contract.
+            raise NoSuchTable(args.role, OPT_IN)
     except (ValueError, OSError) as error:
         return _refused(error)
 
@@ -598,15 +614,16 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
 
     declare_parser = subcommands.add_parser(
         "declare",
-        help="add one governed role to a project that is already configured",
+        help="add one governed role or open one opt-in table, past `init`",
         description=(
-            "Write one role's file and the `[files]` key governing it, on a project past "
-            "`init`. Reach for it when a verb refuses over an undeclared role: `init` writes "
-            "`[files]` once and refuses to run twice, so a role declined at scaffold time was "
-            "otherwise a hand edit. The file arrives with the block headings the roadmap "
-            "carries, spelled as that file spells one — a governed file with none is one every "
-            "write refuses. The config keeps every other byte: the key is inserted, not "
-            "re-serialised. Refused where the role is already declared."
+            "Write one role's file and the `[files]` key governing it, or open an opt-in "
+            "table, on a project past `init`. Reach for it when a verb refuses over an "
+            "undeclared role or table: `init` writes both once and refuses to run twice, so "
+            "either declined at scaffold time was otherwise a hand edit. A role's file "
+            "arrives with the block headings the roadmap carries, spelled as that file spells "
+            "one; a table arrives empty, which is what opting in means, and `govern` tunes "
+            "what is in it. The config keeps every other byte. Refused where it is already "
+            "declared."
         ),
     )
     # Not argparse `choices`, for `--role`'s own reason (RK304) read one step further: what is
@@ -615,7 +632,10 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
     # refused by name in the command.
     declare_parser.add_argument(
         "role",
-        help=f"which governed file to declare, one of {', '.join(ROLES)}",
+        help=(
+            f"which governed file to declare, one of {', '.join(ROLES)} — or an opt-in "
+            f"table to open, one of {', '.join(OPT_IN)}"
+        ),
     )
     declare_parser.add_argument(
         "--path",

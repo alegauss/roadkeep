@@ -83,31 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1328 RK1328
-
-Measured here, 2026-08-23, declaring `[criteria]` on this repository for RK1323: the
-table went in by hand, because no verb opens one.
-
-RK1313 closed this for a project being scaffolded - `init` now writes `[criteria]` empty
-and the requirement vocabulary commented - and named the shape while leaving the other
-half open: *the remedy each refusal names is a hand edit to configuration this tool
-owns, which is what RK1264 built `declare` to remove, and which over MCP is not an edit
-at all*. Every project already past `init` is that other half, and so was this one.
-
-The two verbs that write this file cover different axes and neither covers this.
-`declare <role>` retrofits a **file**, which is RK1264's own case: `[files]` is written
-once by a command that refuses to run twice. `govern <address> <n>` writes a **number**,
-against a reading. An opt-in table carries no number at all - declared at all means
-governed - so it falls between them.
-
-What decides the shape is whether that is a third verb or a widening of `declare`: the
-argument there is a role and here a table, and both are *this file, one key, refused
-where it is already declared*. The refusal a caller reads today names the table; what it
-cannot name is a command.
-
-Falsified if `govern` accepts an address with no number, which would make this a flag
-and not a gap.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)
