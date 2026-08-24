@@ -77,6 +77,30 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1336 The door that restates the problem
+
+The finding is right about the diagnosis and points at the wrong read. `budget.session`
+says the surface is over, that no single tool is at fault, and offers `cost --session` -
+which prints the same total the finding just printed. The remedies it names are
+withdrawing a verb or re-arguing the ceiling in `roadkeep.toml`.
+
+Neither is the common one. A surface goes over because descriptions grew, and the edit
+that brings it back is cutting them - which needs them ranked, with the room each has.
+That is `cost --tools`, and until RK1335 it could not answer a session question: it
+stated a total the gate had stopped using and named the per-tool ceiling only. The door
+was right to avoid it then and is wrong to avoid it now.
+
+This is RK1059's argument at the door instead of in the number: a total names nothing
+and a per-tool figure names the tool somebody edited. The finding says no one tool is
+*at fault* under its own ceiling, then sends the reader where no tool is named at all -
+when what they have to do next is pick one.
+
+Both doors, in the order the work goes: rank, then price the whole. The session read
+still shows the two cadences that decide whether the surface is the right thing to cut.
+
+Falsified if withdrawing a verb is the majority remedy on this corpus, in which case the
+ranking is the detour and the door is already the shortest path.
+
 ## Block C — Query
 
 ## Block D — The gate
