@@ -25,9 +25,13 @@ merge **decidable**: a task line is keyed by its id and filed under a declared h
   tool does not merge prose (L4). One side may have changed them — that side's file is the
   frame the entries are written into. Both, differently, and the merge is refused.
 * **It gates what it composed.** The merged file is held to
-  :func:`~roadkeep.linting.within`, the half of the gate a driver holding three versions of
-  one file can run — and the findings it refuses over are the ones **no version already
-  had** (RK1352). A defect the merge creates is one nobody chose and nobody would find, the
+  :func:`~roadkeep.linting.within` and to :func:`~roadkeep.linting.resolving` — what one
+  file answers, and what only the backlog can (RK1353) — and the findings it refuses over
+  are the ones **no version already had** (RK1352). The second half is not an extra: a dep
+  on a line the other side removed exists in no version and in the merged file alone, which
+  is the one class a merge is uniquely able to write, and the per-file half cannot be asked
+  about it. Measured: one branch adding `RK3 (deps: RK2)` while the other removed `RK2`
+  landed clean and failed `lint` afterwards. A defect the merge creates is one nobody chose and nobody would find, the
   file having been written by a program; a defect it inherited is somebody's committed line,
   which `lint` refuses on that branch and refuses again after this lands.
   Held to every finding until RK1352 measured what that cost: a base whose `RK9` carried an
@@ -1115,18 +1119,17 @@ def _introduced(
     The gate stays for what it is for — a merge that *creates* a defect is one nobody chose
     and nobody would find, the file having been written by a program.
     """
-    from roadkeep.linting import within  # noqa: PLC0415 - the module's own edge
+    from roadkeep.linting import resolving, within  # noqa: PLC0415 - the module's own edge
 
-    held = {
-        (finding.code, finding.id)
-        for document in inputs
-        for finding in within(config, role, document)
-    }
-    return [
-        finding
-        for finding in within(config, role, result)
-        if (finding.code, finding.id) not in held
-    ]
+    def asked(document: Document) -> list:
+        # Both halves (RK1353): what one file answers, and what only the backlog can. A dep
+        # naming a line the other side removed exists in no version and in the merged file
+        # alone, which is the one class a merge is uniquely able to write — and the half
+        # `within` runs cannot be asked about it.
+        return [*within(config, role, document), *resolving(config, role, document)]
+
+    held = {(finding.code, finding.id) for document in inputs for finding in asked(document)}
+    return [finding for finding in asked(result) if (finding.code, finding.id) not in held]
 
 
 def _refused(findings: list) -> str:

@@ -967,3 +967,34 @@ def test_the_driver_refuses_what_it_composed_and_not_what_it_inherited(tmp_path)
     assert _introduced(config, "roadmap", result, ancestor) == []
     # What the gate is for: a finding the result carries and no input did is still refused.
     assert _introduced(config, "roadmap", result, Document.parse(head, schema))
+
+
+def test_a_dep_on_a_line_the_other_side_removed_is_refused(tmp_path):
+    """RK1353. The driver gated what it composed against `within`, which answers *everything
+    decidable from one file alone* — and whether a dep names a line the backlog carries is
+    not: it needs the roadmap, the ledger and the store together.
+
+    So the one class a merge is uniquely able to write was the one it could not see. Two
+    branches each editing a line are a conflict git would have shown; a dep pointing at a line
+    the other side removed is invisible on both sides and exists only in the file the driver
+    wrote. Measured: it landed clean and `lint` reported `deps.unknown` afterwards, which is
+    the outcome this module's own third sentence names."""
+    config = project(tmp_path)
+    head = "# Roadmap\n\n## Block A — The model\n\n"
+
+    def line(number: int, dep: str = "—") -> str:
+        return (
+            f"- 📋 **RK{number}** (deps: {dep}) **a symptom plainly long enough here** — "
+            f"A reason. → §RK{number}\n"
+        )
+
+    base = head + line(1) + line(2)
+    merged = merge(config, "roadmap", base, base + line(3, "RK2"), head + line(1))
+    assert not merged.clean
+    assert "deps.unknown" in merged.reason
+    # By id, so the reviewer is sent to the line the merge wrote and not to the removal.
+    assert "RK3" in merged.reason
+
+    # And the half this adds does not widen the rest: two ordinary additions still merge.
+    plain = merge(config, "roadmap", head + line(1), head + line(1) + line(2), head + line(1) + line(3))
+    assert plain.clean, plain.reason

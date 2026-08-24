@@ -1975,6 +1975,43 @@ def characters_in(config: Config, role: str, document: Document) -> list[Finding
     return _characters(config, role, document)
 
 
+def resolving(config: Config, role: str, roadmap: Document) -> list[Finding]:
+    """The dep questions one file cannot answer, asked of a candidate roadmap (RK1353).
+
+    `within` is *everything decidable from one file alone*, and whether a dep names a line
+    the backlog carries is not: it needs the roadmap, the ledger and the store together. So
+    the merge driver — which holds three versions of one path and gates what it composed —
+    could not see the one class a merge is uniquely able to create. Measured: one branch adds
+    `RK3 (deps: RK2)` while the other removes `RK2`, and the merged file, held by neither
+    side, lands clean and fails `lint` afterwards.
+
+    The candidate stands in for the roadmap and the other roles are read from disk, which is
+    where a merge runs: git calls a driver in a worktree, so the ledger and the store are the
+    committed ones. `_present` answers `None` for a role that is undeclared or not yet
+    written, so a project holding only a roadmap asks a narrower question rather than failing
+    — the same tolerance `Backlog.load` gives every other reader.
+
+    Roadmap only, deliberately: a ledger entry carries no deps, so asking would be composing
+    a question the grammar has no field for.
+    """
+    from roadkeep.backlog import Backlog, _present  # noqa: PLC0415 - RK260's edge back
+
+    if role != "roadmap":
+        return []
+    backlog = Backlog(
+        config=config,
+        roadmap=roadmap,
+        ledger=_present(config, "changelog"),
+        store=_present(config, "deferred"),
+    )
+    file = config.relative(config.path(role))
+    return [
+        found
+        for entry in roadmap.entries
+        for found in _deps(backlog, entry.task, file, entry.lineno)
+    ]
+
+
 def _voided(document: Document) -> bool:
     """Whether this file's every byte is NUL — the shape a lost write leaves (RK451).
 

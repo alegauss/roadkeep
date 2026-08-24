@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1353 The defect only a merge can write
-
-Reproduced: a base carrying `RK1` and `RK2`; one branch adds `RK3` depending on `RK2`;
-the other removes `RK2`. The merge composes a file none held — `RK3 (deps: RK2)` with no
-`RK2` in it — and returns it clean. `within` on that result reports nothing. `lint` on
-the same bytes, once landed, reports `deps.unknown` against `RK3`.
-
-That is the outcome this module's own third sentence names: *a file nobody reviewed,
-arriving with a clean exit code*. And the class is the one a merge is uniquely able to
-create: two branches each editing a line are a conflict git would have shown, while a
-dep on a line the other side removed is invisible on both and exists only in the file
-the driver wrote.
-
-The gate cannot see it because it is per-file by construction: `within` answers
-*everything decidable from one file alone*, and whether a dep names a line the backlog
-carries needs the roadmap and the ledger together. So this is not a rule the driver
-skipped: it is a question the half of the gate it runs cannot be asked.
-
-It holds the config, and a merge runs in a worktree holding the other governed files, so
-the fuller check is reachable on a candidate result.
-
-Falsified if the driver may run where those files are absent - a bare index, a `git
-merge-file` outside a worktree - in which case the check is undecidable and what is owed
-is the reason saying which half ran.
-
 ## Block C — Query
 
 ## Block D — The gate
