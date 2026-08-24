@@ -77,6 +77,31 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1338 One row of a hundred and eighteen
+
+Measured: the fixture `test_every_door_the_gate_offers_on_this_project_lands` builds
+produces exactly one finding, `ref.unresolved`, so one row of the 118 in the remedy
+table has its doors executed. The name says every door the gate offers *on this
+project*, and that is true and is the problem - this project's gate is clean, so the
+doors it offers are the doors of one hand-made defect.
+
+RK1337 was a bug in one of the other 117: `section.duplicate` offered `section move`,
+which refuses an id-addressed section by construction, and `anchors --next`, which exits
+2 under that scheme. Both were found by running them by hand. `test_remedying` had
+already asserted what it can - the argv parses, carries no blank, names a real
+subcommand - and none of that reaches *the call is accepted in the state that produced
+the finding*.
+
+The gap is not evenly spread. A row whose door is `lint --fix` is exercised by the
+fixer's own suite; a row that varies by scheme, like the two now in `VARIES`, is exactly
+where a door written for one project shape is offered under another.
+
+What would close it is a defective state per code, which the corpora fixtures already
+build several of.
+
+Falsified if most of the 117 cannot be reached without a hand-written file per code, in
+which case the finding is the price of coverage rather than a gap in it.
+
 ## Block C — Query
 
 ## Block D — The gate
