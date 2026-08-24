@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1339** (deps: —) **a positional blank reads as and-the-rest, so six doors skip the acceptance sweep and one runs with its label dropped** — show … names which id to show and block add … --title … names the label; filled drops both, and abridged calls six of the seven a continuation. → §RK1339
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
