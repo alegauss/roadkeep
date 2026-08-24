@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1323** (deps: —) **this repository declares no [criteria], so the fixture that proves the format does not exercise a table init now writes** — The law is that a schema change validates here first, and the one list added since is proven by tests alone rather than by the artefact. → §RK1323
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
@@ -44,6 +42,33 @@
 ## Block H — The tool's own shape (what one verb costs to change)
 
 - 📋 **RK1324** (deps: —) **four key names carry the same runnable command across the payloads, so a consumer needs four readers for one idea** — RK1307 held that a door the text names is in the payload and never that it is findable, so each verb chose a name as it was written. → §RK1324
+
+## Done when — Block D
+
+- **The gate passes on this repository's own docs** the format is proven by the artefact
+  and not asserted in a README, so a limit these lines cannot express is the wrong limit
+  rather than a set of wrong lines.
+- **Every finding names the command that closes it** a report a reader cannot act on is
+  one they skip, so each carries a complete argv and `--fix` runs the derived half of
+  them (RK420, RK16).
+
+## Done when — Block F
+
+- **One install wires every surface a session reads** five of them — hook, skill,
+  commands, manifest, server — and a launcher where no plugin can be, so an adopter runs
+  one command and none of them drifts.
+- **The guard denies a hand edit and names the verb** a refusal that stops at no is a
+  detour; this boundary exists to turn an agent toward the command rather than away from
+  the file.
+
+## Done when — Block H
+
+- **One verb's change is read in one module** each module's docstring is the authority
+  and `origin <id>` answers where a rule came from, so what a change costs is bounded by
+  where the answer lives.
+- **Every served tool answers one question** a verb answering eight subjects is refused
+  by whichever arrived last, and the seam is the tense: what a write may spend is not
+  what a surface does (RK1321).
 
 ## Non-goals
 

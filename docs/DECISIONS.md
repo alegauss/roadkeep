@@ -37,6 +37,7 @@
 - ✅ **RK1318** **the gate reads a criterion's shape and length and never whether the block or id it is addressed to still exists** — An address validated at the write is re-asked by the gate, because the write was right when it ran and cannot know what a later one spent.
 - ✅ **RK1327** **a repair --fix makes with no word in REPAIRS goes unnamed in all six copies, and the gate stays green** — A list a second place has to be joined to is derived from the first: what is decidable about code is held against the code.
 - ✅ **RK1322** **the tree is split between two line terminators and nothing reads which a file is, so an append lands in the wrong one** — A checkout uniformly either terminator is editable; one that is both is not, and that is the state a tree-wide invariant refuses.
+- ✅ **RK1323** **this repository declares no [criteria], so the fixture that proves the format does not exercise a table init now writes** — A table this tool scaffolds into every new project is one its own conformance fixture carries, or the format is proven by tests and not by the artefact.
 
 ## Block E — Adoption
 

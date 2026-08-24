@@ -119,16 +119,16 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 182 | 2 |
 | C — Query (consult without reading the file) | 0 | 133 | 2 |
-| D — The gate | 1 | 192 | 2 |
+| D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 101 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 1 | 25 | 1 |
-| **Total** | 4 | 810 | 11 |
+| **Total** | 3 | 811 | 11 |
 
 **Next ready:**
 
-- 📋 **RK1323** (deps: —) **this repository declares no [criteria], so the fixture that proves the format does not exercise a table init now writes** — The law is that a schema change validates here first, and the one list added since is proven by tests alone rather than by the artefact. → §RK1323
+- 📋 **RK1324** (deps: —) **four key names carry the same runnable command across the payloads, so a consumer needs four readers for one idea** — RK1307 held that a door the text names is in the payload and never that it is findable, so each verb chose a name as it was written. → §RK1324
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

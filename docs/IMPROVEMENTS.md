@@ -81,31 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1323 RK1323
-
-`agents.md` states it as a law: this repository's own `docs/` is the conformance
-fixture, and `roadkeep lint` must pass on it, because the format is proven by the
-artefact and not asserted in a README. A limit these lines cannot express is the wrong
-limit rather than a set of wrong lines.
-
-`[criteria]` is outside that proof. `criterion list` here answers *no [criteria] in this
-project's roadkeep.toml, so what finishes a block is ungoverned*, so every `brief` this
-project makes prints an empty `done_when` and RK1300's event - the criteria arriving
-with the word `finished` - has never fired on the corpus it was built against. Two
-blocks closed in this session and neither carried a list to print.
-
-RK1313 sharpened it: `init` now writes the table empty into every new project, so the
-shape a fresh adopter starts from is one the tool's own fixture does not have. That is
-the asymmetry, and it is the one RK66 argued the other way round - a schema applied to
-prose nobody wrote to it reports on adoption.
-
-The work is not the declaration. It is writing what would finish each open block, which
-is a judgement about the plan and not a config edit, and the reason this is a line
-rather than a commit.
-
-Falsified if the criteria a block would carry are already stated somewhere the gate
-reads, which would make this a duplication rather than a gap.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

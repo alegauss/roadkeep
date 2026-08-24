@@ -48,6 +48,14 @@ prose = 88
 lead = 60
 why = 200
 
+# The positive twin (RK1265), declared here because this repository's own `docs/` is the
+# conformance fixture (RK1323): a table `init` now writes into every new project, and which
+# the artefact that proves the format did not carry, is a table proven by tests alone. The
+# limits are the list's own and are the same two numbers, measured on the same corpus.
+[criteria]
+lead = 60
+why = 200
+
 [tools]
 # What one served tool may cost the session that connects the server (RK1059), which is
 # RK30's argument about a resident file made about the schema. Per tool and not per list:
