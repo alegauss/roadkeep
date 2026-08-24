@@ -998,3 +998,37 @@ def test_a_dep_on_a_line_the_other_side_removed_is_refused(tmp_path):
     # And the half this adds does not widen the rest: two ordinary additions still merge.
     plain = merge(config, "roadmap", head + line(1), head + line(1) + line(2), head + line(1) + line(3))
     assert plain.clean, plain.reason
+
+
+def test_a_cycle_the_merge_composed_is_refused_and_an_inherited_one_is_not(tmp_path):
+    """RK1354. RK1353 gave the driver the backlog question and connected one of its halves:
+    `_deps` covers what its own docstring calls *three of the four kinds*, and the fourth is
+    `_cycles`, on the same `Backlog` and the same file.
+
+    A cycle is the purer case of what only a merge writes. A dangling dep is visible on the
+    branch that wrote it, as a dep on an id that branch does not carry; a cycle is well-formed
+    on both sides and exists in the merged file alone — a state neither author can review,
+    neither having had it.
+
+    Both directions, because RK1352's rule is what the fix must not break: the group's id is
+    stable, so an inherited cycle is still told from a composed one."""
+    config = project(tmp_path)
+    head = "# Roadmap\n\n## Block A — The model\n\n"
+
+    def line(number: int, dep: str = "—") -> str:
+        return (
+            f"- 📋 **RK{number}** (deps: {dep}) **a symptom plainly long enough here** — "
+            f"A reason. → §RK{number}\n"
+        )
+
+    # Each side well-formed on its own; the cycle exists only in the file the driver wrote.
+    base = head + line(1)
+    composed = merge(config, "roadmap", base, base + line(2, "RK3"), base + line(3, "RK2"))
+    assert not composed.clean
+    assert "deps.cycle" in composed.reason
+
+    # And a cycle both sides already carried is not this merge's to refuse.
+    carried = head + line(2, "RK3") + line(3, "RK2")
+    kept = merge(config, "roadmap", carried, carried + line(4), carried + line(5))
+    assert kept.clean, kept.reason
+    assert "**RK4**" in kept.text and "**RK5**" in kept.text

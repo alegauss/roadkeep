@@ -77,32 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1354 The fourth kind of dep
-
-RK1353 gave the driver the backlog question and connected one of its two halves.
-`resolving` runs `_deps`, which its own docstring calls *three of the four kinds*. The
-fourth is `_cycles`, on the same `Backlog` and file.
-
-So the second defect only a merge can write still lands clean. Reproduced: one branch
-adds `RK2 (deps: RK3)`, the other adds `RK3 (deps: RK2)`. Neither input holds a cycle,
-each having one of the two lines, and the merged file has both. It merges, and `lint`
-then reports `deps.cycle`.
-
-A cycle is the purer case of the class. A dangling dep is visible on the branch that
-wrote it, as a dep on an id that branch does not carry; a cycle is well-formed on both
-sides and exists only in the file the driver wrote — a state neither author can review,
-neither having had it.
-
-What the fix must not do is refuse a cycle an input already carried, which is RK1352's
-rule and is where the care is: a cycle is reported per group, so whether the pair
-`(code, id)` names the same id on both readings decides whether the comparison holds at
-all.
-
-Falsified if a cycle in an input is reported under a different id than the same cycle in
-the result - the group's members shifting with what is around them - in which case
-refusing the composed one refuses the inherited one too, and the comparison needs a key
-the group has.
-
 ## Block C — Query
 
 ## Block D — The gate

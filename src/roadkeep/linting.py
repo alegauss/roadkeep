@@ -2005,10 +2005,20 @@ def resolving(config: Config, role: str, roadmap: Document) -> list[Finding]:
         store=_present(config, "deferred"),
     )
     file = config.relative(config.path(role))
+    # All four kinds and not the three `_deps` holds (RK1354). A cycle is the purer case of
+    # what only a merge writes: a dangling dep is visible on the branch that wrote it, as a
+    # dep on an id that branch does not carry, while a cycle is well-formed on both sides and
+    # exists in the merged file alone — a state neither author can review, neither having had
+    # it. Measured: one branch adding `RK2 (deps: RK3)` and the other `RK3 (deps: RK2)` merged
+    # clean and linted `deps.cycle`. The group's id is stable — the same cycle answers `RK2`
+    # with or without a line above it — so an inherited one is still told from a composed one.
     return [
-        found
-        for entry in roadmap.entries
-        for found in _deps(backlog, entry.task, file, entry.lineno)
+        *(
+            found
+            for entry in roadmap.entries
+            for found in _deps(backlog, entry.task, file, entry.lineno)
+        ),
+        *_cycles(backlog, file),
     ]
 
 

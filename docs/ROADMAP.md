@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1354** (deps: —) **the driver sees a composed dangling dep and not a composed cycle, which the same backlog decides** — Each side depending on the other's new id merges clean and lints deps.cycle: resolving runs _deps and not _cycles, which takes the same Backlog and file. → §RK1354
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

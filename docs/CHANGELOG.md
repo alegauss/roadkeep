@@ -267,6 +267,7 @@
 - ✅ **RK1351** **the estimate lists no byte-level code, so a BOM the fixer closes is missing from what adoption costs** — The estimate asks for the byte-level walk by name, so a mark the fixer closes is counted in what adoption costs (design recorded in `src/roadkeep/linting.py`).
 - ✅ **RK1352** **the merge driver refuses over a defect its inputs already carried, so a branch is blocked by a line it never wrote** — The driver refuses the findings no version already carried, so a branch is not blocked by a line it never wrote (design recorded in `src/roadkeep/merging.py`).
 - ✅ **RK1353** **a merge composes a dep on a line the other side removed and returns it clean, the gate it runs being per-file** — The driver asks the backlog what one file cannot answer, so a dep on a line the other side removed is refused by the id it wrote (design recorded in `src/roadkeep/linting.py`).
+- ✅ **RK1354** **the driver sees a composed dangling dep and not a composed cycle, which the same backlog decides** — The backlog question asks all four kinds, so a cycle well-formed on both sides and present only in the merged file is refused (design recorded in `src/roadkeep/linting.py`).
 
 ## Block C — Query
 

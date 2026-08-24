@@ -31,9 +31,12 @@ merge **decidable**: a task line is keyed by its id and filed under a declared h
   on a line the other side removed exists in no version and in the merged file alone, which
   is the one class a merge is uniquely able to write, and the per-file half cannot be asked
   about it. Measured: one branch adding `RK3 (deps: RK2)` while the other removed `RK2`
-  landed clean and failed `lint` afterwards. A defect the merge creates is one nobody chose and nobody would find, the
-  file having been written by a program; a defect it inherited is somebody's committed line,
-  which `lint` refuses on that branch and refuses again after this lands.
+  landed clean and failed `lint` afterwards; and a **cycle** is the purer case of it
+  (RK1354), well-formed on both sides and present in the merged file alone, so neither
+  author ever held the state they would be asked to review.
+  A defect the merge creates is one nobody chose and nobody would find, the file having been
+  written by a program; a defect it inherited is somebody's committed line, which `lint`
+  refuses on that branch and refuses again after this lands.
   Held to every finding until RK1352 measured what that cost: a base whose `RK9` carried an
   over-long `why`, one branch adding `RK1` and the other `RK2`, neither touching `RK9` —
   refused, naming `RK9` to a reviewer mid-merge who did not choose that work, and leaving
