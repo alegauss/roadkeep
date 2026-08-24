@@ -117,14 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 182 | 2 |
+| B — Authoring (insert, never hand-edit) | 2 | 182 | 2 |
 | C — Query (consult without reading the file) | 0 | 133 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 102 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 122 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 26 | 1 |
-| **Total** | 0 | 814 | 12 |
+| **Total** | 2 | 814 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1329** (deps: —) **a section written with its id as the title reads §RK1320 RK1320, and nine of nine filings did it** — The anchor is derived from the id, so that argument can only be a heading text — and the write knows the address it just minted and never compares. → §RK1329
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
