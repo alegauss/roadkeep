@@ -1315,10 +1315,14 @@ class Found:
                 {}
                 if self.carriers
                 else {
-                    "remedy": Door(
-                        ("section", "show", BLANK),
-                        "nothing carries it, so the prose as the file spells it is the read",
-                    ).payload(served)
+                    # `doors` and always a list (RK1324), which is the one shape a consumer
+                    # reads wherever a payload offers a runnable command.
+                    "doors": [
+                        Door(
+                            ("section", "show", BLANK),
+                            "nothing carries it, so the prose as the file spells it is the read",
+                        ).payload(served)
+                    ]
                 }
             ),
         }

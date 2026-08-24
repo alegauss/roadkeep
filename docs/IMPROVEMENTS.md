@@ -163,28 +163,3 @@ the prefix right and the reading a misunderstanding of the transport.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1324 RK1324
-
-Measured on this repository, 2026-08-23, by grepping the writers: `remedy` at five
-sites, `door` at three, `doors` at two, `clauses` at one. Every one is the same fact - a
-command this answer says the caller may run next - and a consumer wanting *what can I
-run* has to know all four names and which verb uses which.
-
-RK1307 closed half of it. Its gate asserts that a command a verb's text offers is
-reachable in that verb's payload, which is about presence; nothing says the key is the
-same key. So the class came out consistent in content and four ways apart in shape, and
-the next verb to grow a door picks a fifth name for the reason the first four did.
-
-The shapes differ too, not only the names. `lint` carries a `Remedy` with a kind and a
-decision, a finding being able to offer a choice; `Partial` carries a list, a
-half-written state having two next steps; the event carries one object; `brief`'s
-`clauses` are costs rather than calls and are arguably not this class - which is itself
-the question, because the name does not say.
-
-One name and one shape for a runnable command, wherever a payload publishes one, would
-let a client write that reader once. What the plural is for, and whether a cost is a
-door, decide it.
-
-Falsified if the four are four different facts, which would make one name the conflation
-rather than the fix.

@@ -824,7 +824,7 @@ def test_a_ship_carrying_both_clauses_composes_from_the_payload_alone(tmp_path, 
     moved = payload["shipping"]["changed"].get("fields", {})
     allowed = moved.get("why", {}).get("allowed", base["allowed"])
     # And what each clause takes out of it, which is the half that was missing.
-    costs = {one["flag"]: one["wrapper"] for one in payload["clauses"]}
+    costs = {one["flag"]: one["wrapper"] for one in payload["clause_costs"]}
     note, path = "the resize endpoint had shipped two blocks earlier", "ROADMAP.md"
     room = allowed - costs["--superseded-design"] - len(note)
     room -= costs["--recorded-in"] + len(path)
@@ -845,4 +845,4 @@ def test_the_clauses_are_absent_where_no_anchor_could_carry_them(tmp_path, capsy
     # append. `[]` and not omitted, so a client can tell that from an older server.
     project(tmp_path, roadmap=ROADMAP.replace(" → §RK1", "").replace(" → §RK4", ""))
     assert main(["-C", str(tmp_path), "brief", "RK1", "--json"]) == EXIT_OK
-    assert json.loads(capsys.readouterr().out)["clauses"] == []
+    assert json.loads(capsys.readouterr().out)["clause_costs"] == []

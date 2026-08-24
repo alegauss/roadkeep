@@ -168,9 +168,14 @@ def _event(task_id: str, block: str, roadmap: Document, config: Config) -> dict[
         # ruled out the other shape this task weighed, publishing `permanent` beside the stage,
         # which would have been a second copy of a read that already answers.
         #
-        # `null` where no offer applies, which is an answer and not an absence.
-        "door": None if (door := _drop_door(config, block, standing.stage)) is None
-        else door.payload(_served(config)),
+        # `doors` and always a list (RK1324), empty where no offer applies: one name and
+        # one shape wherever a payload publishes a runnable command, so a consumer reads
+        # them with one loop instead of four names.
+        "doors": [
+            one.payload(_served(config))
+            for one in (_drop_door(config, block, standing.stage),)
+            if one is not None
+        ],
     }
 
 
@@ -265,11 +270,10 @@ def _event_rows(
         ]
     # Read off the event and never recomputed (RK1319): the offer is one decision, and a
     # printer deciding it again is a second answer about whether a heading may go.
-    door = event.get("door")
-    if isinstance(door, dict):
+    for door in event.get("doors", ()):  # type: ignore[union-attr]
         rows.append(
             f"{indent}         {door['what']} — "
-            f"`{invocation()} {' '.join(door['argv'])}` withdraws the heading, "  # type: ignore[arg-type]
+            f"`{invocation()} {' '.join(door['argv'])}` withdraws the heading, "
             f"where this project drops one"
         )
     return rows
@@ -931,8 +935,10 @@ def _reading_door(estimate: Estimate, flag: str, value: str) -> dict[str, object
     unserved — it runs once, before the project exists (RK57) — so there is no tool call to
     publish beside the argv.
     """
+    # `doors` and always a list (RK1324): one name and one shape wherever a payload publishes
+    # a runnable command, so a consumer reads them with one loop rather than five names.
     found = [d for f, v, _, d in _readings(estimate) if (f, v) == (flag, value)]
-    return {"door": found[0].payload()} if found else {}
+    return {"doors": [found[0].payload()]} if found else {}
 
 
 def _print_estimate(estimate: Estimate) -> None:

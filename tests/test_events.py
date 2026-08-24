@@ -180,7 +180,7 @@ def test_json_carries_the_event_from_every_mutator(tmp_path, capsys):
     # The door's `call` is the same door named as a served tool, and only where something
     # serves it (RK449) — a fact about the machine this ran on. Compared apart, so the rest of
     # the event stays an exact equality and this test does not move with a plugin install.
-    door = shipped.pop("door")
+    (door,) = shipped.pop("doors")
     assert {key: door[key] for key in ("argv", "what", "complete", "writes")} == {
         "argv": ["block", "drop", "B"],
         "what": "its last open line just left",
@@ -334,11 +334,13 @@ def test_the_payload_carries_the_offer_the_stage_no_longer_implies(tmp_path, cap
     project(tmp_path)
     assert main(["-C", str(tmp_path), "ship", "--json", "RK1", "--why", "Works."]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    assert set(payload["event"]) == {"id", "block", "stage", "standing", "criteria", "door"}
+    assert set(payload["event"]) == {"id", "block", "stage", "standing", "criteria", "doors"}
     assert payload["event"]["stage"] == "finished"
-    # The whole call, in the shape every other door this tool publishes has (RK449).
-    assert payload["event"]["door"]["argv"] == ["block", "drop", "A"]
-    assert payload["event"]["door"]["what"] == "its last open line just left"
+    # `doors` and always a list (RK1324), which is the one name and one shape a payload
+    # publishes a runnable command under — so a consumer reads them with one loop.
+    (door,) = payload["event"]["doors"]
+    assert door["argv"] == ["block", "drop", "A"]
+    assert door["what"] == "its last open line just left"
 
 
 # -- the offer a project may answer once (RK1121) ------------------------------

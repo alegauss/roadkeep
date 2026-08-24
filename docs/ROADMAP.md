@@ -43,8 +43,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1324** (deps: —) **four key names carry the same runnable command across the payloads, so a consumer needs four readers for one idea** — RK1307 held that a door the text names is in the payload and never that it is findable, so each verb chose a name as it was written. → §RK1324
-
 ## Done when — Block D
 
 - **The gate passes on this repository's own docs** the format is proven by the artefact

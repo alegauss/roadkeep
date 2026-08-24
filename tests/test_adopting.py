@@ -1233,10 +1233,10 @@ def test_the_payload_carries_the_door_the_printed_report_names(tmp_path: Path, c
     assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "RK", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     doors = {
-        tuple(row["door"]["argv"][-2:])
+        tuple(row["doors"][0]["argv"][-2:])
         for key in ("prefixes", "schemes")
         for row in payload[key]
-        if "door" in row
+        if "doors" in row
     }
     assert doors == {("--prefix", "SH"), ("--ref-scheme", "outline")}
     # Every flag the text names is a door, and every door is a flag the text names: one list
@@ -1250,12 +1250,12 @@ def test_the_payload_carries_the_door_the_printed_report_names(tmp_path: Path, c
         ]
         # The door is a read, and says so — `adopt` writes nothing (RK18), which the parser
         # now declares rather than a test comment claiming it.
-        assert row["door"]["writes"] is False and row["door"]["complete"] is True
+        assert row["doors"][0]["writes"] is False and row["doors"][0]["complete"] is True
     # And a row the report says nothing about carries no door: a family already covered is not
     # an unread reading, so the key is absent rather than null.
     assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "SH", "--json"]) == EXIT_OK
     covered = json.loads(capsys.readouterr().out)
-    assert [row for row in covered["prefixes"] if "door" in row] == []
+    assert [row for row in covered["prefixes"] if "doors" in row] == []
 
 
 def test_a_door_carries_the_flag_that_decided_the_measurement(tmp_path: Path, capsys) -> None:
@@ -1270,8 +1270,8 @@ def test_a_door_carries_the_flag_that_decided_the_measurement(tmp_path: Path, ca
     assert main(argv) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["ledger"] is True
-    (row,) = [r for r in payload["prefixes"] if "door" in r]
-    assert "--ledger" in row["door"]["argv"]
+    (row,) = [r for r in payload["prefixes"] if "doors" in r]
+    assert "--ledger" in row["doors"][0]["argv"]
 
 
 def test_a_reading_nothing_disputes_qualifies_nothing(tmp_path: Path, capsys) -> None:

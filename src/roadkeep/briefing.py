@@ -622,7 +622,12 @@ class Brief:
             # the anchor is the pointer the line already carries, so only the note and the path
             # are the caller's — and those the caller is holding while it reads this. `[]`
             # where the line points at nothing, both figures being derived from the anchor.
-            "clauses": self._clauses(),
+            #
+            # **Not `doors`, and the name now says so** (RK1324). These are *costs* and not
+            # calls: RK1324's falsification asked whether the four names were four facts,
+            # and this is the one that was — so it keeps its own key and stops reading as
+            # the class a consumer looks for a runnable command in.
+            "clause_costs": self._clauses(),
             # Same key and same shape as `pick`'s (RK154): one fact spelled two ways is two facts.
             "held": [{"id": h.id, "age": round(h.age), "since": h.since} for h in self.held],
             # And the same for what the priority is waiting on (RK1304), by the same rule: this

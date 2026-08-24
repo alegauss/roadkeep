@@ -169,3 +169,44 @@ def test_a_verb_named_in_prose_is_not_read_as_a_door(tmp_path):
     assert _doors("`criterion add --task RK1 --lead … --why …` opens the list") == {
         "criterion add --task RK1 --lead … --why …"
     }
+
+
+def test_one_name_and_one_shape_wherever_a_command_is_published():
+    """RK1307 held that a door the text names is *in* the payload; nothing said it is
+    findable (RK1324). Measured by grepping the writers: `remedy` at five sites, `door` at
+    three, `doors` at two, `clauses` at one — and worse than the count, the same key name
+    carried two shapes, a `Remedy` (kind, decision, doors) on a lint finding and a bare `Door`
+    on `criterion list` and `section find`.
+
+    That task's falsification asked whether the four were four facts. One was: `brief`'s
+    clause figures are *costs* and not calls, so they keep their own key and it now says so.
+    The other three are one fact at three cardinalities, and this is the name they share.
+    """
+    import ast
+
+    from surface import modules
+
+    offenders: list[str] = []
+    for module in modules():
+        for node in ast.walk(ast.parse(module.text)):
+            if not isinstance(node, ast.Dict):
+                continue
+            for key in node.keys:
+                if isinstance(key, ast.Constant) and key.value in {"door", "clauses"}:
+                    offenders.append(f"{module.where}:{key.lineno} publishes {key.value!r}")
+    assert not offenders, offenders
+
+
+def test_the_shared_name_is_a_list_at_every_site():
+    # One shape as well as one name: a consumer loops rather than branching on whether the
+    # value it got is one command or several.
+    from roadkeep.remedying import Door
+
+    payload = Door(("lint",), "the gate").payload()
+    assert {"argv", "what", "complete", "writes"} <= set(payload)
+    # And the rich form a *finding* has keeps that list under the same name.
+    from roadkeep.remedying import Remedy
+
+    rich = Remedy("line.too-long", "fix", (Door(("lint", "--fix"), "the derived"),)).payload()
+    assert set(rich) == {"kind", "decision", "doors"}
+    assert isinstance(rich["doors"], list)

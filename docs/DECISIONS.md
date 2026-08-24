@@ -54,3 +54,4 @@
 ## Block H — The tool's own shape (what one verb costs to change)
 
 - ✅ **RK1321** **budget serves seven subjects on one tool and is now the largest, so every subject added re-argues a shared ceiling** — A verb answering eight subjects is refused by whichever arrived last; the seam is the tense, and what a write may spend is not what a surface does.
+- ✅ **RK1324** **four key names carry the same runnable command across the payloads, so a consumer needs four readers for one idea** — One name and one shape for a runnable command in any payload, so a consumer writes the reader once and a fifth verb inherits it.

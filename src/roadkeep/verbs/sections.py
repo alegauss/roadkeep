@@ -596,7 +596,11 @@ def _criterion_list(config: Config, args: argparse.Namespace) -> int:
                     # `null` where the listing is not empty, which is an answer and not an
                     # absence: a consumer branching on it never has to count the array.
                     "empty": empty,
-                    **({} if door is None else {"remedy": door.payload(_served(config))}),
+                    # `doors` and always a list (RK1324): the same key name carried a bare
+                    # `Door` here and a `Remedy` — kind, decision, doors — on a lint finding,
+                    # so a consumer reading it could not know which shape it had. One name,
+                    # one shape, wherever a payload publishes a runnable command.
+                    **({} if door is None else {"doors": [door.payload(_served(config))]}),
                     "criteria": [
                         {
                             "about": one.about,

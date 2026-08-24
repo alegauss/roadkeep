@@ -123,12 +123,12 @@ called unbuilt were already in the ledger.
 | E — Adoption | 1 | 101 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 1 | 25 | 1 |
-| **Total** | 4 | 811 | 11 |
+| H — The tool's own shape (what one verb costs to change) | 0 | 26 | 1 |
+| **Total** | 3 | 812 | 11 |
 
 **Next ready:**
 
-- 📋 **RK1324** (deps: —) **four key names carry the same runnable command across the payloads, so a consumer needs four readers for one idea** — RK1307 held that a door the text names is in the payload and never that it is findable, so each verb chose a name as it was written. → §RK1324
+- 📋 **RK1325** (deps: —) **a project wiring no plugin is told its doors arrive under one, so a payload names a tool nothing there answers** — served_by falls back past the project it was handed, and RK449's rule is that a door nothing serves publishes its argv alone. → §RK1325
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
