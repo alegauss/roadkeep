@@ -201,6 +201,56 @@ door at all: the heading survives its bullets by design (RK1265), so `--fix` is 
 takes that one, a heading addressed to nothing with nothing under it being derived dead
 as a shipped task's queue entry is.
 
+### §RK1322 RK1322
+
+Measured on this repository, 2026-08-23: 47 of 148 Python files are CRLF in the working
+copy and 101 are LF. `.gitattributes` pins what git stores (RK1132) and
+`test_no_file_mixes_the_two_line_terminators` refuses a file holding both - so each file
+is internally consistent and the tree is not.
+
+The cost is paid by anything that appends. Three times in one session a heredoc added LF
+to a CRLF test file and the invariant went red; each time the fix was rewriting the
+whole file in the terminator it already had, which is a read nobody can make from the
+file's name. The skill warns about heredocs into source (RK1091) for a different reason,
+and this failure wears the same clothes.
+
+git says so too, once per commit: `CRLF will be replaced by LF the next time Git touches
+it`. A warning on every commit that touches a third of the source is one a reader learns
+to skip, which is the state RK16 keeps findings out of.
+
+Three shapes. A gate finding per file whose working copy disagrees with what
+`.gitattributes` stores, which is the reading git already does and nobody surfaces; a
+normalising pass in `--fix`, which is derived and therefore its kind of repair; or a
+read that answers which terminator a path has, so an append asks instead of guessing.
+
+Falsified if `core.autocrlf` explains the split, which would make it a checkout setting
+and not a fact about the tree.
+
+### §RK1323 RK1323
+
+`agents.md` states it as a law: this repository's own `docs/` is the conformance
+fixture, and `roadkeep lint` must pass on it, because the format is proven by the
+artefact and not asserted in a README. A limit these lines cannot express is the wrong
+limit rather than a set of wrong lines.
+
+`[criteria]` is outside that proof. `criterion list` here answers *no [criteria] in this
+project's roadkeep.toml, so what finishes a block is ungoverned*, so every `brief` this
+project makes prints an empty `done_when` and RK1300's event - the criteria arriving
+with the word `finished` - has never fired on the corpus it was built against. Two
+blocks closed in this session and neither carried a list to print.
+
+RK1313 sharpened it: `init` now writes the table empty into every new project, so the
+shape a fresh adopter starts from is one the tool's own fixture does not have. That is
+the asymmetry, and it is the one RK66 argued the other way round - a schema applied to
+prose nobody wrote to it reports on adoption.
+
+The work is not the declaration. It is writing what would finish each open block, which
+is a judgement about the plan and not a config edit, and the reason this is a line
+rather than a commit.
+
+Falsified if the criteria a block would carry are already stated somewhere the gate
+reads, which would make this a duplication rather than a gap.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
