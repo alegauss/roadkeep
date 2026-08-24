@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1353** (deps: —) **a merge composes a dep on a line the other side removed and returns it clean, the gate it runs being per-file** — within reports nothing on that result while lint on the landed file reports deps.unknown, so the class a merge uniquely creates is the one it cannot see. → §RK1353
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
