@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1344 The pad that is a guess about the longest label
-
-Measured by running `adopt` on an ungoverned repository - which is the only way to see
-it, this project's own gains being none. The row prints `decisionsno decisions file, so
-a constraint that outlives the work...`, because the label is padded with
-`{gain.name:<9}` and `decisions` is exactly nine characters. So is `non-goals`. Two of
-the five collapse, and they are the two an adopter meets most: a repository with no
-decisions file and no governed non-goals is the ordinary state before adoption.
-
-The fix is not a wider number. `remedying.offered` pads its doors *to the widest*, and
-that is the rule here too - a constant is a guess about the longest label that stops
-being true the day somebody adds one, which is exactly what happened: three of these
-labels are short and the two added later are not.
-
-What it costs is the read's whole job. `adopt` exists so the decision is made against
-figures rather than against a reading of the format, and a line whose first word runs
-into its sentence is one an adopter has to parse before they can weigh it - on the one
-output whose audience has never seen this tool before.
-
-Falsified if the pad is load-bearing somewhere - if a caller aligns these rows against
-another block printed at nine - in which case the width is shared and what has to change
-is the two labels.
-
 ## Block C — Query
 
 ## Block D — The gate

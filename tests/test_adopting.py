@@ -18,6 +18,7 @@ to, skipped on any machine but the author's.
 from __future__ import annotations
 
 import json
+import re
 import tomllib
 from dataclasses import fields, replace
 from pathlib import Path
@@ -2604,3 +2605,42 @@ def test_a_word_that_is_neither_names_both_vocabularies(tmp_path: Path, capsys) 
     assert main([*where, "declare", "nonsense"]) == EXIT_USAGE
     said = capsys.readouterr().err
     assert "roadmap" in said and "criteria" in said
+
+
+def test_every_gain_is_separated_from_its_sentence_whatever_its_label(tmp_path, capsys) -> None:
+    """RK1344. The row padded with `{name:<9}` and two of the five labels are exactly nine —
+    `decisions` and `non-goals` — so the pad added nothing and the line printed
+    `decisionsno decisions file`. Found by running `adopt` on an ungoverned repository, which
+    is the only way to see it: this project declares all five, so its own gains are none.
+
+    Asserted as the rule and never as the width, because a constant is what failed: nine was a
+    guess about the longest label that stopped being true the day one reached it. `offered`
+    states the same rule one module over — the width is per rendering."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(OUTLINED, encoding="utf-8")
+    # The two roles a project needs and nothing else, so the rest are gains: an estimate
+    # against no config at all reports none, and would assert nothing.
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "CHANGELOG.md").write_text("# Shipped\n\n## Block A\n", encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "RK"]) == EXIT_OK
+    rows = [
+        line for line in capsys.readouterr().out.splitlines() if line.startswith("    ")
+    ]
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "RK", "--json"]) == EXIT_OK
+    names = [gain["name"] for gain in json.loads(capsys.readouterr().out)["gains"]]
+    assert names, "a project declaring everything would assert nothing here"
+
+    printed = [row for row in rows if row.split()[0] in names]
+    assert len(printed) == len(names), (printed, names)
+    for row, name in zip(printed, names, strict=False):
+        # The label, then a gap, then prose — never the label running into its first word.
+        assert row.startswith(f"    {name} "), row
+    # And one column for all of them, which is what padding is for: the widest sets it, so a
+    # longer label added tomorrow moves every row rather than closing this one's gap.
+    # Where the prose starts, measured as the end of *indent, label, gap* rather than by
+    # searching for the sentence: its first word appears again further along the line.
+    columns = {re.match(r"\s*\S+\s+", row).end() for row in printed}
+    assert len(columns) == 1, (columns, printed)

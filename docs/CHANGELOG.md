@@ -257,6 +257,7 @@
 - ✅ **RK1341** **a paused id is refused as never written or retired, when the store it sits in has a read that prints it** — A paused id is told which store holds it and the two verbs that read and undo it, instead of two guesses that are both false (design recorded in `src/roadkeep/showing.py`).
 - ✅ **RK1342** **deps prints its own spelling of no-open-task, so a paused line is invisible where the shared refusal names it** — The second spelling is deleted, so deps refuses through the class whose three answers include the pause and its door (design recorded in `src/roadkeep/verbs/querying.py`).
 - ✅ **RK1343** **govern tells every undeclared key that a build default applies, and three of them have no default at all** — An undeclared key is told the number that holds it, or that nothing does and which gate is off until one is written (design recorded in `src/roadkeep/governing.py`).
+- ✅ **RK1344** **two adopt gains have labels the fixed pad cannot separate, so the row runs its first word into its sentence** — The gains column is padded to the widest label of the rendering, so a label reaching the old constant no longer runs into its sentence (design recorded in `src/roadkeep/rendering.py`).
 
 ## Block C — Query
 

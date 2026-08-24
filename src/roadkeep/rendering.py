@@ -1073,8 +1073,16 @@ def _print_estimate(estimate: Estimate) -> None:
             f"  gains    {len(estimate.gains)} the format would add and this project "
             f"has not declared:"
         )
+        # To the widest and never to a constant (RK1344), which is `remedying.offered`'s rule
+        # and its reason: nine was a guess about the longest label, and it stopped being true
+        # the day one reached it. Two did — `decisions` and `non-goals` are exactly nine — so
+        # the pad added nothing and the row printed `decisionsno decisions file`, on the two
+        # gains an adopter meets most, in the one output whose reader has never seen this
+        # tool. The separator is explicit for the same reason the sibling rows spell theirs:
+        # a width that has to also supply the gap is a width that stops doing so at the top.
+        wide = max(len(gain.name) for gain in estimate.gains)
         for gain in estimate.gains:
-            print(f"    {gain.name:<9}{gain.because}")
+            print(f"    {gain.name:<{wide}}  {gain.because}")
     if estimate.surface:
         # The other side of the transaction, and the only row here that is not about the file
         # (RK1100). An estimate that named four doors this format opens and no cost is one that
