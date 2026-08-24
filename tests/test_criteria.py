@@ -587,3 +587,47 @@ def test_an_empty_heading_under_a_live_address_stays(tmp_path):
     after = Config.discover(tmp_path)
     assert "## Done when — Block A" in read(after)
     assert not [one for one in lint(after).findings if one.code == "criterion.orphan"]
+
+
+MISFILED = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1
+
+## Done when — Block A
+
+- **The gate passes** Because nothing else proves it.
+- 📋 **RK9** (deps: —) **A misfiled symptom** — Because it landed here. → §RK9
+- no bold lead at all, so this one has no address
+"""
+
+
+def test_a_task_line_under_the_heading_belongs_to_the_task_reader(tmp_path):
+    """RK1356. RK1355 arbitrated one pair of readers and left this one with the same shape: a
+    task line under `## Done when` answered `criterion.shape` beside the `block.missing` that
+    says what actually happened, and `criterion drop '<the whole line>'` — run exactly as
+    printed — removed the id, the symptom, the why and the pointer.
+
+    `criteria._bullets` says of itself that it is `scoping._bullets` with the address carried
+    through, which is why one guard belonged in both and reached one. The decision RK1355
+    recorded is what this keeps: where two readers claim one line, the specific one wins and
+    the other prints nothing about it."""
+    config = project(tmp_path, roadmap=MISFILED)
+    read = criteria.read(config.document("roadmap"))
+    leads = [one.lead for one in read]
+    assert "The gate passes" in leads
+    # The task line is not this reader's, so no verb here can be pointed at it.
+    assert not any("RK9" in one.lead + one.why for one in read), leads
+
+    # And a bullet the grammar rejected is still a criterion: that is the population this
+    # section measures, and excluding it would hide what is being looked for.
+    assert any(not one.shaped for one in read)
+
+    # The findings agree: the misfiled line is a task in the wrong place, and nothing else.
+    codes = {(f.code, f.lineno) for f in lint(config).findings}
+    misfiled, unshaped = 10, 11
+    assert ("criterion.shape", misfiled) not in codes, sorted(codes)
+    assert ("block.missing", misfiled) in codes, sorted(codes)
+    # And the bullet below it keeps the diagnosis it earns, so this narrows one line.
+    assert ("criterion.shape", unshaped) in codes, sorted(codes)

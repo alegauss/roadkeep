@@ -798,11 +798,23 @@ def _bullets(document: Document, start: int, about: str) -> tuple[Criterion, ...
     a lead is taken, which is what lets it come from the whole bullet instead of from its first
     physical line.
     """
+    # The guard `scoping._bullets` carries, which this sibling needed and did not have
+    # (RK1356). A task line under `## Done when` answered `criterion.shape` beside the
+    # `block.missing` that says what actually happened, and the door printed for the first —
+    # `criterion drop '<the whole line>'` — removed the id, the symptom, the why and the
+    # pointer when run as printed. RK1355 decided this for the other list: where two readers
+    # claim one line, the specific one wins and the other prints nothing about it.
+    #
+    # Parsed entries only, for the reason it is there: a bullet the grammar *rejected* is an
+    # ordinary malformed criterion, which is what this section exists to measure.
+    entries = {entry.lineno for entry in document.entries}
     spans: list[tuple[int, list[str]]] = []
     for offset, raw in enumerate(document.lines[start + 1 :], start=start + 2):
         body = raw.rstrip("\r\n")
         if body.startswith("#"):
             break
+        if offset in entries:
+            continue
         if _ANY_BULLET.match(body):
             spans.append((offset, [body]))
         elif spans and body.startswith(_CONTINUATION) and not blank(body):

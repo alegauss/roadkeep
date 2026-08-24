@@ -269,6 +269,7 @@
 - ✅ **RK1353** **a merge composes a dep on a line the other side removed and returns it clean, the gate it runs being per-file** — The driver asks the backlog what one file cannot answer, so a dep on a line the other side removed is refused by the id it wrote (design recorded in `src/roadkeep/linting.py`).
 - ✅ **RK1354** **the driver sees a composed dangling dep and not a composed cycle, which the same backlog decides** — The backlog question asks all four kinds, so a cycle well-formed on both sides and present only in the merged file is refused (design recorded in `src/roadkeep/linting.py`).
 - ✅ **RK1355** **a task line under Non-goals is read as both, and the door the non-goal finding prints deletes it** — A bullet the task grammar already read is that reader's, so no door offers to drop a line carrying an id (design recorded in `src/roadkeep/scoping.py`).
+- ✅ **RK1356** **the criteria reader claims a task line as its own, and the drop it prints deletes the line** — The criteria reader keeps the arbitration its sibling got, so no drop is offered for a line carrying an id (design recorded in `src/roadkeep/criteria.py`).
 
 ## Block C — Query
 
