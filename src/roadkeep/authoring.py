@@ -445,7 +445,7 @@ class Insertion:
         # are files the caller named, and the README is one they did not — so a commit took the
         # two and left the third, green against the tree and `export.stale` in a clean checkout.
         rows += _staging_rows(config.relative(one) for one in self.wrote)
-        rows += _event_rows(self.event(config), config=config)
+        rows += _event_rows(self.event(config))
         return "\n".join(rows)
 
     def addition(
@@ -1199,14 +1199,14 @@ class StatusChange:
             rows = [f"{self.entry.task.id} is already {self.after}  {where}"]
             return "\n".join(
                 rows + _followed_rows(self, config)
-                + _event_rows(self.event(config), "  ", config=config)
+                + _event_rows(self.event(config), "  ")
             )
         rows = [f"{self.entry.task.id} {self.before} → {self.after}  {where}"]
         if self.refreshed:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
         rows += _followed_rows(self, config)
         rows += _staging_rows(config.relative(one) for one in self.wrote)
-        rows += _event_rows(self.event(config), "  ", config=config)
+        rows += _event_rows(self.event(config), "  ")
         return "\n".join(rows)
 
     def payload(self, config: Config) -> dict[str, object]:

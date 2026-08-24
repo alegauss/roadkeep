@@ -155,19 +155,37 @@ def _event(task_id: str, block: str, roadmap: Document, config: Config) -> dict[
                 criteria.read(roadmap, block) if standing.stage is Stage.FINISHED else ()
             )
         ],
+        # And the one command this state makes available (RK408, RK1319), which RK38 excluded
+        # and which stopped being excludable. That decision was right when it was made: the
+        # event carried three facts and no suggestion, on the argument that a consumer deriving
+        # the next command **from the stage** would be handed it twice, and `_DROPPABLE` was a
+        # map of two stages a caller could reproduce.
+        #
+        # RK1121 ended it. `[headings] permanent` made the offer depend on a second fact, and
+        # RK1319's own falsification then decided which half was missing: the key is reachable
+        # — `config --json` publishes it, declared and with its value — and the *map* is
+        # published nowhere, so a consumer had to hardcode which stages allow the offer. That
+        # ruled out the other shape this task weighed, publishing `permanent` beside the stage,
+        # which would have been a second copy of a read that already answers.
+        #
+        # `null` where no offer applies, which is an answer and not an absence.
+        "door": None if (door := _drop_door(config, block, standing.stage)) is None
+        else door.payload(_served(config)),
     }
 
 
 def _drop_door(config: Config, block: str, stage: Stage) -> Door | None:
     """The heading this state makes droppable, or `None` (RK408).
 
-    One reader for the printed offer, and **deliberately not a payload key**: RK38 decided the
-    event carries three facts and no suggestion, on the argument that a consumer deriving the
-    next command from the stage would be handed it twice. RK1307 swept the verbs whose payload
-    dropped a door by omission and left this one alone, because a decision argued and held by a
-    test is not an omission — the case for reopening it is that `[headings] permanent` (RK1121)
-    made the offer depend on configuration the event does not carry, and that argument belongs
-    on a line of its own rather than inside a task about a different class.
+    One reader for both registers since RK1319, which is where RK38's exclusion was argued out
+    rather than swept up: RK1307 left this one alone on purpose, because a decision argued and
+    held by a test is not an omission, and reopening it inside a task about a different class
+    would have been a change nobody could find later.
+
+    What changed is the premise. RK38 excluded the suggestion because a consumer could derive
+    it *from the stage*, and RK1121's `[headings] permanent` made the offer depend on a second
+    fact. Which one was missing is what that line's falsification settled: the key is reachable
+    — `config --json` publishes it — and this map is published nowhere.
     """
     because = None if config.permanent_headings else _DROPPABLE.get(stage)
     if because is None:
@@ -192,7 +210,7 @@ _DROPPABLE = {
 
 
 def _event_rows(
-    event: dict[str, object], indent: str = "", *, config: Config, standing: bool = False
+    event: dict[str, object], indent: str = "", *, standing: bool = False
 ) -> list[str]:
     """The event, and where the stage allows it the one command that state makes available.
 
@@ -213,10 +231,13 @@ def _event_rows(
 
     And since RK1121 the project may answer that call **once** rather than in every run's
     reading: `[headings] permanent` says the headings outlive the work filed under them, and
-    the offer is then absent instead of hedged. `config` is a required keyword and not a
-    defaulted one, because a printer that fell back to offering would put the old behaviour
-    back on whichever call site was added next. The `stage` word stays either way — the state
+    the offer is then absent instead of hedged. The `stage` word stays either way — the state
     is a fact and only the suggestion was a question the file could answer.
+
+    **This printer decides none of it** (RK1319). The offer is composed where the event is, so
+    a `config` no longer reaches here: it was a required keyword precisely so a printer could
+    not fall back to offering, and the way to make that impossible is to leave the printer
+    nothing to fall back *to*. What it renders now is the door the payload carries or no row.
     """
     stage = event["stage"]
     rows = [f"{indent}event    {event['id']}  Block {event['block']}  {stage}"]
@@ -242,14 +263,13 @@ def _event_rows(
             f"{indent}         done when  {one['lead']} — {one['why']}"
             for one in event.get("criteria", ())  # type: ignore[union-attr]
         ]
-    # Composed once and rendered here (RK1307's shape, on the one member of that class it
-    # left alone): the offer is a decision, and a printer deciding it again is a second
-    # answer about whether a heading may go.
-    door = _drop_door(config, str(event["block"]), Stage(stage))
-    if door is not None:
+    # Read off the event and never recomputed (RK1319): the offer is one decision, and a
+    # printer deciding it again is a second answer about whether a heading may go.
+    door = event.get("door")
+    if isinstance(door, dict):
         rows.append(
-            f"{indent}         {door.what} — "
-            f"`{invocation()} {' '.join(door.argv)}` withdraws the heading, "
+            f"{indent}         {door['what']} — "
+            f"`{invocation()} {' '.join(door['argv'])}` withdraws the heading, "  # type: ignore[arg-type]
             f"where this project drops one"
         )
     return rows

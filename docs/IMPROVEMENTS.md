@@ -77,32 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1319 RK1319
-
-RK38 gave the event three facts and no suggestion, and a test states the decision: a
-consumer deriving the next command from the stage would be handed it twice. That was
-true when it was written. `_DROPPABLE` maps two stages to an offer, and a caller holding
-`stage` could reproduce the map.
-
-RK1121 ended it. `[headings] permanent` says a project's headings outlive the work filed
-under them, and the offer is then absent instead of hedged - so whether `block drop`
-applies is a function of the stage AND of a key the event does not publish. A consumer
-deriving it from the stage alone is right on most projects and wrong on every one that
-declared it, which is the worse of the two failures: nothing in the payload disagrees
-with itself.
-
-Observed while shipping RK1307, which swept the verbs whose payload dropped a door by
-omission and left this one alone on purpose - a decision argued and held by a test is
-not an omission.
-
-Two shapes. Publish the door, which is what every other write now does; or publish
-`permanent` beside the stage, which keeps RK38's three facts and hands the consumer the
-second half of the arithmetic. The first matches the surface RK1307 left; the second is
-truer to what RK38 decided.
-
-Falsified if a payload consumer can already read `[headings] permanent`, which would
-make this a fact reachable rather than a fact missing.
-
 ## Block C — Query
 
 ### §RK1320 RK1320

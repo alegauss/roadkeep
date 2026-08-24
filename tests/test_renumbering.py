@@ -366,6 +366,9 @@ def test_json_says_which_files_the_transaction_touched(tmp_path, capsys):
         # Empty on a live block, which is every stage but the one the question is owed at
         # (RK1300): a criterion decides whether `finished` is true, and this block is not.
         "criteria": [],
+        # And null for the same reason (RK1319): a block still holding work is one `block
+        # drop` refuses by name, so there is no offer for the event to carry.
+        "door": None,
     }
 
 

@@ -211,7 +211,7 @@ class Renumbering:
             # it by a number that no longer exists, and that it is still theirs is what to say.
             rows.append(f"  claimed  the claim taken {self.claim.since} ago moved with it")
         rows += _staging_rows(config.relative(one) for one in wrote)
-        rows += _event_rows(self.event(config), "  ", config=config)
+        rows += _event_rows(self.event(config), "  ")
         return "\n".join(rows)
 
     def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:

@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1319** (deps: —) **the event says a block finished and not that its heading may go, though the offer now depends on config it omits** — RK38 excluded the suggestion as derivable from the stage, and RK1121 made it depend on a key the payload does not carry. → §RK1319
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1320** (deps: —) **one drafted flag answers two ways about the same prose, so a number is labelled the caller's on a line the file holds** — It is derived from open_line, which was a proxy for a caller-composed line and stopped being one when brief began pricing a ship. → §RK1320

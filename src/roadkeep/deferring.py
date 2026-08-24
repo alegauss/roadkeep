@@ -283,7 +283,7 @@ class Pause:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
         rows += _dequeued_rows(self.dequeued)
         rows += _staging_rows(config.relative(one) for one in wrote)
-        rows += _event_rows(self.event(config), "  ", config=config)
+        rows += _event_rows(self.event(config), "  ")
         return "\n".join(rows)
 
     def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
@@ -438,7 +438,7 @@ class Resumption:
         if follow is not None:
             rows.append(f"  requeue  {follow}")
         rows += _staging_rows(config.relative(one) for one in wrote)
-        rows += _event_rows(self.event(config), "  ", config=config)
+        rows += _event_rows(self.event(config), "  ")
         return "\n".join(rows)
 
     def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:

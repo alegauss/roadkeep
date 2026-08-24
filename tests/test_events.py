@@ -176,7 +176,18 @@ def test_json_carries_the_event_from_every_mutator(tmp_path, capsys):
     assert moved["standing"]["open"] == 2
 
     assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now.", "--json"]) == EXIT_OK
-    assert json.loads(capsys.readouterr().out)["event"] == {
+    shipped = json.loads(capsys.readouterr().out)["event"]
+    # The door's `call` is the same door named as a served tool, and only where something
+    # serves it (RK449) — a fact about the machine this ran on. Compared apart, so the rest of
+    # the event stays an exact equality and this test does not move with a plugin install.
+    door = shipped.pop("door")
+    assert {key: door[key] for key in ("argv", "what", "complete", "writes")} == {
+        "argv": ["block", "drop", "B"],
+        "what": "its last open line just left",
+        "complete": True,
+        "writes": True,
+    }
+    assert shipped == {
         "id": "RK2",
         "block": "B",
         "stage": "finished",
@@ -307,17 +318,27 @@ def test_a_paused_block_is_offered_no_verb_that_would_refuse_it(tmp_path, capsys
     assert "block drop" not in out
 
 
-def test_the_payload_is_unchanged_by_the_sentence(tmp_path, capsys):
-    # `--json` carries no spelling of the **suggestion**: that is a sentence for a reader, and a
-    # consumer deriving the next command from the stage would be handed it twice (RK38's three
-    # facts and no more). What it does carry since RK1164 is the standing — the counts a caller
-    # asked `list` for after every ship, which is a fact about the files and not a suggestion.
+def test_the_payload_carries_the_offer_the_stage_no_longer_implies(tmp_path, capsys):
+    """RK38 gave the event three facts and no suggestion, on the argument that a consumer
+    deriving the next command **from the stage** would be handed it twice. That was true when
+    it was written: `_DROPPABLE` mapped two stages to an offer and a caller holding `stage`
+    could reproduce it.
+
+    RK1121 ended it — `[headings] permanent` made the offer depend on a second fact — and
+    RK1319's own falsification decided which half was missing. The key is reachable, `config
+    --json` publishing it declared and with its value; the *map* is published nowhere, so a
+    consumer had to hardcode which stages allow the offer. That also ruled out the other shape
+    that line weighed, publishing `permanent` beside the stage, which would have been a second
+    copy of a read that already answers.
+    """
     project(tmp_path)
     assert main(["-C", str(tmp_path), "ship", "--json", "RK1", "--why", "Works."]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    assert set(payload["event"]) == {"id", "block", "stage", "standing", "criteria"}
+    assert set(payload["event"]) == {"id", "block", "stage", "standing", "criteria", "door"}
     assert payload["event"]["stage"] == "finished"
-    assert "block drop" not in json.dumps(payload)
+    # The whole call, in the shape every other door this tool publishes has (RK449).
+    assert payload["event"]["door"]["argv"] == ["block", "drop", "A"]
+    assert payload["event"]["door"]["what"] == "its last open line just left"
 
 
 # -- the offer a project may answer once (RK1121) ------------------------------

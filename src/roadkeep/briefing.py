@@ -387,7 +387,7 @@ class Brief:
         if taken and event is not None:
             # Beside the claim and not at the end: the rationale section closes this output, and
             # an event line after a paragraph of prose is one a hook reader has to hunt for.
-            rows += _event_rows(event, "  ", config=config)
+            rows += _event_rows(event, "  ")
         rows.append(f"  symptom  {task.symptom}")
         rows.append(f"  why      {task.why}")
         if self.budget is not None:

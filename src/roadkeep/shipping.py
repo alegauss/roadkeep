@@ -1179,7 +1179,7 @@ class Departure:
         # Last before the event line, because it is about the commit this ship precedes rather
         # than about the three edits above it (RK294).
         rows += _scope_rows(self.scope, wrote)
-        rows += _event_rows(self.event(config), "  ", config=config, standing=True)
+        rows += _event_rows(self.event(config), "  ", standing=True)
         return "\n".join(rows)
 
     def payload(self, config: Config, wrote: Sequence[str]) -> dict[str, object]:
@@ -1278,7 +1278,7 @@ class Departure:
             rows.append(f"  still    {', '.join(self.dependents)} name {self.task_id}")
         # A retirement is committed exactly as a ship is, and it releases the same claim (RK294).
         rows += _scope_rows(self.scope, wrote)
-        rows += _event_rows(self.event(config), "  ", config=config, standing=True)
+        rows += _event_rows(self.event(config), "  ", standing=True)
         return "\n".join(rows)
 
     def retirement(self, config: Config, wrote: Sequence[str]) -> dict[str, object]:
@@ -1412,7 +1412,7 @@ class Partial:
         ]
         if self.refreshed:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
-        rows += _event_rows(self.event(config), "  ", config=config, standing=True)
+        rows += _event_rows(self.event(config), "  ", standing=True)
         return "\n".join(rows)
 
     def doors(self) -> tuple[Door, ...]:
@@ -1599,7 +1599,7 @@ class Closure:
                 f"{self.decided.lineno}  {self.decided.rendered}"
             )
         rows += _scope_rows(self.scope, wrote)
-        rows += _event_rows(self.event(config), "  ", config=config)
+        rows += _event_rows(self.event(config), "  ")
         return "\n".join(rows)
 
     def payload(self, config: Config, wrote: Sequence[str]) -> dict[str, object]:
@@ -1732,7 +1732,7 @@ class Record:
         if self.refreshed:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
         rows += _staging_rows(config.relative(one) for one in wrote)
-        rows += _event_rows(self.event(config), "  ", config=config)
+        rows += _event_rows(self.event(config), "  ")
         return "\n".join(rows)
 
     def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
@@ -1828,7 +1828,7 @@ class Dropped:
                 f"{self.kept_marker}"
             )
         rows.append("  roadmap  untouched: an id the ledger still records changes no annotation")
-        rows += _event_rows(self.event(config), "  ", config=config)
+        rows += _event_rows(self.event(config), "  ")
         rows += _staging_rows(config.relative(one) for one in wrote)
         return "\n".join(rows)
 
@@ -2129,7 +2129,7 @@ class Refiled:
             f"  {self.rendered}",
             "  roadmap  untouched: a block is where an entry is filed, not what it records",
         ]
-        rows += _event_rows(self.event(config), "  ", config=config)
+        rows += _event_rows(self.event(config), "  ")
         rows += _staging_rows(config.relative(one) for one in wrote)
         return "\n".join(rows)
 

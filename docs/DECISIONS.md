@@ -12,6 +12,7 @@
 - ✅ **RK1312** **section amend --replace refuses a sentence the section carries, because the stored copy is wrapped across lines** — A fragment is matched as the prose reads and replaced as the file stores it, so how a paragraph is wrapped is never the caller's problem.
 - ✅ **RK1316** **`block drop` withdraws a label and leaves its `## Done when` list addressed to a block no file declares** — A list addressed by something a write is spending leaves in that write: there is no state where the address has gone and a heading still asks.
 - ✅ **RK1317** **`renumber` moves a line, its section and its deps, and leaves its `## Done when` list on the number it spent** — A renumbering moves every address bound to the id and spends none of them: the list is what finishes work that is still open.
+- ✅ **RK1319** **the event says a block finished and not that its heading may go, though the offer now depends on config it omits** — The door a stage makes available is published and not derived: permanent joined the stage, and the map of which stages allow it was published nowhere.
 
 ## Block C — Query (consult without reading the file)
 

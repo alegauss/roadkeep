@@ -691,7 +691,7 @@ class Picked:
         if taken and self.event is not None:
             # Beside the claim and not at the end, which is where `brief` puts it too: an event
             # line after a paragraph of prose is one a hook reader has to hunt for.
-            rows += _event_rows(dict(self.event), "  ", config=config)
+            rows += _event_rows(dict(self.event), "  ")
         return "\n".join(rows)
 
     def payload(self) -> dict[str, object]:
