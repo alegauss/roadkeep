@@ -202,6 +202,10 @@ def test_json_carries_the_event_from_every_mutator(tmp_path, capsys):
         # And what decides whether `finished` is true (RK1300) — empty here, this fixture
         # declaring no `[criteria]`, and published rather than absent for `standing`'s reason.
         "criteria": [],
+        # False for the same reason it is empty (RK1358): no block in this fixture carries a
+        # criterion, so the project does not use them and there is no omission to name. The
+        # key is published either way, a consumer told nothing being one that has to guess.
+        "unchecked": False,
     }
 
 
@@ -334,7 +338,7 @@ def test_the_payload_carries_the_offer_the_stage_no_longer_implies(tmp_path, cap
     project(tmp_path)
     assert main(["-C", str(tmp_path), "ship", "--json", "RK1", "--why", "Works."]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    assert set(payload["event"]) == {"id", "block", "stage", "standing", "criteria", "doors"}
+    assert set(payload["event"]) == {"id", "block", "stage", "standing", "criteria", "unchecked", "doors"}
     assert payload["event"]["stage"] == "finished"
     # `doors` and always a list (RK1324), which is the one name and one shape a payload
     # publishes a runnable command under — so a consumer reads them with one loop.
@@ -415,3 +419,46 @@ def test_this_repository_declares_its_own_headings_permanent():
     # the measurement that produced the flag was taken on this file's own ships.
     root = Path(__file__).resolve().parents[1]
     assert Config.discover(root).permanent_headings
+
+
+def test_a_block_that_finished_with_nothing_to_check_says_so(tmp_path, capsys):
+    """RK1358. A block with no criteria finished exactly like one that met them — *nothing
+    open, and the ledger records N filed under it*, the same two facts with the list simply
+    absent — and that is the reading a session takes on the turn it stops working. Measured on
+    this repository: three of eight blocks declare any, and Block B closed on emptiness a dozen
+    times over one session.
+
+    Decided by the file and not the config, which is where the first attempt was wrong: `init`
+    writes `[criteria]` into every scaffold, so the table is a default and a predicate reading
+    it would have printed this everywhere. A block that *has* criteria is what says the project
+    uses them."""
+    project(tmp_path, roadmap=BACKLOG + f"{SECOND.replace('RK2', 'RK4')}\n")
+
+    # 1. No block anywhere carries one: the project does not use criteria, and is told nothing.
+    assert main(["-C", str(tmp_path), "ship", "RK2", "--why", "It works now."]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "ship", "RK4", "--why", "This one too."]) == EXIT_OK
+    quiet = capsys.readouterr().out
+    assert "done when" not in quiet, quiet
+
+    # 2. A sibling carries one, and this block does not: the omission is named, with the verb.
+    other = tmp_path / "sibling"
+    other.mkdir()
+    project(other, roadmap=BACKLOG + f"{SECOND.replace('RK2', 'RK4')}\n")
+    # The table, which `criterion add` is opted into and this fixture does not carry — and
+    # which is *not* what decides the sentence below: `init` writes it into every scaffold.
+    toml = other / "roadkeep.toml"
+    toml.write_text(
+        toml.read_text(encoding="utf-8") + "[criteria]\nlead = 80\nwhy = 320\n",
+        encoding="utf-8",
+    )
+    assert main([
+        "-C", str(other), "criterion", "add", "--block", "A",
+        "--lead", "The gate passes", "--why", "Because nothing else proves it.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+    for task_id in ("RK2", "RK4"):
+        assert main(["-C", str(other), "ship", task_id, "--why", "It landed."]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "this block declares no criteria" in said, said
+    assert "criterion add --block B" in said, said

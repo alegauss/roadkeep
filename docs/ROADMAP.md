@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1358** (deps: —) **a block that finishes with no criteria reads like one that met them, where the project declared criteria** — Block A prints done when and Block B finishes silent; here three of eight blocks declare any, and B closed on emptiness all session. → §RK1358
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

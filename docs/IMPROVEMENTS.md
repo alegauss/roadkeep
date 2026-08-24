@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1358 The finish with nothing to check
-
-A project that declares `[criteria]` and a block that has none: the finish says *nothing
-open, and the ledger records N filed under it*, offers to drop the heading, and says
-nothing about having checked nothing. Its sibling prints `done when …`, so the two
-finishes read alike and are not.
-
-Measured on this repository, which is the conformance fixture: three of eight blocks
-declare criteria, and Block B - 213 entries, finished many times over one session - is
-not one of them. Every one of those finishes closed on emptiness, which is the cost
-`adopt` names to an adopter in the gain sentence for this very table.
-
-RK1300 put the definition of done on the event that says finished. The half it did not
-write is the answer where there is no definition: silence is indistinguishable from a
-block that met its criteria, and it is the reading a session takes on the turn it stops
-working.
-
-The opt-in is what makes it decidable. A project with no `[criteria]` table has nothing
-to say, and saying it would be noise; a project that declared one and left a block out
-has a gap, and the verb that closes it exists.
-
-Falsified if a block with no criteria is a state a project opts into per block rather
-than per file - if leaving one out is a declaration and not an omission - in which case
-silence is already the answer and what is missing is nothing.
-
 ## Block C — Query
 
 ## Block D — The gate

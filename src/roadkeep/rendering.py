@@ -155,6 +155,25 @@ def _event(task_id: str, block: str, roadmap: Document, config: Config) -> dict[
                 criteria.read(roadmap, block) if standing.stage is Stage.FINISHED else ()
             )
         ],
+        # And the answer where there is no definition (RK1358). A block that finished with
+        # none read exactly like one that met its criteria — *nothing open, and the ledger
+        # records N filed under it*, the same two facts, with the list simply absent — and
+        # that is the reading a session takes on the turn it stops working. Measured on this
+        # repository: three of eight blocks declare any, and Block B closed on emptiness a
+        # dozen times over one session.
+        #
+        # Decided by the **file and not the config**, which is where the first attempt at this
+        # was wrong: `init` writes `[criteria]` into every project it scaffolds, so the table
+        # is a default and not an opt-in, and a predicate reading it would have printed this
+        # on every block of every scaffold. What says a project uses the feature is a block
+        # that has criteria — so one that has none, beside siblings that do, is an omission,
+        # and a project with none anywhere is one this has nothing to tell. Only on
+        # `finished`, for the reason the list above is.
+        "unchecked": bool(
+            standing.stage is Stage.FINISHED
+            and not criteria.read(roadmap, block)
+            and criteria.read(roadmap)
+        ),
         # And the one command this state makes available (RK408, RK1319), which RK38 excluded
         # and which stopped being excludable. That decision was right when it was made: the
         # event carried three facts and no suggestion, on the argument that a consumer deriving
@@ -268,6 +287,16 @@ def _event_rows(
             f"{indent}         done when  {one['lead']} — {one['why']}"
             for one in event.get("criteria", ())  # type: ignore[union-attr]
         ]
+        # And the sentence where that list is empty (RK1358), with the verb that ends it: a
+        # finish saying only what is left says nothing about what was owed, and the two read
+        # alike. Named rather than counted — *no criteria* is the fact, and `criterion add`
+        # is what a reader does about it before the next block is opened.
+        if event.get("unchecked"):
+            rows.append(
+                f"{indent}         done when  nothing — this block declares no criteria, so "
+                f"it finished on being empty: `{invocation()} criterion add --block "
+                f"{event.get('block')} --lead … --why …` states what it was for"
+            )
     # Read off the event and never recomputed (RK1319): the offer is one decision, and a
     # printer deciding it again is a second answer about whether a heading may go.
     for door in event.get("doors", ()):  # type: ignore[union-attr]

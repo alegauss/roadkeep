@@ -271,6 +271,7 @@
 - ✅ **RK1355** **a task line under Non-goals is read as both, and the door the non-goal finding prints deletes it** — A bullet the task grammar already read is that reader's, so no door offers to drop a line carrying an id (design recorded in `src/roadkeep/scoping.py`).
 - ✅ **RK1356** **the criteria reader claims a task line as its own, and the drop it prints deletes the line** — The criteria reader keeps the arbitration its sibling got, so no drop is offered for a line carrying an id (design recorded in `src/roadkeep/criteria.py`).
 - ✅ **RK1357** **the queue's finding claims a task line its own verbs decline, so the gate and the read disagree** — The queue's finding keeps the arbitration its verbs already kept, and the unread row that names a line it could not take stays (design recorded in `src/roadkeep/linting.py`).
+- ✅ **RK1358** **a block that finishes with no criteria reads like one that met them, where the project declared criteria** — A finish with no criteria says so and names the verb, where a project uses them elsewhere and this block was not one (design recorded in `src/roadkeep/rendering.py`).
 
 ## Block C — Query
 
