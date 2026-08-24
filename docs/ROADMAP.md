@@ -32,6 +32,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK1328** (deps: —) **a project past init opens an opt-in table only by hand-editing the config this tool owns the writes to** — declare retrofits a role and govern writes a number, and neither opens [criteria] — which over MCP is not an edit at all, so the verb it gates stays shut. → §RK1328
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK1325** (deps: —) **a project wiring no plugin is told its doors arrive under one, so a payload names a tool nothing there answers** — served_by falls back past the project it was handed, and RK449's rule is that a door nothing serves publishes its argv alone. → §RK1325
