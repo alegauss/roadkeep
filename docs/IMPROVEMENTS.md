@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1352 The gate that judges what it inherited
-
-The driver runs `within` on the file it composed and refuses on any finding, without
-asking what its inputs already carried. So a defect in the base blocks every merge of
-that file until somebody cleans it, and cleaning it is a different task from the merge.
-
-Reproduced: a base whose `RK9` has a 283-character `why`, one branch adding `RK1`, the
-other adding `RK2`. Neither touched `RK9`. The merge is refused — *the merged file is
-one the gate refuses: R.md:5 why.too-long RK9* — naming a line neither side wrote, to
-somebody who is mid-merge and did not choose this work.
-
-Found by running the corpora against a change that widened what `within` reports: Shio's
-rationale file stopped merging **with itself** over a variation selector already in it.
-That change was reverted, and what it exposed was not about codepoints — the same holds
-today for every code `within` already raises.
-
-The gate is right to exist. What is missing is the comparison every other refusal here
-makes: `ship --part` names what it leaves open, `lint --fix` closes only the derived,
-and a driver that cannot tell what it introduced from what it inherited is judging its
-input under the name of its output.
-
-Falsified if a finding in the result is always one the merge composed - if a base defect
-cannot survive into the merged file - in which case the refusal is about its own work
-and there is nothing to compare against.
-
 ## Block C — Query
 
 ## Block D — The gate

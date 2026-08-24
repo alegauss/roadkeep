@@ -265,6 +265,7 @@
 - ✅ **RK1349** **adopt reports a field the ledger declaration removed, so a row that cannot exist prints 0 over** — A field the ledger declaration removes is not measured, so no row counts against a slot the shape has not got (design recorded in `src/roadkeep/adopting.py`).
 - ✅ **RK1350** **adopt on a file that is not text prints the decoder's own message, naming no file, no verb and no door** — A file that does not decode is refused by name with the door its ownership decides, rather than by the decoder's own sentence (design recorded in `src/roadkeep/adopting.py`).
 - ✅ **RK1351** **the estimate lists no byte-level code, so a BOM the fixer closes is missing from what adoption costs** — The estimate asks for the byte-level walk by name, so a mark the fixer closes is counted in what adoption costs (design recorded in `src/roadkeep/linting.py`).
+- ✅ **RK1352** **the merge driver refuses over a defect its inputs already carried, so a branch is blocked by a line it never wrote** — The driver refuses the findings no version already carried, so a branch is not blocked by a line it never wrote (design recorded in `src/roadkeep/merging.py`).
 
 ## Block C — Query
 

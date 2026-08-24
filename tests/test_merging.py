@@ -364,16 +364,27 @@ def test_a_version_this_tool_cannot_reproduce_is_refused(tmp_path):
     assert "RK1" in merged.reason
 
 
-def test_a_merge_the_gate_would_refuse_is_not_offered(tmp_path):
-    # It gates its own output: a clean exit on a file `lint` refuses is the one outcome
-    # worse than a conflict, because nobody reads it.
+def test_a_defect_a_branch_committed_is_carried_and_not_refused(tmp_path):
+    """The gate's rule since RK1352, and this test's own reversal: it held that *a clean exit
+    on a file `lint` refuses is the one outcome worse than a conflict*, and refused over every
+    finding — including the ones an input already carried.
+
+    What that cost was measured: a defect in the ancestor blocked every merge of that file
+    until somebody cleaned it, and refusing falls back to git's markers, so the project lost
+    the driver for a line the merge had no opinion about. A defect a branch committed is that
+    branch's, `lint` refused it there, and it refuses again after this lands — the merge
+    carrying it forward is not the merge's doing.
+
+    What still refuses is what the merge **composed**, which is the half nobody chose and
+    nobody would find, the file having been written by a program."""
     config = project(tmp_path)
     over = "x" * 400
     theirs = BASE.replace("Because it was there.", f"Because {over}.")
 
     merged = merge(config, "roadmap", BASE, BASE, theirs)
 
-    assert not merged.clean and "the gate refuses" in merged.reason
+    assert merged.clean, merged.reason
+    assert over in merged.text
 
 
 # -- the driver's contract with git ------------------------------------------
@@ -918,3 +929,41 @@ def test_a_merged_line_the_schema_refuses_names_the_id_and_the_file(tmp_path):
     # two UTF-16 units and one code point, so the `why` has one fewer to spend.
     assert violation.message.startswith("80 characters, limit is 51")
     assert f"on RK3's line, merging {ROADMAP}" in violation.message
+
+
+def test_the_driver_refuses_what_it_composed_and_not_what_it_inherited(tmp_path):
+    """RK1352. The driver gated its output against `within` and asked nothing about its
+    inputs, so a defect in the ancestor blocked every merge of that file until somebody
+    cleaned it — and cleaning it is a different task from the merge.
+
+    Reproduced: a base whose `RK9` carries a 283-character `why`, one branch adding `RK1`, the
+    other adding `RK2`, neither touching `RK9`. Refused, naming `RK9` to somebody mid-merge who
+    did not choose that work. Found by running the corpora against a change that widened what
+    `within` reports — Shio's rationale file stopped merging with itself — and what that
+    exposed was not about codepoints: it holds for every code `within` already raises."""
+    config = project(tmp_path)
+    head = "# Roadmap\n\n## Block A — The model\n\n"
+    long_why = "Because of a reason that runs on and on and on " * 6
+    bad = (
+        f"- 📋 **RK9** (deps: —) **a symptom plainly long enough to read** — {long_why}. → §RK9\n"
+    )
+    one = "- 📋 **RK1** (deps: —) **a first symptom plainly long enough** — A reason. → §RK1\n"
+    two = "- 📋 **RK2** (deps: —) **a second symptom plainly long enough** — A reason. → §RK2\n"
+
+    merged = merge(config, "roadmap", head + bad, head + bad + one, head + bad + two)
+    assert merged.clean, merged.reason
+    # Both additions are there, and the line neither side wrote is carried unchanged.
+    assert "**RK1**" in merged.text and "**RK2**" in merged.text
+    assert long_why in merged.text
+
+    # And the comparison is by `(code, id)` and never by line, a merge moving lines by
+    # construction: the same defect is still inherited after two insertions above it.
+    from roadkeep.kernel.document import Document
+    from roadkeep.merging import _introduced
+
+    schema = config.schema_for("roadmap")
+    ancestor = Document.parse(head + bad, schema)
+    result = Document.parse(merged.text, schema)
+    assert _introduced(config, "roadmap", result, ancestor) == []
+    # What the gate is for: a finding the result carries and no input did is still refused.
+    assert _introduced(config, "roadmap", result, Document.parse(head, schema))

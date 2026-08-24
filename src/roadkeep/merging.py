@@ -24,10 +24,20 @@ merge **decidable**: a task line is keyed by its id and filed under a declared h
 * **The frame is one side's.** Headings, the preamble and the non-goals are prose, and the
   tool does not merge prose (L4). One side may have changed them — that side's file is the
   frame the entries are written into. Both, differently, and the merge is refused.
-* **It gates its own output.** The merged file is held to :func:`~roadkeep.linting.within`,
-  the half of the gate a driver holding three versions of one file can run, before it is
-  offered as a result. A merge `lint` would refuse is not a merge — it is a file nobody
-  reviewed, arriving with a clean exit code.
+* **It gates what it composed.** The merged file is held to
+  :func:`~roadkeep.linting.within`, the half of the gate a driver holding three versions of
+  one file can run — and the findings it refuses over are the ones **no version already
+  had** (RK1352). A defect the merge creates is one nobody chose and nobody would find, the
+  file having been written by a program; a defect it inherited is somebody's committed line,
+  which `lint` refuses on that branch and refuses again after this lands.
+  Held to every finding until RK1352 measured what that cost: a base whose `RK9` carried an
+  over-long `why`, one branch adding `RK1` and the other `RK2`, neither touching `RK9` —
+  refused, naming `RK9` to a reviewer mid-merge who did not choose that work, and leaving
+  the project without a driver for that file until somebody cleaned a line the merge had no
+  opinion about. Compared by `(code, id)` and never by line, a merge moving lines by
+  construction. What that trades away is a side making an already-bad field worse: the pair
+  is unchanged, so this lets it through and the gate does not — which is the division the
+  first sentence of this module states, a driver being a driver.
 
 Anything refused falls back to git's own conflict markers, whole-file, and exits non-zero.
 That is not a failure of the driver: it is the driver declining to write a file it cannot
@@ -498,7 +508,7 @@ def merge(config: Config, role: str, base: str, ours: str, theirs: str) -> Merge
         task_id for task_id, entry in decided.items() if entry is None and _raw(frame, task_id)
     )
     result = _materialize(frame, decided, where=config.relative(config.path(role)))
-    findings = within(config, role, result)
+    findings = _introduced(config, role, result, *versions.values())
     if findings:
         return Merge(role, None, took=took, removed=removed, reason=_refused(findings))
     return Merge(
@@ -758,7 +768,7 @@ def _merge_prose(
     )
     removed = tuple(anchor for anchor, lines in decided.items() if lines is None and anchor in held)
     result = Document.parse(_written(frame, other, decided), config.schema_for(role))
-    findings = within(config, role, result)
+    findings = _introduced(config, role, result, ancestor, mine, yours)
     if findings:
         return Merge(role, None, took=took, removed=removed, reason=_refused(findings))
     return Merge(
@@ -1083,6 +1093,40 @@ def _both_sides_moved_the_prose() -> str:
         "both branches changed the headings or the prose around the entries, and this "
         "tool does not merge prose (L4)"
     )
+
+
+def _introduced(
+    config: Config, role: str, result: Document, *inputs: Document
+) -> list:
+    """The findings this merge composed, which are the ones it may refuse over (RK1352).
+
+    The driver gated its output against `within` and asked nothing about its inputs, so a
+    defect in the ancestor blocked every merge of that file until somebody cleaned it — and
+    cleaning it is a different task from the merge. Reproduced: a base whose `RK9` carries a
+    283-character `why`, one branch adding `RK1`, the other adding `RK2`, neither touching
+    `RK9` — refused, naming `RK9` to somebody mid-merge who did not choose that work.
+
+    Keyed by `(code, id)` and never by line: a merge moves lines by construction, so a
+    position is the one part of a finding that cannot survive the comparison. What that
+    trades away is the case where a side makes an already-bad field worse — the pair is
+    unchanged, so the driver lets it through and `lint` refuses it, which is the right
+    division: this is a driver, and the gate is the gate (RK120).
+
+    The gate stays for what it is for — a merge that *creates* a defect is one nobody chose
+    and nobody would find, the file having been written by a program.
+    """
+    from roadkeep.linting import within  # noqa: PLC0415 - the module's own edge
+
+    held = {
+        (finding.code, finding.id)
+        for document in inputs
+        for finding in within(config, role, document)
+    }
+    return [
+        finding
+        for finding in within(config, role, result)
+        if (finding.code, finding.id) not in held
+    ]
 
 
 def _refused(findings: list) -> str:
