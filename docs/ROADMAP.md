@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1335** (deps: —) **cost --tools states a total the gate no longer uses and no session ceiling, on the read used to decide a cut** — It prints 64679 where budget.session refuses 64612, and publishes each 2800 but never the 64700, so the read for choosing what to cut names neither number. → §RK1335
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

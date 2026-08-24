@@ -77,6 +77,32 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1335 The read that sends you and the read that answers
+
+Two reads of one surface, and after RK1334 they answer different questions without
+saying so. `cost --session` states 64,679 with `+88 of 64700` and names the 67
+characters the ceiling is not about. `cost --tools` states 64,679 flat, publishes `each:
+2800` for the per-tool ceiling, and names the session ceiling nowhere - so its header is
+67 above the figure `budget.session` actually refuses, and carries nothing to measure it
+against.
+
+Which read this matters on is the argument. `--tools` is the one somebody runs *because*
+a budget is tight: it ranks the descriptions and prints the room each has, which is the
+whole apparatus for deciding what to cut. The reader arriving there under session
+pressure is given the per-tool ceiling and not the one that sent them.
+
+RK1096 removed exactly this - two reads doing their own arithmetic over one measurement
+- and RK1333 removed its other half, a row printing a figure with no ceiling beside it.
+The shape is the same both times: a number is right, and the sentence around it is about
+something else.
+
+`Surface` already holds `held` and `provenance`, so nothing here needs measuring twice;
+what is missing is that this read publishes them and states its total as the gate's.
+
+Falsified if the per-tool ceiling is the only one a `--tools` reader can act on, in
+which case the session figure belongs to the other read and this header is right to stay
+bare.
+
 ## Block C — Query
 
 ## Block D — The gate
