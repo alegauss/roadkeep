@@ -176,7 +176,57 @@ already at the destination is two lists under one address, which is the state `c
 add` refuses one call at a time. And reported beside the section, because a heading this
 write moved is one the author has to be told about.
 
+### §RK1319 RK1319
+
+RK38 gave the event three facts and no suggestion, and a test states the decision: a
+consumer deriving the next command from the stage would be handed it twice. That was
+true when it was written. `_DROPPABLE` maps two stages to an offer, and a caller holding
+`stage` could reproduce the map.
+
+RK1121 ended it. `[headings] permanent` says a project's headings outlive the work filed
+under them, and the offer is then absent instead of hedged - so whether `block drop`
+applies is a function of the stage AND of a key the event does not publish. A consumer
+deriving it from the stage alone is right on most projects and wrong on every one that
+declared it, which is the worse of the two failures: nothing in the payload disagrees
+with itself.
+
+Observed while shipping RK1307, which swept the verbs whose payload dropped a door by
+omission and left this one alone on purpose - a decision argued and held by a test is
+not an omission.
+
+Two shapes. Publish the door, which is what every other write now does; or publish
+`permanent` beside the stage, which keeps RK38's three facts and hands the consumer the
+second half of the arithmetic. The first matches the surface RK1307 left; the second is
+truer to what RK38 decided.
+
+Falsified if a payload consumer can already read `[headings] permanent`, which would
+make this a fact reachable rather than a fact missing.
+
 ## Block C — Query
+
+### §RK1320 RK1320
+
+Measured on this repository, one call. `brief RK1311 --json` answers
+`budget.fields.symptom.drafted = false` and `shipping.changed.fields.symptom.drafted =
+true` about the same 93 characters, read off the same roadmap line, in the same payload.
+
+`Share.drafted` says whether `taken` is prose the caller handed over to be measured
+rather than prose the file holds (RK1190). It changes no arithmetic and every word of
+the answer: *93 drafted* about a symptom nobody typed is a report about the wrong file,
+and the caller cannot tell the two apart from the number.
+
+`budget_of` derives it as `not open_line and bool(task.symptom)`, with the reasoning
+that a symptom on a line the roadmap does not hold came from the caller - which is true
+of the pre-`add` read the flag was written for. It is false of every shape added since:
+`brief`'s `shipping` and `deciding` price a task read off the file under the ledger's
+grammar, and RK1305's retirement does the same. `open_line` was a proxy for *the caller
+composed this* and stopped being one the moment a second reason to pass False existed.
+
+The fix is to say it rather than derive it: the caller that composed the prose is the
+caller that knows, and `budget_of` already takes a `why` draft on exactly that argument.
+
+Falsified if some caller passes `open_line=False` about prose it did compose and has no
+other way to say so.
 
 ## Block D — The gate
 
@@ -234,3 +284,27 @@ a project departs from what every project starts with.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+### §RK1321 RK1321
+
+Measured this session, twice. RK1305 added a seventh subject and `budget` reached 2,744
+against a per-tool ceiling of 2,600 - overtaking `ship` at 2,466, the tool that number
+was calibrated against. RK1310 then added a 65th verb and the whole surface reached
+64,190 against 63,500. Both ceilings were re-argued rather than met, and both arguments
+were about the same tool.
+
+The ceiling is doing its job: `roadkeep.toml` says it is set close enough that a
+description growing by a paragraph is a finding rather than a rounding, and it found
+this. What it found is not a description that grew. `budget` answers about a line, a
+section body, a non-goal, an every-turn file, the tool list, a session, a brief and a
+retirement - eight questions under one name, where every other served tool answers one.
+A per-tool limit is refused by the tool whose description somebody just edited (RK1059),
+and this one is refused by whichever subject was added last, which is the property that
+argument rejected for a total.
+
+There is a seam. Four of the subjects price prose a write is measured against; three
+price what a surface costs a session. `budget --tools`, `--session` and `--brief` share
+a reader and share nothing with `--block`.
+
+Falsified if splitting leaves either half still the largest tool, which would make this
+a name and not a bundle.

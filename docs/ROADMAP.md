@@ -30,8 +30,11 @@
 - 📋 **RK1312** (deps: —) **section amend --replace refuses a sentence the section carries, because the stored copy is wrapped across lines** — The fragment that fits one stored line is the fragment likeliest to occur twice, so the two rules push opposite ways. → §RK1312
 - 📋 **RK1316** (deps: —) **`block drop` withdraws a label and leaves its `## Done when` list addressed to a block no file declares** — The block's criteria list leaves inside the same transaction that withdraws the heading, as a task's list already leaves with its line. → §RK1316
 - 📋 **RK1317** (deps: —) **`renumber` moves a line, its section and its deps, and leaves its `## Done when` list on the number it spent** — A task's criteria heading is re-addressed to the new id in the same transaction that moves the line, its section and its deps. → §RK1317
+- 📋 **RK1319** (deps: —) **the event says a block finished and not that its heading may go, though the offer now depends on config it omits** — RK38 excluded the suggestion as derivable from the stage, and RK1121 made it depend on a key the payload does not carry. → §RK1319
 
 ## Block C — Query (consult without reading the file)
+
+- 📋 **RK1320** (deps: —) **one drafted flag answers two ways about the same prose, so a number is labelled the caller's on a line the file holds** — It is derived from open_line, which was a proxy for a caller-composed line and stopped being one when brief began pricing a ship. → §RK1320
 
 ## Block D — The gate
 
@@ -46,6 +49,8 @@
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+- 📋 **RK1321** (deps: —) **budget serves seven subjects on one tool and is now the largest, so every subject added re-argues a shared ceiling** — Two ceilings moved for it in one session, and a per-tool limit calibrated against one-subject verbs is binding on the wrong thing. → §RK1321
 
 ## Non-goals
 
