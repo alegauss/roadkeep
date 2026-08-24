@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1350** (deps: —) **adopt on a file that is not text prints the decoder's own message, naming no file, no verb and no door** — It reads 'utf-8' codec can't decode byte 0xff in position 13, where lint answers the same file with file.not-text, a sentence and a door. → §RK1350
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
