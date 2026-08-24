@@ -117,18 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 5 | 177 | 2 |
+| B — Authoring (insert, never hand-edit) | 4 | 178 | 2 |
 | C — Query (consult without reading the file) | 1 | 132 | 2 |
 | D — The gate | 1 | 189 | 2 |
 | E — Adoption | 1 | 100 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 121 | 1 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 1 | 24 | 1 |
-| **Total** | 9 | 799 | 11 |
+| **Total** | 8 | 800 | 11 |
 
 **Next ready:**
 
-- 📋 **RK1311** (deps: —) **amend --requires alone is refused as nothing to amend, then reports unchanged on the call that writes it** — The flag is parsed, documented and working, but the guard and the confirmation both ignore it, and show never prints the field. → §RK1311
+- 📋 **RK1312** (deps: —) **section amend --replace refuses a sentence the section carries, because the stored copy is wrapped across lines** — The fragment that fits one stored line is the fragment likeliest to occur twice, so the two rules push opposite ways. → §RK1312
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

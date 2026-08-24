@@ -132,11 +132,20 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
     Both registers come off the record (RK1170), exactly as `restate`'s do: this door chooses
     which reading to print and composes neither.
     """
-    if args.why is None and args.deps is None and args.ref is None:
-        print(
-            "roadkeep: nothing to amend: pass --why, --dep or --ref",
-            file=sys.stderr,
-        )
+    # `--requires` counts (RK1311). The flag is in the parser, documented in the help two lines
+    # above this message, and works — and the guard that decides whether anything was asked for
+    # did not know it. So the only way to attach a requirement to a line that already exists
+    # was to pass a field that is not changing: measured in pportal over five lines, where one
+    # of them meant re-sending a `why` that then failed the line limit, because the annotation
+    # had made the line longer. Two round trips for a field the verb has.
+    if args.why is None and args.deps is None and args.ref is None and not args.requires:
+        # Named only where the project declares a vocabulary (L6): a flag offered here and
+        # refused by `requires.unknown` one call later is the detour RK16 keeps out of a
+        # remedy, and a project that declared none has no requirement to attach.
+        fields = "--why, --dep or --ref"
+        if config.schema.requirements:
+            fields = "--why, --dep, --requires or --ref"
+        print(f"roadkeep: nothing to amend: pass {fields}", file=sys.stderr)
         return EXIT_USAGE
     try:
         amended = amend(

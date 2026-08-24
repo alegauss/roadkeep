@@ -1323,10 +1323,20 @@ class Amendment:
 
     @property
     def changed(self) -> tuple[str, ...]:
-        """Which fields actually differ, in field order — empty when nothing was written."""
+        """Which fields actually differ, in field order — empty when nothing was written.
+
+        **`requires` is one of them** (RK1311), and its absence here was the worse half of that
+        defect: `amend <id> --requires console --why "<the sentence it already had>"` wrote the
+        requirement onto the line and answered *unchanged: every field already reads that way*.
+        Both cannot be true, and the one printed is the one that stops a caller retrying — it
+        was visible at all only because the roadmap line was read straight afterwards.
+
+        The field is what this walks and not a list somebody keeps in step: `amend` grew a
+        fourth argument (RK1297) and this tuple was written when there were three.
+        """
         return tuple(
             name
-            for name in ("why", "deps", "ref")
+            for name in ("why", "deps", "requires", "ref")
             if getattr(self.before, name) != getattr(self.entry.task, name)
         )
 

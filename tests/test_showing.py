@@ -611,3 +611,33 @@ def test_a_tree_git_cannot_answer_for_is_silent(tmp_path):
     with pytest.raises(NoSuchTask) as caught:
         show(project(tmp_path), "RK8")  # no `git init`, so there is no history to ask
     assert caught.value.args[0].endswith(NoSuchTask.ABSENT)
+
+
+def test_the_join_prints_what_the_line_is_waiting_for(tmp_path, capsys):
+    """RK1311's third surface. This read joins a task out of every file holding a piece of it,
+    and a line carrying `(requires: console)` showed the marker, the deps, the section and the
+    budget — and nothing about the thing it is actually waiting for."""
+    project(tmp_path, roadmap=BACKLOG.replace(
+        "(deps: —) **A first symptom**", "(deps: —) (requires: console) **A first symptom**"
+    ))
+    # The vocabulary this line's group is drawn from, appended: `project` writes `[files]` last,
+    # so a table after it would be read as one of its keys.
+    written = (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+    vocabulary = '[requirements]\ndeclared = ["console"]\n\n[files]'
+    (tmp_path / "roadkeep.toml").write_text(
+        written.replace("[files]", vocabulary), encoding="utf-8"
+    )
+    assert main(["-C", str(tmp_path), "show", "RK1"]) == EXIT_OK
+    assert "  requires console" in capsys.readouterr().out
+
+    assert main(["-C", str(tmp_path), "show", "RK1", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["requires"] == ["console"]
+
+
+def test_a_line_requiring_nothing_says_so_with_an_empty_list(tmp_path, capsys):
+    # `[]` and never omitted, for `deps`' reason: a key that appears only when it is set is one
+    # a reader learns to stop looking for. Silent in the printed register, as the deps row is.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "show", "RK1", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["requires"] == []

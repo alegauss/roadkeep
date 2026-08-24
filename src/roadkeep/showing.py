@@ -149,6 +149,14 @@ class View:
             ]
         if task.deps:
             rows.append(f"  deps     {', '.join(dep.render() for dep in task.deps)}")
+        # And what the line is waiting **for**, which is not a dep (RK1311): a `(requires: …)`
+        # group says what has to be present for the work to be finishable, and this read — the
+        # one that joins a task out of every file holding a piece of it — printed the marker,
+        # the deps, the section and the budget, and nothing about it. Below the deps because
+        # that is the order the line spells them in, and silent where there are none, as the
+        # deps row is: a group nobody wrote is not an absence to report.
+        if task.requires:
+            rows.append(f"  requires {', '.join(task.requires)}")
         if section is not None:
             # The role that declared it, so the limit printed beside the count is the one this
             # file is held to (RK287) — `[limits.<role>]` is per prose file, exactly as it is for
@@ -193,6 +201,10 @@ class View:
             "symptom": task.symptom,
             "why": task.why,
             "deps": [dep.render() for dep in task.deps],
+            # What has to be present for this to be finishable (RK1311), which is not a dep and
+            # is what `pick --have` filters on. `[]` and never omitted, for `deps`' reason: a
+            # key that appears only when it is set is one a reader learns to stop looking for.
+            "requires": list(task.requires),
             "ref": task.ref,
             "section": None
             if section is None

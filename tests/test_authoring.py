@@ -2594,3 +2594,62 @@ def test_a_line_whose_pointer_already_resolves_is_weighed_nothing(tmp_path, caps
     ]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["needs"] is None and payload["weighs"] is None
+
+
+# -- one field, three surfaces that did not know it (RK1311) -------------------
+
+
+def _requiring(tmp_path: Path) -> Path:
+    """A project whose vocabulary declares one requirement, on a line carrying none."""
+    project(tmp_path, declares=("[requirements]", 'declared = ["console"]'))
+    return tmp_path
+
+
+def test_requires_alone_is_something_to_amend(tmp_path, capsys):
+    """Observed in pportal, 2026-08-22, attaching a requirement to five existing lines. The flag
+    is in the parser, documented in the help two lines above the refusal, and works — and the
+    guard deciding whether anything was asked for did not count it.
+
+    So the only way to attach a requirement to a line that already exists was to pass a field
+    that is not changing, which for one of the five meant re-sending a `why` that then failed
+    the line limit, the annotation having made the line longer. Two round trips for a field the
+    verb has.
+    """
+    root = _requiring(tmp_path)
+    assert main(["-C", str(root), "amend", "RK1", "--requires", "console"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "(requires)" in said and "(requires: console)" in said
+
+
+def test_the_confirmation_does_not_call_a_written_field_unchanged(tmp_path, capsys):
+    """The second half, and the worse one: passing `--requires` beside an unchanged `--why`
+    answered *unchanged: every field already reads that way* and wrote the requirement anyway.
+    Both cannot be true, and the one printed is the one that stops a caller retrying — it was
+    visible at all only because the roadmap line was read straight afterwards."""
+    root = _requiring(tmp_path)
+    assert main([
+        "-C", str(root), "amend", "RK1", "--requires", "console",
+        "--why", "Because of a reason.",
+    ]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "unchanged" not in said
+    assert "(requires)" in said
+
+    # And still `unchanged` where it is true, which is the half this must not cost.
+    assert main(["-C", str(root), "amend", "RK1", "--requires", "console"]) == EXIT_OK
+    assert "unchanged" in capsys.readouterr().out
+
+
+def test_the_refusal_names_the_flag_only_where_a_vocabulary_declares_one(tmp_path, capsys):
+    # A flag offered here and refused by `requires.unknown` one call later is the detour RK16
+    # keeps out of a remedy, and a project that declared none has no requirement to attach.
+    root = _requiring(tmp_path)
+    assert main(["-C", str(root), "amend", "RK1"]) == EXIT_USAGE
+    assert "--why, --dep, --requires or --ref" in capsys.readouterr().err
+
+    bare = tmp_path / "bare"
+    bare.mkdir()
+    project(bare)
+    assert main(["-C", str(bare), "amend", "RK1"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "--why, --dep or --ref" in said and "--requires" not in said

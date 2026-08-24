@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1311** (deps: —) **amend --requires alone is refused as nothing to amend, then reports unchanged on the call that writes it** — The flag is parsed, documented and working, but the guard and the confirmation both ignore it, and show never prints the field. → §RK1311
 - 📋 **RK1312** (deps: —) **section amend --replace refuses a sentence the section carries, because the stored copy is wrapped across lines** — The fragment that fits one stored line is the fragment likeliest to occur twice, so the two rules push opposite ways. → §RK1312
 - 📋 **RK1316** (deps: —) **`block drop` withdraws a label and leaves its `## Done when` list addressed to a block no file declares** — The block's criteria list leaves inside the same transaction that withdraws the heading, as a task's list already leaves with its line. → §RK1316
 - 📋 **RK1317** (deps: —) **`renumber` moves a line, its section and its deps, and leaves its `## Done when` list on the number it spent** — A task's criteria heading is re-addressed to the new id in the same transaction that moves the line, its section and its deps. → §RK1317
