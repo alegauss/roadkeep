@@ -77,6 +77,30 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1341 The carrier the read does not open
+
+Reproduced: `add`, then `defer RK1 --reason …`, then `show RK1` answers *no task RK1 in
+docs/ROADMAP.md or docs/CHANGELOG.md: an id in neither file was never written or was
+retired*. Both alternatives are false. The id was written, it was not retired, and it is
+on line 5 of `docs/DEFERRED.md`, a governed file this project declares.
+
+`ids.CARRIERS` names three roles that can hold a line - roadmap, changelog, deferred -
+and `show`'s own sentence says it joins a task out of the files that hold a piece of it.
+It reads two of the three. With the id in the ledger *and* the store, it reports the
+ledger's side and neither register mentions the pause, which is how RK1340's door came
+to promise a side-by-side this command cannot give.
+
+The cost is the one L5 exists to remove. A paused line is readable only by opening
+`DEFERRED.md`, so the state a project enters deliberately - work parked with a reason -
+is the one state its own query surface cannot answer. `pick` and `brief` skip it
+correctly, being about what to do next; `show` is about what a task *is*.
+
+The refusal is the sharper half: naming two carriers and offering *never written or
+retired* sends the reader to look for a mistake that is not there.
+
+Falsified if a paused id is meant to be out of scope for every read until resumed, in
+which case `resume` is the door and only the refusal's two alternatives are wrong.
+
 ## Block C — Query
 
 ## Block D — The gate
