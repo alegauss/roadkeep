@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1359 The header that names the other tree
-
-`install` heads its report with the engine checkout and the launcher it wires -
-`D:/Git/alegauss/roadkeep  →  …/scripts/roadkeep.py` - and every line under it is about
-another tree: `created .mcp.json`, `created .claude/settings.json`. The project written
-to is named nowhere. `uninstall` heads with its project and an arrow the other way.
-
-Measured on me, which is the evidence that matters: running `install -C <elsewhere>`
-from a neutral directory, I read that header and concluded for two commands that it had
-written into this repository. Listing the filesystem is what corrected it — the files
-were in the target all along and `-C` was honoured.
-
-Nothing in the header is false. `source` is documented as *the checkout being wired in*, and
-naming it is right: a hook runs that launcher months later, so which tree it points at is a
-fact worth heading a report with. What is missing is the other one, and it is already in hand
-- the payload publishes `root` beside `source` on the same record.
-
-So this is one register dropping a fact the other carries, on a **write**, where the
-reader's first question is which tree just changed.
-
-Falsified if the two are one tree wherever this runs for real - if an adopter always
-installs the engine their own project ships - in which case the names collapse and
-heading with either says the same thing.
-
 ## Block C — Query
 
 ## Block D — The gate

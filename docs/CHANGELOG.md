@@ -272,6 +272,7 @@
 - ✅ **RK1356** **the criteria reader claims a task line as its own, and the drop it prints deletes the line** — The criteria reader keeps the arbitration its sibling got, so no drop is offered for a line carrying an id (design recorded in `src/roadkeep/criteria.py`).
 - ✅ **RK1357** **the queue's finding claims a task line its own verbs decline, so the gate and the read disagree** — The queue's finding keeps the arbitration its verbs already kept, and the unread row that names a line it could not take stays (design recorded in `src/roadkeep/linting.py`).
 - ✅ **RK1358** **a block that finishes with no criteria reads like one that met them, where the project declared criteria** — A finish with no criteria says so and names the verb, where a project uses them elsewhere and this block was not one (design recorded in `src/roadkeep/rendering.py`).
+- ✅ **RK1359** **the install report heads with the engine checkout and never names the project it wrote to** — The install report heads with the project it wrote to, and names the engine only where that is a different tree (design recorded in `src/roadkeep/installing.py`).
 
 ## Block C — Query
 

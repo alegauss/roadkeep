@@ -1722,3 +1722,28 @@ def test_a_third_key_under_install_is_still_refused(tmp_path):
     with pytest.raises(ConfigError) as refused:
         Config.discover(tmp_path)
     assert "install.enforce" in str(refused.value)
+
+
+def test_the_report_heads_with_the_project_and_not_the_engine(project):
+    """RK1359. The header named `source` — the checkout being wired in — while every row under
+    it named a file in another tree, and the project written to appeared nowhere. Measured on a
+    reader: running `install -C <elsewhere>` from a neutral directory, that header read as
+    *this is where it wrote*, and two commands went by before listing the filesystem showed the
+    files in the target and `-C` honoured all along.
+
+    Both, and never twice: the two trees collapse in the checkout that ships this package, so a
+    second identical path would say nothing; they differ for an adopter, which is who `install`
+    is for, and the launcher a hook runs months later lives in the engine's tree."""
+    adopter = project
+    said = plan(adopter, source=HERE).stated(checked=True)
+    head, *rest = said.splitlines()
+
+    # The project heads it, which is the reader's first question on a write.
+    assert head.startswith(adopter.as_posix()), head
+    # And the engine is named beside it, because it is a different tree here.
+    assert any(HERE.as_posix() in line and "not this project" in line for line in rest), said
+
+    # Where the two are one tree, the second path is not printed: it would repeat the first.
+    alone = plan(HERE, source=HERE).stated(checked=True)
+    assert alone.splitlines()[0].startswith(HERE.as_posix())
+    assert "not this project" not in alone

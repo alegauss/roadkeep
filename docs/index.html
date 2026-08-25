@@ -18,6 +18,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- The ad loader is async and its catalogue is a second request to the same origin, so
+     the handshake is worth opening now rather than twice, late, below the fold. -->
+<link rel="preconnect" href="https://ads.japode.com" crossorigin>
 
 <style>
   :root{
@@ -513,6 +516,31 @@
 
   .disclaimer code{color:var(--muted)}
 
+  /* ---------- carried ads (ads.japode.com) ----------
+     The only third-party markup on this page, and the whole of its styling: the loader
+     draws inside a shadow root, so nothing below reaches the banner and nothing in the
+     banner reaches this page. What is left to decide here is where the box sits.
+
+     Between sections and never inside one. A section on this page is an argument, and
+     an ad dropped into the middle of one asks the reader to hold the thread across it.
+     At a boundary the reader has already stopped.
+
+     Capped narrower than the prose column, on the reading measure the terminals and
+     notes already use, so a banner reads as one more card on this page rather than a
+     rail bolted across it.
+
+     The rail keeps its own padding after a slot collapses. A slot with nothing to draw
+     hides itself, which leaves this padding as ~30px of extra air between two sections
+     that already carry 70px of their own — invisible, and cheaper than a gap that
+     appears only when the network is reachable. */
+  .promo-rail{padding:4px 0 28px}
+  .promo-rail.mid{padding:22px 0 40px}
+  /* max-width and margin only. `display` and `min-height` belong to the loader's own
+     :host rule — it reserves the banner's height before the catalogue answers, and an
+     outer rule wins over :host, so setting either here would undo the reservation and
+     put back the jump it exists to prevent. */
+  .promo-rail .ad{max-width:760px;margin:0 auto}
+
   /* reveal on scroll */
   .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
   .reveal.in{opacity:1;transform:none}
@@ -650,6 +678,20 @@
     </p>
   </div>
 </section>
+
+<!-- ADS · the strip, the smallest of the four formats: product, headline, link, one
+     line high. Placed early on purpose — a reader who meets the page's one quiet
+     sponsor line here is not surprised by the wider one two thirds down. -->
+<div class="promo-rail">
+  <div class="wrap">
+    <div class="ad"
+         data-japode-ads
+         data-ad-slot="after-why"
+         data-ad-format="strip"
+         data-ad-theme="dark"
+         data-ad-exclude="roadkeep"></div>
+  </div>
+</div>
 
 <!-- THE MECHANISM: WITHOUT / WITH -->
 <section style="padding-top:26px">
@@ -1035,6 +1077,21 @@ docs/DECISIONS.md:5  T1 superseded by T2
   </div>
 </section>
 
+<!-- ADS · the leaderboard, which is the one that has to earn its place: logo, product,
+     headline, a supporting line and the call to action in a single 96px row. Between
+     two sections that make no offer of their own — the install block and the closing
+     call are both far enough away that this is never the second button on screen. -->
+<div class="promo-rail mid">
+  <div class="wrap">
+    <div class="ad"
+         data-japode-ads
+         data-ad-slot="mid-page"
+         data-ad-format="footer"
+         data-ad-theme="dark"
+         data-ad-exclude="roadkeep"></div>
+  </div>
+</div>
+
 <!-- EVIDENCE -->
 <section style="padding-top:26px">
   <div class="wrap">
@@ -1340,5 +1397,11 @@ repos:
     ta.remove();
   }
 </script>
+
+<!-- The ad network, last and async: it makes one request for the whole page however many
+     slots asked, reserves each box before that request so nothing below it moves when
+     the banner lands, and collapses a slot it cannot fill. A failure here — offline, a
+     404, no shadow DOM — leaves the slots empty and this page otherwise unchanged. -->
+<script src="https://ads.japode.com/v1/ads.js" async></script>
 </body>
 </html>

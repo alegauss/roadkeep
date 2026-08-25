@@ -362,7 +362,23 @@ class Plan:
         plan is the same computation either way, which is what makes `--check` a check of the
         thing that runs, and only the **tense** of the report differs.
         """
-        rows = [f"{self.source.as_posix()}  →  {self.launcher}"]
+        # The **project** heads it, which is the reader's first question on a write: every row
+        # under this one names a file in that tree, and the header used to name the engine's
+        # instead (RK1359). Measured on a reader: running `install -C <elsewhere>` from a
+        # neutral directory, the header read as *this is where it wrote*, and two commands went
+        # by before listing the filesystem showed the files in the target and `-C` honoured.
+        #
+        # The engine only where it is a **different** tree, because the two collapse in the
+        # checkout that ships this package and a second identical path is a line that says
+        # nothing. They differ for an adopter, which is who `install` is for: the launcher a
+        # hook runs months later lives in the engine's tree, so which one that is stays worth
+        # a row — beside the project rather than in its place.
+        rows = [f"{self.root.as_posix()}  →  {self.launcher}"]
+        if self.source != self.root:
+            rows.append(
+                f"  engine         {self.source.as_posix()} — the checkout that launcher "
+                f"runs from, which is not this project"
+            )
         if self.carried:
             # Said because the header alone does not (RK1113): the launcher is a path, and a
             # reader who passed no flag has to be told the path came from their own project
