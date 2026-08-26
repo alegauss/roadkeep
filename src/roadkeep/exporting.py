@@ -689,3 +689,120 @@ def _task_json(entry: Entry) -> dict[str, object]:
         "ref": task.ref,
         "line": entry.lineno,
     }
+
+
+# -- one task, as a document (RK1362) -----------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class Spec:
+    """One task as a **document**, for a reader who is not this session.
+
+    `brief` already composes this — the symptom, the non-goals that bind it, the `## Done
+    when` list and the design section — and it is bounded to a tool result on purpose, at
+    `[reads] brief`. That bound is the whole reason this exists separately: a reviewer on a
+    pull request, a second agent on a branch and a CI job asserting the criteria each need
+    the same four stores joined, and none of them can run the read.
+
+    So the ceiling is a file's rather than a result's: every list is whole, every lead is
+    uncut, and the design section is printed entire. Nothing here is composed (L4) — each
+    character passed a write that validated it — and nothing is stamped, so a re-run with
+    nothing to say makes no diff, which is `--readme`'s own argument one subject over.
+    """
+
+    task_id: str
+    block: str
+    block_named: str
+    status: str
+    readiness: str
+    where: str
+    symptom: str
+    why: str
+    #: `(id, status, detail)` per dep, in the order the line declares them.
+    deps: tuple[tuple[str, str, str], ...]
+    #: The task's own `## Done when — <id>` list, whole.
+    done_when: tuple[str, ...]
+    #: The block's, whole, and addressed by the block rather than by the line (RK1268).
+    block_done_when: tuple[str, ...]
+    #: Every non-goal, uncut: the scope a reviewer judges the work against.
+    non_goals: tuple[str, ...]
+    #: The design section's heading and body, entire, or the reason there is none.
+    heading: str = ""
+    body: str = ""
+    absence: str = ""
+    paths: tuple[str, ...] = ()
+
+    def markdown(self) -> str:
+        """The document, in the order a reader executes it.
+
+        The claim first and the design last, which is `brief`'s own order and for its reason:
+        what the work is measured against arrives before the first edit rather than at the
+        `ship`. A heading per store, so a reviewer can tell which file a sentence came out of.
+        """
+        rows = [
+            f"# {self.task_id} — {self.symptom}",
+            "",
+            _note("--spec"),
+            "",
+            f"**{self.block_named}** · **{self.status}** {self.readiness} · "
+            f"`{self.where}`",
+            "",
+            "## Why",
+            "",
+            self.why,
+        ]
+        if self.deps:
+            rows += ["", "## Depends on", ""]
+            rows += [f"- **{one}** — {status}, {detail}" for one, status, detail in self.deps]
+        if self.done_when:
+            rows += ["", f"## Done when — {self.task_id}", ""]
+            rows += [f"- {lead}" for lead in self.done_when]
+        if self.block_done_when:
+            rows += ["", f"## Done when — {self.block_named}", ""]
+            rows += [f"- {lead}" for lead in self.block_done_when]
+        if self.non_goals:
+            rows += ["", "## Non-goals", ""]
+            rows += [f"- {lead}" for lead in self.non_goals]
+        if self.paths:
+            rows += ["", "## Paths named", ""]
+            rows += [f"- `{one}`" for one in self.paths]
+        rows += ["", "## Design", ""]
+        rows += [self.heading, "", self.body] if self.heading else [self.absence]
+        return "\n".join(rows).rstrip() + "\n"
+
+
+def spec(config: Config, task_id: str) -> Spec:
+    """Join the four stores for one task, with nothing elided (RK1362).
+
+    Composed off :func:`~roadkeep.briefing.brief` and never beside it, which is the rule
+    `--contents` keeps one file over: a spec derived twice is a spec that drifts from the
+    stores it claims to project. What differs is only the *bound* — the two lists are read
+    unbounded here, from the same two modules `brief` reads them bounded from.
+    """
+    from roadkeep import criteria, scoping  # noqa: PLC0415 - RK260
+    from roadkeep.briefing import brief  # noqa: PLC0415 - RK260
+    from roadkeep.sections import heading_of  # noqa: PLC0415 - RK260
+
+    found = brief(config, task_id)
+    view, task = found.view, found.view.task
+    roadmap = config.document("roadmap")
+    return Spec(
+        task_id=task.id,
+        block=task.block,
+        block_named=config.schema.block_named(task.block),
+        status=task.status,
+        readiness=str(found.readiness),
+        where=f"{view.file}:{view.entry.lineno}",
+        symptom=task.symptom,
+        why=task.why,
+        deps=tuple(
+            (one.dep.id, str(one.status), one.detail) for one in found.deps
+        ),
+        done_when=criteria.leads(roadmap, task.id),
+        block_done_when=criteria.leads(roadmap, task.block),
+        non_goals=scoping.leads(roadmap),
+        heading="" if view.section is None else heading_of(config.schema, view.section),
+        body="" if view.section is None else view.section.body,
+        absence=view.section_absence,
+        paths=tuple(one.path for one in view.paths),
+    )

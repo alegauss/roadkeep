@@ -47,6 +47,20 @@ overlapping sets are named.
 - ✅ **RK1310** **nothing resolves a sentence to the anchor carrying it, so a section amend addressed by text is guessed and retried** — A read that resolves a sentence to its anchor is a verb, because the loop it replaces prints a file into a context window once per guess.
 - ✅ **RK1314** **config prints the criteria table under the non-goals sentence, so the read names the wrong table** — A read that says what may be declared describes each table from its own words, never from the shape it shares with another.
 - ✅ **RK1320** **one drafted flag answers two ways about the same prose, so a number is labelled the caller's on a line the file holds** — A flag about whose prose a figure measures is passed by the caller that wrote it, never derived from a shape that once implied it.
+- ✅ **RK1362** **the spec an agent executes is assembled per call by brief and exists nowhere a review or a second tool can read** — A read bounded to a tool result gets a projection beside it, never a wider bound on the read itself.
+
+### §RK1362 Why a projection and not a wider read
+
+Raising `[reads] brief` was the alternative, and it fails on what the number is for:
+that ceiling exists because the answer is consulted every time a task is started, so
+widening it charges every session for a document only a reviewer reads. The second
+alternative was a `--full` flag on `brief`, which is the same ceiling made conditional —
+and a bound that a caller can turn off is one nobody can rely on when sizing the read.
+
+The cost accepted is that `export` now has two subjects, one about the backlog and one
+about a line, so `--spec` composes with neither destination and is refused beside
+`--json`. The payload was already there: `brief <id> --json` answers it, and a second
+JSON of the same join would be the drift this projection exists to have none of.
 
 ## Block D — The gate
 

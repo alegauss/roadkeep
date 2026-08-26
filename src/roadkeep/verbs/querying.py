@@ -33,7 +33,7 @@ from roadkeep.budgeting import (
 from roadkeep.config import Config, PROSE_ROLES
 from roadkeep.counting import Census
 from roadkeep.kernel.document import StaleFile, write_all
-from roadkeep.exporting import DEFAULTS, project, splice_into
+from roadkeep.exporting import DEFAULTS, project, spec, splice_into
 from roadkeep.graph import Dependencies
 from roadkeep.history import (
     Unclosed,
@@ -830,6 +830,15 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
 
 
 def _export(config: Config, args: argparse.Namespace) -> int:
+    # One task as a document, which is a different subject and not a fourth destination
+    # (RK1362): the backlog projection answers about every line and this answers about one,
+    # so composing them would be two documents spliced into one file.
+    if args.spec is not None:
+        try:
+            print(spec(config, args.spec).markdown(), end="")
+        except (KeyError, ValueError) as error:
+            return _refused(error)
+        return EXIT_OK
     # Both destinations in one run: a README and a page that restate the same backlog have
     # to be refreshed by the same call, or the one nobody remembered is the stale one —
     # which is the whole symptom RK39 names, and it named the site too.
@@ -1794,6 +1803,16 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         ),
     )
     export_parser.add_argument(
+        "--spec",
+        metavar="ID",
+        help=(
+            "one task as a document: its claim, what it depends on, what would finish it, "
+            "the non-goals that bind it and its design section whole. `brief` is the same "
+            "join bounded to a tool result; this one is bounded by a file, for a reviewer, "
+            "a second agent or a CI job that cannot run the read"
+        ),
+    )
+    export_parser.add_argument(
         "--json", action="store_true", help="the payload a site build reads"
     )
     export_parser.set_defaults(handler=_export)
@@ -1805,6 +1824,11 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         export_parser,
         ("json", "the projection printed"),
         (("readme", "site"), "the projection written into a file"),
+        # A third subject and not a third destination (RK1362): this one is about one task,
+        # so it answers a different question rather than putting the same answer somewhere
+        # else. `brief <id> --json` is the payload read; this verb's `--json` is the site
+        # build's, and the two are about different documents.
+        ("spec", "one task as a document"),
     )
 
     gaps_parser = subcommands.add_parser(

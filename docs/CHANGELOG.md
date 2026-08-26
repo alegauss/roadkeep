@@ -412,6 +412,7 @@
 - ✅ **RK1310** **nothing resolves a sentence to the anchor carrying it, so a section amend addressed by text is guessed and retried** — section find names the anchors whose prose carries a string, with a count each, and the failing --replace names them too (design §RK1310 recorded in `src/roadkeep/sections.py`).
 - ✅ **RK1314** **config prints the criteria table under the non-goals sentence, so the read names the wrong table** — each table's sentence is read where that table is documented, so a shared key set no longer lends its words (design §RK1314 recorded in `src/roadkeep/describing.py`).
 - ✅ **RK1320** **one drafted flag answers two ways about the same prose, so a number is labelled the caller's on a line the file holds** — whose prose a number is about is said by the caller that composed it, so one payload no longer answers two ways (design §RK1320 recorded in `src/roadkeep/budgeting.py`).
+- ✅ **RK1362** **the spec an agent executes is assembled per call by brief and exists nowhere a review or a second tool can read** — The spec brief composes is a document export writes, bounded by a file rather than by a tool result (design recorded in `src/roadkeep/exporting.py`).
 
 ## Block D — The gate
 

@@ -668,7 +668,14 @@ spans two and leaves the choice with you. And **never restate a count in prose**
 [--readme|--site|--json]` projects it, and `export --contents` does the same for a prose
 file's own table of contents — every row a heading that file already carries, so a `ship`
 or a `section drop` leaves the list wrong until it runs. All three go stale the same way
-and `lint` says which: `export.stale` names the flag that rewrites it.
+and `lint` says which: `export.stale` names the flag that rewrites it. **`export --spec
+<id>` is that verb's other subject**, and the one about a single line: the same four stores
+`brief` joins — the claim, the deps, both `## Done when` lists, the non-goals and the design
+section — printed as a document with a file's ceiling instead of a tool result's, so nothing
+is elided and no lead is cut. Reach for it when the reader is not this session: a reviewer on
+a pull request, a second agent on a branch, a CI job asserting the criteria. It writes no
+file and goes stale for nobody, so no gate is about it; `brief <id> --json` stays the payload
+read, this verb's `--json` being the backlog projection's.
 
 ## Picking work
 

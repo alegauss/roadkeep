@@ -79,24 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1362 The spec is already composed; nothing can hand it over
-
-`brief` answers with the symptom, the non-goals that bind it, the `## Done when — <id>`
-list and the design section — which the skill already calls the spec, and which RK1265
-completed when the criteria reached the line. So the document exists. What does not is
-any way to hand it to something that is not this session: a reviewer on a pull request,
-a second agent on a branch, a CI job asserting the criteria — each would have to run the
-read and cannot, and the read is bounded at 3,300 characters because it is sized for a
-tool result rather than for a file.
-
-`export --spec <id>` is the same projection with a file's ceiling instead of a result's,
-beside `--readme` and `--site`, which is where the derived-writes argument already
-lives: idempotent, stamped with nothing, and every character having passed a write that
-validated it. It composes nothing new and holds no second grammar — a spec that drifts
-from its four stores is a spec derived twice, which is the failure `--contents` exists
-to prevent one file over. Not speckit's generation, which L4 forbids, and which is the
-half of speckit this format deliberately has no model for.
-
 ## Block D — The gate
 
 ## Block E — Adoption
