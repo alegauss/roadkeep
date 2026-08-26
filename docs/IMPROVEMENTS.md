@@ -79,9 +79,59 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1366 The remainder on a field the next write deletes
+
+RK1365 found this in the shipping row and fixed it there: `Share.left` subtracts what a
+field already holds, and `ship --why` is required and replaces that sentence, so the
+room for it is the whole allowance. The same subtraction is still published one row
+above, about the line itself.
+
+`amend <id> --why` replaces the `why` exactly as a ship's does. Nothing extends it — the
+field takes one sentence — so there is no write for which "what is left beside what is
+written" is the number. On RK1365's own line the two readings were 55 characters and
+200, and the word aims beside them 8 against 31: the figure an author composes to was a
+quarter of the real one, which is the shape RK1365 argues is worse than publishing none.
+
+What decides the boundary is `drafted`. Where the caller passed a draft, `taken` is that
+prose and `left` is exactly the overrun the write is refused by, which is right and is
+what RK1190 built the flag for. Where `taken` came off the file, it is prose the next
+write deletes.
+
+So the fix is narrow and two neighbours stay as they are: a section body's remainder is
+real, `section amend --replace` editing prose in place rather than replacing it, and the
+every-turn file's is real for the same reason.
+
+Falsified when `budget <id>` reports a remainder that differs from the longest `--why`
+the matching `amend` accepts.
+
 ## Block D — The gate
 
 ## Block E — Adoption
+
+### §RK1367 Withdrawing an argument, where stacking one is the rule
+
+`govern --because` stacks (RK1293): a raise is a decision about the previous decision,
+and `[tools] session` carried five of them written that way by hand. That is right for
+as long as each paragraph argues about the same question.
+
+RK1364 is the other case. The eight above that key all measured three checkouts against
+each other to prove the surface belonged to the package, and RK1360 removed the premise:
+the ceiling is about one project, so those paragraphs argue for a reading nothing takes
+any more. Fifty-six lines of them, and the only way to drop them was the hand edit
+`declare` and `govern` exist so nobody makes.
+
+So the shape is `block amend`'s, one file over: a field write-once in practice, whose
+correction was a hand edit until a verb was given the words. Here the field is the
+comment run `_because` already reads back, so the verb holds both halves — where the run
+starts, and the replacement the caller composed.
+
+What it must not become is a delete. An argument withdrawn in silence is history
+removed, which is `record drop`'s own refusal, so the sentence replacing the run is the
+caller's and says what was falsified, and the lines it displaced are named in the answer
+for the commit to carry.
+
+Falsified when a reading `govern` publishes stands under a comment arguing from a
+premise that reading contradicts.
 
 ## Block F — The plugin
 

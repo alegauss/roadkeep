@@ -28,9 +28,13 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1366** (deps: —) **budget states the room left beside a why no write extends, so an amend is told 8 words where it may write 31** — RK1365 fixed this arithmetic for the ledger's sentence and left it standing on the line above, where `amend --why` replaces the field just as a ship's does. → §RK1366
+
 ## Block D — The gate
 
 ## Block E — Adoption
+
+- 📋 **RK1367** (deps: —) **govern only stacks, so a number whose premise was falsified keeps every paragraph arguing for the reading it replaced** — Dropping a withdrawn argument was a 56-line hand edit to `roadkeep.toml`, which over MCP is the edit the guard denies and so no edit at all. → §RK1367
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
