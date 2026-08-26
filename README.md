@@ -123,12 +123,8 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 103 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 1 | 31 | 1 |
-| **Total** | 1 | 862 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1377** (deps: —) **four of the six writes the sweep excludes are excluded for the fixture's shape and not for anything about the verb** — Each needs a state a second fixture writes, so the closure passes over four printers nobody sweeps and a sentence was cheaper than the fixture. → §RK1377
+| H — The tool's own shape (what one verb costs to change) | 0 | 32 | 1 |
+| **Total** | 0 | 863 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

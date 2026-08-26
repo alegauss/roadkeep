@@ -88,28 +88,3 @@ already written, not authorship.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1377 Exclusions about the suite, in a table meant for exclusions about the verb
-
-RK1376 swept every write for a row outside the shared column and found three, and
-`ELSEWHERE` names the six it does not drive with one sentence each. Two of those
-sentences are about the verbs: `export` answers with no rows to place, and `repair`'s
-rows are `lint`'s report run back and are asserted there.
-
-The other four are about the fixture. `block merge` needs a heading stated twice, which
-a fixture writes as easily as a textual merge leaves it. `priority migrate` needs the
-queue in `roadkeep.toml` and no `## Priority` section, which is one config key away and
-collides only with the `priority add` already in the table. `section move` is refused
-under `ref_scheme = "id"` and runs under an outline. And `refs` declares a namespace for
-a prose file, which is an ordinary write on a project that has none.
-
-So the closure passes over four printers nobody sweeps, and what makes it pass is that a
-sentence was cheaper than a second fixture. It is RK1369's shape with one difference
-that matters: there the exemption was a `continue` nobody could see, and here it is a
-row somebody has to read — which is what makes this filable at all.
-
-What it costs is a second fixture, outlined and declaring its queue, and those four rows
-moved onto it.
-
-Falsified when a write is excluded for a reason about the suite rather than about the
-verb.

@@ -20,9 +20,16 @@ or keep a list of labels that goes stale the next time one is added.
 every write below reaches, so a project that reindented its answers moves this test by moving
 the printer — and a copy of the number here would be the second declaration RK1169 is about.
 
-**And the table is closed.** :data:`ELSEWHERE` is why a write is not in it, one sentence per
-verb, so a verb added tomorrow is a red here with one question in it: drive it, or say why not.
-An exclusion with no reason is the state this file exists to make impossible.
+**And the tables are closed.** :data:`ELSEWHERE` is why a write is in neither, one sentence
+per verb, so a verb added tomorrow is a red here with one question in it: drive it, or say why
+not. An exclusion with no reason is the state this file exists to make impossible.
+
+**Two projects, because four exclusions were about the fixture** (RK1377). This began with one
+and six exclusions, and only two of those sentences were about the verbs — the rest named an
+outline, a queue still in `roadkeep.toml`, and a heading stated twice, which are shapes a
+second project has rather than properties a verb lacks. A reason cheaper than the fixture it
+excuses is RK1369's shape with the exemption visible, and what is left is the two that are
+about what the verb answers with.
 """
 
 from __future__ import annotations
@@ -144,13 +151,73 @@ WRITES: tuple[tuple[tuple[str, ...], str], ...] = (
     (("block", "drop", "C"), "a label opened by mistake, last, its subtree still blank"),
 )
 
-#: Why a write is not above, one sentence each. Three kinds: it needs a state this fixture is
-#: not in, it is refused under this fixture's own scheme, or its answer is another verb's.
+#: The four writes the table above cannot reach, and the project each needs (RK1377). Not a
+#: shape any of them has: an outline where the anchor is an address rather than the id, a queue
+#: still in `roadkeep.toml`, and a heading stated twice — which is what a textual merge leaves
+#: and every other write refuses to touch, so `block merge` runs first or nothing else runs.
+OUTLINED_CONFIG = """prefix = "RK"
+ref_scheme = "outline"
+priority = ["RK1"]
+[files]
+roadmap = "docs/ROADMAP.md"
+changelog = "docs/CHANGELOG.md"
+improvements = "docs/IMPROVEMENTS.md"
+"""
+
+OUTLINED_ROADMAP = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §I.1
+
+## Block B — Authoring
+
+- 📋 **RK2** (deps: —) **A second symptom** — Because of another. → §I.2
+
+## Block B — Authoring
+
+- 📋 **RK3** (deps: —) **A third symptom** — Because of a third. → §I.3
+"""
+
+OUTLINED_LEDGER = """# Shipped
+
+## Block A — The model
+
+## Block B — Authoring
+"""
+
+OUTLINED_IMPROVEMENTS = """# Improvements
+
+### §I A family
+
+Its introduction.
+
+#### §I.1 A first design
+
+The reasoning.
+
+#### §I.2 A second design
+
+More reasoning.
+
+#### §I.3 A third design
+
+Still more.
+"""
+
+#: In the one order they run in: the doubled heading is what every other write refuses, so it
+#: goes first, and `refs` goes last because a namespace re-addresses what `section move` names.
+OUTLINED_WRITES: tuple[tuple[tuple[str, ...], str], ...] = (
+    (("block", "merge", "B"), "the state a textual merge leaves, which no other write will touch"),
+    (("priority", "migrate"), "the queue out of the config and into the section that wins"),
+    (("section", "move", "I.3", "--to", "I.9"), "an address, which only an outline has"),
+    (("refs", "improvements", "--as", "IMP"), "a namespace, and every citation re-addressed with it"),
+)
+
+#: Why a write is in neither table, one sentence each. Two, and both about the verb rather than
+#: about a fixture — which is RK1377's own finding: four of the six here were about the suite,
+#: and a sentence had been cheaper than the project that reaches them.
 ELSEWHERE: dict[str, str] = {
-    "block merge": "it needs a doubled heading, which is what a textual merge leaves and no write here produces",
-    "priority migrate": "it needs the queue declared in `roadkeep.toml` and no `## Priority` section, which is the state `priority add` above ends",
-    "section move": "it is refused by name under `ref_scheme = \"id\"`, where the anchor is the id and `renumber` moves both ends",
-    "refs": "it declares a namespace for a prose file, which is an adoption write and not one a governed project makes twice",
     "export": "its answer is a projection's and carries no rows: what it says is which file it rewrote",
     "repair": "its rows are `lint`'s report run back, so the shape asserted here is the gate's and held there",
 }
@@ -172,6 +239,21 @@ def project(tmp_path: Path) -> Path:
     return tmp_path
 
 
+@pytest.fixture
+def outlined(tmp_path: Path) -> Path:
+    """The project the four writes above need, which the first fixture is three ways not."""
+    (tmp_path / "docs").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "roadkeep.toml").write_text(OUTLINED_CONFIG, encoding="utf-8")
+    for name, body in {
+        "ROADMAP.md": OUTLINED_ROADMAP,
+        "CHANGELOG.md": OUTLINED_LEDGER,
+        "IMPROVEMENTS.md": OUTLINED_IMPROVEMENTS,
+    }.items():
+        with (tmp_path / "docs" / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return tmp_path
+
+
 def _indent() -> str:
     """The indent every write's rows carry, read off the helper that composes one of them."""
     (row,) = _staging_rows(["x"])
@@ -184,6 +266,15 @@ def _answer(root: Path, argv: tuple[str, ...]) -> list[str]:
         code = main(["-C", str(root), *argv])
     assert code == EXIT_OK, f"{' '.join(argv)} exited {code}: {err.getvalue().strip()[:200]}"
     return out.getvalue().splitlines()
+
+
+def _swept(root: Path, table: tuple[tuple[tuple[str, ...], str], ...], indent: str) -> None:
+    """Drive one table against one project, and report every row outside the shared column."""
+    for argv, note in table:
+        first, *rows = _answer(root, argv)
+        assert not first.startswith(" "), (note, first)
+        stray = [row for row in rows if row and not row.startswith(indent)]
+        assert not stray, {"write": " ".join(argv), "for": note, "at column 0": stray}
 
 
 def _declared() -> dict[str, object]:
@@ -218,11 +309,15 @@ def test_every_write_answers_with_its_rows_at_one_indent(project):
     """
     indent = _indent()
     assert indent and not indent.strip(), "the helper stopped indenting, and this is about that"
-    for argv, note in WRITES:
-        first, *rows = _answer(project, argv)
-        assert not first.startswith(" "), (note, first)
-        stray = [row for row in rows if row and not row.startswith(indent)]
-        assert not stray, {"write": " ".join(argv), "for": note, "at column 0": stray}
+    _swept(project, WRITES, indent)
+
+
+def test_the_writes_the_first_project_cannot_reach_are_swept_by_the_second(outlined):
+    """RK1377. Four of the six this file used to exclude were excluded for the fixture's shape
+    and not for anything about the verb — an outline, a queue still in the config, a heading
+    stated twice. A sentence had been cheaper than the project, and the closure passed over
+    four printers nobody swept, which is RK1369's shape with the exemption visible."""
+    _swept(outlined, OUTLINED_WRITES, _indent())
 
 
 def test_the_table_is_closed_over_the_writes_this_package_declares():
@@ -233,7 +328,8 @@ def test_the_table_is_closed_over_the_writes_this_package_declares():
 
     A verb reaches this file one of two ways and there is no third: driven, or named in
     :data:`ELSEWHERE` with the reason. An exclusion is a sentence somebody wrote."""
-    driven = {" ".join(argv[:2]) for argv, _ in WRITES} | {argv[0] for argv, _ in WRITES}
+    every = (*WRITES, *OUTLINED_WRITES)
+    driven = {" ".join(argv[:2]) for argv, _ in every} | {argv[0] for argv, _ in every}
     declared = set(_declared())
     assert set(ELSEWHERE) <= declared, sorted(set(ELSEWHERE) - declared)
     assert sorted(declared - driven - set(ELSEWHERE)) == []
