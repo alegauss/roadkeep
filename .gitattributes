@@ -12,3 +12,7 @@
 # is what makes a **checkout** agree with the index on every platform, which is the half a
 # per-machine setting cannot promise to a contributor who never set it.
 * text=auto eol=lf
+docs/ROADMAP.md merge=roadkeep
+docs/CHANGELOG.md merge=roadkeep
+docs/IMPROVEMENTS.md merge=roadkeep
+docs/DECISIONS.md merge=roadkeep

@@ -120,15 +120,11 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
 | C — Query (consult without reading the file) | 0 | 139 | 2 |
 | D — The gate | 0 | 195 | 2 |
-| E — Adoption | 1 | 103 | 1 |
+| E — Adoption | 0 | 104 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 34 | 1 |
-| **Total** | 1 | 869 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1384** (deps: —) **this repository ships a merge driver and routes none of its own files to it, so a merge here falls back to git's markers** — Every other surface is proven by being run here — the gate in CI, the skill as shipped, these files as the fixture — and `merge --check` says this is not. → §RK1384
+| **Total** | 0 | 870 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
