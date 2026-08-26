@@ -89,26 +89,6 @@ already written, not authorship.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-### §RK1364 The session ceiling outlived the total it was argued against
-
-RK1360 made publication a question about the project: this checkout is sent 64 tools and
-63,594 units where the package has 66. `[tools] session = 64,700` was argued eight times
-against the other number — a total no single project ever spent — and it is now a
-ceiling whose subject moved underneath it.
-
-The reading is what makes this decidable rather than a matter of taste. `govern
-tools.session` measures one site, and that site is *this* checkout, so the declared
-number is 1,106 above a figure that will differ per adopter: a project declaring every
-role pays for `defer`, `resume` and `supersede` on top, and one declaring three roles
-pays less than this one. So the number answers neither question — it is not the widest
-project's bound and it is not this project's.
-
-What has to be decided is which of the two the key means, and the answer is visible in
-what refuses: `lint` runs in *a* checkout and refuses *its* surface, so the ceiling is
-per project and the number is re-taken from the reading here. The other half is the
-comment stacked above it, which argues from the package total and is now the record of a
-question that was settled differently — `govern --because` is the door that replaces it.
-
 ### §RK1365 QS
 
 `brief QS19` printed `shipping why 37 of 200 left on the ledger line a ship writes,

@@ -123,12 +123,12 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 102 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 122 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 2 | 27 | 1 |
-| **Total** | 2 | 849 | 12 |
+| H — The tool's own shape (what one verb costs to change) | 1 | 28 | 1 |
+| **Total** | 1 | 850 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1364** (deps: —) **the session ceiling is declared against a package-wide surface no project is sent, so it bounds nothing in particular** — A ceiling names what one thing may cost, so a number about the build is re-argued the moment the surface became the checkout's. → §RK1364
+- 📋 **RK1365** (deps: —) **brief reports 37 characters left for a ship why and then accepts one of 145** — The budget exists so prose is written once, and a number four times smaller than the real limit gets ignored, which is the same as not having it. → §RK1365
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

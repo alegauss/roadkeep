@@ -70,63 +70,18 @@ why = 200
 # loosened to make room.
 characters = 2800
 
-# And the sum, which the paragraph above was right to call blameless and wrong to leave
-# unheld (RK1097). 52 tools under 2,600 each is a ceiling of 135,200; the real figure is
-# 50,869, a third of it by nobody's decision, and every verb this project added spent
-# against a number nothing counted. Measured before it was declared, and that reading
-# decided it: roadkeep, Shio and Turing all serve the same 52 tools and their totals differ
-# by 1.4% (50,869 / 51,238 / 51,572), because the surface is composed from the package's
-# parser and only the prefix and the paths interpolate. So this is a number about the
-# package an adopter installs, which is what makes a total worth declaring and worth
-# declaring per project. 53,000 — above the widest of the three by 1,428, about a verb and a
-# half at the 978-character average, and re-argued rather than raised when the next one is
-# worth more than what it costs every session at connect.
-# Re-argued at 55 tools (RK1204), and re-measured rather than extrapolated: 53,515 here,
-# 53,884 in Shio, 54,223 in Turing — the 1.4% spread above, unchanged, so the reading that
-# decided this number still holds. The headroom is what `block amend` spent, and it is the
-# verb that argument was written for: after the first `add` under a label, `drop` plus `add`
-# is refused and a heading's words are correctable only by the hand edit the guard denies —
-# which over MCP does not exist at all, so this is the one door that surface has. 55,700,
-# above the widest by 1,477 and about a verb and a half at the 986-character average, which
-# is the same discipline and not a looser one.
-# Re-argued at 57 tools (RK1264), and re-measured again rather than extrapolated: 55,941 here,
-# 56,310 in Shio, 56,637 in Turing — a 1.24% spread, which is the reading above holding for a
-# third time and is why this stays a number about the package rather than about this project.
-# The headroom is `declare`'s, and it is the verb the last two arguments were written for read
-# one table further out: `[files]` is written once, by the command that refuses to run twice, so
-# a role declined at scaffold time — a deferred store, a strategy file — was retrofitted only by
-# hand-editing this file, which over MCP is the edit the guard denies and so no edit at all.
-# 58,100, above the widest by 1,463 and about a verb and a half at the 981-character average.
-# Re-argued at 61 tools (RK1265), and the third raise in one session is itself the reading:
-# 59,144 here, 59,513 in Shio, 59,840 in Turing — the same 1.18% spread, so what moved is the
-# number of verbs and not the shape of the surface. The headroom is the criteria's four, and
-# what they buy is the one durable statement this format had none of: `non-goal` says what is
-# not built and nothing said what finishes a block, so a block closed on emptiness six times.
-# Priced before it was accepted rather than after — the four cost 4,043 as first written, and
-# 3,157 once the descriptions were cut and the bullets stopped publishing the *task line's*
-# `why` note, which is 529 characters of arithmetic no criterion is subject to. That reading is
-# the argument: a tool over budget is a description nobody edited, and this table is what makes
-# somebody look. 61,300, above the widest by 1,460 and a verb and a half at the 970 average.
-# Re-argued at 63 tools (RK1270, RK1272), and this is the last raise that will read like the
-# four above it: 61,353 here, 61,722 in Shio, 62,061 in Turing — 1.15%, the same spread for the
-# fifth time. What the headroom buys is the two verbs about this file itself: `config` prints
-# what may be declared and `govern` declares it against the reading, which is the pair that
-# makes *this comment* the last of its kind — from here the argument for a number goes in the
-# commit that wrote it, where `govern` says it belongs. 63,500, above the widest by 1,439.
-# Raised from 63500 for the 65th verb, section find (RK1310), which costs 722 characters
-# once per session. The trade is measurable and one-sided: the loop it removes is a
-# section show per guess, and one of those is 1,214 characters of one section against
-# this read's 380 — so the surface pays back on the second guess of the first session
-# that makes one. Headroom is 110, tighter than the 32 this replaces, so a description
-# growing by a paragraph is still a finding.
-# Raised from 64300 for the split RK1321 made: budget served eight subjects under one
-# name and was the largest tool at 2,741, against a per-tool ceiling calibrated on ship
-# at 2,466. Splitting it moves the surface subjects to cost and costs one more envelope
-# and description - 64,613 against 64,300 - and buys the axis this ceiling's sibling is
-# about: the largest tool is now add at 2,593, and the headroom under [tools] characters
-# went from 57 to 207. A total names nothing and a per-tool figure names the tool
-# somebody edited (RK1059), so the number that had to give is this one.
-session = 64700
+# Re-taken as a number about this checkout (RK1364), which is what RK1360 made it:
+# publication is per project now, so the reading here is 63,594 at 64 tools and the
+# package's 66 is a total nothing is ever sent. The eight arguments this replaces
+# measured three checkouts against each other to prove the surface was the package's,
+# and that is the premise RK1360 removed - a project declaring every role pays for
+# defer, resume and supersede on top, and one declaring three pays less than this one,
+# so no single figure is both the widest project's bound and this project's. What
+# refuses is what decides: lint runs in a checkout and refuses that checkout's surface.
+# 63,700, headroom 106, which is the discipline of the last two raises (110 and 87) and
+# not a looser one; from here a raise is argued in the commit that wrote it, where this
+# verb says it belongs.
+session = 63700
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at
