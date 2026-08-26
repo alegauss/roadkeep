@@ -384,7 +384,7 @@ def _rationale(
     what billed T354's `§X.1` 365 words of somebody else's subtree without saying so, and
     `ref.ambiguous` is the gate's own word for it.
     """
-    anchor = entry.task.ref or entry.task.id
+    anchor = _decided_anchor(config, entry) or entry.task.ref or entry.task.id
     # Searched across every prose role and *placed* in the design's two (RK1361). The two
     # questions parted when `decisions` became a prose file: an anchor is resolved wherever a
     # heading may declare it, so a decision's own body is found by `show` — while "where the
@@ -422,6 +422,24 @@ def _rationale(
         # design file rather than a second changelog (RK6).
         return None, where, None, "deleted on ship, which is where the rationale ends"
     return None, where, None, f"§{anchor} is not in {named}: the pointer resolves to nothing"
+
+
+def _decided_anchor(config: Config, entry: Entry) -> str:
+    """Where this id's **decision** keeps its body, if a record here has one (RK1363).
+
+    A ship deletes the design and files the decision, so once a line is in the ledger the
+    prose that survives is the decision's — and under `ref_scheme = "id"` this read found it
+    already, the anchor being the id either way. Under an outline it did not: the address is
+    the `--decides-ref` the record carries, and nothing else in the project spells it.
+
+    Never a shadow of a live line's own design: a decision is filed at the moment a line
+    departs, so no id is both an open line and a record here. Empty where the project
+    declares no decisions file, which is most of them.
+    """
+    if not config.has("decisions") or not config.path("decisions").is_file():
+        return ""
+    recorded = config.document("decisions").by_id().get(entry.task.id)
+    return "" if recorded is None else (recorded.task.ref or "")
 
 
 def paths_in(

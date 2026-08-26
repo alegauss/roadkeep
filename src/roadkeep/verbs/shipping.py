@@ -71,6 +71,7 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
             superseded=args.superseded_design,
             recorded_in=args.recorded_in,
             decides=args.decides,
+            decides_ref=args.decides_ref,
         )
         # The files this transaction wrote, answered by the write itself (RK309) — the half
         # of the commit's contents no author declares, and never a second list rebuilt here.
@@ -495,6 +496,18 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
         help=(
             "the constraint the deleted design leaves behind, filed as one line in the "
             "decisions role" + _PIPE
+        ),
+    )
+    # RK1363. The address of the body that record keeps, on a project whose anchors are its
+    # own numbering. No pipe: it is an address and not prose, so nothing a shell eats is in it.
+    ship_parser.add_argument(
+        "--decides-ref",
+        dest="decides_ref",
+        metavar="ANCHOR",
+        help=(
+            "where the decision's body goes, as an outline anchor — required beside "
+            "--decides where `ref_scheme = \"outline\"` and refused where the anchor is the "
+            "id; `anchors --role decisions --next` names a free one"
         ),
     )
     ship_parser.add_argument("--json", action="store_true", help="every edit, as data")

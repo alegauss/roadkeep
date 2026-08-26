@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 🛠 **RK1363** (deps: —) **an outline project cannot give a decision a body, the id being no address in a file that numbers its own headings** — A body is reachable wherever the record it belongs to can be filed, or the store is one two live corpora have no door into. → §RK1363
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

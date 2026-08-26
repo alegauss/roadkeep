@@ -3435,9 +3435,16 @@ def _claimed(documents: dict[str, Document]) -> dict[str, list[str]]:
 
     Rebuilt from the documents this run already read rather than from disk, because a
     baseline run judges a revision and the gate has to ask its questions of that tree.
+
+    And the decisions file's own records, which claim by pointer under an outline (RK1363).
+    The same index `sections.pointers` builds, so the gate and the writer cannot disagree —
+    which is the disagreement `_pointed_at` exists to prevent, found here as a
+    `section.unreachable` on a body the ship had just addressed correctly. Not in
+    :data:`LIVE_ROLES`: those are the roles whose *lines* are still open work, and a decision
+    is not open work — it is a record that never leaves, which is why its claim never lapses.
     """
     out: dict[str, list[str]] = {}
-    for role in LIVE_ROLES:
+    for role in (*LIVE_ROLES, "decisions"):
         for entry in documents[role].entries if role in documents else ():
             if entry.task.ref:
                 out.setdefault(entry.task.ref, []).append(entry.task.id)

@@ -601,12 +601,83 @@ class NoDecisions(KeyError):
     why it is refused **before** the ledger is read and not after the entry lands.
     """
 
-    def __init__(self, task_id: str, where: str) -> None:
+    def __init__(self, task_id: str, where: str, outlined: bool = False) -> None:
         self.task_id = task_id
+        # The whole path and never a stair per call (RK1198, RK1205), which is what `outlined`
+        # buys (RK1363): on such a project the retry after `declare` is refused again, for a
+        # second fact — the body's address — and a caller told only the first half runs the
+        # same command twice to learn the second.
+        lands = (
+            "and then this call lands"
+            if not outlined
+            else (
+                f"and then this call lands with `--decides-ref <anchor>` beside it — this "
+                f"project numbers its own headings, so a decision addresses its body by an "
+                f"anchor nothing derives and `{invocation()} anchors --role decisions "
+                f"--next` names a free one"
+            )
+        )
         super().__init__(
             f"{where} declares no decisions file, so {task_id} has nowhere to record what "
             f"outlives it: `{invocation()} declare decisions` opens the role and writes the "
-            f"file with this project's own block headings, and then this call lands"
+            f"file with this project's own block headings, {lands}"
+        )
+
+
+class DecidesUnaddressed(ValueError):
+    """`--decides` under an outline, with nowhere for the record's body to go (RK1363).
+
+    `add --ref`'s own refusal one verb over, and filed for the reason that one was: a project
+    whose anchors are addresses derives none, so a record written without one is a record
+    whose body `section add` can never bind — it resolves an outline anchor's owner through
+    the pointer, and there is no verb that adds a pointer to a decision after the fact.
+
+    The whole path, because the address is a read this refusal can make for the caller and
+    the argument's place in the call is not obvious: `anchors --role decisions --next` is
+    where a free one comes from, and the retry is this same ship with one flag more.
+    """
+
+    def __init__(self, task_id: str, where: str) -> None:
+        self.task_id = task_id
+        super().__init__(
+            f'{where} numbers its own headings (ref_scheme = "outline"), so a decision '
+            f"addresses its body by an anchor nothing derives: `{invocation()} anchors "
+            f"--role decisions --next` names a free one, and `--decides-ref <anchor>` on "
+            f"this same call files the record pointing at it — then `{invocation()} section "
+            f"add <anchor> --role decisions --title …` writes what was weighed"
+        )
+
+
+class DecidesDerived(ValueError):
+    """`--decides-ref` on a project whose anchors are ids (RK1363).
+
+    `add --ref`'s `ref.mismatch` one verb over: the anchor is the id, so a pointer chosen by
+    hand is a second answer to a settled question — and accepting it would let one project
+    address a decision's body two ways.
+    """
+
+    def __init__(self, task_id: str, anchor: str) -> None:
+        self.task_id = task_id
+        super().__init__(
+            f"the decision's body is addressed by its own id (§{task_id}), so --decides-ref "
+            f"{anchor!r} names a section chosen by hand: drop it, or set ref_scheme = "
+            f'"outline"'
+        )
+
+
+class DecidesAlone(ValueError):
+    """`--decides-ref` with no `--decides` (RK1363).
+
+    Refused rather than ignored, which is `NoQualifier`'s rule and `--remainder`'s: a flag
+    accepted where it can take no effect is a flag the caller believes took one, and this one
+    would have addressed the body of a record the call is not writing.
+    """
+
+    def __init__(self, task_id: str) -> None:
+        self.task_id = task_id
+        super().__init__(
+            f"--decides-ref is where {task_id}'s decision keeps its body, and this call "
+            f"files no decision: pass --decides \"<the constraint>\" beside it, or drop it"
         )
 
 
@@ -1223,7 +1294,7 @@ class Departure:
                 f"  decided  {config.relative(config.path('decisions'))}:"
                 f"{self.decided.lineno}  {self.decided.rendered}"
             )
-            rows += _decided_body_rows(self.task_id)
+            rows += _decided_body_rows(self.task_id, self.decided.entry.task.ref or "")
         if self.refreshed:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
         rows += _dequeued_rows(self.dequeued)
@@ -1294,7 +1365,7 @@ class Departure:
                 "weighed": [
                     "section",
                     "add",
-                    self.task_id,
+                    self.decided.entry.task.ref or self.task_id,
                     "--role",
                     "decisions",
                     "--title",
@@ -1662,7 +1733,7 @@ class Closure:
                 f"  decided  {config.relative(config.path('decisions'))}:"
                 f"{self.decided.lineno}  {self.decided.rendered}"
             )
-            rows += _decided_body_rows(self.task_id)
+            rows += _decided_body_rows(self.task_id, self.decided.entry.task.ref or "")
         rows += _scope_rows(self.scope, wrote)
         rows += _event_rows(self.event(config), "  ")
         return "\n".join(rows)
@@ -1715,7 +1786,7 @@ class Closure:
                 "weighed": [
                     "section",
                     "add",
-                    self.task_id,
+                    self.decided.entry.task.ref or self.task_id,
                     "--role",
                     "decisions",
                     "--title",
@@ -2522,6 +2593,7 @@ def ship(
     superseded: str | None = None,
     recorded_in: str | None = None,
     decides: str | None = None,
+    decides_ref: str | None = None,
 ) -> Departure | Closure | Partial:
     """Move one task from the backlog to the ledger. Validates all three edits first.
 
@@ -2605,6 +2677,11 @@ def ship(
             raise NoSupersession(task_id, part, "--recorded-in")
         if decides is not None:
             raise NoDecision(task_id, part)
+        if decides_ref is not None:
+            # The flag that addresses a decision's body, on the call that files none
+            # (RK1363): the refusal above already covers `--decides`, and this one is the
+            # same sentence about the argument that rides with it.
+            raise DecidesAlone(task_id)
         return _partial(config, task_id, part, why, remainder)
     recorded = _already_recorded(config, task_id)
     if recorded is None:
@@ -2617,6 +2694,7 @@ def ship(
             superseded=superseded,
             recorded_in=recorded_in,
             decides=decides,
+            decides_ref=decides_ref,
         )
     if why is not None:
         raise NoRestatement(task_id, recorded)
@@ -2629,7 +2707,7 @@ def ship(
     # And this one is **not** refused here (RK1269): the two flags above land in a ledger
     # sentence this path does not write, and a decision lands in a file of its own — which
     # this path does write, because it is the closure that deletes the section.
-    return _close(config, task_id, recorded, decides=decides)
+    return _close(config, task_id, recorded, decides=decides, decides_ref=decides_ref)
 
 
 def retire(
@@ -3090,6 +3168,7 @@ def _depart(
     superseded: str | None = None,
     recorded_in: str | None = None,
     decides: str | None = None,
+    decides_ref: str | None = None,
 ) -> Departure:
     """The one transaction both doors are: validate everything, then write nothing yet."""
     roadmap = config.document("roadmap")
@@ -3244,7 +3323,7 @@ def _depart(
     # is the work, and no state exists where the line has left and the order still names it.
     # Composed before the roadmap is touched, like everything else here: a decisions file that
     # refuses this line costs three untouched files rather than a departure half made.
-    decided = _decided(config, entry.task, decides)
+    decided = _decided(config, entry.task, decides, decides_ref)
     remaining, dequeued = queueing.without(remaining, config, task_id)
     # And the task's own criteria list, in the same rewrite and for the same reason (RK1268):
     # the heading is addressed by an id this write is spending, so leaving it would file a
@@ -3291,29 +3370,54 @@ def _depart(
     )
 
 
-def _decided(config: Config, task: Task, decides: str | None) -> Insertion | None:
+def _decided(
+    config: Config, task: Task, decides: str | None, decides_ref: str | None = None
+) -> Insertion | None:
     """The one line a departure files into the decisions role, or `None` (RK1269).
 
     An ADR read as this format is an id, a marker, one falsifiable claim and a reason, so the
     record is composed the way the ledger's is: the task's own symptom is the claim — a
     decision is *about* the problem the line stated, and restating it here would be the second
     sentence RK142 refuses to inherit for the other file — and the author's `--decides` is the
-    reason. Under the role's own grammar, so the marker is the project's ✅ and the deps and
-    the pointer are refused rather than dropped: the section this line survives is being
-    deleted in the same transaction, and a pointer to it could not resolve.
+    reason. Under the role's own grammar, so the marker is the project's ✅ and the deps are
+    refused rather than dropped.
+
+    ``decides_ref`` is where that record's **body** goes, and it exists because RK1361's body
+    was reachable on one kind of project only (RK1363). Under `ref_scheme = "id"` the anchor
+    *is* the id and there is nothing to name; under an outline it is an address the file
+    numbers for itself, so nothing derives it and a `--decides` without it files a record
+    whose body no later call can bind — `section add <anchor> --role decisions` looks its
+    owner up by pointer there, and finds none. So it is **required** under an outline, which
+    is `add --ref`'s own rule one verb over and refused by the same code.
 
     Validated here and written by nobody yet, which is what makes the fourth edit part of the
     same all-or-none: a `--decides` over its limit costs a refusal and leaves four files
     exactly as they were.
     """
     if decides is None:
+        if decides_ref is not None:
+            raise DecidesAlone(task.id)
         return None
     if not config.has("decisions"):
-        raise NoDecisions(task.id, config.relative(config.source or config.root))
+        raise NoDecisions(
+            task.id,
+            config.relative(config.source or config.root),
+            config.schema.ref_scheme == "outline",
+        )
+    outlined = config.schema_for("decisions").ref_scheme == "outline"
+    if decides_ref is not None and not outlined:
+        raise DecidesDerived(task.id, decides_ref)
+    if decides_ref is None and outlined:
+        raise DecidesUnaddressed(task.id, config.relative(config.path("decisions")))
     try:
         return place(
             config.document("decisions"),
-            as_recorded(task, config.schema_for("decisions").shipped_marker, decides),
+            as_recorded(
+                task,
+                config.schema_for("decisions").shipped_marker,
+                decides,
+                ref=decides_ref,
+            ),
             role="decisions",
             config=config,
         )
@@ -3530,7 +3634,11 @@ def _already_recorded(config: Config, task_id: str) -> Entry | None:
 
 
 def _close(
-    config: Config, task_id: str, recorded: Entry, decides: str | None = None
+    config: Config,
+    task_id: str,
+    recorded: Entry,
+    decides: str | None = None,
+    decides_ref: str | None = None,
 ) -> Closure:
     """Everything a departure does except the entry, which is already on disk (RK62).
 
@@ -3541,7 +3649,7 @@ def _close(
     """
     roadmap = config.document("roadmap")
     entry = roadmap.by_id()[task_id]
-    decided = _decided(config, entry.task, decides)
+    decided = _decided(config, entry.task, decides, decides_ref)
     remaining = remove_entry(roadmap, entry)
     remaining, dequeued = queueing.without(remaining, config, task_id)
     # The rest of the transaction that stopped halfway (RK62, RK1268): the entry is on disk,
@@ -3576,7 +3684,7 @@ def _close(
     )
 
 
-def as_recorded(task: Task, marker: str, why: str | None) -> Task:
+def as_recorded(task: Task, marker: str, why: str | None, ref: str | None = None) -> Task:
     """The same task as the ledger states it: one marker, no deps, no pointer.
 
     The pointer is dropped because the section it names is deleted in the same command,
@@ -3592,6 +3700,12 @@ def as_recorded(task: Task, marker: str, why: str | None) -> Task:
     spend. `ref_required` is not the gate to close it with — that flag says a pointer is not
     *demanded*, and a schema that refused to render one a line carries would stop the file
     round-tripping (L3). The gate is this function, asked by both.
+
+    ``ref`` is the one caller that carries one *forward* (RK1363): a decision filed on an
+    outline project addresses its body by an anchor nothing derives, so the record has to
+    name it and the default stays `None` for the ledger, whose section is being deleted. The
+    argument is the caller's declaration and not a fall-through from the task — inheriting
+    the roadmap line's pointer here would file a decision addressing the design just deleted.
     """
     return replace(
         task,
@@ -3603,7 +3717,7 @@ def as_recorded(task: Task, marker: str, why: str | None) -> Task:
         # ship. Cleared here rather than refused by the ledger's schema, because the slot is
         # written off the field and a ledger entry carrying one would render it.
         requires=(),
-        ref=None,
+        ref=ref,
         why=why if why is not None else task.why,
         # And at column zero (RK49): the nesting said which roadmap line this one belonged
         # under, and that line is not in the ledger — an indented entry would be nested

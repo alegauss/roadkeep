@@ -217,17 +217,30 @@ def test_the_role_a_decision_needs_is_opened_by_the_command_the_refusal_names(tm
         "-C", str(root), "ship", "TT1",
         "--why", "The symptom no longer happens.",
         "--decides", "The store is the repository: no database and no service.",
+        # The address the record's body keeps, which this project numbers for itself
+        # (RK1363) — named by the same refusal, so the retry is one call and not two.
+        "--decides-ref", "II",
     ]
     assert main(shipping) == EXIT_USAGE
     said = capsys.readouterr().err
     ran = runs(root, said)
     assert ran and ran[0][:2] == ["declare", "decisions"], said
+    # The whole path in one message and never a stair per call: an outline project is refused
+    # twice for two facts, so the first refusal names the second one's flag too.
+    assert "--decides-ref" in said
     # And the refused call now lands, which is the half a matched sentence cannot claim.
     assert main(shipping) == EXIT_OK
     capsys.readouterr()
     assert "The store is the repository" in (root / "docs" / "DECISIONS.md").read_text(
         encoding="utf-8"
     )
+    # The pointer that ship wrote resolves once the body is there, which is `add --ref`'s own
+    # two-step and the same `ref.unresolved` in between.
+    assert main([
+        "-C", str(root), "section", "add", "II", "--role", "decisions",
+        "--title", "Why the repository", "--body", "A service was weighed and rejected.",
+    ]) == EXIT_OK
+    capsys.readouterr()
     assert lint(Config.discover(root)).clean
 
 

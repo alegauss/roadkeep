@@ -77,25 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1363 A decision's body needs an address the outline can spell
-
-RK1361 gave the decisions role prose and proved it on this repository, which numbers its
-anchors by id: `section add RK1361 --role decisions` works because `§RK1361` *is* an
-address. Under `ref_scheme = "outline"` it is not. Measured on a throwaway outline
-project: the same call is refused `anchor.format` — "not an <x.y> outline anchor" — and
-the remedy printed under it opens a block that already exists and then files a **new
-task**, which is the wrong staircase entirely. So the two live corpora, Shio and Turing,
-are the projects this feature cannot be used on.
-
-Two things are missing and they are one decision. The record has to name its body, which
-under an outline is a field and never derived — the same `--ref` `add` takes, on the
-ship that files the decision. And the address has to come from somewhere: `anchors
---role decisions` answers with the next free top level out of the numbering the
-*improvements* file shares, so a decisions body claims an address its sibling would
-otherwise spend. Whether that is a `[refs]` namespace declared for the role or one
-numbering both files agree on is the question this task settles; what is not open is
-that a body no outline project can write is a store two corpora have no door into.
-
 ## Block C — Query
 
 ## Block D — The gate

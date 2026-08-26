@@ -308,7 +308,7 @@ def _event_rows(
     return rows
 
 
-def _decided_body_rows(task_id: str) -> list[str]:
+def _decided_body_rows(task_id: str, anchor: str = "") -> list[str]:
     """The `section add` that gives a decision the half its line cannot hold (RK1361).
 
     The line records that a decision was made and what it constrains; what was *weighed* —
@@ -321,10 +321,15 @@ def _decided_body_rows(task_id: str) -> list[str]:
     one transaction and the body is written after it, so there is no state this could read to
     know one is coming — and a row that appeared only sometimes would teach the two-command
     path as an exception rather than as the shape.
+
+    ``anchor`` is the record's own pointer where it carries one (RK1363), which is every
+    outline project: there the address is the caller's `--decides-ref` and never the id, so a
+    row composed from the id alone printed a command that project refuses `anchor.format`.
+    Defaulted to the id, which is what the anchor *is* under `ref_scheme = "id"`.
     """
     return [
-        f"  weighed  `{invocation()} section add {task_id} --role decisions --title …`  "
-        f"(the line records the decision; what it was weighed against goes here)"
+        f"  weighed  `{invocation()} section add {anchor or task_id} --role decisions "
+        f"--title …`  (the line records the decision; what it was weighed against goes here)"
     ]
 
 

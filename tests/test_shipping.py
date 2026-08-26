@@ -3445,3 +3445,131 @@ def test_a_decision_body_has_no_drop_and_the_refusal_names_the_edit(tmp_path):
     # pointer-shaped refusal offers.
     assert "section amend RK1 --role decisions" in said
     assert "repoint the line" not in said
+
+
+# -- the address the outline needs for a decision's body (RK1363) --------------
+
+
+def _outlined_deciding(tmp_path: Path) -> Config:
+    """An outline project that also declares `decisions`, which is the whole state."""
+    config = outlined(tmp_path)
+    (tmp_path / "roadkeep.toml").write_text(
+        (tmp_path / "roadkeep.toml")
+        .read_text(encoding="utf-8")
+        .replace(
+            f'changelog = "{CHANGELOG}"',
+            f'changelog = "{CHANGELOG}"' + chr(10) + f'decisions = "{DECISIONS}"',
+        ),
+        encoding="utf-8",
+    )
+    with (tmp_path / DECISIONS).open("w", encoding="utf-8", newline="") as handle:
+        handle.write(DECIDED)
+    return Config.discover(tmp_path)
+
+
+def test_a_decision_on_an_outline_project_names_where_its_body_goes(tmp_path):
+    """The defect. RK1361 proved the body on a project whose anchors are ids, where `§<id>`
+    *is* an address. Under an outline it is not, and `section add <id> --role decisions` was
+    refused `anchor.format` with a remedy that opens a block and files a new task — so the two
+    live corpora were the projects the feature could not be used on."""
+    from roadkeep import sections
+
+    config = _outlined_deciding(tmp_path)
+    departure = ship(
+        config,
+        "RK1",
+        why="It works now.",
+        decides="The store is the repository: no database and no service.",
+        decides_ref="II",
+    )
+    departure.save()
+
+    decided = read(Config.discover(tmp_path), DECISIONS)
+    # The record names its body, which is the half nothing derived.
+    assert "→ §II" in decided
+    # And the row the ship prints is the call that runs, not the one the id scheme would want.
+    assert "section add II --role decisions" in departure.stated(
+        Config.discover(tmp_path), []
+    )
+
+    sections.add(
+        Config.discover(tmp_path),
+        "decisions",
+        "II",
+        "Why the repository",
+        "A service was weighed and rejected for the reasons a store this small has.",
+    ).document.save()
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_a_decision_under_an_outline_is_refused_without_the_address(tmp_path):
+    # `add --ref`'s own rule one verb over: nothing derives the anchor, so a record written
+    # without one is a record whose body no later call can bind.
+    from roadkeep.shipping import DecidesUnaddressed
+
+    config = _outlined_deciding(tmp_path)
+    before = {name: read(config, name) for name in (ROADMAP, CHANGELOG, DECISIONS)}
+    with pytest.raises(DecidesUnaddressed) as caught:
+        ship(config, "RK1", why="It works now.", decides="A constraint that outlives it.")
+
+    said = str(caught.value)
+    assert "anchors --role decisions --next" in said
+    assert "--decides-ref" in said
+    # Every file or none, which is what makes the fourth edit part of the transaction.
+    reread = Config.discover(tmp_path)
+    assert {name: read(reread, name) for name in before} == before
+
+
+def test_the_address_is_refused_where_the_anchor_is_the_id(tmp_path):
+    # The mirror, and `ref.mismatch`'s argument: the anchor is the id, so a pointer chosen by
+    # hand is a second answer to a settled question.
+    from roadkeep.shipping import DecidesDerived
+
+    config = _deciding(tmp_path)
+    with pytest.raises(DecidesDerived) as caught:
+        ship(
+            config,
+            "RK1",
+            why="It works now.",
+            decides="A constraint.",
+            decides_ref="II",
+        )
+
+    assert "addressed by its own id" in str(caught.value)
+
+
+def test_the_address_with_no_decision_is_refused_rather_than_ignored(tmp_path):
+    # `NoQualifier`'s rule: a flag accepted where it can take no effect is a flag the caller
+    # believes took one — and this one would have addressed a record the call does not write.
+    from roadkeep.shipping import DecidesAlone
+
+    config = _outlined_deciding(tmp_path)
+    with pytest.raises(DecidesAlone):
+        ship(config, "RK1", why="It works now.", decides_ref="II")
+
+
+def test_the_gate_reads_a_decision_pointer_as_the_claim_it_is(tmp_path):
+    # The writer and the gate ask one index (RK1363): without this the body a ship had just
+    # addressed correctly was reported `section.unreachable` on the very next run.
+    from roadkeep import sections
+
+    config = _outlined_deciding(tmp_path)
+    ship(
+        config,
+        "RK1",
+        why="It works now.",
+        decides="The store is the repository.",
+        decides_ref="II",
+    ).save()
+    sections.add(
+        Config.discover(tmp_path),
+        "decisions",
+        "II",
+        "Why the repository",
+        "A service was weighed and rejected.",
+    ).document.save()
+
+    config = Config.discover(tmp_path)
+    assert lint(config).findings == ()
+    # And `show` resolves it, which under the id scheme happened because the anchor was the id.
+    assert sections.pointers(config).get("II") == ("RK1",)

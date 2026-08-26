@@ -17,6 +17,7 @@
 - ✅ **RK1352** **the merge driver refuses over a defect its inputs already carried, so a branch is blocked by a line it never wrote** — A driver refuses what it composed; a defect a branch committed is that branch's, and the gate is what refuses it.
 - ✅ **RK1355** **a task line under Non-goals is read as both, and the door the non-goal finding prints deletes it** — Where two readers claim one line, the specific one wins and the other prints nothing about it.
 - ✅ **RK1361** **a decision is one sentence, so the alternatives rejected and the consequences accepted are kept by hand or not at all** — The decisions role carries both records and the prose about them, and no verb deletes a body while the entry stands.
+- ✅ **RK1363** **an outline project cannot give a decision a body, the id being no address in a file that numbers its own headings** — A record that keeps prose names its address wherever the file numbers its own headings.
 
 ### §RK1361 Why the body and not the design section
 
@@ -31,6 +32,20 @@ The cost accepted is a second kind of prose in a file that already holds records
 with it one rule that had been a derivation: a line role was every role that is not a
 prose one, and this is both. That derivation is now a declaration, and the two
 overlapping sets are named.
+
+### §RK1363 Why the ship names the address and not a later verb
+
+The alternative weighed was letting the pointer arrive after the record — a `record
+amend <id> --ref`, so a decision could be filed today and given a body next week, which
+is what the id scheme allows. It was rejected because the decisions file has no verb
+that reaches a line to change it: nothing there is deleted and nothing is re-addressed,
+so the door would be a new write on the one store built to have none.
+
+So the address is required beside `--decides` under an outline, which is `add --ref`'s
+rule exactly: the pointer is demanded at the write and the body is the follow-up the
+gate holds you to. The cost accepted is that an outline project cannot file a decision
+it means to leave bodiless. The namespace question needed nothing: `[refs]` already keys
+on the prose roles.
 
 ## Block C — Query (consult without reading the file)
 

@@ -445,6 +445,10 @@ TOOLS: tuple[Tool, ...] = (
             "recorded_in",
             "decides",
         ),
+        # Where the decision's body goes, on a project whose anchors are addresses (RK1363).
+        # Conditional for `add --ref`'s reason exactly: nothing derives it there, so a
+        # `--decides` without it files a record whose body no later call can reach.
+        conditional=("decides_ref",),
     ),
     Tool("retire", ("id", "reason", "superseded_by")),
     # The decisions role's one departure (RK1274), served for the reason `ship --decides` is:
@@ -961,6 +965,17 @@ _CONDITIONAL: Mapping[str, Conditional] = {
             'offered only where `roadkeep.toml` sets `ref_scheme = "outline"`, which makes the '
             "anchor the caller's to name; this project derives the pointer from the id, and one "
             "chosen by hand is what `ref.mismatch` refuses"
+        ),
+    ),
+    # The same field on the line a `--decides` files (RK1363). Its own key and not `ref`'s,
+    # because the two are two pointers in one call: `ship --ref` does not exist at all, and a
+    # tool offering one dest for both would let an outline project address the decision's body
+    # with a flag whose description is about the task's design.
+    "decides_ref": Conditional(
+        opens=lambda config: config.schema.ref_scheme == "outline",
+        because=(
+            'offered only where `roadkeep.toml` sets `ref_scheme = "outline"`; this project '
+            "addresses a decision's body by the decision's own id, so there is nothing to name"
         ),
     ),
 }

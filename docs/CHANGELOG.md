@@ -274,6 +274,7 @@
 - ✅ **RK1358** **a block that finishes with no criteria reads like one that met them, where the project declared criteria** — A finish with no criteria says so and names the verb, where a project uses them elsewhere and this block was not one (design recorded in `src/roadkeep/rendering.py`).
 - ✅ **RK1359** **the install report heads with the engine checkout and never names the project it wrote to** — The install report heads with the project it wrote to, and names the engine only where that is a different tree (design recorded in `src/roadkeep/installing.py`).
 - ✅ **RK1361** **a decision is one sentence, so the alternatives rejected and the consequences accepted are kept by hand or not at all** — A decision keeps a body in the decisions file, addressed by its id and deleted by nothing.
+- ✅ **RK1363** **an outline project cannot give a decision a body, the id being no address in a file that numbers its own headings** — A ship names where its decision keeps a body, so an outline project files one the same way an id project does.
 
 ## Block C — Query
 

@@ -145,7 +145,13 @@ closure door too, that one deleting the section as well, and is refused on a `--
 **A decision keeps a body, and the ship names where it goes**: that line is one sentence, and
 what was *weighed* — the alternatives rejected, the consequences accepted — is a paragraph
 `section add <id> --role decisions --title "…"` writes into that same file, under
-`[limits.decisions] section`, its own word limit. Never the design section moved: that one
+`[limits.decisions] section`, its own word limit. **Where the anchor is an address, the ship
+names it**: `--decides-ref <anchor>` beside `--decides` on a project setting `ref_scheme =
+"outline"`, required there for `add --ref`'s own reason — nothing derives it, and a record
+filed without one has a body no later call can bind — and refused where the anchor is the id.
+`anchors --role decisions --next` is where a free one comes from, per namespace, so a project
+giving that file its own `[refs]` gets its own numbering and one declaring none shares the
+improvements file's; the refusal names both that read and the flag. Never the design moved: that one
 says how the work was built and is correctly deleted by this very ship, and this one says
 what it cost, which is the half no other store keeps. Nothing deletes it — `section drop`
 included, while the entry stands — so the file grows only by decisions somebody made.

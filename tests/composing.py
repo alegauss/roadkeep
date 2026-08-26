@@ -157,6 +157,8 @@ SITES: tuple[Site, ...] = (
     Site("rendering.py:_decided_body_rows", "run"),
     Site("rendering.py:_event_rows", "unreached", NO_FIXTURE),
     # The stairs RK1198, RK1205 and RK1207 each walked by hand.
+    # The address a decision's body needs where the file numbers its own headings (RK1363).
+    Site("shipping.py:DecidesUnaddressed.__init__", "run"),
     Site("sections.py:UnknownParent.__init__", "run"),
     Site("sections.py:_the_path_into", "run"),
     Site("sections.py:_where_a_top_level_is", "unreached", NO_FIXTURE),
