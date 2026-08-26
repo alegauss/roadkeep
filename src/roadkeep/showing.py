@@ -32,7 +32,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from roadkeep.config import PROSE_ROLES, Config
+from roadkeep.config import DESIGN_ROLES, PROSE_ROLES, Config
 from roadkeep.kernel.document import Document, Entry
 from roadkeep.history import indexed
 from roadkeep.provenance import invocation
@@ -385,13 +385,19 @@ def _rationale(
     `ref.ambiguous` is the gate's own word for it.
     """
     anchor = entry.task.ref or entry.task.id
+    # Searched across every prose role and *placed* in the design's two (RK1361). The two
+    # questions parted when `decisions` became a prose file: an anchor is resolved wherever a
+    # heading may declare it, so a decision's own body is found by `show` — while "where the
+    # design would go" is still improvements or strategy, a decisions file being somewhere a
+    # task's rationale never goes and so not an absence a `declare` here would close.
     roles = tuple(role for role in PROSE_ROLES if config.has(role))
-    if not roles:
-        return None, None, None, f"this project declares no {' or '.join(PROSE_ROLES)} file"
+    designed = tuple(role for role in DESIGN_ROLES if config.has(role))
+    if not designed:
+        return None, None, None, f"this project declares no {' or '.join(DESIGN_ROLES)} file"
     named = " or ".join(config.relative(config.path(role)) for role in roles)
     # Where the design would go, for every answer that has no section: the first declared
     # role, which is `improvements` wherever a project declares one.
-    where = config.relative(config.path(roles[0]))
+    where = config.relative(config.path(designed[0]))
     on_disk = tuple(role for role in roles if config.path(role).is_file())
     if not on_disk:
         return None, where, None, f"{named} is not on disk yet"

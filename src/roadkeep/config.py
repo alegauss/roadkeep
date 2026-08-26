@@ -69,7 +69,31 @@ ROLES = ("roadmap", "changelog", "improvements", "strategy", "deferred", "decisi
 #: Here rather than beside either reader, because the gate and `show` resolving against
 #: different sets is exactly what RK186 was: one of them called a section the other found.
 #: Order is where a design goes when there is none yet — improvements first.
-PROSE_ROLES = ("improvements", "strategy")
+#:
+#: `decisions` is the third (RK1361), and it is the one file here that carries **both** —
+#: the records and the prose about them. That is the difference between the two kinds of
+#: body and not an exception to the shape: a design section says how the work was built and
+#: is correctly deleted by the ship that finishes it, while a decision's body says what was
+#: weighed and what it costs, which is the half no store keeps and the half no `ship`
+#: deletes. Last in the order, because a design with nowhere to go still goes to
+#: `improvements`: nothing derives this role, and every body in it is one a caller named.
+PROSE_ROLES = ("improvements", "strategy", "decisions")
+
+#: Where a **task's** design section may go — the subset of :data:`PROSE_ROLES` that answers
+#: "this line has a rationale and it lives somewhere" (RK1361). Not the same question: a
+#: pointer may address any prose file, and a design has two candidates. `decisions` is
+#: deliberately absent, and that absence is the whole distinction the third prose role
+#: introduced — a decision's body is written *about a decision*, so a `defer` that cannot
+#: find a design file must not report a decisions file as somewhere the design could live.
+DESIGN_ROLES = ("improvements", "strategy")
+
+#: The roles whose records are **lines**, which the gate reads and `govern` measures a field
+#: over (RK1279, RK1361). Stated, not derived: it was "a declared role that is not a prose
+#: one" until `decisions` became both, and that derivation then failed the way it was written
+#: to fail loudly and did not — reporting a widest over three files where four hold lines,
+#: and accepting a limit the fourth already breaks. Two overlapping sets are what the format
+#: has, so each is named.
+LINE_ROLES = ("roadmap", "changelog", "deferred", "decisions")
 
 DEFAULT_PATHS: Mapping[str, str] = {
     "roadmap": "docs/ROADMAP.md",

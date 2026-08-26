@@ -16,6 +16,21 @@
 - ✅ **RK1329** **a section written with its id as the title reads §RK1320 RK1320, and nine of nine filings did it** — A write holding both halves of a heading compares them: an address stated twice with no words in it is knowable at the door.
 - ✅ **RK1352** **the merge driver refuses over a defect its inputs already carried, so a branch is blocked by a line it never wrote** — A driver refuses what it composed; a defect a branch committed is that branch's, and the gate is what refuses it.
 - ✅ **RK1355** **a task line under Non-goals is read as both, and the door the non-goal finding prints deletes it** — Where two readers claim one line, the specific one wins and the other prints nothing about it.
+- ✅ **RK1361** **a decision is one sentence, so the alternatives rejected and the consequences accepted are kept by hand or not at all** — The decisions role carries both records and the prose about them, and no verb deletes a body while the entry stands.
+
+### §RK1361 Why the body and not the design section
+
+Moving the design section here was the obvious answer and is the one this refuses. A
+design says how the work was built, is true only until the code moves, and is correctly
+deleted by the ship that files the decision; copying it over is the accreting rationale
+file L4 exists to prevent. What the body carries instead is what was *weighed* — this
+alternative, and the `--recorded-in` path, which addresses a file this tool never reads
+and so cannot hold a word limit over.
+
+The cost accepted is a second kind of prose in a file that already holds records, and
+with it one rule that had been a derivation: a line role was every role that is not a
+prose one, and this is both. That derivation is now a declaration, and the two
+overlapping sets are named.
 
 ## Block C — Query (consult without reading the file)
 

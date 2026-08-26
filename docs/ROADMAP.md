@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1361** (deps: RK1360 ✅) **a decision is one sentence, so the alternatives rejected and the consequences accepted are kept by hand or not at all** — A decision's body is what no other store keeps, the design section being deleted by the ship that writes the line, and it is never that section copied. → §RK1361
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1362** (deps: RK1360 ✅) **the spec an agent executes is assembled per call by brief and exists nowhere a review or a second tool can read** — A read composed from four stores is a document, so it derives to a file from content every write already validated, and is stamped with nothing. → §RK1362

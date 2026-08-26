@@ -308,6 +308,26 @@ def _event_rows(
     return rows
 
 
+def _decided_body_rows(task_id: str) -> list[str]:
+    """The `section add` that gives a decision the half its line cannot hold (RK1361).
+
+    The line records that a decision was made and what it constrains; what was *weighed* —
+    the alternatives rejected and the consequences accepted — is a paragraph, and until the
+    decisions role became a prose file it had no governed home at all. Named here for
+    `Insertion.follow_up`'s reason and with its restraint: the call and its address are
+    derived, and the words in it are the author's (L4).
+
+    Printed on every `--decides` and never conditional on the body being absent. A `ship` is
+    one transaction and the body is written after it, so there is no state this could read to
+    know one is coming — and a row that appeared only sometimes would teach the two-command
+    path as an exception rather than as the shape.
+    """
+    return [
+        f"  weighed  `{invocation()} section add {task_id} --role decisions --title …`  "
+        f"(the line records the decision; what it was weighed against goes here)"
+    ]
+
+
 def _dequeued_rows(token: str | None) -> list[str]:
     """What a departure took out of the priority queue (RK327).
 

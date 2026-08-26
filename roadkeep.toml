@@ -182,3 +182,9 @@ permanent = true
 # for than the lint that would find the overrun too late. Raise it against a fresh
 # reading, never against a brief that grew.
 brief = 3300
+
+[limits.decisions]
+# A design says how the work was built and a decision's body says what was weighed
+# against it, which is the narrower thing: the alternatives rejected and the
+# consequences accepted, and never that design moved here.
+section = 150

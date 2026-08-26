@@ -330,10 +330,24 @@ class SectionClaimed(ValueError):
     passes ``leaving``, so the claim that is the reason for the drop is not one of these.
     """
 
-    def __init__(self, anchor: str, owners: Sequence[str], where: str = "") -> None:
+    def __init__(
+        self, anchor: str, owners: Sequence[str], where: str = "", *, recorded: bool = False
+    ) -> None:
         self.anchor = anchor
         self.owners = tuple(owners)
         file = f" in {where}" if where else ""
+        # The decisions file claims by id and has no door out (RK1361), so the two remedies
+        # below are both wrong there: there is no pointer to repoint and no line to ship. What
+        # a body written badly takes is `section amend`, which is the same escape the entry
+        # one line above it has.
+        if recorded:
+            super().__init__(
+                f"§{anchor}{file} is the body of {', '.join(self.owners)}, a decision this "
+                f"file still records — nothing here is ever deleted, a superseded entry "
+                f"included: `section amend {anchor} --role decisions --body -` is how prose "
+                f"that came out wrong is corrected"
+            )
+            return
         super().__init__(
             f"§{anchor}{file} is pointed at by {', '.join(self.owners)} — dropping it "
             f"leaves {'that pointer' if len(self.owners) == 1 else 'those pointers'} "
@@ -1114,12 +1128,25 @@ def pointers(config: Config, *, leaving: str = "") -> dict[str, tuple[str, ...]]
     pointer only exists on a task line: a heading nested under another is that other's prose
     until a line names it, and this is the one place that says which ones do. `leaving` is
     the line being shipped, whose own claim is the reason the drop is happening.
+
+    And from the decisions file, whose records claim by **id** rather than by pointer
+    (RK1361). Nothing in that file is ever deleted — the one departure is `supersede`, which
+    keeps both entries — so the body of a decision that stands is a body no verb removes, and
+    `section drop` was the one door that did not know it. Read here rather than refused at
+    that door, because `drop`, `ship` and the gate all ask this one function and a check in
+    one of them would be a rule the other two disagreed with. A superseded entry claims its
+    own too: what a replacement was needed against is the body it replaced.
     """
     out: dict[str, list[str]] = {}
     for entry in config.document("roadmap").entries:
         if entry.task.ref and entry.task.id != leaving:
             out.setdefault(entry.task.ref, []).append(entry.task.id)
-    return {anchor: tuple(ids) for anchor, ids in out.items()}
+    if config.has("decisions") and config.path("decisions").is_file():
+        for entry in config.document("decisions").entries:
+            anchor = entry.task.ref or entry.task.id
+            if entry.task.id not in out.setdefault(anchor, []):
+                out[anchor].append(entry.task.id)
+    return {anchor: tuple(ids) for anchor, ids in out.items() if ids}
 
 
 @dataclass(frozen=True, slots=True)
@@ -1511,6 +1538,7 @@ def drop(
     *,
     claimed: Mapping[str, Sequence[str]] | None = None,
     where: str = "",
+    recorded: bool = False,
 ) -> Deleted:
     """Delete the section whole — subsections included — and report what went, and who is
     left citing it.
@@ -1543,6 +1571,10 @@ def drop(
     and the one verb whose whole job is deleting a section stayed silent — and every refusal
     above reads a *pointer*, which is the end of the reference that was already read.
 
+    ``recorded`` says this file's records claim their own bodies by id (RK1361), which is the
+    decisions role and nothing else. It changes no outcome and one sentence: the refusal there
+    may not offer a pointer to repoint or a line to ship, neither of which that file has.
+
     Reported and never refused, unlike everything above it. Those refuse because a pointer is
     a promise the format makes: a line says `→ §<anchor>` and the anchor has to be there. A
     citation in prose is a sentence, and a sentence that has to be re-worded is an edit and
@@ -1556,7 +1588,7 @@ def drop(
     if claimed:
         owners = claimed.get(anchor)
         if owners:
-            raise SectionClaimed(anchor, owners, where)
+            raise SectionClaimed(anchor, owners, where, recorded=recorded)
         occupied = [
             (child.anchor, claimed[child.anchor])
             for child in nested(document, anchor)
@@ -1628,7 +1660,7 @@ def add(
     document = config.document(role)
     where = config.relative(config.path(role))
     if task is None:
-        task = _task_for(config, anchor)
+        task = _task_for(config, anchor, role)
     # Bound before it is checked and before it is rendered, so the title this function
     # validates is the one it writes (RK262) — a heading checked in one spelling and filed
     # in another is the disagreement L3 refuses a file over.
@@ -1941,7 +1973,7 @@ def amend(
     # it omits is a no-op, and comparing the unbound spelling would report a change and
     # rewrite the heading to the bytes it already holds. The cost is one roadmap parse on the
     # path that returns without writing, which is the rarest one here.
-    owner = _task_for(config, anchor)
+    owner = _task_for(config, anchor, role)
     # Only a title that was **passed** is bound. A body-only amend leaves the heading alone,
     # id or no id: correcting a paragraph is not the call in which a heading silently changes.
     wanted_title = (
@@ -3462,8 +3494,15 @@ def _pointed_at(config: Config, anchor: str) -> bool:
     )
 
 
-def _task_for(config: Config, anchor: str) -> Task | None:
+def _task_for(config: Config, anchor: str, role: str = "") -> Task | None:
     """The live task this anchor names, if it names one at all.
+
+    ``role`` is the prose file the section is being written into, and it decides **which**
+    file the owner is looked for in (RK1361). The decisions role is the one that carries both
+    records and prose, so a record there owns a section *in that file* and nowhere else: were
+    the search unconditional, a shipped task with a decision filed under its id would become
+    an id `section add --role improvements` accepts, which is the design a ship deleted coming
+    back under the number that deleted it. Empty is every other caller, and unchanged.
 
     Both live roles, for the reason `_pointed_at` reads both (RK231) — and this is the half
     that *refuses*. Reading the roadmap alone, `section amend RK1` on a paused line answered
@@ -3488,19 +3527,38 @@ def _task_for(config: Config, anchor: str) -> Task | None:
     that returns — an outline anchor never reaches `anchor.unknown` — so the cost of the
     ambiguous case is a heading the author binds by hand, which is where it started.
     """
+    owning = _owning(config, role)
     if config.schema.id_pattern().match(anchor):
-        for document in _live(config):
+        for document in owning:
             entry = document.by_id().get(anchor)
             if entry is not None:
                 return entry.task
         return None
     owners_here = [
         entry.task
-        for document in _live(config)
+        for document in owning
         for entry in document.entries
         if entry.task.ref == anchor
     ]
     return owners_here[0] if len(owners_here) == 1 else None
+
+
+def _owning(config: Config, role: str = "") -> list[Document]:
+    """The files a record owning a section in ``role`` is live in (RK1361).
+
+    Every entry the decisions file holds owns its body, superseded ones included: that is the
+    one departure this role has, and it keeps both entries because the record of what a
+    replacement was needed against is the body of the decision it replaced. So the whole
+    document answers, and there is no marker to filter on.
+
+    Asked *of the destination*, which is what keeps the two doors apart: a decision's body
+    lives in the decisions file, and the design a `ship` deleted stays deleted.
+    """
+    if role == "decisions":
+        if config.has(role) and config.path(role).is_file():
+            return [config.document(role)]
+        return []
+    return list(_live(config))
 
 
 def _live(config: Config) -> Iterator[Document]:

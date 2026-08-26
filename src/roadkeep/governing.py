@@ -365,7 +365,7 @@ def _limits(
     the rendered line for `line` — because a number compared against the wrong unit is the one
     kind of reading that looks right.
     """
-    from roadkeep.config import PROSE_ROLES, ROLES  # noqa: PLC0415 - RK260
+    from roadkeep.config import LINE_ROLES  # noqa: PLC0415 - RK260
 
     if key == "prose":
         # A width and not a ceiling, which is the one key in this table nothing refuses: it
@@ -381,13 +381,14 @@ def _limits(
             ),
         )
     if key == "section":
-        return _sections(config, address, key, declared)
-    # Derived and never listed (RK1279): a line file is a declared role that is not a prose
-    # one, so the sixth role was measured the day it arrived and the seventh will be. The
-    # written-out tuple this replaces was already stale-by-construction — `decisions` landed
-    # the same week — and it failed *quietly*, reporting a widest over four files where five
-    # hold lines and accepting a limit the fifth already breaks.
-    roles = (role,) if role else tuple(one for one in ROLES if one not in PROSE_ROLES)
+        return _sections(config, address, key, declared, role=role)
+    # Declared and read from one place (RK1279, RK1361). It was derived here — a line file is
+    # a declared role that is not a prose one — which held until `decisions` became both, and
+    # then failed the way the derivation was written to fail loudly and did not: a widest
+    # measured over three files where four hold lines, and a limit the fourth already breaks
+    # accepted. So the set is stated in `config` beside the one it stopped being the
+    # complement of, and the seventh role is added there once rather than reasoned about here.
+    roles = (role,) if role else LINE_ROLES
     worst, where, sites = 0, "", 0
     for one in roles:
         if not config.has(one):
@@ -455,13 +456,21 @@ def _field(document: object, entry: object, key: str) -> int | None:
     return None if not value else width(value)
 
 
-def _sections(config: Config, address: str, key: str, declared: int | None) -> Measured:
-    """The longest rationale section, charged as the budget charges one (RK136)."""
+def _sections(
+    config: Config, address: str, key: str, declared: int | None, *, role: str = ""
+) -> Measured:
+    """The longest rationale section, charged as the budget charges one (RK136).
+
+    ``role`` narrows it to one prose file, and it had to the moment a third one arrived with a
+    budget of its own (RK1361): `[limits.decisions] section` governs that file alone, and a
+    reading over every prose file would refuse a decisions limit the improvements file breaks
+    — a number rejected on evidence from a file it does not govern.
+    """
     from roadkeep.config import PROSE_ROLES  # noqa: PLC0415 - RK260
     from roadkeep.sections import anchored  # noqa: PLC0415 - RK260
 
     worst, where, sites = 0, "", 0
-    for role in PROSE_ROLES:
+    for role in (role,) if role else PROSE_ROLES:
         if not config.has(role):
             continue
         document = config.document(role)

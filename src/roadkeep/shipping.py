@@ -143,7 +143,7 @@ from roadkeep.authoring import (
     remove_entry,
 )
 from roadkeep.backlog import Backlog, NotOpen, Standing, Whereabouts
-from roadkeep.config import PROSE_ROLES, Config
+from roadkeep.config import DESIGN_ROLES, Config
 from roadkeep.kernel.document import Document, Entry, Wrapped, counted, save_all
 from roadkeep.ids import IdRef, next_id
 from roadkeep.markers import refresh
@@ -1184,6 +1184,7 @@ class Departure:
         """
         from roadkeep.rendering import (  # noqa: PLC0415 - RK260
             _cited_rows,
+            _decided_body_rows,
             _dequeued_rows,
             _unmet_rows,
             _emptied_rows,
@@ -1222,6 +1223,7 @@ class Departure:
                 f"  decided  {config.relative(config.path('decisions'))}:"
                 f"{self.decided.lineno}  {self.decided.rendered}"
             )
+            rows += _decided_body_rows(self.task_id)
         if self.refreshed:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
         rows += _dequeued_rows(self.dequeued)
@@ -1286,6 +1288,17 @@ class Departure:
                 "file": config.relative(config.path("decisions")),
                 "line": self.decided.lineno,
                 "rendered": self.decided.rendered,
+                # The command the text offers, in the payload that has to carry it
+                # (RK1307, RK1361): the line is half a decision and the other half is a
+                # `section add` an MCP caller can only make if it is told the argv.
+                "weighed": [
+                    "section",
+                    "add",
+                    self.task_id,
+                    "--role",
+                    "decisions",
+                    "--title",
+                ],
             },
             "scope": _scope_json(self.scope, wrote),
             "event": self.event(config),
@@ -1618,6 +1631,7 @@ class Closure:
         """
         from roadkeep.rendering import (  # noqa: PLC0415 - RK260
             _cited_rows,
+            _decided_body_rows,
             _dequeued_rows,
             _unmet_rows,
             _emptied_rows,
@@ -1648,6 +1662,7 @@ class Closure:
                 f"  decided  {config.relative(config.path('decisions'))}:"
                 f"{self.decided.lineno}  {self.decided.rendered}"
             )
+            rows += _decided_body_rows(self.task_id)
         rows += _scope_rows(self.scope, wrote)
         rows += _event_rows(self.event(config), "  ")
         return "\n".join(rows)
@@ -1694,6 +1709,17 @@ class Closure:
                 "file": config.relative(config.path("decisions")),
                 "line": self.decided.lineno,
                 "rendered": self.decided.rendered,
+                # The command the text offers, in the payload that has to carry it
+                # (RK1307, RK1361): the line is half a decision and the other half is a
+                # `section add` an MCP caller can only make if it is told the argv.
+                "weighed": [
+                    "section",
+                    "add",
+                    self.task_id,
+                    "--role",
+                    "decisions",
+                    "--title",
+                ],
             },
             "scope": _scope_json(self.scope, wrote),
             "event": self.event(config),
@@ -3645,12 +3671,17 @@ def _drop_section(
     """
     if anchor is None:
         return None, None, "the line carried no pointer", (), (), None
-    roles = tuple(role for role in PROSE_ROLES if config.has(role))
+    # The design's two and never every prose role (RK1361), which is the one place that
+    # distinction is load-bearing rather than cosmetic: this function *deletes*, and a
+    # decisions file joining the search would let the ship that files a decision delete the
+    # body of an earlier one that happened to share the anchor. A decision's body is never
+    # deleted — the one departure is `supersede`, and it keeps both entries and both bodies.
+    roles = tuple(role for role in DESIGN_ROLES if config.has(role))
     if not roles:
         return (
             None,
             None,
-            f"this project declares no {' or '.join(PROSE_ROLES)} file",
+            f"this project declares no {' or '.join(DESIGN_ROLES)} file",
             (),
             (),
             None,

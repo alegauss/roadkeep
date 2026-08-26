@@ -273,6 +273,7 @@
 - ✅ **RK1357** **the queue's finding claims a task line its own verbs decline, so the gate and the read disagree** — The queue's finding keeps the arbitration its verbs already kept, and the unread row that names a line it could not take stays (design recorded in `src/roadkeep/linting.py`).
 - ✅ **RK1358** **a block that finishes with no criteria reads like one that met them, where the project declared criteria** — A finish with no criteria says so and names the verb, where a project uses them elsewhere and this block was not one (design recorded in `src/roadkeep/rendering.py`).
 - ✅ **RK1359** **the install report heads with the engine checkout and never names the project it wrote to** — The install report heads with the project it wrote to, and names the engine only where that is a different tree (design recorded in `src/roadkeep/installing.py`).
+- ✅ **RK1361** **a decision is one sentence, so the alternatives rejected and the consequences accepted are kept by hand or not at all** — A decision keeps a body in the decisions file, addressed by its id and deleted by nothing.
 
 ## Block C — Query
 

@@ -44,7 +44,7 @@ from roadkeep.kernel.schema import (
     width,
 )
 from roadkeep.shipping import AlreadyRecorded, NoQualifier, NoSuchPath, SecondPartial
-from roadkeep.sections import SectionOccupied
+from roadkeep.sections import SectionClaimed, SectionOccupied
 from roadkeep.shipping import (
     AlreadySuperseded,
     Divergent,
@@ -3301,3 +3301,147 @@ def test_every_other_over_long_field_keeps_the_door_it_always_had(tmp_path):
         add(config, block="A", symptom="A symptom far too long for this", why="Because.")
 
     assert ELSEWHERE in str(caught.value)
+
+
+# -- the half of a decision that is not one sentence (RK1361) ------------------
+
+
+def test_a_decision_keeps_a_body_and_the_ship_names_where_it_goes(tmp_path):
+    """The defect. RK1269 was right about the line and dropped the pointer with it, so the
+    alternatives rejected and the consequences accepted had no governed home at all — a
+    docstring answers what was built, never what else was weighed."""
+    from roadkeep import sections
+
+    config = _deciding(tmp_path)
+    departure = ship(
+        config,
+        "RK1",
+        why="The first symptom no longer happens.",
+        decides="The store is the repository: no database and no service.",
+    )
+    departure.save()
+    # Named on the write, and by the same restraint `add` names its own follow-up: the call
+    # and its address are derived and the words in it are the author's (L4).
+    said = departure.stated(Config.discover(tmp_path), [])
+    assert f"section add RK1 --role decisions --title" in said
+    assert "weighed" in said
+
+    config = Config.discover(tmp_path)
+    sections.add(
+        config,
+        "decisions",
+        "RK1",
+        "Why the repository and not a service",
+        "A service was weighed and rejected: it makes the backlog a thing to be up rather "
+        "than a thing to be read, and the cost accepted is that two branches resolve their "
+        "own conflicts.",
+    ).document.save()
+
+    decided = read(Config.discover(tmp_path), DECISIONS)
+    assert "### §RK1 Why the repository and not a service" in decided
+    # The one file that carries both, which is the whole difference between the two kinds of
+    # body: this one is not the design moved, and no ship deletes it.
+    assert "- ✅ **RK1**" in decided
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_the_design_a_ship_deleted_does_not_come_back_under_the_decision_id(tmp_path):
+    """The door that had to stay shut. A decision is filed under the task's own id, so an
+    unconditional owner lookup would make that id one `section add --role improvements`
+    accepts — which is the design the ship deleted, re-created under the number that
+    deleted it."""
+    from roadkeep import sections
+    from roadkeep.kernel.schema import SchemaError as _SchemaError
+
+    config = _deciding(tmp_path)
+    ship(
+        config,
+        "RK1",
+        why="The first symptom no longer happens.",
+        decides="The store is the repository: no database and no service.",
+    ).save()
+
+    with pytest.raises(_SchemaError) as caught:
+        sections.add(
+            Config.discover(tmp_path),
+            "improvements",
+            "RK1",
+            "The design again",
+            "Prose that has no business being here at all.",
+        )
+
+    assert "anchor.unknown" in str(caught.value) or "no live task" in str(caught.value)
+
+
+def test_a_superseded_decision_keeps_its_body(tmp_path):
+    """The one departure this role has, and the reason the body survives it: what a
+    replacement was needed against is the body of the decision it replaced."""
+    from roadkeep import sections
+    from roadkeep.shipping import supersede
+
+    config = _deciding(tmp_path)
+    ship(config, "RK1", why="It works now.", decides="The store is the repository.").save()
+    sections.add(
+        Config.discover(tmp_path),
+        "decisions",
+        "RK1",
+        "Why the repository",
+        "A service was weighed and rejected for the reasons a store this small has.",
+    ).document.save()
+    ship(config, "RK2", why="It works too.", decides="The store is a service after all.").save()
+
+    supersede(Config.discover(tmp_path), "RK1", by="RK2").save()
+
+    decided = read(Config.discover(tmp_path), DECISIONS)
+    assert "🗑 **RK1**" in decided
+    assert "### §RK1 Why the repository" in decided
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_the_decisions_file_is_governed_by_its_own_word_limit(tmp_path):
+    # `[limits.decisions] section` is the budget of its own RK1361 asks for, and the reading
+    # that decides it is this file's alone: a number refused on the improvements file's widest
+    # section would be refused on evidence from a file it does not govern.
+    from roadkeep import governing
+
+    config = _deciding(tmp_path, extra_config="\n[limits.decisions]\nsection = 30\n")
+    ship(config, "RK1", why="It works now.", decides="The store is the repository.").save()
+
+    found = governing.reading(Config.discover(tmp_path), "limits.section", role="decisions")
+    assert found.sites == 0
+    assert found.declared == 30
+
+
+def test_a_decision_body_has_no_drop_and_the_refusal_names_the_edit(tmp_path):
+    """Nothing in that file is ever deleted, which is the claim the line already made and the
+    body inherits: `section drop` was the one door that did not know it, and the sentence it
+    would have printed offers a pointer this role does not carry."""
+    from roadkeep import sections
+
+    config = _deciding(tmp_path)
+    ship(config, "RK1", why="It works now.", decides="The store is the repository.").save()
+    config = Config.discover(tmp_path)
+    sections.add(
+        config,
+        "decisions",
+        "RK1",
+        "Why the repository",
+        "A service was weighed and rejected for the reasons a store this small has.",
+    ).document.save()
+
+    config = Config.discover(tmp_path)
+    with pytest.raises(SectionClaimed) as caught:
+        sections.drop(
+            config.document("decisions"),
+            "RK1",
+            claimed=sections.pointers(config),
+            where=DECISIONS,
+            recorded=True,
+        )
+
+    said = str(caught.value)
+    assert "nothing here is ever deleted" in said
+    # The escape a badly written body has is the one its entry has, and never the two the
+    # pointer-shaped refusal offers.
+    assert "section amend RK1 --role decisions" in said
+    assert "repoint the line" not in said

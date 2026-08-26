@@ -410,6 +410,9 @@ def _section_drop(config: Config, args: argparse.Namespace) -> int:
             args.anchor,
             claimed=pointers(config),
             where=config.relative(config.path(args.role)),
+            # The one file whose records claim their own bodies (RK1361), so the refusal
+            # names `section amend` rather than a pointer this role never carries.
+            recorded=args.role == "decisions",
         )
         wrote = deleted.document.save()
     except REFUSALS as error:

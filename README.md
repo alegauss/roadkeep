@@ -117,18 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 213 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 214 | 2 |
 | C — Query (consult without reading the file) | 1 | 133 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 102 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 122 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 27 | 1 |
-| **Total** | 2 | 846 | 12 |
+| **Total** | 1 | 847 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1361** (deps: RK1360 ✅) **a decision is one sentence, so the alternatives rejected and the consequences accepted are kept by hand or not at all** — A decision's body is what no other store keeps, the design section being deleted by the ship that writes the line, and it is never that section copied. → §RK1361
+- 📋 **RK1362** (deps: RK1360 ✅) **the spec an agent executes is assembled per call by brief and exists nowhere a review or a second tool can read** — A read composed from four stores is a document, so it derives to a file from content every write already validated, and is stamped with nothing. → §RK1362
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

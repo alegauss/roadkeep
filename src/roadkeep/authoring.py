@@ -52,7 +52,7 @@ from pathlib import Path
 from roadkeep import claiming, sections
 from roadkeep.backlog import Backlog, DepStatus, NotOpen, Whereabouts
 from roadkeep.claiming import Followed
-from roadkeep.config import PROSE_ROLES, ROLES, Config
+from roadkeep.config import DESIGN_ROLES, PROSE_ROLES, ROLES, Config
 from roadkeep.kernel.document import (
     Document,
     Entry,
@@ -215,11 +215,15 @@ class NoProseFile(ValueError):
     Every prose role and not one of them (RK230): naming `improvements` was the refusal a
     project declaring `strategy` alone got for a section its own file would have held, and
     "declare it under [files]" then asked for the second prose file it had no use for.
+
+    The two a **design** may live in, which stopped being every prose role at RK1361: a
+    decision's body is prose in a governed file and is not somewhere a task's design could
+    go, so naming it here would offer a `declare` that does not close this refusal.
     """
 
     def __init__(self, task_id: str, role: str = "") -> None:
         self.task_id = task_id
-        named = repr(role) if role else " or ".join(repr(r) for r in PROSE_ROLES)
+        named = repr(role) if role else " or ".join(repr(r) for r in DESIGN_ROLES)
         super().__init__(
             f"this project declares no {named} file, so {task_id} has nowhere to "
             f"carry a section: declare one under [files], or drop --section"
@@ -1106,9 +1110,11 @@ def prose_role(config: Config, *, on_disk: bool = False) -> str | None:
     a command naming a file nobody created cannot run. A write does not ask, because
     `section add` writes into a declared file whether or not this run is the one creating it.
     """
+    # The design's two and not every prose role (RK1361): this answers where a task's
+    # rationale goes when nothing named one, and `decisions` is never that answer.
     roles = tuple(
         role
-        for role in PROSE_ROLES
+        for role in DESIGN_ROLES
         if config.has(role) and (not on_disk or config.path(role).is_file())
     )
     if not roles:

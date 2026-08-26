@@ -153,6 +153,8 @@ SITES: tuple[Site, ...] = (
     # The two that render a remedy, and so every door the gate offers.
     Site("remedying.py:Door.command", "run"),
     Site("remedying.py:Door.quoted", "run"),
+    # The other half of a decision, named by every `ship --decides` (RK1361).
+    Site("rendering.py:_decided_body_rows", "run"),
     Site("rendering.py:_event_rows", "unreached", NO_FIXTURE),
     # The stairs RK1198, RK1205 and RK1207 each walked by hand.
     Site("sections.py:UnknownParent.__init__", "run"),

@@ -106,6 +106,7 @@ from pathlib import Path
 from roadkeep import criteria, queueing, scoping
 from roadkeep.backlog import Backlog, DepStatus, Stage, id_order
 from roadkeep.blocking import removable
+from roadkeep.config import LINE_ROLES as _LINE_ROLES
 from roadkeep.config import PROSE_ROLES, ROLES, Config, spent, translated
 from roadkeep.kernel.document import Document, Entry, Heading, ending
 from roadkeep.exporting import (
@@ -157,7 +158,11 @@ _UNASKED = object()
 #: `decisions` is the fourth (RK1269), and for the store's own argument: a decision record is
 #: a line, so a file this gate did not read would be the one place the format is a convention
 #: again — which is precisely what an ADR kept by hand already was.
-LINE_ROLES = ("roadmap", "changelog", "deferred", "decisions")
+#:
+#: Declared in `config` since RK1361 and re-exported here, where every reader of it already
+#: looks: that role is now a prose file too, so "not a prose role" stopped deriving this set
+#: and `govern` needed the same four. One authority, two importers.
+LINE_ROLES = _LINE_ROLES
 
 #: The two whose lines are still alive, so their rationale section is still there: open
 #: work, and work set aside (RK96). The ledger is not among them — `ship` and `retire`
@@ -895,6 +900,11 @@ def _checked(
     checked.extend(config.relative(config.path(role)) for role in prose)
     checked.extend(target.where for target in targets)
     checked.extend(config.relative(budget.path) for budget in config.budgets)
+    # By path and not by role (RK1361): `decisions` is read twice — once for its lines and
+    # once for its sections — and the report is a list of *files*, so naming it twice said
+    # this run judged five where it judged four. The order is still the first mention's,
+    # which is the reader's order above: a file sorts where it was first read.
+    checked = list(dict.fromkeys(checked))
     # The config is judged where it declares a queue (RK354) and where it declares what a
     # served tool may cost (RK1059) — the second being the one budget whose subject is not
     # a file, so `roadkeep.toml` is both what declared it and the only place to name.
@@ -3324,14 +3334,25 @@ def _orphans(
     # A deferred task's section is carried, not deleted (RK96), so the line that owns it is
     # in the store rather than the roadmap — and reporting it orphaned would make the gate
     # demand the deletion of exactly what a resume restores.
+    # And the decisions file owns its own prose (RK1361): a body there belongs to the record
+    # one bullet up, not to a roadmap line — so the ledger is not what decides it left. Read
+    # off the file being judged, because that is the whole difference between the two kinds of
+    # body: a design is deleted by the ship that files the decision, and the decision's body
+    # is what survives it. Superseded entries included, both halves of a `supersede` keeping
+    # theirs — the record of what a replacement was needed against is the body it replaced.
+    owning = ("decisions",) if role == "decisions" else LIVE_ROLES
     lines = {
         task_id: entry
-        for role in LIVE_ROLES
-        if role in documents
-        for task_id, entry in documents[role].by_id().items()
+        for one in owning
+        if one in documents
+        for task_id, entry in documents[one].by_id().items()
     }
     kept = set(lines)
-    gone = documents["changelog"].by_id() if "changelog" in documents else {}
+    gone = (
+        {}
+        if role == "decisions"
+        else (documents["changelog"].by_id() if "changelog" in documents else {})
+    )
     pointed = {
         entry.task.ref
         for document in documents.values()

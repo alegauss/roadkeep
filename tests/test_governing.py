@@ -238,8 +238,12 @@ def test_the_roles_a_line_reading_walks_are_the_declared_ones(tmp_path):
     """RK1279. A written-out tuple of the roles that carry lines was stale by construction —
     the sixth landed the same week — and it failed *quietly*: a role left out is a file the
     reading never opens, so a limit it already breaks is accepted and the gate reports it on
-    the next run, which is the sequence this verb exists to prevent."""
-    from roadkeep.config import PROSE_ROLES, ROLES
+    the next run, which is the sequence this verb exists to prevent.
+
+    Read off the declaration since RK1361, which is that argument arriving: `decisions` became
+    a prose role too, so "every role that is not a prose one" quietly stopped naming it — the
+    exact failure this test was written about, in the derivation written to prevent it."""
+    from roadkeep.config import LINE_ROLES, PROSE_ROLES
 
     project(
         tmp_path,
@@ -249,8 +253,10 @@ def test_the_roles_a_line_reading_walks_are_the_declared_ones(tmp_path):
         ),
     )
     # The declaration is the set, so this is the whole claim: every line role and no other.
-    walked = tuple(one for one in ROLES if one not in PROSE_ROLES)
-    assert "decisions" in walked and "improvements" not in walked
+    assert "decisions" in LINE_ROLES and "improvements" not in LINE_ROLES
+    # And the two sets overlap rather than partition, which is what stopped one deriving the
+    # other: the role in both is a file holding records *and* prose about them.
+    assert set(LINE_ROLES) & set(PROSE_ROLES) == {"decisions"}
 
     # And the reading opens the sixth: a symptom only that file carries is what decides.
     (tmp_path / "docs" / "DECISIONS.md").write_text(

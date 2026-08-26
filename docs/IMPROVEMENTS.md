@@ -77,25 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1361 A decision keeps its body, or the reasoning leaves with the section
-
-RK1269 chose the ledger's shape and was right about the line: an id, a marker, one
-falsifiable claim, a reason. It also dropped the pointer, on the argument that the line
-is written at the moment its section is deleted and that a section copied whole is the
-accreting rationale file this tool refuses. Both halves of that hold. What it leaves is
-that the alternatives rejected and the consequences accepted have no governed home at
-all — `--recorded-in` addresses a file this tool does not read, and a docstring above
-the code answers what was built, never what else was weighed.
-
-The body proposed here is not that section moved. A design section says how the work was
-built and is correctly deleted when it ships; a decision's body says what was weighed
-and what it costs, which is the half no store keeps. So `decisions` joins `PROSE_ROLES`
-with a budget of its own, its sections living in its own file and never deleted — the
-one departure stays `supersede`, and a superseded entry keeps its body, that being the
-record of what the replacement was needed against. The accretion risk is real and is
-answered the way every other prose file here answers it: a word limit at the write, and
-a file that grows only by decisions somebody actually made.
-
 ## Block C — Query
 
 ### §RK1362 The spec is already composed; nothing can hand it over

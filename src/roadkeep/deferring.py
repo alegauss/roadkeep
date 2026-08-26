@@ -43,7 +43,7 @@ from pathlib import Path
 from roadkeep import claiming, queueing
 from roadkeep.authoring import Insertion, place, remove_entry
 from roadkeep.backlog import Backlog, NotOpen, Whereabouts
-from roadkeep.config import PROSE_ROLES, Config
+from roadkeep.config import DESIGN_ROLES, Config
 from roadkeep.kernel.document import Document, Entry, save_all
 from roadkeep.markers import refresh
 from roadkeep.provenance import invocation
@@ -638,11 +638,14 @@ def _carried(config: Config, ref: str | None) -> Carried | None:
             anchor=anchor,
             absence=f"declared by {both}, so the pointer names neither",
         )
-    declared = tuple(role for role in PROSE_ROLES if config.has(role))
+    # The design's two, not every prose role (RK1361): this pointer is a *task line's*, so a
+    # decisions file the project happens to declare is not somewhere its section could be —
+    # naming it would report an absence closed by a `declare` that changes nothing here.
+    declared = tuple(role for role in DESIGN_ROLES if config.has(role))
     if not declared:
         return Carried(
             anchor=anchor,
-            absence=f"this project declares no {' or '.join(PROSE_ROLES)} file",
+            absence=f"this project declares no {' or '.join(DESIGN_ROLES)} file",
         )
     named = " or ".join(config.relative(config.path(role)) for role in declared)
     return Carried(anchor=anchor, absence=f"not in {named}, so nothing was carried")

@@ -408,10 +408,15 @@ DEFAULT_GRAMMARS: Mapping[str, Grammar] = {
     # record is an id, a marker, one falsifiable claim and a reason, which is a line this
     # format already writes. ✅ is a decision that stands and 🗑 one superseded — `retire
     # --superseded-by`'s own two markers, so the departure needs no third. No deps, a
-    # decision being a constraint and not planned work; no pointer, because the line is
-    # written at the moment the section it came from is deleted, so there is nothing left
-    # for it to address — and never the section copied whole, which is the accreting
-    # rationale file this tool exists to refuse.
+    # decision being a constraint and not planned work; no pointer *demanded*, because the
+    # line is written at the moment the section it came from is deleted — and never that
+    # section copied whole, which is the accreting rationale file this tool exists to refuse.
+    #
+    # `drop` on `ref` sets `ref_required`, which is optional and not forbidden, and RK1361 is
+    # what that distinction turned out to be for: this file carries its own prose now, a body
+    # saying what was weighed rather than how the work was built, addressed `§<id>` under the
+    # id scheme and so reachable with no pointer on the line at all. Nothing here changes —
+    # the grammar was already right, and the role joined `PROSE_ROLES` instead.
     "decisions": Grammar(markers=("shipped", "retired"), drop=("deps", "ref"), states="shipped"),
 }
 
