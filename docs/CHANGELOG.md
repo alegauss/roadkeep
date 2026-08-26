@@ -275,6 +275,7 @@
 - ✅ **RK1359** **the install report heads with the engine checkout and never names the project it wrote to** — The install report heads with the project it wrote to, and names the engine only where that is a different tree (design recorded in `src/roadkeep/installing.py`).
 - ✅ **RK1361** **a decision is one sentence, so the alternatives rejected and the consequences accepted are kept by hand or not at all** — A decision keeps a body in the decisions file, addressed by its id and deleted by nothing.
 - ✅ **RK1363** **an outline project cannot give a decision a body, the id being no address in a file that numbers its own headings** — A ship names where its decision keeps a body, so an outline project files one the same way an id project does.
+- ✅ **RK1373** **the neighbours read guards on a path existing where its siblings guard on a file, so a role naming a folder fails an add** — A role whose path names a directory is read as the absent file it is, so a report cannot fail a write already on disk (design recorded in `src/roadkeep/authoring.py`).
 
 ## Block C — Query
 

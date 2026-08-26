@@ -942,8 +942,14 @@ def _near(config: Config, insertion: Insertion) -> tuple[Entry, ...]:
     project may name a changelog it has not created, and the first `add` is exactly when it has
     not. A read that is a *report* may not be the thing that refuses such a write, so the
     absence answers here rather than raising.
+
+    `is_file` and not `exists` (RK1373), which is the idiom `backlog.py` and this module's two
+    other readers already use: a role whose declared path names a **directory** passes `exists`
+    and then fails inside `Document.load`, on an error no refusal here owns — and this read runs
+    *after* `save`, so that error would fail a call whose files are already written. Every other
+    reader treats such a path as the absent file it effectively is.
     """
-    if not config.has("changelog") or not config.path("changelog").exists():
+    if not config.has("changelog") or not config.path("changelog").is_file():
         return ()
     task = insertion.entry.task
     entries = config.document("changelog").block(task.block)

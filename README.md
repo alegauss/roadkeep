@@ -117,18 +117,14 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 215 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 216 | 2 |
 | C — Query (consult without reading the file) | 0 | 136 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 103 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 30 | 1 |
-| **Total** | 1 | 858 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1373** (deps: —) **the neighbours read guards on a path existing where its siblings guard on a file, so a role naming a folder fails an add** — A misconfigured path is skipped by every other reader and opened by this one, so a report that can refuse nothing becomes what fails the write. → §RK1373
+| **Total** | 0 | 859 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

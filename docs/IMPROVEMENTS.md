@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1373 The guard that is one word off its siblings
-
-RK1370 volunteers the delivered entries nearest a symptom, and reads the ledger to do
-it. Its guard is `config.has("changelog") and config.path("changelog").exists()`, where
-the idiom this package already uses — in `backlog.py`, and twice in this same module —
-is `is_file()`.
-
-The difference is one state: a role whose declared path names a directory. `exists()` is
-true of it, `Document.load` opens it, and the write fails on an error no refusal here
-owns. Every other reader skips that path and answers as though the file were absent,
-which it effectively is.
-
-What makes it worth a line rather than a silent edit is which write it breaks. This read
-runs *after* `save`, on the report side, and its own docstring says so: it cannot refuse
-anything, so an error out of it fails a call whose files are already written — the
-caller is told the `add` failed and the roadmap says otherwise.
-
-Filed rather than folded into the next task because it is a defect this project shipped,
-and the ledger is where a defect goes even when the repair is one word.
-
-Falsified when a governed role pointed at a directory answers differently in this reader
-than in `backlog.py`.
-
 ## Block C — Query
 
 ## Block D — The gate

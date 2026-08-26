@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1373** (deps: —) **the neighbours read guards on a path existing where its siblings guard on a file, so a role naming a folder fails an add** — A misconfigured path is skipped by every other reader and opened by this one, so a report that can refuse nothing becomes what fails the write. → §RK1373
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

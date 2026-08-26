@@ -510,6 +510,28 @@ def test_the_command_prints_the_line_it_wrote(tmp_path, capsys):
     assert event == "  event    RK2  Block B  live"
 
 
+def test_a_role_whose_path_names_a_directory_is_read_as_the_absent_file_it_is(tmp_path):
+    """RK1373. The neighbours read guarded on `exists`, where `backlog.py` and this module's two
+    other readers guard on `is_file` — so a declared path naming a directory passed the guard,
+    `Document.load` opened it, and the write failed on an error no refusal here owns.
+
+    Which write it breaks is the whole of it: this read runs *after* `save`, on the report side,
+    and cannot refuse anything — so the caller is told the `add` failed while the roadmap says
+    otherwise."""
+    config = project(tmp_path, prose=DESIGN, ledger=LEDGER)
+    (tmp_path / CHANGELOG).unlink()
+    (tmp_path / CHANGELOG).mkdir()
+    written = add(
+        config,
+        block="A",
+        symptom="A symptom filed against a ledger that is a directory",
+        why="Because of another reason.",
+    )
+    # Answered and not raised, and the line is in the file the caller asked for.
+    assert written.near == ()
+    assert "A symptom filed against a ledger that is a directory" in source(config)
+
+
 #: Where a row's value begins: two of indent and a nine-wide label field. Spelled here because
 #: the assertion below is about one number and every row of every write answer already uses it.
 _COLUMN = 11
