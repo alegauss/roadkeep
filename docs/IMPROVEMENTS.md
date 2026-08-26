@@ -81,6 +81,32 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK1390 The third shape a re-pin retired
+
+The suite skips three tests and two of them are answered. Shio's block dep is frozen at
+`shio-b9302e8e` and the skip says exactly that; Turing's fourth level spelled with a
+letter was never in that tree, so no pin retired it and there is nothing to keep.
+
+The third is not answered. *turing@2d71c9eac9 carries no doubled anchor an open line
+points at, and it was there at f08304fcb1* — the thirteen doubled anchors survive the
+re-pin, and the one open line that pointed at one of them shipped. So the state
+`section.ambiguous` is about, and the one an `add` refuses over, is read off no live
+backlog.
+
+RK1145's argument is the whole of this and it covered two of three: a re-pin retires
+coverage, the dated citation keeps the claim, and nothing keeps the bytes.
+`FROZEN_SHAPES` is declared rather than globbed precisely so a test with no row cannot
+go unnoticed, and this is a test with no row.
+
+The shape is one roadmap line and the headings it points at, which is what a frozen
+excerpt already is — their bytes beside a config declaring only what makes them parse.
+
+What has to be decided is how much of the family the excerpt carries. The refusal is
+about a pair of headings, so one of them is not the shape.
+
+Falsified when a shape a pin retired is asserted by neither a corpus nor a frozen
+excerpt.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
