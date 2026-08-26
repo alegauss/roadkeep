@@ -216,10 +216,15 @@ class Declared:
     def stated(self, config: Config) -> str:
         where = config.relative(config.source) if config.source else "roadkeep.toml"
         was = "" if self.before is None else f" (was {self.before})"
+        # The reading indented under this write's header (RK1372, RK1376): that record prints
+        # its own column-0 header, which is right when `govern <key>` is the whole answer and
+        # is a second subject line in the middle of one when it is not — the address is already
+        # in the line above, so what the row adds is the unit and the sites.
+        reading = "\n".join(f"  {row}" for row in self.measured.stated(standing=False).splitlines())
         return "\n".join(
             [
                 f"{where}:{self.lineno}  {self.address} = {self.at}{was}",
-                self.measured.stated(standing=False),
+                reading,
                 # The prose is the author's and the placing is this verb's (RK1293). Said
                 # either way, because a number with no argument beside it is one nobody can
                 # date — and the rule that sent it to the commit was unkeepable here, the

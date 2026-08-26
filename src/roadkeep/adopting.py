@@ -583,17 +583,20 @@ class Retrofitted:
     def stated(self, config: Config) -> str:
         from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
 
+        # The header, and every row under it at the column every other write uses (RK1372,
+        # RK1376): this answer was flat, so its `stage` line did not line up with the one
+        # `_staging_rows` composes anywhere else — the same row, two offsets, per verb.
         rows = [
             f"declared {self.role} = \"{config.relative(self.path)}\"  "
             f"{self.config.name}",
-            f"created  {config.relative(self.path)}  {len(self.blocks)} block heading(s)",
+            f"  created  {config.relative(self.path)}  {len(self.blocks)} block heading(s)",
         ]
         # The verb this role exists for, which is the question a caller has next and the one
         # the refusal that sent them here was about.
         opens = _ROLE_OPENS.get(self.role)
         if opens is not None:
-            rows.append(f"opens    `{invocation()} {opens}`")
-        rows.append(f"stage    git add -- {config.relative(self.path)} {self.config.name}")
+            rows.append(f"  opens    `{invocation()} {opens}`")
+        rows.append(f"  stage    git add -- {config.relative(self.path)} {self.config.name}")
         return "\n".join(rows)
 
     def payload(self, config: Config) -> dict[str, object]:

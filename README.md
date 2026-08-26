@@ -123,12 +123,8 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 103 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 1 | 30 | 1 |
-| **Total** | 1 | 861 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1376** (deps: —) **the one-column claim a ledger entry makes about every write is held by a test that drives one verb** — RK1372's entry says every other write is already one column, and what checks it is an assertion over the answer of `add` alone. → §RK1376
+| H — The tool's own shape (what one verb costs to change) | 0 | 31 | 1 |
+| **Total** | 0 | 862 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

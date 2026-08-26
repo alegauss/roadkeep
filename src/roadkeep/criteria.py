@@ -240,13 +240,16 @@ class Written:
         from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
 
         where = config.relative(config.path("roadmap"))
-        rows = []
+        # The header first and the rows under it, at the one column every write uses (RK1372,
+        # RK1376). `opened` stood *above* the header and at column 0, so this answer had a
+        # labelled row outside the block its labels belong to — which is the state a reader
+        # scanning for a field finds at two offsets.
+        rows = [f"{where}:{self.lineno}  {len(self.rendered)} line(s)"]
         if self.opened:
             rows.append(
-                f"opened   {heading_for(config.schema, self.criterion.about)} — this had "
+                f"  opened   {heading_for(config.schema, self.criterion.about)} — this had "
                 f"no list, and writing the first criterion is what opens one"
             )
-        rows.append(f"{where}:{self.lineno}  {len(self.rendered)} line(s)")
         rows += [f"  {line}" for line in self.rendered]
         rows += _staging_rows(config.relative(one) for one in wrote)
         return "\n".join(rows)

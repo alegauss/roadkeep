@@ -38,8 +38,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1376** (deps: —) **the one-column claim a ledger entry makes about every write is held by a test that drives one verb** — RK1372's entry says every other write is already one column, and what checks it is an assertion over the answer of `add` alone. → §RK1376
-
 ## Done when — Block D
 
 - **The gate passes on this repository's own docs** the format is proven by the artefact
