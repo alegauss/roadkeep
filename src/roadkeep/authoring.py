@@ -384,12 +384,12 @@ class Insertion:
             # in — and with the correction named, the title being the block's rather than one
             # this write composed (RK1258).
             rows.append(
-                f"opened   §{self.opened} → {prose}, titled from Block "
+                f"  opened   §{self.opened} → {prose}, titled from Block "
                 f"{self.entry.task.block}  (`section amend {self.opened} --title` renames it)"
             )
         if self.section is not None:
             rows.append(
-                f"design   §{self.section.anchor} → {prose}:{self.section.first}  "
+                f"  design   §{self.section.anchor} → {prose}:{self.section.first}  "
                 f"{self.section.words} words"
             )
         elif self.needs is not None:
@@ -400,10 +400,10 @@ class Insertion:
             # file has not opened, the closing command refuses until the opening one has run,
             # and naming one of the two is the staircase RK1198 took out of the door above.
             rows += [
-                f"needs    `{invocation()} {one}`  "
+                f"  needs    `{invocation()} {one}`  "
                 f"(the pointer above resolves to nothing until then)"
                 if one == self.follow_ups()[-1]
-                else f"needs    `{invocation()} {one}`  "
+                else f"  needs    `{invocation()} {one}`  "
                 f"(§{self.needs} extends it, and no prose file declares it yet)"
                 for one in self.follow_ups()
             ]
@@ -424,7 +424,7 @@ class Insertion:
             # a command by exactly that prefix, so the shape is also what keeps this row out
             # of it: what is offered is the argument to add next time, not a call to run now.
             rows.append(
-                'or       pass `--section "<its title>"` to `add` next time: both halves in '
+                '  or       pass `--section "<its title>"` to `add` next time: both halves in '
                 "one transaction, under the same limits"
             )
             # And **what that body may weigh**, at the moment the caller is about to write it
@@ -435,46 +435,46 @@ class Insertion:
             # of it again. The figure is a fact about the role and needs no id, so this is the
             # one place it costs nothing to state: the id was just minted and the prose has
             # not been composed, which is the whole of L1 said about one field.
-            rows.append(f"weighs   {_body_aim(config, self.needs, self.prose)}")
+            rows.append(f"  weighs   {_body_aim(config, self.needs, self.prose)}")
         elif self.bound is not None:
             # Said, because the write touched a second file the caller did not name (RK452) —
             # and because the heading now carries an id, which is the fact `ship` and the gate
             # both read as "this design belongs to that task".
             rows.append(
-                f"bound    §{self.bound.anchor} → {prose}:{self.bound.first}  "
+                f"  bound    §{self.bound.anchor} → {prose}:{self.bound.first}  "
                 f"the design was written first, so this line's id is now in its heading"
             )
         if self.promise is not None:
             # Beside the line and not instead of it: the `add` succeeded, and what this reports
             # is a sentence somewhere else that has just stopped being true (RK431).
-            rows.append(f"promise  {self.promise.sentence}")
+            rows.append(f"  promise  {self.promise.sentence}")
         if self.near:
             # The read the skill puts before a proposal, handed back at the one moment nothing
             # is spent but an id (RK1370). Labelled once and the rows under it, which is how
             # every wrapped answer here is read — and the sentence says what the order is not,
             # because a reader taking #1 for a verdict is RK441's own finding.
             rows.append(
-                "near     the delivered under this block nearest this symptom — an order "
+                "  near     the delivered under this block nearest this symptom — an order "
                 "and not a verdict, and yours to read"
             )
             rows += [
-                f"         {one.task.status} {one.task.id:<8} {one.task.symptom}"
+                f"           {one.task.status} {one.task.id:<8} {one.task.symptom}"
                 for one in self.near
             ]
         if capture:
             # Said either way: a stamp that did not land is the row `stats` will still count,
             # and silence about it is how a second step comes to be forgotten (RK86).
             rows.append(
-                f"capture  {capture} now names {self.entry.task.id}"
+                f"  capture  {capture} now names {self.entry.task.id}"
                 if stamped
-                else f"capture  {capture} could not be stamped: the line is filed, the "
+                else f"  capture  {capture} could not be stamped: the line is filed, the "
                 f"link is not"
             )
         # The projection this write refreshed is in here (RK1129): the roadmap and the rationale
         # are files the caller named, and the README is one they did not — so a commit took the
         # two and left the third, green against the tree and `export.stale` in a clean checkout.
         rows += _staging_rows(config.relative(one) for one in self.wrote)
-        rows += _event_rows(self.event(config))
+        rows += _event_rows(self.event(config), "  ")
         return "\n".join(rows)
 
     def addition(

@@ -2589,7 +2589,7 @@ def test_the_same_follow_up_at_a_terminal_is_a_line_a_shell_runs(tmp_path, capsy
     assert main(["-C", str(tree), "add", "--block", "A", "--symptom",
                  "A widget stalls on a cold cache", "--why", "Nothing warms it.",
                  "--ref", "IX.1"]) == EXIT_OK
-    rows = [one for one in capsys.readouterr().out.splitlines() if one.startswith("needs")]
+    rows = [one for one in capsys.readouterr().out.splitlines() if one.strip().startswith("needs")]
     # Both rows since RK1205, and the claim this test makes is about each of them: the shell
     # spelling is what the CLI writes, and a path half-rewritten is the defect one key over.
     assert [f"`{invocation()} section add IX --title …`" in rows[0],

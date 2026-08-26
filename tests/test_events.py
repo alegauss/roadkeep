@@ -86,7 +86,7 @@ def test_add_emits_the_event(tmp_path, capsys):
         )
         == EXIT_OK
     )
-    assert capsys.readouterr().out.splitlines()[-1] == "event    RK3  Block A  live"
+    assert capsys.readouterr().out.splitlines()[-1] == "  event    RK3  Block A  live"
 
 
 def test_status_emits_the_event(tmp_path, capsys):

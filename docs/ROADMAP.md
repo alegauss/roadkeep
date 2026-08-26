@@ -40,8 +40,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1372** (deps: —) **the add answer prints its own rows at two columns, so one verb's report is two grammars a reader has to hold** — Every other write indents its rows by two and this one indents only the staging row, so the label column moves inside a single answer. → §RK1372
-
 ## Done when — Block D
 
 - **The gate passes on this repository's own docs** the format is proven by the artefact

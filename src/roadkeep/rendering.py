@@ -234,7 +234,7 @@ _DROPPABLE = {
 
 
 def _event_rows(
-    event: dict[str, object], indent: str = "", *, standing: bool = False
+    event: dict[str, object], indent: str, *, standing: bool = False
 ) -> list[str]:
     """The event, and where the stage allows it the one command that state makes available.
 
@@ -262,6 +262,11 @@ def _event_rows(
     a `config` no longer reaches here: it was a required keyword precisely so a printer could
     not fall back to offering, and the way to make that impossible is to leave the printer
     nothing to fall back *to*. What it renders now is the door the payload carries or no row.
+
+    ``indent`` is **required** for that same reason (RK1372). It defaulted to `""` and one
+    caller of ten took the default: `add`, whose own rows then sat at column 0 while the
+    `stage` row beside them sat at 2 — one answer at two columns, in the verb this tool prints
+    most. A default nobody wants is a column a caller is opted into by not thinking about it.
     """
     stage = event["stage"]
     rows = [f"{indent}event    {event['id']}  Block {event['block']}  {stage}"]

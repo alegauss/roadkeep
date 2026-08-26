@@ -505,8 +505,50 @@ def test_the_command_prints_the_line_it_wrote(tmp_path, capsys):
     # file the caller never named, and a commit that took the roadmap alone left it stale.
     assert staging.startswith("  stage    git add -- ") and ROADMAP in staging
     # A block that just gained a line is never empty, and the event says so anyway: one
-    # shape from every mutator is what makes it parseable at all (RK38).
-    assert event == "event    RK2  Block B  live"
+    # shape from every mutator is what makes it parseable at all (RK38) — and at the column
+    # every other row of this answer uses since RK1372.
+    assert event == "  event    RK2  Block B  live"
+
+
+#: Where a row's value begins: two of indent and a nine-wide label field. Spelled here because
+#: the assertion below is about one number and every row of every write answer already uses it.
+_COLUMN = 11
+
+
+def test_every_row_of_one_answer_begins_at_the_same_column(tmp_path, capsys):
+    """RK1372. `design`, `needs`, `weighs`, `near` and `event` began at column 0 while `stage`
+    — in the same answer — began at 2 with a label field two characters wider, so neither the
+    labels nor the values lined up and a reader scanning for a field found it at one of two
+    offsets. Every other write is already one column; `add` was the exception, and it is the
+    answer this tool prints most.
+
+    Both shapes, because the rows differ between them: one writes its design in the same
+    transaction and the other owes a `section add`, and the two ran through different branches
+    of the printer — which is where a second column comes from and where it would come back."""
+    # A ledger too, so the `near` rows are in the answer: they are a run of continuation lines
+    # under one label and the shape a second column hides in.
+    project(
+        tmp_path,
+        prose=DESIGN,
+        ledger=f"{LEDGER}\n- ✅ **RK9** **A symptom this block already delivered** — It works.\n",
+    )
+    for extra in ([], ["--section", "A title", "--section-body", "The reasoning."]):
+        assert main(
+            [
+                "-C", str(tmp_path), "add", "--block", "A",
+                "--symptom", f"A symptom filed with {len(extra)} extra argument(s)",
+                "--why", "Because of another reason.", *extra,
+            ]
+        ) == EXIT_OK
+        first, *rows = capsys.readouterr().out.splitlines()
+        # The rendered line is the subject and stands where a header does on every other verb.
+        assert not first.startswith(" ")
+        assert rows, "an answer of one line proves nothing about two columns"
+        # Two spaces of indent and a label field of one width, so a label and its value are
+        # each at one offset — and a continuation row carries that field as blanks, which is
+        # the same column measured from the other side.
+        assert all(row.startswith("  ") for row in rows), rows
+        assert all(len(row) > _COLUMN and row[_COLUMN] != " " for row in rows), rows
 
 
 def test_json_says_where_the_line_landed(tmp_path, capsys):
@@ -1467,12 +1509,12 @@ def test_the_command_writes_both_files_and_reports_both(tmp_path, capsys):
     )
     line, reported, staging, event = capsys.readouterr().out.splitlines()
     assert line.endswith("→ §RK2")
-    assert reported.startswith(f"design   §RK2 → {IMPROVEMENTS}:")
+    assert reported.startswith(f"  design   §RK2 → {IMPROVEMENTS}:")
     assert reported.endswith("5 words")
     assert "Because the gate said so." in design(config)
     # Both files it wrote are in the staging line, which is the same list the report names.
     assert ROADMAP in staging and IMPROVEMENTS in staging
-    assert event == "event    RK2  Block B  live"
+    assert event == "  event    RK2  Block B  live"
 
 
 def test_the_command_names_the_follow_up_it_leaves_behind(tmp_path, capsys):
@@ -1494,16 +1536,16 @@ def test_the_command_names_the_follow_up_it_leaves_behind(tmp_path, capsys):
         == EXIT_OK
     )
     _, follow, offer, weighs, staging, event = capsys.readouterr().out.splitlines()
-    assert follow.startswith(f"needs    `{invocation()} section add RK2 --title")
+    assert follow.startswith(f"  needs    `{invocation()} section add RK2 --title")
     # And the call that would have needed no follow-up at all (RK1218), under the remedy
     # rather than instead of it: this line's pointer already dangles, so what closes *this*
     # one comes first and the flag that closes the next comes after.
-    assert offer.startswith("or       pass `--section")
+    assert offer.startswith("  or       pass `--section")
     # And what that body may weigh (RK1309), beside the call that writes it: the limit reached
     # the author only as a refusal, and this is the one moment it costs nothing to state.
-    assert weighs.startswith("weighs   ") and "words" in weighs
+    assert weighs.startswith("  weighs   ") and "words" in weighs
     assert staging.startswith("  stage    git add -- ")
-    assert event == "event    RK2  Block B  live"
+    assert event == "  event    RK2  Block B  live"
 
 
 def test_json_carries_the_section_and_the_follow_up_as_fields(tmp_path, capsys):
@@ -2461,7 +2503,7 @@ def test_the_offer_is_a_flag_and_never_a_call_to_make(tmp_path, capsys):
         "--symptom", "A second symptom", "--why", "Because of another.", "--ref", "X.9",
     ]) == EXIT_OK
     out = capsys.readouterr().out
-    offered = [one for one in out.splitlines() if one.startswith("or       pass")]
+    offered = [one for one in out.splitlines() if one.startswith("  or       pass")]
     assert offered, out
     assert commands(offered[0]) == (), offered
 

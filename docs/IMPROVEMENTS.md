@@ -111,26 +111,3 @@ than in `backlog.py`.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1372 One answer, one column
-
-Measured on an `add` that wrote a section: `design`, `near` and `event` begin at column
-0, and `stage` — in the same answer — begins at column 2 with a label field two
-characters wider. So neither the labels nor the values line up, and a reader scanning
-for a field finds it at one of two offsets depending on which row wrote it.
-
-Every other write is already one column. `status`, `amend`, `block add` and `ship`
-indent every row by two, and their labels align because one writer emits them all. `add`
-is the exception, and it is the answer this tool prints most.
-
-This is RK1170's finding at a smaller grain and the same argument for closing it: two
-registers of one answer agreed by hand over a header until the record composed both, and
-here two runs of rows inside one register agree by nothing. The staging and event rows
-come from shared helpers and the rest are composed in the printer, which is where the
-two columns come from — so the fix is those rows joining the same emitter rather than
-each being nudged by hand.
-
-Nothing about the content changes and no row is added or dropped. What a caller sees is
-one column and one label width, which is what a report is for.
-
-Falsified when two rows of one answer here begin at different columns.

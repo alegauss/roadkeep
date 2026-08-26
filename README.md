@@ -123,12 +123,12 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 103 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 1 | 29 | 1 |
-| **Total** | 2 | 857 | 12 |
+| H — The tool's own shape (what one verb costs to change) | 0 | 30 | 1 |
+| **Total** | 1 | 858 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1372** (deps: —) **the add answer prints its own rows at two columns, so one verb's report is two grammars a reader has to hold** — Every other write indents its rows by two and this one indents only the staging row, so the label column moves inside a single answer. → §RK1372
+- 📋 **RK1373** (deps: —) **the neighbours read guards on a path existing where its siblings guard on a file, so a role naming a folder fails an add** — A misconfigured path is skipped by every other reader and opened by this one, so a report that can refuse nothing becomes what fails the write. → §RK1373
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
