@@ -32,6 +32,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK1388** (deps: —) **two reads answer about one half of the wiring each and neither says which, so together they read as a contradiction** — `merge --check` labels its two rows, and the rows RK1385 and RK1387 added inherited one half each, so a tree reads as wired and unwired at once. → §RK1388
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
