@@ -32,6 +32,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK1389** (deps: —) **merge --check offers one copy where the register report names both, and the other reads now send the caller here** — RK1386 put the alternative on the register's report and RK1388 made two reads defer to this verb, so the incomplete answer is where everyone arrives. → §RK1389
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

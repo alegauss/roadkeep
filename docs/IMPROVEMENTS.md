@@ -83,6 +83,31 @@ already written, not authorship.
 
 ## Block E — Adoption
 
+### §RK1389 The answer two reads now point at, missing the half they were fixed for
+
+RK1386 established it: where a machine holds two copies of this tool, the report names
+both and chooses neither, because a tool that may not write somebody's git config may
+not pick the copy it would have named either. That landed on the report `merge
+--register` and `install --register-merge` share.
+
+`merge --check` prints its own rows — `attributes`, `config`, `fix` — and the `fix` line
+is the same `git config` command with none of that. So a caller on a machine with an
+installed script and a checkout is offered the installed one, with nothing saying there
+is a second.
+
+What makes it worth a line now rather than a wording note is where RK1388 left the
+traffic. Both rows it corrected end by deferring to this verb: `engines` says *`merge
+--check` reads the attribute half too*, and `install --check` says *whether this clone
+holds the config to run them is `merge --check`*. Two reads were made honest by sending
+the caller to the one that answers half the question RK1386 asked.
+
+The narrow question is whether the two surfaces share a renderer or a sentence. RK276
+already made one rendering serve two registration reports for this reason, and a third
+copy of the alternative would be the drift that task removed.
+
+Falsified when a read offers a driver command without saying the machine has another
+copy.
+
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

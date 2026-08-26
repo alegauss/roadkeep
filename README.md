@@ -120,11 +120,15 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
 | C — Query (consult without reading the file) | 0 | 139 | 2 |
 | D — The gate | 0 | 195 | 2 |
-| E — Adoption | 0 | 108 | 1 |
+| E — Adoption | 1 | 108 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 34 | 1 |
-| **Total** | 0 | 874 | 12 |
+| **Total** | 1 | 874 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1389** (deps: —) **merge --check offers one copy where the register report names both, and the other reads now send the caller here** — RK1386 put the alternative on the register's report and RK1388 made two reads defer to this verb, so the incomplete answer is where everyone arrives. → §RK1389
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
