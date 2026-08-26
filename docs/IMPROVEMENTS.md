@@ -81,31 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1391 A set declared against a listing nothing compares
-
-`FROZEN_SHAPES` carries the sentence: *declared rather than globbed, so a fixture nobody
-reads is a row with no test and a test with no row cannot silently stop reading one*.
-Half of that is held. A row whose directory is missing fails the moment `thawed` reads
-it; a directory nobody declared is read by nothing and reported by nothing.
-
-RK1390 is the measurement. It added a third fixture, and had the row been forgotten the
-suite would have stayed green over a directory carrying bytes copied out of somebody
-else's repository for a shape nothing asserts — which is the state that sentence claims
-is impossible.
-
-It is the shape this suite closes everywhere else and by the same means: the
-composed-command census is total against its sites, the withheld arguments against the
-parsers, the answer sweep against the write verbs, the cycle census against the source.
-Each is a set confronted with what it is a set *of*, and this one is confronted with
-nothing.
-
-What closes it is one assertion — the directories under the frozen root are exactly the
-rows' own names. Never a glob replacing the table, which is what the sentence rules out:
-the declaration stays where it is and the listing becomes the thing it is checked
-against.
-
-Falsified when a directory under the frozen root is named by no row.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

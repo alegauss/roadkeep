@@ -898,6 +898,27 @@ def test_a_dep_kind_no_live_corpus_carries_is_still_read_off_real_bytes(shape, e
     ]
 
 
+def test_every_frozen_fixture_is_a_row_and_every_row_is_a_fixture():
+    """RK1391. `FROZEN_SHAPES` carries the sentence — *declared rather than globbed, so a
+    fixture nobody reads is a row with no test and a test with no row cannot silently stop
+    reading one* — and half of it was held. A row whose directory is missing fails the moment
+    `thawed` reads it; a directory nobody declared was read by nothing and reported by nothing.
+
+    RK1390 is the measurement: it added a third fixture, and a forgotten row would have left
+    the suite green over bytes copied out of somebody else's repository for a shape nothing
+    asserts. This is the same closure every other census in this suite makes — a set confronted
+    with what it is a set *of* — and the table stays the declaration: what is globbed is the
+    listing it is checked against, never a replacement for it.
+    """
+    declared = {shape.where.name for shape in corpora.FROZEN_SHAPES}
+    assert len(declared) == len(corpora.FROZEN_SHAPES), "two rows name one directory"
+    found = {one.name for one in corpora.FROZEN.iterdir() if one.is_dir()}
+    assert found == declared, {
+        "on disk, declared by no row": sorted(found - declared),
+        "declared, no directory": sorted(declared - found),
+    }
+
+
 @pytest.mark.parametrize(
     "shape", corpora.FROZEN_SHAPES, ids=lambda one: f"{one.corpus}-{one.rev}"
 )

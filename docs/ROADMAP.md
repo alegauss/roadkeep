@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1391** (deps: —) **a frozen fixture nobody declared is read by nothing and reported by nothing, though the table says otherwise** — `FROZEN_SHAPES` is declared rather than globbed so an unread fixture stays visible, and the directory it is declared against is confronted with it nowhere. → §RK1391
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

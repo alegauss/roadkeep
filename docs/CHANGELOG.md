@@ -622,6 +622,7 @@
 - ✅ **RK1378** **the refusal that will not move an anchor across parents names the family and not the free address under it** — The refusal states the free address, and the retry it earns replaces the destination rather than the source (design recorded in `src/roadkeep/verbs/refusing.py`).
 - ✅ **RK1380** **a law a governed sentence cites is resolved by nothing, so a number outside the six reads as a law** — A law cited from any governed sentence resolves against the table that declares them, and is `law.unknown` where it does not (design recorded in `src/roadkeep/linting.py`).
 - ✅ **RK1390** **a third shape the re-pin retired has a test and no frozen fixture, so it is read off no backlog at all** — The doubled anchor an open line points at is read off Turing's own bytes at the revision that carried it (design recorded in `tests/corpora.py`).
+- ✅ **RK1391** **a frozen fixture nobody declared is read by nothing and reported by nothing, though the table says otherwise** — The frozen root's directories are confronted with the rows that declare them, so an undeclared fixture is a red (design recorded in `tests/test_backlog.py`).
 
 ## Block E — Adoption
 
