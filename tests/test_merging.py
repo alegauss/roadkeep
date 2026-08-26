@@ -1066,3 +1066,37 @@ def test_a_machine_with_one_copy_is_offered_no_alternative():
     assert _other_copy(f"{home}/.venv/bin/roadkeep merge %O %A %B --path %P") == ""
     # And nothing wired at all is not an alternative either — there is no command to compare.
     assert _other_copy("") == ""
+
+
+def test_the_check_offers_the_other_copy_where_the_register_report_does():
+    """RK1389. RK1386 put the alternative beside the config command on the report a `register`
+    prints, and left this verb offering the installed script alone — the verb RK1388 then made
+    two other reads defer to, so the incomplete answer became the one everybody arrives at.
+
+    One sentence and never a second, which is RK276's rule about these two surfaces: a third
+    copy of a line is the drift that task removed."""
+    from roadkeep.rendering import _other_copy
+    from roadkeep.merging import config_command
+
+    said = _other_copy(config_command())
+    if not said:
+        pytest.skip("this machine's driver command already names the tree writing here")
+    from roadkeep.provenance import engine
+
+    assert engine().home.parent.parent.as_posix() in said
+
+
+def test_the_alternative_is_beside_the_repairs_and_never_among_them(tmp_path):
+    """What `repairs` returns is commands, and a consumer running them in order would run a
+    sentence — so the payload carries the alternative under its own key."""
+    from roadkeep.merging import attributed, registered, Wiring
+    from roadkeep.rendering import _other_copy
+    from roadkeep.merging import config_command
+
+    config = project(tmp_path)
+    wiring = Wiring(attributes=attributed(config), driver=registered(config))
+    payload = wiring.payload(config)
+    assert all("set that key" not in one for one in payload["fix"])
+    assert payload["other_copy"] == (
+        _other_copy(config_command()) if wiring.demands_driver else ""
+    )

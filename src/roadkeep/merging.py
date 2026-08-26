@@ -393,6 +393,7 @@ class Wiring:
         """Both halves and what each needs, which is the whole of `--check` (RK270, RK277)."""
         from roadkeep.rendering import (  # noqa: PLC0415 - RK260
             _attributes_line,
+            _other_copy,
             _wiring_line,
         )
 
@@ -401,6 +402,18 @@ class Wiring:
             f"  config      {_wiring_line(self)}",
         ]
         rows += [f"  fix         {one}" for one in self.repairs()]
+        # **And the other copy, where this machine has one** (RK1389). RK1386 put this beside
+        # the config command on the report a `register` prints, and left this verb — the one
+        # RK1388 then made two other reads defer to — offering the installed script alone.
+        #
+        # The renderer and never a second sentence, which is RK276's rule about these two
+        # surfaces: one rendering serves both registration reports because a third copy of a
+        # line is the drift that task removed, and this is that line's third caller.
+        #
+        # Under `fix` rather than among the repairs: what `repairs` returns is commands, and a
+        # payload listing this among them would call an alternative a remedy.
+        if self.demands_driver and (other := _other_copy(config_command())):
+            rows.append(f"  or          {other}")
         return chr(10).join(rows)
 
     def payload(self, config: Config) -> dict[str, object]:
@@ -413,6 +426,7 @@ class Wiring:
         """
         from roadkeep.rendering import (  # noqa: PLC0415 - RK260
             _attributes_line,
+            _other_copy,
             _wiring_line,
         )
 
@@ -426,6 +440,10 @@ class Wiring:
             "driver": {"state": self.driver.state, "reported": _wiring_line(self)},
             "sound": self.sound,
             "fix": self.repairs(),
+            # The alternative beside the repairs and never inside them (RK1389): a consumer
+            # running `fix` in order would otherwise run a sentence. `""` where this machine
+            # has one copy, which is every adopter, and never omitted.
+            "other_copy": _other_copy(config_command()) if self.demands_driver else "",
         }
 
     @property

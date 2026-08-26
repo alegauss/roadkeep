@@ -733,6 +733,7 @@
 - ✅ **RK1386** **register wires whatever installed the console script, so a developer's checkout cannot be the driver its own merges run** — Where a machine holds two copies the report names both, so the caller chooses knowing there is a choice (design recorded in `src/roadkeep/rendering.py`).
 - ✅ **RK1387** **install --check offers to wire a driver the files already route to, so two reads disagree about one fact** — The row reads the attribute half back, so a tree whose files already route is told that rather than offered the flag (design recorded in `src/roadkeep/installing.py`).
 - ✅ **RK1388** **two reads answer about one half of the wiring each and neither says which, so together they read as a contradiction** — Each row names the half of the wiring it read and defers to the verb that labels both, so the three reads reconcile (design recorded in `src/roadkeep/installing.py`).
+- ✅ **RK1389** **merge --check offers one copy where the register report names both, and the other reads now send the caller here** — The check names the other copy beside its repairs, off the one sentence the register report already prints (design recorded in `src/roadkeep/merging.py`).
 
 ## Block F — The Claude Code plugin
 
