@@ -420,6 +420,7 @@
 - ✅ **RK1370** **an add answers without the delivered entries nearest what it filed, so a duplicate is found after the design is written** — Every add names the three delivered here nearest the symptom it just filed, at the moment nothing is spent but an id (design recorded in `src/roadkeep/ranking.py`).
 - ✅ **RK1374** **the volunteered rows are bounded at three and say neither how many of how many nor where the rest are** — The volunteered rows say how many of how many, and name the listing that holds the rest (design recorded in `src/roadkeep/authoring.py`).
 - ✅ **RK1375** **brief states one field's allowance in two grammars on adjacent rows, so the comparison they exist for is read twice** — A brief's three allowance rows state their figure the same way, so the comparison they exist for is one reading (design recorded in `src/roadkeep/briefing.py`).
+- ✅ **RK1381** **the conversion fixed from this package's own corpus has no read that states the reading, so its drift needs a script** — `config` states what this build fixes from its own corpus with the reading beside it, so the conversion is a command not a script (design recorded in `src/roadkeep/budgeting.py`).
 
 ## Block D — The gate
 

@@ -20,6 +20,7 @@ from roadkeep.budgeting import (
     CHARS_PER_WORD,
     AmbiguousAnchor,
     body_budget,
+    conversion,
     budget,
     budget_of,
     file_budget,
@@ -191,19 +192,17 @@ def test_the_conversion_is_the_corpus_and_not_a_comment():
     written in, so it is derived from the prose these files are written in — and a corpus
     that drifted past it should fail here rather than quietly make every aim optimistic.
     """
-    config = Config.discover(Path(__file__).parents[1])
-    ratios = sorted(
-        len(text) / len(text.split())
-        for role in ("roadmap", "changelog")
-        for entry in config.document(role).entries
-        for text in (entry.task.symptom or "", entry.task.why or "")
-        if text
-    )
-    assert len(ratios) > 100, "too small a corpus to fix a constant from"
-    p95 = ratios[int(len(ratios) * 0.95)]
+    # Off the command since RK1381, which is the whole of that task: the measurement was
+    # written here and in a comment in source, and a corpus that grew past the constant could
+    # only speak through this test failing — with the new figure taking a throwaway script to
+    # get. Read from `conversion` rather than recomputed, so what this asserts is the *rule*
+    # and the reading is one answer a caller can also ask for.
+    found = conversion(Config.discover(Path(__file__).parents[1]))
+    assert found.sample > 100, "too small a corpus to fix a constant from"
+    assert found.at == CHARS_PER_WORD, "the read and the constant came apart"
     # Above the 95th percentile, so an aim that is hit lands inside the gate about nineteen
     # times in twenty; and not far above it, or the aim is tighter than the format allows.
-    assert p95 <= CHARS_PER_WORD <= p95 + 0.75
+    assert found.reading <= CHARS_PER_WORD <= found.reading + 0.75
 
 
 def test_an_aim_that_is_hit_clears_the_gate_on_this_repositorys_own_lines():

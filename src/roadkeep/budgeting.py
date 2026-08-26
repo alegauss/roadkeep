@@ -1957,3 +1957,56 @@ def sourced(shares: Sequence[Share]) -> list[str]:
     fell_back = [share.field for share in shares if share not in chosen]
     rest = f"; {', '.join(fell_back)} is this tool's default" if fell_back else ""
     return [f"  declared   {said}{rest}"]
+
+
+#: The percentile the conversion follows, which is the sentence above `CHARS_PER_WORD`: an
+#: author who lands on the word aim clears the character gate about nineteen times in twenty.
+#: Stated here because the reading and the constant have to follow one number, and a second
+#: spelling of it is what let the corpus grow past the figure with only a test to say so.
+CONVERSION_AT = 95
+
+
+def conversion(config: Config) -> "object":
+    """The reading behind `CHARS_PER_WORD`, as a command rather than a script (RK1381).
+
+    Every other number decided by a reading has a verb that states it — `govern <key>` with no
+    value, `cost`, `budget --file`, `weight`. This one had a comment in source and an assertion
+    in a suite, so a corpus that grew past it spoke through a red test and getting the new
+    figure meant writing the same throwaway measurement twice in one session.
+
+    The **same corpus the constant is fixed from**: this project's own written `symptom` and
+    `why` fields, across the roadmap and the ledger, which is the prose the format is proven by
+    (RK18). A field nobody wrote is left out rather than counted as zero characters per zero
+    words, that being a division and not a reading.
+
+    A read and never a write. There is nothing to declare — the conversion is a property of the
+    prose those lines are written in and not a project's to configure (L6) — so what comes back
+    is the percentile, the sample it was taken over, and the figure this build carries.
+    """
+    from roadkeep.describing import Fixed  # noqa: PLC0415 - RK260
+
+    ratios = sorted(
+        len(text) / len(text.split())
+        for role in ("roadmap", "changelog")
+        if config.has(role) and config.path(role).is_file()
+        for entry in config.document(role).entries
+        for text in (entry.task.symptom or "", entry.task.why or "")
+        if text.split()
+    )
+    if not ratios:
+        raise ValueError(
+            "this project has written no symptom or why to measure, so the conversion has no "
+            "corpus here: the figure this build carries is the one it was fixed from elsewhere"
+        )
+    at = ratios[min(int(len(ratios) * CONVERSION_AT / 100), len(ratios) - 1)]
+    return Fixed(
+        name="chars/word",
+        at=CHARS_PER_WORD,
+        sample=len(ratios),
+        percentile=CONVERSION_AT,
+        reading=round(at, 2),
+        why=(
+            "the first round number above this corpus's percentile, so a word aim clears the "
+            "character gate about nineteen times in twenty"
+        ),
+    )

@@ -118,17 +118,13 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
-| C — Query (consult without reading the file) | 1 | 138 | 2 |
+| C — Query (consult without reading the file) | 0 | 139 | 2 |
 | D — The gate | 0 | 195 | 2 |
 | E — Adoption | 0 | 103 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 32 | 1 |
-| **Total** | 1 | 866 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1381** (deps: —) **the conversion fixed from this package's own corpus has no read that states the reading, so its drift needs a script** — `govern` states the reading behind every number in `roadkeep.toml` and this one is deliberately not there, so what decides it lives only inside a test. → §RK1381
+| **Total** | 0 | 867 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

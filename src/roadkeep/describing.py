@@ -197,6 +197,46 @@ class Key:
 
 
 @dataclass(frozen=True, slots=True)
+class Fixed:
+    """One number this build fixes from a corpus, with the reading that fixes it (RK1381).
+
+    The completion of the listing beside it. `config` answers *what may this project declare*,
+    and a figure a project may **not** declare is the boundary of that same question — a reader
+    who wonders whether the words-per-character conversion is theirs to set is asking here.
+
+    The reading and never only the figure, which is the whole of the task: every other number
+    decided by one has a verb that states it — `govern <key>` with no value, `cost`, `budget
+    --file` — and this one had a comment in source and an assertion in a suite, so a corpus that
+    grew past it spoke through a red test and the new figure took a throwaway script to get.
+    """
+
+    name: str
+    at: float
+    #: The corpus it was taken over, as a count of the things measured.
+    sample: int
+    #: The percentile the figure follows, and the figure it follows it at.
+    percentile: int
+    reading: float
+    why: str
+
+    def stated(self) -> str:
+        return (
+            f"  {self.name:<12} {self.at}  p{self.percentile} {self.reading} over "
+            f"{self.sample} — {self.why}"
+        )
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "name": self.name,
+            "at": self.at,
+            "sample": self.sample,
+            "percentile": self.percentile,
+            "reading": self.reading,
+            "why": self.why,
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class Shape:
     """Every key, and the build that answered — which is half of what makes it usable."""
 
@@ -204,6 +244,10 @@ class Shape:
     version: str
     #: The file read back for :attr:`Key.declared`, or `None` on a project with no config.
     source: str | None = None
+    #: What this build fixes from a corpus instead of accepting (RK1381). Empty where the
+    #: reading could not be taken — a project whose files this process cannot read — which is
+    #: the honest answer and not a figure stated without the corpus behind it.
+    fixed: tuple[Fixed, ...] = ()
 
     def under(self, table: str) -> tuple[Key, ...]:
         return tuple(one for one in self.keys if one.table == table)
@@ -471,7 +515,31 @@ def shape(config: Config, table: str | None = None) -> Shape:
         keys=tuple(out),
         version=__version__,
         source=None if config.source is None else config.relative(config.source),
+        # Only on the whole listing (RK1381): `--table <name>` narrows to one table, and a
+        # figure that is under no table at all would arrive as an answer to a narrower
+        # question than the one asked.
+        fixed=() if table is not None else _fixed(config),
     )
+
+
+def _fixed(config: Config) -> tuple[Fixed, ...]:
+    """Every number this build fixes from a corpus, with the reading behind it (RK1381).
+
+    One today, and a tuple because the shape is what the row is for: a second such figure is a
+    row here rather than a second command, exactly as a governed key is a row in the listing
+    above rather than a verb of its own.
+
+    Swallows the read's own refusal, which is `_section_of`'s rule one file over: a caller
+    asked *what may I declare*, and a project whose prose this process cannot read still has
+    every answer above — so an unreadable corpus answers with no row and never with a figure
+    stated as though a reading had been taken.
+    """
+    from roadkeep.budgeting import conversion  # noqa: PLC0415 - RK260
+
+    try:
+        return (conversion(config),)
+    except (OSError, KeyError, ValueError):
+        return ()
 
 
 def stated(found: Shape) -> str:
@@ -498,6 +566,11 @@ def stated(found: Shape) -> str:
             # default is the fact that stops mattering the moment there is a value.
             mark = _how(one)
             rows.append(f"  {one.name:<12} {spelled}{default}  ({mark})")
+    if found.fixed:
+        # Last, and under its own heading (RK1381): the listing above is what a project may
+        # declare, and this is the boundary of that question rather than another table in it.
+        rows.append("[fixed by this build, and not a project's to declare]")
+        rows += [one.stated() for one in found.fixed]
     return "\n".join(rows)
 
 
@@ -506,6 +579,10 @@ def payload(found: Shape) -> dict[str, object]:
     return {
         "version": found.version,
         "source": found.source,
+        # What this build fixes instead of accepting (RK1381). `[]` and never omitted, for the
+        # reason every other absence here is published: a consumer reading a missing key cannot
+        # tell "nothing is fixed" from "this build is older than the answer".
+        "fixed": [one.payload() for one in found.fixed],
         "keys": [
             {
                 "table": one.table,
