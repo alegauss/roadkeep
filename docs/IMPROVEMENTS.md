@@ -83,30 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1388 One wiring, two halves, and two rows that do not say which
-
-Run the three in this checkout. `merge --check` answers in two labelled rows —
-*attributes: git sends 4 of 4 governed files* and *config: merge.roadkeep.driver not
-set*. `engines` answers *no driver is wired, so git merges these textually*. `install
---check` answers *the governed files already route to the merge driver*.
-
-All three are true, and the last two are about different halves, which neither of them
-says. A reader running them in that order is told the tree is unwired and then that it
-is wired, and the only way to reconcile the two is already knowing which half each
-inherited.
-
-It is RK1375's shape at a different pair and by the same mechanism: the two rows were
-written two tasks apart, each correct about its own half, and neither read the other.
-That the verb which does say so was the model for both makes it sharper rather than
-softer.
-
-What has to be decided is whether those rows name their half or defer to the verb that
-owns the question. Naming is a word each: this wiring has two halves, and a row stating
-one without saying which is a row a reader has to know the answer to before they can
-read it.
-
-Falsified when two reads of this wiring can be read as contradicting each other.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

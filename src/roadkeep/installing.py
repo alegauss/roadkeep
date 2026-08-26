@@ -189,9 +189,9 @@ MERGE_BLOCKED = (
 #: The **attribute** half only. Whether git can run what it finds is per clone and is what
 #: `merge --check` exists to say, so quoting it here would be the second answer this closes.
 MERGE_WIRED = (
-    ".gitattributes: the governed files already route to the merge driver, so there is "
-    "nothing here for `install --register-merge` to write — `{invocation} merge --check` is "
-    "what says whether this clone can run what they route to"
+    ".gitattributes: the attribute half is written and the governed files route to the merge "
+    "driver, so there is nothing here for `install --register-merge` to write — whether this "
+    "clone holds the config to run them is `{invocation} merge --check`"
 )
 
 #: What the two *copies* become when the tree being wired is the tree answering (RK235). Not
@@ -890,8 +890,18 @@ class Engines:
         # The fourth (RK1385). Said either way, for the reason every absence here is: a driver
         # nothing wired and a driver this could not read look the same to a reader, and only
         # one of them means a conflict falls back to git's own markers.
+        #
+        # **And it says which half it read** (RK1388). This wiring has two — the attribute
+        # lines a repository commits, and the config this clone holds — and the row reads the
+        # second. Written flat, it answered *no driver is wired* about a tree whose files
+        # `install --check` reports as routed, so the two read as contradicting each other and
+        # reconciling them meant already knowing which half each had inherited. The word is
+        # `merge --check`'s own, that verb being the one which labels both.
         if not self.driver:
-            rows.append("merge    —         no driver is wired, so git merges these textually")
+            rows.append(
+                "merge    —         nothing in this clone's git config, so a conflict falls "
+                "back to git's markers: `merge --check` reads the attribute half too"
+            )
         else:
             here = self.running.home.parent.parent.as_posix()
             whose = (

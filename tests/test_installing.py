@@ -479,7 +479,7 @@ def test_a_driver_already_routed_stops_the_row_advertising_the_flag(project, sou
         EXIT_GATE,
     )
     said = capsys.readouterr().out
-    assert "already route to the merge driver" in said
+    assert "route to the merge driver" in said
     assert "`install --register-merge` runs it here" not in said
     # And the read that does answer the other half is named rather than quoted.
     assert "merge --check" in said
@@ -1786,7 +1786,10 @@ def test_the_driver_is_a_row_and_says_when_nothing_is_wired():
 
     bare = replace(_pair(), driver="")
     assert "merge    —" in bare.stated()
-    assert "no driver is wired" in bare.stated()
+    # And which half it read (RK1388): this row is the config, and the attribute lines are
+    # a committed file — a tree can hold either without the other.
+    assert "this clone's git config" in bare.stated()
+    assert "attribute half" in bare.stated()
     assert bare.payload()["driver"] == ""
 
 
@@ -1822,3 +1825,35 @@ def test_the_version_is_never_read_because_reading_it_would_run_it():
         if isinstance(node, ast.Call)
     }
     assert not called & {"run", "check_output", "Popen", "system"}, called
+
+
+def test_no_two_reads_of_the_wiring_can_be_read_as_contradicting(project, source, capsys):
+    """RK1388. This wiring has two halves — the attribute lines a repository commits and the
+    config a clone holds — and a tree can hold either without the other. `merge --check` says
+    which of the two each of its rows is about; the rows RK1385 and RK1387 added inherited one
+    half each and said neither, so running all three answered *unwired* and then *routed*, and
+    reconciling them meant already knowing which half had been read.
+
+    Driven against the state that makes the two disagree: attributes written, config unset."""
+    declaring(project, CLEAN)
+    assert main(["-C", str(project), "merge", "--register"]) == EXIT_OK
+    capsys.readouterr()
+
+    assert main(["-C", str(project), "engines"]) in (EXIT_OK, EXIT_GATE)
+    engines_said = [
+        line for line in capsys.readouterr().out.splitlines() if line.startswith("merge")
+    ]
+    assert engines_said, "the engines read stopped carrying the driver row"
+    assert "git config" in engines_said[0]
+
+    assert main(["-C", str(project), "install", "--source", str(source), "--check"]) in (
+        EXIT_OK,
+        EXIT_GATE,
+    )
+    (install_said,) = [
+        line for line in capsys.readouterr().out.splitlines() if ".gitattributes:" in line
+    ]
+    assert "attribute half" in install_said
+    # And both defer to the verb that owns the question rather than answering the other half.
+    assert "merge --check" in engines_said[0]
+    assert "merge --check" in install_said
