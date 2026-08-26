@@ -83,6 +83,30 @@ already written, not authorship.
 
 ## Block E — Adoption
 
+### §RK1387 One tree, two answers about whether it is wired
+
+Run both in this checkout and they disagree. `merge --check` answers *git sends 4 of 4
+governed files to the roadkeep driver*; `install --check` answers *not written
+.gitattributes* and offers `install --register-merge` to write what is already there.
+
+The row is not wrong about `install`: that command does not write the file. But every
+other line under the same word says something permanent — this tree is the action, this
+tree ships the skill, that hook would fire twice — and those stay true whatever anybody
+does. This one names an opt-in, and an opt-in that has been taken is a different state
+from one that has not.
+
+What makes it a line rather than a wording fix is which reader it costs. The report
+exists so an adopter sees what is wired, and the command is offered as the next step; a
+caller who takes it gets four lines reported back as already there and learns nothing
+about why. The read that does know is one verb away and this one never asks it.
+
+The narrow question is how much of the other answer belongs here. The attribute half is
+a fact about a committed file and is this report's business; the config half is per
+clone and is what `merge --check` exists for, so quoting that would be the second answer
+this is about.
+
+Falsified when two reads of this tree disagree about whether the driver is wired.
+
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

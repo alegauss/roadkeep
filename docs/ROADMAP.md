@@ -32,6 +32,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK1387** (deps: —) **install --check offers to wire a driver the files already route to, so two reads disagree about one fact** — The row states what `install` does not write and never reads the wiring back, while `merge --check` does, so one tree is unwired to one of them and wired to the other. → §RK1387
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
