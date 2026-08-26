@@ -117,14 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 215 | 2 |
+| B — Authoring (insert, never hand-edit) | 1 | 215 | 2 |
 | C — Query (consult without reading the file) | 0 | 136 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 103 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 0 | 29 | 1 |
-| **Total** | 0 | 857 | 12 |
+| H — The tool's own shape (what one verb costs to change) | 1 | 29 | 1 |
+| **Total** | 2 | 857 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1372** (deps: —) **the add answer prints its own rows at two columns, so one verb's report is two grammars a reader has to hold** — Every other write indents its rows by two and this one indents only the staging row, so the label column moves inside a single answer. → §RK1372
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
