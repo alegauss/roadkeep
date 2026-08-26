@@ -5,7 +5,7 @@
     "roadkeep.command": "python scripts/roadkeep.py",
 
     // Identify this project in the window title / taskbar
-    "window.title": "🆁 roadkeep ${separator} ${dirty}${activeEditorShort} ${separator} ${appName}",
+    "window.title": "🆁 Roadkeep ${separator} ${dirty}${activeEditorShort} ${separator} ${appName}",
 
     // Brown status bar so this project is easy to spot
     "workbench.colorCustomizations": {

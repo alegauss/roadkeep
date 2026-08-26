@@ -77,7 +77,44 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1361 A decision keeps its body, or the reasoning leaves with the section
+
+RK1269 chose the ledger's shape and was right about the line: an id, a marker, one
+falsifiable claim, a reason. It also dropped the pointer, on the argument that the line
+is written at the moment its section is deleted and that a section copied whole is the
+accreting rationale file this tool refuses. Both halves of that hold. What it leaves is
+that the alternatives rejected and the consequences accepted have no governed home at
+all — `--recorded-in` addresses a file this tool does not read, and a docstring above
+the code answers what was built, never what else was weighed.
+
+The body proposed here is not that section moved. A design section says how the work was
+built and is correctly deleted when it ships; a decision's body says what was weighed
+and what it costs, which is the half no store keeps. So `decisions` joins `PROSE_ROLES`
+with a budget of its own, its sections living in its own file and never deleted — the
+one departure stays `supersede`, and a superseded entry keeps its body, that being the
+record of what the replacement was needed against. The accretion risk is real and is
+answered the way every other prose file here answers it: a word limit at the write, and
+a file that grows only by decisions somebody actually made.
+
 ## Block C — Query
+
+### §RK1362 The spec is already composed; nothing can hand it over
+
+`brief` answers with the symptom, the non-goals that bind it, the `## Done when — <id>`
+list and the design section — which the skill already calls the spec, and which RK1265
+completed when the criteria reached the line. So the document exists. What does not is
+any way to hand it to something that is not this session: a reviewer on a pull request,
+a second agent on a branch, a CI job asserting the criteria — each would have to run the
+read and cannot, and the read is bounded at 3,300 characters because it is sized for a
+tool result rather than for a file.
+
+`export --spec <id>` is the same projection with a file's ceiling instead of a result's,
+beside `--readme` and `--site`, which is where the derived-writes argument already
+lives: idempotent, stamped with nothing, and every character having passed a write that
+validated it. It composes nothing new and holds no second grammar — a spec that drifts
+from its four stores is a spec derived twice, which is the failure `--contents` exists
+to prevent one file over. Not speckit's generation, which L4 forbids, and which is the
+half of speckit this format deliberately has no model for.
 
 ## Block D — The gate
 
@@ -88,3 +125,21 @@ already written, not authorship.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+### §RK1360 The served surface is the project's, not the package's
+
+Measured before proposing it: 66 tools, 64,612 of 64,700 held — 88 units of headroom,
+and the reason it is that tight is that the list is composed from the package's parser,
+so roadkeep, Shio and Turing publish the same 66 whatever each declares. `[files]`
+already narrows the enum of a `role` argument to the declared roles; it does not decide
+whether the tool exists. So a project that never files a decision pays `record_add`'s
+1,752 units in every session, and `[tools] session` has been re-argued eight times
+against a total no single project actually spends.
+
+The consequence is the one that matters for every vocabulary after this: a new role
+costs every adopter, so each is argued against a ceiling the arguing project is not even
+using. Narrowing publication to `config.has(role)` inverts that — the ceiling becomes
+what this project can call, the budget stops being a constant about the package, and
+`cost --tools` answers per checkout rather than per build. What has to stay honest is
+the refusal: a tool absent because a role is undeclared must still be reachable as a
+message naming `declare`, or an agent reads the absence as the verb not existing.

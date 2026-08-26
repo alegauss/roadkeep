@@ -26,7 +26,11 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1361** (deps: RK1360) **a decision is one sentence, so the alternatives rejected and the consequences accepted are kept by hand or not at all** — A decision's body is what no other store keeps, the design section being deleted by the ship that writes the line, and it is never that section copied. → §RK1361
+
 ## Block C — Query (consult without reading the file)
+
+- 📋 **RK1362** (deps: RK1360) **the spec an agent executes is assembled per call by brief and exists nowhere a review or a second tool can read** — A read composed from four stores is a document, so it derives to a file from content every write already validated, and is stamped with nothing. → §RK1362
 
 ## Block D — The gate
 
@@ -37,6 +41,8 @@
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+- 📋 **RK1360** (deps: —) **a project declaring no decisions file still pays for its verbs at connect, the tool list being built from the parser** — What a session pays at connect is what that project can call, so a vocabulary grows for the projects that declared it and costs the rest nothing. → §RK1360
 
 ## Done when — Block D
 
