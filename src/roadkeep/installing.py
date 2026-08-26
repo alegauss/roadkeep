@@ -756,7 +756,13 @@ UNPINNABLE = "unpinnable"
 
 @dataclass(frozen=True, slots=True)
 class Engines:
-    """The three copies of this tool one project runs, read back together (RK415).
+    """Every copy of this tool one project runs, read back together (RK415).
+
+    **Four are read and three are judged** (RK1392). RK1385 added the merge driver, which git
+    runs when nobody is watching, and it is deliberately not in the verdict: `agreed`, `behind`
+    and `unpinnable` compare versions, and this tool refuses to execute a recorded driver to
+    ask for one. So a count states which of the two questions a sentence is about, and the
+    three below are the copies that *wrote, judged or gated* something already.
 
     An adopting project wires three: the plugin its `PreToolUse` hook and skill run, the
     action its workflow gates on, and whatever `roadkeep` the caller invokes — which on a
@@ -867,7 +873,10 @@ class Engines:
         return invocation()
 
     def stated(self) -> str:
-        """The three copies, and where they differ (RK415, RK418).
+        """Every copy this project runs, and where the three that state a version differ.
+
+        Four rows and three compared (RK415, RK418, RK1392): the driver is read and never
+        judged, which is why it carries a command rather than a number.
 
         Beside :meth:`payload` since RK1170. Every absence is **said** rather than left as a
         missing row: "no plugin" and "a plugin this could not read" look the same to a reader,

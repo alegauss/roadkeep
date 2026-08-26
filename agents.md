@@ -48,7 +48,7 @@ so it carries no task numbers — `origin <id>` answers where a rule came from:
   linting fixing remedying repairing  the gate, the derived-only fixer, the door every
                   finding names, and the verb that runs the whole report back
   adopting installing  `init` scaffolds, `declare` retrofits a role, `adopt` estimates,
-                    `install` wires it in, `engines` says which three copies write, judge, gate
+                    `install` wires it in, `engines` says which copies write, judge, gate and merge
   guarding screening attesting serving provenance  the hook, what it loads for, what no verb
                     wrote, the stdio tools, and which tree answered
   capturing  a defect in this tool, as facts a replay re-runs

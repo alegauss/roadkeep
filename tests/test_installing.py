@@ -1857,3 +1857,25 @@ def test_no_two_reads_of_the_wiring_can_be_read_as_contradicting(project, source
     # And both defer to the verb that owns the question rather than answering the other half.
     assert "merge --check" in engines_said[0]
     assert "merge --check" in install_said
+
+
+def test_the_count_a_sentence_states_says_which_question_it_is_about():
+    """RK1392. RK1385 added a fourth row and eight sentences across five files went on counting
+    three — but not wrongly in one way, which is the whole of it. The **read** answers four; the
+    **verdict** compares three, the driver being a command this tool refuses to execute rather
+    than a version it could compare. A find and replace would have made the second set false.
+
+    Read off the record rather than off prose: what a sentence may say is decided by what the
+    dataclass answers, so this fails when a row is added and the distinction is not restated."""
+    from dataclasses import replace, fields
+
+    from roadkeep.installing import Engines
+
+    read = {one.name for one in fields(Engines)} - {"running"}
+    # Four rows: the pen, the plugin, the gates and the driver.
+    assert read == {"plugin", "gates", "driver"}, sorted(read)
+    # And three judged: adding a driver never moves the verdict, whatever it holds.
+    pair = _pair()
+    for command in ("", "/elsewhere/roadkeep merge %O %A %B --path %P"):
+        assert replace(pair, driver=command).verdict == pair.verdict
+        assert replace(pair, driver=command).agree == pair.agree

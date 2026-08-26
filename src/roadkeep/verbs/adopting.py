@@ -819,8 +819,9 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
             "An adopting project wires three: the plugin its hook and skill run, the action "
             "its workflow gates on, and whatever `roadkeep` the caller invokes. They are "
             "allowed to differ — a cache may lag a checkout — and what is not survivable is "
-            "not being able to say which one answered. Exits 1 where the two that state a "
-            "version state different ones, so a session can ask this and act on it."
+            "not being able to say which one answered. A fourth is read and never judged: "
+            "the merge driver git would run, a command rather than a version. Exits 1 where "
+            "the two that state a version state different ones."
         ),
     )
     # The one line a caller pastes (RK1230). Its own flag rather than a row in the table:

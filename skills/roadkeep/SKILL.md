@@ -64,7 +64,10 @@ be in play at once — the plugin your hook and this file come from, the action 
 and whatever `roadkeep` you are calling — and they are allowed to differ. **`engines`
 reads all three** and answers `agreed`, `behind` or `unpinnable` — the last being one
 version and a modified checkout, which is no commit the plugin could match and so is not
-agreement; it exits 1 on either of the two that are not. Reach for it when a hook denies a
+agreement; it exits 1 on either of the two that are not. **A fourth is read and never
+judged**: the merge driver git would run, which is a command and not a version, so it is a
+row and not a verdict — the copy that runs when nobody is watching, and `merge --check` is
+where whether git can run it is answered. Reach for it when a hook denies a
 write the command you just ran would have made, because then the refusal is that copy's
 rule and not this one's. **And `engines --invoke` prints, on one line and alone, the
 command that reaches the copy wired to this project** — reach for it before composing any

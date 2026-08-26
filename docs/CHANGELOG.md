@@ -736,6 +736,7 @@
 - ✅ **RK1387** **install --check offers to wire a driver the files already route to, so two reads disagree about one fact** — The row reads the attribute half back, so a tree whose files already route is told that rather than offered the flag (design recorded in `src/roadkeep/installing.py`).
 - ✅ **RK1388** **two reads answer about one half of the wiring each and neither says which, so together they read as a contradiction** — Each row names the half of the wiring it read and defers to the verb that labels both, so the three reads reconcile (design recorded in `src/roadkeep/installing.py`).
 - ✅ **RK1389** **merge --check offers one copy where the register report names both, and the other reads now send the caller here** — The check names the other copy beside its repairs, off the one sentence the register report already prints (design recorded in `src/roadkeep/merging.py`).
+- ✅ **RK1392** **engines reads a fourth copy and every sentence that counts them still says three** — Every sentence about `engines` says which question its count is for: four copies are read and three are judged (design recorded in `src/roadkeep/installing.py`).
 
 ## Block F — The Claude Code plugin
 
