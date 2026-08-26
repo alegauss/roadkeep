@@ -2569,6 +2569,40 @@ def test_a_destination_under_another_parent_is_refused(tmp_path):
     assert read(config) == DOUBLED_IMPROVEMENTS
 
 
+def test_the_refusal_names_the_free_address_and_not_only_the_family(tmp_path):
+    """RK1378. It named the family and stopped, and the address under it is `next_child`, one
+    call away, off the family the sentence had just spelled. So a caller guessed — measured
+    while writing another task's fixture, where the guess was free by luck and on a family
+    running to twenty-seven would have been a second refusal.
+
+    Every other complete door here takes that last step: `add --ref` on a block whose prose has
+    not started carries the whole path with the arguments filled in."""
+    config = doubled(tmp_path)
+    with pytest.raises(NotASibling) as raised:
+        move(config, "improvements", "I.2", "XIV.5")
+
+    assert raised.value.free
+    assert raised.value.free.startswith("I.")
+    assert f"§{raised.value.free} is free" in str(raised.value)
+    # And it is free: what the read offers is what the write then accepts.
+    assert move(config, "improvements", "I.2", raised.value.free).section.anchor == raised.value.free
+
+
+def test_the_offered_address_replaces_the_destination_and_not_the_source(tmp_path, capsys, monkeypatch):
+    """RK1378's second half. `_retrying` hands back the caller's own call with the address it
+    was refused for, and until now every refusal offering one offered it for the anchor the
+    caller *spent* — so substituting there was one rule. This one offers a **destination**: the
+    source is where the heading is, and replacing the anchor composes a call that moves a
+    different section to the address just refused."""
+    root = doubled(tmp_path).root
+    assert main(["-C", str(root), "section", "move", "I.2", "--to", "XIV.5"]) == EXIT_USAGE
+    (retry,) = [
+        line for line in capsys.readouterr().err.splitlines() if line.startswith("  retry")
+    ]
+    assert "section move I.2 --to I." in retry
+    assert "XIV.5" not in retry
+
+
 def test_a_destination_the_sibling_file_declares_is_refused(tmp_path):
     # The refusal `add` computes about a destination, asked by this verb too (RK302): a repair
     # that could land on the address the other file holds would recreate the doubling it was

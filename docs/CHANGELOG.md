@@ -617,6 +617,7 @@
 - ✅ **RK1327** **a repair --fix makes with no word in REPAIRS goes unnamed in all six copies, and the gate stays green** — each pass declares the words it produces and REPAIRS is derived from them, so a repair with no word is a red (design §RK1327 recorded in `src/roadkeep/fixing.py`).
 - ✅ **RK1322** **the tree is split between two line terminators and nothing reads which a file is, so an append lands in the wrong one** — the working copies are one terminator again, and an invariant refuses a tree that is both (design §RK1322 recorded in `tests/test_invariants.py`).
 - ✅ **RK1323** **this repository declares no [criteria], so the fixture that proves the format does not exercise a table init now writes** — the fixture declares [criteria] and every live block states what would finish it, so the table is proven by the artefact (design §RK1323 recorded in `roadkeep.toml`).
+- ✅ **RK1378** **the refusal that will not move an anchor across parents names the family and not the free address under it** — The refusal states the free address, and the retry it earns replaces the destination rather than the source (design recorded in `src/roadkeep/verbs/refusing.py`).
 
 ## Block E — Adoption
 

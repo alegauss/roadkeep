@@ -75,8 +75,17 @@ def _retrying(error: Exception) -> str | None:
     argv = list(invocation_argv())
     if not argv:
         return None
+    # **Which token the address replaces is the error's to say** (RK1378). Every refusal here
+    # until now offered an address for the one the caller *spent* — `anchor` — so substituting
+    # it was one rule. `NotASibling` offers one for the **destination**: the source is where the
+    # heading is and the free child is where it may go, so replacing the anchor composes a call
+    # that moves a different section to the address just refused. Read off `to` first, and only
+    # where the error carries one, which no other refusal in `_OFFERS` does.
+    destination = getattr(error, "to", "")
     burnt = getattr(error, "anchor", "")
-    if burnt and burnt in argv:
+    if destination and destination in argv:
+        argv[argv.index(destination)] = offered
+    elif burnt and burnt in argv:
         argv[argv.index(burnt)] = offered
     elif "--ref" in argv:
         at = argv.index("--ref")

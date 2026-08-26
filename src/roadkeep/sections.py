@@ -541,16 +541,54 @@ class NotASibling(ValueError):
     and re-levelling one to fit a new depth is a rewrite of headings nobody asked about.
     """
 
-    def __init__(self, anchor: str, to: str, parent: str) -> None:
+    def __init__(self, anchor: str, to: str, parent: str, free: str = "") -> None:
         self.anchor = anchor
         self.to = to
         self.parent = parent
+        #: The free address under that parent, where history could be read for it (RK1378).
+        #: This refusal named the family and stopped, and a caller has no way to the address
+        #: but a guess — which is the last step every other complete door here already takes:
+        #: `add --ref` on a block whose prose has not started carries the whole path with the
+        #: arguments filled in. Empty where `anchors` could not be read, and then the sentence
+        #: names *that* read rather than claiming an address it does not have.
+        self.free = free
         under = f"under §{parent}" if parent else "at the top level"
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
+        # The address, or the read that gives it. Never a composed `section move`: the address
+        # is derivable and which sibling a heading should become is the caller's, so what is
+        # offered is the free anchor and not a call somebody would run without reading.
+        says = (
+            f", where §{free} is free"
+            if free
+            else f" (`{invocation()} anchors --family {parent}` says which is free)"
+            if parent
+            else ""
+        )
         super().__init__(
             f"§{anchor} cannot move to §{to}: this write changes the address and not the "
             f"place, so a destination under another parent leaves the heading inside the "
-            f"subtree it no longer names — name an address {under}"
+            f"subtree it no longer names — name an address {under}{says}"
         )
+
+
+def _free_under(config: Config, family: str) -> str:
+    """The next address nothing under ``family`` ever used, or `""` (RK1378).
+
+    :func:`~roadkeep.history.next_child` and never a count of the headings on file, for that
+    function's own reason: an address a ship retired is spent, and a family reopened over one
+    is the collision `section add` refuses by name. So this reads history, and where history
+    cannot be read — a checkout with no git, a repository this process cannot run — it answers
+    nothing and the refusal names the command instead of stating an address it did not get.
+    """
+    if not family:
+        return ""
+    from roadkeep.history import HistoryUnavailable, anchors, next_child  # noqa: PLC0415 - RK260
+
+    try:
+        return next_child(anchors(config), family)
+    except (HistoryUnavailable, OSError):
+        return ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -2286,7 +2324,7 @@ def move(config: Config, role: str, anchor: str, to: str) -> Moved:
     if to == anchor:
         raise SameAnchor(anchor)
     if _parent(to) != _parent(anchor):
-        raise NotASibling(anchor, to, _parent(anchor))
+        raise NotASibling(anchor, to, _parent(anchor), _free_under(config, _parent(anchor)))
 
     children = descending(document, anchor)
     subsections = tuple(

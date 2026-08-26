@@ -159,6 +159,10 @@ SITES: tuple[Site, ...] = (
     # The stairs RK1198, RK1205 and RK1207 each walked by hand.
     # The address a decision's body needs where the file numbers its own headings (RK1363).
     Site("shipping.py:DecidesUnaddressed.__init__", "run"),
+    # RK1378: the read it names is the branch where `anchors` could not be read, and the one
+    # `test_the_refusal_names_the_free_address_and_not_only_the_family` exercises is the other
+    # — where the address is stated and no command is composed at all.
+    Site("sections.py:NotASibling.__init__", "unreached", NO_FIXTURE),
     Site("sections.py:UnknownParent.__init__", "run"),
     Site("sections.py:_the_path_into", "run"),
     Site("sections.py:_where_a_top_level_is", "unreached", NO_FIXTURE),

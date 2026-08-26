@@ -81,31 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1378 A refusal that names the family and stops one step short
-
-Measured while writing RK1377's second fixture. `section move I.3 --to II` is refused
-with *this write changes the address and not the place, so a destination under another
-parent leaves the heading inside the subtree it no longer names — name an address under
-I*: correct, complete about the rule, and silent about which address. The next free
-child under that family is `anchors --family I --next`, one call away, and the family is
-the one the refusal has just spelled.
-
-So the caller guesses. The guess that followed was `I.9`, free by luck; on a family
-running to twenty-seven it would have been a second refusal, and the address wanted
-would be the twenty-eighth row of a listing a tool result truncates first — which is the
-read RK1310 added `--next` for.
-
-The rule here is that a finding names the command that closes it and never leaves one to
-be inferred. `add --ref` on a project whose block has no prose carries the whole path —
-the `block add`, the `section add`, the retry — with the arguments filled in. This
-refusal is that shape with the last step missing.
-
-What it may not do is choose. The address is derivable and the title is not, so what
-belongs here is the free anchor and never a composed call a caller would run without
-reading.
-
-Falsified when a refusal names a family whose free address it could have stated.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

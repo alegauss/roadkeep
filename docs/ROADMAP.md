@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1378** (deps: —) **the refusal that will not move an anchor across parents names the family and not the free address under it** — `anchors --family <x> --next` answers in one call and the refusal already spelled the family, so a caller guesses an address the tool could have handed them. → §RK1378
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
