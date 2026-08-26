@@ -28,6 +28,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1393** (deps: —) **the authority on the query surface does not name the subject config gained, so an agent cannot discover it there** — RK1381 added the boundary row to a served read and left the skill describing only the declarable keys, which is the half an agent reads before calling. → §RK1393
+
 ## Block D — The gate
 
 ## Block E — Adoption
