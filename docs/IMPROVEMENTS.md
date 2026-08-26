@@ -79,6 +79,32 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1381 A number decided by a reading no command states
+
+`CHARS_PER_WORD` turns a limit that refuses into an aim that can be composed towards. It
+is fixed from this repository's own symptoms and whys — the 95th percentile, and the
+first round number above it — and it is deliberately not configuration (L6): a project
+declares how long its lines may be, and this is a property of the prose those lines are
+written in.
+
+What every other number decided by a reading has is a verb that states that reading.
+`govern <key>` with no value prints it, and `cost`, `budget --file` and `weight` are the
+readings behind the rest. This one has none, so when the corpus grew past it the only
+thing that spoke was a test — and getting the new figure meant writing the same
+throwaway script twice in one session.
+
+The reading is small and already written down twice: once in the constant's own comment,
+once in the test that re-measures it. What is missing is the third spelling — a command,
+so the figure and the corpus it came from are one answer rather than a number in source
+and an assertion in a suite.
+
+What it must not become is a write. There is nothing to declare, the constant being none
+of a project's business, so what an answer holds is the percentile, the sample it was
+taken over, and the figure this build carries.
+
+Falsified when a number this package fixes from its own corpus can be re-measured only
+by a script.
+
 ## Block D — The gate
 
 ## Block E — Adoption

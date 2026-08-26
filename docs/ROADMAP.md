@@ -28,6 +28,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1381** (deps: —) **the conversion fixed from this package's own corpus has no read that states the reading, so its drift needs a script** — `govern` states the reading behind every number in `roadkeep.toml` and this one is deliberately not there, so what decides it lives only inside a test. → §RK1381
+
 ## Block D — The gate
 
 ## Block E — Adoption
