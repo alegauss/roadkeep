@@ -119,12 +119,16 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
 | C — Query (consult without reading the file) | 0 | 139 | 2 |
-| D — The gate | 0 | 196 | 2 |
+| D — The gate | 1 | 196 | 2 |
 | E — Adoption | 0 | 109 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 34 | 1 |
-| **Total** | 0 | 876 | 12 |
+| **Total** | 1 | 876 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1391** (deps: —) **a frozen fixture nobody declared is read by nothing and reported by nothing, though the table says otherwise** — `FROZEN_SHAPES` is declared rather than globbed so an unread fixture stays visible, and the directory it is declared against is confronted with it nowhere. → §RK1391
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
