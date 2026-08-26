@@ -79,11 +79,63 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1370 The read that has to be remembered, at the moment nothing is spent
+
+`delivered <block> --near` exists and is the read the skill puts before every proposal
+(RK1183, RK1042). It is a read the author has to remember, and this session did not:
+RK1369 was filed claiming nothing checked which arguments a served verb withholds, that
+check had existed since RK1099, and the `add` that wrote the line said nothing.
+
+The skill's argument for reading first is that reading after the line exists is too
+late. That is right about the *decision* and wrong about the *cost*: an `add` answer
+already carries the follow-ups a caller acts on (RK476), and at that moment `retire` and
+`restate` are one call away with nothing spent but an id. So naming the nearest entries
+there costs a ranking already written, and turns a read somebody has to remember into
+one the write hands back.
+
+It stays an order and never a verdict, which is the whole of RK1183's finding: two
+people describing one problem use disjoint words, so no threshold separates a duplicate
+from a neighbour and this tool has no meaning to judge with (L4). What the answer says
+is *these are nearest*, and whether one of them is this task is the caller's reading.
+
+The narrow question is how many, and whether the `--section` transaction's answer has
+room: a line's is already the longest this verb writes.
+
+Falsified when an `add` lands beside an entry stating the same problem and the answer
+names neither.
+
 ## Block D — The gate
 
 ## Block E — Adoption
 
 ## Block F — The plugin
+
+### §RK1371 Sentences held current by a gate and reachable from nowhere
+
+`serving.withheld()` returns, per verb, the sentence RK1169 declared beside each
+argument the tool surface does not offer. Ten parsers declare them. Nothing in the
+package calls it: the one caller is `tests/test_serving.py`, which uses it to hold the
+declaration against the parsers.
+
+Its own docstring says the readers are composing "a description or a refusal, where that
+cost is already paid" — an intent with no call site behind it. So the sentences are
+correct, current, held in step by a check, and unreachable from the surface they are
+about.
+
+What that costs is the question they answer. An agent over MCP that wants `lint --fix`,
+`claims --prune` or `budget --body-file` finds no such property on the schema and learns
+nothing else. The reason exists — *it writes, and RK16 keeps the derived-only repair
+where a human is standing* — and reaching it means opening `cli.py`, which is the read
+L5 exists to replace.
+
+Where it goes is the narrow question, and the ceiling decides it. A description listing
+what a caller may not pass spends the session budget on prose about absence. The two
+moments where somebody is already asking are the refusal an unknown property raises, and
+`cost --tools <verb>`, which prints that verb's field list and is what this was found
+through.
+
+Falsified when a caller is told why an argument is not offered without opening the
+source.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

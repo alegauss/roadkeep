@@ -28,11 +28,15 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1370** (deps: —) **an add answers without the delivered entries nearest what it filed, so a duplicate is found after the design is written** — This session filed a task whose remedy the code already had, and the ranking that would have named it was one call away inside that same transaction. → §RK1370
+
 ## Block D — The gate
 
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK1371** (deps: —) **every reason for not serving an argument is declared and read by no command, so a caller asking why reaches none** — RK1169 moved each sentence beside the argument it explains, and the only reader it ever found is the test that holds the two halves in step. → §RK1371
 
 ## Block G — The editor surface (the backlog where the file is open)
 
