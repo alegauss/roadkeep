@@ -120,15 +120,11 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
 | C — Query (consult without reading the file) | 0 | 139 | 2 |
 | D — The gate | 0 | 195 | 2 |
-| E — Adoption | 1 | 106 | 1 |
+| E — Adoption | 0 | 107 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 34 | 1 |
-| **Total** | 1 | 872 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1387** (deps: —) **install --check offers to wire a driver the files already route to, so two reads disagree about one fact** — The row states what `install` does not write and never reads the wiring back, while `merge --check` does, so one tree is unwired to one of them and wired to the other. → §RK1387
+| **Total** | 0 | 873 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

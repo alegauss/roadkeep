@@ -462,6 +462,29 @@ def test_the_merge_driver_is_named_even_though_it_is_not_written(project, source
     assert "not written    .gitattributes" in capsys.readouterr().out
 
 
+def test_a_driver_already_routed_stops_the_row_advertising_the_flag(project, source, capsys):
+    """RK1387, by RK394's argument one step further: an opt-in already taken is a different
+    entry from one nobody has chosen yet. The row stated what `install` does not write and
+    never asked whether anything else had — so `merge --check` answered *4 of 4 governed files
+    routed* while this one offered to wire them, two reads of one tree.
+
+    The attribute half only: whether this clone can run what the files route to is per
+    checkout, and quoting it here would be the second answer this closes."""
+    declaring(project, CLEAN)
+    assert main(["-C", str(project), "merge", "--register"]) == EXIT_OK
+    capsys.readouterr()
+
+    assert main(["-C", str(project), "install", "--source", str(source), "--check"]) in (
+        EXIT_OK,
+        EXIT_GATE,
+    )
+    said = capsys.readouterr().out
+    assert "already route to the merge driver" in said
+    assert "`install --register-merge` runs it here" not in said
+    # And the read that does answer the other half is named rather than quoted.
+    assert "merge --check" in said
+
+
 def test_the_flag_writes_the_attribute_half_and_prints_the_config_half(project, source, capsys):
     declaring(project, CLEAN)
     argv = ["-C", str(project), "install", "--source", str(source), "--register-merge"]

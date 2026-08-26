@@ -178,6 +178,22 @@ MERGE_BLOCKED = (
     "all — `install --register-merge` would refuse, and moving that is what comes first"
 )
 
+#: And the third state (RK1387), by :data:`MERGE_BLOCKED`'s own argument one step further: an
+#: opt-in already taken is a different entry from one nobody has chosen yet, so it says which
+#: and stops advertising a flag whose whole answer would be four lines already there.
+#:
+#: Read back rather than assumed, which is the defect: this row stated what `install` does not
+#: write and never asked whether anything else had — so `merge --check` answered *4 of 4
+#: governed files routed* while this one offered to wire them, two reads of one tree.
+#:
+#: The **attribute** half only. Whether git can run what it finds is per clone and is what
+#: `merge --check` exists to say, so quoting it here would be the second answer this closes.
+MERGE_WIRED = (
+    ".gitattributes: the governed files already route to the merge driver, so there is "
+    "nothing here for `install --register-merge` to write — `{invocation} merge --check` is "
+    "what says whether this clone can run what they route to"
+)
+
 #: What the two *copies* become when the tree being wired is the tree answering (RK235). Not
 #: a refusal: the declarations still mean what they mean at this root — this repository wires
 #: itself to its own checkout by hand and a test holds that (RK81) — and what would be wrong
@@ -609,10 +625,15 @@ def plan(
             surfaces.append(_copy(base / PROJECT_BRIDGE, _read(origin / PLUGIN_BRIDGE)))
     driver = blocking(base / ATTRIBUTES)
     if not registering:
+        # Three states and no longer two (RK1387). `blocking` answers whether another driver
+        # holds the path; `_routed` answers whether ours already does, which is the question
+        # this row never asked and `merge --check` has always answered.
         described = (
-            MERGE.format(invocation=invocation())
-            if driver is None
-            else MERGE_BLOCKED.format(blocker=driver.name)
+            MERGE_BLOCKED.format(blocker=driver.name)
+            if driver is not None
+            else MERGE_WIRED.format(invocation=invocation())
+            if _routed(base)
+            else MERGE.format(invocation=invocation())
         )
         skipped.insert(0, (described.split(":")[0], described))
     debt = _standing(base) if gauging else None
@@ -933,6 +954,29 @@ class Engines:
             # and `agreed` there was the defect being fixed.
             "verdict": self.verdict,
         }
+
+
+def _routed(root: Path) -> bool:
+    """Whether the governed files already route to this driver (RK1387).
+
+    Off `merging.attributed`, which is `register`'s own read: two computations of *the line
+    this role wants* is how a check and a write come to disagree, and that function was written
+    to be the one both ask. What it answers here is the **attribute** half — a fact about a
+    committed file, and this report's business — while whether this clone can run what they
+    route to is per checkout and is what `merge --check` exists to say.
+
+    False on a tree this cannot read, which is the same direction every other absence in this
+    report takes: an unreadable project is one nothing is wired in as far as a reader can tell,
+    and offering the command there is the honest half.
+    """
+    from roadkeep.config import Config  # noqa: PLC0415 - RK260
+    from roadkeep.merging import attributed  # noqa: PLC0415 - RK260
+
+    try:
+        found = attributed(Config.discover(root))
+    except Exception:  # noqa: BLE001 - an unreadable tree is an unwired one to this reader
+        return False
+    return bool(found.wanted) and not set(found.wanted) - set(found.present)
 
 
 def engines(root: str | Path = ".") -> Engines:

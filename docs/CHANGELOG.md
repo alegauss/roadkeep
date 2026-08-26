@@ -731,6 +731,7 @@
 - ✅ **RK1384** **this repository ships a merge driver and routes none of its own files to it, so a merge here falls back to git's markers** — Git sends all four of this repository's governed files to the driver it ships, so its own merges are decided the way it claims (design recorded in `.gitattributes`).
 - ✅ **RK1385** **the driver git runs is a fourth copy of this tool and no read says which, so a build behind the tree merges its files** — `engines` names the driver git would run beside the tree writing here, and never reads its version, which would mean running it (design recorded in `src/roadkeep/installing.py`).
 - ✅ **RK1386** **register wires whatever installed the console script, so a developer's checkout cannot be the driver its own merges run** — Where a machine holds two copies the report names both, so the caller chooses knowing there is a choice (design recorded in `src/roadkeep/rendering.py`).
+- ✅ **RK1387** **install --check offers to wire a driver the files already route to, so two reads disagree about one fact** — The row reads the attribute half back, so a tree whose files already route is told that rather than offered the flag (design recorded in `src/roadkeep/installing.py`).
 
 ## Block F — The Claude Code plugin
 
