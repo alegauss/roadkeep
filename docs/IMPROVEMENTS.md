@@ -77,6 +77,29 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1379 What finished the five blocks that closed on being empty
+
+`criterion list` names six criteria across three blocks — D, F and H. The other five are
+A, B, C, E and G, all finished, none of them saying what they were for. RK1358 is why
+that is visible at all: a ship into such a block answers `unchecked`, and this session's
+ships answered it repeatedly.
+
+The tool cannot write them and must not (L4). What it does is name the door, and the
+door has been named on every one of those ships.
+
+Why this is work and not bookkeeping: a shipped entry says what was delivered and a
+design says how, and a `ship` correctly deletes the design. So for a finished block the
+only surviving statement is a list of outcomes — which tells a reader what the block was
+worth only if they already knew what it was for. RK1265's own argument is that a block
+closed six times on emptiness before the list existed, and five of the eight here are
+still in that state.
+
+What it costs is two sentences per block, in the vocabulary each block's ledger already
+uses, and the reading is that ledger: a criterion nobody can point at delivered entries
+for is one this project did not actually hold itself to.
+
+Falsified when a block finishes and nothing in the roadmap states what it was for.
+
 ## Block C — Query
 
 ## Block D — The gate

@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1379** (deps: —) **five of the eight blocks closed with nothing stating what finished them, which is the emptiness RK1358 says out loud** — Every ship into those blocks has answered `unchecked`, and the sentence a criterion carries is the one thing neither the ledger nor a design keeps. → §RK1379
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
