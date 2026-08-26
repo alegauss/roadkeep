@@ -38,6 +38,8 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
+- 📋 **RK1377** (deps: —) **four of the six writes the sweep excludes are excluded for the fixture's shape and not for anything about the verb** — Each needs a state a second fixture writes, so the closure passes over four printers nobody sweeps and a sentence was cheaper than the fixture. → §RK1377
+
 ## Done when — Block D
 
 - **The gate passes on this repository's own docs** the format is proven by the artefact
