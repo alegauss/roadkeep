@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1379** (deps: —) **five of the eight blocks closed with nothing stating what finished them, which is the emptiness RK1358 says out loud** — Every ship into those blocks has answered `unchecked`, and the sentence a criterion carries is the one thing neither the ledger nor a design keeps. → §RK1379
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
@@ -66,6 +64,51 @@
 - **Every served tool answers one question** a verb answering eight subjects is refused
   by whichever arrived last, and the seam is the tense: what a write may spend is not
   what a surface does (RK1321).
+
+## Done when — Block A
+
+- **One parser reads a line and one renderer writes it** the format is a schema and not
+  a regex over prose, so a line that would render back differently refuses the whole
+  file rather than being normalised (L1, L3).
+- **An id is spent once, whatever holds it** a number two writes could mint is one two
+  designs share in the history, so what derives an id reads every file a project
+  declares and prose counts as carrying one.
+
+## Done when — Block B
+
+- **Every write a governed file takes has a verb** a hand edit is the drift this tool
+  exists to refuse, so the guard denies one and names the command — and a state
+  reachable only by editing the file is a verb that is missing.
+- **A write lands whole or leaves the tree untouched** three files change on a ship and
+  whichever is done last is the one forgotten, so every field is validated before
+  anything is written and a refusal costs a retry and never a deletion.
+
+## Done when — Block C
+
+- **Every question is a command, and its answer is bounded** reading the file to answer
+  costs the context this tool exists to save, so a read fits a tool result and says what
+  it left out rather than inheriting a guarantee it gave up (L5).
+- **One reading, two registers** the printed answer and the payload come off one record,
+  because a printer and a payload builder agreeing by hand is how an agent comes to be
+  told less than the person at the terminal.
+
+## Done when — Block E
+
+- **A project that already has a backlog can adopt this** a tool that needs an empty
+  repository cannot be adopted by the repository that needs it, so drift is measured and
+  forgiven by name against a baseline rather than refusing the file.
+- **One command wires it, and one read says what is wired** three copies of this tool
+  can answer at once and they are allowed to differ, so what is not survivable is being
+  unable to say which of them wrote, judged or gated.
+
+## Done when — Block G
+
+- **The backlog is legible where the file is open** a format an author meets only in a
+  terminal is one they edit by hand in the editor, so the surface holding the file
+  offers the same writes under the same limits.
+- **A surface in another language is gated in this tree** CI proving the Python and
+  nothing else is a client that breaks on a renamed key with nobody reporting it, so the
+  payload is asserted here as an outside client reads it.
 
 ## Non-goals
 

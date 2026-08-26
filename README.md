@@ -117,18 +117,14 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 216 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
 | C — Query (consult without reading the file) | 0 | 138 | 2 |
 | D — The gate | 0 | 194 | 2 |
 | E — Adoption | 0 | 103 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 32 | 1 |
-| **Total** | 1 | 864 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1379** (deps: —) **five of the eight blocks closed with nothing stating what finished them, which is the emptiness RK1358 says out loud** — Every ship into those blocks has answered `unchecked`, and the sentence a criterion carries is the one thing neither the ledger nor a design keeps. → §RK1379
+| **Total** | 0 | 865 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
