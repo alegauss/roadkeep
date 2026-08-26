@@ -123,12 +123,8 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 102 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 122 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 1 | 28 | 1 |
-| **Total** | 1 | 850 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1365** (deps: —) **brief reports 37 characters left for a ship why and then accepts one of 145** — The budget exists so prose is written once, and a number four times smaller than the real limit gets ignored, which is the same as not having it. → §RK1365
+| H — The tool's own shape (what one verb costs to change) | 0 | 29 | 1 |
+| **Total** | 0 | 851 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

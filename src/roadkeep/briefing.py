@@ -417,8 +417,9 @@ class Brief:
                 # task about to lose its design is exactly when this allowance is read, so an
                 # answer that omitted it was wrong precisely when it was asked for.
                 rows.append(
-                    f"  shipping why {ship.left} of {ship.allowed} left on the ledger line a "
-                    f"`ship` writes, which is the limit that refuses it — less a `--part` "
+                    f"  shipping why {ship.allowed} for the ledger line a `ship` writes, which "
+                    f"is the limit that refuses it — the whole of it, that sentence replacing "
+                    f"this line's rather than extending it (RK1365) — less a `--part` "
                     f"qualifier, which is structure this cannot know you will pass"
                 )
                 # Both clauses and no longer one (RK1275): two flags landed in that sentence
@@ -438,9 +439,9 @@ class Brief:
             # a reader given only the ledger's number was composing the durable half blind.
             decided = self.deciding.share("why")
             rows.append(
-                f"  deciding why {decided.left} of {decided.allowed} on the line "
-                f"`--decides` files, which is the decisions role's own limit and not the "
-                f"ledger's — the constraint that outlives the code, refused by that number"
+                f"  deciding why {decided.allowed} on the line `--decides` files, which is "
+                f"the decisions role's own limit and not the ledger's — the constraint that "
+                f"outlives the code, refused by that number"
             )
             # The **claim** that line inherits, where the decisions file is narrower than the
             # roadmap (RK1281): `--decides` writes no symptom, so a ship refused over one is
@@ -753,18 +754,28 @@ def _gather(
             # characters wider than the line — an allowance with ten it could not spend, and
             # a reader who trusted it and then watched `ship` accept more was told two things.
             # Through `ship`'s own function, so the figure and the write cannot come apart.
-            as_recorded(task, config.schema.shipped_marker, None),
+            #
+            # With the `why` **emptied** and not inherited (RK1365). `Share.left` subtracts what
+            # a field already holds, which is an `amend`'s question — and `ship --why` is
+            # required and *replaces* the roadmap's sentence, so the room for it is the whole
+            # allowance. Priced with that sentence still in the field, this read reported `37 of
+            # 200` against a ship that then accepted 145: a number four times under the real one
+            # fails in the direction that looks safe, and an advisory limit nobody believes still
+            # costs a line of every brief.
+            as_recorded(task, config.schema.shipped_marker, ""),
             open_line=False,
             schema=config.schema_for("changelog"),
         ),
         # The third write the same ship may make (RK1275), priced the same way and under the
         # role's own schema: `--decides` renders a decision the way `ship` renders an entry,
-        # so the figure comes through `as_recorded` for the reason the one above does.
+        # so the figure comes through `as_recorded` for the reason the one above does — and with
+        # the `why` emptied for the reason that one is (RK1365), a `--decides` sentence being
+        # written from nothing exactly as the entry's is.
         deciding=None
         if view.shipped or not config.has("decisions")
         else budget_of(
             config,
-            as_recorded(task, config.schema_for("decisions").shipped_marker, None),
+            as_recorded(task, config.schema_for("decisions").shipped_marker, ""),
             open_line=False,
             schema=config.schema_for("decisions"),
         ),

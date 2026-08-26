@@ -24,7 +24,8 @@ from roadkeep.briefing import CHAINS, NON_GOALS, NothingToBrief, brief, non_goal
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, Scope
 from roadkeep.kernel.document import Document
-from roadkeep.kernel.schema import DESIGNED, IDEA, SHIPPED, Schema
+from roadkeep.kernel.schema import DESIGNED, IDEA, SHIPPED, Schema, SchemaError
+from roadkeep.shipping import ship
 
 HERE = Path(__file__).resolve().parents[1]
 #: How many non-goals Turing's roadmap declares at its pin. Exact, because the read cannot
@@ -609,6 +610,49 @@ def test_the_brief_states_the_ledgers_allowance_beside_the_lines_own(tmp_path, c
     # The ledger's line is shorter by what a dep group and a pointer cost, so the same field has
     # more room there — which is the whole finding: two numbers, and only one was ever shown.
     assert ship["allowed"] > line["allowed"]
+
+
+def test_the_ship_allowance_is_the_field_and_not_what_the_line_left(tmp_path):
+    """RK1365. The figure was `allowed` less what the roadmap's own `why` already held, which is
+    an `amend`'s arithmetic: `ship --why` is required and **replaces** that sentence, so the room
+    for it is the whole allowance. Measured on quickshell — `brief QS19` printed `37 of 200` and
+    the ship that followed accepted 145 without complaint.
+
+    A number four times under the real limit fails in the direction that looks safe: either a
+    shorter and worse sentence gets written, or the budget is disbelieved and stops being read at
+    all, and an advisory limit nobody trusts still costs a line of every brief.
+
+    Held against the write and never against a remembered number, which is the whole of the
+    claim: what the brief publishes is composed as a `--why` and shipped, and one code unit more
+    than it is refused."""
+    # A symptom long enough that the ledger line's own remainder binds rather than `why`'s
+    # declared maximum, so the two allowances differ and the shipping row is the one under test.
+    long = (
+        "- 📋 **RK7** (deps: —) **A symptom long enough that the ledger line's own remainder "
+        "is what binds this why rather than its declared maximum** — Because of a reason itself "
+        "long enough to take up most of what that field is allowed. → §RK7\n"
+    )
+    rationale = RATIONALE + "\n### §RK7 A seventh design\n\nThe reasoning.\n"
+    # Under the block and not after the non-goals: this line is shipped, and a ledger entry is
+    # filed under the heading its roadmap line sat beneath.
+    roadmap = ROADMAP.replace("\n## Non-goals", f"{long}\n## Non-goals")
+    for where, spare in (("exact", 0), ("over", 1)):
+        root = tmp_path / where
+        root.mkdir()
+        config = project(root, roadmap=roadmap, improvements=rationale)
+        allowed = brief(config, "RK7").shipping.share("why")
+        # Nothing is written in that field yet, so the remainder *is* the allowance.
+        assert allowed.taken == 0
+        assert allowed.left == allowed.allowed
+        # One sentence ending in a stop, so nothing but the width is under test.
+        outcome = "W" * (allowed.allowed - 1 + spare) + "."
+        if not spare:
+            ship(config, "RK7", why=outcome).save()
+            assert outcome in config.path("changelog").read_text(encoding="utf-8")
+            continue
+        with pytest.raises(SchemaError) as refused:
+            ship(config, "RK7", why=outcome)
+        assert "why.too-long" in [one.code for one in refused.value.violations]
 
 
 def test_the_second_line_is_silent_where_the_two_agree(tmp_path, capsys):

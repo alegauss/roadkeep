@@ -38,8 +38,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1365** (deps: —) **brief reports 37 characters left for a ship why and then accepts one of 145** — The budget exists so prose is written once, and a number four times smaller than the real limit gets ignored, which is the same as not having it. → §RK1365
-
 ## Done when — Block D
 
 - **The gate passes on this repository's own docs** the format is proven by the artefact
