@@ -88,26 +88,3 @@ already written, not authorship.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1382 A record declared by its presenter and built by its reader
-
-RK1381 added a reading and a row. The reading is `budgeting.conversion`; the record it
-returns, `Fixed`, is declared in `describing` — the module that prints it. So
-`budgeting` imports `describing` to construct one and `describing` imports `budgeting`
-to take one, both inside functions, and neither import can sit at the top of its file.
-
-The layout this project states is that each module's docstring is the authority for what
-that module owns. `describing`'s says it answers what `roadkeep.toml` may declare, and
-it measures no prose. `budgeting`'s is the one about what a write may spend and about
-the conversion that turns a limit into an aim — which is exactly what this record holds.
-
-The visible cost is a weak annotation: `conversion` returns `object`, because naming its
-own return type would need the import the cycle forbids. A reader gets nothing from the
-signature and an editor gets less.
-
-What moving it buys is the ordinary direction, a presenter importing a record, and the
-two call-time imports collapsing into one at the top of the presenter. The printer and
-the payload stay where they are: how a record is stated is the presenter's, and what it
-holds is the reader's.
-
-Falsified when two modules import each other to pass one record between them.

@@ -31,6 +31,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
+from roadkeep.budgeting import Fixed, conversion
 from roadkeep.config import (
     CLAIM_HELD,
     PROSE_ROLES,
@@ -194,46 +195,6 @@ class Key:
     @property
     def address(self) -> str:
         return f"{self.table}.{self.name}" if self.table else self.name
-
-
-@dataclass(frozen=True, slots=True)
-class Fixed:
-    """One number this build fixes from a corpus, with the reading that fixes it (RK1381).
-
-    The completion of the listing beside it. `config` answers *what may this project declare*,
-    and a figure a project may **not** declare is the boundary of that same question — a reader
-    who wonders whether the words-per-character conversion is theirs to set is asking here.
-
-    The reading and never only the figure, which is the whole of the task: every other number
-    decided by one has a verb that states it — `govern <key>` with no value, `cost`, `budget
-    --file` — and this one had a comment in source and an assertion in a suite, so a corpus that
-    grew past it spoke through a red test and the new figure took a throwaway script to get.
-    """
-
-    name: str
-    at: float
-    #: The corpus it was taken over, as a count of the things measured.
-    sample: int
-    #: The percentile the figure follows, and the figure it follows it at.
-    percentile: int
-    reading: float
-    why: str
-
-    def stated(self) -> str:
-        return (
-            f"  {self.name:<12} {self.at}  p{self.percentile} {self.reading} over "
-            f"{self.sample} — {self.why}"
-        )
-
-    def payload(self) -> dict[str, object]:
-        return {
-            "name": self.name,
-            "at": self.at,
-            "sample": self.sample,
-            "percentile": self.percentile,
-            "reading": self.reading,
-            "why": self.why,
-        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -534,8 +495,6 @@ def _fixed(config: Config) -> tuple[Fixed, ...]:
     every answer above — so an unreadable corpus answers with no row and never with a figure
     stated as though a reading had been taken.
     """
-    from roadkeep.budgeting import conversion  # noqa: PLC0415 - RK260
-
     try:
         return (conversion(config),)
     except (OSError, KeyError, ValueError):

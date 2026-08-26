@@ -123,12 +123,8 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 103 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 1 | 32 | 1 |
-| **Total** | 1 | 867 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1382** (deps: —) **the record a reading returns is declared in the module that prints it, so the two import each other at call time** — `Fixed` sits in `describing` and is built in `budgeting`, so a measurement's own type is not where the measurement is and neither import can be at the top. → §RK1382
+| H — The tool's own shape (what one verb costs to change) | 0 | 33 | 1 |
+| **Total** | 0 | 868 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

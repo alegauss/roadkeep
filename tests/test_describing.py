@@ -19,6 +19,8 @@ from pathlib import Path
 
 import pytest
 
+from surface import PACKAGE
+
 from roadkeep import config as module, describing
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
@@ -370,3 +372,41 @@ def test_a_field_s_own_sentence_is_harvested_under_a_prefix():
     # The module-level sets keep answering under their own names, unprefixed.
     assert harvested["_SCOPE_KEYS"].startswith("`[non_goals]`")
     assert ".criteria" != "criteria" and "criteria" not in harvested
+
+
+# -- the record belongs to the reading that builds it (RK1382) -----------------
+
+
+def test_the_reading_is_imported_and_never_imports_this_back():
+    """RK1382. `Fixed` was declared here — the module that prints it — and built in
+    `budgeting`, so each imported the other inside a function: neither import could sit at the
+    top of its file, and `conversion` could not name its own return type.
+
+    A presenter importing a record is the ordinary direction, and it is the direction this
+    asserts. Read off the source rather than off `sys.modules`, because a call-time import is
+    exactly what a runtime check would not see — which is how the cycle was written."""
+    read = (PACKAGE / "budgeting.py").read_text(encoding="utf-8")
+    tree = ast.parse(read)
+    back = {
+        node.module
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ImportFrom) and node.module == "roadkeep.describing"
+    }
+    assert back == set(), "the reading imports its presenter again"
+    # And the other half, so this fails on the move being undone rather than on nothing.
+    assert "from roadkeep.budgeting import Fixed" in (
+        (PACKAGE / "describing.py").read_text(encoding="utf-8")
+    )
+
+
+def test_the_reading_names_its_own_return_type():
+    """The visible cost of the cycle, and the thing that proves it is gone: an annotation a
+    reader gets nothing from is what a record declared by its presenter forces."""
+    found = ast.parse((PACKAGE / "budgeting.py").read_text(encoding="utf-8"))
+    (conversion,) = [
+        node
+        for node in ast.walk(found)
+        if isinstance(node, ast.FunctionDef) and node.name == "conversion"
+    ]
+    assert isinstance(conversion.returns, ast.Name)
+    assert conversion.returns.id == "Fixed"

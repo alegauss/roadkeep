@@ -38,8 +38,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1382** (deps: —) **the record a reading returns is declared in the module that prints it, so the two import each other at call time** — `Fixed` sits in `describing` and is built in `budgeting`, so a measurement's own type is not where the measurement is and neither import can be at the top. → §RK1382
-
 ## Done when — Block D
 
 - **The gate passes on this repository's own docs** the format is proven by the artefact

@@ -1966,7 +1966,53 @@ def sourced(shares: Sequence[Share]) -> list[str]:
 CONVERSION_AT = 95
 
 
-def conversion(config: Config) -> "object":
+@dataclass(frozen=True, slots=True)
+class Fixed:
+    """One number this build fixes from a corpus, with the reading that fixes it (RK1381).
+
+    Here and not in `describing`, which is the module that prints it (RK1382): a record belongs
+    with the reading that builds it, and declaring it beside the presenter made the two import
+    each other inside functions — so neither import could sit at the top of its file and this
+    module's own reading could not name its return type.
+
+    What it holds is the reading and never only the figure, which is the whole of RK1381: every
+    other number decided by one has a verb that states it — `govern <key>` with no value,
+    `cost`, `budget --file` — and this one had a comment in source and an assertion in a suite,
+    so a corpus that grew past it spoke through a red test and the new figure took a throwaway
+    script to get.
+
+    How it is *stated* stays the presenter's, which is the line this move does not cross: the
+    two methods below are the same pair every record here carries (RK1170), one answer in two
+    registers, and a `config` that composed its own row would be the second spelling of it.
+    """
+
+    name: str
+    at: float
+    #: The corpus it was taken over, as a count of the things measured.
+    sample: int
+    #: The percentile the figure follows, and the figure it follows it at.
+    percentile: int
+    reading: float
+    why: str
+
+    def stated(self) -> str:
+        return (
+            f"  {self.name:<12} {self.at}  p{self.percentile} {self.reading} over "
+            f"{self.sample} — {self.why}"
+        )
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "name": self.name,
+            "at": self.at,
+            "sample": self.sample,
+            "percentile": self.percentile,
+            "reading": self.reading,
+            "why": self.why,
+        }
+
+
+def conversion(config: Config) -> Fixed:
     """The reading behind `CHARS_PER_WORD`, as a command rather than a script (RK1381).
 
     Every other number decided by a reading has a verb that states it — `govern <key>` with no
@@ -1983,8 +2029,6 @@ def conversion(config: Config) -> "object":
     prose those lines are written in and not a project's to configure (L6) — so what comes back
     is the percentile, the sample it was taken over, and the figure this build carries.
     """
-    from roadkeep.describing import Fixed  # noqa: PLC0415 - RK260
-
     ratios = sorted(
         len(text) / len(text.split())
         for role in ("roadmap", "changelog")
