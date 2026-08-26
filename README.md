@@ -118,17 +118,17 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 215 | 2 |
-| C — Query (consult without reading the file) | 1 | 134 | 2 |
+| C — Query (consult without reading the file) | 0 | 135 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 1 | 102 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 122 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 29 | 1 |
-| **Total** | 2 | 851 | 12 |
+| **Total** | 1 | 852 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1366** (deps: —) **budget states the room left beside a why no write extends, so an amend is told 8 words where it may write 31** — RK1365 fixed this arithmetic for the ledger's sentence and left it standing on the line above, where `amend --why` replaces the field just as a ship's does. → §RK1366
+- 📋 **RK1367** (deps: —) **govern only stacks, so a number whose premise was falsified keeps every paragraph arguing for the reading it replaced** — Dropping a withdrawn argument was a 56-line hand edit to `roadkeep.toml`, which over MCP is the edit the guard denies and so no edit at all. → §RK1367
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

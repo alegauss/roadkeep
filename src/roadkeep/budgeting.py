@@ -181,6 +181,18 @@ class Share:
     #: read said only 200 and the line maximum. Two descriptions of one field disagreeing
     #: about what binds it is the state RK1225 is about.
     terminated: bool = False
+    #: Whether the write this budget is about **replaces** this field rather than adding to it
+    #: (RK1366). Every write that reaches one does — `amend --why`, `restate --symptom`,
+    #: `non-goal amend --why`, and the two sentences RK1365 fixed a file over — so the room for
+    #: the next one is the whole allowance and never the allowance less prose it deletes.
+    #:
+    #: :attr:`taken` is untouched by it and stays what the file holds, which is what
+    #: :attr:`over` is measured on: an adopting corpus's standing drift is exactly the finding
+    #: that number exists for, and zeroing the field to fix the remainder would take it out.
+    #: False wherever the prose *is* carried forward — a retirement's derived prefix, which the
+    #: author's reason is appended to (RK1305) — and false against a draft, where `taken` is
+    #: the prospective prose and the remainder is the overrun the write will be refused by.
+    replaced: bool = False
 
     @property
     def bounded(self) -> str:
@@ -199,7 +211,15 @@ class Share:
 
     @property
     def left(self) -> int:
-        return max(0, self.allowed - self.taken)
+        """The room the *next* write has, which is the whole allowance where it replaces.
+
+        RK1365 found this arithmetic wrong for the ledger's sentence and RK1366 for the line
+        above it: nothing extends a one-sentence field, so `allowed - taken` described a write
+        nobody makes. On one line here the two readings were 55 and 200, and the word aims
+        beside them 8 against 31 — a quarter of the real figure, which is worse than none,
+        because an author either composes to it or stops believing the row.
+        """
+        return self.allowed if self.replaced else max(0, self.allowed - self.taken)
 
     @property
     def over(self) -> int:
@@ -231,8 +251,16 @@ class Share:
         read next to a remainder in characters it invites the reading that thirty words are
         available when three are. So the two are never printed together: what is stated is the
         aim for what is left, and `--json` keeps both.
+
+        "More" only where there is prose to add to (RK1366): on a replaced field the whole
+        figure *is* the remainder, and `aim 26 more words` beside a sentence about to be
+        deleted reads as twenty-six on top of the twenty-one already there.
         """
-        return f"aim {self.room} more words" if self.taken else f"aim {self.aim} words"
+        return (
+            f"aim {self.room} more words"
+            if self.taken and not self.replaced
+            else f"aim {self.aim} words"
+        )
 
     def payload(self) -> dict[str, object]:
         """One prose field in both units, shared with the non-goal's two (RK283).
@@ -254,6 +282,11 @@ class Share:
             # Whether `taken` is the file's prose or the caller's draft (RK1190): the same
             # number means two different things and only this says which.
             "drafted": self.drafted,
+            # And whether the write replaces it (RK1366), which is what makes `left` the whole
+            # allowance rather than the difference. Published for `drafted`'s reason: a consumer
+            # given `127 taken, 160 left` against a 160 allowance cannot otherwise tell an
+            # arithmetic it should not reproduce from one it should.
+            "replaced": self.replaced,
             # The rules that are not widths (RK1225). `0` is *unbounded* and not *one*, which
             # is what a project switching `[rules.<role>] one_sentence` off gets.
             "sentences": self.sentences,
@@ -283,6 +316,10 @@ class Share:
         are. Floored by :func:`~roadkeep.kernel.schema.words`, which is the right rounding here for
         RK201's reason read from the other side — a remainder is an allowance, and an
         allowance that rounds up is the retry both figures exist to remove.
+
+        Off :attr:`left` and not off `allowed - taken`, so RK1366's correction reaches the
+        unit an author actually composes in: the characters are what refuses and this is the
+        figure a sentence is written towards, so a wrong remainder here is the expensive half.
         """
         return words(self.left)
 
@@ -389,6 +426,14 @@ class Budget:
                 f"yours, and counted against the same limit"
             )
         rows.append(f"  prose      {self.prose}")
+        # One row and not a clause per field (RK1366), which is where `derived` puts the same
+        # kind of note: what a remainder below means depends on this, and a reader handed
+        # `127 written, 160 left` against a 160 allowance reads the two as adding up.
+        if any(share.replaced and share.taken for share in self.shares):
+            rows.append(
+                "  replacing  what is written below, so each remainder is the whole allowance "
+                "and not what is left beside it — no write extends one of these fields"
+            )
         for share in self.shares:
             # The field's own limit is what the schema publishes; what this line allows is what
             # refuses. Both, and which one binds, because that difference is the whole finding.
@@ -676,6 +721,11 @@ def budget_of(
                 # the moment a second reason to pass False existed. The caller that composed
                 # the prose is the caller that knows, which is the argument `why` already takes.
                 drafted=symptom is not None,
+                # `restate --symptom` is the one write that reaches this field and it replaces
+                # it (RK1366) — and only on a line that exists: the pre-`add` read has nothing
+                # written, and the ledger's inherited claim is carried forward rather than
+                # rewritten, which is `open_line` saying both at once.
+                replaced=open_line and symptom is None,
             )
         )
     shares.append(
@@ -692,6 +742,11 @@ def budget_of(
             # composition it exists to save. Per role, because `[rules.<role>]` switches them.
             sentences=1 if schema.one_sentence else 0,
             terminated=schema.terminator,
+            # The same for `amend --why` (RK1366). False where the prose is carried forward
+            # instead: a retirement's derived prefix is written *into* this field and the
+            # author's reason is appended to it, so there the remainder is the difference and
+            # `_retirement` reaches this through `open_line=False`.
+            replaced=open_line and why is None,
         )
     )
     section, absence = _section_of(
@@ -1053,9 +1108,10 @@ def non_goal_budget(config: Config, lead: str | None = None) -> tuple[Share, ...
     limit invented, and it would read as one the file is already held to.
 
     ``lead`` names a bullet that exists, which makes this the `add`'s answer or the rewrite's:
-    what is taken comes off that bullet, so what is left is what a longer argument may still
-    say. Neither field takes room from the other — a non-goal is two fields on two lines with
-    no shared line limit — so :attr:`Share.allowed` is each one's own throughout.
+    what is taken comes off that bullet, and what is left is the whole allowance, because
+    `non-goal amend --why` replaces that argument and a changed lead is a drop and an add
+    (RK1366). Neither field takes room from the other — a non-goal is two fields on two lines
+    with no shared line limit — so :attr:`Share.allowed` is each one's own throughout.
     """
     if config.non_goals is None:
         raise NotGoverned(config.relative(config.source or config.root))
@@ -1074,7 +1130,7 @@ def non_goal_budget(config: Config, lead: str | None = None) -> tuple[Share, ...
             "why": width(" ".join(found.why.split())),
         }
     return tuple(
-        Share(field, limit, limit, taken[field])
+        Share(field, limit, limit, taken[field], replaced=lead is not None)
         for field, limit in (("lead", scope.lead), ("why", scope.why))
     )
 

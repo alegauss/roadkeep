@@ -30,8 +30,9 @@ from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.verbs.refusing import EXIT_GATE
 from roadkeep.linting import lint
 from roadkeep.config import Config
+from roadkeep.authoring import amend as amend_line
 from roadkeep.sections import SectionError, amend
-from roadkeep.kernel.schema import DESIGNED, body_aim
+from roadkeep.kernel.schema import DESIGNED, SchemaError, body_aim
 
 BACKLOG = f"""# Roadmap
 
@@ -109,7 +110,11 @@ def test_an_id_the_roadmap_holds_is_that_line_and_not_a_hypothetical(tmp_path):
     # Its own fields, off the file: the marker, the deps and the symptom the line carries.
     assert [dep.id for dep in answer.task.deps] == ["RK1"]
     assert answer.share("symptom").taken == len("A second symptom")
-    assert answer.share("why").left == answer.share("why").allowed - len(answer.task.why)
+    why = answer.share("why")
+    # What the line holds, and — since RK1366 — the whole allowance beside it: `amend --why`
+    # replaces that sentence, so the room for the next one is not the room beside this one.
+    assert why.taken == len(answer.task.why)
+    assert why.replaced and why.left == why.allowed
 
 
 def test_an_id_no_file_holds_is_the_line_that_id_would_have(tmp_path):
@@ -249,11 +254,13 @@ def test_a_zero_budget_aims_at_nothing_rather_than_at_a_negative():
 
 
 def test_the_remainder_has_a_word_figure_of_its_own(tmp_path):
-    # The one number RK185 skipped, and the one an `amend` is bounded by: `aim` describes
-    # the whole field, so beside a written one it answers a question nobody asked.
+    # The one number RK185 skipped, and the one a *draft* is bounded by: `aim` describes the
+    # whole field, so beside prose the caller has already composed it overstates the room.
+    # Asked of a draft since RK1366 — on the line as it stands nothing is partly written,
+    # `amend` replacing the field rather than adding to it.
     config = project(tmp_path)
-    why = budget(config, "RK1").share("why")
-    assert why.taken
+    why = budget(config, "RK1", why="Because of a reason drafted at some length.").share("why")
+    assert why.taken and why.drafted and not why.replaced
     assert why.room == words(why.left) < why.aim
 
 
@@ -278,19 +285,57 @@ def test_the_command_aims_at_what_is_left_and_never_at_the_whole_field(tmp_path,
     # The misreading in the symptom: `18 left  aim 30 words` invites the reading that thirty
     # words are available when about three are, so the two are never printed together.
     project(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "RK1"]) == EXIT_OK
+    draft = "Because of a reason drafted at some length."
+    assert main(["-C", str(tmp_path), "budget", "RK1", "--why", draft]) == EXIT_OK
     printed = capsys.readouterr().out
     assert "more words" in printed
     assert "aim 30 words" not in printed
 
 
+def test_the_aim_beside_a_field_the_write_replaces_is_the_whole_of_it(tmp_path, capsys):
+    """RK1366. The rule above, at the one shape it does not describe: nothing is *partly*
+    written on a line an `amend` rewrites, so `aim 5 more words` beside a sentence about to be
+    deleted is the misreading it exists to prevent, pointed the other way."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "RK1"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "more words" not in printed
+    # And the row that says why the two figures below it do not add up.
+    assert "replacing  what is written below" in printed
+
+
+def test_the_remainder_is_the_longest_why_the_amend_accepts(tmp_path):
+    """RK1366's falsification, held against the write and never against a number remembered
+    here: what `budget <id>` publishes is composed as a `--why` and amended in, and one code
+    unit more than it is refused. The defect it closes was the same arithmetic RK1365 found a
+    file over — `allowed - taken` on a field the next write deletes, which on one line here
+    read 55 where 200 was true, and the word aim beside it 8 against 31."""
+    for where, spare in (("exact", 0), ("over", 1)):
+        root = tmp_path / where
+        root.mkdir()
+        config = project(root)
+        allowed = budget(config, "RK1").share("why")
+        # One sentence ending in a stop, so nothing but the width is under test.
+        outcome = "W" * (allowed.left - 1 + spare) + "."
+        if not spare:
+            assert amend_line(config, "RK1", why=outcome).changed == ("why",)
+            assert outcome in config.path("roadmap").read_text(encoding="utf-8")
+            continue
+        with pytest.raises(SchemaError) as refused:
+            amend_line(config, "RK1", why=outcome)
+        assert "why.too-long" in [one.code for one in refused.value.violations]
+
+
 def test_the_json_carries_the_remainder_beside_the_characters(tmp_path, capsys):
     # Beside `left` and not instead of it: the characters are still what refuses.
     project(tmp_path)
-    assert main(["-C", str(tmp_path), "budget", "RK1", "--json"]) == EXIT_OK
+    draft = "Because of a reason drafted at some length."
+    assert main(["-C", str(tmp_path), "budget", "RK1", "--why", draft, "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     field = next(one for one in payload["fields"] if one["field"] == "why")
     assert field["room"] == words(field["left"]) and field["left"] < field["allowed"]
+    # Which of the two arithmetics produced it, for `drafted`'s own reason (RK1366).
+    assert field["drafted"] and not field["replaced"]
 
 
 def test_the_brief_states_the_same_figure_as_the_budget(tmp_path, capsys):
@@ -300,9 +345,11 @@ def test_the_brief_states_the_same_figure_as_the_budget(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "brief", "RK1"]) == EXIT_OK
     briefed = capsys.readouterr().out
     assert main(["-C", str(tmp_path), "budget", "RK1"]) == EXIT_OK
-    room = budget(Config.discover(tmp_path), "RK1").share("why").room
-    assert f"aim {room} more words" in briefed
-    assert f"aim {room} more words" in capsys.readouterr().out
+    # Off the share and never spelled here: the claim is that one figure reaches both doors,
+    # and a test naming the arithmetic would be the second statement of it (RK1366).
+    aimed = budget(Config.discover(tmp_path), "RK1").share("why").aimed
+    assert aimed in briefed
+    assert aimed in capsys.readouterr().out
 
 
 # -- the pointer the budget could not be told about (RK265) --------------------
@@ -509,10 +556,15 @@ def test_the_non_goals_two_limits_are_the_lists_own_and_not_the_lines(tmp_path):
     assert not any(one.bound_by_line for one in shares.values())
 
 
-def test_a_lead_that_exists_reports_what_its_argument_has_left(tmp_path):
+def test_a_lead_that_exists_reports_what_the_rewrite_of_it_has(tmp_path):
+    # What the bullet holds, and the whole limit beside it: `non-goal amend --why` replaces
+    # that argument and a changed lead is a drop and an add, so neither field is extended
+    # (RK1366) — the same correction the task line's two fields took.
     shares = {one.field: one for one in non_goal_budget(scoped(tmp_path), "No web UI")}
     assert shares["lead"].taken == len("No web UI.")
-    assert shares["why"].taken > 0 and shares["why"].left == shares["why"].limit - shares["why"].taken
+    assert shares["why"].taken > 0
+    assert shares["why"].replaced
+    assert shares["why"].left == shares["why"].limit
 
 
 def test_an_ungoverned_list_is_refused_rather_than_given_an_invented_limit(tmp_path):

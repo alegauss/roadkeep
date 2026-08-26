@@ -396,9 +396,12 @@ class Brief:
             why = self.budget.share("why")
             # The same figure `budget` states, off the same `Share` (RK245): a brief that named
             # the whole field's aim beside this line's remainder would be the second answer.
+            # One figure where the field is replaced rather than extended (RK1366): the
+            # remainder *is* the allowance there, and `160 of 160 left` is one number printed
+            # twice on the row a task is started from.
+            room = f"{why.left} left" if why.replaced else f"{why.left} of {why.allowed} left"
             rows.append(
-                f"  budget   why {why.left} of {why.allowed} left, {why.aimed}, "
-                f"{self.budget.prose} for prose"
+                f"  budget   why {room}, {why.aimed}, {self.budget.prose} for prose"
             )
         if self.shipping is not None:
             # The allowance for the write this brief is starting, which is not the one above

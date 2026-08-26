@@ -597,6 +597,14 @@ def _non_goal_budget(config: Config, args: argparse.Namespace) -> int:
     where = config.relative(config.path("roadmap"))
     state = f"the bullet leading {args.lead!r}" if args.lead else "the bullet add would write"
     print(f"non-goals  {where}  ({state})")
+    # The line `Budget.__str__` prints for the same reason (RK1366): `non-goal amend --why`
+    # replaces that argument, so each remainder below is the whole limit and a reader given
+    # `37 written, 200 left` against 200 otherwise reads the two as adding up.
+    if any(share.replaced and share.taken for share in shares):
+        print(
+            "  replacing  what is written below, so each remainder is the whole limit and "
+            "not what is left beside it — an amend rewrites the field"
+        )
     for share in shares:
         # No `bound_by_line`: a non-goal is two fields on two lines and there is no third
         # limit measured across them, which is the whole difference from a task line.

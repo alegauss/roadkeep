@@ -79,31 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1366 The remainder on a field the next write deletes
-
-RK1365 found this in the shipping row and fixed it there: `Share.left` subtracts what a
-field already holds, and `ship --why` is required and replaces that sentence, so the
-room for it is the whole allowance. The same subtraction is still published one row
-above, about the line itself.
-
-`amend <id> --why` replaces the `why` exactly as a ship's does. Nothing extends it — the
-field takes one sentence — so there is no write for which "what is left beside what is
-written" is the number. On RK1365's own line the two readings were 55 characters and
-200, and the word aims beside them 8 against 31: the figure an author composes to was a
-quarter of the real one, which is the shape RK1365 argues is worse than publishing none.
-
-What decides the boundary is `drafted`. Where the caller passed a draft, `taken` is that
-prose and `left` is exactly the overrun the write is refused by, which is right and is
-what RK1190 built the flag for. Where `taken` came off the file, it is prose the next
-write deletes.
-
-So the fix is narrow and two neighbours stay as they are: a section body's remainder is
-real, `section amend --replace` editing prose in place rather than replacing it, and the
-every-turn file's is real for the same reason.
-
-Falsified when `budget <id>` reports a remainder that differs from the longest `--why`
-the matching `amend` accepts.
-
 ## Block D — The gate
 
 ## Block E — Adoption
