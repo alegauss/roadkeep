@@ -34,7 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1368** (deps: —) **the staleness note rides on a refusal, so a write validated against code that changed on disk is answered with nothing** — A refusal read against stale code costs a re-run and a number accepted against it gets committed, so the note is absent in the direction that costs something. → §RK1368
 - 📋 **RK1369** (deps: —) **a flag added to a served verb's parser is withheld over MCP until a listing read for another reason names it** — Nothing reads `serving.TOOLS` against the parsers, so a flag withheld by decision and one withheld because nobody looked are the same state to every reader. → §RK1369
 
 ## Block G — The editor surface (the backlog where the file is open)

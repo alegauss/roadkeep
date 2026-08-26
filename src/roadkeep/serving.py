@@ -2256,6 +2256,11 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         config.root,
         is_error=bool(code),
         served=_spelled(tool, parsers),
+        # The one return that dispatched, so the only one that can have written (RK1368). The
+        # three above it refuse before the handler runs and are already the refusal branch. The
+        # same derived hint `tools/list` publishes as `readOnlyHint`, so a tool this surface
+        # calls free to ask is one this note stays silent about — one answer, two readers.
+        wrote=tool.writes_of(_subparser(tool.command, parsers)),
     )
 
 
@@ -2430,7 +2435,9 @@ def _fields_of(
     return fields
 
 
-def _answered(text: str, root: Path, *, is_error: bool, served: str = "") -> Answer:
+def _answered(
+    text: str, root: Path, *, is_error: bool, served: str = "", wrote: bool = False
+) -> Answer:
     """One tool's answer, plus the note a **refusal** needs when the code answering moved.
 
     RK155, measured twice in one session: the config is re-read per message on purpose, so a
@@ -2440,10 +2447,15 @@ def _answered(text: str, root: Path, *, is_error: bool, served: str = "") -> Ans
     in a terminal accepted it, and the fallback was to stop using the write path this project
     ships. The refusal was correct about the code and wrong about the project.
 
-    Only on a refusal, and only when something actually moved: a successful call has nothing to
-    explain, and a note on every answer is a note that stops being read. Nothing reloads — see
-    :attr:`~roadkeep.provenance.Engine.stale` for why that is the harness's job and not this
-    server's.
+    Only when something actually moved, a note on every answer being a note that stops being
+    read. Nothing reloads — see :attr:`~roadkeep.provenance.Engine.stale` for why that is the
+    harness's job and not this server's.
+
+    On a refusal, and — since RK1368 — on a **successful write**, which is ``wrote``. The rule
+    here was *a successful call has nothing to explain*, and that holds for a read: a stale
+    figure costs the caller a second question. A write is the other direction and the worse
+    one, so the note is absent exactly where it is dear. :func:`_landed` is that sentence and
+    carries the argument; a successful read is still silent.
 
     What it may not do is argue with the refusal it rides on (RK242). The sentence here said the
     refusal "may be a build behind rather than a fact about this project", attached to every
@@ -2497,9 +2509,11 @@ def _answered(text: str, root: Path, *, is_error: bool, served: str = "") -> Ans
     have run, so :func:`_now` says it.
     """
     text = _rerouted(text, root)
-    if not is_error:
-        return Answer(text, is_error=False)
     changed = engine().stale
+    if not is_error:
+        if not (wrote and changed):
+            return Answer(text, is_error=False)
+        return Answer(f"{text}\n\n{_landed(changed, root)}", is_error=False)
     if not changed:
         return Answer(text, is_error=True)
     decided = provenance.witnessed()
@@ -2518,6 +2532,36 @@ def _answered(text: str, root: Path, *, is_error: bool, served: str = "") -> Ans
         f"roadkeep, so the answer above is what the code it did import said — read it first, "
         f"then re-run.{behind} {_remedy(root)}{_now(served)}",
         is_error=True,
+    )
+
+
+def _landed(changed: Sequence[str], root: Path) -> str:
+    """The note a successful **write** needs, which the refusal's argument never reached (RK1368).
+
+    Measured here: a `govern tools.session` over MCP answered with a surface reading two verbs
+    out of date, and the guard that refuses a limit the corpus already breaks was applied to a
+    corpus that had moved — so re-declaring the old ceiling would have passed the verb and been
+    refused by `lint` on the next call. A refusal read against stale code costs a re-run; a
+    number accepted against stale code is committed.
+
+    **The count and not the list** (RK267). Relevance is computed off a traceback and a
+    successful call has none, so naming the modules would be exactly the correct-and-irrelevant
+    text that task removed, and asking which of them decided the write is handing the question
+    back. What is left is the fact, the remedy, and one command.
+
+    **And that command is `lint`, not this call re-run** (RK313). The write has happened, so
+    re-running it is a second entry or a refusal about the first; what the reader needs is the
+    gate reading the tree with the code on disk, which is what caught the measured case.
+    """
+    from roadkeep.remedying import Door  # noqa: PLC0415 - RK260, this note's path only
+
+    return (
+        f"Separately, about this process and not about the write above: {len(changed)} "
+        f"module(s) of this package changed on disk after this server imported roadkeep, so "
+        f"what was just written was validated by the code it did import and not by the code "
+        f"in the tree. {_remedy(root)} Available now, in this session: "
+        f"`{Door(('lint',), '').command}` judges what landed, the CLI importing the changed "
+        f"files per process."
     )
 
 

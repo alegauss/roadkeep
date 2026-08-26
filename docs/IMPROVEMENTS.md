@@ -85,32 +85,6 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1368 The note that fires for the safe direction only
-
-Observed while shipping RK1367. `govern tools.session 63900` was called over MCP and
-answered `reading.worst: 63594` — the surface as it stood two verbs earlier. The live
-reading was 63,856, that session having added a served flag and rewritten a tool
-description. Nothing in the answer said so.
-
-The apparatus for this exists and is written entirely for refusals: the note opens
-"about this process and not about the refusal above", the payload is built as an error,
-and RK267 narrowed the module list so a refusal names only what decided it. Every one of
-those is right about a refusal.
-
-A write is the other direction and the worse one. A refusal read against stale code
-costs a re-run; a number *accepted* against stale code is committed — and here
-`govern`'s own guard, that a limit the corpus already breaks is refused, was applied to
-a corpus that had moved, so re-declaring the old ceiling would have passed the verb and
-been refused by `lint` on the very next call.
-
-RK267 is the constraint on the fix rather than an objection to it: the note may not hand
-the relevance question back. What decided a write is the same question already answered
-for a refusal, so the reach is the modules that decided it and the shape is the sentence
-that exists.
-
-Falsified when a served write answers with a figure the code on disk would not produce
-and says nothing.
-
 ### §RK1369 Withheld on purpose and withheld by omission read alike
 
 RK1367 added `--instead` to `govern` and it did not reach the served tool. Nothing said

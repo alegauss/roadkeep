@@ -2065,9 +2065,9 @@ def test_a_refusal_with_no_drift_offers_nothing_because_a_re_run_answers_the_sam
     assert "Available now" not in text_of(answered)
 
 
-def test_an_answer_that_worked_explains_nothing(tmp_path, monkeypatch):
-    # A note on every answer is a note that stops being read, and a call that succeeded has
-    # nothing to explain about the build that succeeded at it.
+def test_a_read_that_worked_explains_nothing(tmp_path, monkeypatch):
+    # A note on every answer is a note that stops being read, and a read that succeeded costs
+    # the caller a second question at worst — which is the half of that rule RK1368 kept.
     monkeypatch.setattr(
         "roadkeep.serving.engine",
         lambda: replace(engine(), home=_moved(tmp_path)),
@@ -2075,6 +2075,42 @@ def test_an_answer_that_worked_explains_nothing(tmp_path, monkeypatch):
     answered = called(project(tmp_path), "list", block="A")
     assert answered["isError"] is False
     assert "changed on disk" not in text_of(answered)
+
+
+def test_a_write_that_worked_says_the_code_that_validated_it_had_moved(tmp_path, monkeypatch):
+    """RK1368. The other direction, and the worse one: a refusal read against stale code costs a
+    re-run, and a write accepted against it is committed. Measured on this project — a `govern
+    tools.session` answered with a surface reading two verbs out of date, and the guard that
+    refuses a limit the corpus already breaks was applied to a corpus that had moved."""
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path)),
+    )
+    answered = called(project(tmp_path), "status", id="RK1", marker="🛠")
+    said = text_of(answered)
+    # The write stands as the answer the running code gave, exactly as a refusal does (RK242).
+    assert answered["isError"] is False
+    assert "changed on disk" in said
+    # The count and never the list (RK267): a successful call has no traceback, so relevance
+    # cannot be computed and naming the modules would be the text that task removed.
+    assert DECIDES not in said
+    assert "1 module(s)" in said
+    # And the gate rather than this call re-run (RK313): the write has happened.
+    assert "`roadkeep lint`" in said
+
+
+def test_the_note_follows_the_act_and_not_the_verb_it_is_spelled_from(tmp_path, monkeypatch):
+    """Off the same derived hint `tools/list` publishes as `readOnlyHint` (RK168), so a tool a
+    client was told is free to ask is one this stays silent about — one answer, two readers.
+    `claim` is `brief --claim`, and it is the case that makes the distinction visible: the verb
+    it is spelled from reads, and the always flag is what makes this call a write (RK150)."""
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path)),
+    )
+    root = project(tmp_path)
+    assert "changed on disk" not in text_of(called(root, "brief", id="RK1"))
+    assert "changed on disk" in text_of(called(root, "claim", id="RK1"))
 
 
 #: The module that decides the refusal these tests provoke — `status` on an id no line carries,

@@ -121,14 +121,14 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 135 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 103 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 122 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 123 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 29 | 1 |
-| **Total** | 2 | 853 | 12 |
+| **Total** | 1 | 854 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1368** (deps: —) **the staleness note rides on a refusal, so a write validated against code that changed on disk is answered with nothing** — A refusal read against stale code costs a re-run and a number accepted against it gets committed, so the note is absent in the direction that costs something. → §RK1368
+- 📋 **RK1369** (deps: —) **a flag added to a served verb's parser is withheld over MCP until a listing read for another reason names it** — Nothing reads `serving.TOOLS` against the parsers, so a flag withheld by decision and one withheld because nobody looked are the same state to every reader. → §RK1369
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
