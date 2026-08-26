@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1390** (deps: —) **a third shape the re-pin retired has a test and no frozen fixture, so it is read off no backlog at all** — RK1145 froze the two dep kinds RK1144 cost and left the open line pointing at a doubled anchor, which the skip has named on every run since. → §RK1390
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

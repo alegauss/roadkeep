@@ -317,20 +317,44 @@ class Frozen:
     corpus: str
     #: The revision the line was read at. In the directory name too, because a second shape
     #: frozen from the same tree at another revision is a second fixture and not an overwrite.
+    #: A **revision** and nothing else: the round-trip test asserts it appears in the bytes, so
+    #: a directory name smuggled in here would make the excerpt's provenance a lie it passes on.
     rev: str
     #: What it is evidence of, for the test that names it and for a reader of the directory.
     shape: str
+    #: What separates two shapes frozen from *one* revision (RK1390). The field above says a
+    #: second fixture comes from another revision, which was true of the two RK1145 froze and is
+    #: not of the third: it is the same Turing commit as the range dep, read for a different
+    #: shape. Empty wherever the revision alone names the directory, which is every other row.
+    among: str = ""
 
     @property
     def where(self) -> Path:
-        return FROZEN / f"{self.corpus}-{self.rev}"
+        stem = f"{self.rev}-{self.among}" if self.among else self.rev
+        return FROZEN / f"{self.corpus}-{stem}"
 
 
-#: The two RK1144 retired. Declared rather than globbed, so a fixture nobody reads is a row
+#: The three RK1144 retired. Declared rather than globbed, so a fixture nobody reads is a row
 #: with no test and a test with no row cannot silently stop reading one.
 BLOCK_DEP = Frozen("shio", "b9302e8e", "a block dep — `(deps: SH233 ✅, SH182 ✅, Block P)`")
 RANGE_DEP = Frozen("turing", "f08304fcb1", "a range dep — `(deps: T451–T457 ✅)`")
-FROZEN_SHAPES = (BLOCK_DEP, RANGE_DEP)
+#: The third, and the one RK1145 left (RK1390). The first frozen from a revision another
+#: fixture already uses — the range dep above is that same Turing commit — which is what
+#: :attr:`Frozen.among` is for: `rev` stays a revision, because the round-trip test asserts it
+#: appears in the bytes and a directory name put there would be provenance the excerpt lies about.
+#:
+#: **Two prose files, because the shape is the pair.** Either heading alone declares an address
+#: nobody is arguing about; what `section.ambiguous` reports, and what an `add` refuses over, is
+#: one address two files both answer with an open line pointing at it. The skip that named this
+#: on every run since RK1144 said exactly that: the thirteen doubled anchors survive the re-pin
+#: and the one open line pointing at one of them shipped.
+DOUBLED_ANCHOR = Frozen(
+    "turing",
+    "f08304fcb1",
+    "a doubled anchor an open line points at — `§X.1`",
+    among="doubled",
+)
+FROZEN_SHAPES = (BLOCK_DEP, RANGE_DEP, DOUBLED_ANCHOR)
 
 
 def thawed(shape: Frozen) -> Config:

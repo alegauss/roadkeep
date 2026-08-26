@@ -1233,7 +1233,15 @@ def test_the_state_this_condition_is_for_is_one_a_live_corpus_carries():
     # input** at this pin rather than a failing claim, which is `corpora.require`'s rule one step
     # along — and RK1148 has the baseline say so rather than this comment claiming it.
     if not pointed:
-        corpora.retired(corpora.TURING, "doubled anchor an open line points at", pointing)
+        # And where the shape went (RK1390), which is what the block-dep skip has said since
+        # RK1145: a skip that names the fixture is a reader told the coverage moved rather
+        # than one left to assume it was dropped.
+        corpora.retired(
+            corpora.TURING,
+            "doubled anchor an open line points at",
+            pointing,
+            also=f"the shape is frozen at {corpora.DOUBLED_ANCHOR.where.name}",
+        )
     assert pointed == {"X.1"}
     improvements = documents["improvements"]
     (own,) = [s for s in anchored(improvements) if s.anchor == "X.1"]
@@ -4196,3 +4204,42 @@ def test_a_title_that_merely_mentions_the_id_is_written(tmp_path):
         "Because the prose has to live somewhere.",
     ).document.save()
     assert "### §RK3 What RK3 measured" in read(Config.discover(tmp_path))
+
+
+# -- the third shape a re-pin retired (RK1390) ---------------------------------
+
+
+def test_a_doubled_anchor_an_open_line_points_at_is_read_off_real_bytes():
+    """RK1390. RK1144's re-pin cost three shapes and RK1145 froze two. This is the third: the
+    thirteen doubled anchors survive at `2d71c9eac9` and the one open line that pointed at one
+    of them shipped, so the state `section.ambiguous` reports — and the one an `add` refuses
+    over — came to be read off no live backlog at all.
+
+    **Two prose files, because the shape is the pair.** Either heading alone declares an address
+    nobody is arguing about; what makes it ambiguous is one address two files both answer, with
+    a line pointing at it. A fixture naming one of them would carry no ambiguity to read."""
+    config = corpora.thawed(corpora.DOUBLED_ANCHOR)
+    held: dict[str, list[str]] = {}
+    for role in ("improvements", "strategy"):
+        for section in anchored(config.document(role)):
+            held.setdefault(section.anchor, []).append(role)
+    doubled = {anchor for anchor, roles in held.items() if len(roles) > 1}
+    assert doubled == {"X.1"}
+    assert held["X.1"] == ["improvements", "strategy"]
+
+    # And an open line pointing at it, which is the half the re-pin took.
+    pointed = {
+        entry.task.ref
+        for entry in config.document("roadmap").entries
+        if entry.task.ref in doubled
+    }
+    assert pointed == {"X.1"}
+
+
+def test_the_frozen_pair_is_what_the_gate_calls_ambiguous():
+    """The other half of what the live test asserted: this was never a format violation of the
+    line, it is a state about two files — so the frozen bytes have to keep producing the code
+    that names it rather than merely holding two headings that look alike."""
+    config = corpora.thawed(corpora.DOUBLED_ANCHOR)
+    found = {one.code for one in lint(config).findings}
+    assert "section.ambiguous" in found, sorted(found)

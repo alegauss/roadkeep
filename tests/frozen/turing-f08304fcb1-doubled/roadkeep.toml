@@ -1,0 +1,21 @@
+# The format the lines beside this were written under, declared rather than copied
+# (RK1145's rule, applied to the third shape a re-pin retired — RK1390). Every value
+# here is one Turing's own config states at `f08304fcb1`, the revision these bytes were
+# read at — both prose roles included, because the shape *is* two files declaring one
+# address and a fixture naming one of them would carry no ambiguity at all.
+
+prefix = "T"
+ref_scheme = "outline"
+
+[ids]
+suffix = true
+
+[files]
+roadmap = "ROADMAP.md"
+improvements = "IMPROVEMENTS.md"
+strategy = "STRATEGY.md"
+
+[limits]
+line = 400
+symptom = 120
+why = 320
