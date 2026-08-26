@@ -81,6 +81,30 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK1380 The fourth kind of citation, and the one nothing resolves
+
+Sixteen sentences across the roadmap, the ledger, the improvements file and the
+decisions file cite a law — `(L4)`, `(L1, L3)`, `L5`. Nothing resolves any of them.
+Every other citation this prose carries does: an anchor is `ref.dangling`, a path is
+`path.missing`, an id is a dep the parser types. This is the fourth kind and the only
+one that reads back as true whatever it says.
+
+The set is closed and already machine-readable. The improvements file's own table of the
+laws is authoritative, `agents.md` says so rather than restating them, and a test
+asserts that the laws with a row are exactly the laws declared. So the reading exists
+and what is missing is a gate asking it.
+
+The corpus is clean today, which is why this is filed rather than fixed in passing: what
+a finding would report is nothing, and the value is the next one — a citation that reads
+as a law this project holds and is a number somebody typed.
+
+The one care is the shape it must not match. `#L35` in a ledger entry is a line anchor
+inside a URL fragment, and a check reading that as a citation opens with a false finding
+on a corpus that has none, which is how a gate comes to be switched off.
+
+Falsified when a governed sentence cites a law this project does not declare and nothing
+says so.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
