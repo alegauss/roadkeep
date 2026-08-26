@@ -1747,3 +1747,55 @@ def test_the_report_heads_with_the_project_and_not_the_engine(project):
     alone = plan(HERE, source=HERE).stated(checked=True)
     assert alone.splitlines()[0].startswith(HERE.as_posix())
     assert "not this project" not in alone
+
+
+# -- the fourth copy, and the one that runs unwatched (RK1385) -----------------
+
+
+def test_the_driver_is_a_row_and_says_when_nothing_is_wired():
+    """RK1385. `engines` named three copies and git runs a fourth: the merge driver, invoked
+    mid-merge on the files whose whole claim is that their merge is decidable. `merge --check`
+    answers whether git can run it, which is a different question (RK266) — this says which.
+
+    Said either way, for the reason every absence here is: a driver nothing wired and one this
+    could not read look the same to a reader, and only one means git merges these textually."""
+    from dataclasses import replace
+
+    bare = replace(_pair(), driver="")
+    assert "merge    —" in bare.stated()
+    assert "no driver is wired" in bare.stated()
+    assert bare.payload()["driver"] == ""
+
+
+def test_the_driver_row_says_whether_it_is_this_tree():
+    """The comparison the reader came for, and the whole of what a path can answer: a console
+    script installed months ago and a working checkout both resolve, both pass `--check`, and
+    only one of them is the tree whose rules the merge is about."""
+    from dataclasses import replace
+
+    here = replace(_pair(), driver="/tree/.venv/bin/roadkeep merge %O %A %B --path %P")
+    assert "this tree" in here.stated()
+    other = replace(_pair(), driver="/elsewhere/roadkeep merge %O %A %B --path %P")
+    assert "another copy" in other.stated()
+    assert other.payload()["driver"].startswith("/elsewhere/")
+
+
+def test_the_version_is_never_read_because_reading_it_would_run_it():
+    """`merging._resolves` refuses to execute a stored driver to find out whether it executes,
+    and asking it for a version is that same side effect. So the row carries the command, and
+    nothing here spawns anything: what a reader compares is a path."""
+    import ast
+    from pathlib import Path as _Path
+
+    source = (_Path(__file__).resolve().parents[1] / "src" / "roadkeep" / "installing.py")
+    (driver,) = [
+        node
+        for node in ast.walk(ast.parse(source.read_text(encoding="utf-8")))
+        if isinstance(node, ast.FunctionDef) and node.name == "_driver"
+    ]
+    called = {
+        node.func.attr if isinstance(node.func, ast.Attribute) else getattr(node.func, "id", "")
+        for node in ast.walk(driver)
+        if isinstance(node, ast.Call)
+    }
+    assert not called & {"run", "check_output", "Popen", "system"}, called

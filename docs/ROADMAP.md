@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1385** (deps: —) **the driver git runs is a fourth copy of this tool and no read says which, so a build behind the tree merges its files** — `merge --check` answers whether git can run it and `engines` names three copies without it, so the one that runs unwatched is the one nobody reads. → §RK1385
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

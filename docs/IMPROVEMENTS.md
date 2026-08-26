@@ -83,30 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1385 The copy that runs when nobody is watching
-
-Measured while shipping RK1384. The driver git executes is an absolute path resolved
-when `register` ran — here a console script installed in July, on a machine whose
-working checkout is a thousand commits newer. `merge --check` reports it as configured
-and runnable, which it is; what it does not report is which copy it is.
-
-`engines` is the read that exists for exactly this. Three copies can answer at once,
-they are allowed to differ, and what is not survivable is being unable to say which one
-wrote, judged or gated. The driver is a fourth, it is named by neither that read nor by
-`--check`, and it is the one that runs when nobody is watching: git invokes it
-mid-merge, on the files whose whole claim is that their merge is decidable.
-
-Two things follow and only the first is this line's. The read has to name the copy —
-`--check` already runs that command to see whether it resolves, and a version is the
-same call one flag further, which is what makes this cheap rather than a second
-mechanism.
-
-Whether `register` should be able to wire a working checkout rather than whatever
-installed the console script is the second, and it is the question `--vendor` answers
-about the engine, asked of a different surface.
-
-Falsified when the driver git would run is a build this tree cannot name.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

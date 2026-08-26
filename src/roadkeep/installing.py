@@ -757,6 +757,16 @@ class Engines:
     plugin: Installed | None = None
     #: `(file, ref)` per workflow step calling the action, in file order.
     gates: tuple[tuple[str, str], ...] = ()
+    #: The command git would run to merge a governed file, or `""` where nothing is wired
+    #: (RK1385). The **fourth** copy, and the one that runs when nobody is watching: git
+    #: invokes it mid-merge, on the files whose whole claim is that their merge is decidable,
+    #: and until this row neither `engines` nor `merge --check` said which copy it is —
+    #: `--check` answers whether git can run it, which is a different question (RK266).
+    #:
+    #: The command and never its version: reading that would mean *running* somebody's
+    #: recorded driver, which `merging._resolves` refuses on its own argument. What a reader
+    #: gets is the path beside the tree above, which is the comparison they came for.
+    driver: str = ""
 
     @property
     def verdict(self) -> str:
@@ -856,6 +866,19 @@ class Engines:
         rows += [f"gate     {ref:<10}{where}" for where, ref in self.gates or ()]
         if not self.gates:
             rows.append("gate     —         no workflow here calls the action")
+        # The fourth (RK1385). Said either way, for the reason every absence here is: a driver
+        # nothing wired and a driver this could not read look the same to a reader, and only
+        # one of them means a conflict falls back to git's own markers.
+        if not self.driver:
+            rows.append("merge    —         no driver is wired, so git merges these textually")
+        else:
+            here = self.running.home.parent.parent.as_posix()
+            whose = (
+                "  this tree"
+                if self.driver.startswith(here)
+                else "  another copy — `merge --check` names the line that re-wires it"
+            )
+            rows.append(f"merge    {self.driver}{whose}")
         if self.verdict == UNPINNABLE:
             # The state that used to read as agreement, and the one a machine developing this
             # tool is in every day (RK418): the numbers match, the checkout has uncommitted
@@ -896,6 +919,10 @@ class Engines:
                 "scope": plugin.scope,
             },
             "gates": [{"file": where, "ref": ref} for where, ref in self.gates],
+            # The fourth copy (RK1385), as the command and never as a version: reading that
+            # would mean running it. `""` and never omitted, so a consumer tells "nothing
+            # wired" from "this build predates the row".
+            "driver": self.driver,
             # The command a shell caller runs (RK1230), on the ordinary payload as well as
             # behind its own flag: a consumer already reading this answer should not have to
             # make a second call for the one field it acts on.
@@ -911,7 +938,33 @@ class Engines:
 def engines(root: str | Path = ".") -> Engines:
     """The three, for one project. Reads four small files and asks git nothing new."""
     base = Path(root).resolve()
-    return Engines(running=engine(), plugin=installed(base), gates=gated_at(base))
+    return Engines(
+        running=engine(),
+        plugin=installed(base),
+        gates=gated_at(base),
+        # The fourth copy (RK1385), read out of git config and never run. Swallowed the way
+        # every other absence here is: a tree git cannot be asked about answers "nothing
+        # wired", which is what a reader of an unwired project sees anyway.
+        driver=_driver(base),
+    )
+
+
+def _driver(root: Path) -> str:
+    """The command git would run to merge a governed file, or `""` (RK1385).
+
+    Off `merging.registered`, which is the reader that already owns this question — a second
+    `git config --get` here would be the two coming to disagree about which key is the driver.
+
+    A read of the *config* and never of the command: whether the thing it names still exists
+    is `merge --check`'s answer, and whether it is this tree is the comparison the row states.
+    """
+    from roadkeep.config import Config  # noqa: PLC0415 - RK260
+    from roadkeep.merging import registered  # noqa: PLC0415 - RK260
+
+    try:
+        return registered(Config.discover(root)).stored
+    except Exception:  # noqa: BLE001 - an unreadable tree is an unwired one to this reader
+        return ""
 
 
 def behind(root: str | Path = ".") -> bool:
