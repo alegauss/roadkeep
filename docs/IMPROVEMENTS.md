@@ -79,6 +79,52 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1374 A bound the volunteered half does not state
+
+`delivered --near` prints `2 nearest of 2 delivered` and closes by naming `delivered A`
+as all 2. RK442's argument for both is that the unbounded listing was deliberate — the
+entry that got elided is exactly the one nobody read — so a bounded answer says it is
+bounded, or it inherits a guarantee it has just given up.
+
+RK1370 volunteers that same listing from every `add`, bounded at three by `VOLUNTEERED`,
+and says neither. A reader sees three rows under a sentence about ordering, with no way
+to tell a block holding three deliveries from one holding a hundred and thirty-eight,
+and no name for the command that shows the rest.
+
+The rows are right and the sentence above them is right. What is missing is the header
+half, which is a count and a door — both already composed one verb over, so what this
+costs is those two facts reaching the record the printer reads.
+
+The narrow question is the door's spelling. The wider read is `delivered <block> --near
+"<the symptom>"`, whose argument is a sentence the caller has just written and which no
+answer may quote back at them: an argv rendered with a symptom in it is the second
+grammar RK313 declined. So the block's own listing is what the row can name.
+
+Falsified when the volunteered rows elide an entry and say nothing about it.
+
+### §RK1375 Two numbers about one field, and two ways of saying one
+
+A brief prints `budget   why 160 left, aim 24 words, 277 for prose` and, under it,
+`shipping why 181 for the ledger line a ship writes, which is the limit that refuses
+it`. One field, two allowances, two nouns.
+
+The rows exist to be compared. RK1174 put the second one there and its own rule is that
+it prints *only where the two differ*, because two numbers for one field is the fact
+worth seeing and repeating one under another name teaches nobody anything. Making the
+reader translate `left` into `for the ledger line` before they can subtract is that same
+cost, arriving through the phrasing instead of through the repetition.
+
+They diverged in one session and by halves. RK1365 rewrote the shipping row when the
+remainder there stopped being a remainder, and RK1366 rewrote the budget row for the
+same reason a row later — neither read the other, and both were right about their own
+number.
+
+What has to be decided is which noun the pair uses, and the answer is visible in what
+the figures now are: since RK1366 both are the whole allowance and neither is what is
+left beside anything, so `left` is the word that no longer describes either.
+
+Falsified when two rows of one brief state the same kind of figure in different words.
+
 ## Block D — The gate
 
 ## Block E — Adoption
