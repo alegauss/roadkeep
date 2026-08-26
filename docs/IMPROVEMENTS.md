@@ -83,6 +83,29 @@ already written, not authorship.
 
 ## Block E — Adoption
 
+### §RK1384 The one surface this repository ships and does not run
+
+`merge --check`, run in this checkout, answers: *git sends 0 of 4 governed files* and
+*merge.roadkeep.driver not set, so a conflict falls back to git's own markers*. The
+driver this repository ships is the one surface it does not route its own work through.
+
+That matters here more than the sentence suggests. This project's claim is that the
+format is proven by the artefact and never asserted in a README — the gate runs in CI
+over these files, the skill a session reads is the one shipped, and the round-trip is a
+property over this corpus. The driver's own claim is that two branches appending under
+one heading is two additions and not a conflict, and nothing has ever tested that here.
+
+The `.gitattributes` half is committable and costs a clone nothing: `install
+--register-merge` writes it, and the file already exists for the terminator declaration
+RK1132 made. The other half is per-clone by construction, which is exactly what `merge
+--check` exists to report — a wired project is one whose next parallel branch does not
+conflict by hand, and this tree takes parallel work.
+
+What has to be decided first is whether the absence was a choice. Nothing in the ledger
+records one, and `install --check` calls the file opt-in rather than declined.
+
+Falsified when a governed file of this repository would merge textually.
+
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

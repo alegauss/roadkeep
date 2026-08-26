@@ -32,6 +32,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK1384** (deps: —) **this repository ships a merge driver and routes none of its own files to it, so a merge here falls back to git's markers** — Every other surface is proven by being run here — the gate in CI, the skill as shipped, these files as the fixture — and `merge --check` says this is not. → §RK1384
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
