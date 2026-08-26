@@ -123,12 +123,12 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 102 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 122 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 1 | 27 | 1 |
-| **Total** | 2 | 848 | 12 |
+| H — The tool's own shape (what one verb costs to change) | 2 | 27 | 1 |
+| **Total** | 3 | 848 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1363** (deps: —) **an outline project cannot give a decision a body, the id being no address in a file that numbers its own headings** — A body is reachable wherever the record it belongs to can be filed, or the store is one two live corpora have no door into. → §RK1363
+- 🛠 **RK1363** (deps: —) **an outline project cannot give a decision a body, the id being no address in a file that numbers its own headings** — A body is reachable wherever the record it belongs to can be filed, or the store is one two live corpora have no door into. → §RK1363
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

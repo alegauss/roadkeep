@@ -127,3 +127,25 @@ what refuses: `lint` runs in *a* checkout and refuses *its* surface, so the ceil
 per project and the number is re-taken from the reading here. The other half is the
 comment stacked above it, which argues from the package total and is now the record of a
 question that was settled differently — `govern --because` is the door that replaces it.
+
+### §RK1365 QS
+
+`brief QS19` printed `shipping why 37 of 200 left on the ledger line a ship writes,
+which is the limit that refuses it`. The ship that followed carried a 145-character
+`--why` and was accepted without complaint.
+
+The whole point of publishing a budget before the prose exists is that a refusal
+discovered afterwards costs the paragraph twice. That trade only works if the number is
+the one the verb will actually enforce. A number this far below it fails in the
+direction that looks safe and is not: it says a sentence cannot be written, so either a
+shorter and worse sentence gets written, or — what happened here — the number is
+disbelieved and the budget stops being consulted at all. An advisory limit nobody trusts
+is worse than no limit, because it still costs a line of output on every brief.
+
+Two things to establish. Which line the 37 was measured against, since the ledger line
+and the roadmap line have different structure and the ship rendered under a heading
+rather than beside a symptom. And whether the shared-with-the-symptom deduction is being
+applied to a line that does not carry the symptom.
+
+Falsified when brief's reported remainder differs from the longest why the matching ship
+accepts.
