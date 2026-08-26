@@ -93,6 +93,7 @@ JSON of the same join would be the drift this projection exists to have none of.
 - ✅ **RK1313** **init writes no [criteria] and no [requirements], so the verbs that fill them refuse on a fresh project** — A scaffold declares the opt-in tables its own verbs need, and names a vocabulary in a comment: an empty list of words governs nothing.
 - ✅ **RK1328** **a project past init opens an opt-in table only by hand-editing the config this tool owns the writes to** — One argument carries every declaration this file takes, because each is one key refused where it is there; a verb per axis buys a ceiling raise.
 - ✅ **RK1367** **govern only stacks, so a number whose premise was falsified keeps every paragraph arguing for the reading it replaced** — The contiguous comment run above a key is what argues its number, so a replacement takes all of it and states the reach rather than guessing a narrower one.
+- ✅ **RK1386** **register wires whatever installed the console script, so a developer's checkout cannot be the driver its own merges run** — A tool that may not write somebody's git config may not pick the copy it would have named either: it states both and the caller chooses.
 
 ### §RK1367 Why the whole run and not the paragraph a verb placed
 
@@ -110,6 +111,22 @@ before the write.
 The consequence accepted is that `--instead` on a table's first key takes that table's
 own prose. Visible, reversible from the answer, and cheaper than a boundary nobody could
 state.
+
+### §RK1386 Why both are named and neither is chosen
+
+The alternative weighed was a flag — the two doors the engine already has for this
+question, `--vendor` pinning the highest-versioned copy a machine can reach and
+`ROADKEEP_SRC` naming a working tree. Either would have wired the copy the caller meant
+in one call.
+
+It was rejected because the line it appears on is printed rather than run, and for a
+reason: setting somebody's git config is a write outside the files this tool was given.
+A flag choosing the copy would decide half of a command the caller still has to paste —
+a judgement exercised exactly where the write was declined.
+
+What is accepted is that the caller does more. Two paths and a sentence is not a wiring
+command. The consequence is deliberate: choosing between a stale install and a tree
+mid-refactor needs a reading this tool does not have.
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

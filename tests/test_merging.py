@@ -1032,3 +1032,37 @@ def test_a_cycle_the_merge_composed_is_refused_and_an_inherited_one_is_not(tmp_p
     kept = merge(config, "roadmap", carried, carried + line(4), carried + line(5))
     assert kept.clean, kept.reason
     assert "**RK4**" in kept.text and "**RK5**" in kept.text
+
+
+# -- the copy the driver command does not name (RK1386) ------------------------
+
+
+def test_the_report_names_the_other_copy_where_this_machine_has_one():
+    """RK1385 made the copy visible and this makes it choosable. `persisted` is right about
+    what git needs — an absolute executable, because git runs the driver outside a shell — and
+    silent about which one, so on a machine that installs this tool and develops it the driver
+    is whichever installed the console script.
+
+    Named and never chosen: setting somebody's git config is a write outside the files this
+    tool was given, which is why the command is printed rather than run, and the same rule
+    forbids picking the copy for them."""
+    from roadkeep.rendering import _other_copy
+    from roadkeep.provenance import engine
+
+    home = engine().home.parent.parent.as_posix()
+    said = _other_copy("/elsewhere/roadkeep merge %O %A %B --path %P")
+    assert home in said
+    assert "absolute path" in said
+
+
+def test_a_machine_with_one_copy_is_offered_no_alternative():
+    """The half that decides whether this is adoptable: on every project served by one install
+    the driver and the pen are the same path, and a line offering it back is noise on an answer
+    a project reads once."""
+    from roadkeep.rendering import _other_copy
+    from roadkeep.provenance import engine
+
+    home = engine().home.parent.parent.as_posix()
+    assert _other_copy(f"{home}/.venv/bin/roadkeep merge %O %A %B --path %P") == ""
+    # And nothing wired at all is not an alternative either — there is no command to compare.
+    assert _other_copy("") == ""

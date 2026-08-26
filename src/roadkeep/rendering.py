@@ -1432,6 +1432,29 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
     }
 
 
+def _other_copy(command: str) -> str:
+    """The copy this process runs, where the driver command does not already name it (RK1386).
+
+    A comparison of paths and never a second reading: :func:`~roadkeep.provenance.engine` has
+    already answered which tree is writing, and what makes this a finding is that the command
+    `persisted` resolved points somewhere else — a console script installed months ago on a
+    machine whose checkout is a thousand commits newer, which is the state RK1385 made visible.
+
+    `""` on every machine with one copy, which is every adopter: there the driver and the pen
+    are the same install, and a line offering an alternative that is the same path is noise on
+    the answer a project reads once.
+    """
+    from roadkeep.provenance import engine  # noqa: PLC0415 - RK260
+
+    home = engine().home.parent.parent
+    if not command or command.startswith(home.as_posix()):
+        return ""
+    return (
+        f"to wire the checkout writing here instead, set that key to a command running "
+        f"{home.as_posix()} — git executes it outside a shell, so it takes an absolute path"
+    )
+
+
 def registration_report(registration: Registration, where: str, label: int) -> list[str]:
     """Everything one registration has to say, rendered once for both its surfaces (RK276).
 
@@ -1467,6 +1490,18 @@ def registration_report(registration: Registration, where: str, label: int) -> l
         # What the stored value cannot promise, said where it is stored (RK255): git executes
         # it long after this process, and a driver that stopped resolving is silent till a merge.
         lines.append(f"  {'re-run':<{pad}} after {registration.invalidated_by}")
+        # **And the other copy, where this machine has one** (RK1386). The command above is
+        # `persisted`'s, which is right about what git needs — an absolute executable, because
+        # git runs the driver outside a shell (RK255) — and silent about *which* one. On a
+        # machine that both installs this tool and develops it those are two, and the one the
+        # line names is whichever installed the console script.
+        #
+        # Named and never chosen. Setting somebody's git config is a write outside the files
+        # this tool was given (L2), which is why the line above is printed rather than run, and
+        # the same rule forbids picking the copy for them: what a reader gets is that there are
+        # two, so the choice is made knowing it is one.
+        if (other := _other_copy(registration.command)) :
+            lines.append(f"  {'or':<{pad}} {other}")
     if registration.wiring is not None:
         # Read after the attribute lines were written (RK266). This is the line that carries a
         # re-run: three attributes "already there" is the answer where the config is the half

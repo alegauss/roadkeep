@@ -730,6 +730,7 @@
 - ✅ **RK1367** **govern only stacks, so a number whose premise was falsified keeps every paragraph arguing for the reading it replaced** — `govern --instead` replaces the argument above a key rather than stacking on it, and names every line it took out (design recorded in `src/roadkeep/governing.py`).
 - ✅ **RK1384** **this repository ships a merge driver and routes none of its own files to it, so a merge here falls back to git's markers** — Git sends all four of this repository's governed files to the driver it ships, so its own merges are decided the way it claims (design recorded in `.gitattributes`).
 - ✅ **RK1385** **the driver git runs is a fourth copy of this tool and no read says which, so a build behind the tree merges its files** — `engines` names the driver git would run beside the tree writing here, and never reads its version, which would mean running it (design recorded in `src/roadkeep/installing.py`).
+- ✅ **RK1386** **register wires whatever installed the console script, so a developer's checkout cannot be the driver its own merges run** — Where a machine holds two copies the report names both, so the caller chooses knowing there is a choice (design recorded in `src/roadkeep/rendering.py`).
 
 ## Block F — The Claude Code plugin
 
