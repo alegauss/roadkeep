@@ -619,6 +619,7 @@
 - ✅ **RK1322** **the tree is split between two line terminators and nothing reads which a file is, so an append lands in the wrong one** — the working copies are one terminator again, and an invariant refuses a tree that is both (design §RK1322 recorded in `tests/test_invariants.py`).
 - ✅ **RK1323** **this repository declares no [criteria], so the fixture that proves the format does not exercise a table init now writes** — the fixture declares [criteria] and every live block states what would finish it, so the table is proven by the artefact (design §RK1323 recorded in `roadkeep.toml`).
 - ✅ **RK1378** **the refusal that will not move an anchor across parents names the family and not the free address under it** — The refusal states the free address, and the retry it earns replaces the destination rather than the source (design recorded in `src/roadkeep/verbs/refusing.py`).
+- ✅ **RK1380** **a law a governed sentence cites is resolved by nothing, so a number outside the six reads as a law** — A law cited from any governed sentence resolves against the table that declares them, and is `law.unknown` where it does not (design recorded in `src/roadkeep/linting.py`).
 
 ## Block E — Adoption
 

@@ -923,6 +923,76 @@ def test_prose_citing_a_section_that_is_gone_fails(tmp_path):
     assert dangling.token == "RK2"
 
 
+#: A prose file whose own table declares the laws, which is what makes the set closed and this
+#: check's population non-empty (RK1380). The shape is the authoritative one: a leading cell
+#: holding the law's name, read rather than configured, because the table *is* the declaration.
+LAWFUL = """# Improvements
+
+### §RK1 A first design
+
+| # | Law |
+|---|---|
+| L1 | **The format is a schema** — enforced where the text is created. |
+| L2 | **The store is the repository** — Markdown, greppable, no service. |
+
+The reasoning, which argues from (L1).
+
+### §RK2 A second design
+
+The reasoning the second line has no room for.
+"""
+
+
+def test_a_law_no_table_declares_is_a_finding(tmp_path):
+    """RK1380. The fourth kind of citation this prose carries and the only one nothing
+    resolved: an anchor is `ref.dangling`, a path is `path.missing`, an id is a dep the parser
+    types — and a law read back as true whatever it said, so a number outside the table was a
+    rule this project appeared to hold and was one somebody typed."""
+    citing = LAWFUL.replace(
+        "The reasoning the second line has no room for.",
+        "The reasoning the second line has no room for, which (L7) settles.",
+    )
+    report = lint(project(tmp_path, improvements=citing))
+    found = next(f for f in report.findings if f.code == "law.unknown")
+    assert found.file == "IMPROVEMENTS.md"
+    assert "cites L7" in found.message
+    # The column, because one `L` among a paragraph's words is not findable by eye (RK34).
+    assert found.column and citing.splitlines()[found.lineno - 1][found.column - 1] == "L"
+
+
+def test_a_law_the_table_declares_is_not_a_finding(tmp_path):
+    # The other half, and the one that decides whether the check is adoptable: prose arguing
+    # from a law is the normal shape of this file, and both spellings the corpus uses are here.
+    citing = LAWFUL.replace(
+        "The reasoning the second line has no room for.",
+        "The reasoning, which (L1, L2) decide and L2 states in full.",
+    )
+    assert "law.unknown" not in codes(lint(project(tmp_path, improvements=citing)))
+
+
+def test_a_project_that_declares_no_laws_is_told_nothing(tmp_path):
+    """The direction a gate may not fail in. The laws are one project's and the table stating
+    them is what closes the set, so where there is no table there is no population — and an
+    empty declaration has to report **nothing** rather than every citation at once, which is
+    how a check opening on somebody else's prose comes to be switched off."""
+    citing = PROSE.replace(
+        "The reasoning the second line has no room for.",
+        "The reasoning, which L4 and L7 both bear on.",
+    )
+    assert "law.unknown" not in codes(lint(project(tmp_path, improvements=citing)))
+
+
+def test_a_line_anchor_in_a_url_is_not_a_citation(tmp_path):
+    # The shape the check must not match, named in the task before it was written: this
+    # repository's own ledger carries `#L35`, and a check opening with a false finding on a
+    # corpus that has none is how a gate comes to be turned off.
+    citing = LAWFUL.replace(
+        "The reasoning the second line has no room for.",
+        "The reasoning, whose site is `src/roadkeep/cli.py#L35` and nothing else.",
+    )
+    assert "law.unknown" not in codes(lint(project(tmp_path, improvements=citing)))
+
+
 def test_a_citation_of_a_section_that_is_there_is_not_a_finding(tmp_path):
     # The other half, and the one that decides whether this check is adoptable: prose arguing
     # from a live design is the normal shape of a rationale file, not a finding.

@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1380** (deps: —) **a law a governed sentence cites is resolved by nothing, so an L7 reads as a law this project has** — The six are closed and machine-readable and every other citation this prose carries resolves — an anchor, a path, an id — which leaves this the one kind nobody reports. → §RK1380
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

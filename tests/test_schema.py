@@ -29,7 +29,7 @@ from roadkeep import (
     SchemaError,
     Task,
 )
-from roadkeep.kernel.schema import RETIRED, over_by, width, words, words_over
+from roadkeep.kernel.schema import CHARS_PER_WORD, RETIRED, over_by, width, words, words_over
 
 ROADMAP = Path(__file__).resolve().parents[1] / "docs" / "ROADMAP.md"
 CHANGELOG = Path(__file__).resolve().parents[1] / "docs" / "CHANGELOG.md"
@@ -188,9 +188,15 @@ def test_the_exact_figure_comes_first_and_the_approximation_is_hedged():
 def test_a_surplus_in_words_rounds_up_where_an_aim_rounds_down():
     # Opposite directions, one constant: an aim that rounds up overshoots the gate, and a
     # cut that rounds down stops short of it and earns the same refusal a second time.
-    assert words(13) == 2 and words_over(13) == 2
-    assert words(14) == 2 and words_over(14) == 3
-    assert words(6) == 0 and words_over(6) == 1
+    #
+    # Off `CHARS_PER_WORD` and no longer at 13 and 14, which were that figure at 6.5 and stopped
+    # being it when the corpus was re-measured (RK184's own rule: the constant follows the
+    # reading). What is asserted is the rounding and never the calibration, so a count is
+    # composed from the conversion — a whole number of words either way, and a half between.
+    for count in range(1, 40):
+        exact = count / CHARS_PER_WORD
+        assert words(count) == int(exact), count
+        assert words_over(count) == int(exact) + (0 if exact.is_integer() else 1), count
 
 
 def test_a_refusal_already_counted_in_words_gets_no_second_copy_of_itself():

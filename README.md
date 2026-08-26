@@ -119,16 +119,12 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
 | C — Query (consult without reading the file) | 0 | 138 | 2 |
-| D — The gate | 1 | 194 | 2 |
+| D — The gate | 0 | 195 | 2 |
 | E — Adoption | 0 | 103 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 32 | 1 |
-| **Total** | 1 | 865 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1380** (deps: —) **a law a governed sentence cites is resolved by nothing, so an L7 reads as a law this project has** — The six are closed and machine-readable and every other citation this prose carries resolves — an anchor, a path, an id — which leaves this the one kind nobody reports. → §RK1380
+| **Total** | 0 | 866 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

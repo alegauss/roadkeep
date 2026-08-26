@@ -1093,6 +1093,28 @@ _TABLE: Mapping[str, _Rule] = {
         "the citation resolves into the other prose file while this one declares the same "
         "address; the sentence naming which it meant arrives on stdin",
     ),
+    # RK1380. Two doors and a decision, because the sentence is in whichever file cites the law
+    # and the verb follows the file: a design is `section amend`, a ledger entry is `record
+    # amend`, and both take the prose on stdin. Which of the two — and whether the citation was
+    # mistyped or the argument leant on a law this project does not hold — is the author's, so
+    # no `{id}` is substituted here: this finding names a line and not a task.
+    "law.unknown": _decide(
+        "a sentence cites a law the table does not declare, and where it sits decides the "
+        "verb that corrects it:",
+        (
+            ("amend", "{id}", "--why", "-"),
+            "where the citation is in a roadmap line's why, and `restate` where it is in the "
+            "claim, that being what the line is rather than a field on it",
+        ),
+        (
+            ("section", "amend", "{id}", "--body", "-"),
+            "where it is in a design, the corrected sentence arriving on stdin",
+        ),
+        (
+            ("record", "amend", "{id}", "--why", "-"),
+            "where it is in a ledger entry, which is the third prose a law is cited from",
+        ),
+    ),
     "section.too-long": _compose(
         ("section", "amend", "{id}", "--body", "-"),
         "past the word budget; the shorter prose is yours and arrives on stdin",

@@ -437,10 +437,16 @@ def grammar(marker: bool, symptom: bool) -> str:
 
 
 #: Characters per word, for turning a budget that refuses into one that can be aimed at
-#: (RK185). Measured over this repository's 392 written `symptom` and `why` fields: the
-#: median is 5.5 and the 95th percentile 6.36, so this is the first round number above it
-#: — an author who lands on the word aim clears the character gate about nineteen times in
+#: (RK185). Measured over this repository's written `symptom` and `why` fields: at 392 of them
+#: the median was 5.5 and the 95th percentile 6.36, and this is the first round number above
+#: it — an author who lands on the word aim clears the character gate about nineteen times in
 #: twenty, and the twentieth is the refusal that already names the surplus (RK184).
+#:
+#: **Re-measured at 1,756 fields**, where the 95th percentile is 6.52 and the first round
+#: number above it is 6.6. Not a raise anyone argued for: the corpus grew and the ratio moved
+#: with it, `tests/test_budgeting.py` failed as it is written to, and the figure follows the
+#: reading exactly as it did the first time. Moving it up is the safe direction — the aim gets
+#: shorter, so the gate is reached less often — and the rule it follows is the sentence above.
 #:
 #: Not configuration (L6). A project declares how long its lines may be; this is a property
 #: of the prose those lines are written in, and a `roadkeep.toml` field for it would be a
@@ -450,7 +456,7 @@ def grammar(marker: bool, symptom: bool) -> str:
 #: Here rather than in `budgeting`, which is where it was written and is still read from
 #: (RK201): the refusal needs the same conversion the aim is published with, and a second
 #: constant one layer down would be the second opinion an author stops trusting.
-CHARS_PER_WORD = 6.5
+CHARS_PER_WORD = 6.6
 
 
 #: How far a body composed *to* its word limit overshot the count `words` takes (RK301).

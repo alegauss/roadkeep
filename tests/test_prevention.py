@@ -190,6 +190,12 @@ PREVENTION: tuple[Prevented, ...] = (
     # correct when it was written, and declaring `[refs]` re-addressed every heading in its file
     # at once — an edit to `roadkeep.toml`, which no door of this tool makes and none can refuse.
     Prevented("ref.crossed", "gate", because=LATER),
+    # RK1380. `LATER` again, and by the same kind of write as the two above: the prose was
+    # correct when it passed the door, and what makes it wrong is a law leaving the table —
+    # an edit to a rationale section, which the tool refuses nothing about because the six
+    # are the project's own to state. An `add` has nothing to check here: the citation is
+    # inside a paragraph, and reading which token in it is a law is what the gate does once.
+    Prevented("law.unknown", "gate", because=LATER),
     Prevented("grammar.unreadable", "gate", because=RULE),
     Prevented("block.unorganised", "gate", because=FILE),
     Prevented("export.unmarked", "gate", because=FILE),

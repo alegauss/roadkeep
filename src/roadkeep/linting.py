@@ -770,6 +770,10 @@ def _rules() -> tuple[_Rule, ...]:
         found = list(_pointers(scan.config, scan.documents, scan.anchors))
         found += _citations(scan.config, scan.prose, scan.anchors)
         found += _crossing(scan.config, scan.prose, scan.anchors)
+        # The fourth kind of citation (RK1380), asked of every governed file and not of the
+        # prose ones alone: a law is cited from a ledger sentence and a roadmap `why` as
+        # readily as from a design.
+        found += _laws(scan.config, scan.documents, scan.prose)
         for role, document in scan.prose.items():
             found += _orphans(
                 scan.config, scan.documents, document, scan.anchors, role=role
@@ -3205,6 +3209,101 @@ def _citations(
                     subject=cited.by,
                 )
             )
+    return out
+
+
+#: A law as a sentence cites one, and the two shapes that are not citations. `#L35` is a line
+#: anchor inside a URL fragment — the ledger carries one — and `L` followed by a letter is a
+#: word. A check opening with a false finding on a corpus that has none is how a gate comes to
+#: be switched off (RK1380), so the exclusions are in the pattern rather than in a filter after.
+_CITED_LAW = re.compile(r"(?<![#\w])(L[1-9][0-9]*)(?![\w])")
+
+#: How the authoritative table states one: a leading cell holding the law's own name. Read
+#: rather than declared, because the table *is* the declaration — `agents.md` carries a
+#: compressed copy and says this one governs, and a second list in `roadkeep.toml` would be the
+#: thing the table exists not to be. A project with no such table declares no laws, and then
+#: this reports **nothing**: an empty declaration means there is nothing to resolve against,
+#: never that every citation is unknown — which is the direction a gate may not fail in.
+_DECLARES_LAW = re.compile(r"^\|\s*(L[1-9][0-9]*)\s*\|", flags=re.MULTILINE)
+
+
+def _laws(
+    config: Config, documents: dict[str, Document], prose: dict[str, Document]
+) -> list[Finding]:
+    """A law a governed sentence cites that no prose file declares (RK1380).
+
+    The fourth kind of citation this prose carries and the only one nothing resolved. An anchor
+    is `ref.dangling`, a path is `path.missing`, an id is a dep the parser types — and a law
+    read back as true whatever it said, so an `L7` was a law this project appeared to hold and
+    was a number somebody typed.
+
+    Silent on a project that declares none, which is every adopter: the laws are one project's
+    and the table stating them is what makes the set closed, so where there is no table there is
+    no population and no finding. That is the whole safety of doing this by reading rather than
+    by configuration — an absent declaration reports nothing rather than everything.
+    """
+    declared = {
+        law
+        for document in prose.values()
+        for law in _DECLARES_LAW.findall(document.render())
+    }
+    if not declared:
+        return []
+    where = " or ".join(config.relative(config.path(role)) for role in prose)
+    out: list[Finding] = []
+    # Both sets, because `_Scan` keeps them apart: `documents` is the files organised by lines
+    # and `prose` the ones organised by sections, and a law is cited from a design as readily
+    # as from a ledger sentence — which is the whole population this is about.
+    for role, document in {**documents, **prose}.items():
+        file = config.relative(config.path(role))
+        owner = _owners(document)
+        for lineno, line in enumerate(document.lines, start=1):
+            for found in _CITED_LAW.finditer(line):
+                if found.group(1) in declared:
+                    continue
+                out.append(
+                    Finding(
+                        "law.unknown",
+                        file,
+                        f"cites {found.group(1)}, which {where} does not declare: the laws "
+                        f"are a closed table and a citation of one outside it reads as a rule "
+                        f"this project holds, which is the one thing prose may not invent",
+                        lineno,
+                        # The id or anchor whose prose carries the sentence, so the door is one
+                        # command and not a shape to fill (RK420) — every other finding here
+                        # names the thing its remedy addresses, and a citation's is whatever
+                        # owns the line it sits on.
+                        owner.get(lineno, ""),
+                        # And the offset by name, which is what makes one `L` among a
+                        # paragraph's words findable by eye (RK34).
+                        column=found.start(1) + 1,
+                    )
+                )
+    return out
+
+
+def _owners(document: Document) -> dict[int, str]:
+    """Which id or anchor owns each line of one governed file (RK1380).
+
+    A citation is corrected through the verb that owns the prose it sits in, and every one of
+    those takes an address: `amend` a line's id, `section amend` an anchor, `record amend` an
+    entry's id. So a finding about a *line* has to resolve it, or its door is a shape rather
+    than a command.
+
+    Both organisations, read through the two readers that already answer this: an entry knows
+    the span it owns because a ledger bullet may wrap (RK157), and a section knows its own from
+    `first` to `last`. A line owned by neither — a heading, a blank, prose above the first
+    section — answers `""`, which is the honest state and the one the remedy's blank is for.
+    """
+    from roadkeep.sections import anchored  # noqa: PLC0415 - RK260
+
+    out: dict[int, str] = {}
+    for entry in document.entries:
+        for lineno in range(entry.lineno, max(entry.stop, entry.lineno) + 1):
+            out[lineno] = entry.task.id
+    for section in anchored(document):
+        for lineno in range(section.first, section.last + 1):
+            out.setdefault(lineno, section.anchor)
     return out
 
 
