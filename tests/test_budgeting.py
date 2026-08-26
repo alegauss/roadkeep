@@ -969,14 +969,16 @@ def test_the_tool_list_states_what_it_costs_a_session(tmp_path, capsys):
 
     Not a claim the list is too long — a claim that the number was not stated, and RK30's own
     argument is that a limit nobody counts is a limit that moves."""
-    from roadkeep.serving import TOOLS
+    from roadkeep.serving import published
 
-    budgeted(tmp_path)
+    config = budgeted(tmp_path)
     assert main(["-C", str(tmp_path), "cost", "--tools"]) == EXIT_OK
     printed = capsys.readouterr().out
     # Both messages a session is handed before its first call (RK1062), because reporting
     # one of them made the other a place an author could move text into and measure a win.
-    assert f"session    {len(TOOLS)} tool(s) and the handshake" in printed
+    # Counted against what *this* project is published (RK1360) — which is the whole point of
+    # the verb: a figure derived from the package would be one no checkout ever pays.
+    assert f"session    {len(published(config))} tool(s) and the handshake" in printed
     assert "handshake" in printed and "sent once" in printed
     assert "utf-16-code-units" in printed
     # The largest few, because a reader deciding what to cut wants where the size went.
@@ -984,12 +986,12 @@ def test_the_tool_list_states_what_it_costs_a_session(tmp_path, capsys):
 
 
 def test_the_payload_carries_every_tool_and_the_terminal_the_largest(tmp_path, capsys):
-    from roadkeep.serving import TOOLS
+    from roadkeep.serving import published
 
-    budgeted(tmp_path)
+    config = budgeted(tmp_path)
     assert main(["-C", str(tmp_path), "cost", "--tools", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    assert payload["tools"] == len(TOOLS) == len(payload["by_tool"])
+    assert payload["tools"] == len(published(config)) == len(payload["by_tool"])
     assert payload["tool_list"] == sum(row["characters"] for row in payload["by_tool"])
     # The total is the session's and the two halves are named beside it (RK1062): a caller
     # left to add them is a caller who can be told a saving that only moved.

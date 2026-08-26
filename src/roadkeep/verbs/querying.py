@@ -58,7 +58,7 @@ from roadkeep.rendering import (
     _load_json,
     _nothing_json,
 )
-from roadkeep.serving import Prose, detail, surface
+from roadkeep.serving import Prose, Withheld, detail, surface
 from roadkeep.showing import show
 from roadkeep.verbs.declaring import (
     _DESIGNED_HELP,
@@ -770,6 +770,12 @@ def _tools_budget(config: Config, args: argparse.Namespace) -> int:
         # names a tool that is over.
         try:
             one = detail(config, args.tools)
+        except Withheld as withheld:
+            # The one refusal here with a remedy (RK1360): the tool exists and this project is
+            # not sent it, so the answer is the `declare` that changes that and never the
+            # ranking, which is a list this verb is correctly absent from.
+            print(f"roadkeep: refused: {withheld}", file=sys.stderr)
+            return EXIT_USAGE
         except KeyError:
             print(
                 f"roadkeep: refused: {args.tools!r} is not a tool this project serves — "

@@ -30,7 +30,12 @@ and they are not. **It takes two vocabularies**: a *role* writes that file and t
 key governing it, and one of the two *opt-in tables* — `criteria`, `non_goals` — opens the
 list a verb refuses over, empty, which is what opting in means; `govern` is what tunes the
 numbers in it afterwards. Reach for it when a write refuses over an undeclared role or
-table, which is the refusal that now names this command rather than a hand edit. The last of them
+table, which is the refusal that now names this command rather than a hand edit. **And it is
+what the tool list is composed from**: a verb that is one role's whole grammar — `defer` and
+`resume` for the store, `supersede` for the decisions file — is published only where that role
+is declared, so a vocabulary grows for the projects that opted into it and costs the rest
+nothing. Absent is not missing: the name still resolves and the call is refused naming the
+`declare` that opens it, and the list changes under a session that runs one. The last of them
 wires this file, the tools and the guard into a project running the tool from a checkout,
 and `install --check` is what holds its copy of this file in step — though you will rarely
 type it, because **the gate now asks**: a vendored launcher, hook or skill behind the

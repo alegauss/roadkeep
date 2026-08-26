@@ -46,7 +46,7 @@ from roadkeep.cli import EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
 from conftest import since_import, shelled
 from roadkeep.provenance import engine, invocation
-from roadkeep.kernel.schema import body_aim
+from roadkeep.kernel.schema import body_aim, width
 from roadkeep.serving import (
     KNOWN_PROTOCOLS,
     _CONDITIONAL,
@@ -70,6 +70,7 @@ from roadkeep.serving import (
     Watch,
     handle,
     prose_of,
+    published,
     serve,
     serves,
     tool_named,
@@ -114,6 +115,14 @@ SUFFIXED = PROSE + "[ids]\nsuffix = true\n"
 OUTLINED = (
     f'prefix = "RK"\nref_scheme = "outline"\n[files]\nroadmap = "{ROADMAP}"\n'
     f'changelog = "{CHANGELOG}"\nimprovements = "{IMPROVEMENTS}"\n'
+)
+#: A project that declares **every** role, so every tool this build has is published (RK1360).
+#: Reach for it where the question is about the whole surface rather than about one project's:
+#: since publication is per role, a fixture declaring three of six answers about a subset and
+#: reads as an answer about the package.
+WHOLE = PROSE + (
+    'strategy = "docs/STRATEGY.md"\ndeferred = "docs/DEFERRED.md"\n'
+    'decisions = "docs/DECISIONS.md"\n'
 )
 
 
@@ -985,7 +994,10 @@ def test_listing_the_tools_builds_the_parser_once(monkeypatch):
 
     monkeypatch.setattr(cli, "build_parser", counted)
     serving._root.cache_clear()
-    assert len(descriptors(Config.default())) == len(TOOLS)
+    # Against what *this* config is published rather than against the package's table (RK1360):
+    # a default config declares no files, so the three role-bound tools are correctly absent and
+    # the count this test is about is still every descriptor that was built.
+    assert len(descriptors(Config.default())) == len(published(Config.default()))
     assert builds == 1
     # And nothing after it: what stopped a mid-session `[ids] suffix` from being described
     # was never the parser, which holds no configured value at all, but the config read that
@@ -1075,9 +1087,12 @@ def test_the_object_is_closed_so_a_misspelt_argument_never_reaches_the_parser(tm
 
 
 def test_the_read_only_hint_says_which_tools_write(tmp_path):
+    # Every role declared, so the question is about every tool this build has (RK1360) — a
+    # three-role fixture would list `defer`, `resume` and `supersede` as tools that do not
+    # write, which is the wrong answer to the question this test asks.
     hints = {
         name: tool["annotations"]["readOnlyHint"]
-        for name, tool in listed(project(tmp_path)).items()
+        for name, tool in listed(project(tmp_path, config=WHOLE)).items()
     }
     # `lint` is read-only *because* `--fix` is not exposed: RK16 belongs where a human is
     # standing (the pre-commit hook), so *that* tool cannot repair anything. `repair` is a
@@ -1612,6 +1627,76 @@ def test_the_tool_that_declares_a_scope_is_not_the_tool_that_takes_the_line(tmp_
     assert "porcelain" not in served["scope"]["inputSchema"]["properties"]
 
 
+# -- the surface is the project's, not the package's (RK1360) --------------------
+
+
+def test_a_tool_bound_to_a_role_is_published_only_where_the_role_is():
+    bound = {tool.name: tool.needs for tool in TOOLS if tool.needs}
+    # Three, and each of them the whole grammar of one role: the pause, the return, and the
+    # decisions role's one departure. A tool serving a role every project has would be a
+    # `needs` that never narrows anything and a claim this test could not falsify.
+    assert bound == {"defer": "deferred", "resume": "deferred", "supersede": "decisions"}
+    bare = Config.default()
+    for name, role in bound.items():
+        assert name not in {one.name for one in published(bare)}, name
+        opened = replace(bare, paths={**bare.paths, role: bare.root / f"{role}.md"})
+        assert name in {one.name for one in published(opened)}, name
+
+
+def test_the_surface_shrinks_by_exactly_what_the_undeclared_roles_cost(tmp_path, other):
+    # The measurement the task was proposed on: 66 tools and 88 units of headroom, because the
+    # list was composed from the parser and every adopter paid for every vocabulary. What a
+    # project is sent is now what it can call, so a role it never declared costs it nothing.
+    every = listed(project(other, config=WHOLE))
+    three = listed(project(tmp_path))
+    assert set(every) - set(three) == {"defer", "resume", "supersede"}
+    withheld = sum(
+        width(json.dumps(every[name], ensure_ascii=False))
+        for name in ("defer", "resume", "supersede")
+    )
+    narrow = dict(serving.surface(Config.discover(tmp_path)).tools)
+    broad = dict(serving.surface(Config.discover(other)).tools)
+    assert withheld == sum(broad[name] for name in ("defer", "resume", "supersede"))
+    assert sum(narrow.values()) + withheld < sum(broad.values())
+    # And the rest of the difference lands only on tools **both** projects are sent, because it
+    # is the `role` enum RK304 already narrowed — so this task added a second narrowing rather
+    # than moving where the first one applies.
+    for name, size in narrow.items():
+        if size != broad[name]:
+            assert "role" in three[name]["inputSchema"]["properties"], name
+
+
+def test_a_withheld_tool_is_still_reachable_as_the_declare_that_opens_it(tmp_path):
+    # The half that keeps the narrowing honest: an agent spelling a name out of the skill, or a
+    # client validating against a list it cached before a `declare`, reaches this — and a name
+    # that simply vanished reads as a verb this tool does not have.
+    project(tmp_path)
+    answer = called(tmp_path, "defer", id="RK1", reason="Waiting on the console.")
+    assert answer["isError"]
+    text = answer["content"][0]["text"]
+    assert "declare deferred" in text and "not published here" in text
+    # And the name still resolves, so the refusal is about the role rather than about a typo.
+    assert tool_named("defer").needs == "deferred"
+
+
+def test_declaring_the_role_mid_session_is_a_list_that_changed(tmp_path):
+    # `Watch` already compares the digest of what this connection was sent (RK177), and it is
+    # composed from `descriptors` — so publication moving with `[files]` makes the notification
+    # fire on a `declare` without anything else being asked to notice.
+    project(tmp_path)
+    watch = Watch()
+    handle({"jsonrpc": "2.0", "id": 1, "method": "tools/list"}, str(tmp_path), watch)
+    (tmp_path / "roadkeep.toml").write_text(WHOLE, encoding="utf-8")
+    told = watch.moved(str(tmp_path))
+    assert told is not None and told["method"] == "notifications/tools/list_changed"
+
+
+@pytest.fixture
+def other(tmp_path_factory):
+    """A second tree, for the one assertion that reads two configs of the same shape."""
+    return tmp_path_factory.mktemp("other")
+
+
 # -- the dest the enum missed (RK314) -------------------------------------------
 
 
@@ -1620,7 +1705,8 @@ def test_the_tool_that_writes_a_marker_publishes_the_set_the_one_that_prices_one
     # Measured after that shipped: `budget --status` is dest `status`, which the table keyed on,
     # and the `status` command's positional is dest `marker`, which nothing keyed on — so the
     # enum reached the tool that prices a line and missed the tool that writes one.
-    served = listed(project(tmp_path))
+    # `resume` is the deferred role's verb and is published only where the store is (RK1360).
+    served = listed(project(tmp_path, config=WHOLE))
     open_set = ["📋", "💭", "⏳", "🛠"]
     for name in ("status", "resume", "budget", "add"):
         published = served[name]["inputSchema"]["properties"]

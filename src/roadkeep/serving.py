@@ -62,6 +62,16 @@ read-only hint stays true of both, and `dry_run` is the read.
 A nested subcommand is one tool: `section add` is `section_add` to the protocol, which has no
 space in a name, and two argv words here. One :class:`Tool` holds both spellings rather than a
 table mapping between them.
+
+And what stays out is **this project's** question, not the package's (RK1360). `[files]` already
+decided which roles a `role` argument may name; it did not decide whether the verb naming that
+role existed, so `defer`, `resume` and `supersede` were 2,313 units every adopter paid for two
+stores most of them never declare — and the consequence, which is the one that matters for every
+vocabulary after this, is that a new role cost every project and so was argued against a ceiling
+the arguing project was not using. :meth:`Tool.published` inverts that: the ceiling becomes what
+this checkout can call, and `cost --tools` answers per checkout rather than per build. The honest
+half is :class:`Withheld` — a name absent from the list still resolves and is still refused with
+the `declare` that opens it, because an agent reads a missing name as a verb that does not exist.
 """
 
 from __future__ import annotations
@@ -210,6 +220,27 @@ class Tool:
     #: `roadkeep.toml` states (L6), so the tool schema varying is the config being read rather
     #: than this surface holding a second opinion about it.
     conditional: tuple[str, ...] = ()
+    #: The role this tool is the vocabulary of, where it has one — published only on a project
+    #: whose `[files]` declares it (RK1360). One role and never a set: a tool that would be
+    #: published under either of two roles is one whose refusal cannot name a single `declare`,
+    #: and a surface that withholds a verb owes the caller the command that opens it.
+    needs: str = ""
+
+    def published(self, config: Config) -> bool:
+        """Whether this project is sent this tool at all (RK1360).
+
+        The narrowing :attr:`conditional` makes to a *field*, made to the tool: `[files]`
+        already decides which roles a `role` argument may name, and until now it did not
+        decide whether the verb naming that role existed. So `defer` and `resume` were 1,381
+        units every project paid for a store most of them never declared, and every vocabulary
+        added after this would have been charged to every adopter — which is what made
+        `[tools] session` an argument against a total no single project spends.
+
+        The other direction is the honest half: a tool absent here is still :func:`tool_named`
+        and still refused by :func:`call` with the `declare` that opens it, because an agent
+        reads a missing name as a verb that does not exist.
+        """
+        return not self.needs or config.has(self.needs)
 
     def exposed(self, config: Config) -> tuple[str, ...]:
         """Every argument a caller may set on *this* project, in declaration order.
@@ -419,9 +450,15 @@ TOOLS: tuple[Tool, ...] = (
     # The decisions role's one departure (RK1274), served for the reason `ship --decides` is:
     # the session that just replaced a constraint is the one that knows which it replaced, and
     # over this transport the alternative is a hand edit the guard denies.
-    Tool("supersede", ("id", "by")),
-    Tool("defer", ("id", "reason")),
-    Tool("resume", ("id", "marker")),
+    # `needs` beside it for the first time (RK1360): this verb is the decisions role's grammar
+    # and nothing else's, so a project that files no decisions was reading its 932 units before
+    # every call it made.
+    Tool("supersede", ("id", "by"), needs="decisions"),
+    # The pause and the return, both of which already refuse where `[files]` declares no store
+    # — so publishing them there was 1,381 units describing a refusal (RK1360). The refusal
+    # stays reachable and now names `declare deferred`, which is the door it always named.
+    Tool("defer", ("id", "reason"), needs="deferred"),
+    Tool("resume", ("id", "marker"), needs="deferred"),
     # `supersedes` rides with it because the revert is one transaction (RK395): the entry that
     # says the work did not hold and the pointer on the entry that says it shipped are two
     # edits an agent cannot make separately — the second one is a hand edit the guard denies.
@@ -1377,6 +1414,11 @@ def detail(config: Config, name: str) -> Detail:
     for tool in TOOLS:
         if tool.name != name:
             continue
+        # Named and withheld is not named and unknown (RK1360): the caller asking what a tool
+        # costs on a project that is not sent it has asked a well-formed question, and the
+        # answer is the role, not `no such tool`.
+        if not tool.published(config):
+            raise Withheld(tool.name, tool.needs)
         payload = descriptor(tool, config, parsers)
         parts = {
             DESCRIPTION: width(json.dumps({"description": payload["description"]},
@@ -1563,6 +1605,28 @@ def _paragraphed(config: Config) -> str:
 
 class ToolError(Exception):
     """An argument name or shape the schema already rules out — refused before dispatch."""
+
+
+class Withheld(KeyError):
+    """A tool this build has and this project is not sent, named with the role that opens it.
+
+    A `KeyError`, because the one caller that already handled a name this surface does not
+    answer for handled it as one (RK1360) — and a subclass, because "not a tool" and "not a
+    tool *here*" are two answers and only the second one has a remedy. :attr:`role` is what
+    the remedy names, so no reader of this composes `declare` from a table of its own.
+    """
+
+    def __init__(self, tool: str, role: str) -> None:
+        super().__init__(tool)
+        self.tool = tool
+        self.role = role
+
+    def __str__(self) -> str:
+        return (
+            f"{self.tool} is the {self.role} role's verb and this project declares no "
+            f"{self.role} file, so the tool is not published here — `declare {self.role}` "
+            f"writes the file and the `[files]` key, and the tool arrives with it"
+        )
 
 
 # -- describing the tools ----------------------------------------------------
@@ -1821,9 +1885,24 @@ def descriptor(
     return payload
 
 
+def published(config: Config) -> tuple[Tool, ...]:
+    """The tools *this* project is sent, in :data:`TOOLS` order (RK1360).
+
+    Every read of the surface goes through here rather than through :data:`TOOLS` — the
+    descriptors, the ranking, `cost --tools` and the digest a `list_changed` compares — so
+    the figure answers per checkout instead of per build, and a `declare` mid-session moves
+    the digest and sends the notification without anything else being asked to notice.
+
+    :func:`tool_named` deliberately does not: a name is resolved against the package, so a
+    call to a withheld tool is refused by :func:`call` with the role it needs rather than by
+    a lookup that says no such verb exists.
+    """
+    return tuple(tool for tool in TOOLS if tool.published(config))
+
+
 def descriptors(config: Config) -> list[dict[str, Any]]:
     parsers = _parsers()
-    return [descriptor(tool, config, parsers) for tool in TOOLS]
+    return [descriptor(tool, config, parsers) for tool in published(config)]
 
 
 # -- calling one ------------------------------------------------------------
@@ -2109,6 +2188,19 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         return _answered(
             f"roadkeep: {error}{provenance.read_by()}",
             Path(directory),
+            is_error=True,
+            served=_spelled(tool),
+        )
+    # Published here or not, asked before the argv is composed (RK1360). A withheld tool is
+    # still resolved by name and still answers, because a client validating against a cached
+    # list, an agent spelling a name out of the skill, or a session that connected before a
+    # `declare` all reach this — and a name that simply vanished reads as a verb this tool
+    # does not have. `isError` and never a JSON-RPC error, so the remedy reaches the model.
+    if not tool.published(config):
+        withheld = Withheld(tool.name, tool.needs)
+        return _answered(
+            f"roadkeep: refused: {withheld}",
+            config.root,
             is_error=True,
             served=_spelled(tool),
         )

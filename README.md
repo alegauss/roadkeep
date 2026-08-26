@@ -123,12 +123,12 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 102 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 122 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 1 | 26 | 1 |
-| **Total** | 3 | 845 | 12 |
+| H — The tool's own shape (what one verb costs to change) | 0 | 27 | 1 |
+| **Total** | 2 | 846 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1360** (deps: —) **a project declaring no decisions file still pays for its verbs at connect, the tool list being built from the parser** — What a session pays at connect is what that project can call, so a vocabulary grows for the projects that declared it and costs the rest nothing. → §RK1360
+- 📋 **RK1361** (deps: RK1360 ✅) **a decision is one sentence, so the alternatives rejected and the consequences accepted are kept by hand or not at all** — A decision's body is what no other store keeps, the design section being deleted by the ship that writes the line, and it is never that section copied. → §RK1361
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

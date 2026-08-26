@@ -125,21 +125,3 @@ half of speckit this format deliberately has no model for.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1360 The served surface is the project's, not the package's
-
-Measured before proposing it: 66 tools, 64,612 of 64,700 held — 88 units of headroom,
-and the reason it is that tight is that the list is composed from the package's parser,
-so roadkeep, Shio and Turing publish the same 66 whatever each declares. `[files]`
-already narrows the enum of a `role` argument to the declared roles; it does not decide
-whether the tool exists. So a project that never files a decision pays `record_add`'s
-1,752 units in every session, and `[tools] session` has been re-argued eight times
-against a total no single project actually spends.
-
-The consequence is the one that matters for every vocabulary after this: a new role
-costs every adopter, so each is argued against a ceiling the arguing project is not even
-using. Narrowing publication to `config.has(role)` inverts that — the ceiling becomes
-what this project can call, the budget stops being a constant about the package, and
-`cost --tools` answers per checkout rather than per build. What has to stay honest is
-the refusal: a tool absent because a role is undeclared must still be reachable as a
-message naming `declare`, or an agent reads the absence as the verb not existing.
