@@ -304,6 +304,9 @@ RECORDS: dict[str, dict[str, str | None]] = {
         "promise": "promise",
         "bound": "bound",
         "wrote": "wrote",
+        # The read this write volunteers (RK1370), under its own key: `[]` where the block has
+        # delivered nothing, never omitted, so a consumer tells that from an older build.
+        "near": "near",
     },
     "StatusChange": {
         "document": None,

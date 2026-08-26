@@ -24,7 +24,7 @@ from pathlib import Path
 
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
-from roadkeep.ranking import NEAREST, nearest, words
+from roadkeep.ranking import NEAREST, VOLUNTEERED, nearest, words
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -170,6 +170,63 @@ def test_the_unbounded_listing_is_untouched(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "6 delivered" in out and "nearest" not in out
     assert len([line for line in out.splitlines() if line.startswith("  ✅")]) == 6
+
+
+# -- the same read, volunteered by the write (RK1370) --------------------------
+
+
+def _added(root: Path, symptom: str) -> str:
+    assert main(
+        ["-C", str(root), "add", "--block", "A", "--symptom", symptom, "--why", "Because."]
+    ) == EXIT_OK
+    return symptom
+
+
+def test_the_add_hands_back_the_read_the_author_had_to_remember(tmp_path, capsys):
+    """RK1370. `delivered --near` is the read the skill puts before every proposal, and it has
+    to be remembered: this project filed RK1369 claiming nothing checked which arguments a
+    served verb withholds, that check had existed since RK1099, and the `add` said nothing.
+
+    Volunteered *after* the write and not instead of it, because this is a report and never a
+    gate: nothing here refuses a duplicate and RK441 measured that nothing could. What it buys
+    is the moment — an id is spent and the design is not written, so `restate` and `retire` are
+    one call away."""
+    root = project(tmp_path)
+    _added(root, "A block heading declared twice in the changelog")
+    out = capsys.readouterr().out
+    assert "an order and not a verdict" in out
+    ranked = [line for line in out.splitlines() if line.strip().startswith("✅")]
+    assert len(ranked) == VOLUNTEERED
+    # The block's own entry about that claim leads, which is what makes the row worth printing.
+    assert "RK6" in ranked[0] or "RK2" in ranked[0]
+
+
+def test_the_volunteered_rows_carry_no_score(tmp_path, capsys):
+    """RK441's rule at the door that did not exist when it was written: the absolute figure
+    separates nothing, so a row or a payload carrying one is a turn from a threshold the
+    measurement rules out. The rank is the order and is the whole of what is published."""
+    root = project(tmp_path)
+    assert main(
+        [
+            "-C", str(root), "add", "--block", "A",
+            "--symptom", "A pointer resolving to a section that already shipped",
+            "--why", "Because.", "--json",
+        ]
+    ) == EXIT_OK
+    near = json.loads(capsys.readouterr().out)["near"]
+    assert [one["rank"] for one in near] == list(range(1, VOLUNTEERED + 1))
+    assert all("score" not in one for one in near)
+    assert near[0]["id"] == "RK3"
+
+
+def test_a_block_that_has_delivered_nothing_says_nothing(tmp_path, capsys):
+    """Two states with nothing to rank — no changelog, and a block with no entries under it —
+    and never a third where the nearest looked too far: filtering those out is the impossible
+    gate rebuilt as a silence, which is what `VOLUNTEERED` carries the measurement for."""
+    root = project(tmp_path)
+    (root / CHANGELOG).write_text("# Shipped\n\n## Block A — The model\n", encoding="utf-8")
+    _added(root, "A first symptom under a block that has shipped nothing")
+    assert "an order and not a verdict" not in capsys.readouterr().out
 
 
 def test_no_surface_carries_a_score(tmp_path, capsys):

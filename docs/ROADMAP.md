@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1370** (deps: —) **an add answers without the delivered entries nearest what it filed, so a duplicate is found after the design is written** — This session filed a task whose remedy the code already had, and the ranking that would have named it was one call away inside that same transaction. → §RK1370
-
 ## Block D — The gate
 
 ## Block E — Adoption

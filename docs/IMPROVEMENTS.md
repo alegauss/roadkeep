@@ -79,31 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1370 The read that has to be remembered, at the moment nothing is spent
-
-`delivered <block> --near` exists and is the read the skill puts before every proposal
-(RK1183, RK1042). It is a read the author has to remember, and this session did not:
-RK1369 was filed claiming nothing checked which arguments a served verb withholds, that
-check had existed since RK1099, and the `add` that wrote the line said nothing.
-
-The skill's argument for reading first is that reading after the line exists is too
-late. That is right about the *decision* and wrong about the *cost*: an `add` answer
-already carries the follow-ups a caller acts on (RK476), and at that moment `retire` and
-`restate` are one call away with nothing spent but an id. So naming the nearest entries
-there costs a ranking already written, and turns a read somebody has to remember into
-one the write hands back.
-
-It stays an order and never a verdict, which is the whole of RK1183's finding: two
-people describing one problem use disjoint words, so no threshold separates a duplicate
-from a neighbour and this tool has no meaning to judge with (L4). What the answer says
-is *these are nearest*, and whether one of them is this task is the caller's reading.
-
-The narrow question is how many, and whether the `--section` transaction's answer has
-room: a line's is already the longest this verb writes.
-
-Falsified when an `add` lands beside an entry stating the same problem and the answer
-names neither.
-
 ## Block D — The gate
 
 ## Block E — Adoption

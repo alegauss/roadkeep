@@ -118,17 +118,17 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 215 | 2 |
-| C — Query (consult without reading the file) | 1 | 135 | 2 |
+| C — Query (consult without reading the file) | 0 | 136 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 103 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 124 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 29 | 1 |
-| **Total** | 2 | 855 | 12 |
+| **Total** | 1 | 856 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1370** (deps: —) **an add answers without the delivered entries nearest what it filed, so a duplicate is found after the design is written** — This session filed a task whose remedy the code already had, and the ranking that would have named it was one call away inside that same transaction. → §RK1370
+- 📋 **RK1371** (deps: —) **every reason for not serving an argument is declared and read by no command, so a caller asking why reaches none** — RK1169 moved each sentence beside the argument it explains, and the only reader it ever found is the test that holds the two halves in step. → §RK1371
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

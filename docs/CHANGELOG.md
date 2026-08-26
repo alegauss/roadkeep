@@ -415,6 +415,7 @@
 - ✅ **RK1320** **one drafted flag answers two ways about the same prose, so a number is labelled the caller's on a line the file holds** — whose prose a number is about is said by the caller that composed it, so one payload no longer answers two ways (design §RK1320 recorded in `src/roadkeep/budgeting.py`).
 - ✅ **RK1362** **the spec an agent executes is assembled per call by brief and exists nowhere a review or a second tool can read** — The spec brief composes is a document export writes, bounded by a file rather than by a tool result (design recorded in `src/roadkeep/exporting.py`).
 - ✅ **RK1366** **budget states the room left beside a why no write extends, so an amend is told 8 words where it may write 31** — budget aims an amend at the sentence it writes and not at the one it deletes, the remainder on a replaced field being the whole allowance (design recorded in `src/roadkeep/budgeting.py`).
+- ✅ **RK1370** **an add answers without the delivered entries nearest what it filed, so a duplicate is found after the design is written** — Every add names the three delivered here nearest the symptom it just filed, at the moment nothing is spent but an id (design recorded in `src/roadkeep/ranking.py`).
 
 ## Block D — The gate
 

@@ -67,6 +67,7 @@ from roadkeep.kernel.document import (
 )
 from roadkeep.ids import CARRIERS, IdRef, Promise, carried, derivation, scan
 from roadkeep.markers import derive, refresh
+from roadkeep.ranking import VOLUNTEERED, nearest
 from roadkeep.kernel.schema import SchemaError, Task, width as measured_width
 from roadkeep.sections import Section
 
@@ -278,6 +279,17 @@ class Insertion:
     #: the save's own return, and empty on an insertion nothing has written yet. This is the
     #: list a `git add --` takes, which is the one thing the report could not say.
     wrote: tuple[Path, ...] = ()
+    #: The delivered entries of this block that share a word with the symptom just filed,
+    #: nearest first (RK1370). `delivered --near` is the read the skill puts before every
+    #: proposal and it has to be *remembered*: this session filed a task whose remedy the code
+    #: already had, and the ranking that would have named it was one call away inside this same
+    #: transaction. Volunteered here because this is the moment nothing is spent but an id —
+    #: `restate` and `retire` are one call away, and the design is not written yet.
+    #:
+    #: An order and never a verdict (RK441), and the same rows `delivered --near` prints:
+    #: filtering the far ones out would be that impossible gate rebuilt as a silence, which
+    #: :data:`~roadkeep.ranking.VOLUNTEERED` carries the measurement for.
+    near: tuple[Entry, ...] = ()
 
     @property
     def rendered(self) -> str:
@@ -436,6 +448,19 @@ class Insertion:
             # Beside the line and not instead of it: the `add` succeeded, and what this reports
             # is a sentence somewhere else that has just stopped being true (RK431).
             rows.append(f"promise  {self.promise.sentence}")
+        if self.near:
+            # The read the skill puts before a proposal, handed back at the one moment nothing
+            # is spent but an id (RK1370). Labelled once and the rows under it, which is how
+            # every wrapped answer here is read — and the sentence says what the order is not,
+            # because a reader taking #1 for a verdict is RK441's own finding.
+            rows.append(
+                "near     the delivered under this block nearest this symptom — an order "
+                "and not a verdict, and yours to read"
+            )
+            rows += [
+                f"         {one.task.status} {one.task.id:<8} {one.task.symptom}"
+                for one in self.near
+            ]
         if capture:
             # Said either way: a stamp that did not land is the row `stats` will still count,
             # and silence about it is how a second step comes to be forgotten (RK86).
@@ -502,6 +527,21 @@ class Insertion:
             # Null on almost every add, and the whole point when it is not (RK431): the id
             # below the one just written was a sentence, not a line.
             "promise": _promise_json(self.promise),
+            # The delivered entries this symptom shares a word with (RK1370), as the rows show
+            # them. `[]` and never omitted, for `undone_by`'s reason one file over: a consumer
+            # reading a missing key cannot tell "nothing is near" from "this build is older",
+            # and deciding a duplicate is the whole use of it. No score, the ordering being the
+            # answer and a figure beside it one turn from the threshold RK441 rules out.
+            "near": [
+                {
+                    "id": one.task.id,
+                    "marker": one.task.status,
+                    "symptom": one.task.symptom,
+                    "line": one.lineno,
+                    "rank": at,
+                }
+                for at, one in enumerate(self.near, start=1)
+            ],
             # Every path this write touched, projections included (RK1129) — the same key a
             # departure's scope carries, so a client staging one stages the other.
             "wrote": [config.relative(one) for one in self.wrote],
@@ -875,7 +915,46 @@ def add(
         insertion = _binding(config, insertion)
     # The paths ride back on the record (RK1129), because the caller composing a commit is the
     # one who needs them and `save` is the only reader that knows what a projection refreshed.
-    return replace(insertion, wrote=insertion.save())
+    # And the neighbours beside them (RK1370), read after the write rather than before it: this
+    # is a *report* and not a gate — nothing here refuses a duplicate and nothing could (RK441)
+    # — so it costs the same ranking whichever side of `save` it runs, and running it here keeps
+    # every refusal above untouched by a read that cannot refuse anything.
+    return replace(insertion, wrote=insertion.save(), near=_near(config, insertion))
+
+
+def _near(config: Config, insertion: Insertion) -> tuple[Entry, ...]:
+    """This block's delivered entries that share a word with the symptom just filed (RK1370).
+
+    The block's own ledger and never the whole of it, which is `delivered`'s rule: a duplicate
+    collides with a claim filed under the same heading, and ranking across blocks would offer a
+    caller entries from a part of the plan they did not propose into.
+
+    **Symptoms and not outcomes**, for that verb's reason: a shipped line states a problem and
+    a fix, and a proposal collides with the problem — an outcome is written in the vocabulary of
+    the solution and never matches.
+
+    Empty where the project has no ledger to read and where the block has delivered nothing,
+    which are the two states with nothing to rank — and never empty because the nearest looked
+    far, that being the judgement :data:`~roadkeep.ranking.VOLUNTEERED` records the measurement
+    against.
+
+    **Declared is not on disk**, which is `declaring`'s own distinction one function up: a
+    project may name a changelog it has not created, and the first `add` is exactly when it has
+    not. A read that is a *report* may not be the thing that refuses such a write, so the
+    absence answers here rather than raising.
+    """
+    if not config.has("changelog") or not config.path("changelog").exists():
+        return ()
+    task = insertion.entry.task
+    entries = config.document("changelog").block(task.block)
+    if not entries:
+        return ()
+    return tuple(
+        entries[index]
+        for index in nearest(
+            task.symptom, [one.task.symptom for one in entries], VOLUNTEERED
+        )
+    )
 
 
 def _unopened(config: Config, role: str, anchor: str) -> str | None:

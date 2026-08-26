@@ -56,6 +56,23 @@ _WORD = re.compile(r"[0-9a-z]+")
 #: down the true answer has ever been, which a project cannot know about its own ledger.
 NEAREST = 5
 
+#: How many an `add` volunteers beside the line it just wrote (RK1370). Three and not
+#: :data:`NEAREST`, because the two answer different callers: that one is asked for and sized
+#: for recall, and this one arrives unrequested on every `add`, so it is sized to be read. The
+#: worst of the four cases where the right answer is known lands at #2, so three keeps every
+#: pair this ledger knows about with a rank of headroom. Not configuration (L6), for the reason
+#: the number above is not.
+#:
+#: **Unfiltered, like the read it volunteers.** A first cut dropped entries sharing no word
+#: with the symptom, so an `add` nobody had a neighbour for would say nothing. Measured against
+#: this ledger it did not work and could not: a query about a leaking kitchen floor keeps three
+#: of Block C's entries on `the`, `is` and `an`, and the one term that discriminates — `floor`,
+#: in one entry of 137 — is indistinguishable at that door from `filed` or `delivered`. Which
+#: is RK441's own finding arriving from the other side: no threshold separates a duplicate from
+#: a neighbour, so a filter here would be the impossible gate rebuilt as a silence. The rows are
+#: the same rows `--near` prints, and the sentence above them says what the order is not.
+VOLUNTEERED = 3
+
 #: Saturation and length normalisation, at the figures BM25 is published with. Not
 #: configuration (L6): a project declares how long its lines may be, and these are
 #: properties of the ranking rather than of the backlog it is run over.

@@ -259,7 +259,11 @@ discovering the collision after a claim, a brief and a retirement. **`delivered 
 — the five entries nearest it, ranked by word overlap, instead of a whole block's ledger
 (103 lines and 9,773 bytes here). Reach for it by default: measured on the four pairs
 this ledger knows the answer to, the true partner is inside those five every time. The
-order is the answer and no score is printed, for the reason above. A letter nothing
+order is the answer and no score is printed, for the reason above. **And the `add` hands
+that read back whether or not you made it**: every insertion names the three entries of its
+block nearest the symptom it just filed, because that is the moment nothing is spent but an
+id and `restate` and `retire` are one call away. Same order, same silence about scores, and
+never a refusal — it is the read volunteered, not the gate the measurement rules out. A letter nothing
 declares is **refused** rather than answered `nothing`, that answer being read as
 evidence, and where the block exists
 the reply says which of live, paused, finished or empty it is. **`reversals` is how you
