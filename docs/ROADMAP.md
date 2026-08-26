@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1371** (deps: —) **every reason for not serving an argument is declared and read by no command, so a caller asking why reaches none** — RK1169 moved each sentence beside the argument it explains, and the only reader it ever found is the test that holds the two halves in step. → §RK1371
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

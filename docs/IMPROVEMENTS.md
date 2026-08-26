@@ -85,33 +85,6 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1371 Sentences held current by a gate and reachable from nowhere
-
-`serving.withheld()` returns, per verb, the sentence RK1169 declared beside each
-argument the tool surface does not offer. Ten parsers declare them. Nothing in the
-package calls it: the one caller is `tests/test_serving.py`, which uses it to hold the
-declaration against the parsers.
-
-Its own docstring says the readers are composing "a description or a refusal, where that
-cost is already paid" — an intent with no call site behind it. So the sentences are
-correct, current, held in step by a check, and unreachable from the surface they are
-about.
-
-What that costs is the question they answer. An agent over MCP that wants `lint --fix`,
-`claims --prune` or `budget --body-file` finds no such property on the schema and learns
-nothing else. The reason exists — *it writes, and RK16 keeps the derived-only repair
-where a human is standing* — and reaching it means opening `cli.py`, which is the read
-L5 exists to replace.
-
-Where it goes is the narrow question, and the ceiling decides it. A description listing
-what a caller may not pass spends the session budget on prose about absence. The two
-moments where somebody is already asking are the refusal an unknown property raises, and
-`cost --tools <verb>`, which prints that verb's field list and is what this was found
-through.
-
-Falsified when a caller is told why an argument is not offered without opening the
-source.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

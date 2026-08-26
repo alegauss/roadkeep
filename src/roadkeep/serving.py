@@ -1966,7 +1966,12 @@ def argv(
     exposed = tool.exposed(config)
     unknown = [name for name in arguments if name not in exposed]
     if unknown:
-        raise ToolError(_unrecognised(tool, unknown, exposed))
+        # This parser's own reasons and never `withheld()` (RK1371): that one walks the whole
+        # CLI, which is the second build RK198 took off the refusal path — and the answer is
+        # the same map, read where the parser is already in hand.
+        raise ToolError(
+            _unrecognised(tool, unknown, exposed, parser.get_default("withheld") or {})
+        )
     _companioned(tool, arguments, parsers)
     positional: list[str] = []
     optional: list[str] = []
@@ -2032,7 +2037,12 @@ def _companioned(
         )
 
 
-def _unrecognised(tool: Tool, unknown: Sequence[str], exposed: Sequence[str]) -> str:
+def _unrecognised(
+    tool: Tool,
+    unknown: Sequence[str],
+    exposed: Sequence[str],
+    kept: Mapping[str, str] | None = None,
+) -> str:
     """Why these names did not reach the argv, told apart from each other (RK253).
 
     An argument this project *closed* is not one that does not exist. `--ref` and `--id` are
@@ -2045,9 +2055,31 @@ def _unrecognised(tool: Tool, unknown: Sequence[str], exposed: Sequence[str]) ->
     So the two are stated separately, over their own names, and a call that guessed both ways
     earns both. The partition is free: :attr:`Tool.conditional` is exactly the names that exist
     and are shut, and every other unknown one is a name nothing declares.
+
+    **Three and no longer two** (RK1371). A dest this verb declares and this surface withholds
+    *by decision* — `fix`, `prune`, `body_file` — is neither of the above, and it landed under
+    "no such argument", which is RK253's own misreading one category along: the caller looks for
+    a typo in a name spelled correctly, and the sentence that would have answered them has been
+    declared beside the argument since RK1169 and read by nothing but a test. Here it is read by
+    the one moment somebody is asking, which is the call that just tried to pass it.
+
+    ``kept`` is that parser's own reasons, handed in by the caller that already resolved it: a
+    `withheld()` here walks the whole CLI, which is the second parser build RK198 took off this
+    exact path. Defaulted for a test asking one tool what its refusal says.
+
+    A dest in :attr:`Tool.always` is **not** withheld however the parser reads: the reasons are
+    per parser and two tools share one, so `brief`'s `claim` is a decision about that tool and
+    unsettable on this one — which is a name it does not take, not a sentence about it (RK150).
     """
+    if kept is None:
+        kept = withheld().get(tool.command, {})
     closed = sorted(set(unknown) & set(tool.conditional))
-    absent = sorted(set(unknown) - set(closed))
+    held = sorted(
+        name
+        for name in set(unknown) - set(closed) - set(tool.always)
+        if name in kept
+    )
+    absent = sorted(set(unknown) - set(closed) - set(held))
     stated = []
     if absent:
         stated.append(f"no such argument {', '.join(absent)}")
@@ -2056,10 +2088,30 @@ def _unrecognised(tool: Tool, unknown: Sequence[str], exposed: Sequence[str]) ->
             f"{', '.join(closed)} {'is' if len(closed) == 1 else 'are'} declared by the CLI "
             f"and closed by this project's config"
         )
+    if held:
+        stated.append(
+            f"{', '.join(held)} {'is' if len(held) == 1 else 'are'} declared by this verb "
+            f"and withheld from this surface"
+        )
     return (
         f"{tool.name}: {'; '.join(stated)} — this tool takes "
-        f"{', '.join(exposed) or 'no arguments'}{_withheld(closed)}"
+        f"{', '.join(exposed) or 'no arguments'}"
+        f"{_withheld(closed)}{_reasoned(held, kept)}"
     )
+
+
+def _reasoned(held: Sequence[str], kept: Mapping[str, str]) -> str:
+    """Why each withheld argument is not offered, in the words declared beside it (RK1371).
+
+    One clause per field, which is :func:`_withheld`'s rule and for its reason (RK241): two
+    joined into one sentence name one cause for both, and these three kinds of reason — *it
+    writes*, *the tool derives it*, *the shape does not cross* — are exactly what a caller has
+    to tell apart to know whether to stop asking or to reach for the CLI.
+
+    Verbatim, and never summarised: the sentence is the author's and this places it (L4), which
+    is the same division `govern --because` draws over a number in `roadkeep.toml`.
+    """
+    return "".join(f". {dest}: {kept[dest]}" for dest in held)
 
 
 def _withheld(closed: Sequence[str]) -> str:

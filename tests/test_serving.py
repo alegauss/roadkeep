@@ -941,6 +941,30 @@ def test_a_closed_field_is_not_reported_as_one_that_does_not_exist(tmp_path):
     assert "no such argument deeps, ref" not in mixed
 
 
+def test_a_withheld_field_is_neither_absent_nor_closed_and_says_why(tmp_path):
+    """RK1371. RK253's own misreading, one category along: `fix` is declared by `lint`, printed
+    by its help and reachable at a terminal — what is true here is that this surface withholds
+    it by decision — and it landed under "no such argument", sending the caller to look for a
+    typo in a name spelled correctly.
+
+    The sentence that answers them has been declared beside the argument since RK1169 and read
+    by nothing but a test. This is the one moment somebody is asking: the call that just tried
+    to pass it."""
+    root = project(tmp_path)
+    said = text_of(called(root, "lint", fix=True))
+    assert "no such argument" not in said
+    assert "fix is declared by this verb and withheld from this surface" in said
+    # Verbatim and never summarised, which is the same division `--because` draws (L4).
+    assert f". fix: {serving.withheld()['lint']['fix']}" in said
+
+    # A name nothing declares still reads the way it always did, and a call that guessed both
+    # ways earns both clauses — never one verdict covering the two.
+    mixed = text_of(called(root, "lint", fix=True, nonsense=1))
+    assert "no such argument nonsense" in mixed
+    assert "withheld from this surface" in mixed
+    assert "no such argument nonsense, fix" not in mixed
+
+
 def test_a_conditional_field_carries_its_reason_with_its_predicate():
     # RK251 needed a fallback because the predicate and the sentence were two tables that could
     # disagree, and the miss surfaced only on the path composing the refusal — for the caller who

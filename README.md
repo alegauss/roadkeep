@@ -121,14 +121,10 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 136 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 103 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 124 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 29 | 1 |
-| **Total** | 1 | 856 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1371** (deps: —) **every reason for not serving an argument is declared and read by no command, so a caller asking why reaches none** — RK1169 moved each sentence beside the argument it explains, and the only reader it ever found is the test that holds the two halves in step. → §RK1371
+| **Total** | 0 | 857 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
