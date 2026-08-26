@@ -88,28 +88,3 @@ already written, not authorship.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1383 A set of cycles nothing enumerates
-
-Measured while shipping RK1382: twenty-one pairs of this package's modules import each
-other, counted over every `from roadkeep…` in the source with call-time imports included
-— which is where the cycle that task removed lived, and is exactly what a check reading
-`sys.modules` would not have seen.
-
-That task settled one of them on an argument: a record belongs with the reading that
-builds it, and a presenter imports a record rather than declaring one. Eleven of the
-twenty-one have `rendering` on one side, which is the same shape and may well be the
-same answer. `config` and `kernel.document` is not, the kernel being the layer
-everything above it imports and nothing below it should.
-
-What is missing is not the fixing. It is that the set is invisible: a cycle written
-tomorrow is indistinguishable from the twenty-one already there, so the argument RK1382
-made has to be remade from scratch each time somebody happens to notice one. That is the
-shape this project keeps finding — an exemption nobody can see reads exactly like a rule
-being kept.
-
-So what closes it is a row per pair carrying its reason, held total against the source,
-exactly as the withheld arguments and the unrun composers are. Deciding which rows are
-defects is the work each invites and not what this asks for.
-
-Falsified when two modules import each other and nothing in the suite names the pair.
