@@ -88,3 +88,27 @@ already written, not authorship.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+### §RK1376 A claim about a family, checked on one member
+
+RK1372 closed a second column in the `add` answer, and its entry states the reach:
+*every other write is already one column*. What holds that is one test, which drives
+`add` in two shapes and no other verb.
+
+The claim is true today. Driving `status`, `amend`, `block add`, `priority add`,
+`non-goal add`, `criterion add` and `defer` finds no stray row, and where a first line
+begins at column 0 it is a header rather than an outdented row — the same place the
+rendered line stands in an `add`. What is missing is that being a fact the suite
+re-establishes rather than one a shipped sentence asserts.
+
+It is RK1369's shape one surface along: a property declared for a family and checked on
+a member. The defect it admits is exactly the one that produced RK1372 — a row composed
+in a printer instead of through the shared helper, which is a line of code and no
+refusal, in a report an agent parses.
+
+What makes it cheap is that every write already answers through a record with a printer
+of its own, so the check is *drive each and read the rows back*; the column is the one
+the helpers already spell, and reading it off them rather than repeating it is what
+keeps the test from becoming a second declaration of the number.
+
+Falsified when a write verb's answer carries a row at a column no test reads.
