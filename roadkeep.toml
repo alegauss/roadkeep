@@ -81,7 +81,15 @@ characters = 2800
 # 63,700, headroom 106, which is the discipline of the last two raises (110 and 87) and
 # not a looser one; from here a raise is argued in the commit that wrote it, where this
 # verb says it belongs.
-session = 63700
+# Raised from 63,700 for a flag rather than a verb (RK1367): `govern --instead` is 167
+# characters and re-words the description above it, so the reading here is 63,780. What
+# the headroom buys is the one edit this file had no verb for - an argument whose
+# premise was falsified came out by hand, which over MCP is no edit at all, so serving
+# the stacking flag alone would have left an agent exactly where the defect was. Priced
+# after the trim and not before it: that description was 622 and is 554, a tool over
+# budget being a description nobody edited (RK1059). 63,900, headroom 120, which is the
+# discipline of the 106 above it and not a looser one.
+session = 63900
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

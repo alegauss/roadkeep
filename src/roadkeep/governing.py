@@ -204,6 +204,14 @@ class Declared:
     #: replayed capture or an agent unsure its command took would otherwise leave the same
     #: sentence twice, which reads as two decisions and is one.
     standing: bool = False
+    #: The comment lines `--instead` took out, verbatim and `#` included (RK1367). Empty on
+    #: every `--because`, which stacks. Handed back rather than counted, because withdrawing an
+    #: argument in silence is history removed — the caller reads what was displaced in the
+    #: answer, puts back anything the run swept up that it should not have, and the commit
+    #: carries the rest. What those lines *meant* is not this tool's to weigh (L4): the whole
+    #: contiguous run above the key is what argues the number, so the whole run is what a
+    #: replacement replaces, and saying which lines those were is the check on that reach.
+    displaced: tuple[str, ...] = ()
 
     def stated(self, config: Config) -> str:
         where = config.relative(config.source) if config.source else "roadkeep.toml"
@@ -236,6 +244,20 @@ class Declared:
                 "  reason   already above the key — the same sentence, so it was not "
                 "written a second time"
             )
+        if self.displaced:
+            # A fourth, and the only one that reports a **deletion** (RK1367): the count and
+            # the lines, because an argument withdrawn without saying so is the accreting
+            # rationale read backwards, and the reach of the run is what a caller checks.
+            return "\n".join(
+                [
+                    f"  reason   written above the key, in your words, instead of the "
+                    f"{len(self.displaced)} line(s) that argued it before",
+                    *(
+                        f"  {'withdrew' if index == 0 else '        '}  {line.rstrip()}"
+                        for index, line in enumerate(self.displaced)
+                    ),
+                ]
+            )
         if self.argued:
             return "  reason   written above the key, in your words"
         return (
@@ -252,6 +274,10 @@ class Declared:
             "line": self.lineno,
             "argued": self.argued,
             "standing": self.standing,
+            # What `--instead` took out (RK1367). Always published and never omitted when
+            # empty, for the reason `over` is: a key that appears only when it is set is one a
+            # reader learns to stop looking for, and this one is a deletion.
+            "displaced": [line.rstrip("\n") for line in self.displaced],
             "reading": {
                 "unit": self.measured.unit,
                 "sites": self.measured.sites,
@@ -613,13 +639,30 @@ def govern(
     file: str = "",
     role: str = "",
     because: str = "",
+    instead: str = "",
 ) -> Declared:
     """Declare one governed number, against the reading that decides it (RK1272).
 
     Validated whole before anything is written, which is every other write here: a number the
     corpus breaks, an address this build has no key for, or a config with no table to put it in
     each cost a refusal and an untouched file.
+
+    ``instead`` is the same sentence placed the other way (RK1367): `because` **stacks** on
+    whatever argued the number before it, which is right while each paragraph argues about the
+    same question, and this one **replaces** the run — the case where the question was settled
+    differently and the argument above the key is now for a reading nothing takes. Naming both
+    is refused, the two being two acts, and what came out is on :attr:`Declared.displaced`.
+
+    Neither writes prose (L4). The verb wraps a sentence and places it, and — here — says
+    which lines it took to do so.
     """
+    if because and instead:
+        raise ValueError(
+            "`--because` stacks an argument onto the one above the key and `--instead` "
+            "replaces it, so naming both is asking for two placements of one sentence: pass "
+            "`--because` where this number is a decision about the last one, and `--instead` "
+            "where the reading that decided it has moved"
+        )
     if config.source is None:
         raise ValueError(
             "this project declares no roadkeep.toml, so there is no table to write a number "
@@ -641,8 +684,10 @@ def govern(
     # The lines, not the flag: an argument that wrapped to nothing placed nothing, and an
     # answer reporting a write that did not happen is the one thing no read here may do
     # (RK1295) — the caller this transport is reached from cannot see the file to tell.
-    argument = _argued(config, because)
-    text, lineno, before, stands = _inserted(config.source, written, at, argument)
+    argument = _argued(config, because or instead)
+    text, lineno, before, stands, displaced = _inserted(
+        config.source, written, at, argument, withdrawing=bool(instead)
+    )
     config.source.write_text(text, encoding="utf-8", newline="")
     return Declared(
         address=address,
@@ -652,6 +697,7 @@ def govern(
         before=before,
         argued=bool(argument),
         standing=stands,
+        displaced=displaced,
     )
 
 
@@ -699,9 +745,7 @@ def _because(
                 return ()
             inside = stripped == heading
         elif inside and "=" in stripped and _named(stripped) == spelled.strip('"'):
-            start = index
-            while start > 0 and lines[start - 1].lstrip().startswith("#"):
-                start -= 1
+            start = _run(lines, index)
             return tuple(line.lstrip()[1:].strip() for line in lines[start:index])
     return ()
 
@@ -717,8 +761,13 @@ def _above(lines: list[str], index: int, because: tuple[str, ...]) -> bool:
 
 
 def _inserted(
-    source: Path, written: tuple[str, str, str], at: int, because: tuple[str, ...] = ()
-) -> tuple[str, int, int | None, bool]:
+    source: Path,
+    written: tuple[str, str, str],
+    at: int,
+    because: tuple[str, ...] = (),
+    *,
+    withdrawing: bool = False,
+) -> tuple[str, int, int | None, bool, tuple[str, ...]]:
     """The config with one key set, byte for byte otherwise (`adopting._with_role`'s rule).
 
     A targeted edit and never a serialiser: a `tomllib` round-trip drops the comments a
@@ -739,6 +788,14 @@ def _inserted(
     beside it is a second decision only when it is a second sentence, and a retried call, a
     replayed capture or an unsure re-run is not one. Byte-for-byte and no wider: whether two
     sentences mean the same thing is a judgement, and this tool has no model (L4).
+
+    ``withdrawing`` is `--instead` (RK1367), and it is the one path that **deletes**: the
+    contiguous comment run above the row — the same span :func:`_because` reads back and
+    `govern <key>` prints, so the caller replacing it has been shown it — comes out, and the
+    argument lands in its place. Only where the key is already there, an argument being
+    withdrawn from somewhere; a key this file does not carry has nothing above it, and the
+    write is the stacking one with an empty stack. What came out is the fifth return, because
+    a deletion nobody is told about is history removed.
     """
     heading, key, unit = written
     text = source.read_text(encoding="utf-8")
@@ -757,23 +814,48 @@ def _inserted(
                 before = _number(stripped, unit)
                 lines[index] = _row(key, at, unit, standing=stripped)
                 stands = _above(lines, index, because)
+                # The run comes out first, so `index` is re-taken against the shortened file
+                # rather than adjusted by a count computed before the splice.
+                # And only where there is a sentence to put in its place (RK1295): an argument
+                # that wrapped to nothing placed nothing, so it withdraws nothing either —
+                # otherwise `--instead "   "` is the silent deletion this flag is built not
+                # to be, and the answer would report a reason where the file has none.
+                displaced: tuple[str, ...] = ()
+                if withdrawing and because and not stands:
+                    start = _run(lines, index)
+                    displaced = tuple(lines[start:index])
+                    del lines[start:index]
+                    index = start
                 placed = () if stands else because
                 lines[index:index] = placed
-                return "".join(lines), index + len(placed) + 1, before, stands
+                return "".join(lines), index + len(placed) + 1, before, stands, displaced
     row = _row(key, at, unit)
     if table is None:
         # The table is opened where the key is written, which is `criterion add`'s rule about a
         # heading: a project that never declared one has no place for the first number, and a
         # verb that refused would send the author to the hand edit this exists to end.
         opened = _opened(lines, heading, row, because)
-        return "".join(opened), len(opened), None, False
+        return "".join(opened), len(opened), None, False, ()
     into = (last if last is not None else table) + 1
     return (
         "".join([*lines[:into], *because, row, *lines[into:]]),
         into + len(because) + 1,
         None,
         False,
+        (),
     )
+
+
+def _run(lines: list[str], index: int) -> int:
+    """Where the contiguous comment run above `index` starts (RK1367).
+
+    :func:`_because`'s own scan, over lines in hand rather than over the file, so the span a
+    read hands back and the span a `--instead` replaces cannot come apart.
+    """
+    start = index
+    while start > 0 and lines[start - 1].lstrip().startswith("#"):
+        start -= 1
+    return start
 
 
 def _row(key: str, at: int, unit: str = "", standing: str = "") -> str:

@@ -83,31 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1367 Withdrawing an argument, where stacking one is the rule
-
-`govern --because` stacks (RK1293): a raise is a decision about the previous decision,
-and `[tools] session` carried five of them written that way by hand. That is right for
-as long as each paragraph argues about the same question.
-
-RK1364 is the other case. The eight above that key all measured three checkouts against
-each other to prove the surface belonged to the package, and RK1360 removed the premise:
-the ceiling is about one project, so those paragraphs argue for a reading nothing takes
-any more. Fifty-six lines of them, and the only way to drop them was the hand edit
-`declare` and `govern` exist so nobody makes.
-
-So the shape is `block amend`'s, one file over: a field write-once in practice, whose
-correction was a hand edit until a verb was given the words. Here the field is the
-comment run `_because` already reads back, so the verb holds both halves — where the run
-starts, and the replacement the caller composed.
-
-What it must not become is a delete. An argument withdrawn in silence is history
-removed, which is `record drop`'s own refusal, so the sentence replacing the run is the
-caller's and says what was falsified, and the lines it displaced are named in the answer
-for the commit to carry.
-
-Falsified when a reading `govern` publishes stands under a comment arguing from a
-premise that reading contradicts.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

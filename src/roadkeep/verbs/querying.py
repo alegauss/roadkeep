@@ -910,6 +910,7 @@ def _govern(config: Config, args: argparse.Namespace) -> int:
             file=args.file or "",
             role=args.role or "",
             because=args.because or "",
+            instead=args.instead or "",
         )
     except REFUSALS as error:
         return _refused(error)
@@ -1861,7 +1862,8 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
             "and each already had the read that decides it somewhere else. With no value it "
             "prints the reading alone. A limit this project already breaks is refused rather "
             "than written. Why this number and not the next is yours to write and this "
-            "verb's to place: `--because` puts your sentence above the key."
+            "verb's to place: `--because` stacks your sentence above the key, and `--instead` "
+            "replaces the argument standing there, for a reading that has moved."
         ),
     )
     govern_parser.add_argument(
@@ -1886,6 +1888,14 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         "--because",
         default="",
         help="your argument for this number, wrapped into comments above the key",
+    )
+    govern_parser.add_argument(
+        "--instead",
+        default="",
+        help=(
+            "the same sentence, replacing the run above the key instead of stacking on it; "
+            "the answer names every line it took out"
+        ),
     )
     govern_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     govern_parser.set_defaults(handler=_govern)

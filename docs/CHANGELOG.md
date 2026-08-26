@@ -719,6 +719,7 @@
 - ✅ **RK1296** **the argument a number carries is kept in the file and never returned by the read that asks about the number** — The reading carries the comment run standing above the key, verbatim and a line at a time, so the argument the write kept is what the read hands back.
 - ✅ **RK1313** **init writes no [criteria] and no [requirements], so the verbs that fill them refuse on a fresh project** — init writes [criteria] empty and the requirement vocabulary as a commented stanza, so both verbs work on day one (design §RK1313 recorded in `src/roadkeep/adopting.py`).
 - ✅ **RK1328** **a project past init opens an opt-in table only by hand-editing the config this tool owns the writes to** — declare opens an opt-in table as well as a role, and both refusals name that command instead of a hand edit (design §RK1328 recorded in `src/roadkeep/adopting.py`).
+- ✅ **RK1367** **govern only stacks, so a number whose premise was falsified keeps every paragraph arguing for the reading it replaced** — `govern --instead` replaces the argument above a key rather than stacking on it, and names every line it took out (design recorded in `src/roadkeep/governing.py`).
 
 ## Block F — The Claude Code plugin
 

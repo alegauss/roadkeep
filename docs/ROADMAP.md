@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1367** (deps: —) **govern only stacks, so a number whose premise was falsified keeps every paragraph arguing for the reading it replaced** — Dropping a withdrawn argument was a 56-line hand edit to `roadkeep.toml`, which over MCP is the edit the guard denies and so no edit at all. → §RK1367
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

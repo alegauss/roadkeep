@@ -678,7 +678,10 @@ TOOLS: tuple[Tool, ...] = (
     # `--because` is served for that same reason and no weaker one (RK1293): the argument for a
     # number was ruled into the commit body, which on this transport is composed by a tool this
     # project does not own — so withholding it is deciding the agent's numbers carry no reason.
-    Tool("govern", ("key", "at", "role", "file", "because")),
+    # `instead` rides with it (RK1367) and is the half that could not be withheld: that flag
+    # exists because dropping a withdrawn argument was a hand edit to this file, so serving the
+    # stacking one alone leaves the agent exactly where the defect was.
+    Tool("govern", ("key", "at", "role", "file", "because", "instead")),
     Tool("origin", ("id", "why")),
     Tool("reversals", ("task_id",)),
     # `--prune` writes the registry, so it is withheld exactly as `lint --fix` is (RK16).

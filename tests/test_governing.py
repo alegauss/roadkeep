@@ -505,6 +505,113 @@ def test_an_argument_that_wrapped_to_nothing_is_not_reported_as_written(tmp_path
     assert "#\n" not in after
 
 
+# -- withdrawing one, where stacking is the rule (RK1367) ----------------------
+
+
+def test_instead_replaces_the_run_above_the_key_rather_than_stacking_on_it(tmp_path):
+    """Stacking is right while each paragraph argues about the same question. RK1364 is the
+    other case: eight arguments above `[tools] session` all proved the surface belonged to the
+    package, and the task that moved the subject to one project left them arguing for a reading
+    nothing takes. Fifty-six lines of them, and dropping them was a hand edit to the one file
+    `declare` and `govern` exist so nobody edits."""
+    config = project(tmp_path)
+    governing.govern(config, "limits.why", 150, because="Argued from a corpus that has gone.")
+    later = governing.govern(
+        Config.discover(tmp_path), "limits.why", 160, instead="Argued from the one that replaced it."
+    )
+
+    after = written(Config.discover(tmp_path))
+    assert "# Argued from the one that replaced it.\nwhy = 160\n" in after
+    assert "Argued from a corpus that has gone." not in after
+    # The table's own scaffolded prose is above a *different* key and is untouched by the run.
+    assert "# why 120 and not 130, argued here" in after
+    assert later.standing is False
+
+
+def test_what_it_took_out_is_named_and_never_deleted_in_silence(tmp_path):
+    """An argument withdrawn without saying so is history removed, which is `record drop`'s own
+    refusal. The whole contiguous run is what argues the number, so the whole run is what a
+    replacement replaces — and the answer hands the lines back, which is the check on that
+    reach: a caller that swept up more than it meant to can put the rest back from here."""
+    config = project(tmp_path)
+    governing.govern(config, "limits.why", 150, because=" ".join(["reason"] * 40))
+    later = governing.govern(
+        Config.discover(tmp_path), "limits.why", 160, instead="The one that replaced it."
+    )
+
+    assert len(later.displaced) > 1
+    assert all(line.lstrip().startswith("#") for line in later.displaced)
+    assert "reason" in "".join(later.displaced)
+    said = later.stated(Config.discover(tmp_path))
+    assert f"instead of the {len(later.displaced)} line(s)" in said
+    assert "withdrew" in said
+
+
+def test_the_same_argument_arriving_twice_withdraws_nothing(tmp_path):
+    """RK1294's rule at this door too: the number is idempotent, and a replacement by the same
+    sentence is not a second decision — so a retried call takes nothing out and says so."""
+    config = project(tmp_path)
+    governing.govern(config, "limits.why", 150, instead="The one reason.")
+    again = governing.govern(Config.discover(tmp_path), "limits.why", 150, instead="The one reason.")
+
+    assert again.standing is True
+    assert again.displaced == ()
+    assert written(Config.discover(tmp_path)).count("# The one reason.") == 1
+
+
+def test_a_key_with_nothing_above_it_is_written_and_displaces_nothing(tmp_path):
+    """Not refused: the outcome a caller asked for is *this is the argument*, and a key whose
+    run is empty satisfies it. Refusing would cost the paragraph a second time to learn a fact
+    that changed nothing about the write."""
+    config = project(tmp_path)
+    declared = governing.govern(config, "claims.held", 90, instead="A day is what a session lasts.")
+
+    assert declared.displaced == ()
+    assert declared.argued is True
+    assert "[claims]\n# A day is what a session lasts.\nheld = 90\n" in written(
+        Config.discover(tmp_path)
+    )
+
+
+def test_a_replacement_that_wrapped_to_nothing_withdraws_nothing(tmp_path):
+    """RK1295's rule at the door that deletes, which is where it matters most: an argument that
+    wrapped to nothing placed nothing, so it takes nothing out either. Without this, `--instead
+    "   "` is the silent withdrawal this flag exists not to be — and the caller on the other
+    end of the transport cannot open the file to find out."""
+    config = project(tmp_path)
+    governing.govern(config, "limits.why", 150, because="The standing reason.")
+    declared = governing.govern(Config.discover(tmp_path), "limits.why", 160, instead="   ")
+
+    assert declared.displaced == ()
+    assert declared.argued is False
+    after = written(Config.discover(tmp_path))
+    assert "# The standing reason.\nwhy = 160\n" in after
+    assert "--because" in declared.stated(Config.discover(tmp_path))
+
+
+def test_naming_both_placements_of_one_sentence_is_refused(tmp_path):
+    """Two acts and not two spellings of one: `--because` says this number is a decision about
+    the last, and `--instead` says the reading that decided it has moved. Nothing is written."""
+    config = project(tmp_path)
+    with pytest.raises(ValueError) as refused:
+        governing.govern(config, "limits.why", 150, because="One.", instead="The other.")
+
+    assert "--because" in str(refused.value) and "--instead" in str(refused.value)
+    assert "One." not in written(Config.discover(tmp_path))
+
+
+def test_the_payload_publishes_what_was_withdrawn(tmp_path, capsys):
+    """Always and never omitted when empty, for `over`'s reason: a key that appears only when
+    it is set is one a reader learns to stop looking for — and this one is a deletion."""
+    config = project(tmp_path)
+    argv = ["-C", str(config.root), "govern", "limits.why", "150", "--json"]
+    assert main([*argv, "--because", "The first."]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["displaced"] == []
+
+    assert main([*argv, "--instead", "The second."]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["displaced"] == ["# The first."]
+
+
 # -- the argument, handed back by the read that asks about the number (RK1296) -
 
 

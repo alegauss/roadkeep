@@ -92,6 +92,24 @@ JSON of the same join would be the drift this projection exists to have none of.
 - ✅ **RK1293** **the argument for a limit is ruled into the commit body, which a tool this project does not own composes** — The argument for a governed number is written above the key by the verb that declares it, never in the commit body.
 - ✅ **RK1313** **init writes no [criteria] and no [requirements], so the verbs that fill them refuse on a fresh project** — A scaffold declares the opt-in tables its own verbs need, and names a vocabulary in a comment: an empty list of words governs nothing.
 - ✅ **RK1328** **a project past init opens an opt-in table only by hand-editing the config this tool owns the writes to** — One argument carries every declaration this file takes, because each is one key refused where it is there; a verb per axis buys a ceiling raise.
+- ✅ **RK1367** **govern only stacks, so a number whose premise was falsified keeps every paragraph arguing for the reading it replaced** — The contiguous comment run above a key is what argues its number, so a replacement takes all of it and states the reach rather than guessing a narrower one.
+
+### §RK1367 Why the whole run and not the paragraph a verb placed
+
+The alternative weighed was a narrower reach: replacing only the paragraph a previous
+`--because` placed, so a table's own explanation could never be swept up. It was
+rejected because nothing marks which lines a verb wrote — `_because` reads the
+contiguous run and says so — and a tool guessing at that boundary would be reading
+meaning out of prose it has no model for (L4).
+
+So the reach is the whole run, and what makes it safe is the answer rather than the
+algorithm: every displaced line comes back verbatim, so a caller that swept up more than
+it meant to puts the rest back from the reply, and the read that prints the run stands
+before the write.
+
+The consequence accepted is that `--instead` on a table's first key takes that table's
+own prose. Visible, reversible from the answer, and cheaper than a boundary nobody could
+state.
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
