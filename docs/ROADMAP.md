@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1375** (deps: —) **brief states one field's allowance in two grammars on adjacent rows, so the comparison they exist for is read twice** — The shipping row and the budget row were each rewritten this session without the other, so one number reads as a remainder and the next as an allowance. → §RK1375
-
 ## Block D — The gate
 
 ## Block E — Adoption

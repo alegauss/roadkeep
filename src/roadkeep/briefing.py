@@ -396,12 +396,18 @@ class Brief:
             why = self.budget.share("why")
             # The same figure `budget` states, off the same `Share` (RK245): a brief that named
             # the whole field's aim beside this line's remainder would be the second answer.
-            # One figure where the field is replaced rather than extended (RK1366): the
-            # remainder *is* the allowance there, and `160 of 160 left` is one number printed
-            # twice on the row a task is started from.
-            room = f"{why.left} left" if why.replaced else f"{why.left} of {why.allowed} left"
+            #
+            # `allowed`, and `on <the line>` in the words the two rows under it use (RK1375).
+            # These three exist to be **compared** — RK1174 prints the second only where it
+            # differs, because two numbers for one field is the fact worth seeing — and a
+            # reader made to translate `left` into `for the ledger line` before subtracting
+            # pays that cost through the phrasing instead of through the repetition. Since
+            # RK1366 neither figure is what is left beside anything, so `left` was the word
+            # that had stopped describing either, and the branch spelling it for a draft was
+            # unreachable from here: this budget is always the line as it stands.
             rows.append(
-                f"  budget   why {room}, {why.aimed}, {self.budget.prose} for prose"
+                f"  budget   why {why.allowed} on this line, {why.aimed}, "
+                f"{self.budget.prose} for prose"
             )
         if self.shipping is not None:
             # The allowance for the write this brief is starting, which is not the one above
@@ -420,7 +426,7 @@ class Brief:
                 # task about to lose its design is exactly when this allowance is read, so an
                 # answer that omitted it was wrong precisely when it was asked for.
                 rows.append(
-                    f"  shipping why {ship.allowed} for the ledger line a `ship` writes, which "
+                    f"  shipping why {ship.allowed} on the ledger line a `ship` writes, which "
                     f"is the limit that refuses it — the whole of it, that sentence replacing "
                     f"this line's rather than extending it (RK1365) — less a `--part` "
                     f"qualifier, which is structure this cannot know you will pass"

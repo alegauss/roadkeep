@@ -118,17 +118,13 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 216 | 2 |
-| C — Query (consult without reading the file) | 1 | 137 | 2 |
+| C — Query (consult without reading the file) | 0 | 138 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 103 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 30 | 1 |
-| **Total** | 1 | 860 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1375** (deps: —) **brief states one field's allowance in two grammars on adjacent rows, so the comparison they exist for is read twice** — The shipping row and the budget row were each rewritten this session without the other, so one number reads as a remainder and the next as an allowance. → §RK1375
+| **Total** | 0 | 861 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -12,6 +12,7 @@ re-reading the file, which is exactly the 5k tokens this task exists to stop spe
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -653,6 +654,31 @@ def test_the_ship_allowance_is_the_field_and_not_what_the_line_left(tmp_path):
         with pytest.raises(SchemaError) as refused:
             ship(config, "RK7", why=outcome)
         assert "why.too-long" in [one.code for one in refused.value.violations]
+
+
+def test_every_row_about_one_field_states_its_figure_the_same_way(tmp_path, capsys):
+    """RK1375. The three rows exist to be **compared** — RK1174 prints the second only where it
+    differs, because two numbers for one field is the fact worth seeing — and they diverged in
+    one session by halves: RK1365 rewrote the shipping row when the remainder there stopped
+    being a remainder, and RK1366 rewrote the budget row a row later for the same reason. So a
+    reader had to translate `160 left` into `181 for the ledger line` before subtracting, which
+    is the cost repetition was removed to save, arriving through the phrasing instead.
+
+    One shape and never a spelling asserted here: what may not regress is that the rows agree,
+    so the check reads them against each other."""
+    long = (
+        "- 📋 **RK7** (deps: —) **A symptom long enough that the ledger line's own remainder "
+        "is what binds this why rather than its declared maximum** — Because of a reason. → §RK7\n"
+    )
+    project(tmp_path, roadmap=ROADMAP.replace("\n## Non-goals", f"{long}\n## Non-goals"))
+    assert main(["-C", str(tmp_path), "brief", "RK7"]) == EXIT_OK
+    rows = [
+        line for line in capsys.readouterr().out.splitlines()
+        if line.strip().startswith(("budget   why", "shipping why", "deciding why"))
+    ]
+    assert len(rows) >= 2, rows
+    # `why <n> on <the line it is the allowance on>`, whichever line that is.
+    assert all(re.match(r" +\w+ +why \d+ on ", row) for row in rows), rows
 
 
 def test_the_second_line_is_silent_where_the_two_agree(tmp_path, capsys):

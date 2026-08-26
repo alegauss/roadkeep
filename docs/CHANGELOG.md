@@ -418,6 +418,7 @@
 - ✅ **RK1366** **budget states the room left beside a why no write extends, so an amend is told 8 words where it may write 31** — budget aims an amend at the sentence it writes and not at the one it deletes, the remainder on a replaced field being the whole allowance (design recorded in `src/roadkeep/budgeting.py`).
 - ✅ **RK1370** **an add answers without the delivered entries nearest what it filed, so a duplicate is found after the design is written** — Every add names the three delivered here nearest the symptom it just filed, at the moment nothing is spent but an id (design recorded in `src/roadkeep/ranking.py`).
 - ✅ **RK1374** **the volunteered rows are bounded at three and say neither how many of how many nor where the rest are** — The volunteered rows say how many of how many, and name the listing that holds the rest (design recorded in `src/roadkeep/authoring.py`).
+- ✅ **RK1375** **brief states one field's allowance in two grammars on adjacent rows, so the comparison they exist for is read twice** — A brief's three allowance rows state their figure the same way, so the comparison they exist for is one reading (design recorded in `src/roadkeep/briefing.py`).
 
 ## Block D — The gate
 
