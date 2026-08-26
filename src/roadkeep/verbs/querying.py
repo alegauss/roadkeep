@@ -1909,7 +1909,9 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
             "what this build uses when nobody declares it, and whether this project did — "
             "with the sentence the source already carries above each table. What is listed "
             "is what *this* copy accepts, which is how a key it predates is told from a typo, "
-            "so the build that answered is named. It reads and never writes."
+            "so the build that answered is named. Last, what this build *fixes* from its own "
+            "corpus and no project declares, with the reading behind it. It reads and never "
+            "writes."
         ),
     )
     config_parser.add_argument(

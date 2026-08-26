@@ -79,30 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1393 A subject the read answers and the authority does not name
-
-RK1381 gave `config` a second subject: what this build **fixes** from a corpus and a
-project may not declare, with the reading beside it. The skill describes the first —
-every table, key, type and default this build accepts, and `--table` for one of them —
-and stops there.
-
-It is RK1392's class without that task's sharpness. The count RK1392 corrected was
-false; this is only incomplete, so nothing a reader takes from the skill is wrong. What
-they cannot do is discover from the authority that `config` answers *what may I not
-declare, and what fixes it instead*. The resident file says the skill is the authority
-on which command to call and what it answers, and deliberately repeats nothing — so an
-omission there is the whole of what an agent knows.
-
-The sentence is one clause on a paragraph that already exists, and it belongs beside the
-boundary it completes: the listing answers what a project declares, and the row answers
-what fixes the rest.
-
-What it must not become is a copy of the reading. The figure and the percentile are the
-command's to print, and prose repeating them goes stale the moment a corpus moves —
-which is the drift RK1381 removed by making the number a read at all.
-
-Falsified when a subject a served read answers is one the skill does not name.
-
 ## Block D — The gate
 
 ## Block E — Adoption

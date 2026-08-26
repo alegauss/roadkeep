@@ -97,7 +97,16 @@ characters = 2800
 # is 64,022. Nothing was trimmed to pay for it: the description is one already written
 # and shared with that sibling, so there is no paragraph nobody edited to cut. 64,150,
 # headroom 128, which is the discipline of the 120 above it.
-session = 64150
+# Raised from 64,150 for a sentence rather than a verb (RK1393): the config description
+# gained the second subject RK1381 added to that read - what this build fixes from its
+# own corpus and no project declares - which is 103 characters, and the reading here is
+# 64,184. What the headroom buys is a subject an agent could otherwise not discover: the
+# skill and this description are the two surfaces a caller meets before calling, and a
+# read answering a question neither names is a capability that exists for whoever
+# already knew. Nothing was trimmed to pay for it - the description had no paragraph
+# nobody had edited, which is the test RK1059 sets before a raise. 64,300, headroom 116,
+# which is the discipline of the 120 above it.
+session = 64300
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

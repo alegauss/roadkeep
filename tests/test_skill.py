@@ -337,3 +337,28 @@ def test_it_is_this_repository_s_own_and_never_shipped_to_an_adopter():
 
     assert "roadkeep-dev" not in PROJECT_SKILL
     assert not any("roadkeep-dev" in part for part in CARRIED)
+
+
+def test_the_boundary_of_what_may_be_declared_is_taught_on_both_surfaces(capsys):
+    """RK1393. RK1381 gave `config` a second subject — what this build *fixes* from its own
+    corpus and no project declares — and left both surfaces a caller meets before calling
+    describing only the first. A read answering a question neither names is a capability that
+    exists for whoever already knew.
+
+    Both, for RK383's reason one verb over: the skill and the command's own description are
+    read at different moments and a claim kept in one drifts out of the other."""
+    with contextlib.suppress(SystemExit):
+        main(["config", "--help"])
+    surfaces = {"the skill": text(), "config --help": capsys.readouterr().out}
+    for where, body in surfaces.items():
+        assert "fixes" in body, where
+        assert "no project" in body or "no project may" in body, where
+        # And never the reading itself: the figure is the command's to print, and prose
+        # repeating it goes stale the moment the corpus moves (RK1381). The *word* is not
+        # the test — `weight` publishes percentiles too — the conversion's own number is.
+        from roadkeep.budgeting import conversion
+        from roadkeep.config import Config
+
+        found = conversion(Config.discover(Path(__file__).resolve().parents[1]))
+        assert str(found.at) not in body, where
+        assert str(found.reading) not in body, where
