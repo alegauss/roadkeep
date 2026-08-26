@@ -83,6 +83,30 @@ already written, not authorship.
 
 ## Block E — Adoption
 
+### §RK1386 The surface with no way to say which copy
+
+RK1385 made the copy visible: `engines` names the driver git would run beside the tree
+writing here, and on this machine those are two different things — a console script
+installed months ago, and a checkout a thousand commits newer.
+
+Seeing it is not fixing it. `register` resolves the command through `persisted`, which
+is right about what git needs: an absolute executable, because git runs the driver
+outside a shell and a bare name is a driver that fails at the one moment it exists for.
+What it has no way to say is *which* absolute executable, so on a machine that both
+installs this tool and develops it, the driver is whichever installed the script.
+
+The engine already answers this question twice. `install --vendor` pins the
+highest-versioned copy a machine can reach, and `ROADKEEP_SRC` names a working checkout
+for the case a pin deliberately skips — a tree mid-refactor being the thing a pin exists
+to stop running. The driver is the surface with neither door.
+
+What has to be decided is whether it takes the same two or a narrower one. A merge is
+not a write anybody watches, so wiring a working tree carries the hazard `--vendor` was
+built against; wiring a stale script carries the one RK1385 just made visible. Two
+directions, and choosing between them is the task.
+
+Falsified when the copy `register` wires is one the caller could not have chosen.
+
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

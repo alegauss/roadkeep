@@ -32,6 +32,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK1386** (deps: —) **register wires whatever installed the console script, so a developer's checkout cannot be the driver its own merges run** — The engine has `--vendor` and `ROADKEEP_SRC` for exactly this choice, and the driver — the copy that runs unwatched — has neither. → §RK1386
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
