@@ -417,6 +417,7 @@
 - ✅ **RK1362** **the spec an agent executes is assembled per call by brief and exists nowhere a review or a second tool can read** — The spec brief composes is a document export writes, bounded by a file rather than by a tool result (design recorded in `src/roadkeep/exporting.py`).
 - ✅ **RK1366** **budget states the room left beside a why no write extends, so an amend is told 8 words where it may write 31** — budget aims an amend at the sentence it writes and not at the one it deletes, the remainder on a replaced field being the whole allowance (design recorded in `src/roadkeep/budgeting.py`).
 - ✅ **RK1370** **an add answers without the delivered entries nearest what it filed, so a duplicate is found after the design is written** — Every add names the three delivered here nearest the symptom it just filed, at the moment nothing is spent but an id (design recorded in `src/roadkeep/ranking.py`).
+- ✅ **RK1374** **the volunteered rows are bounded at three and say neither how many of how many nor where the rest are** — The volunteered rows say how many of how many, and name the listing that holds the rest (design recorded in `src/roadkeep/authoring.py`).
 
 ## Block D — The gate
 

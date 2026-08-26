@@ -201,6 +201,32 @@ def test_the_add_hands_back_the_read_the_author_had_to_remember(tmp_path, capsys
     assert "RK6" in ranked[0] or "RK2" in ranked[0]
 
 
+def test_the_volunteered_rows_say_they_are_bounded_and_where_the_rest_are(tmp_path, capsys):
+    """RK1374. RK442's guarantee on the half a write volunteers: the unbounded listing was
+    deliberate, because the entry that got elided is the one nobody read — so a bounded answer
+    says it is bounded, in the same two phrases `--near` uses, or it inherits what it gave up.
+
+    The block's own listing is the door and never a `--near` rendered with the symptom in it:
+    that argument is a sentence the caller has just written, and quoting it back is the second
+    grammar RK313 declined."""
+    root = project(tmp_path)
+    _added(root, "A block heading declared twice in the changelog")
+    said = capsys.readouterr().out
+    # Shown against held, so three rows never read as a three-entry block.
+    assert f"{VOLUNTEERED} nearest of 6 delivered" in said
+    assert "delivered A` is all 6" in said
+
+    assert main(
+        ["-C", str(root), "add", "--block", "A", "--symptom", "A second one", "--why",
+         "Because.", "--json"]
+    ) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    # The **ledger's** count and not the roadmap's: an `add` files no delivery, so this is the
+    # same six either way — which is the number the rows are bounded against.
+    assert payload["near_recorded"] == 6
+    assert len(payload["near"]) == VOLUNTEERED
+
+
 def test_the_volunteered_rows_carry_no_score(tmp_path, capsys):
     """RK441's rule at the door that did not exist when it was written: the absolute figure
     separates nothing, so a row or a payload carrying one is a turn from a threshold the

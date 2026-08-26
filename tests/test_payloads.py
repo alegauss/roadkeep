@@ -307,6 +307,10 @@ RECORDS: dict[str, dict[str, str | None]] = {
         # The read this write volunteers (RK1370), under its own key: `[]` where the block has
         # delivered nothing, never omitted, so a consumer tells that from an older build.
         "near": "near",
+        # And what that block holds against what the list shows (RK1374): three rows and no
+        # total read as a three-entry block, which is the guarantee RK442 made about the
+        # bounded listing this one volunteers.
+        "near_recorded": "near_recorded",
     },
     "StatusChange": {
         "document": None,

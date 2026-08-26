@@ -79,29 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1374 A bound the volunteered half does not state
-
-`delivered --near` prints `2 nearest of 2 delivered` and closes by naming `delivered A`
-as all 2. RK442's argument for both is that the unbounded listing was deliberate — the
-entry that got elided is exactly the one nobody read — so a bounded answer says it is
-bounded, or it inherits a guarantee it has just given up.
-
-RK1370 volunteers that same listing from every `add`, bounded at three by `VOLUNTEERED`,
-and says neither. A reader sees three rows under a sentence about ordering, with no way
-to tell a block holding three deliveries from one holding a hundred and thirty-eight,
-and no name for the command that shows the rest.
-
-The rows are right and the sentence above them is right. What is missing is the header
-half, which is a count and a door — both already composed one verb over, so what this
-costs is those two facts reaching the record the printer reads.
-
-The narrow question is the door's spelling. The wider read is `delivered <block> --near
-"<the symptom>"`, whose argument is a sentence the caller has just written and which no
-answer may quote back at them: an argv rendered with a symptom in it is the second
-grammar RK313 declined. So the block's own listing is what the row can name.
-
-Falsified when the volunteered rows elide an entry and say nothing about it.
-
 ### §RK1375 Two numbers about one field, and two ways of saying one
 
 A brief prints `budget   why 160 left, aim 24 words, 277 for prose` and, under it,

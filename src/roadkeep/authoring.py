@@ -290,6 +290,12 @@ class Insertion:
     #: filtering the far ones out would be that impossible gate rebuilt as a silence, which
     #: :data:`~roadkeep.ranking.VOLUNTEERED` carries the measurement for.
     near: tuple[Entry, ...] = ()
+    #: What that block holds, beside what the rows above show (RK1374). `Delivered.recorded`'s
+    #: twin, and there for that field's reason: the listing is bounded at
+    #: :data:`~roadkeep.ranking.VOLUNTEERED`, and a bounded answer that does not say so inherits
+    #: the guarantee the unbounded one gave — a reader handed three rows reads a three-entry
+    #: block. Zero where nothing was ranked, which is the same answer as the empty tuple above.
+    near_recorded: int = 0
 
     @property
     def rendered(self) -> str:
@@ -453,9 +459,15 @@ class Insertion:
             # is spent but an id (RK1370). Labelled once and the rows under it, which is how
             # every wrapped answer here is read — and the sentence says what the order is not,
             # because a reader taking #1 for a verdict is RK441's own finding.
+            # The count of what is shown against the count of what is there, and the command
+            # that shows the rest (RK442, RK1374) — in `delivered --near`'s own two phrases,
+            # because this is that read volunteered and a second wording for one fact is what
+            # RK1375 is about. The block's own listing and never a `--near` rendered with the
+            # symptom in it, which is the second grammar RK313 declined.
             rows.append(
-                "  near     the delivered under this block nearest this symptom — an order "
-                "and not a verdict, and yours to read"
+                f"  near     {len(self.near)} nearest of {self.near_recorded} delivered under "
+                f"this block — an order and not a verdict; `{invocation()} delivered "
+                f"{self.entry.task.block}` is all {self.near_recorded}"
             )
             rows += [
                 f"           {one.task.status} {one.task.id:<8} {one.task.symptom}"
@@ -542,6 +554,10 @@ class Insertion:
                 }
                 for at, one in enumerate(self.near, start=1)
             ],
+            # What the block holds against what the list shows (RK1374), which is the key
+            # `delivered` calls `recorded`: a consumer handed three rows and no total reads a
+            # three-entry block, and the whole use of this list is deciding a duplicate.
+            "near_recorded": self.near_recorded,
             # Every path this write touched, projections included (RK1129) — the same key a
             # departure's scope carries, so a client staging one stages the other.
             "wrote": [config.relative(one) for one in self.wrote],
@@ -919,11 +935,14 @@ def add(
     # is a *report* and not a gate — nothing here refuses a duplicate and nothing could (RK441)
     # — so it costs the same ranking whichever side of `save` it runs, and running it here keeps
     # every refusal above untouched by a read that cannot refuse anything.
-    return replace(insertion, wrote=insertion.save(), near=_near(config, insertion))
+    shown, recorded = _near(config, insertion)
+    return replace(
+        insertion, wrote=insertion.save(), near=shown, near_recorded=recorded
+    )
 
 
-def _near(config: Config, insertion: Insertion) -> tuple[Entry, ...]:
-    """This block's delivered entries that share a word with the symptom just filed (RK1370).
+def _near(config: Config, insertion: Insertion) -> tuple[tuple[Entry, ...], int]:
+    """This block's nearest delivered entries, and how many it holds (RK1370, RK1374).
 
     The block's own ledger and never the whole of it, which is `delivered`'s rule: a duplicate
     collides with a claim filed under the same heading, and ranking across blocks would offer a
@@ -950,16 +969,21 @@ def _near(config: Config, insertion: Insertion) -> tuple[Entry, ...]:
     reader treats such a path as the absent file it effectively is.
     """
     if not config.has("changelog") or not config.path("changelog").is_file():
-        return ()
+        return (), 0
     task = insertion.entry.task
     entries = config.document("changelog").block(task.block)
     if not entries:
-        return ()
-    return tuple(
-        entries[index]
-        for index in nearest(
-            task.symptom, [one.task.symptom for one in entries], VOLUNTEERED
-        )
+        return (), 0
+    # The block's own count beside the shown one (RK1374), off the same read: a second lookup
+    # for it is the two figures coming to disagree about which block was ranked.
+    return (
+        tuple(
+            entries[index]
+            for index in nearest(
+                task.symptom, [one.task.symptom for one in entries], VOLUNTEERED
+            )
+        ),
+        len(entries),
     )
 
 

@@ -28,7 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1374** (deps: —) **the volunteered rows are bounded at three and say neither how many of how many nor where the rest are** — RK442 made a bounded answer state its bound, and the same listing volunteered by a write inherited that guarantee without the header that keeps it. → §RK1374
 - 📋 **RK1375** (deps: —) **brief states one field's allowance in two grammars on adjacent rows, so the comparison they exist for is read twice** — The shipping row and the budget row were each rewritten this session without the other, so one number reads as a remainder and the next as an allowance. → §RK1375
 
 ## Block D — The gate
