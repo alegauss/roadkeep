@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1369** (deps: —) **a flag added to a served verb's parser is withheld over MCP until a listing read for another reason names it** — Nothing reads `serving.TOOLS` against the parsers, so a flag withheld by decision and one withheld because nobody looked are the same state to every reader. → §RK1369
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

@@ -506,6 +506,18 @@ def declare_gate(subcommands: argparse._SubParsersAction) -> None:
         action="store_true",
         help="machine-readable form of --check; refused on the driver and on --register",
     )
+    # And the five the tool over this command does not offer, each said beside what it explains
+    # (RK1169, RK1369). `merge_check` is `merge --check` and is the whole of what crosses: the
+    # other branch is git's own invocation, whose arguments are temporary paths in the merging
+    # checkout and whose answer is bytes in a file rather than a payload.
+    withheld(
+        merge_parser,
+        base="a temporary path git writes for the driver it invokes, which is not a file this transport shares",
+        ours="the same, and the file the driver writes its result into — a merge is git's call and never an agent's",
+        theirs="the same, for the other branch's side of the merge",
+        path="the pathname git hands the driver, which only that invocation knows",
+        register="it writes `.gitattributes`, and a wiring change belongs where a human is standing (RK16)",
+    )
     # `--check` is a pure query wearing the driver's subparser (RK275), so the claim this parser
     # makes is the one `writes_when` was built for, inverted the only way it can be: the command
     # reads, and the two arguments that turn it into a write say so. `ours` is where git has the

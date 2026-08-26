@@ -121,14 +121,10 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 135 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 103 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 123 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 124 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 29 | 1 |
-| **Total** | 1 | 854 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1369** (deps: —) **a flag added to a served verb's parser is withheld over MCP until a listing read for another reason names it** — Nothing reads `serving.TOOLS` against the parsers, so a flag withheld by decision and one withheld because nobody looked are the same state to every reader. → §RK1369
+| **Total** | 0 | 855 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

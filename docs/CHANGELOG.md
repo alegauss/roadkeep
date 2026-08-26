@@ -848,6 +848,7 @@
 - 🗑 **RK1326** **a project with no plugin wired is told its doors arrive under one, so every call the payload names is uncallable there** — superseded by RK1325: the same finding, filed minutes apart by two sessions sharing this tree; RK1325 is the lower id and keeps the line.
 - ✅ **RK1325** **a project wiring no plugin is told its doors arrive under one, so a payload names a tool nothing there answers** — the plugin answers only for the project this process is in, so a root it was pointed at publishes no call (design §RK1325 recorded in `src/roadkeep/provenance.py`).
 - ✅ **RK1368** **the staleness note rides on a refusal, so a write validated against code that changed on disk is answered with nothing** — A successful write over MCP says when the code that validated it had moved on disk, and names the gate that judges what landed (design recorded in `src/roadkeep/serving.py`).
+- ✅ **RK1369** **the check that unoffered arguments say why skips any tool an always flag made, so claim withheld --have and nothing said** — Every served tool answers for what it does not offer, so claim now takes --have and git's five carry the sentence that explains them (design recorded in `tests/test_serving.py`).
 
 ## Block G — The editor surface (the backlog where the file is open)
 

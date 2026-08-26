@@ -377,9 +377,13 @@ TOOLS: tuple[Tool, ...] = (
     # is `brief --claim`, so the answer is everything needed to start the task *and* the
     # marker that stops the next agent being handed it — while `brief` and `pick` below stay
     # honestly read-only, which is what keeps consulting the backlog free.
+    # `have` beside them for the reason it is on `brief` and `pick` below (RK1297), found
+    # missing here by RK1369: this is the call that *starts* a task, so a requirement the
+    # machine does satisfy is one the caller has to be able to state at the moment it takes
+    # the line — and without it this tool sets aside the very lines `brief` would have offered.
     Tool(
         "brief",
-        ("id", "block", "designed"),
+        ("id", "block", "designed", "have"),
         always=("claim",),
         named="claim",
     ),
@@ -394,6 +398,11 @@ TOOLS: tuple[Tool, ...] = (
     # terminal — `theirs` and `loose` are `git status` in the answering process's checkout, and
     # `ship` already prints the scope it releases at the one moment it is wanted (RK298), so
     # exposing it would add a second answer to a question that is already answered.
+    #
+    # `have` rides with the tool above rather than with this one, and that is not a choice:
+    # this is the `claim` *command*, whose act is declaring a scope, and the requirement word
+    # belongs to `pick` and `brief` (RK1297). The tool that starts a task is `claim` two entries
+    # up — where RK1369 found the flag missing, `brief` offering it and its own sibling not.
     Tool("claim", ("id", "path", "add_path"), named="scope"),
     Tool("status", ("id", "marker")),
     # `lines` for `record amend`'s reason one file over (RK195): this is the door an adopting

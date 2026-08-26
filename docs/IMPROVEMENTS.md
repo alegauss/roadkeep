@@ -85,31 +85,6 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1369 Withheld on purpose and withheld by omission read alike
-
-RK1367 added `--instead` to `govern` and it did not reach the served tool. Nothing said
-so: `lint` was clean and the suite passed, and the absence surfaced only because `cost
---tools govern` was run to price a description and its field list had five rows where
-the parser has six.
-
-The tuple in `serving.py` is right to be hand-kept. `--fix`, `--prune` and `--porcelain`
-are withheld on arguments written beside them, and a rule that served every flag would
-put `lint --fix` on the surface RK16 keeps it off. So the finding is not that the list
-is manual — it is that the two halves are never read against each other, so a flag
-withheld by decision and one withheld because nobody was looking are one state to a
-reader.
-
-What closes it is a read and not a gate, for that same reason: which flags a served
-verb's parser carries that no `Tool` names, per verb, with the argument's own `help`
-beside it — then "was this deliberate?" is answered by a sentence somebody wrote, or by
-its absence.
-
-A crude reflection over the parsers counts eighteen such flags across nine verbs and
-over-counts the conditional ones. That is itself the argument: the number nobody can
-state without writing a script is the number this read exists to give.
-
-Falsified when a served verb's parser carries a flag no read here names.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

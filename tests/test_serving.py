@@ -1618,7 +1618,14 @@ def test_the_tool_that_declares_a_scope_is_not_the_tool_that_takes_the_line(tmp_
     # Two acts under one word, which is why this stayed invisible: `named=` is what tells them
     # apart, and the collision is the argument for using it rather than against exposing this.
     served = listed(project(tmp_path))
-    assert served["claim"]["inputSchema"]["properties"].keys() == {"id", "block", "designed"}
+    # `have` since RK1369: this is the call that starts a task, so a requirement the machine
+    # does satisfy is one the caller states at the moment it takes the line (RK1297).
+    assert served["claim"]["inputSchema"]["properties"].keys() == {
+        "id",
+        "block",
+        "designed",
+        "have",
+    }
     assert served["scope"]["inputSchema"]["properties"].keys() == {"id", "path", "add_path"}
     # Both write, and neither claims to be free to ask.
     assert served["scope"]["annotations"]["readOnlyHint"] is False
@@ -2589,16 +2596,23 @@ def _withheld_by_parser() -> dict[str, set[str]]:
 
     The other half of the comparison `WITHHELD` declares. Read through `_subparser`, which is
     what `descriptors` reads, so the two answers are about one parser and not two.
+
+    **Every tool, including the ones an `always` flag made** (RK1369). Those were skipped whole,
+    on the argument that the command such a tool serves is narrower than the parser's and what
+    it does not pass it does not withhold — true of `merge --check`, which is not the branch
+    `base`, `ours` and `theirs` belong to, and false of `brief --claim`, where `--have` is as
+    legal beside the flag as without it. So the exemption was per tool where the narrowing is
+    per argument, and it covered the only two tools nobody could see into: `claim` did not offer
+    `--have` and no sentence said why, which is the state this reading exists to make visible.
+
+    Its own always flags count as offered: `--check` is what makes `merge_check` that tool, so
+    a reason for it would explain the tool to itself.
     """
     from roadkeep.serving import STRUCTURAL, _subparser
 
     out: dict[str, set[str]] = {}
     for tool in serving.TOOLS:
-        if tool.always:
-            # A flag turned into a tool of its own (RK150): the command it serves is narrower
-            # than the parser's, and what it does not pass it does not withhold either.
-            continue
-        offered = set(tool.unconditional) | set(tool.conditional)
+        offered = set(tool.unconditional) | set(tool.conditional) | set(tool.always)
         missing = {
             action.dest
             for action in _subparser(tool.command)._actions
