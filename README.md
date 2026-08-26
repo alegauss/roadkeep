@@ -123,8 +123,12 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 103 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 0 | 33 | 1 |
-| **Total** | 0 | 868 | 12 |
+| H — The tool's own shape (what one verb costs to change) | 1 | 33 | 1 |
+| **Total** | 1 | 868 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1383** (deps: —) **twenty-one pairs of modules import each other and nothing names them, so a new cycle looks like the ones already there** — RK1382 settled one pair on an argument that generalises, and whether the rest are that defect or a shape somebody chose is a question no read here asks. → §RK1383
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

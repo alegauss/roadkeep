@@ -38,6 +38,8 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
+- 📋 **RK1383** (deps: —) **twenty-one pairs of modules import each other and nothing names them, so a new cycle looks like the ones already there** — RK1382 settled one pair on an argument that generalises, and whether the rest are that defect or a shape somebody chose is a question no read here asks. → §RK1383
+
 ## Done when — Block D
 
 - **The gate passes on this repository's own docs** the format is proven by the artefact
