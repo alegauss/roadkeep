@@ -83,6 +83,30 @@ already written, not authorship.
 
 ## Block E — Adoption
 
+### §RK1392 A count that was right for the verdict and is wrong for the read
+
+RK1385 gave `engines` a fourth row — the merge driver, the copy git runs when nobody is
+watching — and eight sentences across five files still count three.
+
+They are not wrong in one way, which is the whole of this. `skills/roadkeep/SKILL.md`
+says *`engines` reads all three*, `agents.md` says *`engines` says which three copies
+write, judge, gate*, and the record's own docstring opens *The three copies of this tool
+one project runs*: those are about the **read**, and the read now answers four. The
+sentences in `cli.py` and `config.py` say most disagreement is *between three copies*
+and that `engines` *adjudicates the three* — and those are about the **verdict**, which
+the driver is deliberately not in: `agreed`, `behind` and `unpinnable` compare versions,
+and the driver is a path this tool refuses to execute.
+
+So the repair is not a find and replace, and doing one would make the verdict's own
+sentences false in the other direction. What has to be said is the distinction the
+fourth row created: this verb reads four copies and judges three, and a reader who knows
+only the count cannot tell which question they are holding.
+
+The skill is the authority on what a command answers, so it is the sentence that costs
+most while it is wrong.
+
+Falsified when a sentence about `engines` states a count for a question it is not about.
+
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

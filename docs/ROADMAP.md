@@ -32,6 +32,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK1392** (deps: —) **engines reads a fourth copy and every sentence that counts them still says three** — RK1385 added the driver row and left the skill, the resident file, the verb's own description and three docstrings naming three. → §RK1392
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
