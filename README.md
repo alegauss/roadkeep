@@ -117,14 +117,18 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 214 | 2 |
+| B — Authoring (insert, never hand-edit) | 1 | 214 | 2 |
 | C — Query (consult without reading the file) | 0 | 134 | 2 |
 | D — The gate | 0 | 193 | 2 |
 | E — Adoption | 0 | 102 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 122 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 0 | 27 | 1 |
-| **Total** | 0 | 848 | 12 |
+| H — The tool's own shape (what one verb costs to change) | 1 | 27 | 1 |
+| **Total** | 2 | 848 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1363** (deps: —) **an outline project cannot give a decision a body, the id being no address in a file that numbers its own headings** — A body is reachable wherever the record it belongs to can be filed, or the store is one two live corpora have no door into. → §RK1363
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

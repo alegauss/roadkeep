@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1363** (deps: —) **an outline project cannot give a decision a body, the id being no address in a file that numbers its own headings** — A body is reachable wherever the record it belongs to can be filed, or the store is one two live corpora have no door into. → §RK1363
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate
@@ -37,6 +39,8 @@
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+- 📋 **RK1364** (deps: —) **the session ceiling is declared against a package-wide surface no project is sent, so it bounds nothing in particular** — A ceiling names what one thing may cost, so a number about the build is re-argued the moment the surface became the checkout's. → §RK1364
 
 ## Done when — Block D
 
