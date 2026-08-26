@@ -120,11 +120,15 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
 | C — Query (consult without reading the file) | 0 | 139 | 2 |
 | D — The gate | 0 | 195 | 2 |
-| E — Adoption | 0 | 104 | 1 |
+| E — Adoption | 1 | 104 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 34 | 1 |
-| **Total** | 0 | 870 | 12 |
+| **Total** | 1 | 870 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1385** (deps: —) **the driver git runs is a fourth copy of this tool and no read says which, so a build behind the tree merges its files** — `merge --check` answers whether git can run it and `engines` names three copies without it, so the one that runs unwatched is the one nobody reads. → §RK1385
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
