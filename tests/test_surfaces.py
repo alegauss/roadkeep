@@ -23,6 +23,12 @@ import pytest
 from surface import modules
 
 from roadkeep.cli import build_parser
+from roadkeep.verbs import adopting
+from roadkeep.verbs.adopting import (
+    ABOUT_THE_WIRING,
+    ABOUT_THIS_TOOL,
+    declare_wiring,
+)
 
 HERE = Path(__file__).resolve().parents[1]
 ACTION = HERE / "action.yml"
@@ -345,3 +351,54 @@ def test_every_wired_write_reaches_the_one_printer():
             continue
         missing.append(handler)
     assert not missing, missing
+
+
+def _wiring_verbs() -> set[str]:
+    """Every subcommand `declare_wiring` puts on the parser, by the path a caller types.
+
+    Read off a parser this function is the only contributor to, so what it answers is this
+    module's declaration and not the CLI's — a verb another module owns would otherwise make
+    the partition below a statement about somebody else's file.
+    """
+    parser = argparse.ArgumentParser()
+    subcommands = parser.add_subparsers(dest="command")
+    declare_wiring(subcommands)
+
+    def walk(one, prefix=()):
+        for action in one._actions:  # noqa: SLF001 - argparse exposes no public reader
+            if not isinstance(action, argparse._SubParsersAction):
+                continue
+            for name, sub in action.choices.items():
+                yield " ".join((*prefix, name))
+                yield from walk(sub, (*prefix, name))
+
+    found = set(walk(parser))
+    # A name that is another's prefix is a **group** and not a verb — `capture` takes no handler
+    # and refuses a call with no action — so it belongs to neither list and is dropped rather
+    # than assigned to one. Read off the shape and not from a list of group names here, which
+    # would be a second declaration to keep in step with the first.
+    return {one for one in found if not any(other.startswith(f"{one} ") for other in found)}
+
+
+def test_the_module_that_declares_the_wiring_names_every_verb_it_declares():
+    """RK1397. The docstring opened with *the two whose subject is this tool* and the module
+    declared four — `capture filed` (RK1142) and `capture sweep` (RK1394) arrived under that
+    same rule, and `declare` (RK1264) had dropped out of the other half. Each drift was one line
+    an author did not think to touch, because this was the one count in the package that was
+    prose confronted with nothing. It is a partition now, and this is the population."""
+    declared = _wiring_verbs()
+    named = set(ABOUT_THIS_TOOL) | set(ABOUT_THE_WIRING)
+    assert sorted(named - declared) == [], "named and not declared"
+    assert sorted(declared - named) == [], "declared and in neither list"
+    # A partition and not two overlapping lists: a verb in both would let either drift without
+    # the closure above ever failing.
+    assert not set(ABOUT_THIS_TOOL) & set(ABOUT_THE_WIRING)
+
+
+def test_the_docstring_no_longer_carries_a_number_that_can_drift():
+    """The half that keeps the fix rather than the symptom. What went wrong was not the wording
+    but that a count sat in prose with nothing holding it, so a wording that counts again is the
+    same defect however right the number is on the day it is written."""
+    opening = (adopting.__doc__ or "").split("\n\n")[0]
+    assert "whose subject is this tool" in opening
+    assert not re.search(r"\bthe (two|three|four|five|six)\b", opening), opening

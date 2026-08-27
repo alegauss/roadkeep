@@ -1,13 +1,22 @@
-"""The verbs run once per project, and the two whose subject is this tool (RK494).
+"""The verbs run once per project, and those whose subject is this tool (RK494).
 
-`init` scaffolds, `adopt` estimates what an existing backlog would cost to bring under the
-schema, `install` wires the skill, the tools and the guard into a checkout, `uninstall` is
-the way back out, and `engines` says whether the three copies that can be in play agree.
-`mcp` serves the same surface over stdio (RK24).
+`init` scaffolds, `declare` retrofits a role, `adopt` estimates what an existing backlog
+would cost to bring under the schema, `install` wires the skill, the tools and the guard
+into a checkout, `uninstall` is the way back out, and `engines` says whether the copies
+that can be in play agree. `mcp` serves the same surface over stdio (RK24).
 
-`report` and `replay` belong by the same rule and not by exception: their subject is a
-defect in this tool, captured as facts a replay re-runs (RK85-89) — something done to an
-installation rather than to a backlog.
+`report`, `replay` and the `capture` group belong by the same rule and not by exception:
+their subject is a defect in this tool, captured as facts a replay re-runs (RK85-89) —
+something done to an installation rather than to a backlog.
+
+**Neither list is counted here** (RK1397). This opened with *the two whose subject is this
+tool* and named `report` and `replay`, while the module declared four: `capture filed`
+arrived with RK1142 and `capture sweep` with RK1394, both by that same rule, and the first
+paragraph had lost `declare` (RK1264) the same way. Each drift was one line an author did
+not think to touch — the only count in this package that was prose confronted with nothing,
+where every other census here is a table held against the population it is a set of. So the
+two lists are :data:`ABOUT_THIS_TOOL` and :data:`ABOUT_THE_WIRING`, and `test_surfaces`
+holds them against what :func:`declare_wiring` actually declares.
 """
 
 from __future__ import annotations
@@ -58,6 +67,25 @@ from roadkeep.serving import serve
 from roadkeep.capturing import PARTS
 from roadkeep.verbs.declaring import _JSON_HELP
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, _refused
+
+#: The subcommands here whose subject is a defect in **this tool** rather than a backlog
+#: (RK85-89, RK1142, RK1394). Spelled by the full path a caller types, because `capture` is a
+#: group and the two verbs under it are what have the subject — a list of top-level words could
+#: not say that, and saying it wrongly is what RK1397 was.
+ABOUT_THIS_TOOL = ("report", "replay", "capture filed", "capture sweep")
+
+#: And those whose subject is the project's own wiring: which files exist, which copies write,
+#: and how the surface is reached. The other half of a partition, so a verb added to this module
+#: belongs to one of them and the test says which is missing rather than that a number moved.
+ABOUT_THE_WIRING = (
+    "init",
+    "declare",
+    "adopt",
+    "install",
+    "uninstall",
+    "engines",
+    "mcp",
+)
 
 
 def _init(config: Config, args: argparse.Namespace) -> int:

@@ -38,8 +38,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1397** (deps: —) **The module that declares the capture family says two verbs have this tool as their subject, and it declares four** — Adding a verb to a family costs an edit nothing checks, so the file's own authority drifted twice — at RK1142 and again at RK1394 — and neither was noticed. → §RK1397
-
 ## Done when — Block D
 
 - **The gate passes on this repository's own docs** the format is proven by the artefact
