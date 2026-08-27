@@ -83,6 +83,25 @@ already written, not authorship.
 
 ## Block E — Adoption
 
+### §RK1395 A stamp the reader cannot act on
+
+Measured on a live adopting project. Turing's reports directory holds two captures; one
+carries `filed: "RK1128"` and `upstream: null`, and RK1128 is a shipped roadkeep task —
+so the capture was filed, correctly, in the backlog that owns the defect. Turing's
+`roadkeep.toml` declares no `[report] upstream`, and the capture predates RK1161, so
+nothing qualified the stamp.
+
+Both readers then agree and both are wrong. `stats` prints `2 unfiled` over a path that
+was answered months ago, and `capture sweep` prints `a link to nothing is not a
+delivery`. The author is told a fact about their directory and never what to do, though
+`capture filed <path> --as owner/repo#RK1128` closes it and every part of that argv
+except the repository is already on disk — which is the asymmetry RK1149 took out of the
+refusals, surviving in the two places that only report.
+
+The bound is that the repository cannot be guessed: an id no local file holds may be a
+delivery or a typo, and the two are told apart by the author alone. So the door asks
+rather than assumes.
+
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)
