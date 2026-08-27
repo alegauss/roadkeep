@@ -929,3 +929,4 @@
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
+- ✅ **RK1401** **No read prints the parser as data, so anything outside a terminal retypes the verbs and their flags** — One read prints the parser as data — every verb, its arguments, defaults and the sentence the parser carries — so a reference generated from it cannot describe a flag that was renamed.

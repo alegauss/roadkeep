@@ -964,6 +964,28 @@ def _config_shape(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _commands(config: Config, args: argparse.Namespace) -> int:
+    """What this build's command line takes, as data rather than as terminal text (RK1401).
+
+    `_config_shape`'s twin, and refused the same way: never over the project's *state* — a
+    tree with no config at all is answered, that being the reader deciding whether to adopt —
+    and refused over the **argument**, a verb this build does not have being a typo rather
+    than one somebody has yet to install.
+    """
+    from roadkeep.commanding import commands, payload, stated  # noqa: PLC0415 - RK260
+
+    try:
+        found = commands(config, args.command)
+    except KeyError as error:
+        return _refused(error)
+
+    if args.json:
+        print(json.dumps(payload(found), indent=2))
+    else:
+        print(stated(found))
+    return EXIT_OK
+
+
 def _anchors(config: Config, args: argparse.Namespace) -> int:
     """Live and retired addresses across this project's prose (RK247, RK297).
 
@@ -1925,6 +1947,32 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     )
     config_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     config_parser.set_defaults(handler=_config_shape, reads_only=True)
+
+    commands_parser = subcommands.add_parser(
+        "commands",
+        help="what may be typed: every verb, its arguments, defaults and served exposure",
+        description=(
+            "Print this build's own command surface as data (RK1401). One block per verb — "
+            "whether it reads or writes, the flag that turns a read into a write, and one "
+            "row per argument with its spellings, what it takes, its default and the "
+            "sentence the parser already carries — plus which tool an agent is served it as, "
+            "and which of its arguments that surface exposes on *this* project. `config` "
+            "answers what roadkeep.toml may declare; this answers what may be typed. What is "
+            "listed is what *this* copy takes, so the build that answered is named. It reads "
+            "and never writes."
+        ),
+    )
+    commands_parser.add_argument(
+        "--command",
+        default=None,
+        metavar="VERB",
+        help=(
+            "one verb, spelled as the answer spells it — omitted, every one; a nested one "
+            "carries its path, e.g. 'section add'"
+        ),
+    )
+    commands_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    commands_parser.set_defaults(handler=_commands, reads_only=True)
 
     anchors_parser = subcommands.add_parser(
         "anchors",

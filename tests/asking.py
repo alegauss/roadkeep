@@ -121,6 +121,14 @@ ANSWERS_NO_QUESTION: dict[str, str] = {
     # a backlog this tool owns the writes to; `adopt` measures somebody else's file before any
     # of that exists, so the question it answers is asked once and never again.
     "adopt": "the subject is a foreign file, measured before this tool owns any write to it",
+    # And one whose subject is **this build's own parser** (RK1401). Its reader is a build
+    # rather than a session: a documentation page or a completion list, generated in a
+    # checkout, where the alternative is retyping the verbs. A session already has the skill
+    # and the tool schemas, and it is not offered one — `[tools] session` holds 116 units and
+    # the cheapest tool on the surface costs fifteen times that, so a 65th is refused by this
+    # project's own gate rather than left out by preference.
+    "commands": "the subject is this build's command line, read as data by something "
+                "generating a page from it rather than by somebody asking about a backlog",
 }
 
 

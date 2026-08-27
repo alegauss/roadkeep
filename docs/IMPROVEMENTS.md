@@ -161,28 +161,6 @@ have two sources: it takes the pitch page, the assets and `llms.txt` with it. Wh
 is chosen is a decision this task records, not a preference the next reader has to
 reconstruct from the workflow file.
 
-### §RK1401 The parser as a payload, so no page declares it twice
-
-Every reference page about the command line is a second declaration of the parser. Typed
-by hand it is wrong at the first renamed flag, and nothing reports it: the page keeps
-rendering.
-
-The package already holds the whole truth — each verb, its flags, their defaults and
-every `help=` string — and `cost --tools` proves it can be read as data, since it prices
-a served description by walking exactly that. What no read does is print it. `--help` is
-text formatted for a terminal, and parsing that back is a scrape of this project's own
-output, which breaks on a line wrap.
-
-So one read emits the parser as a payload: every verb, every flag, what it takes, its
-default, the sentence it already carries, and whether it is published over the served
-surface. It is a read about the tool rather than about a governed file, so it costs a
-session nothing until it is called, and it is filed in this block because the area is
-the only thing that wants it.
-
-The alternative is a page listing flags, which is prose accretion about a schema — the
-one kind that can be derived instead. This is the same argument the projections make:
-never restate, always project, and let the gate say when the projection went stale.
-
 ### §RK1402 A reference generated per verb family, and the check that it is
 
 The reference is one page per verb family, in the order dispatch declares them, rendered
