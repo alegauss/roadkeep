@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="roadkeep — stop paying tokens to keep your docs">
+  <title>roadkeep — stop paying tokens to keep your docs</title>
+  <desc>Social preview: the roadkeep mark — task lines cut at an amber gate — beside
+  the wordmark, the proposition, and the repository URL. The palette is fixed, because
+  this file is rasterised to og.png and cannot follow a reader's theme.</desc>
+
+  <!-- Every line here is measured against the card frame: 90px gutters, so 1020px
+       of usable width between x=90 and x=1110. Type set past that runs off the
+       right edge of the card, which is how three sibling banners shipped clipped.
+       Re-measure after editing any string: run og-banner.mjs in check mode,
+       from the scripts folder of the alegauss.github.io repo. -->
+  <defs>
+    <linearGradient id="rk-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0f1b"/>
+      <stop offset="1" stop-color="#131b2d"/>
+    </linearGradient>
+    <radialGradient id="rk-glow" cx="0.82" cy="0.05" r="0.7">
+      <stop offset="0" stop-color="#f59e0b" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#rk-bg)"/>
+  <rect width="1200" height="630" fill="url(#rk-glow)"/>
+  <rect x="0" y="0" width="1200" height="8" fill="#f59e0b"/>
+
+  <!-- the mark, at 128px: four task lines and the gate that decides what passes -->
+  <g transform="translate(90,120) scale(0.8)">
+    <rect width="160" height="160" rx="34" fill="#131b2d" stroke="#232f49" stroke-width="2"/>
+    <rect fill="#cbd5e1" x="24" y="34"  width="46" height="12" rx="6"/>
+    <rect fill="#cbd5e1" x="24" y="62"  width="72" height="12" rx="6"/>
+    <rect fill="#cbd5e1" x="24" y="90"  width="58" height="12" rx="6"/>
+    <rect fill="#cbd5e1" x="24" y="118" width="90" height="12" rx="6"/>
+    <rect fill="#f59e0b" x="120" y="22" width="8" height="116" rx="4"/>
+    <rect fill="#cbd5e1" opacity=".26" x="136" y="118" width="18" height="12" rx="6"/>
+  </g>
+
+  <text x="238" y="180" font-family="DejaVu Sans, sans-serif" font-size="52" font-weight="bold" fill="#f2f6fb">roadkeep</text>
+  <text x="240" y="216" font-family="DejaVu Sans Mono, monospace" font-size="20" fill="#7d8ba3">part of alegauss</text>
+
+  <!-- 715px and 683px of 1020 -->
+  <text x="90" y="360" font-family="DejaVu Sans, sans-serif" font-size="66" font-weight="bold" fill="#f2f6fb">Stop paying tokens</text>
+  <text x="90" y="436" font-family="DejaVu Sans, sans-serif" font-size="66" font-weight="bold" fill="#fbbf24">to keep your docs.</text>
+
+  <!-- 948px of 1020 -->
+  <text x="92" y="502" font-family="DejaVu Sans, sans-serif" font-size="26" fill="#98a5bb">One call writes the line · one exit code decides whether anything drifted.</text>
+
+  <!-- badge width = 46 (dot inset) + 470 (measured text) + 28 (trailing pad) -->
+  <rect x="90" y="540" width="544" height="46" rx="23" fill="#131b2d" stroke="#232f49"/>
+  <circle cx="118" cy="563" r="6" fill="#fbbf24"/>
+  <text x="136" y="571" font-family="DejaVu Sans, sans-serif" font-size="20" fill="#98a5bb">Python ≥3.11 · Claude Code plugin · Zero deps</text>
+
+  <text x="1110" y="571" text-anchor="end" font-family="DejaVu Sans Mono, monospace" font-size="20" fill="#7d8ba3">alegauss.github.io/roadkeep</text>
+</svg>

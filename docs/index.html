@@ -10,7 +10,13 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="roadkeep — stop paying tokens to keep your docs">
 <meta property="og:description" content="Claude Code should spend its context on the work, not on policing your docs. One call writes the line; one exit code decides whether anything drifted.">
-<meta property="og:image" content="assets/roadkeep-social.png">
+<!-- absolute, and 1200x630: crawlers resolve og:image against nothing, so a relative
+     path is dropped by several of them, and roadkeep-social.png is 1280x640 — the size
+     GitHub wants for a repo preview, not the ratio Open Graph crops from. That file
+     stays for GitHub; this one is the social card. -->
+<meta property="og:image" content="https://alegauss.github.io/roadkeep/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:url" content="https://alegauss.github.io/roadkeep/">
 <meta name="twitter:card" content="summary_large_image">
 
