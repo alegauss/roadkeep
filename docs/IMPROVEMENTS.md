@@ -81,6 +81,27 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK1394 capture retention
+
+Measured before filing. This repository's `.roadkeep/reports/` holds three captures;
+each carries a `filed` id and each of those ids is a shipped line — RK1140, RK1138,
+RK1218 — so `stats` correctly prints no row and the files are spent by the tool's own
+reading. Nothing deletes them. Clearing the directory was a hand sweep in the session
+that noticed, which is the shape L5 exists against: the fact that a capture is closed is
+already in the artefact, and acting on it cost three file reads and a judgement.
+
+The `capture` family's docstring already parks this as what goes next — rotation, an age
+limit, a dedup by argv — and the weakest key of those three is age. `filed` is exact: an
+id this ledger resolves to a shipped line says the capture is answered, where an age
+says only that time passed. So the sweep to write first is the one keyed on the ledger,
+and rotation is the fallback for a capture that never got an id.
+
+A second population argues the bound. Two captures in an adopting project were never
+filed, no longer reproduce on 0.1.1260, and are `not replayable: the capture has no
+document` — so neither the gate nor a stamp can close them, and an exact sweep must
+leave them rather than guess. Deleting a capture is deleting evidence, so the verb
+refuses what it cannot prove is spent.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
