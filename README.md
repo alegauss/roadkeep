@@ -120,11 +120,15 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
 | C — Query (consult without reading the file) | 0 | 140 | 2 |
 | D — The gate | 0 | 198 | 2 |
-| E — Adoption | 0 | 111 | 1 |
+| E — Adoption | 1 | 111 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 34 | 1 |
-| **Total** | 0 | 881 | 12 |
+| **Total** | 1 | 881 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1396** (deps: —) **A path argument ignores -C, so a door this tool prints is refused as a file that does not exist** — Turing's own capture, named by the argv RK1395 composes, is called not a capture this project holds — while the message names the directory the file is in. → §RK1396
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

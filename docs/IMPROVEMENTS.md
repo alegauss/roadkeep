@@ -83,6 +83,25 @@ already written, not authorship.
 
 ## Block E — Adoption
 
+### §RK1396 The project -C names, and the directory a path is read from
+
+Measured from outside the project. `-C D:/Git/viglet/turing/latest capture filed
+.roadkeep/reports/…json --as owner/repo#RK1128` is refused with `is not a capture this
+project holds`, and the same argv run from inside that tree succeeds. `replay` fails one
+layer lower with `[Errno 2] No such file or directory`, and `add --capture` takes the
+third copy of the same argument.
+
+The refusal is worse than wrong. It names `.roadkeep/reports` as where the captures this
+project holds live, which is exactly the directory the named file is in — so a reader is
+told to look where they already looked, and the honest reading is that `-C` chose a
+project while the path chose a directory and the two were never the same one.
+
+RK1395 is what makes this reachable rather than theoretical: both readers now print a
+project-relative path, and the transport an agent uses passes `-C`. So the tool composes
+a command and then refuses it. The fix is that a path argument is read against the
+project root wherever one was named, which is the rule `config.relative` already renders
+by.
+
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

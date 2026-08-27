@@ -32,6 +32,8 @@
 
 ## Block E — Adoption
 
+- 📋 **RK1396** (deps: —) **A path argument ignores -C, so a door this tool prints is refused as a file that does not exist** — Turing's own capture, named by the argv RK1395 composes, is called not a capture this project holds — while the message names the directory the file is in. → §RK1396
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
