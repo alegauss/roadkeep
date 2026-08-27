@@ -1064,6 +1064,42 @@ def stamp(path: str | Path, task_id: str) -> bool:
     return True
 
 
+#: What a door names where the capture did not record where it was aimed (RK1395). A placeholder
+#: and never a guess: an id no local file holds is a delivery or a typo, and the two are told
+#: apart by the author alone — so the command asks for the half this project cannot know and
+#: fills in every other, which is the shape :func:`~roadkeep.verbs.adopting._capture_filed`'s
+#: own refusal already prints.
+UNKNOWN_REPOSITORY = "owner/repo"
+
+
+def qualifying(path: str, stamp: str, upstream: str = "") -> str:
+    """The command that turns a stamp this project cannot resolve into the delivery it is.
+
+    One composer for the two readers that report the state (RK1395). Measured on a live adopting
+    project: Turing holds a capture carrying `filed: "RK1128"` — a shipped **roadkeep** id, since
+    a defect in this tool is filed in this tool's backlog — and no `upstream`, that project
+    declaring none and the capture predating RK1161. So `stats` printed `2 unfiled` over a path
+    answered months earlier and the sweep called it a link to nothing, while every part of the
+    argv that closes it except the repository was already on disk.
+
+    `upstream` is used where the capture recorded one, which is the asymmetry RK1149 took out of
+    the refusals: a fact the artefact carries is never a field to type again. Where it recorded
+    none the repository is :data:`UNKNOWN_REPOSITORY`, because that half genuinely is the
+    author's — and a command with one obvious blank is a thing to complete, where a sentence
+    about a stamp is a thing to work out.
+    """
+    return shlex.join(
+        [
+            *shlex.split(invocation()),
+            "capture",
+            "filed",
+            path,
+            "--as",
+            f"{upstream or UNKNOWN_REPOSITORY}#{stamp}",
+        ]
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class Read:
     """One capture, and what this project can honestly say about it (RK1162).
@@ -1078,6 +1114,22 @@ class Read:
     filed: bool
     #: The repository a delivery names, or `""` for a capture this project resolved itself.
     elsewhere: str = ""
+    #: The stamp as it was written, where this project could not resolve it (RK1395) — the half
+    #: that turns "unfiled" from a verdict into a command. `""` for a capture with no stamp at
+    #: all and for one that resolved, neither of which has anything to qualify.
+    stamp: str = ""
+    #: Where the capture recorded it was aimed, so the door names the real repository rather
+    #: than the placeholder wherever the artefact already knows it.
+    aimed: str = ""
+
+    def door(self, where: str) -> str:
+        """The command that closes this row, or `""` where there is none to name.
+
+        Takes the spelling rather than reading :attr:`path`, so the argv carries the same
+        project-relative path the row above it does — a door naming an absolute path where the
+        report names a relative one is two addresses for one file.
+        """
+        return qualifying(where, self.stamp, self.aimed) if self.stamp else ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -1164,9 +1216,19 @@ class Debt:
         rows = [f"  {'captures':<{width}}  {len(self.held):>4}  {len(unfiled)} unfiled"]
         # Named and not only counted: this is the list the tool asks every project to hold its
         # debt in, and a count with nothing behind it is the silent file again.
-        rows += [
-            f"  {'unfiled':<{width}}  {config.relative(one)}" for one in unfiled
-        ]
+        for one in self.held:
+            if one.filed:
+                continue
+            where = config.relative(one.path)
+            rows.append(f"  {'unfiled':<{width}}  {where}")
+            # And the command, where the stamp makes one derivable (RK1395). Only there: a
+            # capture with no stamp has no id to qualify, so the row is the whole of what can
+            # be said about it, and an offer with a blank where the id goes is the sentence
+            # again. The one case this reaches was measured — a shipped roadkeep id written
+            # into an adopting project's capture, read as unanswered by this row for months.
+            door = one.door(where)
+            if door:
+                rows.append(f"  {'':<{width}}  {door}")
         return rows
 
     def payload(self, config: Config) -> dict[str, object]:
@@ -1228,6 +1290,11 @@ def debt(config: Config) -> Debt:
                 filed=bool(delivered(one.filed))
                 or (one.filed in ids if one.filed else one.symptom in stated),
                 elsewhere=delivered(one.filed),
+                # Carried only where this project failed to resolve it (RK1395): a stamp that
+                # resolved is not a row, and one that qualified is a delivery. What is left is
+                # the state the two readers called unfiled and could not act on.
+                stamp="" if one.filed in ids or delivered(one.filed) else one.filed,
+                aimed=one.upstream,
             )
             for one in held
         )
@@ -1251,9 +1318,13 @@ KEPT_BECAUSE = {
         "delivered to {repo}, which this project cannot read — filed by construction and "
         "never provably spent, so the evidence stays"
     ),
+    # The one kept state whose reason ends in a complete argv (RK1395, RK420). The others
+    # cannot: `unfiled` has no id to qualify, `open` is waiting on a ship and `elsewhere` is
+    # already as answered as this project can see. Here the id is in the artefact and only the
+    # repository is missing, so the sentence is followed by the command that supplies it.
     "unknown": (
         "filed as {id}, which no governed file holds — a link to nothing is not a delivery, "
-        "so this is read as unfiled"
+        "so this is read as unfiled; where it named another backlog, {door}"
     ),
 }
 
@@ -1270,15 +1341,27 @@ class Verdict:
     state: str
     #: The stamp that decided it, for the sentence — a bare id, or `owner/repo#id`.
     filed: str = ""
+    #: Where the capture recorded it was aimed (RK1395), so the one reason that ends in a
+    #: command names the real repository wherever the artefact already carries it.
+    aimed: str = ""
 
     @property
     def spent(self) -> bool:
         return not self.state
 
-    @property
-    def because(self) -> str:
+    def because(self, where: str) -> str:
+        """The reason, with the address the reader is looking at substituted into it.
+
+        A method and no longer a property (RK1395): the `unknown` reason ends in the command
+        that closes it, and a command has to name the file by the same spelling the row above
+        it does — which is the project's and not this record's to know.
+        """
         template = SPENT_BECAUSE if self.spent else KEPT_BECAUSE[self.state]
-        return template.format(id=self.filed, repo=delivered(self.filed))
+        return template.format(
+            id=self.filed,
+            repo=delivered(self.filed),
+            door=qualifying(where, self.filed, self.aimed),
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -1326,8 +1409,9 @@ class Sweep:
                 mark = "kept"
             else:
                 mark = "removed" if self.swept else "spent"
-            rows.append(f"  {mark:<8} {config.relative(one.path)}")
-            rows.append(f"           {one.because}")
+            where = config.relative(one.path)
+            rows.append(f"  {mark:<8} {where}")
+            rows.append(f"           {one.because(where)}")
         for path, complaint in self.refused:
             rows.append(f"  refused  {config.relative(path)}: {complaint}")
         if self.spent and not self.swept:
@@ -1348,7 +1432,7 @@ class Sweep:
                     # the verdict and never infers it from the presence of a reason.
                     "state": one.state,
                     "filed": one.filed,
-                    "because": one.because,
+                    "because": one.because(config.relative(one.path)),
                 }
                 for one in self.read
             ],
@@ -1416,7 +1500,9 @@ def _verdict(one: Held, shipped: set[str], open_ids: set[str]) -> Verdict:
     if one.filed in shipped:
         return Verdict(path=one.path, state="", filed=one.filed)
     state = "open" if one.filed in open_ids else "unknown"
-    return Verdict(path=one.path, state=state, filed=one.filed)
+    # `aimed` only here, because `unknown` is the only reason that composes a command (RK1395)
+    # and a field carried where nothing reads it is a field somebody later has to check.
+    return Verdict(path=one.path, state=state, filed=one.filed, aimed=one.upstream)
 
 
 def captures(root: str | Path = ".") -> tuple[Held, ...]:

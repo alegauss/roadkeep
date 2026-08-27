@@ -68,6 +68,9 @@ from roadkeep.capturing import (
     offer,
     stamp,
     sweep,
+    UNKNOWN_REPOSITORY,
+    debt,
+    qualifying,
 )
 from roadkeep.config import Config
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
@@ -1302,7 +1305,8 @@ def test_only_the_capture_the_ledger_records_as_shipped_is_deleted(tmp_path, cap
     capsys.readouterr()
     found = sweep(Config.discover(root), delete=True)
     states = {one.path: one.state for one in found.read}
-    assert [states[held[symptom].path] for symptom in STAMPS] ==         ["unfiled", "", "open", "elsewhere"]
+    read = [states[held[symptom].path] for symptom in STAMPS]
+    assert read == ["unfiled", "", "open", "elsewhere"]
     assert len(found.spent) == 1 and not found.refused
     # The shipped one is gone and the other three are still on disk — the whole verdict, read
     # off the filesystem rather than off the report that describes it.
@@ -1390,3 +1394,90 @@ def test_a_project_with_no_captures_sweeps_nothing_and_does_not_fail(tmp_path, c
     root = _swept(tmp_path)
     assert main(["-C", str(root), "capture", "sweep"]) == EXIT_OK
     assert "0 capture(s), 0 swept, 0 kept" in capsys.readouterr().out
+
+
+# -- the stamp two readers called unanswered (RK1395) ---------------------------
+
+#: A capture that recorded where it was aimed and carries a bare stamp, which is the state the
+#: live measurement found: Turing held `filed: "RK1128"` — a shipped **roadkeep** id — because a
+#: defect in this tool is filed in this tool's backlog, and nothing qualified it.
+AIMED_ELSEWHERE = "alegauss/roadkeep"
+
+
+def _misfiled(root: Path, symptom: str = SYMPTOM, upstream: str = "") -> Held:
+    """One capture stamped with an id no governed file here holds, as an older engine left it."""
+    main(["-C", str(root), "report", "--symptom", symptom, "--why", WHY, "--", "lint"])
+    one = {held.symptom: held for held in captures(root)}[symptom]
+    payload = json.loads(one.path.read_text(encoding="utf-8"))
+    payload["filed"] = "RK1128"
+    # Set or **removed**, because the two states are the whole of what the door reads. Turing
+    # declares no `[report] upstream` and its capture predates RK1161, so the artefact carries
+    # none — where this fixture's config declares one and every capture it writes records it.
+    if upstream:
+        payload["upstream"] = upstream
+    else:
+        payload.pop("upstream", None)
+    one.path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return {held.symptom: held for held in captures(root)}[symptom]
+
+
+def test_the_two_readers_that_only_report_now_name_the_stamp(tmp_path, capsys) -> None:
+    """RK1395. Measured on a live adopting project: `stats` printed `2 unfiled` over a path
+    answered months earlier and the sweep called it a link to nothing, while every part of the
+    argv that closes it except the repository was already on disk."""
+    root = _swept(tmp_path)
+    one = _misfiled(root)
+    where = one.path.relative_to(root).as_posix()
+    capsys.readouterr()
+
+    main(["-C", str(root), "stats"])
+    counted = capsys.readouterr().out
+    main(["-C", str(root), "capture", "sweep", "--check"])
+    swept = capsys.readouterr().out
+    # One composer, so the two reports cannot drift into two spellings of one command.
+    door = qualifying(where, "RK1128")
+    assert door in counted and door in swept
+    # And the placeholder is the repository and nothing else: an id no local file holds is a
+    # delivery or a typo, and only the author tells them apart.
+    assert UNKNOWN_REPOSITORY in door and "RK1128" in door
+
+
+def test_a_capture_that_recorded_where_it_went_is_not_asked_for_it_again(
+    tmp_path, capsys, monkeypatch
+) -> None:
+    """The asymmetry RK1149 took out of the refusals, in the two places that only report: a fact
+    the artefact carries is never a field to type again. So the door here is complete — and the
+    test runs it, which is what makes it a door rather than a sentence shaped like one."""
+    root = _swept(tmp_path)
+    one = _misfiled(root, upstream=AIMED_ELSEWHERE)
+    where = one.path.relative_to(root).as_posix()
+    # Standing in the project, which is what the printed argv assumes: every door this tool
+    # composes names a project-relative path, and the reader who meets one is the reader the
+    # command that printed it was run for.
+    monkeypatch.chdir(root)
+    capsys.readouterr()
+    main(["-C", str(root), "capture", "sweep", "--check"])
+    offered = capsys.readouterr().out
+    assert qualifying(where, "RK1128", AIMED_ELSEWHERE) in offered
+    assert UNKNOWN_REPOSITORY not in offered
+
+    # Run what was printed. The state moves from the one nobody could act on to a delivery, and
+    # `stats` stops counting a debt that was paid before this project ever read the file.
+    assert main(["capture", "filed", where, "--as", f"{AIMED_ELSEWHERE}#RK1128"]) == EXIT_OK
+    capsys.readouterr()
+    assert [read.state for read in sweep(Config.discover(root)).read] == ["elsewhere"]
+    main(["stats", "--json"])
+    assert json.loads(capsys.readouterr().out)["captures"]["unfiled"] == []
+
+
+def test_a_capture_with_no_stamp_is_offered_no_command(tmp_path, capsys) -> None:
+    """Only where one is derivable. A capture with no stamp has no id to qualify, so the row is
+    the whole of what can be said — and an offer with a blank where the id goes is the sentence
+    again, which is the thing being fixed."""
+    root = _swept(tmp_path)
+    main(["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
+    capsys.readouterr()
+    main(["-C", str(root), "stats"])
+    counted = capsys.readouterr().out
+    assert "1 unfiled" in counted and "capture filed" not in counted
+    assert [read.door(where="anywhere") for read in debt(Config.discover(root)).held] == [""]

@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1395** (deps: —) **A capture filed upstream reads as unfiled in two reports, and neither names the stamp that would resolve it** — Turing holds one stamped RK1128, a shipped roadkeep id — so both readers call it unanswered, while the argv that closes it is derivable from the stamp. → §RK1395
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

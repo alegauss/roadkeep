@@ -120,15 +120,11 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
 | C — Query (consult without reading the file) | 0 | 140 | 2 |
 | D — The gate | 0 | 198 | 2 |
-| E — Adoption | 1 | 110 | 1 |
+| E — Adoption | 0 | 111 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 34 | 1 |
-| **Total** | 1 | 880 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1395** (deps: —) **A capture filed upstream reads as unfiled in two reports, and neither names the stamp that would resolve it** — Turing holds one stamped RK1128, a shipped roadkeep id — so both readers call it unanswered, while the argv that closes it is derivable from the stamp. → §RK1395
+| **Total** | 0 | 881 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

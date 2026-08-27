@@ -115,6 +115,11 @@ SITES: tuple[Site, ...] = (
     # would make, and `test_capturing` runs exactly that line — which is the whole reason the
     # offer is composed rather than described, the two runs being one table and one command.
     Site("capturing.py:Sweep.stated", "run"),
+    # RK1395, and the one composer both readers that only *report* a stamp now call. Run where
+    # the capture recorded where it went, which is when the argv is complete: `test_capturing`
+    # types the printed line back and the state moves to the delivery it always was. Where the
+    # capture recorded none the repository is a placeholder — the half no project can derive.
+    Site("capturing.py:qualifying", "run"),
     # RK1235. Run by `test_installing`, which executes the read this refusal names — the
     # door that keeps a pinned project's guard from being a wall.
     Site("cli.py:_behind", "run"),
