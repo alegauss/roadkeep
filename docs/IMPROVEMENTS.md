@@ -88,3 +88,20 @@ already written, not authorship.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+### §RK1397 A count the module makes about itself
+
+`verbs/adopting.py` opens with *the two whose subject is this tool*, and names `report`
+and `replay`. It declares four: `capture filed` arrived with RK1142 and `capture sweep`
+with RK1394, both with that same subject and both by that same rule. The first paragraph
+also omits `declare`, which RK1264 added.
+
+The docstring is the authority — agents.md says so and carries no task numbers because
+of it — so a reader who takes it at its word learns that a capture is filed by two verbs
+when it is filed, stamped and swept by four. Each drift was one line an author did not
+think to touch, which is the shape a schema exists to refuse.
+
+What is missing is not the sentence but the check. Every other census here is a table
+confronted with the population it is a set of; this count is prose confronted with
+nothing, so the fix is a test that reads the declared subcommands and holds the number
+against them.

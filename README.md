@@ -123,8 +123,12 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 112 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 0 | 34 | 1 |
-| **Total** | 0 | 882 | 12 |
+| H — The tool's own shape (what one verb costs to change) | 1 | 34 | 1 |
+| **Total** | 1 | 882 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1397** (deps: —) **The module that declares the capture family says two verbs have this tool as their subject, and it declares four** — Adding a verb to a family costs an edit nothing checks, so the file's own authority drifted twice — at RK1142 and again at RK1394 — and neither was noticed. → §RK1397
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
