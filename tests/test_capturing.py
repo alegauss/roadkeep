@@ -73,7 +73,7 @@ from roadkeep.capturing import (
     qualifying,
 )
 from roadkeep.config import Config
-from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
+from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.provenance import engine
 
 #: `src/`, for the subprocesses that read the codecs an interpreter settled at startup.
@@ -1250,9 +1250,13 @@ def test_the_payload_tells_a_resolution_from_a_claim(tmp_path, capsys) -> None:
 #: them: an id the roadmap holds is a capture whose task nobody shipped, and only the ledger
 #: says otherwise. The one-file `CONFIG` above cannot express that distinction at all.
 LEDGER = "docs/CHANGELOG.md"
+#: `improvements` is declared for one test only — the body file that stays the caller's own
+#: (RK1396) needs a role to carry a section, and the sweep reads neither.
+DESIGNS = "docs/IMPROVEMENTS.md"
 SWEEPING = (
     f'prefix = "RK"\n[report]\nupstream = "alegauss/roadkeep"\n'
     f'[files]\nroadmap = "{ROADMAP}"\nchangelog = "{LEDGER}"\n'
+    f'improvements = "{DESIGNS}"\n'
 )
 SHIPPED = """# Ledger
 
@@ -1267,8 +1271,10 @@ OPEN = "- \U0001F4CB **RK7** (deps: —) **An open symptom** — Because of a re
 
 def _swept(tmp_path: Path) -> Path:
     root = project(tmp_path, config=SWEEPING, roadmap=CLEAN + OPEN)
-    with (root / LEDGER).open("w", encoding="utf-8", newline="") as handle:
-        handle.write(SHIPPED)
+    designs = "# Improvements\n\n## Block A — The model\n"
+    for name, text in ((LEDGER, SHIPPED), (DESIGNS, designs)):
+        with (root / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(text)
     return root
 
 
@@ -1481,3 +1487,69 @@ def test_a_capture_with_no_stamp_is_offered_no_command(tmp_path, capsys) -> None
     counted = capsys.readouterr().out
     assert "1 unfiled" in counted and "capture filed" not in counted
     assert [read.door(where="anywhere") for read in debt(Config.discover(root)).held] == [""]
+
+
+# -- the project -C names, and the directory a path was read from (RK1396) ------
+
+
+def test_a_capture_is_addressed_against_the_project_and_not_the_process(tmp_path, capsys) -> None:
+    """RK1396. Measured from outside the project: the argv RK1395 composes was refused with
+    `is not a capture this project holds`, and the message named the very directory the file
+    was in. RK1101 grouped a capture with a `--body-file`; it is not one — it lives under this
+    project's `.roadkeep/reports/`, and every report about it spells the path project-relative.
+    """
+    root = _swept(tmp_path)
+    one = _misfiled(root, upstream=AIMED_ELSEWHERE)
+    where = one.path.relative_to(root).as_posix()
+    capsys.readouterr()
+    # No `chdir`: the process stands where the suite runs, which is the state that refused.
+    assert main(["-C", str(root), "capture", "filed", where,
+                 "--as", f"{AIMED_ELSEWHERE}#RK1128"]) == EXIT_OK
+    capsys.readouterr()
+    assert [read.state for read in sweep(Config.discover(root)).read] == ["elsewhere"]
+
+
+def test_the_replay_reads_the_same_address_its_report_printed(tmp_path, capsys) -> None:
+    """The second copy of that argument. It failed one layer lower — `[Errno 2] No such file or
+    directory` over a path the project holds — which reads as a capture that was never written
+    rather than as one read from the wrong tree."""
+    root = _swept(tmp_path)
+    main(["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--embed", "--", "lint"])
+    where = captures(root)[0].path.relative_to(root).as_posix()
+    capsys.readouterr()
+    assert main(["-C", str(root), "replay", where]) in (EXIT_OK, EXIT_GATE)
+    assert "No such file" not in capsys.readouterr().out
+
+
+def test_the_stamp_an_add_writes_finds_the_capture_the_offer_named(tmp_path, capsys) -> None:
+    """The third copy. This one fails silently: the line is filed, the stamp misses, and the row
+    it was meant to clear stays open — which is the state RK1141 exists to make impossible."""
+    root = _swept(tmp_path)
+    main(["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
+    where = captures(root)[0].path.relative_to(root).as_posix()
+    capsys.readouterr()
+    main(["-C", str(root), "add", "--block", "A", "--symptom", SYMPTOM,
+          "--why", WHY, "--capture", where])
+    capsys.readouterr()
+    filed = {one.symptom: one for one in captures(root)}[SYMPTOM]
+    assert filed.filed, "the add minted an id and the capture was left unstamped"
+    assert debt(Config.discover(root)).unfiled == ()
+
+
+def test_a_body_file_is_still_the_callers_own(tmp_path, capsys, monkeypatch) -> None:
+    """The distinction RK1101 drew that survives: a body file names a file to *read from*, can
+    be anywhere, and is composed by nothing here — so it stays relative to the caller, and a
+    fix that moved every path argument at once would have broken it."""
+    root = _swept(tmp_path)
+    elsewhere = tmp_path / "outside"
+    elsewhere.mkdir()
+    (elsewhere / "body.md").write_text("The reasoning, held outside the project.\n",
+                                       encoding="utf-8")
+    monkeypatch.chdir(elsewhere)
+    capsys.readouterr()
+    assert main(["-C", str(root), "add", "--block", "A", "--symptom", "A symptom to file here",
+                 "--why", WHY, "--section", "A design read from outside",
+                 "--section-body-file", "body.md"]) == EXIT_OK
+    assert "held outside the project" in (root / "docs" / "IMPROVEMENTS.md").read_text(
+        encoding="utf-8"
+    )

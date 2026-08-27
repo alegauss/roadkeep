@@ -109,6 +109,7 @@ asks its reader to re-derive the reading.
 - ✅ **RK1328** **a project past init opens an opt-in table only by hand-editing the config this tool owns the writes to** — One argument carries every declaration this file takes, because each is one key refused where it is there; a verb per axis buys a ceiling raise.
 - ✅ **RK1367** **govern only stacks, so a number whose premise was falsified keeps every paragraph arguing for the reading it replaced** — The contiguous comment run above a key is what argues its number, so a replacement takes all of it and states the reach rather than guessing a narrower one.
 - ✅ **RK1386** **register wires whatever installed the console script, so a developer's checkout cannot be the driver its own merges run** — A tool that may not write somebody's git config may not pick the copy it would have named either: it states both and the caller chooses.
+- ✅ **RK1396** **A path argument ignores -C, so a door this tool prints is refused as a file that does not exist** — A path argument this tool ever composes is read against the project root: a door printed project-relative and read process-relative is a command the tool refuses itself.
 
 ### §RK1367 Why the whole run and not the paragraph a verb placed
 
@@ -142,6 +143,21 @@ a judgement exercised exactly where the write was declined.
 What is accepted is that the caller does more. Two paths and a sentence is not a wiring
 command. The consequence is deliberate: choosing between a stale install and a tree
 mid-refactor needs a reading this tool does not have.
+
+### §RK1396 Which paths are the project's
+
+RK1101 drew the line and put a capture on the wrong side of it. The rule was right —
+`-C` selects the project and never the working directory — and the example list grouped
+a capture with a `--body-file`, both being files to read from.
+
+They are not alike. A body file can be anywhere and nothing here composes one; a capture
+lives under this project's `.roadkeep/reports/`, `stats` counts it as this project's
+debt, and `capture filed` refuses a path that is not one this project holds.
+
+RK1395 made the cost visible rather than theoretical: both readers now print a
+project-relative path, so the tool composed a door and then refused it — naming the
+directory the file was in. The test that keeps the surviving half is the body file read
+from outside the tree.
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 

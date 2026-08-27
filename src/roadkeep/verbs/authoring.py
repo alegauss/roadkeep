@@ -98,8 +98,12 @@ def _add(config: Config, args: argparse.Namespace) -> int:
     # After the line is placed and the files are saved, and never a condition of either
     # (RK1141): the capture is evidence in an ignored directory, so a stamp that cannot be
     # written costs the link and not the task — `claiming.follow`'s rule for the same reason.
+    # The third copy of the argument RK1396 was about, resolved the same way: this one is the
+    # path the *capture offer* printed, so a project-relative address read from the process's
+    # directory left the line filed and the row it was meant to clear still open — the one
+    # failure this stamp is not allowed to have, being the half that costs nothing to get right.
     stamped = (
-        stamp(args.capture, insertion.entry.task.id) if args.capture else False
+        stamp(config.locate(args.capture), insertion.entry.task.id) if args.capture else False
     )
     if args.json:
         print(json.dumps(insertion.addition(config, args.capture, stamped), indent=2))

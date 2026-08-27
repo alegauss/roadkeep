@@ -772,9 +772,16 @@ class Config:
         markers and limits, with nothing in the output naming the tree it read.
 
         Only for a path that names a file of the project. A body file (`add --section-body-file`,
-        `section amend --body-file`) and a capture (`replay`) are the caller's own and stay
-        relative to the caller, the way `cat` is: those name a file to *read from*, not a file
-        this project has.
+        `section amend --body-file`) is the caller's own and stays relative to the caller, the way
+        `cat` is: it names a file to *read from* and can be anywhere, and nothing in this tool
+        ever composes one.
+
+        **A capture is not one of those, and RK1101 put it there** (RK1396). It lives under this
+        project's own `.roadkeep/reports/`, `stats` counts it as this project's debt and `capture
+        filed` refuses a path that is not "a capture this project holds" — so it was a file of
+        the project by every reading except the one that resolved it. What made the cost visible
+        is RK1395: both readers now *print* a project-relative path for one, so the tool composed
+        a door and then refused it, with a message naming the very directory the file is in.
         """
         given = Path(path)
         return given if given.is_absolute() else self.root / given

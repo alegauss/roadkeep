@@ -16,7 +16,6 @@ import argparse
 import json
 import sys
 import tempfile
-from pathlib import Path
 
 from roadkeep.adopting import (
     OPT_IN,
@@ -281,7 +280,11 @@ def _capture_filed(config: Config, args: argparse.Namespace) -> int:
     that is not a capture** is somebody's file, and a verb that stamped it would be writing a
     key into an artefact this tool did not produce.
     """
-    path = Path(args.path)
+    # Against the project `-C` named and not the process's directory (RK1396): the paths this
+    # verb is given are the ones `stats` and `capture sweep` print, and those are spelled
+    # project-relative — so reading them from wherever the process happens to be refused the
+    # tool's own doors, with a message naming the directory the file was in.
+    path = config.locate(args.path)
     held = {one.path.resolve(): one for one in captures(config.root)}
     known = held.get(path.resolve())
     if known is None:
@@ -474,7 +477,11 @@ def _replay(config: Config, args: argparse.Namespace) -> int:
     this tool makes that nobody asked for.
     """
     try:
-        recorded = json.loads(Path(args.path).read_text(encoding="utf-8"))
+        # `locate` for `_capture_filed`'s reason (RK1396): a capture is a file of the project,
+        # and the address a reader has is the one `stats` printed. `tolerates_config_error` does
+        # not weaken it — a default config still knows the root `-C` named, which is the whole
+        # of what this needs.
+        recorded = json.loads(config.locate(args.path).read_text(encoding="utf-8"))
     except (OSError, ValueError) as error:
         print(f"roadkeep: {error}", file=sys.stderr)
         return EXIT_USAGE

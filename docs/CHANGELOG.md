@@ -740,6 +740,7 @@
 - ✅ **RK1389** **merge --check offers one copy where the register report names both, and the other reads now send the caller here** — The check names the other copy beside its repairs, off the one sentence the register report already prints (design recorded in `src/roadkeep/merging.py`).
 - ✅ **RK1392** **engines reads a fourth copy and every sentence that counts them still says three** — Every sentence about `engines` says which question its count is for: four copies are read and three are judged (design recorded in `src/roadkeep/installing.py`).
 - ✅ **RK1395** **A capture filed upstream reads as unfiled in two reports, and neither names the stamp that would resolve it** — Both readers now print the argv that closes the row, composed once and complete wherever the capture recorded where it was aimed.
+- ✅ **RK1396** **A path argument ignores -C, so a door this tool prints is refused as a file that does not exist** — A capture is a file of the project, so the three verbs that take one resolve it against the root -C named; a body file is not, and stays the caller's.
 
 ## Block F — The Claude Code plugin
 
