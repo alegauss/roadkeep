@@ -51,7 +51,8 @@ so it carries no task numbers — `origin <id>` answers where a rule came from:
                     `install` wires it in, `engines` says which copies write, judge, gate and merge
   guarding screening attesting serving provenance  the hook, what it loads for, what no verb
                     wrote, the stdio tools, and which tree answered
-  capturing  a defect in this tool, as facts a replay re-runs
+  capturing  a defect in this tool, as facts a replay re-runs and a sweep deletes once
+                the ledger answers for them
   cli.py verbs/ rendering  the parser and dispatch, a module per verb family, every answer
 action.yml, .pre-commit-hooks.yaml, .github/   the gate's three surfaces (RK17)
 hooks/, skills/, commands/, .claude-plugin/, .mcp.json   the plugin's five, how it is installed

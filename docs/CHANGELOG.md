@@ -624,6 +624,7 @@
 - ✅ **RK1380** **a law a governed sentence cites is resolved by nothing, so a number outside the six reads as a law** — A law cited from any governed sentence resolves against the table that declares them, and is `law.unknown` where it does not (design recorded in `src/roadkeep/linting.py`).
 - ✅ **RK1390** **a third shape the re-pin retired has a test and no frozen fixture, so it is read off no backlog at all** — The doubled anchor an open line points at is read off Turing's own bytes at the revision that carried it (design recorded in `tests/corpora.py`).
 - ✅ **RK1391** **a frozen fixture nobody declared is read by nothing and reported by nothing, though the table says otherwise** — The frozen root's directories are confronted with the rows that declare them, so an undeclared fixture is a red (design recorded in `tests/test_backlog.py`).
+- ✅ **RK1394** **nothing deletes a capture whose task shipped, so the reports directory grows for ever and is cleared by hand** — `capture sweep` deletes a capture whose filed id the ledger records as shipped, and names the three states it cannot prove spent rather than guessing at them.
 
 ## Block E — Adoption
 

@@ -38,6 +38,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
@@ -52,6 +53,8 @@ from roadkeep.capturing import (
     STOPPED_NOTICE,
     Capture,
     Failure,
+    Held,
+    KEPT_BECAUSE,
     _USAGE,
     _tail,
     body,
@@ -63,7 +66,10 @@ from roadkeep.capturing import (
     keep,
     observe,
     offer,
+    stamp,
+    sweep,
 )
+from roadkeep.config import Config
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.provenance import engine
 
@@ -1233,3 +1239,154 @@ def test_the_payload_tells_a_resolution_from_a_claim(tmp_path, capsys) -> None:
     assert held["delivered"] == [
         {"path": second.path.relative_to(root).as_posix(), "repository": "alegauss/roadkeep"}
     ]
+
+
+# -- the retention `keep` parked (RK1394) --------------------------------------
+
+#: A project with both files, because the sweep's whole reading is the difference between
+#: them: an id the roadmap holds is a capture whose task nobody shipped, and only the ledger
+#: says otherwise. The one-file `CONFIG` above cannot express that distinction at all.
+LEDGER = "docs/CHANGELOG.md"
+SWEEPING = (
+    f'prefix = "RK"\n[report]\nupstream = "alegauss/roadkeep"\n'
+    f'[files]\nroadmap = "{ROADMAP}"\nchangelog = "{LEDGER}"\n'
+)
+SHIPPED = """# Ledger
+
+## Block A — The model
+
+- ✅ **RK5** **A shipped symptom** — Because of a reason.
+"""
+#: A second open line, so `unknown` is told from `open` by the backlog and not by the stamp's
+#: shape: both are bare ids this project can look up, and one of them resolves.
+OPEN = "- \U0001F4CB **RK7** (deps: —) **An open symptom** — Because of a reason. → §RK7\n"
+
+
+def _swept(tmp_path: Path) -> Path:
+    root = project(tmp_path, config=SWEEPING, roadmap=CLEAN + OPEN)
+    with (root / LEDGER).open("w", encoding="utf-8", newline="") as handle:
+        handle.write(SHIPPED)
+    return root
+
+
+#: Which stamp each capture gets, keyed by the symptom that identifies it. By symptom and never
+#: by position: `captures` sorts by filename, four reports written inside one second share the
+#: timestamp, and the digest that breaks the tie is a hash of the claim — so creation order and
+#: read order are unrelated, and an index would stamp whichever file the sha happened to sort.
+STAMPS = {
+    "A first state entirely": "",
+    "A second state entirely": "RK5",
+    "A third state entirely": "RK7",
+    "A fourth state entirely": "alegauss/roadkeep#RK99",
+}
+
+
+def _four(root: Path) -> dict[str, Held]:
+    """Four captures in one directory, one per state the sweep can reach, keyed by symptom."""
+    for symptom in STAMPS:
+        main(["-C", str(root), "report", "--symptom", symptom, "--why", WHY, "--", "lint"])
+    held = {one.symptom: one for one in captures(root)}
+    for symptom, task_id in STAMPS.items():
+        if task_id:
+            main(["-C", str(root), "capture", "filed", str(held[symptom].path),
+                  "--as", task_id])
+    return {one.symptom: one for one in captures(root)}
+
+
+def test_only_the_capture_the_ledger_records_as_shipped_is_deleted(tmp_path, capsys) -> None:
+    """RK1394. `filed` is exact where an age is not: an id this ledger resolves to a shipped
+    line says the capture is answered by the repository's own record. The other three states
+    are evidence nothing here can close, so an exact sweep leaves them."""
+    root = _swept(tmp_path)
+    held = _four(root)
+    capsys.readouterr()
+    found = sweep(Config.discover(root), delete=True)
+    states = {one.path: one.state for one in found.read}
+    assert [states[held[symptom].path] for symptom in STAMPS] ==         ["unfiled", "", "open", "elsewhere"]
+    assert len(found.spent) == 1 and not found.refused
+    # The shipped one is gone and the other three are still on disk — the whole verdict, read
+    # off the filesystem rather than off the report that describes it.
+    assert [held[symptom].path.exists() for symptom in STAMPS] == [True, False, True, True]
+
+
+def test_a_stamp_no_governed_file_holds_is_read_as_unfiled(tmp_path) -> None:
+    """A link to nothing is not a delivery, so it never becomes a deletion. Written by hand,
+    because `capture filed` refuses to stamp one — which is the door working, and leaves this
+    state reachable only through a capture somebody edited."""
+    root = _swept(tmp_path)
+    main(["-C", str(root), "report", "--symptom", SYMPTOM, "--why", WHY, "--", "lint"])
+    one = captures(root)[0]
+    stamp(one.path, "RK404")
+    found = sweep(Config.discover(root), delete=True)
+    assert [read.state for read in found.read] == ["unknown"]
+    assert one.path.exists()
+
+
+def test_the_check_removes_nothing_and_says_the_same_thing(tmp_path, capsys) -> None:
+    """The two runs print one table, because what a reader needs from a sweep is why three
+    files survived — a delete that listed only what it took would answer a different question
+    on each run."""
+    root = _swept(tmp_path)
+    held = _four(root)
+    capsys.readouterr()
+    main(["-C", str(root), "capture", "sweep", "--check"])
+    checked = capsys.readouterr().out
+    assert all(one.path.exists() for one in held.values())
+    assert "1 spent, 3 kept" in checked
+    # The door every finding names (RK420), and only where there is something to take.
+    assert f"{invocation()} capture sweep" in checked
+
+    main(["-C", str(root), "capture", "sweep"])
+    swept = capsys.readouterr().out
+    assert "1 swept, 3 kept" in swept
+    for state in ("unfiled", "open", "elsewhere"):
+        assert KEPT_BECAUSE[state].split(",")[0].format(id="RK7", repo="alegauss/roadkeep") \
+            in checked
+
+
+def test_every_state_a_capture_can_be_in_has_a_reason(tmp_path) -> None:
+    """The census this table is a set of. A state the sweep can reach and the table cannot
+    explain is a file deleted or kept with nothing said about it, which is the reading being
+    the product here."""
+    root = _swept(tmp_path)
+    _four(root)
+    # The fifth capture is the fourth *kept* state: a stamp naming an id nothing holds, which
+    # `capture filed` refuses to write and only a hand-edited artefact can be in.
+    main(["-C", str(root), "report", "--symptom", "A fifth state entirely", "--why", WHY,
+          "--", "lint"])
+    fifth = {one.symptom: one for one in captures(root)}["A fifth state entirely"]
+    stamp(fifth.path, "RK404")
+    reached = {one.state for one in sweep(Config.discover(root)).read}
+    assert reached - {""} == set(KEPT_BECAUSE)
+    # No placeholder reason: every one names the state's own fact, and three of the four end
+    # in what to do about it.
+    for state, because in KEPT_BECAUSE.items():
+        assert len(because) > 60 and "TODO" not in because and state != because
+
+
+def test_a_capture_the_filesystem_would_not_release_is_named_not_counted(tmp_path, capsys) -> None:
+    """The reading proved it spent and the directory still holds it, so it is neither — and the
+    header counts what went rather than what was decided, since a total taken from the reading
+    would say one was removed with the file listed two lines below."""
+    root = _swept(tmp_path)
+    held = _four(root)
+    spent = held["A second state entirely"].path
+    capsys.readouterr()
+    # The one failure this can hit, forced rather than waited for: `unlink` is the only call in
+    # the delete path, and what it raises on a file somebody else has open is an `OSError`.
+    with mock.patch.object(Path, "unlink", side_effect=OSError("in use by another process")):
+        code = main(["-C", str(root), "capture", "sweep"])
+    printed = capsys.readouterr().out
+    assert code == EXIT_USAGE and spent.exists()
+    assert "0 swept, 3 kept" in printed
+    assert "refused" in printed and "in use by another process" in printed
+    # And never the mark for a file that is still there.
+    assert "removed" not in printed
+
+
+def test_a_project_with_no_captures_sweeps_nothing_and_does_not_fail(tmp_path, capsys) -> None:
+    """An empty directory is a legitimate answer, not a finding: a non-zero exit here would
+    make every project that never hit a defect fail a hook that ran this."""
+    root = _swept(tmp_path)
+    assert main(["-C", str(root), "capture", "sweep"]) == EXIT_OK
+    assert "0 capture(s), 0 swept, 0 kept" in capsys.readouterr().out

@@ -1234,6 +1234,191 @@ def debt(config: Config) -> Debt:
     )
 
 
+#: Why one capture on disk is not deletable, keyed by the state that decided it (RK1394).
+#: A table because the verb's whole output is these sentences: a sweep that removed three files
+#: and said nothing about the four it left is one whose reader has to re-derive the reading, and
+#: the reason a capture survives is the only thing they cannot see by listing the directory.
+KEPT_BECAUSE = {
+    "unfiled": (
+        "no `filed` stamp, so nothing says this was ever answered — `capture filed <path> "
+        "--as ID` records it, and rotation is what a capture that never gets one waits for"
+    ),
+    "open": (
+        "filed as {id}, which this backlog still holds open — the capture is the evidence "
+        "for a line nobody has shipped"
+    ),
+    "elsewhere": (
+        "delivered to {repo}, which this project cannot read — filed by construction and "
+        "never provably spent, so the evidence stays"
+    ),
+    "unknown": (
+        "filed as {id}, which no governed file holds — a link to nothing is not a delivery, "
+        "so this is read as unfiled"
+    ),
+}
+
+#: The one state that is deletable, said in the same shape so the report reads as one table.
+SPENT_BECAUSE = "filed as {id}, which the ledger records as shipped"
+
+
+@dataclass(frozen=True, slots=True)
+class Verdict:
+    """One capture and what the ledger says about it (RK1394)."""
+
+    path: Path
+    #: A key of :data:`KEPT_BECAUSE`, or `""` where the ledger proved this spent.
+    state: str
+    #: The stamp that decided it, for the sentence — a bare id, or `owner/repo#id`.
+    filed: str = ""
+
+    @property
+    def spent(self) -> bool:
+        return not self.state
+
+    @property
+    def because(self) -> str:
+        template = SPENT_BECAUSE if self.spent else KEPT_BECAUSE[self.state]
+        return template.format(id=self.filed, repo=delivered(self.filed))
+
+
+@dataclass(frozen=True, slots=True)
+class Sweep:
+    """What a retention pass would remove, and what it refuses to (RK1394).
+
+    Read whole before anything is unlinked, and the two halves are reported together on both
+    runs: a delete that printed only what it took leaves a reader unable to tell an empty
+    directory from one holding four captures nothing can close. The reasons are the product —
+    three of the four states end in a command, and the fourth is the boundary the task named.
+    """
+
+    read: tuple[Verdict, ...] = ()
+    #: True where the files were actually unlinked, which is what separates the two sentences.
+    swept: bool = False
+    #: Captures this could not remove, `path -> what the filesystem said`. Never an exception:
+    #: the reading is already done and correct, and a locked file is a thing to name.
+    refused: tuple[tuple[Path, str], ...] = ()
+
+    @property
+    def spent(self) -> tuple[Verdict, ...]:
+        return tuple(one for one in self.read if one.spent)
+
+    @property
+    def kept(self) -> tuple[Verdict, ...]:
+        return tuple(one for one in self.read if not one.spent)
+
+    def stated(self, config: Config) -> str:
+        # The header counts what *went*, which on a run that hit a locked file is not what was
+        # spent: a total taken from the reading would say three were removed with one of them
+        # still on disk two lines below.
+        gone = len(self.spent) - len(self.refused)
+        rows = [
+            f"{len(self.read)} capture(s), "
+            f"{gone if self.swept else len(self.spent)} {'swept' if self.swept else 'spent'}, "
+            f"{len(self.kept)} kept"
+        ]
+        stuck = {path for path, _ in self.refused}
+        for one in self.read:
+            if one.path in stuck:
+                # Its own mark and its own row below, because this one is neither: the reading
+                # proved it spent and the directory still holds it.
+                mark = "refused"
+            elif not one.spent:
+                mark = "kept"
+            else:
+                mark = "removed" if self.swept else "spent"
+            rows.append(f"  {mark:<8} {config.relative(one.path)}")
+            rows.append(f"           {one.because}")
+        for path, complaint in self.refused:
+            rows.append(f"  refused  {config.relative(path)}: {complaint}")
+        if self.spent and not self.swept:
+            # The door every finding names (RK420). Said only where there is something to
+            # take, because an offer to delete nothing is a line every clean run pays for.
+            rows.append(f"  delete   {invocation()} capture sweep")
+        return chr(10).join(rows)
+
+    def payload(self, config: Config) -> dict[str, object]:
+        return {
+            "kept": len(self.read),
+            "swept": self.swept,
+            "captures": [
+                {
+                    "path": config.relative(one.path),
+                    "spent": one.spent,
+                    # `""` where the ledger proved it spent, so a consumer reads one key for
+                    # the verdict and never infers it from the presence of a reason.
+                    "state": one.state,
+                    "filed": one.filed,
+                    "because": one.because,
+                }
+                for one in self.read
+            ],
+            "refused": [
+                {"path": config.relative(path), "because": complaint}
+                for path, complaint in self.refused
+            ],
+        }
+
+
+def sweep(config: Config, delete: bool = False) -> Sweep:
+    """Read every capture against the ledger, and remove only what shipped (RK1394).
+
+    The retention :func:`keep` parks, keyed on the fact the artefact already carries. `filed` is
+    exact where an age is not: an id this ledger resolves to a **shipped** line says the capture
+    is answered by the repository's own record, where "older than thirty days" says only that
+    time passed — and a capture is evidence, so the weaker key is the wrong one to delete on.
+
+    Four states and one of them deletable, which is the shape of the population that argued it.
+    This repository held three captures, all three stamped with ids the changelog records; an
+    adopting project held two that were never filed, no longer reproduce, and are `not
+    replayable: the capture has no document` — so neither the gate nor a stamp can close them,
+    and an exact sweep leaves them rather than guess. A stamp naming another repository is the
+    third: filed by construction (RK1160), and by the same reasoning never provably *spent*,
+    since this project cannot read that backlog. Rotation is the fallback for the first, and it
+    is deliberately not this verb — a bound on age deletes the two an exact reading protects.
+
+    The reading is complete before anything is unlinked, so a file that cannot be removed is
+    named beside a verdict that is still right about all of them.
+    """
+    from roadkeep.backlog import Backlog  # noqa: PLC0415 - RK260
+
+    held = captures(config.root)
+    if not held:
+        return Sweep(swept=delete)
+    backlog = Backlog.load(config)
+    ledger = backlog.ledger
+    shipped = {entry.task.id for entry in ledger.entries} if ledger is not None else set()
+    elsewhere_ids = {
+        entry.task.id
+        for document in (backlog.roadmap, backlog.store)
+        if document is not None
+        for entry in document.entries
+    }
+    read = tuple(_verdict(one, shipped, elsewhere_ids) for one in held)
+    if not delete:
+        return Sweep(read=read)
+    refused: list[tuple[Path, str]] = []
+    for one in read:
+        if not one.spent:
+            continue
+        try:
+            one.path.unlink()
+        except OSError as error:
+            refused.append((one.path, str(error)))
+    return Sweep(read=read, swept=True, refused=tuple(refused))
+
+
+def _verdict(one: Held, shipped: set[str], open_ids: set[str]) -> Verdict:
+    """Which of the four states this capture is in, decided by the stamp and the ledger."""
+    if not one.filed:
+        return Verdict(path=one.path, state="unfiled")
+    if delivered(one.filed):
+        return Verdict(path=one.path, state="elsewhere", filed=one.filed)
+    if one.filed in shipped:
+        return Verdict(path=one.path, state="", filed=one.filed)
+    state = "open" if one.filed in open_ids else "unknown"
+    return Verdict(path=one.path, state=state, filed=one.filed)
+
+
 def captures(root: str | Path = ".") -> tuple[Held, ...]:
     """Every capture on disk, in filename order — which is time order (RK1139).
 
@@ -1288,9 +1473,11 @@ def keep(found: Capture, root: str | Path = ".") -> Kept:
     unconditional and has no flag: a capture nobody pruned costs kilobytes, and a capture
     nobody kept costs the only session that could have identified the defect.
 
-    Retention is deliberately unsolved. Rotation, dedup by argv, an age limit, a command
-    that lists what was never sent — every one of them is easier to add to a directory
-    with files in it than to reconstruct from sessions that ended.
+    Retention is :func:`sweep`'s, and only the exact half of it (RK1394): a capture whose
+    `filed` id the ledger records as shipped is answered by the repository's own record and is
+    deleted, and every other state is named and left. Rotation, dedup by argv and an age limit
+    are still open, and they are the fallbacks for the capture that never gets a stamp — each
+    easier to add to a directory with files in it than to reconstruct from sessions that ended.
 
     What is written is what was produced: `--without` applied, `--embed` or not. One
     artefact and one set of contents, so the file on disk is the text that was reviewed.

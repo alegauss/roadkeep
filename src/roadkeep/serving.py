@@ -672,8 +672,9 @@ TOOLS: tuple[Tool, ...] = (
     #
     # None of the eight writes, so each keeps the read-only hint that makes asking free (L5).
     # What is *not* added is every remaining read: `guard` and `mcp` are the harness's own
-    # entry points, `report`, `replay` and `capture filed` are the capture family a person runs
-    # against paths on their own disk (RK87, RK1142), and a
+    # entry points, `report`, `replay`, `capture filed` and `capture sweep` are the capture
+    # family a person runs against paths on their own disk (RK87, RK1142, RK1394) — the sweep
+    # most of all, deletion being the one write here whose subject is evidence — and a
     # tool list is context an agent pays for on every turn — so the line is the skill, which
     # is the same authority that decides which command to call in the first place.
     Tool("anchors", ("family", "block", "role", "only_next", "claims")),

@@ -119,16 +119,12 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
 | C — Query (consult without reading the file) | 0 | 140 | 2 |
-| D — The gate | 1 | 197 | 2 |
+| D — The gate | 0 | 198 | 2 |
 | E — Adoption | 0 | 110 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 34 | 1 |
-| **Total** | 1 | 879 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1394** (deps: —) **nothing deletes a capture whose task shipped, so the reports directory grows for ever and is cleared by hand** — `capture filed` records the id and `stats` goes silent, so the file is provably spent and still on disk — the retention this family's docstring parks as next. → §RK1394
+| **Total** | 0 | 880 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -42,6 +42,7 @@ from roadkeep.capturing import (
     keep,
     replay,
     stamp,
+    sweep,
 )
 from roadkeep.backlog import Backlog
 from roadkeep.config import ROLES, Config
@@ -339,6 +340,27 @@ def _capture_filed(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _capture_sweep(config: Config, args: argparse.Namespace) -> int:
+    """Delete the captures the ledger proves are answered, and name the ones it cannot (RK1394).
+
+    The retention `keep` parks, and the reading is the whole verb: `--check` and the delete print
+    the same table, because what a reader needs from a sweep is why four files survived and not
+    which three went. Nothing is refused at the door — an empty directory and a directory where
+    every capture is still open are both legitimate answers, and a non-zero exit would make a
+    project with nothing to sweep fail a hook that ran this.
+    """
+    found = sweep(config, delete=not args.check)
+    if args.json:
+        print(json.dumps(found.payload(config), indent=2))
+    else:
+        print(found.stated(config))
+    # A file the reading proved spent and the filesystem would not remove: the directory did not
+    # reach the state this reported, which is the one outcome a caller has to be able to branch
+    # on. `EXIT_USAGE` because that is where an `OSError` lands in `_refused`, and this is the
+    # same class of failure caught one layer earlier so the verdict about the others survives it.
+    return EXIT_USAGE if found.refused else EXIT_OK
+
+
 def _uninstall(config: Config, args: argparse.Namespace) -> int:
     """Take the harness back out of a project that was wired to a checkout (RK138).
 
@@ -573,9 +595,11 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
         help="what became of a capture already on disk",
         description=(
             "The third of the capture pair's family (RK1142). `report` writes one and "
-            "`replay` re-runs it; this says what happened to one that is already there. A "
-            "group with one action because it is where the retention `keep` leaves "
-            "deliberately unsolved goes next — rotation, an age limit, a dedup by argv."
+            "`replay` re-runs it; this says what happened to one that is already there — "
+            "which task it was filed as, and whether that answer makes it spent. The "
+            "retention `keep` parked arrives here as `sweep` (RK1394), in its exact half "
+            "only: rotation, an age limit and a dedup by argv are still open, and they are "
+            "what a capture that never gets a stamp waits for."
         ),
     )
     capture_actions = capture_parser.add_subparsers(dest="action", required=True)
@@ -608,6 +632,37 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
     )
     capture_filed.add_argument("--json", action="store_true", help=_JSON_HELP)
     capture_filed.set_defaults(handler=_capture_filed, wiring=True)
+
+    capture_sweep = capture_actions.add_parser(
+        "sweep",
+        help="delete the captures the ledger records as shipped",
+        description=(
+            "The retention `keep` parks, keyed on the fact the artefact already carries "
+            "(RK1394). A capture whose `filed` id the ledger records as shipped is answered "
+            "by this repository's own record, so it is deleted; every other state is named "
+            "and left. An age limit would be the weaker key — it says time passed where a "
+            "stamp says the work landed — and it deletes exactly the captures an exact "
+            "reading protects: one never filed, one open, and one delivered to a backlog "
+            "this project cannot read. `--check` prints the same table and removes nothing."
+        ),
+    )
+    capture_sweep.add_argument(
+        "--check",
+        action="store_true",
+        help="say what would go and leave the directory alone",
+    )
+    capture_sweep.add_argument("--json", action="store_true", help=_JSON_HELP)
+    # `reads_only` for `report`'s and `replay`'s reason and not as a claim about the filesystem
+    # (RK167): what it declares is that no **governed** file is written, which is what decides
+    # whether the lock is taken — the ledger is read here and nothing else is, and the files that
+    # go are in a directory git was taught to ignore.
+    #
+    # And deliberately no `wiring=True`, unlike its sibling. That exemption exists so a pin has a
+    # way to be satisfied and a defect a way to be filed (see `cli._enforced`); neither is what
+    # this does — it *deletes* evidence, which is the one write a copy the project has pinned
+    # away from should be refused, and a sweep postponed until the right copy runs costs
+    # kilobytes.
+    capture_sweep.set_defaults(handler=_capture_sweep, reads_only=True)
 
     init_parser = subcommands.add_parser(
         "init",

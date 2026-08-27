@@ -111,6 +111,10 @@ SITES: tuple[Site, ...] = (
     Site("capturing.py:Capture.filing", "unreached", NO_FIXTURE),
     Site("capturing.py:handoff", "unreached", NO_FIXTURE),
     Site("capturing.py:offer", "deliberate", NOT_A_STEP),
+    # RK1394. The one door in this family that is takeable here: `--check` prints the delete it
+    # would make, and `test_capturing` runs exactly that line — which is the whole reason the
+    # offer is composed rather than described, the two runs being one table and one command.
+    Site("capturing.py:Sweep.stated", "run"),
     # RK1235. Run by `test_installing`, which executes the read this refusal names — the
     # door that keeps a pinned project's guard from being a wall.
     Site("cli.py:_behind", "run"),

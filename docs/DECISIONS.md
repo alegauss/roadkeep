@@ -85,6 +85,21 @@ JSON of the same join would be the drift this projection exists to have none of.
 - ✅ **RK1327** **a repair --fix makes with no word in REPAIRS goes unnamed in all six copies, and the gate stays green** — A list a second place has to be joined to is derived from the first: what is decidable about code is held against the code.
 - ✅ **RK1322** **the tree is split between two line terminators and nothing reads which a file is, so an append lands in the wrong one** — A checkout uniformly either terminator is editable; one that is both is not, and that is the state a tree-wide invariant refuses.
 - ✅ **RK1323** **this repository declares no [criteria], so the fixture that proves the format does not exercise a table init now writes** — A table this tool scaffolds into every new project is one its own conformance fixture carries, or the format is proven by tests and not by the artefact.
+- ✅ **RK1394** **nothing deletes a capture whose task shipped, so the reports directory grows for ever and is cleared by hand** — Evidence is deleted only on proof, never on age: a capture goes when the ledger answers for it, and a state this project cannot check leaves the file where it is.
+
+### §RK1394 Proof, not age
+
+The alternative was an age limit, and the population that argued this is what rejects
+it. An adopting project held two captures never filed, no longer reproducing, and `not
+replayable: the capture has no document` — neither the gate nor a stamp can close them,
+so nothing here will ever prove them spent, and every bound on age deletes exactly
+those. Rotation stays open for that case, as a bound on count rather than on a verdict.
+
+Three states are refused and each says why: a stamp naming another repository is filed
+by construction and never provably spent, an id no governed file holds is a link to
+nothing, and an id still open is the evidence for a line nobody shipped. The reasons are
+the output — a sweep that removed three files and said nothing about the four it left
+asks its reader to re-derive the reading.
 
 ## Block E — Adoption
 

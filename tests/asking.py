@@ -112,6 +112,11 @@ ANSWERS_NO_QUESTION: dict[str, str] = {
     # different subject from the backlog, and L5 is a law about the backlog.
     "report": "the subject is a defect in roadkeep, filed as facts a replay re-runs",
     "replay": "the subject is that capture, and the answer is whether it still reproduces",
+    # The third of that family, read-only by the same rule and for the same subject (RK1394):
+    # it *reads* the ledger to decide, and what it writes to is a directory git was taught to
+    # ignore — so the lock is not taken and no question here is about a governed file.
+    "capture sweep": "the subject is which captures the ledger already answered for, and the "
+                     "answer is a directory with fewer files in it",
     # And one whose subject is a file **no project governs yet** (RK1147). L5 is a law about
     # a backlog this tool owns the writes to; `adopt` measures somebody else's file before any
     # of that exists, so the question it answers is asked once and never again.

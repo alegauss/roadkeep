@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1394** (deps: —) **nothing deletes a capture whose task shipped, so the reports directory grows for ever and is cleared by hand** — `capture filed` records the id and `stats` goes silent, so the file is provably spent and still on disk — the retention this family's docstring parks as next. → §RK1394
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
