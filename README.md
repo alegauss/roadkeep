@@ -118,14 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
-| C — Query (consult without reading the file) | 0 | 140 | 2 |
+| C — Query (consult without reading the file) | 1 | 140 | 2 |
 | D — The gate | 0 | 205 | 2 |
 | E — Adoption | 0 | 113 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 17 | 0 |
-| **Total** | 0 | 908 | 12 |
+| **Total** | 1 | 908 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1423** (deps: —) **The cost --session row puts the whole surface beside a room derived from a smaller figure** — A reader subtracting the two numbers on that line gets 51 where the answer is 116, and the figure that reconciles them is on the row below. → §RK1423
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

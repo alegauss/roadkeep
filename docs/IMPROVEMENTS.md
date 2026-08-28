@@ -79,6 +79,34 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1423 Three numbers on one row, and two of them are about different totals
+
+Measured on this repository:
+
+```
+  once      64249  64 tool(s) and the handshake, at connect, +116 of 64300
+  once         65  of that names the checkout — no ceiling is about it
+```
+
+The `+116` is right and is not a subtraction of the numbers beside it: 65 of the 64249
+names the checkout and no ceiling is about it, so what is held is 64184 and the room
+against 64300 is 116. A reader who takes the row on its own computes 51, which is less
+than half the truth — on the one read whose whole purpose is deciding whether another
+tool fits.
+
+`cost --tools` says the same fact in one row and says it whole: *64 tool(s) and the
+handshake, 64249 utf-16-code-units — 64184 of 64300 held, the rest naming the checkout*.
+Two verbs, one figure, two phrasings, and only one of them can be read alone.
+
+The payload is not the defect. It publishes `schema`, `schema_limit`,
+`schema_provenance` and `schema_held` as four keys, so a consumer reading `--json` has
+never been misled. This is the printed register alone, which is the half a person reads.
+
+The shape to argue about is whether the row should carry the held figure — `64184 of
+64300, and 65 more naming the checkout` — or whether the second row should come first.
+The first keeps one row answerable; the second keeps the largest number at the top,
+which is what a reader scanning for a total looks for.
+
 ## Block D — The gate
 
 ## Block E — Adoption

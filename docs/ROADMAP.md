@@ -28,6 +28,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1423** (deps: —) **The cost --session row puts the whole surface beside a room derived from a smaller figure** — A reader subtracting the two numbers on that line gets 51 where the answer is 116, and the figure that reconciles them is on the row below. → §RK1423
+
 ## Block D — The gate
 
 ## Block E — Adoption
