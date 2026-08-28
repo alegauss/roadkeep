@@ -1,0 +1,122 @@
+---
+// One verb family's commands, rendered from what the tool emitted (RK1402).
+//
+// Nothing here is a second statement of the surface: every verb, flag, default and sentence
+// comes off `roadkeep commands --json`, which reads this build's own parser. A rename lands in
+// these tables in the commit that renames, and a flag deleted stops being documented rather
+// than becoming a row about an argument nobody can pass.
+//
+// What generation cannot supply is *why* a verb exists, which is most of what a reader came
+// for. That is the prose above this component on each page, written once — so regenerating
+// never edits an argument, and editing an argument never touches a table.
+import surface from "../data/commands.generated.json";
+
+interface Props {
+  /** Which module under `verbs/` declares them — the `family` field the payload carries. */
+  family: string;
+}
+
+const { family } = Astro.props;
+
+const commands = surface.commands.filter((one) => one.family === family);
+
+if (commands.length === 0) {
+  // A page whose family matches nothing is a page about a module that was renamed or removed,
+  // and rendering it empty would publish a heading with nothing under it. The build is where
+  // that should stop, which is the same trade the tool makes about a line it cannot validate.
+  throw new Error(
+    `VerbTable: no command in family "${family}" — the payload carries ` +
+      [...new Set(surface.commands.map((one) => one.family))].sort().join(", "),
+  );
+}
+
+/** The spelling a reader types, with the value where the argument takes one. */
+function spelled(argument) {
+  if (argument.positional) return argument.takes || argument.dest;
+  const names = argument.spelling.join(", ");
+  return argument.takes ? `${names} ${argument.takes}` : names;
+}
+
+/** What it costs to leave the argument out, or what bounds it. */
+function notes(argument) {
+  const found = [];
+  if (argument.required) found.push("required");
+  if (argument.repeatable) found.push("repeatable");
+  if (!argument.required && argument.default !== null) {
+    found.push(`default ${argument.default}`);
+  }
+  if (argument.choices.length) found.push(`one of ${argument.choices.join(", ")}`);
+  return found.join("; ") || "—";
+}
+---
+
+{
+  commands.map((one) => (
+    <section class="verb">
+      <h3 id={one.command.replace(/ /g, "-")}>
+        <code>{one.command}</code>
+      </h3>
+      <p class="verb-kind">
+        {one.runs ? (one.writes ? "Writes" : "Reads") : "A group of the verbs under it"}
+        {one.writes_when.length > 0 && (
+          <>
+            {" — and writes when "}
+            {one.writes_when.map((dest) => (
+              <code>--{dest.replace(/_/g, "-")}</code>
+            ))}
+            {" is given"}
+          </>
+        )}
+        {one.tools.length > 0 && (
+          <>
+            {". Served to an agent as "}
+            {one.tools.map((name) => (
+              <code>{name}</code>
+            ))}
+            {one.needs && (
+              <>
+                {", on a project that declares "}
+                <code>{one.needs}</code>
+              </>
+            )}
+          </>
+        )}
+        .
+      </p>
+      <p>{one.description || one.help}</p>
+      {one.arguments.length > 0 && (
+        <table>
+          <thead>
+            <tr>
+              <th>Argument</th>
+              <th>Notes</th>
+              <th>What it is</th>
+            </tr>
+          </thead>
+          <tbody>
+            {one.arguments.map((argument) => (
+              <tr>
+                <td>
+                  <code>{spelled(argument)}</code>
+                </td>
+                <td>{notes(argument)}</td>
+                <td>{argument.help}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+  ))
+}
+
+<style>
+  .verb {
+    margin-block: 2rem 0;
+  }
+  .verb-kind {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+    margin-block: 0.25rem;
+  }
+</style>

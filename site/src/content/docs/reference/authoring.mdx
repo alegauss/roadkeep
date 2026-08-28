@@ -1,0 +1,29 @@
+---
+title: Writing a line
+description: The verbs that put a task into the backlog and move it while it is open — where the schema is enforced, before a sentence has been composed to fill it.
+sidebar:
+  order: 1
+---
+
+import VerbTable from "../../../components/VerbTable.astro";
+
+This is where the whole design lives. A task line is inserted by `add`, which validates it
+against the project's schema **at the moment the text is created** — so a symptom that is too
+long is refused before it is written, and the question "what would I cut?" never arrives.
+
+That is the difference between this and a linter. A linter reports after the prose exists and
+asks the author to delete work they have already done; a limit enforced at insertion is one
+nobody composes a sentence against. Everything else in the tool is downstream of that choice:
+`lint` is the backstop for what bypassed these verbs, not the primary gate.
+
+The rest of the family moves a line that is already open. `status` changes its marker,
+`amend` corrects the reasoning, `restate` corrects the symptom while keeping the id, and
+`renumber` moves the number itself. `defer` and `resume` are the door out that is not
+terminal — a line set aside without being closed, on a project that declares somewhere to put
+it.
+
+Ids are never chosen by hand and never reused. `next-id` answers with one past the highest
+anywhere, rather than the first unused number: a retired id filled back in would make two
+tasks share it in the history, and the history is what `origin` reads.
+
+<VerbTable family="authoring" />

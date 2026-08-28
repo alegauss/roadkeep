@@ -76,6 +76,24 @@ def test_the_population_is_never_empty(tmp_path):
     assert commanding.commands(project(tmp_path)).commands
 
 
+def test_every_command_names_the_family_that_declares_it(tmp_path):
+    """Derived from where the handler lives and never declared twice (RK1402): `agents.md`
+    already says this package is a module per verb family, so a table here would be that
+    layout restated and stale the first time a verb moves between two of them.
+
+    Total, because an empty family is what a generated reference groups nothing under — a
+    whole section of the surface with no page and nothing saying so.
+    """
+    found = commanding.commands(project(tmp_path))
+    assert [one.path for one in found.commands if not one.family] == []
+    by_path = {one.path: one for one in found.commands}
+    assert by_path["add"].family == "authoring"
+    assert by_path["lint"].family == "linting"
+    # A group has no handler and takes what its children share, which is the case that would
+    # otherwise answer with nothing on every nested verb.
+    assert by_path["section"].family == by_path["section add"].family == "sections"
+
+
 def test_help_is_never_one_of_the_arguments(tmp_path):
     """`--help` is argparse's and not this tool's, so a row for it on each of eighty-eight
     verbs would spend the reference on the fact that this is a command-line program."""

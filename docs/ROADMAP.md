@@ -40,7 +40,6 @@
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-- 📋 **RK1402** (deps: RK1398 ✅, RK1401 ✅) **Nothing outside a checkout says what a verb takes, so a reader picks flags by installing the tool first** — The command surface is where every adoption is spent, and a page that carries it by hand goes stale in the commit after the one that wrote it. → §RK1402
 - 📋 **RK1403** (deps: RK1398 ✅) **A finding code pasted into a search engine resolves to nothing, and explain answers only from an installed copy** — The reader meeting a code is the one who has not adopted the tool — a failed job, a denied write — so the answer is behind the door the code is keeping shut. → §RK1403
 - 📋 **RK1404** (deps: RK1398 ✅) **Writing a first configuration file needs the read that describes it, which needs a configured tree to answer** — Every path, marker and limit a project will live under is decided in that file, and the only description of its keys is a command the reader cannot run yet. → §RK1404
 - 📋 **RK1405** (deps: RK1398 ✅) **Nothing describes what a session receives once the plugin is installed, only how to install it** — Five surfaces load at once — hook, skill, commands, server, launcher — and what they cost, what they deny and which tools appear at all is learned by being refused. → §RK1405

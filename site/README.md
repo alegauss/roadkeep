@@ -44,6 +44,15 @@ are two answers about it, and the published one would be the untested.
 a flag, a finding code or a config key would be wrong at the first rename and would report
 nothing — so the build derives them from the same declarations the tool enforces.
 
+`scripts/commands.mjs` runs as `prebuild` on both `dev` and `build`: it calls
+`roadkeep commands --json`, which emits this checkout's own parser, and writes
+`src/data/commands.generated.json` — git-ignored, because a committed copy is what a build
+quietly falls back to. `VerbTable.astro` renders one verb family out of it, and each page under
+`src/content/docs/reference/` is that component under prose written by hand. The two stay
+apart: regenerating never edits an argument, and editing an argument never touches a table.
+`tests/test_reference.py` holds the joins — a family with no page, a page with no family, and a
+component reading a key the payload does not publish.
+
 **No page restates prose another file owns.** The six laws, the measured problem and the
 non-goals each have an owner in the repository and three have a verb that prints them; a fifth
 copy here is the accretion this tool exists to refuse, and the copy nobody is looking at is the

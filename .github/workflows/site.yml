@@ -63,6 +63,14 @@ jobs:
           cache: npm
           cache-dependency-path: site/package-lock.json
 
+      # The reference pages are generated from the tool's own parser (RK1402), so the build
+      # runs `roadkeep commands --json` before Astro sees anything. No install and no
+      # dependencies: the package is read off `src/` the way every command in this repository
+      # is, which is also what makes the answer this checkout's rather than a release's.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
       # `ci` and not `install`, for `publish.yml`'s reason about what was tested: a resolution
       # that drifts between this job and a developer's machine is a page nobody can reproduce.
       - name: Build

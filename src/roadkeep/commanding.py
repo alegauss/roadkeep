@@ -148,6 +148,15 @@ class Command:
     #: The role a withheld tool needs, so the answer names the `declare` that opens it rather
     #: than leaving an absence for a reader to explain.
     needs: str = ""
+    #: Which verb family declares it — `authoring`, `querying`, `sections` and three more, the
+    #: modules under `verbs/` that `cli.build_parser` calls in order (RK1402).
+    #:
+    #: **Derived from where the handler lives**, not declared a second time beside the parser.
+    #: A verb's family is already a fact about this package's layout — `agents.md` says a module
+    #: per verb family and the dispatch calls them in order — so a table here would be that
+    #: layout restated, and wrong the first time a verb moves between two of them. A group has
+    #: no handler and takes the family its children share.
+    family: str = ""
 
     @property
     def depth(self) -> int:
@@ -321,6 +330,7 @@ def commands(config: Config, verb: str | None = None) -> Listing:
                 tools=tuple(names),
                 published=published,
                 needs=needs,
+                family=_family(parsers, path),
             )
         )
     return Listing(
@@ -328,6 +338,32 @@ def commands(config: Config, verb: str | None = None) -> Listing:
         version=__version__,
         source=None if config.source is None else config.relative(config.source),
     )
+
+
+def _family(parsers: Mapping[str, argparse.ArgumentParser], path: str) -> str:
+    """Which module under `verbs/` declares this command (RK1402).
+
+    Read off the handler's own module rather than declared beside the parser: `agents.md`
+    already says this package is a module per verb family and `build_parser` calls them in
+    order, so a second statement here would be that layout restated — and stale the first time
+    a verb moves. What comes back is the module's last component, `querying` and not
+    `roadkeep.verbs.querying`, because the package path is not a fact a reader of the reference
+    needs.
+
+    A group's family is what its children share. `section` reaches no handler, and taking the
+    first child's answer would be a guess where two disagreed — so a split group answers with
+    nothing rather than with one of two families, which is the same rule `Key.set` follows
+    where several addresses declared a value.
+    """
+    handler = parsers[path].get_default("handler")
+    if handler is not None:
+        return getattr(handler, "__module__", "").rpartition(".")[2]
+    under = {
+        _family(parsers, one)
+        for one in parsers
+        if one.startswith(f"{path} ") and one.count(" ") == path.count(" ") + 1
+    }
+    return under.pop() if len(under) == 1 else ""
 
 
 def _help_of(parsers: Mapping[str, argparse.ArgumentParser], path: str) -> str:
@@ -414,6 +450,9 @@ def payload(found: Listing) -> dict[str, object]:
         "commands": [
             {
                 "command": one.path,
+                # Which module under `verbs/` declares it (RK1402) — what a reference page is
+                # one of, so the generator groups by this rather than by a list it keeps.
+                "family": one.family,
                 "help": one.help,
                 "description": one.description,
                 "writes": one.writes,

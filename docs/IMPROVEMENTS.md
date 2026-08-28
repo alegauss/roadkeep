@@ -91,29 +91,6 @@ already written, not authorship.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-### §RK1402 A reference generated per verb family, and the check that it is
-
-The reference is one page per verb family, in the order dispatch declares them, rendered
-at build time from the emitted parser: the flags, what each takes, the defaults, and the
-refusals the verb raises. A page built this way cannot describe a flag that was removed,
-and it gains one in the commit that adds it.
-
-PPortal's area does this with a component that reads the host's own flag list and
-renders both its tables — nothing retyped, a rename landing in the docs in the commit
-that renames. The shape is the same here, with the command invoked at build time rather
-than a source file parsed.
-
-What generation cannot supply is why a verb exists, which is most of what a reader came
-for. So each page is a generated table under prose written once, the two kept apart:
-regenerating never edits an argument, and editing an argument never touches a table.
-
-That join needs a check. A build that quietly falls back to a committed copy publishes a
-stale reference nobody sees, so the suite asserts the pages against the parser this
-checkout declares. It is the property the gate already holds over the derived README
-block, pointed at a second projection — which is also the answer to whether this belongs
-in a build script or in the tests: both, for the same reason `lint` and `add` both hold
-the line format.
-
 ### §RK1403 A page per finding code, for the reader arriving with an error
 
 The gate names a code, and `explain` says what the class is, what produces it and which

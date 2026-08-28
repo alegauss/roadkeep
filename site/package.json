@@ -5,7 +5,8 @@
   "type": "module",
   "description": "The documentation area, at /roadkeep/guide/. Its own npm project, outside the governed store, building into it.",
   "scripts": {
-    "dev": "astro dev",
+    "prebuild": "node scripts/commands.mjs",
+    "dev": "npm run prebuild && astro dev",
     "build": "astro build",
     "preview": "astro preview"
   },
