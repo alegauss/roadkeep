@@ -60,6 +60,12 @@ MANIFEST = ROOT / ".claude-plugin" / "plugin.json"
 EDITOR = ROOT / "editor" / "package.json"
 
 #: What the three files are called from the repository root, for `git show :<path>`.
+#:
+#: **And what two callers stage** (RK1427). This script writes them; `.githooks/pre-commit`
+#: and `.github/workflows/publish.yml` each name them again in a `git add`, because a shell
+#: cannot import a tuple. That pair coming apart released v0.2.0 with the editor at the
+#: number before it, so `test_packaging` reads both back against this. A fourth file added
+#: here is a red in that test and never a release with one number stale.
 TRACKED = ("src/roadkeep/__init__.py", ".claude-plugin/plugin.json", "editor/package.json")
 
 #: The exit code that says the number was written and may **not** be staged (RK398). Not 1,

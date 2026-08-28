@@ -93,6 +93,39 @@ def test_a_commit_bumps_the_patch_version() -> None:
     assert "exit 1" not in body
 
 
+RELEASE = HERE / ".github" / "workflows" / "publish.yml"
+
+
+def test_every_writer_of_the_number_stages_the_list_the_bumper_declares() -> None:
+    """RK1427. `scripts/bump_version.py` writes the files `TRACKED` names, and two callers
+    stage them by hand: the pre-commit hook and the release workflow. The workflow's own
+    header records what that cost — *v0.2.0 shipped with the editor left at the number before
+    it, because this step staged two of the files the script had already written* — and the
+    fix was editing a literal nothing checks.
+
+    A test and not a derivation, which is the narrower half of the choice. Deriving means the
+    hook parsing the script's stdout, and that hook runs on every commit with every path out
+    of it an exit 0: a shell join there fails by staging nothing and saying so to nobody. So
+    the list stays written twice and this is what keeps the two readings one.
+
+    It is also the first thing in this suite to open `publish.yml` at all. `gate.yml` is read
+    by `tests/test_surfaces.py` and `site.yml` by `tests/test_area.py`; the workflow that
+    publishes had no reader, and PyPI never lets a version be reused.
+    """
+    tracked = set(_script("bump_version").TRACKED)
+    assert tracked, "the bumper declares nothing, so this asserts nothing"
+
+    hook = (HERE / ".githooks" / "pre-commit").read_text(encoding="utf-8")
+    listed = re.search(r"^versioned=(.+)$", hook, re.MULTILINE)
+    assert listed, "the hook no longer names what it stages"
+    assert set(listed.group(1).strip('"').split()) == tracked
+
+    release = RELEASE.read_text(encoding="utf-8")
+    staged = re.search(r"^\s*git add (.+)$", release, re.MULTILINE)
+    assert staged, "the release no longer names what it stages"
+    assert set(staged.group(1).split()) == tracked
+
+
 def clone_of_the_hook(root: Path) -> None:
     """The smallest checkout the hook runs in: the three files that state the number, the
     bumper they are written by, and the hook itself on `core.hooksPath`.
@@ -100,16 +133,15 @@ def clone_of_the_hook(root: Path) -> None:
     Three since RK1011: `bump_version` compares each against the index and treats a file it
     cannot find as "nothing to compare against", so a clone missing one silently stops
     staging the bump — which is this fixture reporting that the hook broke when it did not.
+
+    Derived from `TRACKED` and no longer listed (RK1427): this was the fourth statement of
+    that list, and a fixture missing the fourth file is one that reports a hook working
+    against a checkout no release resembles.
     """
     import shutil
     import subprocess
 
-    for relative in (
-        "scripts/bump_version.py",
-        "src/roadkeep/__init__.py",
-        ".claude-plugin/plugin.json",
-        "editor/package.json",
-    ):
+    for relative in ("scripts/bump_version.py", *_script("bump_version").TRACKED):
         target = root / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(HERE / relative, target)
@@ -517,13 +549,13 @@ def test_the_pool_leaves_a_two_core_runner_the_two_it_has(monkeypatch) -> None:
 # -- the gate's environment, run here (RK1159) --------------------------------
 
 
-def _like_ci():
-    """The script as a module, loaded the way `test_launching` loads the bridge."""
+def _script(name):
+    """One of `scripts/` as a module, loaded the way `test_launching` loads the bridge."""
     import importlib.util
     import sys
 
     spec = importlib.util.spec_from_file_location(
-        "like_ci", HERE / "scripts" / "like_ci.py"
+        name, HERE / "scripts" / f"{name}.py"
     )
     module = importlib.util.module_from_spec(spec)
     # Registered before it is executed, which `@dataclass(slots=True)` requires: the decorator
@@ -541,14 +573,14 @@ def test_the_floor_it_runs_against_is_the_one_pyproject_declares() -> None:
     declared = tomllib.loads((HERE / "pyproject.toml").read_text(encoding="utf-8"))
     stated = declared["project"]["requires-python"]
     assert stated.startswith(">=")
-    assert _like_ci().floor() == tuple(int(part) for part in stated.removeprefix(">=").split("."))
+    assert _script("like_ci").floor() == tuple(int(part) for part in stated.removeprefix(">=").split("."))
 
 
 def test_every_difference_it_cannot_apply_says_so(capsys) -> None:
     """The rule the script exists to keep (RK1159): a run that quietly covered three differences
     of four would report a clean suite about an environment nobody chose. `--dry-run` is the
     surface where that is checkable without spending a venv."""
-    like_ci = _like_ci()
+    like_ci = _script("like_ci")
     assert like_ci.main(["--dry-run"]) == 0
     printed = capsys.readouterr().out
     _, unapplied = like_ci.interpreter()
@@ -564,7 +596,7 @@ def test_the_environment_it_composes_removes_the_identity_and_keeps_the_ownershi
     """The correction its own first run forced: nulling the global config takes `safe.directory`
     with the identity, and the corpora — checkouts another user owns — stop being readable. That
     is this script's red and not the gate's, since a runner has no corpora at all."""
-    like_ci = _like_ci()
+    like_ci = _script("like_ci")
     env = like_ci.environment(tmp_path, tmp_path / "c", tmp_path / "g", tmp_path / "s")
     assert env["GIT_CONFIG_SYSTEM"] == os.devnull
     written = Path(env["GIT_CONFIG_GLOBAL"]).read_text(encoding="utf-8")

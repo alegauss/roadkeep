@@ -23,6 +23,10 @@
 #      `tests/test_editor.py` assert are one. The `git add` below has to name all three:
 #      v0.2.0 shipped with the editor left at the number before it, because this step
 #      staged two of the files the script had already written.
+#      **That is now held** (RK1427):
+#      `test_packaging::test_every_writer_of_the_number_stages_the_list_the_bumper_declares`
+#      reads this file and the pre-commit hook against the script's own `TRACKED`, so a
+#      fourth versioned file is a red here rather than a release with one number stale.
 #   3. **A hand-cut tag must equal the package's own version.** On the `release` path there
 #      is no bump to trust — a tag that says v0.2.0 over a package that says 0.1.0 is
 #      otherwise discovered by whoever pins it.

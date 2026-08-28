@@ -83,32 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1427 The one workflow the suite does not read
-
-`scripts/bump_version.py` declares `TRACKED` — the three paths that state the version —
-and rewrites each. `publish.yml` then stages them by name:
-
-```
-git add src/roadkeep/__init__.py .claude-plugin/plugin.json editor/package.json
-```
-
-Two statements of one list, and the workflow's own header records what happened when
-they disagreed: *v0.2.0 shipped with the editor left at the number before it, because
-this step staged two of the files the script had already written.* It was fixed by
-editing the literal. A fourth file that states a version is written by the script, left
-unstaged by the workflow, and released wrong — and `editor/package.json` is the third
-*since RK1011*, so a fourth arriving is the shape this already has.
-
-The asymmetry is the finding. `gate.yml` is read by `tests/test_surfaces.py` and
-`site.yml` by `tests/test_area.py`; **nothing in the suite opens `publish.yml`**. The
-workflow that publishes is the one with no reader, and PyPI never lets a version be
-reused, so its wrong answer is the one that cannot be corrected.
-
-The narrow fix is a test asserting the staged set is `TRACKED`. Worth weighing beside it
-is whether the workflow should stage from the script's own output instead —
-`bump_version --dry-run` already prints what it would write — which removes the list
-rather than checking it.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

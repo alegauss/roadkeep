@@ -120,16 +120,12 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
 | C — Query (consult without reading the file) | 0 | 141 | 2 |
 | D — The gate | 0 | 205 | 2 |
-| E — Adoption | 1 | 113 | 1 |
+| E — Adoption | 0 | 114 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 126 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 17 | 0 |
-| **Total** | 1 | 912 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1427** (deps: —) **The release workflow restates the list of files that carry the version, and nothing holds the two together** — That pair coming apart is what shipped v0.2.0 with the editor at the number before it, and the fix was editing a literal nothing checks. → §RK1427
+| **Total** | 0 | 913 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

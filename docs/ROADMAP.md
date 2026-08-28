@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1427** (deps: —) **The release workflow restates the list of files that carry the version, and nothing holds the two together** — That pair coming apart is what shipped v0.2.0 with the editor at the number before it, and the fix was editing a literal nothing checks. → §RK1427
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
