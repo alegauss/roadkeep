@@ -85,29 +85,6 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1429 The argument that reaches a shell before anything reads it
-
-`commands/ship.md` runs `… ship $1` in a `!` block, so the argument is interpolated into
-a shell at expansion — before the model reads a word of the file. It is the only one of
-the four that does this: `pick.md` names `$1` in prose the model acts on, `add.md` takes
-`$ARGUMENTS` the same way, and `lint.md` takes none.
-
-It is also the only one of the four that **writes**, and three files in one transaction.
-
-The contrast with the rest of this package is the finding. `capturing.offer` composes
-its argv through `shlex.join`; `guarding` refuses to parse shell at all, on the argument
-that reading it to catch one `sed -i` is a tax on every write. Here caller text goes in
-bare.
-
-`tests/test_commands.py` holds four things about these files — the frontmatter, that
-every command line parses, that each runs its own subcommand, and that `Bash(` is scoped
-to a real verb. How an argument is interpolated is not among them.
-
-What this deliberately does not claim is an exposure. The text is the user's own, ids
-are `RK<n>`, and whether the harness quotes `$1` before the shell sees it is a behaviour
-this repository cannot assert — which is the argument for quoting rather than for
-relying on it.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

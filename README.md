@@ -121,15 +121,11 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 141 | 2 |
 | D — The gate | 0 | 205 | 2 |
 | E — Adoption | 0 | 114 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 127 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 128 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 17 | 0 |
-| **Total** | 1 | 914 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1429** (deps: —) **The one slash command that writes puts its argument into a shell unquoted, and nothing holds how any of them does it** — Everywhere else this package puts caller text near a shell it quotes it or refuses to read shell, and the tests hold four things about these files and not this. → §RK1429
+| **Total** | 0 | 915 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -883,6 +883,7 @@
 - ✅ **RK1371** **every reason for not serving an argument is declared and read by no command, so a caller asking why reaches none** — A caller passing a withheld argument is told it is withheld and why, in the sentence declared beside it (design recorded in `src/roadkeep/serving.py`).
 - ✅ **RK1424** **The skill is 65,180 code units and nothing counts it, where the surface it is larger than has a ceiling** — cost --skill prices the write path beside the served schema and says which sections it went to, served over MCP and with no ceiling declared.
 - ✅ **RK1428** **Nothing counts the guard's denial, and 1,760 of its 4,092 units re-spell the shell for a caller that has the tools** — cost --deny prices a refused write off a real Refusal, beside the notice that already had a ceiling, and names the shell half without judging it.
+- ✅ **RK1429** **The one slash command that writes puts its argument into a shell unquoted, and nothing holds how any of them does it** — The argument is quoted like the path beside it, and a sweep over every expanded block refuses a bare variable in any of the four files.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

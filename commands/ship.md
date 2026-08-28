@@ -6,7 +6,7 @@ allowed-tools: mcp__roadkeep__ship, mcp__plugin_roadkeep_roadkeep__ship, mcp__ro
 
 Shipping `$1`:
 
-!`python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py" ship $1`
+!`python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py" ship "$1"`
 
 That is one transaction across three files — the ledger entry, the roadmap line, the rationale
 section — plus the dependents' annotations. It happened or none of it did, so there is nothing

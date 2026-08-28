@@ -162,6 +162,34 @@ def test_bash_is_scoped_to_this_tool(path):
     assert "Bash(*" not in allowed and "allowed-tools: *" not in allowed
 
 
+#: A `!` block: what the harness runs **at expansion**, before the model reads a word of the
+#: file. The one place in these four files where text reaches a shell.
+_EXPANDED = re.compile(r"!`([^`]*)`")
+
+
+@pytest.mark.parametrize("path", files(), ids=lambda p: p.stem)
+def test_nothing_a_shell_expands_carries_a_bare_variable(path):
+    """RK1429. `ship.md` ran `… ship $1` — the caller's own text, into a shell, before the
+    model reads the instruction that says what to do when the argument is missing. It is the
+    only one of these that writes, and three files in one transaction.
+
+    Everywhere else this package puts text near a shell it quotes it — `capturing.offer`
+    composes through `shlex.join` — or refuses to read shell at all, which is `guarding`'s
+    whole argument. And `${CLAUDE_PLUGIN_ROOT}` was already quoted on the same line.
+
+    What this does not rest on is an exposure. Whether the harness quotes `$1` before the
+    shell sees it is a behaviour this repository cannot assert, and that is the argument for
+    quoting rather than for relying on it.
+
+    Held by stripping the double-quoted spans and asking whether a `$` survived, so it is
+    about *substitution* rather than about a spelling: a variable that is not there is not a
+    variable somebody has to remember to quote.
+    """
+    for block in _EXPANDED.findall(path.read_text(encoding="utf-8")):
+        bare = re.sub(r'"[^"]*"', "", block)
+        assert "$" not in bare, f"{path.name}: {block}"
+
+
 @pytest.mark.parametrize("path", files(), ids=lambda p: p.stem)
 def test_no_command_grants_a_tool_that_writes_a_governed_file_directly(path):
     """The hook would deny it anyway (RK22); granting it here would make the denial the
