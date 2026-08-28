@@ -354,14 +354,21 @@ def test_this_repositorys_readme_is_current(governed):
 
 
 def test_the_landing_page_carries_no_projection_to_go_stale():
-    """`docs/index.html` is a pitch, so it restates no count — and holds no markers.
+    """The pitch restates no count — and holds no markers.
 
     The page used to carry the derived strip, which is why the README half of RK39 has a
-    currency test and this one does not: a page that says nothing about the backlog cannot
-    say it wrongly. `--site` is still the supported shape, asserted below against a
-    scaffolded page; what is asserted here is that this file is not one of its targets.
+    currency test and this one does not: a page that says nothing about the backlog cannot say
+    it wrongly. `--site` is still the supported shape, asserted below against a scaffolded
+    page; what is asserted here is that this project's own page is not one of its targets.
+
+    Read where the copy is rather than where the HTML lands. The page is built now — the
+    committed artefact is the content module, and `site/dist/` exists only after somebody ran
+    the build — so a test anchored on the output would be red on every checkout and green for
+    the wrong reason on the machine that had just built.
     """
-    page = (HERE / "docs" / "index.html").read_text(encoding="utf-8", errors="strict")
+    page = (HERE / "site" / "src" / "lib" / "site-content.ts").read_text(
+        encoding="utf-8", errors="strict"
+    )
     assert BEGIN not in page
     assert "tasks shipped" not in page
 

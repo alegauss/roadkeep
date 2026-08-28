@@ -28,7 +28,7 @@ from pathlib import Path
 import pytest
 
 HERE = Path(__file__).resolve().parent.parent
-SITE = HERE / "site"
+SITE = HERE / "site" / "docs"
 PAGES = SITE / "src" / "content" / "docs"
 GENERATOR = SITE / "scripts" / "owned.mjs"
 COMPONENT = SITE / "src" / "components" / "Owned.astro"

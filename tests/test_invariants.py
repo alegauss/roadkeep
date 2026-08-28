@@ -753,10 +753,6 @@ READS_THE_CORPUS = {
         "the README as text, against the projection `export` writes into it — the assertion "
         "*is* about the characters, which is what makes it a comparison and not a guess"
     ),
-    "test_exporting.test_the_landing_page_carries_no_projection_to_go_stale": (
-        "the generated page under `docs/`, read for what it must *not* carry: no parser here "
-        "reads HTML, and the fact being asserted is the absence of copied prose"
-    ),
     "test_invariants.declared_instances": (
         "rationale prose, scanned for the ids it cites — a section body is text this format "
         "deliberately does not structure past its heading (L4)"
@@ -769,17 +765,13 @@ READS_THE_CORPUS = {
         "this repository's governed files as text, to prove the sample's ids are *absent* — "
         "the assertion is that a run did not write here, which no parser can answer"
     ),
-    "test_area.test_the_base_is_the_repository_and_the_one_segment_under_it": (
-        "the pitch page as text, for the canonical URL it publishes — that page is where the "
-        "site root is declared, and the area's base path is a prefix of it or it 404s"
-    ),
     "test_area.test_no_governed_file_is_inside_what_the_build_owns": (
         "roadkeep.toml as text rather than as a parsed config, because the question is which "
         "paths a role names before any of them is resolved into a document"
     ),
-    "test_area.test_the_hand_written_robots_names_the_sitemap_this_build_emits": (
-        "robots.txt as text, which is a crawler directive and not a governed line — the fact "
-        "asserted is that one file names another, and nothing structures it"
+    "test_area.test_the_store_is_the_store_and_nothing_else_is_in_it": (
+        "the same read for the other direction — what the roles declare, against what is "
+        "actually in the directory, which is a set comparison and not a claim about a line"
     ),
     "test_linting._layout_index": (
         "agents.md as text, to weigh one section of it against another — the budget is bytes "

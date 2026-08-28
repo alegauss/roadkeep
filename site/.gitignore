@@ -1,12 +1,10 @@
-# What the build downloads and what it caches. The output is not ignored here because it is
-# not written here: it lands in ../docs/guide, and the root .gitignore is what keeps it out of
-# the tree — a generated tree is published by the workflow that builds it, never committed.
+# What the build downloads and what it caches.
 node_modules
-.astro
 *.local
 
-# What the build derives from the tool itself (RK1402, RK1403). Ignored by what generated it
-# and never by directory: `src/data/` also holds situations.json, which is the hand-written
-# half of a finding page and the one thing on it no read can derive.
-src/data/*.generated.json
-src/content/docs/findings/
+# What the two builds write. `dist/` is the whole published site — the pitch, and the
+# documentation area under dist/docs — and `dist-server/` is the SSR bundle the prerender
+# imports. Neither is committed: a generated tree in the repository is a second answer to what
+# the site is, and the stale one the moment somebody edits a page and does not rebuild.
+dist
+dist-server

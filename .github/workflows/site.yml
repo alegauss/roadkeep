@@ -1,23 +1,28 @@
-# The published site (site/ builds it, docs/ is what gets served), separate from the package.
+# The published site (site/ builds it, site/dist/ is what gets served), separate from the
+# package.
 #
-# `docs/` is two things at once: the governed store `roadkeep.toml` points four roles at, and
-# the web root Pages serves — which is why `index.html`, `llms.txt`, `robots.txt` and `assets/`
-# sit beside the Markdown. The documentation area is generated into one reserved subtree of it,
-# `docs/guide/`, and nothing generated is committed (RK1398, RK1399, RK1400).
+# Two builds make one deploy. `site/` is the pitch, a Vite build whose copy lives in one module
+# and whose every page is prerendered; `site/docs/` is the documentation area, an Astro project
+# building into `site/dist/docs`. `npm run build` chains them in that order, because
+# `vite build` empties `dist/` and an area built earlier is deleted by the step after it.
+#
+# `docs/` at the repository root is not in this at all any more: it is the governed store the
+# four roles point at, and nothing serves it.
 #
 # **The gate and the deploy are two decisions.** The build runs on every push and pull request,
 # so a page that stopped compiling is found by the person who pushed it rather than by a reader;
 # the deploy waits to be asked, because a publish on every push is one nobody can hold still
 # while reviewing it, and the site is the one artefact where a defect is public immediately.
 #
-# The deploy serves the bytes the gate already built rather than building a second time: two
-# builds of one commit are two answers about it, and the published one would be the untested.
+# The deploy serves the bytes the gate already built and tested rather than building a second
+# time: two builds of one commit are two answers about it, and the published one would be the
+# untested.
 #
 # ┌─────────────────────────────────────────────────────────────────────────────────────┐
 # │ ONE-TIME REPOSITORY SETTING, without which the deploy is inert:                      │
 # │   Settings → Pages → Build and deployment → Source: "GitHub Actions"                 │
 # │ Left on "Deploy from a branch" this workflow goes green and publishes nothing — and  │
-# │ the branch it would serve has no docs/guide/ in it, because nothing commits one.     │
+# │ the branch it would serve has no built site in it, because nothing commits one.      │
 # │ The site is at alegauss.github.io/roadkeep/, which Pages derives from the repository │
 # │ name rather than from anything in this file.                                         │
 # └─────────────────────────────────────────────────────────────────────────────────────┘
@@ -50,7 +55,7 @@ concurrency:
 
 jobs:
   build:
-    name: build the area (the gate)
+    name: build the site (the gate)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,13 +63,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          # One npm project in this repository: the package itself has zero runtime
-          # dependencies and nothing else here installs.
           cache: npm
-          cache-dependency-path: site/package-lock.json
+          # Two npm projects: the pitch, and the documentation area it builds into its dist/.
+          cache-dependency-path: |
+            site/package-lock.json
+            site/docs/package-lock.json
 
-      # The reference pages are generated from the tool's own parser (RK1402), so the build
-      # runs `roadkeep commands --json` before Astro sees anything. No install and no
+      # The area's reference pages are generated from the tool's own parser (RK1402), so its
+      # prebuild runs `roadkeep commands --json` before Astro sees anything. No install and no
       # dependencies: the package is read off `src/` the way every command in this repository
       # is, which is also what makes the answer this checkout's rather than a release's.
       - uses: actions/setup-python@v5
@@ -73,6 +79,10 @@ jobs:
 
       # `ci` and not `install`, for `publish.yml`'s reason about what was tested: a resolution
       # that drifts between this job and a developer's machine is a page nobody can reproduce.
+      #
+      # `npm run build` chains the area's build last, so both projects' dependencies have to be
+      # on disk before it starts. The area is installed here rather than from inside that
+      # script: an install inside a build is one that runs on every local rebuild too.
       - name: Build
         working-directory: site
         env:
@@ -80,23 +90,27 @@ jobs:
           ASTRO_TELEMETRY_DISABLED: "1"
         run: |
           npm ci
+          npm --prefix docs ci
           npm run build
 
-      # The build succeeds over an empty content directory, so the artefact is asserted rather
-      # than assumed: a green job over nothing published is the failure this job would have.
-      - name: The build produced the entry page
-        run: test -s docs/guide/index.html
+      # The site's own claims — the route pair, the twin per route, the sitemap, the social card
+      # and the three joins to the area — asserted against what was just built. This is also
+      # what makes the build's success mean something: it succeeds over an empty content
+      # directory, and a green job over nothing published is the failure it would have.
+      - name: Test
+        working-directory: site
+        run: npm test
 
       # Only what is about to be published is kept. On a push the build is the whole point and
-      # the output is not wanted anywhere. The **served directory** and not the generated
-      # subtree alone: the pitch page and the area are two halves of one site, and uploading
-      # either by itself publishes a deploy with the other missing.
+      # the output is not wanted anywhere. The **whole dist** and not either half: the pitch and
+      # the area are two halves of one site, and uploading one by itself publishes a deploy with
+      # the other missing.
       - name: Keep the built site for the deploy
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
-          name: site-docs
-          path: docs
+          name: site-dist
+          path: site/dist
           retention-days: 1
 
   deploy:
@@ -113,7 +127,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: site-docs
+          name: site-dist
           path: dist
 
       - uses: actions/configure-pages@v5

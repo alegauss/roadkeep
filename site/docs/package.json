@@ -1,0 +1,21 @@
+{
+  "name": "roadkeep-docs",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "The documentation area, at /roadkeep/docs/. Its own npm project, building into the site's dist/docs.",
+  "scripts": {
+    "prebuild": "node scripts/commands.mjs && node scripts/findings.mjs && node scripts/config.mjs && node scripts/session.mjs && node scripts/walkthrough.mjs && node scripts/owned.mjs && node scripts/budget.mjs",
+    "dev": "npm run prebuild && astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "postbuild": "node scripts/twins.mjs"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.41.9",
+    "astro": "^7.2.9"
+  },
+  "devDependencies": {
+    "node-html-parser": "^9.0.2"
+  }
+}

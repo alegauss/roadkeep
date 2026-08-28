@@ -1,0 +1,73 @@
+---
+title: Configuration
+description: Every table, key, type and default roadkeep.toml may carry — and the two things about it that no read can generate.
+---
+
+import ConfigTable from "../../components/ConfigTable.astro";
+
+`roadkeep.toml` is the whole of the sixth law: **configuration, not convention**. The prefix,
+the id shape, which files hold which role, the markers, the limits, the budgets, the claims and
+the reference scheme are all decided per project, because a tool that hard-coded any of them
+would be one that only fits the repository it was written in.
+
+The table below is generated from `roadkeep config`, which is the command that answers this
+question from inside a checkout. It is here because the reader who most needs it is the one who
+has not got a checkout yet: deciding whether to adopt comes before there is anything to
+configure, and the description of the keys was behind the adoption it would decide.
+
+## What a number is for
+
+Two tables hold **judgements** rather than settings, and the difference matters more than any
+individual value.
+
+`[limits]` bounds what a line may say and `[budgets]` bounds what a file may cost. Both are
+measured against a corpus — the lines that already read well — and not chosen because they
+sound reasonable. `govern` is the verb that writes one, and it **refuses a limit this corpus
+already breaks**, because a number whose first act is a finding is one somebody lowers, reads
+the report and quietly raises again.
+
+`govern --because "…"` is where the argument goes: your sentence, wrapped into comments above
+the key and stacked on whatever argued it before. That is the half worth keeping. A number
+without its reasoning is one the next person changes on instinct, and the reasoning is the
+expensive part.
+
+So this page does not recommend a value, and nothing here should be copied as a default. Run
+`roadkeep adopt` against the file you already have; it measures how many of your lines a given
+limit would refuse, which turns the decision into a number rather than a hope.
+
+## Adopting with a backlog already in it
+
+The interesting case is not an empty repository. It is one with a `ROADMAP.md` somebody has
+been keeping by hand for two years, which is exactly the repository worth adopting and the one
+`init` is wrong for.
+
+The order that works:
+
+```bash
+uvx roadkeep adopt docs/ROADMAP.md   # measure it: how many lines would a limit refuse?
+uvx roadkeep declare roadmap docs/ROADMAP.md
+uvx roadkeep lint                    # every finding, each naming the command that closes it
+uvx roadkeep lint --fix              # the derived half, repaired mechanically
+```
+
+`declare` retrofits one role onto a file that already exists, rather than scaffolding a new
+one. What `lint` then reports is a work list, and the findings that remain after `--fix` are
+the ones needing a judgement — each carrying the command that closes it, and each with
+[a page here](/roadkeep/docs/findings/line/line-too-long/) explaining the class.
+
+Nothing forces you to declare every role at once. An absent role is absent, not empty: a
+project can govern its roadmap for a month before it declares a changelog.
+
+## The worked example
+
+This repository's own [`roadkeep.toml`](https://github.com/alegauss/roadkeep/blob/main/roadkeep.toml)
+is the one configuration that is provably valid — its `docs/` are the format's conformance
+fixture, and `lint` passing on them is a gate on every push. It is one fetch away rather than
+transcribed here, so it cannot go stale.
+
+The **This repository** column below is that same file, read back: what roadkeep declares for
+itself, beside what it would use if it declared nothing.
+
+## Every table
+
+<ConfigTable />

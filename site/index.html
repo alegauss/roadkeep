@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/roadkeep/assets/roadkeep-mark.svg" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- The ad loader is async and its catalogue is a second request to the same origin, so
+         the handshake is worth opening now rather than twice, late, below the fold. -->
+    <link rel="preconnect" href="https://ads.japode.com" crossorigin />
+
+    <title>roadkeep — stop paying tokens to keep your docs</title>
+    <meta
+      name="description"
+      content="A Claude Code plugin that turns the format of your ROADMAP.md, CHANGELOG.md, IMPROVEMENTS.md, STRATEGY.md, DEFERRED.md and DECISIONS.md into a schema a command enforces — so keeping them is procedural and deterministic instead of context the model spends remembering, reading and checking."
+    />
+
+    <!--
+      scripts/prerender.mjs patches the title, description, canonical and og:url per route by
+      replace-or-throw, and inlines the rendered body into the root element. Note: no closing
+      head or script token may appear in a comment here, or the Vite asset injection and the
+      prerender both anchor to it instead of the real one.
+    -->
+
+    <!-- Reveal-on-scroll starts at opacity 0 and is lifted by the client observer. With no JS
+         the prerendered text is still in the DOM; this makes it visible too. -->
+    <noscript>
+      <style>
+        .reveal {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+      </style>
+    </noscript>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <!-- The ad network, last and async: it makes one request for the whole page however many
+         slots asked, reserves each box before that request so nothing below it moves when the
+         banner lands, and collapses a slot it cannot fill. A failure here — offline, a 404, no
+         shadow DOM — leaves the slots empty and this page otherwise unchanged. -->
+    <script src="https://ads.japode.com/v1/ads.js" async></script>
+  </body>
+</html>

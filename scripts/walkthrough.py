@@ -8,7 +8,7 @@ already there**.
 
 So this is a run rather than a description. It builds a throwaway repository with a genuinely
 drifted roadmap in it, executes the adoption in order, and emits every command with the output
-it actually produced. `site/scripts/walkthrough.mjs` renders that into a page and
+it actually produced. `site/docs/scripts/walkthrough.mjs` renders that into a page and
 `tests/test_walkthrough.py` executes it, so a refusal whose wording changed fails a build
 instead of misleading a reader.
 

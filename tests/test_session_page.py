@@ -28,7 +28,7 @@ from pathlib import Path
 from generated import read_by
 
 HERE = Path(__file__).resolve().parent.parent
-SITE = HERE / "site"
+SITE = HERE / "site" / "docs"
 PAGE = SITE / "src" / "content" / "docs" / "session.mdx"
 COMPONENT = SITE / "src" / "components" / "SessionCost.astro"
 GENERATOR = SITE / "scripts" / "session.mjs"

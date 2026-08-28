@@ -34,7 +34,7 @@ from pathlib import Path
 import pytest
 
 HERE = Path(__file__).resolve().parent.parent
-SITE = HERE / "site"
+SITE = HERE / "site" / "docs"
 SITUATIONS = SITE / "src" / "data" / "situations.json"
 GENERATOR = SITE / "scripts" / "findings.mjs"
 

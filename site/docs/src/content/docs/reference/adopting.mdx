@@ -1,0 +1,39 @@
+---
+title: Adopting and installing
+description: The verbs that run once — scaffolding a project, retrofitting a file that already exists, wiring the tool in — and the two transports nobody types.
+sidebar:
+  order: 6
+---
+
+import VerbTable from "../../../components/VerbTable.astro";
+
+These run before the project is governed, which is why most of them are not offered to an
+agent mid-session: their subject is a file this tool does not own the writes to yet.
+
+`init` scaffolds the files and a `roadkeep.toml` beside them. `declare` retrofits one role
+onto a project that already has the file — which is the ordinary case, because a repository
+with a `ROADMAP.md` in it is exactly the repository worth adopting.
+
+`adopt` is the read to run **before** either. It measures a foreign file — how many lines it
+holds, how many would be refused by the limits a scaffold would write, and what the spread
+looks like — so the decision is made against a number rather than a hope. It is asked once and
+never again.
+
+`install` wires the tool into a checkout: the hook, the gate and the merge driver. `engines`
+answers which copies of roadkeep are present and which of them writes, judges, gates and
+merges — the read for the confusion where a plugin cache and a checkout disagree about what
+the tool does.
+
+`report` and `replay` are a pair, and their subject is a defect in **this tool** rather than
+in a backlog: `report` files what happened as facts, argv already substituted, and `replay`
+re-runs them to say whether it still reproduces. `capture` is what became of the ones on disk.
+
+`mcp` and `guard` are transports, not questions. One speaks a protocol to a client and the
+other answers a hook payload on stdout; what either dispatches is the same parser every
+command on this site is generated from.
+
+:::note
+What the roles are and which file each is: [the model](/roadkeep/docs/model/).
+:::
+
+<VerbTable family="adopting" />

@@ -4072,8 +4072,9 @@ def _targets(config: Config, tree: Tree) -> tuple[Target, ...]:
 
     **The markers are the declaration**, so a file carrying none is not a target and is not
     read again (RK37): a README restating nothing cannot restate it wrongly, and demanding the
-    container would be a gate inventing what only the author may put there — which is why
-    `docs/index.html` here, a pitch with no strip in it, is not one.
+    container would be a gate inventing what only the author may put there — which is why this
+    project's own pitch page, whose copy states no count, is not one and why the default name
+    resolving to no file at all is silence rather than a finding.
     """
     out: list[Target] = []
     for flag, kind in DEFAULTS.items():

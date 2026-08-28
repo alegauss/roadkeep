@@ -28,7 +28,7 @@ from pathlib import Path
 import pytest
 
 HERE = Path(__file__).resolve().parent.parent
-SITE = HERE / "site"
+SITE = HERE / "site" / "docs"
 DECLARED = SITE / "budget.mjs"
 SCRIPT = SITE / "scripts" / "budget.mjs"
 DOCS = SITE / "src" / "content" / "docs"

@@ -29,13 +29,13 @@ import pytest
 from roadkeep.config import PROSE_ROLES, ROLES, Config
 
 HERE = Path(__file__).resolve().parent.parent
-SITE = HERE / "site"
+SITE = HERE / "site" / "docs"
 PAGE = SITE / "src" / "content" / "docs" / "model.mdx"
 REFERENCE = SITE / "src" / "content" / "docs" / "reference"
 
 #: How the area addresses this page. One string, because a rename that moved the page and not
 #: the six links would leave every reference pointing at a 404.
-LINK = "/roadkeep/guide/model/"
+LINK = "/roadkeep/docs/model/"
 
 
 def _text() -> str:

@@ -1,0 +1,37 @@
+---
+title: Shipping, and the doors out
+description: The verbs that close a line — into the ledger, into a decision that outlives the code, or into nothing at all — and the ones that write the ledger directly.
+sidebar:
+  order: 4
+---
+
+import VerbTable from "../../../components/VerbTable.astro";
+
+`ship` is one write, not two. It moves the line out of the backlog, writes the ledger entry
+under the right block, drops the rationale section the design lived in, and re-derives the
+dependency annotations of everything that was waiting on it — so the docs never describe a
+state that did not ship.
+
+The rationale section is **deleted** on purpose. It exists to argue for work that has not
+happened; once it has, the argument is spent and what remains is the outcome, which is the
+ledger sentence. A file that kept both grows without bound and is read by nobody, which is
+the state this tool was written after measuring.
+
+Not every line ends that way. `retire` closes one that will not be done, and `--decides`
+files the constraint the deleted design leaves behind into the decisions role — the thing
+that outlives the code, and the reason a later reader does not re-propose what was already
+rejected. `supersede` marks one such decision replaced by another, in the file that holds
+both, so the two records of one reversal name each other.
+
+`reversals` is the read that makes those pairs findable, and it exists because a revert is
+recorded as a delivery like any other. A duplicate check that asks "did something already
+ship this?" answers yes about the revert and misses that the new line is asking to undo it
+again — which wastes an id *and* the argument the revert already had.
+
+`record add` writes a ledger entry directly, for shipped work no open line can carry.
+
+:::note
+The four doors a task can leave by, and what each leaves behind, are in [the model](/roadkeep/docs/model/).
+:::
+
+<VerbTable family="shipping" />

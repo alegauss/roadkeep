@@ -1,0 +1,43 @@
+---
+title: Asking instead of reading
+description: The reads. Every question somebody asks a governed file is a command, so answering it costs no context — which is the whole reason the format is worth enforcing.
+sidebar:
+  order: 5
+---
+
+import VerbTable from "../../../components/VerbTable.astro";
+
+**Query instead of read.** This is the law the rest of the tool pays for: if every question
+about the backlog is a command, then answering one costs a fixed, small amount rather than a
+file printed into a context window. A format nothing can query is a format whose only reader
+is a person scrolling.
+
+The read to start from is `brief`. It composes the line, its rationale, its resolved
+dependencies, the blocker chain, what shipping it unblocks and the non-goals that bind it — in
+one call. With no id it briefs whatever `pick` would choose, which makes the first call the
+only one.
+
+`pick` is the choice itself: the lowest ready id, unless the project declared a priority order
+that outranks it, with anything still blocked or undesigned set aside. `show`, `deps` and
+`list` are the narrower questions under it.
+
+Several of these answer about **the history rather than the files**. `origin` says which
+commit proposed a task and which shipped it; `weight` says what a task cost in lines and
+files, and which entries were batched into one commit; `unclosed` finds open lines whose work
+the history already names, which is the state a session that shipped the code and forgot the
+line leaves behind.
+
+`budget` and `cost` are two tenses of one subject: what a write **may** spend before a word of
+it exists, and what a surface **does** spend every session already. `config` says what
+`roadkeep.toml` may declare, and `commands` — the read every table on this page is generated
+from — says what may be typed.
+
+Every command takes `--json`, which carries provenance: which file and line the answer came
+from. An answer an agent cannot audit gets verified by reading the file, which is the cost the
+command existed to remove.
+
+:::note
+The things these reads answer *about* — lines, blocks, pointers, decisions — are described in [the model](/roadkeep/docs/model/).
+:::
+
+<VerbTable family="querying" />

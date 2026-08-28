@@ -27,9 +27,9 @@ import pytest
 
 HERE = Path(__file__).resolve().parent.parent
 SCRIPT = HERE / "scripts" / "walkthrough.py"
-PAGE = HERE / "site" / "src" / "content" / "docs" / "adopting.mdx"
-COMPONENT = HERE / "site" / "src" / "components" / "Walkthrough.astro"
-GENERATOR = HERE / "site" / "scripts" / "walkthrough.mjs"
+PAGE = HERE / "site" / "docs" / "src" / "content" / "docs" / "adopting.mdx"
+COMPONENT = HERE / "site" / "docs" / "src" / "components" / "Walkthrough.astro"
+GENERATOR = HERE / "site" / "docs" / "scripts" / "walkthrough.mjs"
 
 
 @pytest.fixture(scope="module")

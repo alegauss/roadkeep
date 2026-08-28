@@ -30,17 +30,17 @@ from pathlib import Path
 import pytest
 
 HERE = Path(__file__).resolve().parent.parent
-SITE = HERE / "site"
-BUILT = HERE / "docs" / "guide"
+SITE = HERE / "site" / "docs"
+BUILT = HERE / "site" / "dist" / "docs"
 SCRIPT = SITE / "scripts" / "twins.mjs"
-LLMS = HERE / "docs" / "llms.txt"
+LLMS = HERE / "site" / "public" / "llms.txt"
 
 #: The area's build output is git-ignored, so a clean checkout has none of it. These skip
 #: rather than fail, which is what `tests/test_corpora.py` already settled for the other
 #: reading this suite makes about something a build produces.
 needs_build = pytest.mark.skipif(
     not (BUILT / "index.html").exists(),
-    reason="the area has not been built in this checkout (npm --prefix site run build)",
+    reason="the site has not been built in this checkout (npm --prefix site run build)",
 )
 
 
@@ -73,11 +73,11 @@ def test_the_converter_refuses_a_root_index_that_does_not_name_it():
     hand-written line in a file the build does not own, so the build checks it rather than
     writing it."""
     source = SCRIPT.read_text(encoding="utf-8")
-    assert "does not name guide/llms.txt" in source
+    assert "does not name docs/llms.txt" in source
 
 
 def test_the_hand_written_index_names_the_areas_own():
-    assert "guide/llms.txt" in LLMS.read_text(encoding="utf-8")
+    assert "docs/llms.txt" in LLMS.read_text(encoding="utf-8")
 
 
 def test_the_converter_runs_after_the_build():
@@ -139,7 +139,7 @@ def test_the_index_names_every_page_the_build_produced():
     """Generated rather than kept by hand, which is stronger than the check the task asked
     for: a page cannot be added without an entry, because the entry is derived from the page."""
     index = (BUILT / "llms.txt").read_text(encoding="utf-8")
-    named = set(re.findall(r"guide/(.*?)index\.md", index))
+    named = set(re.findall(r"roadkeep/docs/(.*?)index\.md", index))
     built = {
         f"{page.parent.relative_to(BUILT).as_posix()}/".replace("./", "")
         for page in _pages()
@@ -150,7 +150,7 @@ def test_the_index_names_every_page_the_build_produced():
 @needs_build
 def test_the_index_addresses_are_the_ones_the_site_publishes():
     """A twin at an address nobody can fetch is a twin nobody has. The base is the area's own,
-    which `astro.config.mjs` declares and `tests/test_area.py` holds against the pitch page."""
+    which `astro.config.mjs` declares and `tests/test_area.py` holds against the pitch's."""
     base = re.search(r'const BASE = "([^"]+)"', (SITE / "astro.config.mjs").read_text("utf-8"))
     assert base
     index = (BUILT / "llms.txt").read_text(encoding="utf-8")

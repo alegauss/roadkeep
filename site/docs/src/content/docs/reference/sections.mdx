@@ -1,0 +1,36 @@
+---
+title: Prose, blocks and the other bullets
+description: The verbs that write everything a task line points at — the rationale section, the block it sits in, the non-goals that bind it and the criteria that finish it.
+sidebar:
+  order: 3
+---
+
+import VerbTable from "../../../components/VerbTable.astro";
+
+A task line is one sentence, and one sentence is not where a design goes. What it carries
+instead is a **pointer** to a section in the rationale file, and this family owns both halves:
+`section add` writes the prose, and the line that points at it is refused by the gate if the
+section is not there.
+
+That split is deliberate. The line is what a reader scans and what a query returns; the
+section is what somebody opens once, when they are about to do the work. Keeping the argument
+out of the line is what stops a backlog from becoming a document — the failure this tool was
+written after measuring, and the reason [the model](/roadkeep/docs/model/) treats the line and
+its section as two halves of one write.
+
+The rest of the family writes the other things a file holds. **Blocks** are the grouping every
+line belongs to, declared rather than invented by a write. **Non-goals** are the roadmap's
+other bullet: a constraint, not a task, printed with every `brief` so a suggestion that
+violates one is refused before it is worked on. **Criteria** are the positive twin — what must
+be true for a block to be finished. **Priority** is the one ordering a project declares rather
+than derives, and it outranks the id order that `pick` otherwise follows.
+
+`section find` goes the direction a pointer does not: an id resolves to a section, and this
+resolves a sentence back to the id that carries it — which for an agent is the difference
+between one call and a file printed into a context window per guess.
+
+:::note
+What a section, a block, a non-goal and a criterion are is described in [the model](/roadkeep/docs/model/); this page is what the verbs over them take.
+:::
+
+<VerbTable family="sections" />

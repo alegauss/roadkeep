@@ -38,7 +38,7 @@ from roadkeep import commanding, describing
 from roadkeep.config import Config
 
 HERE = Path(__file__).resolve().parent.parent
-SITE = HERE / "site"
+SITE = HERE / "site" / "docs"
 PAGES = SITE / "src" / "content" / "docs" / "reference"
 COMPONENT = SITE / "src" / "components" / "VerbTable.astro"
 GENERATOR = SITE / "scripts" / "commands.mjs"

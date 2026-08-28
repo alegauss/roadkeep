@@ -1,21 +1,30 @@
 {
-  "name": "roadkeep-docs",
+  "name": "roadkeep-site",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "The documentation area, at /roadkeep/guide/. Its own npm project, outside the governed store, building into it.",
+  "description": "The public site for roadkeep. The copy lives in one module and the sections only render it.",
   "scripts": {
-    "prebuild": "node scripts/commands.mjs && node scripts/findings.mjs && node scripts/config.mjs && node scripts/session.mjs && node scripts/walkthrough.mjs && node scripts/owned.mjs && node scripts/budget.mjs",
-    "dev": "npm run prebuild && astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "postbuild": "node scripts/twins.mjs"
+    "dev": "vite",
+    "build": "tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir dist-server && node scripts/prerender.mjs && npm run build:docs",
+    "build:client": "vite build",
+    "build:docs": "npm --prefix docs run build",
+    "dev:docs": "npm --prefix docs run dev",
+    "prerender": "vite build --ssr src/entry-server.tsx --outDir dist-server && node scripts/prerender.mjs",
+    "typecheck": "tsc -b",
+    "test": "node --test scripts/*.test.mjs",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.41.9",
-    "astro": "^7.2.9"
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
-    "node-html-parser": "^9.0.2"
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@vitejs/plugin-react": "^6.1.0",
+    "node-html-parser": "^9.0.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2"
   }
 }
