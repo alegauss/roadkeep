@@ -119,13 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
 | C — Query (consult without reading the file) | 0 | 140 | 2 |
-| D — The gate | 0 | 199 | 2 |
-| E — Adoption | 0 | 112 | 1 |
+| D — The gate | 1 | 199 | 2 |
+| E — Adoption | 1 | 112 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
-| I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 13 | 0 |
-| **Total** | 0 | 897 | 12 |
+| I — The documentation area (what an adopter reads before there is a session to ask) | 3 | 13 | 0 |
+| **Total** | 5 | 897 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1412** (deps: —) **The area's build runs on changes to site and docs, and every page it generates is read out of src** — A renamed verb or flag changes the reference and can break the build, and no job runs until somebody happens to touch the area itself. → §RK1412
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -30,7 +30,11 @@
 
 ## Block D — The gate
 
+- 📋 **RK1416** (deps: —) **The decision field explain publishes is the same string as the cause on every code that carries one** — A field that never differs is either unfilled or a second name for its neighbour, and a consumer rendering both prints one sentence twice under two headings. → §RK1416
+
 ## Block E — Adoption
+
+- 📋 **RK1415** (deps: —) **A project whose roadmap already exists cannot reach a first roadkeep.toml through any verb** — init refuses where the files are there and declare adds a role rather than choosing a prefix, so the first step of every real adoption is a hand edit. → §RK1415
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
@@ -39,6 +43,10 @@
 ## Block H — The tool's own shape (what one verb costs to change)
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
+
+- 📋 **RK1412** (deps: —) **The area's build runs on changes to site and docs, and every page it generates is read out of src** — A renamed verb or flag changes the reference and can break the build, and no job runs until somebody happens to touch the area itself. → §RK1412
+- 📋 **RK1413** (deps: —) **Most finding codes have no hand-written situation, so their page classifies the error and never names it** — The reader arriving from a failed job needs the sentence saying what they did, and a page carrying only the class is the answer they already had. → §RK1413
+- 📋 **RK1414** (deps: —) **The order of the reference pages is a number typed into each one, on pages whose every other fact is derived** — Dispatch order is what the parser declares, so a hand-written sidebar number is the one thing about a generated page that can disagree with it. → §RK1414
 
 ## Done when — Block D
 

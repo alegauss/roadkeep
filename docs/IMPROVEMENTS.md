@@ -81,7 +81,44 @@ already written, not authorship.
 
 ## Block D — The gate
 
+### §RK1416 A published field that never says anything new
+
+`explain --json` carries `cause` and `decision`. Twenty-one codes carry a decision and
+on every one of them it is byte-identical to the cause. Found while rendering the
+finding pages (RK1403), where the page printed the same sentence under *What it means*
+and again under *Choosing between them* — a reader concludes the second is an answer to
+something the first did not cover.
+
+The field is not pointless in principle. A `decide` finding has more than one door and
+what to weigh between them is a real thing to say; the causes are written as lead-ins to
+those doors, so a cause that reads as a decision is a cause doing two jobs.
+
+Three shapes, and they are not equivalent. The field is filled with what it was meant to
+hold, and the pages gain the half a reader most needs. Or it is dropped, and the doors
+are the whole answer. Or it is kept and documented as a duplicate, which is the one that
+should be argued against: a published key nobody may rely on is a schema that costs a
+consumer a reader for nothing.
+
 ## Block E — Adoption
+
+### §RK1415 The first configuration, which no verb writes
+
+The walkthrough RK1406 captured has two hand edits in it, and the first is this one.
+`init` scaffolds the configuration **and** the files it declares, so it refuses outright
+where a roadmap is already there — correctly, since it would otherwise overwrite one.
+`declare` adds a role to an existing configuration and does not choose a prefix. Between
+them there is no door onto the case that matters most: a repository with a backlog
+somebody has kept by hand.
+
+So the adopter writes the file. That is not fatal — it is three keys — but it is the
+first thing they do, it is the step no command list mentions, and it is where an
+adoption is abandoned. `adopt` already reads the file and *infers the prefix from the
+ids it finds*, which is the whole of what the hand edit supplies.
+
+The shape to argue about is whether this is a flag on `init` that adopts rather than
+scaffolds, or a widening of `declare` to write the file it is adding to. The first keeps
+one verb per job; the second is where a reader already looks after `init` has refused
+them and named it.
 
 ## Block F — The plugin
 
@@ -90,3 +127,66 @@ already written, not authorship.
 ## Block H — The tool's own shape (what one verb costs to change)
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
+
+### §RK1412 The generated area depends on the package, and CI does not know it
+
+Every generator under `site/scripts/` invokes this package: the verb reference comes off
+`commands --json`, the finding pages off `explain --json`, the configuration reference
+off `config --json` and the session prices off `cost`. The pages are therefore a
+function of `src/`.
+
+`site.yml` runs on `site/**`, `docs/**` and its own file. A commit that renames a flag,
+adds a verb family or changes a description touches none of those, so the job that would
+have rebuilt the reference does not run — and the next build to run is somebody else's,
+on a commit that did not cause the problem.
+
+Two shapes are possible and they are not the same. Adding `src/**` to the trigger is one
+line and rebuilds the area on every package change, which is most commits here. Making
+the gate's existing `tests` job carry the assertion is the other: the suite already
+holds the pages against the payload, so what is missing is only that a *build* of the
+area runs where a parser changed.
+
+The second is the smaller standing cost and the one to argue against first: the tests
+hold the joins and not whether Astro still compiles the page, which is the failure this
+is about.
+
+### §RK1413 The situations, and the reader who is still not answered
+
+RK1403 shipped a page per finding code and the half that is generated: the class, what
+raises it, the doors that close it. The half no read derives is the **situation** — the
+ordinary act that put somebody there — and thirty-five of a hundred and nineteen codes
+carry one.
+
+The build prints the shortfall on every run rather than hiding it, which is why this is
+a task and not a discovery. What it costs is narrow and real: a reader who lands on an
+undescribed code gets `explain` rendered as a web page, which is what they could already
+have run.
+
+The ones written first were chosen by where a reader actually arrives — the mechanical
+fixes, the merge damage, the two id collisions. What is left is a long tail, and the
+tail is where a situation is worth *most*, because those are the codes nobody meets
+often enough to have learnt.
+
+The failure to avoid is padding. A sentence that restates the cause makes a page say one
+thing twice, which is worse than an absence — the suite already refuses that shape, and
+it is the reason this cannot be closed by writing eighty-four sentences quickly.
+
+### §RK1414 The one hand-written number on a generated page
+
+Each verb family's page carries `sidebar.order` in its frontmatter, and the six numbers
+put the families in the order `build_parser` calls them: writing, then the gate, then
+prose, then shipping, then the reads, then adoption.
+
+That order is a fact the parser already holds — the payload's `family` field is emitted
+in walk order — so the numbers are a second statement of it. A test holds them against
+that order today, which is the right shape and is also the evidence: a fact worth
+asserting is usually one worth deriving.
+
+What is small about this is also what makes it worth doing. A family added to `verbs/`
+gets a page and needs a number, and choosing one means reading five other files to see
+what is taken. A family removed leaves a gap nothing notices.
+
+The shape is the one the finding pages already use: the generator writes the
+frontmatter, so the order comes off the payload and the page carries prose alone. The
+cost is that a reference page stops being purely hand-written, which is a boundary worth
+stating rather than crossing quietly.

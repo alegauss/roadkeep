@@ -470,7 +470,11 @@ def test_several_things_named_are_a_pool_and_not_a_serial_run() -> None:
     from conftest import _pool
 
     assert pytest_xdist_auto_num_workers(_Asked("a.py", "b.py")) == 2
-    assert pytest_xdist_auto_num_workers(_Asked("a.py", "b.py", "c.py::t")) == 3
+    # Through `_pool()` and not as a literal 3: the cap below is not only the large case. CI
+    # has two cores, so the pool *is* two there, and a bare `== 3` asserted this machine's
+    # core count from a file about what the package promises everywhere — green on 28 threads
+    # and red on the runner that publishes, which is where it was found.
+    assert pytest_xdist_auto_num_workers(_Asked("a.py", "b.py", "c.py::t")) == min(3, _pool())
     # Capped at the pool, which is the same ceiling the whole-tree run gets: naming more files
     # than that is asking for the machine, and it is one number that answers both (RK1232).
     many = [f"f{n}.py" for n in range(_pool() + 5)]
