@@ -91,6 +91,11 @@ export default defineConfig({
         { icon: "github", label: "GitHub", href: "https://github.com/alegauss/roadkeep" },
       ],
       customCss: ["./src/styles/area.css"],
+      // JOIN 5 — the contents list (RK1431). Half these pages are a component, and Astro
+      // extracts headings from the MDX it compiles rather than from what a component renders,
+      // so "On this page" was empty on every generated one. `starlightRouteData.ts` puts them
+      // back, reading the declarations the components themselves render from.
+      routeMiddleware: "./src/starlightRouteData.ts",
       // JOIN 3 — the navigation. Derived per directory rather than listed page by page: a
       // reference page is generated from this package (RK1402, RK1403, RK1404), so a hand
       // written sidebar entry would be the one thing about a generated page that is not

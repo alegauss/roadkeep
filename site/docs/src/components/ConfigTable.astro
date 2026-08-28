@@ -8,9 +8,12 @@
 //
 // The **declared** column is this repository's own file, which is the format's conformance
 // fixture: the one configuration that is provably valid, shown rather than transcribed.
+// The tables, their anchors and the fixed section's heading come off `headings.ts`, which is
+// also what tells the contents list these sections are here at all (RK1431).
 import surface from "../data/config.generated.json";
+import { FIXED, configAnchor, configTables } from "../headings";
 
-const tables = [...new Set(surface.keys.map((one) => one.table))];
+const tables = configTables();
 
 /** What a reader is told about a key this project set, or did not. */
 function declares(key) {
@@ -31,7 +34,7 @@ function declares(key) {
     const keys = surface.keys.filter((one) => one.table === table);
     return (
       <section class="table">
-        <h3 id={table || "top-level"}>
+        <h3 id={configAnchor(table)}>
           <code>{table ? `[${table}]` : "the top level"}</code>
         </h3>
         {keys[0]?.note && <p class="note">{keys[0].note}</p>}
@@ -73,7 +76,7 @@ function declares(key) {
 {
   surface.fixed.length > 0 && (
     <section class="table">
-      <h3 id="fixed-by-the-build">Fixed by the build, and not yours to declare</h3>
+      <h3 id={FIXED.slug}>{FIXED.text}</h3>
       <p>
         The boundary of the question above. These are numbers this build measures from a corpus
         rather than accepts from a file, so there is no key for them.

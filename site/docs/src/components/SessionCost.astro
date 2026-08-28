@@ -9,25 +9,25 @@
 // The **withheld** half comes from `commands --json`: a verb that is one role's whole
 // vocabulary is published only where that role is declared, so two projects genuinely see two
 // different lists. That is the fact an adopter otherwise meets as a tool that is not there.
+// The four headings and the withheld list come off `headings.ts`, which is also what tells the
+// contents list these sections are here at all (RK1431) — the condition included, since a
+// project that declared every role publishes no withheld section and must have no entry either.
 import measured from "../data/session.generated.json";
-import surface from "../data/commands.generated.json";
+import { SESSION, withheldTools } from "../headings";
 
 const { tools, session } = measured;
 
 /** The ten most expensive, which is what an author cutting the schema needs. */
 const dearest = tools.by_tool.slice(0, 10);
 
-/** Verbs that have a tool this project is not sent, and the role that would open each. */
-const withheld = surface.commands
-  .filter((one) => one.tools.length > 0 && !one.published)
-  .map((one) => ({ command: one.command, needs: one.needs }));
+const withheld = withheldTools();
 
 function percent(part, whole) {
   return Math.round((part / whole) * 100);
 }
 ---
 
-<h3 id="at-connect">Once, when the client connects</h3>
+<h3 id={SESSION.connect.slug}>{SESSION.connect.text}</h3>
 
 <p>
   A session pays for the tool schemas before it calls anything. Measured against this
@@ -71,7 +71,7 @@ function percent(part, whole) {
   is why a tool description is a budgeted surface and not free prose.
 </p>
 
-<h4 id="dearest">The ten that cost the most</h4>
+<h4 id={SESSION.dearest.slug}>{SESSION.dearest.text}</h4>
 
 <table>
   <thead>
@@ -96,7 +96,7 @@ function percent(part, whole) {
   </tbody>
 </table>
 
-<h3 id="every-turn">On every turn</h3>
+<h3 id={SESSION.everyTurn.slug}>{SESSION.everyTurn.text}</h3>
 
 <p>
   A different cadence, so the two are never added together. These are the files a session loads
@@ -132,7 +132,7 @@ function percent(part, whole) {
 {
   withheld.length > 0 && (
     <>
-      <h3 id="withheld">What this project is not sent</h3>
+      <h3 id={SESSION.withheld.slug}>{SESSION.withheld.text}</h3>
       <p>
         A verb that is one role's whole vocabulary is published only where that role is declared,
         so two projects see two different lists. On this repository{" "}

@@ -9,7 +9,10 @@
 // What generation cannot supply is *why* a verb exists, which is most of what a reader came
 // for. That is the prose above this component on each page, written once — so regenerating
 // never edits an argument, and editing an argument never touches a table.
+// The anchor comes off `headings.ts`, which is also what tells the contents list these
+// sections are here at all (RK1431) — a heading a component renders is in no page source.
 import surface from "../data/commands.generated.json";
+import { anchorOf } from "../headings";
 
 interface Props {
   /** Which module under `verbs/` declares them — the `family` field the payload carries. */
@@ -53,7 +56,7 @@ function notes(argument) {
 {
   commands.map((one) => (
     <section class="verb">
-      <h3 id={one.command.replace(/ /g, "-")}>
+      <h3 id={anchorOf(one.command)}>
         <code>{one.command}</code>
       </h3>
       <p class="verb-kind">
