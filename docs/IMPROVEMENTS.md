@@ -91,28 +91,6 @@ already written, not authorship.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-### §RK1409 The area's own budget, held by something that refuses
-
-The measurement that started this project is what an unbounded prose file costs: an
-index at 186 KB while declaring itself an index, a rationale file at 539 KB while scoped
-to unshipped work. A documentation area is that same invitation with better typography —
-every page has room, nothing refuses a paragraph, and six of the eight worst lines were
-written by the author who then diagnosed the drift.
-
-So the area declares its own numbers and something holds them, the way `[budgets]` holds
-the every-turn files: a word budget per page, measured against the pages that already
-read well rather than picked, and a rule that a page restating a count fails.
-
-What this cannot be is a lint about prose quality. The limit is a number a build checks,
-and what it buys is what the write path buys — the question "what would I cut?" never
-arrives, because the ceiling was known before the first sentence was composed.
-
-Generated content is the exception. A verb page's table is as long as the parser makes
-it, and cutting it would be editing a schema to fit a budget, so the budget is over the
-prose an author wrote and the generated half is counted and reported apart. The number
-goes where every other number in this project goes — declared in configuration, argued
-above the key, and refused if this corpus already breaks it.
-
 ### §RK1410 A fetchable twin per page, and the index that has to name it
 
 `llms.txt` exists because a model reading this project should not have to render a
