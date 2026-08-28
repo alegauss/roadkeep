@@ -209,7 +209,13 @@ def test_the_command_exits_one_when_the_tree_stopped_agreeing(tmp_path, capsys):
     path = tmp_path / "capture.json"
     path.write_text(json.dumps(recorded), encoding="utf-8")
     assert main(["replay", str(path)]) == EXIT_GATE
-    assert "still reproduces" in capsys.readouterr().out
+    printed = capsys.readouterr()
+    assert "still reproduces" in printed.out
+    # And it closes on that and nothing else (RK1420): a capture is already a report about
+    # this tool, so an offer to capture the answer to one is the regress `report` itself is
+    # excluded for. Covered by the parser being read-only and asserted rather than assumed,
+    # this being the verb where the question is least obvious.
+    assert "capture it before the session ends" not in printed.err
 
 
 def test_a_file_that_is_not_a_capture_is_refused_and_not_staged(tmp_path, capsys):

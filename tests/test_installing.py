@@ -446,6 +446,32 @@ def test_check_is_the_gate_and_the_exit_code_is_the_contract(project, source, ca
     assert "would update" in capsys.readouterr().out
 
 
+def test_the_check_closes_on_its_own_answer_and_never_on_a_doubt(project, source, capsys):
+    """RK1420, and RK1419's rule reaching the third verb. This 1 says the surfaces differ and
+    already carries `roadkeep install` as the write that closes it, so RK86's offer would end
+    a complete report with two lines about the tool possibly being wrong — on the verb an
+    adopter runs while wiring, which is the moment they can least tell.
+
+    Stated by the run rather than by the parser: `install` returns this code from nowhere
+    else, so a declaration standing over the whole verb would be about a branch that does not
+    exist.
+    """
+    argv = ["-C", str(project), "install", "--source", str(source), "--check"]
+    assert main(argv) == 1
+    printed = capsys.readouterr()
+    assert "surface(s) differ" in printed.err, "the check said nothing at all"
+    assert "capture it before the session ends" not in printed.err
+
+
+def test_a_real_install_that_refuses_still_offers(project, capsys):
+    """The other side of the same run. What `install` returns when the input is wrong is 2,
+    and that is RK86's measured case — a caller who thinks the refusal is wrong. Only the
+    check's own 1 is the verdict."""
+    code = main(["-C", str(project), "install", "--source", str(project / "nowhere")])
+    assert code == 2
+    assert "capture it before the session ends" in capsys.readouterr().err
+
+
 # -- the fifth surface (RK148) ------------------------------------------------
 
 
@@ -691,7 +717,12 @@ def test_uninstall_check_is_the_same_answer_and_writes_nothing(project, source, 
     install(project, source=source)
     argv = ["-C", str(project), "uninstall"]
     assert main([*argv, "--check"]) == 1
-    assert "would delete" in capsys.readouterr().out
+    printed = capsys.readouterr()
+    assert "would delete" in printed.out
+    # The same verdict one verb over (RK1420), and the state RK1420's own reading left open:
+    # this check was measured only where it exits 0, so what it says when it has something to
+    # report was a read nobody had taken.
+    assert "capture it before the session ends" not in printed.err
     assert (project / PROJECT_MCP).is_file(), "a check that un-wired reports clean"
     assert main(argv) == 0
     assert main([*argv, "--check"]) == 0

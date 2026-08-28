@@ -294,6 +294,13 @@ def _install(config: Config, args: argparse.Namespace) -> int:
             for line in intent.verdict():
                 print(line, file=sys.stderr)
     if args.check and intent.changing:
+        # Stated by the **run** and not by the parser (RK1420): this verb returns `EXIT_GATE`
+        # from nowhere else, so a declaration standing over the whole of it would be a claim
+        # about a branch that does not exist, and the one place it could rot. What this 1
+        # says is that the surfaces differ — an answer, already carrying `roadkeep install`
+        # as the write that closes it — so RK86's offer would close a complete report with a
+        # doubt about it, on the verb an adopter runs while wiring.
+        args.verdict = True
         return EXIT_GATE
     return EXIT_OK
 
@@ -416,6 +423,9 @@ def _uninstall(config: Config, args: argparse.Namespace) -> int:
             for line in intent.verdict():
                 print(line, file=sys.stderr)
     if args.check and intent.changing:
+        # `_install`'s reason one function over: a check that found entries to take out is a
+        # report, and the write that closes it is the same verb without the flag.
+        args.verdict = True
         return EXIT_GATE
     return EXIT_OK
 

@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1420** (deps: —) **install --check closes a complete answer with the capture offer, on the verb an adopter runs while wiring** — Its exit 1 says the surfaces differ and names the write that closes them, which is the verdict RK1419 declared for two verbs and never asked of this one. → §RK1420
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

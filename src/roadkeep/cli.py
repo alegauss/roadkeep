@@ -487,9 +487,11 @@ def _behind(config: Config, args: argparse.Namespace) -> int | None:
 def _is_verdict(args: argparse.Namespace) -> bool:
     """Whether this parser said its `EXIT_GATE` is an answer rather than a fall (RK1419).
 
-    Read off `args` for `_only_reads`'s reason: the fact belongs to the parser that declares
-    it, and a handler that knows better about its own run — `repair`, for a step that came
-    back non-zero — sets it back to false on the namespace it was handed.
+    Read off `args` for `_only_reads`'s reason: the fact belongs to whoever knows it. A
+    parser declares it where every exit of that verb means one thing (`lint`, `repair`); a
+    handler writes it where a flag decides — `repair` sets it back to false for a step that
+    came back non-zero, and `install --check` sets it true, its verb having no other route
+    to that code.
 
     Absent on every verb that never declared one, which is the default and is right: a write
     exiting 1 is a fall unless somebody has said what else it could be.
@@ -632,13 +634,19 @@ def _may_offer(
     refusal and keeps the offer, and a `lint` that *crashed* keeps it too — `faulted` is how
     that 1 says it was not a verdict.
 
-    Which of the two an exit is comes from **the parser** and not from whether it writes
-    (RK1419). RK271 read `_only_reads`, and that is a different question: `lint --fix` is the
-    same report by the same reader and takes the lock, so it closed the busiest correct
-    answer this tool gives by suggesting the tool was wrong — and so did `repair`, which the
-    report tells a reader to reach for. `verdict` is the declaration, one fact per verb, and
-    a run may withdraw it: `repair` does, for a step whose argv came back non-zero.
-    `_only_reads` stays beside it because it is true of every read that never declared one.
+    Which of the two an exit is comes from **the declaration** and not from whether the
+    command writes (RK1419). RK271 read `_only_reads`, and that is a different question:
+    `lint --fix` is the same report by the same reader and takes the lock, so it closed the
+    busiest correct answer this tool gives by suggesting the tool was wrong — and so did
+    `repair`, which the report tells a reader to reach for. `_only_reads` stays beside it
+    because it is true of every read that never declared one.
+
+    `verdict` is written from **either end** (RK1420). A parser states what its exit usually
+    means, and a run states what this one did: `repair` withdraws it for a step whose argv
+    came back non-zero, and `install --check` asserts it, that verb returning `EXIT_GATE`
+    from nowhere else — so a declaration standing over the whole of it would be a claim
+    about a branch that does not exist. Which end says it is decided by where the fact is:
+    on the verb where every exit means one thing, and on the run where a flag decides.
 
     A validation refusal keeps the offer either way: that is the case RK86 measured, and the
     one where the limit really might be wrong.

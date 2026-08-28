@@ -81,30 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1420 The third verb whose exit 1 was already an answer
-
-Measured on a scaffolded tree with nothing wired: `install --check` prints *3 surface(s)
-differ from what this checkout ships: `roadkeep install` writes them*, exits 1, and then
-closes with two lines about roadkeep possibly being wrong.
-
-That is RK1419's case exactly. The answer is complete, it names its own remedy, and the
-reader is being told the tool may be at fault about a report that is correct — on the
-verb an adopter runs while wiring, which is the moment they are least able to tell.
-
-`uninstall --check` is the same code shape one function over and was measured only in
-the state where it exits 0, so what it does when it has something to report is a read
-and not a claim yet.
-
-RK1419 stopped at the two verbs it measured and left the sweep undone: the flag it added
-is a per-parser declaration, so joining is one keyword and the work is deciding which of
-the remaining `EXIT_GATE` sites are verdicts. Two are already answered and stay as they
-are — `merge` writes git's conflict markers when it could not prove its own output,
-which is what RK484's offer exists for, and `merge --check` is read-only and already
-silent.
-
-What needs checking beside these is `replay`, whose subject is a capture: an offer to
-capture a capture is close to the regress `report` is excluded for.
-
 ## Block E — Adoption
 
 ## Block F — The plugin
