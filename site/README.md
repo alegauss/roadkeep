@@ -53,6 +53,17 @@ apart: regenerating never edits an argument, and editing an argument never touch
 `tests/test_reference.py` holds the joins — a family with no page, a page with no family, and a
 component reading a key the payload does not publish.
 
+`scripts/findings.mjs` does the same for the gate's finding codes: `roadkeep explain --json`
+gives the class, what raises it and which doors close it, and one page per code is written
+under `src/content/docs/findings/`. Those pages are for the reader who has **not** adopted the
+tool — somebody looking at a failed job or a denied write, whose code pasted into a search
+engine resolves to nothing today.
+
+The half no read can derive is the **situation**: the ordinary act that put them there. Those
+are hand-written in `src/data/situations.json`, which is committed while the pages are not. Most
+codes have none yet and the generator prints how many on every build — a coverage figure nobody
+sees is one nobody closes. A key naming a code this build does not have fails the build.
+
 **No page restates prose another file owns.** The six laws, the measured problem and the
 non-goals each have an owner in the repository and three have a verb that prints them; a fifth
 copy here is the accretion this tool exists to refuse, and the copy nobody is looking at is the

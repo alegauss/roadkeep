@@ -58,6 +58,14 @@ export default defineConfig({
       // generated, and it would go missing exactly when a verb is added.
       sidebar: [
         { label: "Reference", items: [{ autogenerate: { directory: "reference" } }] },
+        // A hundred-odd codes, grouped by the family the gate prints them under and collapsed:
+        // the reader who wants one of these arrives from a search engine or from a failed job
+        // with the code in hand, so this list is for browsing and never the way in (RK1403).
+        {
+          label: "Findings",
+          collapsed: true,
+          items: [{ autogenerate: { directory: "findings", collapsed: true } }],
+        },
       ],
       // No "edit this page": the footer already links the repository, and a second link per
       // page is a claim about a contribution flow this project has not written down.

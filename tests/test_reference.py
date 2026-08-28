@@ -166,14 +166,18 @@ def test_the_generated_file_is_never_committed():
         for line in (SITE / ".gitignore").read_text(encoding="utf-8").splitlines()
         if line.strip() and not line.lstrip().startswith("#")
     ]
-    assert any(one.rstrip("/") == "src/data" for one in ignored)
+    # By what generated it and never by directory: `src/data/` also holds the hand-written
+    # half of a finding page (RK1403), which ignoring the directory would have left out of
+    # the repository entirely.
+    assert "src/data/*.generated.json" in ignored
+    assert not [one for one in ignored if one.rstrip("/") == "src/data"]
 
 
 def test_the_generator_runs_before_both_entry_points():
     """A `build` that regenerates and a `dev` that does not is a preview of something no
     deploy will ever show — which is the class of defect a person only finds in production."""
     scripts = json.loads((SITE / "package.json").read_text(encoding="utf-8"))["scripts"]
-    assert scripts["prebuild"] == "node scripts/commands.mjs"
+    assert "node scripts/commands.mjs" in scripts["prebuild"]
     # npm runs `prebuild` before `build` on its own; `dev` is not a lifecycle name npm hooks,
     # so that one has to say so.
     assert "prebuild" in scripts["dev"]

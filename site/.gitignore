@@ -4,4 +4,9 @@
 node_modules
 .astro
 *.local
-src/data/
+
+# What the build derives from the tool itself (RK1402, RK1403). Ignored by what generated it
+# and never by directory: `src/data/` also holds situations.json, which is the hand-written
+# half of a finding page and the one thing on it no read can derive.
+src/data/*.generated.json
+src/content/docs/findings/

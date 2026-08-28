@@ -1,0 +1,69 @@
+{
+  "_comment": [
+    "The half of a finding page no read can derive (RK1403): the ordinary act that put the",
+    "reader here. `explain` classifies — what the code means and which doors close it — and a",
+    "classification is not what somebody staring at a failed job needs first. What they need is",
+    "the sentence naming what they did, which is a fact about how people work and not about the",
+    "schema, so it is written once per code and never generated.",
+    "",
+    "Not every code has one yet, and the generator prints how many do not rather than leaving",
+    "the shortfall to be discovered. A key here that names no live code fails the build: a",
+    "renamed code must not keep a sentence describing a check that is gone.",
+    "",
+    "Written in the second person and in one or two sentences. A situation that restates the",
+    "cause is worse than none, because the page then says the same thing twice and the reader",
+    "concludes the second half is the answer."
+  ],
+
+  "char.bom": "Almost always an editor on Windows that saved the file as \"UTF-8 with BOM\", or a script that wrote it with Python's `utf-8-sig`. Nothing renders differently, which is why it survives review.",
+  "char.invisible": "Usually text pasted out of a browser, a chat client or a PDF, which carry zero-width joiners and variation selectors that no editor shows. The line looks correct because it is correct on screen.",
+  "char.mixed-endings": "A file edited on two machines with different `core.autocrlf` settings, or a script that rewrote the whole file with Python's `write_text` — which normalises every line ending, not just the ones it touched.",
+  "char.space": "A non-breaking space, typically from a word processor or a chat client's autocorrect. The grammar reads the fields either side of it as one word, so the line stops parsing for a reason nothing on screen shows.",
+  "char.tab": "An editor configured to indent with tabs, in a format that separates fields with a single space.",
+
+  "line.non-canonical": "A hand edit to a line that a verb would have written differently — an extra space, a reordered field, a bold marker that did not close. The line still parses, which is why nothing complained at the time.",
+  "line.too-long": "You wrote the sentence before asking what room it had. `budget` prices both fields before a word is composed, which is the call that stops this arriving at all.",
+  "line.unparsed": "Nearly always a textual merge that joined two lines, or a paste that lost the leading `- `. Every verb that starts from a task line skips this one silently, so a backlog can be quietly short by one.",
+
+  "deps.cycle": "Two tasks each written as waiting on the other, usually because they were filed in one session and the dependency was stated from both ends.",
+  "deps.duplicate": "A merge that took both sides of a dependency field. Git resolved it by keeping both, which is correct for text and wrong for a set of addresses.",
+  "deps.self": "A copy-paste of an existing line where the id was updated in the symptom and not in the dependency field.",
+  "deps.stale": "Somebody shipped or retired the line this one waits on without going through `ship`, so the cached annotation still describes the old state.",
+  "deps.unknown": "Either a typo in the id, or a dependency on work that was discussed and never filed. The second is the common one and the reason this is a decision rather than a fix.",
+  "deps.compound": "You passed several ids in one `--dep`, separated by a comma. The flag is repeatable, which is how the parser is told they are separate addresses.",
+  "deps.retired": "The line you were waiting on was closed as work that will not be done, so nothing is coming — this one is ready and does not know it.",
+
+  "id.duplicate": "Usually a merge where two branches each added a line and the id counter had not yet seen the other. It is also what a hand-written id produces the first time two people are working at once.",
+  "id.format": "An id typed by hand rather than derived, on a project whose `[ids]` declares a padding or a suffix that `next-id` would have produced.",
+  "id.two-files": "A session that shipped the work and wrote the ledger entry, then had its roadmap edit reverted or restored from another branch.",
+  "id.reserved": "The project declared this address spoken for — usually an id cited in prose before the line existed — and a write tried to use it anyway.",
+
+  "block.missing": "A line filed under a block label that was never declared, most often a letter chosen while writing rather than read off `block list`.",
+  "block.repeated": "A merge that appended a second heading for a block that already had one. Both headings render, and everything under the later one is invisible to a reader who stops at the first.",
+  "block.unrecorded": "The roadmap plans work under a block the ledger has no heading for, so the first `ship` into it would have nowhere to put the entry.",
+
+  "body.empty": "A `section add` that created the heading and never got the prose, usually because the pipe it was going to read from was empty.",
+  "body.promise": "A rationale section that cites an id no line carries. Almost always an id written into prose while planning, which the deriver then reads as spent — so the next `add` skips it and nothing ever occupies the number.",
+
+  "ref.unresolved": "The pointer on a task line resolves to nothing: the section was deleted, or the anchor was renamed without the line being amended.",
+
+  "section.orphan": "Usually a design written for work that was then filed under a different id, or a section whose line was retired without the prose being dropped.",
+
+  "section.stale": "The task shipped and `ship` deletes the section it argued for — so a section that outlived its line means somebody restored it, or shipped the line by editing the files rather than by calling the verb.",
+
+  "export.stale": "The projection between the markers is derived, and something changed the files it summarises without re-running `export`. Every character between those markers is rewritten, so nothing you type there survives.",
+
+  "path.missing": "A shipped ledger entry names a file that has since been moved or deleted. The path is prose in a historical record, so this is a decision about the record and not a broken link to repair.",
+
+  "priority.config": "The queue moved into the roadmap's own `## Priority` section and a `priority` list was left behind in `roadkeep.toml`. The section wins, so the config entry is an order nothing reads.",
+
+  "file.missing": "A role declared in `[files]` whose file has not been created — usually a `declare` run before the file existed, or a file deleted without the declaration being taken out.",
+
+  "file.not-text": "The file's bytes did not survive whatever wrote them — a truncated checkout, a failed sync, an editor that saved as binary. The store is the repository, so the recovery is git's rather than this tool's.",
+
+  "install.stale": "The wired launcher, hook or skill were written by an older copy of roadkeep than the one answering now, which happens whenever the package is upgraded without re-running `install`.",
+
+  "gate.behind": "The copy of roadkeep judging this tree is older than the one `[install] pinned` names — typically a plugin cache that has not caught up with the checkout.",
+
+  "engine.disagreement": "More than one copy of roadkeep is reachable — a checkout, a plugin cache, an installed package — and they are not the same version. Which one answered decides what a refusal means."
+}

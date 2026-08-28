@@ -124,12 +124,12 @@ called unbuilt were already in the ledger.
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
-| I — The documentation area (what an adopter reads before there is a session to ask) | 8 | 5 | 0 |
-| **Total** | 8 | 888 | 12 |
+| I — The documentation area (what an adopter reads before there is a session to ask) | 7 | 6 | 0 |
+| **Total** | 7 | 889 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1403** (deps: RK1398 ✅) **A finding code pasted into a search engine resolves to nothing, and explain answers only from an installed copy** — The reader meeting a code is the one who has not adopted the tool — a failed job, a denied write — so the answer is behind the door the code is keeping shut. → §RK1403
+- 📋 **RK1404** (deps: RK1398 ✅) **Writing a first configuration file needs the read that describes it, which needs a configured tree to answer** — Every path, marker and limit a project will live under is decided in that file, and the only description of its keys is a command the reader cannot run yet. → §RK1404
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

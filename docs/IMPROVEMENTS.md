@@ -91,28 +91,6 @@ already written, not authorship.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-### §RK1403 A page per finding code, for the reader arriving with an error
-
-The gate names a code, and `explain` says what the class is, what produces it and which
-doors close it. Both answers live in an installed copy, so the reader who needs them
-most has the least: a person looking at a failed CI job, or at a hook that has just
-denied a write, in a repository they have not adopted.
-
-Pasted into a search engine, those strings resolve to nothing today. A page per code —
-the class, what raises it, the command that closes it, and whether the mechanical pass
-or `repair` reaches it — is the one part of this area whose reader arrives with an error
-message rather than a question.
-
-They come off the same table `explain` reads, for the reason the verb pages do: a code
-added to the gate is documented in the commit that adds it, and one deleted stops being
-documented rather than becoming a page about a check nobody runs.
-
-What each page adds by hand is the situation. A code is a classification; what the
-reader needs is the sentence naming the ordinary act that put them there — a textual
-merge that doubled a heading, a vendored surface left behind by an upgrade, a section
-deleted while a line still pointed at it. That sentence is written once per code and is
-the half no read can derive.
-
 ### §RK1404 The configuration reference, rendered from the read that owns it
 
 `roadkeep.toml` is the whole of the sixth law: prefix, id shape, paths, markers, limits,
