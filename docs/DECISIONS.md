@@ -86,6 +86,7 @@ JSON of the same join would be the drift this projection exists to have none of.
 - ✅ **RK1322** **the tree is split between two line terminators and nothing reads which a file is, so an append lands in the wrong one** — A checkout uniformly either terminator is editable; one that is both is not, and that is the state a tree-wide invariant refuses.
 - ✅ **RK1323** **this repository declares no [criteria], so the fixture that proves the format does not exercise a table init now writes** — A table this tool scaffolds into every new project is one its own conformance fixture carries, or the format is proven by tests and not by the artefact.
 - ✅ **RK1394** **nothing deletes a capture whose task shipped, so the reports directory grows for ever and is cleared by hand** — Evidence is deleted only on proof, never on age: a capture goes when the ledger answers for it, and a state this project cannot check leaves the file where it is.
+- ✅ **RK1416** **The decision field explain publishes is the same string as the cause on every code that carries one** — A payload publishes the sentence once: explain drops decision because cause is derived from it, and repair keeps it because nothing there states it twice.
 
 ### §RK1394 Proof, not age
 
@@ -100,6 +101,26 @@ by construction and never provably spent, an id no governed file holds is a link
 nothing, and an id still open is the evidence for a line nobody shipped. The reasons are
 the output — a sweep that removed three files and said nothing about the four it left
 asks its reader to re-derive the reading.
+
+### §RK1416 Why the key was dropped rather than filled
+
+Twenty-one `decide` codes carried a `decision`, and on every one it was the cause:
+`_cause` derives a non-`fix` row's cause *from* it, so the two keys were one string by
+construction.
+
+Filling it instead contradicts a rule this module already holds: a `decide` door states
+the defect in order to say what choosing it means, and `_Rule.cause` refuses a second
+sentence beside it. Twenty-one new ones would be that drift, one layer up.
+
+Keeping it and documenting the duplication was rejected outright: a published key nobody
+may rely on costs every consumer a reader and buys none of them anything.
+
+Accepted: `explain --json` lost a key. Nothing read it but a generator here, and `kind`
+already says the doors are alternatives.
+
+The narrowness is the decision. `Remedy.payload` keeps `decision`, because `repair
+--json` publishes a finding with no cause beside it. The seam is whether a neighbour
+already says it.
 
 ## Block E — Adoption
 

@@ -149,14 +149,10 @@ for (const finding of codes) {
     lines.push("");
   }
 
-  // `decision` is what to weigh when several doors are open, and on this build it is the same
-  // string as `cause` for every code that carries one. Rendered only where the two differ, so
-  // the page never says one thing twice under two headings — which reads as though the second
-  // were an answer to something the first did not cover.
-  if (finding.decision && finding.decision.trim() !== finding.cause.trim()) {
-    lines.push("## Choosing between them", "", sentence(finding.decision), "");
-  }
-
+  // No "Choosing between them" heading. `explain` used to publish `decision` beside `cause`
+  // as the same string on every code that carried one, and this guarded against rendering it
+  // twice; RK1416 took the duplicate out of the payload, so the guard has nothing left to
+  // guard and the cause is the sentence. What a `decide` row needs said is said by `KINDS`.
   writeFileSync(join(directory, `${finding.code}.mdx`), lines.join("\n"), "utf-8");
 }
 

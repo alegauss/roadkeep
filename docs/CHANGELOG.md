@@ -626,6 +626,7 @@
 - ✅ **RK1391** **a frozen fixture nobody declared is read by nothing and reported by nothing, though the table says otherwise** — The frozen root's directories are confronted with the rows that declare them, so an undeclared fixture is a red (design recorded in `tests/test_backlog.py`).
 - ✅ **RK1394** **nothing deletes a capture whose task shipped, so the reports directory grows for ever and is cleared by hand** — `capture sweep` deletes a capture whose filed id the ledger records as shipped, and names the three states it cannot prove spent rather than guessing at them.
 - ✅ **RK1411** **lint died with a RuntimeError traceback on a machine whose environment names no home directory** — Path.home() raises rather than answering, and three readers on the path lint takes through engines called it unguarded; no home now means no plugin is installed, which is an answer.
+- ✅ **RK1416** **The decision field explain publishes is the same string as the cause on every code that carries one** — explain --json publishes cause and no decision, so no finding page can print one sentence under two headings.
 
 ## Block E — Adoption
 

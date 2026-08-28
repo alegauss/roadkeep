@@ -679,6 +679,43 @@ def test_a_decision_keeps_what_separates_its_doors():
         assert door.what in rendered, door.argv
 
 
+def test_the_explanation_publishes_no_key_that_repeats_another(capsys):
+    """RK1416. `explain --json` used to carry `cause` and `decision`, and :func:`_cause`
+    derives one from the other — so on all twenty-one `decide` codes they were byte-identical,
+    and the finding pages printed one sentence under two headings.
+
+    Asserted as *no pair of equal values* rather than as the absent key, because the defect is
+    the duplication and a second one added later would read exactly the same to a consumer.
+    """
+    for code in codes():
+        found = explain(code)
+        assert found is not None, code
+        published = found.payload()
+        assert "decision" not in published, code
+        sentences = [
+            (key, value)
+            for key, value in published.items()
+            if isinstance(value, str) and value.strip()
+        ]
+        repeated = {
+            (a, b)
+            for a, first in sentences
+            for b, second in sentences
+            if a < b and first.strip() == second.strip()
+        }
+        assert not repeated, f"{code}: {sorted(repeated)}"
+
+
+def test_a_repair_still_publishes_what_to_weigh_between_two_doors():
+    """The key is dropped from the *explanation* and not from the remedy: `repair --json`
+    prints a left-over finding with no `cause` beside it, so there the decision is the only
+    statement of what to choose between — taking it out would lose it, not stop repeating it.
+    """
+    found = remedy(_finding("id.duplicate"))
+    assert found is not None and found.kind == "decide"
+    assert found.payload()["decision"] == explain("id.duplicate").cause
+
+
 def test_a_code_this_gate_cannot_report_is_refused_with_the_near_ones(capsys):
     from roadkeep.cli import EXIT_USAGE, main
 

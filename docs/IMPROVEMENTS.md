@@ -81,24 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1416 A published field that never says anything new
-
-`explain --json` carries `cause` and `decision`. Twenty-one codes carry a decision and
-on every one of them it is byte-identical to the cause. Found while rendering the
-finding pages (RK1403), where the page printed the same sentence under *What it means*
-and again under *Choosing between them* — a reader concludes the second is an answer to
-something the first did not cover.
-
-The field is not pointless in principle. A `decide` finding has more than one door and
-what to weigh between them is a real thing to say; the causes are written as lead-ins to
-those doors, so a cause that reads as a decision is a cause doing two jobs.
-
-Three shapes, and they are not equivalent. The field is filled with what it was meant to
-hold, and the pages gain the half a reader most needs. Or it is dropped, and the doors
-are the whole answer. Or it is kept and documented as a duplicate, which is the one that
-should be argued against: a published key nobody may rely on is a schema that costs a
-consumer a reader for nothing.
-
 ## Block E — Adoption
 
 ### §RK1415 The first configuration, which no verb writes

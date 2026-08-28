@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1416** (deps: —) **The decision field explain publishes is the same string as the cause on every code that carries one** — A field that never differs is either unfilled or a second name for its neighbour, and a consumer rendering both prints one sentence twice under two headings. → §RK1416
-
 ## Block E — Adoption
 
 - 📋 **RK1415** (deps: —) **A project whose roadmap already exists cannot reach a first roadkeep.toml through any verb** — init refuses where the files are there and declare adds a role rather than choosing a prefix, so the first step of every real adoption is a hand edit. → §RK1415

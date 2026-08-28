@@ -1603,12 +1603,27 @@ class Explained:
         return "\n".join(lines)
 
     def payload(self, served: str = "") -> dict[str, object]:
+        """The `--json` form, and the one place ``decision`` is **not** published (RK1416).
+
+        :func:`_cause` derives the cause of a non-``fix`` row *from* the decision, so on
+        every code that carries one the two keys were byte-identical — which a consumer
+        rendering both prints as one sentence under two headings, and a reader takes the
+        second for an answer to something the first did not cover. ``cause`` is the key
+        every code has, so it is the one that stays; ``kind`` already says the doors are
+        alternatives, which is what the second name was carrying.
+
+        Dropped here and not from :meth:`Remedy.payload`, which `repair --json` publishes
+        beside no cause at all: there the sentence is the only statement of what to weigh,
+        and taking it out would lose it rather than stop repeating it.
+        """
+        remedy = self.remedy.payload(served)
+        del remedy["decision"]
         return {
             "code": self.code,
             "kind": self.kind,
             "cause": self.cause,
             "varies": self.varies or None,
-            **self.remedy.payload(served),
+            **remedy,
         }
 
 
