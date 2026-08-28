@@ -620,7 +620,10 @@ TOOLS: tuple[Tool, ...] = (
     # whichever arrived last was refused by a per-tool ceiling none of them was about. Exposed
     # for the reason RK464 and RK1286 exposed them at all — the caller paying this surface is
     # the one on the other end of it, and it has no `wc` here to ask with.
-    Tool("cost", ("tools", "brief", "session")),
+    # `skill` joins them for that same reason read at its sharpest (RK1424): the write path is
+    # loaded by the caller on this end of the transport and by nobody else, so the one reader
+    # who pays it is the one a CLI-only flag could not answer.
+    Tool("cost", ("tools", "brief", "session", "skill")),
     # `designed` is exposed on both for the reason it exists (RK83): the caller that asks
     # to execute a block over MCP is the one that was handed a design session, and a flag
     # only the CLI can reach is a flag the agent this ships for cannot pass.

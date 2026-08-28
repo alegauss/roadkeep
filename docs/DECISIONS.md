@@ -203,6 +203,26 @@ from outside the tree.
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - ✅ **RK1325** **a project wiring no plugin is told its doors arrive under one, so a payload names a tool nothing there answers** — A prefix is a fact about the project a caller can act on, and a served caller acts on one project, so a root it is not in publishes argv alone.
+- ✅ **RK1424** **The skill is 65,180 code units and nothing counts it, where the surface it is larger than has a ceiling** — A subject exposed over MCP is charged against [tools] session: this one put the surface 74 characters past it, and the description gave way rather than the ceiling.
+
+### §RK1424 Why the description gave way and not the ceiling
+
+Written at the length the other three subjects are, `--skill` put the served schema at
+64,374 against a ceiling of 64,300. `lint` named both doors: shorten a description, or
+re-argue the number.
+
+Raising it is what `[tools] session` exists to stop. The ceiling was calibrated on a
+measurement, and one that yields to whatever arrives last is the reviewer's limit RK30
+replaced.
+
+So the help is one clause and the surface sits at 64,281. What the answer carries is in
+the answer, where the callers who ask are the ones paying for it.
+
+Accepted: 19 characters is thin and the next subject will not fit. That is the ceiling
+working — the next one arrives with the argument for its number.
+
+Noted and not resolved: documenting the read in the skill grew the file it measures,
+from 65,180 to 65,431. A read about a cost is not free of it.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

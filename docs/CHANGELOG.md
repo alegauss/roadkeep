@@ -880,6 +880,7 @@
 - ✅ **RK1368** **the staleness note rides on a refusal, so a write validated against code that changed on disk is answered with nothing** — A successful write over MCP says when the code that validated it had moved on disk, and names the gate that judges what landed (design recorded in `src/roadkeep/serving.py`).
 - ✅ **RK1369** **the check that unoffered arguments say why skips any tool an always flag made, so claim withheld --have and nothing said** — Every served tool answers for what it does not offer, so claim now takes --have and git's five carry the sentence that explains them (design recorded in `tests/test_serving.py`).
 - ✅ **RK1371** **every reason for not serving an argument is declared and read by no command, so a caller asking why reaches none** — A caller passing a withheld argument is told it is withheld and why, in the sentence declared beside it (design recorded in `src/roadkeep/serving.py`).
+- ✅ **RK1424** **The skill is 65,180 code units and nothing counts it, where the surface it is larger than has a ceiling** — cost --skill prices the write path beside the served schema and says which sections it went to, served over MCP and with no ceiling declared.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

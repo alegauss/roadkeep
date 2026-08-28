@@ -377,12 +377,16 @@ def _cost(config: Config, args: argparse.Namespace) -> int:
         return _brief_budget(config, args)
     if args.session:
         return _session_budget(config, args)
+    if args.skill:
+        return _skill_budget(config, args)
     # No subject is the default here, unlike `budget`, whose bare form is about the line `add`
-    # would write next. These three are three cadences — once at connect, once per turn, once
-    # per read — and privileging one would make the other two look like narrowings of it.
+    # would write next. These are four cadences — once at connect, once per turn, once per
+    # read, and once per turn that loads the write path (RK1424) — and privileging one would
+    # make the others look like narrowings of it.
     print(
         "roadkeep: cost takes a subject: --tools for the served surface, --brief for what "
-        "that read costs a tool result, --session for both against their cadences",
+        "that read costs a tool result, --session for both against their cadences, --skill "
+        "for the write path on the turns that load it",
         file=sys.stderr,
     )
     return EXIT_USAGE
@@ -666,6 +670,38 @@ def _session_budget(config: Config, args: argparse.Namespace) -> int:
         print(json.dumps(answer.payload(CHARACTER_UNIT), indent=2))
     else:
         print(answer.stated(CHARACTER_UNIT))
+    return EXIT_OK
+
+
+def _skill_budget(config: Config, args: argparse.Namespace) -> int:
+    """What the write path costs the turns that load it (RK1424).
+
+    The fourth cadence and the one nothing counted. `[budgets]` prices what loads on *every*
+    turn and excludes the skill on purpose — pricing a trigger-loaded file as resident is the
+    third figure `_session_budget` exists to avoid inventing (RK23) — which settles the table
+    it is not in and never said the number was not worth having. Measured when this was
+    filed: 65,180 code units, against a served schema of 64,258 with a ceiling of 64,300.
+
+    Beside the served figure and never added to it, which is `--session`'s own rule about two
+    cadences: the schema is sent once at the handshake and this is paid per triggered turn, so
+    a sum is wrong for every session whose count of those is not one.
+
+    **And no ceiling.** `govern` refuses a limit this corpus already breaks, so declaring one
+    would be a number chosen before the reading that decides it. This is that reading, and it
+    reports the way `weight` and `adopt` do: the figure, where it went, and the judgement left
+    with whoever takes it.
+    """
+    from roadkeep.budgeting import skill_cost  # noqa: PLC0415 - RK260
+
+    # One measurement and two readers (RK1096), as `--session` totals what `--tools` ranks:
+    # the comparison is the whole point of the number, so it comes off the same reader rather
+    # than from a second walk that could disagree with it.
+    schema = surface(config).characters
+    found = skill_cost(config)
+    if args.json:
+        print(json.dumps(found.payload(CHARACTER_UNIT, schema), indent=2))
+    else:
+        print(found.stated(CHARACTER_UNIT, schema))
     return EXIT_OK
 
 
@@ -1704,6 +1740,15 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
             "`[budgets]` file each turn, against the cadence of each"
         ),
     )
+    # Kept to one clause because this surface is what it is about: adding the subject at the
+    # length the other three are written to put the served schema 74 characters past `[tools]
+    # session`, and `lint` said so (RK1424). What the answer carries — the comparison, the
+    # sections, the absent ceiling — is in the answer, where it costs the callers who ask.
+    cost_parser.add_argument(
+        "--skill",
+        action="store_true",
+        help="what the write path costs the turns that load it",
+    )
     cost_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     cost_parser.set_defaults(handler=_cost, reads_only=True)
     answers(
@@ -1711,6 +1756,9 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         ("tools", "what this tool surface costs a session"),
         ("brief", "what the read that replaces the file costs a tool result"),
         ("session", "both halves of what a session pays, against their cadences"),
+        # The fourth cadence (RK1424): trigger-loaded, so it is neither the schema's once at
+        # connect nor `[budgets]`' every turn, and it is larger than either.
+        ("skill", "what the write path costs the turns that load it"),
     )
     narrows(budget_parser, "role", "anchor")
     # `--body` is **not** narrowed to `--anchor` (RK1224). It was, and that was the last thing

@@ -593,8 +593,11 @@ widest first, against `[reads] brief`. Declared, that ceiling is the gate's — 
 the task whose brief does not fit. **`cost --session`** is both halves against their cadences —
 the served schema once at connect and every `[budgets]` file each turn — which is what a
 session pays before it calls anything, and the one figure neither of the other two can give.
-A bare `cost` is refused naming the three: they are three cadences, and privileging one would
-make the other two read as narrowings of it. **And `config` is the read about `roadkeep.toml` itself**:
+**`cost --skill`** is the fourth cadence: what this file costs the turns that load it, beside
+the served schema and with the sections it went to — no ceiling, because none is declared and
+one chosen before this reading would be a number nobody argued for.
+A bare `cost` is refused naming the four: they are four cadences, and privileging one would
+make the others read as narrowings of it. **And `config` is the read about `roadkeep.toml` itself**:
 every table, key, TOML type and default this build accepts, with the sentence its source
 already carries and whether *this* project declared it — `--table <name>` for one,
 `--table ""` for the top level. **And the boundary of that same question**: what this

@@ -1544,6 +1544,142 @@ class Session:
         }
 
 
+@dataclass(frozen=True, slots=True)
+class Skilled:
+    """What the write path costs the turns that load it (RK1424).
+
+    The fourth cadence, and the one nothing counted. `[budgets]` prices what loads on *every*
+    turn and excludes this on purpose — pricing a trigger-loaded file as resident is the third
+    figure `cost --session` exists to avoid inventing (RK23) — but that settles which table it
+    is not in, not whether the number is worth having. Measured when this was filed:
+    65,180 code units against a served schema of 64,258 with a ceiling of 64,300. The largest
+    single thing a session is handed was the one thing no read named.
+
+    **No limit, and that is the record's shape rather than an omission.** `govern` refuses a
+    ceiling this corpus already breaks, so declaring one here would be a number chosen before
+    the reading that decides it. This is the reading. What it reports is what `weight` and
+    `adopt` report: the figure and where it went, with the judgement left to whoever takes it.
+    """
+
+    #: Where the copy answering lives, as a caller would say it: the project's own vendored
+    #: file, or the checkout that is running. Named for `engines`' reason — three copies can
+    #: be reachable and which one answered decides what the number is about.
+    path: str
+    #: ``project`` for a copy `install` vendored, ``checkout`` for the tree answering, and
+    #: ``""`` where neither is there. A word and not a boolean: the two present states are
+    #: different facts about a session, and a third is coming the day the plugin cache is read.
+    origin: str
+    bytes: int = 0
+    lines: int = 0
+    #: The reading a session is charged in, and the one comparable with the served schema —
+    #: `None` where the file does not decode, which is :attr:`Load.characters`' own state.
+    characters: int | None = None
+    #: Where the size is, by `##` section and largest first — :func:`_parts`, unchanged. The
+    #: whole of what an author cutting this file needs, and the reason the total alone would
+    #: have been a number with nowhere to act on it (RK1092).
+    parts: tuple[Part, ...] = ()
+
+    @property
+    def present(self) -> bool:
+        return bool(self.origin)
+
+    def stated(self, unit: str, schema: int) -> str:
+        """The figure, what it is beside, and where it went — three sections and the rest.
+
+        ``schema`` is what the tool schema costs, passed in rather than read here: the whole
+        point of the number is the comparison, and a reader given this alone has to run a
+        second command to know whether 65,180 is large.
+        """
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
+        if not self.present:
+            return (
+                "skill      absent — no vendored copy and none in the tree answering; the "
+                f"plugin ships it, and `{invocation()} engines` names the copies"
+            )
+        counted = self.bytes if self.characters is None else self.characters
+        rows = [
+            f"skill      {counted} {unit} on every turn that loads it, against {schema} "
+            f"for the served schema once at connect — two cadences, so they are not added",
+            f"  {self.origin:<9}{self.path}  {self.lines} line(s), {self.bytes} bytes",
+        ]
+        rows += [
+            f"  section  {(part.characters if part.characters is not None else part.bytes):>6}"
+            f"  {part.heading or '(above the first heading)'}"
+            for part in self.parts[:3]
+        ]
+        if len(self.parts) > 3:
+            rows.append(
+                f"  … and {len(self.parts) - 3} more — `--json` lists every one"
+            )
+        return chr(10).join(rows)
+
+    def payload(self, unit: str, schema: int) -> dict[str, object]:
+        return {
+            "path": self.path,
+            "origin": self.origin or None,
+            "present": self.present,
+            "characters": self.characters,
+            "unit": unit,
+            "bytes": self.bytes,
+            "lines": self.lines,
+            # Beside the figure and never subtracted from it: the two are paid at different
+            # cadences, which is the sum `cost --session` refuses one surface over.
+            "schema": schema,
+            # No `limit` key. Nothing declares one, and publishing `null` would read as a
+            # ceiling this build failed to find rather than as one nobody has argued for.
+            "sections": [
+                {
+                    "heading": part.heading,
+                    "lines": part.lines,
+                    "bytes": part.bytes,
+                    "characters": part.characters,
+                }
+                for part in self.parts
+            ],
+        }
+
+
+def skill_cost(config: Config) -> Skilled:
+    """The skill this project's sessions would load, and what it costs them (RK1424).
+
+    Two copies can answer and the order is what a session actually reads: a project that ran
+    `install` has the skill vendored under `.claude/`, and that copy is the one its sessions
+    load — stale or not, which is `install.stale`'s business and not this read's. Failing
+    that, the tree answering is asked, which is the checkout's own shipped copy.
+
+    A project using the plugin without vendoring has neither, and that is reported rather than
+    guessed at: the file is inside a plugin cache this read does not resolve, `engines` is the
+    verb that does, and a number taken from the wrong copy is worse than no number.
+
+    Bytes off disk and the code units beside them, for :class:`Load`'s reason — the gate
+    counts bytes and a reader pays characters, and this figure exists to be compared with the
+    served schema, which is in code units.
+    """
+    from roadkeep.installing import PLUGIN_SKILL, PROJECT_SKILL  # noqa: PLC0415 - RK260
+    from roadkeep.provenance import engine  # noqa: PLC0415 - RK260
+
+    candidates = (
+        ("project", config.root / PROJECT_SKILL),
+        ("checkout", engine().home.parent.parent / PLUGIN_SKILL),
+    )
+    for origin, path in candidates:
+        try:
+            raw = path.read_bytes()
+        except OSError:
+            continue
+        counted = raw.replace(b"\r\n", b"\n")
+        return Skilled(
+            path=config.relative(path) if origin == "project" else path.as_posix(),
+            origin=origin,
+            bytes=len(counted),
+            lines=counted.count(b"\n"),
+            characters=_characters(counted),
+            parts=_parts(counted),
+        )
+    return Skilled(path=PROJECT_SKILL, origin="")
+
+
 def notice_budget(config: Config) -> tuple[int, int | None]:
     """What this project's `SessionStart` line costs, and what it may (RK1243).
 

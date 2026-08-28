@@ -85,31 +85,6 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1424 The largest thing a session is handed, and the one nothing prices
-
-Measured: `skills/roadkeep/SKILL.md` is 65,180 UTF-16 code units, 65,642 bytes, 776
-lines. The served tool schema is 64,258 against a declared ceiling of 64,300. So the
-skill is **larger than the whole surface `[tools] session` governs**, and it is paid per
-triggered turn rather than once at connect.
-
-`[budgets]` excludes it on purpose and the comment is right about the table: budgeting
-it there would price it as resident when it is trigger-loaded (RK23). What does not
-follow is that the cadence has no ceiling worth naming. `cost` refuses a bare call
-*naming three cadences* — the schema at connect, a read per call, the resident files —
-and this is a fourth, bigger than any of them.
-
-This is RK464 a third time: an 8 KB resident file was gated while the served schema went
-uncounted, and `[tools] session` is what closed it. This file has been growing under the
-same conditions since RK23 moved the write path into it.
-
-Two shapes. `[budgets]` could take a per-trigger table, which keeps one gate and needs a
-word for a cadence it does not have. Or `cost` could gain the subject without a ceiling,
-which states the number and refuses nothing — the weaker half, and the one that matches
-how `weight` and `adopt` report.
-
-What is not proposed is a limit chosen here. `govern` refuses one this corpus already
-breaks, and what it should be is a reading nobody has taken.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

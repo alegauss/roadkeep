@@ -1447,6 +1447,117 @@ def test_the_session_read_is_a_subject_and_not_a_narrowing(tmp_path, capsys):
     assert "one answer per call" in capsys.readouterr().err
 
 
+# -- the fourth cadence: the write path, on the turns that load it (RK1424) --
+
+
+def test_the_skill_is_priced_beside_the_surface_it_is_larger_than(tmp_path, capsys):
+    """The largest single thing a session is handed was the one thing no read named.
+    `[budgets]` prices what loads every turn and excludes this on purpose — pricing a
+    trigger-loaded file as resident is the third figure `--session` exists to avoid inventing
+    (RK23) — which settles the table it is not in and never said the number was not worth
+    having. RK464's argument a third time, and RK30's before it: a file nobody counts is the
+    one that reached 186 KB in the repository this tool was written after.
+
+    Beside the served figure, because the comparison is the whole point: a reader handed
+    65,180 alone has to run a second command to learn whether that is large.
+    """
+    from roadkeep.serving import surface
+
+    _priced(tmp_path)
+    assert main(["-C", str(tmp_path), "cost", "--skill", "--json"]) == EXIT_OK
+    found = json.loads(capsys.readouterr().out)
+    assert found["present"] and found["origin"] == "checkout"
+    assert found["characters"] > 0
+    # One measurement and two readers (RK1096), as `--session` totals what `--tools` ranks.
+    assert found["schema"] == surface(Config.discover(tmp_path)).characters
+    # And never a sum: two cadences, which is the arithmetic `--session` already refuses.
+    assert "total" not in found
+
+
+def test_the_skill_read_declares_no_ceiling(tmp_path, capsys):
+    """`govern` refuses a limit this corpus already breaks, so declaring one here would be a
+    number chosen before the reading that decides it. A `null` limit key would read as a
+    ceiling this build failed to find rather than as one nobody has argued for, so there is
+    no key: what this reports is what `weight` and `adopt` report."""
+    _priced(tmp_path)
+    assert main(["-C", str(tmp_path), "cost", "--skill", "--json"]) == EXIT_OK
+    found = json.loads(capsys.readouterr().out)
+    assert "limit" not in found
+    assert not any("limit" in key for key in found)
+
+
+def test_the_skill_read_says_where_the_size_went(tmp_path, capsys):
+    """A total alone is a number with nowhere to act on it (RK1092), which is the argument
+    `Part` already makes about a resident file. Measured on this checkout: one `##` section
+    is two thirds of the file, which is the whole of what an author cutting it needs."""
+    _priced(tmp_path)
+    assert main(["-C", str(tmp_path), "cost", "--skill", "--json"]) == EXIT_OK
+    found = json.loads(capsys.readouterr().out)
+    assert len(found["sections"]) > 1
+    counted = [one["characters"] for one in found["sections"]]
+    assert counted == sorted(counted, reverse=True), "the largest section is not first"
+    assert sum(one["bytes"] for one in found["sections"]) == found["bytes"]
+
+
+def test_the_vendored_copy_is_the_one_a_session_loads(tmp_path, capsys):
+    """Two copies can answer and the order is what a session actually reads: a project that
+    ran `install` has the skill under `.claude/`, and that copy is the one its sessions get —
+    stale or not, which is `install.stale`'s business and not this read's."""
+    root = _priced(tmp_path)
+    vendored = tmp_path / ".claude" / "skills" / "roadkeep" / "SKILL.md"
+    vendored.parent.mkdir(parents=True, exist_ok=True)
+    vendored.write_text("# roadkeep\n\n## A section\n\nProse.\n", encoding="utf-8")
+    del root
+    assert main(["-C", str(tmp_path), "cost", "--skill", "--json"]) == EXIT_OK
+    found = json.loads(capsys.readouterr().out)
+    assert found["origin"] == "project"
+    assert found["path"] == ".claude/skills/roadkeep/SKILL.md"
+    assert found["lines"] == 5
+
+
+def test_a_project_with_neither_copy_says_so_and_names_the_read_that_answers(
+    tmp_path, capsys, monkeypatch
+):
+    """A project using the plugin without vendoring has the file inside a cache this read does
+    not resolve. Reported rather than guessed at: `engines` is the verb that reads the copies,
+    and a number taken from the wrong one is worse than no number.
+
+    The command it names is **run** and not matched, which is `tests/composing.py`'s whole
+    reading: a message composing an argv nobody executes is a message that can name a verb
+    this CLI does not parse.
+    """
+    import re
+    import shlex
+
+    from roadkeep import budgeting
+
+    _priced(tmp_path)
+    monkeypatch.setattr(
+        budgeting, "skill_cost", lambda config: budgeting.Skilled(path="x", origin="")
+    )
+    assert main(["-C", str(tmp_path), "cost", "--skill"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "absent" in printed
+    named = re.search(r"`([^`]+)`", printed)
+    assert named, printed
+    argv = shlex.split(named.group(1))[1:]  # the invocation is how it is reached, not a verb
+    assert argv == ["engines"]
+    assert main(["-C", str(tmp_path), *argv]) in (EXIT_OK, 1)
+    assert "capture it before the session ends" not in capsys.readouterr().err
+
+
+def test_the_skill_is_a_subject_and_not_a_narrowing(tmp_path, capsys):
+    # One answer per call (RK489), as every other subject of this verb is: asked beside one
+    # of them it is refused, and the bare form names all four cadences.
+    _priced(tmp_path)
+    assert main(["-C", str(tmp_path), "cost", "--skill", "--session"]) == EXIT_USAGE
+    assert "one answer per call" in capsys.readouterr().err
+    assert main(["-C", str(tmp_path), "cost"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    for subject in ("--tools", "--brief", "--session", "--skill"):
+        assert subject in said, subject
+
+
 def test_the_two_surface_reads_share_one_measurement(tmp_path, capsys):
     """RK1096. `--tools` summed the descriptors and the handshake, `--session` summed the
     same two, and neither called the other — one arithmetic written twice, which agrees right
