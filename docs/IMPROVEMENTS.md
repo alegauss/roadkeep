@@ -85,6 +85,30 @@ already written, not authorship.
 
 ## Block F — The plugin
 
+### §RK1428 Two texts from one module, and only the small one is measured
+
+Measured on a freshly adopted project, wired by `install`, with a real `Edit` payload on
+the guard's stdin: the denial is 4,092 UTF-16 code units over 46 lines. `guarding.py`'s
+other output, the session-start notice, is 305 against a declared `_NOTICE_BUDGET` of
+320 — and `cost --session` prints it beside that ceiling.
+
+So one module hands a session two texts, and the thirteen-times-larger one is priced by
+nothing. It is also the one paid **per denial**, and a plugin whose whole purpose is to
+deny reaching for `Edit` produces it more than once a turn.
+
+The split is where a cut may already exist. The message names the write vocabulary
+twice: 1,391 units as `mcp__roadkeep__*` tools and 1,760 as `roadkeep <verb>` shell
+lines. It emitted both to a caller it had just addressed by MCP name, and the branch
+that does so is deliberate. RK447 decided the tools lead where a session has them, and
+RK448 narrowed the deny's other routes to the served spelling; neither argued for
+keeping the shell table beside them, and neither measured it.
+
+What is not proposed is a ceiling. `govern` refuses one this corpus breaks, RK1424
+settled that the reading comes first, and the number here is one measurement on one
+payload. Whether the shell half is redundant on a served session or is the fallback for
+the moment an agent stops trusting the tools is the argument, and it is not this line's
+to make.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
