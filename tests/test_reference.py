@@ -80,17 +80,35 @@ def test_every_verb_family_has_a_page_and_every_page_a_family():
     }
 
 
-def test_the_pages_are_ordered_the_way_dispatch_declares_them():
-    """`sidebar.order` is the one thing about a generated page that is written by hand, so it
-    is the one that can disagree with the surface. Held rather than trusted: the order a
-    reader meets the families in is the order `build_parser` calls them, which is the order
-    they make sense in — writing comes before the gate, and adoption comes last."""
-    ordered = []
-    for family, path in _page_families().items():
-        found = re.search(r"^\s+order:\s*(\d+)$", path.read_text(encoding="utf-8"), re.M)
-        assert found, f"{path.name} declares no sidebar order"
-        ordered.append((int(found.group(1)), family))
-    assert [family for _, family in sorted(ordered)] == list(_families())
+def test_no_page_declares_an_order_of_its_own():
+    """`sidebar.order` was the one fact about a generated page that was typed (RK1414): six
+    numbers restating what `build_parser` already declares, each chosen by reading the other
+    five, and a gap nobody notices when a family is removed. A number here again is that
+    second statement back, and Starlight would take it — silently and in preference."""
+    carried = [
+        path.name
+        for path in _page_families().values()
+        if re.search(r"^\s+order:\s*\d+$", path.read_text(encoding="utf-8"), re.M)
+    ]
+    assert not carried, {"declares its own sidebar order": carried}
+
+
+def test_the_sidebar_takes_the_reference_order_from_the_payload():
+    """The order a reader meets the families in is the order dispatch calls them — writing
+    before the gate, adoption last — and it is now read off the same generated file the tables
+    come off, so the two cannot be different answers.
+
+    Asserted as the config's own reading rather than by running Astro: this file is green on a
+    checkout with no `node_modules`, and what it holds is that the config asks the payload and
+    refuses to guess when the payload is not there.
+    """
+    config = (SITE / "astro.config.mjs").read_text(encoding="utf-8")
+    assert GENERATED in config, "the config does not read what the generator wrote"
+    assert "autogenerate: { directory: \"reference\"" not in config
+    assert re.search(r"slug:\s*`reference/\$\{family\}`", config)
+    # Loud where the generated file is missing, for the generator's own reason: an order
+    # falling back to alphabetical would read exactly like the derived one.
+    assert "throw new Error" in config
 
 
 # -- the join that already broke: the component and the payload ---------------

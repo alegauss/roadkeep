@@ -124,12 +124,12 @@ called unbuilt were already in the ledger.
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
-| I — The documentation area (what an adopter reads before there is a session to ask) | 1 | 16 | 0 |
-| **Total** | 3 | 900 | 12 |
+| I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 17 | 0 |
+| **Total** | 2 | 901 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1414** (deps: —) **The order of the reference pages is a number typed into each one, on pages whose every other fact is derived** — Dispatch order is what the parser declares, so a hand-written sidebar number is the one thing about a generated page that can disagree with it. → §RK1414
+- 📋 **RK1415** (deps: —) **A project whose roadmap already exists cannot reach a first roadkeep.toml through any verb** — init refuses where the files are there and declare adds a role rather than choosing a prefix, so the first step of every real adoption is a hand edit. → §RK1415
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

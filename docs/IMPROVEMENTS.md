@@ -127,23 +127,3 @@ them and named it.
 ## Block H — The tool's own shape (what one verb costs to change)
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
-
-### §RK1414 The one hand-written number on a generated page
-
-Each verb family's page carries `sidebar.order` in its frontmatter, and the six numbers
-put the families in the order `build_parser` calls them: writing, then the gate, then
-prose, then shipping, then the reads, then adoption.
-
-That order is a fact the parser already holds — the payload's `family` field is emitted
-in walk order — so the numbers are a second statement of it. A test holds them against
-that order today, which is the right shape and is also the evidence: a fact worth
-asserting is usually one worth deriving.
-
-What is small about this is also what makes it worth doing. A family added to `verbs/`
-gets a page and needs a number, and choosing one means reading five other files to see
-what is taken. A family removed leaves a gap nothing notices.
-
-The shape is the one the finding pages already use: the generator writes the
-frontmatter, so the order comes off the payload and the page carries prose alone. The
-cost is that a reference page stops being purely hand-written, which is a boundary worth
-stating rather than crossing quietly.
