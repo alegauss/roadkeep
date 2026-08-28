@@ -898,6 +898,7 @@
 - ✅ **RK1271** **the editor completes nothing in `roadkeep.toml`, so every key is typed from memory** — Completion and hover in the config file offer the keys the package printed, and the panel compiles none of them (design §RK1271 recorded in `editor/extension.js`).
 - ✅ **RK1277** **the config completion caches a fact about the file on the engine's clock, so a declared key still reads as undeclared** — The shape is cached on the clock of what moves it, and the config has a watcher of its own.
 - ✅ **RK1425** **The editor offers every complete door of a finding as an independent quick fix, including a sequence's second step** — A sequence is one action naming its steps in order, or none where the first is prose, and roadkeep.run takes a list of argvs so both shapes compose the same way.
+- ✅ **RK1426** **A finding the gate files with no line loses its doors in the editor, which offers only the explanation** — One reading anchors the diagnostic and keys the remedy, so every finding filed against roadkeep.toml reaches its doors in the panel.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 

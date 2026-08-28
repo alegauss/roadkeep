@@ -36,8 +36,6 @@
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-- 📋 **RK1426** (deps: —) **A finding the gate files with no line loses its doors in the editor, which offers only the explanation** — The remedy is stored under the line the report carried and looked up under the one the diagnostic was anchored at, and for a line-less finding those are not the same key. → §RK1426
-
 ## Block H — The tool's own shape (what one verb costs to change)
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)

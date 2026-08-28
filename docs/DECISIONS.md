@@ -227,6 +227,25 @@ from 65,180 to 65,431. A read about a cost is not free of it.
 ## Block G — The editor surface (the backlog where the file is open)
 
 - ✅ **RK1271** **the editor completes nothing in `roadkeep.toml`, so every key is typed from memory** — A reader outside the package renders a payload and never a rule: no list, no limit, no parser.
+- ✅ **RK1426** **A finding the gate files with no line loses its doors in the editor, which offers only the explanation** — A line-less finding anchors at line 0, stated where the anchor is derived: an editor has no file-level diagnostic, so the top of the file is the honest place for one.
+
+### §RK1426 Where a finding about a whole file goes
+
+The gate files a class of finding against `roadkeep.toml` with no line: `[tools]`,
+`[budgets]`, `[limits]`, `priority.config`, `install.stale`, `gate.behind`. An editor
+has one place for a diagnostic and no file-level one.
+
+Rejected: no diagnostic for those. They are the gate's answer about the file the panel
+is judging, and a red `lint` beside a clean panel is two verdicts on one tree.
+
+Rejected too: a range over the key it is about. That is not derivable — `budget.session`
+is about no key — and a guess points at a line somebody then edits.
+
+Accepted: line 0, and the cost is that a finding at line 1 shares a key with a line-less
+one of its code. Two of one code already did.
+
+What matters is where that is said. It fell out of `null - 1` in one of the two places
+deriving the anchor, which is how they came apart.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 

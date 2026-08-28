@@ -87,29 +87,6 @@ already written, not authorship.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-### §RK1426 A key composed twice from two readings of the same absence
-
-`Gate.check` stores each remedy under `${path}:${finding.line}:${code}`, and
-`provideCodeActions` looks it up under `${path}:${range.start.line + 1}:${code}`. The
-two agree on every finding that carries a line. On one that does not, the store writes
-the string `null` and the range — clamped to 0 by the `Math.max` two lines above — is
-asked for as `1`.
-
-So the doors are never found, and what the panel offers is the explanation alone. That
-is the same thing the panel shows for a finding whose every door carries a marked blank,
-which is why it has never looked wrong.
-
-The class is not small. Every finding filed against `roadkeep.toml` is line-less: the
-whole `[tools]`, `[budgets]` and `[limits]` family, `priority.config`, `install.stale`,
-`gate.behind`. `budget.session` is the measured one — two complete ordered reads, and
-neither reaches a button.
-
-The fix is one reading and not two. What the range is built from is already derived from
-`finding.line`; the key should come off the same value rather than off the diagnostic
-the range became. Worth checking beside it is whether a line-less finding should anchor
-at line 0 at all, or whether the file-level diagnostic an editor has for that is the
-honest shape.
-
 ## Block H — The tool's own shape (what one verb costs to change)
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)

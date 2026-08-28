@@ -448,9 +448,9 @@ def test_a_sequence_is_one_action_and_never_its_second_step(tmp_path):
     beside it is one whose door *is* offered — which says the lookup ran and the silence is
     the decision.
 
-    The other shape — a sequence whose steps are all complete, which is `budget.session` — is
-    not asserted here: it is filed against `roadkeep.toml` with no line, and this surface
-    cannot reach the doors of a line-less finding at all (RK1426).
+    The other shape — a sequence whose steps are all complete — is
+    `test_a_line_less_finding_reaches_its_doors` below, which could not be written until
+    RK1426 made the key one reading.
     """
     root = tmp_path / "project"
     root.mkdir()
@@ -482,6 +482,56 @@ def test_a_sequence_is_one_action_and_never_its_second_step(tmp_path):
     # And the step that cannot start: nothing runnable is offered, and the explanation is the
     # way in — which is what it already was for every door carrying a marked blank.
     assert titles["ref.missing"] == ["roadkeep explain ref.missing"]
+
+
+def test_a_line_less_finding_reaches_its_doors(tmp_path):
+    """RK1426. The remedy was stored under the line the report carried and looked up under the
+    one the diagnostic was anchored at, so a finding with **no** line stored `…:null:<code>`
+    and was asked for as `…:1:<code>`. The doors were never found and the panel offered the
+    explanation alone — which is what it shows for a door carrying a marked blank, so it never
+    looked wrong.
+
+    Every finding against `roadkeep.toml` is in that class. `budget.session` is the measured
+    one, and it is also RK1425's other shape: a sequence whose steps are all complete, which
+    is one action naming both in order rather than two alternatives.
+    """
+    root = tmp_path / "project"
+    root.mkdir()
+    (root / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nimprovements = "IMPROVEMENTS.md"\n'
+        # A ceiling the served surface is far past, which is what files `budget.session`.
+        # Both keys, and `session` above `characters`: a table holding nobody to anything is
+        # refused, and so is a surface declared to cost less than one tool in it.
+        "[tools]\ncharacters = 3000\nsession = 4000\n",
+        encoding="utf-8",
+    )
+    (root / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A — The model\n\n"
+        "- 📋 **RK1** (deps: —) **A symptom** — Because of a reason. → §RK1\n",
+        encoding="utf-8",
+        newline="",
+    )
+    (root / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A — The model\n\n### §RK1 — A design\n\nProse.\n",
+        encoding="utf-8",
+        newline="",
+    )
+    found = _harness(root)["gate"]
+    filed = [
+        one for one in found["files"] if one["file"] == "roadkeep.toml"
+    ]
+    assert filed, found["files"]
+    assert [one["code"] for one in filed[0]["found"]] == ["budget.session"]
+    # Anchored at the top of the file, which is where an editor with no file-level diagnostic
+    # has to put one — and the same reading the key now comes off.
+    assert filed[0]["found"][0]["line"] == 0
+
+    titles = [one["title"] for one in found["actions"] if one["code"] == "budget.session"]
+    ordered = [one for one in titles if not one.startswith("roadkeep explain")]
+    assert len(ordered) == 1, ordered
+    assert ordered[0].startswith("roadkeep cost --tools, then cost --session — ")
+    ran = next(one["argv"] for one in found["actions"] if one["title"] == ordered[0])
+    assert ran == [[["cost", "--tools"], ["cost", "--session"]]]
 
 
 def test_nothing_in_the_host_writes_a_file():

@@ -122,14 +122,10 @@ called unbuilt were already in the ledger.
 | D — The gate | 0 | 205 | 2 |
 | E — Adoption | 0 | 113 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 126 | 2 |
-| G — The editor surface (the backlog where the file is open) | 1 | 14 | 0 |
+| G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 17 | 0 |
-| **Total** | 1 | 911 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1426** (deps: —) **A finding the gate files with no line loses its doors in the editor, which offers only the explanation** — The remedy is stored under the line the report carried and looked up under the one the diagnostic was anchored at, and for a line-less finding those are not the same key. → §RK1426
+| **Total** | 0 | 912 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

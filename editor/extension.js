@@ -146,6 +146,26 @@ async function command(cwd, argv) {
 }
 
 /**
+ * Where a finding is anchored, as an editor counts lines — one reading, used twice (RK1426).
+ *
+ * The range and the key that carries the finding's doors are both about this, and each used
+ * to derive it: the range clamped `finding.line - 1` to 0 and the key wrote `finding.line`
+ * raw, so a finding the gate files with **no line** stored `…:null:<code>` and was looked up
+ * as `…:1:<code>`. The doors were never found and the panel offered the explanation alone,
+ * which is exactly what it shows for a door carrying a marked blank — so it never looked
+ * wrong. Every finding against `roadkeep.toml` is in that class: `[tools]`, `[budgets]`,
+ * `[limits]`, `priority.config`, `install.stale`, `gate.behind`.
+ *
+ * Line 0 for a line-less one, stated here rather than falling out of `null - 1`: an editor
+ * has no file-level diagnostic, so the top of the file is the honest place and this is where
+ * that is decided. What it costs is that a finding at line 1 and a line-less one **of the
+ * same code** share a key — two findings of one code on one file already did.
+ */
+function anchored(finding) {
+  return finding.line ? finding.line - 1 : 0;
+}
+
+/**
  * What a finding's doors become here: a list of runs, each one action (RK1425).
  *
  * The payload says which of the two kinds of several the doors are (RK1336) and this is the
@@ -206,10 +226,11 @@ class Gate {
     }
     const byFile = new Map();
     for (const finding of answer.value.findings) {
+      const line = anchored(finding);
       const at = new vscode.Range(
-        Math.max(finding.line - 1, 0),
+        line,
         finding.column ? finding.column - 1 : 0,
-        Math.max(finding.line - 1, 0),
+        line,
         finding.column ? finding.column - 1 : Number.MAX_SAFE_INTEGER
       );
       const said = new vscode.Diagnostic(at, finding.message, vscode.DiagnosticSeverity.Error);
@@ -222,7 +243,9 @@ class Gate {
         byFile.set(uri.fsPath, { uri, found: [] });
       }
       byFile.get(uri.fsPath).found.push(said);
-      this.remedies.set(`${uri.fsPath}:${finding.line}:${finding.code}`, finding.remedy);
+      // Keyed on the line the diagnostic was **anchored at** and never on the one the report
+      // carried, which is the same reading `provideCodeActions` asks the range for (RK1426).
+      this.remedies.set(`${uri.fsPath}:${line}:${finding.code}`, finding.remedy);
     }
     for (const { uri, found } of byFile.values()) {
       this.diagnostics.set(uri, found);
@@ -238,7 +261,7 @@ class Gate {
         continue;
       }
       const remedy = this.remedies.get(
-        `${document.uri.fsPath}:${said.range.start.line + 1}:${said.code}`
+        `${document.uri.fsPath}:${said.range.start.line}:${said.code}`
       );
       for (const step of offerable(remedy)) {
         const action = new vscode.CodeAction(
