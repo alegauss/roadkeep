@@ -998,9 +998,14 @@ _TABLE: Mapping[str, _Rule] = {
         "one anchor is declared in two places: read which files claim it, then move one "
         "with `section move`",
     ),
-    "ref.missing": _compose(
-        ("amend", "{id}", "--ref", BLANK),
-        "the scheme cannot derive this pointer, so the anchor is the field you name",
+    # `ref.mismatch`'s mirror, and it went years without one (RK1418). Both rows are about
+    # the same field and the same question — whether this project's scheme derives an anchor
+    # — so the strict half was being stated on the one scheme where it is false.
+    "ref.missing": _Rule(
+        "compose",
+        ((("amend", "{id}", "--ref", BLANK),
+          "the scheme cannot derive this pointer, so the anchor is the field you name"),),
+        varies="ref_scheme",
     ),
     "ref.format": _compose(
         ("amend", "{id}", "--ref", BLANK),
@@ -1740,6 +1745,38 @@ def _varied(
         return _compose(
             ("amend", "{id}", "--ref", BLANK),
             "the anchor is not derived under this project's scheme, so it is yours to state",
+        )
+    if code == "ref.missing" and config.schema.ref_scheme == "id":
+        # The other direction of the same question (RK1418). Here the anchor **is** the id,
+        # so nothing about the pointer is the author's — but what closes the finding is not
+        # the pointer, it is the section. Written at a design nobody has written, a derived
+        # pointer resolves to nothing, and `ref.unresolved` is the same debt under a second
+        # name. So the door depends on which of the two is missing, and the answer is read
+        # rather than assumed: `--ref` would be the one flag whose only legal value is the id.
+        from .sections import declaring  # noqa: PLC0415 - one branch, RK260
+
+        anchor = values.get("id", "")
+        if anchor and declaring(config, anchor):
+            return _fix(
+                "the section is there and the line does not point at it, on a scheme that "
+                "derives the anchor from the id — so no field here is anybody's to compose",
+                "the pointer is derived from the id, so it is written",
+            )
+        return _Rule(
+            "compose",
+            (
+                (
+                    ("section", "add", "{id}", "--title", BLANK),
+                    "the design this line would point at does not exist yet; the heading and "
+                    "the prose are yours, and the anchor is the id",
+                ),
+                (
+                    ("lint", "--fix"),
+                    "then the pointer, which this scheme derives once there is a section for "
+                    "it to resolve to",
+                ),
+            ),
+            sequence=True,
         )
     if code == "section.duplicate" and config.schema.ref_scheme == "id":
         # Under an id scheme both headings claim one line's address, and no verb re-addresses

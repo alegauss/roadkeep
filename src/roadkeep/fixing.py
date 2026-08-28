@@ -284,8 +284,9 @@ def _fix_file(config: Config, role: str, backlog: Backlog) -> Fix:
             "".join(lines), schema=document.schema, path=document.path
         )
 
+    written = _anchors(config)
     for entry in document.entries:
-        fixed, reasons = _normalize(document.schema, entry.task, backlog, role)
+        fixed, reasons = _normalize(document.schema, entry.task, backlog, role, written)
         if not reasons:
             continue
         rendered = document.schema.render(fixed)
@@ -535,10 +536,36 @@ def _decontrol(document: Document, file: str) -> tuple[list[str], list[Repair]]:
     return lines, repairs
 
 
+def _anchors(config: Config) -> frozenset[str]:
+    """Every anchor this project's prose files declare (RK1418).
+
+    One read per file and not per line, and the same question `sections.declaring` asks — a
+    set here because the repair only needs *whether*, where that reader answers *which files*
+    for callers who have to choose between them.
+
+    Empty where a declared prose file is not on disk, which is `file.missing` and the gate's
+    to report: a repair deciding on an absence it cannot see would write a pointer at a
+    section that may be there.
+    """
+    from roadkeep.sections import anchored  # noqa: PLC0415 - RK260, this repair's path
+
+    return frozenset(
+        section.anchor
+        for role in PROSE_ROLES
+        if config.has(role) and config.path(role).is_file()
+        for section in anchored(config.document(role))
+    )
+
+
 def _normalize(
-    schema: Schema, task: Task, backlog: Backlog, role: str
+    schema: Schema, task: Task, backlog: Backlog, role: str, written: frozenset[str] = frozenset()
 ) -> tuple[Task, list[str]]:
-    """The task as the format would write it, and the name of every change made."""
+    """The task as the format would write it, and the name of every change made.
+
+    ``written`` is every anchor a prose file already declares, read once by the caller: the
+    pointer repair below needs it per task and computing it here would re-read three files
+    per line.
+    """
     reasons: list[str] = []
     fixed = task
 
@@ -557,11 +584,27 @@ def _normalize(
             fixed = replace(fixed, deps=deps)
             reasons.extend(dep_reasons)
 
-    if schema.ref_scheme == "id" and fixed.ref and fixed.ref != fixed.id:
+    # A pointer this project's format does not have is not a field to derive: `[grammar] drop`
+    # takes the slot out, and `ref_required` is where that is declared.
+    absent_is_repairable = schema.ref_required and fixed.id in written
+    if schema.ref_scheme == "id" and fixed.ref != fixed.id and (fixed.ref or absent_is_repairable):
         # The pointer is derived in this scheme, so it is not the author's text — which is
         # also what made RK27's own migration a throwaway script instead of a command.
+        #
+        # **A pointer that is absent is derived too — where the section is there** (RK1418).
+        # This used to open with `fixed.ref and`, so the repair reached a *wrong* anchor and
+        # never a missing one, and `ref.missing` asked the author to type the single value the
+        # schema would have written.
+        #
+        # The condition is the design and not the field: a pointer written at a section
+        # nobody has written resolves to nothing, so the repair would trade `ref.missing` for
+        # `ref.unresolved` — the same debt under a second name, on a line it modified. And a
+        # modified line is one `lint --baseline` stops forgiving, because the debt is keyed on
+        # the code: measured on the adoption walkthrough, the mechanical pass reddened the
+        # baseline for three lines it had not improved. Where the section is there the repair
+        # closes the finding outright, which is the whole of what it may claim to do.
+        reasons.append("pointer derived from the id" if fixed.ref else "pointer written from it")
         fixed = replace(fixed, ref=fixed.id)
-        reasons.append("pointer derived from the id")
     return fixed, reasons
 
 

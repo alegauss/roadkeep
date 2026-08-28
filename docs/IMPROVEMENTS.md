@@ -81,28 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1418 The pointer the fixer could write and the report says it cannot
-
-Measured on a throwaway tree configured by `init --existing`, with one line and no `→ §`
-on it. `lint` reports `ref.missing` with the cause *the scheme cannot derive this
-pointer, so the anchor is the field you name*, and the door `amend RK1 --ref …`. The
-project's `ref_scheme` is `id`, where the anchor **is** the id: the sentence is false
-there and the only value the flag accepts is the one the schema would have written.
-
-`ref.mismatch` already varies on exactly this question — `_varied` turns it from a `fix`
-into a `compose` where the scheme is not `id`, because there an address is not
-derivable. This is that same row pointed the other way and it never got the mirror, so
-the strict half of the pair is stated on both projects.
-
-What it costs is the two verbs that exist to spend nothing: `lint --fix` and `repair`
-reach only what is derived, so both print the finding and close nothing, on the
-commonest scheme and on the first gate run of an adoption.
-
-The shape is `_varied`'s: `fix` under `id` and `compose` under an outline. Worth
-checking before writing it is what the fixer should then do about the section — writing
-the pointer makes the finding `ref.unresolved`, which is a different and correct report
-about a design nobody has written.
-
 ### §RK1419 A verdict from a verb that also writes
 
 RK271 split a **fault** from a **verdict** so that `lint` exiting 1 with a finding stops

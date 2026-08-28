@@ -175,6 +175,34 @@ def test_a_pointer_the_scheme_derives_is_rewritten(tmp_path):
     assert lint(config).clean
 
 
+def test_a_pointer_that_is_absent_is_derived_too(tmp_path):
+    """RK1418. The repair opened with `fixed.ref and`, so it reached a *wrong* anchor and not
+    a missing one — and a line with none was the single derived field the mechanical pass
+    walked past, reported as `ref.missing` with a door asking the author to type the one
+    value the schema would have written.
+
+    What is left afterwards is a different and correct finding: the pointer now resolves to
+    nothing until somebody writes the design, which is `ref.unresolved` and their sentence.
+    """
+    config = project(tmp_path, roadmap=CLEAN.replace(" → §RK2", ""))
+    applied = fix(config)
+    assert reasons(applied) == ["pointer written from it"]
+    assert "→ §RK2" in roadmap_of(config)
+    assert [f.code for f in lint(config).findings] == []
+
+
+def test_no_pointer_is_invented_where_the_grammar_declares_none(tmp_path):
+    """The half `fixed.ref and` was standing in for, and badly (RK1418): a project whose
+    `[grammar]` drops the field has no pointer on any line, so deriving one there writes a
+    slot its format does not have. Read off the declaration and never off the value."""
+    dropped = CONFIG + '\n[grammar.roadmap]\ndrop = ["ref"]\n'
+    config = project(tmp_path, roadmap=CLEAN.replace(" → §RK2", "").replace(" → §RK3", ""),
+                     config=dropped)
+    applied = fix(config)
+    assert applied.repairs == ()
+    assert "§" not in roadmap_of(config)
+
+
 # -- the editorial: reported, not repaired ------------------------------------
 
 
@@ -221,7 +249,7 @@ def test_nothing_is_written_when_the_pass_cannot_prove_its_own_output(tmp_path, 
     import roadkeep.fixing as fixing
     from dataclasses import replace as dataclass_replace
 
-    def rogue(schema, task, backlog, role):
+    def rogue(schema, task, backlog, role, written=frozenset()):
         return dataclass_replace(task, id="RK99"), ["dep annotation derived"]
 
     monkeypatch.setattr(fixing, "_normalize", rogue)

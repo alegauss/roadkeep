@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
 | C — Query (consult without reading the file) | 0 | 140 | 2 |
-| D — The gate | 2 | 200 | 2 |
+| D — The gate | 1 | 201 | 2 |
 | E — Adoption | 0 | 113 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 17 | 0 |
-| **Total** | 2 | 903 | 12 |
+| **Total** | 1 | 904 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1418** (deps: —) **ref.missing asks the author for an anchor on the one scheme that derives it** — A line with no pointer on a project addressed by id is derived work presented as prose only a person can supply, so lint --fix and repair both walk past it. → §RK1418
+- 📋 **RK1419** (deps: —) **The capture offer rides lint --fix and repair, whose exit 1 is the verdict lint's own is exempt from** — The split is whether the command writes, so the two verbs whose non-zero means only that findings are left close by suggesting the tool is at fault. → §RK1419
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

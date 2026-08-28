@@ -30,7 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1418** (deps: —) **ref.missing asks the author for an anchor on the one scheme that derives it** — A line with no pointer on a project addressed by id is derived work presented as prose only a person can supply, so lint --fix and repair both walk past it. → §RK1418
 - 📋 **RK1419** (deps: —) **The capture offer rides lint --fix and repair, whose exit 1 is the verdict lint's own is exempt from** — The split is whether the command writes, so the two verbs whose non-zero means only that findings are left close by suggesting the tool is at fault. → §RK1419
 
 ## Block E — Adoption

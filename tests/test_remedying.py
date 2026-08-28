@@ -473,6 +473,11 @@ def test_the_varying_rows_are_derived_from_the_table():
     # the same verb (RK468).
     assert VARIES == {
         "ref.mismatch": "ref_scheme",
+        # Its mirror, and it went years without one (RK1418): both rows are about the same
+        # field and the same question, so the strict half — *the scheme cannot derive this
+        # pointer* — was being stated on the one scheme where it is false. Under `id` the
+        # anchor is the id, so a line with none is missing a field nobody composes.
+        "ref.missing": "ref_scheme",
         # RK1337, and the second row the scheme decides: under an outline a duplicate moves
         # to a free anchor, and under an id scheme there is no free anchor to derive and
         # `section move` refuses an id-addressed section outright — so what closes it is not
@@ -511,6 +516,27 @@ def test_an_outline_anchor_is_the_authors_and_not_the_fixers(tmp_path):
     assert found is not None and found.kind == "compose"
     derived = _project(tmp_path / "other", ref_scheme="id")
     assert remedy(Finding("ref.mismatch", "ROADMAP.md", "", 5, "RK1"), derived).kind == "fix"
+
+
+def test_a_missing_pointer_varies_on_the_same_question_as_a_wrong_one(tmp_path):
+    """The mirror the pair went years without (RK1418). Both rows are about the same field
+    and the same question — whether this project's scheme derives an anchor — and only one
+    of them asked it, so under `id` a line with no pointer was reported as prose only the
+    author could supply, with a door taking the one value the schema would have written.
+
+    The cause is asserted too, and not only the kind: what a reader met was the sentence
+    *the scheme cannot derive this pointer* on the scheme that derives it.
+    """
+    outlined = _project(tmp_path / "outline", ref_scheme="outline")
+    found = remedy(Finding("ref.missing", "ROADMAP.md", "", 5, "RK1"), outlined)
+    assert found is not None and found.kind == "compose"
+    assert found.doors[0].argv[:3] == ("amend", "RK1", "--ref")
+
+    derived = _project(tmp_path / "ids", ref_scheme="id")
+    identified = remedy(Finding("ref.missing", "ROADMAP.md", "", 5, "RK1"), derived)
+    assert identified is not None and identified.kind == "fix"
+    assert identified.doors[0].argv == ("lint", "--fix")
+    assert "cannot derive" not in explain("ref.missing", derived).cause
 
 
 # -- the report carries it (RK420) -------------------------------------------
@@ -1279,7 +1305,14 @@ def test_a_door_carries_the_finding_s_own_subject_and_never_another(tmp_path):
 
     Asked with the subject set and unset, because the fallback is where the two spellings of
     it could differ: a queue finding carries `Block D` in `subject` and an id in `id`, and a
-    row that read the wrong one would name a line the caller never asked about."""
+    row that read the wrong one would name a line the caller never asked about.
+
+    A row whose *resolved* remedy is mechanical is skipped, and `_names_the_subject` reads the
+    table rather than the resolution: `lint --fix` is addressed to the file and takes no
+    subject by construction, so a row that writes `{id}` under one scheme and becomes a fixer
+    under another (RK1418) has nothing here to name. The property is about substitution and
+    not about which door a project gets.
+    """
     config = _project(tmp_path)
     where = config.relative(config.path("roadmap"))
     for code in codes():
@@ -1289,6 +1322,8 @@ def test_a_door_carries_the_finding_s_own_subject_and_never_another(tmp_path):
             finding = Finding(code, where, "", 5, "RK7", subject=subject)
             found = remedy(finding, config)
             assert found is not None
+            if found.kind == "fix":
+                continue
             assert any(
                 finding.token in word for door in found.doors for word in door.argv
             ), f"{code} with subject={subject!r}: no door names {finding.token!r}"
