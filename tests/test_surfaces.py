@@ -119,7 +119,10 @@ def test_the_surfaces_are_valid_yaml():
     hooks = yaml.safe_load(HOOKS.read_text(encoding="utf-8"))
     assert [hook["id"] for hook in hooks] == ["roadkeep-lint", "roadkeep-lint-fix"]
     workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
-    assert set(workflow["jobs"]) == {"lint", "tests", "payload", "drift", "client"}
+    # `area` builds the documentation area (RK1400): the one surface whose breakage no other
+    # job can report, because `lint` reads prose and pytest reads declarations and neither
+    # runs a build.
+    assert set(workflow["jobs"]) == {"lint", "tests", "area", "payload", "drift", "client"}
 
 
 def test_the_job_that_may_not_skip_fails_where_its_reader_is_missing():

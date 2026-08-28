@@ -765,6 +765,18 @@ READS_THE_CORPUS = {
         "the same scan across both files, and the same reason: an id spelled inside a "
         "sentence is in no field a parser would return"
     ),
+    "test_area.test_the_base_is_the_repository_and_the_one_segment_under_it": (
+        "the pitch page as text, for the canonical URL it publishes — that page is where the "
+        "site root is declared, and the area's base path is a prefix of it or it 404s"
+    ),
+    "test_area.test_no_governed_file_is_inside_what_the_build_owns": (
+        "roadkeep.toml as text rather than as a parsed config, because the question is which "
+        "paths a role names before any of them is resolved into a document"
+    ),
+    "test_area.test_the_hand_written_robots_names_the_sitemap_this_build_emits": (
+        "robots.txt as text, which is a crawler directive and not a governed line — the fact "
+        "asserted is that one file names another, and nothing structures it"
+    ),
     "test_linting._layout_index": (
         "agents.md as text, to weigh one section of it against another — the budget is bytes "
         "and lines, so the characters are the subject and not a proxy for one"

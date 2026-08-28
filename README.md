@@ -124,12 +124,12 @@ called unbuilt were already in the ledger.
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
-| I — The documentation area (what an adopter reads before there is a session to ask) | 12 | 1 | 0 |
-| **Total** | 12 | 884 | 12 |
+| I — The documentation area (what an adopter reads before there is a session to ask) | 9 | 4 | 0 |
+| **Total** | 9 | 887 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1398** (deps: —) **An adopter's questions are answered by one long README or by a command they have not installed yet** — Evaluation comes before installation, so the reads that would decide one are the reads it gates, and nothing narrower than the whole file can be linked to. → §RK1398
+- 📋 **RK1402** (deps: RK1398 ✅, RK1401 ✅) **Nothing outside a checkout says what a verb takes, so a reader picks flags by installing the tool first** — The command surface is where every adoption is spent, and a page that carries it by hand goes stale in the commit after the one that wrote it. → §RK1402
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

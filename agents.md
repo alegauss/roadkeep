@@ -59,6 +59,8 @@ action.yml, .pre-commit-hooks.yaml, .github/   the gate's three surfaces (RK17)
 hooks/, skills/, commands/, .claude-plugin/, .mcp.json   the plugin's five, how it is installed
                 (RK22-26), and the launcher an adopter commits where no plugin can be (RK1108);
                 reasoned in tests/test_{plugin,skill,serving,commands,launching}.py
+site/   the documentation area's source, outside the store and building into the one reserved
+                subtree of it (docs/guide/) that no verb writes; joins held in tests/test_area.py
 editor/, scripts/, tests/   the editor host and the archive it installs as (RK1011-13), the
                 three commands a developer runs, and pytest — docs/ is a fixture, not a mock
 ```

@@ -1,0 +1,83 @@
+# Publishing the site, as the one path that builds it (RK1398, RK1400).
+#
+# `docs/` is what GitHub Pages serves and it is also the governed store, so what goes up is
+# both halves of one deploy: the hand-written pitch page, its assets, `llms.txt` and the
+# governed Markdown beside them — plus `docs/guide/`, which nothing commits and this workflow
+# is what produces.
+#
+# **Why a workflow and not a branch.** Pages can serve `docs/` straight off `main`, and that is
+# how the pitch page shipped. The moment one directory inside it is *generated*, serving the
+# branch means committing build output — and a commit that forgot to rebuild publishes a stale
+# area with nothing reporting it, which is exactly the defect the derived README block has a
+# gate against. Building here removes the question instead of adding a second gate for it.
+#
+# One consequence, stated because it is the thing that breaks silently: this repository's Pages
+# **source setting must be "GitHub Actions"**, not "Deploy from a branch". Left on the branch,
+# this workflow goes green and publishes nothing.
+name: pages
+
+on:
+  push:
+    branches: [main]
+    # Every input to what gets published: the area's source and toolchain, the directory that
+    # is served, and this file. A push touching only `src/` rebuilds nothing a reader sees.
+    paths:
+      - "site/**"
+      - "docs/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy at a time, and the newest wins: two pushes racing would otherwise publish
+# whichever finished last rather than whichever is current. Not cancelled in progress on the
+# deploy side, because a half-applied Pages deployment is worse than a superseded one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: build the area
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          # Keyed on the area's own lockfile, which is the only one in this repository — the
+          # package itself has zero runtime dependencies and nothing else here installs.
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      # `ci` and not `install`: the lockfile is what was tested, and a resolution that drifts
+      # between a developer's machine and this job is a page nobody can reproduce.
+      - run: npm ci
+        working-directory: site
+
+      # Writes into docs/guide, which is git-ignored — so the artefact below carries it and the
+      # repository never does.
+      - run: npm run build
+        working-directory: site
+
+      # The whole served directory: the pitch page and the generated area are two halves of one
+      # site, and uploading either alone publishes a deploy with the other missing.
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    name: publish
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

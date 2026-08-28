@@ -174,3 +174,4 @@ from outside the tree.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
+- ✅ **RK1400** **No job builds the area, so a page that stopped compiling is found by a reader and a stale commit is published** — The site is published by a workflow that builds it, never served from a branch: one directory of it is generated, and a branch deploy means committing output a stale commit publishes.

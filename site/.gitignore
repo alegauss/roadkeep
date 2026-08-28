@@ -1,0 +1,6 @@
+# What the build downloads and what it caches. The output is not ignored here because it is
+# not written here: it lands in ../docs/guide, and the root .gitignore is what keeps it out of
+# the tree — a generated tree is published by the workflow that builds it, never committed.
+node_modules
+.astro
+*.local

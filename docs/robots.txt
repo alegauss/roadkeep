@@ -2,3 +2,7 @@ User-agent: *
 Allow: /
 
 Sitemap: https://alegauss.github.io/roadkeep/sitemap.xml
+
+# The documentation area builds its own, because the one above is hand-written and will never
+# know a page the build emits. Two halves of one deploy, both crawlable (RK1398).
+Sitemap: https://alegauss.github.io/roadkeep/guide/sitemap-index.xml

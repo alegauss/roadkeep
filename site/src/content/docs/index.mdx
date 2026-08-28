@@ -1,0 +1,49 @@
+---
+title: What this is
+description: A CLI that owns the writes to a project's roadmap, changelog and rationale, so the format is a schema at insertion rather than a convention an author has to remember.
+tableOfContents: false
+---
+
+roadkeep owns the writes to a project's `ROADMAP.md`, `CHANGELOG.md`, `IMPROVEMENTS.md`
+and `STRATEGY.md`. A task line is inserted by a command that validates it, not typed by
+whoever is holding the file — so the format is a schema at the moment the text is created,
+and drift is refused before it is written rather than reported after.
+
+The author it constrains is usually an agent. It ships as a Claude Code plugin, and the
+same engine answers on the command line, in a hook, in CI and over MCP.
+
+## What is here, and what is elsewhere
+
+This area is for the reads that decide an adoption, which are the ones an installed copy
+would otherwise gate. Everything narrower than the whole README used to live inside a
+checkout: `--help` is a terminal read, `explain` answers a finding code from an installed
+copy, `config` describes `roadkeep.toml` from a build, and the skill is written for an
+agent that already has the plugin.
+
+**Reference pages here are generated from the package**, not written beside it. A page
+that retyped a flag, a finding code or a config key would be wrong at the first rename
+and would report nothing; the build derives them from the same declarations the tool
+enforces, and fails where the two disagree.
+
+For everything else, the repository is the source and this area does not hold a second
+copy of it:
+
+- [The README](https://github.com/alegauss/roadkeep#readme) — the measured problem, the
+  six laws, the installation routes and the non-goals.
+- [The backlog](https://github.com/alegauss/roadkeep/blob/main/docs/ROADMAP.md) — what is
+  open, in the format the tool enforces on itself.
+- [The ledger](https://github.com/alegauss/roadkeep/blob/main/docs/CHANGELOG.md) — what
+  shipped, indexed by block.
+
+## The shortest thing that shows the point
+
+```bash
+uvx roadkeep init          # scaffold the files and roadkeep.toml
+uvx roadkeep add --block A --symptom "…" --why "…"
+uvx roadkeep lint          # exits 1 on anything that drifted
+```
+
+`add` refuses a line that would not validate, so the question "what would I cut?" never
+arrives — the ceiling was known before a sentence was composed to fill it. `lint` is the
+backstop for whatever bypassed it, and its exit code is the whole difference between a
+gate and advice.

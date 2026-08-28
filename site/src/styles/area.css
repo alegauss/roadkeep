@@ -1,0 +1,44 @@
+/* The area's own palette, taken from the pitch page next door so the two read as one site.
+   Starlight is themed by overriding its custom properties rather than by restating its rules:
+   what is here is the accent and the greys, and every layout decision stays the theme's. */
+
+:root {
+  /* The pitch page's accent, in the ramp Starlight asks for. */
+  --sl-color-accent-low: #1a2c1f;
+  --sl-color-accent: #2f7a44;
+  --sl-color-accent-high: #a8e0ba;
+
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #eceef2;
+  --sl-color-gray-2: #c0c2c7;
+  --sl-color-gray-3: #888b96;
+  --sl-color-gray-4: #545861;
+  --sl-color-gray-5: #353841;
+  --sl-color-gray-6: #24272f;
+  --sl-color-black: #17181c;
+}
+
+:root[data-theme="light"] {
+  --sl-color-accent-low: #c8e8d3;
+  --sl-color-accent: #216233;
+  --sl-color-accent-high: #123a1e;
+
+  --sl-color-white: #17181c;
+  --sl-color-gray-1: #24272f;
+  --sl-color-gray-2: #353841;
+  --sl-color-gray-3: #545861;
+  --sl-color-gray-4: #888b96;
+  --sl-color-gray-5: #c0c2c7;
+  --sl-color-gray-6: #eceef2;
+  --sl-color-gray-7: #f5f6f8;
+  --sl-color-black: #ffffff;
+}
+
+/* A generated reference table is as wide as the parser makes it, so it scrolls inside its own
+   box rather than widening the page — the one layout rule this area needs that the theme has
+   no opinion about, because the tables it was designed for are hand-written. */
+.sl-markdown-content table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}
