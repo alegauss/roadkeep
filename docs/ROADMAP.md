@@ -30,6 +30,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1421** (deps: —) **Nothing enumerates the thirteen exits that return the gate's code, so which is a verdict is settled one report at a time** — Two of them were found by running the command and reading the stderr, and a fourteenth arrives with whatever a future verb decides its non-zero means. → §RK1421
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

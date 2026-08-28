@@ -119,13 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
 | C — Query (consult without reading the file) | 0 | 140 | 2 |
-| D — The gate | 0 | 203 | 2 |
+| D — The gate | 1 | 203 | 2 |
 | E — Adoption | 0 | 113 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 17 | 0 |
-| **Total** | 0 | 906 | 12 |
+| **Total** | 1 | 906 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1421** (deps: —) **Nothing enumerates the thirteen exits that return the gate's code, so which is a verdict is settled one report at a time** — Two of them were found by running the command and reading the stderr, and a fourteenth arrives with whatever a future verb decides its non-zero means. → §RK1421
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
