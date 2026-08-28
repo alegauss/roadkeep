@@ -90,25 +90,3 @@ already written, not authorship.
 ## Block H — The tool's own shape (what one verb costs to change)
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
-
-### §RK1410 A fetchable twin per page, and the index that has to name it
-
-`llms.txt` exists because a model reading this project should not have to render a
-landing page to learn what it is. An area published as HTML alone re-creates that
-problem one page at a time, and what a read costs an agent is this project's whole
-premise.
-
-So every page keeps a fetchable plain-text twin at an address derived from its own, and
-the area publishes an index of them. The source is Markdown already: what is needed is
-that the build emit it beside the rendered page rather than only the page, and that the
-address be derivable, so a link handed to a session resolves without a lookup.
-
-That is also what keeps `llms.txt` honest. It is hand-written today and says what the
-tool is; once there are pages, it is the index naming them, and a page added without an
-entry is a page no agent finds — a check the build makes, not a habit somebody keeps.
-
-What it must not become is a second corpus. The twin is the same bytes rendered
-differently, emitted in the same build, so nothing is written twice and no file can
-disagree with the page beside it. Two files saying almost the same thing about a schema
-is the failure this tool was written after watching, and it is no better when one of
-them is for a model.

@@ -192,10 +192,15 @@ def test_the_entry_page_carries_the_frontmatter_the_build_validates():
 def test_the_area_declares_no_dependency_that_runs_at_read_time():
     """Nothing here may need a service to be up. Search is indexed into the output at build
     time, which is the only shape the non-goal against a server allows — so a dependency that
-    implied a running backend would be the non-goal broken by a build step."""
+    implied a running backend would be the non-goal broken by a build step.
+
+    **What is held is the runtime set, not the total.** This first asserted there were no
+    development dependencies at all, which was a stricter rule than the reason for it: an HTML
+    parser used to convert a page into its plain-text twin (RK1410) runs in the build and
+    ships nothing, and refusing it would have been refusing a tool for a claim about a server.
+    """
     declared = json.loads((SITE / "package.json").read_text(encoding="utf-8"))
     assert set(declared["dependencies"]) == {"@astrojs/starlight", "astro"}
-    assert "devDependencies" not in declared or not declared["devDependencies"]
     assert "pagefind: true" in CONFIG.read_text(encoding="utf-8")
 
 

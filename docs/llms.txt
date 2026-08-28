@@ -122,6 +122,7 @@ servers, with no per-user licence.
 ## Links
 
 - [Website](https://alegauss.github.io/roadkeep/): project landing page
+- [Documentation area](https://alegauss.github.io/roadkeep/guide/llms.txt): the index of every page in the guide, each with a plain-text twin at its own address plus `index.md` — the reference is generated from the parser, the finding codes from the gate's own table, and the adoption walkthrough from a real run
 - [GitHub repository](https://github.com/alegauss/roadkeep): source code
 - [README](https://raw.githubusercontent.com/alegauss/roadkeep/main/README.md): the problem measured, the comparison against linters and task-file tools, install
 - [agents.md](https://raw.githubusercontent.com/alegauss/roadkeep/main/agents.md): the development guide an agent is expected to follow in this repository

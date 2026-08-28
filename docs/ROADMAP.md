@@ -40,8 +40,6 @@
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-- 📋 **RK1410** (deps: RK1399 ✅) **An area published as HTML alone makes an agent render a page to read prose the repository wrote as Markdown** — What a read costs an agent is this project's premise, and the hand-written index for models will name none of these pages unless something makes it. → §RK1410
-
 ## Done when — Block D
 
 - **The gate passes on this repository's own docs** the format is proven by the artefact

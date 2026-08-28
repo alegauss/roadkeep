@@ -124,12 +124,8 @@ called unbuilt were already in the ledger.
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
-| I — The documentation area (what an adopter reads before there is a session to ask) | 1 | 12 | 0 |
-| **Total** | 1 | 896 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1410** (deps: RK1399 ✅) **An area published as HTML alone makes an agent render a page to read prose the repository wrote as Markdown** — What a read costs an agent is this project's premise, and the hand-written index for models will name none of these pages unless something makes it. → §RK1410
+| I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 13 | 0 |
+| **Total** | 0 | 897 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
