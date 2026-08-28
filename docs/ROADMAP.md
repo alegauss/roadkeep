@@ -34,6 +34,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK1424** (deps: —) **The skill is 65,180 code units and nothing counts it, where the surface it is larger than has a ceiling** — A file nobody measures is the one that reached 186 KB in the repository this tool was written after, and this one is handed over on most working turns. → §RK1424
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

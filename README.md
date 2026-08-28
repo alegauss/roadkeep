@@ -121,11 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 141 | 2 |
 | D — The gate | 0 | 205 | 2 |
 | E — Adoption | 0 | 113 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 17 | 0 |
-| **Total** | 0 | 909 | 12 |
+| **Total** | 1 | 909 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1424** (deps: —) **The skill is 65,180 code units and nothing counts it, where the surface it is larger than has a ceiling** — A file nobody measures is the one that reached 186 KB in the repository this tool was written after, and this one is handed over on most working turns. → §RK1424
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
