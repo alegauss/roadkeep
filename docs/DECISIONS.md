@@ -87,6 +87,7 @@ JSON of the same join would be the drift this projection exists to have none of.
 - ✅ **RK1323** **this repository declares no [criteria], so the fixture that proves the format does not exercise a table init now writes** — A table this tool scaffolds into every new project is one its own conformance fixture carries, or the format is proven by tests and not by the artefact.
 - ✅ **RK1394** **nothing deletes a capture whose task shipped, so the reports directory grows for ever and is cleared by hand** — Evidence is deleted only on proof, never on age: a capture goes when the ledger answers for it, and a state this project cannot check leaves the file where it is.
 - ✅ **RK1416** **The decision field explain publishes is the same string as the cause on every code that carries one** — A payload publishes the sentence once: explain drops decision because cause is derived from it, and repair keeps it because nothing there states it twice.
+- ✅ **RK1419** **The capture offer rides lint --fix and repair, whose exit 1 is the verdict lint's own is exempt from** — Whether an exit is a verdict is one fact per verb, declared by the parser and withdrawable by the run; that a command writes is a different question.
 
 ### §RK1394 Proof, not age
 
@@ -121,6 +122,25 @@ already says the doors are alternatives.
 The narrowness is the decision. `Remedy.payload` keeps `decision`, because `repair
 --json` publishes a finding with no cause beside it. The seam is whether a neighbour
 already says it.
+
+### §RK1419 Why a declaration and not a rule about the code
+
+RK271 asked `_only_reads`, which answers whether this argv takes the write lock — a
+different question, since `lint --fix` is the same report by the same reader and it
+writes.
+
+The narrower alternative — *`EXIT_GATE` is by definition a verdict* — removes a flag
+instead of adding one, and is wrong: `merge` returns that code when it could not prove
+its own output, and RK484 built an offer for it.
+
+Rejected too: a list of exempt verbs in `cli`. Every other fact about a verb is declared
+by its own parser, and a second list is drift.
+
+Accepted: a flag no verb has to set. Absent, a write exiting 1 is a fall, which is the
+safe way to be wrong.
+
+The withdrawal is the half worth keeping. `repair` takes the verdict back for a step
+whose argv came back non-zero — a door of ours that did not work.
 
 ## Block E — Adoption
 

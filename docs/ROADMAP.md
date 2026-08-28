@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1419** (deps: —) **The capture offer rides lint --fix and repair, whose exit 1 is the verdict lint's own is exempt from** — The split is whether the command writes, so the two verbs whose non-zero means only that findings are left close by suggesting the tool is at fault. → §RK1419
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

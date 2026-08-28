@@ -484,6 +484,19 @@ def _behind(config: Config, args: argparse.Namespace) -> int | None:
     return EXIT_GATE
 
 
+def _is_verdict(args: argparse.Namespace) -> bool:
+    """Whether this parser said its `EXIT_GATE` is an answer rather than a fall (RK1419).
+
+    Read off `args` for `_only_reads`'s reason: the fact belongs to the parser that declares
+    it, and a handler that knows better about its own run — `repair`, for a step that came
+    back non-zero — sets it back to false on the namespace it was handed.
+
+    Absent on every verb that never declared one, which is the default and is right: a write
+    exiting 1 is a fall unless somebody has said what else it could be.
+    """
+    return bool(getattr(args, "verdict", False))
+
+
 def _only_reads(args: argparse.Namespace) -> bool:
     """Whether this argv is the query its parser declared, or the write a flag turned it into.
 
@@ -614,10 +627,18 @@ def _may_offer(
     pre-commit hook both live and where there is no session to capture before the end of.
 
     The split needs no new judgement, which is why it is this one and not a longer exemption
-    list: a **verdict** is what a read-only command returns when it found something, and a
-    fault is everything else. `_only_reads` is the parsers' own declaration (RK167), so
-    `pick --claim` refusing a held line is a write refusal and keeps the offer, and a `lint`
-    that *crashed* keeps it too — `faulted` is how that 1 says it was not a verdict.
+    list: a **verdict** is what a command returns when it read the files and they did not
+    pass, and a fault is everything else. `pick --claim` refusing a held line is a write
+    refusal and keeps the offer, and a `lint` that *crashed* keeps it too — `faulted` is how
+    that 1 says it was not a verdict.
+
+    Which of the two an exit is comes from **the parser** and not from whether it writes
+    (RK1419). RK271 read `_only_reads`, and that is a different question: `lint --fix` is the
+    same report by the same reader and takes the lock, so it closed the busiest correct
+    answer this tool gives by suggesting the tool was wrong — and so did `repair`, which the
+    report tells a reader to reach for. `verdict` is the declaration, one fact per verb, and
+    a run may withdraw it: `repair` does, for a step whose argv came back non-zero.
+    `_only_reads` stays beside it because it is true of every read that never declared one.
 
     A validation refusal keeps the offer either way: that is the case RK86 measured, and the
     one where the limit really might be wrong.
@@ -626,7 +647,7 @@ def _may_offer(
         # `report` offering to report itself is a regress; `guard` and `mcp` answer a
         # protocol, and a sentence on their stderr is read by no agent at all.
         return
-    if not faulted and code == EXIT_GATE and _only_reads(args):
+    if not faulted and code == EXIT_GATE and (_only_reads(args) or _is_verdict(args)):
         return
     # The report this closes went to stdout and this goes to stderr: unflushed, the offer
     # lands above the findings it is about, and a line out of order is a line misread.

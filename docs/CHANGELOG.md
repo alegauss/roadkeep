@@ -628,6 +628,7 @@
 - ✅ **RK1411** **lint died with a RuntimeError traceback on a machine whose environment names no home directory** — Path.home() raises rather than answering, and three readers on the path lint takes through engines called it unguarded; no home now means no plugin is installed, which is an answer.
 - ✅ **RK1416** **The decision field explain publishes is the same string as the cause on every code that carries one** — explain --json publishes cause and no decision, so no finding page can print one sentence under two headings.
 - ✅ **RK1418** **ref.missing asks the author for an anchor on the one scheme that derives it** — Under an id scheme ref.missing names the section that closes it, and --fix writes the pointer where that section is already there (design superseded: deriving it unconditionally reddens --baseline).
+- ✅ **RK1419** **The capture offer rides lint --fix and repair, whose exit 1 is the verdict lint's own is exempt from** — A parser declares whether its exit 1 is a verdict, so lint --fix and repair close on the finding alone and a repair whose own step failed still offers.
 
 ## Block E — Adoption
 

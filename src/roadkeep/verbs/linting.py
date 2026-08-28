@@ -210,6 +210,12 @@ def _repair(config: Config, args: argparse.Namespace) -> int:
         print(outcome.stated(root))
         for line in outcome.warnings():
             print(line, file=sys.stderr)
+    # The verdict this parser declares, withdrawn for the one exit that is not one (RK1419):
+    # a step is an argv this tool composed from its own table, so one that came back non-zero
+    # is a door of ours that did not work — RK86's subject exactly, and the offer belongs on
+    # it. Findings simply left over are the same answer `lint` gives about the same files.
+    if outcome.failed:
+        args.verdict = False
     # Clean means clean, and `--dry-run` is never that: a run that wrote nothing has not
     # closed anything, so reporting 0 would tell a CI job the tree passes when it does not.
     if outcome.dry_run:
@@ -583,7 +589,14 @@ def declare_gate(subcommands: argparse._SubParsersAction) -> None:
         since="a git revision, which is a fact about the checkout the caller cannot see from here — and the gate's answer is about the tree as it is",
         quiet='how a terminal prints, which is not a thing a JSON payload has',
     )
-    lint_parser.set_defaults(handler=_lint, reads_only=True, writes_when="fix")
+    # `verdict` is the second thing a parser says about its exit code (RK1419). `reads_only`
+    # answers whether this argv takes the lock, and RK271 borrowed it to decide whether a 1 was
+    # an answer — which holds for `lint` and breaks the moment `--fix` makes the same run a
+    # write. What the offer needs to know is what the code *means*, and that is one fact per
+    # verb: `lint` reports what it found either way.
+    lint_parser.set_defaults(
+        handler=_lint, reads_only=True, writes_when="fix", verdict=True
+    )
     # `list`'s pair, one verb over: `--quiet` shortens the printed report and `--json` is a
     # different form of the same read (RK467).
     answers(
@@ -608,7 +621,10 @@ def declare_gate(subcommands: argparse._SubParsersAction) -> None:
         help="print the commands and run none of them",
     )
     repair_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
-    repair_parser.set_defaults(handler=_repair, reads_only=False)
+    # Declared, and **withdrawn by the run** where a step this tool composed came back
+    # non-zero: that 1 is a door of ours that did not work, which is the case RK86's offer
+    # was written for. See `_repair`.
+    repair_parser.set_defaults(handler=_repair, reads_only=False, verdict=True)
 
     explain_parser = subcommands.add_parser(
         "explain",

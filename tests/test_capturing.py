@@ -454,6 +454,51 @@ def test_a_failing_gate_says_nothing_about_reporting_the_gate(tmp_path, capsys):
     assert "deps.unknown" in out and err == ""
 
 
+def test_the_same_report_from_a_run_that_also_writes_says_nothing_either(tmp_path, capsys):
+    """RK1419. RK271 read `_only_reads`, which asks whether the argv takes the lock and not
+    what its exit code means — so `lint --fix` closed the identical report with two lines
+    doubting the tool, because the flag that repairs the derived made the same run a write.
+
+    Both are asserted, and against the same tree: what a reader gets from `lint` and from
+    `lint --fix` about one file is the same verdict, and RK271's whole argument is about the
+    verdict rather than about the lock.
+    """
+    root = project(tmp_path, roadmap=BROKEN)
+    assert main(["-C", str(root), "lint"]) == 1
+    assert capsys.readouterr().err == ""
+    assert main(["-C", str(root), "lint", "--fix"]) == 1
+    out, err = capsys.readouterr()
+    assert "deps.unknown" in out
+    assert err == ""
+
+
+def test_the_verb_the_report_sends_a_reader_to_says_nothing_either(tmp_path, capsys):
+    """`repair` is what every finding's report names, so the offer landed at the end of the
+    busiest correct answer this tool gives (RK1419). Its 1 means findings are left, which is
+    what `lint` says about the same files."""
+    root = project(tmp_path, roadmap=BROKEN)
+    assert main(["-C", str(root), "repair"]) == 1
+    assert capsys.readouterr().err == ""
+
+
+def test_a_repair_whose_own_door_failed_keeps_the_offer(tmp_path, capsys, monkeypatch):
+    """The declaration is the parser's and the run may withdraw it (RK1419). A step is an
+    argv this tool composed out of its own table, so one that comes back non-zero is a door
+    of ours that did not work — RK86's subject exactly, and the one exit of this verb that is
+    not a verdict about the files."""
+    # A stale projection, which is `export.stale` — a `run` row whose argv is complete, so
+    # `repair` dispatches it as a *step* rather than closing it in the mechanical pass or
+    # handing it back for somebody to decide.
+    root = project(tmp_path)
+    (root / "README.md").write_text(
+        "# R\n\n<!-- roadkeep:begin -->\nstale\n<!-- roadkeep:end -->\n", encoding="utf-8"
+    )
+    monkeypatch.setattr("roadkeep.verbs.linting._step", lambda config: lambda argv: 2)
+    code = main(["-C", str(root), "repair"])
+    assert code == 1
+    assert f"{invocation()} report --symptom" in capsys.readouterr().err
+
+
 def test_a_query_refused_for_what_it_was_asked_still_offers(tmp_path, capsys):
     """The other half of the same split: exit 2 is about the caller's input, and RK86's measured
     case is a caller who thinks the refusal is wrong. Read-only is not the discriminator on its

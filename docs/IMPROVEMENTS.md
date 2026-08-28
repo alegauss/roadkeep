@@ -81,29 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1419 A verdict from a verb that also writes
-
-RK271 split a **fault** from a **verdict** so that `lint` exiting 1 with a finding stops
-carrying two lines about roadkeep possibly being wrong. The test is `not faulted and
-code == EXIT_GATE and _only_reads(args)`, and that last clause is a proxy: it asks
-whether the command writes, not whether the exit code is an answer.
-
-Two verbs fail it. `lint --fix` repairs the derived and exits 1 while anything is left,
-which is the same verdict the read gives about the same files. `repair` runs every
-complete argv and exits 1 for the same reason — and it is the verb the report tells a
-reader to reach for, so the offer lands at the end of the busiest correct answer this
-tool gives.
-
-Measured on a tree with one `ref.missing`: `lint` closes with the finding, `lint --fix`
-and `repair` close with `report --symptom … --why … -- lint --fix`. The three answered
-identically about the files.
-
-The shape to argue about is whether the seam is a per-parser declaration — a verb saying
-*my `EXIT_GATE` is a verdict* the way `reads_only` says what it locks — or the narrower
-reading that `EXIT_GATE` is by definition a verdict and only a fault ever earns the
-offer. The second is smaller and removes the flag rather than adding one; what it needs
-checking against is every other verb that returns that code.
-
 ## Block E — Adoption
 
 ## Block F — The plugin
