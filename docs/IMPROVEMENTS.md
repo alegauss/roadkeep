@@ -87,28 +87,28 @@ already written, not authorship.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-### §RK1425 A step offered as an alternative, in the surface where a door is a button
+### §RK1426 A key composed twice from two readings of the same absence
 
-`provideCodeActions` loops a finding's doors, skips the incomplete ones and offers each
-of the rest as a quick fix. `sequence` is never read.
+`Gate.check` stores each remedy under `${path}:${finding.line}:${code}`, and
+`provideCodeActions` looks it up under `${path}:${range.start.line + 1}:${code}`. The
+two agree on every finding that carries a line. On one that does not, the store writes
+the string `null` and the range — clamped to 0 by the `Math.max` two lines above — is
+asked for as `1`.
 
-Two findings this repository can produce today. `ref.missing` under an id scheme with no
-section is a sequence of `section add <id> --title …` and then `lint --fix`; the first
-is incomplete and skipped, so the editor offers the **second alone** — a one-click fix
-whose own sentence begins *then the pointer*, and which writes nothing until the step it
-follows has run. `budget.session` is the other shape: two complete ordered reads offered
-as two alternatives.
+So the doors are never found, and what the panel offers is the explanation alone. That
+is the same thing the panel shows for a finding whose every door carries a marked blank,
+which is why it has never looked wrong.
 
-RK1336 added the field for exactly this — *a consumer looking at two doors and a blank
-decision would otherwise have to guess whether to offer a choice or a sequence* — and
-the guess it removed is being made here, in the one surface where the answer is a button
-rather than a sentence a reader weighs.
+The class is not small. Every finding filed against `roadkeep.toml` is line-less: the
+whole `[tools]`, `[budgets]` and `[limits]` family, `priority.config`, `install.stale`,
+`gate.behind`. `budget.session` is the measured one — two complete ordered reads, and
+neither reaches a button.
 
-What is not obvious is what a quick fix should be for a sequence whose first step is
-prose. Running the tail is wrong; offering nothing loses the finding's only actionable
-half; and an editor composing the title is L4's line. The shape worth arguing is a
-single action for the whole sequence that runs what it can and says what it cannot,
-against one that offers nothing and leaves `explain` as the way in.
+The fix is one reading and not two. What the range is built from is already derived from
+`finding.line`; the key should come off the same value rather than off the diagnostic
+the range became. Worth checking beside it is whether a line-less finding should anchor
+at line 0 at all, or whether the file-level diagnostic an editor has for that is the
+honest shape.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 

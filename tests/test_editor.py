@@ -434,6 +434,56 @@ def test_only_a_door_the_tool_called_complete_becomes_an_action(tmp_path):
         assert f"roadkeep explain {code}" in found
 
 
+def test_a_sequence_is_one_action_and_never_its_second_step(tmp_path):
+    """RK1425. The payload says which of the two kinds of several the doors are (RK1336), and
+    this is the one consumer that turns them into buttons — so it is the one place the
+    difference has to be read, and it was not.
+
+    `ref.missing` under an id scheme is a sequence whose first step is prose the tool does not
+    compose, so the editor skipped it and offered `lint --fix` alone: a one-click fix that
+    writes nothing until the step it follows has run.
+
+    `char.tab` is here to make that assertion mean something. Both codes reaching only their
+    explanation would also be what a remedy the panel never found looks like, so the finding
+    beside it is one whose door *is* offered — which says the lookup ran and the silence is
+    the decision.
+
+    The other shape — a sequence whose steps are all complete, which is `budget.session` — is
+    not asserted here: it is filed against `roadkeep.toml` with no line, and this surface
+    cannot reach the doors of a line-less finding at all (RK1426).
+    """
+    root = tmp_path / "project"
+    root.mkdir()
+    (root / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nimprovements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    (root / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A — The model\n\n"
+        "- 📋 **RK1** (deps: —) **A symptom** — Because of a reason.\n"
+        "- 📋 **RK2** (deps: —) **A symptom\twith a tab** — Because of it. → §RK2\n",
+        encoding="utf-8",
+        newline="",
+    )
+    (root / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A — The model\n", encoding="utf-8", newline=""
+    )
+    actions = _harness(root)["gate"]["actions"]
+    titles = {code: [one["title"] for one in actions if one["code"] == code] for code in
+              {one["code"] for one in actions}}
+
+    # The lookup runs and a complete door is still one action, unchanged.
+    assert any("lint --fix" in title for title in titles["char.tab"])
+    ran = next(one["argv"] for one in actions if "lint --fix" in one["title"])
+    # One shape for the command's argument, so the caller composing it never chooses between
+    # two: a list of argvs, which a single-door action is with one entry in it.
+    assert ran == [[["lint", "--fix"]]]
+
+    # And the step that cannot start: nothing runnable is offered, and the explanation is the
+    # way in — which is what it already was for every door carrying a marked blank.
+    assert titles["ref.missing"] == ["roadkeep explain ref.missing"]
+
+
 def test_nothing_in_the_host_writes_a_file():
     """The property the round-trip law rests on (L3): one writer. The extension composes an
     argv and the command writes — a `fs.write` here would be a second writer of a governed

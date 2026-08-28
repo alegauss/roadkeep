@@ -146,6 +146,41 @@ async function command(cwd, argv) {
 }
 
 /**
+ * What a finding's doors become here: a list of runs, each one action (RK1425).
+ *
+ * The payload says which of the two kinds of several the doors are (RK1336) and this is the
+ * one consumer that turns them into buttons, so it is the one place the difference has to be
+ * read. It was not: every complete door became its own quick fix, and a `sequence` is not a
+ * set of alternatives.
+ *
+ * **A sequence is one action or none.** Its doors are steps, so what is offered is the
+ * longest run of them that starts at the first — and where the first is incomplete there is
+ * nothing to offer, because running the tail is running step two alone. Measured on
+ * `ref.missing` under an id scheme: `section add <id> --title …` is prose the tool does not
+ * compose (L4) and `lint --fix` after it writes nothing until it has been written, so the
+ * editor was offering a one-click fix that could not work. `roadkeep explain <code>` is
+ * added to every finding regardless and is the way in when this offers nothing.
+ *
+ * Alternatives are unchanged: one action each, and an incomplete one is offered to nobody.
+ */
+function offerable(remedy) {
+  const doors = (remedy && remedy.doors) || [];
+  // A marked blank is a title, a shorter symptom or a reason — prose the tool does not
+  // compose (L4), and an editor is not the place to start writing one.
+  if (!(remedy && remedy.sequence)) {
+    return doors.filter((door) => door.complete).map((door) => [door]);
+  }
+  const run = [];
+  for (const door of doors) {
+    if (!door.complete) {
+      break;
+    }
+    run.push(door);
+  }
+  return run.length ? [run] : [];
+}
+
+/**
  * The gate's findings as diagnostics, anchored where the report already points.
  *
  * One collection for the whole workspace and not one per document: `lint` judges the files
@@ -205,18 +240,18 @@ class Gate {
       const remedy = this.remedies.get(
         `${document.uri.fsPath}:${said.range.start.line + 1}:${said.code}`
       );
-      for (const door of (remedy && remedy.doors) || []) {
-        if (!door.complete) {
-          // A marked blank is a title, a shorter symptom or a reason — prose the tool does
-          // not compose (L4), and an editor is not the place to start writing one.
-          continue;
-        }
+      for (const step of offerable(remedy)) {
         const action = new vscode.CodeAction(
-          `roadkeep ${door.argv.join(" ")} — ${door.what}`,
+          `roadkeep ${step.map((door) => door.argv.join(" ")).join(", then ")} — ` +
+            `${step[0].what}`,
           vscode.CodeActionKind.QuickFix
         );
         action.diagnostics = [said];
-        action.command = { command: "roadkeep.run", title: "Run it", arguments: [door.argv] };
+        action.command = {
+          command: "roadkeep.run",
+          title: "Run it",
+          arguments: [step.map((door) => door.argv)],
+        };
         out.push(action);
       }
       const explain = new vscode.CodeAction(
@@ -752,14 +787,27 @@ function activate(context) {
       vscode.window.showInformationMessage(said.error || said.output || "nothing to repair");
       await both();
     }),
-    vscode.commands.registerCommand("roadkeep.run", async (argv) => {
+    vscode.commands.registerCommand("roadkeep.run", async (steps) => {
       // Shown and then re-read, whichever it was. A door is not marked read or write — the
       // remedy's `kind` describes the *remedy*, and `deps.unknown` is one `decide` holding a
       // read and a write — so a reader that guessed would be inventing a field. What every
       // door does have is an answer worth showing, and re-judging a file nothing wrote is a
       // second run of a command that already costs nothing.
-      const said = await command(root, argv);
-      vscode.window.showInformationMessage(said.output || said.error || "done");
+      //
+      // **A list of argvs and never one** (RK1425): a `sequence` is one action whose doors
+      // are ordered steps, and a single-door action is that list with one entry — one shape,
+      // so the caller composing it never chooses between two. Stopped at the first step that
+      // fails, because the rest were written to follow it, and every answer is kept: two
+      // ordered *reads* are two answers, and showing the last would drop what the first said.
+      const answers = [];
+      for (const argv of steps) {
+        const said = await command(root, argv);
+        answers.push(said.output || said.error || "done");
+        if (said.error && !said.output) {
+          break;
+        }
+      }
+      vscode.window.showInformationMessage(answers.join("\n\n") || "done");
       await both();
     }),
     vscode.commands.registerCommand("roadkeep.add", async () => {

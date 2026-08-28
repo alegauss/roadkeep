@@ -36,7 +36,7 @@
 
 ## Block G — The editor surface (the backlog where the file is open)
 
-- 📋 **RK1425** (deps: —) **The editor offers every complete door of a finding as an independent quick fix, including a sequence's second step** — The payload says which of the two kinds of several the doors are, and the one consumer that turns them into buttons is the one that does not read it. → §RK1425
+- 📋 **RK1426** (deps: —) **A finding the gate files with no line loses its doors in the editor, which offers only the explanation** — The remedy is stored under the line the report carried and looked up under the one the diagnostic was anchored at, and for a line-less finding those are not the same key. → §RK1426
 
 ## Block H — The tool's own shape (what one verb costs to change)
 

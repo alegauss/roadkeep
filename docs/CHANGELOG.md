@@ -897,6 +897,7 @@
 - ✅ **RK1019** **The harness proves the client against whatever roadkeep the machine resolves, and nothing says it was this checkout** — The harness compares the home `engines` derived against this checkout exactly, so a run that answered from another tree fails instead of reporting on it.
 - ✅ **RK1271** **the editor completes nothing in `roadkeep.toml`, so every key is typed from memory** — Completion and hover in the config file offer the keys the package printed, and the panel compiles none of them (design §RK1271 recorded in `editor/extension.js`).
 - ✅ **RK1277** **the config completion caches a fact about the file on the engine's clock, so a declared key still reads as undeclared** — The shape is cached on the clock of what moves it, and the config has a watcher of its own.
+- ✅ **RK1425** **The editor offers every complete door of a finding as an independent quick fix, including a sequence's second step** — A sequence is one action naming its steps in order, or none where the first is prose, and roadkeep.run takes a list of argvs so both shapes compose the same way.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
