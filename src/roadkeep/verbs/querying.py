@@ -379,14 +379,16 @@ def _cost(config: Config, args: argparse.Namespace) -> int:
         return _session_budget(config, args)
     if args.skill:
         return _skill_budget(config, args)
+    if args.deny:
+        return _deny_budget(config, args)
     # No subject is the default here, unlike `budget`, whose bare form is about the line `add`
-    # would write next. These are four cadences — once at connect, once per turn, once per
-    # read, and once per turn that loads the write path (RK1424) — and privileging one would
-    # make the others look like narrowings of it.
+    # would write next. These are five cadences — once at connect, once per turn, once per
+    # read, once per turn that loads the write path (RK1424) and once per refused write
+    # (RK1428) — and privileging one would make the others look like narrowings of it.
     print(
         "roadkeep: cost takes a subject: --tools for the served surface, --brief for what "
         "that read costs a tool result, --session for both against their cadences, --skill "
-        "for the write path on the turns that load it",
+        "for the write path on the turns that load it, --deny for one refused write",
         file=sys.stderr,
     )
     return EXIT_USAGE
@@ -702,6 +704,31 @@ def _skill_budget(config: Config, args: argparse.Namespace) -> int:
         print(json.dumps(found.payload(CHARACTER_UNIT, schema), indent=2))
     else:
         print(found.stated(CHARACTER_UNIT, schema))
+    return EXIT_OK
+
+
+def _deny_budget(config: Config, args: argparse.Namespace) -> int:
+    """What one refused write costs the session that meets it (RK1428).
+
+    The fifth cadence. `guarding.py` hands a session two texts and only the small one was
+    measured — the session-start notice is held to a ceiling and printed beside it by
+    `--session`, while the denial, thirteen times larger here, was priced by nothing. It is
+    also the one paid per denial, by a plugin whose whole purpose is to produce them.
+
+    Composed from a real `Refusal` and never from a fixture, which is `notice_budget`'s rule
+    one message over: a door reworded in `guarding.py` moves this figure or it is measuring
+    something else.
+
+    **And no ceiling**, for `--skill`'s reason: `govern` refuses a limit this corpus already
+    breaks, so declaring one would be a number picked before the reading that decides it.
+    """
+    from roadkeep.budgeting import deny_cost  # noqa: PLC0415 - RK260
+
+    found = deny_cost(config)
+    if args.json:
+        print(json.dumps(found.payload(CHARACTER_UNIT), indent=2))
+    else:
+        print(found.stated(CHARACTER_UNIT))
     return EXIT_OK
 
 
@@ -1749,6 +1776,11 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         action="store_true",
         help="what the write path costs the turns that load it",
     )
+    cost_parser.add_argument(
+        "--deny",
+        action="store_true",
+        help="what one refused write costs the session that meets it",
+    )
     cost_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     cost_parser.set_defaults(handler=_cost, reads_only=True)
     answers(
@@ -1759,6 +1791,22 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         # The fourth cadence (RK1424): trigger-loaded, so it is neither the schema's once at
         # connect nor `[budgets]`' every turn, and it is larger than either.
         ("skill", "what the write path costs the turns that load it"),
+        # And the fifth (RK1428), paid per refused write by the surface this plugin is for.
+        ("deny", "what one refused write costs the session that meets it"),
+    )
+    # The one subject of this verb the surface does not offer (RK1428), and `list --ids`'
+    # reason exactly: a caller over that transport is *handed the denial itself*, so the
+    # figure adds nothing it could not count from the text already in front of it — while the
+    # author who can shorten the tables is at a terminal. Measured before it was decided:
+    # exposing it costs 102 characters against 19 of room under `[tools] session`, and a
+    # ceiling raised to admit the next subject is the reviewer's limit RK30 replaced.
+    withheld(
+        cost_parser,
+        deny=(
+            "the caller over this transport is handed the denial itself, so the figure adds "
+            "nothing it could not count from the text in front of it — and exposing it costs "
+            "102 characters against 19 of room under `[tools] session`"
+        ),
     )
     narrows(budget_parser, "role", "anchor")
     # `--body` is **not** narrowed to `--anchor` (RK1224). It was, and that was the last thing

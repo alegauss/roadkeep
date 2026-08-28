@@ -1558,6 +1558,73 @@ def test_the_skill_is_a_subject_and_not_a_narrowing(tmp_path, capsys):
         assert subject in said, subject
 
 
+# -- the fifth cadence: one refused write (RK1428) ----------------------------
+
+
+def test_the_denial_is_priced_beside_the_notice_that_already_was(tmp_path, capsys):
+    """`guarding.py` hands a session two texts and only the small one was measured. The
+    notice is 305 against a declared 320 and `--session` prints it beside that ceiling; the
+    denial — thirteen times larger on this repository — was priced by nothing, and it is the
+    one paid per denial by a plugin whose whole purpose is to produce them.
+
+    Both figures in one answer, because the finding *is* the pair: a reading that gave the
+    denial alone would be the same number with the argument taken out of it.
+    """
+    _priced(tmp_path)
+    assert main(["-C", str(tmp_path), "cost", "--deny", "--json"]) == EXIT_OK
+    found = json.loads(capsys.readouterr().out)
+    assert found["characters"] > found["notice"] > 0
+    assert found["notice_limit"] == 320
+    # No ceiling of its own, for `--skill`'s reason: `govern` refuses a limit this corpus
+    # breaks, so one declared before the reading would be a number nobody argued for.
+    assert "limit" not in found
+
+
+def test_the_denial_is_measured_off_the_refusal_and_not_a_fixture(tmp_path, capsys):
+    """`notice_budget`'s rule one message over: it is composed from `announce` so a sentence
+    reworded there moves the figure. A fixture pasted into the reader would agree until
+    somebody edits a door, which is the drift this package exists to refuse."""
+    from roadkeep.budgeting import deny_cost
+    from roadkeep.guarding import Refusal
+    from roadkeep.kernel.schema import width
+
+    _priced(tmp_path)
+    config = Config.discover(tmp_path)
+    found = deny_cost(config)
+    composed = Refusal(
+        tool="Edit",
+        path=config.relative(config.path("roadmap")),
+        role="roadmap",
+    )
+    assert found.bare == width(str(composed))
+    # This fixture declares no server, so the two figures are one and the split is 0 — the
+    # answer and not an absence: with no tool table above it the shell one is the only one.
+    assert found.here == found.bare
+    assert found.shell == 0
+
+    # And the served branch, on the one project at hand that declares the server. The half a
+    # caller addressed by its MCP names has already been given is reported and never judged
+    # (RK447, RK448): it is inside the served figure, so it cannot exceed it.
+    here = deny_cost(Config.discover(Path(__file__).resolve().parents[1]))
+    assert here.here > here.bare
+    assert 0 < here.shell < here.here
+
+
+def test_the_denial_read_is_the_one_subject_the_surface_withholds(tmp_path, capsys):
+    """Exposing it costs 102 characters against 19 of room under `[tools] session`, and a
+    ceiling raised to admit the next subject is the reviewer's limit RK30 replaced. So it is
+    withheld with `list --ids`' reason: the caller over that transport is handed the denial
+    itself and can count what is in front of it."""
+    from roadkeep import serving
+
+    assert "deny" in serving.withheld()["cost"]
+    assert "handed the denial itself" in serving.withheld()["cost"]["deny"]
+    # And it is still a subject, so asking for it beside another is refused like the rest.
+    _priced(tmp_path)
+    assert main(["-C", str(tmp_path), "cost", "--deny", "--skill"]) == EXIT_USAGE
+    assert "one answer per call" in capsys.readouterr().err
+
+
 def test_the_two_surface_reads_share_one_measurement(tmp_path, capsys):
     """RK1096. `--tools` summed the descriptors and the handshake, `--session` summed the
     same two, and neither called the other — one arithmetic written twice, which agrees right

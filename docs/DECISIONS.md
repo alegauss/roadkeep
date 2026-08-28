@@ -204,6 +204,7 @@ from outside the tree.
 
 - ✅ **RK1325** **a project wiring no plugin is told its doors arrive under one, so a payload names a tool nothing there answers** — A prefix is a fact about the project a caller can act on, and a served caller acts on one project, so a root it is not in publishes argv alone.
 - ✅ **RK1424** **The skill is 65,180 code units and nothing counts it, where the surface it is larger than has a ceiling** — A subject exposed over MCP is charged against [tools] session: this one put the surface 74 characters past it, and the description gave way rather than the ceiling.
+- ✅ **RK1428** **Nothing counts the guard's denial, and 1,760 of its 4,092 units re-spell the shell for a caller that has the tools** — The subject stays off the served surface: exposing it costs 102 characters against 19 of room, and a caller over that transport is handed the denial itself.
 
 ### §RK1424 Why the description gave way and not the ceiling
 
@@ -223,6 +224,27 @@ working — the next one arrives with the argument for its number.
 
 Noted and not resolved: documenting the read in the skill grew the file it measures,
 from 65,180 to 65,431. A read about a cost is not free of it.
+
+### §RK1428 The first subject the ceiling actually refused
+
+RK1424 left 19 characters under `[tools] session` and wrote down that the next subject
+would arrive with the argument for its number. This is that subject, and it does not
+have one.
+
+Measured before deciding: exposing `--deny` costs 102 characters, putting the surface 83
+past the ceiling, and `lint` refuses it.
+
+Rejected: raising the ceiling. Nothing here argues for a bigger number — only that
+another subject exists, which is what a ceiling yielding to whatever arrives last would
+accept.
+
+Accepted: withheld, with `list --ids`' reason and not a new kind. A caller there is
+handed the whole denial, so the figure adds nothing it could not count; the author who
+can shorten the tables is at a terminal.
+
+Unsettled: the shell half. RK447 decided the tools lead and RK448 narrowed the deny's
+other routes; neither measured the table, and 1,760 units is now a number rather than an
+impression.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

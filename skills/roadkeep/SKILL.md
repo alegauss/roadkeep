@@ -596,7 +596,10 @@ session pays before it calls anything, and the one figure neither of the other t
 **`cost --skill`** is the fourth cadence: what this file costs the turns that load it, beside
 the served schema and with the sections it went to — no ceiling, because none is declared and
 one chosen before this reading would be a number nobody argued for.
-A bare `cost` is refused naming the four: they are four cadences, and privileging one would
+**`cost --deny`** is the fifth, and the one this surface is *for*: what a refused write costs
+the session that meets it, beside the notice from the same module that has a ceiling. CLI
+only — over this transport you are handed the denial itself.
+A bare `cost` is refused naming the five: they are five cadences, and privileging one would
 make the others read as narrowings of it. **And `config` is the read about `roadkeep.toml` itself**:
 every table, key, TOML type and default this build accepts, with the sentence its source
 already carries and whether *this* project declared it — `--table <name>` for one,

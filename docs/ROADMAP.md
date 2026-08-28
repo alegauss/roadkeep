@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1428** (deps: —) **Nothing counts the guard's denial, and 1,760 of its 4,092 units re-spell the shell for a caller that has the tools** — The notice from the same module is held to 320 characters, and the text this plugin exists to produce is the one nothing measures. → §RK1428
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

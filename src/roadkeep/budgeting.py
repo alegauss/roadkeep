@@ -1680,6 +1680,125 @@ def skill_cost(config: Config) -> Skilled:
     return Skilled(path=PROJECT_SKILL, origin="")
 
 
+@dataclass(frozen=True, slots=True)
+class Denied:
+    """What one refused write costs the session that meets it (RK1428).
+
+    `guarding.py` hands a session two texts and only the small one was measured: the
+    session-start notice is held to `_NOTICE_BUDGET` and printed beside it by `cost
+    --session`, while the denial — thirteen times larger on this project — was priced by
+    nothing. It is also the one paid **per denial**, by a plugin whose whole purpose is to
+    produce them.
+
+    **Both spellings, because they are two different messages** (RK447). A session with a
+    server for the tools is offered them and the shell table beside it; one without gets the
+    shell alone. Neither is derivable from the other, so a single figure would be a number
+    that is right for one caller and wrong for the other.
+
+    No limit, for `Skilled`'s reason: `govern` refuses a ceiling this corpus already breaks,
+    and what it should be is a reading nobody had taken. This is the reading.
+    """
+
+    #: The denial **this project's** sessions meet, in UTF-16 code units — composed with
+    #: the prefix `provenance.served_by` says they get, so a project with no server is
+    #: measured as the one it is rather than as the one this repository happens to be.
+    here: int
+    #: The same denial where nothing serves the tools — the shell table alone. Equal to
+    #: :attr:`here` on a project with no server, which is not a duplicate but the answer.
+    bare: int
+    #: What the served denial spends re-spelling the write vocabulary as shell commands,
+    #: which is the half a caller addressed by its MCP names has already been given (RK447,
+    #: RK448). Reported and never judged: whether it is redundant there or is the fallback for
+    #: an agent that has stopped trusting the tools is an argument, not an arithmetic.
+    #:
+    #: `0` where nothing is served, and that is the answer rather than an absence: with no
+    #: tool table above it the shell one is not a second spelling, it is the only one.
+    shell: int
+    lines: int
+    #: The other text this module hands a session, and the ceiling it is held to — beside the
+    #: figure, because the whole finding is that one of the two is measured and one is not.
+    notice: int = 0
+    notice_limit: int | None = None
+
+    def stated(self, unit: str) -> str:
+        rows = [
+            f"deny       {self.here} {unit} per refused write, {self.lines} lines — "
+            f"no ceiling is declared for it",
+            f"  bare     {self.bare:>6}  the same denial where nothing serves the tools",
+        ]
+        if self.shell:
+            rows.insert(
+                1,
+                f"  shell    {self.shell:>6}  of that re-spells the write vocabulary for a shell",
+            )
+        if self.notice_limit is not None:
+            rows.append(
+                f"  notice   {self.notice:>6}  this module's other text, "
+                f"{self.notice_limit - self.notice:+} of {self.notice_limit}"
+            )
+        return chr(10).join(rows)
+
+    def payload(self, unit: str) -> dict[str, object]:
+        return {
+            "characters": self.here,
+            "unit": unit,
+            "of": "one write refused, as this project's sessions are told it",
+            "lines": self.lines,
+            "shell": self.shell,
+            "bare": self.bare,
+            # No `limit` key, for `Skilled`'s reason: a `null` there reads as a ceiling this
+            # build failed to find rather than as one nobody has argued for.
+            "notice": self.notice,
+            "notice_limit": self.notice_limit,
+        }
+
+
+def deny_cost(config: Config) -> Denied:
+    """Price the refusal off the record that composes it, never off a second spelling.
+
+    :func:`notice_budget`'s rule one message over: it is measured from
+    :func:`~roadkeep.guarding.announce` so a sentence reworded there moves the figure, and this
+    builds a real :class:`~roadkeep.guarding.Refusal` for the same reason. A fixture pasted here
+    would be a copy that agrees until somebody edits a door.
+
+    The subject is an `Edit` on this project's roadmap, which is the denial every adopting
+    session meets first — and the role is what decides which verbs the table names, so it is
+    the one the whole plugin exists for rather than the widest one available.
+    """
+    from roadkeep.guarding import Refusal  # noqa: PLC0415 - RK260
+    from roadkeep.provenance import served_by  # noqa: PLC0415 - RK260
+
+    refused = Refusal(
+        tool="Edit",
+        path=config.relative(config.path("roadmap")),
+        role="roadmap",
+        served=served_by(config.root),
+    )
+    said = str(refused)
+    bare = str(replace(refused, served=""))
+    # The split exists only where the tools are served: with none, the shell table is not a
+    # second spelling of anything — it is the only one, and a figure here would be the whole
+    # answer reported as a redundancy.
+    at = said.find(_SHELL_TABLE)
+    shell = 0 if at < 0 else width(said[at:said.index(_READING)])
+    resident, limit = notice_budget(config)
+    return Denied(
+        here=width(said),
+        bare=width(bare),
+        shell=shell,
+        lines=said.count("\n") + 1,
+        notice=resident,
+        notice_limit=limit,
+    )
+
+
+#: The two sentences the split above is taken between. Matched rather than counted by line,
+#: for `installing._skill`'s reason: a table that grew a row would move every number keyed on
+#: a position, and a sentence that moved is a `ValueError` here rather than a wrong figure.
+_SHELL_TABLE = "Or the same engine in a shell"
+_READING = "Reading is never refused"
+
+
 def notice_budget(config: Config) -> tuple[int, int | None]:
     """What this project's `SessionStart` line costs, and what it may (RK1243).
 

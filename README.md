@@ -121,15 +121,11 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 141 | 2 |
 | D — The gate | 0 | 205 | 2 |
 | E — Adoption | 0 | 114 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 126 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 127 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 17 | 0 |
-| **Total** | 1 | 913 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1428** (deps: —) **Nothing counts the guard's denial, and 1,760 of its 4,092 units re-spell the shell for a caller that has the tools** — The notice from the same module is held to 320 characters, and the text this plugin exists to produce is the one nothing measures. → §RK1428
+| **Total** | 0 | 914 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
