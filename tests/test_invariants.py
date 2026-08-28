@@ -259,6 +259,18 @@ INVARIANTS: tuple[Invariant, ...] = (
         over="surface.modules",
         held_by="test_hinting::test_every_command_a_message_spells_declares_the_flags_it_is_spelled_with",
     ),
+    Invariant(
+        stated="RK1421",
+        rule=(
+            "every place this package returns the gate's exit code says whether that 1 is "
+            "an answer or a fall, so the capture offer is not decided one report at a time"
+        ),
+        over="surface.modules",
+        held_by="test_capturing::test_every_exit_that_returns_the_gate_s_code_says_which_kind_it_is",
+        # Both were the same defect at a different site, and both were found by running the
+        # command and reading its stderr rather than by anything here going red.
+        instances=("RK1419", "RK1420"),
+    ),
 )
 
 #: The rules stated here that nothing holds, named so that losing a holder is a decision

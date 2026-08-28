@@ -630,6 +630,7 @@
 - ✅ **RK1418** **ref.missing asks the author for an anchor on the one scheme that derives it** — Under an id scheme ref.missing names the section that closes it, and --fix writes the pointer where that section is already there (design superseded: deriving it unconditionally reddens --baseline).
 - ✅ **RK1419** **The capture offer rides lint --fix and repair, whose exit 1 is the verdict lint's own is exempt from** — A parser declares whether its exit 1 is a verdict, so lint --fix and repair close on the finding alone and a repair whose own step failed still offers.
 - ✅ **RK1420** **install --check closes a complete answer with the capture offer, on the verb an adopter runs while wiring** — Both --check verbs state the verdict from the run, so the offer is gone from every EXIT_GATE that was already an answer and replay is asserted silent.
+- ✅ **RK1421** **Nothing enumerates the thirteen exits that return the gate's code, so which is a verdict is settled one report at a time** — Two tables in cli.py name all thirteen returns with their argument, and a sweep holds them to be what it found (design recorded in `tests/test_invariants.py`).
 
 ## Block E — Adoption
 

@@ -81,32 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1421 The exits nothing counts
-
-`EXIT_GATE` is returned from thirteen sites in twelve functions across six files. Five
-now say which kind they are — `lint` and `repair` declare it, `install --check` and
-`uninstall --check` state it from the run — and the rest are covered by `reads_only`
-meaning something else, or by nothing.
-
-Which is how both were found. RK1419 came from reading `lint --fix`'s stderr, and RK1420
-was the identical defect one verb over, found by running `install --check` by hand a day
-later. Neither was a red.
-
-The shape this repository already uses for exactly this is a derived list: `FIELDS`
-declares every name a remedy row may substitute and a sweep holds the source to it;
-`_PASSES` declares every repair `--fix` makes and three copies are checked against it.
-Both turned a class of defect found by example into one found by the suite.
-
-Here that is an AST walk for `return EXIT_GATE`, each site resolved to its enclosing
-function and held against a declaration that says *verdict* or *fault* — with the fault
-half carrying its reason, because two of them are deliberate and the argument is what a
-later reader needs: `merge` writes git's conflict markers when it could not prove its
-own output (RK484), and `_behind` refuses a write from a copy the project registered
-against.
-
-What it cannot decide is a new site's answer. It can only refuse to let one arrive
-unnamed.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

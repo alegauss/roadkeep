@@ -40,7 +40,7 @@ import difflib
 import sys
 import tomllib
 import traceback
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from roadkeep.attesting import attest
 from roadkeep.capturing import offer
@@ -482,6 +482,77 @@ def _behind(config: Config, args: argparse.Namespace) -> int | None:
         file=sys.stderr,
     )
     return EXIT_GATE
+
+
+#: Every place this package returns `EXIT_GATE` whose 1 is an **answer**, addressed as
+#: `<module under the package>:<function>` and valued by how that is said (RK1421).
+#:
+#: A census, because two of these were found by running the command and reading the stderr.
+#: RK271 exempted `lint`; RK1419 found `lint --fix` and `repair` still offering, a year later,
+#: by reading one; RK1420 found the identical thing at `install --check` the next day. Neither
+#: was a red, and there was nothing anywhere that could have made one — so a fourteenth site
+#: arrives with whatever a future verb decides its non-zero means.
+#:
+#: `tests/test_capturing.py` walks the package for those returns and holds the two tables
+#: below to be exactly what it found, which is the shape `FIELDS` and `_PASSES` already use.
+#: It settles nothing about a new site: what it refuses is one arriving unnamed. **The
+#: behaviour is held per verb** by the tests that measured each of these, and never here — a
+#: list saying `lint` is a verdict is not evidence that its stderr is empty.
+GATE_VERDICTS: Mapping[str, str] = {
+    "verbs/adopting.py:_engines": (
+        "the copies answering here disagree, which is the whole of what this read was asked; "
+        "`reads_only` is where the parser says so"
+    ),
+    "verbs/adopting.py:_install": (
+        "`--check` found surfaces that differ and already named `install` as the write that "
+        "closes them; stated by the run, this verb reaching the code from nowhere else"
+    ),
+    "verbs/adopting.py:_uninstall": (
+        "`--check` found entries still wiring this project, and the write that takes them out "
+        "is the same verb without the flag; stated by the run"
+    ),
+    "verbs/adopting.py:_replay": (
+        "the capture stopped reproducing, which is the answer this verb exists to give — and "
+        "a capture is already a report about this tool, so offering to file one is a regress"
+    ),
+    "verbs/linting.py:_merge_check": (
+        "git would not run this driver, which is the one query that command takes; `reads_only`"
+    ),
+    "verbs/linting.py:_lint": (
+        "the gate found something, which is RK271's own case and this tool's highest-traffic "
+        "output; declared by the parser, so `--fix` is the same answer by the same reader"
+    ),
+    "verbs/linting.py:_repair": (
+        "findings are left, which is what `lint` says about the same files; declared by the "
+        "parser and withdrawn by the run for a step whose argv came back non-zero"
+    ),
+    "verbs/querying.py:_verdict": (
+        "a draft this read was handed does not fit, which is the one bit the caller asked for"
+    ),
+    "verbs/shipping.py:_reversals": (
+        "the decision asked about was reversed, which is the answer and not a failure to give "
+        "one; `reads_only`"
+    ),
+}
+
+#: The other half, and the reason each keeps the offer (RK1421). Three, and every one of them
+#: is a place where the rule that just ran might be the wrong rule — which is what RK86
+#: measured and the only thing the offer is for.
+GATE_FAULTS: Mapping[str, str] = {
+    "cli.py:_behind": (
+        "a write refused because the copy answering is behind the plugin this project "
+        "registered: the refusal is about the wiring, and whether that rule is right is "
+        "exactly what a caller who thinks it is not should be able to say"
+    ),
+    "verbs/linting.py:_merge": (
+        "the driver could not prove its own output and left git's conflict markers, which is "
+        "the verb RK484 wrote an offer specifically for"
+    ),
+    "verbs/refusing.py:_refused": (
+        "a round trip that stopped holding, or a file that moved between the read and the "
+        "write — where what may be wrong is this package's own parser"
+    ),
+}
 
 
 def _is_verdict(args: argparse.Namespace) -> bool:

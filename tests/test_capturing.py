@@ -499,6 +499,68 @@ def test_a_repair_whose_own_door_failed_keeps_the_offer(tmp_path, capsys, monkey
     assert f"{invocation()} report --symptom" in capsys.readouterr().err
 
 
+def _gate_exits(swept) -> dict[str, int]:
+    """Every `return EXIT_GATE` in `swept`, addressed as the two tables address one.
+
+    An AST walk and not a grep: what is wanted is the *enclosing function*, and a `return`
+    reached by reading lines belongs to whichever `def` a reader last saw — which is the
+    reading that breaks the first time one of these sits inside a nested helper.
+
+    The surface is the caller's, so the test that holds this names what it quantifies over
+    (`tests/test_invariants.py` asserts exactly that of every row it carries).
+    """
+    import ast
+
+    found: dict[str, int] = {}
+    for module in swept:
+        for node in ast.walk(ast.parse(module.text)):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            returns = [
+                one
+                for one in ast.walk(node)
+                if isinstance(one, ast.Return)
+                and one.value is not None
+                and "EXIT_GATE" in ast.unparse(one.value)
+            ]
+            if returns:
+                found[f"{module.where}:{node.name}"] = len(returns)
+    return found
+
+
+def test_every_exit_that_returns_the_gate_s_code_says_which_kind_it_is():
+    """RK1421. RK271 exempted `lint`; RK1419 found `lint --fix` and `repair` still offering,
+    by reading one stderr; RK1420 found the identical thing at `install --check` the next day.
+    None of the three was a red, and nothing anywhere could have made one.
+
+    So the sites are counted and the two tables have to be exactly what the walk found —
+    the shape `FIELDS` and `_PASSES` already use, one layer up. It settles nothing about a
+    new site's answer; what it refuses is one arriving unnamed.
+    """
+    from surface import modules
+
+    from roadkeep.cli import GATE_FAULTS, GATE_VERDICTS
+
+    swept = set(_gate_exits(modules()))
+    assert swept, "the walk found no sites, so this asserts nothing"
+    declared = set(GATE_VERDICTS) | set(GATE_FAULTS)
+    assert swept == declared, {
+        "returns EXIT_GATE and neither table names it": sorted(swept - declared),
+        "named, and no such return": sorted(declared - swept),
+    }
+    assert not set(GATE_VERDICTS) & set(GATE_FAULTS), "one site, two answers"
+
+
+def test_every_one_of_them_carries_the_argument_and_not_a_label():
+    """The half a census cannot supply. Two of the faults are deliberate and the third is a
+    parser refusal, and a reader meeting one needs the reason rather than the word."""
+    from roadkeep.cli import GATE_FAULTS, GATE_VERDICTS
+
+    for address, why in {**GATE_VERDICTS, **GATE_FAULTS}.items():
+        assert len(why.split()) >= 12, f"{address}: a label, not an argument"
+        assert not why.endswith("."), f"{address}: a clause, as every other table here writes"
+
+
 def test_a_query_refused_for_what_it_was_asked_still_offers(tmp_path, capsys):
     """The other half of the same split: exit 2 is about the caller's input, and RK86's measured
     case is a caller who thinks the refusal is wrong. Read-only is not the discriminator on its
