@@ -122,10 +122,14 @@ called unbuilt were already in the ledger.
 | D — The gate | 0 | 205 | 2 |
 | E — Adoption | 0 | 113 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 126 | 2 |
-| G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
+| G — The editor surface (the backlog where the file is open) | 1 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 17 | 0 |
-| **Total** | 0 | 910 | 12 |
+| **Total** | 1 | 910 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1425** (deps: —) **The editor offers every complete door of a finding as an independent quick fix, including a sequence's second step** — The payload says which of the two kinds of several the doors are, and the one consumer that turns them into buttons is the one that does not read it. → §RK1425
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

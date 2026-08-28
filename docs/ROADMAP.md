@@ -36,6 +36,8 @@
 
 ## Block G — The editor surface (the backlog where the file is open)
 
+- 📋 **RK1425** (deps: —) **The editor offers every complete door of a finding as an independent quick fix, including a sequence's second step** — The payload says which of the two kinds of several the doors are, and the one consumer that turns them into buttons is the one that does not read it. → §RK1425
+
 ## Block H — The tool's own shape (what one verb costs to change)
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)

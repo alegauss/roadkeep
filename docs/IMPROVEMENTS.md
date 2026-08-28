@@ -87,6 +87,29 @@ already written, not authorship.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
+### §RK1425 A step offered as an alternative, in the surface where a door is a button
+
+`provideCodeActions` loops a finding's doors, skips the incomplete ones and offers each
+of the rest as a quick fix. `sequence` is never read.
+
+Two findings this repository can produce today. `ref.missing` under an id scheme with no
+section is a sequence of `section add <id> --title …` and then `lint --fix`; the first
+is incomplete and skipped, so the editor offers the **second alone** — a one-click fix
+whose own sentence begins *then the pointer*, and which writes nothing until the step it
+follows has run. `budget.session` is the other shape: two complete ordered reads offered
+as two alternatives.
+
+RK1336 added the field for exactly this — *a consumer looking at two doors and a blank
+decision would otherwise have to guess whether to offer a choice or a sequence* — and
+the guess it removed is being made here, in the one surface where the answer is a button
+rather than a sentence a reader weighs.
+
+What is not obvious is what a quick fix should be for a sequence whose first step is
+prose. Running the tail is wrong; offering nothing loses the finding's only actionable
+half; and an editor composing the title is L4's line. The shape worth arguing is a
+single action for the whole sequence that runs what it can and says what it cannot,
+against one that offers nothing and leaves `explain` as the way in.
+
 ## Block H — The tool's own shape (what one verb costs to change)
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
