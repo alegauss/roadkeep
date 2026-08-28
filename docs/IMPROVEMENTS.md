@@ -83,25 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1415 The first configuration, which no verb writes
-
-The walkthrough RK1406 captured has two hand edits in it, and the first is this one.
-`init` scaffolds the configuration **and** the files it declares, so it refuses outright
-where a roadmap is already there — correctly, since it would otherwise overwrite one.
-`declare` adds a role to an existing configuration and does not choose a prefix. Between
-them there is no door onto the case that matters most: a repository with a backlog
-somebody has kept by hand.
-
-So the adopter writes the file. That is not fatal — it is three keys — but it is the
-first thing they do, it is the step no command list mentions, and it is where an
-adoption is abandoned. `adopt` already reads the file and *infers the prefix from the
-ids it finds*, which is the whole of what the hand edit supplies.
-
-The shape to argue about is whether this is a flag on `init` that adopts rather than
-scaffolds, or a widening of `declare` to write the file it is adding to. The first keeps
-one verb per job; the second is where a reader already looks after `init` has refused
-them and named it.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

@@ -33,11 +33,16 @@ fixture — it is what a hand-kept backlog looks like.
 says how many of its lines a limit would refuse. The decision is then a number rather than a
 hope.
 
-**Two hand edits, and both are honest.** `init` scaffolds the configuration *and* the files it
-declares, so it refuses a project that already has them; `declare` adds a role rather than
-choosing a prefix. So `roadkeep.toml` is written by hand, and then extended once more when the
-gate reports that the grammar — not the lines — is what does not fit. Neither step is a
-command, and pretending otherwise would have been the fiction this page exists to avoid.
+**The refusal names the command, and the command is `init --existing`.** A plain `init`
+scaffolds the configuration *and* the files it declares, so it will not touch a project that
+already has them — and rather than leaving you to write `roadkeep.toml` yourself, it names the
+flag that declares what is there and scaffolds only what is missing. The prefix comes off the
+ids the roadmap already carries and the blocks off its own headings, so nothing is renumbered
+and no heading is invented.
+
+**One hand edit is left, and it is honest.** `roadkeep.toml` is extended once when the gate
+reports that the grammar — not the lines — is what does not fit. That step is not a command,
+and pretending otherwise would have been the fiction this page exists to avoid.
 
 **The gate reports the rule before it reports the lines.** A file where *no* bullet parses is
 not one somebody hand-edited; it is one written under a different format, and `[grammar]` is

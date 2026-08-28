@@ -8,9 +8,12 @@ import VerbTable from "../../../components/VerbTable.astro";
 These run before the project is governed, which is why most of them are not offered to an
 agent mid-session: their subject is a file this tool does not own the writes to yet.
 
-`init` scaffolds the files and a `roadkeep.toml` beside them. `declare` retrofits one role
-onto a project that already has the file — which is the ordinary case, because a repository
-with a `ROADMAP.md` in it is exactly the repository worth adopting.
+`init` scaffolds the files and a `roadkeep.toml` beside them, and `init --existing` is the
+same write over a repository that already has a backlog — the ordinary case, because a
+repository with a `ROADMAP.md` in it is exactly the one worth adopting. A file that is already
+there is declared rather than written, only what is missing is scaffolded, and the prefix and
+the blocks are read off the roadmap instead of typed. `declare` retrofits one role onto a
+project past that point.
 
 `adopt` is the read to run **before** either. It measures a foreign file — how many lines it
 holds, how many would be refused by the limits a scaffold would write, and what the spread

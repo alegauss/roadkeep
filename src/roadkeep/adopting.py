@@ -9,7 +9,11 @@ reads a file it does not own and writes nothing at all.
   from* :class:`~roadkeep.kernel.schema.Schema`'s own defaults rather than copied from a template
   kept beside them, because a template is a second statement of the format and the two
   drift in the direction nobody tests — the same reason `Schema.render` is the only writer
-  of a task line.
+  of a task line. **`--existing` is the same command over a tree that is written in half**
+  (RK1415): a file that is there is declared rather than written, and the prefix and the
+  blocks are read off the roadmap instead of typed. Until it, the first step of every real
+  adoption was a hand edit to this file — the one no command list mentions, because there
+  was no command.
 * :func:`adopt` runs the schema over an existing backlog and reports what would have to
   change for `lint` to pass it. A migration estimate is only worth taking *before* the
   migration commitment, which is why it is a separate command from `lint` and not a flag
@@ -265,10 +269,33 @@ class WouldOverwrite(ValueError):
             # `provenance.invocation` gives — an absolute path is a message about one machine.
             first = _relative(self.adoptable[0], base)
             more = f" (and {len(self.adoptable) - 1} more)" if len(self.adoptable) > 1 else ""
+            # Two doors and they are two tenses (RK1415): the estimate is what a caller takes
+            # *before* the commitment, and the write is the commitment. Named together because
+            # this refusal is where the whole of an adoption starts, and until the second one
+            # existed the reader who followed the first arrived at a hand edit.
             message += (
-                f" — `adopt {first}`{more} reports what an existing backlog must change instead"
+                f" — `adopt {first}`{more} reports what an existing backlog must change, "
+                f"and `init --existing` declares the files that are already there"
             )
         super().__init__(message)
+
+
+class NothingToAdopt(ValueError):
+    """`init --existing` on a tree where none of the declared files is there (RK1415).
+
+    The flag says *declare what is already written*, so a tree with nothing written is one
+    where it has no subject and a plain `init` is the whole answer. Refused rather than
+    silently behaving like one, because a flag that does nothing on the commonest input is a
+    flag a caller learns the wrong meaning of.
+    """
+
+    def __init__(self, paths: Sequence[Path], base: Path | None = None) -> None:
+        self.paths = tuple(paths)
+        listed = ", ".join(_relative(path, base) for path in self.paths)
+        super().__init__(
+            f"--existing declares files that are already written and this tree has none of "
+            f"them ({listed}): `init` without the flag scaffolds them"
+        )
 
 
 class BlockedParent(ValueError):
@@ -537,34 +564,65 @@ class Created:
     config: Path
     files: tuple[Path, ...]
     blocks: tuple[str, ...]
+    #: The files this write **declared** without writing — `--existing`'s whole subject
+    #: (RK1415). Separate from :attr:`files` because the two are opposite claims about the
+    #: same tree: one names bytes this command put there, and one names a backlog somebody
+    #: kept by hand that is now governed. Reported apart for that reason, and empty on the
+    #: scaffold, which declares nothing it did not write.
+    adopted: tuple[Path, ...] = ()
+    #: True where the prefix was read off the ids the roadmap already carries rather than
+    #: taken from `--prefix`. Said out loud for `Estimate.inferred`'s reason: a project
+    #: configured under a guessed prefix is one whose every id is `id.format` on the first
+    #: lint, and the guess is the one thing a caller cannot see in the file afterwards.
+    inferred: bool = False
+    #: The families this write configured. **On the record since RK1415**, where it used to
+    #: be handed to both readers by the caller: the argument for that was that `init` runs
+    #: before a project is configured, so the prefixes were argv and never a fact read back —
+    #: which `--existing` falsifies, the ids in an adopted roadmap being exactly such a fact.
+    #: One source, so the printed answer and the payload cannot name two prefixes.
+    prefixes: tuple[str, ...] = ()
 
     @property
     def written(self) -> tuple[Path, ...]:
         """Every path, config first — the order the scaffold was written in."""
         return (self.config, *self.files)
 
-    def stated(self, families: Sequence[str]) -> str:
+    def stated(self) -> str:
         """The scaffold, and the one command that puts a line in it (RK56).
 
-        Beside :meth:`payload` since RK1170. `families` is the caller's: `init` runs *before* a
-        project is configured, so the prefixes it was pointed at are argv and not a fact this
-        record read back off a file it just wrote.
+        Beside :meth:`payload` since RK1170, and off :attr:`prefixes` since RK1415 — see the
+        field, which is where the reason the caller used to supply them stopped holding.
         """
         from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
 
         rows = [f"created  {path.as_posix()}" for path in self.written]
+        rows += [f"adopted  {path.as_posix()}" for path in self.adopted]
+        if self.inferred:
+            rows.append(f"prefix   {self.prefixes[0]} (read off the ids already written)")
+        if self.adopted:
+            # The next read is the gate and not `adopt`: the estimate is what a caller takes
+            # *before* the configuration exists, and from here `lint` names every line, with
+            # `--baseline` where the standing debt is to be forgiven rather than paid now.
+            rows.append(
+                f"{len(self.written)} written, {len(self.adopted)} declared, blocks "
+                f"{', '.join(self.blocks)}: `{invocation()} lint` reports what the backlog "
+                f"must change"
+            )
+            return "\n".join(rows)
         rows.append(
             f"{len(self.written)} file(s), blocks {', '.join(self.blocks)}: "
             f"`{invocation()} add --block {self.blocks[0]} …` writes the first line"
         )
         return "\n".join(rows)
 
-    def payload(self, root: str, families: Sequence[str]) -> dict[str, object]:
+    def payload(self, root: str) -> dict[str, object]:
         return {
             "root": Path(root).resolve().as_posix(),
             "created": [path.as_posix() for path in self.written],
-            "prefix": families[0],
-            "prefixes": list(families),
+            "adopted": [path.as_posix() for path in self.adopted],
+            "prefix": self.prefixes[0],
+            "prefixes": list(self.prefixes),
+            "inferred": self.inferred,
             "blocks": list(self.blocks),
         }
 
@@ -941,9 +999,10 @@ class Estimate:
 def init(
     root: str | Path = ".",
     *,
-    prefix: str | Sequence[str] = "RK",
-    blocks: Sequence[str] = ("A",),
+    prefix: str | Sequence[str] | None = None,
+    blocks: Sequence[str] | None = None,
     roles: Sequence[str] = SCAFFOLD_ROLES,
+    existing: bool = False,
 ) -> Created:
     """Write `roadkeep.toml` and the files it declares, or write nothing.
 
@@ -960,16 +1019,50 @@ def init(
     `defer` refuses where no store is declared and does not scaffold one on the way past, so
     until this the remedy was a toml key and a skeleton no verb offered to write — arriving,
     every time, with a pause reason already composed.
+
+    ``existing`` is the door onto the case that matters most, and the one no verb had (RK1415):
+    **a repository with a backlog somebody has kept by hand.** A scaffold refuses there, because
+    it would overwrite the roadmap; `declare` adds a role to a configuration that does not exist
+    yet; and `adopt` reads and writes nothing by design. So the first step of every real
+    adoption was a hand edit to the one file this tool otherwise owns the writes to — the step
+    no command list mentions, and where an adoption is abandoned.
+
+    With it, a file that is already there is **declared** rather than written and the rest are
+    scaffolded as usual, so the two halves of a part-written tree are one transaction. The two
+    fields the hand edit supplied are read off the roadmap instead of typed: the **prefix** from
+    the ids it carries, which is what `adopt` already infers, and the **blocks** from the
+    headings it already declares, which is `declare`'s rule about never composing a heading a
+    project spells for itself. Both are still `--prefix` and `--block` where the caller knows
+    better, and inference happens only where they are absent — a stated argument is never
+    second-guessed by a file.
+
+    It refuses a tree with none of those files, which is a plain `init` under a flag that then
+    reads as meaning something it does not.
     """
     base = Path(root).resolve()
-    existing = _configured(base)
-    if existing is not None:
-        raise AlreadyConfigured(existing)
+    configured = _configured(base)
+    if configured is not None:
+        raise AlreadyConfigured(configured)
+
+    paths = {role: base / _DEFAULT_FOR[role] for role in roles}
+    present = {role: path for role, path in paths.items() if path.exists()} if existing else {}
+    if existing and not present:
+        raise NothingToAdopt(list(paths.values()), base)
+
+    # Read *before* the schema is built, because on an adoption the schema is what the file
+    # decides: a prefix taken from anywhere else is one every id in the corpus is then
+    # `id.format` against. Under the format's own defaults, which is the only schema there is
+    # to read with — the prefix is a validation rule and not a grammar, so no line parses
+    # differently under the one this then chooses (`adopt`'s reason for replacing rather than
+    # re-reading).
+    read = _existing(present.get("roadmap"))
+    families = _families(prefix) if prefix else (read.prefixes or ("RK",))
+    named = tuple(blocks) if blocks else (read.blocks or ("A",))
 
     # Raises on a prefix this format cannot carry, and on a set of families that would
     # read one id two ways (RK74).
-    schema = Schema(prefixes=_families(prefix))
-    labels = tuple(_label(block, schema) for block in blocks)
+    schema = Schema(prefixes=families)
+    labels = tuple(_label(block, schema) for block in named)
     if not labels:
         raise UnreadableBlock("")
     # The check of the *set*, which per-value validation cannot make (RK390): `_label` is right
@@ -980,19 +1073,19 @@ def init(
             raise RepeatedBlock(label)
         seen.add(label)
 
-    paths = {role: base / _DEFAULT_FOR[role] for role in roles}
     text = render_config(schema, {role: _DEFAULT_FOR[role] for role in roles})
     _verify(text, schema, base, paths)
 
     target = base / CONFIG_NAME
-    bodies = {role: _scaffold(role, blocks, schema) for role in roles}
-    clashes = [path for path in (target, *paths.values()) if path.exists()]
+    scaffolding = {role: path for role, path in paths.items() if role not in present}
+    bodies = {role: _scaffold(role, named, schema) for role in scaffolding}
+    clashes = [path for path in (target, *scaffolding.values()) if path.exists()]
     if clashes:
         raise WouldOverwrite(clashes, base)
     # `exists` answers whether a write would clobber, and not whether it can happen at all
     # (RK392): a `docs` that is a file is a `docs/ROADMAP.md` no write reaches, and the
     # question was never asked. Knowable in advance, so it is decided up here with the rest.
-    blocked = [(path, parent) for path in paths.values() if (parent := blocking(path))]
+    blocked = [(path, parent) for path in scaffolding.values() if (parent := blocking(path))]
     if blocked:
         raise BlockedParent(blocked, base)
 
@@ -1002,15 +1095,97 @@ def init(
     # go first so that failure lands before the configuration rather than after it: an empty
     # `docs/` is a tree nobody has to recognise, and a `roadkeep.toml` declaring three files
     # that do not exist is the half-scaffolded project this order exists to prevent.
-    for path in paths.values():
+    for path in scaffolding.values():
         path.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(text, encoding="utf-8", newline="")
     written: list[Path] = []
     for role in roles:
+        if role not in scaffolding:
+            continue
         path = paths[role]
         path.write_text(bodies[role], encoding="utf-8", newline="")
         written.append(path)
-    return Created(config=target, files=tuple(written), blocks=labels)
+    return Created(
+        config=target,
+        files=tuple(written),
+        blocks=labels,
+        # In `roles` order and not `present`'s, so the report reads down the same list the
+        # configuration declares rather than down whatever the filesystem answered first.
+        adopted=tuple(paths[role] for role in roles if role in present),
+        inferred=not prefix and bool(read.prefixes),
+        prefixes=families,
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class _Read:
+    """What an existing roadmap supplies that a hand-written configuration otherwise did.
+
+    Two fields and no more, because those are the two the adopter was typing: the prefix the
+    ids already spell, and the block headings the file already declares. Everything else in a
+    scaffolded configuration is rendered from :class:`Schema`'s own defaults, which is right
+    for an adopted project too — a limit is a judgement the project takes against `adopt`'s
+    measurement, not a fact this file could answer.
+    """
+
+    prefixes: tuple[str, ...] = ()
+    blocks: tuple[str, ...] = ()
+
+
+def _existing(roadmap: Path | None) -> _Read:
+    """Read the two fields off a roadmap nobody has configured yet (RK1415).
+
+    Under the format's defaults, which is the only schema available before one is chosen —
+    and enough, because a prefix is a validation rule rather than a grammar: no line parses
+    differently under a different one, so this reads what is there and the caller decides.
+
+    **One family, as `adopt` infers one.** Which of two spellings is a second track and which
+    is a paste from another backlog is a judgement about meaning and this tool has no model
+    (L4), so the commonest is taken and `--prefix` is where a project that numbers by track
+    says so.
+
+    **Two readings, because one is not enough on the file this exists for.** The roadmap
+    grammar requires a dependency annotation, and an unadopted backlog almost never carries
+    one — so a genuinely drifted file parses as nought entries under it and the prefix falls
+    back to a default every id in the corpus is then `id.format` against. The ledger shape is
+    the same grammar with the fields a hand-written bullet does not have dropped, which is what
+    `adopt` reads such a file as, so it is asked second and only where the first found nothing.
+    Never the other way round: a file that *does* parse as a roadmap is one, and reading it
+    loosely would be answering a question nobody asked.
+
+    Silent about a file it cannot read. A roadmap of tables, or the `- [ ] …` list most
+    unadopted ones are, parses as no entries and no headings under either — and then the
+    defaults stand and the answer says which, rather than this refusing an adoption over a
+    file `lint` is about to describe line by line.
+    """
+    if roadmap is None:
+        return _Read()
+    schema = Schema()
+    try:
+        document = Document.load(roadmap, schema)
+        spelled = _prefixes(document)
+        if not spelled:
+            document = Document.load(roadmap, schema.as_ledger())
+            spelled = _prefixes(document)
+    except (OSError, UnicodeDecodeError):
+        # Not a refusal: `WouldOverwrite` and `NotText` are the doors that judge a file, and
+        # this one is only reading it for two hints. A tree that cannot be read here is one
+        # `lint` reports on the next command, against a configuration that now exists.
+        return _Read()
+    # The heading's own words and not its label alone, which is `declare`'s rule read one
+    # command earlier: the scaffolded files mirror these, and a project spelling `## Block C —
+    # Query` would otherwise get a bare `## Block C` in its ledger. Taken as the suffix
+    # `_label` re-composes, so the one writer of a heading stays the one writer of it.
+    word = f"{Schema().heading_word} "
+    titled: dict[str, str] = {}
+    for heading in document.headings:
+        if heading.label and heading.label not in titled:
+            text = heading.text
+            titled[heading.label] = text[len(word):] if text.startswith(word) else heading.label
+    return _Read(
+        prefixes=(spelled[0][0],) if spelled else (),
+        blocks=tuple(titled[label] for label in dict.fromkeys(_labels(document))),
+    )
 
 
 def declare(

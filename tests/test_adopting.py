@@ -2059,6 +2059,129 @@ def test_init_refusal_is_a_usage_error(tmp_path: Path, capsys) -> None:
     assert "adopt" in capsys.readouterr().err
 
 
+# -- the door onto a backlog somebody already kept by hand (RK1415) -----------
+
+
+KEPT_BY_HAND = """# Widget — Roadmap
+
+## Block A — The parser
+
+- 📋 **WG7** (deps: —) **Nothing reads the config** — the parser is hard-coded. → §WG7
+
+## Block B — The gate
+
+- 📋 **WG9** (deps: —) **No exit code** — advice is not a gate. → §WG9
+"""
+
+
+def _kept(root: Path) -> Path:
+    roadmap = root / "docs" / "ROADMAP.md"
+    roadmap.parent.mkdir(parents=True, exist_ok=True)
+    roadmap.write_text(KEPT_BY_HAND, encoding="utf-8")
+    return roadmap
+
+
+def test_the_file_that_is_there_is_declared_and_the_rest_scaffolded(tmp_path: Path) -> None:
+    """The case every real adoption is: a repository with a roadmap and no declaration.
+
+    `init` refused it, `declare` needs the configuration it would be creating and `adopt`
+    writes nothing by design — so the first step was a hand edit to the one file this tool
+    owns the writes to. What `--existing` makes it instead is one transaction over a tree
+    that is written in half.
+    """
+    roadmap = _kept(tmp_path)
+    before = roadmap.read_bytes()
+    created = init(tmp_path, existing=True)
+
+    assert created.adopted == (roadmap,)
+    assert roadmap.read_bytes() == before, "the backlog it adopted was rewritten"
+    assert [path.name for path in created.files] == ["CHANGELOG.md", "IMPROVEMENTS.md"]
+    declared = tomllib.loads(created.config.read_text(encoding="utf-8"))["files"]
+    assert declared["roadmap"] == "docs/ROADMAP.md"
+
+
+def test_the_prefix_is_read_off_the_ids_and_the_blocks_off_the_headings(
+    tmp_path: Path,
+) -> None:
+    """The two fields the hand edit supplied, and the only two an existing file can answer.
+
+    A prefix taken from anywhere else makes every id in the corpus `id.format` on the first
+    lint — which is the finding an adopter reads as the tool refusing their backlog. The
+    headings are `declare`'s rule one command earlier: the words are the project's, so the
+    ledger this scaffolds is filed under `Block A — The parser` and not a bare `Block A`.
+    """
+    created = init(_kept(tmp_path).parent.parent, existing=True)
+    assert created.prefixes == ("WG",)
+    assert created.inferred
+    assert created.blocks == ("A", "B")
+    ledger = (tmp_path / "docs" / "CHANGELOG.md").read_text(encoding="utf-8")
+    assert "## Block A — The parser" in ledger
+    assert "## Block B — The gate" in ledger
+
+
+def test_a_stated_prefix_is_never_second_guessed_by_the_file(tmp_path: Path) -> None:
+    """Inference fills a field the caller left empty and never overrides one they filled:
+    a project renaming its ids as it adopts is saying so, and the corpus is the old name."""
+    created = init(_kept(tmp_path).parent.parent, prefix="ZZ", existing=True)
+    assert created.prefixes == ("ZZ",)
+    assert not created.inferred
+
+
+def test_the_adopted_project_is_one_every_other_verb_then_works_on(
+    tmp_path: Path, capsys
+) -> None:
+    """The claim the scaffold's own test makes, made for the other half of the same door: a
+    configuration proven by its file listing is proven by nothing. `lint` is what an adopter
+    runs next, and what it reports has to be about their backlog rather than about a prefix
+    this command guessed."""
+    init(_kept(tmp_path).parent.parent, existing=True)
+    capsys.readouterr()
+    report = lint(Config.discover(tmp_path))
+    assert {finding.code for finding in report.findings} == {"ref.unresolved"}
+    assert {finding.token for finding in report.findings} == {"WG7", "WG9"}
+
+
+def test_the_flag_refuses_a_tree_with_nothing_to_adopt(tmp_path: Path, capsys) -> None:
+    """A flag that silently behaved like a plain `init` on the commonest input is one a
+    caller learns the wrong meaning of, and then reaches for on a tree it would overwrite."""
+    assert main(["-C", str(tmp_path), "init", "--existing"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "this tree has none of them" in err
+    assert "`init` without the flag scaffolds them" in err
+    assert not (tmp_path / "roadkeep.toml").exists()
+
+
+def test_the_scaffold_refusal_names_both_doors(tmp_path: Path, capsys) -> None:
+    """Two tenses, and this refusal is where the whole of an adoption starts. Until the
+    write existed the reader who followed the estimate arrived at a hand edit."""
+    _kept(tmp_path)
+    assert main(["-C", str(tmp_path), "init"]) == EXIT_USAGE
+    err = capsys.readouterr().err
+    assert "adopt docs/ROADMAP.md" in err
+    assert "init --existing" in err
+
+
+def test_the_flag_reaches_the_write_from_the_command_line(tmp_path: Path, capsys) -> None:
+    _kept(tmp_path)
+    assert main(["-C", str(tmp_path), "init", "--existing", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["prefix"] == "WG"
+    assert payload["inferred"] is True
+    assert payload["blocks"] == ["A", "B"]
+    assert [Path(one).name for one in payload["adopted"]] == ["ROADMAP.md"]
+
+
+def test_the_scaffold_says_nothing_was_inferred(tmp_path: Path, capsys) -> None:
+    """The other half of `inferred`: a bare `init` reads no file, so the key is there and
+    false rather than absent — a consumer branching on it should not have to know which
+    flag was passed."""
+    assert main(["-C", str(tmp_path), "init", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["inferred"] is False
+    assert payload["adopted"] == []
+    assert payload["prefix"] == "RK"
+
+
 # -- the corpus that decides §RK20 -------------------------------------------
 
 

@@ -94,12 +94,15 @@ def _init(config: Config, args: argparse.Namespace) -> int:
     # config would be an ancestor's, and scaffolding under someone else's paths is how a
     # subproject ends up writing into its parent's roadmap.
     del config
-    families = tuple(args.prefix or ("RK",))
     try:
         created = init(
             args.directory,
-            prefix=families,
-            blocks=args.blocks or ("A",),
+            # Passed through unset rather than defaulted here (RK1415): under `--existing`
+            # the roadmap's own ids and headings are what choose these, and a default applied
+            # at the door would arrive as a stated argument the file may not second-guess.
+            prefix=tuple(args.prefix) if args.prefix else None,
+            blocks=tuple(args.blocks) if args.blocks else None,
+            existing=args.existing,
             # Named at the door and never derived (RK1186): which prose files a project wants
             # is the author's decision, and a scaffold that guessed would create a file
             # somebody has to notice is empty before they can delete it.
@@ -113,9 +116,9 @@ def _init(config: Config, args: argparse.Namespace) -> int:
         return _refused(error)
 
     if args.json:
-        print(json.dumps(created.payload(args.directory, families), indent=2))
+        print(json.dumps(created.payload(args.directory), indent=2))
     else:
-        print(created.stated(families))
+        print(created.stated())
     return EXIT_OK
 
 
@@ -743,6 +746,16 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
             "scaffold the deferred store too: the file `defer` moves a line to, which "
             "keeps the id, the deps and the section a retirement deletes. Without it that "
             "verb refuses, and the remedy is a toml key and a skeleton written by hand"
+        ),
+    )
+    init_parser.add_argument(
+        "--existing",
+        action="store_true",
+        help=(
+            "declare the governed files that are already there instead of refusing over "
+            "them, and scaffold only the rest: the door onto a repository whose backlog "
+            "somebody kept by hand. The prefix is read off the ids the roadmap carries and "
+            "the blocks off its headings, unless --prefix or --block says otherwise"
         ),
     )
     init_parser.add_argument("--json", action="store_true", help=_JSON_HELP)

@@ -120,16 +120,12 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
 | C — Query (consult without reading the file) | 0 | 140 | 2 |
 | D — The gate | 0 | 200 | 2 |
-| E — Adoption | 1 | 112 | 1 |
+| E — Adoption | 0 | 113 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 17 | 0 |
-| **Total** | 1 | 902 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1415** (deps: —) **A project whose roadmap already exists cannot reach a first roadkeep.toml through any verb** — init refuses where the files are there and declare adds a role rather than choosing a prefix, so the first step of every real adoption is a hand edit. → §RK1415
+| **Total** | 0 | 903 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
@@ -181,8 +177,13 @@ R=~/.claude/plugins/marketplaces/alegauss/scripts/roadkeep.py
 
 python $R adopt docs/ROADMAP.md --prefix SH   # measures first: what would change, and where
 python $R adopt docs/IMPROVEMENTS.md --sections --with docs/STRATEGY.md   # the other half
-python $R init                                # writes roadkeep.toml and the files it declares
+python $R init --existing                     # declares the files there, scaffolds the rest
 ```
+
+`--existing` is the flag a repository with a backlog wants: a bare `init` writes the files it
+declares, so it refuses one that already has them. With it the roadmap you have is declared
+untouched, the prefix comes off the ids it already carries and the blocks off its own
+headings — which is the step that used to be a hand-written `roadkeep.toml` (RK1415).
 
 Both halves, because both are limits you have to declare. The backlog run reports the longest
 `symptom`, `why` and rendered line; the `--sections` run reports the longest section in words

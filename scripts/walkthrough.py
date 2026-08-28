@@ -109,35 +109,32 @@ def _environment() -> dict[str, str]:
     return out
 
 
-#: The configuration an adopter writes by hand, and the reason this walkthrough has a hand
-#: edit in the middle of it: `init` scaffolds `roadkeep.toml` **and** the files it declares, so
-#: it refuses outright where the roadmap already exists — and `declare` adds a role rather than
-#: choosing a prefix. A project with a backlog already in it therefore writes this file itself.
-#: Shown rather than smoothed over, because it is the step an adopter hits and the one no
-#: command list mentions.
-CONFIG = """prefix = "PROJ"
-
-[files]
-roadmap = "docs/ROADMAP.md"
-changelog = "docs/CHANGELOG.md"
-improvements = "docs/IMPROVEMENTS.md"
-"""
-
-#: The second hand edit, and the one the gate asks for by name. This backlog was written
-#: without a dependency annotation, so every bullet fails a grammar that expects one — which
-#: `lint` reports as `grammar.unreadable`: the rule is wrong here, not the lines. `[grammar]`
-#: is how a project says which fields its records actually carry.
+#: The one hand edit left in this walkthrough, and the one the gate asks for by name. This
+#: backlog was written without a dependency annotation, so every bullet fails a grammar that
+#: expects one — which `lint` reports as `grammar.unreadable`: the rule is wrong here, not the
+#: lines. `[grammar]` is how a project says which fields its records actually carry.
+#:
+#: There used to be two, and the first was the configuration itself: `init` scaffolded the file
+#: *and* the files it declared, so it refused where a roadmap already existed, and `declare`
+#: added a role rather than choosing a prefix. RK1415 made that a command, which is why this
+#: run now starts with one.
 GRAMMAR = """
 [grammar.roadmap]
 drop = ["deps"]
 """
 
 
-def _write(tree: Path, name: str, body: str, what: str) -> Step:
-    """A step that is an edit rather than a command — what the adopter types into a file."""
+def _append(tree: Path, name: str, body: str, what: str) -> Step:
+    """A step that is an edit rather than a command — what the adopter types into a file.
+
+    Appended and never written whole: the file it edits was written by `init --existing` and
+    is mostly the comments that argue for each default, so replacing it here would show an
+    adopter deleting the configuration in order to add three lines to it.
+    """
     path = tree / name
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(body, encoding="utf-8", newline="\n")
+    with path.open("a", encoding="utf-8", newline="\n") as file:
+        file.write(body)
     return Step(command="", what=what, wrote={name: body.strip()})
 
 
@@ -241,15 +238,15 @@ def walk() -> list[Step]:
                 "`init` scaffolds, and this project already has the file — so it refuses "
                 "without writing anything and names the read that measures what is there.",
             ),
-            _write(
+            _step(
                 root,
-                "roadkeep.toml",
-                CONFIG,
-                "So the configuration is written by hand — the first of two steps here that "
-                "are not commands. `init` writes the file *and* the files it declares, so it "
-                "will not touch a project that already has one, and `declare` adds a role "
-                "rather than choosing a prefix. The prefix is the one the ids already spell, "
-                "so nothing is renumbered.",
+                ["init", "--existing"],
+                "Which the refusal above named. The files that are already there are "
+                "**declared** rather than written, and only what is missing is scaffolded — "
+                "so the roadmap this project has kept by hand is not touched. The prefix is "
+                "read off the ids it already carries and the blocks off its own headings, "
+                "which is what makes this a command rather than a file somebody types.",
+                shows=("roadkeep.toml",),
             ),
             _step(
                 root,
@@ -259,12 +256,12 @@ def walk() -> list[Step]:
                 "annotation, so every bullet fails a grammar that expects one — and a file "
                 "where nothing survives is not one somebody hand-edited.",
             ),
-            _write(
+            _append(
                 root,
                 "roadkeep.toml",
-                CONFIG + GRAMMAR,
-                "The second hand edit, which the finding asked for by name. `[grammar]` is how "
-                "a project says which fields its records actually carry — the sixth law "
+                GRAMMAR,
+                "The one hand edit left, which the finding asked for by name. `[grammar]` is "
+                "how a project says which fields its records actually carry — the sixth law "
                 "applied to the shape of a line, not just to its limits.",
             ),
             _step(

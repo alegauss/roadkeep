@@ -743,6 +743,7 @@
 - ✅ **RK1392** **engines reads a fourth copy and every sentence that counts them still says three** — Every sentence about `engines` says which question its count is for: four copies are read and three are judged (design recorded in `src/roadkeep/installing.py`).
 - ✅ **RK1395** **A capture filed upstream reads as unfiled in two reports, and neither names the stamp that would resolve it** — Both readers now print the argv that closes the row, composed once and complete wherever the capture recorded where it was aimed.
 - ✅ **RK1396** **A path argument ignores -C, so a door this tool prints is refused as a file that does not exist** — A capture is a file of the project, so the three verbs that take one resolve it against the root -C named; a body file is not, and stays the caller's.
+- ✅ **RK1415** **A project whose roadmap already exists cannot reach a first roadkeep.toml through any verb** — init --existing declares the governed files already there and scaffolds only the rest, reading the prefix off the ids and the blocks off the headings (design superseded: it left the shape open).
 
 ## Block F — The Claude Code plugin
 

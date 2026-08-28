@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1415** (deps: —) **A project whose roadmap already exists cannot reach a first roadkeep.toml through any verb** — init refuses where the files are there and declare adds a role rather than choosing a prefix, so the first step of every real adoption is a hand edit. → §RK1415
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
