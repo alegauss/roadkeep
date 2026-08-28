@@ -1581,19 +1581,28 @@ def test_no_draft_leaves_every_answer_exactly_as_it_was(tmp_path):
 
 def test_the_call_exits_non_zero_where_the_draft_does_not_fit(tmp_path, capsys):
     """The one bit the caller asked for, as an exit code rather than as prose to parse — and
-    `isError` over MCP, where the refusal it replaces costs the whole payload again."""
+    `isError` over MCP, where the refusal it replaces costs the whole payload again.
+
+    And it closes on that (RK1422). `cli.GATE_VERDICTS` names this exit as an answer, and its
+    own comment says the behaviour is held per verb rather than by the census — so the
+    address it names is here, and until now the claim was the only thing at it.
+    """
     root = str(tmp_path)
     project(tmp_path)
     assert main(["-C", root, "budget", "--block", "A", "--why", "short"]) == EXIT_OK
     capsys.readouterr()
     assert main(["-C", root, "budget", "--block", "A", "--why", "x" * 400]) == EXIT_GATE
-    assert "over" in capsys.readouterr().out
+    printed = capsys.readouterr()
+    assert "over" in printed.out
+    assert "capture it before the session ends" not in printed.err
 
     (tmp_path / "outline").mkdir()
     outlined_with_a_full_section(tmp_path / "outline")
     where = str(tmp_path / "outline")
     assert main(["-C", where, "budget", "--anchor", "IX", "--body", "w " * 400]) == EXIT_GATE
-    assert "over" in capsys.readouterr().out
+    printed = capsys.readouterr()
+    assert "over" in printed.out
+    assert "capture it before the session ends" not in printed.err
 
 
 def test_a_line_the_file_holds_over_its_own_limit_is_the_gate_s_and_not_this_verb_s(tmp_path):

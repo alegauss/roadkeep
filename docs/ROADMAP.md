@@ -30,8 +30,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1422** (deps: —) **Three of the nine exits the census calls a verdict have nothing asserting the stderr they close with** — The table names them and says the behaviour is held per verb, so at those three addresses the claim is the only thing there is. → §RK1422
-
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

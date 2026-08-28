@@ -81,29 +81,6 @@ already written, not authorship.
 
 ## Block D — The gate
 
-### §RK1422 What the census names and nothing measures
-
-`GATE_VERDICTS` names nine sites and its own comment says the behaviour is held per verb
-and never there — a list saying `lint` is a verdict being no evidence its stderr is
-empty. Six of the nine have that test: `_lint`, `_repair` and its withdrawal,
-`_install`, `_uninstall`, `_engines` and `_replay`.
-
-Three do not. `merge --check` and the `budget` drafts were measured by hand while RK1421
-was being written — both exit 1 with an empty stderr — and `reversals --id` was not
-reached at all, its site needing a ledger that records a reversal.
-
-So at three addresses the table is a claim about behaviour nobody checks, which is the
-state `tests/test_invariants.py` exists to make visible: a rule stated and nothing
-holding it. RK1421 made the census total and left this half exactly where it was.
-
-The shape is three tests beside the ones RK1419 and RK1420 wrote, in the files that own
-each verb. The one with work in it is `reversals`: reaching that exit means a ledger
-entry whose `--supersedes` points at another, which is a fixture and not a flag.
-
-What is deliberately not proposed is folding the assertion into the sweep. Running every
-verb from a census is a second dispatcher, and what it would prove — that this argv
-printed nothing — is what a named test proves while also saying which run it was.
-
 ## Block E — Adoption
 
 ## Block F — The plugin

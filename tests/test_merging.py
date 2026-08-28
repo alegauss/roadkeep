@@ -527,9 +527,13 @@ def test_a_driver_naming_something_gone_is_the_defect_and_exits_one(tmp_path, ca
     set_driver(tmp_path, driver_value(f"python {tmp_path.as_posix()}/gone/roadkeep.py"))
     assert registered(config).state == UNRUNNABLE
     assert main(["-C", str(tmp_path), "merge", "--check"]) == EXIT_GATE
-    printed = capsys.readouterr().out
-    assert "no longer has" in printed and "gone/roadkeep.py" in printed
-    assert "merge --register" in printed
+    printed = capsys.readouterr()
+    assert "no longer has" in printed.out and "gone/roadkeep.py" in printed.out
+    assert "merge --register" in printed.out
+    # And it closes on that answer (RK1422). This is the one query `merge` takes, and its 1
+    # is what it was asked — unlike the driver's own 1, which is `cli.GATE_FAULTS` and keeps
+    # the offer because there the tool could not prove its own output (RK484).
+    assert "capture it before the session ends" not in printed.err
 
 
 def test_a_driver_that_runs_and_is_not_this_machine_s_is_not_a_failure(tmp_path, capsys):

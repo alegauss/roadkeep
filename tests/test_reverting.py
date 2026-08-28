@@ -56,7 +56,10 @@ def test_asking_about_one_id_exits_one_when_it_was_undone(tmp_path, capsys):
     # the caller the read exists for: one about to spend an id.
     _project(tmp_path)
     assert main(["-C", str(tmp_path), "reversals", "--id", "DX2"]) == EXIT_GATE
-    capsys.readouterr()
+    # And nothing else on stderr (RK1422). `cli.GATE_VERDICTS` names this exit as an answer,
+    # and the address it names is here — a script branching on the code is exactly the reader
+    # who would have to filter two lines about roadkeep possibly being wrong.
+    assert "capture it before the session ends" not in capsys.readouterr().err
     assert main(["-C", str(tmp_path), "reversals", "--id", "DX1"]) == EXIT_OK
 
 
