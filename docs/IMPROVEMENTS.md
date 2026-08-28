@@ -91,28 +91,6 @@ already written, not authorship.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-### §RK1408 Render what a file owns, restate nothing
-
-This project's own thesis is against what a documentation area usually becomes. The six
-laws are written in `agents.md`, in the README, in the design rationale and in
-`llms.txt`; a fifth copy is the accretion the tool exists to refuse, and the copy nobody
-is looking at is the one that drifts.
-
-The rule is that a page renders prose this repository already owns rather than restating
-it. The measured problem, the laws, the non-goals and the status all live in files with
-an owner, and three of them have a verb: `non-goal list` is the list, `export` is the
-projection, and a page holding its own version of either is stale from the next write.
-
-Where a page needs framing no file carries, the framing goes in the page and the
-substance stays where it was. Where a page would state a count, it renders the
-projection or states no number — which is what the pitch page already does and what a
-test already holds it to.
-
-The direction matters. The README is what GitHub renders and what PyPI shows, so it
-stays the short one and this area holds the long form; the failure to avoid is a README
-demoted to a summary of pages nobody reaches without a browser. What the area adds is
-depth the README cannot afford, never a second telling of what it already says.
-
 ### §RK1409 The area's own budget, held by something that refuses
 
 The measurement that started this project is what an unbounded prose file costs: an

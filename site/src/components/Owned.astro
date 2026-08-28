@@ -1,0 +1,67 @@
+---
+// Prose this repository owns, rendered here rather than restated (RK1408).
+//
+// The laws come out of `agents.md` and the non-goals out of `roadkeep non-goal list`. Neither
+// is retyped: a fourth copy of the laws is the accretion this tool exists to refuse, and a
+// second copy of the non-goals is stale from the next write of the roadmap.
+//
+// The markdown in each string is the author's own — `**bold**` and `` `code` `` — so it is
+// rendered rather than escaped, which is why `set:html` appears below.
+//
+// That is safe **only** because of where the strings come from: `agents.md` and this
+// repository's own roadmap, written by whoever can already commit here, and never from a
+// reader. Reusing this component against anything a reader supplies would be reusing the
+// dangerous half of it, so the escape below covers `&` and `<` and nothing more.
+import owned from "../data/owned.generated.json";
+
+interface Props {
+  /** Which of the two to render. */
+  shows: "laws" | "non-goals";
+}
+
+const { shows } = Astro.props;
+
+/** The author's inline markdown, as HTML. Two constructs, because two are what they use. */
+function inline(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/`(.+?)`/g, "<code>$1</code>");
+}
+---
+
+{
+  shows === "laws" ? (
+    <dl class="owned">
+      {owned.laws.map((law) => (
+        <>
+          <dt>{law.id}</dt>
+          <dd set:html={inline(law.text)} />
+        </>
+      ))}
+    </dl>
+  ) : (
+    <ul class="owned">
+      {owned.non_goals.map((one) => (
+        <li set:html={inline(one)} />
+      ))}
+    </ul>
+  )
+}
+
+<style>
+  dl.owned {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    gap: 0.5rem 1rem;
+    margin-block: 1rem;
+  }
+  dl.owned dt {
+    font-weight: 700;
+    color: var(--sl-color-accent-high);
+  }
+  dl.owned dd {
+    margin: 0;
+  }
+</style>

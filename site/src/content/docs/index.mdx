@@ -4,6 +4,8 @@ description: A CLI that owns the writes to a project's roadmap, changelog and ra
 tableOfContents: false
 ---
 
+import Owned from "../../components/Owned.astro";
+
 roadkeep owns the writes to a project's `ROADMAP.md`, `CHANGELOG.md`, `IMPROVEMENTS.md`
 and `STRATEGY.md`. A task line is inserted by a command that validates it, not typed by
 whoever is holding the file — so the format is a schema at the moment the text is created,
@@ -11,6 +13,24 @@ and drift is refused before it is written rather than reported after.
 
 The author it constrains is usually an agent. It ships as a Claude Code plugin, and the
 same engine answers on the command line, in a hook, in CI and over MCP.
+
+## The six laws
+
+Every design question in this project is settled by one of these. They are **rendered from
+`agents.md`**, which is where they live and where the gate holds a budget over them — a copy
+typed into this page would be the accretion the tool exists to refuse, and the copy nobody is
+looking at is the one that drifts.
+
+<Owned shows="laws" />
+
+## What is deliberately not built
+
+The other half of a scope, and the half most projects never write down. These come from
+`roadkeep non-goal list`, which is the verb that owns them: they are bullets in this
+repository's own roadmap, printed with every task briefing so a suggestion that violates one is
+refused before it is worked on.
+
+<Owned shows="non-goals" />
 
 ## What is here, and what is elsewhere
 

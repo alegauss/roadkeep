@@ -124,12 +124,12 @@ called unbuilt were already in the ledger.
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
-| I — The documentation area (what an adopter reads before there is a session to ask) | 3 | 10 | 0 |
-| **Total** | 3 | 894 | 12 |
+| I — The documentation area (what an adopter reads before there is a session to ask) | 2 | 11 | 0 |
+| **Total** | 2 | 895 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1408** (deps: RK1398 ✅) **Prose four files own gets told again by any page that frames it, and the copy nobody reads is the one that drifts** — The laws, the measured problem and the non-goals each have an owner and three have a verb, so a page holding its own version is stale from the next write. → §RK1408
+- 📋 **RK1409** (deps: RK1398 ✅) **Nothing bounds a page, in the one project that measured what a file with room on every page grows into** — An index reached 186 KB and a rationale file 539 KB one paragraph at a time, and an area whose pages refuse nothing is that same invitation with better typography. → §RK1409
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
