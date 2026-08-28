@@ -1,0 +1,67 @@
+---
+title: In a session
+description: What an agent actually receives once the plugin is installed — five surfaces, what each costs, what the hook denies, and why a tool is sometimes not there.
+---
+
+import SessionCost from "../../components/SessionCost.astro";
+
+Half of this tool's surface is not a command line. Installing the plugin hands a session five
+things at once, and the README covers installing them rather than what they then do.
+
+## The five surfaces
+
+**The hook** runs before an edit and denies a write to a governed file. That is the law the
+whole design rests on — schema enforced where the text is created — applied to the one author
+who would otherwise bypass it. Its refusal always names the command to call instead, because a
+gate that stops at *no* costs a turn and teaches nothing.
+
+**The skill** is the authority on which command that is, what it derives, and the rules a
+schema cannot check. It is *trigger-loaded*: it costs a session nothing on a turn that touches
+no governed file, and it arrives on the turn that does. That is why the rules live there and
+not in an instruction file — an always-resident copy is paid for by every turn that never
+writes.
+
+**The slash commands** are the same operations for a person driving the session rather than an
+agent: one engine, a second front door.
+
+**The MCP server** is the tool surface priced below.
+
+**The launcher** exists for sessions where no plugin can be installed. It is committed to the
+adopting repository, which is the only place a session with no plugin will find it.
+
+## What it costs before anything is called
+
+<SessionCost />
+
+## Why a number here is a gate and not a note
+
+Every figure above is measured by `cost`, and two of them are enforced. A tool description is
+prose somebody writes in a docstring, so without a bound it grows the way any prose does — and
+it grows in the one place where every session pays for it, at connect, whether or not the tool
+is ever called. `lint` refuses the surface that goes over.
+
+This is the same argument the whole project makes about a roadmap line, pointed at itself. The
+saving is the analysis and not the characters: knowing the ceiling before writing a description
+is what stops one being written that has to be cut later.
+
+## When the hook denies something
+
+A denial is not an error. It means a write reached a governed file by a route that cannot
+validate it, and the refusal carries the verb that can — `add`, `amend`, `ship`, `section add`.
+An agent that reads the refusal and calls the named verb has lost one tool call; an agent that
+edits the file directly has produced a line the gate will reject later, when the context that
+would have fixed it is gone.
+
+## Two things that surprise adopters
+
+**A tool that is not there.** See the withheld list above. A verb whose whole vocabulary
+belongs to a role the project never declared is not published, so it looks absent rather than
+unavailable. Calling it anyway is refused with the `declare` that opens it — the absence is
+never silent, but it is met before it is explained.
+
+**Three copies disagreeing.** A checkout, a plugin cache and an installed package can all be
+reachable at once, and they need not be the same version. Which one answered decides what a
+refusal means, and a refusal from an old copy about a flag a new one accepts is the confusing
+case. `roadkeep engines` reads all of them and says which writes, which judges, which gates and
+which merges. It is worth running the first time something refuses a call you are sure is
+correct.

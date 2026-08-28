@@ -1,0 +1,158 @@
+---
+// What a session pays, and which tools it is handed (RK1405).
+//
+// Every figure comes off `cost --tools` and `cost --session`, which price the served schema by
+// walking the parser this build declares — so a description edited in a docstring moves these
+// numbers in the commit that edits it, and a page restating one would be a copy that drifts
+// silently.
+//
+// The **withheld** half comes from `commands --json`: a verb that is one role's whole
+// vocabulary is published only where that role is declared, so two projects genuinely see two
+// different lists. That is the fact an adopter otherwise meets as a tool that is not there.
+import measured from "../data/session.generated.json";
+import surface from "../data/commands.generated.json";
+
+const { tools, session } = measured;
+
+/** The ten most expensive, which is what an author cutting the schema needs. */
+const dearest = tools.by_tool.slice(0, 10);
+
+/** Verbs that have a tool this project is not sent, and the role that would open each. */
+const withheld = surface.commands
+  .filter((one) => one.tools.length > 0 && !one.published)
+  .map((one) => ({ command: one.command, needs: one.needs }));
+
+function percent(part, whole) {
+  return Math.round((part / whole) * 100);
+}
+---
+
+<h3 id="at-connect">Once, when the client connects</h3>
+
+<p>
+  A session pays for the tool schemas before it calls anything. Measured against this
+  repository, that is <strong>{session.once.characters.toLocaleString("en-US")}</strong>{" "}
+  {session.once.unit.replace(/-/g, " ")} — {session.once.of}.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>What</th>
+      <th>Cost</th>
+      <th>Bound by</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{tools.tools} tool schemas</td>
+      <td>{tools.tool_list.toLocaleString("en-US")}</td>
+      <td>
+        <code>[tools] session</code> at {tools.session.toLocaleString("en-US")} —{" "}
+        {percent(tools.held, tools.session)}% used
+      </td>
+    </tr>
+    <tr>
+      <td>The handshake (instructions, sent once)</td>
+      <td>{tools.handshake.toLocaleString("en-US")}</td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td>The session-start notice</td>
+      <td>{session.once.notice.toLocaleString("en-US")}</td>
+      <td>{session.once.notice_limit.toLocaleString("en-US")}</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+  No single tool may exceed <code>[tools] characters</code>, currently{" "}
+  <strong>{tools.each.toLocaleString("en-US")}</strong>. <code>lint</code> is what refuses one — which
+  is why a tool description is a budgeted surface and not free prose.
+</p>
+
+<h4 id="dearest">The ten that cost the most</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>Tool</th>
+      <th>Cost</th>
+      <th>Room left of {tools.each.toLocaleString("en-US")}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {
+      dearest.map((tool) => (
+        <tr>
+          <td>
+            <code>{tool.name}</code>
+          </td>
+          <td>{tool.characters.toLocaleString("en-US")}</td>
+          <td>{(tools.each - tool.characters).toLocaleString("en-US")}</td>
+        </tr>
+      ))
+    }
+  </tbody>
+</table>
+
+<h3 id="every-turn">On every turn</h3>
+
+<p>
+  A different cadence, so the two are never added together. These are the files a session loads
+  whether or not it touches a governed file —{" "}
+  <strong>{session.each_turn.characters.toLocaleString("en-US")}</strong> in total here.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>File</th>
+      <th>Cost</th>
+      <th>Budget</th>
+    </tr>
+  </thead>
+  <tbody>
+    {
+      session.each_turn.files.map((file) => (
+        <tr>
+          <td>
+            <code>{file.path}</code>
+          </td>
+          <td>{file.characters.toLocaleString("en-US")}</td>
+          <td>
+            {file.limit.declared.toLocaleString("en-US")} {file.limit.unit}, {file.limit.left} left
+          </td>
+        </tr>
+      ))
+    }
+  </tbody>
+</table>
+
+{
+  withheld.length > 0 && (
+    <>
+      <h3 id="withheld">What this project is not sent</h3>
+      <p>
+        A verb that is one role's whole vocabulary is published only where that role is declared,
+        so two projects see two different lists. On this repository{" "}
+        {withheld.length === 1 ? "one verb is" : `${withheld.length} verbs are`} withheld — not
+        missing, and a call to one is refused with the command that opens it rather than with
+        "no such tool".
+      </p>
+      <ul>
+        {withheld.map((one) => (
+          <li>
+            <code>{one.command}</code> — until <code>roadkeep declare {one.needs}</code>
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+}
+
+<style>
+  table {
+    font-size: var(--sl-text-sm);
+  }
+</style>

@@ -124,12 +124,12 @@ called unbuilt were already in the ledger.
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
-| I — The documentation area (what an adopter reads before there is a session to ask) | 6 | 7 | 0 |
-| **Total** | 6 | 890 | 12 |
+| I — The documentation area (what an adopter reads before there is a session to ask) | 5 | 8 | 0 |
+| **Total** | 5 | 891 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1405** (deps: RK1398 ✅) **Nothing describes what a session receives once the plugin is installed, only how to install it** — Five surfaces load at once — hook, skill, commands, server, launcher — and what they cost, what they deny and which tools appear at all is learned by being refused. → §RK1405
+- 📋 **RK1406** (deps: RK1398 ✅) **Adoption on a repository that already has a backlog is a list of commands with no run and no refusals shown** — What decides an adoption is what the first commands print on files that were already there, and a walkthrough written from memory is prose nothing keeps true. → §RK1406
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

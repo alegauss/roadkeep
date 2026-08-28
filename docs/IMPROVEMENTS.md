@@ -91,30 +91,6 @@ already written, not authorship.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-### §RK1405 The agent surface, priced and explained where a person can read it
-
-Half of this tool's surface is not a command line. A session gets a hook that denies an
-edit to a governed file, a skill saying which command to call instead, slash commands, a
-server with tens of tools, and a launcher for the sessions where no plugin can be
-installed. The README covers installing all five; nothing describes what the session
-then receives.
-
-That reader's questions have numbers in them. What connecting the server costs before a
-call is made, which `cost --session` answers and `[tools]` bounds. Which tools appear at
-all, since a verb that is one role's whole grammar is published only where that role is
-declared, so two projects see two lists. What the guard denies, what its refusal says,
-and why it names a command rather than stopping at no.
-
-The list is generated from the served schema, for the reason every reference here is: a
-description is edited in a docstring and priced by a budget, and a page restating it is
-a copy that drifts silently.
-
-The prose beside it is what no read answers — when the skill loads and what a turn
-touching no governed file pays for it, what the hook does on a session that has the
-plugin twice, and what three copies of this tool disagreeing looks like, which is
-`engines` and which an adopter meets as a refusal they did not expect rather than as a
-concept they were taught.
-
 ### §RK1406 The adoption walkthrough, with output a test captured
 
 Adoption is the path with the most friction and the least prose. A project that already

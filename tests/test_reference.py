@@ -32,6 +32,8 @@ from pathlib import Path
 
 import pytest
 
+from generated import read_by
+
 from roadkeep import commanding, describing
 from roadkeep.config import Config
 
@@ -94,19 +96,6 @@ def test_the_pages_are_ordered_the_way_dispatch_declares_them():
 # -- the join that already broke: the component and the payload ---------------
 
 
-def _read_by(component: str, receiver: str) -> set[str]:
-    """Every `<receiver>.<key>` the component reads, by name.
-
-    Read off the source rather than by rendering it, for `test_describing`'s reason about the
-    config: this suite has no JavaScript to run, and the question — does the component name a
-    field the payload publishes — is answerable from the text.
-    """
-    return {
-        found.group(1)
-        for found in re.finditer(rf"\b{re.escape(receiver)}\.([a-z_]+)\b", component)
-    }
-
-
 def test_the_component_reads_only_keys_the_payload_publishes():
     """The failure this exists for, met once already: the component was written against the
     dataclass field names — `one.path`, `one.turns_on` — and the payload publishes `command`
@@ -119,15 +108,15 @@ def test_the_component_reads_only_keys_the_payload_publishes():
     published = commanding.payload(_listing())
     one = published["commands"][0]
     component = COMPONENT.read_text(encoding="utf-8")
-    assert _read_by(component, "one") <= set(one), {
+    assert read_by(component, "one") <= set(one), {
         "the component reads it, the payload has no such key": sorted(
-            _read_by(component, "one") - set(one)
+            read_by(component, "one") - set(one)
         )
     }
     argument = one["arguments"][0]
-    assert _read_by(component, "argument") <= set(argument), {
+    assert read_by(component, "argument") <= set(argument), {
         "read off an argument, not published": sorted(
-            _read_by(component, "argument") - set(argument)
+            read_by(component, "argument") - set(argument)
         )
     }
 
@@ -219,25 +208,25 @@ def test_the_config_component_reads_only_keys_that_payload_publishes():
     that agrees with neither is caught only by asking each of them."""
     published = describing.payload(describing.shape(Config.discover(HERE)))
     component = CONFIG_COMPONENT.read_text(encoding="utf-8")
-    assert _read_by(component, "key") <= set(published["keys"][0]), {
+    assert read_by(component, "key") <= set(published["keys"][0]), {
         "the component reads it, the payload has no such key": sorted(
-            _read_by(component, "key") - set(published["keys"][0])
+            read_by(component, "key") - set(published["keys"][0])
         )
     }
-    assert _read_by(component, "surface") <= set(published), {
+    assert read_by(component, "surface") <= set(published), {
         "read off the payload root, not published": sorted(
-            _read_by(component, "surface") - set(published)
+            read_by(component, "surface") - set(published)
         )
     }
     assert published["fixed"], "nothing is fixed, so the boundary section renders empty"
     # Its own receiver name, because a name that means two payloads is one nothing can hold
     # against either — which is what `one` was doing across both loops here.
-    assert _read_by(component, "figure") <= set(published["fixed"][0]), {
+    assert read_by(component, "figure") <= set(published["fixed"][0]), {
         "read off a fixed figure, not published": sorted(
-            _read_by(component, "figure") - set(published["fixed"][0])
+            read_by(component, "figure") - set(published["fixed"][0])
         )
     }
-    assert _read_by(component, "one") <= set(published["keys"][0])
+    assert read_by(component, "one") <= set(published["keys"][0])
 
 
 def test_the_page_renders_the_table_rather_than_carrying_one():
