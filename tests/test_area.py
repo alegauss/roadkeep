@@ -203,6 +203,30 @@ def test_the_gate_runs_on_every_push_and_the_deploy_only_when_asked():
     assert "if" not in jobs["build"], "the gate must not be conditional on the publish"
 
 
+def test_the_trigger_names_every_input_the_pages_are_generated_from():
+    """The area's reference pages are a function of `src/` (RK1412): the verbs come off
+    `commands --json`, the findings off `explain --json`, the keys off `config --json` and the
+    prices off `cost`. A path filter that names only `site/**` and `docs/**` is one that skips
+    the build on exactly the commits that can break it — a renamed flag, a new verb family — and
+    the next run is somebody else's, on a commit that did not cause the failure.
+
+    `roadkeep.toml` is here for a different reason than `docs/**`: `config --json` reports which
+    keys *this project* declared, so that file is read as data by a page rather than served as a
+    governed store.
+
+    Both events, because a filter is per-event: covering the push and leaving the pull request
+    behind is a break found after the merge.
+    """
+    yaml = pytest.importorskip("yaml", reason="pyyaml is not installed")
+    workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+    triggers = workflow.get("on", workflow.get(True))
+    generated_from = {"src/**", "roadkeep.toml"}
+    for event in ("push", "pull_request"):
+        paths = set(triggers[event]["paths"])
+        assert generated_from <= paths, f"{event} does not rebuild the area when the package moves"
+    assert set(triggers["push"]["paths"]) == set(triggers["pull_request"]["paths"])
+
+
 def test_the_deploy_serves_the_bytes_the_gate_built():
     """Two builds of one commit are two answers about it, and the published one would be the
     untested. So the deploy downloads what the build kept rather than running npm again."""

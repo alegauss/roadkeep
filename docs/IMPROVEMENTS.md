@@ -128,28 +128,6 @@ them and named it.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-### §RK1412 The generated area depends on the package, and CI does not know it
-
-Every generator under `site/scripts/` invokes this package: the verb reference comes off
-`commands --json`, the finding pages off `explain --json`, the configuration reference
-off `config --json` and the session prices off `cost`. The pages are therefore a
-function of `src/`.
-
-`site.yml` runs on `site/**`, `docs/**` and its own file. A commit that renames a flag,
-adds a verb family or changes a description touches none of those, so the job that would
-have rebuilt the reference does not run — and the next build to run is somebody else's,
-on a commit that did not cause the problem.
-
-Two shapes are possible and they are not the same. Adding `src/**` to the trigger is one
-line and rebuilds the area on every package change, which is most commits here. Making
-the gate's existing `tests` job carry the assertion is the other: the suite already
-holds the pages against the payload, so what is missing is only that a *build* of the
-area runs where a parser changed.
-
-The second is the smaller standing cost and the one to argue against first: the tests
-hold the joins and not whether Astro still compiles the page, which is the failure this
-is about.
-
 ### §RK1413 The situations, and the reader who is still not answered
 
 RK1403 shipped a page per finding code and the half that is generated: the class, what

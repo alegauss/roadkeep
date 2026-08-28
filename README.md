@@ -124,12 +124,12 @@ called unbuilt were already in the ledger.
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
-| I — The documentation area (what an adopter reads before there is a session to ask) | 3 | 14 | 0 |
-| **Total** | 5 | 898 | 12 |
+| I — The documentation area (what an adopter reads before there is a session to ask) | 2 | 15 | 0 |
+| **Total** | 4 | 899 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1412** (deps: —) **The area's build runs on changes to site and docs, and every page it generates is read out of src** — A renamed verb or flag changes the reference and can break the build, and no job runs until somebody happens to touch the area itself. → §RK1412
+- 📋 **RK1413** (deps: —) **Most finding codes have no hand-written situation, so their page classifies the error and never names it** — The reader arriving from a failed job needs the sentence saying what they did, and a page carrying only the class is the answer they already had. → §RK1413
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
