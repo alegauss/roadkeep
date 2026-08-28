@@ -1080,6 +1080,17 @@ export const install = {
     { code: "pip install roadkeep" },
     " pulls the package alone — zero runtime dependencies means there is nothing else to resolve.",
   ] as Rich,
+  // Written as a sentence rather than as another button, and this is the reason: the nav and
+  // both calls to action are subtrees the Markdown twin drops whole, so a reader that is not a
+  // browser would have finished this page without ever learning the area exists. A paragraph
+  // survives the conversion, which is the only shape of link that reaches them.
+  docs: [
+    "What each verb takes, what every finding code means and what an adoption actually printed are in the ",
+    { a: "documentation area", href: "/roadkeep/docs/" },
+    " — generated from this parser and this gate rather than written beside them, so a page cannot state a flag the tool does not answer. ",
+    { b: "Evaluation comes before installation" },
+    ", so it reads without one.",
+  ] as Rich,
 } as const;
 
 /* ------------------------------------------------------------------ laws and non-goals */
@@ -1197,6 +1208,7 @@ export const closing = {
   ] as Rich,
   ctas: [
     { href: "#install", label: "Install the plugin →", kind: "primary" },
+    { href: "/roadkeep/docs/", label: "Read the docs →", kind: "ghost" },
     { href: repoUrl, label: "★ Star it on GitHub", kind: "ghost" },
   ],
 } as const;

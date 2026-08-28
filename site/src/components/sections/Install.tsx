@@ -61,6 +61,10 @@ export function Install() {
           <p className="install-foot reveal">
             <Rich runs={install.foot} />
           </p>
+
+          <p className="install-foot reveal" style={{ marginTop: "14px" }}>
+            <Rich runs={install.docs} />
+          </p>
         </div>
       </div>
     </section>

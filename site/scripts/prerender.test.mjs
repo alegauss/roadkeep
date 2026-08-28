@@ -103,6 +103,19 @@ test("the twin carries the argument the page is for, not only its headings", () 
   assert.match(md, /^\| What a turn needs \|/m, "the context ledger is no longer a table");
 });
 
+test("the twin names the documentation area, which no nav or button of its own can", () => {
+  // The nav entry and both calls to action live in subtrees the converter drops whole, so a
+  // page whose only links to the area were those would leave a reader that is not a browser
+  // finishing it without learning the area exists. The pointer is a sentence for that reason,
+  // and this is what keeps it one.
+  const md = readFileSync(join(distDir, "index.md"), "utf8");
+  assert.match(
+    md,
+    /\[[^\]]+\]\(\/roadkeep\/docs\/\)/,
+    "the landing twin carries no link to /roadkeep/docs/",
+  );
+});
+
 test("every transcript on the page reached the twin as a fence", () => {
   // The transcripts are the page's evidence: a reader who cannot see what the commands print is
   // being asked to take the argument on trust. Six terminals plus the two panes of the
