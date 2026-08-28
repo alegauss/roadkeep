@@ -1424,15 +1424,39 @@ class Session:
         """
         return "" if limit is None else f", {limit - taken:+} of {limit}"
 
+    def _measured_on(self) -> str:
+        """What the room above was taken against, where that is not the figure beside it.
+
+        RK1423. The row printed `64249 … +116 of 64300` on this repository, and those three
+        numbers are about two totals: 65 of the 64249 names the checkout, no ceiling is about
+        it, and the room is 64300 less the 64184 held. A reader subtracting the two numbers on
+        the line got 51 — under half the truth, on the one read whose whole purpose is
+        deciding whether another tool fits.
+
+        The held figure is named **in the clause** rather than put in the leading column,
+        which is where the row below it was already the answer and was not enough: that column
+        is what each row costs, on every row, and swapping one of them for a smaller number
+        makes the column mean two things and drops the total from the report entirely. Said
+        here, the line reconciles on its own and the row below still says where the rest went.
+
+        Silent with no provenance and with no ceiling, which are the two states where the
+        figure beside the room is already the figure it was measured on.
+        """
+        held = self.once - self.provenance
+        if not self.provenance or self.once_limit is None:
+            return ""
+        return f", on the {held} held"
+
     def stated(self, unit: str) -> str:
         rows = [
             f"session    {self.at_connect} {unit} once, {self.turn} on every turn — "
             f"two cadences, so they are not added",
             f"  once     {self.once:>6}  {self.tools} tool(s) and the handshake, at "
-            f"connect{self._room(self.once - self.provenance, self.once_limit)}",
+            f"connect{self._room(self.once - self.provenance, self.once_limit)}"
+            f"{self._measured_on()}",
         ]
         if self.provenance:
-            # Named under the figure it is inside, so the room above reads as a subtraction
+            # Named under the figure it is inside, so the row above reads as a subtraction
             # somebody can check rather than as a number that disagrees with the total.
             rows.append(
                 f"  once     {self.provenance:>6}  of that names the checkout — no ceiling "

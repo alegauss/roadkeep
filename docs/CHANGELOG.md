@@ -422,6 +422,7 @@
 - ✅ **RK1375** **brief states one field's allowance in two grammars on adjacent rows, so the comparison they exist for is read twice** — A brief's three allowance rows state their figure the same way, so the comparison they exist for is one reading (design recorded in `src/roadkeep/briefing.py`).
 - ✅ **RK1381** **the conversion fixed from this package's own corpus has no read that states the reading, so its drift needs a script** — `config` states what this build fixes from its own corpus with the reading beside it, so the conversion is a command not a script (design recorded in `src/roadkeep/budgeting.py`).
 - ✅ **RK1393** **the authority on the query surface does not name the subject config gained, so an agent cannot discover it there** — Both surfaces a caller meets before calling name what this build fixes and no project declares, and neither copies the reading (design recorded in `skills/roadkeep/SKILL.md`).
+- ✅ **RK1423** **The cost --session row puts the whole surface beside a room derived from a smaller figure** — The schema row names the held figure its room was taken against, so the line reconciles without the one below it (design superseded: the held figure belongs in the clause, not in the cost column).
 
 ## Block D — The gate
 

@@ -2093,6 +2093,39 @@ def test_the_schema_row_names_the_ceiling_the_gate_refuses_it_against(tmp_path, 
     assert json.loads(capsys.readouterr().out)["once"]["schema_limit"] is None
 
 
+def test_the_schema_row_reconciles_without_the_row_under_it(tmp_path, capsys):
+    """RK1423. The row printed `64249 … +116 of 64300` on this repository, and those three
+    numbers are about two totals: 65 of the 64249 names the checkout, no ceiling is about it,
+    and the room is 64300 less the 64184 held. A reader subtracting the two numbers on the
+    line got 51 — under half the truth, on the read whose whole purpose is deciding whether
+    another tool fits.
+
+    Held as arithmetic on the row itself rather than as a phrase, which is what makes it a
+    property and not a spelling: the room is the ceiling less a figure the line names, and
+    that stays true through any rewording of it.
+    """
+    import re
+
+    budgeted(tmp_path)
+    toml = tmp_path / "roadkeep.toml"
+    toml.write_text(
+        toml.read_text(encoding="utf-8") + "[tools]\ncharacters = 3000\nsession = 9000\n",
+        encoding="utf-8",
+    )
+    assert main(["-C", str(tmp_path), "cost", "--session"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    row = next(line for line in printed.splitlines() if "tool(s) and the handshake" in line)
+    numbers = [int(one) for one in re.findall(r"-?\d+", row)]
+    room = next(int(one) for one in re.findall(r"([+-]\d+) of ", row))
+    assert 9000 - room in numbers, f"the room is measured on a figure this row never names: {row}"
+
+    # And the row below still says where the rest of the total went, which is the half that
+    # was already right: the two figures differ by exactly what names the checkout.
+    assert main(["-C", str(tmp_path), "cost", "--session", "--json"]) == EXIT_OK
+    once = json.loads(capsys.readouterr().out)["once"]
+    assert once["schema"] - once["schema_provenance"] == once["schema_held"] == 9000 - room
+
+
 def test_the_notice_shares_the_cadence_and_so_is_added(tmp_path, capsys):
     """The rule this record keeps is that two *cadences* may not be summed. The schema and
     the notice share one, so a reader deciding whether to cut a tool description or a
