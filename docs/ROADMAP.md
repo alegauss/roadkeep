@@ -34,6 +34,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK1429** (deps: —) **The one slash command that writes puts its argument into a shell unquoted, and nothing holds how any of them does it** — Everywhere else this package puts caller text near a shell it quotes it or refuses to read shell, and the tests hold four things about these files and not this. → §RK1429
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
