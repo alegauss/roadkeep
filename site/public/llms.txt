@@ -10,9 +10,10 @@
 
 Status: the model, the write paths, the query surface, the gate, the Claude Code plugin
 and the editor surface are all done, and `roadkeep.toml` itself is now governed by a verb
-rather than hand-edited. Not on PyPI yet, so install with `pip install
-git+https://github.com/alegauss/roadkeep`, or take the plugin:
-`claude plugin marketplace add alegauss/roadkeep`.
+rather than hand-edited. It is on PyPI, so `uvx roadkeep lint` runs the gate with nothing
+installed and nothing checked out, and `pip install roadkeep` pulls the package alone —
+zero runtime dependencies means there is nothing else to resolve. Or take the plugin,
+which carries the same engine: `claude plugin marketplace add alegauss/roadkeep`.
 
 No count is stated here on purpose. A restatement of a backlog goes stale on the first
 ship — this file said "9 of 36" through twenty-five of them — and the ROADMAP and
@@ -54,15 +55,19 @@ the repository carry the flags.
 - `roadkeep ship <id>` — the ledger entry, the roadmap line removed and the rationale section dropped, as one transaction: all three or none.
 - `roadkeep lint` — exit 1 when any governed line drifted, a pointer resolves to nothing, or an always-loaded file outgrew its declared budget. The exit code is the whole contract.
 
-Around them, fifty-odd more: `status`/`amend`/`restate`/`renumber`, `defer`/`resume`,
+Around them, eighty-odd more in six families — authoring, shipping, sections, querying,
+linting and adoption: `status`/`amend`/`restate`/`renumber`, `defer`/`resume`,
 `section`/`block`/`non-goal`/`criterion`/`priority`, `retire`, `record`,
 `list`/`stats`/`audit`, `show`, `pick`, `deps`, `gaps`, `origin`, `weight`, `remaining`,
 `budget`, `export`, `merge`, `repair`, and `init`/`adopt`/`declare`/`install` for a
 repository that already has a backlog — `adopt` measures one and reports what adopting
 would cost before anything is changed, and `declare <role>` adds a governed file to a
-project already configured. Every command takes `--json`, which carries provenance (which
-file and which line the answer came from), because an answer an agent cannot audit gets
-verified by reading the file — the cost the command existed to remove.
+project already configured. The complete list, with every argument, is generated from the
+parser rather than written beside it: one page per family under
+https://alegauss.github.io/roadkeep/docs/reference/, each with a plain-text twin at
+`index.md`. Every command takes `--json`, which carries provenance (which file and which
+line the answer came from), because an answer an agent cannot audit gets verified by
+reading the file — the cost the command existed to remove.
 
 Four things worth knowing about separately:
 
@@ -82,8 +87,10 @@ Four things worth knowing about separately:
   line that files it with the argv, the config and the governed files; `replay` re-runs that
   capture against whatever tree is there later.
 
-Surfaces: a CLI, an MCP server offering 64 tools whose input schemas are derived from your
-`roadkeep.toml`, a `PreToolUse` hook that denies a hand-edit and names the command that
+Surfaces: a CLI, an MCP server whose tool list and input schemas are derived from your
+`roadkeep.toml` — `maxLength` is that project's field limits, `enum` its markers, `pattern`
+its id shape, and a project declaring three roles is served fewer tools than one declaring
+every role — a `PreToolUse` hook that denies a hand-edit and names the command that
 replaces it, a trigger-loaded skill, four slash commands, a GitHub Action, a pre-commit
 hook, and a VS Code extension showing the backlog as a tree. One engine behind all of them.
 
@@ -122,6 +129,7 @@ servers, with no per-user licence.
 ## Links
 
 - [Website](https://alegauss.github.io/roadkeep/): project landing page
+- [The landing page as plain text](https://alegauss.github.io/roadkeep/index.md): the same page, converted from the same render, so it cannot disagree with what a person reads
 - [Documentation area](https://alegauss.github.io/roadkeep/docs/llms.txt): the index of every page in the documentation area, each with a plain-text twin at its own address plus `index.md` — the reference is generated from the parser, the finding codes from the gate's own table, and the adoption walkthrough from a real run
 - [GitHub repository](https://github.com/alegauss/roadkeep): source code
 - [README](https://raw.githubusercontent.com/alegauss/roadkeep/main/README.md): the problem measured, the comparison against linters and task-file tools, install
@@ -129,5 +137,6 @@ servers, with no per-user licence.
 - [ROADMAP.md](https://raw.githubusercontent.com/alegauss/roadkeep/main/docs/ROADMAP.md): the active backlog, one line per task, and the binding non-goals
 - [CHANGELOG.md](https://raw.githubusercontent.com/alegauss/roadkeep/main/docs/CHANGELOG.md): the shipped ledger, indexed by block
 - [IMPROVEMENTS.md](https://raw.githubusercontent.com/alegauss/roadkeep/main/docs/IMPROVEMENTS.md): design rationale for unshipped work, and the authoritative statement of the six laws
+- [DECISIONS.md](https://raw.githubusercontent.com/alegauss/roadkeep/main/docs/DECISIONS.md): one line per decision, written by the `ship` that took it; a superseded row is marked and never deleted
 - [roadkeep.toml](https://raw.githubusercontent.com/alegauss/roadkeep/main/roadkeep.toml): this project's own configuration, which the tool reads — the repository is its own conformance fixture
 - [Sponsor](https://www.viglet.org): Viglet, open source search and content management
