@@ -5,7 +5,7 @@
 # command is declared once, here, and every adopting project references this action —
 # `roadkeep lint` is the whole of it, because the exit code is the whole contract.
 #
-#     - uses: alegauss/roadkeep@main
+#     - uses: alegauss/roadkeep@v0.2.0
 #       with:
 #         directory: .          # where roadkeep.toml is, when it is not the root
 #         baseline: origin/main # optional: fail on what this branch added, not on the debt
@@ -47,8 +47,8 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
-    # From the action's own checkout and *not* from PyPI, which RK19 deliberately did not
-    # change. `uses: alegauss/roadkeep@v0.1.0` pins a ref, and installing that ref is what
+    # From the action's own checkout and *not* from PyPI, which the first release did not
+    # change. `uses: alegauss/roadkeep@v0.2.0` pins a ref, and installing that ref is what
     # makes the pin mean a version; `uvx roadkeep` would run whatever PyPI's latest is, so
     # the ref would silently stop selecting anything. The published package is for the
     # caller who is not using this action — `uvx roadkeep lint` in any other runner.

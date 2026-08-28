@@ -67,3 +67,12 @@ uvx roadkeep lint          # exits 1 on anything that drifted
 arrives — the ceiling was known before a sentence was composed to fill it. `lint` is the
 backstop for whatever bypassed it, and its exit code is the whole difference between a
 gate and advice.
+
+Nothing is installed to run those three. The package is on
+[PyPI](https://pypi.org/project/roadkeep/) and takes **no runtime dependencies** —
+`argparse` and `tomllib`, both stdlib — so `uvx` resolves a single name and there is no
+tree to solve behind it. `pip install roadkeep` puts the same console script in an
+environment you keep, and `requires-python` in the published metadata is the only floor.
+A checkout is the exception now rather than the route:
+`uvx --from git+https://github.com/alegauss/roadkeep roadkeep lint` is how you reach a fix
+that has not been released yet.

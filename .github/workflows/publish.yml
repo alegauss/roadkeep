@@ -17,9 +17,12 @@
 #      publish the tool that cannot pass its own format. Running first is also what makes
 #      a rehearsal's `.devN` legal: `tests/test_packaging.py` rejects that suffix, because
 #      a `.devN` is exactly the number nobody should be able to tag.
-#   2. **The bump moves both files that state a version.** `scripts/bump_version.py`
-#      rewrites `src/roadkeep/__init__.py` and `.claude-plugin/plugin.json` together, the
-#      two numbers `tests/test_plugin.py` asserts are one.
+#   2. **The bump moves every file that states a version.** `scripts/bump_version.py`
+#      rewrites `src/roadkeep/__init__.py`, `.claude-plugin/plugin.json` and
+#      `editor/package.json` together — three numbers `tests/test_plugin.py` and
+#      `tests/test_editor.py` assert are one. The `git add` below has to name all three:
+#      v0.2.0 shipped with the editor left at the number before it, because this step
+#      staged two of the files the script had already written.
 #   3. **A hand-cut tag must equal the package's own version.** On the `release` path there
 #      is no bump to trust — a tag that says v0.2.0 over a package that says 0.1.0 is
 #      otherwise discovered by whoever pins it.
@@ -112,7 +115,7 @@ jobs:
           version="${{ steps.version.outputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/roadkeep/__init__.py .claude-plugin/plugin.json
+          git add src/roadkeep/__init__.py .claude-plugin/plugin.json editor/package.json
           git commit -m "chore: release v${version}"
           git tag -a "v${version}" -m "v${version}"
           git push origin "HEAD:${GITHUB_REF_NAME}"

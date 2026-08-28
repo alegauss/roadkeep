@@ -262,13 +262,11 @@ harness reads as a crash.
 ### Or just the CLI
 
 ```sh
-# Not on PyPI yet, so the name resolves by URL until the first release is cut
-uvx --from git+https://github.com/alegauss/roadkeep roadkeep lint   # no install, no checkout
-pip install git+https://github.com/alegauss/roadkeep
+uvx roadkeep lint                  # no install, no checkout
+pip install roadkeep               # or into an environment you keep
 
-# What those two become the moment `publish.yml` runs with target=pypi
-uvx roadkeep lint
-pip install roadkeep
+# A fix that is on main and not yet released: the same run, resolved by URL
+uvx --from git+https://github.com/alegauss/roadkeep roadkeep lint
 ```
 
 Python ≥3.11, **zero runtime dependencies** — `argparse` and `tomllib`, not `click` and
@@ -285,12 +283,12 @@ A gate that runs in only one place is a gate with a documented bypass.
 # .github/workflows/gate.yml — the action this repository ships
 steps:
   - uses: actions/checkout@v4
-  - uses: alegauss/roadkeep@main        # with: {directory: .}
+  - uses: alegauss/roadkeep@v0.2.0      # with: {directory: .}
 
 # .pre-commit-config.yaml — the same command, one step earlier
 repos:
   - repo: https://github.com/alegauss/roadkeep
-    rev: main                          # no tag is cut yet; a version pin once one is
+    rev: v0.2.0                        # a release tag; `main` tracks unreleased
     hooks:
       - id: roadkeep-lint              # or roadkeep-lint-fix, which normalizes first
 ```

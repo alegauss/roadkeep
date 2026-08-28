@@ -1169,20 +1169,17 @@ docs/DECISIONS.md:5  T1 superseded by T2
         <div class="n">2</div>
         <div class="body">
           <h4>Measure before you commit to it</h4>
-          <p><code>adopt</code> runs the schema over the backlog you already have and reports the delta: what parses, the longest <code>symptom</code>, <code>why</code> and rendered line against their limits, the markers to declare. It <b>writes nothing and never exits 1</b> — an estimate that is a gate is one you took too late. It runs <i>before</i> the project is governed, so it is the one step that wants a shell, and the plugin's own copy answers.</p>
+          <p><code>adopt</code> runs the schema over the backlog you already have and reports the delta: what parses, the longest <code>symptom</code>, <code>why</code> and rendered line against their limits, the markers to declare. It <b>writes nothing and never exits 1</b> — an estimate that is a gate is one you took too late. It runs <i>before</i> the project is governed, so it is the one step that wants a shell.</p>
           <div class="copyline">
-            <code data-copy>R=~/.claude/plugins/marketplaces/alegauss/scripts/roadkeep.py</code>
+            <code data-copy>uvx roadkeep adopt docs/ROADMAP.md --prefix XX</code>
             <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
           </div>
           <div class="copyline" style="margin-top:9px">
-            <code data-copy>python $R adopt docs/ROADMAP.md --prefix XX</code>
-            <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
-          </div>
-          <div class="copyline" style="margin-top:9px">
-            <code data-copy>python $R adopt docs/IMPROVEMENTS.md --sections --with docs/STRATEGY.md</code>
+            <code data-copy>uvx roadkeep adopt docs/IMPROVEMENTS.md --sections --with docs/STRATEGY.md</code>
             <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
           </div>
           <p style="margin-top:11px">Both halves, because both are limits you have to declare — and the numbers <code>[limits]</code> gets set from come from <b>your</b> corpus rather than copied from this one.</p>
+          <p style="margin-top:11px">No <code>uv</code> on the machine? The plugin you just installed carries the same engine, so nothing has to be fetched: <code>python ~/.claude/plugins/marketplaces/alegauss/scripts/roadkeep.py adopt …</code>.</p>
         </div>
       </div>
 
@@ -1192,7 +1189,7 @@ docs/DECISIONS.md:5  T1 superseded by T2
           <h4>Declare the format once</h4>
           <p><code>init</code> writes <code>roadkeep.toml</code> — your prefix, paths, markers and limits — and the governed files it declares. <b>No starter task and no prose</b>: a title, the blocks you name, and where the non-goals go. On a repository with no backlog yet, this is the only step of the two you need.</p>
           <div class="copyline">
-            <code data-copy>python $R init --prefix XX --block "A — &lt;label&gt;"</code>
+            <code data-copy>uvx roadkeep init --prefix XX --block "A — &lt;label&gt;"</code>
             <button class="copy-btn" type="button" aria-label="Copy command"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
           </div>
           <p style="margin-top:11px">Everything a <i>task</i> needs afterwards is already in the tools the plugin installed — <code>add</code>, <code>status</code>, <code>ship</code>, <code>brief</code>, <code>pick</code>, <code>lint</code> — validating against the schema <code>roadkeep.toml</code> just declared. No shell, no <code>PATH</code>.</p>
@@ -1207,11 +1204,11 @@ docs/DECISIONS.md:5  T1 superseded by T2
           <p>The same command in CI and at the commit — <b>a gate that runs in one place is a gate with a documented bypass</b>. <code>--fix</code> repairs only what the format derives and leaves every editorial finding to a human.</p>
           <div class="term" style="margin-top:4px">
             <div class="term-bar"><i></i><i></i><i></i><span class="t">.github/workflows/gate.yml · .pre-commit-config.yaml</span></div>
-<pre>- uses: <span class="g">alegauss/roadkeep@main</span>   <span class="c"># the action this repo ships</span>
+<pre>- uses: <span class="g">alegauss/roadkeep@v0.2.0</span> <span class="c"># the action this repo ships</span>
 
 repos:
   - repo: https://github.com/alegauss/roadkeep
-    rev: main                     <span class="c"># or a tag, once one is cut</span>
+    rev: v0.2.0                   <span class="c"># a release tag; main tracks unreleased</span>
     hooks:
       - id: <span class="g">roadkeep-lint</span>          <span class="c"># or roadkeep-lint-fix</span></pre>
           </div>
@@ -1220,11 +1217,10 @@ repos:
 
       <p class="install-foot reveal">
         Or keep it to one command in an existing pipeline, with no plugin and no checkout:<br>
-        <code>uvx --from git+https://github.com/alegauss/roadkeep roadkeep lint</code> — exit
-        <b>0</b> clean, <b>1</b> drifted.<br>
-        Not on PyPI yet, so the short forms — <code>uvx roadkeep</code>, <code>pip install
-        roadkeep</code> — wait on the first release; <code>pip install
-        git+https://github.com/alegauss/roadkeep</code> installs it today.
+        <code>uvx roadkeep lint</code> — exit <b>0</b> clean, <b>1</b> drifted.<br>
+        It is on <a href="https://pypi.org/project/roadkeep/">PyPI</a>, so that line resolves a
+        name and not a URL, and <code>pip install roadkeep</code> pulls the package alone —
+        zero runtime dependencies means there is nothing else to resolve.
       </p>
     </div>
   </div>
