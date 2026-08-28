@@ -83,9 +83,16 @@ const EXITS = {
   pre.cmd {
     background: var(--sl-color-gray-6);
   }
+  /* The commands carry a whole sentence as an argument — `add --symptom <the symptom>` is
+     longer than any column — so they wrap like the output does (RK1430). Scrolling would
+     hide the half of the line that says what was written. */
+  pre.cmd code,
+  pre.out code {
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+  }
   pre.out code {
     font-size: var(--sl-text-xs);
-    white-space: pre-wrap;
   }
   .exit {
     font-size: var(--sl-text-sm);

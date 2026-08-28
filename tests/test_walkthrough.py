@@ -165,3 +165,14 @@ def test_the_component_says_what_each_exit_code_means():
     assert re.search(r"\b0:\s*\{", component)
     assert re.search(r"\b1:\s*\{", component)
     assert re.search(r"\b2:\s*\{", component)
+
+
+def test_the_command_block_wraps_because_a_command_carries_a_sentence(steps):
+    """`add --symptom <the symptom>` is a whole sentence on one line, so the shown commands are
+    wider than any column the page has. Unwrapped they ran off the block and over the page
+    (RK1430); and scrolling would be no better, since the argument is the half worth reading."""
+    assert max(len(step["command"]) for step in steps) > 80
+    component = COMPONENT.read_text(encoding="utf-8")
+    block = re.search(r"pre\.cmd code[^}]*\{[^}]*\}", component)
+    assert block, "the command block has no rule of its own"
+    assert "pre-wrap" in block.group(0)
