@@ -32,7 +32,7 @@ from pathlib import Path
 
 import pytest
 
-from roadkeep import commanding
+from roadkeep import commanding, describing
 from roadkeep.config import Config
 
 HERE = Path(__file__).resolve().parent.parent
@@ -40,6 +40,10 @@ SITE = HERE / "site"
 PAGES = SITE / "src" / "content" / "docs" / "reference"
 COMPONENT = SITE / "src" / "components" / "VerbTable.astro"
 GENERATOR = SITE / "scripts" / "commands.mjs"
+
+CONFIG_PAGE = SITE / "src" / "content" / "docs" / "configuration.mdx"
+CONFIG_COMPONENT = SITE / "src" / "components" / "ConfigTable.astro"
+CONFIG_GENERATOR = SITE / "scripts" / "config.mjs"
 
 #: Where the generator writes, as the component imports it. One string, because a rename that
 #: moved only one of the two is a build that reads a file nothing writes.
@@ -204,3 +208,87 @@ def test_each_page_says_why_the_family_exists(family):
     prose = text.split("---", 2)[2].replace("import VerbTable", "")
     prose = prose.split("<VerbTable")[0]
     assert len(prose.split()) >= 80, family
+
+
+# -- the configuration reference, rendered from the read that owns it (RK1404) --
+
+
+def test_the_config_component_reads_only_keys_that_payload_publishes():
+    """`VerbTable`'s failure, one surface over, and the reason this is a second assertion
+    rather than a second reading of the first: two components read two payloads, and a name
+    that agrees with neither is caught only by asking each of them."""
+    published = describing.payload(describing.shape(Config.discover(HERE)))
+    component = CONFIG_COMPONENT.read_text(encoding="utf-8")
+    assert _read_by(component, "key") <= set(published["keys"][0]), {
+        "the component reads it, the payload has no such key": sorted(
+            _read_by(component, "key") - set(published["keys"][0])
+        )
+    }
+    assert _read_by(component, "surface") <= set(published), {
+        "read off the payload root, not published": sorted(
+            _read_by(component, "surface") - set(published)
+        )
+    }
+    assert published["fixed"], "nothing is fixed, so the boundary section renders empty"
+    # Its own receiver name, because a name that means two payloads is one nothing can hold
+    # against either — which is what `one` was doing across both loops here.
+    assert _read_by(component, "figure") <= set(published["fixed"][0]), {
+        "read off a fixed figure, not published": sorted(
+            _read_by(component, "figure") - set(published["fixed"][0])
+        )
+    }
+    assert _read_by(component, "one") <= set(published["keys"][0])
+
+
+def test_the_page_renders_the_table_rather_than_carrying_one():
+    """The keys are what `config` publishes. A page that listed them would be the third copy
+    of a set the parser already refuses by — which is what this task exists to not write."""
+    text = CONFIG_PAGE.read_text(encoding="utf-8")
+    assert "<ConfigTable" in text
+    assert not [line for line in text.splitlines() if line.strip().startswith("|")]
+
+
+def test_the_page_does_not_transcribe_the_configuration_it_points_at():
+    """The worked example is this repository's own file, which is provably valid because its
+    `docs/` are the conformance fixture. Transcribed here it would be a copy that goes stale;
+    linked, it cannot."""
+    text = CONFIG_PAGE.read_text(encoding="utf-8")
+    assert "blob/main/roadkeep.toml" in text
+    # No TOML assignments outside a shell block: a `key = "value"` on this page is the file
+    # being copied into it one line at a time.
+    fenced = re.sub(r"```.*?```", "", text, flags=re.S)
+    assert not re.findall(r'^\s*\w+ = ["\[]', fenced, re.M)
+
+
+def test_the_page_says_a_number_is_measured_and_recommends_none():
+    """`[limits]` and `[budgets]` hold judgements measured against a corpus, and `govern`
+    refuses one this corpus already breaks. A page that printed a suggested value would be the
+    thing somebody copies instead of measuring — which is the whole failure mode."""
+    text = CONFIG_PAGE.read_text(encoding="utf-8")
+    assert "adopt" in text and "govern" in text
+    assert "does not recommend a value" in text
+
+
+def test_the_config_generator_refuses_a_tree_with_no_configuration():
+    """Answered against an unconfigured tree every row reads as undeclared, and the worked
+    example silently becomes a list of defaults — a page that is wrong in the one way nothing
+    on it would show."""
+    source = CONFIG_GENERATOR.read_text(encoding="utf-8")
+    assert "no roadkeep.toml" in source
+    assert "throw new Error" in source
+
+
+def test_the_configuration_page_is_reachable_before_the_reference():
+    """It is the read an adopter needs first: what the file they are about to write may say,
+    which comes before what any verb takes."""
+    config = (SITE / "astro.config.mjs").read_text(encoding="utf-8")
+    at_config = config.index('label: "Configuration"')
+    at_reference = config.index('label: "Reference"')
+    assert at_config < at_reference
+    assert 'link: "/configuration/"' in config
+
+
+def test_all_three_generators_run_before_the_build():
+    scripts = json.loads((SITE / "package.json").read_text(encoding="utf-8"))["scripts"]
+    for name in ("commands", "findings", "config"):
+        assert f"scripts/{name}.mjs" in scripts["prebuild"], name

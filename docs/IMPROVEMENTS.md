@@ -91,30 +91,6 @@ already written, not authorship.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-### §RK1404 The configuration reference, rendered from the read that owns it
-
-`roadkeep.toml` is the whole of the sixth law: prefix, id shape, paths, markers, limits,
-budgets, claims, refs, requirements and the two opt-in tables. `config` answers every
-question about it — each table, key, type and default, the sentence its source carries,
-whether this project declared it, and what this build fixes and no project may set. It
-answers from an installed copy on a configured tree, which is exactly what a reader
-writing their first one does not have.
-
-So the reference is that read rendered: every table in the order the file is written,
-with the type, the default, what declares it, and the boundary between what is yours and
-what is the build's — restated nowhere, because `config` publishes it and a page
-repeating it is the third copy.
-
-Two things only a person can write. The first is what a number is for: `[limits]` and
-`[budgets]` hold judgements measured against a corpus, `govern` refuses one this corpus
-already breaks, and `--because` stacks the argument above the key — so the page says the
-number is measured and never recommends one. The second is a whole file for a project
-adopting with a backlog already in it, which no read generates.
-
-The worked example is this repository's own `roadkeep.toml`. It is the conformance
-fixture, so it is the one configuration that is provably valid, and it is one fetch away
-rather than transcribed.
-
 ### §RK1405 The agent surface, priced and explained where a person can read it
 
 Half of this tool's surface is not a command line. A session gets a hook that denies an

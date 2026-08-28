@@ -110,9 +110,16 @@ for (const finding of codes) {
   const situation = situations[finding.code];
   if (situation) described += 1;
 
+  // Declared rather than derived from the filename: Astro slugifies a dot away, so
+  // `block.emptied` became `/findings/block/blockemptied/` — a URL that does not carry the
+  // string somebody pasted into a search engine, which is the whole reason these pages exist.
+  // A hyphen keeps the two halves apart and reads back as the code.
+  const slug = `findings/${family}/${finding.code.replace(/\./g, "-")}`;
+
   const lines = [
     "---",
     `title: ${finding.code}`,
+    `slug: ${slug}`,
     `description: ${escape(finding.cause)}`,
     "---",
     "",

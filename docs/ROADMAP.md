@@ -40,7 +40,6 @@
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-- 📋 **RK1404** (deps: RK1398 ✅) **Writing a first configuration file needs the read that describes it, which needs a configured tree to answer** — Every path, marker and limit a project will live under is decided in that file, and the only description of its keys is a command the reader cannot run yet. → §RK1404
 - 📋 **RK1405** (deps: RK1398 ✅) **Nothing describes what a session receives once the plugin is installed, only how to install it** — Five surfaces load at once — hook, skill, commands, server, launcher — and what they cost, what they deny and which tools appear at all is learned by being refused. → §RK1405
 - 📋 **RK1406** (deps: RK1398 ✅) **Adoption on a repository that already has a backlog is a list of commands with no run and no refusals shown** — What decides an adoption is what the first commands print on files that were already there, and a walkthrough written from memory is prose nothing keeps true. → §RK1406
 - 📋 **RK1407** (deps: RK1398 ✅) **The model the verbs act on is written for an agent mid-session and for whoever edits the code, never for a reader** — A line, a pointer, a block, a criterion and a decision are one system, and learning it one refusal at a time is how a tool gets used as six loose commands. → §RK1407

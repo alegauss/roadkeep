@@ -1,0 +1,108 @@
+---
+// Every table `roadkeep.toml` may carry, rendered from what `config` emitted (RK1404).
+//
+// Nothing here is a second statement of the shape. The keys come off the frozensets the parser
+// refuses by, the sentence above each table is the `#:` comment its author already wrote, and
+// the default is read off a default project — so a key added tomorrow appears here without
+// anybody editing a page, and one removed stops being documented.
+//
+// The **declared** column is this repository's own file, which is the format's conformance
+// fixture: the one configuration that is provably valid, shown rather than transcribed.
+import surface from "../data/config.generated.json";
+
+const tables = [...new Set(surface.keys.map((one) => one.table))];
+
+/** What a reader is told about a key this project set, or did not. */
+function declares(key) {
+  if (!key.declared) return "—";
+  if (key.addresses > 1) return `at ${key.addresses} addresses`;
+  return key.set === null ? "declared" : key.set;
+}
+---
+
+<p class="answered">
+  Read from <code>roadkeep {surface.version}</code> against <code>{surface.source}</code>. What
+  is listed is what <em>that</em> build accepts — which is how a key your copy does not have is
+  told from a typo.
+</p>
+
+{
+  tables.map((table) => {
+    const keys = surface.keys.filter((one) => one.table === table);
+    return (
+      <section class="table">
+        <h3 id={table || "top-level"}>
+          <code>{table ? `[${table}]` : "the top level"}</code>
+        </h3>
+        {keys[0]?.note && <p class="note">{keys[0].note}</p>}
+        <table>
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Type</th>
+              <th>Default</th>
+              <th>This repository</th>
+            </tr>
+          </thead>
+          <tbody>
+            {keys.map((key) => (
+              <tr>
+                <td>
+                  <code>{key.key}</code>
+                </td>
+                <td>{key.type || "—"}</td>
+                <td>
+                  {key.default === null ? (
+                    <em>no default</em>
+                  ) : (
+                    <code>{key.default}</code>
+                  )}
+                </td>
+                <td>
+                  {key.declared ? <code>{declares(key)}</code> : "—"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    );
+  })
+}
+
+{
+  surface.fixed.length > 0 && (
+    <section class="table">
+      <h3 id="fixed-by-the-build">Fixed by the build, and not yours to declare</h3>
+      <p>
+        The boundary of the question above. These are numbers this build measures from a corpus
+        rather than accepts from a file, so there is no key for them.
+      </p>
+      <ul>
+        {/* `figure` and not `one`: the keys above are read as `one`, and a receiver whose
+            name means two payloads is one nothing can hold against either. */}
+        {surface.fixed.map((figure) => (
+          <li>
+            <code>{figure.name}</code> at <strong>{figure.at}</strong> — {figure.why} (read at{" "}
+            {figure.reading} over {figure.sample} samples, {figure.percentile}th percentile).
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+<style>
+  .answered {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+  }
+  .table {
+    margin-block: 2rem 0;
+  }
+  .note {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+    margin-block: 0.25rem 0.75rem;
+  }
+</style>

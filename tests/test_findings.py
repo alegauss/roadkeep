@@ -169,3 +169,13 @@ def test_the_codes_a_reader_meets_first_are_the_ones_described(code):
     """Not a coverage bar — the shortfall is real and reported. What is held is that the
     handful anybody actually hits are not the ones left undescribed."""
     assert code in _situations()
+
+
+def test_the_url_carries_the_code_a_reader_pasted():
+    """Astro slugifies a dot away, so `block.emptied` first shipped at `/findings/block/
+    blockemptied/` — a URL that does not contain the string somebody pasted into a search
+    engine, which is the entire reason these pages exist. The slug is declared, and a hyphen
+    keeps the two halves apart and reads back as the code."""
+    source = GENERATOR.read_text(encoding="utf-8")
+    assert re.search(r'replace\(/\\./g,\s*"-"\)', source)
+    assert "slug: ${slug}" in source
