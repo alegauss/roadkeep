@@ -1,0 +1,135 @@
+---
+title: The model
+description: What a line, a pointer, a block, a criterion and a decision are — one system, learned once instead of a refusal at a time.
+---
+
+The verbs are learnable one at a time. The model behind them is not, and learning it one
+refusal at a time is how a tool ends up being used as six unrelated commands.
+
+Nothing on this page is generated. Every other reference here is derived from the package,
+because a flag or a config key retyped by hand is wrong at the first rename — but the model is
+the one thing no read answers, so it is written once and it is written here.
+
+## The six roles
+
+A role is a job, not a filename. Every one of them is optional and every one is a path your
+project chooses; what is fixed is what each is *for*.
+
+**`roadmap`** — the open backlog. One line per task, and the only file the tool mints ids
+into.
+
+**`changelog`** — the shipped ledger. One entry per task that finished, grouped by block.
+Nothing here is ever waiting on anything, so the entries carry no dependency field and no
+pointer.
+
+**`improvements`** — the design rationale, and the only one of these whose contents are
+*deleted* in the ordinary course of work. A section here argues for a task that has not
+happened; once it has, the argument is spent.
+
+**`strategy`** — prose that outlives every task filed under it. The distinction from
+`improvements` is the whole reason both exist: a strategy section is still true after the work
+ships, and a design section is not.
+
+**`deferred`** — where a paused line goes. It keeps the id, the dependencies and the section
+that a retirement would have deleted, which is what makes a pause different from a closure.
+
+**`decisions`** — what outlives the code. A constraint discovered while doing the work, filed
+so the next person does not re-propose what was already rejected and re-litigated.
+
+An absent role is **absent, not empty**. A project can govern its roadmap for a month before
+it declares anything else, and the verbs whose whole vocabulary belongs to a role you have not
+declared are simply not offered.
+
+## A task line
+
+One line, and every field on it is a claim something can check:
+
+- **The id** — minted by the tool, never chosen. One past the highest anywhere, so a retired
+  id is never reused and the history stays unambiguous.
+- **The marker** — where the line is. Open, and one of the open markers may additionally mean
+  *no design written yet*; shipped, retired and paused are the three that mean it has left.
+- **The dependency group** — what this line waits on, with an annotation the tool re-derives
+  rather than you maintaining it.
+- **The symptom** — what does not work, as a phrase. Never the name of the patch that would
+  close it.
+- **The why** — one sentence, ending in a stop. The reason this is worth doing.
+- **The pointer** — the address of the section carrying the design.
+
+The two prose fields are bounded, and the bound is enforced when the line is written rather
+than reported afterwards. That is the whole design: the question *what would I cut?* never
+arrives, because the ceiling was known before a sentence was composed to fill it.
+
+## The pointer, and the section it resolves to
+
+A sentence is not where a design goes. So a line carries a **pointer** and the argument lives
+in a section of the rationale file — written in the same call that writes the line, and refused
+by the gate if it is not there.
+
+Keeping the argument out of the line is what stops a backlog becoming a document. That is not
+a stylistic preference: this tool was written after measuring a real one where 92 lines
+averaged 142 words against a one-sentence rule, and six of the eight worst lines were written
+in the session that diagnosed the drift.
+
+## Blocks
+
+A block is a heading that **several files agree on**. The roadmap plans work under it, the
+ledger files finished work under it, and the rationale groups designs under it.
+
+Blocks are declared and never invented by a write. A write that created a heading would file
+text where nothing else looks for it — so a task filed under a block the ledger has no heading
+for is refused, and the refusal names the verb that opens it.
+
+## The two other bullets
+
+**A non-goal** is a constraint, not a task: something deliberately not built. It is printed
+with every task briefing, so a suggestion that violates one is refused before it is worked on
+rather than after somebody has written it.
+
+**A criterion** is the positive twin: what must be true for a block to be *finished*. Between
+them they answer the two questions a backlog cannot otherwise settle — what is out of scope,
+and when is this done.
+
+Both are addressed by their **lead**, the bold phrase they open with. Shortening a lead is
+therefore a different constraint, not an edit to the same one.
+
+## The queue and the pause
+
+**The queue** is the one ordering a project declares rather than derives. Without it, the next
+task is the lowest ready id; with it, the queue outranks that. It lives in the plan itself
+rather than in configuration, so the order is read where the work is.
+
+**A pause** is a door that is not terminal. The line leaves the backlog and keeps everything a
+retirement would have destroyed, and resuming puts it back. It needs the `deferred` role — a
+project that has not declared one is not offered the verb, rather than being offered one that
+would refuse.
+
+## A task's life, and what each door leaves behind
+
+A task is inserted, waits or is worked, and then leaves by exactly one of four doors. What
+matters is what each leaves behind, because that is what a later reader finds:
+
+| Door | The line | The design section | What is left |
+|---|---|---|---|
+| **Ship** | moved to the ledger | deleted | an entry saying what the outcome was |
+| **Retire** | closed, not done | deleted | an entry, and optionally a decision |
+| **Defer** | moved to the deferred store | kept | the id, the deps and the section, all recoverable |
+| **Supersede** | — | — | two decisions that name each other |
+
+Shipping is **one write**, not several: the line moves, the entry is written under the right
+block, the design section is dropped and every annotation that was waiting on this task is
+re-derived. The files never describe a state that did not ship.
+
+Retiring is the door for work that will not be done, and `--decides` is what makes it worth
+more than deleting a line: the constraint the deleted design leaves behind is filed where the
+next person will meet it. A revert recorded this way is *findable* — which matters because a
+revert is recorded as a delivery like any other, so a duplicate check that asks "did something
+already ship this?" answers yes about the revert and misses that the new proposal is asking to
+undo it again.
+
+## Where to go next
+
+- [Adopting a backlog you already have](/roadkeep/guide/adopting/) — the model above, applied
+  to a repository that already has files in it.
+- [Configuration](/roadkeep/guide/configuration/) — which of this is yours to change.
+- [The reference](/roadkeep/guide/reference/authoring/) — what each verb takes, generated from
+  the package.

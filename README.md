@@ -124,12 +124,12 @@ called unbuilt were already in the ledger.
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
-| I — The documentation area (what an adopter reads before there is a session to ask) | 4 | 9 | 0 |
-| **Total** | 4 | 893 | 12 |
+| I — The documentation area (what an adopter reads before there is a session to ask) | 3 | 10 | 0 |
+| **Total** | 3 | 894 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1407** (deps: RK1398 ✅) **The model the verbs act on is written for an agent mid-session and for whoever edits the code, never for a reader** — A line, a pointer, a block, a criterion and a decision are one system, and learning it one refusal at a time is how a tool gets used as six loose commands. → §RK1407
+- 📋 **RK1408** (deps: RK1398 ✅) **Prose four files own gets told again by any page that frames it, and the copy nobody reads is the one that drifts** — The laws, the measured problem and the non-goals each have an owner and three have a verb, so a page holding its own version is stale from the next write. → §RK1408
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

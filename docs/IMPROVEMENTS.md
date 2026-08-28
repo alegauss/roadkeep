@@ -91,29 +91,6 @@ already written, not authorship.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-### §RK1407 The model page, which is the one thing nothing derives
-
-The verbs are learnable one at a time; the model behind them is not. A line is a claim
-carrying an id, a marker, a dep group and a pointer. The pointer resolves into a
-rationale section that a ship deletes. A block is a heading several files agree on. A
-criterion says what makes a block finished where a non-goal says what may not be
-proposed. The queue is a section, a pause is a role, and a decision outlives the task
-that made it.
-
-None of that is written for a person. The skill states it for an agent mid-session,
-shaped for the moment a write is about to happen; the module docstrings state it for
-whoever is changing the code; the design rationale here states it one task at a time and
-is deleted as each ships.
-
-So this page is the reader's own: what the roles are and which file each is, what a
-task's life looks like from insertion through every door it can leave by, and what each
-door leaves behind — an entry, a forward pointer, a gap, or nothing at all.
-
-Its test is whether the reference pages have to explain themselves. If a verb page needs
-to say what a block is before it can say what the verb does, that sentence belongs here
-and the reference links to it. It is prose all the way down, because the model is the
-one thing nothing derives.
-
 ### §RK1408 Render what a file owns, restate nothing
 
 This project's own thesis is against what a documentation area usually becomes. The six
