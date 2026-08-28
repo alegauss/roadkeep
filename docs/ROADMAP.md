@@ -44,7 +44,6 @@
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-- 📋 **RK1413** (deps: —) **Most finding codes have no hand-written situation, so their page classifies the error and never names it** — The reader arriving from a failed job needs the sentence saying what they did, and a page carrying only the class is the answer they already had. → §RK1413
 - 📋 **RK1414** (deps: —) **The order of the reference pages is a number typed into each one, on pages whose every other fact is derived** — Dispatch order is what the parser declares, so a hand-written sidebar number is the one thing about a generated page that can disagree with it. → §RK1414
 
 ## Done when — Block D

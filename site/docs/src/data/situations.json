@@ -6,9 +6,10 @@
     "the sentence naming what they did, which is a fact about how people work and not about the",
     "schema, so it is written once per code and never generated.",
     "",
-    "Not every code has one yet, and the generator prints how many do not rather than leaving",
-    "the shortfall to be discovered. A key here that names no live code fails the build: a",
-    "renamed code must not keep a sentence describing a check that is gone.",
+    "Every code this build declares carries one, and a test holds that (RK1413) — so a code",
+    "added to the gate is one sentence short of documented, and the build still prints the",
+    "count. A key here that names no live code fails the build: a renamed code must not keep",
+    "a sentence describing a check that is gone.",
     "",
     "Written in the second person and in one or two sentences. A situation that restates the",
     "cause is worse than none, because the page then says the same thing twice and the reader",
@@ -65,5 +66,107 @@
 
   "gate.behind": "The copy of roadkeep judging this tree is older than the one `[install] pinned` names — typically a plugin cache that has not caught up with the checkout.",
 
-  "engine.disagreement": "More than one copy of roadkeep is reachable — a checkout, a plugin cache, an installed package — and they are not the same version. Which one answered decides what a refusal means."
+  "engine.disagreement": "More than one copy of roadkeep is reachable — a checkout, a plugin cache, an installed package — and they are not the same version. Which one answered decides what a refusal means.",
+
+  "block.emptied": "You shipped or retired the last open line under a block, and a projection somewhere still names it as active work. Nothing broke: a count changed under a heading another file quotes.",
+  "block.format": "You picked a block label while writing — a word, a phrase, a character the heading style cannot carry — rather than reading what `block list` already spells. The lines under it move with the re-declaration.",
+  "block.reopened": "You filed a line under a block that had gone quiet, so a projection calling that block finished is now describing the wrong half of the plan.",
+  "block.unorganised": "You are shipping into a changelog written as plain prose, usually one that predates the tool. There is no heading anywhere for the entry to sit under, so the first `block add` is what gives the file its shape.",
+  "block.worked": "You worked through a block's worth of lines and committed the code without calling `ship` on any of them. One change touching a path several lines merely name looks identical from here.",
+
+  "budget.absent": "You moved or renamed a file that `roadkeep.toml` prices every turn — an `agents.md` split in two, a skill relocated — and left the entry pointing at where it used to be.",
+  "budget.session": "You added a tool, or a sentence to one tool's description, and the served surface crossed the ceiling as a whole. No single tool is over, so nothing local tells you which one to cut.",
+  "budget.tool": "You grew one tool's description, or added a flag whose `help=` string rides on it. That cost is written in a module other than the tool definition, which is why the ranking names where.",
+  "budget.translated": "You are reading this on a checkout whose line endings differ from the committed ones — Windows with `core.autocrlf`, usually — so the file costs more bytes here than it does in the repository.",
+
+  "criterion.duplicate": "You added a criterion whose bold lead was already used under that block, most often after a merge took both sides or because the question felt unanswered and got asked twice.",
+  "criterion.lead": "You folded the reason into the criterion's bold head instead of leaving it for the sentence after. The head is what addresses the bullet, so it stays short.",
+  "criterion.orphan": "You renumbered a task, or took out a block heading, and the `## Done when` list addressed to it stayed behind. Nothing it asks about can be finished now.",
+  "criterion.shape": "You hand-wrote a `## Done when` bullet, or a merge lost the `**` around its head. It renders like every other criterion and no verb can reach it.",
+  "criterion.why": "You argued the criterion instead of stating it. What must be true for a block to be finished is a claim; the case for it is what a design section is.",
+
+  "deps.block": "You wrote a dependency on a whole block rather than on a line, so what this task waits for changes every time somebody files or ships one under that label.",
+  "deps.collective": "You are picking a line whose single dep token expands to several open tasks, so the blocker chain is longer than the field made it look.",
+  "deps.format": "You typed a dependency the way it reads in prose — a title, a URL, a sentence about another team — where the field takes an id, a `Block X`, a range or a declared external token.",
+  "deps.marker": "You edited a dep annotation by hand, or a merge kept an older side of it, so the line advertises a blocker's status the files no longer agree with.",
+  "deps.range": "You wrote a range across ids that looked contiguous and is not. Retired ids are never reused here, so a backlog skips numbers as a matter of course.",
+  "deps.unexpected": "You copied a task line into a role whose grammar declares no dependency field — a decisions or a strategy file — and the annotation came across with it.",
+  "deps.unrenderable": "You put a parenthetical inside the dep field, usually a note about which half of the blocker you are waiting on. The closing bracket ends the annotation early.",
+
+  "export.unmarked": "You pointed `export` at a README that has never carried the generated block, so there is nothing between markers for it to replace.",
+  "grammar.unreadable": "You wrote or edited a `[grammar.<role>]` table and the round trip stopped holding. Every line in that file is equally evidence, so the report names one and the fault is the table's.",
+  "law.unknown": "You cited a law by number in prose — L4, L7 — and `[laws]` does not declare it. Usually a renumbering, or a law that was discussed and never written down.",
+
+  "id.paused-and-gone": "A deferred line was shipped or retired on one branch while another branch still held it in the store. Two files now claim the id and only one of them describes what happened.",
+  "id.paused-and-open": "A `defer` or a `resume` stopped between its two writes — an interrupted session, a crash, a merge that took both sides — so the line exists in both places at once.",
+
+  "non-goal.duplicate": "You added a constraint whose bold lead was already on the list, most often after a merge kept both sides or because nobody read the list before proposing.",
+  "non-goal.lead": "You folded the argument into the bold head instead of leaving it for the sentence after it. The head is the address, so the correction is a removal and a fresh bullet.",
+  "non-goal.shape": "You wrote a non-goal into the file by hand, or a merge ate the `**` around its head. The constraint reads correctly to a person and to no verb.",
+  "non-goal.why": "You argued the constraint instead of stating it. A non-goal's reason is one sentence, and the case for it is what a decision record exists to hold.",
+
+  "part.blank": "You passed `--part` with an empty string, usually a shell variable that did not expand. The entry now says half the work landed and does not say which half.",
+  "part.too-long": "You described the half that shipped in a clause rather than naming it. The qualifier rides in the entry's bold head, so it is two or three words and the sentence carries the rest.",
+  "part.unexpected": "You finished work that had shipped in halves and closed the line some other way, so the entry still carries the qualifier the completing `ship` would have dropped.",
+
+  "priority.block": "You put a block at the head of the queue and every line under it has since left, or none was ever filed. Which of the two it is decides whether the entry is stale or early.",
+  "priority.block-empty": "You queued a block whose lines have all shipped or been retired. That tier can never fire again, and the order still reads as though work were waiting there.",
+  "priority.block-paused": "You deferred the last of a block's lines while the block was still at the head of the queue, so the tier waits on a `resume` only you know is coming.",
+  "priority.block-unstarted": "You opened a block and put it in the order before filing its first line, which is what `block add` prescribes — so this is early rather than wrong, until the plan moves.",
+  "priority.deferred": "You deferred a line that was sitting in the queue. The store keeps the id, the deps and the design; where in the order the line sat is the one thing it cannot keep.",
+  "priority.duplicate": "You added a token that was already in the queue — usually a `--first` run twice, or a merge that took both sides of the section.",
+  "priority.retired": "You retired a queued line by editing the files rather than through the verb, so the departure that would have dequeued it never ran.",
+  "priority.shape": "You wrote a queue entry as prose — a phrase, a reason, a name for a theme — where the list takes bare tokens and nothing else.",
+  "priority.shipped": "A ship reached the ledger and its dequeue did not: a transaction interrupted, or a roadmap restored from another branch after the entry had already gone.",
+  "priority.unknown": "You typed an id into the queue by hand and either mistyped it or named a line nobody filed. From here a typo and a deletion look the same, which is why nothing repairs it.",
+  "priority.unmigrated": "You are on a project configured before the roadmap owned its own `## Priority` section, so the order still lives in a file no queue verb writes.",
+
+  "read.over": "You kept adding to a design until the brief joining it stopped fitting a tool result, so the session that starts this task opens the roadmap instead.",
+  "read.priced": "You asked what this backlog's reads cost. Only the briefs `pick` would offer next are gated, so a long backlog never reaches the ceiling and this is the whole ranking.",
+  "read.unpriced": "One line's brief could not be composed at all, so the widest read is unaccounted for and the ranking above it summarises a set with a hole in it.",
+
+  "ref.ambiguous": "Two prose files each numbered their own outline from the same address, which is what a project gets the moment it declares a second rationale file and no `[refs]` namespace.",
+  "ref.crossed": "You cited an outline address from a design and it resolved into the sibling file, because both declare that address and this one is not the file you were reading.",
+  "ref.dangling": "You leant an argument on a design that has since shipped. `ship` deletes the section it argued for, and from the next command on the citation reads exactly like a typo.",
+  "ref.format": "You passed a pointer in the other scheme's spelling — a Roman numeral on a project addressed by id, or an id on one addressed by outline.",
+  "ref.mismatch": "You edited a task line's pointer by hand, or moved a section without moving the line, on a project where the anchor is the id and nothing about it is chosen.",
+  "ref.missing": "You called `add` on a project addressed by outline without saying where the design goes. Nothing derives an address there, which is the whole difference from an id-addressed project.",
+  "ref.sigil": "You typed the `§` into the value along with the address, which is the natural thing to do because that is exactly how the pointer reads on the line.",
+
+  "remaining.format": "You wrote a `roadkeep-remaining` block as prose, or with a single colon between the two halves, so the migration this design tracks counts nothing and reads as finished.",
+  "remaining.unmatched": "You wrote `src/` where the query wants `src/**/*`. A directory matches no file at all, so the count is zero and looks exactly like work that is done.",
+
+  "requires.duplicate": "You passed `--requires` twice with the same word, or amended a line to add a requirement it was already carrying.",
+  "requires.format": "You wrote a requirement as a phrase — `two consoles`, `a controller on the desk` — where the field takes one declared word.",
+  "requires.unknown": "You invented the word at the moment you needed it. The vocabulary is declared once per project, so an undeclared word matches no caller and the line is offered to nobody.",
+  "requires.unrenderable": "You separated several requirements with a comma, or annotated one in brackets. The flag is repeatable and each token is one bare word, which is what keeps the line parsing.",
+
+  "section.ambiguous": "Your project declares two prose files and neither carries a `[refs]` namespace, so both outlines number from `I` into one flat set of addresses.",
+  "section.duplicate": "A merge took both sides of a design, or a section was copied while a second was being written for work that turned out to deserve its own line.",
+  "section.too-long": "You added to a design as the work went. Nobody writes three hundred words in one sitting; a rationale section reaches its limit a paragraph at a time.",
+  "section.unpaired": "You corrected a design after the work changed shape and left the line saying what you first thought. `pick` reads only the line, so the correction reaches nobody.",
+  "section.unreachable": "You moved a design into another file, or filed one under a role the line's pointer does not address, so the task is live and its argument is out of reach.",
+
+  "status.shipped": "You marked a line done by changing its marker, which is what every other backlog trains you to do. Nothing else moved: no entry was written and the design is still there.",
+  "status.unknown": "You used a marker from another project, or one remembered from a README rather than read off `[markers]` in this tree's own configuration.",
+  "status.unrepresentable": "An editor or a chat client added a variation selector to the emoji when the line was pasted. It renders identically and matches nothing this project declares.",
+
+  "symptom.control": "You passed the claim on a command line and the shell expanded a backtick or an escape inside it, so the field arrived subtly unlike what you typed.",
+  "symptom.empty": "You passed an empty string, usually a shell variable that did not expand, so the line gives a reason for a problem it never names.",
+  "symptom.markup": "You wrapped the claim in `**` because that is how it reads on the line. The renderer adds them, so what lands is bold inside bold.",
+  "symptom.newline": "You pasted a claim that an editor had wrapped, or a heredoc kept its line breaks. A task is one line and there is nowhere for the rest to go.",
+  "symptom.sentence": "You wrote the claim as a full sentence with a stop, which reads naturally and turns the line's bold head into prose the `why` then says again.",
+  "symptom.too-long": "You described the problem instead of naming it. The detail belongs in the design the pointer addresses, which is what shortening this always turns out to mean.",
+  "symptom.whitespace": "You pasted the field with a space on one end — out of a document, a chat message, or a variable that kept its newline.",
+
+  "task.worked": "You committed the code and did not call `ship`, or the commit touched a path this line only names in passing. Nothing here can tell the two apart.",
+  "title.empty": "You opened a family heading to hold a block's designs and left it without words, or a merge took the title line and kept the prose under it.",
+
+  "why.control": "You passed the reason on a command line and the shell ate a backtick or an escape inside it, so what landed is not quite what you wrote.",
+  "why.empty": "You passed the reason as a shell variable that did not expand, or piped in an empty file, so the line names a problem and gives nothing to weigh it against.",
+  "why.newline": "You composed the reason in an editor and it kept its wrapping, or a heredoc carried the break through. A task line has nowhere to put a second line.",
+  "why.no-terminator": "You left the full stop off, which is what happens when the field was trimmed to fit and the last word went with the punctuation.",
+  "why.sentences": "You wrote the reason and then its consequence. That second sentence is the signal the content belongs in the design the line points at.",
+  "why.too-long": "You reached for a second clause to make the reason complete. What is left over is the design's, and the pointer is what addresses it.",
+  "why.whitespace": "You piped the field in and something kept a trailing space, or the value came out of a variable that had one on the end."
 }

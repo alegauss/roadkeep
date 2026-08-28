@@ -124,12 +124,12 @@ called unbuilt were already in the ledger.
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
-| I — The documentation area (what an adopter reads before there is a session to ask) | 2 | 15 | 0 |
-| **Total** | 4 | 899 | 12 |
+| I — The documentation area (what an adopter reads before there is a session to ask) | 1 | 16 | 0 |
+| **Total** | 3 | 900 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1413** (deps: —) **Most finding codes have no hand-written situation, so their page classifies the error and never names it** — The reader arriving from a failed job needs the sentence saying what they did, and a page carrying only the class is the answer they already had. → §RK1413
+- 📋 **RK1414** (deps: —) **The order of the reference pages is a number typed into each one, on pages whose every other fact is derived** — Dispatch order is what the parser declares, so a hand-written sidebar number is the one thing about a generated page that can disagree with it. → §RK1414
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

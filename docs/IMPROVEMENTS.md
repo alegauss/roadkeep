@@ -128,27 +128,6 @@ them and named it.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-### §RK1413 The situations, and the reader who is still not answered
-
-RK1403 shipped a page per finding code and the half that is generated: the class, what
-raises it, the doors that close it. The half no read derives is the **situation** — the
-ordinary act that put somebody there — and thirty-five of a hundred and nineteen codes
-carry one.
-
-The build prints the shortfall on every run rather than hiding it, which is why this is
-a task and not a discovery. What it costs is narrow and real: a reader who lands on an
-undescribed code gets `explain` rendered as a web page, which is what they could already
-have run.
-
-The ones written first were chosen by where a reader actually arrives — the mechanical
-fixes, the merge damage, the two id collisions. What is left is a long tail, and the
-tail is where a situation is worth *most*, because those are the codes nobody meets
-often enough to have learnt.
-
-The failure to avoid is padding. A sentence that restates the cause makes a page say one
-thing twice, which is worse than an absence — the suite already refuses that shape, and
-it is the reason this cannot be closed by writing eighty-four sentences quickly.
-
 ### §RK1414 The one hand-written number on a generated page
 
 Each verb family's page carries `sidebar.order` in its frontmatter, and the six numbers

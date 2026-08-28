@@ -18,9 +18,10 @@ between them is what this file holds:
   exactly like a page about a live code.
 * **No situation that only restates the cause.** The page would then say one thing twice under
   two headings, and a reader concludes the second is an answer to something the first missed.
-* **The shortfall is reported and not hidden.** Most codes have no situation yet. That is a
-  number the generator prints on every build rather than a silence, because a coverage figure
-  nobody sees is one nobody closes.
+* **Every code carries one** (RK1413). The shortfall used to be a printed number and a long
+  tail, which is the half where a situation is worth most: those are the codes nobody meets
+  often enough to have learnt. The number is still printed on every build, because what it
+  reports is now the direction the drift comes back from — a code added without its sentence.
 """
 
 from __future__ import annotations
@@ -30,8 +31,6 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-
-import pytest
 
 HERE = Path(__file__).resolve().parent.parent
 SITE = HERE / "site" / "docs"
@@ -162,13 +161,19 @@ def test_the_sidebar_carries_the_findings_collapsed():
     assert "collapsed: true" in config
 
 
-@pytest.mark.parametrize(
-    "code", ["char.bom", "deps.unknown", "line.too-long", "id.duplicate"]
-)
-def test_the_codes_a_reader_meets_first_are_the_ones_described(code):
-    """Not a coverage bar — the shortfall is real and reported. What is held is that the
-    handful anybody actually hits are not the ones left undescribed."""
-    assert code in _situations()
+def test_every_code_this_build_declares_carries_a_situation():
+    """The other direction of the join, and the one that was a shortfall until RK1413 closed
+    it. A code with no situation renders `explain` as a web page, which is what the reader
+    could already have run — so the page costs a request and answers nothing new.
+
+    A bar rather than a printed number, now that the tail is written: the way this comes back
+    is a commit that adds a code to the gate and stops there, and a build that says `83 do not`
+    instead of `84` is a regression nobody reads as one.
+    """
+    undescribed = sorted(set(_codes()) - set(_situations()))
+    assert not undescribed, {
+        "declared by the gate, with no situation in situations.json": undescribed
+    }
 
 
 def test_the_url_carries_the_code_a_reader_pasted():
