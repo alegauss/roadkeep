@@ -40,7 +40,6 @@
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-- 📋 **RK1406** (deps: RK1398 ✅) **Adoption on a repository that already has a backlog is a list of commands with no run and no refusals shown** — What decides an adoption is what the first commands print on files that were already there, and a walkthrough written from memory is prose nothing keeps true. → §RK1406
 - 📋 **RK1407** (deps: RK1398 ✅) **The model the verbs act on is written for an agent mid-session and for whoever edits the code, never for a reader** — A line, a pointer, a block, a criterion and a decision are one system, and learning it one refusal at a time is how a tool gets used as six loose commands. → §RK1407
 - 📋 **RK1408** (deps: RK1398 ✅) **Prose four files own gets told again by any page that frames it, and the copy nobody reads is the one that drifts** — The laws, the measured problem and the non-goals each have an owner and three have a verb, so a page holding its own version is stale from the next write. → §RK1408
 - 📋 **RK1409** (deps: RK1398 ✅) **Nothing bounds a page, in the one project that measured what a file with room on every page grows into** — An index reached 186 KB and a rationale file 539 KB one paragraph at a time, and an area whose pages refuse nothing is that same invitation with better typography. → §RK1409

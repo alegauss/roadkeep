@@ -625,6 +625,7 @@
 - ✅ **RK1390** **a third shape the re-pin retired has a test and no frozen fixture, so it is read off no backlog at all** — The doubled anchor an open line points at is read off Turing's own bytes at the revision that carried it (design recorded in `tests/corpora.py`).
 - ✅ **RK1391** **a frozen fixture nobody declared is read by nothing and reported by nothing, though the table says otherwise** — The frozen root's directories are confronted with the rows that declare them, so an undeclared fixture is a red (design recorded in `tests/test_backlog.py`).
 - ✅ **RK1394** **nothing deletes a capture whose task shipped, so the reports directory grows for ever and is cleared by hand** — `capture sweep` deletes a capture whose filed id the ledger records as shipped, and names the three states it cannot prove spent rather than guessing at them.
+- ✅ **RK1411** **lint died with a RuntimeError traceback on a machine whose environment names no home directory** — Path.home() raises rather than answering, and three readers on the path lint takes through engines called it unguarded; no home now means no plugin is installed, which is an answer.
 
 ## Block E — Adoption
 
@@ -937,3 +938,4 @@
 - ✅ **RK1403** **A finding code pasted into a search engine resolves to nothing, and explain answers only from an installed copy** — One page per finding code, generated from the table explain reads, under a hand-written sentence naming the ordinary act that put the reader there — the half no read derives.
 - ✅ **RK1404** **Writing a first configuration file needs the read that describes it, which needs a configured tree to answer** — The whole of roadkeep.toml rendered from the read that owns it, with this repository's own file as the worked example, under what a person writes: what a number is for, and adopting one.
 - ✅ **RK1405** **Nothing describes what a session receives once the plugin is installed, only how to install it** — The five surfaces a session receives, with what connecting costs and which tools are withheld generated from cost and the served schema, under the prose no read answers.
+- ✅ **RK1406** **Adoption on a repository that already has a backlog is a list of commands with no run and no refusals shown** — A throwaway repository with a drifted roadmap, the adoption run against it, and every command with the output it actually produced — captured by a script the suite executes.

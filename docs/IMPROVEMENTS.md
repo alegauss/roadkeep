@@ -91,29 +91,6 @@ already written, not authorship.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
-### §RK1406 The adoption walkthrough, with output a test captured
-
-Adoption is the path with the most friction and the least prose. A project that already
-has a backlog scaffolds or adopts, declares the roles it wants, installs the surfaces,
-registers the merge driver, and only then finds out what its existing files break. The
-README gives the commands; it gives no run.
-
-So the page is a walkthrough with real output: a repository with a drifted roadmap in
-it, each command, what it printed, what it refused and what the tree held afterwards.
-The refusals matter most — being refused by `adopt` on a file that has always been there
-is the moment an adopter decides the tool is not worth the trouble, and the baseline
-that forgives standing debt by name is the answer they never read.
-
-Output pasted into prose is fiction with a shelf life. The corpora this suite already
-runs against are the way out: the walkthrough is a script the tests execute, its output
-captured and rendered into the page, so wording that changed fails a build instead of
-misleading a reader.
-
-It has to end with the first ordinary session — a task added, its design filed, a ship,
-and the one commit carrying all three — because the friction adopters report is rarely
-the install. It is the first write they made by hand out of habit, and the denial they
-then had to interpret.
-
 ### §RK1407 The model page, which is the one thing nothing derives
 
 The verbs are learnable one at a time; the model behind them is not. A line is a claim

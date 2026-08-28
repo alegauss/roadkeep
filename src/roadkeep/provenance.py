@@ -654,6 +654,26 @@ class Installed:
         return UNTRACKED if self.commit is None else self.commit[:7]
 
 
+def home() -> Path | None:
+    """This machine's home directory, or `None` where the environment names none (RK1406).
+
+    `Path.home()` **raises** rather than answering — a container run with `env -i`, a CI step
+    that scrubbed its environment, a hook invoked by a service manager. Three readers called it
+    unguarded and all three are on the path `lint` takes through `engines`, so the gate died
+    with a `RuntimeError` traceback on a tree it had not finished reading. Met for real while
+    capturing an adoption walkthrough in a narrowed environment.
+
+    No home is **not an error**: it means no plugin is installed for this user, and that is an
+    answer. Declared here rather than in :mod:`roadkeep.installing`, which is where two of the
+    three callers are, because that module already imports this one — the other direction would
+    be a cycle for a four-line reader.
+    """
+    try:
+        return Path.home()
+    except RuntimeError:
+        return None
+
+
 def installed(root: Path) -> Installed | None:
     """The plugin the harness has installed **for this project**, or None (RK415).
 
@@ -686,9 +706,12 @@ def installed(root: Path) -> Installed | None:
 
     import os  # noqa: PLC0415
 
-    home = os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude"
+    stated = os.environ.get("CLAUDE_CONFIG_DIR")
+    if not stated and (mine := home()) is None:
+        return None
+    where = Path(stated) if stated else mine / ".claude"  # type: ignore[operator]
     try:
-        payload = json.loads(Path(home).joinpath(*_REGISTRY).read_text(encoding="utf-8"))
+        payload = json.loads(where.joinpath(*_REGISTRY).read_text(encoding="utf-8"))
         wanted = root.resolve()
     except (OSError, ValueError):
         return None

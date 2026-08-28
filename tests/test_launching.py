@@ -55,10 +55,55 @@ def test_the_config_directory_is_the_pair_the_package_resolves(monkeypatch):
     assert bridge._config_home() == Path("/somewhere/else")
     monkeypatch.delenv("CLAUDE_CONFIG_DIR")
     assert bridge._config_home() == Path.home() / ".claude"
-    # And the package still reads the same pair: the source of both is one line each, and this
-    # asserts the *behaviour* rather than the text, so a refactor that keeps the rule passes.
-    source = Path(provenance.__file__).read_text(encoding="utf-8")
-    assert 'os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude"' in source
+    del provenance
+
+
+def test_the_package_resolves_the_same_pair_the_bridge_does(monkeypatch, tmp_path):
+    """The other half of the closure, asserted by **running** the package's reader.
+
+    It matched the literal expression `os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() /
+    ".claude"` until RK1406 split that line to guard the `RuntimeError` `Path.home()` raises on
+    a machine with no home — so a refactor that kept the rule exactly failed a test whose own
+    comment said it held the behaviour. It holds the behaviour now.
+    """
+    import json
+
+    from roadkeep import provenance
+
+    def registry(under: Path) -> None:
+        path = under.joinpath(*provenance._REGISTRY)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            json.dumps(
+                {
+                    "plugins": {
+                        f"{provenance.PLUGIN}@market": [
+                            {
+                                "projectPath": str(tmp_path / "tree"),
+                                "version": "9.9.9",
+                            }
+                        ]
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+
+    (tmp_path / "tree").mkdir()
+
+    # Named outright, which is the first half of the pair.
+    stated = tmp_path / "stated"
+    registry(stated)
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(stated))
+    assert provenance.installed(tmp_path / "tree") is not None
+
+    # And `~/.claude`, which is the second — reached through the one reader that may answer
+    # `None` rather than raising.
+    monkeypatch.delenv("CLAUDE_CONFIG_DIR")
+    fake = tmp_path / "home"
+    registry(fake / ".claude")
+    monkeypatch.setattr(provenance, "home", lambda: fake)
+    assert provenance.installed(tmp_path / "tree") is not None
 
 
 def test_the_registry_path_is_the_one_the_package_reads():

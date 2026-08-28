@@ -64,6 +64,14 @@ are hand-written in `src/data/situations.json`, which is committed while the pag
 codes have none yet and the generator prints how many on every build — a coverage figure nobody
 sees is one nobody closes. A key naming a code this build does not have fails the build.
 
+`scripts/walkthrough.mjs` runs `../scripts/walkthrough.py`, which builds a **throwaway
+repository** with a genuinely drifted roadmap in it, executes the adoption against it and
+captures what every command actually printed. Output pasted into prose is fiction with a shelf
+life; this fails the build instead. `tests/test_walkthrough.py` runs the same script, so a
+refusal reworded in the commit that changes the code is caught by the suite rather than by a
+reader following along. The run redacts its temporary directory, and both the generator and the
+suite refuse a run that leaked an absolute path or refused nothing.
+
 **No page restates prose another file owns.** The six laws, the measured problem and the
 non-goals each have an owner in the repository and three have a verb that prints them; a fifth
 copy here is the accretion this tool exists to refuse, and the copy nobody is looking at is the

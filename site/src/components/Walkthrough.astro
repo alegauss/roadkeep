@@ -1,0 +1,103 @@
+---
+// The adoption, step by step, with the output the run actually produced (RK1406).
+//
+// Nothing on this page was typed by hand except the sentence above each step saying why it is
+// there. Every command, every refusal and every exit code came out of a real run against a
+// real throwaway repository — so a message whose wording changed fails the build rather than
+// misleading somebody who is following along.
+import steps from "../data/walkthrough.generated.json";
+
+/** What the exit code means, in this tool's own contract. */
+const EXITS = {
+  0: { label: "exit 0", what: "it worked" },
+  1: { label: "exit 1", what: "the gate says no — something in the files drifted" },
+  2: { label: "exit 2", what: "refused — what has to change is the input, not the files" },
+};
+---
+
+<ol class="walk">
+  {
+    steps.map((step, index) => (
+      <li>
+        <p class="what">{step.what}</p>
+
+        {step.command ? (
+          <>
+            <pre class="cmd"><code>$ {step.command}</code></pre>
+            {(step.stdout || step.stderr) && (
+              <pre class="out"><code>{step.stdout || step.stderr}</code></pre>
+            )}
+            <p class={`exit exit-${step.exit_code}`}>
+              <strong>{EXITS[step.exit_code]?.label ?? `exit ${step.exit_code}`}</strong>
+              {" — "}
+              {EXITS[step.exit_code]?.what ?? "an exit code this page has no sentence for"}
+            </p>
+          </>
+        ) : (
+          Object.entries(step.wrote).map(([name, body]) => (
+            <>
+              <p class="file">
+                <code>{name}</code>
+              </p>
+              <pre class="out"><code>{body}</code></pre>
+            </>
+          ))
+        )}
+
+        {step.command &&
+          Object.entries(step.wrote).map(([name, body]) => (
+            <details>
+              <summary>
+                <code>{name}</code> afterwards
+              </summary>
+              <pre class="out"><code>{body}</code></pre>
+            </details>
+          ))}
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .walk {
+    padding-left: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+  .walk > li {
+    counter-increment: step;
+    border-left: 2px solid var(--sl-color-gray-5);
+    padding-left: 1rem;
+    margin-block: 2rem;
+  }
+  .walk > li::before {
+    content: counter(step);
+    display: inline-block;
+    color: var(--sl-color-accent-high);
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+  .what {
+    margin-block: 0.25rem 0.75rem;
+  }
+  pre.cmd {
+    background: var(--sl-color-gray-6);
+  }
+  pre.out code {
+    font-size: var(--sl-text-xs);
+    white-space: pre-wrap;
+  }
+  .exit {
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+    margin-block: 0.5rem 0;
+  }
+  .exit-2,
+  .exit-1 {
+    color: var(--sl-color-accent-high);
+  }
+  .file {
+    font-size: var(--sl-text-sm);
+    margin-block: 0.5rem 0.25rem;
+  }
+</style>

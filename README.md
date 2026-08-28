@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 217 | 2 |
 | C — Query (consult without reading the file) | 0 | 140 | 2 |
-| D — The gate | 0 | 198 | 2 |
+| D — The gate | 0 | 199 | 2 |
 | E — Adoption | 0 | 112 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 125 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 13 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
-| I — The documentation area (what an adopter reads before there is a session to ask) | 5 | 8 | 0 |
-| **Total** | 5 | 891 | 12 |
+| I — The documentation area (what an adopter reads before there is a session to ask) | 4 | 9 | 0 |
+| **Total** | 4 | 893 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1406** (deps: RK1398 ✅) **Adoption on a repository that already has a backlog is a list of commands with no run and no refusals shown** — What decides an adoption is what the first commands print on files that were already there, and a walkthrough written from memory is prose nothing keeps true. → §RK1406
+- 📋 **RK1407** (deps: RK1398 ✅) **The model the verbs act on is written for an agent mid-session and for whoever edits the code, never for a reader** — A line, a pointer, a block, a criterion and a decision are one system, and learning it one refusal at a time is how a tool gets used as six loose commands. → §RK1407
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

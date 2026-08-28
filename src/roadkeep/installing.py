@@ -79,7 +79,7 @@ from roadkeep.adopting import BlockedParent, blocking
 from roadkeep.config import CONFIG_NAME, Config
 from roadkeep.linting import lint
 from roadkeep.merging import ATTRIBUTES, Registration, register
-from roadkeep.provenance import Engine, Installed, engine, installed
+from roadkeep.provenance import Engine, Installed, engine, home, installed
 from roadkeep.provenance import invocation
 
 #: The server's name, which is also the prefix an agent reads on every tool it offers.
@@ -1681,8 +1681,11 @@ def _places(root: Path, named: str | None) -> list[tuple[Path, str, bool]]:
         # A sibling checkout is the case `ROADKEEP_SRC` exists for, so it is offered and
         # marked rather than silently dropped: the report says it was seen and why it lost.
         out.append((sibling, f"a sibling checkout at {sibling.as_posix()}", True))
-    cache = Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache")
-    out.append((cache / "roadkeep-src" / "roadkeep", "the launcher's cache clone", False))
+    stated = os.environ.get("XDG_CACHE_HOME")
+    found = home()
+    if stated or found is not None:
+        cache = Path(stated) if stated else found / ".cache"  # type: ignore[operator]
+        out.append((cache / "roadkeep-src" / "roadkeep", "the launcher's cache clone", False))
     return out
 
 
@@ -1695,7 +1698,8 @@ def _plugin_roots() -> tuple[Path, ...]:
     """
     stated = os.environ.get("CLAUDE_CONFIG_DIR")
     homes = [Path(stated)] if stated else []
-    homes.append(Path.home() / ".claude")
+    if (found := home()) is not None:
+        homes.append(found / ".claude")
     return tuple(dict.fromkeys(one / "plugins" for one in homes))
 
 

@@ -1,0 +1,55 @@
+---
+title: Adopting a backlog you already have
+description: A real run against a repository with a drifted roadmap in it — every command, what it printed, what it refused, and what the tree held afterwards.
+---
+
+import Walkthrough from "../../components/Walkthrough.astro";
+
+The interesting repository is not an empty one. It is the one with a `ROADMAP.md` somebody has
+been keeping by hand for two years, written under rules nobody wrote down — and that is the
+adoption with the most friction and the least prose written about it.
+
+**Every command and every line of output below came out of a real run.** A throwaway
+repository is built with a genuinely drifted roadmap in it, the adoption is executed in order,
+and the output is captured. Nothing here is pasted from memory, so a message whose wording
+changed fails the build rather than misleading you halfway through.
+
+The refusals are the point. Being refused on a file that has always been there is the moment
+somebody decides a tool is not worth the trouble, and what the refusal *says* is the whole
+difference. Two steps below are refusals, and one of them is the command everybody reaches for
+first.
+
+## The repository we start with
+
+Three lines, one of them carrying a paragraph where a sentence belongs, none of them with a
+dependency annotation, and ids under a prefix this tool has never seen. That is not a contrived
+fixture — it is what a hand-kept backlog looks like.
+
+<Walkthrough />
+
+## What that run showed
+
+**Measure before you change anything.** `adopt` reads a file this tool does not own yet and
+says how many of its lines a limit would refuse. The decision is then a number rather than a
+hope.
+
+**Two hand edits, and both are honest.** `init` scaffolds the configuration *and* the files it
+declares, so it refuses a project that already has them; `declare` adds a role rather than
+choosing a prefix. So `roadkeep.toml` is written by hand, and then extended once more when the
+gate reports that the grammar — not the lines — is what does not fit. Neither step is a
+command, and pretending otherwise would have been the fiction this page exists to avoid.
+
+**The gate reports the rule before it reports the lines.** A file where *no* bullet parses is
+not one somebody hand-edited; it is one written under a different format, and `[grammar]` is
+how a project says which fields its records actually carry.
+
+**`--baseline` is the answer to standing debt.** A repository adopting this tool has years of
+lines that were never written against these rules, and being refused by all of them at once is
+where an adoption stops. A baseline forgives what was already there *by name* and gates only
+what the working tree adds — which is what lets the gate go into CI on the first day rather
+than after a cleanup nobody has time for.
+
+**The first ordinary session is where the real friction is.** Not the install: the first write
+made by hand out of habit, and the denial that follows. Above, the line and its design are
+written in one call, the refusal that follows names the limit and how much to cut, and `ship`
+moves the line, drops the design and re-derives every annotation in a single write.

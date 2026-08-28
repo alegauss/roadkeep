@@ -600,3 +600,43 @@ def test_where_no_install_is_left_the_rows_still_answer(tmp_path, monkeypatch):
         ("0.1.300", "2026-08-06T10:00:00.000Z", False),
     )
     assert installed(project).version == "0.1.300"
+
+
+# -- a machine with no home directory, which is not an error (RK1406) ---------
+
+
+def test_a_machine_with_no_home_directory_answers_rather_than_raising(monkeypatch):
+    """`Path.home()` raises where the environment names no home, and three readers on the path
+    `lint` takes through `engines` called it unguarded — so the gate died with a `RuntimeError`
+    traceback on a tree it had not finished reading.
+
+    Met for real while capturing an adoption walkthrough in a scrubbed environment, which is
+    also every container run with `env -i` and every CI step that clears its own. No home is
+    not a failure: it means no plugin is installed for this user, which is an answer.
+    """
+    from roadkeep.installing import _plugin_roots
+    from roadkeep.provenance import home, installed
+
+    def raising():
+        raise RuntimeError("Could not determine home directory.")
+
+    monkeypatch.setattr(Path, "home", staticmethod(raising))
+    monkeypatch.delenv("CLAUDE_CONFIG_DIR", raising=False)
+    monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
+
+    assert home() is None
+    assert _plugin_roots() == ()
+    assert installed(Path.cwd()) is None
+
+
+def test_a_named_config_directory_is_still_read_with_no_home(monkeypatch, tmp_path):
+    """The guard must not swallow the case that *is* answerable: `CLAUDE_CONFIG_DIR` names the
+    directory outright, so a machine with no home but an explicit setting still resolves."""
+    from roadkeep.installing import _plugin_roots
+
+    def raising():
+        raise RuntimeError("Could not determine home directory.")
+
+    monkeypatch.setattr(Path, "home", staticmethod(raising))
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path))
+    assert _plugin_roots() == (tmp_path / "plugins",)

@@ -765,6 +765,10 @@ READS_THE_CORPUS = {
         "the same scan across both files, and the same reason: an id spelled inside a "
         "sentence is in no field a parser would return"
     ),
+    "test_walkthrough.test_the_script_writes_nothing_outside_its_temporary_directory": (
+        "this repository's governed files as text, to prove the sample's ids are *absent* — "
+        "the assertion is that a run did not write here, which no parser can answer"
+    ),
     "test_area.test_the_base_is_the_repository_and_the_one_segment_under_it": (
         "the pitch page as text, for the canonical URL it publishes — that page is where the "
         "site root is declared, and the area's base path is a prefix of it or it 404s"
