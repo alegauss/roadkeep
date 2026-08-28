@@ -1,0 +1,117 @@
+# The published site (site/ builds it, docs/ is what gets served), separate from the package.
+#
+# `docs/` is two things at once: the governed store `roadkeep.toml` points four roles at, and
+# the web root Pages serves — which is why `index.html`, `llms.txt`, `robots.txt` and `assets/`
+# sit beside the Markdown. The documentation area is generated into one reserved subtree of it,
+# `docs/guide/`, and nothing generated is committed (RK1398, RK1399, RK1400).
+#
+# **The gate and the deploy are two decisions.** The build runs on every push and pull request,
+# so a page that stopped compiling is found by the person who pushed it rather than by a reader;
+# the deploy waits to be asked, because a publish on every push is one nobody can hold still
+# while reviewing it, and the site is the one artefact where a defect is public immediately.
+#
+# The deploy serves the bytes the gate already built rather than building a second time: two
+# builds of one commit are two answers about it, and the published one would be the untested.
+#
+# ┌─────────────────────────────────────────────────────────────────────────────────────┐
+# │ ONE-TIME REPOSITORY SETTING, without which the deploy is inert:                      │
+# │   Settings → Pages → Build and deployment → Source: "GitHub Actions"                 │
+# │ Left on "Deploy from a branch" this workflow goes green and publishes nothing — and  │
+# │ the branch it would serve has no docs/guide/ in it, because nothing commits one.     │
+# │ The site is at alegauss.github.io/roadkeep/, which Pages derives from the repository │
+# │ name rather than from anything in this file.                                         │
+# └─────────────────────────────────────────────────────────────────────────────────────┘
+name: site
+
+on:
+  push:
+    paths:
+      - "site/**"
+      - "docs/**"
+      - ".github/workflows/site.yml"
+  pull_request:
+    paths:
+      - "site/**"
+      - "docs/**"
+      - ".github/workflows/site.yml"
+  workflow_dispatch:
+
+# Least privilege by default. The Pages grants live on the job that publishes, so a push is
+# never handed the token that can deploy.
+permissions:
+  contents: read
+
+# A publish must not overlap another publish, and two gate runs on two branches have nothing to
+# do with each other. Keying the group on the event is what keeps a push from cancelling a
+# deploy that is halfway through.
+concurrency:
+  group: ${{ github.event_name == 'workflow_dispatch' && 'pages' || format('site-gate-{0}', github.ref) }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build the area (the gate)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          # One npm project in this repository: the package itself has zero runtime
+          # dependencies and nothing else here installs.
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      # `ci` and not `install`, for `publish.yml`'s reason about what was tested: a resolution
+      # that drifts between this job and a developer's machine is a page nobody can reproduce.
+      - name: Build
+        working-directory: site
+        env:
+          # A build machine is not a person Astro can ask.
+          ASTRO_TELEMETRY_DISABLED: "1"
+        run: |
+          npm ci
+          npm run build
+
+      # The build succeeds over an empty content directory, so the artefact is asserted rather
+      # than assumed: a green job over nothing published is the failure this job would have.
+      - name: The build produced the entry page
+        run: test -s docs/guide/index.html
+
+      # Only what is about to be published is kept. On a push the build is the whole point and
+      # the output is not wanted anywhere. The **served directory** and not the generated
+      # subtree alone: the pitch page and the area are two halves of one site, and uploading
+      # either by itself publishes a deploy with the other missing.
+      - name: Keep the built site for the deploy
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-docs
+          path: docs
+          retention-days: 1
+
+  deploy:
+    name: deploy to Pages
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: site-docs
+          path: dist
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

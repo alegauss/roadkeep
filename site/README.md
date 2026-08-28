@@ -29,8 +29,14 @@ would delete the roadmap; `tests/test_area.py` holds it, and holds that no path 
 declares is inside what the build empties.
 
 Nothing built is committed. `npm run build` writes into an ignored directory, and
-`.github/workflows/pages.yml` is what runs it for real — so what is published is what the
+`.github/workflows/site.yml` is what runs it for real — so what is published is what the
 current source builds into, rather than whatever somebody last remembered to rebuild.
+
+That workflow is two decisions and not one. The **build** runs on every push and pull request,
+so a page that stopped compiling is found by whoever pushed it; the **deploy** fires on
+`workflow_dispatch` only, because a publish on every push is one nobody can hold still while
+reviewing it. The deploy serves the bytes the build already produced — two builds of one commit
+are two answers about it, and the published one would be the untested.
 
 ## What goes on a page, and what does not
 

@@ -57,35 +57,6 @@ jobs:
       # machine; those cases skip rather than fail, so CI tests what it has.
       - run: python -m pytest -q
 
-  # The documentation area, built here so that a page which stopped compiling is found by this
-  # job and not by a reader (RK1400). It is the one surface whose breakage nothing else can
-  # report: `lint` reads the governed prose and pytest reads the declarations, and neither runs
-  # a build — `tests/test_area.py` holds the joins between this area and the tree, which is a
-  # different question from whether the pages still compile.
-  #
-  # It gates a pull request the way the four jobs around it do. `pages.yml` publishes, and only
-  # from `main`; this is the half that says a merge is safe before there is anything to publish.
-  area:
-    name: build the documentation area
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: site/package-lock.json
-      # `ci` and not `install`, for `publish.yml`'s reason about what was tested: a resolution
-      # that drifts between this job and the one that publishes is a page nobody can reproduce.
-      - run: npm ci
-        working-directory: site
-      - run: npm run build
-        working-directory: site
-      # The build succeeds with an empty content directory, so the artefact is asserted rather
-      # than assumed: a green job over nothing published is the failure this job would have.
-      - name: the build produced the entry page
-        run: test -s docs/guide/index.html
-
   payload:
     name: claude plugin validate
     runs-on: ubuntu-latest

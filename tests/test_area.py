@@ -122,11 +122,14 @@ def test_nothing_the_build_produces_is_committed():
     assert ".astro" in downloaded
 
 
+WORKFLOW = HERE / ".github" / "workflows" / "site.yml"
+
+
 def test_the_workflow_builds_the_area_and_uploads_the_whole_served_directory():
     """The area and the pitch page are two halves of one deploy: uploading either alone
     publishes a site with the other missing, and the half that goes missing is the generated
     one, because it is the half no commit would have shown was absent."""
-    workflow = (HERE / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
+    workflow = WORKFLOW.read_text(encoding="utf-8")
     assert "working-directory: site" in workflow
     assert "npm ci" in workflow
     assert "npm run build" in workflow
@@ -135,6 +138,43 @@ def test_the_workflow_builds_the_area_and_uploads_the_whole_served_directory():
     # The setting that cannot be asserted from inside the repository, so it is at least
     # written down where somebody debugging an empty deploy will read it.
     assert "GitHub Actions" in workflow
+
+
+def test_the_gate_runs_on_every_push_and_the_deploy_only_when_asked():
+    """Two decisions, not one. A build that ran only before a publish would be a page found
+    broken by whoever published weeks later; a publish on every push is one nobody can hold
+    still while reviewing it, on the one artefact where a defect is immediately public."""
+    yaml = pytest.importorskip("yaml", reason="pyyaml is not installed")
+    workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+    # `on` is YAML 1.1's boolean true, which is what safe_load makes of the unquoted key.
+    triggers = workflow.get("on", workflow.get(True))
+    assert set(triggers) == {"push", "pull_request", "workflow_dispatch"}
+    jobs = workflow["jobs"]
+    assert "workflow_dispatch" in jobs["deploy"]["if"]
+    assert "if" not in jobs["build"], "the gate must not be conditional on the publish"
+
+
+def test_the_deploy_serves_the_bytes_the_gate_built():
+    """Two builds of one commit are two answers about it, and the published one would be the
+    untested. So the deploy downloads what the build kept rather than running npm again."""
+    yaml = pytest.importorskip("yaml", reason="pyyaml is not installed")
+    workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
+    deploy = workflow["jobs"]["deploy"]
+    assert deploy["needs"] == "build"
+    uses = [step.get("uses", "") for step in deploy["steps"]]
+    assert any(one.startswith("actions/download-artifact") for one in uses)
+    assert not [step for step in deploy["steps"] if "npm" in str(step.get("run", ""))]
+    # And the two halves name the same artefact, which is the join that would otherwise fail
+    # only at deploy time, on the one run nobody wants to debug.
+    kept = next(
+        step for step in workflow["jobs"]["build"]["steps"]
+        if step.get("uses", "").startswith("actions/upload-artifact")
+    )
+    downloaded = next(
+        step for step in deploy["steps"]
+        if step.get("uses", "").startswith("actions/download-artifact")
+    )
+    assert kept["with"]["name"] == downloaded["with"]["name"]
 
 
 def test_the_entry_page_carries_the_frontmatter_the_build_validates():
