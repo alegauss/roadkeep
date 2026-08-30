@@ -1679,3 +1679,48 @@ def test_a_door_names_the_id_its_finding_carries_rather_than_a_blank():
     assert [door.argv for door in found.doors] == [("show", "RK7"), ("origin", "RK7")]
     assert all(BLANK not in door.argv for door in found.doors)
     assert "side by side" not in found.spoken()
+
+
+# -- the read that would have predicted the refusal (RK1435) ------------------
+
+
+def test_every_foreseen_row_names_a_verb_and_flags_this_build_declares():
+    """A row naming a command that cannot answer is the advice RK16 refuses — worse than
+    saying nothing, because it costs a round trip to find out."""
+    from roadkeep.remedying import FORESEEN, foreseen
+
+    parser = build_parser()
+    subcommands = [
+        one for one in parser._actions if getattr(one, "choices", None)  # noqa: SLF001
+    ][0].choices
+    for code, argv in FORESEEN.items():
+        sub = subcommands.get(argv[0])
+        assert sub is not None, f"{code}: no verb named {argv[0]}"
+        assert sub.get_default("reads_only"), f"{code}: {argv[0]} writes, so it predicts nothing"
+        declared = {
+            spelling
+            for action in sub._actions  # noqa: SLF001
+            for spelling in action.option_strings
+        }
+        for word in argv[1:]:
+            if word.startswith("--"):
+                assert word in declared, f"{code}: {argv[0]} declares no {word}"
+        assert foreseen(code) is not None
+
+
+def test_a_code_with_no_preventive_read_is_offered_none():
+    """`part.too-long` and `criterion.why` have no draft measurement to name, and most
+    refusals — a duplicate id, a dep nothing satisfies — are not states any read predicts."""
+    from roadkeep.remedying import foreseen
+
+    for code in ("part.too-long", "criterion.why", "deps.self", "char.bom"):
+        assert foreseen(code) is None
+
+
+def test_the_placeholders_are_angled_because_the_caller_completes_them():
+    """A blank marks a field the tool may not write in a command otherwise composed for the
+    caller; these are templates completed from what is already in front of them."""
+    from roadkeep.remedying import BLANK, FORESEEN
+
+    for code, argv in FORESEEN.items():
+        assert BLANK not in argv, code

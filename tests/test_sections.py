@@ -4243,3 +4243,21 @@ def test_the_frozen_pair_is_what_the_gate_calls_ambiguous():
     config = corpora.thawed(corpora.DOUBLED_ANCHOR)
     found = {one.code for one in lint(config).findings}
     assert "section.ambiguous" in found, sorted(found)
+
+
+def test_the_body_refusal_names_the_read_that_measures_the_same_draft(tmp_path, capsys):
+    """RK1435, measured here. `section add` refused a body twenty times in one session with an
+    excellent diagnosis — the count, the limit, the overage, the per-paragraph breakdown — and
+    never said that `budget --body-file` measures the same draft and refuses without writing.
+    The session found `budget` on its last day, from `--help`, twenty round trips later."""
+    config = project(tmp_path)
+    argv = [
+        "-C", str(config.root), "section", "add", "RK1",
+        "--title", "A design", "--body", "word " * 600,
+    ]
+    assert main(argv) == EXIT_USAGE
+    (row,) = [
+        line for line in capsys.readouterr().err.splitlines()
+        if line.strip().startswith("foresee")
+    ]
+    assert "budget --anchor <id> --body-file <path>" in row

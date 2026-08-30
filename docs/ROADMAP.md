@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1435** (deps: —) **a refusal diagnoses the write it rejected and never names the read-only verb that would have predicted it** — budget measures a draft and refuses without writing; twenty body.too-long refusals in one session named it not once. → §RK1435
 - 📋 **RK1436** (deps: —) **amend lists the fields it can change and never names the verb that owns the one it cannot** — A session read its usage, concluded a symptom was immutable and wrote a paragraph justifying that; restate corrects one. → §RK1436
 
 ## Block C — Query (consult without reading the file)

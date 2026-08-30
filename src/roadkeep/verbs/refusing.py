@@ -97,6 +97,33 @@ def _retrying(error: Exception) -> str | None:
     ).quoted
 
 
+def _foreseeing(error: SchemaError) -> list[str]:
+    """The read that would have refused this without writing, at most once (RK1435).
+
+    A refusal teaches the verb whose **absence** caused a visible failure, and teaches nothing
+    about the verb whose whole purpose is that the failure never happens — so a session learns
+    `section add` in one round trip and finds `budget` on its last day, from `--help`, twenty
+    refusals later. This is the one surface where that is fixable: the caller is reading it
+    because their write just failed, which is the moment the preventive read is worth having.
+
+    **One row, whatever the batch.** A `SchemaError` carries every violation on purpose, and a
+    refusal that grew a teaching line per field would bury the diagnosis it is attached to
+    under advice about the same command said four ways. The first violation that has a read
+    decides which one, so the row is about the field the reader is already looking at.
+
+    Silent where nothing predicts it, which is most refusals: a duplicate id, a dep nothing
+    satisfies and a marker the project does not declare are all states no draft measurement
+    would have caught, and a row offering one is the advice RK16 refuses.
+    """
+    from roadkeep.remedying import foreseen  # noqa: PLC0415 - RK260
+
+    for violation in error.violations:
+        door = foreseen(violation.code)
+        if door is not None:
+            return [f"foresee  {provenance.invocation()} {' '.join(door.argv)}  ({door.what})"]
+    return []
+
+
 def _refused(error: Exception) -> int:
     """One error path for every command that writes. The exit code is the contract.
 
@@ -123,6 +150,8 @@ def _refused(error: Exception) -> int:
             print(f"  {error.about}", file=sys.stderr)
         for violation in error.violations:
             print(f"  {violation}", file=sys.stderr)
+        for row in _foreseeing(error):
+            print(f"  {row}", file=sys.stderr)
         retry = _retrying(error)
         if retry is not None:
             print(f"  retry    {retry}", file=sys.stderr)

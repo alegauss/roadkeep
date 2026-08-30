@@ -1574,6 +1574,53 @@ _TABLE: Mapping[str, _Rule] = {
     ),
 }
 
+#: The read that would have refused a write **before it was composed**, by the code the write
+#: was refused with (RK1435). :data:`_TABLE` answers *what closes this*; this answers *what
+#: would have predicted it*, and they are different commands because a gate and a budget are
+#: different verbs.
+#:
+#: Measured. A session used this tool for a whole day and learned its verbs almost entirely
+#: from refusals — a biased sample, because a refusal teaches the verb whose **absence** caused
+#: a visible failure and teaches nothing about a verb whose whole purpose is that the failure
+#: never happens. `section add` refused a body twenty times with an excellent diagnosis (the
+#: count, the limit, the overage, the per-paragraph breakdown) and never named `budget`, which
+#: measures the same draft and writes nothing. The session found it on its last day, from
+#: `--help`, having already paid twenty round trips for it.
+#:
+#: **Where a refusal has a preventive verb, the refusal is where that verb is discoverable**,
+#: and nowhere else is as reliable. So the rows are only the codes a read can actually predict:
+#: `part.too-long` and `criterion.why` have none, and a row naming a command that cannot answer
+#: is the advice RK16 refuses — worse than saying nothing, because it costs a round trip to
+#: find out.
+#: Every placeholder here is `<angled>` and never :data:`BLANK`, which is the one way these
+#: rows differ from a remedy's. A blank marks a field **the tool may not write** (L4) in a
+#: command otherwise composed for the caller; these are templates the caller completes from
+#: what is already in front of them — their own draft, their own anchor — and a `…` where an
+#: id goes would read as a substitution this table failed to make.
+FORESEEN: Mapping[str, tuple[str, ...]] = {
+    "symptom.too-long": ("budget", "--symptom", "<draft>"),
+    "why.too-long": ("budget", "--why", "<draft>"),
+    # Both fields, because this code fires when neither is over on its own: what does not fit
+    # is the structure around them, and the read that shows it prices the pair.
+    "line.too-long": ("budget", "--symptom", "<draft>", "--why", "<draft>"),
+    "body.too-long": ("budget", "--anchor", "<id>", "--body-file", "<path>"),
+    "section.too-long": ("budget", "--anchor", "<id>", "--body-file", "<path>"),
+    "non-goal.lead": ("budget", "--non-goal"),
+    "non-goal.why": ("budget", "--non-goal", "--lead", "<lead>"),
+}
+
+
+def foreseen(code: str) -> Door | None:
+    """The preventive read for one code, or ``None`` where nothing predicts it (RK1435)."""
+    argv = FORESEEN.get(code)
+    if argv is None:
+        return None
+    return Door(
+        argv=argv,
+        what="measures the same draft against the same limit and writes nothing",
+    )
+
+
 #: What each varying row reads, spelled for a reader rather than as a field name: one is a
 #: key in `roadkeep.toml` and the other is not a setting at all (RK423).
 _VARIES_READS = {

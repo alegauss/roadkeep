@@ -2717,3 +2717,49 @@ def test_the_refusal_names_the_flag_only_where_a_vocabulary_declares_one(tmp_pat
     assert main(["-C", str(bare), "amend", "RK1"]) == EXIT_USAGE
     said = capsys.readouterr().err
     assert "--why, --dep or --ref" in said and "--requires" not in said
+
+
+# -- the read the refusal makes discoverable (RK1435) -------------------------
+
+
+def _foresight(err: str) -> str:
+    (row,) = [line for line in err.splitlines() if line.strip().startswith("foresee")]
+    return row
+
+
+def test_a_length_refusal_names_the_read_that_would_have_predicted_it(tmp_path, capsys):
+    """A session used this tool for a day and learned its verbs almost entirely from
+    refusals — a biased sample, because a refusal teaches the verb whose *absence* caused a
+    visible failure and nothing about the verb whose whole purpose is that it never happens.
+    `budget` was found on the last day, from `--help`, twenty round trips later."""
+    config = project(tmp_path)
+    argv = ["-C", str(config.root), "add", "--block", "A", "--symptom", "x" * 400, "--why", "Because."]
+    assert main(argv) == EXIT_USAGE
+    row = _foresight(capsys.readouterr().err)
+    assert f"{invocation()} budget --symptom" in row
+    assert "writes nothing" in row
+
+
+def test_one_row_however_many_fields_were_refused(tmp_path, capsys):
+    """A `SchemaError` carries every violation on purpose, and a teaching line per field would
+    bury the diagnosis under advice about the same command said twice."""
+    config = project(tmp_path)
+    argv = [
+        "-C", str(config.root), "add", "--block", "A",
+        "--symptom", "x" * 400, "--why", "y" * 400 + ".",
+    ]
+    assert main(argv) == EXIT_USAGE
+    rows = [
+        line for line in capsys.readouterr().err.splitlines()
+        if line.strip().startswith("foresee")
+    ]
+    assert len(rows) == 1
+
+
+def test_a_refusal_no_read_predicts_says_nothing(tmp_path, capsys):
+    """Most refusals: a duplicate id is not a state any draft measurement would have caught,
+    and a row offering one is advice that costs a round trip to find useless."""
+    config = project(tmp_path)
+    argv = ["-C", str(config.root), "add", "--block", "A", "--symptom", " a leading space", "--why", "Because."]
+    assert main(argv) == EXIT_USAGE
+    assert "foresee" not in capsys.readouterr().err

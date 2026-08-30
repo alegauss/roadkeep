@@ -77,32 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1435 The refusal is where a preventive verb is discoverable
-
-A session used this tool for a whole day and learned its verbs almost entirely from
-refusals. That is a biased sample: a refusal teaches the verb whose ABSENCE caused a
-visible failure, and teaches nothing about a verb whose whole purpose is that the
-failure never happens.
-
-TWENTY REFUSALS TAUGHT NOTHING. `section add` rejected a body twenty times with an
-excellent diagnosis - the word count, the limit, the overage, the per-paragraph
-breakdown, and the judgement that a section this long is two sections. It never said
-that `budget --body-file` measures the same draft and refuses without writing. The
-session found `budget` on its last day, from `--help`, after paying twenty round trips
-for it.
-
-THE PATTERN ALREADY EXISTS AND WORKS. A successful `add` prints "or pass `--section
-"<its title>"` to `add` next time: both halves in one transaction, under the same
-limits". That sentence taught the same session something it then used. The teaching line
-is already the house style; it is applied on one path and not the other.
-
-WHAT WOULD ANSWER IT is a line on the refusals whose cause a read-only verb can predict:
-body.too-long, why.too-long, symptom.too-long and their neighbours naming `budget`. One
-sentence, on the path a caller is already reading because their write just failed.
-
-The general form is worth stating once: where a refusal has a preventive verb, the
-refusal is where that verb is discoverable, and nowhere else is as reliable.
-
 ### §RK1436 The absence of a flag read as a design statement
 
 A line's symptom turned out to be false - it claimed a file was the last caller of

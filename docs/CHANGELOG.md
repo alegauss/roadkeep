@@ -277,6 +277,7 @@
 - ✅ **RK1363** **an outline project cannot give a decision a body, the id being no address in a file that numbers its own headings** — A ship names where its decision keeps a body, so an outline project files one the same way an id project does.
 - ✅ **RK1373** **the neighbours read guards on a path existing where its siblings guard on a file, so a role naming a folder fails an add** — A role whose path names a directory is read as the absent file it is, so a report cannot fail a write already on disk (design recorded in `src/roadkeep/authoring.py`).
 - ✅ **RK1379** **five of the eight blocks closed with nothing stating what finished them, which is the emptiness RK1358 says out loud** — All eight blocks state what finishes them, two criteria each, read off what that block's ledger actually delivered (design recorded in `docs/ROADMAP.md`).
+- ✅ **RK1435** **a refusal diagnoses the write it rejected and never names the read-only verb that would have predicted it** — a length refusal carries a foresee row naming the budget read that measures the same draft and writes nothing, so the preventive verb is discoverable where the write failed.
 
 ## Block C — Query
 
