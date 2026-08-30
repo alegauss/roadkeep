@@ -128,32 +128,6 @@ another verb holds. One clause, on the surface the caller is already reading.
 
 ## Block C — Query
 
-### §RK1432 The count that cannot say what is startable
-
-A project using this tool reported twenty open lines. Six of them could not be begun at
-all: they waited on a console, a signing certificate, a CI runner or a second toolchain,
-and no task in that repository will ever supply one. The number a reader meets first
-said twenty.
-
-THE DISTINCTION IS ALREADY MODELLED, WHICH IS WHY THIS IS SMALL. RK's own [requirements]
-table exists for it, `pick --have` consumes it, and `brief` prints "absent RK63 is ready
-and requires msvc-qt-webengine". Every part is there except the one that reaches a
-reader who is not picking a task - the count.
-
-SO THE ADOPTER WROTE IT THEMSELVES. That project added a flag to its own application
-that reads ROADMAP.md, groups the open lines by the requirement each waits on, and
-prints fourteen startable against six waiting. That is a hundred lines of C# re-deriving
-what `pick` already knows, in a repository whose whole discipline is that the tool owns
-the backlog and nothing else parses it.
-
-WHAT WOULD ANSWER IT is a split in `stats`: the open count, then how many of them
-nothing absent is holding up, and the rest grouped under what they wait for. `--json`
-carries the same, so a project that wants the line in its own gate has it without a
-parser.
-
-A line naming two requirements is one line and not two, which is the arithmetic a count
-built from requirements rather than from lines gets wrong.
-
 ## Block D — The gate
 
 ### §RK1433 Declared for the question, never asked

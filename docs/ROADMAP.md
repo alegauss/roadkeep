@@ -31,8 +31,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1432** (deps: —) **stats counts every open line together, so a reader cannot see how many can actually be started** — pick knows requirements and brief names them, but the count a reader meets first mixes lines somebody could pick up with lines waiting on hardware. → §RK1432
-
 ## Block D — The gate
 
 - 📋 **RK1433** (deps: —) **nothing checks that a partially-shipped line has criteria, which is the one state where how much is left gets asked** — [criteria] is declared for exactly that question and lint never asks whether a partial line answers it. → §RK1433

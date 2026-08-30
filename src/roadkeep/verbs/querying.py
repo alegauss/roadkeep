@@ -62,6 +62,7 @@ from roadkeep.serving import Prose, Withheld, detail, surface
 from roadkeep.showing import show
 from roadkeep.verbs.declaring import (
     _DESIGNED_HELP,
+    _HAVE_COUNTING_HELP,
     _HAVE_HELP,
     _JSON_HELP,
     _PIPE,
@@ -140,9 +141,9 @@ def _stats(config: Config, args: argparse.Namespace) -> int:
     # roadmap depend on a directory git ignores.
     owed = debt(config)
     if args.json:
-        print(json.dumps(census.counts(config, standing, owed), indent=2))
+        print(json.dumps(census.counts(config, standing, owed, args.have), indent=2))
     else:
-        print(census.counted_out(config, owed))
+        print(census.counted_out(config, owed, args.have))
         for note in census.silence(standing):
             print(note, file=sys.stderr)
     return EXIT_OK
@@ -1390,10 +1391,19 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         description=(
             "Count the file. Every count carries the number of marker-bearing lines it "
             "could *not* read, printed even when it is zero: a grep reports the "
-            "remainder with no indication that anything is missing."
+            "remainder with no indication that anything is missing. Where the project "
+            "declares `[requirements]`, the open count is split into what nothing absent "
+            "is holding up and what the rest are waiting for."
         ),
     )
     _counting_flags(stats_parser)
+    stats_parser.add_argument(
+        "--have",
+        action="append",
+        default=[],
+        metavar="REQUIREMENT",
+        help=_HAVE_COUNTING_HELP,
+    )
     stats_parser.set_defaults(handler=_stats, reads_only=True)
 
     audit_parser = subcommands.add_parser(

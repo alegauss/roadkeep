@@ -45,9 +45,12 @@ LEDGER = """# Shipped
 """
 
 
-def project(tmp_path: Path, roadmap: str = CLEAN, changelog: str = LEDGER) -> Config:
+def project(
+    tmp_path: Path, roadmap: str = CLEAN, changelog: str = LEDGER, extra: str = ""
+) -> Config:
     (tmp_path / "roadkeep.toml").write_text(
-        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        + extra,
         encoding="utf-8",
     )
     for name, body in {"ROADMAP.md": roadmap, "CHANGELOG.md": changelog}.items():
@@ -247,6 +250,117 @@ def test_stats_json_carries_both_numbers_per_block(tmp_path, capsys):
         {"block": "B", "counted": 1, "uncounted": 1, "markers": {"📋": 1}},
     ]
     assert payload["longest"]["limit"] == 320
+
+
+# -- the count that says what is startable (RK1432) ---------------------------
+
+DECLARED = '\n[requirements]\ndeclared = ["console", "signing-cert"]\n'
+
+#: Four open lines: two nothing is holding up, one waiting on the console, and one waiting
+#: on both — which is the line the arithmetic turns on.
+WAITING = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1
+- 📋 **RK2** (deps: —) (requires: console) **A second symptom** — Because of a reason. → §RK2
+- 📋 **RK3** (deps: —) (requires: console, signing-cert) **A third symptom** — Because of a reason. → §RK3
+- 📋 **RK4** (deps: —) **A fourth symptom** — Because of a reason. → §RK4
+"""
+
+
+def test_a_backlog_that_declares_no_requirement_pays_for_no_split(tmp_path, capsys):
+    """The axis is opt-in (RK1297), so a project that never named one keeps the count it
+    had — two rows saying `startable = total` on every run is the row a reader stops
+    looking at."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "stats"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "startable" not in out and "waiting" not in out
+
+
+def test_the_split_names_what_the_lines_nobody_can_begin_are_waiting_for(tmp_path, capsys):
+    project(tmp_path, roadmap=WAITING, extra=DECLARED)
+    assert main(["-C", str(tmp_path), "stats"]) == EXIT_OK
+    rows = {
+        line.split()[0]: line.split()[1:]
+        for line in capsys.readouterr().out.splitlines()
+        if line.startswith("  ")
+    }
+    assert rows["total"][0] == "4"
+    assert rows["startable"] == ["2"]
+    # Most-waited-on first, so the requirement holding the most work is the one read first.
+    assert rows["waiting"] == ["2", "console", "2", "signing-cert", "1"]
+
+
+def test_a_line_naming_two_requirements_is_one_line_and_not_two(tmp_path, capsys):
+    """The arithmetic a split built from requirements rather than from lines gets wrong:
+    the rows total three and the count beside them is two, and both are right."""
+    project(tmp_path, roadmap=WAITING, extra=DECLARED)
+    assert main(["-C", str(tmp_path), "stats", "--json"]) == EXIT_OK
+    split = json.loads(capsys.readouterr().out)["startable"]
+    assert split == {
+        "open": 4,
+        "startable": 2,
+        "waiting": 2,
+        "absent": [
+            {"requirement": "console", "lines": 2},
+            {"requirement": "signing-cert", "lines": 1},
+        ],
+    }
+    assert sum(one["lines"] for one in split["absent"]) > split["waiting"]
+
+
+def test_what_the_caller_has_moves_the_lines_it_reaches(tmp_path, capsys):
+    """`--have` is the same axis `pick` declares, said to a report: a person at the desk
+    with the console sees the three lines they can actually begin."""
+    project(tmp_path, roadmap=WAITING, extra=DECLARED)
+    assert main(["-C", str(tmp_path), "stats", "--have", "console", "--json"]) == EXIT_OK
+    split = json.loads(capsys.readouterr().out)["startable"]
+    assert split["startable"] == 3
+    assert split["absent"] == [{"requirement": "signing-cert", "lines": 1}]
+
+
+def test_only_the_open_markers_are_asked_whether_they_could_be_begun(tmp_path, capsys):
+    """A ✅ left in the roadmap is counted by `total` and is not work anybody can start,
+    so it belongs to neither half of a split about beginning."""
+    shipped = WAITING + (
+        "- ✅ **RK5** (deps: —) (requires: console) **A fifth symptom** — Because. → §RK5\n"
+    )
+    project(tmp_path, roadmap=shipped, extra=DECLARED)
+    assert main(["-C", str(tmp_path), "stats", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["total"] == 5 and payload["startable"]["open"] == 4
+
+
+def test_the_payload_carries_the_split_before_the_project_uses_the_axis(tmp_path, capsys):
+    """Printed conditionally and published always: a project wiring this into its own gate
+    wants the key there before the first `(requires: …)` is written."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "stats", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["startable"] == {
+        "open": 3,
+        "startable": 3,
+        "waiting": 0,
+        "absent": [],
+    }
+
+
+def test_a_file_with_no_open_line_gets_no_split_at_all(tmp_path, capsys):
+    """The split of nothing is `total` said twice, so the ledger's count is left alone."""
+    project(tmp_path, extra=DECLARED)
+    assert main(["-C", str(tmp_path), "stats", "--role", "changelog"]) == EXIT_OK
+    assert "startable" not in capsys.readouterr().out
+
+
+def test_the_split_follows_the_block_the_count_was_scoped_to(tmp_path, capsys):
+    scoped = WAITING + "\n## Block B — Authoring\n\n" + (
+        "- 📋 **RK9** (deps: —) (requires: console) **A ninth symptom** — Because. → §RK9\n"
+    )
+    project(tmp_path, roadmap=scoped, extra=DECLARED)
+    assert main(["-C", str(tmp_path), "stats", "--block", "B", "--json"]) == EXIT_OK
+    split = json.loads(capsys.readouterr().out)["startable"]
+    assert split["open"] == 1 and split["startable"] == 0
 
 
 def test_audit_names_the_line_the_reason_and_the_block(tmp_path, capsys):

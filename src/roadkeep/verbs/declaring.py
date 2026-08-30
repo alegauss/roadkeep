@@ -70,6 +70,14 @@ _HAVE_HELP = (
     "declare a requirement this caller has, repeatable: a ready line whose `(needs: …)` "
     "names anything undeclared is set aside and named, never offered (only without an id)"
 )
+#: The same flag on `stats`, where the axis is **counted** rather than chosen from (RK1432).
+#: Its own sentence and not `_HAVE_HELP`: that one's "never offered" and "(only without an
+#: id)" are facts about a verb that picks a line, and this verb picks none — one sentence
+#: covering both would have to drop the half each caller reads it for.
+_HAVE_COUNTING_HELP = (
+    "declare a requirement this caller has, repeatable: an open line naming anything "
+    "undeclared counts as waiting rather than as startable"
+)
 #: Top-level options that take a value, so the token after one is not the verb. Two, because
 #: `--version` is an action and every other flag belongs to a subcommand that was never reached.
 _VALUED = ("-C", "--directory")

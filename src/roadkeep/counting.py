@@ -23,12 +23,15 @@ Two consequences worth naming:
 
 This module resolves nothing: readiness, blockers and leverage are RK11 and RK13, which
 need both files. A count needs one, and keeping it that way is why `stats` cannot go
-stale against a changelog it never read.
+stale against a changelog it never read. The one split that *is* here — startable
+against waiting (RK1432) — stays inside that rule because `(requires: …)` is a slot on
+the line: what a task needs present to be done at all is stated where the task is, and
+no second file has to be opened to say how much of a backlog nobody can begin.
 """
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, replace
 
 from roadkeep.backlog import Standing
@@ -59,6 +62,82 @@ class Tally:
 #: What a line under no block heading is called in a report. Not "Block —": it is the
 #: absence of a block, which is a lint error (RK14) rather than a place.
 NO_BLOCK = "(no block)"
+
+
+@dataclass(frozen=True, slots=True)
+class Absent:
+    """One requirement nothing here supplies, and how many open lines name it (RK1432)."""
+
+    requirement: str
+    lines: int
+
+
+@dataclass(frozen=True, slots=True)
+class Split:
+    """The open count divided by what a line needs *present* to be done at all (RK1432).
+
+    The distinction was modelled long before it was counted: `(requires: …)` is a slot,
+    `pick --have` sets a line aside by it, `brief` names what is absent. Every part existed
+    except the one reaching a reader who is not picking a task — so an adopting project
+    re-derived it in a hundred lines of its own code against the file this tool owns, which
+    is the one re-parse the whole design exists to make unnecessary.
+
+    **Open, not counted.** The subject is work somebody could begin, so the population is
+    `[markers]`' own open set: a ✅ left in the roadmap, a ⏸ and a 🗑 are outside it, and
+    none of the three is startable in the sense being asked.
+
+    **`waiting` counts lines and `absent` counts requirements**, which is why they are two
+    numbers rather than one summed twice. A line naming a console *and* a signing
+    certificate is one line waiting and a row under each, so the rows can total more than
+    the count beside them — the arithmetic a split built from requirements instead of from
+    lines gets wrong in the direction nobody checks.
+    """
+
+    open_lines: int
+    startable: int
+    absent: tuple[Absent, ...]
+
+    @property
+    def waiting(self) -> int:
+        """Derived and never stored: two fields that can disagree is the miss again."""
+        return self.open_lines - self.startable
+
+    def stated(self, width: int) -> list[str]:
+        """The two rows, or none where this file has no open line at all.
+
+        Both rows print when there is one, `waiting 0` included, for the rule the counts
+        above them follow: a field that appears only when it is non-zero is a field a reader
+        learns to stop looking for. Nothing prints where the count is zero, because the
+        split of nothing is not a fact about the axis — it is `total` said twice.
+
+        `startable` is nine characters, exactly `uncounted`'s, so these rows never widen a
+        column the totals did not already reserve.
+        """
+        if not self.open_lines:
+            return []
+        return [
+            f"  {'startable':<{width}}  {self.startable:>4}",
+            f"  {'waiting':<{width}}  {self.waiting:>4}  "
+            f"{'  '.join(f'{one.requirement} {one.lines}' for one in self.absent)}".rstrip(),
+        ]
+
+    def payload(self) -> dict[str, object]:
+        """The same answer as data, carried whatever the project declares.
+
+        Printed conditionally and published always, which is :meth:`Debt.payload`'s rule for
+        its reason: a key costs a client nothing to skip, where a row costs every reader the
+        same attention on every run — and a project wiring this into its own gate wants the
+        number to be there before the first `(requires: …)` is written.
+        """
+        return {
+            "open": self.open_lines,
+            "startable": self.startable,
+            "waiting": self.waiting,
+            "absent": [
+                {"requirement": one.requirement, "lines": one.lines}
+                for one in self.absent
+            ],
+        }
 
 
 def _marker_row(markers: Mapping[str, int]) -> str:
@@ -218,6 +297,63 @@ class Census:
         """The line closest to the limit — the measurement this repo did by hand."""
         return max(self.counted, key=lambda e: width(e.raw), default=None)
 
+    def _is_open(self, status: str) -> bool:
+        """Whether a line carrying this marker is work somebody could still begin (RK1432).
+
+        Two questions and both have to be asked. The **file**: a ledger's own status is ✅
+        and a deferred store's is ⏸, so each declares its whole contents settled — and a
+        ledger may drop the marker slot entirely (RK43), where reading the status would
+        find nothing to exclude. Then the **line**: a roadmap may hold a ✅ or a 🗑 that
+        `total` counts and nobody can start, so the three terminal markers are named rather
+        than assumed absent from `[markers]`.
+        """
+        if self.schema.is_ledger or self.schema.is_deferred:
+            return False
+        terminal = {
+            self.schema.shipped_marker,
+            self.schema.deferred_marker,
+            self.schema.retired_marker,
+        }
+        return status in self.schema.markers and status not in terminal
+
+    def split(self, available: Iterable[str] = ()) -> Split:
+        """How many open lines nothing absent is holding up, and what the rest wait for.
+
+        ``available`` is the caller's and empty by default, which is the same decision
+        `pick` made (RK1297): the reader who cannot press a button is the one who does not
+        think to say so, and a count that assumed otherwise would report as startable
+        exactly the work this split exists to separate out. A person at the desk says
+        `--have` and the lines they can reach move across.
+
+        A parameter and not a field, for the reason `debt` is one: what a caller has is a
+        fact about the caller, and a census that read it would be a count of the file
+        depending on the machine it ran on.
+        """
+        has = frozenset(available)
+        open_lines = tuple(
+            entry for entry in self.counted if self._is_open(entry.task.status)
+        )
+        counts: dict[str, int] = {}
+        waiting = 0
+        for entry in open_lines:
+            missing = [one for one in entry.task.requires if one not in has]
+            if not missing:
+                continue
+            waiting += 1
+            for one in missing:
+                counts[one] = counts.get(one, 0) + 1
+        return Split(
+            open_lines=len(open_lines),
+            startable=len(open_lines) - waiting,
+            # Most-waited-on first, ties by the word. A reader scanning this wants the
+            # requirement holding the most work at the top; a tie broken by nothing at all
+            # is a row order that moves between two runs over an unchanged file.
+            absent=tuple(
+                Absent(requirement=name, lines=lines)
+                for name, lines in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+            ),
+        )
+
     # -- the two registers, and the third stream ---------------------------
 
     def listed(self, ids: bool) -> str:
@@ -277,12 +413,21 @@ class Census:
             "tasks": [_row_json(entry) for entry in self.counted],
         }
 
-    def counted_out(self, config: Config, debt: Debt) -> str:
+    def counted_out(
+        self, config: Config, debt: Debt, available: Iterable[str] = ()
+    ) -> str:
         """The tallies, the totals, and the capture debt beside them (RK10, RK1139).
 
         Beside :meth:`counts` since RK1170. `debt` is a parameter and not a field: a capture is
         not a line of the file this counts, and reading one here would make a count of the
         roadmap depend on a directory git ignores.
+
+        The startable split prints **only where the project declares requirements** (RK1432),
+        which is `Debt.stated`'s rule for its reason: the axis is opt-in, and two rows saying
+        `startable = total` on every run of a backlog that never names a requirement is the
+        row a reader stops looking at. Declaring `[requirements]` is the opt-in, not writing
+        the first `(requires: …)` — a project that declared the vocabulary is asking the
+        question, and `waiting 0` is the answer it is checking for.
         """
         from roadkeep.kernel.schema import width as measured  # noqa: PLC0415 - RK260
 
@@ -301,6 +446,8 @@ class Census:
         # Printed at zero too: a field that appears only when it is non-zero is a field a
         # reader learns to stop looking for, which is how the miss became invisible.
         rows.append(f"  {'uncounted':<{pad}}  {self.uncounted:>4}")
+        if self.schema.requirements:
+            rows += self.split(available).stated(pad)
         longest = self.longest()
         if longest is not None:
             rows.append(
@@ -310,7 +457,13 @@ class Census:
         rows += debt.stated(config, pad)
         return "\n".join(rows)
 
-    def counts(self, config: Config, standing: Standing | None, debt: Debt) -> dict[str, object]:
+    def counts(
+        self,
+        config: Config,
+        standing: Standing | None,
+        debt: Debt,
+        available: Iterable[str] = (),
+    ) -> dict[str, object]:
         """The same answer as data, with the debt this project holds under its own key."""
         from roadkeep.rendering import CHARACTER_UNIT  # noqa: PLC0415 - RK260
         from roadkeep.kernel.schema import width as measured  # noqa: PLC0415 - RK260
@@ -321,6 +474,9 @@ class Census:
             "total": self.total,
             "uncounted": self.uncounted,
             "markers": self.markers(),
+            # RK1432, and always — the text register hides this where the axis is unused,
+            # because a row costs a reader on every run and a key costs a client nothing.
+            "startable": self.split(available).payload(),
             "blocks": [
                 {
                     "block": tally.label,
