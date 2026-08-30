@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 217 | 2 |
-| C — Query (consult without reading the file) | 0 | 142 | 2 |
-| D — The gate | 2 | 205 | 2 |
+| C — Query (consult without reading the file) | 1 | 142 | 2 |
+| D — The gate | 1 | 206 | 2 |
 | E — Adoption | 1 | 114 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 128 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 19 | 0 |
-| **Total** | 6 | 918 | 12 |
+| **Total** | 6 | 919 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1433** (deps: —) **nothing checks that a partially-shipped line has criteria, which is the one state where how much is left gets asked** — [criteria] is declared for exactly that question and lint never asks whether a partial line answers it. → §RK1433
+- 📋 **RK1434** (deps: —) **a non-goal can forbid a line the same file lists as ready, and nothing compares the two** — Both halves are well formed, lint validates each shape separately, and no verb asks whether a constraint reaches an open line. → §RK1434
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

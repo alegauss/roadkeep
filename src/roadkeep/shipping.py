@@ -1527,6 +1527,7 @@ class Partial:
 
         roadmap = config.relative(config.path("roadmap"))
         ledger = config.relative(config.path("changelog"))
+        doors = self.doors(config)
         rows = [
             f"{self.task_id} ({self.part}) → {ledger}:{self.ledger.lineno} "
             f"under Block {self.block}",
@@ -1539,31 +1540,57 @@ class Partial:
             # Before `finish`, because it is what to do **now** and that one is what to do at
             # the end: the line is open, so it is picked again before either happens.
             f"  waits    this line is offered again until it says what it is waiting on — "
-            f"`{invocation()} {' '.join(self.doors()[0].argv)}` names it, where the rest of "
+            f"`{invocation()} {' '.join(doors[0].argv)}` names it, where the rest of "
             f"the work waits on something still open",
-            f"  finish   {invocation()} {' '.join(self.doors()[1].argv)}"
+            f"  finish   {invocation()} {' '.join(doors[1].argv)}"
             f"  (drops the qualifier)",
         ]
+        # RK1433, and after both: those two are what to do with the work, and this is what to
+        # write down about it — the sentence a reader checks the remainder off against.
+        if len(doors) > 2:
+            rows.append(
+                f"  measure  {invocation()} {' '.join(doors[2].argv)}"
+                f"  (nothing yet says how much is left)"
+            )
         if self.refreshed:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
         rows += _event_rows(self.event(config), "  ", standing=True)
         return "\n".join(rows)
 
-    def doors(self) -> tuple[Door, ...]:
-        """The two commands this half-written state makes available (RK1302, RK1307).
+    def doors(self, config: Config) -> tuple[Door, ...]:
+        """The commands this half-written state makes available (RK1302, RK1307, RK1433).
 
-        In the order a caller reaches them: what to do **now** with the work that is left, and
-        what closes the line at the end. One reader for both registers, because a printer that
-        composed its own argv beside a payload that composed another is two answers about the
-        same next step — which is the shape RK1307 is a class of.
+        In the order a caller reaches them: what to do **now** with the work that is left, what
+        closes the line at the end, and — where the project governs criteria and this line has
+        none — what says how much of it is left. One reader for both registers, because a
+        printer that composed its own argv beside a payload that composed another is two
+        answers about the same next step, which is the shape RK1307 is a class of.
+
+        The third is why this takes a config: the first two are facts about a partial and the
+        last is a fact about the project, and a door offered to a backlog that declared no
+        `[criteria]` would be advice about a table nobody opened.
         """
-        return (
+        from roadkeep import criteria  # noqa: PLC0415 - RK260
+
+        out = [
             Door(
                 ("amend", self.task_id, "--dep", "<id>"),
                 "the remainder waits on something still open, and this names it",
             ),
             Door(("ship", self.task_id), "the rest of it landed, and this drops the qualifier"),
-        )
+        ]
+        # RK1433. L1, on the one write that creates the state the gate reports: this call puts
+        # ⏳ on the line, and ⏳ is the marker whose whole question is *how much is left*.
+        # Conditional twice over — a project that governs no criteria is being told about a
+        # table it never opened, and a line that already carries a list has been answered.
+        if config.criteria is not None and not criteria.read(self.roadmap, self.task_id):
+            out.append(
+                Door(
+                    ("criterion", "add", "--task", self.task_id, "--lead", "<lead>", "--why", "<why>"),
+                    "nothing yet says how much is left, which is what this marker raises",
+                )
+            )
+        return tuple(out)
 
     def payload(self, config: Config) -> dict[str, object]:
         """The same answer as data, saying the line is still open (RK121).
@@ -1577,7 +1604,7 @@ class Partial:
         return {
             "id": self.task_id,
             "part": self.part,
-            "doors": [one.payload(_served(config)) for one in self.doors()],
+            "doors": [one.payload(_served(config)) for one in self.doors(config)],
             # What is left, where the caller said it (RK1233). Null and not omitted: a
             # consumer reading a missing key cannot tell "not stated" from "older server".
             "remainder": self.remainder,

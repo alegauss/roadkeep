@@ -634,6 +634,7 @@
 - ✅ **RK1420** **install --check closes a complete answer with the capture offer, on the verb an adopter runs while wiring** — Both --check verbs state the verdict from the run, so the offer is gone from every EXIT_GATE that was already an answer and replay is asserted silent.
 - ✅ **RK1421** **Nothing enumerates the thirteen exits that return the gate's code, so which is a verdict is settled one report at a time** — Two tables in cli.py name all thirteen returns with their argument, and a sweep holds them to be what it found (design recorded in `tests/test_invariants.py`).
 - ✅ **RK1422** **Three of the nine exits the census calls a verdict have nothing asserting the stderr they close with** — All nine verdict addresses are now measured, each in the file that owns its verb, and each assertion was proved to redden with the suppression off (design superseded: each site had a test at it).
+- ✅ **RK1433** **nothing checks that a partially-shipped line has criteria, which is the one state where how much is left gets asked** — lint reports a partial line with no criteria as criterion.absent, and ship --part names the criterion add that closes it in the same answer, so the gate is the backstop.
 
 ## Block E — Adoption
 

@@ -757,6 +757,15 @@ _TABLE: Mapping[str, _Rule] = {
         "the list is addressed to a block or an id no file answers, so what it asks about "
         "cannot be finished — the bullets go, and the heading with the last of them",
     ),
+    # RK1433. The one criterion finding that is not about a bullet: there is none, and what
+    # names the line is the *absence*. So the door is the write, addressed to the id the
+    # subject carries — `--task` and never `--block`, because a block list answers what would
+    # finish the body of work and the question here is what is left of this line.
+    "criterion.absent": _compose(
+        ("criterion", "add", "--task", "{id}", "--lead", BLANK, "--why", BLANK),
+        "a partially-shipped line with no definition of done: the sentence a reader checks "
+        "off is yours, and until one is written the marker is the whole of what is known",
+    ),
     "criterion.duplicate": _run(
         ("criterion", "drop", "{id}"),
         "two bullets in one block lead the same way: the later goes and the first stays, "

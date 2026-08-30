@@ -31,9 +31,10 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1439** (deps: —) **pick offers a line that seven shipped entries were filed against, with nothing saying it is being worked by proxy** — Each child names its parent and ships, the parent stays open, so every session is offered the same line and answers it the same way - by filing another child. → §RK1439
+
 ## Block D — The gate
 
-- 📋 **RK1433** (deps: —) **nothing checks that a partially-shipped line has criteria, which is the one state where how much is left gets asked** — [criteria] is declared for exactly that question and lint never asks whether a partial line answers it. → §RK1433
 - 📋 **RK1434** (deps: —) **a non-goal can forbid a line the same file lists as ready, and nothing compares the two** — Both halves are well formed, lint validates each shape separately, and no verb asks whether a constraint reaches an open line. → §RK1434
 
 ## Block E — Adoption

@@ -128,31 +128,30 @@ another verb holds. One clause, on the surface the caller is already reading.
 
 ## Block C — Query
 
+### §RK1439 The line seven other tasks were filed against
+
+Observed in the pportal port, on PP33 - delete curl and json-c from the C core. It has
+been the answer to `pick` for many sessions running, and no session has worked it. What
+each one did instead is in the ledger: PP544, PP563, PP564, PP565, PP566, PP573 and
+PP584 all say "PP33" in their own sentences, all shipped, and PP33 is still open. Seven
+children, one parent, and `pick` offered the parent every time.
+
+RK1297 answered the neighbouring case. A line needing a console or a runner reads as
+ready, so `[requirements]` was declared and `pick` learned to skip it. This is the same
+sentence with a different absence: nothing is missing, the line is simply larger than a
+session, and the caller finds that out by reading its criteria and then filing a child.
+The dep graph cannot say so, correctly - a child does not exist yet when the parent is
+offered.
+
+The evidence is already in the files. A shipped entry naming an open id is a fact `refs`
+can see, so "seven entries against this line and it is still open" is a query and not a
+new field. No verb asks it, so what would have told the eighth session what the previous
+seven learned is spread over seven ledger sentences nobody reads in order.
+
+Not a marker. `⏳` says a line is part-done and says nothing about who has been paying
+for it.
+
 ## Block D — The gate
-
-### §RK1433 Declared for the question, never asked
-
-[criteria] is declared with its reason written into the config that opts in: "a number
-that only leaves zero at the finish cannot tell half done from not started". A
-partially-shipped line is precisely that state - the marker means some of it landed and
-some has not.
-
-A PROJECT USING THIS TOOL HAD SIX PARTIAL LINES AND CRITERIA ON ONE. The table had been
-declared, used where the problem was noticed, and left empty everywhere else. Nothing
-said so: lint validates every governed line and never asks whether a partial one carries
-a definition of done, so the omission read as a file in good order for months.
-
-WHAT WOULD ANSWER IT is a lint code over one relationship the tool already has both
-halves of - the markers it validates and the criteria lists it writes. Where [criteria]
-is not declared the question does not arise and the code never fires; where it is
-declared, a partial line with no list of its own is what it names.
-
-THE ADOPTER WROTE IT THEMSELVES, in their own test suite, reading ROADMAP.md for the
-partial marker and for the per-task heading this tool writes. That is a project parsing
-the file the tool exists to own, to check a rule the tool exists to enforce, and it is
-the second time in one session that happened.
-
-Where it lands is a judgement this line does not make: a lint code, or a row in `stats`.
 
 ### §RK1434 Two well-formed halves that contradict
 

@@ -317,6 +317,11 @@ PREVENTION: tuple[Prevented, ...] = (
     # said because a report that omits without saying so reads as one that covered
     # everything — and the door beside it is the read that answers the whole question.
     Prevented("read.priced", "gate", because=MEANT),
+    # RK1433, and `MEANT` on the strength of the row that closes it: `ship --part` is the one
+    # write that puts ⏳ on a line, it cannot compose the criterion (L4), and since this task
+    # it names `criterion add --task <id>` in the same answer — which is what makes the gate
+    # the backstop here rather than the only place the question is asked.
+    Prevented("criterion.absent", "gate", because=MEANT),
 )
 
 #: The codes a write could refuse and does not. Asserted against the rows in both

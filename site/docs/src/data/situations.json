@@ -79,7 +79,8 @@
   "budget.tool": "You grew one tool's description, or added a flag whose `help=` string rides on it. That cost is written in a module other than the tool definition, which is why the ranking names where.",
   "budget.translated": "You are reading this on a checkout whose line endings differ from the committed ones — Windows with `core.autocrlf`, usually — so the file costs more bytes here than it does in the repository.",
 
-  "criterion.duplicate": "You added a criterion whose bold lead was already used under that block, most often after a merge took both sides or because the question felt unanswered and got asked twice.",
+  "criterion.absent": "You shipped half of a task with `ship --part`, and the line kept its marker with nothing under a `## Done when` heading for it. The marker says some of it landed; without a list, how much is left is a judgement the next reader makes from scratch.",
+  "criterion.duplicate":"You added a criterion whose bold lead was already used under that block, most often after a merge took both sides or because the question felt unanswered and got asked twice.",
   "criterion.lead": "You folded the reason into the criterion's bold head instead of leaving it for the sentence after. The head is what addresses the bullet, so it stays short.",
   "criterion.orphan": "You renumbered a task, or took out a block heading, and the `## Done when` list addressed to it stayed behind. Nothing it asks about can be finished now.",
   "criterion.shape": "You hand-wrote a `## Done when` bullet, or a merge lost the `**` around its head. It renders like every other criterion and no verb can reach it.",

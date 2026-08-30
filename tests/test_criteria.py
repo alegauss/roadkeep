@@ -589,6 +589,86 @@ def test_an_empty_heading_under_a_live_address_stays(tmp_path):
     assert not [one for one in lint(after).findings if one.code == "criterion.orphan"]
 
 
+# -- the partial with no definition of done (RK1433) -------------------------
+
+PARTIAL_LINE = """# Roadmap
+
+## Block A — The model
+
+- ⏳ **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1
+"""
+
+
+def test_a_partial_line_with_no_criteria_is_the_one_state_nothing_asked_about(tmp_path):
+    """`[criteria]` is declared with this state written into its own reason — a number that
+    only leaves zero at the finish cannot tell half done from not started — and ⏳ *is* that
+    state. Every governed line was validated and none was asked to carry a list."""
+    config = project(tmp_path, roadmap=PARTIAL_LINE)
+    (one,) = [f for f in lint(config).findings if f.code == "criterion.absent"]
+    assert one.lineno == PARTIAL_LINE.splitlines().index(
+        "- ⏳ **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1"
+    ) + 1
+    assert one.subject == "RK1"
+
+
+def test_the_door_is_the_write_addressed_to_the_line_and_not_to_its_block(tmp_path):
+    """A block list says what would finish the body of work; the question a partial raises is
+    what is left of *this* line, which is the count reaching zero again if a block answers it."""
+    from roadkeep.remedying import remedy
+
+    config = project(tmp_path, roadmap=PARTIAL_LINE)
+    (one,) = [f for f in lint(config).findings if f.code == "criterion.absent"]
+    found = remedy(one, config)
+    assert found is not None
+    (door,) = found.doors
+    assert door.argv[:4] == ("criterion", "add", "--task", "RK1")
+    assert "--block" not in door.argv
+
+
+def test_a_partial_that_carries_its_own_list_is_answered(tmp_path):
+    answered = PARTIAL_LINE + (
+        "\n## Done when — RK1\n\n- **The other half lands** Because the ledger records one.\n"
+    )
+    config = project(tmp_path, roadmap=answered)
+    assert not [f for f in lint(config).findings if f.code == "criterion.absent"]
+
+
+def test_a_block_list_does_not_answer_for_a_line_inside_it(tmp_path):
+    """The two addresses are two questions (RK1268), and this is the one place the difference
+    is load-bearing: a block's criteria say when the body of work is done, not this line."""
+    covered = PARTIAL_LINE + (
+        "\n## Done when — Block A\n\n- **The gate passes** Because nothing else proves it.\n"
+    )
+    config = project(tmp_path, roadmap=covered)
+    assert [f for f in lint(config).findings if f.code == "criterion.absent"]
+
+
+def test_an_open_line_that_is_not_partial_is_never_asked(tmp_path):
+    """The marker is the whole trigger: 📋 says nothing landed, so how much is left is not the
+    question a reader arrives with, and a list on every open line is the demand nobody meets."""
+    config = project(tmp_path)
+    assert not [f for f in lint(config).findings if f.code == "criterion.absent"]
+
+
+def test_a_project_that_governs_no_criteria_is_silent(tmp_path):
+    config = project(tmp_path, roadmap=PARTIAL_LINE, governed=False)
+    assert not [f for f in lint(config).findings if f.code == "criterion.absent"]
+
+
+def test_a_project_with_no_partial_state_is_never_told_about_the_marker(tmp_path):
+    """The second gate, and not redundant with the first: `[criteria]` declared says the
+    project asked the question, and ⏳ absent from `[markers]` says it has no state to ask it
+    about — a backlog that ships whole lines only would otherwise be told so on every run."""
+    project(tmp_path, roadmap=PARTIAL_LINE)
+    (tmp_path / "roadkeep.toml").write_text(
+        f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n'
+        '[criteria]\n[markers]\nopen = ["📋", "💭", "🛠"]\n',
+        encoding="utf-8",
+    )
+    config = Config.discover(tmp_path)
+    assert not [f for f in lint(config).findings if f.code == "criterion.absent"]
+
+
 MISFILED = """# Roadmap
 
 ## Block A — The model

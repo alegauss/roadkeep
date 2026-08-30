@@ -431,12 +431,17 @@ def test_a_prose_field_is_never_composed_for_the_author():
         ), code
 
 
-#: The two rows that ask for two fields, and why neither is the defect this test hunts: a
+#: The three rows that ask for two fields, and why none is the defect this test hunts: a
 #: label the heading word cannot render has no line to read the replacement off, so both the
-#: new label and its title are the author's; and a heading declared before its lines is
+#: new label and its title are the author's; a heading declared before its lines is
 #: closed by filing one, which `add` cannot take with a single blank — `--symptom` and
-#: `--why` are both required and both are L4's (RK435). Every other door leaves exactly one.
-_TWO_BLANKS = frozenset({"block.format", "priority.block-unstarted"})
+#: `--why` are both required and both are L4's (RK435); and a partial with no definition of
+#: done is closed by writing one, where `--lead` is the claim and `--why` is how it is
+#: checked, neither derivable from a line that says only that part of it landed (RK1433).
+#: Every other door leaves exactly one.
+_TWO_BLANKS = frozenset(
+    {"block.format", "priority.block-unstarted", "criterion.absent"}
+)
 
 
 def test_every_door_leaves_exactly_one_field_to_the_author():

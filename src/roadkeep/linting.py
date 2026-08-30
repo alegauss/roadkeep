@@ -133,6 +133,7 @@ from roadkeep.markers import derive
 from roadkeep.referring import PAIRS
 from roadkeep.kernel.schema import (
     CODEPOINT_KINDS,
+    PARTIAL,
     TAB,
     Dep,
     DepKind,
@@ -2305,7 +2306,48 @@ def _criteria(
                 )
             )
         seen.setdefault(address, one.first)
-    return out + _orphaned(config, roadmap, documents, file)
+    return out + _unmeasured(config, roadmap, file) + _orphaned(
+        config, roadmap, documents, file
+    )
+
+
+def _unmeasured(config: Config, roadmap: Document, file: str) -> list[Finding]:
+    """A partially-shipped line with no definition of done (RK1433).
+
+    `[criteria]` is declared with this state written into its own reason — "a number that only
+    leaves zero at the finish cannot tell half done from not started" — and a ⏳ line *is* that
+    state: some of it landed and the rest has not, which is the one marker where **how much is
+    left** is the question a reader arrives with. Nothing asked it. Every governed line was
+    validated, none was asked to carry a list, and the omission read as a file in good order.
+
+    Both halves were already here, which is why this is small: the markers this gate validates,
+    and the per-task lists `criterion add --task` writes (RK1268). What was missing is the one
+    relationship between them.
+
+    **A task's own list and never its block's.** A block list says what would finish the body of
+    work; the question here is what is left of *this* line, and a partial answered by its
+    block's criteria is the count reaching zero again — the measurement `[criteria]` was
+    declared to replace.
+
+    Twice opt-in, and neither gate is redundant. `[criteria]` undeclared means the project
+    never asked the question, and ⏳ absent from `[markers]` means it has no partial state to
+    ask it about — a project that ships whole lines only would otherwise be told, on every run,
+    about a marker it does not use.
+    """
+    if PARTIAL not in config.schema.markers:
+        return []
+    return [
+        Finding(
+            "criterion.absent",
+            file,
+            f"{entry.task.id} records that part of it landed and carries no criteria, so "
+            f"nothing here says how much is left — the one question this marker raises",
+            entry.lineno,
+            subject=entry.task.id,
+        )
+        for entry in roadmap.entries
+        if entry.task.status == PARTIAL and not criteria.read(roadmap, entry.task.id)
+    ]
 
 
 def _orphaned(

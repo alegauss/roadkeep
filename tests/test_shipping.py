@@ -1032,6 +1032,48 @@ def test_the_partial_names_the_door_its_open_half_leaves(tmp_path, capsys):
     assert rows.index(door) < next(i for i, r in enumerate(rows) if r.startswith("  finish"))
 
 
+def test_the_partial_names_the_door_that_says_how_much_is_left(tmp_path, capsys):
+    """RK1433, and L1 on the one write that creates the state the gate reports: this call puts
+    ⏳ on the line, and ⏳ is the marker whose whole question is how much is left. The tool may
+    not compose the sentence (L4), so what it owes is the command that writes one."""
+    project(tmp_path, extra_config="[criteria]\n")
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "It works.", "--part", "local half"]
+    assert main(argv) == EXIT_OK
+    rows = capsys.readouterr().out.splitlines()
+    door = next(r for r in rows if r.startswith("  measure"))
+    assert "criterion add --task RK1 --lead <lead> --why <why>" in door
+    # Last of the three: the two above are what to do with the work that is left, and this is
+    # what to write down about it.
+    assert rows.index(door) > next(i for i, r in enumerate(rows) if r.startswith("  finish"))
+
+
+def test_a_project_that_governs_no_criteria_is_offered_no_such_door(tmp_path, capsys):
+    project(tmp_path)
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "It works.", "--part", "local half"]
+    assert main(argv) == EXIT_OK
+    assert "criterion add" not in capsys.readouterr().out
+
+
+def test_a_partial_that_already_carries_a_list_is_not_asked_for_one(tmp_path, capsys):
+    answered = BACKLOG + (
+        "\n## Done when — RK1\n\n- **The other half lands** Because the ledger records one.\n"
+    )
+    project(tmp_path, roadmap=answered, extra_config="[criteria]\n")
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "It works.", "--part", "local half"]
+    assert main(argv) == EXIT_OK
+    assert "criterion add" not in capsys.readouterr().out
+
+
+def test_the_payload_carries_the_third_door_the_rows_print(tmp_path, capsys):
+    """One reader for both registers (RK1307): a caller reaching this through the served
+    payload is the one that had neither command."""
+    project(tmp_path, extra_config="[criteria]\n")
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "It works.", "--part", "local half", "--json"]
+    assert main(argv) == EXIT_OK
+    doors = json.loads(capsys.readouterr().out)["doors"]
+    assert [one["argv"][:2] for one in doors][-1] == ["criterion", "add"]
+
+
 def test_the_cli_json_says_the_line_is_still_open(tmp_path, capsys):
     project(tmp_path)
     argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "Because of a reason.", "--part", "local half", "--json"]
