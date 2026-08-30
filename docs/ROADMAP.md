@@ -26,6 +26,9 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1435** (deps: —) **a refusal diagnoses the write it rejected and never names the read-only verb that would have predicted it** — budget measures a draft and refuses without writing; twenty body.too-long refusals in one session named it not once. → §RK1435
+- 📋 **RK1436** (deps: —) **amend lists the fields it can change and never names the verb that owns the one it cannot** — A session read its usage, concluded a symptom was immutable and wrote a paragraph justifying that; restate corrects one. → §RK1436
+
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1432** (deps: —) **stats counts every open line together, so a reader cannot see how many can actually be started** — pick knows requirements and brief names them, but the count a reader meets first mixes lines somebody could pick up with lines waiting on hardware. → §RK1432
@@ -37,7 +40,11 @@
 
 ## Block E — Adoption
 
+- 📋 **RK1438** (deps: —) **install reports which surfaces it wrote and never says what they let a session do** — For an agent the install output and the first refusal are what get read; the skill arrives later and is long enough to skim. → §RK1438
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
+
+- 📋 **RK1437** (deps: —) **the skill names all 44 verbs and costs 65k units a turn, so it is a reference loaded as an orientation** — A session held every verb from turn one, used fourteen, and found the two that would have saved it most on its last day. → §RK1437
 
 ## Block G — The editor surface (the backlog where the file is open)
 

@@ -77,6 +77,55 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1435 The refusal is where a preventive verb is discoverable
+
+A session used this tool for a whole day and learned its verbs almost entirely from
+refusals. That is a biased sample: a refusal teaches the verb whose ABSENCE caused a
+visible failure, and teaches nothing about a verb whose whole purpose is that the
+failure never happens.
+
+TWENTY REFUSALS TAUGHT NOTHING. `section add` rejected a body twenty times with an
+excellent diagnosis - the word count, the limit, the overage, the per-paragraph
+breakdown, and the judgement that a section this long is two sections. It never said
+that `budget --body-file` measures the same draft and refuses without writing. The
+session found `budget` on its last day, from `--help`, after paying twenty round trips
+for it.
+
+THE PATTERN ALREADY EXISTS AND WORKS. A successful `add` prints "or pass `--section
+"<its title>"` to `add` next time: both halves in one transaction, under the same
+limits". That sentence taught the same session something it then used. The teaching line
+is already the house style; it is applied on one path and not the other.
+
+WHAT WOULD ANSWER IT is a line on the refusals whose cause a read-only verb can predict:
+body.too-long, why.too-long, symptom.too-long and their neighbours naming `budget`. One
+sentence, on the path a caller is already reading because their write just failed.
+
+The general form is worth stating once: where a refusal has a preventive verb, the
+refusal is where that verb is discoverable, and nowhere else is as reliable.
+
+### §RK1436 The absence of a flag read as a design statement
+
+A line's symptom turned out to be false - it claimed a file was the last caller of
+something, and a linker showed it was not. The session ran `amend --help`, saw `--why`,
+`--dep` and `--requires`, and concluded the symptom was the line's address and could not
+be corrected.
+
+IT THEN WROTE THAT CONCLUSION DOWN. A rationale section acquired a paragraph explaining
+that a symptom is an address, that amend cannot reach it, and that the correction
+therefore belongs in the why. All of it reasonable, all of it wrong: `restate` exists,
+its summary is "correct one open line's symptom, keeping its id", and running it printed
+exactly the right thing - "kept the id, the deps and the section: the work never
+changed" and "claim: the premise this line asserted turned out to be false".
+
+THE ABSENCE OF A FLAG IS READ AS A DESIGN STATEMENT, and here it genuinely is one - the
+symptom is not amend's to change, and that is correct. What is missing is the other half
+of the sentence. A usage listing the fields a verb owns says nothing about where the
+others live, and a caller who respects the boundary infers the field is fixed.
+
+WHAT WOULD ANSWER IT is naming the owner where the boundary is drawn: `amend` mentioning
+`restate` for a symptom, and the same wherever a verb deliberately declines a field
+another verb holds. One clause, on the surface the caller is already reading.
+
 ## Block C — Query
 
 ### §RK1432 The count that cannot say what is startable
@@ -157,7 +206,57 @@ reader's, and a gate that refused on a shared noun would be turned off in a week
 
 ## Block E — Adoption
 
+### §RK1438 The output an adopter actually reads
+
+`install` prints what it wrote: the server, the guard, the skill, the workflow, each
+marked written or unchanged, with the launcher's path substituted. It is an accurate
+report of files. It says nothing about what those files now let a session do.
+
+FOR AN AGENT THAT OUTPUT IS OFTEN THE FIRST CONTACT, and the first refusal is the
+second. The skill is the third, arrives on a later turn, and is long enough that it is
+skimmed - RK1424 measured it and RK1437 argues about its cadence. The two surfaces a
+session reliably READS are the ones that say least about the tool's shape.
+
+WHAT A FIRST CONTACT NEEDS IS SMALL. Which files are now the tool's and not to be
+hand-edited; the handful of verbs a day actually uses - `brief` or `pick` to start,
+`add` and `ship` to move, `lint` as the gate; and the two that answer without writing,
+`budget` before a refusal and `show` instead of opening the file. Six lines, at the end
+of a command an adopter runs once and reads.
+
+IT IS ALSO WHERE `install --check` BELONGS IN A SENTENCE: the same output could say that
+this is the command a CI job or a pre-commit hook runs to keep the copied skill in step,
+which is a fact currently discoverable only from `--help`.
+
+The suggestion is deliberately not more documentation. It is putting the smallest useful
+part of it where somebody is already looking.
+
 ## Block F — The plugin
+
+### §RK1437 A reference loaded as an orientation
+
+The skill `install` writes names all 44 verbs. Coverage is not the problem: a session
+had every one of them in context from its first turn, used about fourteen, and missed
+the two that would have saved it most - `budget`, which measures a draft without writing
+it, and `restate`, which corrects a symptom.
+
+THE TOOL ALREADY MEASURES WHY. `cost --skill` reports 65832 code units on every turn
+that loads it, and 42791 of those in one section. That is a reference being loaded as an
+orientation, on every turn, and a reference of that density is skimmed. What the session
+retained instead came from refusals - which teaches only the verbs whose absence fails
+loudly, and never the ones whose whole purpose is that nothing fails.
+
+THE VERBS IT NEVER FOUND ARE THE READS. Of the fourteen it used, nearly all were writes
+or gates. `budget`, `cost`, `explain`, `show`, `audit`, `unclosed`, `gaps` and `writes`
+went untouched for a day - and those are the ones that reduce friction rather than
+record it.
+
+WHAT WOULD ANSWER IT is layering rather than cutting, and the argument is only about
+cadence: an orientation small enough to be read on first contact - what the tool owns,
+the verbs of the daily loop, and where the rest is - with the reference reachable when a
+turn needs it.
+
+Whether that is two files, a section order, or something the plugin loads on demand is
+this project's call and not an adopter's.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
