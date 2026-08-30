@@ -153,30 +153,6 @@ for it.
 
 ## Block D — The gate
 
-### §RK1434 Two well-formed halves that contradict
-
-A project added the non-goal "no local patch to the vendored C" while a line sat open
-and ready whose entire content was editing two vendored C files. The roadmap forbade
-work it listed as startable, and both halves passed every gate: the non-goal is a
-well-formed bullet, the task is a well-formed line, and nothing compares them.
-
-IT SURVIVED BECAUSE THE TWO ARE VALIDATED SEPARATELY. lint checks a non-goal's shape and
-a task's shape, `pick` reads deps and requirements, and neither asks whether a
-constraint reaches a line. The session that wrote the rule and the line that
-contradicted it were the same session, minutes apart.
-
-WHAT IT COST was a session picking that task meeting a rule that, read honestly, stops
-it. The fix there was a clause naming the exception, which is fine prose and invisible
-to every check: the next project to do this gets no more warning than the last.
-
-WHAT WOULD ANSWER IT is narrower than it sounds. A non-goal is a lead and a sentence; a
-task is a symptom and a why. Where a non-goal's lead names something a live line's
-symptom also names, that is worth one advisory row - not a refusal, because a constraint
-that bounds a task without forbidding it is ordinary and common.
-
-An advisory is the right strength. The judgement of whether a rule reaches a line is a
-reader's, and a gate that refused on a shared noun would be turned off in a week.
-
 ## Block E — Adoption
 
 ### §RK1438 The output an adopter actually reads

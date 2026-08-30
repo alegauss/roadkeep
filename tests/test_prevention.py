@@ -317,6 +317,11 @@ PREVENTION: tuple[Prevented, ...] = (
     # said because a report that omits without saying so reads as one that covered
     # everything — and the door beside it is the read that answers the whole question.
     Prevented("read.priced", "gate", because=MEANT),
+    # RK1434, and `RULE`'s reason pointed at two records instead of one: what this reports is a
+    # relationship between a non-goal and a task, and neither write is in a position to see it
+    # — `non-goal add` is composed against a backlog that may not hold the line yet, and `add`
+    # against a scope the author is not reading. Only a pass over both at once can ask.
+    Prevented("non-goal.reaches", "gate", because=RULE),
     # RK1433, and `MEANT` on the strength of the row that closes it: `ship --part` is the one
     # write that puts ⏳ on a line, it cannot compose the criterion (L4), and since this task
     # it names `criterion add --task <id>` in the same answer — which is what makes the gate

@@ -101,7 +101,8 @@
   "id.paused-and-gone": "A deferred line was shipped or retired on one branch while another branch still held it in the store. Two files now claim the id and only one of them describes what happened.",
   "id.paused-and-open": "A `defer` or a `resume` stopped between its two writes — an interrupted session, a crash, a merge that took both sides — so the line exists in both places at once.",
 
-  "non-goal.duplicate": "You added a constraint whose bold lead was already on the list, most often after a merge kept both sides or because nobody read the list before proposing.",
+  "non-goal.reaches": "You wrote a non-goal and left open a task about the same thing — usually in one sitting, the rule and the line minutes apart. Both halves are well formed, so nothing else compares them; whether the rule bounds this work or forbids it is yours to decide.",
+  "non-goal.duplicate":"You added a constraint whose bold lead was already on the list, most often after a merge kept both sides or because nobody read the list before proposing.",
   "non-goal.lead": "You folded the argument into the bold head instead of leaving it for the sentence after it. The head is the address, so the correction is a removal and a fresh bullet.",
   "non-goal.shape": "You wrote a non-goal into the file by hand, or a merge ate the `**` around its head. The constraint reads correctly to a person and to no verb.",
   "non-goal.why": "You argued the constraint instead of stating it. A non-goal's reason is one sentence, and the case for it is what a decision record exists to hold.",

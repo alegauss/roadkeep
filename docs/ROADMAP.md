@@ -35,8 +35,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1434** (deps: —) **a non-goal can forbid a line the same file lists as ready, and nothing compares the two** — Both halves are well formed, lint validates each shape separately, and no verb asks whether a constraint reaches an open line. → §RK1434
-
 ## Block E — Adoption
 
 - 📋 **RK1438** (deps: —) **install reports which surfaces it wrote and never says what they let a session do** — For an agent the install output and the first refusal are what get read; the skill arrives later and is long enough to skim. → §RK1438

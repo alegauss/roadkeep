@@ -813,6 +813,11 @@ def _rules() -> tuple[_Rule, ...]:
         _Rule("role", characters),
         _Rule("documents", lambda scan: _across(scan.config, scan.documents)),
         _Rule("documents", lambda scan: _scope(scan.config, scan.documents.get("roadmap"))),
+        # Its own rule and not a tail of `_scope` (RK1434): that one asks whether each bullet
+        # is well formed, and this asks whether a well-formed bullet and a well-formed line
+        # contradict — a relationship no single record is in a position to see, and a check
+        # folded into another's return is one nobody finds by reading the list of what is asked.
+        _Rule("documents", lambda scan: _reaching(scan.config, scan.documents)),
         # The positive twin of the rule above (RK1265), read from the same document and
         # opt-in on its own declaration: a project may govern one list and not the other.
         _Rule(
@@ -2173,6 +2178,110 @@ def within(config: Config, role: str, document: Document) -> list[Finding]:
                 )
             )
         seen.setdefault(task.id, entry.lineno)
+    return out
+
+
+#: The shortest run of letters this comparison will treat as a subject (RK1434). Four, which
+#: is what drops the function words — `the`, `and`, `for`, `not`, `its`, `has`, `one` — without
+#: a list of them to maintain and disagree with a project's own vocabulary. What survives it and
+#: is still common (`line`, `task`, `file`, `that`) is dropped by the frequency rule instead.
+_SUBJECT = re.compile(r"[a-z][a-z0-9-]{3,}")
+
+
+def _terms(prose: str) -> frozenset[str]:
+    """The words of one sentence, folded so two spellings of one subject meet (RK1434).
+
+    Lowercased, and a trailing `s` removed from anything long enough to have one — so a
+    non-goal saying `no prompts` reaches a line about a `prompt`. That is the whole of the
+    folding, and stopping there is the point: a stemmer is a model wearing a small coat, and
+    L4 is what this comparison has to stay inside. What it costs is `patching` against `patch`,
+    which is a miss on an **advisory** — the cheap side of the trade.
+    """
+    return frozenset(
+        one[:-1] if len(one) > 4 and one.endswith("s") else one
+        for one in _SUBJECT.findall(prose.lower())
+    )
+
+
+#: How rare a word has to be in a project's own recorded lines before a shared one is worth a
+#: row (RK1434): used by at most a hundredth of them. Measured here, where the two cases sit
+#: either side of it by an order of magnitude — `field` is in 7.9% of 937 recorded lines and
+#: says nothing about the line that shares it, `vendored` and `patch` are in 0.3% and 0.1% and
+#: are the whole subject of the constraint that named them.
+_DISTINCTIVE = 100
+
+
+def _reaching(config: Config, documents: dict[str, Document]) -> list[Note]:
+    """A non-goal whose subject a live line also names (RK1434).
+
+    Measured: a project added "no local patch to the vendored C" while a line sat open and
+    ready whose whole content was editing two vendored C files. The roadmap forbade work it
+    listed as startable, both halves passed every gate — a non-goal is a well-formed bullet, a
+    task is a well-formed line — and nothing compared them. The session that wrote the rule and
+    the line it contradicted were the same session, minutes apart.
+
+    **A note and never a finding.** Whether a constraint *reaches* a line is a reader's
+    judgement, and a gate that failed a build over a shared noun is a gate turned off in a
+    week. A constraint that bounds a task without forbidding it is ordinary and common, so what
+    this owes the reader is one row and the two reads that settle it, not a verdict.
+
+    **Distinctive by counting, and counted over the whole ledger.** A shared term says nothing
+    if the project says it constantly: `No multi-line task line.` shares `line` and `task` with
+    almost every symptom this repository has. The open backlog is far too small a sample to
+    tell those apart — seven lines make every word either absent or unique — so the vocabulary
+    is measured against every line the project has **recorded**, which is the ledger, and here
+    that is 937 of them. A word absent from all of them cannot be in an open symptom either,
+    so nothing is lost by only ever asking about the words that are there.
+
+    Both halves are opt-in already (`[scope]`), and the symptom is the only field compared: a
+    `why` argues the line, and matching it would catch a constraint's reasoning rather than the
+    subject the constraint is about.
+    """
+    roadmap = documents.get("roadmap")
+    if roadmap is None or config.non_goals is None:
+        return []
+    file = config.relative(config.path("roadmap"))
+    spoken = [
+        (entry, _terms(entry.task.symptom))
+        for entry in roadmap.entries
+        if entry.task.status in config.schema.markers and entry.task.symptom
+    ]
+    if not spoken:
+        return []
+    uses: dict[str, int] = {}
+    recorded = 0
+    for document in documents.values():
+        for entry in document.entries:
+            recorded += 1
+            for one in _terms(f"{entry.task.symptom or ''} {entry.task.why or ''}"):
+                uses[one] = uses.get(one, 0) + 1
+    # `count == 1` beside the ratio and not folded into it: a project a week into `init` has no
+    # hundredth to be under, and the youngest backlogs are where a fresh non-goal is most
+    # likely to contradict a fresh line.
+    rare = {
+        one
+        for one, count in uses.items()
+        if count == 1 or count * _DISTINCTIVE <= recorded
+    }
+    out: list[Note] = []
+    for non_goal in scoping.read(roadmap):
+        forbidden = _terms(non_goal.lead) & rare
+        for entry, terms in spoken:
+            shared = sorted(forbidden & terms)
+            if not shared:
+                continue
+            out.append(
+                Note(
+                    "non-goal.reaches",
+                    file,
+                    f"names {', '.join(shared)}, which {non_goal.lead!r} on line "
+                    f"{non_goal.first} also names — a constraint may bound this line "
+                    f"without forbidding it, and nothing here decides which",
+                    entry.lineno,
+                    id=entry.task.id,
+                    subject=entry.task.id,
+                )
+            )
     return out
 
 

@@ -804,6 +804,24 @@ _TABLE: Mapping[str, _Rule] = {
             "read what the block already claims before rewriting one of it",
         ),
     ),
+    # RK1434. A note and not a defect, so the door is the pair of reads that settle it: what
+    # the project already refuses, then what this line actually is. Nothing writes here,
+    # because whether the constraint reaches the line is the judgement — and both outcomes are
+    # a write this table cannot choose between, `non-goal amend` narrowing the rule or `retire`
+    # taking the line the rule forbids.
+    "non-goal.reaches": _reads(
+        (
+            ("non-goal", "list"),
+            "read the constraint whole: a lead is an address and the sentence under it is "
+            "where the exception, if there is one, was already written",
+        ),
+        (
+            ("show", "{id}"),
+            "then the line and its design, which is what decides whether the rule bounds "
+            "this work or forbids it — `non-goal amend` narrows the rule, `retire` takes "
+            "the line, and nothing here can choose between them",
+        ),
+    ),
     "priority.config": _read(
         ("priority", "list"),
         "the section wins over the config: read the queue that is live, then take the "

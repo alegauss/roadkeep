@@ -719,3 +719,102 @@ def test_a_task_line_under_the_heading_belongs_to_the_task_reader(tmp_path):
         roadmap=ROADMAP.rstrip("\n") + "\n- no bold lead at all, so it has no address\n",
     )
     assert any(not one.shaped for one in read(unshaped.document("roadmap")))
+
+
+# -- the constraint that reaches an open line (RK1434) ------------------------
+
+#: A backlog whose vocabulary is real: a `patch`/`vendored` pair the non-goal forbids, and
+#: enough recorded lines around them for `field` to be the common word it is in practice.
+CONTRADICTED = """# Roadmap
+
+## Block A — The model
+
+- 📋 **RK1** (deps: —) **The vendored decoder crashes on a truncated frame** — Because the upstream fix is unreleased. → §RK1
+- 📋 **RK2** (deps: —) **The status field is rendered twice on a narrow terminal** — Because two writers own the column. → §RK2
+
+## Non-goals
+
+- **No local patch to the vendored C.** Carrying one means every upstream release is a merge.
+- **No effort or size field.** A field nobody fills is a field that lies.
+"""
+
+#: What makes `field` common and `vendored` rare — the ledger is the sample, and a backlog of
+#: two lines has none. Every entry says `field` and none says `vendored`.
+FILLED = "# Changelog\n\n## Block A — The model\n\n" + "".join(
+    f"- ✅ **RK{n}** **A field somewhere was wrong** — The field is right now.\n"
+    for n in range(100, 200)
+)
+
+BOTH = (
+    'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+    "[non_goals]\nlead = 60\nwhy = 200\n"
+)
+
+
+def _governed(tmp_path: Path, roadmap: str = CONTRADICTED) -> Config:
+    (tmp_path / "roadkeep.toml").write_text(BOTH, encoding="utf-8")
+    for name, body in (("ROADMAP.md", roadmap), ("CHANGELOG.md", FILLED)):
+        with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return Config.discover(tmp_path)
+
+
+def _reaches(config: Config) -> list:
+    from roadkeep.linting import lint
+
+    return [one for one in lint(config).notes if one.code == "non-goal.reaches"]
+
+
+def test_a_non_goal_forbidding_a_line_the_same_file_lists_as_ready_is_said(tmp_path):
+    """Measured: a project added "no local patch to the vendored C" while a line sat open whose
+    whole content was editing two vendored C files. Both halves passed every gate, because a
+    non-goal is a well-formed bullet, a task is a well-formed line, and nothing compared them.
+    """
+    (one,) = _reaches(_governed(tmp_path))
+    assert one.id == "RK1"
+    assert "vendored" in one.message
+
+
+def test_the_word_the_whole_ledger_uses_is_not_a_contradiction(tmp_path):
+    """`field` is in every recorded line here and says nothing about the one that shares it —
+    which is why the sample is the ledger and not the open backlog, where seven lines make
+    every word either absent or unique."""
+    assert not [one for one in _reaches(_governed(tmp_path)) if one.id == "RK2"]
+
+
+def test_it_is_a_note_so_the_build_still_passes(tmp_path):
+    """Whether a constraint reaches a line is a reader's judgement, and a gate that failed a
+    build over a shared noun is a gate turned off in a week."""
+    from roadkeep.linting import lint
+
+    report = lint(_governed(tmp_path))
+    assert _reaches(_governed(tmp_path))
+    assert not [one for one in report.findings if one.code == "non-goal.reaches"]
+
+
+def test_a_project_that_governs_no_scope_is_silent(tmp_path):
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n',
+        encoding="utf-8",
+    )
+    for name, body in (("ROADMAP.md", CONTRADICTED), ("CHANGELOG.md", FILLED)):
+        with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    assert not _reaches(Config.discover(tmp_path))
+
+
+def test_a_line_that_has_left_is_not_compared(tmp_path):
+    """The subject is a constraint that forbids work somebody could start: a shipped line is
+    not that, and reporting one would be the rule argued against a decision already taken."""
+    shipped = CONTRADICTED.replace("- 📋 **RK1**", "- ✅ **RK1**")
+    assert not [one for one in _reaches(_governed(tmp_path, roadmap=shipped)) if one.id == "RK1"]
+
+
+def test_the_door_is_the_two_reads_that_settle_it(tmp_path):
+    from roadkeep.remedying import remedy
+
+    config = _governed(tmp_path)
+    (one,) = _reaches(config)
+    found = remedy(one, config)
+    assert found is not None and found.kind == "read"
+    assert [door.argv[0] for door in found.doors] == ["non-goal", "show"]
