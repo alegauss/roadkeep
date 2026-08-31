@@ -1920,6 +1920,31 @@ class Addresses:
         """How many of the listed addresses are task ids rather than outline numerals."""
         return len(self.found) - len(self.outline)
 
+    @property
+    def unfamilied(self) -> bool:
+        """Whether the listing has **no family register to stand in for its rows** (RK1450).
+
+        True under `ref_scheme = "id"`, where every address is a task id and :attr:`outline` is
+        therefore empty. The wide read withholds rows because :meth:`families` summarises them
+        (RK264) — 927 retired addresses is not a listing anybody reads, and one line per family
+        is. Under ids there is nothing to summarise: each address is its own top-level with no
+        children, so `families()` is empty, the substitute is a sentence about `add`, and the
+        listing states a count it offers no way to see.
+
+        And no narrowing reaches them either, which is what makes this the listing's own defect
+        rather than a missing flag: `--family PB1` returns the one row `PB1`, so the caller
+        would run it once per address; `--role` narrows the file and prints the same counts;
+        `--claims` returns rows, which is backwards, since the audit over the exceptions can
+        only ever be part of the plain listing. Measured on a project of 88 addresses, where
+        the answer was to grep the governed file — the one thing the guard exists to stop.
+
+        So where this is true the rows **are** the listing, in the format `--family` already
+        prints them in. The bound is the same one that read accepts: the addresses a project
+        has, narrowable by `--role` and by nothing else, because under ids there is nothing
+        else to narrow by.
+        """
+        return bool(self.found) and not self.outline
+
     def files(self, config: Config) -> str:
         return ", ".join(config.relative(config.path(one)) for one in self.read)
 
@@ -2041,6 +2066,25 @@ class Addresses:
 
     # -- the wide read -----------------------------------------------------
 
+    def rows(self) -> list[str]:
+        """One line per listed address: its register, its file, the commit that retired it.
+
+        One writer for the two readings that print addresses (RK1450) — the family a caller
+        narrowed to, and a project whose addresses have no family. They were one loop and a
+        second call site would have been a second format for the same row.
+        """
+        out: list[str] = []
+        for one in self.found:
+            written = f"  written in {one.written_in[:7]}" if one.written_in else ""
+            # The file, wherever the project has more than one: two rows spelling the same
+            # address are the doubling, and unlabelled they read as one row printed twice.
+            named = f"  in {one.role}" if len(self.read) > 1 else ""
+            out.append(
+                f"  {'live' if one.live else 'retired':<8} {one.anchor}{named}"
+                f"{written}{_ownership(one)}"
+            )
+        return out
+
     def stated(self, config: Config, claims: bool) -> str:
         from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
 
@@ -2082,20 +2126,19 @@ class Addresses:
             )
             said.append(f"  block    Block {self.block}'s prose is under {named}{picked}")
         if self.family:
-            for one in self.found:
-                written = f"  written in {one.written_in[:7]}" if one.written_in else ""
-                # The file, wherever the project has more than one: two rows spelling the same
-                # address are the doubling, and unlabelled they read as one row printed twice.
-                named = f"  in {one.role}" if len(self.read) > 1 else ""
-                said.append(
-                    f"  {'live' if one.live else 'retired':<8} {one.anchor}{named}"
-                    f"{written}{_ownership(one)}"
-                )
+            said += self.rows()
             said.append(
                 f"  next     §{next_child(self.whole, self.family)} — nothing ever used it"
                 f"{self.room_left(config)}"
             )
             return chr(10).join(said + self.doubled_rows())
+
+        if self.unfamilied:
+            # No register summarises these, so they are printed rather than counted (RK1450).
+            # Everything below this is the outline's answer: a free family, one line per
+            # family, and the sentence that stood in for the rows — none of which a project
+            # numbering by id has, which is how the count came to be the whole output.
+            return chr(10).join(said + self.rows() + self.doubled_rows())
 
         # Beside the totals and above the rows, because it is the question a reused block asks
         # first and the listing cannot be read for it (RK293): the rows are per family, and the
@@ -2147,10 +2190,20 @@ class Addresses:
             # The rows are the answer where a family was named, and the families are the answer
             # where none was (RK264's rule): 287 retired addresses is not a listing anybody
             # reads. Under `--claims` the rows *are* the answer whatever the family (RK459).
+            #
+            # **And where no family register exists, so are they** (RK1450): the rule above
+            # trades rows for a summary, and a project numbering by id has no summary to be
+            # handed instead — so the payload counted 88 addresses in `live` and `retired` and
+            # returned `anchors: []`, with `--claims` the only flag that answered in rows.
             "anchors": [
                 _anchor_row(one)
                 for one in self.found
-                if self.family or (claims and _ownership(one))
+                # `not claims` on the middle clause and not a third condition: `--claims` is
+                # the audit over the exceptions, and a flag that narrows must not be the one
+                # reading that widens.
+                if self.family
+                or (self.unfamilied and not claims)
+                or (claims and _ownership(one))
             ],
             "families": [] if self.family else self.families(),
             "id_anchors": self.spent,

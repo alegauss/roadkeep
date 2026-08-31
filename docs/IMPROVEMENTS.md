@@ -79,35 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1450 The listing that counts what it will not name
-
-Measured on Japode/cloud, a project under `ref_scheme = "id"` with 88 addresses across
-two prose files:
-
-    anchors --json                    anchors: []   live: 36, retired: 52
-    anchors --role improvements --json anchors: []
-    anchors --claims --json           anchors: 29 rows
-
-The narrowing flag returns rows and the unnarrowed read returns none, which is
-backwards: `--claims` is documented as the audit over the subset whose ownership is not
-ordinary, so it can only ever be part of what the plain listing is. A reader who runs
-the wide read first — which is the order the skill teaches — is told there are 88 and
-shown nothing.
-
-The prose row that stands in for them says the addresses are task ids that `add` already
-refuses to reuse. That answers the question `--next` asks and not the question a listing
-asks. What a caller wants here is which addresses a heading still declares and which a
-ship retired while the entries citing them stayed, per file — the read that says whether
-a citation elsewhere still resolves.
-
-What it cost in the session that found it: the caller wanted exactly that, for 35 ids
-cited across a repository's code, and the answer was to grep the governed files directly
-— the one thing the guard and the skill both exist to stop, and the reason this read is
-offered at all.
-
-Kin to RK1292 in shape, where a header stated a verdict the listing under it could not
-support. Here the counts are right and the rows are missing.
-
 ## Block D — The gate
 
 ## Block E — Adoption

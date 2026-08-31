@@ -428,6 +428,7 @@
 - ✅ **RK1423** **The cost --session row puts the whole surface beside a room derived from a smaller figure** — The schema row names the held figure its room was taken against, so the line reconciles without the one below it (design superseded: the held figure belongs in the clause, not in the cost column).
 - ✅ **RK1432** **stats counts every open line together, so a reader cannot see how many can actually be started** — stats splits the open count where a project declares [requirements]: how many nothing absent is holding up, and the rest under what each waits for, a line naming two counted once.
 - ✅ **RK1439** **pick offers a line that seven shipped entries were filed against, with nothing saying it is being worked by proxy** — `brief` and `pick` name the shipped entries whose sentences cite an open id, so the eighth caller reads what the previous seven learned.
+- ✅ **RK1450** **anchors lists no rows while its own payload counts 88 of them, and --claims, which narrows it, lists 29** — The family register summarises the rows the wide read withholds, and a project numbering by id has no families — so the listing stated a count and no narrowing reached it.
 
 ## Block D — The gate
 

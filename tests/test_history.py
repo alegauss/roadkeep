@@ -2201,3 +2201,78 @@ def test_the_id_scheme_is_left_alone(tmp_path):
     git_commit(config.root, "docs: file RK7")
     ship(config, "RK7", "feat: ship RK7")
     assert not [one for one in anchors(config) if one.anchor == "RK7" and not one.live]
+
+
+# -- the listing that counted what it would not name (RK1450) ------------------
+
+
+def _numbered_by_id(tmp_path: Path) -> Config:
+    """A project under the default `ref_scheme = "id"`, with three addresses and one retired."""
+    config = repo(tmp_path)
+    prose(config)
+    config = Config.discover(tmp_path)
+    for task_id in ("RK1", "RK2", "RK3"):
+        propose(config, task_id, f"docs: file {task_id}")
+        design(config, f"### §{task_id} A design", f"docs: design {task_id}")
+    unwrite(config, "### §RK2 A design", "feat: the second thing (RK2)")
+    return Config.discover(tmp_path)
+
+
+def test_a_project_numbering_by_id_is_shown_its_addresses_and_not_only_counted(tmp_path, capsys):
+    """The whole of RK1450, measured on a corpus of 88 and reproduced at three.
+
+    The wide read trades rows for one line per family (RK264), which is the right trade under
+    an outline and no trade at all under ids: every address is its own top-level with no
+    children, so the family register is empty and the substitute is a sentence about `add`. The
+    listing then states how many addresses exist and offers no way to see them — `--family`
+    returns the single row it names, `--role` prints the same counts, and `--claims`, which
+    narrows, was the only flag that answered in rows.
+    """
+    config = _numbered_by_id(tmp_path)
+    assert main(["-C", str(config.root), "anchors"]) == EXIT_OK
+
+    out = capsys.readouterr().out
+    assert "3 anchor(s), 1 retired" in out
+    # Each address, in the register `--family` already prints them in — one writer for both.
+    assert "live     RK1" in out
+    assert "retired  RK2" in out
+    assert "live     RK3" in out
+    # And not the row that stood in for them, which answers the question `--next` asks.
+    assert "`add` already refuses to reuse" not in out
+
+
+def test_the_payload_carries_the_rows_its_own_counts_are_over(tmp_path, capsys):
+    # The half a client reads: `live` and `retired` counted 88 while `anchors` was `[]`, so a
+    # caller asking which citations still resolve was handed two numbers and no addresses.
+    config = _numbered_by_id(tmp_path)
+    assert main(["-C", str(config.root), "anchors", "--json"]) == EXIT_OK
+
+    payload = json.loads(capsys.readouterr().out)
+    assert (payload["live"], payload["retired"]) == (2, 1)
+    assert [one["anchor"] for one in payload["anchors"]] == ["RK1", "RK2", "RK3"]
+    assert [one["live"] for one in payload["anchors"]] == [True, False, True]
+
+
+def test_the_narrowing_flag_still_narrows_where_the_wide_read_now_lists(tmp_path, capsys):
+    # `--claims` is the audit over the addresses whose ownership is not ordinary, so it can
+    # only ever be part of the plain listing. Widening the plain read must not widen it.
+    config = _numbered_by_id(tmp_path)
+    assert main(["-C", str(config.root), "anchors", "--claims", "--json"]) == EXIT_OK
+
+    payload = json.loads(capsys.readouterr().out)
+    assert len(payload["anchors"]) < 3, payload["anchors"]
+
+
+def test_an_outline_project_keeps_the_family_register_it_had(tmp_path, capsys):
+    # The trade RK264 made is only wrong where there is nothing to trade for: a project with
+    # families is still handed one line per family and no rows, which is what keeps 927 retired
+    # addresses out of a read nobody asked that of.
+    config = outlined(tmp_path)
+    design(config, "### XXXVII.1 A first design", "docs: file it")
+    design(config, "### XXXVII.2 A second design", "docs: file the second")
+    assert main(["-C", str(config.root), "anchors"]) == EXIT_OK
+
+    out = capsys.readouterr().out
+    assert "XXXVII   2 live, 0 retired" in out
+    assert "live     XXXVII.1" not in out
+    assert "anchors --family <anchor>" in out

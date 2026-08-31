@@ -28,8 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1450** (deps: —) **anchors lists no rows while its own payload counts 88 of them, and --claims, which narrows it, lists 29** — The unnarrowed read answers in counts alone, so which anchors exist is a question only the narrowing flag answers and a caller greps the governed file instead. → §RK1450
-
 ## Block D — The gate
 
 ## Block E — Adoption

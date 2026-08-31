@@ -118,18 +118,14 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 220 | 2 |
-| C — Query (consult without reading the file) | 1 | 143 | 2 |
+| C — Query (consult without reading the file) | 0 | 144 | 2 |
 | D — The gate | 0 | 207 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 134 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 1 | 935 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1450** (deps: —) **anchors lists no rows while its own payload counts 88 of them, and --claims, which narrows it, lists 29** — The unnarrowed read answers in counts alone, so which anchors exist is a question only the narrowing flag answers and a caller greps the governed file instead. → §RK1450
+| **Total** | 0 | 936 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
