@@ -31,6 +31,8 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1455** (deps: —) **a changelog listing cannot be asked for its blocks, so the only way to see them is to read the file** — An unscoped ledger listing is 117k characters and a scoped one needs a block label the caller does not have, so finding what the blocks are means reading the governed file. → §RK1455
+
 ## Block D — The gate
 
 ## Block E — Adoption

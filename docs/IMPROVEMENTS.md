@@ -126,6 +126,30 @@ changing what the verb does.
 
 ## Block C — Query
 
+### §RK1455 The block list nothing answers
+
+Measured on 31 August 2026, filing against a FreeWilly backlog. Two new tasks had to be
+placed, and the placement rule is to reuse an existing block — so the question to answer
+first was what the blocks are.
+
+Nothing answers it. `list` answers lines: unscoped over the ledger it returned 117,815
+characters and was refused for exceeding the token ceiling, and `--block C` wants the
+label being looked for. `status`, `remaining` and `pick` all answer about tasks. What
+the caller does next is grep the governed file for `^## `, which is the one move the
+hook exists to prevent and the one that worked. A rule the tool cannot serve got broken
+by a caller trying to follow it.
+
+So: a listing that answers the structure rather than the contents. `blocks` — each
+label, its title, how many it holds open and how many the ledger records under it. Those
+are figures `status` already computes one block at a time; what is missing is asking for
+all of them without knowing their names. It would be the first call of a session that
+has to file something.
+
+The other half is the refusal. A listing that overruns should say which blocks it would
+have printed and how many lines each holds: that answer is smaller than the one refused
+and closer to what was wanted. A character count and a stop is what sends a caller to
+the file.
+
 ## Block D — The gate
 
 ## Block E — Adoption
