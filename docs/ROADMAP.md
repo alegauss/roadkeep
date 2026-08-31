@@ -34,6 +34,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK1451** (deps: —) **engines lists only the copy it is, so a vendored engine the launcher runs has no row and both copies exit clean** — The hook and the MCP server run .roadkeep/ at 0.1.1269 while a shell reaches 0.2.58, and each answers writing with itself and names no disagreement. → §RK1451
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

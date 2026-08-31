@@ -121,11 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 144 | 2 |
 | D — The gate | 0 | 207 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 134 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 134 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 0 | 936 | 12 |
+| **Total** | 1 | 936 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1451** (deps: —) **engines lists only the copy it is, so a vendored engine the launcher runs has no row and both copies exit clean** — The hook and the MCP server run .roadkeep/ at 0.1.1269 while a shell reaches 0.2.58, and each answers writing with itself and names no disagreement. → §RK1451
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -85,6 +85,33 @@ already written, not authorship.
 
 ## Block F — The plugin
 
+### §RK1451 The read that reconciles the copies, blind to one
+
+Observed in Japode/cloud, which holds a vendored `.roadkeep/` from an earlier `install
+--vendor`. Two engines are in play and the same command answers differently depending on
+which one runs it:
+
+    roadkeep engines                        writing 0.2.58    D:/Git/alegauss/roadkeep
+    launcher engines                        writing 0.1.1269  ./.roadkeep/src/roadkeep
+
+Both exit 0. Both say `plugin — no plugin is registered for this project`. Neither has a
+row for the other, so the read that exists to reconcile the copies in play is the one
+place a second local engine is invisible.
+
+It decides who writes. `.mcp.json` runs the launcher, and so does the guard, so every
+tool call and every denied hand edit went through 0.1.1269 — while a shell reaching
+`roadkeep` got 0.2.58, two minor versions ahead. In the session that found this the MCP
+server was down for an hour, so the whole write path happened to go through the newer
+one; had it connected, the tools would have written under 0.1 and the shell's `lint`
+would have judged it under 0.2, each reporting agreement.
+
+Distinct from the three this block already closed. RK79 had two engines both answering
+one version, and RK1167 had `engines` naming a version replaced in the registry — there
+the number was wrong. Here each copy states its own version correctly, and the defect is
+that the listing has no row for a copy that is not the one answering.
+
+No prose was damaged: both engines called the governed files clean.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
