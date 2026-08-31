@@ -889,6 +889,7 @@
 - ✅ **RK1424** **The skill is 65,180 code units and nothing counts it, where the surface it is larger than has a ceiling** — cost --skill prices the write path beside the served schema and says which sections it went to, served over MCP and with no ceiling declared.
 - ✅ **RK1428** **Nothing counts the guard's denial, and 1,760 of its 4,092 units re-spell the shell for a caller that has the tools** — cost --deny prices a refused write off a real Refusal, beside the notice that already had a ceiling, and names the shell half without judging it.
 - ✅ **RK1429** **The one slash command that writes puts its argument into a shell unquoted, and nothing holds how any of them does it** — The argument is quoted like the path beside it, and a sweep over every expanded block refuses a bare variable in any of the four files.
+- ✅ **RK1437** **the skill names all 44 verbs and costs 65k units a turn, so it is a reference loaded as an orientation** — The skill is an orientation of 11k units, the write path and the query surface being two pages install carries beside it, and `cost --skill` prices each (design recorded in `tests/test_skill.py`).
 
 ## Block G — The editor surface (the backlog where the file is open)
 

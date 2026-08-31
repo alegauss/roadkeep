@@ -129,7 +129,10 @@ session = 64300
 # file the plugin payload publishes and the loader warns is not context (RK323).
 ".claude/CLAUDE.md" = { lines = 12, bytes = 800 }
 # skills/roadkeep/SKILL.md is deliberately absent: it is trigger-loaded, so its cost falls on
-# the turns that write, and budgeting it would price it as if it were resident (RK23).
+# the turns that write, and budgeting it would price it as if it were resident (RK23). It has
+# a ceiling all the same, held in tests/test_skill.py where this file's other shape facts are:
+# it is an orientation now and the reference is two pages beside it (RK1437), so what that
+# number holds is the cadence — a rule that grows belongs on a page.
 
 [markers]
 open = ["📋", "💭", "⏳", "🛠"]

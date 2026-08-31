@@ -179,32 +179,6 @@ silent about.
 
 ## Block F — The plugin
 
-### §RK1437 A reference loaded as an orientation
-
-The skill `install` writes names all 44 verbs. Coverage is not the problem: a session
-had every one of them in context from its first turn, used about fourteen, and missed
-the two that would have saved it most - `budget`, which measures a draft without writing
-it, and `restate`, which corrects a symptom.
-
-THE TOOL ALREADY MEASURES WHY. `cost --skill` reports 65832 code units on every turn
-that loads it, and 42791 of those in one section. That is a reference being loaded as an
-orientation, on every turn, and a reference of that density is skimmed. What the session
-retained instead came from refusals - which teaches only the verbs whose absence fails
-loudly, and never the ones whose whole purpose is that nothing fails.
-
-THE VERBS IT NEVER FOUND ARE THE READS. Of the fourteen it used, nearly all were writes
-or gates. `budget`, `cost`, `explain`, `show`, `audit`, `unclosed`, `gaps` and `writes`
-went untouched for a day - and those are the ones that reduce friction rather than
-record it.
-
-WHAT WOULD ANSWER IT is layering rather than cutting, and the argument is only about
-cadence: an orientation small enough to be read on first contact - what the tool owns,
-the verbs of the daily loop, and where the rest is - with the reference reachable when a
-turn needs it.
-
-Whether that is two files, a section order, or something the plugin loads on demand is
-this project's call and not an adopter's.
-
 ### §RK1442 The count an agent cannot ask for
 
 RK1432 gave `stats` a split: how many open lines nothing absent is holding up, and what
@@ -226,6 +200,29 @@ characters this week. A forty-fifth tool is paid for by every session at connect
 SO THE QUESTION IS WHICH. `list` is served and already carries the population; the split
 could ride its payload instead of arriving as a tool. That costs nothing at connect and
 answers the same question, and deciding it is what this line is for.
+
+### §RK1443 The staleness notice, said once and made actionable
+
+The MCP server appends a paragraph to every write when it notices the package changed on
+disk after it imported: "N module(s) of this package changed on disk after this server
+imported roadkeep... restart the session if it has not." It is correct, and it is
+attached to the wrong unit.
+
+An agent doing a batch of work sees it on `add`, on `section add`, on `status`, on
+`ship` — the same words each time, in a session that cannot restart itself. Advice that
+arrives once is read; the same paragraph on every call is skipped, including on the
+write where a stale validator mattered.
+
+Three changes, and the third is the one that pays. **Say it once per server process**:
+the process imported stale code, and that does not become more true on the fourth write.
+**Say what it invalidates** rather than what happened — which modules changed, and so
+whether a validator, a limit or a renderer is the part that may disagree; a caller told
+`authoring.py` is the stale one knows whether its own write is affected. **Offer the
+reload, not only the restart**: a session cannot restart itself, so a notice whose only
+remedy is an action the reader cannot take has no next step. The CLI path re-imports per
+process, which is the remedy that works today, and it is buried in the last clause.
+
+Falsified when a session doing ten writes reads the same paragraph ten times.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

@@ -25,7 +25,10 @@ kinds of file:
   vendored authority that drifts is worse than none, because it is read with the same trust.
   Which is also why its entry-point sentence is re-addressed rather than copied (RK137): a
   copy that is faithful in every byte and names a command that does not exist here is read
-  with that same trust, and the failure arrives in the shell an agent fell back to.
+  with that same trust, and the failure arrives in the shell an agent fell back to. **The
+  skill is three files now** (RK1437) — an orientation and the two reference pages it points
+  at — and they are one surface for every rule here: an orientation naming a page an adopter
+  has not got fails by returning nothing, which is quieter than any drift.
 * **`.mcp.json` and `.claude/settings.json` are declarations**, and other tools declare in
   them too. Only this project's entry is re-derived — the launcher path is the part that
   moves — and everything else in the file is carried through untouched. An existing file that
@@ -92,16 +95,23 @@ PLUGIN_HOOKS = "hooks/hooks.json"
 PLUGIN_MCP = ".claude-plugin/mcp.json"
 PLUGIN_SKILL = "skills/roadkeep/SKILL.md"
 PLUGIN_MANIFEST = ".claude-plugin/plugin.json"
+#: The two pages the skill points at instead of holding (RK1437). Named here rather than
+#: globbed off the directory: what the plugin carries is a declaration, and a page somebody
+#: dropped beside the skill is not a surface this command installs. They are copied verbatim
+#: — the one substituted fact lives in the entry-point sentence, which is `SKILL.md`'s.
+PLUGIN_PAGES = ("skills/roadkeep/writing.md", "skills/roadkeep/asking.md")
 #: The self-locating bridge, for the environment that installs no plugin and has no checkout
 #: to point at (RK1108). Copied rather than translated: it is a program and not a declaration,
 #: and the one fact `install` substitutes elsewhere — where the engine is — is the question
 #: this file exists to answer at runtime.
 PLUGIN_BRIDGE = "hooks/roadkeep-launch.py"
 
-#: The five together, which is both what a tree must carry to be translated *from* and what
+#: The set together, which is both what a tree must carry to be translated *from* and what
 #: says a tree is the plugin rather than an adopter of it (RK235). One list, so the two
-#: questions cannot come to disagree about what carrying the plugin means.
-CARRIED = (LAUNCHER, PLUGIN_HOOKS, PLUGIN_MCP, PLUGIN_SKILL, PLUGIN_MANIFEST)
+#: questions cannot come to disagree about what carrying the plugin means — and the skill's
+#: two pages are in it because a skill missing half of itself is a tree that cannot be
+#: translated, not a tree with an optional extra (RK1437).
+CARRIED = (LAUNCHER, PLUGIN_HOOKS, PLUGIN_MCP, PLUGIN_SKILL, *PLUGIN_PAGES, PLUGIN_MANIFEST)
 
 #: Where each lands in the adopting project. The skill path is the loader's convention —
 #: `.claude/skills/<name>/SKILL.md` — and the workflow is a file of its own rather than a job
@@ -110,6 +120,12 @@ CARRIED = (LAUNCHER, PLUGIN_HOOKS, PLUGIN_MCP, PLUGIN_SKILL, PLUGIN_MANIFEST)
 PROJECT_MCP = ".mcp.json"
 PROJECT_SETTINGS = ".claude/settings.json"
 PROJECT_SKILL = ".claude/skills/roadkeep/SKILL.md"
+#: The pages beside it, derived from :data:`PLUGIN_PAGES` so the two lists cannot drift into
+#: naming different files: the loader reads a skill's directory, so a page lands where the
+#: skill points at it and nowhere else.
+PROJECT_PAGES = tuple(
+    f"{PROJECT_SKILL.rsplit('/', 1)[0]}/{page.rsplit('/', 1)[1]}" for page in PLUGIN_PAGES
+)
 PROJECT_WORKFLOW = ".github/workflows/roadkeep.yml"
 #: Where the bridge lands, beside the hooks that run it (RK1108). Inside the repository on
 #: purpose: the environment it exists for reads what is committed and nothing else, so a path
@@ -203,6 +219,12 @@ MERGE_WIRED = (
 _OWN_SKILL = (
     f"this tree ships {PLUGIN_SKILL}, so a copy of it here would be the drift `install` "
     f"exists to remove — a session in this checkout reads the original"
+)
+#: The same sentence about the pages the skill points at (RK1437). One row and not two,
+#: because they are skipped for one reason and an adopter reading three near-identical
+#: lines learns no more than from one that names both files.
+_OWN_PAGES = (
+    f"{' and '.join(PLUGIN_PAGES)} ship with it, and are read from the same original"
 )
 #: The third member of that set, and the one that was missing from it (RK402). A tree that
 #: ships the guard as a **plugin** — `hooks/hooks.json`, declared by `.claude-plugin/plugin.json`
@@ -639,10 +661,18 @@ def plan(
     debt = _standing(base) if gauging else None
     if own:
         skipped.insert(0, (PROJECT_SKILL, f"{PROJECT_SKILL}: {_OWN_SKILL}"))
+        skipped.insert(1, (PROJECT_PAGES[0], f"{PROJECT_PAGES[0]}: {_OWN_PAGES}"))
     else:
         surfaces.append(
             _copy(base / PROJECT_SKILL, _skill(origin, launcher, committed=committed))
         )
+        # The pages the skill points at, copied with it and never separately (RK1437): a
+        # vendored orientation naming two files an adopter has not got is worse than one
+        # that held the reference, because the miss is a read that silently returns nothing.
+        surfaces += [
+            _copy(base / landed, _read(origin / page))
+            for page, landed in zip(PLUGIN_PAGES, PROJECT_PAGES, strict=True)
+        ]
     if own:
         skipped.insert(0, (PROJECT_WORKFLOW, f"{PROJECT_WORKFLOW}: {_OWN_WORKFLOW}"))
     elif (base / WORKFLOWS).is_dir():
@@ -720,8 +750,8 @@ def stale(root: str | Path = ".") -> tuple[str, ...]:
 
     **What a project that is not wired pays is one `is_file`.** The vendored copy is the
     discriminator, and a plugin-served project has none — there is nothing to drift, and the
-    plugin's own surfaces are whatever the session loaded. A wired one pays four small reads
-    and two JSON parses, and never the gate: ``gauging=False``, the workflow being written
+    plugin's own surfaces are whatever the session loaded. A wired one pays one small read per
+    vendored surface and two JSON parses, and never the gate: ``gauging=False``, the workflow being written
     once and then the adopter's, so it is excluded here by the same field that says so.
 
     Measured against RK176's 43ms floor, which is the budget this spends from: **0.07ms**
@@ -1980,6 +2010,9 @@ def removal(root: str | Path = ".") -> Removal:
             _withdrawn(base / PROJECT_MCP, _without_server),
             _withdrawn(base / PROJECT_SETTINGS, _without_guard),
             _dropped(base / PROJECT_SKILL),
+            # And the pages it points at, for the reason the skill itself is dropped (RK1437):
+            # a reference left behind is a copy of this tool's rules that nothing refreshes.
+            *(_dropped(base / page) for page in PROJECT_PAGES),
             # Unconditionally, and `_dropped` answers `held=False` where it is not there
             # (RK1108): `removal` reads no checkout and cannot know whether the wiring it is
             # taking out was written with `--committed`, so asking the disk is the only reading

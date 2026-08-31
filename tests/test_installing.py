@@ -47,9 +47,11 @@ from roadkeep.installing import (
     PLUGIN_HOOKS,
     PLUGIN_MANIFEST,
     PLUGIN_MCP,
+    PLUGIN_PAGES,
     PLUGIN_ROOT,
     PLUGIN_SKILL,
     PROJECT_MCP,
+    PROJECT_PAGES,
     PROJECT_SETTINGS,
     PROJECT_SKILL,
     PROJECT_WORKFLOW,
@@ -112,10 +114,22 @@ def test_it_writes_the_two_surfaces_init_does_not_scaffold(project, source):
         project / PROJECT_MCP,
         project / PROJECT_SETTINGS,
         project / PROJECT_SKILL,
+        # The skill is three files since RK1437 — an orientation and the two pages it points
+        # at — and they land together because a page the orientation names and the adopter has
+        # not got fails by returning nothing, which is quieter than any drift.
+        *(project / page for page in PROJECT_PAGES),
         project / PROJECT_WORKFLOW,
     }
     for path in written:
         assert path.is_file()
+
+
+def test_the_pages_the_orientation_points_at_are_copied_verbatim(project, source):
+    """RK1437, and the half `--check` is about: the entry point is the one substituted fact
+    and it lives in `SKILL.md`, so a page is bytes and any difference is drift."""
+    install(project, source=source)
+    for page, landed in zip(PLUGIN_PAGES, PROJECT_PAGES, strict=True):
+        assert read(project / landed) == read(HERE / page), landed
 
 
 def test_the_skill_is_the_shipped_file_with_its_entry_point_re_addressed(project, source):
@@ -662,8 +676,11 @@ def test_uninstall_returns_the_project_to_the_state_install_found_it_in(project,
         project / PROJECT_MCP,
         project / PROJECT_SETTINGS,
         project / PROJECT_SKILL,
+        # A reference page left behind is a copy of this tool's rules that nothing refreshes,
+        # which is the drift `install` exists to remove, one file over (RK1437).
+        *(project / page for page in PROJECT_PAGES),
     }
-    for path in (PROJECT_MCP, PROJECT_SETTINGS, PROJECT_SKILL):
+    for path in (PROJECT_MCP, PROJECT_SETTINGS, PROJECT_SKILL, *PROJECT_PAGES):
         assert not (project / path).exists()
     # And the directories the copy was alone in, so nothing reads as a vendored skill.
     assert not (project / ".claude").exists()
@@ -709,8 +726,9 @@ def test_un_wiring_a_project_that_was_never_wired_takes_nothing(project):
     assert taken.changing == ()
     # Four since RK1108 added the committed bridge, which `removal` asks the disk about for the
     # reason it asks about everything else: it reads no checkout, so it cannot know which flag
-    # wired this project. Absent is absent either way.
-    assert [w.state for w in taken.withdrawals] == ["absent"] * 4
+    # wired this project. Absent is absent either way — and six since RK1437 split the skill,
+    # counted off `PROJECT_PAGES` so a third page is not a number to remember here.
+    assert [w.state for w in taken.withdrawals] == ["absent"] * (4 + len(PROJECT_PAGES))
 
 
 def test_uninstall_check_is_the_same_answer_and_writes_nothing(project, source, capsys):

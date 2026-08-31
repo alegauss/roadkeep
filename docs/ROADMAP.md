@@ -41,8 +41,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1437** (deps: —) **the skill names all 44 verbs and costs 65k units a turn, so it is a reference loaded as an orientation** — A session held every verb from turn one, used fourteen, and found the two that would have saved it most on its last day. → §RK1437
 - 📋 **RK1442** (deps: —) **stats is the one counting verb no tool serves, so the split it just grew is unreachable from the surface an agent has** — list and audit are served and stats is not; the skill cannot even name it, a test refusing any read it heads a span with that nothing serves. → §RK1442
+- 📋 **RK1443** (deps: —) **Every MCP write repeats the same staleness notice a session cannot act on** — Advice that arrives once is read, and the same paragraph on every call is noise the reader learns to skip - including on the write where it mattered. → §RK1443
 
 ## Block G — The editor surface (the backlog where the file is open)
 

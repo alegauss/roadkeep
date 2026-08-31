@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 1 | 142 | 2 |
 | D — The gate | 0 | 207 | 2 |
 | E — Adoption | 2 | 114 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 128 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 129 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 19 | 0 |
-| **Total** | 6 | 922 | 12 |
+| **Total** | 6 | 923 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1437** (deps: —) **the skill names all 44 verbs and costs 65k units a turn, so it is a reference loaded as an orientation** — A session held every verb from turn one, used fourteen, and found the two that would have saved it most on its last day. → §RK1437
+- 📋 **RK1438** (deps: —) **install reports which surfaces it wrote and never says what they let a session do** — For an agent the install output and the first refusal are what get read; the skill arrives later and is long enough to skim. → §RK1438
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
@@ -221,7 +221,9 @@ python ../roadkeep/scripts/roadkeep.py -C . install --check   # in CI: still in 
 ```
 
 `.mcp.json`, the guard on its three hook events in `.claude/settings.json`, a verbatim
-`.claude/skills/roadkeep/SKILL.md`, and — only where the repository already has workflows — a
+`.claude/skills/roadkeep/` — `SKILL.md` and the two reference pages it points at, which are
+one surface because an orientation naming a page nobody has fails by returning nothing — and
+— only where the repository already has workflows — a
 job calling the action above. The skill is **refreshed on every run** and `--check` exits 1
 once it drifts, which is what a vendored copy otherwise has nothing to keep it in step with.
 Declarations are merged, so what another tool wrote in either file survives; the workflow is
@@ -395,6 +397,14 @@ project's instruction file because instructions are loaded on *every* turn, incl
 that touch no roadmap — the budget above exists because that is how the 186 KB happened. The
 skill is read when a governed file is in play and costs nothing otherwise, and it ships with
 the plugin, so the standard is the same text in every project rather than a copy per repo.
+
+That trigger is one cadence and the reference is another, so `SKILL.md` is an **orientation**
+— the loop's verbs, the reads worth reaching for, the two rules, and where the rest is — and
+`writing.md` and `asking.md` beside it hold the write path and the query surface, opened by
+the turns that need them. It named all forty-four verbs before that split and cost 65,885
+code units on every matching turn, which is a reference being loaded as an orientation: a
+session held every one of them from turn one, used about fourteen, and found the two that
+would have saved it most on its last day. `roadkeep cost --skill` prints both cadences.
 
 All four install with the two commands at the top of this file, and both surfaces the harness
 starts run `python "${CLAUDE_PLUGIN_ROOT}/scripts/roadkeep.py"` — the package the plugin

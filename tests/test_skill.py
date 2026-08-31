@@ -35,8 +35,18 @@ import conftest
 from roadkeep.config import Config
 from roadkeep.cli import build_parser, main
 
+def _plugin_pages() -> tuple[str, ...]:
+    from roadkeep.installing import PLUGIN_PAGES
+
+    return PLUGIN_PAGES
+
+
 HERE = Path(__file__).resolve().parents[1]
 SKILL = HERE / "skills" / "roadkeep" / "SKILL.md"
+#: The two pages the orientation points at (RK1437). Read off `installing.PLUGIN_PAGES`
+#: rather than named again here: what the plugin carries is that list, and a second one
+#: would let a page be dropped from the install and stay green in the tests.
+PAGES = tuple(HERE / page for page in _plugin_pages())
 AGENTS = HERE / "agents.md"
 
 #: The write path, as the skill spells it. Each is a command an agent would otherwise guess.
@@ -56,8 +66,20 @@ _MUST_NAME = (
 )
 
 
-def text() -> str:
+def orientation() -> str:
+    """`SKILL.md` alone — what a turn pays the moment the trigger matches (RK1437)."""
     return SKILL.read_text(encoding="utf-8")
+
+
+def text() -> str:
+    """The skill **whole**: the orientation and the two pages it points at.
+
+    Every assertion about what the skill *teaches* reads this. The split is a cadence and
+    not a subtraction — a rule moved to `writing.md` is still the skill's rule and still
+    reaches every adopting project — so a test that read `SKILL.md` alone would report the
+    reference as deleted the day it was merely deferred.
+    """
+    return "\n".join([orientation(), *(page.read_text(encoding="utf-8") for page in PAGES)])
 
 
 def flowed() -> str:
@@ -99,6 +121,52 @@ def test_the_skill_sits_where_the_plugin_loader_looks():
 
 def test_the_skill_is_named_for_the_plugin_and_its_own_directory():
     assert frontmatter()["name"] == SKILL.parent.name == "roadkeep"
+
+
+# -- the orientation, and the reference it points at (RK1437) -----------------
+
+#: What `SKILL.md` may cost the turns its trigger matches, in UTF-16 code units. Not in
+#: `[budgets]`, and for that table's own stated reason: it prices what loads on **every**
+#: turn, and pricing a trigger-loaded file there would charge the turns that never open it.
+#: So the ceiling is held here, where the other facts about this file's shape are held.
+#:
+#: The figure is the reading plus room: the split landed at 11,148 against 65,885 before it,
+#: and 13,000 is that with a section's worth of headroom. It is a *cadence* budget and not a
+#: size one — a rule that grows belongs on a page, and this number is what says so.
+ORIENTATION_MAX = 13_000
+
+
+def test_the_reference_is_beside_the_orientation_and_not_inside_it():
+    """RK1437. A session held all forty-four verbs from turn one, used about fourteen, and
+    found the two that would have saved it most — `budget` and `restate` — on its last day.
+    Coverage was never the problem: 65,885 code units on every turn the trigger matched is a
+    reference being loaded as an orientation, and a reference of that density is skimmed."""
+    for page in PAGES:
+        assert page.is_file(), page
+        assert page.parent == SKILL.parent, "a loader reads the skill's own directory"
+    size = len(orientation().encode("utf-16-le")) // 2
+    assert size <= ORIENTATION_MAX, f"the orientation is {size} code units"
+
+
+def test_the_orientation_names_every_page_so_the_reference_is_reachable():
+    """A pointer nothing resolves is worse than the reference it replaced: the turn that
+    needed the page reads the orientation, finds no address, and answers from memory."""
+    body = flowed()
+    for page in PAGES:
+        assert page.name in orientation(), page.name
+        # And the bundle every other assertion here reads is the three files together, so a
+        # page dropped from the tree fails as a missing rule rather than as a missing file.
+        assert " ".join(page.read_text(encoding="utf-8").split()) in body
+
+
+def test_the_orientation_carries_the_verbs_that_go_unfound():
+    """The finding's own half. The verbs a session missed are the **reads** — the ones whose
+    whole purpose is that nothing fails, so a refusal never teaches them — and the correction
+    it reached for `retire` plus `add` to make. Naming them costs the orientation a line each
+    and is the entire saving this split was for."""
+    body = " ".join(orientation().split())
+    for verb in ("budget", "restate", "explain", "repair", "show", "unclosed", "cost"):
+        assert f"`{verb}" in body, verb
 
 
 # -- what triggers it --------------------------------------------------------
@@ -196,15 +264,16 @@ def test_the_body_is_wrapped_and_nothing_but_a_re_wrap_holds_it():
     The frontmatter is exempt and has to be: `description` is one YAML scalar a loader reads,
     and wrapping it changes what the harness matches on.
     """
-    lines = text().split("\n")
-    body, fence = [], False
-    for at, line in enumerate(lines, start=1):
-        if line.lstrip().startswith("```"):
-            fence = not fence
-        elif not fence and at > _frontmatter_ends(lines) and line.strip():
-            body.append((at, line))
-    over = [(at, len(line)) for at, line in body if len(line) > 110]
-    assert not over, f"{len(over)} body line(s) past 110 characters: {over}"
+    for path in (SKILL, *PAGES):
+        lines = path.read_text(encoding="utf-8").split("\n")
+        body, fence = [], False
+        for at, line in enumerate(lines, start=1):
+            if line.lstrip().startswith("```"):
+                fence = not fence
+            elif not fence and at > _frontmatter_ends(lines) and line.strip():
+                body.append((at, line))
+        over = [(at, len(line)) for at, line in body if len(line) > 110]
+        assert not over, f"{path.name}: {len(over)} body line(s) past 110 characters: {over}"
 
 
 def test_no_copy_of_the_duplicate_claim_prices_it_at_a_rank_nobody_can_reproduce():

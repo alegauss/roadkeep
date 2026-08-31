@@ -88,8 +88,10 @@ heading (RK16).
 ## The write path is a skill, not a preamble
 
 [skills/roadkeep/SKILL.md](skills/roadkeep/SKILL.md) is the authority on which command to call,
-what it derives, the rules a schema cannot check, the query surface and how work is picked —
-loaded when a governed file is in play, free on turns that touch none (RK23). It ships in the
+what it derives, the rules a schema cannot check and how work is picked — loaded when a
+governed file is in play, free on turns that touch none (RK23). It is an **orientation**, and
+`writing.md` and `asking.md` beside it are the reference the turn that needs one opens: RK23's
+argument again, one cadence in (RK1437). It ships in the
 plugin, so it is one text everywhere and **nothing here repeats it**. The package is not
 installed here: read its every command as `PYTHONPATH=src python -m roadkeep.cli <…>`.
 

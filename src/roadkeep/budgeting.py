@@ -1578,6 +1578,13 @@ class Skilled:
     #: whole of what an author cutting this file needs, and the reason the total alone would
     #: have been a number with nowhere to act on it (RK1092).
     parts: tuple[Part, ...] = ()
+    #: The reference pages beside the file that answered, each as its own row (RK1437). A
+    #: **third** cadence: the figure above is paid by every turn the skill loads on, and each
+    #: of these by the turns that open that page — so they are reported beside it and never
+    #: added to it, for the reason the served schema is not added either. Empty where the copy
+    #: answering is one from before the split, which is a reading and not an error: an
+    #: orientation with no pages beside it is a skill that still holds its own reference.
+    pages: tuple[Part, ...] = ()
 
     @property
     def present(self) -> bool:
@@ -1598,9 +1605,12 @@ class Skilled:
                 f"plugin ships it, and `{invocation()} engines` names the copies"
             )
         counted = self.bytes if self.characters is None else self.characters
+        # Counted rather than written: the sentence names how many cadences the rows below
+        # actually show, so a skill with no pages beside it is not told about a third.
+        cadences = "three" if self.pages else "two"
         rows = [
             f"skill      {counted} {unit} on every turn that loads it, against {schema} "
-            f"for the served schema once at connect — two cadences, so they are not added",
+            f"for the served schema once at connect — {cadences} cadences, so they are not added",
             f"  {self.origin:<9}{self.path}  {self.lines} line(s), {self.bytes} bytes",
         ]
         rows += [
@@ -1612,6 +1622,13 @@ class Skilled:
             rows.append(
                 f"  … and {len(self.parts) - 3} more — `--json` lists every one"
             )
+        # The pages, every one of them and never a top three: there are two, and a reader
+        # deciding whether to open one needs the price of the one they were about to open.
+        rows += [
+            f"  page     {(page.characters if page.characters is not None else page.bytes):>6}"
+            f"  {page.heading}  on the turns that open it, not on every turn"
+            for page in self.pages
+        ]
         return chr(10).join(rows)
 
     def payload(self, unit: str, schema: int) -> dict[str, object]:
@@ -1637,6 +1654,18 @@ class Skilled:
                 }
                 for part in self.parts
             ],
+            # Its own key and never folded into `sections`: a section is part of the figure
+            # above and a page is a separate charge, and one list would invite a sum that is
+            # the reading this record exists to refuse (RK1437).
+            "pages": [
+                {
+                    "path": page.heading,
+                    "lines": page.lines,
+                    "bytes": page.bytes,
+                    "characters": page.characters,
+                }
+                for page in self.pages
+            ],
         }
 
 
@@ -1656,7 +1685,7 @@ def skill_cost(config: Config) -> Skilled:
     counts bytes and a reader pays characters, and this figure exists to be compared with the
     served schema, which is in code units.
     """
-    from roadkeep.installing import PLUGIN_SKILL, PROJECT_SKILL  # noqa: PLC0415 - RK260
+    from roadkeep.installing import PLUGIN_PAGES, PLUGIN_SKILL, PROJECT_SKILL  # noqa: PLC0415
     from roadkeep.provenance import engine  # noqa: PLC0415 - RK260
 
     candidates = (
@@ -1676,8 +1705,33 @@ def skill_cost(config: Config) -> Skilled:
             lines=counted.count(b"\n"),
             characters=_characters(counted),
             parts=_parts(counted),
+            # Beside the file that answered, which is the directory a loader reads and the
+            # only place the orientation's own pointers resolve (RK1437). Absent is silence:
+            # a copy from before the split has none, and `install --check` is the read that
+            # says a vendored skill is behind — not this one.
+            pages=_pages(path.parent, PLUGIN_PAGES),
         )
     return Skilled(path=PROJECT_SKILL, origin="")
+
+
+def _pages(home: Path, named: tuple[str, ...]) -> tuple[Part, ...]:
+    """The reference pages present beside a skill, in the order the plugin declares them."""
+    found = []
+    for page in named:
+        beside = home / page.rsplit("/", 1)[1]
+        try:
+            raw = beside.read_bytes().replace(b"\r\n", b"\n")
+        except OSError:
+            continue
+        found.append(
+            Part(
+                heading=beside.name,
+                lines=raw.count(b"\n"),
+                bytes=len(raw),
+                characters=_characters(raw),
+            )
+        )
+    return tuple(found)
 
 
 @dataclass(frozen=True, slots=True)

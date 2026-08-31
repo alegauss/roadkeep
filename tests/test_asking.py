@@ -27,6 +27,23 @@ from roadkeep.cli import build_parser
 SKILL = Path(__file__).resolve().parents[1] / "skills" / "roadkeep" / "SKILL.md"
 
 
+def _skill() -> str:
+    """The skill **whole** — the orientation and the reference pages beside it (RK1437).
+
+    The split is a cadence and not a subtraction: a read named on `asking.md` is still named
+    in the file every adopting project loads, one pointer away. Reading `SKILL.md` alone
+    would have made this inventory report the whole query surface as unpublished the day it
+    moved to the page whose subject it is.
+    """
+    from roadkeep.installing import PLUGIN_PAGES
+
+    root = SKILL.resolve().parents[2]
+    return "\n".join(
+        [SKILL.read_text(encoding="utf-8")]
+        + [(root / page).read_text(encoding="utf-8") for page in PLUGIN_PAGES]
+    )
+
+
 def _backticked(text: str) -> list[str]:
     """Every span the file spells as code, which is how it names a command."""
     return re.findall(r"`([^`]+)`", text)
@@ -71,7 +88,7 @@ def test_the_inventory_is_published_where_an_adopting_project_reads_it():
     named in the skill — the file every adopting project loads and the only place another
     repository learns what it may ask. A read this project can make and that file never
     mentions is a read only this project will ever make."""
-    published = _backticked(SKILL.read_text(encoding="utf-8"))
+    published = _backticked(_skill())
     missing = [
         verb_of(question)
         for question in QUESTIONS
