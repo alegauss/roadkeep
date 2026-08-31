@@ -414,7 +414,10 @@ def test_a_stale_surface_does_not_turn_the_ci_gate_red(project, capsys):
     # files, which is the split `engine.disagreement` has had since RK415.
     report = lint(Config.discover(project))
     assert report.clean and report.problems == 0
-    assert [one.code for one in report.notes] == ["install.stale"]
+    # By code and not the whole list: this project is now wired, so a checkout running the
+    # suite with uncommitted work carries `engine.disagreement` beside it (RK1440) — which is
+    # the same split said about a different pair, and neither moves the verdict.
+    assert "install.stale" in [one.code for one in report.notes]
     assert main(["-C", str(project), "lint"]) == EXIT_OK
     assert "install.stale" in capsys.readouterr().out
 

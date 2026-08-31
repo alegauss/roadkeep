@@ -38,6 +38,18 @@ from roadkeep.linting import Finding, Tree, _paths, lint, within
 from roadkeep.picking import take
 
 HERE = Path(__file__).resolve().parents[1]
+
+
+def collective(report) -> list:
+    """The notes a dep-expansion test is about, and never the whole list (RK1440).
+
+    A gate that is somebody's **working tree** now says so, and this suite runs from a
+    checkout: whether that checkout happens to be dirty while the tests run is not a fact
+    about how a collective dep expands, and an unfiltered `(note,) =` made it one.
+    """
+    return [one for one in report.notes if one.code == "deps.collective"]
+
+
 #: A backlog that never heard of this tool, read where it lives and never written to.
 #: Absent on any machine but the author's, so the test skips rather than fails.
 SHIO = Path("D:/Git/viglet/shio/latest")
@@ -770,6 +782,61 @@ def test_a_plugin_older_than_the_gate_is_a_note_and_not_a_finding(tmp_path, monk
     assert report.clean
     (note,) = [n for n in report.notes if n.code == "engine.disagreement"]
     assert "the plugin wired to this project is 0.1.285" in note.message
+
+
+def test_a_gate_that_is_somebody_s_working_tree_says_so_with_no_plugin_wired(tmp_path):
+    """RK1440. Observed in a port over one session: this note reported the gate as 0.2.35,
+    then 0.2.37, then 0.2.38, and in between the gate crashed outright — because the
+    `roadkeep` on that machine's PATH resolves into a checkout of this repository and another
+    session was editing it. Nothing was installed or upgraded.
+
+    The crash is not the point: a working tree is allowed to be broken, and that is what one
+    is for. The point is that the adopting repository could not tell — it read a version
+    number, that number moved three times, and every reading looked exactly like a release.
+
+    A fact about **one** copy, so no second is needed to state it: the port had nothing
+    pinned, which is the default and is what a developer machine looks like. What it does
+    need is a project that **wired** this tool as its gate, which that one had just done.
+    """
+    from roadkeep.installing import install
+    from roadkeep.provenance import engine
+
+    config = project(tmp_path)
+    install(tmp_path, source=HERE)
+    report = lint(config)
+    # This suite runs from a checkout, and one under test is modified more often than not —
+    # so the assertion is on the shape of the answer for whichever state it is in.
+    notes = [n for n in report.notes if n.code == "engine.disagreement"]
+    if engine().modified:
+        (note,) = notes
+        assert "**modified** checkout" in note.message
+        assert "that working tree's" in note.message
+        # And never a `/plugin update`, which moves a judge that is not what is wrong here.
+        assert "/plugin update" not in note.message
+    else:
+        assert notes == [], "a clean engine and no plugin is nothing to report"
+    # A note either way: a working tree is allowed to be broken, and being told is the fix.
+    assert report.clean
+
+
+def test_a_project_that_wired_nothing_is_running_a_copy_it_chose(tmp_path):
+    """The narrowing, and it is the difference between a claim and an argument somebody
+    typed: a bare `lint` from a shell is a caller invoking the copy they named on the command
+    line, and a note about that on every run is the noise this gate refuses everywhere else.
+    The finding was measured on a project that had just put the served `lint` in its gate."""
+    assert not [
+        n for n in lint(project(tmp_path)).notes if n.code == "engine.disagreement"
+    ]
+
+
+def test_the_engine_inside_the_tree_it_judges_is_told_nothing_it_knows(tmp_path):
+    """The one reader for whom this is a tautology: the working tree is theirs and they are
+    editing it, so a note on every run is the noise this gate refuses everywhere else. The
+    directory relation and never a repository name (RK402) — a fork and a vendored copy are
+    the same situation as this checkout, and this repository is the case in hand."""
+    assert not [
+        n for n in lint(Config.discover(HERE)).notes if n.code == "engine.disagreement"
+    ]
 
 
 def test_a_run_over_a_revision_says_nothing_about_engines(tmp_path, monkeypatch):
@@ -1518,7 +1585,7 @@ def test_a_block_dep_says_what_it_expands_to_without_failing(tmp_path):
     # judge how blocked a line is has no way to see it from the line.
     report = lint(project(tmp_path, roadmap=COLLECTIVE, improvements=WITH_RK3))
     assert report.clean and report.problems == 0
-    (note,) = report.notes
+    (note,) = collective(report)
     assert note.code == "deps.collective" and note.id == "RK3"
     assert "Block A is one token naming 2 open tasks: RK1, RK2" in note.message
     assert str(note).startswith("ROADMAP.md:10  deps.collective  RK3:")
@@ -1589,7 +1656,7 @@ def test_a_range_dep_is_expanded_too(tmp_path):
     ranged = COLLECTIVE.replace("(deps: Block A)", "(deps: RK1–RK2)")
     report = lint(project(tmp_path, roadmap=ranged, improvements=WITH_RK3))
     assert report.clean
-    assert "RK1–RK2 is one token naming 2 open tasks" in report.notes[0].message
+    assert "RK1–RK2 is one token naming 2 open tasks" in collective(report)[0].message
 
 
 def test_the_listing_stops_at_six_and_the_count_still_names_them_all(tmp_path):
@@ -1597,7 +1664,7 @@ def test_the_listing_stops_at_six_and_the_count_still_names_them_all(tmp_path):
     # the number: past six the reader is told how much the token hides, not which ids.
     report = lint(project(tmp_path, roadmap=CROWDED, improvements=CROWDED_PROSE))
     assert report.clean
-    (note,) = report.notes
+    (note,) = collective(report)
     assert "Block A is one token naming 8 open tasks: " in note.message
     assert note.message.endswith("RK11, RK12, RK13, RK14, RK15, RK16 …")
 
@@ -1635,7 +1702,7 @@ def test_one_row_per_fact_and_not_one_per_line(tmp_path):
     )
     assert report.clean
     # Eleven lines wait on Block A and the expansion is one fact, so it is stated once.
-    (note,) = report.notes
+    (note,) = collective(report)
     assert note.message.startswith("Block A is one token naming 8 open tasks: ")
     # And the lines it was collapsed out of are named rather than dropped: the count in full,
     # the ids to six, which is the listing rule the expansion above already follows.
@@ -1649,7 +1716,7 @@ def test_the_lines_are_named_only_where_there_are_other_lines(tmp_path):
     # repetition this task is about — so the clause is silent at one, as the note itself is.
     report = lint(project(tmp_path, roadmap=CROWDED, improvements=CROWDED_PROSE))
     assert report.clean
-    (note,) = report.notes
+    (note,) = collective(report)
     assert "wait on it" not in note.message and note.id == "RK19"
 
 
@@ -1665,7 +1732,7 @@ def test_a_collective_dep_naming_one_task_says_nothing(tmp_path):
         "### §RK2 The second design\n\nThe reasoning the second line has no room for.\n", ""
     )
     report = lint(project(tmp_path, roadmap=single, improvements=prose))
-    assert report.notes == () and report.clean
+    assert collective(report) == [] and report.clean
 
 
 def test_quiet_drops_the_notes_with_everything_else(tmp_path, capsys):
@@ -1679,8 +1746,9 @@ def test_json_carries_the_notes_beside_the_findings(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "lint", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["clean"] is True and payload["findings"] == []
-    (note,) = payload["notes"]
-    assert note["code"] == "deps.collective" and note["id"] == "RK3"
+    # By code, for `collective`'s reason: the gate that is a working tree carries its own.
+    (note,) = [one for one in payload["notes"] if one["code"] == "deps.collective"]
+    assert note["id"] == "RK3"
 
 
 def _open_in_shio_block(roadmap: Path, label: str) -> list[str]:

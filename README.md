@@ -120,16 +120,16 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 1 | 219 | 2 |
 | C — Query (consult without reading the file) | 0 | 143 | 2 |
 | D — The gate | 0 | 207 | 2 |
-| E — Adoption | 1 | 115 | 1 |
+| E — Adoption | 0 | 116 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 131 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 1 | 19 | 0 |
-| **Total** | 4 | 927 | 12 |
+| **Total** | 3 | 928 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1440** (deps: —) **engine.disagreement compares the gate to the plugin and never says the gate is a working tree rather than a release** — A repo whose gate calls roadkeep inherits whatever is on PATH: this one crashed lint mid-session from an uncommitted edit and reported three versions in one hour. → §RK1440
+- 📋 **RK1441** (deps: —) **the --have help names a (needs: ...) group the parser does not read, so a caller copying it is refused** — The schema reads and writes (requires: ...); pick, brief and config.py all spell the other one, and nothing holds a help string to the grammar it quotes. → §RK1441
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

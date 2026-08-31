@@ -34,8 +34,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1440** (deps: —) **engine.disagreement compares the gate to the plugin and never says the gate is a working tree rather than a release** — A repo whose gate calls roadkeep inherits whatever is on PATH: this one crashed lint mid-session from an uncommitted edit and reported three versions in one hour. → §RK1440
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK1445** (deps: —) **the gate on reads the skill may name lets a piped span through, so the two verbs nothing serves are named anyway** — It matches only a verb that heads a code span, so `list|stats|audit` passes and the rule is met by how a sentence is punctuated. → §RK1445

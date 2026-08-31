@@ -103,33 +103,6 @@ join, which is what stops the fourth site.
 
 ## Block E — Adoption
 
-### §RK1440 The gate that is somebody's checkout
-
-Observed in the pportal port, over one session. `roadkeep lint` reported the gate as
-0.2.35, then 0.2.37, then 0.2.38 - and in between it crashed outright with an
-AttributeError raised inside linting.py. Nothing had been installed or upgraded. The
-`roadkeep` on that machine's PATH resolves into a checkout of this repository, and
-another session was editing it.
-
-THE CRASH IS NOT THE POINT. A working tree is allowed to be broken; that is what a
-working tree is for. The point is that the adopting repository could not tell. It read a
-version number, that number moved three times, and every reading looked exactly like a
-release.
-
-`engine.disagreement` ALREADY MODELS SKEW and models the wrong pair. It compares the
-gate to the plugin wired into the project, which is the skew between two roadkeep
-surfaces. It says nothing about whether the gate is a released version at all - so a
-session reading it learns that two copies differ and not that one of them is somebody's
-uncommitted edit.
-
-RK1193 IS THE NEIGHBOUR, not this. That task gave an adopter a way to PIN the engine.
-This is about the case where nothing is pinned, which is the default and is what a
-developer machine looks like.
-
-THE COST ROSE THIS WEEK. That port has just put `roadkeep lint` in its local gate, so a
-build now fails on whatever happens to be checked out - right to wire, wrong to be
-silent about.
-
 ## Block F — The plugin
 
 ### §RK1445 The rule a pipe character satisfies

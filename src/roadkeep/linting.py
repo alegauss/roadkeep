@@ -2871,15 +2871,69 @@ def _disagreeing(config: Config, tree: Tree) -> list[Note]:
     from roadkeep.installing import engines  # noqa: PLC0415
 
     found = engines(config.root)
-    if found.agree or found.plugin is None:
+    running, plugin = found.running, found.plugin
+    where = config.relative(config.root)
+    # **What the gate is** comes before **which two copies differ** (RK1440). Observed in a
+    # port over one session: this note reported the gate as three versions in one hour and in
+    # between the gate crashed outright, because the `roadkeep` on that machine's PATH resolves
+    # into a checkout of this repository and another session was editing it. A working tree is
+    # allowed to be broken — that is what one is for — and the defect is that the adopting
+    # repository could not tell: it read a version number, that number moved, and every reading
+    # looked exactly like a release.
+    #
+    # A fact about **one** copy, so it is said with no plugin wired, which is the default and
+    # is what a developer machine looks like. It also answers the pair the old sentence got
+    # wrong: `unpinnable` is `agree` False with the two versions equal, and the note printed
+    # one number twice and called it a disagreement.
+    # Said to a project that **wired** this tool as its gate, and to no other. That is the
+    # population the finding was measured in — a port that had just put the served `lint` in
+    # its local gate, so a build failed on whatever happened to be checked out — and it is the
+    # reader for whom the version is a claim rather than an argument they typed. A bare `lint`
+    # from a shell is somebody invoking a copy they chose on the command line, and a note about
+    # it on every run is the noise this file refuses everywhere else.
+    #
+    # Two ways to be wired and either will do: a plugin registered for this project, or the
+    # surfaces `install` vendors under `.claude/` — which is `installing.stale`'s own
+    # discriminator, for its reason. Never a repository name (RK402).
+    #
+    # Except where the engine lives **inside** the tree it is judging, which is the one reader
+    # for whom this is a tautology: the working tree is theirs and they are editing it. The
+    # same directory relation `serving._remedy` decides on, so a fork and a vendored copy are
+    # the same situation as this checkout.
+    from roadkeep.installing import PROJECT_SKILL  # noqa: PLC0415 - RK260
+    from roadkeep.provenance import engine  # noqa: PLC0415 - RK260
+
+    wired = plugin is not None or (config.root / PROJECT_SKILL).is_file()
+    working = (
+        running.modified and wired and not engine().carried_by(config.root)
+    )
+    # A **version** difference and no longer `agree` (RK1440). `unpinnable` is `agree` False
+    # with the two numbers equal, so the old test printed one version twice and called it a
+    # disagreement; that state is the working tree above, said in the words it is true in.
+    skewed = plugin is not None and plugin.version != running.version
+    if not (working or skewed):
         return []
+    gate = f"this gate is {running.version}"
+    if working:
+        gate += f" from a **modified** checkout at {running.home.as_posix()}"
+    if skewed:
+        gate += f", and the plugin wired to this project is {plugin.version}"
+    # One clause per fact and in the order they are stated, because a reader acts on a
+    # different thing for each: an unpinnable verdict is a tree to look at, and a version
+    # behind is a judge to move.
+    means = " and ".join(
+        [
+            *(["a verdict here is that working tree's"] if working else []),
+            *(["a hook's refusal is that copy's rule"] if skewed else []),
+        ]
+    )
+    moves = "; `/plugin update` moves the judge" if skewed else ""
     return [
         Note(
             "engine.disagreement",
-            config.relative(config.root),
-            f"this gate is {found.running.version} and the plugin wired to this project is "
-            f"{found.plugin.version}: a hook's refusal is that copy's rule — `engines` "
-            f"reads all three, and `/plugin update` moves the judge",
+            where,
+            f"{gate}: {means} — `engines` reads all three and names the revision each "
+            f"one is at{moves}",
         )
     ]
 
