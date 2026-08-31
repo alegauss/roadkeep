@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 143 | 2 |
 | D — The gate | 0 | 207 | 2 |
 | E — Adoption | 0 | 116 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 131 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 131 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
-| I — The documentation area (what an adopter reads before there is a session to ask) | 1 | 19 | 0 |
-| **Total** | 2 | 929 | 12 |
+| I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
+| **Total** | 2 | 930 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1444** (deps: —) **the area prices every surface a session is handed except the skill, and its page has no word left to say so** — A page at exactly its declared ceiling cannot carry the one figure it omits, and the fix is a rendered row rather than a sentence. → §RK1444
+- 📋 **RK1445** (deps: —) **the gate on reads the skill may name lets a piped span through, so the two verbs nothing serves are named anyway** — It matches only a verb that heads a code span, so `list|stats|audit` passes and the rule is met by how a sentence is punctuated. → §RK1445
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

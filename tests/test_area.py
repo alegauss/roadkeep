@@ -212,7 +212,10 @@ def test_the_trigger_names_every_input_the_pages_are_generated_from():
 
     `roadkeep.toml` is here for a different reason than `docs/**`: `config --json` reports which
     keys *this project* declared, so that file is read as data by a page rather than served as a
-    governed store.
+    governed store. `skills/**` joined them for the first reason (RK1444): the session page
+    prices what the skill costs the turns that load it, off `cost --skill`, so an edit to the
+    skill moves a figure on a built page and a filter naming only the package would skip the
+    build on exactly the commit that changed it.
 
     Both events, because a filter is per-event: covering the push and leaving the pull request
     behind is a break found after the merge.
@@ -220,7 +223,7 @@ def test_the_trigger_names_every_input_the_pages_are_generated_from():
     yaml = pytest.importorskip("yaml", reason="pyyaml is not installed")
     workflow = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
     triggers = workflow.get("on", workflow.get(True))
-    generated_from = {"src/**", "roadkeep.toml"}
+    generated_from = {"src/**", "skills/**", "roadkeep.toml"}
     for event in ("push", "pull_request"):
         paths = set(triggers[event]["paths"])
         assert generated_from <= paths, f"{event} does not rebuild the area when the package moves"

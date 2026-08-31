@@ -15,7 +15,7 @@
 import measured from "../data/session.generated.json";
 import { SESSION, withheldTools } from "../headings";
 
-const { tools, session } = measured;
+const { tools, session, skill } = measured;
 
 /** The ten most expensive, which is what an author cutting the schema needs. */
 const dearest = tools.by_tool.slice(0, 10);
@@ -128,6 +128,48 @@ function percent(part, whole) {
     }
   </tbody>
 </table>
+
+{
+  skill.present && (
+    <>
+      <h3 id={SESSION.skill.slug}>{SESSION.skill.text}</h3>
+      <p>
+        The third cadence, and the one the two tables above are never added to: this is paid on
+        the turns the skill's own description matches, and on no others. What arrives then is an{" "}
+        <strong>orientation</strong> — <code>{skill.characters.toLocaleString("en-US")}</code>{" "}
+        {skill.unit.replace(/-/g, " ")} — with the reference on pages beside it, opened by the
+        turns that need one and charged only to those.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>What</th>
+            <th>Cost</th>
+            <th>Paid on</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <code>SKILL.md</code>, the orientation
+            </td>
+            <td>{skill.characters.toLocaleString("en-US")}</td>
+            <td>every turn the trigger matches</td>
+          </tr>
+          {skill.pages.map((page) => (
+            <tr>
+              <td>
+                <code>{page.path}</code>
+              </td>
+              <td>{page.characters.toLocaleString("en-US")}</td>
+              <td>the turns that open it</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  )
+}
 
 {
   withheld.length > 0 && (

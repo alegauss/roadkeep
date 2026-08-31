@@ -41,6 +41,12 @@ function ask(argv) {
 
 const tools = JSON.parse(ask(["cost", "--tools"]));
 const session = JSON.parse(ask(["cost", "--session"]));
+// The third cadence, and the one the page argued about and never priced (RK1444). The two
+// above are paid at connect and on every turn; this one only on the turns the skill's own
+// description matches, which is the distinction the prose spends four paragraphs making.
+// Rendered and not written: this area states no count in a sentence, and `session.mdx` sits
+// at its declared word ceiling — a sentence was refused twice before this was the answer.
+const skill = JSON.parse(ask(["cost", "--skill"]));
 
 if (!tools.by_tool?.length) {
   throw new Error("[session] the surface prices no tools, which is never correct");
@@ -52,9 +58,15 @@ if (!session.each_turn?.files?.length) {
 }
 
 mkdirSync(dirname(OUT), { recursive: true });
-writeFileSync(OUT, JSON.stringify({ tools, session }, null, 2) + "\n", "utf-8");
+writeFileSync(OUT, JSON.stringify({ tools, session, skill }, null, 2) + "\n", "utf-8");
+
+// Absence is a reading and not a failure: a build with no copy reachable is a plugin cache
+// this read does not resolve, which `engines` answers and this one declines to guess at.
+const loaded = skill.present
+  ? `${skill.characters} when the skill loads`
+  : "no skill copy reachable";
 
 console.log(
   `[session] ${tools.tools} tool(s) at ${tools.characters} ${tools.unit} once, ` +
-    `${session.each_turn.characters} every turn`,
+    `${session.each_turn.characters} every turn, ${loaded}`,
 );

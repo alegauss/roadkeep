@@ -11,6 +11,7 @@
 // exactly like a link.
 import commands from "./data/commands.generated.json";
 import config from "./data/config.generated.json";
+import session from "./data/session.generated.json";
 
 /** What Astro would have extracted, had the heading been written in the page. */
 export interface Heading {
@@ -68,6 +69,11 @@ export function configHeadings(): Heading[] {
 
 // -- what a session costs (RK1405) --------------------------------------------
 
+/** What the skill costs the turns that load it, or the reading that no copy answered. */
+export function skillCost(): { present: boolean } & Record<string, unknown> {
+  return session.skill;
+}
+
 /** Verbs with a tool this project is not sent, and the role that would open each. */
 export function withheldTools(): { command: string; needs: string | null }[] {
   return commands.commands
@@ -81,11 +87,18 @@ export const SESSION = {
   //: beside it — and the contents list is configured to stop above it.
   dearest: { depth: SECTION + 1, slug: "dearest", text: "The ten that cost the most" },
   everyTurn: { depth: SECTION, slug: "every-turn", text: "On every turn" },
+  //: The third cadence (RK1444), between the two that are always there and the one that is
+  //: conditional: the skill is paid only on the turns its description matches, and the page
+  //: argued that distinction for four paragraphs while pricing two thirds of it.
+  skill: { depth: SECTION, slug: "when-the-skill-loads", text: "When the skill loads" },
   withheld: { depth: SECTION, slug: "withheld", text: "What this project is not sent" },
 } satisfies Record<string, Heading>;
 
 export function sessionHeadings(): Heading[] {
   const found = [SESSION.connect, SESSION.dearest, SESSION.everyTurn];
+  // Published only where a copy answered, as the component publishes it: a build that could
+  // reach neither the vendored skill nor the tree's own has no section and no entry either.
+  if (skillCost().present) found.push(SESSION.skill);
   // Published only where a verb is actually withheld, as the component publishes it: a project
   // that declared every role has no such section, and must have no entry for one either.
   if (withheldTools().length > 0) found.push(SESSION.withheld);

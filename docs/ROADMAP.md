@@ -35,14 +35,13 @@
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK1445** (deps: —) **the gate on reads the skill may name lets a piped span through, so the two verbs nothing serves are named anyway** — It matches only a verb that heads a code span, so `list|stats|audit` passes and the rule is met by how a sentence is punctuated. → §RK1445
+- 📋 **RK1446** (deps: —) **the launcher's `mcp` mode exits 0 and serves nothing on Windows, so a session loses the tools its own hook names** — `execv` gives the server this process's stdio on POSIX and gives it nothing on Windows, so the guard denies a hand-edit naming a tool the session was never handed. → §RK1446
 
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
-
-- 📋 **RK1444** (deps: —) **the area prices every surface a session is handed except the skill, and its page has no word left to say so** — A page at exactly its declared ceiling cannot carry the one figure it omits, and the fix is a rendered row rather than a sentence. → §RK1444
 
 ## Done when — Block D
 

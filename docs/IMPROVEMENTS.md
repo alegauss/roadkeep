@@ -108,31 +108,36 @@ is named, which makes the clause a finding and forces the sentence to say which 
 a caller actually has; or a joint span is an exemption declared once with its reason,
 rather than a shape the regular expression happens to allow.
 
+### §RK1446 The launcher's mcp mode on Windows
+
+`_serve` ends in `os.execv(sys.executable, [sys.executable, engine, "mcp", *argv])`, and
+the comment beside it gives the reason: the server should own this process's stdio
+rather than talk through a pipe to a parent that shuttles every frame. That reasoning is
+POSIX's. On Windows there is no image to replace, so the CRT's `_execv` spawns and lets
+the caller exit, and what the harness spawned is the caller.
+
+Measured on Windows 11, from a project whose `.mcp.json` is the one `install` writes:
+
+    python .claude/hooks/roadkeep-launch.py mcp   exit 0 in under a second,
+                                                  nothing on stdout, nothing on stderr
+    python <engine>/scripts/roadkeep.py mcp       still serving at 10s
+
+No server survives the launcher either way, so the harness holds a pipe nothing is on.
+Claude Code reports `CONNECT_TIMEOUT` after 30 seconds and drops every
+`mcp__roadkeep__*` tool. The `SessionStart` hook and the `PreToolUse` guard still fire,
+so the session is told to use tools it was never given and a hand-edit is denied with a
+command it cannot run. It falls back to the CLI, which works, after a 30-second stall.
+
+The exit code is the sharpest part: a launcher returning 2 would surface as a failed
+server. Exiting 0 with both streams empty is indistinguishable from one that started and
+closed cleanly, which is why this reads as a timeout rather than a crash.
+
+Acceptance: on Windows the launcher's `mcp` mode leaves a process serving on the stdio
+the harness handed it. Where no engine runs it exits non-zero with a line on stderr,
+rather than 0 in silence.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
-
-### §RK1444 The surface the session page does not price
-
-`SessionCost` renders `cost --tools` and `cost --session`, and the page around it argues
-that the skill is trigger-loaded and therefore free on turns that touch no governed
-file. What it never says is what that trigger costs when it does fire. RK1424 added
-`cost --skill` for exactly that reading and `session.mjs` does not ask for it.
-
-MEASURED WHILE SPLITTING THE SKILL. The prose fix was written and `budget.mjs` refused
-it twice: first for typing a count, which this area renders rather than states, and then
-because `session.mdx` is at 600 of 600 words — a twenty-six-word addition put it over.
-So the page cannot say this without cutting a paragraph written for another argument,
-and the area's rule already says which way to go: every figure here is rendered from the
-tool that owns it.
-
-WHAT WOULD ANSWER IT is `session.mjs` asking `cost --skill` beside the two it already
-asks, and the component carrying a row for the orientation and one per reference page,
-each labelled by the cadence it is paid at. Generated content is not counted against the
-page budget, so this costs the prose nothing.
-
-The reading duplicates neither figure above it: the schema is paid at connect, the
-resident files every turn, and the skill only on the turns its description matches — the
-distinction the page spends four paragraphs making and then prices two thirds of.

@@ -36,6 +36,11 @@
 # not for `docs/**`'s: `config --json` reports which keys *this project* declared, so that file
 # is read as data by a page rather than served as a governed store.
 #
+# `skills/**` joined them for that same reason (RK1444): the session page prices what the skill
+# costs the turns that load it, off `cost --skill`, so editing the skill moves a figure on a
+# built page — and a filter that named only the package would skip the build on exactly the
+# commit that changed it.
+#
 # Filtering on the tests job instead was the cheaper standing cost and is the wrong one: the
 # suite holds the pages against the payload, and what fails here is whether Astro still compiles
 # them.
@@ -47,6 +52,7 @@ on:
       - "site/**"
       - "docs/**"
       - "src/**"
+      - "skills/**"
       - "roadkeep.toml"
       - ".github/workflows/site.yml"
   pull_request:
@@ -54,6 +60,7 @@ on:
       - "site/**"
       - "docs/**"
       - "src/**"
+      - "skills/**"
       - "roadkeep.toml"
       - ".github/workflows/site.yml"
   workflow_dispatch:
