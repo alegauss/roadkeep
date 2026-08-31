@@ -32,11 +32,15 @@
 
 ## Block E — Adoption
 
+- 📋 **RK1447** (deps: —) **install prints what the surfaces let a session do and its payload says only which files moved** — A machine reading the JSON is told less than the person at the terminal, which is the split the query surface refuses one verb over. → §RK1447
+
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+- 📋 **RK1448** (deps: —) **a test unpacking report.notes as a whole passes or fails on which unrelated note the gate happened to add** — Seven sites read the list rather than their own code, so one new note turned seven green tests red and none of them was about it. → §RK1448
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
