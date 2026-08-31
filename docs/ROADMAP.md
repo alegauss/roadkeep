@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1441** (deps: —) **the --have help names a (needs: ...) group the parser does not read, so a caller copying it is refused** — The schema reads and writes (requires: ...); pick, brief and config.py all spell the other one, and nothing holds a help string to the grammar it quotes. → §RK1441
-
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

@@ -77,26 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1441 A help string quoting a grammar nothing checks
-
-`--have` on `pick` and `brief` reads: a ready line whose `(needs: ...)` names anything
-undeclared is set aside. The schema writes `(requires: ...)` and its parser matches only
-that. A caller who takes the help at its word and writes `(needs: ps5)` onto a line has
-written prose the grammar does not read as a requirement at all.
-
-IT IS NOT ONE SLIP. `config.py` calls `[requirements]` "the words a `(needs: ...)` group
-may draw on", and `picking.py`'s own docstring says the same. Three sites agree with
-each other and disagree with the one that decides, which is how a wrong spelling
-survives review: it reads as the convention.
-
-WHAT MAKES IT REACHABLE is that nothing joins the two. Every field name a help string
-quotes is a claim about the format, and the format is a template of named slots this
-package can enumerate. A test over the parser's help text and the slots that template
-declares would have refused the first one.
-
-THE CHEAP HALF IS THE CORRECTION and it is three edits. The half worth having is the
-join, which is what stops the fourth site.
-
 ## Block C — Query
 
 ## Block D — The gate

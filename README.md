@@ -117,7 +117,7 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 219 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 220 | 2 |
 | C — Query (consult without reading the file) | 0 | 143 | 2 |
 | D — The gate | 0 | 207 | 2 |
 | E — Adoption | 0 | 116 | 1 |
@@ -125,11 +125,11 @@ called unbuilt were already in the ledger.
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 1 | 19 | 0 |
-| **Total** | 3 | 928 | 12 |
+| **Total** | 2 | 929 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1441** (deps: —) **the --have help names a (needs: ...) group the parser does not read, so a caller copying it is refused** — The schema reads and writes (requires: ...); pick, brief and config.py all spell the other one, and nothing holds a help string to the grammar it quotes. → §RK1441
+- 📋 **RK1444** (deps: —) **the area prices every surface a session is handed except the skill, and its page has no word left to say so** — A page at exactly its declared ceiling cannot carry the one figure it omits, and the fix is a rendered row rather than a sentence. → §RK1444
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

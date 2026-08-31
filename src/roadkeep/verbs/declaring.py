@@ -67,7 +67,7 @@ _DESIGNED_HELP = (
 #: because a caller has a set and not a switch (RK1297). What it does not say is "declare what
 #: you have": the default is nothing, and the flag is the exception a person at the desk types.
 _HAVE_HELP = (
-    "declare a requirement this caller has, repeatable: a ready line whose `(needs: …)` "
+    "declare a requirement this caller has, repeatable: a ready line whose `(requires: …)` "
     "names anything undeclared is set aside and named, never offered (only without an id)"
 )
 #: The same flag on `stats`, where the axis is **counted** rather than chosen from (RK1432).

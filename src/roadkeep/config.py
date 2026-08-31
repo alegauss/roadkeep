@@ -192,7 +192,7 @@ _INSTALL_KEYS = frozenset({"pinned", "enforced"})
 #: is not a limit on any field — it is the one number in the claim mechanism that is a
 #: judgement about how long work takes.
 _CLAIMS_KEYS = frozenset({"held"})
-#: `[requirements]` — the words a `(needs: …)` group may draw on (RK1297). Its own table for
+#: `[requirements]` — the words a `(requires: …)` group may draw on (RK1297). Its own table for
 #: `[markers]`' reason: the vocabulary is one part of a shape whose other parts are a caller's
 #: (`pick --have`) and a line's, and a bare `requirements` beside `priority` would read as a
 #: list this backlog is subject to rather than one its lines quote from.
@@ -1474,7 +1474,7 @@ _UPSTREAM = re.compile(r"^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$")
 
 
 def _requirements(raw: object, problems: list[str]) -> tuple[str, ...]:
-    """`[requirements] declared` — the vocabulary a `(needs: …)` group quotes from (RK1297).
+    """`[requirements] declared` — the vocabulary a `(requires: …)` group quotes from (RK1297).
 
     Empty undeclared, which is what makes the axis opt-in and refusable at once: a project
     that never wrote this table refuses the first requirement an author types, and the
@@ -1507,7 +1507,7 @@ def _requirements(raw: object, problems: list[str]) -> tuple[str, ...]:
 
 
 #: What a requirement may not contain, for the reason the deps group has the same rule: the
-#: `(needs: …)` slot closes at the first `)` and splits on `, `, so either inside a token is a
+#: `(requires: …)` slot closes at the first `)` and splits on `, `, so either inside a token is
 #: line that stops parsing and no verb reaches again.
 _UNQUOTABLE = re.compile(r"[(),]")
 

@@ -230,7 +230,7 @@ def pick(
     number of lines this backlog could start is not a fact the caller's intent changes.
 
     ``available`` is what the caller says it has, and it is the axis the other two are not
-    (RK1297): a line whose `(needs: …)` names anything absent from it is set aside, counted
+    (RK1297): a line whose `(requires: …)` names anything absent from it is set aside, counted
     and **named**. Empty by default, and that default is the decision — the caller who
     cannot press a button is the one who does not think to say so, and a `pick` that offered
     hardware work to it was the five identical answers this exists to stop. A person at the
