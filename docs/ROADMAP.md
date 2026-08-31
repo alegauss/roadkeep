@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1441** (deps: —) **the --have help names a (needs: ...) group the parser does not read, so a caller copying it is refused** — The schema reads and writes (requires: ...); pick, brief and config.py all spell the other one, and nothing holds a help string to the grammar it quotes. → §RK1441
+
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1439** (deps: —) **pick offers a line that seven shipped entries were filed against, with nothing saying it is being worked by proxy** — Each child names its parent and ships, the parent stays open, so every session is offered the same line and answers it the same way - by filing another child. → §RK1439
@@ -40,6 +42,7 @@
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK1437** (deps: —) **the skill names all 44 verbs and costs 65k units a turn, so it is a reference loaded as an orientation** — A session held every verb from turn one, used fourteen, and found the two that would have saved it most on its last day. → §RK1437
+- 📋 **RK1442** (deps: —) **stats is the one counting verb no tool serves, so the split it just grew is unreachable from the surface an agent has** — list and audit are served and stats is not; the skill cannot even name it, a test refusing any read it heads a span with that nothing serves. → §RK1442
 
 ## Block G — The editor surface (the backlog where the file is open)
 

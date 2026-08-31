@@ -77,6 +77,26 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1441 A help string quoting a grammar nothing checks
+
+`--have` on `pick` and `brief` reads: a ready line whose `(needs: ...)` names anything
+undeclared is set aside. The schema writes `(requires: ...)` and its parser matches only
+that. A caller who takes the help at its word and writes `(needs: ps5)` onto a line has
+written prose the grammar does not read as a requirement at all.
+
+IT IS NOT ONE SLIP. `config.py` calls `[requirements]` "the words a `(needs: ...)` group
+may draw on", and `picking.py`'s own docstring says the same. Three sites agree with
+each other and disagree with the one that decides, which is how a wrong spelling
+survives review: it reads as the convention.
+
+WHAT MAKES IT REACHABLE is that nothing joins the two. Every field name a help string
+quotes is a claim about the format, and the format is a template of named slots this
+package can enumerate. A test over the parser's help text and the slots that template
+declares would have refused the first one.
+
+THE CHEAP HALF IS THE CORRECTION and it is three edits. The half worth having is the
+join, which is what stops the fourth site.
+
 ## Block C — Query
 
 ### §RK1439 The line seven other tasks were filed against
@@ -184,6 +204,28 @@ turn needs it.
 
 Whether that is two files, a section order, or something the plugin loads on demand is
 this project's call and not an adopter's.
+
+### §RK1442 The count an agent cannot ask for
+
+RK1432 gave `stats` a split: how many open lines nothing absent is holding up, and what
+the rest wait for. RK463 established that a read the skill names and the surface
+withholds is a read that machine cannot make at all, a plugin installing with no console
+script and no PATH entry. `stats` is withheld, so the split reaches the terminal and not
+the agent.
+
+IT ALSO SILENCED THE DOCUMENTATION. The skill was going to say `stats` splits the count;
+the test RK463 left behind refuses any read it heads a code span with that nothing
+serves, and refused this one. The sentence went into the `list|stats|audit` clause
+instead, where it is true and unaddressable - the reader is told a count splits and not
+which command prints it.
+
+THE OBVIOUS FIX IS THE WRONG ONE ON ITS OWN. RK1437 says the served surface is already a
+reference loaded as an orientation, and `budget.session` refused a clause of forty
+characters this week. A forty-fifth tool is paid for by every session at connect.
+
+SO THE QUESTION IS WHICH. `list` is served and already carries the population; the split
+could ride its payload instead of arriving as a tool. That costs nothing at connect and
+answers the same question, and deciding it is what this line is for.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
