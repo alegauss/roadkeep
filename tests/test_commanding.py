@@ -251,3 +251,66 @@ def test_the_two_renderings_answer_about_the_same_surface(tmp_path, path):
     config = project(tmp_path)
     found = commanding.commands(config, path or None)
     assert len(commanding.payload(found)["commands"]) == len(found.commands)
+
+
+# -- where a verb declines a field, it names the verb that owns it (RK1436) ---
+
+#: One row per verb that deliberately does not take a field another verb holds: the path, the
+#: field, and the verb whose surface reaches it. Asserted **total** below against the parser,
+#: so a fourth boundary drawn tomorrow fails here until somebody names its owner.
+#:
+#: Measured. A line's symptom turned out to be false — it claimed a file was the last caller
+#: of something and a linker showed it was not. The session read `amend --help`, saw `--why`,
+#: `--dep` and `--requires`, concluded the symptom was the line's address and could not be
+#: corrected, and wrote that conclusion into a rationale section as a paragraph. All of it
+#: reasonable, all of it wrong: `restate` exists and does exactly that. The absence of a flag
+#: is read as a design statement, and here it genuinely is one — what was missing is the other
+#: half of the sentence, on the surface the caller was already reading.
+DECLINED: tuple[tuple[tuple[str, ...], str, str], ...] = (
+    (("amend",), "symptom", "restate"),
+    (("record", "amend"), "id", "renumber"),
+    (("non-goal", "amend"), "lead", "drop"),
+    (("criterion", "amend"), "lead", "drop"),
+)
+
+#: How a description says it is declining a field. Prose and not a code, because this is the
+#: sentence an author writes for a reader — so the test reads what a reader reads.
+_DECLINES = ("is not amendable", "is not a field", "not a field")
+
+
+def _every_verb() -> dict[str, str]:
+    """Every subcommand path this CLI declares, to the description its author wrote."""
+    from roadkeep.cli import build_parser
+
+    return {
+        path: (parser.description or "")
+        for path, parser in _parsers(build_parser()).items()
+    }
+
+
+def test_a_verb_that_declines_a_field_names_the_verb_that_owns_it():
+    verbs = _every_verb()
+    names = {word for path in verbs for word in path.split()}
+    for path, field, owner in DECLINED:
+        spelled = " ".join(path)
+        assert spelled in verbs, f"no verb at {spelled!r}"
+        description = verbs[spelled]
+        assert field in description, f"{spelled}: says nothing about {field}"
+        assert f"`{owner}`" in description, f"{spelled}: declines {field} and never names {owner}"
+        # And the owner is a verb somebody can actually run, not a word in a sentence.
+        assert owner in names, f"{spelled}: names {owner}, which this build does not declare"
+
+
+def test_every_declining_description_has_a_row():
+    """A set any boundary can be missing from is one more docstring. The parser is the
+    authority, so a verb that starts declining a field fails here until its owner is named."""
+    declining = {
+        path
+        for path, description in _every_verb().items()
+        if any(one in description for one in _DECLINES)
+    }
+    covered = {" ".join(path) for path, _, _ in DECLINED}
+    assert declining == covered, {
+        "declines a field, no row": sorted(declining - covered),
+        "row, declines nothing": sorted(covered - declining),
+    }

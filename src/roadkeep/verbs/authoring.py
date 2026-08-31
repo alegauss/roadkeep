@@ -421,11 +421,16 @@ def declare_lines(subcommands: argparse._SubParsersAction) -> None:
         "amend",
         help="correct one open line's why, deps or pointer",
         description=(
-            "Correct the three fields a project that adopted the tool has to be able to fix: "
-            "a pointer it never had, a dep naming an id in neither file, and the compression "
-            "of a `why` that was a paragraph before the limit existed. Validated at input "
-            "exactly as `add` validates it, or nothing is written. The `symptom` is not "
-            "amendable — it is the claim the line is, so a different one is a different task."
+            # RK1436. The owner is named where the boundary is drawn, and the room for it was
+            # taken out of this same description rather than out of the ceiling: a served
+            # surface is what every session pays at connect, so a clause added here is a
+            # clause somebody else's sentence loses. What went is the compression of the
+            # rationale — the three fields still say what they are for.
+            "Correct the three fields an adopting project has to be able to fix: a pointer it "
+            "never had, a dep naming an id in neither file, and a `why` written before the "
+            "limit existed. Validated at input exactly as `add` validates it, or nothing is "
+            "written. The `symptom` is not amendable — it is the claim the line is — and "
+            "`restate` is the door where that claim turned out false."
         ),
     )
     amend_parser.add_argument("id", help="the task, e.g. RK7")

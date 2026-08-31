@@ -117,19 +117,19 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 218 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 219 | 2 |
 | C — Query (consult without reading the file) | 1 | 142 | 2 |
 | D — The gate | 0 | 207 | 2 |
-| E — Adoption | 1 | 114 | 1 |
+| E — Adoption | 2 | 114 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 128 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 19 | 0 |
-| **Total** | 4 | 921 | 12 |
+| **Total** | 4 | 922 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1436** (deps: —) **amend lists the fields it can change and never names the verb that owns the one it cannot** — A session read its usage, concluded a symptom was immutable and wrote a paragraph justifying that; restate corrects one. → §RK1436
+- 📋 **RK1437** (deps: —) **the skill names all 44 verbs and costs 65k units a turn, so it is a reference loaded as an orientation** — A session held every verb from turn one, used fourteen, and found the two that would have saved it most on its last day. → §RK1437
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1436** (deps: —) **amend lists the fields it can change and never names the verb that owns the one it cannot** — A session read its usage, concluded a symptom was immutable and wrote a paragraph justifying that; restate corrects one. → §RK1436
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1439** (deps: —) **pick offers a line that seven shipped entries were filed against, with nothing saying it is being worked by proxy** — Each child names its parent and ships, the parent stays open, so every session is offered the same line and answers it the same way - by filing another child. → §RK1439
@@ -37,6 +35,7 @@
 ## Block E — Adoption
 
 - 📋 **RK1438** (deps: —) **install reports which surfaces it wrote and never says what they let a session do** — For an agent the install output and the first refusal are what get read; the skill arrives later and is long enough to skim. → §RK1438
+- 📋 **RK1440** (deps: —) **engine.disagreement compares the gate to the plugin and never says the gate is a working tree rather than a release** — A repo whose gate calls roadkeep inherits whatever is on PATH: this one crashed lint mid-session from an uncommitted edit and reported three versions in one hour. → §RK1440
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
