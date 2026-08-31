@@ -26,6 +26,9 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1453** (deps: —) **A decision's sentence has no correction door, so a typo outlives the decision** — record amend reaches the ledger and supersede is for a replaced decision; what ship --decides filed has neither. → §RK1453
+- 📋 **RK1454** (deps: —) **block drop refuses a finished block without naming the ending that is correct** — The refusal reads as a failure to a caller told to run it at the block boundary, and nothing says the block is already ended. → §RK1454
+
 ## Block C — Query (consult without reading the file)
 
 ## Block D — The gate

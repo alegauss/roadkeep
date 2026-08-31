@@ -77,6 +77,53 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1453 The one sentence nothing can rewrite
+
+Every other governed sentence has a door back. A roadmap line has `amend` for its why
+and `restate` for its symptom; a ledger entry has `record amend`, which the help text
+argues for carefully — `drop` and `add` "would remove the entry and append a new one
+under its block, so a ledger read in the order work landed stops being one". The
+sentence `ship --decides` writes into `DECISIONS.md` has nothing.
+
+`supersede` is not it, and says so: it is for a decision replaced by another, appends a
+forward pointer, and requires both ids to be decisions the file already records. A typo
+is not a replacement, and inventing a second decision to correct the spelling of the
+first corrupts the record worse than the typo did.
+
+Met while shipping FB5 in a consuming project: `--decides` was passed ASCII-only to
+survive a shell, and the file now permanently reads "Menu do site novo e semeado" where
+it should read "é semeado". The guard denies the hand-edit, correctly. There is no third
+option.
+
+The file's rule is that nothing in it is ever deleted, and that rule is right. But
+correcting a sentence in place is not deleting an entry — it is what `record amend`
+already does for the ledger, with the same argument. The door is missing, not forbidden.
+
+### §RK1454 A refusal that is right, and reads as a fault
+
+A project's end-of-block sweep tells the agent to run `block drop <x>` once nothing is
+open — a heading standing over nothing is what that verb removes. Run at the boundary of
+a block whose deliveries used `ship --decides`, it refuses:
+
+    docs/DECISIONS.md files FB2, FB5 under Block D: a heading over work is not an empty
+    heading, and removing it would file all of it under the block above
+
+The refusal is correct. The heading addresses the decisions, not only the backlog, and
+dropping it would refile them silently. What it does not say is what the caller should
+do instead — and the caller was told this was the last step. An agent reaching it has
+finished the sweep, hit a non-zero exit, and has to decide alone whether that is its
+problem.
+
+`block list` already knows the answer: it prints `empty` and `finished` as different
+states, and a block anchored by decisions is the second. So the ending exists in the
+model and is missing only from the message. Refusals elsewhere carry the alternative —
+an unknown flag prints `takes` and `by order`, a bad `why` prints the gate code and what
+closes it. This one prints the reason and stops.
+
+Naming the outcome in the refusal — this block ends as `finished`; the heading stays
+because the decisions file addresses it — turns a dead end into an answer, without
+changing what the verb does.
+
 ## Block C — Query
 
 ## Block D — The gate
