@@ -85,29 +85,6 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1445 The rule a pipe character satisfies
-
-RK463 established that a read the skill names and the tool surface withholds is one that
-machine cannot make at all: a plugin installs with no console script and no PATH entry.
-The test holding it counts a verb as named only where it **heads** a backticked span — a
-deliberate narrowing, since a bare word count said `writes` was named eleven times when
-the command is named once.
-
-THE NARROWING IS SATISFIED BY PUNCTUATION. `list|stats|audit [--block <x>]` heads with
-`list`, which is served, so the clause passes while naming two verbs that are not.
-RK1442 met this from the other side: the sentence about the startable split could not be
-written with `stats` at the front of a span and went into the pipe instead, where it was
-true and unaddressable. Neither `stats` nor `audit` is served today.
-
-SO THE RULE READS AS SATISFIED WHERE IT IS NOT. A test whose verdict turns on which verb
-an author put first reports on prose style, and the failure it exists to catch — an
-agent told to run something it has not got — passes through unchanged.
-
-WHAT WOULD ANSWER IT is deciding what a joint span means. Either every verb inside one
-is named, which makes the clause a finding and forces the sentence to say which command
-a caller actually has; or a joint span is an exemption declared once with its reason,
-rather than a shape the regular expression happens to allow.
-
 ### §RK1446 The launcher's mcp mode on Windows
 
 `_serve` ends in `os.execv(sys.executable, [sys.executable, engine, "mcp", *argv])`, and

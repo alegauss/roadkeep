@@ -323,6 +323,36 @@ def _frontmatter_ends(lines: list[str]) -> int:
     return next(at for at, line in enumerate(lines[1:], start=2) if line == "---")
 
 
+#: Reads the skill names that nothing serves, and why each may stay (RK1445). A **declared**
+#: exemption with a reason, which is the shape RK463's rule was missing: the narrowing that
+#: counted only the head of a span made `list|stats|audit` pass while naming two verbs a
+#: plugin-installed machine has not got, so the rule read as satisfied because of where an
+#: author put a pipe character.
+#:
+#: Both may stay because the *answer* is not withheld, only the verb: the counting split rides
+#: `list --json` as `startable` (RK1442) and every miss rides the same payload as `uncounted`.
+#: What the skill owes in return is saying so, which the assertion below holds it to — an
+#: exemption nobody can see reads exactly like a rule being kept.
+AT_A_TERMINAL = {
+    "stats": "its split is `list --json`'s `startable` key (RK1442)",
+    "audit": "its misses are `list --json`'s own `uncounted` key",
+}
+
+#: The phrase the skill has to carry beside them. Not the whole sentence — the wording is the
+#: author's — but the claim: these are a terminal's spellings and the payload is the answer.
+TERMINAL_SAYS = "at a terminal"
+
+
+def _named(spans: list[str]) -> set[str]:
+    """Every verb a span names, alternatives included (RK1445).
+
+    A joint span is one sentence naming several commands — `list|stats|audit [--block <x>]` —
+    and reading only the head of it makes the rule a fact about punctuation. Split on the pipe
+    and take the head of each alternative, which is the same reading applied to each of them.
+    """
+    return {one.split()[0] for span in spans for one in span.split("|") if one.split()}
+
+
 def test_every_read_this_skill_names_is_one_the_tool_surface_serves():
     """RK463. This file ships in the plugin and is the authority on which command to call —
     and since RK57 a plugin installs with no console script and no PATH entry, so a read it
@@ -334,15 +364,21 @@ def test_every_read_this_skill_names_is_one_the_tool_surface_serves():
     because `writes`, `claims` and `report` are ordinary English words and a bare word count
     said `writes` was named eleven times when the command is named once.
 
+    **And by every alternative in a joint span, not its head** (RK1445). The old reading
+    matched a verb only where it started a span, so `list|stats|audit` passed on `list` while
+    naming two verbs nothing serves; RK1442 met the same rule from the other side and put a
+    sentence into that pipe because it could not be written with `stats` at the front.
+
     Four verbs stay off the surface and are asserted so rather than left to a reader: `guard`
     and `mcp` are the harness's own entry points, and `report` and `replay` are the capture
-    pair RK87 puts in a person's hands.
+    pair RK87 puts in a person's hands. :data:`AT_A_TERMINAL` is the other list, and it is not
+    the same kind: those are read**s** this surface answers under another verb's name.
     """
     from roadkeep.serving import TOOLS
 
     served = {tool.command for tool in TOOLS}
     harness = {"guard", "mcp", "report", "replay", "init", "adopt", "install", "uninstall"}
-    spans = re.findall(r"`([^`]+)`", " ".join(text().split()))
+    spelled = _named(re.findall(r"`([^`]+)`", " ".join(text().split())))
     parser = build_parser()
     subcommands = [
         one for one in parser._actions if getattr(one, "choices", None)  # noqa: SLF001
@@ -353,9 +389,35 @@ def test_every_read_this_skill_names_is_one_the_tool_surface_serves():
         if sub.get_default("reads_only")
         and name not in served
         and name not in harness
-        and any(re.match(rf"^{re.escape(name)}\b", one) for one in spans)
+        and name not in AT_A_TERMINAL
+        and name in spelled
     }
     assert not missing, f"the skill names these reads and nothing serves them: {sorted(missing)}"
+
+
+def test_every_exemption_is_a_read_this_surface_still_answers():
+    """The half that stops the list rotting. A row for a verb the surface has since started
+    serving is an exemption for nothing, and one for a verb the skill no longer names is a
+    reason nobody will read — both leave the rule looking stricter than it is."""
+    from roadkeep.serving import TOOLS
+
+    served = {tool.command for tool in TOOLS}
+    spelled = _named(re.findall(r"`([^`]+)`", " ".join(text().split())))
+    for verb, because in AT_A_TERMINAL.items():
+        assert verb not in served, f"{verb} is served now, so its exemption is for nothing"
+        assert verb in spelled, f"the skill no longer names {verb}"
+        assert because.strip(), verb
+
+
+def test_the_skill_says_which_of_the_verbs_it_names_a_served_caller_has_not_got():
+    """And the exemption's own price. A joint span naming two verbs a plugin-installed machine
+    cannot run is honest only if the sentence says so and names what that caller reads instead
+    — otherwise the reader learns the command and meets the absence."""
+    body = flowed()
+    assert TERMINAL_SAYS in body
+    # The answer, not just the caveat: the payload is where a served caller gets both.
+    assert "`startable`" in body
+    assert "`uncounted`" in body
 
 
 # -- the second skill, and the sections it took off the every-turn file (RK1136) --
