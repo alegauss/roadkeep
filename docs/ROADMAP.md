@@ -36,7 +36,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1438** (deps: —) **install reports which surfaces it wrote and never says what they let a session do** — For an agent the install output and the first refusal are what get read; the skill arrives later and is long enough to skim. → §RK1438
 - 📋 **RK1440** (deps: —) **engine.disagreement compares the gate to the plugin and never says the gate is a working tree rather than a release** — A repo whose gate calls roadkeep inherits whatever is on PATH: this one crashed lint mid-session from an uncommitted edit and reported three versions in one hour. → §RK1440
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

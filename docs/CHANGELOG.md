@@ -756,6 +756,7 @@
 - ✅ **RK1396** **A path argument ignores -C, so a door this tool prints is refused as a file that does not exist** — A capture is a file of the project, so the three verbs that take one resolve it against the root -C named; a body file is not, and stays the caller's.
 - ✅ **RK1415** **A project whose roadmap already exists cannot reach a first roadkeep.toml through any verb** — init --existing declares the governed files already there and scaffolds only the rest, reading the prefix off the ids and the blocks off the headings (design superseded: it left the shape open).
 - ✅ **RK1427** **The release workflow restates the list of files that carry the version, and nothing holds the two together** — The hook and the release are read back against the bumper's TRACKED, and the test fixture derives from it, so a fourth versioned file is a red (design superseded: it is stated four times).
+- ✅ **RK1438** **install reports which surfaces it wrote and never says what they let a session do** — A write ends with five lines saying what the surfaces let a session do — the daily verbs, the gate, the two reads that save a refusal, and the check CI runs.
 
 ## Block F — The Claude Code plugin
 

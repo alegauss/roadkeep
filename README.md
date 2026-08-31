@@ -120,16 +120,16 @@ called unbuilt were already in the ledger.
 | B — Authoring (insert, never hand-edit) | 1 | 219 | 2 |
 | C — Query (consult without reading the file) | 1 | 142 | 2 |
 | D — The gate | 0 | 207 | 2 |
-| E — Adoption | 2 | 114 | 1 |
+| E — Adoption | 1 | 115 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 131 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 1 | 19 | 0 |
-| **Total** | 6 | 925 | 12 |
+| **Total** | 5 | 926 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1438** (deps: —) **install reports which surfaces it wrote and never says what they let a session do** — For an agent the install output and the first refusal are what get read; the skill arrives later and is long enough to skim. → §RK1438
+- 📋 **RK1439** (deps: —) **pick offers a line that seven shipped entries were filed against, with nothing saying it is being worked by proxy** — Each child names its parent and ships, the parent stays open, so every session is offered the same line and answers it the same way - by filing another child. → §RK1439
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

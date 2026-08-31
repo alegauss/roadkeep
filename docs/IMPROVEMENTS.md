@@ -126,30 +126,6 @@ for it.
 
 ## Block E — Adoption
 
-### §RK1438 The output an adopter actually reads
-
-`install` prints what it wrote: the server, the guard, the skill, the workflow, each
-marked written or unchanged, with the launcher's path substituted. It is an accurate
-report of files. It says nothing about what those files now let a session do.
-
-FOR AN AGENT THAT OUTPUT IS OFTEN THE FIRST CONTACT, and the first refusal is the
-second. The skill is the third, arrives on a later turn, and is long enough that it is
-skimmed - RK1424 measured it and RK1437 argues about its cadence. The two surfaces a
-session reliably READS are the ones that say least about the tool's shape.
-
-WHAT A FIRST CONTACT NEEDS IS SMALL. Which files are now the tool's and not to be
-hand-edited; the handful of verbs a day actually uses - `brief` or `pick` to start,
-`add` and `ship` to move, `lint` as the gate; and the two that answer without writing,
-`budget` before a refusal and `show` instead of opening the file. Six lines, at the end
-of a command an adopter runs once and reads.
-
-IT IS ALSO WHERE `install --check` BELONGS IN A SENTENCE: the same output could say that
-this is the command a CI job or a pre-commit hook runs to keep the copied skill in step,
-which is a fact currently discoverable only from `--help`.
-
-The suggestion is deliberately not more documentation. It is putting the smallest useful
-part of it where somebody is already looking.
-
 ### §RK1440 The gate that is somebody's checkout
 
 Observed in the pportal port, over one session. `roadkeep lint` reported the gate as

@@ -151,6 +151,11 @@ SITES: tuple[Site, ...] = (
     # RK1230. Run by `test_installing`, which asserts the line it composes *is* the copy the
     # registry names — the one composed command here whose whole point is being pasted.
     Site("installing.py:Engines.invoke", "run"),
+    # RK1438. The five lines a write ends with, which name the verbs a day uses with the id
+    # and the sentence left as placeholders — the same shape as `Retrofitted.stated` above,
+    # and unreached for the same reason: the fixture here is an adopter with no line filed, so
+    # a `brief`, a `show <id>` or a `ship <id> --why …` has nothing to run against yet.
+    Site("installing.py:Plan.orientation", "unreached", NO_FIXTURE),
     Site("installing.py:Plan.verdict", "unreached", NO_FIXTURE),
     Site("installing.py:Removal.verdict", "unreached", NO_FIXTURE),
     Site("installing.py:_governed", "unreached", NO_FIXTURE),

@@ -1821,6 +1821,36 @@ def test_the_report_heads_with_the_project_and_not_the_engine(project):
     assert "not this project" not in alone
 
 
+# -- what the surfaces let a session do (RK1438) ------------------------------
+
+
+def test_the_write_ends_by_saying_what_the_surfaces_now_let_a_session_do(project, source):
+    """RK1438. The report is an accurate account of files and said nothing about the tool it
+    installs. For an agent that output is often the first contact and the first refusal is the
+    second; the skill is the third, arrives on a later turn, and is long enough to be skimmed
+    — so the two surfaces a session reliably reads were the two saying least about the shape
+    of the thing. Not more documentation: the smallest useful part of it, where somebody is
+    already looking."""
+    said = install(project, source=source).stated(checked=False)
+    orientation = [line for line in said.splitlines() if "from here" in line]
+    assert len(orientation) == 5, said
+    joined = " ".join(orientation)
+    # The verbs a day uses, the gate, the two reads that save a refusal, and the check.
+    for verb in ("brief", "add", "ship", "lint", "repair", "budget", "show", "install --check"):
+        assert f"`roadkeep {verb}" in joined or f"{verb}`" in joined, verb
+    # And what stopped being hand-editable, which is the fact the guard enforces.
+    assert "roadkeep.toml" in joined
+    # After the surfaces, never among them: a reader scanning states is not reading prose.
+    assert said.index("from here") > said.rindex("not written")
+
+
+def test_the_check_prints_no_orientation_because_ci_runs_it_every_push(project, source):
+    """An adopter runs the write once and reads it. The check runs on every push, and five
+    lines of orientation there are five lines nobody reads, every time."""
+    install(project, source=source)
+    assert "from here" not in plan(project, source=source).stated(checked=True)
+
+
 # -- the fourth copy, and the one that runs unwatched (RK1385) -----------------
 
 

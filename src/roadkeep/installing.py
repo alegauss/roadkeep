@@ -462,7 +462,41 @@ class Plan:
             f"so the directory cannot be made"
             for path, parent in self.blocked
         ]
+        if not checked:
+            rows += self.orientation()
         return "\n".join(rows)
+
+    def orientation(self) -> list[str]:
+        """What the surfaces above now let a session do, on the write that wires them (RK1438).
+
+        This report is an accurate account of **files** and says nothing about the tool they
+        install. For an agent that output is often the first contact and the first refusal is
+        the second; the skill is the third, arrives on a later turn, and is long enough to be
+        skimmed — RK1424 measured it and RK1437 split it for that reason. So the two surfaces a
+        session reliably reads were the two saying least about the shape of the thing.
+
+        **Not more documentation** — the smallest useful part of it, where somebody is already
+        looking. Five lines: which files stopped being hand-editable, the verbs a day actually
+        uses, the gate, the two reads that save a refusal, and the check a CI job runs, which
+        was discoverable from `--help` alone.
+
+        **On the write and never on `--check`** (`checked` is the caller's, as everywhere in
+        this report). An adopter runs the write once and reads it; the check runs in CI on
+        every push, and an orientation printed there is five lines nobody reads, every time.
+        """
+        say = invocation()
+        return [
+            "  from here      the files `roadkeep.toml` declares are the tool's now — the "
+            "guard denies a hand edit and answers with the verb that makes it",
+            f"  from here      `{say} brief` picks the next line and briefs it; `{say} add` "
+            f"files one, and `{say} ship <id> --why \"…\"` closes it in all three files",
+            f"  from here      `{say} lint` is the gate, and `{say} repair` spends a whole "
+            f"report of findings in one call",
+            f"  from here      `{say} budget` prices a field before the sentence exists and "
+            f"`{say} show <id>` reads a line back, so the refusal is one you never meet",
+            f"  from here      `{say} install --check` is what a CI job or a pre-commit hook "
+            f"runs to keep the copies here in step with the checkout they came from",
+        ]
 
     def verdict(self) -> list[str]:
         """What a `--check` has to say on **stderr**, where anything is (RK393).
