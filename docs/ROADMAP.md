@@ -41,8 +41,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1443** (deps: —) **Every MCP write repeats the same staleness notice a session cannot act on** — Advice that arrives once is read, and the same paragraph on every call is noise the reader learns to skip - including on the write where it mattered. → §RK1443
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

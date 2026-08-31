@@ -179,29 +179,6 @@ silent about.
 
 ## Block F — The plugin
 
-### §RK1443 The staleness notice, said once and made actionable
-
-The MCP server appends a paragraph to every write when it notices the package changed on
-disk after it imported: "N module(s) of this package changed on disk after this server
-imported roadkeep... restart the session if it has not." It is correct, and it is
-attached to the wrong unit.
-
-An agent doing a batch of work sees it on `add`, on `section add`, on `status`, on
-`ship` — the same words each time, in a session that cannot restart itself. Advice that
-arrives once is read; the same paragraph on every call is skipped, including on the
-write where a stale validator mattered.
-
-Three changes, and the third is the one that pays. **Say it once per server process**:
-the process imported stale code, and that does not become more true on the fourth write.
-**Say what it invalidates** rather than what happened — which modules changed, and so
-whether a validator, a limit or a renderer is the part that may disagree; a caller told
-`authoring.py` is the stale one knows whether its own write is affected. **Offer the
-reload, not only the restart**: a session cannot restart itself, so a notice whose only
-remedy is an action the reader cannot take has no next step. The CLI path re-imports per
-process, which is the remedy that works today, and it is buried in the last clause.
-
-Falsified when a session doing ten writes reads the same paragraph ten times.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

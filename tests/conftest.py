@@ -513,6 +513,26 @@ VOLATILE = ("invocation", "persisted", "_declared_by", "_plugin_name")
 
 
 @pytest.fixture(autouse=True)
+def _process_scoped_notices():
+    """The served notes that fire once per server process (RK1443), forgotten between tests.
+
+    Autouse for :func:`_pinned_staleness`' reason exactly: a test session is one process
+    running thousands of calls, so a note whose whole rule is "once per process" would be said
+    by whichever test ran first and by no other — and the tests exposed are the ones not
+    asserting about staleness at all. Cleared at both ends, so "once" is asserted inside the
+    test that asserts it and never inherited.
+
+    Reaching a private name deliberately: the state is a fact about a process, and a test
+    session is the one reader for which that is not true.
+    """
+    from roadkeep import serving
+
+    serving._SAID.clear()  # noqa: SLF001 - the state this fixture exists to own
+    yield
+    serving._SAID.clear()  # noqa: SLF001
+
+
+@pytest.fixture(autouse=True)
 def _volatile_caches():
     """Cleared before and after **every** test, which is the point: an opt-in fixture only helps
     the tests that already remembered, and forgetting is what the defect was.

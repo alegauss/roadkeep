@@ -2124,12 +2124,48 @@ def test_a_write_that_worked_says_the_code_that_validated_it_had_moved(tmp_path,
     # The write stands as the answer the running code gave, exactly as a refusal does (RK242).
     assert answered["isError"] is False
     assert "changed on disk" in said
-    # The count and never the list (RK267): a successful call has no traceback, so relevance
-    # cannot be computed and naming the modules would be the text that task removed.
-    assert DECIDES not in said
-    assert "1 module(s)" in said
-    # And the gate rather than this call re-run (RK313): the write has happened.
+    # The list now that it is said once (RK1443, narrowing RK267): a count says something the
+    # reader can do nothing with, and the names say which part may disagree with the write
+    # they just made. What is still never claimed is which of them *decided* this one.
+    assert DECIDES in said
+    assert "decided" not in said
+    # And the gate rather than this call re-run (RK313): the write has happened. First, too:
+    # a reader who stops at the restart they cannot perform never reaches the one action that
+    # exists inside this session.
     assert "`roadkeep lint`" in said
+    assert said.index("`roadkeep lint`") < said.index("restart")
+
+
+def test_the_note_about_this_process_is_said_once_and_not_per_write(tmp_path, monkeypatch):
+    """RK1443. The fact is about the server process — it imported code the tree has moved past
+    — and that does not become more true on the fourth write. Measured as a session doing a
+    batch and reading the identical paragraph on `add`, on `section add`, on `status` and on
+    `ship`, which is how advice becomes text a reader skips: including on the write where a
+    stale validator was the thing that mattered."""
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path)),
+    )
+    root = project(tmp_path)
+    assert "changed on disk" in text_of(called(root, "status", id="RK1", marker="🛠"))
+    # Same process, same drift, a second write: nothing more is said.
+    assert "changed on disk" not in text_of(called(root, "status", id="RK1", marker="⏳"))
+    assert "changed on disk" not in text_of(called(root, "status", id="RK1", marker="📋"))
+
+
+def test_the_refusal_that_names_what_decided_it_is_said_every_time(tmp_path, monkeypatch):
+    """The half the once-rule does not cover, and the reason it is a set of kinds rather than
+    one flag: that note names which modules decided **this** refusal, which is information
+    about the call and not about the process. A rule about repetition is not a reason to
+    withhold it, so the second refusal carries it too."""
+    monkeypatch.setattr(
+        "roadkeep.serving.engine",
+        lambda: replace(engine(), home=_moved(tmp_path)),
+    )
+    root = project(tmp_path)
+    for _ in range(2):
+        said = text_of(called(root, "status", id="RK404", marker="🛠"))
+        assert DECIDES in said, said
 
 
 def test_the_note_follows_the_act_and_not_the_verb_it_is_spelled_from(tmp_path, monkeypatch):

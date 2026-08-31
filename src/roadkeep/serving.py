@@ -2576,14 +2576,22 @@ def _answered(
     text = _rerouted(text, root)
     changed = engine().stale
     if not is_error:
-        if not (wrote and changed):
+        # Once per process (RK1443). The two notes that claim no relevance to the call they
+        # ride on are notes about *this process*, and that fact does not become more true on
+        # the fourth write: an agent doing a batch read the same paragraph on `add`, on
+        # `section add`, on `status` and on `ship`, which is how advice becomes text a reader
+        # skips — including on the write where a stale validator mattered.
+        if not (wrote and changed and _said_once("landed")):
             return Answer(text, is_error=False)
         return Answer(f"{text}\n\n{_landed(changed, root)}", is_error=False)
     if not changed:
         return Answer(text, is_error=True)
     decided = provenance.witnessed()
     if decided is None:
-        # Relevance is genuinely unknown, so the full list is what there is to say.
+        # Relevance is genuinely unknown, so the full list is what there is to say — once,
+        # for the reason above: it is the same paragraph on every refusal nothing witnessed.
+        if not _said_once("inventory"):
+            return Answer(text, is_error=True)
         return Answer(f"{text}\n\n{_inventory(changed, root, served)}", is_error=True)
     both = tuple(one for one in changed if one in decided)
     if not both:
@@ -2600,6 +2608,27 @@ def _answered(
     )
 
 
+#: Which of the process-scoped notes this process has already said (RK1443). Module state,
+#: because the unit the fact is about is the server process and nothing smaller has one —
+#: a request is not the thing that imported stale code. The **witnessed** refusal note is
+#: deliberately not in here: that one names which modules decided *that* refusal, which is
+#: per-call information, and a rule about repetition is not a reason to withhold it.
+_SAID: set[str] = set()
+
+
+def _said_once(kind: str) -> bool:
+    """Whether this is the first note of its kind in this process, recording that it was.
+
+    A predicate with a side effect, which is what "once" is. Cleared by nothing at runtime:
+    a process that has said it has said it, and a second server is a second process. Tests
+    reach `_SAID` directly, that being the only reader for which the state is not a fact.
+    """
+    if kind in _SAID:
+        return False
+    _SAID.add(kind)
+    return True
+
+
 def _landed(changed: Sequence[str], root: Path) -> str:
     """The note a successful **write** needs, which the refusal's argument never reached (RK1368).
 
@@ -2609,24 +2638,30 @@ def _landed(changed: Sequence[str], root: Path) -> str:
     refused by `lint` on the next call. A refusal read against stale code costs a re-run; a
     number accepted against stale code is committed.
 
-    **The count and not the list** (RK267). Relevance is computed off a traceback and a
-    successful call has none, so naming the modules would be exactly the correct-and-irrelevant
-    text that task removed, and asking which of them decided the write is handing the question
-    back. What is left is the fact, the remedy, and one command.
+    **The list, now that it is said once** (RK1443, narrowing RK267). That task refused the
+    module names because they were correct-and-irrelevant text *on every call* — 450 characters
+    of it, fired on every error in every session that edits this package. Said once per process
+    the arithmetic reverses: a count says a thing the reader can do nothing with, where the
+    names say which part may disagree, and a caller told the stale module is `authoring.py`
+    knows whether the write it just made is one of the affected ones. What is still not claimed
+    is which of them decided *this* write — relevance is computed off a traceback and a
+    successful call has none, so the note states what changed and never what it cost.
 
-    **And that command is `lint`, not this call re-run** (RK313). The write has happened, so
-    re-running it is a second entry or a refusal about the first; what the reader needs is the
-    gate reading the tree with the code on disk, which is what caught the measured case.
+    **And it leads with what is available now** (RK313, read one clause earlier). The one
+    action that exists inside this session was the last thing said; a reader who stops at the
+    restart they cannot perform never reaches it. So the CLI comes first and the remedy for the
+    process comes after it. That command is `lint` and not this call re-run: the write has
+    happened, so re-running it is a second entry or a refusal about the first, and what the
+    reader needs is the gate reading the tree with the code on disk.
     """
     from roadkeep.remedying import Door  # noqa: PLC0415 - RK260, this note's path only
 
     return (
-        f"Separately, about this process and not about the write above: {len(changed)} "
-        f"module(s) of this package changed on disk after this server imported roadkeep, so "
-        f"what was just written was validated by the code it did import and not by the code "
-        f"in the tree. {_remedy(root)} Available now, in this session: "
+        f"Separately, about this process and said once: this server imported roadkeep before "
+        f"{', '.join(changed)} changed on disk, so what was just written was validated by the "
+        f"code it did import and not by the code in the tree. Available now, in this session: "
         f"`{Door(('lint',), '').command}` judges what landed, the CLI importing the changed "
-        f"files per process."
+        f"files per process. {_remedy(root)}"
     )
 
 
