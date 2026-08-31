@@ -90,8 +90,8 @@ def test_a_block_this_change_emptied_is_reported(tmp_path):
         "- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason.\n", ""
     ))
     report = lint(config, since="HEAD")
-    (note,) = report.notes
-    assert note.code == "block.emptied" and note.id == "A"
+    (note,) = [one for one in report.notes if one.code == "block.emptied"]
+    assert note.id == "A"
     # At the heading, because the heading is what stayed: the line it is about is gone.
     assert note.lineno == 3 and note.file == "ROADMAP.md"
     assert "held 1 open line(s) at HEAD and holds none now" in note.message
@@ -107,8 +107,8 @@ def test_a_block_this_change_reopened_is_the_other_direction(tmp_path):
     git(tmp_path, "commit", "--quiet", "-m", "feat: finish A")
     write(tmp_path, "ROADMAP.md", ROADMAP)
     report = lint(config, since="HEAD")
-    (note,) = report.notes
-    assert note.code == "block.reopened" and note.id == "A"
+    (note,) = [one for one in report.notes if one.code == "block.reopened"]
+    assert note.id == "A"
     assert "holds 1 now" in note.message
 
 
@@ -181,8 +181,9 @@ def test_json_carries_the_note(tmp_path, capsys):
         "- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason.\n", ""
     ))
     assert main(["-C", str(tmp_path), "lint", "--since", "HEAD", "--json"]) == EXIT_OK
-    (note,) = json.loads(capsys.readouterr().out)["notes"]
-    assert note["code"] == "block.emptied" and note["id"] == "A"
+    said = json.loads(capsys.readouterr().out)["notes"]
+    (note,) = [one for one in said if one["code"] == "block.emptied"]
+    assert note["id"] == "A"
 
 
 def test_the_note_and_the_ship_event_answer_the_same_question(tmp_path, capsys):

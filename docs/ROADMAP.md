@@ -38,8 +38,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1448** (deps: —) **a test unpacking report.notes as a whole passes or fails on which unrelated note the gate happened to add** — Seven sites read the list rather than their own code, so one new note turned seven green tests red and none of them was about it. → §RK1448
-
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
 ## Done when — Block D

@@ -123,13 +123,9 @@ called unbuilt were already in the ledger.
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 133 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 1 | 35 | 1 |
+| H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 1 | 933 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1448** (deps: —) **a test unpacking report.notes as a whole passes or fails on which unrelated note the gate happened to add** — Seven sites read the list rather than their own code, so one new note turned seven green tests red and none of them was about it. → §RK1448
+| **Total** | 0 | 934 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

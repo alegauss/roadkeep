@@ -815,7 +815,8 @@ def test_an_lf_checkout_says_nothing_about_a_translation_it_did_not_make(tmp_pat
     (tmp_path / "agents.md").write_bytes(b"# Agents\n\nOne line.\n")
     assert main(["-C", str(tmp_path), "budget", "--file"]) == EXIT_OK
     assert "checkout" not in capsys.readouterr().out
-    assert lint(Config.discover(tmp_path)).notes == ()
+    assert [one for one in lint(Config.discover(tmp_path)).notes
+            if one.code.startswith("budget.")] == []
 
 
 def test_a_declared_file_that_is_not_there_is_said_and_never_read_as_room(tmp_path):

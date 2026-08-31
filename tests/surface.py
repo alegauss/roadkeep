@@ -131,3 +131,20 @@ def names() -> tuple[str, ...]:
             | {path.name for path in PACKAGE.iterdir() if (path / "__init__.py").exists()}
         )
     )
+
+
+@lru_cache(maxsize=1)
+def suite() -> tuple[Path, ...]:
+    """Every test module of this suite, in name order — the sweeps' own surface (RK1448).
+
+    :func:`modules` is about the package and this is about the tests, and it is here for the
+    same reason: RK496 declared the package's set once because a survey deriving its own view
+    agrees with every other right up until the layout moves. A second sweep over `tests/`
+    would be that failure in the other directory, and this one arrived the moment a rule about
+    assertions needed the same set `test_invariants` already reads.
+
+    `test_invariants` keeps its own glob deliberately: it is the module that *checks* this
+    declaration, and a check that read the declaration would be the declaration checking
+    itself. Every other sweep asks here.
+    """
+    return tuple(sorted(Path(__file__).resolve().parent.glob("test_*.py")))

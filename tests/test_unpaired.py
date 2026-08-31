@@ -94,8 +94,8 @@ def test_a_section_edited_alone_is_reported(tmp_path):
         "The reasoning the first line has no room for. And it must also do X.",
     ))
     report = lint(config, since="HEAD")
-    (note,) = report.notes
-    assert note.code == "section.unpaired" and note.id == "RK1"
+    (note,) = [one for one in report.notes if one.code == "section.unpaired"]
+    assert note.id == "RK1"
     assert note.lineno == 11 and note.file == "IMPROVEMENTS.md"
     assert "only thing `pick` reads" in note.message
 
@@ -196,5 +196,5 @@ def test_json_carries_the_note(tmp_path, capsys):
     write(tmp_path, "IMPROVEMENTS.md", PROSE.replace("first design", "first design, restated"))
     assert main(["-C", str(tmp_path), "lint", "--since", "HEAD", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    (note,) = payload["notes"]
-    assert note["code"] == "section.unpaired" and note["line"] == 11
+    (note,) = [one for one in payload["notes"] if one["code"] == "section.unpaired"]
+    assert note["line"] == 11
