@@ -179,8 +179,54 @@ silent about.
 
 ## Block F — The plugin
 
+### §RK1445 The rule a pipe character satisfies
+
+RK463 established that a read the skill names and the tool surface withholds is one that
+machine cannot make at all: a plugin installs with no console script and no PATH entry.
+The test holding it counts a verb as named only where it **heads** a backticked span — a
+deliberate narrowing, since a bare word count said `writes` was named eleven times when
+the command is named once.
+
+THE NARROWING IS SATISFIED BY PUNCTUATION. `list|stats|audit [--block <x>]` heads with
+`list`, which is served, so the clause passes while naming two verbs that are not.
+RK1442 met this from the other side: the sentence about the startable split could not be
+written with `stats` at the front of a span and went into the pipe instead, where it was
+true and unaddressable. Neither `stats` nor `audit` is served today.
+
+SO THE RULE READS AS SATISFIED WHERE IT IS NOT. A test whose verdict turns on which verb
+an author put first reports on prose style, and the failure it exists to catch — an
+agent told to run something it has not got — passes through unchanged.
+
+WHAT WOULD ANSWER IT is deciding what a joint span means. Either every verb inside one
+is named, which makes the clause a finding and forces the sentence to say which command
+a caller actually has; or a joint span is an exemption declared once with its reason,
+rather than a shape the regular expression happens to allow.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
+
+### §RK1444 The surface the session page does not price
+
+`SessionCost` renders `cost --tools` and `cost --session`, and the page around it argues
+that the skill is trigger-loaded and therefore free on turns that touch no governed
+file. What it never says is what that trigger costs when it does fire. RK1424 added
+`cost --skill` for exactly that reading and `session.mjs` does not ask for it.
+
+MEASURED WHILE SPLITTING THE SKILL. The prose fix was written and `budget.mjs` refused
+it twice: first for typing a count, which this area renders rather than states, and then
+because `session.mdx` is at 600 of 600 words — a twenty-six-word addition put it over.
+So the page cannot say this without cutting a paragraph written for another argument,
+and the area's rule already says which way to go: every figure here is rendered from the
+tool that owns it.
+
+WHAT WOULD ANSWER IT is `session.mjs` asking `cost --skill` beside the two it already
+asks, and the component carrying a row for the orientation and one per reference page,
+each labelled by the cadence it is paid at. Generated content is not counted against the
+page budget, so this costs the prose nothing.
+
+The reading duplicates neither figure above it: the schema is paid at connect, the
+resident files every turn, and the skill only on the turns its description matches — the
+distinction the page spends four paragraphs making and then prices two thirds of.
