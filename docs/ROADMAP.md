@@ -34,6 +34,8 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
+- 📋 **RK1449** (deps: —) **the MCP server does not finish connecting inside the client's 30s timeout, so a session gets none of its tools** — The launcher resolves an engine, starts Python and composes the tool list before it answers, and on Windows that outlasts what the harness waits. → §RK1449
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

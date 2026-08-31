@@ -121,11 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 143 | 2 |
 | D — The gate | 0 | 207 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 133 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 133 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 0 | 934 | 12 |
+| **Total** | 1 | 934 | 12 |
+
+**Next ready:**
+
+- 📋 **RK1449** (deps: —) **the MCP server does not finish connecting inside the client's 30s timeout, so a session gets none of its tools** — The launcher resolves an engine, starts Python and composes the tool list before it answers, and on Windows that outlasts what the harness waits. → §RK1449
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
