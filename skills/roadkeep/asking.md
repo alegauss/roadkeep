@@ -161,7 +161,11 @@ in prose — a "filed as <id>" a ledger entry promised before the task existed �
 `list|stats|audit [--block <x>]` counts and lists, naming
 every marker line neither could read, and where `[requirements]` is declared the count
 splits into what nothing absent is holding up and what the rest wait for, `--have <word>`
-moving a line across and a line naming two requirements counted once;
+moving a line across and a line naming two requirements counted once. **That split is a
+key on `list --json`** — `startable`, computed over exactly the lines the filter selected,
+so the read every surface serves answers it and the counting verb the terminal has is not
+the only way to ask; a caller passing no `--have` is counted as having nothing, which is
+the population this axis was written for;
 `claims` is the registry read against the files —
 held, expired or stale, oldest first, where each id went and where the registry lives, and
 `--prune` drops the rows that are not claims; `writes` is the same read for the other

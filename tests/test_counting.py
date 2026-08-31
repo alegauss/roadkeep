@@ -353,6 +353,61 @@ def test_a_file_with_no_open_line_gets_no_split_at_all(tmp_path, capsys):
     assert "startable" not in capsys.readouterr().out
 
 
+# -- and the surface an agent actually has (RK1442) ---------------------------
+
+
+def test_the_listing_carries_the_split_the_counting_verb_no_tool_serves(tmp_path, capsys):
+    """RK1442. RK1432 divided the open count and `stats` is the one counting verb this
+    project's tool surface withholds, so the answer reached a terminal and not the caller
+    the plugin ships for. A forty-fifth tool is paid for by every session at connect; this
+    key is paid for by nobody, and it is the same number."""
+    project(tmp_path, roadmap=WAITING, extra=DECLARED)
+    assert main(["-C", str(tmp_path), "list", "--json"]) == EXIT_OK
+    listing = json.loads(capsys.readouterr().out)
+    assert listing["startable"] == {
+        "open": 4,
+        "startable": 2,
+        "waiting": 2,
+        "absent": [
+            {"requirement": "console", "lines": 2},
+            {"requirement": "signing-cert", "lines": 1},
+        ],
+    }
+
+
+def test_the_listings_split_is_over_the_lines_the_filter_selected(tmp_path, capsys):
+    """Not the whole file's: a filtered listing saying what some *other* selection waits on
+    is the payload contradicting the rows printed beside it."""
+    scoped = WAITING + "\n## Block B — Authoring\n\n" + (
+        "- 📋 **RK9** (deps: —) (requires: console) **A ninth symptom** — Because. → §RK9\n"
+    )
+    project(tmp_path, roadmap=scoped, extra=DECLARED)
+    assert main(["-C", str(tmp_path), "list", "--block", "B", "--json"]) == EXIT_OK
+    split = json.loads(capsys.readouterr().out)["startable"]
+    assert split["open"] == 1 and split["startable"] == 0
+
+
+def test_the_listing_takes_the_same_have_the_count_does(tmp_path, capsys):
+    """A number a caller cannot move lines across is the half-answer this axis exists to
+    avoid, so the flag is the CLI's here too — withheld from the tool, where the caller has
+    no hands and passing nothing is already what the split assumes."""
+    project(tmp_path, roadmap=WAITING, extra=DECLARED)
+    argv = ["-C", str(tmp_path), "list", "--have", "console", "--json"]
+    assert main(argv) == EXIT_OK
+    split = json.loads(capsys.readouterr().out)["startable"]
+    assert split["startable"] == 3
+    assert split["absent"] == [{"requirement": "signing-cert", "lines": 1}]
+
+
+def test_a_listing_prints_the_file_and_never_the_split(tmp_path, capsys):
+    """stdout stays exactly what the file says, so `list` substitutes for the grep it
+    replaces: the split is a key, and a row in the pipe is a line no consumer asked for."""
+    project(tmp_path, roadmap=WAITING, extra=DECLARED)
+    assert main(["-C", str(tmp_path), "list"]) == EXIT_OK
+    printed = capsys.readouterr()
+    assert "startable" not in printed.out and "startable" not in printed.err
+
+
 def test_the_split_follows_the_block_the_count_was_scoped_to(tmp_path, capsys):
     scoped = WAITING + "\n## Block B — Authoring\n\n" + (
         "- 📋 **RK9** (deps: —) (requires: console) **A ninth symptom** — Because. → §RK9\n"

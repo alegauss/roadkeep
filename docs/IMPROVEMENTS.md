@@ -179,28 +179,6 @@ silent about.
 
 ## Block F — The plugin
 
-### §RK1442 The count an agent cannot ask for
-
-RK1432 gave `stats` a split: how many open lines nothing absent is holding up, and what
-the rest wait for. RK463 established that a read the skill names and the surface
-withholds is a read that machine cannot make at all, a plugin installing with no console
-script and no PATH entry. `stats` is withheld, so the split reaches the terminal and not
-the agent.
-
-IT ALSO SILENCED THE DOCUMENTATION. The skill was going to say `stats` splits the count;
-the test RK463 left behind refuses any read it heads a code span with that nothing
-serves, and refused this one. The sentence went into the `list|stats|audit` clause
-instead, where it is true and unaddressable - the reader is told a count splits and not
-which command prints it.
-
-THE OBVIOUS FIX IS THE WRONG ONE ON ITS OWN. RK1437 says the served surface is already a
-reference loaded as an orientation, and `budget.session` refused a clause of forty
-characters this week. A forty-fifth tool is paid for by every session at connect.
-
-SO THE QUESTION IS WHICH. `list` is served and already carries the population; the split
-could ride its payload instead of arriving as a tool. That costs nothing at connect and
-answers the same question, and deciding it is what this line is for.
-
 ### §RK1443 The staleness notice, said once and made actionable
 
 The MCP server appends a paragraph to every write when it notices the package changed on

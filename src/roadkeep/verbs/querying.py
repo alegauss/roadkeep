@@ -121,7 +121,12 @@ def _list(config: Config, args: argparse.Namespace) -> int:
         return _refused(error)
 
     if args.json:
-        print(json.dumps(census.listing(standing), indent=2))
+        # `--have` where the caller passed one, and nothing where it did not (RK1442): the
+        # payload's split is `stats`' own, so what a caller declares moves lines across here
+        # exactly as it does there. The served tool takes no such flag and never will while
+        # `[tools] session` is this close — the agent on that transport is the caller with no
+        # hands, which is the population this split already assumes.
+        print(json.dumps(census.listing(standing, getattr(args, "have", ())), indent=2))
     else:
         listed = census.listed(args.ids)
         if listed:
@@ -1375,9 +1380,20 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     list_parser.add_argument(
         "--ids", action="store_true", help="print ids alone, one per line"
     )
+    # The same flag `stats` takes, because the payload now carries that verb's split (RK1442)
+    # and a number a caller cannot move lines across is the half-answer this axis exists to
+    # avoid. It changes no printed line: stdout here is what the file says, verbatim.
+    list_parser.add_argument(
+        "--have",
+        action="append",
+        default=[],
+        metavar="REQUIREMENT",
+        help=_HAVE_COUNTING_HELP,
+    )
     withheld(
         list_parser,
         ids='how a terminal prints: the payload carries every id in `tasks`, so a caller over this transport already has what the flag composes',
+        have='the caller on this transport is the one with no hands, which is what the split already assumes — and the flag `brief` and `pick` expose costs the connect budget a read that answers without it does not',
     )
     list_parser.set_defaults(handler=_list, reads_only=True)
     # Two output *forms* of one read are two answers, exactly as `budget`'s subjects are

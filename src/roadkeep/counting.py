@@ -397,7 +397,9 @@ class Census:
             return []
         return [f"roadkeep: {standing.sentence}"]
 
-    def listing(self, standing: Standing | None) -> dict[str, object]:
+    def listing(
+        self, standing: Standing | None, available: Iterable[str] = ()
+    ) -> dict[str, object]:
         """The same answer as data, with what the label it was scoped to turned out to be."""
         from roadkeep.rendering import _miss_json, _row_json  # noqa: PLC0415 - RK260
 
@@ -410,6 +412,14 @@ class Census:
             # `None` where no block was named, which is the question rather than a missing
             # answer: a listing over the whole file has no standing.
             "standing": None if standing is None else standing.payload(),
+            # The split, riding a payload instead of arriving as a tool (RK1442). RK1432 gave
+            # `stats` a division of the open count and `stats` is the one counting verb this
+            # surface withholds, so the answer reached a terminal and not the caller this
+            # project ships for. A forty-fifth tool is paid for by every session at connect
+            # and this key is paid for by nobody — and it is the same number, computed over
+            # exactly the lines this call selected, which makes a filtered listing say what
+            # its own selection is waiting on rather than what the whole file is.
+            "startable": self.split(available).payload(),
             "tasks": [_row_json(entry) for entry in self.counted],
         }
 
