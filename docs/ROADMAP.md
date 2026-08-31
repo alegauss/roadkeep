@@ -35,6 +35,7 @@
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 📋 **RK1451** (deps: —) **engines lists only the copy it is, so a vendored engine the launcher runs has no row and both copies exit clean** — The hook and the MCP server run .roadkeep/ at 0.1.1269 while a shell reaches 0.2.58, and each answers writing with itself and names no disagreement. → §RK1451
+- 📋 **RK1452** (deps: —) **the server reports the version it loaded while that same path holds another, and calls the result agreed** — install --vendor replaced .roadkeep under a running MCP server, which kept 0.1.1269 in memory for a directory now holding 0.2.4 and still answered agreed. → §RK1452
 
 ## Block G — The editor surface (the backlog where the file is open)
 

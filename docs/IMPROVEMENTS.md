@@ -112,6 +112,33 @@ that the listing has no row for a copy that is not the one answering.
 
 No prose was damaged: both engines called the governed files clean.
 
+### §RK1452 One home, two versions, and a verdict of agreed
+
+Reproduced in Japode/cloud in one session. The MCP server was started from
+`.claude/hooks/roadkeep-launch.py`, which resolved a vendored `.roadkeep/` holding
+0.1.1269. Later, `install --vendor` replaced that directory in place with 0.2.4. Python
+had already loaded its modules, so the server kept running the old code:
+
+    launcher --version   (disk)   roadkeep 0.2.4    .roadkeep/src/roadkeep
+    engines  over MCP    (live)   0.1.1269          .roadkeep/src/roadkeep
+
+One path, two answers, and the second is the one every tool call and every guarded hand
+edit goes through. The payload says `"agree": true, "verdict": "agreed"`.
+
+That verdict is the defect rather than the version. This verb's own contract is that
+copies may differ and what is not survivable is being unable to say which one answered —
+and here it names a version that path has not held since the vendor ran, then certifies
+agreement about it. A caller has no way to notice: the number is plausible, the home is
+right, and nothing in the answer is stale-looking.
+
+Kin to two this block already closed, and the maintainer should judge whether it is one
+of them. RK1167 also ended with `engines` naming a version replaced and not on disk, but
+from registry rows rather than a live process; RK153 is about a session keeping an old
+copy running. Neither has the in-place swap under a server that then certifies itself.
+
+Cheap tell: the loaded version against what that home states now, read at answer time
+rather than at start-up.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
