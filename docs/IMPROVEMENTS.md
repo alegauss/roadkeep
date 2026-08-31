@@ -85,34 +85,6 @@ already written, not authorship.
 
 ## Block F — The plugin
 
-### §RK1446 The launcher's mcp mode on Windows
-
-`_serve` ends in `os.execv(sys.executable, [sys.executable, engine, "mcp", *argv])`, and
-the comment beside it gives the reason: the server should own this process's stdio
-rather than talk through a pipe to a parent that shuttles every frame. That reasoning is
-POSIX's. On Windows there is no image to replace, so the CRT's `_execv` spawns and lets
-the caller exit, and what the harness spawned is the caller.
-
-Measured on Windows 11, from a project whose `.mcp.json` is the one `install` writes:
-
-    python .claude/hooks/roadkeep-launch.py mcp   exit 0 in under a second,
-                                                  nothing on stdout, nothing on stderr
-    python <engine>/scripts/roadkeep.py mcp       still serving at 10s
-
-No server survives the launcher either way, so the harness holds a pipe nothing is on.
-Claude Code reports `CONNECT_TIMEOUT` after 30 seconds and drops every
-`mcp__roadkeep__*` tool. The `SessionStart` hook and the `PreToolUse` guard still fire,
-so the session is told to use tools it was never given and a hand-edit is denied with a
-command it cannot run. It falls back to the CLI, which works, after a 30-second stall.
-
-The exit code is the sharpest part: a launcher returning 2 would surface as a failed
-server. Exiting 0 with both streams empty is indistinguishable from one that started and
-closed cleanly, which is why this reads as a timeout rather than a crash.
-
-Acceptance: on Windows the launcher's `mcp` mode leaves a process serving on the stdio
-the harness handed it. Where no engine runs it exits non-zero with a line on stderr,
-rather than 0 in silence.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

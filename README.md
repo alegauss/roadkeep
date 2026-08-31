@@ -121,15 +121,11 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 0 | 143 | 2 |
 | D — The gate | 0 | 207 | 2 |
 | E — Adoption | 0 | 116 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 132 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 0 | 133 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 1 | 931 | 12 |
-
-**Next ready:**
-
-- 📋 **RK1446** (deps: —) **the launcher's `mcp` mode exits 0 and serves nothing on Windows, so a session loses the tools its own hook names** — `execv` gives the server this process's stdio on POSIX and gives it nothing on Windows, so the guard denies a hand-edit naming a tool the session was never handed. → §RK1446
+| **Total** | 0 | 932 | 12 |
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

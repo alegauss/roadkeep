@@ -897,6 +897,7 @@
 - ✅ **RK1442** **stats is the one counting verb no tool serves, so the split it just grew is unreachable from the surface an agent has** — `list --json` carries a `startable` key over the lines its own filter selected, so the split reaches the served surface without a forty-fifth tool at connect.
 - ✅ **RK1443** **Every MCP write repeats the same staleness notice a session cannot act on** — The process-scoped notes fire once per server, name the modules that moved, and lead with the CLI remedy a session can actually run.
 - ✅ **RK1445** **the gate on reads the skill may name lets a piped span through, so the two verbs nothing serves are named anyway** — Every alternative in a joint span counts, and the two verbs nothing serves are a declared exemption the skill pays for by naming the keys (design recorded in `tests/test_skill.py`).
+- ✅ **RK1446** **the launcher's `mcp` mode exits 0 and serves nothing on Windows, so a session loses the tools its own hook names** — On Windows the launcher runs the server as a child with this process's stdio, so the process the harness spawned is the one still serving.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

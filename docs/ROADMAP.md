@@ -34,8 +34,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1446** (deps: —) **the launcher's `mcp` mode exits 0 and serves nothing on Windows, so a session loses the tools its own hook names** — `execv` gives the server this process's stdio on POSIX and gives it nothing on Windows, so the guard denies a hand-edit naming a tool the session was never handed. → §RK1446
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

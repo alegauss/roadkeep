@@ -23,6 +23,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -972,6 +973,50 @@ def test_a_missing_engine_is_a_named_refusal_on_the_server_too(tmp_path):
     one whose log should say why: exit 0 and silence there is a crash with no cause in it."""
     done = served(["mcp"], None, tmp_path)
     assert done.returncode == 2 and b"no engine found" in done.stderr
+
+
+def test_the_process_the_harness_spawned_is_the_one_still_serving(tmp_path):
+    """RK1446. `execv` is POSIX's answer: on Windows there is no image to replace, so the CRT
+    spawns and lets the caller exit — and what the harness spawned is the caller. Measured on
+    Windows 11 against the launcher `install` writes: the spawned process exited 0 after 0.75s
+    with the pipe still open, the client reported `CONNECT_TIMEOUT` after thirty seconds and
+    dropped every tool, while the hooks went on naming them.
+
+    **And `served` above could not see it**, which is why the defect stood: `capture_output`
+    waits on the *pipes*, and a detached grandchild holds them open — so a frame came back
+    from a server the harness had already given up on. This watches the process instead, which
+    is what a client watches.
+
+    One assertion on both platforms: `execv` replaces this image and `subprocess.run` waits
+    for the child, so either way the process that was started is the one still there.
+    """
+    from roadkeep.adopting import init
+
+    init(tmp_path)
+    env = {**os.environ, "ROADKEEP_HOME": str(ROOT), POPPED: str(tmp_path)}
+    child = subprocess.Popen(
+        [sys.executable, str(BRIDGE), "mcp"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        cwd=str(tmp_path),
+        env=env,
+    )
+    try:
+        child.stdin.write(f"{HANDSHAKE}\n".encode("utf-8"))
+        child.stdin.flush()
+        # Long enough to be past the 0.75s the broken path took, short enough to cost a suite
+        # nothing: the failure is an immediate exit, not a slow one.
+        deadline = time.monotonic() + 4
+        while time.monotonic() < deadline:
+            assert child.poll() is None, (
+                f"the spawned process exited {child.returncode} with its pipe still open, "
+                f"which is the server the client stops waiting for"
+            )
+            time.sleep(0.25)
+    finally:
+        child.kill()
+        child.wait(timeout=10)
 
 
 # -- an engine that is found and then explodes (RK1214) ------------------------
