@@ -36,6 +36,8 @@
 
 ## Block D — The gate
 
+- 📋 **RK1457** (deps: —) **non-goal.reaches fires on every lint and nothing clears it, so a project that decided reads the same note forever** — Its own remedy is non-goal amend; a project named both bounded lines inside the rule's paragraph and both are still flagged, so the gate carries unanswerable notes. → §RK1457
+
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)

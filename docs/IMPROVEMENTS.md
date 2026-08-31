@@ -175,6 +175,32 @@ before writing.
 
 ## Block D — The gate
 
+### §RK1457 A read note with no answer
+
+`non-goal.reaches` fires when an open line shares a word with a constraint's lead. It
+says a constraint may bound a line without forbidding it and nothing here decides which,
+and its remedy names `non-goal amend` to narrow the rule or `retire` to take the line.
+
+MEASURED ON A REAL PROJECT. One rule there is "No local patch to the vendored C". Two
+open lines name "vendored": one deletes the libraries the rule's argument exempts, the
+other ports call sites and may keep the C untouched. Both decisions were made and
+written into the rule's paragraph by name, in two separate tasks. Both are still flagged
+on every lint.
+
+SO THE REMEDY DOES NOT CLEAR THE NOTE. There is nowhere to record the answer: a non-goal
+is a lead and a why, and the why is prose this check does not read. A project that has
+done the reading is indistinguishable from one that has not, and the second task to do
+it had no way to tell the first had.
+
+WHY IT COSTS. That project runs `lint` inside its local gate, so those two print beside
+four `install.stale` rows and one `engine.disagreement` - seven lines on every commit,
+none answerable. A note nobody can clear is a note nobody reads, and a real one arrives
+in that company.
+
+WHAT WOULD SETTLE IT is somewhere the check can see the answer: an exemption the
+constraint carries as a field, or the note falling silent where the rule's paragraph
+names the line.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
