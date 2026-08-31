@@ -410,7 +410,7 @@ def test_the_commit_list_is_fed_and_not_spelled_into_the_argv():
 
     seen: dict[str, object] = {}
 
-    def watched(root, *args, fed=()):
+    def watched(root, *args, fed=(), timeout=None):
         seen["args"] = args
         seen["fed"] = fed
         return b""

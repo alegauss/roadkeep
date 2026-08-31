@@ -23,6 +23,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -640,3 +641,75 @@ def test_a_named_config_directory_is_still_read_with_no_home(monkeypatch, tmp_pa
     monkeypatch.setattr(Path, "home", staticmethod(raising))
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path))
     assert _plugin_roots() == (tmp_path / "plugins",)
+
+
+# -- what the handshake may spend asking (RK1449) ----------------------------
+
+
+def test_the_placement_question_is_bounded_by_one_budget_and_not_by_three(monkeypatch):
+    """The whole of RK1449: three git calls at `history`'s own twenty seconds each.
+
+    `initialize` composes `instructions()`, which is `engine()`, which asks git three
+    questions about the package's directory. On this tree they are 14, 14 and 16 ms and the
+    ceiling never mattered; on a cold index under a large enclosing repository it is the
+    ceiling that answers, and three of them is sixty seconds against a client that abandons
+    the connection at thirty — so the session that was waiting for a provenance line got no
+    tools at all.
+
+    Asserted as the sum and not per call, because per call is exactly what was wrong: each
+    was already bounded, and the bound the handshake needs is on what they cost together.
+    """
+    from roadkeep import provenance
+
+    budget = 0.3  # the shipped 3.0 asserted in seconds nobody waits for
+    monkeypatch.setattr(provenance, "PLACEMENT_BUDGET", budget)
+    handed: list[float] = []
+
+    def slow(root, *args, fed=(), timeout=None):
+        handed.append(timeout)
+        # A cold `ls-files` under a large tree: it takes what it was allowed.
+        time.sleep(timeout)
+        return "src/roadkeep/provenance.py\n"
+
+    monkeypatch.setattr("roadkeep.history._run", slow)
+    started = time.monotonic()
+    unplaced = provenance._placed(HERE / "src" / "roadkeep")
+    spent = time.monotonic() - started
+
+    # One call spent the whole allowance, so the second is never made — the difference
+    # between a deadline over the sequence and a ceiling on each of its three calls.
+    assert unplaced == (None, False)
+    assert handed == [pytest.approx(budget, abs=0.05)], handed
+    assert spent < budget * 2, spent
+
+
+def test_a_git_that_never_answers_leaves_the_engine_unplaced_rather_than_raising(monkeypatch):
+    """Past the budget the reading is the one RK1237 already models: version and directory,
+    no commit. Degrading and not failing is the whole point — `instructions()` has no way to
+    report an error to a client that is still waiting for the handshake."""
+    from roadkeep.history import HistoryUnavailable
+    from roadkeep.provenance import _placed
+
+    def never(root, *args, fed=(), timeout=None):
+        raise HistoryUnavailable("timed out")
+
+    monkeypatch.setattr("roadkeep.history._run", never)
+    assert _placed(HERE / "src" / "roadkeep") == (None, False)
+
+
+def test_every_other_caller_keeps_the_ceiling_that_answers_a_real_question(monkeypatch):
+    """The budget is per call and not a module setting, so `weigh` and `origin` — which are
+    answering something a reader asked for and would rather wait on — are unchanged."""
+    from roadkeep import history
+
+    seen: list[float] = []
+
+    def recording(args, **kwargs):
+        seen.append(kwargs["timeout"])
+        raise OSError("not actually running git")
+
+    monkeypatch.setattr(history.subprocess, "run", recording)
+    monkeypatch.setattr(history, "git_available", lambda: True)
+    with pytest.raises(history.HistoryUnavailable):
+        history._run(HERE, "rev-parse", "HEAD")
+    assert seen == [history._TIMEOUT]

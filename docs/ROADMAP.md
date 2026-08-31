@@ -28,13 +28,13 @@
 
 ## Block C — Query (consult without reading the file)
 
+- 📋 **RK1450** (deps: —) **anchors lists no rows while its own payload counts 88 of them, and --claims, which narrows it, lists 29** — The unnarrowed read answers in counts alone, so which anchors exist is a question only the narrowing flag answers and a caller greps the governed file instead. → §RK1450
+
 ## Block D — The gate
 
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
-
-- 📋 **RK1449** (deps: —) **the MCP server does not finish connecting inside the client's 30s timeout, so a session gets none of its tools** — The launcher resolves an engine, starts Python and composes the tool list before it answers, and on Windows that outlasts what the harness waits. → §RK1449
 
 ## Block G — The editor surface (the backlog where the file is open)
 

@@ -73,11 +73,15 @@ def git_available() -> bool:
     return shutil.which("git") is not None
 
 
-def _run(root: Path, *args: str, fed: Sequence[str] = ()) -> str:
-    return _bytes(root, *args, fed=fed).decode("utf-8", errors="replace")
+def _run(
+    root: Path, *args: str, fed: Sequence[str] = (), timeout: float = _TIMEOUT
+) -> str:
+    return _bytes(root, *args, fed=fed, timeout=timeout).decode("utf-8", errors="replace")
 
 
-def _bytes(root: Path, *args: str, fed: Sequence[str] = ()) -> bytes:
+def _bytes(
+    root: Path, *args: str, fed: Sequence[str] = (), timeout: float = _TIMEOUT
+) -> bytes:
     """The raw output, because one caller reads a file and not a report (RK84).
 
     Bytes and not ``text=True``: universal newlines would translate CRLF to LF, and a
@@ -95,6 +99,15 @@ def _bytes(root: Path, *args: str, fed: Sequence[str] = ()) -> bytes:
     ledger size that makes the question worth asking, and POSIX reaches its own `ARG_MAX`
     later rather than never. Fed on stdin the list has no ceiling and the call count does
     not grow with the file, which is the property `costs_of` was written for.
+
+    ``timeout`` is :data:`_TIMEOUT` for every caller that asks history a question, and a
+    smaller number for the one caller whose answer is a *label* (RK1449). Twenty seconds is
+    the right ceiling for `weigh` or `origin`, which are answering something a reader asked
+    for and would rather wait on; it is the wrong one inside a handshake a client abandons
+    at thirty, where the call is buying a short provenance line and can afford to lose it.
+    Per call rather than a module setting: what a git call may cost is a fact about who is
+    waiting on it, and the ceiling followed the wrong one into `initialize` precisely by
+    being one number for everybody.
     """
     if not git_available():
         raise HistoryUnavailable("git is not on PATH")
@@ -103,7 +116,7 @@ def _bytes(root: Path, *args: str, fed: Sequence[str] = ()) -> bytes:
         result = subprocess.run(
             ["git", "-C", str(root), *args],
             capture_output=True,
-            timeout=_TIMEOUT,
+            timeout=timeout,
             check=False,
             # `b"\n".join` and not a text `input`: this call is byte-oriented on purpose,
             # and a rev is ASCII — encoding it here keeps the one decode at the boundary.

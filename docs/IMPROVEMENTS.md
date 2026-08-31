@@ -79,35 +79,40 @@ already written, not authorship.
 
 ## Block C — Query
 
+### §RK1450 The listing that counts what it will not name
+
+Measured on Japode/cloud, a project under `ref_scheme = "id"` with 88 addresses across
+two prose files:
+
+    anchors --json                    anchors: []   live: 36, retired: 52
+    anchors --role improvements --json anchors: []
+    anchors --claims --json           anchors: 29 rows
+
+The narrowing flag returns rows and the unnarrowed read returns none, which is
+backwards: `--claims` is documented as the audit over the subset whose ownership is not
+ordinary, so it can only ever be part of what the plain listing is. A reader who runs
+the wide read first — which is the order the skill teaches — is told there are 88 and
+shown nothing.
+
+The prose row that stands in for them says the addresses are task ids that `add` already
+refuses to reuse. That answers the question `--next` asks and not the question a listing
+asks. What a caller wants here is which addresses a heading still declares and which a
+ship retired while the entries citing them stayed, per file — the read that says whether
+a citation elsewhere still resolves.
+
+What it cost in the session that found it: the caller wanted exactly that, for 35 ids
+cited across a repository's code, and the answer was to grep the governed files directly
+— the one thing the guard and the skill both exist to stop, and the reason this read is
+offered at all.
+
+Kin to RK1292 in shape, where a header stated a verdict the listing under it could not
+support. Here the counts are right and the rows are missing.
+
 ## Block D — The gate
 
 ## Block E — Adoption
 
 ## Block F — The plugin
-
-### §RK1449 Connecting is slower than the client waits
-
-Observed in Japode/cloud on 2026-08-31, against engine 0.2.54 — so with RK1446 already
-in it. The harness reported `roadkeep (CONNECT_TIMEOUT): MCP server roadkeep connection
-timed out after 30000ms`, which is a different failure from that one: nothing exited and
-nothing was served on the wrong stdio. The server simply had not answered `initialize`
-yet.
-
-What the session paid: the whole write path fell back to the shell. That is the route
-the skill calls the wrong one — `engines --invoke` exists because a bare `roadkeep` can
-reach a stale copy agreeing with a rule that has moved — and it loses the
-schema-at-insertion the tools exist for, a `--why` typed into a shell crossing a quoting
-layer the MCP string has none of.
-
-Where the time goes is worth measuring before it is fixed. The launcher resolves an
-engine across a plugins root, a vendored `.roadkeep/`, and sibling checkouts; then
-Python starts; then the tool list is composed from the parser, per declared role, which
-RK1360 already established is not free. Any of the three could be the whole of it, and a
-guess that picks wrong makes the startup path more complicated without making it faster.
-
-The client's timeout is not ours to raise, so whatever the answer is, it is on this side
-of the pipe: answering `initialize` before the list is composed, caching the resolution,
-or both. A server that connects and is briefly slow to list is a session that works.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

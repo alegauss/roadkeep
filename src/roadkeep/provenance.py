@@ -29,7 +29,10 @@ different question from :mod:`roadkeep.history`, which reads the repository a `C
 at. It is asked at most once per process and never on a path that writes: a subprocess on
 every `add` would buy nothing and cost the tool's own budget. A tree that git cannot answer
 for (an installed wheel, no git on PATH) is not an error — the directory is still the
-answer, and it is the half that distinguishes the two engines above.
+answer, and it is the half that distinguishes the two engines above. **Nor is a tree that git
+answers for too slowly** (RK1449): the whole question is asked under :data:`PLACEMENT_BUDGET`
+and gives up into that same absent answer, because the one caller that cannot wait is the MCP
+handshake and a provenance line is not worth a session's tools.
 """
 
 from __future__ import annotations
@@ -587,12 +590,31 @@ def engine(placed: bool = True) -> Engine:
     caller that pays it per write is :func:`~roadkeep.installing.behind`, which asks unplaced
     first and only pays where the versions match.
 
+    Bounded by :data:`PLACEMENT_BUDGET` rather than only measured (RK1449): 45 ms is this
+    tree's number, a cold index under a large enclosing repository is not, and the caller that
+    discovers the difference is the handshake — where the cost of asking is not a slow answer
+    but no answer at all, thirty seconds later, with every tool dropped.
+
     Two entries in the cache and not one: a process that asks both questions asks each once,
     and the cheap answer is not a cache miss for the expensive one.
     """
     home = Path(roadkeep.__file__).resolve().parent
     commit, modified = _placed(home) if placed else (None, False)
     return Engine(version=roadkeep.__version__, home=home, commit=commit, modified=modified)
+
+
+#: Seconds the **whole** placement question may cost (RK1449). Shared across the three calls
+#: rather than allowed to each, because what has to fit inside a client's handshake is their
+#: sum: at `history`'s own twenty each, a slow tree could spend sixty answering a label and the
+#: session that was waiting for it got no tools at all.
+#:
+#: Measured on this repository, where the three are 14, 14 and 16 ms — so this is two orders of
+#: magnitude of headroom for a cold index on a large enclosing tree, and still a third of what
+#: the client waits. Past it the reading is **unplaced**, which is not a new state: a
+#: marketplace row with no sha already puts every reader in it (RK1237), and an engine that
+#: says which version and which directory without saying which commit is the answer degrading
+#: rather than the connection failing.
+PLACEMENT_BUDGET = 3.0
 
 
 def _placed(home: Path) -> tuple[str | None, bool]:
@@ -605,14 +627,24 @@ def _placed(home: Path) -> tuple[str | None, bool]:
     # so a denial paid for the git wrapper it never calls.
     from roadkeep.history import HistoryUnavailable, _run as _git  # noqa: PLC0415
 
+    deadline = time.monotonic() + PLACEMENT_BUDGET
+
+    def ask(*args: str) -> str:
+        left = deadline - time.monotonic()
+        if left <= 0:
+            # The same failure the wrapper raises on a timeout, so the caller below has one
+            # thing to catch and the budget is not a second kind of absent answer.
+            raise HistoryUnavailable("the placement budget was spent")
+        return _git(home, *args, timeout=left)
+
     try:
         # `ls-files` first: it answers "does this tree track these very files", which
         # `rev-parse` does not — an installed package under an unrelated repository would
         # otherwise report that repository's HEAD as its own provenance.
-        if not _git(home, "ls-files").strip():
+        if not ask("ls-files").strip():
             return None, False
-        commit = _git(home, "rev-parse", "--short", "HEAD").strip()
-        modified = bool(_git(home, "status", "--porcelain", ".").strip())
+        commit = ask("rev-parse", "--short", "HEAD").strip()
+        modified = bool(ask("status", "--porcelain", ".").strip())
     except HistoryUnavailable:
         return None, False
     return commit or None, modified
