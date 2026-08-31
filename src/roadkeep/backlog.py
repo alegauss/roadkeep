@@ -544,6 +544,44 @@ class Backlog:
         """
         return Standing.of(self, label)
 
+    def against(self, task_id: str) -> tuple[str, ...]:
+        """Which shipped entries name this id in their own sentences, in ledger order (RK1439).
+
+        Work done **against** a line rather than on it. Observed in a port: one task was the
+        answer to `pick` for many sessions running and no session worked it — seven ledger
+        entries name that id in their own sentences, all shipped, and the parent still open.
+        Every tier is a function of the file, so each session was offered the same line and
+        answered it the same way, by filing another child; what the previous ones learned was
+        spread over seven sentences nobody reads in order.
+
+        The evidence was already in the files and no verb asked for it, which is why this is a
+        **query** and not a field on the model: nothing is written, and a project that never
+        files a child never sees a row.
+
+        Here rather than in either reader (RK92's argument): `brief` and `pick` both want it,
+        the files it joins are the two this class already holds open, and the same walk at two
+        call sites is a walk two commands can come to disagree about.
+
+        Over the **whole entry** and not its first line, because an adopted ledger wraps and a
+        citation below the bullet is the same citation. An entry carrying the id as its own is
+        `id.two-files` — the gate's to report, and not this read's to hide.
+        """
+        from roadkeep.ids import id_scanner  # noqa: PLC0415 - RK260, one direction only
+
+        if self.ledger is None:
+            return ()
+        pattern = id_scanner(self.config.schema)
+        return tuple(
+            entry.task.id
+            for entry in self.ledger.entries
+            if any(
+                found.group(0) == task_id
+                for found in pattern.finditer(
+                    "\n".join(self.ledger.lines[entry.index : entry.stop])
+                )
+            )
+        )
+
     # -- resolving ---------------------------------------------------------
 
     def resolve_dep(self, dep: Dep) -> Resolution:

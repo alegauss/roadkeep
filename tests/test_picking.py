@@ -768,3 +768,47 @@ def test_the_half_that_landed_is_still_what_the_ledger_says(tmp_path):
     # And the completion closes it from the claimed marker, the line's own door either way.
     assert main(["-C", str(tmp_path), "ship", "RK1", "--why", "The rest of it landed."]) == EXIT_OK
     assert "RK1" not in (tmp_path / "ROADMAP.md").read_text(encoding="utf-8")
+
+
+# -- the line other tasks were filed against (RK1439) -------------------------
+
+
+CHILDREN = (
+    "# Shipped\n\n## Block A — The model\n\n"
+    "- ✅ **RK90** **A first step** — one part of RK1, which stays open.\n"
+    "- ✅ **RK91** **A second step** — another part of RK1, still open.\n"
+)
+
+
+def test_the_pick_says_what_already_shipped_against_the_line_it_offers(tmp_path, capsys):
+    """RK1439. Observed in a port: one line was `pick`'s answer for many sessions running and
+    no session worked it — seven ledger entries name that id in their own sentences, all
+    shipped, and the parent still open. Every tier is a function of the file, so each session
+    was offered the same line and answered it the same way, by filing another child. This is
+    the register the symptom is about: the caller reading a pick is the one about to answer
+    it."""
+    project(tmp_path, BLOCKS + line("RK1"), changelog=CHILDREN)
+    assert main(["-C", str(tmp_path), "pick"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "against  2 shipped entries name this line and it is still open" in said
+    assert "RK90, RK91" in said
+
+
+def test_a_pick_nothing_was_filed_against_says_nothing_about_it(tmp_path, capsys):
+    """A reading and never a verdict: it narrows nothing, and a row on every ordinary pick is
+    the nag this tool has no standing to make."""
+    project(tmp_path, BLOCKS + line("RK1"))
+    assert main(["-C", str(tmp_path), "pick"]) == EXIT_OK
+    assert "against" not in capsys.readouterr().out
+
+
+def test_the_payload_carries_the_roster_at_zero_too(tmp_path, capsys):
+    """A key costs a client nothing to skip, where a row costs every reader the same
+    attention — so this is published always and printed only where there is something."""
+    project(tmp_path, BLOCKS + line("RK1"), changelog=CHILDREN)
+    assert main(["-C", str(tmp_path), "pick", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["against"] == ["RK90", "RK91"]
+
+    project(tmp_path, BLOCKS + line("RK1"))
+    assert main(["-C", str(tmp_path), "pick", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["against"] == []

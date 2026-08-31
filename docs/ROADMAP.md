@@ -30,8 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1439** (deps: —) **pick offers a line that seven shipped entries were filed against, with nothing saying it is being worked by proxy** — Each child names its parent and ships, the parent stays open, so every session is offered the same line and answers it the same way - by filing another child. → §RK1439
-
 ## Block D — The gate
 
 ## Block E — Adoption

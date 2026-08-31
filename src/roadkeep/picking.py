@@ -647,6 +647,7 @@ class Picked:
         counts, so a caller can tell *backlog finished* from *everything is blocked*.
         """
         from roadkeep.rendering import (  # noqa: PLC0415 - RK260, the cycle's one direction
+            _against_rows,
             _claim_rows,
             _event_rows,
             _held_rows,
@@ -679,6 +680,7 @@ class Picked:
         ]
         if choice.alternatives:
             rows.append(f"  or       {', '.join(choice.alternatives)}")
+        rows += _against_rows(config, entry.task.id)
         rows += _undesigned_rows(choice)
         rows += _lacking_rows(choice)
         # Beside the pick and never instead of it (RK1304): the fall-through is still the right
@@ -718,6 +720,12 @@ class Picked:
             # matching the sentence `reason` states it in.
             "standing": None if choice.standing is None else choice.standing.payload(),
             "alternatives": list(choice.alternatives),
+            # What already shipped against the line being offered (RK1439). Published always
+            # and printed only where it is non-empty: a key costs a client nothing to skip,
+            # where a row costs every reader the same attention on every pick.
+            "against": []
+            if entry is None
+            else list(Backlog.load(config).against(entry.task.id)),
             "ready": choice.ready,
             "blocked": choice.blocked,
             "outside": choice.outside,

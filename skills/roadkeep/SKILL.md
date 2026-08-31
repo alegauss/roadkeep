@@ -110,6 +110,10 @@ narrows is the offer, never the truth. A caller that does have the thing passes 
 `defer`, a pause being symmetric and taking the line away from the person who could have
 finished it. So the honest end of an impossible pick is the requirement written and the id
 handed over, never a fifth identical answer worked around in silence.
+**An answer may say the line has been worked by proxy**: `against` names the shipped entries
+whose own sentences cite this open id — the children a previous session filed on meeting a
+task larger than itself. It narrows nothing and is not a marker; read it as the reason the
+last caller did not close this line, and decide whether you are about to do the same.
 **Two workers in one checkout need `--claim`**, on `brief` as well as on
 `pick`: every tier is a function of the file, so a second caller reading an unchanged
 backlog is handed the line the first one took — most confidently by the in-progress tier,

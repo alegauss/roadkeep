@@ -99,29 +99,6 @@ join, which is what stops the fourth site.
 
 ## Block C — Query
 
-### §RK1439 The line seven other tasks were filed against
-
-Observed in the pportal port, on PP33 - delete curl and json-c from the C core. It has
-been the answer to `pick` for many sessions running, and no session has worked it. What
-each one did instead is in the ledger: PP544, PP563, PP564, PP565, PP566, PP573 and
-PP584 all say "PP33" in their own sentences, all shipped, and PP33 is still open. Seven
-children, one parent, and `pick` offered the parent every time.
-
-RK1297 answered the neighbouring case. A line needing a console or a runner reads as
-ready, so `[requirements]` was declared and `pick` learned to skip it. This is the same
-sentence with a different absence: nothing is missing, the line is simply larger than a
-session, and the caller finds that out by reading its criteria and then filing a child.
-The dep graph cannot say so, correctly - a child does not exist yet when the parent is
-offered.
-
-The evidence is already in the files. A shipped entry naming an open id is a fact `refs`
-can see, so "seven entries against this line and it is still open" is a query and not a
-new field. No verb asks it, so what would have told the eighth session what the previous
-seven learned is spread over seven ledger sentences nobody reads in order.
-
-Not a marker. `⏳` says a line is part-done and says nothing about who has been paying
-for it.
-
 ## Block D — The gate
 
 ## Block E — Adoption

@@ -289,6 +289,27 @@ class Brief:
     #: answer. Naming the remainder as *data* is the stronger version and a change to the
     #: model — a second field on the entry — which RK1226 leaves open rather than guessing at.
     landed: tuple[str, ...] = ()
+    #: The shipped entries whose own sentences name this **open** id, in ledger order — the
+    #: work that was done *against* this line rather than on it (RK1439).
+    #:
+    #: Observed in a port: one line — delete two libraries from a C core — was the answer to
+    #: `pick` for many sessions running, and no session worked it. What each did instead is in
+    #: the ledger: seven entries name that id in their own sentences, all shipped, and the
+    #: parent is still open. Seven children, one parent, and `pick` offered the parent every
+    #: time, because every tier is a function of the file and nothing in the file had changed.
+    #:
+    #: RK1297 answered the neighbouring case — a line needing a console reads as ready, so
+    #: `[requirements]` was declared and `pick` learned to set it aside. This is the same
+    #: sentence with a different absence: nothing is missing, the line is simply larger than a
+    #: session, and each caller finds that out by reading the criteria and filing a child. The
+    #: dep graph cannot say so and is right not to: a child does not exist when the parent is
+    #: offered, and by the time it does the parent is already answered.
+    #:
+    #: **A reading and never a verdict**, which is why it is not a marker and does not narrow
+    #: what `pick` offers. Seven children is evidence a line is an epic; it is also what a
+    #: genuinely central task looks like, and deciding between those needs meaning this tool
+    #: has none of (L4). What it removes is the eighth session discovering it by repeating it.
+    against: tuple[str, ...] = ()
 
     @property
     def task(self) -> Task:
@@ -493,6 +514,16 @@ class Brief:
         # subtraction whoever picks a partial up has to make, and the design is what they
         # would otherwise read in full to make it.
         rows += [f"  landed   {one}" for one in self.landed]
+        # Beside it, because it is the same question about the same line from the other side
+        # (RK1439): `landed` says what shipped *as* this task and this says what shipped
+        # *against* it. Silent at zero, which is every ordinary line — a row saying nothing
+        # was filed against this one is the nag `landed` is deliberately not.
+        if self.against:
+            rows.append(
+                f"  against  {len(self.against)} shipped entr"
+                f"{'y' if len(self.against) == 1 else 'ies'} name this line and it is still "
+                f"open: {', '.join(self.against)}"
+            )
         for clause, found in self.criterion:
             # Before the design and after the deps, which is where the claim belongs: the
             # order is the whole point (RK1185) — what the work will be measured against
@@ -595,6 +626,10 @@ class Brief:
             # What the ledger already records as landed, per `ship --part` (RK1226). `[]` on
             # the ordinary line, which is an answer rather than an absence.
             "landed": list(self.landed),
+            # And what shipped *against* it (RK1439). Published always and printed only where
+            # it is non-empty, which is `Split.payload`'s rule for its reason: a key costs a
+            # client nothing to skip, where a row costs every reader the same attention.
+            "against": list(self.against),
             "criterion": [
                 {"pathspec": one.pathspec, "pattern": one.pattern, "sites": found}
                 for one, found in self.criterion
@@ -753,6 +788,10 @@ def _gather(
         # A lookup this verb already performs (RK1226): the ledger is open because `shipping`
         # is measured against it, so surfacing what has already landed costs nothing.
         landed=_landed(backlog, task.id) if not view.shipped else (),
+        # The same lookup one question over (RK1439), and free for the same reason: the ledger
+        # is already open. Asked only of an **open** line — a shipped one's children are
+        # history, and the reader of a shipped brief is not being offered anything.
+        against=backlog.against(task.id) if not view.shipped else (),
         shipping=None
         if view.shipped or not config.has("changelog")
         else budget_of(

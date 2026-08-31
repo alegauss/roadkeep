@@ -869,6 +869,66 @@ def test_the_payload_carries_it_for_a_caller_that_is_not_a_terminal(tmp_path, ca
     assert json.loads(capsys.readouterr().out)["landed"] == ["the parser half"]
 
 
+# -- the line other tasks were filed against (RK1439) -------------------------
+
+
+def proxied(tmp_path: Path, *children: str) -> Config:
+    """Shipped entries whose own sentences name an open line — the shape a session leaves
+    behind when it meets a task larger than itself and files a child instead."""
+    config = project(tmp_path)
+    ledger = config.path("changelog")
+    ledger.write_text(
+        ledger.read_text(encoding="utf-8")
+        + "".join(
+            f"- {SHIPPED} **{one}** **A child symptom** — one step of RK1, which stays open.\n"
+            for one in children
+        ),
+        encoding="utf-8",
+    )
+    return Config.discover(tmp_path)
+
+
+def test_the_brief_names_the_entries_that_shipped_against_this_line(tmp_path, capsys):
+    """RK1439. Observed in a port: one line was the answer to `pick` for many sessions running
+    and no session worked it. What each did instead is in the ledger — seven entries naming
+    that id in their own sentences, all shipped, the parent still open. Every tier is a
+    function of the file, so the eighth session was offered the same line and answered it the
+    same way, and what the previous seven learned was spread over seven sentences in order."""
+    config = proxied(tmp_path, "RK90", "RK91")
+    capsys.readouterr()
+    assert brief(config, "RK1").against == ("RK90", "RK91")
+
+    assert main(["-C", str(tmp_path), "brief", "RK1"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "against  2 shipped entries name this line and it is still open" in said
+    assert "RK90, RK91" in said
+
+
+def test_a_line_nothing_was_filed_against_says_nothing(tmp_path, capsys):
+    """`landed`'s rule, one question over: a row saying nothing was filed against this line is
+    a nag on every ordinary brief, and this is a reading rather than a verdict."""
+    config = project(tmp_path)
+    assert brief(config, "RK1").against == ()
+    assert main(["-C", str(tmp_path), "brief", "RK1"]) == EXIT_OK
+    assert "against" not in capsys.readouterr().out
+
+
+def test_the_count_is_published_even_where_no_row_is_printed(tmp_path, capsys):
+    """A key costs a client nothing to skip, where a row costs every reader the same attention
+    — so the payload carries it at zero and the terminal does not."""
+    proxied(tmp_path, "RK90")
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "brief", "RK1", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["against"] == ["RK90"]
+
+
+def test_the_key_is_there_at_zero_for_the_client_that_reads_it(tmp_path, capsys):
+    project(tmp_path)
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "brief", "RK1", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["against"] == []
+
+
 # -- the two clauses the shipping budget did not price (RK1306) ---------------
 
 

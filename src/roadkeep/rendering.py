@@ -815,6 +815,34 @@ def _held_rows(choice: Choice) -> list[str]:
     ]
 
 
+def _against_rows(config, task_id: str) -> list[str]:
+    """What already shipped **against** the line being offered (RK1439).
+
+    Observed in a port: one task was `pick`'s answer for many sessions running and no session
+    worked it. Seven ledger entries name that id in their own sentences, all shipped, and the
+    parent still open — seven children, one parent, and `pick` offered the parent every time,
+    because every tier is a function of the file and nothing in the file had changed.
+
+    Said here as well as on `brief`, because this is the register the symptom is about: the
+    caller reading a pick is the one about to answer it, and what the previous sessions
+    learned was otherwise spread over seven ledger sentences nobody reads in order.
+
+    **A reading and never a verdict.** It does not narrow what is offered and it is not a
+    marker: many children is what an epic looks like and also what a genuinely central task
+    looks like, and telling those apart needs meaning this tool has none of (L4).
+    """
+    from roadkeep.backlog import Backlog  # noqa: PLC0415 - RK260, the cycle's one direction
+
+    against = Backlog.load(config).against(task_id)
+    if not against:
+        return []
+    entries = "entry" if len(against) == 1 else "entries"
+    return [
+        f"  against  {len(against)} shipped {entries} name this line and it is still open: "
+        f"{', '.join(against)}"
+    ]
+
+
 def _undesigned_rows(choice: Choice) -> list[str]:
     """What `--designed` set aside, and never silently (RK83).
 

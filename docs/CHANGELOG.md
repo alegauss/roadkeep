@@ -426,6 +426,7 @@
 - ✅ **RK1393** **the authority on the query surface does not name the subject config gained, so an agent cannot discover it there** — Both surfaces a caller meets before calling name what this build fixes and no project declares, and neither copies the reading (design recorded in `skills/roadkeep/SKILL.md`).
 - ✅ **RK1423** **The cost --session row puts the whole surface beside a room derived from a smaller figure** — The schema row names the held figure its room was taken against, so the line reconciles without the one below it (design superseded: the held figure belongs in the clause, not in the cost column).
 - ✅ **RK1432** **stats counts every open line together, so a reader cannot see how many can actually be started** — stats splits the open count where a project declares [requirements]: how many nothing absent is holding up, and the rest under what each waits for, a line naming two counted once.
+- ✅ **RK1439** **pick offers a line that seven shipped entries were filed against, with nothing saying it is being worked by proxy** — `brief` and `pick` name the shipped entries whose sentences cite an open id, so the eighth caller reads what the previous seven learned.
 
 ## Block D — The gate
 

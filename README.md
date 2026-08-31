@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 219 | 2 |
-| C — Query (consult without reading the file) | 1 | 142 | 2 |
+| C — Query (consult without reading the file) | 0 | 143 | 2 |
 | D — The gate | 0 | 207 | 2 |
 | E — Adoption | 1 | 115 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 131 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 35 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 1 | 19 | 0 |
-| **Total** | 5 | 926 | 12 |
+| **Total** | 4 | 927 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1439** (deps: —) **pick offers a line that seven shipped entries were filed against, with nothing saying it is being worked by proxy** — Each child names its parent and ships, the parent stays open, so every session is offered the same line and answers it the same way - by filing another child. → §RK1439
+- 📋 **RK1440** (deps: —) **engine.disagreement compares the gate to the plugin and never says the gate is a working tree rather than a release** — A repo whose gate calls roadkeep inherits whatever is on PATH: this one crashed lint mid-session from an uncommitted edit and reported three versions in one hour. → §RK1440
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
