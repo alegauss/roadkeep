@@ -32,8 +32,6 @@
 
 ## Block E — Adoption
 
-- 📋 **RK1447** (deps: —) **install prints what the surfaces let a session do and its payload says only which files moved** — A machine reading the JSON is told less than the person at the terminal, which is the split the query surface refuses one verb over. → §RK1447
-
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 ## Block G — The editor surface (the backlog where the file is open)

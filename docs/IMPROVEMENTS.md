@@ -83,30 +83,6 @@ already written, not authorship.
 
 ## Block E — Adoption
 
-### §RK1447 The half of install's answer only a terminal gets
-
-RK1438 gave the write report five closing lines: which files stopped being
-hand-editable, the verbs a day uses, the gate, the two reads that save a refusal, and
-the check CI runs. They go to stdout. `Plan.payload` carries the surfaces, their states,
-the launcher, the debt and the blocked parents — and nothing about what any of it
-enables.
-
-THE CALL WAS DELIBERATE AND MADE WITHOUT THE RULE IN VIEW. The reasoning was that a
-machine reading a payload has the skill. Block C's criterion argues the other way and is
-the older claim: both registers come off one record, *because a printer and a payload
-builder agreeing by hand is how an agent comes to be told less than the person at the
-terminal*.
-
-THE CASE IS NOT HYPOTHETICAL. The caller most likely to run `install --json` is the one
-wiring a project from a script or a session, which is exactly the reader RK1438 was
-written for — and it is handed the file list and told nothing. The skill it supposedly
-has is the surface the install just wired, on a turn that has not loaded it.
-
-WHAT WOULD ANSWER IT is the same rows as a key, composed once. Whether that key is the
-rendered lines or the facts behind them is the open half: rendered strings are what the
-two registers share elsewhere, and a structured answer is what a script would rather
-branch on.
-
 ## Block F — The plugin
 
 ## Block G — The editor surface (the backlog where the file is open)

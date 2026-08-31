@@ -760,6 +760,7 @@
 - ✅ **RK1427** **The release workflow restates the list of files that carry the version, and nothing holds the two together** — The hook and the release are read back against the bumper's TRACKED, and the test fixture derives from it, so a fourth versioned file is a red (design superseded: it is stated four times).
 - ✅ **RK1438** **install reports which surfaces it wrote and never says what they let a session do** — A write ends with five lines saying what the surfaces let a session do — the daily verbs, the gate, the two reads that save a refusal, and the check CI runs.
 - ✅ **RK1440** **engine.disagreement compares the gate to the plugin and never says the gate is a working tree rather than a release** — A wired project's gate note says when the engine answering is a modified checkout at no commit, so a moving version stops reading like a release.
+- ✅ **RK1447** **install prints what the surfaces let a session do and its payload says only which files moved** — Both registers come off one method: the payload publishes the same sentences the report prints, and carries an empty list under `--check`.
 
 ## Block F — The Claude Code plugin
 

@@ -463,7 +463,7 @@ class Plan:
             for path, parent in self.blocked
         ]
         if not checked:
-            rows += self.orientation()
+            rows += [f"  from here      {one}" for one in self.orientation()]
         return "\n".join(rows)
 
     def orientation(self) -> list[str]:
@@ -483,19 +483,26 @@ class Plan:
         **On the write and never on `--check`** (`checked` is the caller's, as everywhere in
         this report). An adopter runs the write once and reads it; the check runs in CI on
         every push, and an orientation printed there is five lines nobody reads, every time.
+
+        **The sentences and not the rows** (RK1447). The label and its column are a terminal's,
+        so they are :meth:`stated`'s to add; what is here is what both registers carry. The
+        payload publishes these strings rather than facts behind them, which is this report's
+        own idiom one key over — `skipped` publishes the reason a surface was not written as
+        the sentence a reader gets — and a taxonomy invented to structure five lines would be a
+        second grammar for something no caller asked to branch on.
         """
         say = invocation()
         return [
-            "  from here      the files `roadkeep.toml` declares are the tool's now — the "
-            "guard denies a hand edit and answers with the verb that makes it",
-            f"  from here      `{say} brief` picks the next line and briefs it; `{say} add` "
-            f"files one, and `{say} ship <id> --why \"…\"` closes it in all three files",
-            f"  from here      `{say} lint` is the gate, and `{say} repair` spends a whole "
-            f"report of findings in one call",
-            f"  from here      `{say} budget` prices a field before the sentence exists and "
-            f"`{say} show <id>` reads a line back, so the refusal is one you never meet",
-            f"  from here      `{say} install --check` is what a CI job or a pre-commit hook "
-            f"runs to keep the copies here in step with the checkout they came from",
+            "the files `roadkeep.toml` declares are the tool's now — the guard denies a hand "
+            "edit and answers with the verb that makes it",
+            f"`{say} brief` picks the next line and briefs it; `{say} add` files one, and "
+            f"`{say} ship <id> --why \"…\"` closes it in all three files",
+            f"`{say} lint` is the gate, and `{say} repair` spends a whole report of findings "
+            f"in one call",
+            f"`{say} budget` prices a field before the sentence exists and `{say} show <id>` "
+            f"reads a line back, so the refusal is one you never meet",
+            f"`{say} install --check` is what a CI job or a pre-commit hook runs to keep the "
+            f"copies here in step with the checkout they came from",
         ]
 
     def verdict(self) -> list[str]:
@@ -549,6 +556,19 @@ class Plan:
                 for surface in self.surfaces
             ],
             "skipped": [{"path": path, "why": why} for path, why in self.skipped],
+            # What the surfaces let a session do (RK1447), off the same method the report
+            # prints from. RK1438 put those five lines on stdout and left the payload saying
+            # only which files moved — and the caller most likely to run `install --json` is
+            # the one wiring a project from a script or a session, which is exactly the reader
+            # they were written for. Block C's rule, applied here: both registers come off one
+            # record, because a printer and a payload builder agreeing by hand is how an agent
+            # comes to be told less than the person at the terminal.
+            #
+            # **Empty under `--check` and never absent**, which is the `driver` key's rule for
+            # its reason: the register split is deliberate — CI runs the check on every push —
+            # and a reader has to tell "nothing was wired here" from "this payload predates
+            # the field".
+            "orientation": [] if checked else self.orientation(),
             "registered": None
             if self.registered is None
             else {

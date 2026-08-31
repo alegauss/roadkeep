@@ -1854,6 +1854,29 @@ def test_the_check_prints_no_orientation_because_ci_runs_it_every_push(project, 
     assert "from here" not in plan(project, source=source).stated(checked=True)
 
 
+def test_the_payload_carries_the_same_sentences_the_report_prints(project, source):
+    """RK1447. RK1438 put those lines on stdout and left the payload saying only which files
+    moved — and the caller most likely to run `install --json` is the one wiring a project from
+    a script or a session, which is exactly the reader they were written for. Block C's rule:
+    both registers come off one record, because a printer and a payload builder agreeing by
+    hand is how an agent comes to be told less than the person at the terminal."""
+    intent = install(project, source=source)
+    said = intent.stated(checked=False)
+    published = intent.payload(checked=False)["orientation"]
+    assert published == intent.orientation()
+    # The label and its column are the terminal's; the sentence is what both carry.
+    for sentence in published:
+        assert f"  from here      {sentence}" in said
+
+
+def test_the_key_is_empty_under_a_check_and_never_missing(project, source):
+    """The `driver` key's rule for its reason: the register split is deliberate, and a reader
+    has to tell "nothing was wired here" from "this payload predates the field"."""
+    install(project, source=source)
+    payload = plan(project, source=source).payload(checked=True)
+    assert payload["orientation"] == []
+
+
 # -- the fourth copy, and the one that runs unwatched (RK1385) -----------------
 
 
