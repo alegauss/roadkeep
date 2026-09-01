@@ -33,7 +33,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1458** (deps: —) **budget prices a why against the roadmap line's limit while the ship about to be written is held to the ledger's** — brief quoted 190 for the shipping sentence and budget quoted 171 for the same field, so the read meant to prevent a refusal answered about a write nobody was making. → §RK1458
 - 📋 **RK1461** (deps: —) **budget cannot price a line that will carry a requires, so the number it quotes is 21 characters too generous** — add takes --requires and budget does not, so a sentence priced without one is refused for the exact width of the (requires: word) the write adds. → §RK1461
 - 📋 **RK1463** (deps: —) **brief spends four fifths of its answer on deps that are all shipped and settled long ago** — Each resolved dep carries two full commit subjects, so starting a six-dep task costs thousands of tokens of history nobody asked about. → §RK1463
 - 📋 **RK1466** (deps: —) **a project numbering by id gets every address in one answer, which at this repository's size is 961 rows and 175 KB** — RK1450 replaced a count nothing could open with a listing nothing bounds, because the register it stood in for was also what held the rows back. → §RK1466

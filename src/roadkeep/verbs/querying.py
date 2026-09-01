@@ -438,6 +438,9 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
             # The third write off the same line (RK1305). `is not None` and not truth, which is
             # `--tools`' reading: bare `--retire` is the empty string and means abandoned.
             retire=args.retire,
+            # The fourth (RK1458), and a flag rather than a value: a ship writes no prefix into
+            # the field, so there is nothing about the departure to name here.
+            ship=args.ship,
         )
     except REFUSALS as error:
         return _refused(error)
@@ -1699,6 +1702,17 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         help=(
             "what a retirement's reason has — bare, abandoned; named, superseded by that "
             "id, which costs more of the field"
+        ),
+    )
+    # RK1458. Two limits govern one sentence and this read knew one: `brief` quotes both and
+    # this quoted the roadmap line's, so a ship sentence was priced against a write nobody was
+    # making. A flag and not a value, unlike `--retire`: a ship writes no prefix into the field.
+    budget_parser.add_argument(
+        "--ship",
+        action="store_true",
+        help=(
+            "price the sentence a `ship` writes instead of this line's: the ledger's limit, "
+            "which is a different number"
         ),
     )
     budget_parser.add_argument(

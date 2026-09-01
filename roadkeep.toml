@@ -113,7 +113,16 @@ characters = 2800
 # which is how a typo came to outlive a decision. Nothing was trimmed to pay for it: no
 # paragraph here is one nobody had edited, which is the test RK1059 sets before a raise.
 # 65,400, headroom 123, which is the discipline of the 116 above it.
-session = 65400
+# Raised from 65,400 for a subject rather than a verb (RK1458): budget --ship prices the
+# sentence a ship writes and not the line the id is on, which are two limits and two
+# numbers - brief quoted 190 and this quoted 171 for the same field. 154 characters, and
+# the reading here is 65,552. What the headroom buys is the read this verb exists to be:
+# an agent pricing a ship sentence over this transport had to take the figure out of an
+# earlier brief or spend the refusal, which is the round trip the whole subject removes.
+# Nothing was trimmed to pay for it - the description had no paragraph nobody had
+# edited, which is the test RK1059 sets before a raise. 65,675, headroom 123, which is
+# the discipline of the 123 above it.
+session = 65675
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

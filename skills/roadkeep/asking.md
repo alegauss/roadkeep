@@ -57,7 +57,12 @@ carries **no `maxLength`** on purpose: a ceiling there would refuse the very dra
 asking about. Reach for it after the first refusal and instead of the second — the retry
 after a refusal is a guess, and this is the same arithmetic answered before the write.
 `budget --non-goal [--lead "…"]` is the roadmap's other bullet, whose two
-limits are the list's own and not the task line's. **`budget --file <p>` is the fourth
+limits are the list's own and not the task line's. **And `budget <id> --ship` prices the
+sentence a *ship* writes**, which is a different number from the line's — the ledger drops
+the deps and the pointer, so there is more room and a draft written to the line's figure
+throws characters away; `--retire` is the same question for the other departure, where a
+derived `abandoned:` or `superseded by <id>:` prefix is inside the field and counted.
+**`budget --file <p>` is the fourth
 subject**, and the one that is not about prose at all: what an every-turn file `[budgets]`
 declares costs in lines and bytes and what is left — bare, every declared budget. Read it
 *before* editing one, never `wc` and a subtraction; `lint` is still what refuses.

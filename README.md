@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 4 | 222 | 2 |
-| C — Query (consult without reading the file) | 9 | 145 | 3 |
+| C — Query (consult without reading the file) | 8 | 146 | 3 |
 | D — The gate | 2 | 208 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 136 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 21 | 942 | 13 |
+| **Total** | 20 | 943 | 13 |
 
 **Next ready:**
 
-- 📋 **RK1458** (deps: —) **budget prices a why against the roadmap line's limit while the ship about to be written is held to the ledger's** — brief quoted 190 for the shipping sentence and budget quoted 171 for the same field, so the read meant to prevent a refusal answered about a write nobody was making. → §RK1458
+- 📋 **RK1459** (deps: —) **The read that prices a body and the write that files it name the same argument differently, so the loop costs a refusal** — budget takes --body-file and add takes --section-body-file, so a caller moving from the price to the write is refused for the flag it was just told to use. → §RK1459
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

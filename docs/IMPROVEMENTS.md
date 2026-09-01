@@ -182,31 +182,6 @@ all.
 
 ## Block C — Query
 
-### §RK1458 One field, two limits, and only one of them askable
-
-Two limits govern one sentence and they are different numbers. The `why` on an open
-roadmap line is held to one; the `why` a `ship` writes to the ledger is held to another,
-because the two lines carry different structure and what is left for prose differs.
-
-`brief` knows this and says both — it quoted `why 171 on this line` and, on the next
-line, `why 190 on the ledger line a ship writes`. `budget` knows only the first. Asked
-with `--why "…"` it priced against the line the task is on today and not against the
-write the caller is about to make. `--ship` is not a flag it declares, so there is no
-way to ask.
-
-The cost is the one this verb exists to remove. Pricing a ship sentence means reading
-the number out of an earlier `brief`, or trusting `budget` and writing to the stricter
-of the two — spending characters that were there — or to the looser, and spending a
-refusal.
-
-What is missing is a subject and not a number. `budget <id>` prices the line the id is
-on, and it could be askable for the line a departure would write instead: `--ship`,
-`--retire` and `--defer` are the three, and each moves the sentence to a file with its
-own structure around it.
-
-Worth weighing: an id already in the ledger has no open line to price, so the
-departure's line is sometimes the only one to answer about.
-
 ### §RK1461 The one field the price is never told about
 
 `add --requires <word>` puts `(requires: <word>)` on the line, and `budget` has no way

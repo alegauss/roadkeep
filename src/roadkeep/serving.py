@@ -616,8 +616,12 @@ TOOLS: tuple[Tool, ...] = (
         # a retirement's reason shares the ledger's limit with a derived prefix, so the number
         # that binds is neither the published ceiling nor the one a ship is quoted — and over
         # this transport the refusal it replaces costs the whole payload again.
+        # `ship` is the eighth (RK1458) and the one two limits made necessary: the ledger's
+        # sentence is held to a different number from the line's, `brief` quotes both, and this
+        # read quoted the line's — so an agent pricing a ship sentence over this transport was
+        # answered about a write nobody was making, and paid the refusal it came here to avoid.
         ("id", "block", "deps", "status", "symptom", "why", "anchor", "role", "body",
-         "non_goal", "lead", "file", "retire"),
+         "non_goal", "lead", "file", "retire", "ship"),
         conditional=("ref",),
     ),
     # The other tense (RK1321). `tools`, `session` and `brief` left `budget` with the verb

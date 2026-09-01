@@ -373,6 +373,13 @@ class Budget:
     #: handed `21 written` on a field nobody has drafted has no way to tell which. Empty
     #: everywhere else, which is every budget about a line and every one about a ship.
     derived: str = ""
+    #: The **departure** this budget is about, as the verb that makes it — `retire`, `ship` —
+    #: or `""` for a line as it stands (RK1458). Its own field and no longer read off
+    #: :attr:`derived`: that discriminator worked while a retirement was the only departure
+    #: priced here, and a ship writes no prefix, so the second one arrived reporting itself as
+    #: *the line add would write next*. Which write a figure is about is a fact about the call,
+    #: and inferring it from a field that happens to be empty is how the two came apart.
+    departure: str = ""
 
     def share(self, field: str) -> Share:
         return next(one for one in self.shares if one.field == field)
@@ -387,11 +394,12 @@ class Budget:
         """
         # Three states and not two (RK1305): `open_line=False` meant *the line `add` would
         # write next* while this record now also answers for a line a **departure** writes, and
-        # a retirement's figures under that sentence describe the wrong write entirely.
+        # a retirement's figures under that sentence describe the wrong write entirely. Read off
+        # the departure since RK1458, which is the fact rather than a proxy for it.
         if self.open_line:
             state = "open line"
-        elif self.derived:
-            state = "the ledger line retire writes"
+        elif self.departure:
+            state = f"the ledger line {self.departure} writes"
         else:
             state = "the line add would write next"
         deps = ", ".join(dep.render() for dep in self.task.deps) or "—"
@@ -495,6 +503,10 @@ class Budget:
             # and never omitted, for `section_absence`'s reason: a client can then tell a write
             # that derives nothing from a build that did not know the field existed.
             "derived": self.derived,
+            # Which write this answers about (RK1458): `""` for a line as it stands, and the
+            # verb otherwise. Beside `open_line` and not folded into it, the two answering
+            # different questions — whether the line exists, and which write is being priced.
+            "departure": self.departure,
         }
 
     def delta(self, base: "Budget | None", against: str | None) -> dict[str, object]:
@@ -553,6 +565,7 @@ def budget(
     why: str | None = None,
     body: str | None = None,
     retire: str | None = None,
+    ship: bool = False,
 ) -> Budget:
     """The prose budget of a line, named by id or described by the fields an `add` takes.
 
@@ -582,6 +595,20 @@ def budget(
     author starts — and `None` is a caller who did not ask. Measured in an adopting project at
     three refusals in a row, 250 then 212 then 205 against 200, each rewrite cutting a clause
     out of the one field whose job is to carry evidence.
+
+    ``ship`` is the **fourth** shape (RK1458), and the one two limits made necessary. The `why`
+    on an open roadmap line and the `why` a `ship` writes to the ledger are different numbers,
+    because the two lines carry different structure and what is left for prose differs. `brief`
+    says both — it quoted `why 171 on this line` and, on the next line, `why 190 on the ledger
+    line a ship writes` — and this read knew only the first. So a caller pricing a ship sentence
+    read the number out of an earlier brief, or wrote to the stricter of the two and spent
+    characters that were there, or to the looser and spent a refusal.
+
+    **A subject and not a number**: `budget <id>` prices the line the id is on, and this asks
+    about the line a departure would write instead. `defer` is the third such subject and is not
+    here: its sentence is *wrapped around* the design the store carries forward rather than
+    written before it, so what it carries is neither a prefix nor a replacement, and pricing it
+    honestly needs a shape :class:`Budget` does not have yet.
     """
     task, open_line, assumed = _subject(
         config,
@@ -595,6 +622,8 @@ def budget(
     )
     if retire is not None:
         return _retirement(config, task, retire, why=why, body=body)
+    if ship:
+        return _shipment(config, task, why=why, body=body)
     answer = budget_of(
         config,
         task,
@@ -617,6 +646,37 @@ def budget(
         else replace(
             answer, stated=_stated(held.task, block, deps, status, symptom, ref)
         )
+    )
+
+
+def _shipment(config: Config, task: Task, *, why: str | None, body: str | None) -> Budget:
+    """What the sentence a `ship` writes has, before it is written (RK1458).
+
+    Composed exactly as `brief`'s shipping row is and through the same function the write
+    itself uses — :func:`~roadkeep.shipping.as_recorded` under `[limits.changelog]` — which is
+    `_retirement`'s rule: a second computation of the ledger line's shape is how a figure and
+    the write it describes come apart, and RK1199 is the task where they had.
+
+    The `why` is **emptied** before the shape is composed (RK1365): `ship --why` is required
+    and *replaces* the roadmap's sentence, so the room is the whole allowance, and pricing with
+    the old one still in the field is what reported `37 of 200` against a ship that then
+    accepted 145 — a number four times under the real one, failing in the direction that looks
+    safe. Nothing is `derived` here, unlike a retirement: a ship writes no prefix, and a
+    `--part` qualifier is structure this call cannot know will be passed.
+    """
+    from roadkeep.shipping import as_recorded  # noqa: PLC0415 - RK260
+
+    schema = config.schema_for("changelog")
+    return replace(
+        budget_of(
+            config,
+            as_recorded(task, schema.shipped_marker, ""),
+            open_line=False,
+            schema=schema,
+            why=why,
+            body=body,
+        ),
+        departure="ship",
     )
 
 
@@ -653,6 +713,7 @@ def _retirement(
             body=body,
         ),
         derived=prefix,
+        departure="retire",
     )
 
 

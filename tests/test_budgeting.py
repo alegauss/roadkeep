@@ -3297,6 +3297,87 @@ def test_the_state_word_says_which_write_the_figures_are_about(tmp_path, capsys)
     assert "derived    `abandoned: `" in said
 
 
+# -- the fourth write, and the one two limits made necessary (RK1458) ----------
+
+
+def test_the_ship_sentence_is_priced_against_the_ledger_and_not_the_line(tmp_path):
+    """RK1458. Two limits govern one sentence: the `why` on an open roadmap line and the `why`
+    a `ship` writes to the ledger are different numbers, because the two lines carry different
+    structure. `brief` says both — it quoted `why 171 on this line` and `why 190 on the ledger
+    line a ship writes` — and this read knew only the first, so a caller either read the number
+    out of an earlier brief, or wrote to the stricter of the two and spent characters that were
+    there, or to the looser and spent a refusal."""
+    # A line wide enough that the *line* limit binds and not the field's, which is the state
+    # the two numbers differ in — and the state every real line of a mature backlog is in.
+    wide = BACKLOG.replace("**A second symptom**", f"**{'A wide symptom ' * 7}**")
+    config = project(tmp_path, roadmap=wide)
+    line = budget(config, "RK2").share("why").allowed
+    shipping = budget(config, "RK2", ship=True).share("why").allowed
+
+    # The ledger drops the deps and the pointer, so its line has more room for prose.
+    assert shipping > line, "the two limits are the whole subject"
+    shaped = budget(config, "RK2", ship=True)
+    assert shaped.task.deps == () and shaped.task.ref is None
+    assert shaped.task.status == config.schema.shipped_marker
+    # Nothing derived, which is the difference from a retirement: a ship writes no prefix.
+    assert shaped.derived == ""
+
+
+def test_it_answers_the_number_brief_already_quoted(tmp_path):
+    # One reader for one figure: `brief` composes its shipping row through `as_recorded` under
+    # the ledger's schema, and a second computation here is how the two come apart (RK1199).
+    from roadkeep.briefing import brief
+
+    config = project(tmp_path)
+    view = brief(config, "RK2")
+    assert view.shipping is not None
+    assert budget(config, "RK2", ship=True).share("why").allowed == view.shipping.share("why").allowed
+
+
+def test_the_figure_is_the_sentence_ship_actually_accepts(tmp_path, capsys):
+    # The prediction and the write, with nothing between them changing the line — the only
+    # thing that can hold a pre-write number honest (RK1199's shape).
+    from roadkeep.verbs.refusing import EXIT_USAGE as REFUSED
+
+    config = project(tmp_path)
+    root = str(tmp_path)
+    left = budget(config, "RK2", ship=True).share("why").left
+
+    assert main(["-C", root, "ship", "RK2", "--why", "x" * (left + 1) + "."]) == REFUSED
+    capsys.readouterr()
+    assert main(["-C", root, "ship", "RK2", "--why", "x" * (left - 1) + "."]) == EXIT_OK
+
+
+def test_the_state_word_is_read_off_the_departure_and_not_off_a_prefix(tmp_path, capsys):
+    """RK1305 discriminated on `derived`, which worked while a retirement was the only
+    departure priced here. A ship writes no prefix, so the second one arrived reporting itself
+    as *the line add would write next* — the wrong write, said in the row that exists to say
+    which write it is."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "RK2", "--ship"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "(the ledger line ship writes)" in said
+    assert "derived" not in said
+
+    assert main(["-C", str(tmp_path), "budget", "RK2", "--ship", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert (payload["departure"], payload["derived"]) == ("ship", "")
+    # Empty and never omitted on a line as it stands, for `derived`'s reason.
+    assert json.loads(
+        json.dumps(budget(Config.discover(tmp_path), "RK2").payload())
+    )["departure"] == ""
+
+
+def test_a_draft_over_the_ledger_s_allowance_exits_one(tmp_path, capsys):
+    # The whole point of the subject: a refusal, without the write (RK1190).
+    project(tmp_path)
+    root = str(tmp_path)
+    left = budget(Config.discover(tmp_path), "RK2", ship=True).share("why").left
+    assert main(["-C", root, "budget", "RK2", "--ship", "--why", "x" * (left + 1) + "."]) == 1
+    capsys.readouterr()
+    assert main(["-C", root, "budget", "RK2", "--ship", "--why", "x" * (left - 1) + "."]) == EXIT_OK
+
+
 # -- whose prose a number is about, said and not derived (RK1320) --------------
 
 
