@@ -1086,9 +1086,15 @@ class Catalogue:
         pad = max(len(one.named) for one in self.blocks)
         titles = max(len(one.title) for one in self.blocks)
         rows = [f"{len(self.blocks)} block(s), in file order"]
+        # **Both counts** (RK1455). The open one alone answers where a task may go, which is
+        # RK1188's question; what a caller placing work into an unfamiliar backlog asks first
+        # is how much each block has already taken, and that number was in the payload and not
+        # in the rows — so the terminal answer sent them to the ledger and the ledger is
+        # 117,815 characters. `recorded` is the ledger's own, shipped and retired alike.
         rows += [
             f"  {one.named:<{pad}}  {one.title:<{titles}}  "
-            f"{one.became.open:>4} open  {one.became.stage}".rstrip()
+            f"{one.became.open:>4} open  {one.became.recorded:>4} recorded  "
+            f"{one.became.stage}".rstrip()
             for one in self.blocks
         ]
         elsewhere = [one.label for one in self.blocks if not one.plannable]

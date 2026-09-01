@@ -431,6 +431,7 @@
 - ✅ **RK1432** **stats counts every open line together, so a reader cannot see how many can actually be started** — stats splits the open count where a project declares [requirements]: how many nothing absent is holding up, and the rest under what each waits for, a line naming two counted once.
 - ✅ **RK1439** **pick offers a line that seven shipped entries were filed against, with nothing saying it is being worked by proxy** — `brief` and `pick` name the shipped entries whose sentences cite an open id, so the eighth caller reads what the previous seven learned.
 - ✅ **RK1450** **anchors lists no rows while its own payload counts 88 of them, and --claims, which narrows it, lists 29** — The family register summarises the rows the wide read withholds, and a project numbering by id has no families — so the listing stated a count and no narrowing reached it.
+- ✅ **RK1455** **a changelog listing cannot be asked for its blocks, so the only way to see them is to read the file** — block list rows carry what the ledger records, and the block filter that cannot enumerate labels names it, so a caller placing work never reads the file.
 
 ## Block D — The gate
 

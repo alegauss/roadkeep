@@ -211,6 +211,8 @@ class Census:
         counted, missed, blocks = self.counted, self.missed, self.blocks
         if block is not None:
             if block not in self.blocks:
+                from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
                 raise KeyError(
                     f"no heading declares {self.schema.block_named(block)} in {self.file}"
                     # The labels are not listed (RK296) — a filter nobody can correct from the
@@ -219,6 +221,15 @@ class Census:
                     # The same diagnosis the write refusal gives (RK216): `--block A` against
                     # a file declaring AJ reads as "that block is empty" dressed as "absent".
                     f"{shading(block, self.blocks)}"
+                    # And the read that answers the question this filter was asked with
+                    # (RK1455). RK296 is right that a caller who mistyped a label is not
+                    # picking from a menu, and the caller measured here had no label at all:
+                    # an unscoped listing of the ledger was 117,815 characters, `--block`
+                    # wanted the letter being looked for, and what they did next was grep the
+                    # governed file — the one move the hook exists to prevent. A door and not
+                    # a list, which is what RK296 removed.
+                    f" — `{invocation()} block list` names every label, its title and what "
+                    f"each holds"
                 )
             counted = tuple(e for e in counted if e.task.block == block)
             missed = tuple(r for r in missed if r.block == block)

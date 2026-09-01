@@ -144,6 +144,7 @@ SITES: tuple[Site, ...] = (
     Site("cli.py:_unrecognised", "unreached", NO_FIXTURE),
     Site("config.py:_skew", "unreached", NO_FIXTURE),
     Site("counting.py:Census.notes", "unreached", NO_FIXTURE),
+    Site("counting.py:Census.select", "run"),
     Site("deferring.py:NoPlacement.__init__", "unreached", NO_FIXTURE),
     Site("deferring.py:Resumption.requeue", "unreached", NO_FIXTURE),
     Site("history.py:Addresses.stated", "unreached", NO_FIXTURE),

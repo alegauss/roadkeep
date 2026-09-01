@@ -156,6 +156,28 @@ def test_an_undeclared_block_is_refused_rather_than_counted_as_zero(tmp_path):
     assert "no heading declares Block Z" in caught.value.args[0]
 
 
+def test_the_refusal_names_the_read_that_enumerates_the_labels(tmp_path, capsys):
+    """RK1455. RK296 is right that the labels are not listed here — a caller who mistyped one
+    is not picking from a menu. The caller measured on 31 August 2026 had no label at all:
+    unscoped over the ledger `list` was 117,815 characters and refused by the transport,
+    `--block` wanted the letter being looked for, and what they did next was grep the governed
+    file, which is the one move the hook exists to prevent. A door, not a longer list."""
+    from composing import runs
+
+    root = tmp_path
+    census = Census.read(project(root))
+    with pytest.raises(KeyError) as caught:
+        census.select(block="Z")
+    said = caught.value.args[0]
+    # And still no menu: the labels this file does declare stay out of it.
+    assert "Block A, Block B" not in said
+    # Run rather than matched (RK1209): a door asserted as a sentence is green for as long
+    # as the command it names refuses.
+    capsys.readouterr()
+    assert runs(root, said) == (["block", "list"],)
+    assert "block(s), in file order" in capsys.readouterr().out
+
+
 def test_an_undeclared_marker_filter_is_refused(tmp_path):
     census = Census.read(project(tmp_path))
     with pytest.raises(KeyError) as caught:

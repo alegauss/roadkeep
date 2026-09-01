@@ -159,7 +159,12 @@ the non-goals, bounded to a tool result; with no id, `pick`'s own choice. Narrow
 in prose — a "filed as <id>" a ledger entry promised before the task existed — both it and
 `add` say so, because from the write on nothing records which of the two was a line;
 `list|stats|audit [--block <x>]` counts and lists, naming
-every marker line neither could read, and where `[requirements]` is declared the count
+every marker line neither could read — but **`--block <x>` is not where a label comes
+from**: `block list` is, with each block's title, what it holds open and what the ledger
+records under it, and it is the first call of a session that has to place something.
+Reach for it before an unscoped `list` over a ledger, which prints the file — measured at
+117,815 characters on one project, refused by the transport, and what a caller did next
+was grep the governed file. Where `[requirements]` is declared the count
 splits into what nothing absent is holding up and what the rest wait for, `--have <word>`
 moving a line across and a line naming two requirements counted once. **Two of those three
 are yours only at a terminal**: nothing serves the counting verb or the auditing one, and

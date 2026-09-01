@@ -1524,6 +1524,33 @@ def _swept(tmp_path: Path, capsys) -> list[str]:
     return where
 
 
+def test_the_rows_carry_what_the_ledger_records_and_not_only_what_is_open(tmp_path, capsys):
+    """RK1455. The open count answers where a task may *go*, which is RK1188's question. A
+    caller placing work into a backlog they did not write asks first how much each block has
+    already taken — and that number was in the payload and not in the rows, so the terminal
+    answer sent them to the ledger, which on the project measured was 117,815 characters."""
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    capsys.readouterr()
+    assert main([
+        *where, "add", "--block", "A",
+        "--symptom", "A first symptom", "--why", "Because of a reason.",
+    ]) == EXIT_OK
+    assert main([*where, "ship", "RK1", "--why", "It works now."]) == EXIT_OK
+    capsys.readouterr()
+
+    assert main([*where, "block", "list"]) == EXIT_OK
+    (row,) = [
+        line for line in capsys.readouterr().out.splitlines() if line.startswith("  Block A")
+    ]
+    # Both counts, and the payload's own numbers: `Standing` is read once and the row and the
+    # JSON cannot come to disagree about what a block holds.
+    assert "0 open" in row and "1 recorded" in row
+    assert main([*where, "block", "list", "--json"]) == EXIT_OK
+    (block,) = json.loads(capsys.readouterr().out)["blocks"]
+    assert (block["open"], block["recorded"]) == (0, 1)
+
+
 def test_the_refusal_names_the_ending_that_is_correct(tmp_path, capsys):
     """RK1454. A project's end-of-block sweep tells the agent to run `block drop <x>` once
     nothing is open — and on a block whose deliveries used `ship --decides` this refuses,

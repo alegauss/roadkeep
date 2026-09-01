@@ -1372,7 +1372,9 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         description=(
             "Print the lines a filter selects, exactly as the file spells them. A "
             "marker-bearing line the grammar did not accept is reported on stderr with "
-            "the count, so a filtered listing can never look complete when it is not."
+            "the count, so a filtered listing can never look complete when it is not. "
+            "`block list` names the labels this takes and cannot enumerate — unscoped "
+            "over a long ledger, this prints the whole file."
         ),
     )
     _counting_flags(list_parser)
