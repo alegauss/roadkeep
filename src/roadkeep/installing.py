@@ -83,7 +83,7 @@ from roadkeep.config import CONFIG_NAME, Config
 from roadkeep.linting import lint
 from roadkeep.merging import ATTRIBUTES, Registration, register
 from roadkeep.provenance import Engine, Installed, engine, home, installed
-from roadkeep.provenance import invocation
+from roadkeep.provenance import invocation, stated_at
 
 #: The server's name, which is also the prefix an agent reads on every tool it offers.
 SERVER = "roadkeep"
@@ -847,11 +847,6 @@ class Vendor:
     home: Path
 
 
-#: The version literal inside a vendored copy's `__init__.py`. RK19 makes that the one place
-#: the number is written, so reading it is reading what the copy would answer.
-_LITERAL_RE = re.compile(r"^__version__\s*=\s*[\"']([^\"']+)[\"']", re.MULTILINE)
-
-
 def vendored_at(root: Path) -> Vendor | None:
     """The engine vendored into this project, or None where it holds none (RK1451).
 
@@ -862,18 +857,18 @@ def vendored_at(root: Path) -> Vendor | None:
     already in place, and it sits on the path `lint` takes through :func:`engines`, where a
     probe of that shape is a gate that hangs.
 
-    So the literal is the answer, and where the tree cannot be read at all there is no row: a
-    `.roadkeep/` with no package in it is not a second engine, it is a directory.
+    So the literal is the answer, through :func:`~roadkeep.provenance.stated_at`, which is the
+    one reader this package has for *what a directory says it is* — and the same one
+    :attr:`Engine.on_disk` asks about the running copy (RK1452). Where the tree states nothing
+    there is no row: a `.roadkeep/` with no package in it is not a second engine, it is a
+    directory.
     """
     # Resolved, because the row beside it is :attr:`Engine.home` and that one is: a copy
     # answering out of `.roadkeep/` has to compare equal to itself, and on this platform two
     # spellings of one directory are what would stop it.
     home = (root / PROJECT_ENGINE / "src" / "roadkeep").resolve()
-    try:
-        found = _LITERAL_RE.search((home / "__init__.py").read_text(encoding="utf-8"))
-    except OSError:
-        return None
-    return None if found is None else Vendor(version=found.group(1), home=home)
+    found = stated_at(home)
+    return Vendor(version=found, home=home) if found else None
 
 
 #: What :attr:`Engines.verdict` answers (RK418). Three and not two, because a checkout with
@@ -970,6 +965,22 @@ class Engines:
         return AGREED
 
     @property
+    def swapped(self) -> bool:
+        """Whether the copy answering is no longer the copy its own directory holds (RK1452).
+
+        The third way this report can be wrong about who wrote, and the only one where the
+        wrong answer is about the engine *asking*. `install --vendor` replaces `.roadkeep/` in
+        place; a server that imported the old modules keeps answering their version for a path
+        that has not held it since, and every row here is then a comparison against a number
+        nothing on disk states.
+
+        So it is asked at answer time, off :attr:`Engine.on_disk`, and it outranks every other
+        reading: a verdict composed from a stale `running` is a verdict about copies that are
+        not the ones in play.
+        """
+        return bool(self.running.on_disk) and self.running.on_disk != self.running.version
+
+    @property
     def split(self) -> bool:
         """Whether a copy **inside this project** states a version other than the one answering.
 
@@ -997,9 +1008,10 @@ class Engines:
         state this exists to stop being silent about is exactly the one where the numbers
         match and the files do not. Nor is a vendored copy at another version (RK1451), which
         is the same silence one copy further in — the difference being that nothing there is
-        even claiming to be the other.
+        even claiming to be the other. Nor is a home swapped under the running process
+        (RK1452), where the copy that would answer *this* row is already gone.
         """
-        return self.verdict == AGREED and not self.split
+        return self.verdict == AGREED and not self.split and not self.swapped
 
     def invoke(self) -> str:
         """The shell command that reaches the copy **wired to this project** (RK1230).
@@ -1046,6 +1058,16 @@ class Engines:
         rows = [
             f"writing  {running.version:<10}{running.revision}  {running.home.as_posix()}"
         ]
+        # Directly under the row it contradicts (RK1452), because it is a correction to that
+        # row and not a sixth copy: one directory, and the version this process holds for it is
+        # not the version it holds. Said before anything is compared, every other row here
+        # being a comparison against the number above.
+        if self.swapped:
+            rows.append(
+                f"swapped  {running.on_disk:<10}that directory states {running.on_disk} now — "
+                f"this process loaded {running.version} from it and kept the modules, so "
+                f"nothing on disk is what answered: restart the session"
+            )
         # The fifth (RK1451), beside the copy that answered because it is the same kind of fact:
         # a package directory and the version its own `__init__.py` states. Said only where the
         # project holds one — an absent `.roadkeep/` is not an absence a reader can act on, it
@@ -1128,6 +1150,10 @@ class Engines:
                 "version": running.version,
                 "home": running.home.as_posix(),
                 "revision": running.revision,
+                # What that home states **now** (RK1452), or null where it states nothing.
+                # Beside the version and not instead of it: the two being different is the
+                # answer, and a consumer that saw only one of them could not tell.
+                "on_disk": running.on_disk or None,
             },
             # Null where no plugin is registered for this project, which is every tree served
             # by a checkout alone and is not a defect (RK415).
@@ -1159,10 +1185,12 @@ class Engines:
             # added: a checkout with uncommitted work is at no commit the plugin could match,
             # and `agreed` there was the defect being fixed.
             "verdict": self.verdict,
-            # The other way `agree` can be False (RK1451), and stated separately because it is
-            # the pen-and-pen pair rather than the pen-and-judge one: `verdict` stays the
-            # decision about the pin, and only that decision refuses a write.
+            # The other two ways `agree` can be False, stated separately because each is a
+            # different pair: `split` is pen against pen (RK1451) and `swapped` is the pen
+            # against its own directory (RK1452). `verdict` stays the decision about the pin,
+            # and only that decision refuses a write.
             "split": self.split,
+            "swapped": self.swapped,
         }
 
 

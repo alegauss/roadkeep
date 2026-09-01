@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 7 | 144 | 2 |
 | D — The gate | 2 | 207 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 135 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 136 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 18 | 937 | 12 |
+| **Total** | 17 | 938 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1452** (deps: —) **the server reports the version it loaded while that same path holds another, and calls the result agreed** — install --vendor replaced .roadkeep under a running MCP server, which kept 0.1.1269 in memory for a directory now holding 0.2.4 and still answered agreed. → §RK1452
+- 📋 **RK1453** (deps: —) **A decision's sentence has no correction door, so a typo outlives the decision** — record amend reaches the ledger and supersede is for a replaced decision; what ship --decides filed has neither. → §RK1453
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

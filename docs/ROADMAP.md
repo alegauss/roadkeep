@@ -50,7 +50,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1452** (deps: —) **the server reports the version it loaded while that same path holds another, and calls the result agreed** — install --vendor replaced .roadkeep under a running MCP server, which kept 0.1.1269 in memory for a directory now holding 0.2.4 and still answered agreed. → §RK1452
 - 📋 **RK1462** (deps: —) **install rewrites a surface with an older engine's copy, so the remedy lint names undoes a fix that shipped** — The vendored engine is 0.2.4 and the committed launcher carried RK1446; install --check called it stale and install wrote the pre-fix version back over it. → §RK1462
 - 📋 **RK1464** (deps: —) **install --vendor writes the surfaces before it replaces the engine, so one run leaves the outgoing engine's copy on disk** — Vendoring 0.2.60 over 0.2.4 said updated then vendored, and the launcher left behind was 0.2.4's; a second install wrote the right bytes. → §RK1464
 - 📋 **RK1465** (deps: —) **the launcher spends a whole extra Python start proving an engine runs, doubling how long connecting takes** — The probe was justified by an execv that cannot be taken back, and on Windows there is none: the parent waits on the child already. → §RK1465

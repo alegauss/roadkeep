@@ -138,6 +138,38 @@ def named(module: Path, home: Path) -> str:
         return ""
 
 
+def stated_at(home: Path) -> str:
+    """The version the package in this directory states **now**, or `""` (RK1452).
+
+    RK19 makes `__version__` the one place the number is written, so this is what that tree
+    would answer if something imported it — which is not the same question as what a process
+    already holding it answers, and telling the two apart is the whole of RK1452.
+
+    A line scan and not a regex: the cost is one small read on a path :func:`invocation` is
+    already on, and the shape being matched is a literal a build backend parses without
+    importing either. Every failure is `""`, which reads as *this directory states nothing* —
+    a frozen build, a wheel with no source, a tree half-written by a copy in progress — and is
+    never evidence of a disagreement.
+
+    **A quoted literal and nothing else.** Read to the closing quote rather than stripped at
+    the ends, so a trailing comment is not part of the number; and a right-hand side that is
+    not a literal at all states nothing, because a version this reader would have to evaluate
+    is one a build backend could not have read either.
+    """
+    try:
+        text = (home / "__init__.py").read_text(encoding="utf-8")
+    except (OSError, ValueError):
+        return ""
+    for line in text.splitlines():
+        key, found, value = line.partition("=")
+        if not found or key.strip() != "__version__":
+            continue
+        value = value.strip()
+        end = value.find(value[:1], 1) if value[:1] in ("'", '"') else -1
+        return value[1:end] if end > 0 else ""
+    return ""
+
+
 @dataclass(frozen=True, slots=True)
 class Engine:
     """The answering copy of this package: its version, its files, and their commit."""
@@ -186,6 +218,30 @@ class Engine:
                 # start raising.
                 continue
         return tuple(where for where in changed if where)
+
+    @property
+    def on_disk(self) -> str:
+        """What :attr:`home` states now, against the :attr:`version` this process is running.
+
+        Read on every call and never cached, for :attr:`stale`'s reason one field along:
+        identity is a fact about the process and this is a fact about the directory right now.
+
+        Reproduced in Japode/cloud (RK1452). An MCP server was started on a vendored
+        `.roadkeep/` at 0.1.1269; `install --vendor` then replaced that directory **in place**
+        with 0.2.4. Python had already loaded the modules, so the server kept answering
+        0.1.1269 for a path that had not held it since — and `engines` certified the result as
+        `agreed`. Nothing in that answer looked stale: the number was plausible and the home
+        was right.
+
+        :attr:`stale` cannot say it. That one names modules whose mtime moved, which a swap
+        also moves — and a checkout being edited moves it every minute, so the reading a
+        session learns to ignore is exactly the one this needs. A **version** is the tell,
+        because it changes only when somebody released or bumped, and it is one small read.
+
+        `""` where the directory states nothing, which is not a disagreement: see
+        :func:`stated_at`.
+        """
+        return stated_at(self.home)
 
     def carried_by(self, root: Path) -> bool:
         """Whether the code answering lives **inside** the project it is answering about (RK246).

@@ -2111,3 +2111,104 @@ def test_the_vendored_row_is_read_and_never_run(tmp_path):
         if isinstance(node, ast.Call)
     }
     assert not called & {"run", "check_output", "Popen", "system", "_asked"}, called
+
+
+# -- one home, two versions, and a verdict of agreed (RK1452) ------------------
+
+
+def test_a_home_swapped_under_the_process_is_not_agreement(tmp_path):
+    """RK1452, reproduced in Japode/cloud. An MCP server was started on a vendored
+    `.roadkeep/` at 0.1.1269 and `install --vendor` then replaced that directory **in place**
+    with 0.2.4. Python had already loaded the modules, so the server kept answering 0.1.1269
+    for a path that had not held it since — and the payload said `"agree": true`.
+
+    That verdict is the defect and not the version. This verb's own contract is that copies
+    may differ and what is not survivable is being unable to say which one answered; here it
+    named a version the home has not held, then certified agreement about it. Nothing in the
+    answer looked stale: the number was plausible and the home was right."""
+    from roadkeep.installing import Engines
+    from roadkeep.provenance import Engine
+
+    home = tmp_path / ".roadkeep" / "src" / "roadkeep"
+    home.mkdir(parents=True)
+    (home / "__init__.py").write_text('__version__ = "0.2.4"\n', encoding="utf-8")
+
+    read = Engines(running=Engine(version="0.1.1269", home=home, commit=None))
+    assert read.swapped and not read.agree
+    (row,) = [line for line in read.stated().splitlines() if line.startswith("swapped")]
+    # Both numbers, because either alone is plausible: the one running and the one that path
+    # holds now, which is what tells a reader the answer is about a copy that is gone.
+    assert "0.2.4" in row and "0.1.1269" in row
+    assert "restart the session" in row
+    assert read.payload()["swapped"] is True
+    assert read.payload()["writing"]["on_disk"] == "0.2.4"
+
+
+def test_the_version_a_home_states_is_read_at_answer_time(tmp_path):
+    """Never cached, for `Engine.stale`'s reason one field along: identity is a fact about the
+    process and this is a fact about the directory right now. A reading decided at start-up is
+    the one this exists to correct."""
+    from roadkeep.provenance import Engine
+
+    home = tmp_path / "roadkeep"
+    home.mkdir()
+    (home / "__init__.py").write_text('__version__ = "0.1.1269"\n', encoding="utf-8")
+    running = Engine(version="0.1.1269", home=home, commit=None)
+    assert running.on_disk == "0.1.1269"
+
+    (home / "__init__.py").write_text('__version__ = "0.2.4"\n', encoding="utf-8")
+    assert running.on_disk == "0.2.4"
+
+
+def test_a_home_that_states_nothing_is_not_a_disagreement(tmp_path):
+    """A frozen build, a wheel with no source, a tree half-written by a copy in progress. The
+    honest answer is that this directory says nothing, and reading that as a swap would refuse
+    agreement on every project a wheel is installed into."""
+    from roadkeep.installing import Engines
+    from roadkeep.provenance import Engine, stated_at
+
+    assert stated_at(tmp_path / "nowhere") == ""
+    (tmp_path / "__init__.py").write_text('"""No literal here."""\n', encoding="utf-8")
+    assert stated_at(tmp_path) == ""
+
+    read = Engines(running=Engine(version="0.1.1269", home=tmp_path, commit=None))
+    assert not read.swapped and read.agree
+    assert "swapped" not in read.stated()
+    assert read.payload()["writing"]["on_disk"] is None
+
+
+def test_the_number_is_read_to_the_closing_quote(tmp_path):
+    """A quoted literal and nothing else. Stripped at the ends instead, a trailing comment
+    became part of the number and every comparison against it was a disagreement — and a
+    right-hand side this would have to evaluate states nothing, a version a build backend
+    could not read being one this has no business guessing at either."""
+    from roadkeep.provenance import stated_at
+
+    (tmp_path / "__init__.py").write_text(
+        '__version_info__ = (0, 1)\n__version__ = "0.2.4"  # bumped by the hook\n',
+        encoding="utf-8",
+    )
+    assert stated_at(tmp_path) == "0.2.4"
+
+    (tmp_path / "__init__.py").write_text(
+        "__version__ = _read_from_metadata()\n", encoding="utf-8"
+    )
+    assert stated_at(tmp_path) == ""
+
+
+def test_a_rewrite_at_the_same_version_is_not_a_swap(tmp_path):
+    """The reading `Engine.stale` could not have given. An mtime moves for a swap and also for
+    every save a developer makes in a checkout, which is why that one is the note a session
+    learns to ignore; a version moves only where somebody released or bumped."""
+    from roadkeep.installing import Engines
+    from roadkeep.provenance import Engine
+
+    home = (tmp_path / "roadkeep").resolve()
+    home.mkdir()
+    (home / "__init__.py").write_text('__version__ = "0.1.1269"\n', encoding="utf-8")
+    running = Engine(version="0.1.1269", home=home, commit=None)
+    # Every file under it rewritten, and nothing about which copy is running has changed.
+    (home / "cli.py").write_text("# edited\n", encoding="utf-8")
+    (home / "__init__.py").write_text('__version__ = "0.1.1269"  # edited\n', encoding="utf-8")
+    assert running.on_disk == running.version
+    assert not Engines(running=running).swapped
