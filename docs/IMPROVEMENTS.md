@@ -385,6 +385,30 @@ filter over what `git show --stat` already answers, not a fact anybody has to re
 
 Worth weighing: a commit doing both at once is real, and would still be reported.
 
+### §RK1476 The listing whose refusal is somebody else's
+
+RK1455 gave the structure question a read that answers it and pointed the block filter
+at that read. The half it could not close is the listing itself: `list --role changelog`
+with no `--block` prints every entry, and on the project measured that was 117,815
+characters — refused by the transport, after roadkeep had already composed and returned
+it.
+
+Which is why this is not RK1466. That one is `anchors` under the id scheme, where the
+rows are addresses and the fix is live in full and retired as a count. Here the rows are
+the ledger, every one of them is live in the only sense that file has, and nothing in
+the answer is droppable — so a cap has to be a cap and not a narrowing.
+
+The refusal is also nobody's here. roadkeep exits 0 having answered; the client is what
+says the result is too large, and this tool never learns it. So a message about the
+overrun cannot come from the verb that caused it, and the only thing that can is a bound
+the verb applies to itself.
+
+What that bound is, is the question. A row count is arbitrary; a character count is what
+`cost --brief` already measures a read by, which suggests a `[reads] list` beside it and
+an over-budget answer replaced by what `block list` prints. That is smaller than the
+answer refused and closer to what was wanted — RK1455's own argument, which it could not
+act on.
+
 ## Block D — The gate
 
 ### §RK1457 A read note with no answer
