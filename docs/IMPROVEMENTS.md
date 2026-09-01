@@ -296,6 +296,32 @@ case it was built to surface, and collapse the rest to the word `detail` already
 carries. A caller who wants the history has `origin`, which is the verb for it and
 answers one task at a time.
 
+### §RK1466 The listing that now names everything it counts
+
+RK1450's finding was that the wide read stated 88 addresses and offered no way to see
+them: under `ref_scheme = "id"` there is no family register, so the summary that stands
+in for the rows (RK264) is empty and the substitute is a sentence about `add`. The fix
+prints the rows there. It has no ceiling.
+
+Measured by composing this repository's own 960 addresses as a project with no families
+— which is the state every id-scheme project is in:
+
+    payload   175,384 bytes, 960 rows
+    printed    52,655 characters, 961 lines
+
+Against a handshake whose whole tool surface is 64,333 units and a `[tools] characters`
+ceiling of 2,800 for one tool's description. A read three times the size of the surface
+that published it is not a bounded answer.
+
+The two halves of Block C's criterion come apart here: the answer fits no tool result,
+and it does not say what it left out, because it left nothing out. Retired addresses are
+what grows — one per shipped task, unbounded by anything the project can prune — while
+the live ones are bounded by the open backlog.
+
+So the shape is likely live rows in full and retired as a count that names the flag
+which lists them, which is the door RK1450 was actually missing. What must not come back
+is the count with nothing behind it.
+
 ## Block D — The gate
 
 ### §RK1457 A read note with no answer
@@ -433,6 +459,31 @@ that cannot be what was meant.
 
 Worth weighing: a caller who ran it once and committed has a tree that looks installed
 and is a downgrade, which is worse than the failure it was fixing.
+
+### §RK1465 The probe that costs what it protects
+
+Measured on Windows 11 against this checkout, five runs each, `initialize` written to
+stdin and the first response line read back:
+
+    scripts/roadkeep.py mcp        283 ms min, 315 ms median
+    hooks/roadkeep-launch.py mcp   646 ms min, 677 ms median
+
+The difference is one `python scripts/roadkeep.py --version` — a whole interpreter start
+and a whole `roadkeep.cli` import, 287 ms of the 363 ms the launcher adds. It buys one
+thing: that a candidate found on disk will run, which RK1214 added after a sibling
+checkout mid-refactor answered a `section add` with an `ImportError`.
+
+That reason is POSIX's. `_serve` on Windows no longer `execv`s (RK1446) — it runs the
+child with stdio inherited and hands back its exit code — so the parent this probe was
+protecting is still there when the child fails, and the failure it predicts has already
+happened in front of it.
+
+What it costs is not the milliseconds here. It is that connecting is the engine's time
+plus a second cold Python start, on the one path a client puts a thirty-second ceiling
+on. RK1449 moved the cliff out of `initialize`; this is the floor under it.
+
+The forwarded verb keeps its probe: it may write, so trying the next candidate could
+repeat a half-done write. That hazard is what makes the two callers different.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

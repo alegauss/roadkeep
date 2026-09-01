@@ -38,6 +38,7 @@
 - 📋 **RK1458** (deps: —) **budget prices a why against the roadmap line's limit while the ship about to be written is held to the ledger's** — brief quoted 190 for the shipping sentence and budget quoted 171 for the same field, so the read meant to prevent a refusal answered about a write nobody was making. → §RK1458
 - 📋 **RK1461** (deps: —) **budget cannot price a line that will carry a requires, so the number it quotes is 21 characters too generous** — add takes --requires and budget does not, so a sentence priced without one is refused for the exact width of the (requires: word) the write adds. → §RK1461
 - 📋 **RK1463** (deps: —) **brief spends four fifths of its answer on deps that are all shipped and settled long ago** — Each resolved dep carries two full commit subjects, so starting a six-dep task costs thousands of tokens of history nobody asked about. → §RK1463
+- 📋 **RK1466** (deps: —) **a project numbering by id gets every address in one answer, which at this repository's size is 961 rows and 175 KB** — RK1450 replaced a count nothing could open with a listing nothing bounds, because the register it stood in for was also what held the rows back. → §RK1466
 
 ## Block D — The gate
 
@@ -51,6 +52,7 @@
 - 📋 **RK1452** (deps: —) **the server reports the version it loaded while that same path holds another, and calls the result agreed** — install --vendor replaced .roadkeep under a running MCP server, which kept 0.1.1269 in memory for a directory now holding 0.2.4 and still answered agreed. → §RK1452
 - 📋 **RK1462** (deps: —) **install rewrites a surface with an older engine's copy, so the remedy lint names undoes a fix that shipped** — The vendored engine is 0.2.4 and the committed launcher carried RK1446; install --check called it stale and install wrote the pre-fix version back over it. → §RK1462
 - 📋 **RK1464** (deps: —) **install --vendor writes the surfaces before it replaces the engine, so one run leaves the outgoing engine's copy on disk** — Vendoring 0.2.60 over 0.2.4 said updated then vendored, and the launcher left behind was 0.2.4's; a second install wrote the right bytes. → §RK1464
+- 📋 **RK1465** (deps: —) **the launcher spends a whole extra Python start proving an engine runs, doubling how long connecting takes** — The probe was justified by an execv that cannot be taken back, and on Windows there is none: the parent waits on the child already. → §RK1465
 
 ## Block G — The editor surface (the backlog where the file is open)
 
