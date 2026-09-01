@@ -152,6 +152,34 @@ but a change in characters the parse normalises, so a reworded claim is still re
 The cheaper answer may be upstream: `add` and `ship` refusing a symptom carrying what a
 failed encoding leaves, at the door, where this project puts every other check.
 
+### §RK1475 The offer that knows what refuses it
+
+Observed while shipping RK1454, on a throwaway project. One line, shipped with
+`--decides`, and the ship prints:
+
+    event  FB1  Block D  finished
+           its last open line just left — `roadkeep block drop D` withdraws the heading
+
+Run it and it is refused: the decisions file files FB1 under that heading, so removing
+it would refile the decision. RK1454 made that refusal name the ending, which is the
+repair a reader needs. It did not stop the offer that sent them there.
+
+`removable` states the rule this breaks in its own docstring — "a finding naming a
+command that then refuses is worse" — and holds it for the gate, where a doubled heading
+is only reported where the drop would work. The ship's offer is the other reader of the
+same question and never learned it.
+
+The fact is cheap and already local. `ship --decides` writes the decisions file in the
+same transaction, so the call that composes the offer knows an entry has just been filed
+under that heading; more generally, `removable` answers per role and the offer is right
+exactly where every declaring file but the ledger would give the heading up.
+
+What is not obvious is what the offer becomes. Silence is one answer and loses the fact
+that the block finished. Better is likely the ending RK1454 now prints on the refusal,
+said at the ship instead — "the heading stays, which is how such a block ends" — so the
+sweep gets its terminal state from the write that produced it and never runs the verb at
+all.
+
 ## Block C — Query
 
 ### §RK1455 The block list nothing answers
