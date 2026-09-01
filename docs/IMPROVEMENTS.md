@@ -659,6 +659,30 @@ a fact a session acts on once, and acting on it is restarting. The decision left
 whether a write under a swapped engine is worth saying so on, or whether saying it once
 at the top of the session is the whole remedy.
 
+### §RK1482 The finding that is about the reader
+
+Measured on one long session in an adopting project. The session-start hook said the
+skill had drifted, in its first message. Every `lint` after it ended with three
+`install.stale` lines. The session read past all of them for hours, and only went
+looking when it ran out of roadmap work.
+
+What it cost is specific. `asking.md` and `writing.md` were not merely stale in that
+project, they did not exist — so the session never learnt that `budget --anchor`
+measures a section before it is sent, or that `--body-file` names the paragraph by path.
+One design took five refusals against the word limit, each re-sending the paragraph, for
+want of a page one command away.
+
+Why it reads past. Everything else `lint` prints is about the project's own files: a
+line over its limit, a criterion with nothing to check it, a pointer resolving to
+nothing. Those are work. This one is about the reader's own tooling being older than the
+engine answering it, which is a different kind of fact wearing the same shape, and it
+sits in the same list at the same weight.
+
+Two cheap shapes, and neither is a new check. The finding could say what the staleness
+costs rather than that it exists — naming a verb the installed copy does not document is
+a sentence nobody reads past. Or the summary line could carry it, since a reader who
+skims one line a run sees that one and not the fifteen above it.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
