@@ -345,6 +345,38 @@ go stale beside the first. Cheaper: the refusal already names the requirement, a
 printing that requirement's own declared sentence beside it would let a caller weigh the
 cost in the line they are already reading.
 
+### §RK1472 The pre-flight that does not know about requirements
+
+`budget` prices the line from what is known before the first word: the id, the marker,
+the deps, the pointer. A requirement is known then too, and it is not counted —
+`(requires: upstream)` is twenty-one characters of the same 320, and `budget` declares
+no `--requires` to be told about one.
+
+Measured on an adopting project, one draft, two answers:
+
+    budget --block E --symptom … --why …
+      why  185 of 200, 171 drafted, 14 left
+
+    add --block E --requires upstream --symptom … --why …
+      refused: why: 171 characters, limit is 164 [why.too-long]
+
+Twenty-one characters, exactly. The caller did the thing the tool asks for, was told it
+fit with room, and was refused anyway.
+
+The refusal is what makes it worth a line rather than a note. It ends with
+
+    foresee  roadkeep budget --why <draft>
+
+which is the call that just gave the wrong number. A caller who follows it a second time
+gets 185 again, and the only way out is to stop believing the pre-flight — which costs
+more than never having had one.
+
+Two fixes and they are not the same. `budget --requires <r>`, repeatable, matching
+`add`, is the small one. The larger: nothing makes a new field on the line teach
+`budget` about itself, so the next group added to the grammar arrives with the same
+hole. Whether the structure figure can be derived from whatever composes a line, rather
+than enumerated beside it, is the question this asks.
+
 ## Block D — The gate
 
 ### §RK1457 A read note with no answer
