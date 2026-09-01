@@ -501,6 +501,53 @@ asking the launcher costs a subprocess on a read that `lint` reaches. A third re
 — where one exists, so the order is resolved once, at the moment it is used, by the file
 that owns it. Then `engines` never needs to know what the order is.
 
+### §RK1470 The note that has the weaker of two readings
+
+The served staleness note (RK155, narrowed by RK267 and RK1443) turns on `Engine.stale`:
+this package's modules whose mtime moved after the process imported them. It is
+calibrated for a developer editing the tree a server is running — the RK155 case was one
+commit adding `[claims] held` to both `roadkeep.toml` and `config.py`.
+
+RK1452 added the other reading and the note does not have it. `Engine.on_disk` says the
+home now holds a **different version** from the one loaded — what `install --vendor`
+leaves when it replaces `.roadkeep/` in place under a live server. To the mtime reading
+that swap is a file being saved: every module is newer, so the note lists all of them.
+
+The two are not the same claim and the remedies are not the same either. A file that
+moved may or may not be the one that decided the call — RK267 spent a whole task
+narrowing the note to the intersection with the traceback for exactly that reason. A
+version that moved is not a maybe: the code answering is gone from disk, the
+intersection is irrelevant, and restarting is the only remedy there is.
+
+So the shape is likely a clause the note takes before it narrows anything — `swapped` is
+already a boolean and `on_disk` is already the number. What must not happen is a second
+paragraph: this note has been cut twice for being text a reader skips, and a third one
+would undo both.
+
+### §RK1471 The guard that has no version to compare
+
+RK1235 put a guard in front of every governed write: a copy behind the pin a project
+declared with `[install] enforced` is refused, because it does not fail — it agrees with
+a rule that has moved and writes a line its own version thinks legal, reported
+afterwards as the file's problem rather than the pen's.
+
+RK1452 found a second copy in that state and did not guard it. A server whose home was
+replaced in place runs code on no disk anywhere: its schema, its limits and its markers
+are whatever they were at import, and the tree everyone else reads has moved past them.
+That is the RK1235 failure with the pin removed — no version to compare, no flag to have
+declared.
+
+Whether it should refuse is the open half, and the launcher's own first rule argues both
+ways. *Never block a turn* is why `roadkeep-launch.py` degrades to unenforced rather
+than erroring, and a write refused by a condition only a restart clears is a wall with
+no door — RK1235's refusal prints the copy to re-run through, and here there is none to
+print.
+
+The cheaper reading may be that this belongs to the note and not the guard: `swapped` is
+a fact a session acts on once, and acting on it is restarting. The decision left is
+whether a write under a swapped engine is worth saying so on, or whether saying it once
+at the top of the session is the whole remedy.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
