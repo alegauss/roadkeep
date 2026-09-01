@@ -149,6 +149,31 @@ already understands.
 Worth weighing: an alias that is never printed is one nobody finds, so the help and the
 refusal are half of it.
 
+### §RK1460 Where the evidence for a run goes
+
+`ship` prints every criterion the task carries under `unmet`, and that is the whole of
+what it says about them. Where they are checked by running something, the list is
+indistinguishable from a real gap. Shipping quickshell's QS116 printed two: *the window
+shows what a session printed* and *an idle window issues no draw calls once it is
+drawing at all*. Both had been checked — the first against a running client, with a
+screenshot of a shell prompt in it, the second against its suite's idle assertions — and
+there was nowhere to say so, so the ledger records a finished task beside two criteria
+reading as open.
+
+`evidence` is the neighbouring verb and is not this one: it runs a `roadkeep-evidence`
+block of `<pathspec> :: <regex>` against the tree, so it answers for criteria a source
+file can satisfy. A criterion whose own `why` says *checked by a running client* has no
+pathspec. The run is the evidence, and it happened in a session about to end.
+
+What is missing is small: a way for the call that ships to name a criterion and say how
+it was checked, kept beside the ledger entry, so one nobody mentioned is told from one
+somebody verified. Presence-not-enforcement survives — the sentence is its author's
+claim, as `--why` is — and the value is `--why`'s: work finishing is the only moment its
+evidence is in anybody's hands.
+
+Falsified when a shipped task's checked criteria are indistinguishable from its ignored
+ones.
+
 ## Block C — Query
 
 ### §RK1455 The block list nothing answers

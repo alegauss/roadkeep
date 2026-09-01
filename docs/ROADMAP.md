@@ -29,6 +29,7 @@
 - 📋 **RK1453** (deps: —) **A decision's sentence has no correction door, so a typo outlives the decision** — record amend reaches the ledger and supersede is for a replaced decision; what ship --decides filed has neither. → §RK1453
 - 📋 **RK1454** (deps: —) **block drop refuses a finished block without naming the ending that is correct** — The refusal reads as a failure to a caller told to run it at the block boundary, and nothing says the block is already ended. → §RK1454
 - 📋 **RK1459** (deps: —) **The read that prices a body and the write that files it name the same argument differently, so the loop costs a refusal** — budget takes --body-file and add takes --section-body-file, so a caller moving from the price to the write is refused for the flag it was just told to use. → §RK1459
+- 📋 **RK1460** (deps: —) **A criterion checked by running something ships looking exactly like one nobody looked at** — ship lists every criterion as unmet, so the ledger cannot tell a verified claim from an ignored one. → §RK1460
 
 ## Block C — Query (consult without reading the file)
 
