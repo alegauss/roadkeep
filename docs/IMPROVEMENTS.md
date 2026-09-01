@@ -152,6 +152,31 @@ evidence is in anybody's hands.
 Falsified when a shipped task's checked criteria are indistinguishable from its ignored
 ones.
 
+### §RK1474 The half of a decision that was never typed here
+
+RK1453 gave the decisions file a correction door for the half `ship --decides` composes.
+The other half of that line has none, and it is a copy: the symptom is the roadmap
+line's claim, carried across by the ship, and `--decides` writes no symptom on purpose.
+
+So a typo there is worse placed than the one RK1453 fixed. `restate` corrects a roadmap
+line's symptom, and by the time a decision exists that line is gone — shipped, its
+ledger copy correctable by nothing either, `record amend` calling the symptom "the
+claim" and declining to touch it. Three files hold the same words and no verb reaches
+two.
+
+Whether that is a defect is open, and the ledger's own answer argues it is not. `record
+amend` excludes the symptom deliberately: an entry's claim is what the work was filed
+against, and a claim editable afterwards records what somebody later wished had been
+claimed. The decisions file inherits that argument whole.
+
+What it does not inherit is the mechanical case. A symptom mangled by a shell — the
+ASCII transliteration RK1453 was met by — is not a claim somebody revised, it is bytes
+that never arrived, now copied into two permanent files. The narrow fix refuses anything
+but a change in characters the parse normalises, so a reworded claim is still refused.
+
+The cheaper answer may be upstream: `add` and `ship` refusing a symptom carrying what a
+failed encoding leaves, at the door, where this project puts every other check.
+
 ## Block C — Query
 
 ### §RK1455 The block list nothing answers
