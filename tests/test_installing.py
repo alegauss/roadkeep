@@ -1977,10 +1977,137 @@ def test_the_count_a_sentence_states_says_which_question_it_is_about():
     from roadkeep.installing import Engines
 
     read = {one.name for one in fields(Engines)} - {"running"}
-    # Four rows: the pen, the plugin, the gates and the driver.
-    assert read == {"plugin", "gates", "driver"}, sorted(read)
-    # And three judged: adding a driver never moves the verdict, whatever it holds.
+    # Five rows: the pen, the plugin, the vendored copy, the gates and the driver.
+    assert read == {"plugin", "vendored", "gates", "driver"}, sorted(read)
+    # And the verdict still compares two: adding a driver never moves it, whatever it holds,
+    # and neither does a vendored copy — that one is `split`, which is a different pair
+    # (RK1451) and deliberately has no standing to refuse a write.
     pair = _pair()
     for command in ("", "/elsewhere/roadkeep merge %O %A %B --path %P"):
         assert replace(pair, driver=command).verdict == pair.verdict
         assert replace(pair, driver=command).agree == pair.agree
+
+
+# -- the copy inside the project, which the launcher finds first (RK1451) ------
+
+
+def _vendoring(root: Path, version: str) -> Path:
+    """A project holding a vendored engine, as `install --vendor` leaves one."""
+    home = root / ".roadkeep" / "src" / "roadkeep"
+    home.mkdir(parents=True)
+    (home / "__init__.py").write_text(f'__version__ = "{version}"\n', encoding="utf-8")
+    (root / ".roadkeep" / "scripts").mkdir()
+    return home
+
+
+def test_a_second_local_engine_is_a_row_rather_than_a_silence(tmp_path, capsys, monkeypatch):
+    """RK1451. Observed in Japode/cloud: `roadkeep engines` said `writing 0.2.58` and the same
+    command through the launcher said `writing 0.1.1269`. Both exited 0, both reported no
+    plugin, and neither had a row for the other — so the read that exists to reconcile the
+    copies in play was the one place a second local engine was invisible.
+
+    It decides who writes. `.mcp.json` runs the launcher and so does the guard, so every tool
+    call and every denied hand edit went through 0.1, while a shell reaching `roadkeep` got
+    0.2 and judged the same files by it."""
+    root = tmp_path / "project"
+    root.mkdir()
+    _vendoring(root, "0.1.1269")
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "empty"))
+
+    # The exit code is the answer, the way it is for the pen and the judge: a session that has
+    # to grep a sentence to learn two engines are in play is one that will not ask.
+    assert main(["-C", str(root), "engines"]) == EXIT_GATE
+    said = capsys.readouterr().out
+    (row,) = [line for line in said.splitlines() if line.startswith("vendored")]
+    assert "0.1.1269" in row and ".roadkeep/src/roadkeep" in row
+    assert "the copy the launcher runs" in row
+    # And its own `differ` sentence: these two are both pens, so `/plugin update` is not the
+    # move and naming a judge that does not exist is how the wrong pair got read.
+    (differs,) = [line for line in said.splitlines() if line.startswith("differ")]
+    assert "the launcher runs the vendored 0.1.1269" in differs
+    assert "judge" not in differs
+
+
+def test_the_copy_answering_out_of_the_vendored_tree_says_so(tmp_path, monkeypatch):
+    """Run through the launcher the two rows are one copy, and the row is still the whole of
+    what a reader there was missing: which of the engines on this machine answered."""
+    from roadkeep.installing import Engines, Vendor
+    from roadkeep.provenance import Engine
+
+    home = _vendoring(tmp_path, "0.1.1269")
+    same = Engines(
+        running=Engine(version="0.1.1269", home=home, commit=None),
+        vendored=Vendor(version="0.1.1269", home=home),
+    )
+    assert "this is the copy answering" in same.stated()
+    # Trivially agreed, the two reading one `__init__.py` — and no `differ` invented for it.
+    assert same.agree and not same.split
+    assert "differ" not in same.stated()
+
+
+def test_a_project_that_vendored_nothing_gets_no_row(tmp_path, capsys, monkeypatch):
+    """Unlike the plugin, the gate and the driver, an absent `.roadkeep/` is not an absence a
+    reader can act on: it is every project that never ran `install --vendor`, and a row saying
+    so on all of them is the noise this report refuses everywhere else."""
+    root = tmp_path / "project"
+    root.mkdir()
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "empty"))
+
+    assert main(["-C", str(root), "engines", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["vendored"] is None and payload["split"] is False
+    assert main(["-C", str(root), "engines"]) == EXIT_OK
+    assert "vendored" not in capsys.readouterr().out
+
+
+def test_the_line_a_shell_pastes_reaches_the_vendored_copy(tmp_path, capsys, monkeypatch):
+    """RK1230 answers *which copy to call*, and with a vendored engine in place the answer had
+    become the very copy the caller already had. The launcher resolves `.roadkeep/` above every
+    clone and cache, so that is the pen — and pointing a shell at this one is how a session
+    comes to run two engines against one file."""
+    from roadkeep.installing import LAUNCHER
+
+    root = tmp_path / "project"
+    root.mkdir()
+    _vendoring(root, "0.1.1269")
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "empty"))
+
+    assert main(["-C", str(root), "engines", "--invoke"]) == EXIT_OK
+    assert capsys.readouterr().out.splitlines() == [
+        f"python {(root / '.roadkeep' / LAUNCHER).as_posix()}"
+    ]
+
+
+def test_a_directory_with_no_package_in_it_is_not_an_engine(tmp_path, monkeypatch):
+    """A `.roadkeep/` this cannot read a version out of is a directory, not a second copy —
+    the same direction every other absence in this report takes."""
+    from roadkeep.installing import vendored_at
+
+    (tmp_path / ".roadkeep" / "src" / "roadkeep").mkdir(parents=True)
+    assert vendored_at(tmp_path) is None
+    (tmp_path / ".roadkeep" / "src" / "roadkeep" / "__init__.py").write_text(
+        '"""No literal here."""\n', encoding="utf-8"
+    )
+    assert vendored_at(tmp_path) is None
+
+
+def test_the_vendored_row_is_read_and_never_run(tmp_path):
+    """`candidates` spends a subprocess per engine because ranking one to pin has to prove it
+    imports. This reader is choosing nothing, and it sits on the path `lint` takes through
+    `engines` — a 30-second probe of that shape is a gate that hangs. So the literal is the
+    answer, RK19 making it the one place the number is written."""
+    import ast
+    from pathlib import Path as _Path
+
+    source = _Path(__file__).resolve().parents[1] / "src" / "roadkeep" / "installing.py"
+    (reader,) = [
+        node
+        for node in ast.walk(ast.parse(source.read_text(encoding="utf-8")))
+        if isinstance(node, ast.FunctionDef) and node.name == "vendored_at"
+    ]
+    called = {
+        node.func.attr if isinstance(node.func, ast.Attribute) else getattr(node.func, "id", "")
+        for node in ast.walk(reader)
+        if isinstance(node, ast.Call)
+    }
+    assert not called & {"run", "check_output", "Popen", "system", "_asked"}, called

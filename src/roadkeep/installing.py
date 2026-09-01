@@ -830,6 +830,52 @@ def stale(root: str | Path = ".") -> tuple[str, ...]:
     )
 
 
+@dataclass(frozen=True, slots=True)
+class Vendor:
+    """The copy of this tool a project holds **inside itself**, at `.roadkeep/` (RK1451).
+
+    The fifth engine and the second that writes. `install --vendor` puts it there and the
+    launcher resolves it above every clone and cache, so where no plugin is registered it is
+    what the guard and the served tools run — while a shell reaching `roadkeep` gets whatever
+    the path answers. Measured in Japode/cloud: the launcher at 0.1.1269 and the shell at
+    0.2.58, two minor versions apart, both exiting 0 and neither naming the other.
+    """
+
+    version: str
+    #: The package directory inside the vendored tree — `<root>/.roadkeep/src/roadkeep`, so it
+    #: is the same fact as :attr:`Engine.home` and the two rows compare directly.
+    home: Path
+
+
+#: The version literal inside a vendored copy's `__init__.py`. RK19 makes that the one place
+#: the number is written, so reading it is reading what the copy would answer.
+_LITERAL_RE = re.compile(r"^__version__\s*=\s*[\"']([^\"']+)[\"']", re.MULTILINE)
+
+
+def vendored_at(root: Path) -> Vendor | None:
+    """The engine vendored into this project, or None where it holds none (RK1451).
+
+    **Read and never run**, which is the opposite of :func:`candidates`' rule and for a reason
+    that reverses with the question. Ranking engines to pin one has to prove importability — a
+    checkout mid-refactor states a version and then raises — so that reader spends a subprocess
+    per candidate under a 30-second timeout. This one is not choosing anything: it names a copy
+    already in place, and it sits on the path `lint` takes through :func:`engines`, where a
+    probe of that shape is a gate that hangs.
+
+    So the literal is the answer, and where the tree cannot be read at all there is no row: a
+    `.roadkeep/` with no package in it is not a second engine, it is a directory.
+    """
+    # Resolved, because the row beside it is :attr:`Engine.home` and that one is: a copy
+    # answering out of `.roadkeep/` has to compare equal to itself, and on this platform two
+    # spellings of one directory are what would stop it.
+    home = (root / PROJECT_ENGINE / "src" / "roadkeep").resolve()
+    try:
+        found = _LITERAL_RE.search((home / "__init__.py").read_text(encoding="utf-8"))
+    except OSError:
+        return None
+    return None if found is None else Vendor(version=found.group(1), home=home)
+
+
 #: What :attr:`Engines.verdict` answers (RK418). Three and not two, because a checkout with
 #: uncommitted work is at no commit the plugin could match — so `agreed` would be the defect
 #: and `behind` a direction nothing measured.
@@ -842,11 +888,12 @@ UNPINNABLE = "unpinnable"
 class Engines:
     """Every copy of this tool one project runs, read back together (RK415).
 
-    **Four are read and three are judged** (RK1392). RK1385 added the merge driver, which git
-    runs when nobody is watching, and it is deliberately not in the verdict: `agreed`, `behind`
-    and `unpinnable` compare versions, and this tool refuses to execute a recorded driver to
-    ask for one. So a count states which of the two questions a sentence is about, and the
-    three below are the copies that *wrote, judged or gated* something already.
+    **Five are read and three state a version** (RK1392, RK1451). RK1385 added the merge driver,
+    which git runs when nobody is watching, and it is deliberately outside the comparison:
+    `agreed`, `behind` and `unpinnable` compare versions, and this tool refuses to execute a
+    recorded driver to ask for one — the gate states a ref, which is not a number either. So a
+    count says which of the two questions a sentence is about, and the copies below are the ones
+    that *wrote, judged or gated* something already.
 
     An adopting project wires three: the plugin its `PreToolUse` hook and skill run, the
     action its workflow gates on, and whatever `roadkeep` the caller invokes — which on a
@@ -866,6 +913,11 @@ class Engines:
     #: The copy the harness wired to this project, or None where none is registered — which
     #: is every project served by a checkout alone, and is not a defect.
     plugin: Installed | None = None
+    #: The copy the project vendored into itself, or None where it holds none (RK1451). Read
+    #: like the plugin and judged like it, because it writes for the same reason: with no
+    #: plugin registered the launcher resolves `.roadkeep/` first, so the guard and every
+    #: served tool go through it while a shell reaches whatever is on the path.
+    vendored: Vendor | None = None
     #: `(file, ref)` per workflow step calling the action, in file order.
     gates: tuple[tuple[str, str], ...] = ()
     #: The command git would run to merge a governed file, or `""` where nothing is wired
@@ -918,18 +970,36 @@ class Engines:
         return AGREED
 
     @property
+    def split(self) -> bool:
+        """Whether a copy **inside this project** states a version other than the one answering.
+
+        Separate from :attr:`verdict` on purpose, and the separation is what keeps the write
+        guard honest: `behind` is a decision about the pin a project declared with `[install]
+        enforced`, and :func:`behind` refuses a write on it. A vendored copy is not that pin —
+        it is a second engine in play — so it belongs in the report and the exit code without
+        acquiring the standing to refuse anything.
+
+        Trivially False where the copy answering *is* the vendored one, the two reading one
+        `__init__.py`. That is the launcher's own case, and the row it prints is still the whole
+        of what a reader there was missing: which of the copies on this machine answered.
+        """
+        return self.vendored is not None and self.vendored.version != self.running.version
+
+    @property
     def agree(self) -> bool:
-        """Whether the two engines that state a version are the same copy of this tool.
+        """Whether every copy of this tool that states a version states the same one.
 
         The gate is deliberately not in this: `main` and `v0.2.1` and `./` are refs, and a
         ref is not a number to compare — what CI runs is decided when CI runs. It is reported
-        beside the two because a reader comparing them needs to know a third exists.
+        beside the rest because a reader comparing them needs to know another exists.
 
         `unpinnable` is **not** agreement (RK418): a boolean has to fall one way, and the
         state this exists to stop being silent about is exactly the one where the numbers
-        match and the files do not.
+        match and the files do not. Nor is a vendored copy at another version (RK1451), which
+        is the same silence one copy further in — the difference being that nothing there is
+        even claiming to be the other.
         """
-        return self.verdict == AGREED
+        return self.verdict == AGREED and not self.split
 
     def invoke(self) -> str:
         """The shell command that reaches the copy **wired to this project** (RK1230).
@@ -948,12 +1018,18 @@ class Engines:
         and a table is the thing a caller was reduced to grepping.
 
         The **plugin's** where one is registered, because that is what "wired to this project"
-        means — the copy the hook and the skill run. Where none is, the honest answer is the
-        running engine's own invocation: with nothing wired, the copy the caller reaches *is*
-        the one that answers, and naming a second would be inventing a disagreement.
+        means — the copy the hook and the skill run. Then the **vendored** one (RK1451): with no
+        plugin, the launcher an adopter commits resolves `.roadkeep/` above every clone and
+        cache, so that is the copy the guard and the served tools already write with, and naming
+        this shell's instead is how a session comes to run two engines against one file. Only
+        where a project holds neither is the running engine's own invocation the honest answer:
+        the copy the caller reaches *is* the one that answers, and naming a second would be
+        inventing a disagreement.
         """
         if self.plugin is not None and self.plugin.home is not None:
             return f"python {(self.plugin.home / LAUNCHER).as_posix()}"
+        if self.vendored is not None:
+            return f"python {(self.vendored.home.parent.parent / LAUNCHER).as_posix()}"
         return invocation()
 
     def stated(self) -> str:
@@ -966,10 +1042,21 @@ class Engines:
         missing row: "no plugin" and "a plugin this could not read" look the same to a reader,
         and only one of them means the writes are unjudged by a second copy.
         """
-        running, plugin = self.running, self.plugin
+        running, plugin, held = self.running, self.plugin, self.vendored
         rows = [
             f"writing  {running.version:<10}{running.revision}  {running.home.as_posix()}"
         ]
+        # The fifth (RK1451), beside the copy that answered because it is the same kind of fact:
+        # a package directory and the version its own `__init__.py` states. Said only where the
+        # project holds one — an absent `.roadkeep/` is not an absence a reader can act on, it
+        # is every project that never ran `install --vendor`.
+        if held is not None:
+            whose = (
+                "  this is the copy answering"
+                if held.home == running.home
+                else "  the copy the launcher runs, so the guard and the served tools write here"
+            )
+            rows.append(f"vendored {held.version:<10}{held.home.as_posix()}{whose}")
         if plugin is None:
             rows.append("plugin   —         no plugin is registered for this project")
         else:
@@ -1012,12 +1099,22 @@ class Engines:
                 f"{running.revision}, so the two cannot be compared: commit, or read a hook's "
                 f"refusal as that copy's rule rather than this one's"
             )
-        elif not self.agree:
+        elif self.verdict != AGREED:
             rows.append(
                 f"differ   the pen is {running.version} at {running.revision} and the judge "
                 f"is {plugin.version if plugin else '—'} at "
                 f"{plugin.revision if plugin else '—'}: `/plugin update` moves the judge, and "
                 f"until then a hook's refusal is that copy's rule and not this one's"
+            )
+        # Its own sentence and never the one above (RK1451): that pair is a pen and a judge and
+        # `/plugin update` is what moves it, while these two are both pens — the remedy is to
+        # re-vendor or to stop reaching past the launcher, and printing "the judge is —" about a
+        # project with no plugin is how the wrong pair got read for a whole session.
+        if self.split and held is not None:
+            rows.append(
+                f"differ   the launcher runs the vendored {held.version} and this shell "
+                f"reached {running.version} at {running.revision}: both write, so re-vendor "
+                f"with `install --vendor` or run what `engines --invoke` prints"
             )
         return chr(10).join(rows)
 
@@ -1042,6 +1139,12 @@ class Engines:
                 "revision": plugin.revision,
                 "scope": plugin.scope,
             },
+            # Null where the project vendored none, which is the common case and not a defect
+            # (RK1451). No `revision`: `install --vendor` excludes `.git` on purpose, so the
+            # copy is at no commit anything could name.
+            "vendored": None
+            if self.vendored is None
+            else {"version": self.vendored.version, "home": self.vendored.home.as_posix()},
             "gates": [{"file": where, "ref": ref} for where, ref in self.gates],
             # The fourth copy (RK1385), as the command and never as a version: reading that
             # would mean running it. `""` and never omitted, so a consumer tells "nothing
@@ -1056,6 +1159,10 @@ class Engines:
             # added: a checkout with uncommitted work is at no commit the plugin could match,
             # and `agreed` there was the defect being fixed.
             "verdict": self.verdict,
+            # The other way `agree` can be False (RK1451), and stated separately because it is
+            # the pen-and-pen pair rather than the pen-and-judge one: `verdict` stays the
+            # decision about the pin, and only that decision refuses a write.
+            "split": self.split,
         }
 
 
@@ -1083,11 +1190,14 @@ def _routed(root: Path) -> bool:
 
 
 def engines(root: str | Path = ".") -> Engines:
-    """The three, for one project. Reads four small files and asks git nothing new."""
+    """The five, for one project. Reads five small files and asks git nothing new."""
     base = Path(root).resolve()
     return Engines(
         running=engine(),
         plugin=installed(base),
+        # The fifth (RK1451), read out of the project's own tree: one `read_text` where a copy
+        # is vendored and one failed open where none is.
+        vendored=vendored_at(base),
         gates=gated_at(base),
         # The fourth copy (RK1385), read out of git config and never run. Swallowed the way
         # every other absence here is: a tree git cannot be asked about answers "nothing

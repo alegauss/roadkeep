@@ -901,6 +901,7 @@
 - ✅ **RK1445** **the gate on reads the skill may name lets a piped span through, so the two verbs nothing serves are named anyway** — Every alternative in a joint span counts, and the two verbs nothing serves are a declared exemption the skill pays for by naming the keys (design recorded in `tests/test_skill.py`).
 - ✅ **RK1446** **the launcher's `mcp` mode exits 0 and serves nothing on Windows, so a session loses the tools its own hook names** — On Windows the launcher runs the server as a child with this process's stdio, so the process the harness spawned is the one still serving.
 - ✅ **RK1449** **the MCP server does not finish connecting inside the client's 30s timeout, so a session gets none of its tools** — The handshake's provenance line cost three git calls at twenty seconds each, outlasting the client's thirty; the placement now shares one three-second deadline and degrades to unplaced.
+- ✅ **RK1451** **engines lists only the copy it is, so a vendored engine the launcher runs has no row and both copies exit clean** — engines reads a fifth copy, the engine vendored under .roadkeep/, so two local versions get a row each, a differ line naming both pens, and exit 1 instead of two clean reads.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

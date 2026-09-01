@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 4 | 220 | 2 |
-| C — Query (consult without reading the file) | 6 | 144 | 2 |
+| C — Query (consult without reading the file) | 7 | 144 | 2 |
 | D — The gate | 1 | 207 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 134 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 135 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 16 | 936 | 12 |
+| **Total** | 16 | 937 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1451** (deps: —) **engines lists only the copy it is, so a vendored engine the launcher runs has no row and both copies exit clean** — The hook and the MCP server run .roadkeep/ at 0.1.1269 while a shell reaches 0.2.58, and each answers writing with itself and names no disagreement. → §RK1451
+- 📋 **RK1452** (deps: —) **the server reports the version it loaded while that same path holds another, and calls the result agreed** — install --vendor replaced .roadkeep under a running MCP server, which kept 0.1.1269 in memory for a directory now holding 0.2.4 and still answered agreed. → §RK1452
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

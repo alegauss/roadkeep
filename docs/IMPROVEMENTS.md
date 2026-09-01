@@ -322,6 +322,29 @@ So the shape is likely live rows in full and retired as a count that names the f
 which lists them, which is the door RK1450 was actually missing. What must not come back
 is the count with nothing behind it.
 
+### §RK1467 What a requirement withholds beyond itself
+
+`[requirements]` is a property of a line: `pick` withholds it whole from a caller that
+has not declared what it names. That is right where the requirement is what the work is
+— a Terraform module for a provider nobody holds an account with is not half-writable.
+
+It is wrong often enough to notice. In one project a line carried `requires: upstream`,
+declared as the ability to land a workflow and a secret in a second repository. `pick`
+set it aside with every ready line and answered "nothing to pick". What the work needed,
+once somebody read past that, was a step in an action already in the repository the
+caller did have; the upstream half shrank to a pin bump. The line that would have led
+anyone there was the one withheld.
+
+`ship --part` is the idea this is missing, arriving after the fact. It already knows a
+line can land in halves: it records the one that did and leaves the rest open with a
+`why` of its own. Nothing says so beforehand, so the split is a discovery a caller makes
+by disbelieving a refusal — the opposite of what a refusal is for.
+
+What the fix is, is the open question. A second `why` per requirement is prose that will
+go stale beside the first. Cheaper: the refusal already names the requirement, and
+printing that requirement's own declared sentence beside it would let a caller weigh the
+cost in the line they are already reading.
+
 ## Block D — The gate
 
 ### §RK1457 A read note with no answer
@@ -353,33 +376,6 @@ names the line.
 ## Block E — Adoption
 
 ## Block F — The plugin
-
-### §RK1451 The read that reconciles the copies, blind to one
-
-Observed in Japode/cloud, which holds a vendored `.roadkeep/` from an earlier `install
---vendor`. Two engines are in play and the same command answers differently depending on
-which one runs it:
-
-    roadkeep engines                        writing 0.2.58    D:/Git/alegauss/roadkeep
-    launcher engines                        writing 0.1.1269  ./.roadkeep/src/roadkeep
-
-Both exit 0. Both say `plugin — no plugin is registered for this project`. Neither has a
-row for the other, so the read that exists to reconcile the copies in play is the one
-place a second local engine is invisible.
-
-It decides who writes. `.mcp.json` runs the launcher, and so does the guard, so every
-tool call and every denied hand edit went through 0.1.1269 — while a shell reaching
-`roadkeep` got 0.2.58, two minor versions ahead. In the session that found this the MCP
-server was down for an hour, so the whole write path happened to go through the newer
-one; had it connected, the tools would have written under 0.1 and the shell's `lint`
-would have judged it under 0.2, each reporting agreement.
-
-Distinct from the three this block already closed. RK79 had two engines both answering
-one version, and RK1167 had `engines` naming a version replaced in the registry — there
-the number was wrong. Here each copy states its own version correctly, and the defect is
-that the listing has no row for a copy that is not the one answering.
-
-No prose was damaged: both engines called the governed files clean.
 
 ### §RK1452 One home, two versions, and a verdict of agreed
 

@@ -223,7 +223,7 @@ def _adopt(config: Config, args: argparse.Namespace) -> int:
 
 
 def _engines(config: Config, args: argparse.Namespace) -> int:
-    """The three copies this project runs, and whether the two versions agree (RK415).
+    """Every copy this project runs, and whether the versions agree (RK415, RK1451).
 
     `config` is read for its root alone — the registry is keyed by project path, so the
     question is about the tree and not about the governed files in it.
@@ -930,11 +930,11 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
         help="which copies of roadkeep write, judge and gate this project",
         description=(
             "An adopting project wires three: the plugin its hook and skill run, the action "
-            "its workflow gates on, and whatever `roadkeep` the caller invokes. They are "
-            "allowed to differ — a cache may lag a checkout — and what is not survivable is "
-            "not being able to say which one answered. A fourth is read and never judged: "
-            "the merge driver git would run, a command rather than a version. Exits 1 where "
-            "the two that state a version state different ones."
+            "its workflow gates on, and whatever `roadkeep` the caller invokes. A fourth is "
+            "vendored under .roadkeep/, which the launcher finds first, and a fifth is read "
+            "and never judged: the merge driver, a command and not a version. They may "
+            "differ — a cache lags a checkout — and what is not survivable is not knowing "
+            "which answered. Exits 1 where two state different versions."
         ),
     )
     # The one line a caller pastes (RK1230). Its own flag rather than a row in the table:
