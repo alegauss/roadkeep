@@ -1679,12 +1679,24 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     # The section's own draft, beside the field's (RK1190). Two flags rather than one, for
     # `section add`'s reason (RK381): a body is the longest thing an author composes, and a
     # path is what a caller reaches for when the prose will not fit in a shell argument.
+    # And each answers to **both** spellings the write path uses (RK1459). `section add` takes
+    # `--body-file` because a body is the only thing it writes; `add` takes
+    # `--section-body-file` because there the body is one of two and the prefix says which.
+    # Both are right where they are, and this verb is the one asked about both subjects — so a
+    # caller moving from the price to the write was refused by the parser for the name it had
+    # been told to use one call earlier. An alias and not a rename; the first spelling is what
+    # the served schema publishes, so the surface is unchanged.
+    # Printed by argparse itself, which is the half an alias needs to be findable: `--body,
+    # --section-body BODY` stands in the option list, so neither `help` restates it and neither
+    # pays for it over a transport where no flag is ever typed.
     budget_parser.add_argument(
         "--body",
+        "--section-body",
         help="a draft body: what it costs the section this call is about" + _PIPE,
     )
     budget_parser.add_argument(
         "--body-file",
+        "--section-body-file",
         dest="body_file",
         metavar="PATH",
         help="read the draft body from a file instead, with --anchor",

@@ -180,6 +180,52 @@ said at the ship instead — "the heading stays, which is how such a block ends"
 sweep gets its terminal state from the write that produced it and never runs the verb at
 all.
 
+### §RK1480 Adding a dep by restating the ones that were right
+
+Measured adding a blocker to a line carrying six deps. The call has to name all seven,
+because --dep given at all replaces the group - so six of the seven arguments exist to
+say nothing changed, and each is a chance to drop one silently.
+
+Then it fails. Deps are rendered into the line, the line's ceiling is shared with the
+why, and the seventh dep took the why below what it already held: the refusal named the
+why, which had not changed and was not wrong. The fix is to shorten a sentence the
+caller never meant to touch, and the caller learns that only after composing the
+seven-dep call.
+
+Neither half is wrong on its own. Replacing the group is the honest primitive, and the
+line budget is the whole point of the limits. What is missing is the narrow door:
+--add-dep and --drop-dep, which name what changed and let the tool derive the group. It
+knows the current deps, and show prints them, so the caller restating them adds nothing
+but the chance of an error.
+
+It would also let the refusal arrive about the right field. An add that makes the line
+too long is a fact about the dep being added, and saying so beside that dep is what
+makes the next call correct rather than a guess at how many words to cut from a sentence
+somebody else wrote.
+
+### §RK1481 One act, two spellings, and no way to tell which you are holding
+
+Met three times in one session, by a caller moving between the two surfaces roadkeep
+publishes.
+
+The MCP tool is named next_id and the CLI verb is next-id. The MCP argument is
+replacement and the CLI flag is --with. Both refusals are good ones - each names the
+surface it is on and offers the spelling it wants - so nothing was lost but a call each.
+
+What makes it worth a line is that the caller has no way to know which spelling they are
+holding. A session that has been using the tools all day has next_id in mind because
+that is what it just called; the CLI is the same engine, the same verb and the same
+arguments, and the name is different for a reason that belongs to the transport rather
+than to the act.
+
+Two shapes, and the cheap one is probably right. Either the CLI accepts the MCP spelling
+as an alias - underscores for hyphens, and the argument names the tools publish - or the
+tools publish the CLI's spelling and the transport does the mapping. The first costs
+nothing anybody can see and makes every remembered call work; the second is tidier and
+moves the surface everything is already written against.
+
+What should not happen is a third surface that spells it a third way.
+
 ## Block C — Query
 
 ### §RK1461 The one field the price is never told about
