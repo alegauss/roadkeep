@@ -45,7 +45,6 @@
 
 ## Block D — The gate
 
-- 📋 **RK1457** (deps: —) **non-goal.reaches fires on every lint and nothing clears it, so a project that decided reads the same note forever** — Its own remedy is non-goal amend; a project named both bounded lines inside the rule's paragraph and both are still flagged, so the gate carries unanswerable notes. → §RK1457
 - 💭 **RK1468** (deps: —) **the gate's engine note reads the plugin alone, so a project running two local copies at two versions passes it clean** — engines exits 1 on a vendored copy at another version and the once-per-commit note never asks, so the split is found only by whoever ran that read on purpose. → §RK1468
 
 ## Block E — Adoption

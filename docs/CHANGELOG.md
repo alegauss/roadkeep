@@ -645,6 +645,7 @@
 - ✅ **RK1422** **Three of the nine exits the census calls a verdict have nothing asserting the stderr they close with** — All nine verdict addresses are now measured, each in the file that owns its verb, and each assertion was proved to redden with the suppression off (design superseded: each site had a test at it).
 - ✅ **RK1433** **nothing checks that a partially-shipped line has criteria, which is the one state where how much is left gets asked** — lint reports a partial line with no criteria as criterion.absent, and ship --part names the criterion add that closes it in the same answer, so the gate is the backstop.
 - ✅ **RK1434** **a non-goal can forbid a line the same file lists as ready, and nothing compares the two** — lint says non-goal.reaches where a non-goal lead and an open symptom share a word the ledger rarely uses, as a note with the two reads that settle it.
+- ✅ **RK1457** **non-goal.reaches fires on every lint and nothing clears it, so a project that decided reads the same note forever** — non-goal.reaches falls silent where the line's design quotes the constraint's lead, so a decision made once is recorded where it ages out with the work.
 
 ## Block E — Adoption
 

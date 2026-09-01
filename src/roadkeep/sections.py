@@ -249,6 +249,18 @@ def _spans(prose: str, needle: str) -> list[tuple[int, int]]:
     return out
 
 
+def quotes(prose: str, fragment: str) -> bool:
+    """Whether this prose reads as carrying ``fragment``, however it is wrapped (RK1457).
+
+    :func:`_spans` asked as a yes-or-no, and named rather than inlined at the caller because
+    that caller is the gate: `non-goal.reaches` falls silent where a line's design quotes the
+    constraint's lead, and a second implementation of "does this paragraph say that" is how
+    the check and the `section amend --replace` that writes the sentence come to disagree
+    about a wrap.
+    """
+    return bool(_spans(prose, fragment))
+
+
 class SectionExists(ValueError):
     """One anchor, one section: two would make the pointer ambiguous.
 

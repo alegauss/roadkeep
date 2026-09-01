@@ -806,9 +806,10 @@ _TABLE: Mapping[str, _Rule] = {
     ),
     # RK1434. A note and not a defect, so the door is the pair of reads that settle it: what
     # the project already refuses, then what this line actually is. Nothing writes here,
-    # because whether the constraint reaches the line is the judgement — and both outcomes are
-    # a write this table cannot choose between, `non-goal amend` narrowing the rule or `retire`
-    # taking the line the rule forbids.
+    # because whether the constraint reaches the line is the judgement — and the three outcomes
+    # are writes this table cannot choose between: `non-goal amend` narrows the rule, `retire`
+    # takes the line the rule forbids, and a reason naming the id records a decision to keep
+    # both (RK1457), which is the third and the one the note had no way to be told about.
     "non-goal.reaches": _reads(
         (
             ("non-goal", "list"),
@@ -818,8 +819,9 @@ _TABLE: Mapping[str, _Rule] = {
         (
             ("show", "{id}"),
             "then the line and its design, which is what decides whether the rule bounds "
-            "this work or forbids it — `non-goal amend` narrows the rule, `retire` takes "
-            "the line, and nothing here can choose between them",
+            "this work or forbids it — `non-goal amend <lead> --why` naming this line's id "
+            "in the reason keeps both and clears this, `retire` takes the line, and nothing "
+            "here can choose between them",
         ),
     ),
     "priority.config": _read(

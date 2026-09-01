@@ -818,3 +818,76 @@ def test_the_door_is_the_two_reads_that_settle_it(tmp_path):
     found = remedy(one, config)
     assert found is not None and found.kind == "read"
     assert [door.argv[0] for door in found.doors] == ["non-goal", "show"]
+
+
+# -- the note that had no way to be answered (RK1457) --------------------------
+
+
+#: The same project with a design file, which is where a decision about a constraint goes:
+#: `[files] improvements` declared, and §RK1 written or not by each test below.
+DESIGNING = BOTH.replace(
+    'changelog = "CHANGELOG.md"\n',
+    'changelog = "CHANGELOG.md"\nimprovements = "IMPROVEMENTS.md"\n',
+)
+
+
+def _deciding(tmp_path: Path, design: str) -> Config:
+    (tmp_path / "roadkeep.toml").write_text(DESIGNING, encoding="utf-8")
+    for name, body in (
+        ("ROADMAP.md", CONTRADICTED),
+        ("CHANGELOG.md", FILLED),
+        ("IMPROVEMENTS.md", design),
+    ):
+        with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return Config.discover(tmp_path)
+
+
+#: A design that decided: it quotes the constraint's **lead**, which is its address.
+SETTLED = (
+    "# Improvements\n\n## Block A — The model\n\n### §RK1 Why the crash is not a patch\n\n"
+    "**No local patch to the vendored C.** stands: the fix is a call-site guard and the C\n"
+    "is untouched, so the rule bounds this work without forbidding it.\n"
+)
+
+#: One that argues the work and never names the rule — which is every design, and is why the
+#: note fires in the first place.
+UNSETTLED = (
+    "# Improvements\n\n## Block A — The model\n\n### §RK1 Why the crash matters\n\n"
+    "A truncated frame reaches the decoder from the network, so the crash is reachable by\n"
+    "anything upstream of it.\n"
+)
+
+
+def test_a_design_that_names_the_constraint_clears_the_note(tmp_path):
+    """RK1457. The note is an advisory and had no way to be *answered*: its remedy offers
+    `non-goal amend` to narrow the rule and `retire` to take the line, and neither is right
+    where the rule bounds the work without forbidding it — the ordinary case the note's own
+    sentence names. Measured on a project whose rule reaches two open lines: both decisions
+    were made, in two separate tasks, and both were still flagged on every lint."""
+    assert not [one for one in _reaches(_deciding(tmp_path, SETTLED)) if one.id == "RK1"]
+
+
+def test_a_design_that_argues_the_work_alone_does_not(tmp_path):
+    # The discriminator is the **lead**, which is the constraint's address: a design that
+    # happens to discuss the subject has not decided about the rule.
+    (one,) = _reaches(_deciding(tmp_path, UNSETTLED))
+    assert one.id == "RK1"
+
+
+def test_the_lead_is_matched_as_the_prose_reads_and_not_as_the_file_wraps_it(tmp_path):
+    """Through `sections`' own flattening, so how a paragraph is wrapped is not the author's
+    problem here either — the same rule `section amend --replace` is held to (RK1312)."""
+    wrapped = SETTLED.replace(
+        "**No local patch to the vendored C.** stands: the fix is a call-site guard and the C",
+        "**No local patch to the vendored\nC.** stands: the fix is a call-site guard and the C",
+    )
+    assert not [one for one in _reaches(_deciding(tmp_path, wrapped)) if one.id == "RK1"]
+
+
+def test_the_note_names_the_section_the_answer_goes_in(tmp_path):
+    # RK14/15's rule: every row carries the command that closes it, and this one closes by
+    # being written into a section the note addresses by anchor.
+    (one,) = _reaches(_deciding(tmp_path, UNSETTLED))
+    assert "§RK1" in one.message
+    assert "records the answer" in one.message

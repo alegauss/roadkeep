@@ -98,7 +98,7 @@ import os
 import re
 import unicodedata
 import functools
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -107,7 +107,7 @@ from roadkeep import criteria, queueing, scoping
 from roadkeep.backlog import Backlog, DepStatus, Stage, id_order
 from roadkeep.blocking import removable
 from roadkeep.config import LINE_ROLES as _LINE_ROLES
-from roadkeep.config import PROSE_ROLES, ROLES, Config, spent, translated
+from roadkeep.config import DESIGN_ROLES, PROSE_ROLES, ROLES, Config, spent, translated
 from roadkeep.kernel.document import Document, Entry, Heading, ending
 from roadkeep.exporting import (
     BEGIN,
@@ -817,7 +817,10 @@ def _rules() -> tuple[_Rule, ...]:
         # is well formed, and this asks whether a well-formed bullet and a well-formed line
         # contradict — a relationship no single record is in a position to see, and a check
         # folded into another's return is one nobody finds by reading the list of what is asked.
-        _Rule("documents", lambda scan: _reaching(scan.config, scan.documents)),
+        _Rule(
+            "documents",
+            lambda scan: _reaching(scan.config, scan.documents, scan.anchors),
+        ),
         # The positive twin of the rule above (RK1265), read from the same document and
         # opt-in on its own declaration: a project may govern one list and not the other.
         _Rule(
@@ -2211,7 +2214,11 @@ def _terms(prose: str) -> frozenset[str]:
 _DISTINCTIVE = 100
 
 
-def _reaching(config: Config, documents: dict[str, Document]) -> list[Note]:
+def _reaching(
+    config: Config,
+    documents: dict[str, Document],
+    anchors: Mapping[str, Sequence[Section]] | None = None,
+) -> list[Note]:
     """A non-goal whose subject a live line also names (RK1434).
 
     Measured: a project added "no local patch to the vendored C" while a line sat open and
@@ -2236,6 +2243,30 @@ def _reaching(config: Config, documents: dict[str, Document]) -> list[Note]:
     Both halves are opt-in already (`[scope]`), and the symptom is the only field compared: a
     `why` argues the line, and matching it would catch a constraint's reasoning rather than the
     subject the constraint is about.
+
+    **And a line whose design names the constraint has already decided** (RK1457). The note is
+    an advisory, so it needs a way to be *answered*, and it had none: its own remedy offers
+    `non-goal amend` to narrow the rule and `retire` to take the line, and neither is right
+    where the rule bounds the work without forbidding it — which is the ordinary case this
+    note's own sentence names. Measured on a project whose rule "No local patch to the vendored
+    C" reaches two open lines: both decisions were made and written down, in two separate
+    tasks, and both lines were still flagged on every lint. Seven unanswerable rows per commit,
+    and a note nobody can clear is a note nobody reads — a real one arrives in that company.
+
+    **The answer is carried by the line and not by the constraint**, which is the whole of the
+    choice here. Both were available: an exemption on the bullet, or the note falling silent
+    where one side names the other. A constraint is one bullet that changes once a year and a
+    `why` of 200 characters arguing the rule — an id written into it taxes the argument and
+    then outlives the task, leaving a reference to a line that shipped. A design section is
+    "the reasoning the line has no room for", has the room, and **ages out with the work**:
+    when the line ships the section is deleted, and there is no stale bookkeeping anywhere.
+
+    It is also where this note's own second door already sent the reader — `show <id>`, "then
+    the line and its design, which is what decides whether the rule bounds this work or forbids
+    it". So the reading is that the design **quotes the lead**, which is the constraint's
+    address (RK233's rule, one file over): matched as the prose reads rather than as the file
+    wraps it, through the same flattening `section amend --replace` uses, so how a paragraph is
+    wrapped is not the author's problem here either.
     """
     roadmap = documents.get("roadmap")
     if roadmap is None or config.non_goals is None:
@@ -2263,12 +2294,13 @@ def _reaching(config: Config, documents: dict[str, Document]) -> list[Note]:
         for one, count in uses.items()
         if count == 1 or count * _DISTINCTIVE <= recorded
     }
+    designs = _designs(anchors)
     out: list[Note] = []
     for non_goal in scoping.read(roadmap):
         forbidden = _terms(non_goal.lead) & rare
         for entry, terms in spoken:
             shared = sorted(forbidden & terms)
-            if not shared:
+            if not shared or _settled(designs.get(entry.task.ref or ""), non_goal.lead):
                 continue
             out.append(
                 Note(
@@ -2276,13 +2308,43 @@ def _reaching(config: Config, documents: dict[str, Document]) -> list[Note]:
                     file,
                     f"names {', '.join(shared)}, which {non_goal.lead!r} on line "
                     f"{non_goal.first} also names — a constraint may bound this line "
-                    f"without forbidding it, and nothing here decides which",
+                    f"without forbidding it, and quoting that lead in §{entry.task.ref} "
+                    f"is what records the answer",
                     entry.lineno,
                     id=entry.task.id,
                     subject=entry.task.id,
                 )
             )
     return out
+
+
+def _designs(anchors: Mapping[str, Sequence[Section]] | None) -> dict[str, Section]:
+    """Every design section this run read, by the anchor a task line points at (RK1457).
+
+    Off the index the scan already built rather than off the tree, which is :func:`_claimed`'s
+    rule for the same reason: a baseline run judges a revision, and a second read would answer
+    about the wrong one. The **design** roles alone — a decisions body is a record's and never
+    a line's, so a pointer resolving there is not this line's reasoning.
+    """
+    return {
+        section.anchor: section
+        for role in DESIGN_ROLES
+        for section in (anchors or {}).get(role, ())
+    }
+
+
+def _settled(design: Section | None, lead: str) -> bool:
+    """Whether this line's design quotes the constraint's lead (RK1457).
+
+    The lead and never a paraphrase: it is the constraint's **address**, so a design carrying
+    it names one rule and not a subject two rules share. Through `sections`' own flattening,
+    so a lead that the wrap broke across two lines still reads as one.
+    """
+    if design is None:
+        return False
+    from roadkeep.sections import quotes  # noqa: PLC0415 - RK260
+
+    return quotes(design.body, lead)
 
 
 def _scope(config: Config, roadmap: Document | None) -> list[Finding]:

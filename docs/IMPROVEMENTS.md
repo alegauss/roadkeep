@@ -279,7 +279,8 @@ the live ones are bounded by the open backlog.
 
 So the shape is likely live rows in full and retired as a count that names the flag
 which lists them, which is the door RK1450 was actually missing. What must not come back
-is the count with nothing behind it.
+is the count with nothing behind it. **No effort or size field.** is about a slot on a
+task line and this is about a payload's, so the rule bounds nothing here.
 
 ### §RK1467 What a requirement withholds beyond itself
 
@@ -412,32 +413,6 @@ same reader with twice the evidence.
 
 ## Block D — The gate
 
-### §RK1457 A read note with no answer
-
-`non-goal.reaches` fires when an open line shares a word with a constraint's lead. It
-says a constraint may bound a line without forbidding it and nothing here decides which,
-and its remedy names `non-goal amend` to narrow the rule or `retire` to take the line.
-
-MEASURED ON A REAL PROJECT. One rule there is "No local patch to the vendored C". Two
-open lines name "vendored": one deletes the libraries the rule's argument exempts, the
-other ports call sites and may keep the C untouched. Both decisions were made and
-written into the rule's paragraph by name, in two separate tasks. Both are still flagged
-on every lint.
-
-SO THE REMEDY DOES NOT CLEAR THE NOTE. There is nowhere to record the answer: a non-goal
-is a lead and a why, and the why is prose this check does not read. A project that has
-done the reading is indistinguishable from one that has not, and the second task to do
-it had no way to tell the first had.
-
-WHY IT COSTS. That project runs `lint` inside its local gate, so those two print beside
-four `install.stale` rows and one `engine.disagreement` - seven lines on every commit,
-none answerable. A note nobody can clear is a note nobody reads, and a real one arrives
-in that company.
-
-WHAT WOULD SETTLE IT is somewhere the check can see the answer: an exemption the
-constraint carries as a field, or the note falling silent where the rule's paragraph
-names the line.
-
 ### §RK1468 The note that reconciles one pair of three
 
 RK1451 gave `engines` a row for the copy vendored under `.roadkeep/` and an exit code
@@ -539,7 +514,9 @@ plus a second cold Python start, on the one path a client puts a thirty-second c
 on. RK1449 moved the cliff out of `initialize`; this is the floor under it.
 
 The forwarded verb keeps its probe: it may write, so trying the next candidate could
-repeat a half-done write. That hazard is what makes the two callers different.
+repeat a half-done write. That hazard is what makes the two callers different. **No
+supported Python API.** is about what this package exports; a Python interpreter start
+is a cost, so the rule bounds nothing here.
 
 ### §RK1469 The order that is stated twice and read once
 
