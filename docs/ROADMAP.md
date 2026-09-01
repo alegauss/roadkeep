@@ -46,6 +46,7 @@
 ## Block D — The gate
 
 - 💭 **RK1468** (deps: —) **the gate's engine note reads the plugin alone, so a project running two local copies at two versions passes it clean** — engines exits 1 on a vendored copy at another version and the once-per-commit note never asks, so the split is found only by whoever ran that read on purpose. → §RK1468
+- 💭 **RK1478** (deps: —) **a settled constraint-line pair is a sentence in one design and no read names it, so the gate's silence has no witness** — RK1457 answers the note from the line and nothing answers from the rule, so a clause somebody tidies away brings a note back with no clue what removed it. → §RK1478
 
 ## Block E — Adoption
 

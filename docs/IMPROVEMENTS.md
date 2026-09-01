@@ -435,6 +435,30 @@ Open: whether the clause names a remedy. The plugin half offers `/plugin update`
 these two are both pens — re-vendoring is one answer, not reaching past the launcher is
 the other, and which is right is the project's call rather than the note's.
 
+### §RK1478 The answer that only one side can see
+
+RK1457 gave `non-goal.reaches` a way to be answered: the line's design quotes the
+constraint's lead and the note falls silent. Clearing this repository's own two took two
+`section amend --replace` calls whose whole content was a sentence saying *the rule
+bounds nothing here* — and neither of them said which note they were answering.
+
+So the record is silent in the direction a reader arrives from. Six months on, that
+sentence in §RK1465 reads as a stray remark about `py.typed`; nothing says a gate row
+was open, that somebody read the constraint against the line, or that the silence
+downstream depends on those exact words staying put. Delete the clause while tidying and
+the note comes back with no clue as to what removed it.
+
+The other governed answers do not have this problem, because each is a field: a dep is
+annotated, a supersession is a marker and a pointer, a queue entry is a row. This one is
+prose, matched by substring, and the whole mechanism is invisible from the file.
+
+What is missing is not a second store — that is the field this task rejected, for
+reasons that hold. It is that nothing *reports* the answers. `non-goal list` prints the
+constraints and could print, per constraint, the lines whose design settled it: one
+read, derived, naming both sides. Then the decision is greppable from the rule as well
+as from the line, and a clause somebody is about to delete is one a command already
+named.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
