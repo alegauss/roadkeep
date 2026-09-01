@@ -3615,3 +3615,143 @@ def test_the_gate_reads_a_decision_pointer_as_the_claim_it_is(tmp_path):
     assert lint(config).findings == ()
     # And `show` resolves it, which under the id scheme happened because the anchor was the id.
     assert sections.pointers(config).get("II") == ("RK1",)
+
+
+# -- the one sentence nothing could rewrite (RK1453) ---------------------------
+
+
+def test_a_decision_s_sentence_is_corrected_where_it_stands(tmp_path):
+    """RK1453. Every other governed sentence has a door back — `amend` and `restate` for a
+    roadmap line, `record amend` for a ledger entry — and what `ship --decides` filed had
+    none. Met while shipping FB5 in a consuming project, where the sentence was passed
+    ASCII-only to survive a shell and the file permanently read "e semeado" for "é semeado".
+    The guard denied the hand-edit, correctly, and there was no third option."""
+    from roadkeep.shipping import revise
+
+    config = _deciding(tmp_path)
+    ship(config, "RK1", why="It works now.", decides="Menu do site novo e semeado.").save()
+
+    corrected = revise(Config.discover(tmp_path), "RK1", decides="Menu do site novo é semeado.")
+    corrected.save()
+
+    decided = read(Config.discover(tmp_path), DECISIONS)
+    assert "é semeado" in decided and "novo e semeado" not in decided
+    # The entry keeps its number, its id and its marker: correcting a sentence is not a
+    # departure, and nothing in this file is ever deleted.
+    assert "✅ **RK1**" in decided
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_the_correction_is_not_a_second_decision(tmp_path):
+    """`supersede` is for a decision replaced by another and says so. Inventing one to fix a
+    spelling corrupts the record worse than the typo did — so this writes no entry, moves no
+    marker and leaves the file with exactly the decisions somebody made."""
+    from roadkeep.shipping import revise
+
+    config = _deciding(tmp_path)
+    ship(config, "RK1", why="It works now.", decides="The store is the repositry.").save()
+    before = read(Config.discover(tmp_path), DECISIONS)
+
+    revise(Config.discover(tmp_path), "RK1", decides="The store is the repository.").save()
+    after = read(Config.discover(tmp_path), DECISIONS)
+
+    assert before.count("**RK1**") == after.count("**RK1**") == 1
+    assert "🗑" not in after and "superseded" not in after
+
+
+def test_a_superseded_decision_keeps_the_clause_it_did_not_author(tmp_path):
+    """`supersede` writes `(superseded by <id>)` into the sentence, so a bare correction would
+    drop the one half of that line the caller never typed. It is read back off the standing
+    sentence and re-composed by the writer that put it there — L4 twice: this verb writes no
+    prose, and the clause it carries is not the caller's to spell."""
+    from roadkeep.shipping import revise, supersede
+
+    config = _decided(tmp_path)
+    supersede(config, "RK1", by="RK2").save()
+
+    corrected = revise(
+        Config.discover(tmp_path), "RK1", decides="The store is the repository, always."
+    )
+    corrected.save()
+
+    decided = read(Config.discover(tmp_path), DECISIONS)
+    assert "The store is the repository, always (superseded by RK2)." in decided
+    assert "🗑 **RK1**" in decided, "a correction is not a return from being replaced"
+    assert corrected.kept == "superseded by RK2"
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_the_sentence_is_refused_at_the_door_against_the_role_s_own_limit(tmp_path):
+    """Validated before the write exactly as `ship --decides` validates it (L1), and against
+    the decisions role's limit rather than the ledger's — the two being different numbers, as
+    `brief` prints them."""
+    from roadkeep.shipping import revise
+
+    config = _deciding(tmp_path)
+    ship(config, "RK1", why="It works now.", decides="The store is the repository.").save()
+    before = read(Config.discover(tmp_path), DECISIONS)
+
+    with pytest.raises(SchemaError) as caught:
+        revise(Config.discover(tmp_path), "RK1", decides="No terminator here")
+
+    assert "why" in str(caught.value)
+    assert read(Config.discover(tmp_path), DECISIONS) == before
+
+
+def test_an_id_this_file_does_not_carry_is_not_told_about_replacement(tmp_path):
+    """`supersede`'s refusal names a replacement that has to be filed first, which is right
+    about that call and wrong about this one: a caller holding a typo would go looking for an
+    entry neither call is about."""
+    from roadkeep.shipping import NotDecided, revise
+
+    config = _deciding(tmp_path)
+    ship(config, "RK1", why="It works now.", decides="The store is the repository.").save()
+
+    with pytest.raises(NotDecided) as caught:
+        revise(Config.discover(tmp_path), "RK9", decides="Something else entirely.")
+
+    said = str(caught.value)
+    assert "records no decision RK9" in said
+    assert "replacing" not in said
+    assert "ship --decides" in said, "the door that files one is what a caller needs"
+
+
+def test_a_correction_that_changes_nothing_writes_nothing(tmp_path):
+    from roadkeep.shipping import revise
+
+    config = _deciding(tmp_path)
+    ship(config, "RK1", why="It works now.", decides="The store is the repository.").save()
+
+    corrected = revise(Config.discover(tmp_path), "RK1", decides="The store is the repository.")
+    assert not corrected.changed and corrected.save() == ()
+    assert "unchanged" in corrected.stated(Config.discover(tmp_path), ())
+
+
+def test_a_project_with_no_decisions_role_has_nothing_to_revise(tmp_path):
+    from roadkeep.shipping import revise
+
+    config = project(tmp_path)
+    with pytest.raises(KeyError) as caught:
+        revise(config, "RK1", decides="A constraint.")
+
+    assert "declare decisions" in str(caught.value)
+
+
+def test_the_verb_reaches_the_command_line_and_stages_the_file(tmp_path, capsys):
+    from roadkeep.shipping import supersede
+
+    config = _decided(tmp_path)
+    supersede(config, "RK1", by="RK2").save()
+    capsys.readouterr()
+
+    assert (
+        main(
+            ["-C", str(tmp_path), "revise", "RK1", "--decides", "The store is the repo, still."]
+        )
+        == EXIT_OK
+    )
+    said = capsys.readouterr().out
+    assert "RK1 revised" in said
+    # The clause is printed as kept, at the one door that could be read as having dropped it.
+    assert "(superseded by RK2)" in said and "derived and not yours to retype" in said
+    assert f"git add -- {DECISIONS}" in said

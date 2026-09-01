@@ -77,28 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1453 The one sentence nothing can rewrite
-
-Every other governed sentence has a door back. A roadmap line has `amend` for its why
-and `restate` for its symptom; a ledger entry has `record amend`, which the help text
-argues for carefully — `drop` and `add` "would remove the entry and append a new one
-under its block, so a ledger read in the order work landed stops being one". The
-sentence `ship --decides` writes into `DECISIONS.md` has nothing.
-
-`supersede` is not it, and says so: it is for a decision replaced by another, appends a
-forward pointer, and requires both ids to be decisions the file already records. A typo
-is not a replacement, and inventing a second decision to correct the spelling of the
-first corrupts the record worse than the typo did.
-
-Met while shipping FB5 in a consuming project: `--decides` was passed ASCII-only to
-survive a shell, and the file now permanently reads "Menu do site novo e semeado" where
-it should read "é semeado". The guard denies the hand-edit, correctly. There is no third
-option.
-
-The file's rule is that nothing in it is ever deleted, and that rule is right. But
-correcting a sentence in place is not deleting an entry — it is what `record amend`
-already does for the ledger, with the same argument. The door is missing, not forbidden.
-
 ### §RK1454 A refusal that is right, and reads as a fault
 
 A project's end-of-block sweep tells the agent to run `block drop <x>` once nothing is
@@ -376,6 +354,32 @@ Two fixes and they are not the same. `budget --requires <r>`, repeatable, matchi
 `budget` about itself, so the next group added to the grammar arrives with the same
 hole. Whether the structure figure can be derived from whatever composes a line, rather
 than enumerated beside it, is the question this asks.
+
+### §RK1473 The report that reads its own writes back
+
+`unclosed` asks which open lines have commits naming them and no ledger entry, and
+already knows one class does not count: the commit that filed the id, since `add` mints
+it and nothing could name it earlier.
+
+The same argument covers more than `add`. `amend`, `restate`, `status` and `section
+amend` end with the caller writing a message naming the id, and all touch only files
+roadkeep governs. None is a session that shipped code and forgot the line — each is the
+tool's own write, made because it asked and staged the files it named.
+
+On an adopting project, three of eight open lines were reported. Two were commits
+changing one governed file and nothing else: a corrected `why`, a corrected rationale.
+The third amended a rationale and a comment in `roadkeep.toml`. None was code.
+
+A report and not a gate, so nothing broke. But a report whose entries are all false is
+one a reader stops opening, and this one is loudest where a backlog is kept most
+carefully: amending a line rather than letting it go stale is what generates every false
+positive.
+
+What separates them is on disk. A commit touching only files named in `[files]` is about
+the backlog; one that touches code and names an id is what this verb was written for — a
+filter over what `git show --stat` already answers, not a fact anybody has to record.
+
+Worth weighing: a commit doing both at once is real, and would still be reported.
 
 ## Block D — The gate
 

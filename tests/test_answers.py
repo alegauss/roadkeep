@@ -136,6 +136,7 @@ WRITES: tuple[tuple[tuple[str, ...], str], ...] = (
     (("ship", "RK9", "--why", "It works now.", "--decides", "A constraint that outlives the code."), "the entry, the line, the section, the decision"),
     (("ship", "RK7", "--why", "It works too.", "--decides", "A second constraint, replacing the first."), "and a second, so the file has two"),
     (("supersede", "RK9", "--by", "RK7"), "a decision leaving the one way it can"),
+    (("revise", "RK9", "--decides", "A constraint that outlives the code, corrected."), "its sentence, the clause carried"),
     (("record", "add", "--block", "A", "--symptom", "A symptom nobody filed", "--why", "It works."), "an entry with no line"),
     (("record", "move", "RK10", "--to-block", "B"), "one filed under the wrong heading"),
     (("record", "amend", "RK10", "--why", "It works, corrected."), "its sentence, where it sits"),

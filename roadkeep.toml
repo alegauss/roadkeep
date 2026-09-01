@@ -106,7 +106,14 @@ characters = 2800
 # already knew. Nothing was trimmed to pay for it - the description had no paragraph
 # nobody had edited, which is the test RK1059 sets before a raise. 64,300, headroom 116,
 # which is the discipline of the 120 above it.
-session = 64300
+# Raised from 64,300 for a verb rather than a flag (RK1453): revise is the correction
+# door the decisions file had none of, and the reading here is 65,277. What the headroom
+# buys is the only door there is - the sentence ship --decides files is written by an
+# agent, and the alternative to serving it is the hand edit the guard denies that agent,
+# which is how a typo came to outlive a decision. Nothing was trimmed to pay for it: no
+# paragraph here is one nobody had edited, which is the test RK1059 sets before a raise.
+# 65,400, headroom 123, which is the discipline of the 116 above it.
+session = 65400
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

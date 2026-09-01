@@ -11,7 +11,7 @@ When this session's roadkeep tools are available, **prefer them** — named
 `mcp__plugin_<plugin>_roadkeep__*` where a plugin provides it, so read the prefix off the
 tool list rather than typing it: the whole write path and the reads a task needs are there
 — `add`, `block_add`, `block_drop`, `block_merge`, `declare`, `claim`, `scope`, `status`, `amend`,
-`restate`, `ship`, `retire`, `supersede`, `defer`, `resume`, `record_add`, `record_amend`,
+`restate`, `ship`, `retire`, `supersede`, `revise`, `defer`, `resume`, `record_add`, `record_amend`,
 `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_amend`,
 `non_goal_drop`, `criterion_add`, `criterion_amend`, `criterion_drop`, `criterion_list`,
 `section_add`, `section_amend`, `section_move`, `section_drop`, `budget`,
@@ -25,7 +25,7 @@ list a verb refuses over, empty, which is what opting in means; `govern` is what
 numbers in it afterwards. Reach for it when a write refuses over an undeclared role or
 table, which is the refusal that now names this command rather than a hand edit. **And it is
 what the tool list is composed from**: a verb that is one role's whole grammar — `defer` and
-`resume` for the store, `supersede` for the decisions file — is published only where that role
+`resume` for the store, `supersede` and `revise` for the decisions file — is published only where that role
 is declared, so a vocabulary grows for the projects that opted into it and costs the rest
 nothing. Absent is not missing: the name still resolves and the call is refused naming the
 `declare` that opens it, and the list changes under a session that runs one. The last of them
@@ -52,15 +52,20 @@ servers being two entries the harness reads separately and an exit being the one
 reads as a crash. `uninstall` is the way
 back out, for a project moving to the plugin: it takes out this project's entries and
 nothing else, keeps the CI workflow, and needs no checkout to read, so it still works once
-that tree is gone. Every guarantee below holds either way. Three copies of this tool can
+that tree is gone. Every guarantee below holds either way. Four copies of this tool can
 be in play at once — the plugin your hook and this file come from, the action CI gates on,
-and whatever `roadkeep` you are calling — and they are allowed to differ. **`engines`
-reads all three** and answers `agreed`, `behind` or `unpinnable` — the last being one
-version and a modified checkout, which is no commit the plugin could match and so is not
-agreement; it exits 1 on either of the two that are not. **A fourth is read and never
-judged**: the merge driver git would run, which is a command and not a version, so it is a
-row and not a verdict — the copy that runs when nobody is watching, and `merge --check` is
-where whether git can run it is answered. Reach for it when a hook denies a
+one vendored under `.roadkeep/`, and whatever `roadkeep` you are calling — and they are
+allowed to differ. **`engines` reads them all** and answers `agreed`, `behind` or
+`unpinnable` — the last being one version and a modified checkout, which is no commit the
+plugin could match and so is not agreement; it exits 1 on either of the two that are not,
+and on a vendored copy at another version, which the launcher runs while your shell reaches
+something else. It exits 1 too where the directory the running copy was imported from now
+states a **different** version: `install --vendor` replaces that tree in place, and a
+server holding the old modules answers for a path nothing on disk matches — restart the
+session. **A fifth is read and never judged**: the merge driver git would run, which is a
+command and not a version, so it is a row and not a verdict — the copy that runs when
+nobody is watching, and `merge --check` is where whether git can run it is answered.
+Reach for it when a hook denies a
 write the command you just ran would have made, because then the refusal is that copy's
 rule and not this one's. **And `engines --invoke` prints, on one line and alone, the
 command that reaches the copy wired to this project** — reach for it before composing any
@@ -156,7 +161,9 @@ replaced, so both entries stay and the marker says which is live — the forward
 the retired marker in one write, both ids being decisions already filed. No reason field:
 why one replaced another is the argument in the entry that replaced it, one line away. A
 decision is superseded once, and what replaces the replacement supersedes that one.
-And `--why` is **required**, because the roadmap's sentence states a problem and
+**A typo in one is `revise <id> --decides "…"`**, not a second decision: the entry keeps its
+line, its id and its marker, and a `(superseded by <id>)` clause is carried through rather
+than retyped. And `--why` is **required**, because the roadmap's sentence states a problem and
 the ledger's states an outcome, so inheriting it files a defect report under a heading
 meaning "done" (`record amend <id> --why` is the repair where one already did). **A path
 ledger prose names has to resolve**: `ship`, `retire` and both `record` verbs refuse a

@@ -467,6 +467,11 @@ TOOLS: tuple[Tool, ...] = (
     # and nothing else's, so a project that files no decisions was reading its 932 units before
     # every call it made.
     Tool("supersede", ("id", "by"), needs="decisions"),
+    # The correction door beside the departure (RK1453). Served for `record amend`'s reason
+    # exactly, one file over: the sentence was written by an agent through `ship --decides`,
+    # and the only other way to fix a word in it is the hand edit the guard denies that agent.
+    # `needs` for `supersede`'s reason — this is the decisions role's grammar and nothing else's.
+    Tool("revise", ("id", "decides"), needs="decisions"),
     # The pause and the return, both of which already refuse where `[files]` declares no store
     # — so publishing them there was 1,381 units describing a refusal (RK1360). The refusal
     # stays reachable and now names `declare deferred`, which is the door it always named.

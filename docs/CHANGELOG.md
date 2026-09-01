@@ -280,6 +280,7 @@
 - ✅ **RK1435** **a refusal diagnoses the write it rejected and never names the read-only verb that would have predicted it** — a length refusal carries a foresee row naming the budget read that measures the same draft and writes nothing, so the preventive verb is discoverable where the write failed.
 - ✅ **RK1436** **amend lists the fields it can change and never names the verb that owns the one it cannot** — amend's usage names restate where it declines the symptom, and a declared registry holds every verb that turns a field down to naming the verb that owns it.
 - ✅ **RK1441** **the --have help names a (needs: ...) group the parser does not read, so a caller copying it is refused** — Four sites now spell the slot the parser reads, and a test holds every backticked group in this repository to the template that declares them (design recorded in `tests/test_quoting.py`).
+- ✅ **RK1453** **A decision's sentence has no correction door, so a typo outlives the decision** — revise corrects a decision sentence where it stands, keeping the entry, its marker and the superseded clause it did not author, so a typo no longer outlives the decision.
 
 ## Block C — Query
 

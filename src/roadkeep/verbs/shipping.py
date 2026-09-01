@@ -394,6 +394,28 @@ def _supersede(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _revise(config: Config, args: argparse.Namespace) -> int:
+    """The correction door the decisions file had none of (RK1453).
+
+    `supersede`'s sibling and not its flag: that one replaces a decision, this one replaces a
+    sentence, and the derived clause the first writes is carried through here rather than
+    retyped — so the handler passes one sentence and reads the answer off the record.
+    """
+    from roadkeep.shipping import revise  # noqa: PLC0415 - RK260
+
+    try:
+        corrected = revise(config, args.id, decides=_piped(args.decides))
+        wrote = corrected.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    if args.json:
+        print(json.dumps(corrected.payload(config, wrote), indent=2))
+    else:
+        print(corrected.stated(config, wrote))
+    return EXIT_OK
+
+
 def _retire(config: Config, args: argparse.Namespace) -> int:
     """Record a line leaving without shipping, and say where its replacement is (RK32, RK244).
 
@@ -788,6 +810,33 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
     )
     supersede_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     supersede_parser.set_defaults(handler=_supersede)
+
+    revise_parser = subcommands.add_parser(
+        "revise",
+        help="correct one decision's sentence where it stands, keeping the entry",
+        description=(
+            "The correction door every other governed sentence has: a roadmap line has "
+            "`amend` and `restate`, a ledger entry has `record amend`, and what `ship "
+            "--decides` filed had neither. `supersede` is not it — that is for a decision "
+            "replaced by another, and inventing a second decision to fix a spelling corrupts "
+            "the record worse than the typo did. Nothing is deleted here: the entry keeps its "
+            "line, its id and its marker, and a `(superseded by <id>)` clause is carried "
+            "through rather than retyped, being derived and not yours."
+        ),
+    )
+    revise_parser.add_argument("id", help="the decision being corrected, e.g. RK5")
+    revise_parser.add_argument(
+        "--decides",
+        required=True,
+        help=(
+            "the corrected sentence, one stop — the constraint that outlives the code, "
+            "under the decisions role's own limit and not the ledger's" + _PIPE
+        ),
+    )
+    revise_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    revise_parser.set_defaults(
+        handler=_revise, reads_stdin=(Prose(dest="decides", omitted=False),)
+    )
 
     retire_parser = subcommands.add_parser(
         "retire",

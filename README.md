@@ -117,19 +117,19 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 4 | 220 | 2 |
-| C — Query (consult without reading the file) | 8 | 144 | 2 |
+| B — Authoring (insert, never hand-edit) | 3 | 221 | 2 |
+| C — Query (consult without reading the file) | 9 | 144 | 2 |
 | D — The gate | 2 | 207 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 136 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 20 | 938 | 12 |
+| **Total** | 20 | 939 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1453** (deps: —) **A decision's sentence has no correction door, so a typo outlives the decision** — record amend reaches the ledger and supersede is for a replaced decision; what ship --decides filed has neither. → §RK1453
+- 📋 **RK1454** (deps: —) **block drop refuses a finished block without naming the ending that is correct** — The refusal reads as a failure to a caller told to run it at the block boundary, and nothing says the block is already ended. → §RK1454
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

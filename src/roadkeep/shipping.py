@@ -2802,13 +2802,21 @@ class NotDecided(KeyError):
     because this call takes two and a message that said neither would be read twice.
     """
 
-    def __init__(self, task_id: str, where: str, flag: str) -> None:
+    def __init__(self, task_id: str, where: str, flag: str, *, replacing: bool = True) -> None:
         self.task_id = task_id
         self.flag = flag
+        # Two tails, because the two doors leave a caller in different places (RK1453). One is
+        # holding a second id and being told the replacement has to exist first; the other is
+        # holding a typo and needs to know this file has nothing to correct — a message about
+        # replacement would send them looking for an entry neither call is about.
+        tail = (
+            "so the one replacing this must already be filed before it can replace anything"
+            if replacing
+            else "so an id it does not carry is one no work ever filed a decision for"
+        )
         super().__init__(
             f"{where} records no decision {task_id}, which is what {flag} names: a decision "
-            f"is written by `ship --decides` at the moment a design is deleted, so the one "
-            f"replacing this must already be filed before it can replace anything"
+            f"is written by `ship --decides` at the moment a design is deleted, {tail}"
         )
 
 
@@ -2927,16 +2935,163 @@ def supersede(config: Config, task_id: str, *, by: str) -> Superseded:
     )
 
 
-def _only(document: Document, task_id: str, where: str, flag: str) -> Entry:
+@dataclass(frozen=True, slots=True)
+class Revised:
+    """One decision's sentence corrected where it stands (RK1453).
+
+    :class:`Corrected` one file over, and the shape is the same claim: the entry keeps its
+    number, so the file still reads in the order decisions were made and the diff shows a
+    word. What differs is what is *not* here — no `part`, the decisions role having no
+    partials, and no tail count, because the body a decision keeps is a section addressed by
+    id and never continuation lines under the bullet.
+    """
+
+    task_id: str
+    document: Document
+    lineno: int
+    #: The sentence as it now reads, which is the whole of what the write changed.
+    rendered: str = ""
+    #: The derived clause carried through, or `""` — see :func:`revise`.
+    kept: str = ""
+    #: False where the entry already read that way and nothing was written.
+    changed: bool = True
+
+    def save(self) -> tuple[Path, ...]:
+        return self.document.save() if self.changed else ()
+
+    def stated(self, config: Config, wrote: Sequence[Path]) -> str:
+        from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
+
+        where = config.relative(config.path("decisions"))
+        if not self.changed:
+            return f"{self.task_id} unchanged: the decision already reads that way"
+        rows = [f"{where}:{self.lineno}  {self.task_id} revised", f"  {self.rendered}"]
+        if self.kept:
+            # Said out loud at the one door that could be read as having dropped it: the
+            # caller passed a bare sentence and the line came back with a clause on it.
+            rows.append(
+                f"  kept     ({self.kept}), which is derived and not yours to retype: "
+                f"`supersede` wrote it and this correction carried it through"
+            )
+        rows += _staging_rows(config.relative(one) for one in wrote)
+        return "\n".join(rows)
+
+    def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
+        from roadkeep.rendering import _wrote_json  # noqa: PLC0415 - RK260
+
+        return {
+            "id": self.task_id,
+            "file": config.relative(config.path("decisions")),
+            # The line it was already on, because not moving it is the claim.
+            "line": self.lineno,
+            "rendered": self.rendered,
+            # Null where the entry carried none, so a consumer tells a decision that stands
+            # from one this write carried a `supersede` clause through.
+            "kept": self.kept or None,
+            "changed": self.changed,
+            **_wrote_json(config, wrote),
+        }
+
+
+def revise(config: Config, task_id: str, *, decides: str) -> Revised:
+    """Correct one decision's sentence in the file that keeps it (RK1453).
+
+    Every other governed sentence has a door back. A roadmap line has `amend` for its `why`
+    and `restate` for its symptom; a ledger entry has `record amend`, whose own help argues
+    the case — `drop` and `add` "would remove the entry and append a new one under its block,
+    so a ledger read in the order work landed stops being one". What `ship --decides` writes
+    had nothing, and `supersede` is not it and says so: that verb is for a decision *replaced*
+    by another, and inventing a second decision to fix a spelling corrupts the record worse
+    than the typo did.
+
+    Met while shipping FB5 in a consuming project, where `--decides` was passed ASCII-only to
+    survive a shell and the file permanently read "Menu do site novo e semeado" for "é
+    semeado". The guard denied the hand-edit, correctly, and there was no third option.
+
+    **The file's rule is not weakened.** Nothing here is deleted: the entry keeps its line,
+    its id and its marker, and a decision that stopped holding still leaves by `supersede`
+    alone. Correcting a sentence in place is what `record amend` already does one file over,
+    with the same argument.
+
+    Validated against the decisions role's own schema before anything is written (L1), so an
+    over-length sentence is refused with the number — that limit being the role's and not the
+    ledger's, as `brief` prints it.
+
+    **A derived clause is carried through and never retyped.** `supersede` writes `(superseded
+    by <id>)` into the `why`, so a bare corrected sentence would silently drop the one half of
+    that line the caller did not author. It is read off the standing sentence and re-composed
+    by the writer that put it there, which is L4 twice: this verb writes no prose, and the
+    clause it preserves is not the caller's to spell.
+
+    `replace_task` and not a span rewrite, for `supersede`'s reason (RK1053): the sentence is
+    the first line's text, so re-rendering that line reproduces every field the entry holds
+    and the section beneath it is not this write's to touch.
+    """
+    if not config.has("decisions"):
+        raise NoDecisions(task_id, config.relative(config.source or config.root))
+    where = config.relative(config.path("decisions"))
+    document = config.document("decisions")
+    standing = _only(document, task_id, where, "the id", replacing=False)
+    clause = _clause_on(standing.task.why)
+    wanted = replace(
+        standing.task,
+        why=_parenthesised(decides, clause) if clause else decides,
+    )
+    if wanted.why == standing.task.why:
+        return Revised(
+            task_id=task_id,
+            document=document,
+            lineno=standing.lineno,
+            rendered=standing.raw.rstrip("\r\n"),
+            kept=clause,
+            changed=False,
+        )
+    updated = document.replace_task(standing, document.schema.check(wanted))
+    return Revised(
+        task_id=task_id,
+        document=updated,
+        lineno=standing.lineno,
+        rendered=updated.by_id()[task_id].raw.rstrip("\r\n"),
+        kept=clause,
+    )
+
+
+def _clause_on(why: str) -> str:
+    """The derived clause a decision's sentence carries, or `""` (RK1453).
+
+    :func:`_parenthesised` read backwards, and written as its inverse rather than as a pattern
+    that happens to match what it emits: the terminator is stepped over the same way, so the
+    two cannot drift into disagreeing about where a clause ends.
+
+    Only `_SUPERSEDED`'s own shape, because only that one is derived. A parenthetical the
+    author wrote is theirs, and re-typing it is part of correcting the sentence.
+    """
+    stem = why.rstrip()
+    if stem and stem[-1] in ".!?":
+        stem = stem[:-1].rstrip()
+    opened = stem.rfind(" (")
+    if not stem.endswith(")") or opened < 0:
+        return ""
+    clause = stem[opened + 2 : -1]
+    head = _SUPERSEDED.format(replacement="")
+    return clause if clause.startswith(head) and clause[len(head) :].strip() else ""
+
+
+def _only(
+    document: Document, task_id: str, where: str, flag: str, *, replacing: bool = True
+) -> Entry:
     """The one entry an id names in the decisions file, refused where there are none or two.
 
     `_supersede`'s two refusals, kept here rather than shared with it: that one reads the
     ledger and names `record` in what it says, and a caller holding a decision's address
     would be sent to the wrong file by a message that was right about the other one.
+
+    `replacing` picks which tail the absent-id refusal carries (RK1453): both doors here start
+    from this file, and only one of them is about a replacement.
     """
     twins = tuple(entry for entry in document.entries if entry.task.id == task_id)
     if not twins:
-        raise NotDecided(task_id, where, flag)
+        raise NotDecided(task_id, where, flag, replacing=replacing)
     if len(twins) > 1:
         raise Ambiguous(task_id, where, tuple(entry.lineno for entry in twins))
     return twins[0]

@@ -221,6 +221,10 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # RK1274. The decisions role's one departure, beside the two a line has: the session
         # that replaced a constraint is the one that knows which it replaced.
         "supersede",
+        # And its correction door (RK1453), for `record_amend`'s reason one file over: the
+        # sentence was written by an agent through `ship --decides`, and the only other way to
+        # fix a word in it is the hand edit the guard denies that agent.
+        "revise",
         # The third and fourth doors a line leaves and returns by (RK91) — beside the two
         # terminal ones, because a session that has to choose between them is at that spot.
         "defer",
@@ -1145,6 +1149,10 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         # RK1274. The decisions role's one departure, beside the two a line has: the session
         # that replaced a constraint is the one that knows which it replaced.
         "supersede",
+        # And its correction door (RK1453), for `record_amend`'s reason one file over: the
+        # sentence was written by an agent through `ship --decides`, and the only other way to
+        # fix a word in it is the hand edit the guard denies that agent.
+        "revise",
         # The third and fourth doors a line leaves and returns by (RK91) — beside the two
         # terminal ones, because a session that has to choose between them is at that spot.
         "defer",
@@ -1522,6 +1530,9 @@ def test_the_paths_that_could_reach_it_are_the_ones_declared():
         "criterion_amend",
         "retire",
         "defer",
+        # The decisions file's correction door (RK1453): its `--decides` is the one sentence
+        # in that file, and it reaches the pipe for the same reason every `--why` does.
+        "revise",
         "section_add",
         "section_amend",
     }
@@ -1663,10 +1674,16 @@ def test_the_tool_that_declares_a_scope_is_not_the_tool_that_takes_the_line(tmp_
 
 def test_a_tool_bound_to_a_role_is_published_only_where_the_role_is():
     bound = {tool.name: tool.needs for tool in TOOLS if tool.needs}
-    # Three, and each of them the whole grammar of one role: the pause, the return, and the
-    # decisions role's one departure. A tool serving a role every project has would be a
-    # `needs` that never narrows anything and a claim this test could not falsify.
-    assert bound == {"defer": "deferred", "resume": "deferred", "supersede": "decisions"}
+    # Four, and each of them the whole grammar of one role: the pause, the return, and the
+    # decisions role's departure and its correction (RK1453). A tool serving a role every
+    # project has would be a `needs` that never narrows anything and a claim this test could
+    # not falsify.
+    assert bound == {
+        "defer": "deferred",
+        "resume": "deferred",
+        "supersede": "decisions",
+        "revise": "decisions",
+    }
     bare = Config.default()
     for name, role in bound.items():
         assert name not in {one.name for one in published(bare)}, name
@@ -1680,14 +1697,12 @@ def test_the_surface_shrinks_by_exactly_what_the_undeclared_roles_cost(tmp_path,
     # project is sent is now what it can call, so a role it never declared costs it nothing.
     every = listed(project(other, config=WHOLE))
     three = listed(project(tmp_path))
-    assert set(every) - set(three) == {"defer", "resume", "supersede"}
-    withheld = sum(
-        width(json.dumps(every[name], ensure_ascii=False))
-        for name in ("defer", "resume", "supersede")
-    )
+    bound = ("defer", "resume", "supersede", "revise")
+    assert set(every) - set(three) == set(bound)
+    withheld = sum(width(json.dumps(every[name], ensure_ascii=False)) for name in bound)
     narrow = dict(serving.surface(Config.discover(tmp_path)).tools)
     broad = dict(serving.surface(Config.discover(other)).tools)
-    assert withheld == sum(broad[name] for name in ("defer", "resume", "supersede"))
+    assert withheld == sum(broad[name] for name in bound)
     assert sum(narrow.values()) + withheld < sum(broad.values())
     # And the rest of the difference lands only on tools **both** projects are sent, because it
     # is the `role` enum RK304 already narrowed — so this task added a second narrowing rather

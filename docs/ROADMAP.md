@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1453** (deps: —) **A decision's sentence has no correction door, so a typo outlives the decision** — record amend reaches the ledger and supersede is for a replaced decision; what ship --decides filed has neither. → §RK1453
 - 📋 **RK1454** (deps: —) **block drop refuses a finished block without naming the ending that is correct** — The refusal reads as a failure to a caller told to run it at the block boundary, and nothing says the block is already ended. → §RK1454
 - 📋 **RK1459** (deps: —) **The read that prices a body and the write that files it name the same argument differently, so the loop costs a refusal** — budget takes --body-file and add takes --section-body-file, so a caller moving from the price to the write is refused for the flag it was just told to use. → §RK1459
 - 📋 **RK1460** (deps: —) **A criterion checked by running something ships looking exactly like one nobody looked at** — ship lists every criterion as unmet, so the ledger cannot tell a verified claim from an ignored one. → §RK1460
@@ -41,6 +40,7 @@
 - 📋 **RK1466** (deps: —) **a project numbering by id gets every address in one answer, which at this repository's size is 961 rows and 175 KB** — RK1450 replaced a count nothing could open with a listing nothing bounds, because the register it stood in for was also what held the rows back. → §RK1466
 - 💭 **RK1467** (deps: —) **A requirement gates the whole line, so the half of a task that needs nothing is never offered** — `ship --part` records that a half landed, and `pick` has no matching idea beforehand: a caller that could build that half is told there is nothing to pick. → §RK1467
 - 📋 **RK1472** (deps: —) **`budget` takes no --requires, so it prices a line the requirement group has not been charged to** — It reports the why limit as 185 where `add --requires` enforces 164, and the refusal's own foresee line points back at the call that said 185. → §RK1472
+- 📋 **RK1473** (deps: —) **`unclosed` counts roadkeep's own prose edits as evidence a line shipped, so its report is mostly its own writes** — It drops the commit that filed an id and no other, though `amend` and `section amend` name one too and touch only files it governs. → §RK1473
 
 ## Block D — The gate
 

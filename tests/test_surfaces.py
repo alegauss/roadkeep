@@ -307,7 +307,9 @@ def test_every_write_command_is_either_wired_or_exempted():
     # `roadkeep.toml`, and a number moved there changes what every other write is held to.
     # 41 since `supersede` (RK1274), wired for every bullet grammar's: it writes the decisions
     # file, and the staging line is what a commit about a replaced constraint reads.
-    assert len(declared) == 41 and len(wired) == 35
+    # 42 since `revise` (RK1453), wired for `supersede`'s reason exactly: it is the correction
+    # door in the same file, and a commit fixing a word in a constraint stages it the same way.
+    assert len(declared) == 42 and len(wired) == 36
 
 
 def test_every_wired_write_reaches_the_one_printer():
