@@ -373,6 +373,28 @@ WHAT WOULD SETTLE IT is somewhere the check can see the answer: an exemption the
 constraint carries as a field, or the note falling silent where the rule's paragraph
 names the line.
 
+### §RK1468 The note that reconciles one pair of three
+
+RK1451 gave `engines` a row for the copy vendored under `.roadkeep/` and an exit code
+that covers it. `lint`'s `engine.disagreement` note — the once-per-commit surface RK1238
+put the same question on — still reads `running` and `plugin` and nothing else.
+
+So the two answers disagree about one tree. In a project holding a vendored engine two
+minor versions from the shell's, `engines` exits 1 and names both pens while the gate
+that runs on every commit says nothing at all. That is the population the note was
+written for: RK1440 measured it in a port that had just wired the served `lint` into its
+local gate, where a version is a claim rather than an argument somebody typed.
+
+The note's own shape is what makes this cheap. It already composes one clause per fact —
+`working` for a modified checkout, `skewed` for a plugin at another number — and joins
+them with `and`, so a third clause is a third fact and not a second sentence. What it
+must not become is a note on every project: an absent `.roadkeep/` is the default, and
+`Engines.split` is already the boolean saying a copy is both present and apart.
+
+Open: whether the clause names a remedy. The plugin half offers `/plugin update`, and
+these two are both pens — re-vendoring is one answer, not reaching past the launcher is
+the other, and which is right is the project's call rather than the note's.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
@@ -480,6 +502,31 @@ on. RK1449 moved the cliff out of `initialize`; this is the floor under it.
 
 The forwarded verb keeps its probe: it may write, so trying the next candidate could
 repeat a half-done write. That hazard is what makes the two callers different.
+
+### §RK1469 The order that is stated twice and read once
+
+RK1230 exists because a session found its engine by listing a plugins cache and reached
+a copy the project does not write with. `Engines.invoke` is the answer to that, and
+RK1451 taught it a second rule: with no plugin registered, name the launcher of the copy
+vendored under `.roadkeep/`, because that is what the guard and the served tools run.
+
+Both rules re-derive an order the launcher already holds. `hooks/roadkeep-launch.py`
+resolves `$ROADKEEP_HOME`, then `.roadkeep/`, then a sibling checkout, then the cache
+clone — and it *probes* each, because RK1214 measured a sibling mid-refactor that
+resolved, answered a version and then raised. `invoke` knows the middle of that list and
+neither end.
+
+So a project pinning `ROADKEEP_HOME` to a tree outside itself gets a line naming a copy
+that is not the pen — the exact failure RK1230 was written for, one wiring further
+along. The line is pasted, it runs, it does not fail, and it judges by rules the writing
+copy does not hold.
+
+What is unresolved is who owns the order. Copying `_candidates` into this package makes
+two statements of one resolution, which is the drift the whole vendoring task refused;
+asking the launcher costs a subprocess on a read that `lint` reaches. A third reading:
+`invoke` answers the **bridge** an adopter commits — `.claude/hooks/roadkeep-launch.py`
+— where one exists, so the order is resolved once, at the moment it is used, by the file
+that owns it. Then `engines` never needs to know what the order is.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

@@ -44,6 +44,7 @@
 ## Block D — The gate
 
 - 📋 **RK1457** (deps: —) **non-goal.reaches fires on every lint and nothing clears it, so a project that decided reads the same note forever** — Its own remedy is non-goal amend; a project named both bounded lines inside the rule's paragraph and both are still flagged, so the gate carries unanswerable notes. → §RK1457
+- 💭 **RK1468** (deps: —) **the gate's engine note reads the plugin alone, so a project running two local copies at two versions passes it clean** — engines exits 1 on a vendored copy at another version and the once-per-commit note never asks, so the split is found only by whoever ran that read on purpose. → §RK1468
 
 ## Block E — Adoption
 
@@ -53,6 +54,7 @@
 - 📋 **RK1462** (deps: —) **install rewrites a surface with an older engine's copy, so the remedy lint names undoes a fix that shipped** — The vendored engine is 0.2.4 and the committed launcher carried RK1446; install --check called it stale and install wrote the pre-fix version back over it. → §RK1462
 - 📋 **RK1464** (deps: —) **install --vendor writes the surfaces before it replaces the engine, so one run leaves the outgoing engine's copy on disk** — Vendoring 0.2.60 over 0.2.4 said updated then vendored, and the launcher left behind was 0.2.4's; a second install wrote the right bytes. → §RK1464
 - 📋 **RK1465** (deps: —) **the launcher spends a whole extra Python start proving an engine runs, doubling how long connecting takes** — The probe was justified by an execv that cannot be taken back, and on Windows there is none: the parent waits on the child already. → §RK1465
+- 💭 **RK1469** (deps: —) **engines --invoke restates the launcher's order and knows two of its four entries, so a ROADKEEP_HOME pin is missed** — The launcher resolves the override, the vendored tree, a sibling and a cache clone, and the line a shell pastes only ever names the plugin or the vendored one. → §RK1469
 
 ## Block G — The editor surface (the backlog where the file is open)
 
