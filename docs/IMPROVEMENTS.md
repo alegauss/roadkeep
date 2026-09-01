@@ -274,6 +274,28 @@ a separator. A flag that takes one word here would answer the common case and qu
 mis-price the rest, which is the failure being removed rather than a smaller version of
 it.
 
+### §RK1463 The evidence for a boolean, printed whether or not it fired
+
+Measured starting a task in an adopting project: `brief` with no id answered about 4,000
+tokens, and the line, the rationale, the non-goals and the done-when together were under
+a fifth of it.
+
+The rest was `deps_resolved`. Every dep came back with a `settled_since` block holding
+the shipping commit's sha, short sha, date and full subject, and the same four fields
+again for the revision it was compared against — six deps, twelve commit records, all of
+them saying the same thing: shipped, and long before this task was written.
+
+That reading exists for a real signal. A dep that shipped *after* the rationale was last
+revised is a design written against a world that has since moved, and a caller starting
+the task should be told. But the check is a comparison and its answer is a boolean, so
+printing the evidence for it whether or not it fired is what makes the payload what it
+is.
+
+Keep `settled_since` where the shipping commit is newer than the revision, which is the
+case it was built to surface, and collapse the rest to the word `detail` already
+carries. A caller who wants the history has `origin`, which is the verb for it and
+answers one task at a time.
+
 ## Block D — The gate
 
 ### §RK1457 A read note with no answer
@@ -385,6 +407,32 @@ question: refuse, or name which way the write goes and let the caller answer.
 
 Worth weighing: `--vendor` exists for this and points the other way. Naming it in the
 finding is most of the fix.
+
+### §RK1464 Vendor, then generate — and it is the other way round
+
+`install --vendor` does two things in one run: it writes the surfaces, and it replaces
+the engine those surfaces are generated from. It does them in that order, so the files
+it wrote are the outgoing engine's.
+
+Measured here. `.roadkeep` held 0.2.4; the machine could reach 0.2.60. One run reported
+`updated` on the launcher and the skill, then `vendored 0.2.60`, and `answers 0.2.60, as
+chosen`. The launcher on disk afterwards was 0.2.4's — the one without RK1446's Windows
+branch, which is a project whose MCP server exits 0 and serves nothing. `install
+--check` immediately after exited non-zero on both surfaces, and `lint` reported the
+same `install.stale` the run was called to clear. A second `install`, with nothing else
+changed, wrote the right bytes and both went quiet.
+
+So the one run that is supposed to move a project forward moves it backwards first and
+lands it in the state its own `--check` refuses. Nobody reading that output would know:
+`vendored` and `answers` are the last two lines, and `updated` is above them, which
+reads as the new engine's work.
+
+The order is the whole of it. Vendor, then generate — the flag exists to change which
+engine ships the surfaces, so writing them from the one being retired is the one order
+that cannot be what was meant.
+
+Worth weighing: a caller who ran it once and committed has a tree that looks installed
+and is a downgrade, which is worse than the failure it was fixing.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
