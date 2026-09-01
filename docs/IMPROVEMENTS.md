@@ -182,29 +182,6 @@ all.
 
 ## Block C — Query
 
-### §RK1456 The field budget cannot measure
-
-`budget` answers what a field is allowed and nothing measures what is about to go in it.
-A section already has both halves: `budget --anchor <id> --body-file <path>` measures
-the draft against the same limit and writes nothing, which is the refusal's own advice.
-A line's fields have only the first half.
-
-So a caller counting a `--why` has two moves, and both cost. Counting UTF-16 code units
-by hand is what an agent does, badly, and the binding limit is not the published 200 but
-the rendered line minus the symptom and the structure. The other move is to send it and
-be refused: self-correcting, and a round trip per attempt. Measured on 31 August 2026
-across three ships in one session, each hand-counted to avoid that round trip.
-
-The gap closes with `--why` on `budget`, and `--symptom` already being there is the
-argument for it: that flag exists because what the symptom takes is what the why loses,
-so the asymmetry is not a design, it is the half nobody needed yet. Same for the two
-`add` writes a line has.
-
-What it should answer is what a refusal answers, before there is anything to refuse:
-what the field takes, what the line leaves it, and how many to delete. A caller who can
-ask that never sends a field that overruns, which is the whole point of validating
-before writing.
-
 ### §RK1458 One field, two limits, and only one of them askable
 
 Two limits govern one sentence and they are different numbers. The `why` on an open

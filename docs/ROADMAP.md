@@ -33,7 +33,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1456** (deps: —) **budget says what a why is allowed and nothing measures the why about to be written** — A section can be measured before it is sent and a line's fields cannot, so a caller either hand-counts code units or spends a refusal per attempt. → §RK1456
 - 📋 **RK1458** (deps: —) **budget prices a why against the roadmap line's limit while the ship about to be written is held to the ledger's** — brief quoted 190 for the shipping sentence and budget quoted 171 for the same field, so the read meant to prevent a refusal answered about a write nobody was making. → §RK1458
 - 📋 **RK1461** (deps: —) **budget cannot price a line that will carry a requires, so the number it quotes is 21 characters too generous** — add takes --requires and budget does not, so a sentence priced without one is refused for the exact width of the (requires: word) the write adds. → §RK1461
 - 📋 **RK1463** (deps: —) **brief spends four fifths of its answer on deps that are all shipped and settled long ago** — Each resolved dep carries two full commit subjects, so starting a six-dep task costs thousands of tokens of history nobody asked about. → §RK1463
