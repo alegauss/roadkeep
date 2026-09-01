@@ -28,11 +28,13 @@
 
 - 📋 **RK1453** (deps: —) **A decision's sentence has no correction door, so a typo outlives the decision** — record amend reaches the ledger and supersede is for a replaced decision; what ship --decides filed has neither. → §RK1453
 - 📋 **RK1454** (deps: —) **block drop refuses a finished block without naming the ending that is correct** — The refusal reads as a failure to a caller told to run it at the block boundary, and nothing says the block is already ended. → §RK1454
+- 📋 **RK1459** (deps: —) **The read that prices a body and the write that files it name the same argument differently, so the loop costs a refusal** — budget takes --body-file and add takes --section-body-file, so a caller moving from the price to the write is refused for the flag it was just told to use. → §RK1459
 
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1455** (deps: —) **a changelog listing cannot be asked for its blocks, so the only way to see them is to read the file** — An unscoped ledger listing is 117k characters and a scoped one needs a block label the caller does not have, so finding what the blocks are means reading the governed file. → §RK1455
 - 📋 **RK1456** (deps: —) **budget says what a why is allowed and nothing measures the why about to be written** — A section can be measured before it is sent and a line's fields cannot, so a caller either hand-counts code units or spends a refusal per attempt. → §RK1456
+- 📋 **RK1458** (deps: —) **budget prices a why against the roadmap line's limit while the ship about to be written is held to the ledger's** — brief quoted 190 for the shipping sentence and budget quoted 171 for the same field, so the read meant to prevent a refusal answered about a write nobody was making. → §RK1458
 
 ## Block D — The gate
 
