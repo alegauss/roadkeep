@@ -1499,3 +1499,86 @@ def test_a_label_that_declared_no_list_reports_none(tmp_path, capsys):
     capsys.readouterr()
     assert main([*where, "block", "drop", "A", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["unmet"] == []
+
+
+# -- the ending a correct refusal did not name (RK1454) ------------------------
+
+
+def _swept(tmp_path: Path, capsys) -> list[str]:
+    """A block whose one delivery filed a decision — the state an end-of-block sweep meets."""
+    where = ["-C", str(tmp_path), "-"][:2]
+    assert main([*where, "init", "--prefix", "FB"]) == EXIT_OK
+    assert main([*where, "declare", "decisions"]) == EXIT_OK
+    assert main([*where, "block", "add", "D", "--title", "Delivery"]) == EXIT_OK
+    assert main([
+        *where, "add", "--block", "D",
+        "--symptom", "Nothing seeds the menu",
+        "--why", "Because nothing does.",
+    ]) == EXIT_OK
+    assert main([
+        *where, "ship", "FB1",
+        "--why", "It seeds now.",
+        "--decides", "The menu is seeded at build time.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+    return where
+
+
+def test_the_refusal_names_the_ending_that_is_correct(tmp_path, capsys):
+    """RK1454. A project's end-of-block sweep tells the agent to run `block drop <x>` once
+    nothing is open — and on a block whose deliveries used `ship --decides` this refuses,
+    rightly, because the heading addresses the decisions and removing it would refile them.
+    What it did not say is what the caller should do instead, and the caller had been told
+    this was the last step: a non-zero exit, a finished sweep, and nobody to ask."""
+    where = _swept(tmp_path, capsys)
+
+    assert main([*where, "block", "drop", "D"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    # The reason is unchanged, which is the whole constraint: the verb does what it did.
+    assert "a heading over work is not an empty heading" in said
+    # And the answer beside it, in `block list`'s own words rather than a fourth wording.
+    assert "ends as  Block D is finished" in said
+    assert "the heading stays, which is how such a block ends" in said
+
+
+def test_the_ending_is_the_sentence_the_listing_already_prints(tmp_path, capsys):
+    """`Standing.sentence` and never a second spelling: a refusal describing a finished block
+    in words `list` does not use is a fourth opinion about the state."""
+    from roadkeep.backlog import Backlog, Standing
+    from roadkeep.blocking import drop_block
+
+    where = _swept(tmp_path, capsys)
+    config = Config.discover(tmp_path)
+    became = Standing.of(Backlog.load(config), "D")
+
+    with pytest.raises(BlockOccupied) as caught:
+        drop_block(config, "D")
+    assert became.sentence in str(caught.value)
+    assert caught.value.ending.startswith(became.sentence)
+    # And nothing was written while the answer was composed.
+    assert main([*where, "lint"]) == EXIT_OK
+
+
+def test_a_block_with_open_lines_is_told_the_sweep_is_not_over(tmp_path):
+    """`live` is the count alone: the block is not ending, so an "and the heading stays" would
+    be an answer to a question the caller has not reached."""
+    config = project(tmp_path)
+    with pytest.raises(BlockOccupied) as caught:
+        drop_block(config, "B")
+    assert "Block B has 1 open" in caught.value.ending
+    assert "how such a block ends" not in caught.value.ending
+
+
+def test_a_block_the_ledger_never_recorded_says_nothing_about_an_ending(tmp_path):
+    """`empty` beside a refusal naming what is filed under the heading reads as a
+    contradiction — and there the obstacle is a note or a nested section, which the message
+    already names its own door for."""
+    config = project(
+        tmp_path,
+        roadmap="# Roadmap\n\n## Block A — The model\n\n## Block B — Authoring\n",
+        changelog="# Shipped\n\n## Block A — The model\n\n## Block B — Authoring\n",
+    )
+    with pytest.raises(BlockOccupied) as caught:
+        drop_block(config, "B")
+    assert caught.value.ending == ""
+    assert "ends as" not in str(caught.value)

@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1454 A refusal that is right, and reads as a fault
-
-A project's end-of-block sweep tells the agent to run `block drop <x>` once nothing is
-open — a heading standing over nothing is what that verb removes. Run at the boundary of
-a block whose deliveries used `ship --decides`, it refuses:
-
-    docs/DECISIONS.md files FB2, FB5 under Block D: a heading over work is not an empty
-    heading, and removing it would file all of it under the block above
-
-The refusal is correct. The heading addresses the decisions, not only the backlog, and
-dropping it would refile them silently. What it does not say is what the caller should
-do instead — and the caller was told this was the last step. An agent reaching it has
-finished the sweep, hit a non-zero exit, and has to decide alone whether that is its
-problem.
-
-`block list` already knows the answer: it prints `empty` and `finished` as different
-states, and a block anchored by decisions is the second. So the ending exists in the
-model and is missing only from the message. Refusals elsewhere carry the alternative —
-an unknown flag prints `takes` and `by order`, a bad `why` prints the gate code and what
-closes it. This one prints the reason and stops.
-
-Naming the outcome in the refusal — this block ends as `finished`; the heading stays
-because the decisions file addresses it — turns a dead end into an answer, without
-changing what the verb does.
-
 ### §RK1459 The flag the price used, and the flag the write wanted
 
 `budget` is the read this tool asks callers to make before a write, and the write it

@@ -75,7 +75,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from roadkeep.authoring import _after_preamble, remove_entry
-from roadkeep.backlog import Backlog, Standing as Became
+from roadkeep.backlog import Backlog, Stage, Standing as Became
 from roadkeep.config import Config
 from roadkeep.criteria import without as criteria_without
 from roadkeep.kernel.document import (
@@ -292,6 +292,16 @@ class BlockOccupied(ValueError):
     ``prose`` says everything held is a **note**, and then the refusal names the flag that
     takes it (RK237): a door whose existence the author learns from the refusal is the shape
     RK93 argued for, and until it existed this message was the whole exit from the corner.
+
+    ``ending`` is what became of the block, and it is the half that turns this from a dead end
+    into an answer (RK1454). A project's end-of-block sweep tells an agent to run
+    `block drop <x>` once nothing is open; on a block whose deliveries used `ship --decides`
+    the decisions file files entries under that heading, and this refuses — correctly, since
+    removing it would refile them silently. The caller was told this was the last step, so a
+    non-zero exit with no alternative leaves them deciding alone whether the sweep failed.
+    `block list` already prints `empty` and `finished` as different states, so the ending
+    existed in the model and was missing only from the message. Named and not acted on: the
+    verb does exactly what it did.
     """
 
     def __init__(
@@ -302,20 +312,25 @@ class BlockOccupied(ValueError):
         word: str = "Block",
         *,
         prose: bool = False,
+        ending: str = "",
     ) -> None:
         self.label = label
         self.where = where
         self.named = tuple(named)
+        self.ending = ending
         holds = ", ".join(self.named)
+        # Its own line, because it is an answer and not a clause of the reason: a reader who
+        # stopped at the refusal has read why, and the line below says what to do instead.
+        tail = f"\n  ends as  {ending}" if ending else ""
         if prose:
             super().__init__(
                 f"{where} files {holds} under {word} {label}, which is loose prose and not "
-                f"work: pass --prose to take the note with the heading, or keep both"
+                f"work: pass --prose to take the note with the heading, or keep both{tail}"
             )
             return
         super().__init__(
             f"{where} files {holds} under {word} {label}: a heading over work is not an "
-            f"empty heading, and removing it would file all of it under the block above"
+            f"empty heading, and removing it would file all of it under the block above{tail}"
         )
 
 
@@ -797,7 +812,15 @@ def drop_block(config: Config, label: str, *, prose: bool = False) -> Closed:
             continue
         if role != "changelog":
             raise BlockOccupied(
-                label, where, held.names, word=word, prose=not held.work
+                label,
+                where,
+                held.names,
+                word=word,
+                prose=not held.work,
+                # Read only here, on the branch that is about to refuse (RK1454): the whole
+                # point of this verb is the write, and paying for the roadmap, the ledger and
+                # the store on every successful drop would be the read that decides nothing.
+                ending=_ending(config, label),
             )
         skipped.append((where, _kept(held)))
 
@@ -828,6 +851,32 @@ def drop_block(config: Config, label: str, *, prose: bool = False) -> Closed:
         skipped=tuple(skipped),
         unmet=unmet,
     )
+
+
+def _ending(config: Config, label: str) -> str:
+    """What became of this block, said the way `block list` says it (RK1454).
+
+    :attr:`~roadkeep.backlog.Standing.sentence` and never a second wording, which is that
+    record's own rule: a refusal describing a finished block in words `list` does not use is a
+    fourth opinion about the state, and the two would come to disagree.
+
+    Extended by the one fact this door has and that read does not — that the heading is
+    staying, and that this is how such a block ends rather than a step the caller missed.
+    Only where the block is actually over: `paused` and `live` are the sentence alone, each
+    already naming what is outstanding, and `empty` says nothing at all here — a block with no
+    entry anywhere is one whose obstacle is a note or a nested section, and "is empty" beside a
+    refusal naming what is filed under it would read as a contradiction.
+
+    Silent on any failure. This is a sentence attached to a refusal that is already correct,
+    and a read that raises here would replace a good message with a traceback.
+    """
+    try:
+        became = Became.of(Backlog.load(config), label)
+    except Exception:  # noqa: BLE001 - a refusal is the last place to start raising
+        return ""
+    if became.stage in (Stage.FINISHED, Stage.CURRENT):
+        return f"{became.sentence} — and the heading stays, which is how such a block ends"
+    return became.sentence if became.stage in (Stage.LIVE, Stage.PAUSED) else ""
 
 
 def _kept(held: Standing) -> str:

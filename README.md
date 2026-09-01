@@ -117,7 +117,7 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 4 | 221 | 2 |
+| B — Authoring (insert, never hand-edit) | 3 | 222 | 2 |
 | C — Query (consult without reading the file) | 9 | 144 | 2 |
 | D — The gate | 2 | 207 | 2 |
 | E — Adoption | 0 | 117 | 1 |
@@ -125,11 +125,11 @@ called unbuilt were already in the ledger.
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 21 | 939 | 12 |
+| **Total** | 20 | 940 | 12 |
 
 **Next ready:**
 
-- 📋 **RK1454** (deps: —) **block drop refuses a finished block without naming the ending that is correct** — The refusal reads as a failure to a caller told to run it at the block boundary, and nothing says the block is already ended. → §RK1454
+- 📋 **RK1455** (deps: —) **a changelog listing cannot be asked for its blocks, so the only way to see them is to read the file** — An unscoped ledger listing is 117k characters and a scoped one needs a block label the caller does not have, so finding what the blocks are means reading the governed file. → §RK1455
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1454** (deps: —) **block drop refuses a finished block without naming the ending that is correct** — The refusal reads as a failure to a caller told to run it at the block boundary, and nothing says the block is already ended. → §RK1454
 - 📋 **RK1459** (deps: —) **The read that prices a body and the write that files it name the same argument differently, so the loop costs a refusal** — budget takes --body-file and add takes --section-body-file, so a caller moving from the price to the write is refused for the flag it was just told to use. → §RK1459
 - 📋 **RK1460** (deps: —) **A criterion checked by running something ships looking exactly like one nobody looked at** — ship lists every criterion as unmet, so the ledger cannot tell a verified claim from an ignored one. → §RK1460
 - 💭 **RK1474** (deps: —) **a decision's symptom is a copy of a roadmap line that is gone, and no verb in any of the three files can correct it** — revise reaches the sentence and restate reached the line before it shipped, so a claim mangled by a shell is now permanent in two files at once. → §RK1474
