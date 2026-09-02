@@ -272,12 +272,15 @@ def _answers(engine: Path) -> bool:
 def _running() -> Path | None:
     """The first candidate that answers, or None (RK1214).
 
-    Paid by the two modes that are about to do something a broken engine would half-do: a
-    forwarded verb may **write**, and the server is `execv`'d and cannot be taken back. One
-    probe on a healthy machine, because the first candidate answers.
+    Paid where a broken engine would half-do something that cannot be taken back: a forwarded
+    verb may **write**, and on POSIX the server is `execv`'d. One probe on a healthy machine,
+    because the first candidate answers.
 
     Not paid by :func:`_guard`, which is the hot path and needs no probe at all: it writes
-    nothing, so it can simply run a candidate and try the next on any failure.
+    nothing, so it can simply run a candidate and try the next on any failure. **Nor by the
+    server on Windows** (RK1465), where there is no image to replace: the parent waits on the
+    child, so the failure this predicts arrives as that child's exit code — and the probe is a
+    second cold Python start on the one path a client puts a thirty-second ceiling on.
     """
     return next((one for one in _candidates() if _answers(one)), None)
 
@@ -349,6 +352,17 @@ def _guard(argv: list[str], payload: bytes | None) -> int:
     return 0  # unenforced beats broken, whether none was found or none of them ran.
 
 
+def _windows() -> bool:
+    """Whether this platform spawns where POSIX replaces the image (RK1446, RK1465).
+
+    A function and not two `os.name` reads: `_serve` branches on it twice — once for whether
+    the probe is bought and once for how the child is run — and those are one fact. It is also
+    the seam a test can move, which patching `os.name` is not: `pathlib` reads that name too,
+    and a test that changed it stopped being able to make a path.
+    """
+    return os.name == "nt"
+
+
 def _serve(argv: list[str]) -> int:
     """The server, which stands down for nobody (RK1189) — see the module docstring.
 
@@ -373,12 +387,29 @@ def _serve(argv: list[str]) -> int:
     So there the child is run to completion with this process's stdio **inherited** — one
     extra process in the chain, and still no pipe in the middle, which is the property the
     `execv` was for. The parent does nothing but wait and hand back the exit code.
+
+    **And there the probe is not paid** (RK1465). It exists because `execv` cannot be taken
+    back: a broken engine replaces this process and the harness reads the exit as a crashed
+    server. With no image replaced there is nothing to take back — the parent is still here
+    when the child fails, and the failure the probe predicts has already happened in front of
+    it, with the child's own exit code standing for it.
+
+    Measured on Windows 11 against this checkout, five runs each, `initialize` written to
+    stdin and the first response line read back: the engine directly at 283 ms min and 315
+    median, this file at 646 and 677. The difference is one `python scripts/roadkeep.py
+    --version` — a whole interpreter start and a whole `roadkeep.cli` import, 287 ms of the
+    363 this file added. What that costs is not the milliseconds: connecting is the engine's
+    time plus a second cold start, on the one path a client puts a thirty-second ceiling on.
+    RK1449 moved the cliff out of `initialize`, and this is the floor under it.
     """
-    engine = _running()
+    # `_resolve` and not `_running` on the branch that waits: see above. On POSIX the probe
+    # stays, `execv` being the thing it was bought for.
+    waits = _windows()
+    engine = _resolve() if waits else _running()
     if engine is None:
         return _missing()
     command = [sys.executable, str(engine), "mcp", *argv]
-    if os.name == "nt":
+    if waits:
         # `_forward`'s call exactly, and for the same reason it is spelled that way: no
         # `stdout`, `stderr` or `stdin` argument, so all three are this process's own.
         return subprocess.run(command, check=False).returncode

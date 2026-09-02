@@ -483,33 +483,6 @@ named.
 
 ## Block F — The plugin
 
-### §RK1465 The probe that costs what it protects
-
-Measured on Windows 11 against this checkout, five runs each, `initialize` written to
-stdin and the first response line read back:
-
-    scripts/roadkeep.py mcp        283 ms min, 315 ms median
-    hooks/roadkeep-launch.py mcp   646 ms min, 677 ms median
-
-The difference is one `python scripts/roadkeep.py --version` — a whole interpreter start
-and a whole `roadkeep.cli` import, 287 ms of the 363 ms the launcher adds. It buys one
-thing: that a candidate found on disk will run, which RK1214 added after a sibling
-checkout mid-refactor answered a `section add` with an `ImportError`.
-
-That reason is POSIX's. `_serve` on Windows no longer `execv`s (RK1446) — it runs the
-child with stdio inherited and hands back its exit code — so the parent this probe was
-protecting is still there when the child fails, and the failure it predicts has already
-happened in front of it.
-
-What it costs is not the milliseconds here. It is that connecting is the engine's time
-plus a second cold Python start, on the one path a client puts a thirty-second ceiling
-on. RK1449 moved the cliff out of `initialize`; this is the floor under it.
-
-The forwarded verb keeps its probe: it may write, so trying the next candidate could
-repeat a half-done write. That hazard is what makes the two callers different. **No
-supported Python API.** is about what this package exports; a Python interpreter start
-is a cost, so the rule bounds nothing here.
-
 ### §RK1469 The order that is stated twice and read once
 
 RK1230 exists because a session found its engine by listing a plugins cache and reached

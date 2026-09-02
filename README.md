@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 8 | 148 | 3 |
 | D — The gate | 2 | 208 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 7 | 138 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 139 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 949 | 13 |
+| **Total** | 22 | 950 | 13 |
 
 **Next ready:**
 
-- 📋 **RK1465** (deps: —) **the launcher spends a whole extra Python start proving an engine runs, doubling how long connecting takes** — The probe was justified by an execv that cannot be taken back, and on Windows there is none: the parent waits on the child already. → §RK1465
+- 📋 **RK1466** (deps: —) **a project numbering by id gets every address in one answer, which at this repository's size is 961 rows and 175 KB** — RK1450 replaced a count nothing could open with a listing nothing bounds, because the register it stood in for was also what held the rows back. → §RK1466
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

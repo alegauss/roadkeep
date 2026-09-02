@@ -1138,6 +1138,60 @@ def test_a_forwarded_verb_asks_before_it_runs_and_never_retries(tmp_path, monkey
     assert all(broken_engine not in " ".join(one) for one in ran[1:])
 
 
+def test_the_server_pays_for_no_probe_where_nothing_is_replaced(tmp_path, monkeypatch):
+    """RK1465. The probe is bought by `execv`, which cannot be taken back: a broken engine
+    replaces this process and the harness reads the exit as a crashed server. On Windows there
+    is no image to replace — the parent waits on the child — so the failure it predicts has
+    already happened in front of it, with the child's exit code standing for it.
+
+    Measured on Windows 11 against this checkout, five runs each, `initialize` written to
+    stdin and the first response line read back: the engine directly at 283 ms min, this file
+    at 646. The difference is one `python scripts/roadkeep.py --version`, a whole interpreter
+    start and a whole `roadkeep.cli` import, on the one path a client puts a thirty-second
+    ceiling on."""
+    bridge = load()
+    repo = tmp_path / "repo"
+    working(repo / bridge.VENDORED, answer="served")
+    monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(repo))
+    sealed(monkeypatch, tmp_path)
+    monkeypatch.setattr(bridge, "_windows", lambda: True)
+
+    ran: list[list[str]] = []
+    monkeypatch.setattr(
+        bridge.subprocess, "run", lambda argv, **_: ran.append(list(argv)) or _Done(0)
+    )
+    assert bridge._serve([]) == 0
+    # One spawn and not two: the server, and never a `--version` in front of it.
+    assert [one[-1] for one in ran] == ["mcp"], ran
+
+
+def test_the_posix_server_still_asks_because_execv_cannot_be_undone(tmp_path, monkeypatch):
+    # The half that does not move: there the image *is* replaced, so a broken engine becomes
+    # this process and the harness reads the exit as a crashed server.
+    bridge = load()
+    repo = tmp_path / "repo"
+    broken(repo / bridge.VENDORED)
+    working(tmp_path / "roadkeep", answer="served")
+    monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(repo))
+    sealed(monkeypatch, tmp_path)
+    monkeypatch.setattr(bridge, "_windows", lambda: False)
+
+    execed: list[list[str]] = []
+    monkeypatch.setattr(bridge.os, "execv", lambda _exe, argv: execed.append(list(argv)))
+    assert bridge._serve([]) is None
+    # The broken candidate was probed and never `execv`'d, which is the whole of RK1214 here.
+    (command,) = execed
+    assert str(repo / bridge.VENDORED) not in " ".join(command)
+    assert str(tmp_path / "roadkeep") in " ".join(command)
+
+
+class _Done:
+    """`subprocess.run`'s answer, as much of it as `_serve` reads."""
+
+    def __init__(self, code: int) -> None:
+        self.returncode = code
+
+
 def test_the_refusal_tells_a_broken_engine_from_an_absent_one(tmp_path, monkeypatch, capfd):
     """A message saying *no engine found* over a directory plainly sitting there sends its
     reader looking for the wrong thing."""
