@@ -191,7 +191,9 @@ that entry owns — which is the count `record amend --lines` asks you to have r
 <id>` walks the graph both ways; `gaps` resolves an id in neither file against the commit
 that removed it, and `unclosed` is that question pointed the other way — an **open**
 line whose work a commit already names, which is what a session that shipped the code
-and forgot the line leaves behind; `origin <id> --why` reads it out of history, and `origin §<anchor>`
+and forgot the line leaves behind — a commit touching only governed files is *this tool
+writing* and is not counted, so an amended `why` or a corrected rationale never reads as
+work that landed; `origin <id> --why` reads it out of history, and `origin §<anchor>`
 answers the other end of a pointer — a rationale address somebody's prose still cites
 after a ship deleted the section, which no file records, so the three answers are the
 commit that wrote it, the one that took it, and "searched and nobody ever wrote it", which

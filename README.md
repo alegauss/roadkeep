@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 6 | 224 | 2 |
-| C — Query (consult without reading the file) | 7 | 150 | 4 |
+| C — Query (consult without reading the file) | 6 | 151 | 4 |
 | D — The gate | 5 | 209 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 142 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 956 | 14 |
+| **Total** | 22 | 957 | 14 |
 
 **Next ready:**
 
-- 📋 **RK1473** (deps: —) **`unclosed` counts roadkeep's own prose edits as evidence a line shipped, so its report is mostly its own writes** — It drops the commit that filed an id and no other, though `amend` and `section amend` name one too and touch only files it governs. → §RK1473
+- 💭 **RK1474** (deps: —) **a decision's symptom is a copy of a roadmap line that is gone, and no verb in any of the three files can correct it** — revise reaches the sentence and restate reached the line before it shipped, so a claim mangled by a shell is now permanent in two files at once. → §RK1474
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

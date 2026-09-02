@@ -2297,3 +2297,84 @@ def test_an_outline_project_keeps_the_family_register_it_had(tmp_path, capsys):
     assert "XXXVII   2 live, 0 retired" in out
     assert "live     XXXVII.1" not in out
     assert "anchors --family <anchor>" in out
+
+
+# -- the report that was mostly its own writes (RK1473) ------------------------
+
+
+def test_a_commit_touching_only_governed_files_is_this_tool_writing(tmp_path):
+    """RK1473. `unclosed` already drops the commit that filed an id, because `add` mints it and
+    nothing could name one earlier. The same argument covers `amend`, `restate`, `status` and
+    `section amend`: each ends with a message naming the id and each touches only files
+    roadkeep governs, so none is a session that shipped code and forgot the line.
+
+    Measured on an adopting project: three of eight open lines reported, two of them a
+    corrected `why` and a corrected rationale, the third a rationale and a comment in
+    `roadkeep.toml`. None was code."""
+    from roadkeep.history import pending
+
+    config = repo(tmp_path)
+    propose(config, "RK1", "docs: file RK1")
+    # The `amend` shape: the roadmap and nothing else, with the id in the subject.
+    append(config.path("roadmap"), "\n")
+    git_commit(config.root, "docs(RK1): correct the why")
+
+    (row,) = [one for one in pending(Config.discover(tmp_path)) if one.id == "RK1"]
+    assert row.commits == (), "a backlog edit is not evidence the work landed"
+
+
+def test_a_commit_that_touches_code_is_what_the_verb_was_written_for(tmp_path):
+    from roadkeep.history import pending
+
+    config = repo(tmp_path)
+    propose(config, "RK1", "docs: file RK1")
+    (tmp_path / "thing.py").write_text("x = 1\n", encoding="utf-8")
+    git_commit(config.root, "feat(RK1): the thing works now")
+
+    (row,) = [one for one in pending(Config.discover(tmp_path)) if one.id == "RK1"]
+    assert [one.subject for one in row.commits] == ["feat(RK1): the thing works now"]
+
+
+def test_a_commit_doing_both_at_once_is_still_reported(tmp_path):
+    # Real and named as such by the design: a session that shipped the code and corrected the
+    # line in one commit has left the line open, which is exactly what this verb is for.
+    from roadkeep.history import pending
+
+    config = repo(tmp_path)
+    propose(config, "RK1", "docs: file RK1")
+    (tmp_path / "thing.py").write_text("x = 1\n", encoding="utf-8")
+    append(config.path("roadmap"), "\n")
+    git_commit(config.root, "feat(RK1): the thing works, and the line reads better")
+
+    (row,) = [one for one in pending(Config.discover(tmp_path)) if one.id == "RK1"]
+    assert len(row.commits) == 1
+
+
+def test_a_commit_nothing_is_known_about_is_left_reported(tmp_path, monkeypatch):
+    # The safe direction for a report, which is the rule the filing-commit drop already keeps:
+    # an absent answer is not evidence, and this filter only ever removes rows.
+    from roadkeep import history
+    from roadkeep.history import pending
+
+    config = repo(tmp_path)
+    propose(config, "RK1", "docs: file RK1")
+    append(config.path("roadmap"), "\n")
+    git_commit(config.root, "docs(RK1): correct the why")
+
+    monkeypatch.setattr(history, "_touched", lambda root, shas: {})
+    (row,) = [one for one in pending(Config.discover(tmp_path)) if one.id == "RK1"]
+    assert len(row.commits) == 1
+
+
+def test_the_config_is_this_tool_s_file_too(tmp_path):
+    # `govern` and `declare` write it, so a commit that moved a limit and named an id is the
+    # tool's own write exactly as a corrected `why` is.
+    from roadkeep.history import pending
+
+    config = repo(tmp_path)
+    propose(config, "RK1", "docs: file RK1")
+    append(config.root / "roadkeep.toml", "\n# a comment\n")
+    git_commit(config.root, "docs(RK1): govern the limit it argued for")
+
+    (row,) = [one for one in pending(Config.discover(tmp_path)) if one.id == "RK1"]
+    assert row.commits == ()

@@ -21,6 +21,7 @@ is already addressable.
 
 from __future__ import annotations
 
+import contextlib
 import re
 import shutil
 import subprocess
@@ -28,7 +29,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from roadkeep.config import PROSE_ROLES, Config
+from roadkeep.config import PROSE_ROLES, ROLES, Config
 from roadkeep.kernel.document import Document
 from roadkeep.kernel.schema import ARROW, REF_SEPARATOR, Schema, split_ref
 from roadkeep.sections import Section, anchored, find, owners
@@ -1009,6 +1010,27 @@ def pending(config: Config) -> tuple[Pending, ...]:
     for named in naming.values():
         named.pop()
 
+    # **And every other commit that is only this tool writing** (RK1473). The rule above is
+    # `add`'s and the argument covers more than `add`: `amend`, `restate`, `status` and
+    # `section amend` all end with a message naming the id, and all touch only files roadkeep
+    # governs. None is a session that shipped code and forgot the line — each is the tool's own
+    # write, made because it asked and staging the files it named.
+    #
+    # Measured on an adopting project: three of eight open lines reported, two of them a
+    # corrected `why` and a corrected rationale, the third a rationale and a comment in
+    # `roadkeep.toml`. None was code. A report whose entries are all false is one a reader
+    # stops opening, and this one was loudest where a backlog is kept most carefully.
+    #
+    # What separates them is on disk, so it is read and not recorded: a commit touching only
+    # governed files is about the backlog, and one touching anything else and naming an id is
+    # what this verb was written for. A commit doing both at once is real and still reported.
+    ours = _governed_paths(config)
+    touched = _touched(config.root, {one.sha for rows in naming.values() for one in rows})
+    naming = {
+        token: [one for one in rows if not _only_ours(touched.get(one.sha), ours)]
+        for token, rows in naming.items()
+    }
+
     return tuple(
         Pending(
             id=entry.task.id,
@@ -1019,6 +1041,58 @@ def pending(config: Config) -> tuple[Pending, ...]:
         )
         for entry in open_lines
     )
+
+
+def _governed_paths(config: Config) -> frozenset[str]:
+    """Every path this tool writes in a project, as git spells one (RK1473).
+
+    The declared roles and `roadkeep.toml`, which is the file `govern` and `declare` write and
+    is as much this tool's as any of them. Posix-separated, because that is what `git log`
+    prints on both platforms and comparing a `WindowsPath` against it is the one way this can
+    be quietly wrong.
+    """
+    out = {
+        config.path(role).relative_to(config.root).as_posix()
+        for role in ROLES
+        if config.has(role)
+    }
+    if config.source is not None:
+        with contextlib.suppress(ValueError):
+            out.add(config.source.relative_to(config.root).as_posix())
+    return frozenset(out)
+
+
+def _touched(root: Path, shas: set[str]) -> dict[str, tuple[str, ...]]:
+    """The paths each of these commits changed, in one call (RK1473).
+
+    `--no-walk` over the shas already in hand rather than a second whole-history log or one
+    call per id: the population is the commits that named an open line, which on the backlog
+    this was measured against is a handful.
+
+    Empty on any failure, which reads as *nothing is known about these commits* and leaves
+    every one of them reported — the safe direction for a report (see :func:`pending`).
+    """
+    if not shas:
+        return {}
+    try:
+        said = _run(root, "log", "--no-walk", "--format=%x00%H", "--name-only", *sorted(shas))
+    except HistoryUnavailable:
+        return {}
+    out: dict[str, tuple[str, ...]] = {}
+    for record in said.split(_NUL):
+        rows = [one for one in record.split(chr(10)) if one.strip()]
+        if rows:
+            out[rows[0].strip()] = tuple(rows[1:])
+    return out
+
+
+def _only_ours(paths: tuple[str, ...] | None, ours: frozenset[str]) -> bool:
+    """Whether this commit changed governed files and nothing else (RK1473).
+
+    False where nothing is known about it, and false for a commit that changed nothing: an
+    absent answer is not evidence, and this filter only ever *removes* rows.
+    """
+    return bool(paths) and all(one in ours for one in paths)
 
 
 #: What one `git log` line carries, separated by a NUL. A NUL cannot appear in a subject,
