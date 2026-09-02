@@ -39,6 +39,7 @@ from roadkeep.capturing import Debt
 from roadkeep.config import Config
 from roadkeep.kernel.document import Document, Entry, Reject, declares, shading
 from roadkeep.kernel.schema import DEFAULT_HEADING_WORD, Schema, width
+from roadkeep.remedying import Door
 
 
 @dataclass(frozen=True, slots=True)
@@ -137,6 +138,126 @@ class Split:
                 {"requirement": one.requirement, "lines": one.lines}
                 for one in self.absent
             ],
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class Bound:
+    """A listing over `[reads] list`, and the shape of the answer it would have been (RK1476).
+
+    An unscoped `list` prints the file. On the project measured that was 117,815 characters of
+    ledger — composed here, returned, and then refused by the transport carrying it. The
+    refusal is nobody's: roadkeep exited 0 having answered, and never learns that the answer
+    did not arrive. So the only bound that can exist is one this verb applies to itself.
+
+    What replaces the listing is its **structure**: the blocks of exactly the selection that
+    overran, with their counts, which is smaller than the answer refused and is what a caller
+    narrows by. RK1455 argued for that answer and could not act on it.
+
+    **The door has to work.** A narrowing offered here is a command this refusal is telling
+    somebody to run, and one that refuses in turn is worse than none (RK1475). So the block
+    named is the largest whose share of the listing is estimated to fit — and where no single
+    block would, there is no door and the sentence says the ceiling is the thing to re-argue.
+    """
+
+    file: str
+    #: What the answer would have cost, in the UTF-16 code units every other budget is in
+    #: (RK430) — measured on the **composed** answer, so `--ids` and `--json` are each held
+    #: against what that form actually returns rather than against a listing neither prints.
+    characters: int
+    limit: int
+    blocks: tuple[Tally, ...]
+    total: int
+    #: Whether a `--block` was already passed. Where it was, narrowing is spent: the sentence
+    #: has nothing to offer but the ceiling itself.
+    scoped: bool
+    #: The argv this refusal came from, less the block flag — so the door it composes is the
+    #: caller's own call and not a reconstruction of it.
+    argv: tuple[str, ...] = ()
+
+    @property
+    def narrows(self) -> str:
+        """The label a listing would fit under, or `""` where none would."""
+        if self.scoped or not self.total:
+            return ""
+        fitting = [
+            tally
+            for tally in self.blocks
+            if tally.label and tally.counted * self.characters <= self.limit * self.total
+        ]
+        return max(fitting, key=lambda tally: tally.counted).label if fitting else ""
+
+    @property
+    def doors(self) -> tuple[Door, ...]:
+        """The narrowing, as the one shape every published command in this package has.
+
+        `Door` and not a string, and `doors` and not `door` (RK1324): a consumer offering a
+        command here loops over the same list, with the same keys, as one offered by a lint
+        finding — and the rendering, quoting and this-engine prefix are that class's.
+        """
+        label = self.narrows
+        if not label:
+            return ()
+        return (
+            Door(
+                (*self.argv, "--block", label),
+                f"the largest listing under `[reads] list` — {label}",
+            ),
+        )
+
+    def stated(self) -> str:
+        """The structure, for **stderr** — stdout stays what the file says or nothing at all.
+
+        `list`'s own split (RK1170): a sentence in the pipe is a line no `--ids` consumer asked
+        for, and one arriving where the lines were expected is worse than the empty stdout an
+        exit code already explains.
+        """
+        pad = max([len(tally.name) for tally in self.blocks] + [len("total")])
+        rows = [
+            f"roadkeep: {self.file}: the listing is {self.characters} characters against "
+            f"`[reads] list` = {self.limit}, so this is its shape instead"
+        ]
+        rows += [
+            f"  {tally.name:<{pad}}  {tally.counted:>4}  {_marker_row(tally.markers)}".rstrip()
+            for tally in self.blocks
+        ]
+        rows.append(f"  {'total':<{pad}}  {self.total:>4}")
+        if self.doors:
+            rows += [
+                f"roadkeep: `{one.command}` is the largest of those that fits"
+                for one in self.doors
+            ]
+        elif self.scoped:
+            rows.append(
+                "roadkeep: this is one block already, so there is no narrower listing — "
+                "what is left is `[reads] list` re-argued in roadkeep.toml"
+            )
+        else:
+            rows.append(
+                "roadkeep: no single block would fit either, so there is no narrowing to "
+                "offer — what is left is `[reads] list` re-argued in roadkeep.toml"
+            )
+        return "\n".join(rows)
+
+    def payload(self) -> dict[str, object]:
+        """What rides the listing's payload where `tasks` came back `null`.
+
+        Beside the keys the answer already had and never instead of them: a payload that
+        changes shape when it is over is one a caller reads as a different answer, and
+        `tasks: null` is the one thing here that says *not listed* where `[]` says *none*.
+        """
+        return {
+            "characters": self.characters,
+            "limit": self.limit,
+            "blocks": [
+                {"label": tally.label, "name": tally.name, "counted": tally.counted}
+                for tally in self.blocks
+            ],
+            "scoped": self.scoped,
+            # `""` and not `null` where no block would fit: the question was answered — there
+            # is no narrowing — and a missing key reads as one nothing looked for.
+            "narrows": self.narrows,
+            "doors": [one.payload() for one in self.doors],
         }
 
 
@@ -375,6 +496,30 @@ class Census:
         """
         return "\n".join(entry.task.id if ids else entry.raw for entry in self.counted)
 
+    def bounded(
+        self, answer: str, limit: int | None, *, scoped: bool, argv: Iterable[str] = ()
+    ) -> Bound | None:
+        """The composed answer weighed against `[reads] list`, or `None` where it fits (RK1476).
+
+        Takes the answer rather than composing one: `--ids` and `--json` return different
+        widths of the same selection, and a bound measured on a listing neither of them prints
+        is a bound refusing the wrong calls in both directions.
+
+        Silent where the project declares no ceiling, which is every project until it looks —
+        `[reads]`' rule, and the reason this can be added to a verb everything already calls.
+        """
+        if limit is None or width(answer) <= limit:
+            return None
+        return Bound(
+            file=self.file,
+            characters=width(answer),
+            limit=limit,
+            blocks=self.tallies(),
+            total=self.total,
+            scoped=scoped,
+            argv=tuple(argv),
+        )
+
     def notes(self, standing: Standing | None) -> list[str]:
         """What goes to **stderr** beside a listing (RK10, RK429).
 
@@ -409,9 +554,17 @@ class Census:
         return [f"roadkeep: {standing.sentence}"]
 
     def listing(
-        self, standing: Standing | None, available: Iterable[str] = ()
+        self,
+        standing: Standing | None,
+        available: Iterable[str] = (),
+        bound: Bound | None = None,
     ) -> dict[str, object]:
-        """The same answer as data, with what the label it was scoped to turned out to be."""
+        """The same answer as data, with what the label it was scoped to turned out to be.
+
+        ``bound`` is the ceiling this answer did not fit under (RK1476). Every key it had
+        stays: only `tasks` is withdrawn, to `null` — which says *not listed* where `[]` says
+        *none selected*, a distinction a payload that simply came back shorter cannot make.
+        """
         from roadkeep.rendering import _miss_json, _row_json  # noqa: PLC0415 - RK260
 
         return {
@@ -431,7 +584,11 @@ class Census:
             # exactly the lines this call selected, which makes a filtered listing say what
             # its own selection is waiting on rather than what the whole file is.
             "startable": self.split(available).payload(),
-            "tasks": [_row_json(entry) for entry in self.counted],
+            # `None` where the project declares no ceiling, which is the answer *no bound was
+            # applied* and not *it fitted*: a key that appears only on the refusal is one a
+            # caller has to have met before to check for.
+            "over": None if bound is None else bound.payload(),
+            "tasks": None if bound is not None else [_row_json(entry) for entry in self.counted],
         }
 
     def counted_out(

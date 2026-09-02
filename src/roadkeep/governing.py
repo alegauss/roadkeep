@@ -128,9 +128,19 @@ class Measured:
     #: replace, on the one file every other rule is read out of. Verbatim: what the comment
     #: *means* is not this tool's to say (L4).
     because: tuple[str, ...] = ()
+    #: Whether a corpus above this number is a **violation** (RK1476). True for every limit
+    #: some gate refuses, which is what makes :class:`Violated` the right answer: a ceiling
+    #: whose first act is a finding is one somebody lowers, reads and raises again.
+    #:
+    #: False for `reads.list`, and it is not an exception to that rule but its other side. That
+    #: number bounds an *answer this verb declines to compose*, and the ledger it is declared
+    #: against will be over it permanently and by design — being over is the state the ceiling
+    #: exists to produce, not a red to bring the corpus under. Refusing the write would leave
+    #: the key undeclarable on exactly the projects that need it.
+    refuses: bool = True
 
     def over(self, at: int) -> bool:
-        return bool(self.sites) and self.worst > at
+        return self.refuses and bool(self.sites) and self.worst > at
 
     def stated(self, standing: bool = True) -> str:
         """The reading, and what the project declares — the second omitted by a write.
@@ -326,7 +336,7 @@ def reading(config: Config, address: str, *, file: str = "", role: str = "") -> 
     elif table == "tools":
         found = _tools(config, address, key, declared)
     elif table == "reads":
-        found = _reads(config, address, declared)
+        found = _reads(config, address, declared, key)
     else:
         found = Measured(
             address=address,
@@ -378,7 +388,7 @@ def _current(config: Config, table: str, key: str, *, file: str, role: str) -> i
     if table == "tools":
         return config.tool_characters if key == "characters" else config.tool_session
     if table == "reads":
-        return config.brief_read
+        return config.list_read if key == "list" else config.brief_read
     if table == "claims":
         return config.held
     for budget in config.budgets:
@@ -605,7 +615,60 @@ def _tools(config: Config, address: str, key: str, declared: int | None) -> Meas
     )
 
 
-def _reads(config: Config, address: str, declared: int | None) -> Measured:
+def _listings(config: Config, address: str, declared: int | None) -> Measured:
+    """What the widest unscoped listing costs now, over the files that hold lines (RK1476).
+
+    `list --role <r>` with no `--block` prints the whole of one file, and which file is widest
+    is the only reading that can price a ceiling held against all of them. The bare form and
+    not `--ids` or `--json`: the widest of the three is the one a ceiling has to clear, and it
+    is the one every other caller's is measured under.
+
+    The ledger is normally the answer and that is the point — a listing over a file that only
+    grows is the answer `[reads] list` exists to bound, and a number chosen without seeing it
+    is a number chosen against the roadmap.
+    """
+    from roadkeep.config import LINE_ROLES  # noqa: PLC0415 - RK260
+    from roadkeep.counting import Census  # noqa: PLC0415 - RK260
+    from roadkeep.kernel.schema import width  # noqa: PLC0415 - RK260
+
+    widest, where, sites = 0, "", 0
+    for role in LINE_ROLES:
+        if not config.has(role):
+            continue
+        try:
+            listed = width(Census.read(config, role).listed(ids=False))
+        except (KeyError, OSError):
+            # A role declared and unreadable is not this reading's to refuse: `lint` opens
+            # every one of them and says so with a path, and a `govern` that raised here
+            # would answer a question about a number with a question about a file.
+            continue
+        sites += 1
+        if listed > widest:
+            widest, where = listed, role
+    if not sites:
+        return Measured(
+            address=address,
+            unit="utf-16 code units, per unscoped listing",
+            declared=declared,
+            refuses=False,
+            unmeasured=(
+                "no file of lines to list, so there is nothing to price — a ceiling declared "
+                "now is one the first file written measures itself against"
+            ),
+        )
+    return Measured(
+        address=address,
+        unit="utf-16 code units, per unscoped listing",
+        worst=widest,
+        where=where,
+        sites=sites,
+        declared=declared,
+        # Over it is where the ledger permanently is, and the whole point of the number.
+        refuses=False,
+    )
+
+
+def _reads(config: Config, address: str, declared: int | None, key: str = "brief") -> Measured:
     """What the widest brief costs now — `cost --brief`'s own reading, taken here (RK1286).
 
     The read this project recommends over reading the file, priced the way every other number
@@ -613,6 +676,8 @@ def _reads(config: Config, address: str, declared: int | None) -> Measured:
     is the reading, for that verb's reason — a brief that fits on the average task and not on
     the hardest one is a brief a session replaces exactly when the file is longest.
     """
+    if key == "list":
+        return _listings(config, address, declared)
     from roadkeep.budgeting import brief_budget  # noqa: PLC0415 - RK260
 
     found = brief_budget(config)

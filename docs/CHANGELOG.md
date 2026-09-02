@@ -444,6 +444,7 @@
 - ✅ **RK1467** **A requirement gates the whole line, so the half of a task that needs nothing is never offered** — requirements declared may be a table of what each word is, and the refusal that withholds a line quotes it, so a caller weighs the gate instead of believing it.
 - 🗑 **RK1472** **`budget` takes no --requires, so it prices a line the requirement group has not been charged to** — superseded by RK1461: Delivered by RK1461, which measured the same 21 characters: budget --requires is repeatable and charged before the sentence exists, and the wider sweep is RK1483.
 - ✅ **RK1473** **`unclosed` counts roadkeep's own prose edits as evidence a line shipped, so its report is mostly its own writes** — unclosed drops a commit that touched only governed files, so a corrected why or rationale no longer reads as work that landed and the report is code again.
+- ✅ **RK1476** **an unscoped list over a ledger is bounded by nothing, so the transport refuses an answer this tool already composed** — A ceiling declared as `[reads] list`, held by the verb on the answer it composes: over it `list` prints that selection's blocks and counts, and the largest `--block` that fits.
 
 ## Block D — The gate
 

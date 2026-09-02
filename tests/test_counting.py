@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 import corpora
-from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
+from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.counting import NO_BLOCK, Census
 from roadkeep.kernel.document import Document
@@ -721,3 +721,90 @@ def test_the_payload_keeps_the_fact_the_report_stops_saying(tmp_path, capsys):
     # different fact from a stamp naming another repository (RK1162), and a key that appeared
     # only when non-empty is one a client stops looking for.
     assert held == {"kept": 1, "filed": 1, "delivered": [], "unfiled": []}
+
+
+# -- the bound this verb applies to itself (RK1476) -------------------------------
+
+
+def test_a_listing_under_the_ceiling_is_the_listing(tmp_path, capsys):
+    project(tmp_path, extra="[reads]\nlist = 4000\n")
+    assert main(["-C", str(tmp_path), "list"]) == EXIT_OK
+    assert capsys.readouterr().out.splitlines() == CLEAN.splitlines()[4:6] + [
+        CLEAN.splitlines()[9]
+    ]
+
+
+def test_a_listing_over_the_ceiling_leaves_stdout_empty(tmp_path, capsys):
+    # The whole of `list`'s split about that stream (RK1170): a consumer piping `--ids` gets
+    # the empty listing the exit code explains, and never a sentence where the ids were.
+    project(tmp_path, extra="[reads]\nlist = 40\n")
+    assert main(["-C", str(tmp_path), "list"]) == EXIT_GATE
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "against `[reads] list` = 40" in captured.err
+    assert "Block A" in captured.err and "total" in captured.err
+
+
+def test_the_ceiling_is_measured_on_the_form_that_would_be_printed(tmp_path, capsys):
+    # `--ids` returns a fraction of the width the same selection prints as lines, so a bound
+    # measured on the listing neither form emits refuses the wrong calls in both directions.
+    project(tmp_path, extra="[reads]\nlist = 40\n")
+    assert main(["-C", str(tmp_path), "list", "--ids"]) == EXIT_OK
+    assert capsys.readouterr().out.split() == ["RK1", "RK2", "RK3"]
+
+
+def test_the_narrowing_it_offers_is_a_listing_that_fits(tmp_path, capsys):
+    # RK1475's rule, run rather than asserted (RK1209): the door this refusal composes is a
+    # command it is telling somebody to type, and one that refuses in turn is worse than none.
+    from composing import runs
+
+    project(tmp_path, extra="[reads]\nlist = 220\n")
+    assert main(["-C", str(tmp_path), "list"]) == EXIT_GATE
+    assert runs(tmp_path, capsys.readouterr().err) == (["list", "--block", "A"],)
+
+
+def test_no_block_that_fits_leaves_no_door_at_all(tmp_path, capsys):
+    # The honest other half: a ceiling below every single block has no narrowing to offer, and
+    # what a refusal must not do there is compose one anyway.
+    project(tmp_path, extra="[reads]\nlist = 40\n")
+    assert main(["-C", str(tmp_path), "list"]) == EXIT_GATE
+    printed = capsys.readouterr().err
+    assert "no single block would fit" in printed and "--block" not in printed
+
+
+def test_a_block_already_scoped_is_told_the_ceiling_is_what_is_left(tmp_path, capsys):
+    project(tmp_path, extra="[reads]\nlist = 40\n")
+    assert main(["-C", str(tmp_path), "list", "--block", "A"]) == EXIT_GATE
+    assert "this is one block already" in capsys.readouterr().err
+
+
+def test_the_payload_keeps_every_key_and_withdraws_only_the_tasks(tmp_path, capsys):
+    # `null` and not `[]`: *not listed* is a different answer from *none selected*, and a
+    # payload that simply came back shorter cannot make the distinction.
+    project(tmp_path, extra="[reads]\nlist = 40\n")
+    assert main(["-C", str(tmp_path), "list", "--json"]) == EXIT_GATE
+    held = json.loads(capsys.readouterr().out)
+    assert held["tasks"] is None and held["total"] == 3
+    assert {"file", "uncounted", "standing", "startable"} <= set(held)
+    assert held["over"]["limit"] == 40 and held["over"]["scoped"] is False
+    assert held["over"]["doors"] == []
+    assert [row["label"] for row in held["over"]["blocks"]] == ["A", "B"]
+
+
+def test_a_project_declaring_no_ceiling_says_so_rather_than_that_it_fitted(tmp_path, capsys):
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "list", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["over"] is None
+
+
+def test_a_reads_table_holding_nobody_to_anything_is_refused(tmp_path):
+    from roadkeep.config import ConfigError
+
+    with pytest.raises(ConfigError) as raised:
+        project(tmp_path, extra="[reads]\n")
+    assert "no brief and no list" in "\n".join(raised.value.problems)
+
+
+def test_each_reads_key_stands_without_the_other(tmp_path):
+    assert project(tmp_path, extra="[reads]\nlist = 40\n").brief_read is None
+    assert project(tmp_path, extra="[reads]\nbrief = 40\n").list_read is None

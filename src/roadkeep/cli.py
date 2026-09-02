@@ -526,6 +526,11 @@ GATE_VERDICTS: Mapping[str, str] = {
         "findings are left, which is what `lint` says about the same files; declared by the "
         "parser and withdrawn by the run for a step whose argv came back non-zero"
     ),
+    "verbs/querying.py:_list": (
+        "the listing is past `[reads] list` and the answer printed is its shape instead, "
+        "which is a bound this verb applies to itself because the transport that refuses "
+        "one cannot tell it; declared by the parser, this verb reaching the code nowhere else"
+    ),
     "verbs/querying.py:_verdict": (
         "a draft this read was handed does not fit, which is the one bit the caller asked for"
     ),

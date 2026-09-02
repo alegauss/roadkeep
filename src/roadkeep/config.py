@@ -182,7 +182,7 @@ _TOOLS_KEYS = frozenset({"characters", "session"})
 #: **path**, and a brief is composed per call from the line, its design, the deps, the
 #: non-goals and four allowances. Not `[limits]` either — that table is the widths of the
 #: fields a line carries, and this is the size of an answer about one.
-_READS_KEYS = frozenset({"brief"})
+_READS_KEYS = frozenset({"brief", "list"})
 #: `[install]` — whether this project holds its wired launcher, hook and skill at the version
 #: they are (RK1192). Its own table and not a `[rules]` entry, because every key there is a
 #: prose rule one governed *file* is not held to, and this is about the harness around them.
@@ -493,6 +493,14 @@ class Config:
     #: one tool result, and until this nothing said what that was — the same absence RK30 named
     #: about a resident file and RK1059 about the served schema.
     brief_read: int | None = None
+    #: `[reads] list` — what a whole-file listing may cost, in UTF-16 code units (RK1476).
+    #: `brief`'s argument over the answer that has no id: `list` with no `--block` prints the
+    #: file, and on a measured project the ledger's listing was 117,815 characters — composed,
+    #: returned, and then refused by the transport, which is a refusal roadkeep never learns
+    #: about because it exited 0 having answered. So the only bound that can exist is one the
+    #: verb applies to itself. `None` where the project declared none, which is every project
+    #: whose files are still short enough that nobody has looked.
+    list_read: int | None = None
     tool_characters: int | None = None
     #: `[tools] session` — what the whole served surface may cost at the handshake: every
     #: tool plus the instructions, which is the figure `cost --session` prints (RK1097).
@@ -646,7 +654,7 @@ class Config:
         priority = tuple(_string_list(data.get("priority"), "priority", problems))
         budgets = _budgets(data.get("budgets"), base, problems)
         tool_characters, tool_session = _tool_budget(data.get("tools"), problems)
-        brief_read = _read_budget(data.get("reads"), problems)
+        brief_read, list_read = _read_budget(data.get("reads"), problems)
         grammars = _grammars(data.get("grammar"), problems)
         non_goals = _scope(data.get("non_goals"), problems)
         criteria = _scope(data.get("criteria"), problems, "criteria")
@@ -693,6 +701,7 @@ class Config:
             priority=priority,
             budgets=budgets,
             brief_read=brief_read,
+            list_read=list_read,
             tool_characters=tool_characters,
             tool_session=tool_session,
             grammars=grammars,
@@ -1782,32 +1791,43 @@ def _named(
     return tuple(dict.fromkeys(names))
 
 
-def _read_budget(raw: object, problems: list[str]) -> int | None:
-    """`[reads] brief` — what the one read that replaces reading the file may cost (RK1286).
+def _read_budget(raw: object, problems: list[str]) -> tuple[int | None, int | None]:
+    """`[reads]` — what an answer this tool composes may cost the caller (RK1286, RK1476).
 
     Opt-in and refused like every other key here rather than defaulted, which is `[tools]`'
     rule and `[criteria]`'s: a ceiling this tool chose for somebody's answer would be a number
     nobody looked at, and a gate that reported on the first run is one that gets bypassed.
+
+    Two keys, and **independent** — unlike `[tools]`, where `session` is a sum over what
+    `characters` governs and is meaningless without it. `brief` bounds the read that replaces
+    reading the roadmap and `list` bounds the listing over a whole file; a project may want
+    either without the other, and the table's own refusal is the one that fires when it
+    declares neither.
     """
     if raw is None:
-        return None
+        return None, None
     if not isinstance(raw, Mapping):
         problems.append("reads must be a table of brief = <characters>")
-        return None
+        return None, None
     _reject_unknown(raw, _READS_KEYS, "reads.", problems)
-    value = raw.get("brief")
-    if value is None:
+    if raw.get("brief") is None and raw.get("list") is None:
         # `[tools]`' own refusal: a table that holds nobody to anything reads as a budget and
         # is exactly the arrangement being replaced.
         problems.append(
-            "reads declares no brief: a table that holds nobody to anything reads as a "
-            "budget and is the arrangement being replaced"
+            "reads declares no brief and no list: a table that holds nobody to anything "
+            "reads as a budget and is the arrangement being replaced"
         )
-        return None
-    if not isinstance(value, int) or isinstance(value, bool) or value < 1:
-        problems.append("reads.brief must be a positive integer")
-        return None
-    return value
+        return None, None
+    found: list[int | None] = []
+    for key in ("brief", "list"):
+        value = raw.get(key)
+        if value is not None and (
+            not isinstance(value, int) or isinstance(value, bool) or value < 1
+        ):
+            problems.append(f"reads.{key} must be a positive integer")
+            value = None
+        found.append(value)
+    return found[0], found[1]
 
 
 def _tool_budget(raw: object, problems: list[str]) -> tuple[int | None, int | None]:

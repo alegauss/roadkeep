@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 4 | 226 | 2 |
-| C — Query (consult without reading the file) | 7 | 151 | 4 |
+| C — Query (consult without reading the file) | 6 | 152 | 4 |
 | D — The gate | 7 | 209 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 142 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 959 | 14 |
+| **Total** | 22 | 960 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1476** (deps: —) **an unscoped list over a ledger is bounded by nothing, so the transport refuses an answer this tool already composed** — RK1455 pointed a caller at the structure and left the listing at 117,815 characters, and no ceiling here is declared, measured or read. → §RK1476
+- 💭 **RK1477** (deps: —) **a re-filing of shipped work in other words ranks 7th, outside both windows, so the add that wrote it agreed it was new** — The corpus is symptoms alone and the pair that proves it shares a subject and no words, which is what a second author writing the same defect produces. → §RK1477
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

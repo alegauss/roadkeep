@@ -172,8 +172,11 @@ from**: `block list` is, with each block's title, what it holds open and what th
 records under it, and it is the first call of a session that has to place something.
 Reach for it before an unscoped `list` over a ledger, which prints the file — measured at
 117,815 characters on one project, refused by the transport, and what a caller did next
-was grep the governed file. Where `[requirements]` is declared the count
-splits into what nothing absent is holding up and what the rest wait for, `--have <word>`
+was grep the governed file. Where the project declares `[reads] list`, that listing comes
+back as its blocks and counts instead, exit 1, with the largest `--block` that fits named:
+a bound the verb applies to itself, because the transport that refuses one cannot say so.
+Where `[requirements]` is declared the count splits into what nothing absent is holding up
+and what the rest wait for, `--have <word>`
 moving a line across and a line naming two requirements counted once. **Two of those three
 are yours only at a terminal**: nothing serves the counting verb or the auditing one, and
 both answers ride `list --json` instead — `startable` is the split, computed over exactly

@@ -114,25 +114,64 @@ def _census(config: Config, args: argparse.Namespace) -> tuple[Census, Standing 
     return census.select(block=args.block, marker=marker), standing
 
 
+def _list_argv(args: argparse.Namespace) -> tuple[str, ...]:
+    """The caller's own call, less `--block` — what a narrowing door is composed from (RK1476).
+
+    Rebuilt from the parsed namespace and not from `sys.argv`, because this verb is reached
+    over MCP too, where the argv the caller wrote is a JSON object and the command line was
+    :func:`~roadkeep.serving.argv`'s. What that composes is a door for the transport in hand.
+    """
+    out = ["list"]
+    if args.role != "roadmap":
+        out += ["--role", args.role]
+    if getattr(args, "marker", None):
+        out += ["--marker", args.marker]
+    if args.ids:
+        out.append("--ids")
+    return tuple(out)
+
+
 def _list(config: Config, args: argparse.Namespace) -> int:
     try:
         census, standing = _census(config, args)
     except (KeyError, OSError) as error:
         return _refused(error)
 
+    # Composed first and weighed after (RK1476), which is the shape of the problem: this verb
+    # already had the whole answer in hand when the transport refused it, and the only thing
+    # it could not do was decline to hand it over. Measured on what would be printed, so the
+    # three forms of this listing are each held against their own width.
     if args.json:
         # `--have` where the caller passed one, and nothing where it did not (RK1442): the
         # payload's split is `stats`' own, so what a caller declares moves lines across here
         # exactly as it does there. The served tool takes no such flag and never will while
         # `[tools] session` is this close — the agent on that transport is the caller with no
         # hands, which is the population this split already assumes.
-        print(json.dumps(census.listing(standing, getattr(args, "have", ())), indent=2))
-    else:
-        listed = census.listed(args.ids)
-        if listed:
-            print(listed)
-        for note in census.notes(standing):
-            print(note, file=sys.stderr)
+        have = getattr(args, "have", ())
+        answer = json.dumps(census.listing(standing, have), indent=2)
+        bound = census.bounded(
+            answer, config.list_read, scoped=bool(args.block), argv=_list_argv(args)
+        )
+        if bound is None:
+            print(answer)
+            return EXIT_OK
+        print(json.dumps(census.listing(standing, have, bound), indent=2))
+        return EXIT_GATE
+
+    listed = census.listed(args.ids)
+    bound = census.bounded(
+        listed, config.list_read, scoped=bool(args.block), argv=_list_argv(args)
+    )
+    if bound is not None:
+        # Nothing on stdout, which is this verb's own rule about that stream (RK1170): a
+        # consumer piping `--ids` gets the empty listing the exit code explains, and never
+        # a sentence where the ids were.
+        print(bound.stated(), file=sys.stderr)
+        return EXIT_GATE
+    if listed:
+        print(listed)
+    for note in census.notes(standing):
+        print(note, file=sys.stderr)
     return EXIT_OK
 
 
@@ -1382,8 +1421,9 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
             "Print the lines a filter selects, exactly as the file spells them. A "
             "marker-bearing line the grammar did not accept is reported on stderr with "
             "the count, so a filtered listing can never look complete when it is not. "
-            "`block list` names the labels this takes and cannot enumerate — unscoped "
-            "over a long ledger, this prints the whole file."
+            "`block list` names the labels this takes and cannot enumerate. Where the "
+            "project declares `[reads] list`, a listing past it comes back as its blocks "
+            "and counts with the narrowing that fits, not one this transport refuses."
         ),
     )
     _counting_flags(list_parser)
@@ -1406,7 +1446,10 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         ids='how a terminal prints: the payload carries every id in `tasks`, so a caller over this transport already has what the flag composes',
         have='the caller on this transport is the one with no hands, which is what the split already assumes — and the flag `brief` and `pick` expose costs the connect budget a read that answers without it does not',
     )
-    list_parser.set_defaults(handler=_list, reads_only=True)
+    # `verdict=True` for `lint`'s reason (RK1421): the one non-zero exit this verb has is the
+    # answer *your listing is past `[reads] list`, and here is its shape* — a bound this verb
+    # applies to itself, not a fall, so offering to file a defect about it would be a regress.
+    list_parser.set_defaults(handler=_list, reads_only=True, verdict=True)
     # Two output *forms* of one read are two answers, exactly as `budget`'s subjects are
     # (RK465's rule, RK467's find): the payload came back whole with nothing said about the
     # flag that shaped nothing.
