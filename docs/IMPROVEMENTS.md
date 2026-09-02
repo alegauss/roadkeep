@@ -509,6 +509,30 @@ the ledger sentence it prints now and the decision's beside it where `--decides`
 passed. The exemption table then loses four rows, which is the test saying what the
 surface should have been.
 
+### §RK1507 The carried line's two readers
+
+RK1484 taught `record amend` to recognise a continuation this tool wrote. It recognises
+it by a string prefix — two spaces, the word, the bold that opens a lead — matched
+against what `_verified` composes a thousand lines away in the same module. Two readers
+of one shape, and their failure is silent in the direction that costs: change the indent
+or the word, the recogniser stops matching, the entry reads as hand-wrapped, and the
+door returns to demanding a span. Nothing goes red, and a caller meets the refusal
+RK1484 removed.
+
+The kernel's rule is the answer and is already stated: `Schema.render` is the only
+writer of the line format and `Document` the only reader of a file, because a field
+written by one function and read by another is one the two come to disagree about. A
+carried line is a line of a governed file. It has a writer, now a reader, and neither is
+the schema.
+
+So the shape is one function composing a carried line and one deciding whether a line is
+one, beside each other, with a test round-tripping a composed line back through the
+recogniser — `render` and `validate`'s arrangement at the smaller scale, which the
+module docstring already claims about every other line this tool writes.
+
+One shape today. It was zero before RK1460, and the ledger's continuation is the obvious
+place for a second — which is when the prefix match becomes a table of them.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

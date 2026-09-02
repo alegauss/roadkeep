@@ -49,6 +49,7 @@
 - 💭 **RK1504** (deps: —) **a served tool name that is also a CLI verb of a different act is a collision nothing enumerates** — RK1481 had to guard against two of them by hand, and the next one is a named= away from a caller whose correct call is rewritten. → §RK1504
 - 💭 **RK1505** (deps: —) **the note about a missing page says it is missing and not what it would have told the reader** — RK1482 measured a session that skipped three notes about tooling, and the fourth is the same kind of sentence one code over. → §RK1505
 - 💭 **RK1506** (deps: —) **budget prices one line per departure and a ship writes three, so the other two are exemptions rather than answers** — RK1483's table had to exempt four ship fields for belonging to a line this read has no subject for, which brief composes for free. → §RK1506
+- 💭 **RK1507** (deps: —) **a line this tool writes under a ledger entry is composed by one function and recognised by another, matching on a prefix** — RK1484 added the second reader, and a change to the indent or the word makes it stop matching with nothing anywhere going red. → §RK1507
 
 ## Block E — Adoption
 
