@@ -2980,7 +2980,13 @@ def _disagreeing(config: Config, tree: Tree) -> list[Note]:
     # `Engines.split` is the boolean, so an absent `.roadkeep/` — the default — adds nothing.
     vendored = found.vendored
     split = found.split and vendored is not None
-    if not (working or skewed or split):
+    # And the copy that is on no disk at all (RK1452, RK1471). `engines` exits 1 on it and the
+    # served note says it once per process; the gate said nothing, which is the same silence
+    # RK1468 closed one pair over. It is **not** a refusal — the remedy is a restart, which the
+    # reader of a gate cannot perform mid-run and an agent cannot perform at all, so a verdict
+    # moving here would be a wall with no door (RK313). Told, once per commit, and that is all.
+    swapped = found.swapped
+    if not (working or skewed or split or swapped):
         return []
     gate = f"this gate is {running.version}"
     if working:
@@ -2989,6 +2995,8 @@ def _disagreeing(config: Config, tree: Tree) -> list[Note]:
         gate += f", and the plugin wired to this project is {plugin.version}"
     if split and vendored is not None:
         gate += f", and the engine vendored here is {vendored.version}"
+    if swapped:
+        gate += f", loaded from a directory that states {running.on_disk} now"
     # One clause per fact and in the order they are stated, because a reader acts on a
     # different thing for each: an unpinnable verdict is a tree to look at, and a version
     # behind is a judge to move.
@@ -3000,6 +3008,8 @@ def _disagreeing(config: Config, tree: Tree) -> list[Note]:
             # the launcher runs the vendored copy and a shell reaches this one, so which rules
             # a line was written under depends on which door the session came through.
             *(["a line written here was written by whichever answered"] if split else []),
+            # The sharpest of the four: not *which* copy judged, but that no copy on disk did.
+            *(["this verdict came from code no disk holds"] if swapped else []),
         ]
     )
     # Named and never chosen (RK1468): re-vendoring is one answer and not reaching past the
@@ -3007,6 +3017,8 @@ def _disagreeing(config: Config, tree: Tree) -> list[Note]:
     moves = "; `/plugin update` moves the judge" if skewed else ""
     if split:
         moves += "; `install --vendor` re-pins the copy the launcher runs"
+    if swapped:
+        moves += "; a restart is the only thing that reloads a home replaced under a process"
     return [
         Note(
             "engine.disagreement",

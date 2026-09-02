@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 7 | 150 | 3 |
 | D — The gate | 4 | 209 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 141 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 142 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 955 | 13 |
+| **Total** | 22 | 956 | 13 |
 
 **Next ready:**
 
-- 💭 **RK1471** (deps: —) **a write from an engine whose home was swapped is allowed, on rules no disk holds and with no pin to compare against** — RK1235 refuses a copy behind the pin and RK1452 named a copy that is on no disk at all, which nothing in front of a write asks about. → §RK1471
+- 📋 **RK1472** (deps: —) **`budget` takes no --requires, so it prices a line the requirement group has not been charged to** — It reports the why limit as 185 where `add --requires` enforces 164, and the refusal's own foresee line points back at the call that said 185. → §RK1472
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

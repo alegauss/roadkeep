@@ -508,30 +508,6 @@ it is what this task is.
 
 ## Block F — The plugin
 
-### §RK1471 The guard that has no version to compare
-
-RK1235 put a guard in front of every governed write: a copy behind the pin a project
-declared with `[install] enforced` is refused, because it does not fail — it agrees with
-a rule that has moved and writes a line its own version thinks legal, reported
-afterwards as the file's problem rather than the pen's.
-
-RK1452 found a second copy in that state and did not guard it. A server whose home was
-replaced in place runs code on no disk anywhere: its schema, its limits and its markers
-are whatever they were at import, and the tree everyone else reads has moved past them.
-That is the RK1235 failure with the pin removed — no version to compare, no flag to have
-declared.
-
-Whether it should refuse is the open half, and the launcher's own first rule argues both
-ways. *Never block a turn* is why `roadkeep-launch.py` degrades to unenforced rather
-than erroring, and a write refused by a condition only a restart clears is a wall with
-no door — RK1235's refusal prints the copy to re-run through, and here there is none to
-print.
-
-The cheaper reading may be that this belongs to the note and not the guard: `swapped` is
-a fact a session acts on once, and acting on it is restarting. The decision left is
-whether a write under a swapped engine is worth saying so on, or whether saying it once
-at the top of the session is the whole remedy.
-
 ### §RK1482 The finding that is about the reader
 
 Measured on one long session in an adopting project. The session-start hook said the

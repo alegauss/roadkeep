@@ -811,6 +811,32 @@ def test_the_gate_names_the_vendored_copy_the_launcher_runs(tmp_path):
     assert "/plugin update" not in note.message
 
 
+def test_the_gate_says_a_verdict_came_from_code_no_disk_holds(tmp_path, monkeypatch):
+    """RK1471. RK1235 refuses a write from a copy behind the pin a project declared; RK1452
+    named a copy that is on no disk at all, and nothing in front of a write asked about it.
+    This is **not** a refusal — the remedy is a restart, which a gate's reader cannot perform
+    mid-run and an agent cannot perform at all, so a verdict moving here would be a wall with
+    no door (RK313). It is told, once per commit, beside the three pairs already named."""
+    from dataclasses import replace as _replace
+
+    from roadkeep.installing import Engines, install
+    from roadkeep.provenance import engine
+
+    config = project(tmp_path)
+    install(tmp_path, source=HERE)
+    # The one state a fixture cannot make: a home whose files moved under a live process.
+    # Composed rather than staged, which is what `Engines` being a record buys.
+    running = _replace(engine(), version="0.1.1269")
+    monkeypatch.setattr(
+        "roadkeep.installing.engines", lambda root=".": Engines(running=running)
+    )
+
+    (note,) = [n for n in lint(config).notes if n.code == "engine.disagreement"]
+    assert "loaded from a directory that states" in note.message
+    assert "no disk holds" in note.message
+    assert "a restart is the only thing" in note.message
+
+
 def test_a_project_that_vendored_nothing_is_told_nothing_new(tmp_path):
     # An absent `.roadkeep/` is the default, and a note on every project is the noise this
     # file refuses everywhere else — `Engines.split` is what keeps the clause off them.

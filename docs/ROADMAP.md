@@ -54,7 +54,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 💭 **RK1471** (deps: —) **a write from an engine whose home was swapped is allowed, on rules no disk holds and with no pin to compare against** — RK1235 refuses a copy behind the pin and RK1452 named a copy that is on no disk at all, which nothing in front of a write asks about. → §RK1471
 - 📋 **RK1482** (deps: —) **a finding about the reader's own stale tooling sits in lint's list at the same weight as a line over its limit** — One reads as work in the project and the other as a fact about the session, and a whole session read past three of the second kind. → §RK1482
 - 💭 **RK1485** (deps: —) **the record that stops a downgrade arrives on the write it guards, so an already-wired project is unprotected until then** — RK1462 reads [install] wired and nothing writes it before an install, which on the trees the defect was measured in is the very write being refused. → §RK1485
 - 💭 **RK1487** (deps: —) **a vendor that lands and then fails to wire leaves a copy nothing points at, and no refusal says it is there** — RK1464 accepted that hazard to stop the downgrade and left it silent, so the caller reads what stopped the surfaces and not what is now on disk. → §RK1487

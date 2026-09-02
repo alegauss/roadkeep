@@ -921,6 +921,7 @@
 - ✅ **RK1465** **the launcher spends a whole extra Python start proving an engine runs, doubling how long connecting takes** — the launcher stops probing before the server on Windows, where nothing is replaced, and connecting costs 58 ms over the engine instead of 328.
 - ✅ **RK1469** **engines --invoke restates the launcher's order and knows two of its four entries, so a ROADKEEP_HOME pin is missed** — engines --invoke answers the command this project declares rather than restating the launcher's resolution order, of which it knew two of four entries.
 - ✅ **RK1470** **the served staleness note reads mtimes, so an engine replaced under the session looks like somebody saving a file** — a home stating another version replaces the mtime inventory with the two numbers and one remedy, because the code that answered is on no disk and no module decided that.
+- ✅ **RK1471** **a write from an engine whose home was swapped is allowed, on rules no disk holds and with no pin to compare against** — the gate names a verdict that came from code no disk holds, and the write is not refused: the only remedy is a restart, which is a door neither a gate nor an agent can open.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
