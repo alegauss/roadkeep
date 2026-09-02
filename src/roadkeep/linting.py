@@ -2336,15 +2336,11 @@ def _designs(anchors: Mapping[str, Sequence[Section]] | None) -> dict[str, Secti
 def _settled(design: Section | None, lead: str) -> bool:
     """Whether this line's design quotes the constraint's lead (RK1457).
 
-    The lead and never a paraphrase: it is the constraint's **address**, so a design carrying
-    it names one rule and not a subject two rules share. Through `sections`' own flattening,
-    so a lead that the wrap broke across two lines still reads as one.
+    The reading is :func:`~roadkeep.scoping.settles`, which owns it because it is a rule about
+    what a lead is (RK1478): `non-goal list` reports the answers this note falls silent for,
+    and two functions applying the same rule is the drift that report exists to make visible.
     """
-    if design is None:
-        return False
-    from roadkeep.sections import quotes  # noqa: PLC0415 - RK260
-
-    return quotes(design.body, lead)
+    return design is not None and scoping.settles(design.body, lead)
 
 
 def _scope(config: Config, roadmap: Document | None) -> list[Finding]:

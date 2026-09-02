@@ -298,30 +298,6 @@ who is already this repository's maintainer.
 
 ## Block D — The gate
 
-### §RK1478 The answer that only one side can see
-
-RK1457 gave `non-goal.reaches` a way to be answered: the line's design quotes the
-constraint's lead and the note falls silent. Clearing this repository's own two took two
-`section amend --replace` calls whose whole content was a sentence saying *the rule
-bounds nothing here* — and neither of them said which note they were answering.
-
-So the record is silent in the direction a reader arrives from. Each clause read as a
-stray remark about the subject it named; nothing said a gate row was open, that somebody
-had read the constraint against the line, or that the silence depended on those words
-staying. Both are already gone — RK1465 and RK1466 shipped within the hour, and each
-ship deleted the design carrying one, unremarked.
-
-The other governed answers do not have this problem, because each is a field: a dep is
-annotated, a supersession is a marker and a pointer, a queue entry is a row. This one is
-prose, matched by substring, and the whole mechanism is invisible from the file.
-
-What is missing is not a second store — that is the field this task rejected, for
-reasons that hold. It is that nothing *reports* the answers. `non-goal list` prints the
-constraints and could print, per constraint, the lines whose design settled it: one
-read, derived, naming both sides. Then the decision is greppable from the rule as well
-as from the line, and a clause somebody is about to delete is one a command already
-named.
-
 ### §RK1488 The answer that leaves without a word
 
 RK1457 decided that a line's design is where an answer to `non-goal.reaches` goes, on

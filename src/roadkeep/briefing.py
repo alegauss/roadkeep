@@ -34,7 +34,7 @@ answers for that line (:func:`roadkeep.picking.hold`).
 from __future__ import annotations
 
 import textwrap
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 
 from roadkeep.backlog import Backlog, DepStatus, Readiness, Resolution, Standing
@@ -156,6 +156,12 @@ class NonGoals:
     leads: tuple[str, ...] = ()
     #: How many bullets the section held beyond the ones carried. 0 means these are all.
     elided: int = 0
+    #: Per lead, the open lines whose design quotes it — the answer `non-goal.reaches` falls
+    #: silent for, read from the rule's side (RK1478). Empty on a `brief`, which is about one
+    #: line and already prints its design: this is the listing's own row, and the mapping is
+    #: :func:`~roadkeep.scoping.settling`'s, so the report and the gate cannot disagree about
+    #: what quoting a lead is. A lead nobody answers is **absent** rather than empty.
+    settled: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
 
     def stated(self, config: Config) -> str:
         """The list at the moment a task is proposed (RK69), as a reader is told it.
@@ -172,7 +178,17 @@ class NonGoals:
         # let a reader take an ungoverned list for an enforced one.
         ungoverned = "" if config.non_goals is not None else "  read-only: no [non_goals]"
         rows = [f"{where}  {len(self.leads)} non-goal(s){ungoverned}"]
-        rows += [f"  not      {lead}" for lead in self.leads]
+        for lead in self.leads:
+            rows.append(f"  not      {lead}")
+            answered = self.settled.get(lead, ())
+            if answered:
+                # Under the constraint it answers and never as a second list: the whole
+                # finding is that this decision was readable from the line and not from the
+                # rule, so the row a reader arrives at is the one beside the rule.
+                rows.append(
+                    f"  settled  {', '.join(answered)} — quoted in a design, so "
+                    f"`non-goal.reaches` is answered for it"
+                )
         if self.elided:
             rows.append(f"  not      … and {self.elided} more under Non-goals")
         return "\n".join(rows)
@@ -186,6 +202,10 @@ class NonGoals:
             "governed": config.non_goals is not None,
             "non_goals": list(self.leads),
             "non_goals_elided": self.elided,
+            # Keyed by lead and carrying only the leads somebody answered, which is the rows'
+            # own rule: a map with an empty list under every constraint is the same silence
+            # published at length.
+            "non_goals_settled": {lead: list(ids) for lead, ids in self.settled.items()},
         }
 
 

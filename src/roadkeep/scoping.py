@@ -63,6 +63,8 @@ __all__ = [
     "leads",
     "read",
     "render",
+    "settles",
+    "settling",
     "validate",
 ]
 
@@ -392,6 +394,69 @@ def leads(document: Document) -> tuple[str, ...]:
     whose middle bold made the printed non-goal the word ``not``.
     """
     return tuple(goal.lead for goal in _bullets(document))
+
+
+def settles(design: str, lead: str) -> bool:
+    """Whether a design's prose quotes this constraint's lead (RK1457, RK1478).
+
+    Here and not in the gate that acts on it, because it is a rule about what a lead *is*: the
+    lead is the constraint's **address** (RK233), so a design carrying it names one rule and
+    not a subject two rules share. Both readers ask this one function, so the note that falls
+    silent and the listing that reports the silence cannot disagree.
+
+    Through `sections.quotes`, so a lead the wrap broke across two lines still reads as one —
+    how a paragraph is wrapped is not the author's problem here either.
+    """
+    from roadkeep.sections import quotes  # noqa: PLC0415 - RK260
+
+    return bool(design) and quotes(design, lead)
+
+
+def settling(config: Config, document: Document) -> dict[str, tuple[str, ...]]:
+    """Per non-goal lead, the open lines whose design quotes it (RK1478).
+
+    The gate's own answer, read forward. RK1457 taught `non-goal.reaches` to fall silent where
+    a line's design names the constraint, and that silence had no witness: the clause doing the
+    work is a sentence inside somebody's rationale, matched by substring, and nothing anywhere
+    said a note had been answered. Both of this repository's read as stray remarks about their
+    subject, and both were deleted within the hour by ships that did not know what they were.
+
+    So this is the reporting half and never a second store. The other governed answers are
+    each a **field** — a dep is annotated, a supersession is a marker and a pointer, a queue
+    entry is a row — and this one is prose, which is the right shape for a judgement somebody
+    argues; what it lacked is a read from the rule's side. :func:`~roadkeep.linting._settled`
+    decides one pair and this walks every pair, so the listing and the gate cannot come to
+    disagree about what quoting a lead is.
+
+    **Open lines only**, which is the population the note is about: a shipped line's design is
+    deleted by the ship, so an answer recorded there is not one a reader can still act on.
+    Leads with nobody answering them are absent rather than empty — a lead nothing settles is
+    the ordinary state, and a row per constraint saying *none* is the field a reader stops
+    reading (`Debt.stated`'s rule, one list over).
+    """
+    from roadkeep.config import DESIGN_ROLES  # noqa: PLC0415 - RK260
+    from roadkeep.sections import find  # noqa: PLC0415 - RK260
+
+    goals = _bullets(document)
+    if not goals:
+        return {}
+    designs = {
+        role: config.document(role) for role in DESIGN_ROLES if config.has(role)
+    }
+    out: dict[str, list[str]] = {}
+    for entry in document.entries:
+        ref = entry.task.ref
+        if not ref or entry.task.status not in config.schema.markers:
+            continue
+        section = next(
+            (one for one in (find(held, ref) for held in designs.values()) if one), None
+        )
+        if section is None:
+            continue
+        for goal in goals:
+            if settles(section.body, goal.lead):
+                out.setdefault(goal.lead, []).append(entry.task.id)
+    return {lead: tuple(ids) for lead, ids in out.items()}
 
 
 def address(lead: str) -> str:

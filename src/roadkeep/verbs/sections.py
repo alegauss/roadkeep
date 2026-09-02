@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from dataclasses import replace
 
 from roadkeep.blocking import (
     amend_block,
@@ -33,7 +34,12 @@ from roadkeep.queueing import (
     drop as drop_priority,
     migrate as migrate_priority,
 )
-from roadkeep.scoping import add as add_non_goal, amend as amend_non_goal, drop as drop_non_goal
+from roadkeep import scoping
+from roadkeep.scoping import (
+    add as add_non_goal,
+    amend as amend_non_goal,
+    drop as drop_non_goal,
+)
 from roadkeep.criteria import (
     add as add_criterion,
     addresses_task as criteria_addresses_task,
@@ -461,7 +467,12 @@ def _non_goal_list(config: Config, args: argparse.Namespace) -> int:
     the constraint an `add` is checked against is the constraint the file states.
     """
     try:
-        gathered = non_goals(config, config.document("roadmap"))
+        roadmap = config.document("roadmap")
+        # The answers, read from the rule's side (RK1478): `brief` gets this record with the
+        # mapping empty, being about one line and already printing its design.
+        gathered = replace(
+            non_goals(config, roadmap), settled=scoping.settling(config, roadmap)
+        )
     except (KeyError, OSError) as error:
         return _refused(error)
 

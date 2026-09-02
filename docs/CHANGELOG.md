@@ -660,6 +660,7 @@
 - ✅ **RK1434** **a non-goal can forbid a line the same file lists as ready, and nothing compares the two** — lint says non-goal.reaches where a non-goal lead and an open symptom share a word the ledger rarely uses, as a note with the two reads that settle it.
 - ✅ **RK1457** **non-goal.reaches fires on every lint and nothing clears it, so a project that decided reads the same note forever** — non-goal.reaches falls silent where the line's design quotes the constraint's lead, so a decision made once is recorded where it ages out with the work.
 - ✅ **RK1468** **the gate's engine note reads the plugin alone, so a project running two local copies at two versions passes it clean** — the gate note carries a third clause for the engine vendored here, so a project running two local pens at two versions is told once per commit and not only on demand.
+- ✅ **RK1478** **a settled constraint-line pair is a sentence in one design and no read names it, so the gate's silence has no witness** — non-goal list now carries a settled row per constraint, naming the open lines whose design quotes its lead, so the gate's silence is readable from the rule as well.
 
 ## Block E — Adoption
 

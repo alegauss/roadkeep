@@ -20,6 +20,7 @@ from pathlib import Path
 import pytest
 
 import corpora
+from roadkeep import scoping
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config, ConfigError, Scope
 from roadkeep.provenance import invocation
@@ -891,3 +892,54 @@ def test_the_note_names_the_section_the_answer_goes_in(tmp_path):
     (one,) = _reaches(_deciding(tmp_path, UNSETTLED))
     assert "§RK1" in one.message
     assert "records the answer" in one.message
+
+
+# -- the answer read from the rule's side (RK1478) -----------------------------
+
+
+def test_the_listing_names_the_line_whose_design_settled_a_constraint(tmp_path, capsys):
+    """RK1478. RK1457 gave the note a way to be answered and left the answer readable from one
+    side only: the clause doing the work is a sentence in somebody's rationale, matched by
+    substring, and nothing said a gate row had been closed. Both of this repository's own were
+    deleted within the hour by ships that did not know what they were."""
+    root = _deciding(tmp_path, SETTLED).root
+    assert main(["-C", str(root), "non-goal", "list"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "settled  RK1 —" in printed
+    assert "non-goal.reaches" in printed
+
+
+def test_a_design_that_argues_the_work_alone_settles_nothing(tmp_path, capsys):
+    root = _deciding(tmp_path, UNSETTLED).root
+    assert main(["-C", str(root), "non-goal", "list"]) == EXIT_OK
+    assert "settled" not in capsys.readouterr().out
+
+
+def test_the_payload_carries_only_the_leads_somebody_answered(tmp_path, capsys):
+    # A map with an empty list under every constraint is the same silence published at length,
+    # which is `Debt.stated`'s rule one list over.
+    root = _deciding(tmp_path, SETTLED).root
+    assert main(["-C", str(root), "non-goal", "list", "--json"]) == EXIT_OK
+    held = json.loads(capsys.readouterr().out)["non_goals_settled"]
+    assert held == {"No local patch to the vendored C.": ["RK1"]}
+
+
+def test_the_listing_and_the_gate_read_one_rule(tmp_path):
+    """Two functions applying one rule is the drift this report exists to make visible, so
+    there is one: `settles` decides a pair and `settling` walks them."""
+    config = _deciding(tmp_path, SETTLED)
+    answered = scoping.settling(config, config.document("roadmap"))
+    silent = {one.id for one in _reaches(config)}
+    assert set(sum(answered.values(), ())) & silent == set()
+    assert "RK1" in sum(answered.values(), ())
+
+
+def test_a_shipped_line_is_not_an_answer_anybody_can_still_read(tmp_path):
+    """Open lines only: a ship deletes the design, so an answer recorded there is gone with it
+    — and a listing naming a shipped id would point at prose no file holds."""
+    config = _deciding(tmp_path, SETTLED)
+    roadmap = config.path("roadmap")
+    text = roadmap.read_text(encoding="utf-8").replace("- 📋 **RK1**", "- ✅ **RK1**", 1)
+    with roadmap.open("w", encoding="utf-8", newline="") as handle:
+        handle.write(text)
+    assert scoping.settling(Config.discover(tmp_path), config.document("roadmap")) == {}

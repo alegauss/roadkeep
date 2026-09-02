@@ -419,8 +419,11 @@ address, so a constraint whose lead changes is one dropped and one written. **Ca
 `non-goal list` before an `add`** — the list binds what may be proposed, so reading it
 after the line exists is reading it too late; it prints on a project that never opted in,
 and nothing checks a proposal against it for you, that being a judgement about meaning and
-this tool having no model (L4). **That list's positive twin is `criterion`**, where
-`[criteria]` declares it governed: a non-goal says what is not built and this says what must
+this tool having no model (L4). A `settled` row under a constraint names the open lines
+whose design quotes its lead — the `non-goal.reaches` note answered, read from the rule's
+side, so a clause somebody is about to tidy away is one a command already named. **That
+list's positive twin is `criterion`**, where `[criteria]` declares it governed: a non-goal
+says what is not built and this says what must
 be **true** for a block to be finished, which nothing else states — a definition of done
 written into a rationale section is one `ship` correctly deletes, and then a block closes on
 emptiness. `criterion add --block <x> --lead "…" --why "…"` writes one, **opening that
