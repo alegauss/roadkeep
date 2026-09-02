@@ -68,7 +68,13 @@ from roadkeep.kernel.document import (
 from roadkeep.ids import CARRIERS, IdRef, Promise, carried, derivation, scan
 from roadkeep.markers import derive, refresh
 from roadkeep.ranking import VOLUNTEERED, claim, nearest
-from roadkeep.kernel.schema import SchemaError, Task, width as measured_width
+from roadkeep.kernel.schema import (
+    Dep,
+    Schema,
+    SchemaError,
+    Task,
+    width as measured_width,
+)
 from roadkeep.sections import Section
 
 #: The rationale a line arrives with: the heading, and prose that is either the string itself
@@ -156,6 +162,89 @@ class NoSuchDep(ValueError):
             f"{task_id} would wait on {named}, which {'are' if len(self.deps) > 1 else 'is'} "
             f"in neither {where} nor the changelog: nothing can say whether it is done — "
             f"state the dep it meant, or `gaps` reads where the id went"
+        )
+
+
+class DepNotCarried(ValueError):
+    """A `--drop-dep` naming something this line does not wait on (RK1480).
+
+    The narrow door's own rule, and the reason it is a refusal rather than a silent no-op: a
+    caller passing it believes the group changed, and a call that says *this one goes* about a
+    dep nothing carries is a call whose next reading of the line will surprise them. The group
+    the line does carry is named, because the address is the dep as the file renders it — with
+    the derived marker or without — and a caller looking at their own earlier call cannot see
+    which spelling landed.
+    """
+
+    def __init__(self, task_id: str, wanted: Sequence[str], carried: Sequence[str]) -> None:
+        self.task_id = task_id
+        self.wanted = tuple(wanted)
+        named = ", ".join(self.wanted)
+        held = ", ".join(carried) or "no deps at all"
+        super().__init__(
+            f"{task_id} does not wait on {named}: it carries {held} — a drop names one of "
+            f"those, with or without the derived marker, and `show {task_id}` prints them"
+        )
+
+
+class DepAlreadyCarried(ValueError):
+    """An `--add-dep` naming something this line already waits on (RK1480).
+
+    :class:`DepNotCarried` from the other side and refused for its reason exactly: the group
+    would not change, and a caller told nothing happened is a caller who reads the line again
+    to find out. A duplicate token in the group is `deps.duplicate` to the gate, so accepting
+    it silently would be this door writing the finding.
+    """
+
+    def __init__(self, task_id: str, wanted: Sequence[str]) -> None:
+        self.task_id = task_id
+        self.wanted = tuple(wanted)
+        named = ", ".join(self.wanted)
+        super().__init__(
+            f"{task_id} already waits on {named}: adding it again is the group saying one "
+            f"thing twice, which the gate reads as `deps.duplicate`"
+        )
+
+
+class DepRefused(SchemaError):
+    """A dep whose width is what pushed the line over (RK1480).
+
+    The second half of the narrow door, and the reason the door is worth building rather than
+    merely convenient. A dep is rendered *into* the line and the line's ceiling is shared with
+    the `why`, so a seventh dep can take the `why` below what it already holds — and the bare
+    rule then names the `why`, which had not changed and was not wrong. The caller is sent to
+    shorten a sentence they never meant to touch.
+
+    So where the call named what it was adding, the refusal names it too, with what that token
+    costs the line. What to do about it is still the caller's: a dep can be dropped, a `why`
+    can be shortened into the design the line already points at, and this tool does not choose
+    between somebody's evidence and somebody's blocker (L4).
+
+    A :class:`SchemaError` subclass, so every caller already catching that class keeps catching
+    this: what changes is the sentence, not the channel — :class:`RemainderRefused` one file
+    over is the same move, and both leave `violations` exactly as the schema wrote them.
+    """
+
+    #: The rules a dep can be what broke. `line.too-long` is the obvious one and is **not**
+    #: the measured one: where the line binds, `why_budget` folds its remainder into the
+    #: field's own limit, so the schema says `why.too-long` with a ceiling of 162 — which is
+    #: the exact sentence RK1480 was filed against. A `why` inside `why_max` refused by that
+    #: number was refused by the line, and the dep is what took the room; one over `why_max`
+    #: is too long whatever the deps are, and saying otherwise would send the caller to
+    #: remove a token that was not what broke it (RK1262's rule).
+    BROKE = ("line.too-long", "why.too-long")
+
+    def __init__(self, task_id: str, added: Sequence[str], cost: int, violations) -> None:
+        self.task_id = task_id
+        self.added = tuple(added)
+        self.cost = cost
+        named = ", ".join(self.added)
+        said = "; ".join(one.message for one in violations)
+        super().__init__(tuple(violations))
+        self.args = (
+            f"{task_id} has no room for {named}: {said} — that dep renders as {cost} "
+            f"characters of the line, and nothing about the sentence moved, so either the "
+            f"dep goes or the `why` does, into the design section the line already points at",
         )
 
 
@@ -1530,12 +1619,66 @@ class Amendment:
         }
 
 
+def _regrouped(
+    task_id: str, carried: Sequence[Dep], added: Sequence[str], dropped: Sequence[str]
+) -> list[str]:
+    """The dep group with one named token put in or taken out, and the rest as they are (RK1480).
+
+    The narrow door `--dep` could not be. Replacing the group is the honest primitive and stays
+    so; what it costs is that adding a seventh dep is a call naming all seven, six of which
+    exist to say nothing changed and each of which is a chance to drop one silently. Measured
+    on a line carrying six.
+
+    **Addressed as the file renders it, and as the bare id too.** The marker on a dep is
+    derived (RK8), so a caller reading their own earlier call, `show`, or the file itself has
+    three spellings in front of them and only one of them is theirs to have typed. Matching on
+    both is not laxity: the derived half is this tool's, and refusing a caller for not
+    reproducing it would be charging them for a field they do not write.
+
+    Order is the file's, and an addition goes last: the group is rendered in the order it is
+    typed (RK16 repairs only the derived), so re-sorting here would be this door rewriting a
+    sequence somebody chose while claiming to add one token to it.
+    """
+    held = list(carried)
+    going = list(dropped)
+    kept: list[str] = []
+    for dep in held:
+        wanted = next(
+            (one for one in going if one in (dep.render(), dep.id)), None
+        )
+        if wanted is None:
+            kept.append(dep.render())
+        else:
+            going.remove(wanted)
+    if going:
+        raise DepNotCarried(task_id, going, [dep.render() for dep in held])
+    already = [
+        one for one in added if any(one in (dep.render(), dep.id) for dep in held)
+    ]
+    if already:
+        raise DepAlreadyCarried(task_id, already)
+    return kept + list(added)
+
+
+def _dep_width(schema: Schema, added: Sequence[str]) -> int:
+    """What the added tokens cost the rendered line, separators included (RK1480).
+
+    Off the same reader the line is rendered through and never a `len` at the call site: a dep
+    costs its token, the `, ` before it, and the derived marker the annotation puts after it —
+    and a figure that counted only the token would understate exactly the amount a caller is
+    being asked to find somewhere else.
+    """
+    return sum(2 + measured_width(one) for one in added)
+
+
 def amend(
     config: Config,
     task_id: str,
     *,
     why: str | None = None,
     deps: Sequence[str] | None = None,
+    add_deps: Sequence[str] = (),
+    drop_deps: Sequence[str] = (),
     requires: Sequence[str] | None = None,
     ref: str | None = None,
     lines: int | None = None,
@@ -1574,6 +1717,12 @@ def amend(
     if len(twins) > 1:
         raise DuplicateId(task_id, config.relative(config.path("roadmap")), twins)
 
+    if add_deps or drop_deps:
+        # Derived into the same argument the whole-group door fills, so everything below is
+        # one path: what the two flags buy is that the caller names what changed, and the
+        # group the write validates is still one group composed once (RK1480).
+        deps = _regrouped(task_id, entry.task.deps, add_deps, drop_deps)
+
     wanted = replace(
         entry.task,
         why=entry.task.why if why is None else why,
@@ -1592,7 +1741,27 @@ def amend(
         refuse_deps(config, backlog, wanted)
     # Derived on write like every other annotation (RK8): the author names the dep and the
     # tool states whether it shipped.
-    updated = sections.checked(config, derive(backlog, wanted), schema=roadmap.schema)
+    try:
+        updated = sections.checked(config, derive(backlog, wanted), schema=roadmap.schema)
+    except SchemaError as refused:
+        # Under the flag that carried it, and only where the rule broken is one that flag
+        # could have broken (RK1480, RK1262's shape): a line already over on some other field
+        # is not this dep's fault, and framing it as one sends the caller to remove a token
+        # that was not what broke it.
+        over = [
+            one
+            for one in refused.violations
+            if one.code == "line.too-long"
+            or (
+                one.code == "why.too-long"
+                and measured_width(wanted.why) <= roadmap.schema.why_max
+            )
+        ]
+        if add_deps and over:
+            raise DepRefused(
+                task_id, add_deps, _dep_width(roadmap.schema, add_deps), over
+            ) from refused
+        raise
     if updated == entry.task:
         return Amendment(document=roadmap, entry=entry, before=entry.task)
     # Asked after the no-op check, so an amend that alters nothing never demands a count for

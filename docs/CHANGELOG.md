@@ -286,6 +286,7 @@
 - ✅ **RK1460** **A criterion checked by running something ships looking exactly like one nobody looked at** — ship --checked names a criterion this task carries and moves its own sentence under the ledger entry, so a verified claim no longer reads like an ignored one.
 - ✅ **RK1474** **a decision's symptom is a copy of a roadmap line that is gone, and no verb in any of the three files can correct it** — the claim two files copied is respellable and never rewordable, so a correction folding to the one on record lands and a rewording is refused by name.
 - ✅ **RK1475** **the ship that finishes a block offers a block drop the decisions file will refuse, on every project that files decisions** — the ship withdraws the block drop it would be refused for and states the ending instead, so a sweep is never handed the command that write just blocked.
+- ✅ **RK1480** **amend replaces the whole dep group, so adding one means retyping every dep the line already carries** — amend --add-dep and --drop-dep name what changed and derive the group, and an addition the line cannot hold is refused naming that dep rather than the sentence that never moved.
 
 ## Block C — Query
 

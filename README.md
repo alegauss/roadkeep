@@ -117,7 +117,7 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 4 | 226 | 2 |
+| B — Authoring (insert, never hand-edit) | 3 | 227 | 2 |
 | C — Query (consult without reading the file) | 4 | 154 | 4 |
 | D — The gate | 10 | 210 | 2 |
 | E — Adoption | 0 | 117 | 1 |
@@ -125,11 +125,11 @@ called unbuilt were already in the ledger.
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 963 | 14 |
+| **Total** | 22 | 964 | 14 |
 
 **Next ready:**
 
-- 📋 **RK1480** (deps: —) **amend replaces the whole dep group, so adding one means retyping every dep the line already carries** — The retyped group is also wider, so a why that fitted before the add is refused after it, and one edit becomes two failures. → §RK1480
+- 📋 **RK1481** (deps: —) **the CLI and the MCP surface spell several verbs and flags differently, so a call copied between them is refused** — next-id against next_id and --with against replacement each cost a refusal, and the caller cannot tell which surface a remembered spelling came from. → §RK1481
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

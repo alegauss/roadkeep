@@ -166,7 +166,12 @@ characters = 2850
 # which is a number no other subject reports. This transport is where it earns the 119
 # units, an agent refused here paying the whole payload again. 66910 leaves 119, the
 # discipline of the raise above it.
-session = 66910
+# RK1480 gives amend the narrow dep door, and this transport is where it pays: replacing
+# the group means an agent naming every dep it read out of an earlier answer, six of
+# seven arguments saying nothing changed, and the call then refused over a why that had
+# not moved. 165 characters for two fields, and the payload one refusal re-sends is
+# larger than that. 67200 leaves 125, the discipline of the 119 above it.
+session = 67200
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

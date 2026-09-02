@@ -33,6 +33,7 @@ from roadkeep.verbs.declaring import (
     _PIPE,
     _marker_flag,
     _reason_flag,
+    answers,
     withheld,
 )
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
@@ -142,13 +143,20 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
     # was to pass a field that is not changing: measured in pportal over five lines, where one
     # of them meant re-sending a `why` that then failed the line limit, because the annotation
     # had made the line longer. Two round trips for a field the verb has.
-    if args.why is None and args.deps is None and args.ref is None and not args.requires:
+    if (
+        args.why is None
+        and args.deps is None
+        and not args.add_deps
+        and not args.drop_deps
+        and args.ref is None
+        and not args.requires
+    ):
         # Named only where the project declares a vocabulary (L6): a flag offered here and
         # refused by `requires.unknown` one call later is the detour RK16 keeps out of a
         # remedy, and a project that declared none has no requirement to attach.
-        fields = "--why, --dep or --ref"
+        fields = "--why, --dep, --add-dep, --drop-dep or --ref"
         if config.schema.requirements:
-            fields = "--why, --dep, --requires or --ref"
+            fields = "--why, --dep, --add-dep, --drop-dep, --requires or --ref"
         print(f"roadkeep: nothing to amend: pass {fields}", file=sys.stderr)
         return EXIT_USAGE
     try:
@@ -157,6 +165,8 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
             args.id,
             why=_piped(args.why),
             deps=args.deps,
+            add_deps=args.add_deps,
+            drop_deps=args.drop_deps,
             requires=args.requires,
             ref=args.ref,
             lines=args.lines,
@@ -437,6 +447,26 @@ def declare_lines(subcommands: argparse._SubParsersAction) -> None:
     amend_parser.add_argument(
         "--why", help="the sentence, re-validated against the limit" + _PIPE
     )
+    # RK1480. The narrow door `--dep` could not be: measured adding a blocker to a line with
+    # six deps, where six of the seven arguments existed to say nothing changed and the call
+    # then failed over the `why`, which had not moved. Two flags rather than a mode on this
+    # one, so what the caller names is what changed and the tool derives the group.
+    amend_parser.add_argument(
+        "--add-dep",
+        action="append",
+        default=[],
+        dest="add_deps",
+        metavar="DEP",
+        help="add one dep, repeatable; the rest of the group stays as it is",
+    )
+    amend_parser.add_argument(
+        "--drop-dep",
+        action="append",
+        default=[],
+        dest="drop_deps",
+        metavar="DEP",
+        help="remove one dep, repeatable; as the file spells it or the bare id",
+    )
     amend_parser.add_argument(
         "--dep",
         action="append",
@@ -465,6 +495,17 @@ def declare_lines(subcommands: argparse._SubParsersAction) -> None:
     amend_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     amend_parser.set_defaults(
         handler=_amend, reads_stdin=(Prose(dest="why", omitted=False),)
+    )
+    # Two ways to say what the group is, and only one of them per call (RK1480, RK489's rule):
+    # `--dep` states the whole group and the narrow pair states what changed, so a call
+    # carrying both is a caller who believes each took effect — and the derived group would
+    # silently be the one the other flag never saw. The pair is **one** answer: adding and
+    # dropping in the same call is one edit to the group, which is the shape `export`'s two
+    # destinations already have.
+    answers(
+        amend_parser,
+        ("deps", "the whole dep group"),
+        (("add_deps", "drop_deps"), "the deps that changed"),
     )
 
     restate_parser = subcommands.add_parser(

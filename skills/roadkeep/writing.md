@@ -189,7 +189,14 @@ transaction, two more doors
 the retirement is the one line in that file to carry a marker, a departure being the one
 status a ledger of shipped work does not state about itself. `ship` is not the way round
 it either way: an outcome filed under ✅ is a shipment, and `Backlog.retired` reads the
-marker. **The `symptom` is not one of `amend`'s fields** — it is the falsifiable claim the
+marker. **`amend <id> --add-dep <d>` and `--drop-dep <d>` are the narrow doors on the group**, and
+what to reach for whenever one dep changes: `--dep` given at all replaces the whole group,
+so a seventh dep means naming all seven, six of them to say nothing changed. Drop by the
+spelling the file shows or the bare id — the `✅` is derived and is not yours to reproduce
+— and one of the two forms per call, never both. A dep renders *into* the line and the
+line's ceiling is shared with the `why`, so an addition that does not fit is refused
+**naming the dep** rather than the sentence that did not move.
+**The `symptom` is not one of `amend`'s fields** — it is the falsifiable claim the
 line is, so a different one is a different task — and where the premise itself turned out
 false, `restate <id> --symptom "…"` is that correction and the only door to it: the id,
 the deps, the marker and the section all stay, because the work never changed and only the

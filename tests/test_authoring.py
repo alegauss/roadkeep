@@ -2709,14 +2709,15 @@ def test_the_refusal_names_the_flag_only_where_a_vocabulary_declares_one(tmp_pat
     # keeps out of a remedy, and a project that declared none has no requirement to attach.
     root = _requiring(tmp_path)
     assert main(["-C", str(root), "amend", "RK1"]) == EXIT_USAGE
-    assert "--why, --dep, --requires or --ref" in capsys.readouterr().err
+    assert "--why, --dep, --add-dep, --drop-dep, --requires or --ref" in capsys.readouterr().err
 
     bare = tmp_path / "bare"
     bare.mkdir()
     project(bare)
     assert main(["-C", str(bare), "amend", "RK1"]) == EXIT_USAGE
     said = capsys.readouterr().err
-    assert "--why, --dep or --ref" in said and "--requires" not in said
+    assert "--why, --dep, --add-dep, --drop-dep or --ref" in said
+    assert "--requires" not in said
 
 
 # -- the read the refusal makes discoverable (RK1435) -------------------------
@@ -2763,3 +2764,141 @@ def test_a_refusal_no_read_predicts_says_nothing(tmp_path, capsys):
     argv = ["-C", str(config.root), "add", "--block", "A", "--symptom", " a leading space", "--why", "Because."]
     assert main(argv) == EXIT_USAGE
     assert "foresee" not in capsys.readouterr().err
+
+
+# -- adding a dep without restating the ones that were right (RK1480) ----------
+
+
+#: Lines for the group to name, so the deps resolve and `NoSuchDep` is not what is under test.
+_OTHERS = "\n".join(
+    f"- 📋 **RK{n}** (deps: —) **A symptom** — Because of a reason. → §RK{n}"
+    for n in (7, 8, 9)
+)
+
+
+def _carrying(tmp_path: Path, deps: str) -> Config:
+    """A line whose group is already several deps long, which is the measured shape."""
+    line = FIRST.replace("(deps: —)", f"(deps: {deps})")
+    body = BODY.replace(FIRST, line).replace(
+        "## Block B — Authoring", f"## Block B — Authoring\n\n{_OTHERS}"
+    )
+    return project(tmp_path, body=body)
+
+
+def test_a_dep_is_added_without_restating_the_ones_that_were_right(tmp_path, capsys):
+    """RK1480. Measured adding a blocker to a line carrying six deps: `--dep` given at all
+    replaces the group, so the call names all seven and six of the arguments exist to say
+    nothing changed — each of them a chance to drop one silently."""
+    root = _carrying(tmp_path, "RK7, RK8, Block C").root
+    assert main(["-C", str(root), "amend", "RK1", "--add-dep", "RK9"]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", str(root), "show", "RK1"]) == EXIT_OK
+    assert "RK7, RK8, Block C, RK9" in capsys.readouterr().out
+
+
+def test_the_addition_goes_last_and_the_order_is_the_file_s(tmp_path):
+    # The group renders in the order it was typed, so re-sorting here would be this door
+    # rewriting a sequence somebody chose while claiming to add one token to it.
+    config = _carrying(tmp_path, "RK8, RK7")
+    amended = amend(config, "RK1", add_deps=["RK9"])
+    assert [dep.id for dep in amended.entry.task.deps] == ["RK8", "RK7", "RK9"]
+
+
+def test_a_dep_is_dropped_by_name_and_the_rest_stay(tmp_path):
+    config = _carrying(tmp_path, "RK7, RK8, Block C")
+    amended = amend(config, "RK1", drop_deps=["RK8"])
+    assert [dep.id for dep in amended.entry.task.deps] == ["RK7", "Block C"]
+
+
+def test_the_derived_marker_is_not_the_caller_s_to_reproduce(tmp_path):
+    """A dep's marker is derived (RK8), so a caller reading their own earlier call, `show` or
+    the file has three spellings in front of them and only one is theirs to have typed."""
+    config = _carrying(tmp_path, "RK7 ✅, RK8")
+    assert [dep.id for dep in amend(config, "RK1", drop_deps=["RK7"]).entry.task.deps] == ["RK8"]
+    config = _carrying(tmp_path, "RK7 ✅, RK8")
+    assert [
+        dep.id for dep in amend(config, "RK1", drop_deps=["RK7 ✅"]).entry.task.deps
+    ] == ["RK8"]
+
+
+def test_dropping_what_the_line_does_not_carry_is_refused(tmp_path):
+    # A caller passing it believes the group changed, and a silent no-op is a call whose next
+    # reading of the line will surprise them.
+    from roadkeep.authoring import DepNotCarried
+
+    config = _carrying(tmp_path, "RK7, RK8")
+    with pytest.raises(DepNotCarried) as caught:
+        amend(config, "RK1", drop_deps=["RK9"])
+    assert "does not wait on RK9" in str(caught.value)
+    assert "it carries RK7, RK8" in str(caught.value)
+
+
+def test_adding_one_the_line_already_carries_is_refused(tmp_path):
+    # The group would not change, and a duplicate token in it is `deps.duplicate` to the gate.
+    from roadkeep.authoring import DepAlreadyCarried
+
+    config = _carrying(tmp_path, "RK7, RK8")
+    with pytest.raises(DepAlreadyCarried) as caught:
+        amend(config, "RK1", add_deps=["RK8"])
+    assert "already waits on RK8" in str(caught.value)
+
+
+def test_the_whole_group_door_and_the_narrow_one_are_two_answers(tmp_path, capsys):
+    # A call carrying both is a caller who believes each took effect, and the derived group
+    # would silently be the one the other flag never saw.
+    root = _carrying(tmp_path, "RK7").root
+    assert main(
+        ["-C", str(root), "amend", "RK1", "--dep", "RK8", "--add-dep", "RK9"]
+    ) == EXIT_USAGE
+    assert "one answer per call" in capsys.readouterr().err
+
+
+def test_adding_and_dropping_in_one_call_is_one_edit_to_the_group(tmp_path):
+    config = _carrying(tmp_path, "RK7, RK8")
+    amended = amend(config, "RK1", add_deps=["RK9"], drop_deps=["RK7"])
+    assert [dep.id for dep in amended.entry.task.deps] == ["RK8", "RK9"]
+
+
+def test_the_refusal_names_the_dep_and_not_the_sentence_that_did_not_move(tmp_path, capsys):
+    """The second half, and the reason the door is worth building: a dep renders *into* the
+    line and the line's ceiling is shared with the `why`, so the seventh dep takes the `why`
+    below what it already holds — and the bare rule then names the `why`, which had not
+    changed and was not wrong."""
+    from roadkeep.authoring import DepRefused
+
+    from roadkeep.budgeting import budget as priced
+
+    from roadkeep.authoring import restate
+
+    config = _carrying(tmp_path, "RK7, RK8")
+    # A symptom wide enough that the **line** is what binds the `why` and not the field's own
+    # limit, which is the state every real line of a mature backlog is in.
+    restate(config, "RK1", symptom=("A symptom " * 11).strip())
+    config = Config.discover(config.root)
+    # And a `why` filled to exactly what the line leaves it, legal by its own limit: what the
+    # added dep then takes is the line's, and nothing about the sentence has moved.
+    room = priced(config, "RK1").share("why").allowed
+    assert priced(config, "RK1").share("why").bound_by_line
+    amend(config, "RK1", why="x" * (room - 1) + ".")
+    config = Config.discover(config.root)
+    with pytest.raises(DepRefused) as caught:
+        amend(config, "RK1", add_deps=["RK9"])
+    said = str(caught.value)
+    assert "no room for RK9" in said and "characters of the line" in said
+    assert "nothing about the sentence moved" in said
+    # The violations are exactly as the schema wrote them, the channel being unchanged — and
+    # the field it names is `why`, which is the whole finding: where the line binds,
+    # `why_budget` folds its remainder into that field's limit, so the rule a caller meets is
+    # `why.too-long` with a ceiling nobody declared.
+    assert [one.code for one in caught.value.violations] == ["why.too-long"]
+
+
+def test_a_line_already_over_on_another_field_is_not_the_dep_s_fault(tmp_path):
+    """RK1262's rule: framing it as the dep's would send the caller to remove a token that was
+    not what broke it — so only the rule this flag could have broken is reframed."""
+    from roadkeep.authoring import DepRefused
+
+    config = _carrying(tmp_path, "RK7")
+    with pytest.raises(SchemaError) as caught:
+        amend(config, "RK1", add_deps=["RK9"], why="y" * 400 + ".")
+    assert not isinstance(caught.value, DepRefused)

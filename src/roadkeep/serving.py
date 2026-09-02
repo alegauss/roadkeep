@@ -410,7 +410,14 @@ TOOLS: tuple[Tool, ...] = (
     # `requires` beside `deps` for `add`'s reason, and one the remedy table makes binding
     # (RK1297): all four `requires.*` findings name this flag as their door, and a door only
     # a terminal can open is a finding the agent that caused it cannot close.
-    Tool("amend", ("id", "why", "deps", "requires", "ref", "lines")),
+    # And the narrow door (RK1480), which this transport is where it pays: `--dep` replaces
+    # the group, so adding a seventh dep is a call naming all seven — six of them re-sent to
+    # say nothing changed, and the call then refused over a `why` that had not moved. An
+    # agent restating a group it read out of an earlier answer is the exact population.
+    Tool(
+        "amend",
+        ("id", "why", "deps", "add_deps", "drop_deps", "requires", "ref", "lines"),
+    ),
     # The field `amend` excludes, at its own door (RK178). Exposed beside it because the agent
     # that discovers a premise is false is the one executing the line, and the exit designed
     # for it — retire plus add — spends an id and deletes a section that was already right.
@@ -769,7 +776,9 @@ TOOL_NAMES = frozenset(tool.argv_head[0] for tool in TOOLS)
 #: in `cli.py` fails there rather than silently costing a door its served spelling.
 _DESTS: Mapping[str, Mapping[str, str]] = {
     "add": {"--dep": "deps", "--marker": "status", "--id": "task_id", "--prefix": "family"},
-    "amend": {"--dep": "deps"},
+    # The narrow door's two, whose plural the flag does not carry (RK1480): `--add-dep` names
+    # one dep per use and sets `add_deps`, which is `--dep`'s crossing said twice.
+    "amend": {"--dep": "deps", "--add-dep": "add_deps", "--drop-dep": "drop_deps"},
     "anchors": {"--next": "only_next"},
     # And the two aliases this verb answers to (RK1459): it is the one read asked about both
     # bodies — the one `section add` writes and the one an `add` writes beside a line — so it
