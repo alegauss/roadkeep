@@ -50,6 +50,7 @@
 - 💭 **RK1505** (deps: —) **the note about a missing page says it is missing and not what it would have told the reader** — RK1482 measured a session that skipped three notes about tooling, and the fourth is the same kind of sentence one code over. → §RK1505
 - 💭 **RK1506** (deps: —) **budget prices one line per departure and a ship writes three, so the other two are exemptions rather than answers** — RK1483's table had to exempt four ship fields for belonging to a line this read has no subject for, which brief composes for free. → §RK1506
 - 💭 **RK1507** (deps: —) **a line this tool writes under a ledger entry is composed by one function and recognised by another, matching on a prefix** — RK1484 added the second reader, and a change to the indent or the word makes it stop matching with nothing anywhere going red. → §RK1507
+- 💭 **RK1508** (deps: —) **which engine wrote a project's surfaces is derivable from their bytes and is only ever read out of a record** — RK1485 could name the absent record and not fill it, and the one decision it cannot inform is whether the refresh in front of you is an upgrade. → §RK1508
 
 ## Block E — Adoption
 

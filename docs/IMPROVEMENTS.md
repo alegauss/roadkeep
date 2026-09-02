@@ -533,6 +533,30 @@ module docstring already claims about every other line this tool writes.
 One shape today. It was zero before RK1460, and the ledger's continuation is the obvious
 place for a second — which is when the prefix match becomes a table of them.
 
+### §RK1508 The version the bytes already carry
+
+RK1485 made the absent record readable and left the second shape its own design named
+unbuilt: the version could be *derivable*. The bridge and the skill are copies of files
+this package ships, so which engine wrote them is a question their bytes can answer
+without a record.
+
+That is not a guess, it is a lookup. Every released version of this package contains one
+`hooks/roadkeep-launch.py` and one `SKILL.md`, and the surfaces on disk either match one
+of them or match none. What blocks it today is that a checkout holds exactly one version
+of each, so the comparison has one candidate — which is why RK1462 wrote a record
+instead.
+
+Where the candidates come from is the question. Git has them: the same file at every tag
+this repository carries, one `git show` each, the answer being the newest whose bytes
+match. No adopter's clone can make that read, which is the honest limit and also the
+population that does not need it — a plugin-served project has no vendored copy to date.
+
+So the shape is narrow and one-shot. `install --check` on a repository with this
+package's history could say *these surfaces are 0.2.71's*, once, before the first
+`install` writes a record. That buys the one decision RK1462 cannot inform — whether the
+refresh in front of you is an upgrade — and everything after it is the record's, which
+is why this is a read.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
