@@ -625,6 +625,32 @@ answer is for the argument that ends the command to be marked at the moment it i
 written, or for the read to match the launcher path it already computes rather than a
 suffix. Either turns a heuristic over somebody else's file into a fact about ours.
 
+### §RK1493 The kinds nobody declared
+
+The served notes are now four kinds — the landed write, the inventory, the witnessed
+refusal, the swapped home — and three of them are held to *once per process* by a set of
+string keys in `_SAID`. The fourth, the witnessed one, deliberately is not.
+
+Nothing enumerates them. `_said_once("swapped")` was added in one line beside
+`_said_once("landed")` and `_said_once("inventory")`, and a fifth kind arrives the same
+way: a literal, invented at the call site, never checked against anything. Two spellings
+of one key would silence a note that had never been said; a key nobody registers reads
+exactly like a note that fires every time.
+
+Which of them is once-per-process and which is per-call is also a decision, and it is
+written as the absence of a call. RK1443 argued the rule and RK267 argued the exception,
+and both arguments live in the docstrings of the branches that happen to make the call —
+so the population is *whatever the code does*, and a reader asking "which notes repeat"
+has to read the function.
+
+The shape is `composing.SITES`' and `test_surfaces`': a declared set of kinds, each with
+the sentence saying whether it repeats and why, held total against the literals the
+module passes. Then a fifth note is a red until somebody says which it is, and the
+exception is visible rather than inferred.
+
+Cheap, and the sweep exists twice over in this suite — which is the argument for doing
+it rather than for a third one.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
