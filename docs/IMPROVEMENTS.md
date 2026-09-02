@@ -462,11 +462,11 @@ constraint's lead and the note falls silent. Clearing this repository's own two 
 `section amend --replace` calls whose whole content was a sentence saying *the rule
 bounds nothing here* — and neither of them said which note they were answering.
 
-So the record is silent in the direction a reader arrives from. Six months on, that
-sentence in §RK1465 reads as a stray remark about `py.typed`; nothing says a gate row
-was open, that somebody read the constraint against the line, or that the silence
-downstream depends on those exact words staying put. Delete the clause while tidying and
-the note comes back with no clue as to what removed it.
+So the record is silent in the direction a reader arrives from. The sentence in §RK1466
+reads as a stray remark about payload size; nothing says a gate row was open, that
+somebody read the constraint against the line, or that the silence depends on those
+words staying. Its twin is already gone — the ship that closed RK1465 deleted the design
+carrying it, unremarked.
 
 The other governed answers do not have this problem, because each is a field: a dep is
 annotated, a supersession is a marker and a pointer, a queue entry is a row. This one is
