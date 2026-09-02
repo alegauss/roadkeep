@@ -7,10 +7,15 @@ with something already shipped*, and the entries that could answer it are a hand
 
 So the entries are ranked against the proposed sentence and the nearest few are printed.
 Measured on the `superseded by` pairs this ledger records — the only cases where the right
-answer is known — the true partner lands at #2, #2, #1 and #1 inside its own block, against 31,
-102, 65 and 71 entries. Five lines instead of a hundred, same recall.
+answer is known — nine of eleven true partners land inside the five, seven of them first,
+against blocks of 36 to 227 entries. Five lines instead of a hundred, same recall.
 
-**Four of five, and the fifth is not a miss** (RK1183). A retirement may name the task that
+**What is ranked is both prose fields and not the symptom alone** (RK1477). Two authors writing
+the same defect share their subject and almost none of their words; where they agree is the
+`why`, which names the flags and verbs at issue by their spelling. Joining it moved six of
+eleven inside the five to nine, and the worst reached rank from 11 to 3.
+
+**The two out of reach are not misses** (RK1183). A retirement may name the task that
 delivered the larger half of a claim rather than the one whose symptom matches: RK1182 names
 RK1152, and this read places RK348 first — whose sentence is nearly RK1182's own, and which
 delivered the other half. The reach is over pairs whose *sentences* are the pair, which is what
@@ -20,9 +25,9 @@ publishes what is out of reach rather than exempting it by name.
 Three constraints are the whole design, and each is a thing this deliberately does not do:
 
 * **It never refuses and never warns.** RK441 measured that the absolute score separates
-  nothing — two of those four true pairs score below the 13th percentile of the top-1 score
-  a proposal with *no* duplicate produces, so a threshold catching all four flags 419 of
-  426. The absence of a gate is a known result and not caution, and it is why :func:`nearest`
+  nothing — two of the true pairs score below the 13th percentile of the top-1 score a
+  proposal with *no* duplicate produces, so a threshold catching them all flags 419 of 426.
+  The absence of a gate is a known result and not caution, and it is why :func:`nearest`
   returns an *order* and no number: publishing a score invites the threshold the measurement
   rules out. Relative order inside one query carries signal; the score does not travel
   between queries.
@@ -49,9 +54,11 @@ from collections.abc import Sequence
 #: is in every entry, which is the whole of what a stopword list would have bought here.
 _WORD = re.compile(r"[0-9a-z]+")
 
-#: How many entries `delivered --near` prints. Five, because the worst of the four cases
-#: where the right answer is known lands at #2 — so five is the recall of a hundred with
-#: three ranks of headroom, and the figure moves only if a pair is ever found further down.
+#: How many entries `delivered --near` prints. Five, because the worst of the pairs where the
+#: right answer is known lands at #3 — so five is the recall of a hundred with two ranks of
+#: headroom, and the figure moves only if a pair is ever found further down. It has not: the
+#: eleven pairs this ledger now records reached #11 and #32 before :func:`claim` joined the
+#: `why` to the corpus (RK1477), which bought the headroom rather than spending it.
 #: Not configuration (L6): a project declares its limits, and this is a property of how far
 #: down the true answer has ever been, which a project cannot know about its own ledger.
 NEAREST = 5
@@ -59,9 +66,11 @@ NEAREST = 5
 #: How many an `add` volunteers beside the line it just wrote (RK1370). Three and not
 #: :data:`NEAREST`, because the two answer different callers: that one is asked for and sized
 #: for recall, and this one arrives unrequested on every `add`, so it is sized to be read. The
-#: worst of the four cases where the right answer is known lands at #2, so three keeps every
-#: pair this ledger knows about with a rank of headroom. Not configuration (L6), for the reason
-#: the number above is not.
+#: worst of the pairs where the right answer is known lands at #2, so three keeps every pair
+#: this ledger knows about with a rank of headroom — nine of eleven, where the symptom alone
+#: kept six (RK1477). An `add` joins the `why` on the query side too, which :func:`claim` says
+#: is an argument and not a reading: what that caller holds is an author's own sentence.
+#: Not configuration (L6), for the reason the number above is not.
 #:
 #: **Unfiltered, like the read it volunteers.** A first cut dropped entries sharing no word
 #: with the symptom, so an `add` nobody had a neighbour for would say nothing. Measured against
@@ -83,6 +92,39 @@ _B = 0.75
 def words(text: str) -> list[str]:
     """The tokens a sentence contributes, in order of appearance."""
     return _WORD.findall(text.lower())
+
+
+def claim(symptom: str, why: str) -> str:
+    """The text one entry contributes to the ranking: **both** of its prose fields (RK1477).
+
+    The corpus was symptoms alone, and a second author writing the same defect writes a
+    different sentence about it — `budget states the allowance and cannot be handed a draft`
+    against `budget says what a why is allowed and nothing measures the why about to be
+    written`. Same subject, almost no shared words, and `budget` is in most of that block so
+    its idf is near zero. The re-filing ranked 7th of 155.
+
+    The `why` is where those two agree: it says *what the reader needed and did not get*, and
+    it names flags and verbs by their spelling, which is the vocabulary two authors do share.
+    Measured over the eleven `superseded by` pairs this ledger records, joining it **to the
+    corpus** moves six inside `NEAREST` to nine, with the worst reached rank 11 → 3; the two
+    never reached are RK1182→RK1152 and RK1257→RK1204, which name the task that delivered the
+    larger half of a claim rather than the one whose sentence matches — out of reach of word
+    overlap in either shape, and not a regression this join introduced.
+
+    **The query side of it is not measurable here**, and the figures above are the corpus join
+    alone for that reason. A retired entry's `why` is written at the retirement and describes
+    its partner, quoting that entry's own sentence: RK1456's names RK1190 and then restates it.
+    So the eleven queries whose answer is known are the one population where joining the query
+    would be scoring the ground truth, and `tests/test_ranking.py` holds the corpus shape.
+    `add` joins it anyway, that caller's `why` being an author's own sentence about a line
+    nothing has superseded — an argument, and said to be one.
+
+    Joined with a space and never concatenated: the two fields are separate sentences and a
+    tokeniser splitting on non-alphanumerics would fuse the last word of one to the first of
+    the other. Empty halves fall out, so an entry or a query with only a symptom is exactly
+    what it was before.
+    """
+    return f"{symptom} {why}".strip()
 
 
 def nearest(query: str, corpus: Sequence[str], count: int) -> tuple[int, ...]:

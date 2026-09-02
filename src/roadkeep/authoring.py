@@ -67,7 +67,7 @@ from roadkeep.kernel.document import (
 )
 from roadkeep.ids import CARRIERS, IdRef, Promise, carried, derivation, scan
 from roadkeep.markers import derive, refresh
-from roadkeep.ranking import VOLUNTEERED, nearest
+from roadkeep.ranking import VOLUNTEERED, claim, nearest
 from roadkeep.kernel.schema import SchemaError, Task, width as measured_width
 from roadkeep.sections import Section
 
@@ -979,8 +979,13 @@ def _near(config: Config, insertion: Insertion) -> tuple[tuple[Entry, ...], int]
     return (
         tuple(
             entries[index]
+            # Both fields, on both sides (RK1477): the line about to be filed carries its
+            # `why` already, so the half a second author's vocabulary actually shares costs
+            # this call nothing to ask about.
             for index in nearest(
-                task.symptom, [one.task.symptom for one in entries], VOLUNTEERED
+                claim(task.symptom, task.why),
+                [claim(one.task.symptom, one.task.why) for one in entries],
+                VOLUNTEERED,
             )
         ),
         len(entries),

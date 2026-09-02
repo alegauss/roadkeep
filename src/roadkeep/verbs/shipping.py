@@ -20,7 +20,7 @@ from collections.abc import Sequence
 from roadkeep.backlog import Backlog, Stage
 from roadkeep.config import Config
 from roadkeep.kernel.document import declares, shading
-from roadkeep.ranking import NEAREST, nearest
+from roadkeep.ranking import NEAREST, claim, nearest
 from roadkeep.reverting import Reversed, reversals
 from roadkeep.shipping import (
     Delivered,
@@ -333,7 +333,12 @@ def _delivered(config: Config, args: argparse.Namespace) -> int:
     if args.near:
         entries = tuple(
             entries[index]
-            for index in nearest(args.near, [e.task.symptom for e in entries], NEAREST)
+            # The corpus carries both prose fields and the query is the one sentence the
+            # caller has (RK1477): an author proposing a symptom has not written the `why`
+            # yet, and the join on the ledger side is where the measured recall came from.
+            for index in nearest(
+                args.near, [claim(e.task.symptom, e.task.why) for e in entries], NEAREST
+            )
         )
     where = config.relative(config.path("changelog"))
     # One read joined to the listing, not a second parse: `reversals` walks the same entries

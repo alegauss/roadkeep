@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 4 | 226 | 2 |
-| C — Query (consult without reading the file) | 6 | 152 | 4 |
+| C — Query (consult without reading the file) | 5 | 153 | 4 |
 | D — The gate | 8 | 209 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 142 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 960 | 14 |
+| **Total** | 22 | 961 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1477** (deps: —) **a re-filing of shipped work in other words ranks 7th, outside both windows, so the add that wrote it agreed it was new** — The corpus is symptoms alone and the pair that proves it shares a subject and no words, which is what a second author writing the same defect produces. → §RK1477
+- 💭 **RK1478** (deps: —) **a settled constraint-line pair is a sentence in one design and no read names it, so the gate's silence has no witness** — RK1457 answers the note from the line and nothing answers from the rule, so a clause somebody tidies away brings a note back with no clue what removed it. → §RK1478
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

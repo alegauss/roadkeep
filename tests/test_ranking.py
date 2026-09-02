@@ -24,7 +24,7 @@ from pathlib import Path
 
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
-from roadkeep.ranking import NEAREST, VOLUNTEERED, nearest, words
+from roadkeep.ranking import NEAREST, VOLUNTEERED, claim, nearest, words
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -106,12 +106,16 @@ def test_the_tokens_are_runs_of_letters_and_digits():
 
 
 def test_every_pair_this_ledger_knows_the_answer_to_lands_inside_the_count():
-    """The property test over the real corpus. Four `superseded by` entries name the id they
-    restate, which makes them the only four cases in this repository where the nearest entry
-    has a *known* right answer — so the recall claim is re-run rather than asserted, and a
-    ranking change that quietly loses one of them fails here.
+    """The property test over the real corpus. The `superseded by` entries name the id they
+    restate, which makes them the only cases in this repository where the nearest entry has a
+    *known* right answer — so the recall claim is re-run rather than asserted, and a ranking
+    change that quietly loses one of them fails here.
 
-    Scoped to the retired entry's own block, which is what `delivered --near` ranks over.
+    Scoped to the retired entry's own block, which is what `delivered --near` ranks over, and
+    run in that verb's own shape (RK1477): the **corpus** carries both prose fields and the
+    query is the symptom alone. Joining the query here would score the ground truth — a
+    retired entry's `why` is written at the retirement and quotes the partner it names — which
+    is the same unsoundness the comment below records about ranking against it.
     """
     config = Config.discover(HERE)
     ledger = config.document("changelog")
@@ -121,7 +125,7 @@ def test_every_pair_this_ledger_knows_the_answer_to_lands_inside_the_count():
         for entry in ledger.entries
         if "superseded by " in entry.task.why
     ]
-    assert len(pairs) >= 4, "the corpus this figure is measured on lost its known answers"
+    assert len(pairs) >= 11, "the corpus this figure is measured on lost its known answers"
     reached: list[str] = []
     missed: list[str] = []
     for retired, partner in pairs:
@@ -131,7 +135,9 @@ def test_every_pair_this_ledger_knows_the_answer_to_lands_inside_the_count():
             for entry in ledger.entries
             if entry.task.block == retired.task.block and entry.task.id != retired.task.id
         ]
-        order = nearest(retired.task.symptom, [e.task.symptom for e in block], NEAREST)
+        order = nearest(
+            retired.task.symptom, [claim(e.task.symptom, e.task.why) for e in block], NEAREST
+        )
         found = [block[index].task.id for index in order]
         (reached if partner in found else missed).append(f"{retired.task.id}→{partner}")
     # **The reach, as a figure** (RK1183). This asserted that every pair lands inside the five,
@@ -143,9 +149,10 @@ def test_every_pair_this_ledger_knows_the_answer_to_lands_inside_the_count():
     # Ranking against the retirement's `why` was the other repair and is unsound: that field
     # literally contains `superseded by <id>`, so the ground truth would be an input.
     #
-    # A floor and not the rate, because the denominator grows with every retirement this project
-    # records: what may not regress is how many known partners the read still reaches.
-    assert len(reached) >= 4, {"reached": reached, "out of reach": missed}
+    # The floor moved 4 → 9 when the corpus took the `why` (RK1477), and it is a floor for the
+    # reason it always was: the denominator grows with every retirement this project records,
+    # so what may not regress is how many known partners the read still reaches.
+    assert len(reached) >= 9, {"reached": reached, "out of reach": missed}
 
 
 # -- what the command prints ---------------------------------------------------
@@ -170,6 +177,30 @@ def test_the_unbounded_listing_is_untouched(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "6 delivered" in out and "nearest" not in out
     assert len([line for line in out.splitlines() if line.startswith("  ✅")]) == 6
+
+
+# -- both prose fields, not the symptom alone (RK1477) -------------------------
+
+
+def test_a_word_only_the_why_carries_reaches_the_entry():
+    """The mechanism, isolated: two entries whose symptoms are the same sentence, one of which
+    names the flag at issue in its `why`. That is the measured case in miniature — what two
+    authors of one defect share is the field that spells the verbs and flags out."""
+    symptom = "budget states the allowance and cannot be handed a draft"
+    whys = ["A count is not a limit.", "`--symptom` measures the draft and exits over it."]
+    # The symptoms alone are one string twice, so nothing separates them and the corpus order
+    # stands — which is the tie `nearest` promises to keep.
+    assert nearest("the symptom flag", [symptom, symptom], 2) == (0, 1)
+    joined = [claim(symptom, why) for why in whys]
+    assert nearest("the symptom flag", joined, 2) == (1, 0)
+
+
+def test_a_half_that_is_empty_leaves_the_text_it_had():
+    # A space-joined pair is one string, so an entry with no `why` must not gain a token or a
+    # leading space that a length normalisation would then count.
+    assert claim("a symptom", "") == "a symptom"
+    assert claim("", "a why") == "a why"
+    assert words(claim("a symptom", "A why.")) == ["a", "symptom", "a", "why"]
 
 
 # -- the same read, volunteered by the write (RK1370) --------------------------

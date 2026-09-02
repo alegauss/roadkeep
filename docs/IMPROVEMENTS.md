@@ -175,30 +175,6 @@ that refusal is the reason the door is narrow.
 
 ## Block C — Query
 
-### §RK1477 The pair the window was waiting for
-
-`NEAREST`'s own comment says the figure moves "only if a pair is ever found further
-down". One has been. RK1456 was filed on 31 August against `budget`, and RK1190 had
-shipped that behaviour on 16 August — `--why`, `--symptom` and `--body` all measure a
-draft, exit 1 over, and the why row already names where the line binds. RK1456 was
-retired as superseded, having been filed, designed and briefed first.
-
-Ranked against Block C's 148 delivered symptoms, RK1190 comes **7th**. `delivered
---near` prints 5 and the rows an `add` volunteers are 3, so the entry that made the
-whole line unnecessary was four places outside the window the write itself printed.
-
-The two share their subject and almost no words. RK1190: "budget states the allowance
-and cannot be handed a draft, so prose three words over is found by being refused".
-RK1456: "budget says what a why is allowed and nothing measures the why about to be
-written". `budget` is in most of that block, so its idf is near zero, and the words that
-would have matched — draft against measures, allowance against allowed — are the
-vocabulary a second author picks having not read the first.
-
-Raising the window buys one rank at a time. The likelier fix is what is ranked: the
-corpus is symptoms alone, and RK1190's `why` names `--why` and `--symptom` by their flag
-names, which is what RK1456's design spent a paragraph asking for. Both fields is the
-same reader with twice the evidence.
-
 ### §RK1479 The carry a budget has no word for
 
 RK1458 named three departures and shipped one. `--retire` existed, `--ship` landed, and

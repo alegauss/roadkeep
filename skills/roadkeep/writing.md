@@ -273,9 +273,10 @@ impossible rather than unreliable. So you read the list, and the alternative is
 discovering the collision after a claim, a brief and a retirement. **`delivered <block>
 --near "<the symptom you are about to propose>"` is that read bounded by the question**
 — the five entries nearest it, ranked by word overlap, instead of a whole block's ledger
-(103 lines and 9,773 bytes here). Reach for it by default: measured on the four pairs
-this ledger knows the answer to, the true partner is inside those five every time. The
-order is the answer and no score is printed, for the reason above. **And the `add` hands
+(103 lines and 9,773 bytes here). Reach for it by default: measured on the eleven pairs
+this ledger knows the answer to, the true partner is inside those five for nine, worst
+rank three — the entries are ranked on **both** their prose fields, the `why` being where
+two authors of one defect agree. The order is the answer and no score is printed. **And the `add` hands
 that read back whether or not you made it**: every insertion names the three entries of its
 block nearest the symptom it just filed, because that is the moment nothing is spent but an
 id and `restate` and `retire` are one call away. Same order, same silence about scores, and
