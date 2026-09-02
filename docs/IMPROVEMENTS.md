@@ -490,6 +490,28 @@ check refusing `Ã` outright would refuse a line about encoding bugs — which t
 has. So the rule is probably a note, or a refusal a flag steps over; either way it is a
 reading taken against a real corpus and not a pattern written from memory.
 
+### §RK1498 The door that runs and fails
+
+RK1475 withdrew one offer that would refuse. The rule it broke — *a finding naming a
+command that then refuses is worse* — is `removable`'s own docstring, held by the gate
+for one finding, and now by the event for one door. Nothing holds it for the rest.
+
+There are many. Every refusal in this tool ends with a door and several compose one from
+a state they did not check: `add`'s follow-up `section add`, the remedy table's rows,
+the `install --check` verdict, the criteria and priority families. `test_composing` runs
+the doors a test happens to exercise and calls the rest a work-list — thirty-odd sites,
+six executed — so the population is enumerated and the property is not.
+
+What makes this checkable rather than a sweep to write by hand is that a door is already
+a record: `Door` carries the argv, and `runs()` executes one against a fixture. The gap
+is that running one proves it *parses*, not that it succeeds — `runs` asserts nothing
+about the exit code, and RK1475's door parsed perfectly and exited 2.
+
+So the shape is `runs()` with a verdict: a door executed against the state that produced
+it either works or is declared as one that cannot. That turns thirty unreached sites
+into thirty answerable questions, and it would have caught this one at the moment RK1454
+was written — which is when its own refusal was being taught to name the ending.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

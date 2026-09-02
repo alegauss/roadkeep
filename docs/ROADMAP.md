@@ -49,6 +49,7 @@
 - 💭 **RK1491** (deps: —) **the note a wired project reads on every turn is 475 characters at full length and no cadence prices it** — cost has five subjects and a note is in none of them, so engine.disagreement grew a clause in each of three tasks against no number at all. → §RK1491
 - 💭 **RK1494** (deps: —) **one gate code now carries four causes with four remedies, so explain can only describe their union** — RK1440, RK1468 and RK1471 each added a clause joined by and, where every other multi-cause finding here is split so each names its own door. → §RK1494
 - 💭 **RK1497** (deps: —) **nothing catches the bytes a wrong decode leaves, so mojibake reaches a permanent file and a correction is what cleans it** — RK1474 built the correction and the gate already refuses an invisible codepoint on the same argument, which is a character no author meant. → §RK1497
+- 💭 **RK1498** (deps: —) **a composed door is run to see that it parses and never that it works, so one that exits 2 is green** — RK1475 was a door that parsed and refused, and the rule it broke is held for one finding and one event while thirty other sites compose commands nothing checks. → §RK1498
 
 ## Block E — Adoption
 
