@@ -50,6 +50,7 @@
 - 💭 **RK1502** (deps: —) **a write that composes a prose field can render it without measuring it, and nothing enumerates which ones do** — RK1479 found defer validating nothing, invisible because its field is composed by the tool rather than taken from a flag. → §RK1502
 - 💭 **RK1503** (deps: —) **a field refused by the line quotes a ceiling no config declares, so the reader shortens the prose that fits** — RK1480 had to reframe one such refusal by inspection, and every other door adding structure to a line meets the same sentence. → §RK1503
 - 💭 **RK1504** (deps: —) **a served tool name that is also a CLI verb of a different act is a collision nothing enumerates** — RK1481 had to guard against two of them by hand, and the next one is a named= away from a caller whose correct call is rewritten. → §RK1504
+- 💭 **RK1505** (deps: —) **the note about a missing page says it is missing and not what it would have told the reader** — RK1482 measured a session that skipped three notes about tooling, and the fourth is the same kind of sentence one code over. → §RK1505
 
 ## Block E — Adoption
 

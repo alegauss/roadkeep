@@ -511,6 +511,29 @@ so the test is a table of the pairs with a reason each: `test_composing`'s shape
 Renaming one side is the wrong repair: `scope` and `claim` are right on their own
 surfaces, and the cost is not the collision but that nobody is told it exists.
 
+### §RK1505 The page named, and not what it says
+
+RK1482 split one note in two and put a count on the summary. What it did not do is
+answer the question the note now raises: which pages a project is missing, this gate
+knows, and what those pages *say* it does not.
+
+The measured cost was never the file's absence. It was that `budget --anchor` measures a
+section before it is sent, `--body-file` names a paragraph by path, and the session did
+not know either — so one design took five refusals against the word limit, each
+re-sending the paragraph. The note now says a page is missing. A session that already
+skipped three notes because they were about tooling has been given a fourth of the same
+kind.
+
+What would not be skipped is the verb. `install.absent` on `asking.md` could name one
+command that page documents and this project's reader has no way to find — derived,
+because the page is in this checkout and the backticked commands in it are enumerable,
+and `test_composing` already walks composed commands for exactly that reason.
+
+The risk is what the whole gate is written against: a note that grows a list gets
+skipped for a different reason. So it is one verb and not the roster — which one is a
+judgement, and therefore the page's to state rather than this tool's to rank (L4). That
+makes it a line of frontmatter in the skill pages and a read here, not a heuristic.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
