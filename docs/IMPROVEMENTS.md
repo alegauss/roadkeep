@@ -485,6 +485,30 @@ What would settle it is a query population answered before the answer was known:
 knows which proposals this read has already caught — the one fact that would price its
 own query side, and the absence RK441 worked around by using retirements.
 
+### §RK1501 The answer a ship takes with it
+
+RK1478 made the answer readable from the rule. It did not make it survive. `settling`
+reads open lines only, and has to: a ship deletes the design, so the clause that settled
+a constraint goes with it. Both of this repository's answers were lost that way inside
+an hour — the incident the task was filed from — and the report shows a `settled` row
+until the line ships.
+
+That is the shape of the store and not a defect in the read: a decision argued in a
+design lives as long as the work, and the constraint outlives it. So the next `add` on
+that subject gets `non-goal.reaches` again with no trace the question was asked — the
+loop RK1457 broke, closing back up one ship later.
+
+There is already a file for facts that outlive the work: `DECISIONS.md`, what was
+weighed and what a constraint cost, which `ship --decides` writes from the open line's
+claim. Nothing carries the settling clause across, though the ship knows it is deleting
+a design and `settles` can say which constraint that design answered.
+
+The judgement is not the tool's (L4): a ship whose design settles a constraint says so,
+and the sentence is the author's — a door at the moment the design is deleted, never a
+synthesis. The alternative already rejected is a second store keyed by lead, and the
+decisions file is not that: it is where this project already writes what a constraint
+cost.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
