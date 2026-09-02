@@ -50,6 +50,7 @@
 - 💭 **RK1506** (deps: —) **budget prices one line per departure and a ship writes three, so the other two are exemptions rather than answers** — RK1483's table had to exempt four ship fields for belonging to a line this read has no subject for, which brief composes for free. → §RK1506
 - 💭 **RK1507** (deps: —) **a line this tool writes under a ledger entry is composed by one function and recognised by another, matching on a prefix** — RK1484 added the second reader, and a change to the indent or the word makes it stop matching with nothing anywhere going red. → §RK1507
 - 💭 **RK1508** (deps: —) **which engine wrote a project's surfaces is derivable from their bytes and is only ever read out of a record** — RK1485 could name the absent record and not fill it, and the one decision it cannot inform is whether the refresh in front of you is an upgrade. → §RK1508
+- 💭 **RK1509** (deps: —) **an adopting project is never shown what its briefs cost, so a ceiling is chosen with no reading in front of it** — RK1486 found this repository's own number argued from the wrong corpus, and an adopter has no moment at which the figure is offered. → §RK1509
 
 ## Block E — Adoption
 
