@@ -88,8 +88,11 @@ sentence to a description stops looking free, which is the argument `[budgets]` 
 a file that loads every turn. **`cost --brief [<id>]`** is the one about
 a *read*: what the answer that replaces reading the file costs a tool result, per open line and
 widest first, against `[reads] brief`. Declared, that ceiling is the gate's — `read.over` names
-the task whose brief does not fit. **`cost --session`** is both halves against their cadences —
-the served schema once at connect and every `[budgets]` file each turn — which is what a
+the task whose brief does not fit — and each row says how much of the figure is the **graph**:
+the deps, the ships that settled them and the chains, which grow with the backlog's shape and
+not with anything you wrote, so an overrun is answerable without guessing which half to cut.
+**`cost --session`** is both halves against their cadences — the served schema once at connect
+and every `[budgets]` file each turn — which is what a
 session pays before it calls anything, and the one figure neither of the other two can give.
 **`cost --skill`** is the fourth cadence: what this file costs the turns that load it, beside
 the served schema and with the sections it went to — no ceiling, because none is declared and

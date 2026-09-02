@@ -79,29 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1486 The ceiling and the corpus it was not read on
-
-RK1463 was filed as *four fifths of the answer*. It measured, on a six-dep fixture built
-for it, at 46% — and the duplicate it removed was half of that, leaving `deps_resolved`
-at 34% of a 4,846-character brief. The remainder is not waste: each row is a dep, its
-resolution, and where it landed.
-
-What the filing could not know is where the ceiling came from. `[reads] brief` is
-declared here and `cost --brief` ranks every open line against it — but this
-repository's own lines carry **no deps at all**, so the widest brief here has never had
-a `deps_resolved` block in it. The number (RK1286: 2,549 units read, 3,300 declared) was
-measured on a population that cannot exhibit the growth this task was about.
-
-So the ceiling is real and the reading behind it is narrow. A backlog whose lines depend
-on each other pays per dep, per settled dep, per chain — three lists that grow with the
-graph and not with the prose — and none of that is in the figure this project holds
-itself to.
-
-The cheap move is a corpus reading rather than a new rule: `cost --brief` already ranks,
-and Shio's and Turing's pinned trees are in `tests/corpora.py` and do carry deps. What a
-widest brief costs *there* is the number `[reads] brief` should have been argued from,
-and it is one command away on a tree this suite already reads.
-
 ### §RK1490 The half a pick cannot offer
 
 RK1467's symptom was that a requirement gates the **whole** line, so the half of a task

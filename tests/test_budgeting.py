@@ -18,6 +18,7 @@ from pathlib import Path
 
 import pytest
 
+import corpora
 from roadkeep.budgeting import (
     CHARS_PER_WORD,
     AmbiguousAnchor,
@@ -3838,3 +3839,65 @@ def test_the_two_words_the_departures_use_are_taken_here(tmp_path):
     assert main(
         ["-C", str(tmp_path), "budget", "RK2", "--superseded-by", "RK1", "--reason", "x."]
     ) == EXIT_OK
+
+
+# -- the ceiling, read on a corpus that has deps (RK1486) ----------------------
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda one: one.name)
+def test_the_widest_brief_a_live_backlog_produces_is_on_record(corpus):
+    """RK1486. `[reads] brief` is declared here and this repository's own lines carry **no
+    deps at all**, so the ceiling was argued on a population that cannot exhibit the one kind
+    of growth a brief has. The reading, taken at the pins:
+
+        shio    20 open, widest 3,354 (SH245), widest graph 133 (SH110)
+        turing   3 open, widest 3,233 (T898),  widest graph 183 (T902)
+
+    Two things follow, and the second corrects this task's own design. The ceiling **is**
+    narrow: 3,300 is declared here and Shio's widest brief is 3,354, so a real backlog already
+    exceeds it. And the reason the design gave is **wrong** — the graph rows never reach 200
+    characters on either corpus, so what makes those briefs wide is prose, not deps.
+
+    Held as properties rather than as the four numbers, which is what a pin buys: a `brief`
+    that grew a graph block would cross the share below long before it crossed a figure
+    somebody would have to re-measure by hand.
+    """
+    from roadkeep.budgeting import brief_budget
+
+    corpora.require(corpus)
+    found = brief_budget(corpora.config(corpus))
+    assert found.briefs, "a corpus with nothing open prices nothing, and both have work"
+    assert not found.unpriced, [one.because for one in found.unpriced]
+    assert found.widest.characters < 3600, "the widest a live brief has ever been, with room"
+    # The claim the reading establishes and this task's design denied: the graph is a tenth of
+    # a brief at most, so a ceiling that fits the prose fits the deps.
+    worst = max(found.briefs, key=lambda one: one.graph)
+    assert worst.graph * 10 < found.widest.characters, (worst.id, worst.graph)
+    assert worst.graph + worst.prose == worst.characters
+
+
+def test_the_split_is_published_at_zero_too(tmp_path, capsys):
+    """A consumer comparing two backlogs needs the zero to mean *no deps* rather than *this
+    build did not measure it* — `Debt.payload`'s rule, one read over."""
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "cost", "--brief", "--json"]) == EXIT_OK
+    priced = {one["id"]: one for one in json.loads(capsys.readouterr().out)["briefs"]}
+    # RK1 waits on nothing, so its brief has no graph rows and the key still says so.
+    assert priced["RK1"]["graph"] == 0
+    assert priced["RK1"]["prose"] == priced["RK1"]["characters"]
+    # RK2 waits on RK1, so its does — and the two halves add up to the figure beside them.
+    assert priced["RK2"]["graph"] > 0
+    assert priced["RK2"]["graph"] + priced["RK2"]["prose"] == priced["RK2"]["characters"]
+
+
+def test_the_row_names_the_graph_only_where_there_is_one(tmp_path, capsys):
+    # Silent at zero, which is every line of a backlog carrying no deps — and is exactly the
+    # population this ceiling was argued on.
+    project(tmp_path)
+    assert main(["-C", str(tmp_path), "cost", "--brief"]) == EXIT_OK
+    rows = {
+        line.split()[0]: line
+        for line in capsys.readouterr().out.splitlines()
+        if line.startswith("  RK")
+    }
+    assert "graph" in rows["RK2"] and "graph" not in rows["RK1"]

@@ -2115,6 +2115,19 @@ class Briefed:
 
     id: str
     characters: int
+    #: How much of that is the rows that grow with the **graph** (RK1486): the deps, the ships
+    #: that settled them, the chains through them. `[reads] brief` was argued on a backlog
+    #: whose lines carry no deps at all, so the ceiling this project holds itself to was
+    #: measured on a population that cannot exhibit the one kind of growth a brief has — and
+    #: an author told their brief is 54 over could not tell whether to shorten a design or drop
+    #: a dep. Off :meth:`~roadkeep.briefing.Brief.graph`, which is what composes those rows, so
+    #: the figure and the answer cannot come apart.
+    graph: int = 0
+
+    @property
+    def prose(self) -> int:
+        """The rest of it: everything an author can shorten by writing less."""
+        return max(0, self.characters - self.graph)
 
     def over(self, limit: int | None) -> bool:
         return limit is not None and self.characters > limit
@@ -2247,7 +2260,17 @@ def brief_budget(
     refused: list[Unpriced] = []
     for one in wanted:
         try:
-            out.append(Briefed(id=one, characters=width(brief(config, one).stated(config))))
+            composed = brief(config, one)
+            out.append(
+                Briefed(
+                    id=one,
+                    characters=width(composed.stated(config)),
+                    # Through the brief's own composer and never a second pass over the text
+                    # (RK1486): what these rows are is a fact about that record, and a figure
+                    # derived by matching the rendering would be the drift RK1507 is about.
+                    graph=width("\n".join(composed.graph(one))),
+                )
+            )
         except (NothingToBrief, KeyError, OSError) as error:
             # Named and never dropped (RK1288). An id no line carries is still not this
             # read's to *refuse* — it is asked about the backlog, and a caller naming a

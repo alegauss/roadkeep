@@ -229,6 +229,14 @@ permanent = true
 # the room two more done-when clauses take, and under it a brief stays cheaper to ask
 # for than the lint that would find the overrun too late. Raise it against a fresh
 # reading, never against a brief that grew.
+# What that reading was taken on, said because it bounds the claim (RK1486): every line
+# here carries **no deps**, so this number was measured on a population with no dep
+# rows, no settled-dep rows and no chains in any of its briefs. Read at the pins on two
+# backlogs that do have them: Shio 20 open, widest 3354; Turing 3 open, widest 3233 -
+# so a real backlog already exceeds 3300, and this number is this project's own (L6)
+# rather than one an adopter should copy. The reason the filing gave is falsified by
+# the same reading: the graph rows reach 133 and 183 units on those two, a tenth of a
+# brief at most, so what makes a brief wide is prose. `cost --brief` prints the split.
 brief = 3300
 # The roadmap lists whole at 6,912 code units and the decisions file at 14,257, so
 # 40,000 leaves both of them and the widest ledger block under it. The changelog is

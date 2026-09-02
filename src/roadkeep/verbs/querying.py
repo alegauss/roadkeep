@@ -808,7 +808,16 @@ def _brief_budget(config: Config, args: argparse.Namespace) -> int:
                     "unit": CHARACTER_UNIT,
                     "limit": found.limit,
                     "briefs": [
-                        {"id": one.id, "characters": one.characters, "over": one.over(found.limit)}
+                        {
+                            "id": one.id,
+                            "characters": one.characters,
+                            # The split, published always and never only when non-zero
+                            # (RK1486): a consumer comparing two backlogs needs the zero to
+                            # mean *no deps* rather than *this build did not measure it*.
+                            "graph": one.graph,
+                            "prose": one.prose,
+                            "over": one.over(found.limit),
+                        }
                         for one in found.briefs
                     ],
                     # What the ranking could not measure (RK1288), which is the fact the
@@ -849,7 +858,13 @@ def _brief_budget(config: Config, args: argparse.Namespace) -> int:
     rows = [f"{len(found.briefs)} brief(s), widest first, in {CHARACTER_UNIT}: {ceiling}"]
     for one in found.briefs:
         room = "" if found.limit is None else f"  {found.limit - one.characters:+d}"
-        rows.append(f"  {one.id:<10} {one.characters}{room}")
+        # And what of it is the **graph** (RK1486): the deps, the ships that settled them and
+        # the chains through them grow with the backlog's shape and not with anything an
+        # author wrote, so a reader told only a total cannot tell whether to shorten a design
+        # or drop a dep. Silent at zero, which is every line of a backlog carrying no deps —
+        # and is exactly the population `[reads] brief` was argued on.
+        shape = f"  {one.graph} graph" if one.graph else ""
+        rows.append(f"  {one.id:<10} {one.characters}{room}{shape}")
     # Named under the ranking (RK1288): a line the read could not compose is the one most
     # likely to have been the widest, so the top of the rest is not the answer while it is
     # unaccounted for — and what refused it is the tool's own sentence, not one composed here.
