@@ -48,6 +48,7 @@
 - 💭 **RK1468** (deps: —) **the gate's engine note reads the plugin alone, so a project running two local copies at two versions passes it clean** — engines exits 1 on a vendored copy at another version and the once-per-commit note never asks, so the split is found only by whoever ran that read on purpose. → §RK1468
 - 💭 **RK1478** (deps: —) **a settled constraint-line pair is a sentence in one design and no read names it, so the gate's silence has no witness** — RK1457 answers the note from the line and nothing answers from the rule, so a clause somebody tidies away brings a note back with no clue what removed it. → §RK1478
 - 💭 **RK1488** (deps: —) **a ship deletes the clause that answered a constraint and says nothing, so the answer ages out unremarked** — RK1457 put the answer in the design because it ages out with the work, and the ship that deletes it reports the section and never what the section settled. → §RK1488
+- 💭 **RK1489** (deps: —) **the pair sweep reads a flag as swallowed where its fixture cannot hold the state the flag is about** — anchors --retired reads git diffs and the fixture inits no repository, so a correct flag was proved honoured by a payload key echoing the request. → §RK1489
 
 ## Block E — Adoption
 
