@@ -117,7 +117,7 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 5 | 224 | 2 |
+| B — Authoring (insert, never hand-edit) | 6 | 224 | 2 |
 | C — Query (consult without reading the file) | 9 | 146 | 3 |
 | D — The gate | 2 | 208 | 2 |
 | E — Adoption | 0 | 117 | 1 |
@@ -125,7 +125,7 @@ called unbuilt were already in the ledger.
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 945 | 13 |
+| **Total** | 24 | 945 | 13 |
 
 **Next ready:**
 

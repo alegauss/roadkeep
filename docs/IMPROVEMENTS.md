@@ -203,6 +203,29 @@ What must not come out of it is a rename. `section amend` is right to take its a
 position and `retire` is right to say `--superseded-by`; the read is the one verb asked
 about every subject, so the aliases belong on it.
 
+### §RK1484 The span the writer already knew
+
+RK1460 writes a verified criterion under the ledger entry, as a continuation of the
+bullet. That is `carrying`'s own shape (RK157) and it round-trips, but it makes the
+entry **wrapped** — and a wrapped entry costs every later door a count.
+
+`record amend <id> --why` is refused on one until `--lines` says how many it replaces,
+the count being the caller saying they read the span. Before this a correction was one
+call; after a `--checked` it is a `show <id>` to read the span, then an amend carrying
+the whole tail back. RK1049 built that path deliberately and it is right for a
+hand-wrapped ledger — but here the wrap is **this tool's**, written by a flag, composed
+from a bullet it had already parsed.
+
+So the correction door asks a caller to re-supply prose the writer derived, which is the
+shape RK16 confines to the fixer: a derived line is repaired and never retyped.
+
+What is likely missing is that `record amend` should not count a continuation it can
+recognise as its own. The carried lines have a form — two spaces, the word `checked`, a
+bold lead the criteria grammar wrote — so the span is knowable rather than declared, and
+an amend of the sentence alone could leave them where they are. What must not follow is
+`--lines` becoming optional in general: a hand-wrapped entry is prose nobody parsed, and
+that refusal is the reason the door is narrow.
+
 ## Block C — Query
 
 ### §RK1461 The one field the price is never told about

@@ -31,6 +31,7 @@
 - 📋 **RK1480** (deps: —) **amend replaces the whole dep group, so adding one means retyping every dep the line already carries** — The retyped group is also wider, so a why that fitted before the add is refused after it, and one edit becomes two failures. → §RK1480
 - 📋 **RK1481** (deps: —) **the CLI and the MCP surface spell several verbs and flags differently, so a call copied between them is refused** — next-id against next_id and --with against replacement each cost a refusal, and the caller cannot tell which surface a remembered spelling came from. → §RK1481
 - 💭 **RK1483** (deps: —) **two more of budget's arguments are spelled differently by the write they price, and nothing enumerates the pairs** — RK1459 aliased one by hand; --anchor is positional on section amend and --retire is --superseded-by, each a turn inside the price-then-write loop. → §RK1483
+- 💭 **RK1484** (deps: —) **a ship recording a checked criterion wraps the entry, so correcting its sentence costs a span this tool wrote** — record amend refuses a wrapped entry without --lines, and after RK1460 the wrap is derived prose the caller would have to read back and retype. → §RK1484
 
 ## Block C — Query (consult without reading the file)
 
