@@ -784,6 +784,47 @@ def test_a_plugin_older_than_the_gate_is_a_note_and_not_a_finding(tmp_path, monk
     assert "the plugin wired to this project is 0.1.285" in note.message
 
 
+def test_the_gate_names_the_vendored_copy_the_launcher_runs(tmp_path):
+    """RK1468. RK1451 gave `engines` a row for the copy vendored under `.roadkeep/` and an exit
+    code that covers it; this note still read `running` and `plugin`, so a project holding a
+    vendored engine two minor versions from the shell's had `engines` exiting 1 and naming both
+    pens while the gate that runs on every commit said nothing at all.
+
+    That is the population the note was written for (RK1440): a port that had just wired the
+    served `lint` into its local gate, where a version is a claim rather than an argument
+    somebody typed."""
+    from roadkeep.installing import install
+
+    config = project(tmp_path)
+    install(tmp_path, source=HERE)
+    home = tmp_path / ".roadkeep" / "src" / "roadkeep"
+    home.mkdir(parents=True)
+    (home / "__init__.py").write_text('__version__ = "0.1.1269"\n', encoding="utf-8")
+
+    (note,) = [
+        n for n in lint(config).notes if n.code == "engine.disagreement"
+    ]
+    assert "the engine vendored here is 0.1.1269" in note.message
+    assert "written by whichever answered" in note.message
+    # Named and never chosen: both are pens, so the note offers the re-pin and stops there.
+    assert "install --vendor" in note.message
+    assert "/plugin update" not in note.message
+
+
+def test_a_project_that_vendored_nothing_is_told_nothing_new(tmp_path):
+    # An absent `.roadkeep/` is the default, and a note on every project is the noise this
+    # file refuses everywhere else — `Engines.split` is what keeps the clause off them.
+    from roadkeep.installing import install
+    from roadkeep.provenance import engine
+
+    config = project(tmp_path)
+    install(tmp_path, source=HERE)
+    for note in lint(config).notes:
+        if note.code == "engine.disagreement":
+            assert "vendored here" not in note.message
+    del engine
+
+
 def test_a_gate_that_is_somebody_s_working_tree_says_so_with_no_plugin_wired(tmp_path):
     """RK1440. Observed in a port over one session: this note reported the gate as 0.2.35,
     then 0.2.37, then 0.2.38, and in between the gate crashed outright — because the

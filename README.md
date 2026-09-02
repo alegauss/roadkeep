@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 6 | 224 | 2 |
 | C — Query (consult without reading the file) | 7 | 150 | 3 |
-| D — The gate | 4 | 208 | 2 |
+| D — The gate | 3 | 209 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 139 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 952 | 13 |
+| **Total** | 22 | 953 | 13 |
 
 **Next ready:**
 
-- 💭 **RK1468** (deps: —) **the gate's engine note reads the plugin alone, so a project running two local copies at two versions passes it clean** — engines exits 1 on a vendored copy at another version and the once-per-commit note never asks, so the split is found only by whoever ran that read on purpose. → §RK1468
+- 💭 **RK1469** (deps: —) **engines --invoke restates the launcher's order and knows two of its four entries, so a ROADKEEP_HOME pin is missed** — The launcher resolves the override, the vendored tree, a sibling and a cache clone, and the line a shell pastes only ever names the plugin or the vendored one. → §RK1469
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

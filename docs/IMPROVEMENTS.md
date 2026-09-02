@@ -407,28 +407,6 @@ meaningless.
 
 ## Block D — The gate
 
-### §RK1468 The note that reconciles one pair of three
-
-RK1451 gave `engines` a row for the copy vendored under `.roadkeep/` and an exit code
-that covers it. `lint`'s `engine.disagreement` note — the once-per-commit surface RK1238
-put the same question on — still reads `running` and `plugin` and nothing else.
-
-So the two answers disagree about one tree. In a project holding a vendored engine two
-minor versions from the shell's, `engines` exits 1 and names both pens while the gate
-that runs on every commit says nothing at all. That is the population the note was
-written for: RK1440 measured it in a port that had just wired the served `lint` into its
-local gate, where a version is a claim rather than an argument somebody typed.
-
-The note's own shape is what makes this cheap. It already composes one clause per fact —
-`working` for a modified checkout, `skewed` for a plugin at another number — and joins
-them with `and`, so a third clause is a third fact and not a second sentence. What it
-must not become is a note on every project: an absent `.roadkeep/` is the default, and
-`Engines.split` is already the boolean saying a copy is both present and apart.
-
-Open: whether the clause names a remedy. The plugin half offers `/plugin update`, and
-these two are both pens — re-vendoring is one answer, not reaching past the launcher is
-the other, and which is right is the project's call rather than the note's.
-
 ### §RK1478 The answer that only one side can see
 
 RK1457 gave `non-goal.reaches` a way to be answered: the line's design quotes the

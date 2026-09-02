@@ -2973,13 +2973,22 @@ def _disagreeing(config: Config, tree: Tree) -> list[Note]:
     # with the two numbers equal, so the old test printed one version twice and called it a
     # disagreement; that state is the working tree above, said in the words it is true in.
     skewed = plugin is not None and plugin.version != running.version
-    if not (working or skewed):
+    # And the third pair (RK1468). RK1451 gave `engines` a row for the copy vendored under
+    # `.roadkeep/` and an exit code that covers it; this note still read `running` and `plugin`,
+    # so a project holding a vendored engine two minor versions from the shell's had `engines`
+    # exiting 1 and naming both pens while the gate that runs on every commit said nothing.
+    # `Engines.split` is the boolean, so an absent `.roadkeep/` — the default — adds nothing.
+    vendored = found.vendored
+    split = found.split and vendored is not None
+    if not (working or skewed or split):
         return []
     gate = f"this gate is {running.version}"
     if working:
         gate += f" from a **modified** checkout at {running.home.as_posix()}"
     if skewed:
         gate += f", and the plugin wired to this project is {plugin.version}"
+    if split and vendored is not None:
+        gate += f", and the engine vendored here is {vendored.version}"
     # One clause per fact and in the order they are stated, because a reader acts on a
     # different thing for each: an unpinnable verdict is a tree to look at, and a version
     # behind is a judge to move.
@@ -2987,14 +2996,22 @@ def _disagreeing(config: Config, tree: Tree) -> list[Note]:
         [
             *(["a verdict here is that working tree's"] if working else []),
             *(["a hook's refusal is that copy's rule"] if skewed else []),
+            # Both pens, which is why this clause is about the *write* and not about a judge:
+            # the launcher runs the vendored copy and a shell reaches this one, so which rules
+            # a line was written under depends on which door the session came through.
+            *(["a line written here was written by whichever answered"] if split else []),
         ]
     )
+    # Named and never chosen (RK1468): re-vendoring is one answer and not reaching past the
+    # launcher is the other, and which is right is the project's call rather than this note's.
     moves = "; `/plugin update` moves the judge" if skewed else ""
+    if split:
+        moves += "; `install --vendor` re-pins the copy the launcher runs"
     return [
         Note(
             "engine.disagreement",
             where,
-            f"{gate}: {means} — `engines` reads all three and names the revision each "
+            f"{gate}: {means} — `engines` reads every copy and names the revision each "
             f"one is at{moves}",
         )
     ]
