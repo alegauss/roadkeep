@@ -488,6 +488,29 @@ legal and the line is full* rather than quote a ceiling nobody declared. `DepRef
 reframes one case by inspection; the other doors adding structure to a line,
 `--requires` and `--ref` among them, meet that sentence and reframe nothing.
 
+### §RK1504 The name that is two acts
+
+RK1481 made the CLI take the MCP spelling, and the guard it needed is the finding.
+`claim` is a command here *and* the tool name for `brief --claim`; `scope` is a command
+here and the tool name for `claim --path`. Respelling either rewrites a correct call
+into a different act — a silent wrong write, worse than the refusal replaced. The rule
+is one line: never respell a verb this CLI has.
+
+What that line does not remove is the collision. Two names are each a command on one
+surface and a different act's tool name on the other, and nothing anywhere says so. A
+third such pair is one `Tool(..., named=...)` away, and the person adding it has no
+reason to look: the declaration is about naming an act, and the fact that the name is
+already a verb of this tool lives in `cli.py`.
+
+It is checkable and cheap. Tool names and command paths are both enumerable, and what
+has to hold is that a served name which is also a command names the *same* act — `list`
+is `list`, and `claim` is not `claim`. Two rows break it today and both are deliberate,
+so the test is a table of the pairs with a reason each: `test_composing`'s shape and
+`test_surfaces`'.
+
+Renaming one side is the wrong repair: `scope` and `claim` are right on their own
+surfaces, and the cost is not the collision but that nobody is told it exists.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
