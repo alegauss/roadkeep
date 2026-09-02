@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 6 | 224 | 2 |
-| C — Query (consult without reading the file) | 7 | 150 | 3 |
+| C — Query (consult without reading the file) | 6 | 150 | 4 |
 | D — The gate | 5 | 209 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 142 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 956 | 13 |
+| **Total** | 22 | 956 | 14 |
 
 **Next ready:**
 
-- 📋 **RK1472** (deps: —) **`budget` takes no --requires, so it prices a line the requirement group has not been charged to** — It reports the why limit as 185 where `add --requires` enforces 164, and the refusal's own foresee line points back at the call that said 185. → §RK1472
+- 📋 **RK1473** (deps: —) **`unclosed` counts roadkeep's own prose edits as evidence a line shipped, so its report is mostly its own writes** — It drops the commit that filed an id and no other, though `amend` and `section amend` name one too and touch only files it governs. → §RK1473
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

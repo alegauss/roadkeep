@@ -440,6 +440,7 @@
 - ✅ **RK1463** **brief spends four fifths of its answer on deps that are all shipped and settled long ago** — brief publishes the design revision once instead of under every settled dep, which on a six-dep task was half of a deps block that was 46% of the answer.
 - ✅ **RK1466** **a project numbering by id gets every address in one answer, which at this repository's size is 961 rows and 175 KB** — the wide anchors listing carries the live rows and counts the retired behind --retired, so an id project is not handed 175 KB of addresses nothing prunes.
 - ✅ **RK1467** **A requirement gates the whole line, so the half of a task that needs nothing is never offered** — requirements declared may be a table of what each word is, and the refusal that withholds a line quotes it, so a caller weighs the gate instead of believing it.
+- 🗑 **RK1472** **`budget` takes no --requires, so it prices a line the requirement group has not been charged to** — superseded by RK1461: Delivered by RK1461, which measured the same 21 characters: budget --requires is repeatable and charged before the sentence exists, and the wider sweep is RK1483.
 
 ## Block D — The gate
 

@@ -35,7 +35,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1472** (deps: —) **`budget` takes no --requires, so it prices a line the requirement group has not been charged to** — It reports the why limit as 185 where `add --requires` enforces 164, and the refusal's own foresee line points back at the call that said 185. → §RK1472
 - 📋 **RK1473** (deps: —) **`unclosed` counts roadkeep's own prose edits as evidence a line shipped, so its report is mostly its own writes** — It drops the commit that filed an id and no other, though `amend` and `section amend` name one too and touch only files it governs. → §RK1473
 - 💭 **RK1476** (deps: —) **an unscoped list over a ledger is bounded by nothing, so the transport refuses an answer this tool already composed** — RK1455 pointed a caller at the structure and left the listing at 117,815 characters, and no ceiling here is declared, measured or read. → §RK1476
 - 💭 **RK1477** (deps: —) **a re-filing of shipped work in other words ranks 7th, outside both windows, so the add that wrote it agreed it was new** — The corpus is symptoms alone and the pair that proves it shares a subject and no words, which is what a second author writing the same defect produces. → §RK1477
