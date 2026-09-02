@@ -1148,9 +1148,12 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
         return EXIT_OK
 
     if args.json:
-        print(json.dumps(found.payload(config, args.claims), indent=2))
+        print(json.dumps(found.payload(config, args.claims, args.retired), indent=2))
     else:
-        print(found.stated(config, args.claims))
+        # RK1466. The retired half is what grows — one address per shipped task, pruned by
+        # nothing — so the wide listing on a project with no families carries the live ones
+        # and names the flag that prints the rest.
+        print(found.stated(config, args.claims, args.retired))
     return EXIT_OK
 
 
@@ -2193,13 +2196,30 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
             "family at once, since the rows it leaves out are the ones nobody reads"
         ),
     )
+    # RK1466. On a project whose addresses have no families the listing is the rows, and the
+    # retired half of them grows by one per shipped task with nothing to prune it — 943 of this
+    # repository's 983. So the wide read carries the live ones and this is the door to the rest.
+    anchors_parser.add_argument(
+        "--retired",
+        action="store_true",
+        help="list the retired addresses too, which the wide listing counts and withholds",
+    )
     anchors_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    withheld(
+        anchors_parser,
+        retired="the listing this flag widens is exactly the one the bound exists for: 943 of this repository's 983 addresses are retired, so an answer carrying them is a tool result three times the size of the surface that published the read",
+    )
     anchors_parser.set_defaults(handler=_anchors, reads_only=True)
     # Two subjects, as `budget`'s four are (RK466): `--next` returned before the `--claims`
     # branch was reached, so a caller asking for the audit and the free address read the
     # address alone with nothing said about the other.
+    # Three since RK1466: `--retired` is a listing of its own, so a caller who asked for it
+    # and for the free address or the audit asked two questions and would be answered one.
     answers(
-        anchors_parser, ("only_next", "the free address"), ("claims", "the ownership audit")
+        anchors_parser,
+        ("only_next", "the free address"),
+        ("claims", "the ownership audit"),
+        ("retired", "the retired addresses"),
     )
 
     deps_parser = subcommands.add_parser(

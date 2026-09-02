@@ -2066,15 +2066,37 @@ class Addresses:
 
     # -- the wide read -----------------------------------------------------
 
-    def rows(self) -> list[str]:
+    def withheld(self) -> list[str]:
+        """The retired addresses this listing did not print, and the flag that does (RK1466).
+
+        A count with a door, which is what RK1450's own finding says a count needs: that task
+        replaced a number nothing could open with a listing nothing bounds, and the half worth
+        keeping from each is this row. Silent where nothing was withheld — a project whose
+        every address is live, and every listing that already carries them.
+        """
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
+        return [
+            f"  {len(self.retired)} retired address(es) are not listed — "
+            f"`{invocation()} anchors --retired` prints them"
+        ]
+
+    def rows(self, live_only: bool = False) -> list[str]:
         """One line per listed address: its register, its file, the commit that retired it.
 
         One writer for the two readings that print addresses (RK1450) — the family a caller
         narrowed to, and a project whose addresses have no family. They were one loop and a
         second call site would have been a second format for the same row.
+
+        ``live_only`` is the bound RK1466 puts on the second of those: a retired address is one
+        per shipped task and nothing prunes them, so that half is what grows and the flag is
+        where it goes. Never on the first — a caller who named a family asked for its whole
+        history, and that is what a family is for.
         """
         out: list[str] = []
         for one in self.found:
+            if live_only and not one.live:
+                continue
             written = f"  written in {one.written_in[:7]}" if one.written_in else ""
             # The file, wherever the project has more than one: two rows spelling the same
             # address are the doubling, and unlabelled they read as one row printed twice.
@@ -2085,7 +2107,7 @@ class Addresses:
             )
         return out
 
-    def stated(self, config: Config, claims: bool) -> str:
+    def stated(self, config: Config, claims: bool, retired: bool = False) -> str:
         from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
 
         where = self.files(config)
@@ -2138,7 +2160,17 @@ class Addresses:
             # Everything below this is the outline's answer: a free family, one line per
             # family, and the sentence that stood in for the rows — none of which a project
             # numbering by id has, which is how the count came to be the whole output.
-            return chr(10).join(said + self.rows() + self.doubled_rows())
+            #
+            # **The live ones in full, the retired behind a flag** (RK1466). RK1450 replaced a
+            # count nothing could open with a listing nothing bounds: measured over this
+            # repository's 960 addresses composed as an id project, 175,384 bytes of payload
+            # and 52,655 characters printed, against a whole tool surface of 64,333. The two
+            # halves grow differently — a retired address is one per shipped task and nothing
+            # prunes them, while the live ones are bounded by the open backlog — so the bound
+            # goes where the growth is, and the count carries the door RK1450 was missing.
+            rows = self.rows(live_only=not retired)
+            kept = [] if retired or not self.retired else self.withheld()
+            return chr(10).join(said + rows + kept + self.doubled_rows())
 
         # Beside the totals and above the rows, because it is the question a reused block asks
         # first and the listing cannot be read for it (RK293): the rows are per family, and the
@@ -2167,8 +2199,13 @@ class Addresses:
             said.append(
                 f"  {self.spent} address(es) are task ids, which `add` already refuses to reuse"
             )
+        if retired:
+            # Asked for, which is the difference (RK1466): the wide read withholds these
+            # everywhere — behind the family register here and behind a count where there is
+            # none — and this flag means the same thing on both, *print what was withheld*.
+            said += [one for one in self.rows() if one.lstrip().startswith("retired")]
         said += self.doubled_rows()
-        if self.outline:
+        if self.outline and not retired:
             # Named because the listing above is per family and the addresses are what the
             # caller came for: one flag away, and never printed by the hundred unasked.
             said.append(
@@ -2176,13 +2213,19 @@ class Addresses:
             )
         return chr(10).join(said)
 
-    def payload(self, config: Config, claims: bool) -> dict[str, object]:
+    def payload(
+        self, config: Config, claims: bool, retired: bool = False
+    ) -> dict[str, object]:
         return {
             "role": self.role or None,
             # Every file the answer was read from, and not one (RK297): a client comparing two
             # runs needs to know which outline it was handed.
             "files": [config.relative(config.path(one)) for one in self.read],
             "family": self.family or None,
+            # Which listing this is (RK1466), beside the other narrowings the call made and
+            # for their reason: the retired rows are withheld by default on every scheme, so a
+            # client comparing two answers has to know whether it was handed the wide one.
+            "retired_listed": retired,
             "block": self.block or None,
             "block_families": list(self.spans),
             "live": len(self.found) - len(self.retired),
@@ -2195,6 +2238,12 @@ class Addresses:
             # trades rows for a summary, and a project numbering by id has no summary to be
             # handed instead — so the payload counted 88 addresses in `live` and `retired` and
             # returned `anchors: []`, with `--claims` the only flag that answered in rows.
+            #
+            # **And the retired half of them behind a flag** (RK1466): 960 rows composed as an
+            # id project measured 175,384 bytes, three times the whole tool surface that
+            # published the read. The live ones are bounded by the open backlog; the retired
+            # grow by one per shipped task and nothing prunes them, so the bound goes there and
+            # `retired_withheld` says how many, which is RK1301's shape one read over.
             "anchors": [
                 _anchor_row(one)
                 for one in self.found
@@ -2202,9 +2251,18 @@ class Addresses:
                 # the audit over the exceptions, and a flag that narrows must not be the one
                 # reading that widens.
                 if self.family
-                or (self.unfamilied and not claims)
+                or (self.unfamilied and not claims and (retired or one.live))
+                # And the withheld half wherever it was withheld (RK1466): behind the family
+                # register on an outline and behind a count where there is none, so the flag
+                # means one thing on both surfaces and on both schemes.
+                or (retired and not claims and not one.live)
                 or (claims and _ownership(one))
             ],
+            # How many rows the answer left out, and 0 whenever it left out none — a client
+            # cannot tell a short listing from a bounded one otherwise.
+            "retired_withheld": (
+                len(self.retired) if self.unfamilied and not claims and not retired else 0
+            ),
             "families": [] if self.family else self.families(),
             "id_anchors": self.spent,
             # Both free addresses are the **project's** even where the listing was narrowed

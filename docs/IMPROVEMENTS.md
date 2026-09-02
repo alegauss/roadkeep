@@ -228,33 +228,6 @@ that refusal is the reason the door is narrow.
 
 ## Block C — Query
 
-### §RK1466 The listing that now names everything it counts
-
-RK1450's finding was that the wide read stated 88 addresses and offered no way to see
-them: under `ref_scheme = "id"` there is no family register, so the summary that stands
-in for the rows (RK264) is empty and the substitute is a sentence about `add`. The fix
-prints the rows there. It has no ceiling.
-
-Measured by composing this repository's own 960 addresses as a project with no families
-— which is the state every id-scheme project is in:
-
-    payload   175,384 bytes, 960 rows
-    printed    52,655 characters, 961 lines
-
-Against a handshake whose whole tool surface is 64,333 units and a `[tools] characters`
-ceiling of 2,800 for one tool's description. A read three times the size of the surface
-that published it is not a bounded answer.
-
-The two halves of Block C's criterion come apart here: the answer fits no tool result,
-and it does not say what it left out, because it left nothing out. Retired addresses are
-what grows — one per shipped task, unbounded by anything the project can prune — while
-the live ones are bounded by the open backlog.
-
-So the shape is likely live rows in full and retired as a count that names the flag
-which lists them, which is the door RK1450 was actually missing. What must not come back
-is the count with nothing behind it. **No effort or size field.** is about a slot on a
-task line and this is about a payload's, so the rule bounds nothing here.
-
 ### §RK1467 What a requirement withholds beyond itself
 
 `[requirements]` is a property of a line: `pick` withholds it whole from a caller that
@@ -462,11 +435,11 @@ constraint's lead and the note falls silent. Clearing this repository's own two 
 `section amend --replace` calls whose whole content was a sentence saying *the rule
 bounds nothing here* — and neither of them said which note they were answering.
 
-So the record is silent in the direction a reader arrives from. The sentence in §RK1466
-reads as a stray remark about payload size; nothing says a gate row was open, that
-somebody read the constraint against the line, or that the silence depends on those
-words staying. Its twin is already gone — the ship that closed RK1465 deleted the design
-carrying it, unremarked.
+So the record is silent in the direction a reader arrives from. Each clause read as a
+stray remark about the subject it named; nothing said a gate row was open, that somebody
+had read the constraint against the line, or that the silence depended on those words
+staying. Both are already gone — RK1465 and RK1466 shipped within the hour, and each
+ship deleted the design carrying one, unremarked.
 
 The other governed answers do not have this problem, because each is a field: a dep is
 annotated, a supersession is a marker and a pointer, a queue entry is a row. This one is

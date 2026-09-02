@@ -2233,12 +2233,25 @@ def test_a_project_numbering_by_id_is_shown_its_addresses_and_not_only_counted(t
 
     out = capsys.readouterr().out
     assert "3 anchor(s), 1 retired" in out
-    # Each address, in the register `--family` already prints them in — one writer for both.
+    # Each **live** address, in the register `--family` already prints them in — one writer
+    # for both. The retired half is counted and behind a flag since RK1466: it grows by one
+    # per shipped task and nothing prunes it, which is the growth this listing had no bound on.
     assert "live     RK1" in out
-    assert "retired  RK2" in out
     assert "live     RK3" in out
+    assert "retired  RK2" not in out
+    assert "1 retired address(es) are not listed" in out
+    assert "anchors --retired" in out
     # And not the row that stood in for them, which answers the question `--next` asks.
     assert "`add` already refuses to reuse" not in out
+
+    # The door is **run** and not matched (RK1209): a count offering a command is green for
+    # as long as the command it names refuses.
+    from composing import runs
+
+    assert runs(config.root, out) == (["anchors", "--retired"],)
+    whole = capsys.readouterr().out
+    assert "retired  RK2" in whole
+    assert "are not listed" not in whole
 
 
 def test_the_payload_carries_the_rows_its_own_counts_are_over(tmp_path, capsys):
@@ -2249,8 +2262,16 @@ def test_the_payload_carries_the_rows_its_own_counts_are_over(tmp_path, capsys):
 
     payload = json.loads(capsys.readouterr().out)
     assert (payload["live"], payload["retired"]) == (2, 1)
-    assert [one["anchor"] for one in payload["anchors"]] == ["RK1", "RK2", "RK3"]
-    assert [one["live"] for one in payload["anchors"]] == [True, False, True]
+    # The live rows, and how many were withheld — a client cannot tell a short listing from a
+    # bounded one otherwise, which is RK1301's shape one read over (RK1466).
+    assert [one["anchor"] for one in payload["anchors"]] == ["RK1", "RK3"]
+    assert payload["retired_withheld"] == 1
+
+    assert main(["-C", str(config.root), "anchors", "--retired", "--json"]) == EXIT_OK
+    whole = json.loads(capsys.readouterr().out)
+    assert [one["anchor"] for one in whole["anchors"]] == ["RK1", "RK2", "RK3"]
+    assert [one["live"] for one in whole["anchors"]] == [True, False, True]
+    assert whole["retired_withheld"] == 0
 
 
 def test_the_narrowing_flag_still_narrows_where_the_wide_read_now_lists(tmp_path, capsys):

@@ -438,6 +438,7 @@
 - ✅ **RK1458** **budget prices a why against the roadmap line's limit while the ship about to be written is held to the ledger's** — budget --ship prices the sentence the ledger will hold rather than the line the id is on, which is the number brief already quoted and this read contradicted.
 - ✅ **RK1461** **budget cannot price a line that will carry a requires, so the number it quotes is 21 characters too generous** — budget takes --requires, repeatable, so the 21 characters of structure an add writes for a requirement come off the number before the sentence is composed.
 - ✅ **RK1463** **brief spends four fifths of its answer on deps that are all shipped and settled long ago** — brief publishes the design revision once instead of under every settled dep, which on a six-dep task was half of a deps block that was 46% of the answer.
+- ✅ **RK1466** **a project numbering by id gets every address in one answer, which at this repository's size is 961 rows and 175 KB** — the wide anchors listing carries the live rows and counts the retired behind --retired, so an id project is not handed 175 KB of addresses nothing prunes.
 
 ## Block D — The gate
 

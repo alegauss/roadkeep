@@ -35,7 +35,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1466** (deps: —) **a project numbering by id gets every address in one answer, which at this repository's size is 961 rows and 175 KB** — RK1450 replaced a count nothing could open with a listing nothing bounds, because the register it stood in for was also what held the rows back. → §RK1466
 - 💭 **RK1467** (deps: —) **A requirement gates the whole line, so the half of a task that needs nothing is never offered** — `ship --part` records that a half landed, and `pick` has no matching idea beforehand: a caller that could build that half is told there is nothing to pick. → §RK1467
 - 📋 **RK1472** (deps: —) **`budget` takes no --requires, so it prices a line the requirement group has not been charged to** — It reports the why limit as 185 where `add --requires` enforces 164, and the refusal's own foresee line points back at the call that said 185. → §RK1472
 - 📋 **RK1473** (deps: —) **`unclosed` counts roadkeep's own prose edits as evidence a line shipped, so its report is mostly its own writes** — It drops the commit that filed an id and no other, though `amend` and `section amend` name one too and touch only files it governs. → §RK1473
