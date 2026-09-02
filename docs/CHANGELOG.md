@@ -284,6 +284,7 @@
 - ✅ **RK1454** **block drop refuses a finished block without naming the ending that is correct** — block drop names what became of the block in the refusal, in the words block list already uses, so a sweep told to run it last gets an ending instead of a dead end.
 - ✅ **RK1459** **The read that prices a body and the write that files it name the same argument differently, so the loop costs a refusal** — budget answers to --section-body and --section-body-file too, so the flag a caller priced a design with is the flag the add that files it takes.
 - ✅ **RK1460** **A criterion checked by running something ships looking exactly like one nobody looked at** — ship --checked names a criterion this task carries and moves its own sentence under the ledger entry, so a verified claim no longer reads like an ignored one.
+- ✅ **RK1474** **a decision's symptom is a copy of a roadmap line that is gone, and no verb in any of the three files can correct it** — the claim two files copied is respellable and never rewordable, so a correction folding to the one on record lands and a rewording is refused by name.
 
 ## Block C — Query
 

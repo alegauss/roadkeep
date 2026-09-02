@@ -475,7 +475,10 @@ TOOLS: tuple[Tool, ...] = (
     # exactly, one file over: the sentence was written by an agent through `ship --decides`,
     # and the only other way to fix a word in it is the hand edit the guard denies that agent.
     # `needs` for `supersede`'s reason — this is the decisions role's grammar and nothing else's.
-    Tool("revise", ("id", "decides"), needs="decisions"),
+    # `symptom` beside it (RK1474): the claim is the roadmap line's, copied across by the
+    # ship, and that line is gone — so a claim mangled on the way in was permanent in two
+    # files at once, and the caller who typed it ASCII-only to survive a shell is this one.
+    Tool("revise", ("id", "decides", "symptom"), needs="decisions"),
     # The pause and the return, both of which already refuse where `[files]` declares no store
     # — so publishing them there was 1,381 units describing a refusal (RK1360). The refusal
     # stays reachable and now names `declare deferred`, which is the door it always named.
@@ -498,7 +501,9 @@ TOOLS: tuple[Tool, ...] = (
     # `lines` rides with it for `record drop --line`'s reason (RK179): on a ledger whose
     # bullets wrap, the correction replaces text the parse never held, and the count is the
     # caller saying they read it — a door the agent this ships for has to be able to reach.
-    Tool("record amend", ("id", "why", "part", "lines")),
+    # `symptom` for `revise`'s reason, one file over (RK1474): the ledger holds the same
+    # copied claim and `record amend` declined it, so a respelling had nowhere to go.
+    Tool("record amend", ("id", "why", "part", "symptom", "lines")),
     # The move `record amend` refuses to spell as a correction (RK143). Exposed beside it
     # because an entry filed under the wrong block is what `ship` writes from a line filed
     # under the wrong block — an agent's own slip, and the hand-edit that repaired it is the

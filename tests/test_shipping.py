@@ -3737,6 +3737,95 @@ def test_a_project_with_no_decisions_role_has_nothing_to_revise(tmp_path):
     assert "declare decisions" in str(caught.value)
 
 
+# -- the claim two files copied and neither could correct (RK1474) -------------
+
+
+def test_a_claim_mangled_on_the_way_in_is_respellable(tmp_path):
+    """RK1474. RK1453 gave the decisions file a door for the sentence `--decides` composes;
+    the other half of that line is a **copy** — the roadmap line's claim, carried across by the
+    ship, and that line is gone by the time the record exists. Met while shipping FB5, where
+    the claim was passed ASCII-only to survive a shell: two permanent files read "novo e
+    semeado" for "novo é semeado", and no verb in any of the three reached it."""
+    from roadkeep.shipping import revise
+
+    config = _deciding(tmp_path)
+    ship(
+        config,
+        "RK1",
+        why="It seeds now.",
+        decides="The menu is seeded at build time.",
+    ).save()
+    # The claim came from the line, so it is what `add` wrote — mangled the same way.
+    revise(
+        Config.discover(tmp_path), "RK1", symptom="A first symptom"
+    )  # a respelling of itself: nothing to change
+
+    corrected = revise(
+        Config.discover(tmp_path), "RK1", symptom="A first symptôm"
+    )
+    corrected.save()
+    assert "A first symptôm" in read(Config.discover(tmp_path), DECISIONS)
+
+
+def test_a_reworded_claim_is_refused_by_name(tmp_path):
+    """`record amend` excludes the symptom deliberately: an entry's claim is what the work was
+    filed against, and a claim editable afterwards records what somebody later wished had been
+    claimed. That argument is whole — this opens exactly as wide as the defect."""
+    from roadkeep.shipping import NotARespelling, revise
+
+    config = _deciding(tmp_path)
+    ship(config, "RK1", why="It seeds now.", decides="The menu is seeded.").save()
+    before = read(Config.discover(tmp_path), DECISIONS)
+
+    with pytest.raises(NotARespelling) as caught:
+        revise(Config.discover(tmp_path), "RK1", symptom="A completely different claim")
+
+    said = str(caught.value)
+    assert "not a respelling" in said
+    assert "retire --superseded-by" in said, "the door a claim that turned out wrong takes"
+    assert read(Config.discover(tmp_path), DECISIONS) == before
+
+
+def test_the_ledger_holds_the_same_copy_and_the_same_door(tmp_path):
+    # Three files hold the same words: `restate` reaches the roadmap's while the line is open,
+    # and these two are the copies that outlive it.
+    from roadkeep.shipping import NotARespelling, amend, record
+
+    config = project(tmp_path)
+    written = record(
+        config, block="A", symptom="Menu do site novo e semeado", why="It works now."
+    )
+    written.save()
+    config = Config.discover(tmp_path)
+    filed = written.task_id
+
+    corrected = amend(config, filed, symptom="Menu do site novo é semeado")
+    corrected.save()
+    assert "novo é semeado" in read(Config.discover(tmp_path), CHANGELOG)
+    assert corrected.changed == ("symptom",)
+
+    with pytest.raises(NotARespelling):
+        amend(Config.discover(tmp_path), filed, symptom="Something else entirely")
+
+
+def test_the_fold_is_accents_case_and_spacing_and_nothing_wider(tmp_path):
+    # The shape a shell, a transliteration or a failed decode leaves, and nothing else: a word
+    # changed is a different claim and a word added is too.
+    from roadkeep.shipping import respelling
+
+    assert respelling("Menu do site novo e semeado", "Menu do site novo é semeado")
+    assert respelling("Sao Paulo", "São Paulo")
+    assert respelling("a  claim", "A claim")
+    assert not respelling("a claim", "a claim indeed")
+    assert not respelling("a claim", "another claim")
+
+
+def test_neither_flag_is_nothing_to_revise(tmp_path, capsys):
+    _deciding(tmp_path)
+    assert main(["-C", str(tmp_path), "revise", "RK1"]) == EXIT_USAGE
+    assert "pass --decides or --symptom" in capsys.readouterr().err
+
+
 def test_the_verb_reaches_the_command_line_and_stages_the_file(tmp_path, capsys):
     from roadkeep.shipping import supersede
 

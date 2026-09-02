@@ -142,8 +142,10 @@ def _record(config: Config, args: argparse.Namespace) -> int:
 
 
 def _record_amend(config: Config, args: argparse.Namespace) -> int:
-    if args.why is None and args.part is None:
-        print("roadkeep: nothing to amend: pass --why or --part", file=sys.stderr)
+    if args.why is None and args.part is None and args.symptom is None:
+        print(
+            "roadkeep: nothing to amend: pass --why, --part or --symptom", file=sys.stderr
+        )
         return EXIT_USAGE
     try:
         # One read joined to the listing, not a second parse: `reversals` walks the same
@@ -154,7 +156,14 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
         # `amend` is about to make of the same bytes, so this costs a cache hit.
         undone_by = {one.undone: one.by for one in reversals(config)}.get(args.id)
         corrected = amend_record(
-            config, args.id, why=_piped(args.why), part=args.part, lines=args.lines
+            config,
+            args.id,
+            why=_piped(args.why),
+            part=args.part,
+            # The claim, respelled and never reworded (RK1474): bytes that never arrived are
+            # not a claim somebody revised, and the door is exactly that wide.
+            symptom=args.symptom,
+            lines=args.lines,
         )
         wrote = corrected.save()
     except REFUSALS as error:
@@ -406,8 +415,20 @@ def _revise(config: Config, args: argparse.Namespace) -> int:
     """
     from roadkeep.shipping import revise  # noqa: PLC0415 - RK260
 
+    if args.decides is None and args.symptom is None:
+        print(
+            "roadkeep: nothing to revise: pass --decides or --symptom", file=sys.stderr
+        )
+        return EXIT_USAGE
     try:
-        corrected = revise(config, args.id, decides=_piped(args.decides))
+        corrected = revise(
+            config,
+            args.id,
+            decides=_piped(args.decides),
+            # The claim, respelled and never reworded (RK1474): it is the roadmap line's,
+            # copied across by the ship, and that line is gone by the time this file exists.
+            symptom=args.symptom,
+        )
         wrote = corrected.save()
     except REFUSALS as error:
         return _refused(error)
@@ -647,8 +668,9 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
             "`drop` and `add` are not equivalent to this: they would remove the entry and "
             "append a new one under its block, so a ledger read in the order work landed "
             "stops being one and a reviewer sees a deletion where a word changed. The "
-            "`symptom` is the claim and is not a field, the id is `renumber`'s, and the "
-            "block is not offered because filing an entry elsewhere is a move."
+            "`symptom` is the claim, so it is respellable and never rewordable; the id is "
+            "not a field here and is `renumber`'s; and the block is not offered because "
+            "filing an entry elsewhere is a move."
         ),
     )
     record_amend.add_argument("id", help="the recorded id, e.g. RK41")
@@ -662,6 +684,16 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
     record_amend.add_argument(
         "--part",
         help="correct a partial's qualifier; refused where the entry carries none",
+    )
+    # RK1474. The one field the description above calls not-a-field, opened exactly as wide
+    # as the defect: a claim passed ASCII-only to survive a shell is bytes that never
+    # arrived, and a rewording is still refused by name.
+    record_amend.add_argument(
+        "--symptom",
+        help=(
+            "respell the claim — accepted only where it folds to the one on record, so "
+            "bytes that never arrived are correctable and a rewording is refused"
+        ),
     )
     record_amend.add_argument(
         "--lines",
@@ -843,10 +875,20 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
     revise_parser.add_argument("id", help="the decision being corrected, e.g. RK5")
     revise_parser.add_argument(
         "--decides",
-        required=True,
         help=(
             "the corrected sentence, one stop — the constraint that outlives the code, "
             "under the decisions role's own limit and not the ledger's" + _PIPE
+        ),
+    )
+    # RK1474. The half of this line nobody could reach: the symptom is the roadmap line's
+    # claim, carried across by the ship, and that line is gone — so a claim mangled by a shell
+    # was permanent in two files at once. Respelled and never reworded, which keeps `record
+    # amend`'s argument whole: a claim editable afterwards records what somebody later wished.
+    revise_parser.add_argument(
+        "--symptom",
+        help=(
+            "respell the claim — accepted only where it folds to the one on record, so "
+            "bytes that never arrived are correctable and a rewording is refused"
         ),
     )
     revise_parser.add_argument("--json", action="store_true", help=_JSON_HELP)

@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 💭 **RK1474** (deps: —) **a decision's symptom is a copy of a roadmap line that is gone, and no verb in any of the three files can correct it** — revise reaches the sentence and restate reached the line before it shipped, so a claim mangled by a shell is now permanent in two files at once. → §RK1474
 - 💭 **RK1475** (deps: —) **the ship that finishes a block offers a block drop the decisions file will refuse, on every project that files decisions** — RK1454 made the refusal name the ending and left the offer that sends a sweep into it, though the same ship just wrote the entry that blocks it. → §RK1475
 - 📋 **RK1480** (deps: —) **amend replaces the whole dep group, so adding one means retyping every dep the line already carries** — The retyped group is also wider, so a why that fitted before the add is refused after it, and one edit becomes two failures. → §RK1480
 - 📋 **RK1481** (deps: —) **the CLI and the MCP surface spell several verbs and flags differently, so a call copied between them is refused** — next-id against next_id and --with against replacement each cost a refusal, and the caller cannot tell which surface a remembered spelling came from. → §RK1481

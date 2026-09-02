@@ -2164,6 +2164,7 @@ def amend(
     *,
     why: str | None = None,
     part: str | None = None,
+    symptom: str | None = None,
     lines: int | None = None,
 ) -> Corrected:
     """Correct one ledger entry's sentence, or a partial's qualifier, in place (RK124).
@@ -2190,7 +2191,7 @@ def amend(
     caller saying they read the span, and a multi-line `why` without it is still a shell
     that expanded something.
     """
-    _refuse_absent(config, **{"--why": why, "--part": part})
+    _refuse_absent(config, **{"--why": why, "--part": part, "--symptom": symptom})
     ledger = config.document("changelog")
     where = config.relative(config.path("changelog"))
     twins = tuple(entry for entry in ledger.entries if entry.task.id == task_id)
@@ -2219,17 +2220,23 @@ def amend(
         if open_line is None or open_line.task.status != PARTIAL:
             raise NoQualifier(task_id, entry.lineno)
 
+    if symptom is not None and not respelling(entry.task.symptom, symptom):
+        # The rule this docstring states, and the exception RK1474 opens in it: bytes that
+        # never arrived are respelled and a claim is never reworded.
+        raise NotARespelling(task_id, entry.task.symptom, symptom)
     sentence, below = _unwrapped(why, lines)
     wanted = replace(
         entry.task,
         why=entry.task.why if sentence is None else sentence,
         part=entry.task.part if part is None else part,
+        symptom=entry.task.symptom if symptom is None else symptom,
     )
     changed = tuple(
         name
         for name, before, after in (
             ("why", entry.task.why, wanted.why),
             ("part", entry.task.part, wanted.part),
+            ("symptom", entry.task.symptom, wanted.symptom),
         )
         if before != after
     )
@@ -3053,7 +3060,9 @@ class Revised:
         }
 
 
-def revise(config: Config, task_id: str, *, decides: str) -> Revised:
+def revise(
+    config: Config, task_id: str, *, decides: str | None = None, symptom: str | None = None
+) -> Revised:
     """Correct one decision's sentence in the file that keeps it (RK1453).
 
     Every other governed sentence has a door back. A roadmap line has `amend` for its `why`
@@ -3091,13 +3100,24 @@ def revise(config: Config, task_id: str, *, decides: str) -> Revised:
         raise NoDecisions(task_id, config.relative(config.source or config.root))
     where = config.relative(config.path("decisions"))
     document = config.document("decisions")
+    _refuse_absent(config, **{"--decides": decides, "--symptom": symptom})
     standing = _only(document, task_id, where, "the id", replacing=False)
+    if symptom is not None and not respelling(standing.task.symptom, symptom):
+        # The one field this door may not reword (RK1474): a record's claim is what the work
+        # was filed against, and only its *spelling* is correctable.
+        raise NotARespelling(task_id, standing.task.symptom, symptom)
     clause = _clause_on(standing.task.why)
+    sentence = standing.task.why if decides is None else (
+        _parenthesised(decides, clause) if clause else decides
+    )
     wanted = replace(
         standing.task,
-        why=_parenthesised(decides, clause) if clause else decides,
+        why=sentence,
+        symptom=standing.task.symptom if symptom is None else symptom,
     )
-    if wanted.why == standing.task.why:
+    # The whole task and no longer the sentence alone (RK1474): this door corrects two fields
+    # now, and a comparison naming one would report a respelled claim as unchanged.
+    if wanted == standing.task:
         return Revised(
             task_id=task_id,
             document=document,
@@ -3114,6 +3134,54 @@ def revise(config: Config, task_id: str, *, decides: str) -> Revised:
         rendered=updated.by_id()[task_id].raw.rstrip("\r\n"),
         kept=clause,
     )
+
+
+class NotARespelling(ValueError):
+    """A `--symptom` that changes the claim rather than how it is spelled (RK1474).
+
+    The rule `record amend` states and this is the exception to: an entry's claim is what the
+    work was filed against, and a claim editable afterwards records what somebody later wished
+    had been claimed. That argument is whole and this does not touch it.
+
+    What it does not cover is bytes that never arrived. Measured while shipping FB5: the claim
+    was passed ASCII-only to survive a shell, so a permanent file reads "Menu do site novo e
+    semeado" where its author wrote "é semeado" — not a claim somebody revised, and no verb in
+    any of the three files could reach it. So the door opens exactly that wide: the correction
+    must **fold to the same string**, which is a respelling of one claim and never a second.
+    """
+
+    def __init__(self, task_id: str, held: str, wanted: str) -> None:
+        self.task_id = task_id
+        super().__init__(
+            f"{task_id}'s claim is {held!r} and this would make it {wanted!r}, which is a "
+            f"different claim and not a respelling of that one: the symptom is what the work "
+            f"was filed against, so only its spelling is correctable — a claim that turned "
+            f"out wrong is `retire --superseded-by` and a new line"
+        )
+
+
+def respelling(held: str, wanted: str) -> bool:
+    """Whether these two are one claim spelled two ways (RK1474).
+
+    Accents dropped, case folded, whitespace collapsed — the shape a shell, a transliteration
+    or a failed decode leaves, and nothing wider. `é` against `e` is a respelling; a word
+    changed is not, and neither is a word added.
+
+    One reader for both doors, because the ledger's entry and the decisions record hold the
+    same copied claim and a second rule would let one file be corrected in a way the other
+    refuses.
+    """
+    import unicodedata  # noqa: PLC0415 - RK260
+
+    def folded(one: str) -> str:
+        bare = "".join(
+            part
+            for part in unicodedata.normalize("NFKD", one)
+            if not unicodedata.combining(part)
+        )
+        return " ".join(bare.casefold().split())
+
+    return folded(held) == folded(wanted)
 
 
 def _clause_on(why: str) -> str:

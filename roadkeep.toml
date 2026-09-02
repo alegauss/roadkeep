@@ -147,7 +147,16 @@ characters = 2850
 # is missing as well as what is wrong. Nothing was trimmed to pay for it - the field's
 # help is one line and no paragraph here is one nobody had edited. 66,040, headroom 117,
 # which is the discipline of the 119 above it.
-session = 66040
+# Raised from 66,040 for the one field the ledger and the decisions file each held and
+# neither could correct (RK1474): a claim passed ASCII-only to survive a shell is bytes
+# that never arrived, not a claim somebody revised, and it was permanent in two files at
+# once. Two properties, 496 characters, and the reading here is 66,536. What the
+# headroom buys is the caller who typed it: the value was mangled on the way in over
+# this transport, so a flag the CLI alone could reach would leave the one session that
+# can recognise its own bytes unable to fix them. Nothing was trimmed to pay for it
+# beyond both new helps, shortened once to share their wording. 66,660, headroom 124,
+# which is the discipline of the 117 above it.
+session = 66660
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at

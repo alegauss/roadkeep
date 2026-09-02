@@ -173,7 +173,10 @@ why one replaced another is the argument in the entry that replaced it, one line
 decision is superseded once, and what replaces the replacement supersedes that one.
 **A typo in one is `revise <id> --decides "…"`**, not a second decision: the entry keeps its
 line, its id and its marker, and a `(superseded by <id>)` clause is carried through rather
-than retyped. And `--why` is **required**, because the roadmap's sentence states a problem and
+than retyped. **The claim beside it is respellable and never rewordable** — `revise --symptom`
+and `record amend --symptom` take a correction only where it folds to the one on record, so
+bytes that never arrived are fixable and a claim that turned out wrong is still `retire`.
+And `--why` is **required**, because the roadmap's sentence states a problem and
 the ledger's states an outcome, so inheriting it files a defect report under a heading
 meaning "done" (`record amend <id> --why` is the repair where one already did). **A path
 ledger prose names has to resolve**: `ship`, `retire` and both `record` verbs refuse a

@@ -117,7 +117,7 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 6 | 224 | 2 |
+| B — Authoring (insert, never hand-edit) | 5 | 225 | 2 |
 | C — Query (consult without reading the file) | 7 | 151 | 4 |
 | D — The gate | 5 | 209 | 2 |
 | E — Adoption | 0 | 117 | 1 |
@@ -125,11 +125,11 @@ called unbuilt were already in the ledger.
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 957 | 14 |
+| **Total** | 22 | 958 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1474** (deps: —) **a decision's symptom is a copy of a roadmap line that is gone, and no verb in any of the three files can correct it** — revise reaches the sentence and restate reached the line before it shipped, so a claim mangled by a shell is now permanent in two files at once. → §RK1474
+- 💭 **RK1475** (deps: —) **the ship that finishes a block offers a block drop the decisions file will refuse, on every project that files decisions** — RK1454 made the refusal name the ending and left the offer that sends a sweep into it, though the same ship just wrote the entry that blocks it. → §RK1475
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
