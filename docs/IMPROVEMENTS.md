@@ -487,6 +487,30 @@ before it is rendered*. One test over the writes census this suite already build
 it would have named `defer` the day the store shipped rather than when somebody tried to
 price it.
 
+### §RK1503 The limit that is not in the file
+
+RK1480 set out to name the dep in a refusal and found the refusal does not name the line
+either. Where the line binds, `why_budget` folds the line's remainder into the field's
+own ceiling, so the schema reports `why.too-long — 167 characters, limit is 162`. There
+is no `[limits]` key with 162 in it. The number is derived, per line, from the symptom's
+width and the deps the line happens to carry, and the message says so in a parenthesis
+after the fact.
+
+That is why the measured author went and shortened a sentence. They were told a limit,
+the limit looked like a limit, and the door it named was the `why`. Nothing in the
+sentence was wrong: what had changed was a dep.
+
+`Share.bound_by_line` already publishes the distinction, and `budget` prints `← the line
+binds, not the field` on exactly these rows. So the read knows and the refusal does not
+— the inverse of the arrangement this tool is built on, where the number arrives before
+the prose and the refusal is the backstop.
+
+The repair is not a new rule but a field: a violation carrying which of the two ceilings
+refused it, so every reader — gate, write path, remedy table — can say *the field is
+legal and the line is full* rather than quote a ceiling nobody declared. `DepRefused`
+reframes one case by inspection; the other doors adding structure to a line,
+`--requires` and `--ref` among them, meet that sentence and reframe nothing.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
