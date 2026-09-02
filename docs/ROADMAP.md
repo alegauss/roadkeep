@@ -41,6 +41,7 @@
 - 💭 **RK1477** (deps: —) **a re-filing of shipped work in other words ranks 7th, outside both windows, so the add that wrote it agreed it was new** — The corpus is symptoms alone and the pair that proves it shares a subject and no words, which is what a second author writing the same defect produces. → §RK1477
 - 💭 **RK1479** (deps: —) **a pause's reason is the one departure budget cannot price, its field holding a wrapper and the design carried forward** — RK1458 shipped --ship beside --retire and left --defer, because the carry is neither a derived prefix nor a replaced field and Budget has no third reading. → §RK1479
 - 💭 **RK1486** (deps: —) **the brief ceiling was argued from a backlog with no deps at all, so the lists that grow with the graph are outside it** — This repository's lines carry no deps, and deps, settled deps and chains are the three parts of a brief that grow with the graph rather than the prose. → §RK1486
+- 💭 **RK1490** (deps: —) **a caller who can see a withheld line is worth starting still has no way to take it, only to disbelieve the refusal** — RK1467 made the gate legible and left the half unreachable, so ship --part is the only place this tool says a line has parts, and it says it afterwards. → §RK1490
 
 ## Block D — The gate
 
