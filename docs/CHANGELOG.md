@@ -437,6 +437,7 @@
 - 🗑 **RK1456** **budget says what a why is allowed and nothing measures the why about to be written** — superseded by RK1190: Delivered by RK1190 on 16 August: budget --why, --symptom and --body each measure a draft, exit 1 over, and the why row names the line where it binds rather than the field.
 - ✅ **RK1458** **budget prices a why against the roadmap line's limit while the ship about to be written is held to the ledger's** — budget --ship prices the sentence the ledger will hold rather than the line the id is on, which is the number brief already quoted and this read contradicted.
 - ✅ **RK1461** **budget cannot price a line that will carry a requires, so the number it quotes is 21 characters too generous** — budget takes --requires, repeatable, so the 21 characters of structure an add writes for a requirement come off the number before the sentence is composed.
+- ✅ **RK1463** **brief spends four fifths of its answer on deps that are all shipped and settled long ago** — brief publishes the design revision once instead of under every settled dep, which on a six-dep task was half of a deps block that was 46% of the answer.
 
 ## Block D — The gate
 

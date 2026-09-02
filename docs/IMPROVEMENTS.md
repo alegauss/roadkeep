@@ -228,28 +228,6 @@ that refusal is the reason the door is narrow.
 
 ## Block C — Query
 
-### §RK1463 The evidence for a boolean, printed whether or not it fired
-
-Measured starting a task in an adopting project: `brief` with no id answered about 4,000
-tokens, and the line, the rationale, the non-goals and the done-when together were under
-a fifth of it.
-
-The rest was `deps_resolved`. Every dep came back with a `settled_since` block holding
-the shipping commit's sha, short sha, date and full subject, and the same four fields
-again for the revision it was compared against — six deps, twelve commit records, all of
-them saying the same thing: shipped, and long before this task was written.
-
-That reading exists for a real signal. A dep that shipped *after* the rationale was last
-revised is a design written against a world that has since moved, and a caller starting
-the task should be told. But the check is a comparison and its answer is a boolean, so
-printing the evidence for it whether or not it fired is what makes the payload what it
-is.
-
-Keep `settled_since` where the shipping commit is newer than the revision, which is the
-case it was built to surface, and collapse the rest to the word `detail` already
-carries. A caller who wants the history has `origin`, which is the verb for it and
-answers one task at a time.
-
 ### §RK1466 The listing that now names everything it counts
 
 RK1450's finding was that the wide read stated 88 addresses and offered no way to see

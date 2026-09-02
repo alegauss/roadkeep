@@ -548,18 +548,61 @@ def test_a_dep_that_shipped_after_the_design_was_written_is_said_beside_it(tmp_p
 
     assert main(["-C", str(tmp_path), "brief", "RK4"]) == EXIT_OK
     printed = capsys.readouterr().out
-    assert "after this design was last written" in printed
+    # The revision **once**, above the deps it heads (RK1463), and the ship on the dep's own row.
+    assert "design   last written" in printed
+    assert printed.count("last written") == 1
+    assert "dep      RK1  shipped" in printed
 
     assert main(["-C", str(tmp_path), "brief", "RK4", "--json"]) == EXIT_OK
-    (dep,) = json.loads(capsys.readouterr().out)["deps_resolved"]
+    answer = json.loads(capsys.readouterr().out)
+    (dep,) = answer["deps_resolved"]
     assert dep["dep"] == "RK1"
     assert dep["settled_since"]["shipped"]["subject"].startswith("feat: ship RK1")
-    assert dep["settled_since"]["revised"]["subject"].startswith("docs: file the backlog")
+    # What it was compared against is one commit for the whole brief and is published once
+    # (RK1463): repeated per dep it was the same four fields over and over, half of a
+    # `deps_resolved` that measured 2,628 characters of a 5,671-character answer.
+    assert "revised" not in dep["settled_since"]
+    assert answer["revised"]["subject"].startswith("docs: file the backlog")
     # Four fields and not five (RK1163, wired for real in RK1170): a commit rides here as an
     # *address*, and a `brief` is a bounded answer — one whole commit message inside it would be
     # the paragraph nobody asked for. The full record is what `origin` answers with, that read
     # being about the commit rather than about the line this dep blocks.
     assert set(dep["settled_since"]["shipped"]) == {"sha", "short", "date", "subject"}
+
+
+def test_the_revision_is_one_fact_however_many_deps_settled(tmp_path, capsys):
+    """RK1463. `_settled` compares every dep against the same commit — the last one that
+    touched this design — and that commit was carried on each result and restated under each
+    one. Measured on a six-dep task: `deps_resolved` was 2,628 characters of a 5,671-character
+    brief, and half of it was the same four fields said six times.
+
+    So it is published once and the deps carry the ship alone, which is the fact that is
+    theirs. `origin` is where the whole history of one of them lives."""
+    from roadkeep.briefing import brief
+
+    committed(tmp_path)
+    # A second dep on the same line, so there are two settled results to compare.
+    assert main([
+        "-C", str(tmp_path), "add", "--block", "A",
+        "--symptom", "A second symptom", "--why", "Because of a second reason.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+    # The id `add` minted, which is not RK2 — the ledger fixture already holds that one.
+    second = Config.discover(tmp_path).document("roadmap").entries[-1].task.id
+    assert main(["-C", str(tmp_path), "amend", "RK4", "--dep", "RK1", "--dep", second]) == EXIT_OK
+    capsys.readouterr()
+    git_commit(tmp_path, f"docs: file {second} and depend on it")
+
+    for one in ("RK1", second):
+        assert main(["-C", str(tmp_path), "ship", one, "--why", "It works now."]) == EXIT_OK
+        capsys.readouterr()
+        git_commit(tmp_path, f"feat: ship {one}")
+
+    view = brief(Config.discover(tmp_path), "RK4")
+    assert len(view.settled) == 2
+    # One commit, whatever the count: a property off the results and never a second copy.
+    assert view.revised is not None
+    assert {one.revised.sha for one in view.settled} == {view.revised.sha}
 
 
 def test_a_design_written_after_its_dep_shipped_says_nothing(tmp_path, capsys):
@@ -578,7 +621,7 @@ def test_a_design_written_after_its_dep_shipped_says_nothing(tmp_path, capsys):
     git_commit(tmp_path, "docs: rewrite RK4's design afterwards")
 
     assert main(["-C", str(tmp_path), "brief", "RK4"]) == EXIT_OK
-    assert "after this design was last written" not in capsys.readouterr().out
+    assert "design   last written" not in capsys.readouterr().out
 
 
 # -- the allowance for the write about to be made (RK1174) --------------------

@@ -364,6 +364,21 @@ class Brief:
         """
         return () if self.choice is None else self.choice.waiting
 
+    @property
+    def revised(self) -> Commit | None:
+        """The one commit every settled dep was measured against, or None (RK1463).
+
+        :func:`_settled` compares every dep to `written[-1]` — the last commit that touched
+        this design — so the revision is a fact about the *brief* and never about a dep. It was
+        carried on each :class:`Settled` and restated under each one, which on a six-dep task
+        was six identical dates in the register and six identical four-field records in the
+        payload: 2,628 characters of 5,671, measured, of which the duplicate was half.
+
+        A property and not a field, so there is one answer and it cannot go out of step with
+        the rows it heads.
+        """
+        return self.settled[0].revised if self.settled else None
+
     def stated(self, config: Config) -> str:
         """Everything needed to start this task, as a reader is told it (RK29).
 
@@ -486,20 +501,33 @@ class Brief:
                     f"`restate` or a wider limit are the two doors if it does not fit"
                 )
         settled = {one.dep: one for one in self.settled}
-        for resolution in self.deps:
+        if self.revised is not None:
+            # **Once, and above the deps** (RK1463). The revision is one commit for the whole
+            # brief — `_settled` compares every dep against `written[-1]` — and it was restated
+            # under each one, six identical dates on a six-dep task. What is per dep is the
+            # ship; what this is, is the line the reader measures all of them against.
             rows.append(
-                f"  dep      {resolution.dep.id}  {resolution.status}  {resolution.detail}"
+                f"  design   last written {self.revised.date[:10]} in "
+                f"{self.revised.short}, before the dep(s) marked below landed"
             )
+        for resolution in self.deps:
+            # The ordering and never a claim about the prose (RK1163): the design named above
+            # was last written before this dep shipped, so a trade-off it argues may already be
+            # decided — and what decided it is in that commit, which is what this names.
+            #
+            # On the dep's own row since RK1463, and not under it: what was two lines per dep is
+            # two facts about one dep, and the sentence joining them was the revision date said
+            # again — six times on the task this was measured on.
             landed = settled.get(resolution.dep.id)
-            if landed is not None:
-                # The ordering and never a claim about the prose (RK1163): the design below was
-                # last written before this dep shipped, so a trade-off it argues may already be
-                # decided — and what decided it is in that commit, which is what this names.
-                rows.append(
-                    f"           shipped {landed.shipped.date[:10]} in "
-                    f"{landed.shipped.short}, after this design was last written "
-                    f"({landed.revised.date[:10]})"
-                )
+            since = (
+                ""
+                if landed is None
+                else f"  — {landed.shipped.short}, {landed.shipped.date[:10]}"
+            )
+            rows.append(
+                f"  dep      {resolution.dep.id}  {resolution.status}  "
+                f"{resolution.detail}{since}"
+            )
         rows += [f"  chain    {chain.render(task.id)}  — {chain.detail}" for chain in self.chains]
         if not view.shipped:
             # What shipping this would unblock, which a shipped line has already done (RK324):
@@ -578,21 +606,28 @@ class Brief:
                     "kind": str(r.kind),
                     "status": str(r.status),
                     "detail": r.detail,
-                    # Where this dep shipped after the design was last written (RK1163), the two
-                    # commits that say so — beside the resolution rather than in a list of their
+                    # Where this dep shipped after the design was last written (RK1163), the
+                    # commit that says so — beside the resolution rather than in a list of its
                     # own, because it is a fact *about* this dep and a consumer reading the row
                     # would otherwise join two arrays to find it.
+                    #
+                    # **The ship alone** (RK1463). What it was compared against is one commit
+                    # for the whole brief and is published once, below: repeated here it was
+                    # the same four fields per dep — half of `deps_resolved`, which on a six-dep
+                    # task measured 2,628 characters of a 5,671-character answer.
                     **{
-                        "settled_since": {
-                            "shipped": _dated_json(one.shipped),
-                            "revised": _dated_json(one.revised),
-                        }
+                        "settled_since": {"shipped": _dated_json(one.shipped)}
                         for one in self.settled
                         if one.dep == r.dep.id
                     },
                 }
                 for r in self.deps
             ],
+            # The line every `settled_since` above is measured against (RK1463), once: it is
+            # the last commit that touched this design, which is a fact about the brief and
+            # not about any dep. Null where nothing settled, which is every task whose deps
+            # landed before its design was written and every project git cannot answer for.
+            "revised": None if self.revised is None else _dated_json(self.revised),
             "chains": [
                 {
                     "path": [self.task.id, *(hop.target for hop in c.hops)],

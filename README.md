@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 6 | 224 | 2 |
-| C — Query (consult without reading the file) | 8 | 147 | 3 |
+| C — Query (consult without reading the file) | 7 | 148 | 3 |
 | D — The gate | 2 | 208 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 7 | 137 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 947 | 13 |
+| **Total** | 22 | 948 | 13 |
 
 **Next ready:**
 
-- 📋 **RK1463** (deps: —) **brief spends four fifths of its answer on deps that are all shipped and settled long ago** — Each resolved dep carries two full commit subjects, so starting a six-dep task costs thousands of tokens of history nobody asked about. → §RK1463
+- 📋 **RK1464** (deps: —) **install --vendor writes the surfaces before it replaces the engine, so one run leaves the outgoing engine's copy on disk** — Vendoring 0.2.60 over 0.2.4 said updated then vendored, and the launcher left behind was 0.2.4's; a second install wrote the right bytes. → §RK1464
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
