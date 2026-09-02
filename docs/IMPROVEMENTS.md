@@ -508,29 +508,6 @@ it is what this task is.
 
 ## Block F — The plugin
 
-### §RK1470 The note that has the weaker of two readings
-
-The served staleness note (RK155, narrowed by RK267 and RK1443) turns on `Engine.stale`:
-this package's modules whose mtime moved after the process imported them. It is
-calibrated for a developer editing the tree a server is running — the RK155 case was one
-commit adding `[claims] held` to both `roadkeep.toml` and `config.py`.
-
-RK1452 added the other reading and the note does not have it. `Engine.on_disk` says the
-home now holds a **different version** from the one loaded — what `install --vendor`
-leaves when it replaces `.roadkeep/` in place under a live server. To the mtime reading
-that swap is a file being saved: every module is newer, so the note lists all of them.
-
-The two are not the same claim and the remedies are not the same either. A file that
-moved may or may not be the one that decided the call — RK267 spent a whole task
-narrowing the note to the intersection with the traceback for exactly that reason. A
-version that moved is not a maybe: the code answering is gone from disk, the
-intersection is irrelevant, and restarting is the only remedy there is.
-
-So the shape is likely a clause the note takes before it narrows anything — `swapped` is
-already a boolean and `on_disk` is already the number. What must not happen is a second
-paragraph: this note has been cut twice for being text a reader skips, and a third one
-would undo both.
-
 ### §RK1471 The guard that has no version to compare
 
 RK1235 put a guard in front of every governed write: a copy behind the pin a project

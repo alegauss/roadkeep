@@ -2203,6 +2203,46 @@ def test_the_note_follows_the_act_and_not_the_verb_it_is_spelled_from(tmp_path, 
 DECIDES = "authoring.py"
 
 
+def test_a_home_that_states_another_version_replaces_the_mtime_inventory(tmp_path, monkeypatch):
+    """RK1470. `stale` reads mtimes and is calibrated for a developer editing the tree this
+    server runs from. A swap is a different claim: `install --vendor` replaces a vendored
+    `.roadkeep/` in place, Python has already loaded its modules, and to the mtime reading
+    every module is simply newer — the whole inventory listed and a patch bump named as the
+    fix. The code answering is gone from disk, so which module decided the call cannot matter
+    and restarting is the only remedy there is."""
+    home = _moved(tmp_path)
+    (home / "__init__.py").write_text('__version__ = "9.9.9"\n', encoding="utf-8")
+    monkeypatch.setattr(
+        "roadkeep.serving.engine", lambda: replace(engine(), home=home)
+    )
+    root = project(tmp_path)
+    said = text_of(called(root, "status", id="RK1", marker="🛠"))
+
+    assert "states 9.9.9 now" in said
+    assert "Restart the session" in said
+    # It **replaces** the inventory rather than joining it: this note has been cut twice for
+    # being text a reader skips, and a third paragraph would undo both.
+    assert "changed on disk" not in said
+    # And once per process, like every other note about this process.
+    assert "states 9.9.9 now" not in text_of(called(root, "status", id="RK1", marker="⏳"))
+
+
+def test_a_home_at_the_version_it_loaded_is_the_mtime_reading_as_before(tmp_path, monkeypatch):
+    # The control: an edited checkout states the version it always did, so nothing here moves
+    # and the note RK155 shipped is the one that fires.
+    home = _moved(tmp_path)
+    (home / "__init__.py").write_text(
+        f'__version__ = "{engine().version}"\n', encoding="utf-8"
+    )
+    monkeypatch.setattr(
+        "roadkeep.serving.engine", lambda: replace(engine(), home=home)
+    )
+    root = project(tmp_path)
+    said = text_of(called(root, "status", id="RK1", marker="🛠"))
+    assert "changed on disk" in said
+    assert "states" not in said.split("Separately")[-1].split(".")[0]
+
+
 def _moved(tmp_path: Path, *args: str) -> Path:
     """A package directory whose named modules are newer than this process's import of them.
 

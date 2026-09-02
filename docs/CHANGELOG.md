@@ -920,6 +920,7 @@
 - ✅ **RK1464** **install --vendor writes the surfaces before it replaces the engine, so one run leaves the outgoing engine's copy on disk** — install --vendor pins the engine before it writes the surfaces and wires from what it pinned, so one run leaves a tree its own check passes.
 - ✅ **RK1465** **the launcher spends a whole extra Python start proving an engine runs, doubling how long connecting takes** — the launcher stops probing before the server on Windows, where nothing is replaced, and connecting costs 58 ms over the engine instead of 328.
 - ✅ **RK1469** **engines --invoke restates the launcher's order and knows two of its four entries, so a ROADKEEP_HOME pin is missed** — engines --invoke answers the command this project declares rather than restating the launcher's resolution order, of which it knew two of four entries.
+- ✅ **RK1470** **the served staleness note reads mtimes, so an engine replaced under the session looks like somebody saving a file** — a home stating another version replaces the mtime inventory with the two numbers and one remedy, because the code that answered is on no disk and no module decided that.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

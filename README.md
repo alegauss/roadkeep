@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 7 | 150 | 3 |
 | D — The gate | 4 | 209 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 140 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 141 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 954 | 13 |
+| **Total** | 22 | 955 | 13 |
 
 **Next ready:**
 
-- 💭 **RK1470** (deps: —) **the served staleness note reads mtimes, so an engine replaced under the session looks like somebody saving a file** — engines now tells a swapped home from an edited one and the note that fires on every refusal still lists modules and names a bump. → §RK1470
+- 💭 **RK1471** (deps: —) **a write from an engine whose home was swapped is allowed, on rules no disk holds and with no pin to compare against** — RK1235 refuses a copy behind the pin and RK1452 named a copy that is on no disk at all, which nothing in front of a write asks about. → §RK1471
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

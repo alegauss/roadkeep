@@ -2599,7 +2599,20 @@ def _answered(
     have run, so :func:`_now` says it.
     """
     text = _rerouted(text, root)
-    changed = engine().stale
+    running = engine()
+    # **Before anything is narrowed** (RK1470). `stale` reads mtimes and is calibrated for a
+    # developer editing the tree this server runs from; a swap is a different claim with a
+    # different remedy, and to the mtime reading it looks exactly like a file being saved —
+    # every module newer, the whole inventory listed, and a patch bump named as the fix. The
+    # code answering is gone from disk, so which module decided the call cannot matter and
+    # restarting is the only remedy there is. It **replaces** the note rather than joining it:
+    # this one has been cut twice for being text a reader skips, and a third paragraph would
+    # undo both.
+    if (wrote or is_error) and running.on_disk and running.on_disk != running.version:
+        if not _said_once("swapped"):
+            return Answer(text, is_error=is_error)
+        return Answer(f"{text}\n\n{_swapped(running, served)}", is_error=is_error)
+    changed = running.stale
     if not is_error:
         # Once per process (RK1443). The two notes that claim no relevance to the call they
         # ride on are notes about *this process*, and that fact does not become more true on
@@ -2730,6 +2743,29 @@ def _now(served: str) -> str:
     return (
         f" Available now, in this session: `{Door(tuple(served.split()), '').command}` runs "
         f"the changed files, the CLI importing them per process."
+    )
+
+
+def _swapped(running: "provenance.Engine", served: str) -> str:
+    """The note for a home that no longer holds the code answering (RK1452, RK1470).
+
+    Two versions and one directory, which is the whole message: what this process loaded, and
+    what that path states now. `install --vendor` replaces a vendored tree in place and Python
+    has already loaded its modules, so the server keeps answering for a path that has not held
+    it since — and every row of an mtime inventory is true and beside the point there.
+
+    One remedy and no `/plugin update`: a bump reloads a plugin whose version moved, and this
+    directory's version moved without anything reloading. Restarting is the whole answer, so
+    the sentence says it once. ``served`` closes it the way RK313 requires, with the call this
+    caller could make instead of the one they cannot.
+    """
+    return (
+        f"Separately, about this process and not about the answer above: "
+        f"{running.home.as_posix()} states {running.on_disk} now and this server is running "
+        f"{running.version}, which it loaded from that same path — so nothing on disk is what "
+        f"answered. Restart the session; a version bump reloads a plugin whose number moved, "
+        f"and this one moved under a process that had already imported it."
+        f"{_now(served)}"
     )
 
 

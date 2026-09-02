@@ -54,7 +54,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 💭 **RK1470** (deps: —) **the served staleness note reads mtimes, so an engine replaced under the session looks like somebody saving a file** — engines now tells a swapped home from an edited one and the note that fires on every refusal still lists modules and names a bump. → §RK1470
 - 💭 **RK1471** (deps: —) **a write from an engine whose home was swapped is allowed, on rules no disk holds and with no pin to compare against** — RK1235 refuses a copy behind the pin and RK1452 named a copy that is on no disk at all, which nothing in front of a write asks about. → §RK1471
 - 📋 **RK1482** (deps: —) **a finding about the reader's own stale tooling sits in lint's list at the same weight as a line over its limit** — One reads as work in the project and the other as a fact about the session, and a whole session read past three of the second kind. → §RK1482
 - 💭 **RK1485** (deps: —) **the record that stops a downgrade arrives on the write it guards, so an already-wired project is unprotected until then** — RK1462 reads [install] wired and nothing writes it before an install, which on the trees the defect was measured in is the very write being refused. → §RK1485
