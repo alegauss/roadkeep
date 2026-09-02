@@ -479,6 +479,29 @@ read, derived, naming both sides. Then the decision is greppable from the rule a
 as from the line, and a clause somebody is about to delete is one a command already
 named.
 
+### §RK1488 The answer that leaves without a word
+
+RK1457 decided that a line's design is where an answer to `non-goal.reaches` goes, on
+the ground that it **ages out with the work**: the ship deletes the section, so no stale
+bookkeeping survives. Shipping RK1465 proved the other half of that. Its design carried
+the clause answering *No supported Python API.*, the ship deleted it correctly, and the
+only sign anything had happened was a `ref.dangling` from a *different* section that had
+cited it in prose.
+
+So the answer is silent going out as well as coming in. Nothing in the ship's register
+said a clause somebody wrote to settle a gate row was among the words being deleted, and
+nothing would have said it at all had no other section happened to point there.
+
+Ageing out is still right. What is missing is that the write should **say** it: `ship`
+already reports `dropped §RK1465` and `cited §RK1478`, so the shape exists — a row
+naming the constraint whose answer went with the section is one more fact off a section
+the write has in hand, and it is the last moment anybody can read it.
+
+Whether the answer should then be re-recorded is a separate question and probably no:
+the line is gone, so the pair the note was about no longer exists, and re-filing it
+somewhere would be the stale bookkeeping RK1457 rejected the field for. Saying it left
+is the whole of what is owed.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
