@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 4 | 154 | 4 |
 | D — The gate | 15 | 210 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 143 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 144 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 968 | 14 |
+| **Total** | 22 | 969 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1485** (deps: —) **the record that stops a downgrade arrives on the write it guards, so an already-wired project is unprotected until then** — RK1462 reads [install] wired and nothing writes it before an install, which on the trees the defect was measured in is the very write being refused. → §RK1485
+- 💭 **RK1486** (deps: —) **the brief ceiling was argued from a backlog with no deps at all, so the lists that grow with the graph are outside it** — This repository's lines carry no deps, and deps, settled deps and chains are the three parts of a brief that grow with the graph rather than the prose. → §RK1486
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

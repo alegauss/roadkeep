@@ -2544,3 +2544,89 @@ def test_the_absent_page_names_the_same_door(project):
     (note,) = [one for one in lint(config).notes if one.code == "install.absent"]
     found = remedy(note, config)
     assert found is not None and found.doors[0].argv == ("install",)
+
+
+# -- the guard with no way in (RK1485) -----------------------------------------
+
+
+def test_the_check_says_when_nothing_records_which_engine_wrote_the_surfaces(project, capsys):
+    """RK1485. RK1462 gave `install` a record so a refresh cannot be a downgrade, and every
+    project already wired has none — which is exactly the population the defect was measured
+    in. The record arrives on the next `install`, and the next `install` is the write being
+    guarded against, so on the tree that needs it most the guard is inert until somebody makes
+    the very edit it exists to refuse."""
+    install(wired(project), source=HERE)
+    source = project / "roadkeep.toml"
+    source.write_text(
+        "\n".join(
+            one
+            for one in source.read_text(encoding="utf-8").splitlines()
+            if not one.startswith("wired =")
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    assert main(["-C", str(project), "install", "--check"]) in (EXIT_OK, EXIT_GATE)
+    said = capsys.readouterr().out
+    assert "record         none" in said
+    assert "cannot be told from a downgrade" in said
+
+
+def test_the_absence_is_its_own_answer_and_not_the_absence_of_ahead(project, capsys):
+    """`ahead: null` says *not ahead*; on a project that recorded nothing that is *not known
+    to be ahead*, and a consumer branching on one key cannot tell the two apart."""
+    install(wired(project), source=HERE)
+    source = project / "roadkeep.toml"
+    source.write_text(
+        "\n".join(
+            one
+            for one in source.read_text(encoding="utf-8").splitlines()
+            if not one.startswith("wired =")
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    main(["-C", str(project), "install", "--check", "--json"])
+    held = json.loads(capsys.readouterr().out)
+    assert held["ahead"] is None and held["unrecorded"] is True
+
+
+def test_a_project_that_recorded_one_is_not_told_the_direction_is_unknown(project, capsys):
+    # `install` writes the record, so the run after it establishes what the run before could
+    # only guess — which is the whole of what this task adds.
+    assert main(["-C", str(wired(project)), "install", "--source", str(HERE)]) == EXIT_OK
+    capsys.readouterr()
+    main(["-C", str(project), "install", "--check", "--json"])
+    assert json.loads(capsys.readouterr().out)["unrecorded"] is False
+
+
+def test_the_note_says_the_direction_is_unestablished_where_nothing_records_one(project):
+    """The gate's own sentence claims *behind*, and where no record exists that claim is a
+    guess with a write attached. Saying so costs a clause and tells the one population RK1462
+    could not reach."""
+    from roadkeep.config import Config
+    from roadkeep.linting import lint
+
+    install(wired(project), source=HERE)
+    source = project / "roadkeep.toml"
+    source.write_text(
+        "\n".join(
+            one
+            for one in source.read_text(encoding="utf-8").splitlines()
+            if not one.startswith("wired =")
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (project / PROJECT_SKILL).write_text("stale\n", encoding="utf-8")
+    (found,) = [
+        one for one in lint(Config.discover(project)).notes if one.code == "install.stale"
+    ]
+    assert "which way that goes is unestablished" in found.message
+
+
+def test_nothing_wired_is_not_a_record_that_is_missing(project, capsys):
+    # There is no surface whose provenance could be unknown, and a row about a record that
+    # would govern nothing is noise.
+    main(["-C", str(project), "install", "--check", "--json"])
+    assert json.loads(capsys.readouterr().out)["unrecorded"] is False

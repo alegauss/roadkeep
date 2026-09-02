@@ -1498,7 +1498,21 @@ def _wired(config: Config) -> list[Note]:
     """
     if config.install_pinned:
         return []
-    from roadkeep.installing import staleness  # noqa: PLC0415 - RK260
+    from roadkeep.installing import staleness, wired_by  # noqa: PLC0415 - RK260
+
+    # **Where a direction is established** (RK1485). This sentence says *behind*, and on a
+    # project that recorded nothing that is a guess with a write attached: `[install] wired`
+    # arrives on the next `install`, which is the write RK1462's guard exists to refuse, so
+    # the population most needing the claim to be true is the one where nothing supports it.
+    # Said rather than dropped — the surfaces do differ, and which way is the unknown.
+    unknown = (
+        ""
+        if wired_by(config.root)
+        else (
+            " — and nothing here records which engine wrote them, so which way that goes is "
+            "unestablished until an `install` writes one"
+        )
+    )
 
     # Every failure inside is silence, as it is for the session-start notice this shares a
     # reader with (RK82, RK234): a gate that fails because a checkout moved is worse than one
@@ -1515,7 +1529,7 @@ def _wired(config: Config) -> list[Note]:
             one.path,
             (
                 f"this surface is behind the roadkeep answering here, so a session reads a "
-                f"skill, hook or launcher older than the engine it names — "
+                f"skill, hook or launcher older than the engine it names{unknown} — "
                 f"`{invocation()} install` rewrites the ones this checkout ships"
             )
             if one.existed

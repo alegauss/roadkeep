@@ -369,6 +369,16 @@ class Plan:
     #: or `""` (RK1462). On the plan and not decided at the write, because `--check` is the
     #: same computation and this is the half that says which way the write would go.
     ahead: str = ""
+    #: Whether this project has **no** record of which engine wrote its surfaces (RK1485).
+    #: The population RK1462 could not reach: the record arrives on the next `install`, and
+    #: the next `install` is the write being guarded against — so on the tree that needs the
+    #: guard most it is inert until somebody makes the very edit it exists to refuse. Not the
+    #: complement of :attr:`ahead`: that field says *the surfaces are newer*, and this says
+    #: *nothing here establishes a direction*, which is the honest state and a different one.
+    #:
+    #: False on a project with nothing wired at all — there is no surface whose provenance
+    #: could be unknown, and a row about a record that would govern nothing is noise.
+    unrecorded: bool = False
     #: Whether the write recorded `[install] wired` — a fifth file this command touches, so it
     #: is answered rather than assumed (RK298). False on every `--check`, which writes nothing.
     recorded: bool = False
@@ -431,6 +441,16 @@ class Plan:
             rows.append(
                 f"  committed      this project already runs {PROJECT_BRIDGE}, so the "
                 f"wiring stays on it — `uninstall` then `install` moves it to a checkout"
+            )
+        if self.unrecorded:
+            # Above the surfaces for `ahead`'s reason and before it, because it qualifies that
+            # row's absence rather than the rows below: *not ahead* on a project that recorded
+            # nothing is *not known to be ahead*, and the reader deciding whether to run this
+            # is the one who has to be told which of the two they are looking at.
+            rows.append(
+                f"  record         none — nothing here says which engine wrote these "
+                f"surfaces, so a refresh cannot be told from a downgrade; `install` writes "
+                f"that record, and this report is what to read before it does"
             )
         if self.ahead:
             # Above the surfaces, because it changes what every `updated` under it means
@@ -585,6 +605,11 @@ class Plan:
             # refresh from a downgrade without reading the sentence. `recorded` is the fifth
             # file this write touches, said for the reason every staged path is (RK298).
             "ahead": self.ahead or None,
+            # And whether a direction is established at all (RK1485). Beside `ahead` and not
+            # folded into it: `null` there says *not ahead*, and on a project that recorded
+            # nothing that is *not known to be ahead* — two states a consumer branching on one
+            # key cannot tell apart, which is the guess this whole task is about.
+            "unrecorded": self.unrecorded,
             "recorded": self.recorded,
             "surfaces": [
                 {
@@ -792,6 +817,11 @@ def plan(
         # side is newer is a fact about the project, and a check that did not ask it is the
         # check that offered a downgrade.
         ahead=ahead_of(base, origin),
+        # And whether anything establishes a direction at all (RK1485). Asked beside it for
+        # the reason above it is: `--check` and the write answer from one computation, and a
+        # check that reported *behind* about a project that recorded nothing was stating a
+        # direction it had not established.
+        unrecorded=not wired_by(base) and any(one.existed for one in surfaces),
         # Over what would be written and never every surface: a directory nobody needs to
         # create is not in anybody's way (RK393).
         blocked=tuple(

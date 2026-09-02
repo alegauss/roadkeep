@@ -55,7 +55,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 💭 **RK1485** (deps: —) **the record that stops a downgrade arrives on the write it guards, so an already-wired project is unprotected until then** — RK1462 reads [install] wired and nothing writes it before an install, which on the trees the defect was measured in is the very write being refused. → §RK1485
 - 💭 **RK1487** (deps: —) **a vendor that lands and then fails to wire leaves a copy nothing points at, and no refusal says it is there** — RK1464 accepted that hazard to stop the downgrade and left it silent, so the caller reads what stopped the surfaces and not what is now on disk. → §RK1487
 - 💭 **RK1492** (deps: —) **the invoke line finds the program by a .py suffix, which is a guess about a file this tool merges into** — RK1469 reads the argv the harness runs and has to stop before its mode, and a wrapper, an interpreter flag or uv run puts the program somewhere the suffix does not. → §RK1492
 - 💭 **RK1493** (deps: —) **the served notes are four kinds keyed by string literals invented at each call site, and nothing enumerates them** — RK1470 added a fourth beside two others and which of them repeats is written as the absence of a call, so a fifth arrives unchecked and a mistyped key silences one. → §RK1493
