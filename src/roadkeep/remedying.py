@@ -1524,6 +1524,15 @@ _TABLE: Mapping[str, _Rule] = {
         "the wired launcher, hook and skill are rewritten from the checkout answering here; "
         "`[install] pinned` in roadkeep.toml is how a project that chose this version says so",
     ),
+    # The same door for the page that is not there (RK1482), and the same argument: `install`
+    # writes every surface this checkout ships, so *behind* and *never had* close the same way.
+    # Two codes and one command, because what differs is what the reader is missing and not
+    # what they run — which is why the split is in the sentence rather than here.
+    "install.absent": _run(
+        ("install",),
+        "the surfaces this checkout ships are written, the missing ones included; a page a "
+        "project has never had is one whose verbs nobody working in it can find",
+    ),
     # A `compose` and not a `fix` (RK1222): what the pattern under that directory should be is
     # the author's — which files a migration is about is the claim the query makes, and `**/*`
     # is this tool guessing at it. The suffix is the part only they know.

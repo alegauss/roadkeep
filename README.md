@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 4 | 154 | 4 |
 | D — The gate | 12 | 210 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 142 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 143 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 965 | 14 |
+| **Total** | 22 | 966 | 14 |
 
 **Next ready:**
 
-- 📋 **RK1482** (deps: —) **a finding about the reader's own stale tooling sits in lint's list at the same weight as a line over its limit** — One reads as work in the project and the other as a fact about the session, and a whole session read past three of the second kind. → §RK1482
+- 💭 **RK1483** (deps: —) **budget and the writes it prices disagree about arguments in both directions, and nothing enumerates the pairs** — RK1459 aliased one by hand and RK1458 and RK1461 added two the read never had, and nothing pairs a write parser against the read that prices it. → §RK1483
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

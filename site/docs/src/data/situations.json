@@ -62,6 +62,7 @@
 
   "file.not-text": "The file's bytes did not survive whatever wrote them — a truncated checkout, a failed sync, an editor that saved as binary. The store is the repository, so the recovery is git's rather than this tool's.",
 
+  "install.absent": "A surface this checkout ships — one of the skill's reference pages, say — is not in the project at all, so nothing a session reads there documents what it covers, and a verb it names is one nobody working in that repository can find.",
   "install.stale": "The wired launcher, hook or skill were written by an older copy of roadkeep than the one answering now, which happens whenever the package is upgraded without re-running `install`.",
 
   "gate.behind": "The copy of roadkeep judging this tree is older than the one `[install] pinned` names — typically a plugin cache that has not caught up with the checkout.",

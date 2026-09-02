@@ -2479,3 +2479,68 @@ def test_a_rewrite_at_the_same_version_is_not_a_swap(tmp_path):
     (home / "__init__.py").write_text('__version__ = "0.1.1269"  # edited\n', encoding="utf-8")
     assert running.on_disk == running.version
     assert not Engines(running=running).swapped
+
+
+# -- the finding that is about the reader, not the project (RK1482) ------------
+
+
+def test_a_page_this_project_never_had_is_told_apart_from_one_that_drifted(project):
+    """RK1482, measured on one long session: it read past three `install.stale` notes for
+    hours and only looked when it ran out of roadmap work. What it was reading past was two
+    pages that did not exist — so it never learnt that `budget --anchor` measures a section
+    before it is sent, and one design took five refusals against the word limit for want of a
+    page one command away. *Behind* and *absent* wear the same shape and cost different
+    things."""
+    from roadkeep.config import Config
+    from roadkeep.linting import lint
+
+    install(wired(project), source=HERE)
+    beside = project / ".claude" / "skills" / "roadkeep" / "asking.md"
+    assert beside.is_file(), "the page this test is about is one `install` writes"
+    beside.unlink()
+    (project / PROJECT_SKILL).write_text("stale\n", encoding="utf-8")
+
+    codes = {one.code: one for one in lint(Config.discover(project)).notes}
+    assert set(codes) >= {"install.stale", "install.absent"}
+    assert codes["install.absent"].file.endswith("asking.md")
+    assert "no copy of it" in codes["install.absent"].message
+    assert codes["install.stale"].file == PROJECT_SKILL
+
+
+def test_the_summary_line_carries_what_a_skimming_reader_would_miss(project, capsys):
+    """On the summary because that is the line a reader who skims one line a run sees, and the
+    notes above it are the fifteen they do not."""
+    from roadkeep.cli import EXIT_OK, main
+    from roadkeep.provenance import invocation
+
+    install(wired(project), source=HERE)
+    (project / ".claude" / "skills" / "roadkeep" / "asking.md").unlink()
+    assert main(["-C", str(project), "lint"]) == EXIT_OK
+    summary = capsys.readouterr().out.splitlines()[-1]
+    assert "wired surface(s) behind this engine" in summary
+    assert "1 of them missing entirely" in summary
+    assert f"{invocation()} install" in summary
+
+
+def test_the_clause_is_absent_where_the_wiring_is_current(project, capsys):
+    # A clause that appears on every run is one a reader stops seeing, which is the failure
+    # being repaired rather than a smaller version of it.
+    from roadkeep.cli import EXIT_OK, main
+
+    install(wired(project), source=HERE)
+    assert main(["-C", str(project), "lint"]) == EXIT_OK
+    assert "behind this engine" not in capsys.readouterr().out
+
+
+def test_the_absent_page_names_the_same_door(project):
+    # Two codes and one command: what differs is what the reader is missing, not what they run.
+    from roadkeep.config import Config
+    from roadkeep.linting import lint
+    from roadkeep.remedying import remedy
+
+    install(wired(project), source=HERE)
+    (project / ".claude" / "skills" / "roadkeep" / "asking.md").unlink()
+    config = Config.discover(project)
+    (note,) = [one for one in lint(config).notes if one.code == "install.absent"]
+    found = remedy(note, config)
+    assert found is not None and found.doors[0].argv == ("install",)

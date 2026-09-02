@@ -1498,21 +1498,35 @@ def _wired(config: Config) -> list[Note]:
     """
     if config.install_pinned:
         return []
-    from roadkeep.installing import stale  # noqa: PLC0415 - RK260
+    from roadkeep.installing import staleness  # noqa: PLC0415 - RK260
 
     # Every failure inside is silence, as it is for the session-start notice this shares a
     # reader with (RK82, RK234): a gate that fails because a checkout moved is worse than one
     # that says nothing, and `install --check` still answers on demand.
+    #
+    # **Two codes and not one** (RK1482). A surface that has drifted and a surface the project
+    # has never had wear the same shape here and cost different things: the measured session
+    # read past three of these for hours, and what it was reading past was two pages that did
+    # not exist — so it never learnt the verb that would have saved five refusals. A note that
+    # says *what you do not have* is one nobody reads past; *this file is older* is not.
     return [
         Note(
-            "install.stale",
-            where,
-            f"this surface is behind the roadkeep answering here, so a session reads a "
-            f"skill, hook or launcher older than the engine it names — "
-            f"`{invocation()} install` rewrites the ones this checkout ships",
-            subject=where,
+            "install.stale" if one.existed else "install.absent",
+            one.path,
+            (
+                f"this surface is behind the roadkeep answering here, so a session reads a "
+                f"skill, hook or launcher older than the engine it names — "
+                f"`{invocation()} install` rewrites the ones this checkout ships"
+            )
+            if one.existed
+            else (
+                f"this project has no copy of it, so nothing a session reads here documents "
+                f"what that page does — a verb it names is one nobody in this project can "
+                f"find; `{invocation()} install` writes the ones this checkout ships"
+            ),
+            subject=one.path,
         )
-        for where in stale(config.root)
+        for one in staleness(config.root)
     ]
 
 
@@ -4510,7 +4524,7 @@ def _report_rows(config: Config, report: Report, applied: Fix, root: str, quiet:
         # that passed by reading nothing looks exactly like a gate that passed.
         print(
             f"{', '.join(report.checked) or 'nothing'}: {_measured(report)}, clean"
-            f"{_standing_line(report)}{_tree(root)}"
+            f"{_standing_line(report)}{_tree(root)}{_wiring_line(report)}"
         )
         return
     mechanical = 0
@@ -4519,7 +4533,8 @@ def _report_rows(config: Config, report: Report, applied: Fix, root: str, quiet:
     added = "new " if report.baseline is not None else ""
     print(
         f"{report.problems} {added}problem(s) in {_measured(report)} across "
-        f"{len(report.checked)} file(s): {_codes_line(report)}{_standing_line(report)}{_tree(root)}"
+        f"{len(report.checked)} file(s): {_codes_line(report)}{_standing_line(report)}"
+        f"{_tree(root)}{_wiring_line(report)}"
     )
     if mechanical:
         # Said once and never per line (RK420): the mechanical class is the one remedy that
@@ -4680,6 +4695,38 @@ def _measured(report: Report) -> str:
     """What was read, in its own units: task lines, sections, and budgeted files."""
     scope = f"{report.lines} line(s), {report.sections} section(s)"
     return scope if not report.budgets else f"{scope}, {report.budgets} budget(s)"
+
+
+#: The notes that are about the **reader's own tooling** rather than about this project's
+#: files (RK1482). Everything else `lint` prints is work in the repository — a line over its
+#: limit, a pointer resolving to nothing — and these two are a fact about the session, wearing
+#: the same shape and sitting in the same list at the same weight. Measured: one long session
+#: read past three of them for hours and only looked when it ran out of roadmap work.
+_ABOUT_THE_SESSION = ("install.stale", "install.absent")
+
+
+def _wiring_line(report: Report) -> str:
+    """What the summary says about surfaces behind this engine (RK1482).
+
+    On the **summary** because that is the line a reader who skims one line a run sees, and
+    the notes above it are the fifteen they do not. Not a second check and not a second
+    sentence: the notes carry the paths and the door, and this carries the count, so a report
+    that ended `clean` no longer ends by saying only that.
+
+    Absent where there is nothing to say, which is every project whose wiring is current and
+    every plugin-served one — a clause that appears on every run is one a reader stops seeing,
+    which is the failure being repaired rather than a smaller version of it.
+    """
+    behind = [one for one in report.notes if one.code in _ABOUT_THE_SESSION]
+    if not behind:
+        return ""
+    missing = sum(1 for one in behind if one.code == "install.absent")
+    said = f"{len(behind)} wired surface(s) behind this engine"
+    if missing:
+        # The half that costs a session something it cannot see: a page this project has never
+        # had documents verbs nobody working in it can find.
+        said += f", {missing} of them missing entirely"
+    return f" — {said}, `{invocation()} install`"
 
 
 def _codes_line(report: Report) -> str:

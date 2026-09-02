@@ -133,6 +133,10 @@ SITES: tuple[Site, ...] = (
     # RK1286. Both name `cost --brief`, which `test_budgeting` executes — the gate's finding
     # composes the door with the id substituted and the read composes the sentence a backlog
     # with nothing open gets, and `remedying.Door` is what renders the first for a terminal.
+    # RK1482. The summary's own clause about the reader's tooling, and it is `run` for the
+    # reason the note beside it is: `test_installing` deletes a page this checkout ships and
+    # reads the last line of the report, which is where a skimming reader looks.
+    Site("linting.py:_wiring_line", "run"),
     Site("linting.py:_reads", "run"),
     Site("verbs/querying.py:_brief_budget", "run"),
     # RK1238. Run by `test_installing`, which executes the read this note names — the command

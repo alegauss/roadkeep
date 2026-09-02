@@ -227,6 +227,10 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("priority.unmigrated", "gate", because=FILE),
     Prevented("engine.disagreement", "gate", because=FILE),
     Prevented("install.stale", "gate", because=WIRED),
+    # RK1482. The same reason one code over, and the sharper case of it: what this reports is
+    # a page the project has never had, which no write of this tool could have refused because
+    # no write of this tool was ever asked to make it.
+    Prevented("install.absent", "gate", because=WIRED),
     # RK1222. `FILE` for a reason the constant states exactly: no write of this tool composes
     # a query — the pathspec and the regex are the author's (L4, one level down), written into
     # a rationale section as prose, so there is no door that could have refused this one.

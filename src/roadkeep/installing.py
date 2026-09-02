@@ -1031,6 +1031,41 @@ def _recorded(root: Path, version: str) -> bool:
         return False
 
 
+@dataclass(frozen=True, slots=True)
+class Drifted:
+    """One wired surface behind this engine, and whether the project has it at all (RK1482).
+
+    The distinction the path alone could not carry, and it is the measured one: in the project
+    RK1482 was filed from, `asking.md` and `writing.md` were not stale — they **did not
+    exist**, so the session never learnt that `budget --anchor` measures a section before it is
+    sent, and one design took five refusals against the word limit for want of a page one
+    command away. *Behind* and *absent* wear the same shape and cost different things.
+    """
+
+    path: str
+    #: False where this project has no copy at all. A surface that never existed is not drift
+    #: between two versions of a text; it is a page the reader has never been able to open.
+    existed: bool
+
+
+def staleness(root: str | Path = ".") -> tuple[Drifted, ...]:
+    """:func:`stale`, with the two states told apart (RK1482)."""
+    base = Path(root).resolve()
+    if not (base / PROJECT_SKILL).is_file():
+        return ()
+    try:
+        intent = plan(base, gauging=False)
+    except (ValueError, OSError):
+        return ()
+    if intent.ahead:
+        return ()
+    return tuple(
+        Drifted(surface.path.relative_to(base).as_posix(), surface.existed)
+        for surface in intent.changing
+        if surface.refresh
+    )
+
+
 def stale(root: str | Path = ".") -> tuple[str, ...]:
     """The vendored surfaces that have drifted from the checkout answering here (RK234).
 
@@ -1054,24 +1089,16 @@ def stale(root: str | Path = ".") -> tuple[str, ...]:
     cannot start because a checkout moved is worse than one told nothing, and `install
     --check` still answers on demand.
     """
-    base = Path(root).resolve()
-    if not (base / PROJECT_SKILL).is_file():
-        return ()
-    try:
-        intent = plan(base, gauging=False)
-    except (ValueError, OSError):
-        return ()
-    if intent.ahead:
-        # The one direction this read cannot report (RK1462). Every word it has is *behind*,
-        # *stale*, *refresh*, and the remedy it names is the write that would delete the newer
-        # copy — so where the surfaces are ahead there is nothing here to say, and `install
-        # --check` is where the state is reported in words that fit it.
-        return ()
-    return tuple(
-        surface.path.relative_to(base).as_posix()
-        for surface in intent.changing
-        if surface.refresh
-    )
+    # The paths alone, which is what the session-start notice names (RK1482): that message is
+    # one sentence about the wiring and the two states read the same in it. `staleness` is the
+    # reader that tells them apart, and this is it with the distinction dropped — one plan,
+    # one answer, so the two cannot come to disagree about what has drifted.
+    #
+    # The one direction neither can report (RK1462): where the surfaces are **ahead**, every
+    # word here is *behind*, *stale*, *refresh*, and the remedy names the write that would
+    # delete the newer copy — so `install --check` is where that state is reported in words
+    # that fit it, and both of these say nothing.
+    return tuple(one.path for one in staleness(root))
 
 
 @dataclass(frozen=True, slots=True)
