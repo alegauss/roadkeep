@@ -789,6 +789,11 @@ _DESTS: Mapping[str, Mapping[str, str]] = {
         "--prefix": "family",
         "--section-body": "body",
         "--section-body-file": "body_file",
+        # And the two words the writes this prices use for the same things (RK1483): `retire`
+        # and `defer` say `--reason` for the sentence, and `retire` says `--superseded-by` for
+        # the id this read takes as `--retire`'s value.
+        "--reason": "why",
+        "--superseded-by": "retire",
     },
     # The two that call the one sentence `--reason` and accept `--why` beside it (RK1038):
     # the same crossing `--marker` and `--status` make, so the same rows.

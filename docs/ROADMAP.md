@@ -26,7 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 💭 **RK1483** (deps: —) **budget and the writes it prices disagree about arguments in both directions, and nothing enumerates the pairs** — RK1459 aliased one by hand and RK1458 and RK1461 added two the read never had, and nothing pairs a write parser against the read that prices it. → §RK1483
 - 💭 **RK1484** (deps: —) **a ship recording a checked criterion wraps the entry, so correcting its sentence costs a span this tool wrote** — record amend refuses a wrapped entry without --lines, and after RK1460 the wrap is derived prose the caller would have to read back and retype. → §RK1484
 
 ## Block C — Query (consult without reading the file)

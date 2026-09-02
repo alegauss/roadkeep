@@ -631,6 +631,13 @@ SPELLINGS = {
     # two names above stay right where they are, each on the write that earned it.
     ("--body", "--section-body"): "the same paragraph on `budget`, which prices what "
     "`section add` writes and what `add` writes in one call",
+    # RK1483, and the row above it one field over: the same argument for the *sentence*. This
+    # read prices what `retire` and `defer` write, both of which call it `--reason`, so a
+    # caller moving from the price to the write was refused for the word they had just used.
+    # The order is this parser's own — `--why` first, because that is the field's name here
+    # and on the seven other verbs, and the alias follows it.
+    ("--why", "--reason"): "the same sentence on `budget`, which prices what the two verbs "
+    "that call it `--reason` write",
     # RK1176. Not a synonym for the sentence and not a paragraph: a clause naming the address
     # of the rationale a shipment overtook, which lands inside the `why` the ledger publishes.
     # It reads the pipe for the reason the sentence does — the address carries a `§`, which a

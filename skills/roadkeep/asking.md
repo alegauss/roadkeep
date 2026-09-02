@@ -67,7 +67,9 @@ throws characters away; `--retire` is the same question for the other departure,
 derived `abandoned:` or `superseded by <id>:` prefix is inside the field and counted; and
 `--defer` is the third, where the reason is *wrapped* around the design the store carries
 forward — so the row that matters is `carried`, naming what the line leaves your sentence,
-the field's own limit measuring the carry and never the reason. One departure per call.
+the field's own limit measuring the carry and never the reason. One departure per call, and
+each takes the words its own write uses: `--superseded-by` for the retirement's id and
+`--reason` for the sentence, so a call priced here is a call you can type.
 **`budget --file <p>` is the fourth
 subject**, and the one that is not about prose at all: what an every-turn file `[budgets]`
 declares costs in lines and bytes and what is left — bare, every declared budget. Read it

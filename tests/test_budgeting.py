@@ -12,6 +12,8 @@ would be the second statement of it this module exists not to be.
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import pytest
@@ -3699,3 +3701,140 @@ def test_two_departures_in_one_call_are_two_answers(tmp_path, capsys):
     _with_store(tmp_path)
     assert main(["-C", str(tmp_path), "budget", "RK2", "--ship", "--defer"]) == EXIT_USAGE
     assert "one answer per call" in capsys.readouterr().err
+
+
+# -- the read and the writes it prices, paired both ways (RK1483) --------------
+
+
+@dataclass(frozen=True, slots=True)
+class Priced:
+    """One subject of `budget`, and the write whose fields it is pricing (RK1483).
+
+    RK1459 fixed one pair by hand — `budget --body-file` against `add --section-body-file`,
+    the same path under two names — and nothing enumerated the rest. There were more, in both
+    directions: `retire --superseded-by` was unaskable here, and RK1458 and RK1461 were fields
+    the *write* had that this read could not be told about, each met as a wrong number rather
+    than as a refusal.
+    """
+
+    #: The flag that selects it, or `""` for the line an `add` would write.
+    subject: str
+    #: The subcommand path whose arguments this subject prices.
+    write: str
+    #: Options the write declares that this read deliberately cannot be told, each with why.
+    #: An exemption nobody can see reads exactly like a rule being kept (`test_composing`).
+    exempt: Mapping[str, str] = field(default_factory=dict)
+
+
+#: What `budget` prices, one row per subject. `--file` has no row: it prices a file against
+#: `[budgets]` and no write of this tool composes one, which is the one subject here that is
+#: not about a line of prose somebody is about to compose.
+_PRICING: tuple[Priced, ...] = (
+    Priced(
+        "",
+        "add",
+        {
+            "--id": "taken by position here, which is RK1254's own answer and the shape the "
+            "design calls right: the read's positional *is* the id",
+            "--section": "a heading title, and this prices the body under it rather than the "
+            "words of the heading",
+            "--capture": "a capture id, which is a reference and carries no prose",
+        },
+    ),
+    Priced("--retire", "retire", {}),
+    Priced(
+        "--ship",
+        "ship",
+        {
+            "--part": "structure this call cannot know will be passed, which the read's own "
+            "docstring says out loud",
+            "--remainder": "the *roadmap* line's why, which is `budget <id>` and not this "
+            "subject — one call each, because they are two lines",
+            "--decides": "the decision line, a third write with its own limit; `brief` is "
+            "what prices all three off one read",
+            "--decides-ref": "the decision's anchor, which is structure and not prose",
+            "--checked": "a criterion's own lead, moved rather than composed",
+            "--superseded-design": "an allowance the shipping row already states, and the "
+            "note itself is the caller's",
+            "--recorded-in": "the same, for the path clause",
+            "--lines": "how many lines a wrapped entry replaces, which is a count and not a "
+            "field",
+        },
+    ),
+    Priced("--defer", "defer", {}),
+    Priced(
+        "--anchor",
+        "section amend",
+        {
+            "--title": "the heading text, which no limit here measures",
+            "--replace": "an edit to prose already on disk, so what it costs is the body "
+            "this already prices",
+            "--with": "the other half of that edit",
+        },
+    ),
+    Priced("--non-goal", "non-goal add", {}),
+)
+
+#: `budget`'s own options that name **which** subject rather than a field of one, and the
+#: two that shape an answer. Nothing pairs them, because no write takes them.
+_SELECTS = frozenset(
+    {"--anchor", "--non-goal", "--file", "--retire", "--ship", "--defer", "--json", "--role"}
+)
+
+
+def _long(command: str) -> set[str]:
+    from roadkeep.serving import _parsers
+
+    return {
+        one
+        for action in _parsers()[command]._actions  # noqa: SLF001
+        for one in action.option_strings
+        if one.startswith("--") and one != "--help"
+    }
+
+
+def test_every_field_a_write_takes_is_askable_of_the_read_that_prices_it():
+    """The direction RK1458 and RK1461 were each met in: a field the write has and the read
+    cannot be told about is a number that is wrong rather than a call that is refused."""
+    missing = {}
+    priced = _long("budget")
+    for row in _PRICING:
+        unaskable = sorted(_long(row.write) - priced - set(row.exempt))
+        if unaskable:
+            missing[row.write] = unaskable
+    assert not missing, {
+        "the write takes it and `budget` cannot be told": missing,
+        "add it to `budget`, or name it in that row's `exempt` with why": True,
+    }
+
+
+def test_no_exemption_names_an_argument_the_write_does_not_have():
+    """The half that keeps the table honest: an exemption for a flag nothing declares is a
+    reason nobody can check, and it survives the rename that made it false."""
+    stale = {
+        row.write: sorted(set(row.exempt) - _long(row.write))
+        for row in _PRICING
+        if set(row.exempt) - _long(row.write)
+    }
+    assert not stale, stale
+
+
+def test_every_field_the_read_takes_reaches_the_write_by_the_same_spelling():
+    """The other direction, and RK1459's own case: a caller moving from the price to the write
+    was refused for the name it had just been told to use."""
+    unreachable = {}
+    reachable = _SELECTS | set().union(*(_long(row.write) for row in _PRICING))
+    for one in sorted(_long("budget") - reachable):
+        unreachable[one] = "no write this read prices declares it"
+    assert not unreachable, unreachable
+
+
+def test_the_two_words_the_departures_use_are_taken_here(tmp_path):
+    """The pair the sweep named. `retire RK1 --superseded-by RK9 --reason "…"` is the write,
+    and every word of it is now a word this read takes."""
+    config = project(tmp_path)
+    named = budget(config, "RK2", retire="RK1", why="Because.")
+    assert named.derived.startswith("superseded by RK1")
+    assert main(
+        ["-C", str(tmp_path), "budget", "RK2", "--superseded-by", "RK1", "--reason", "x."]
+    ) == EXIT_OK

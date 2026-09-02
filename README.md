@@ -117,7 +117,7 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 2 | 228 | 2 |
+| B — Authoring (insert, never hand-edit) | 1 | 229 | 2 |
 | C — Query (consult without reading the file) | 4 | 154 | 4 |
 | D — The gate | 13 | 210 | 2 |
 | E — Adoption | 0 | 117 | 1 |
@@ -125,11 +125,11 @@ called unbuilt were already in the ledger.
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 966 | 14 |
+| **Total** | 22 | 967 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1483** (deps: —) **budget and the writes it prices disagree about arguments in both directions, and nothing enumerates the pairs** — RK1459 aliased one by hand and RK1458 and RK1461 added two the read never had, and nothing pairs a write parser against the read that prices it. → §RK1483
+- 💭 **RK1484** (deps: —) **a ship recording a checked criterion wraps the entry, so correcting its sentence costs a span this tool wrote** — record amend refuses a wrapped entry without --lines, and after RK1460 the wrap is derived prose the caller would have to read back and retype. → §RK1484
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

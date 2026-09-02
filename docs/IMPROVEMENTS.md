@@ -77,33 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1483 The pairs a sweep would have named
-
-RK1459 fixed one pair by hand: `budget --body-file` and `add --section-body-file` are
-the same path, and a caller moving from the price to the write was refused for the name
-it had just been told to use. Nothing enumerates the rest, and there are more.
-
-Measured on this build, the same shape twice over:
-
-    budget --anchor RK1 --body "…"      section amend RK1 --body "…"
-    budget RK1 --retire RK9             retire RK1 --superseded-by RK9
-
-The first names by flag what the write takes by position; the second names the same id
-under two words. Both refusals are good — RK1254 answers `--anchor` with *taken by
-position* and the argv it wants — and both are a turn, every time, inside the loop this
-tool most wants taken: price it, then write it.
-
-The population is enumerable, which is what makes this a check rather than a sweep.
-`budget` has eight subjects and each names the write it prices; a test can pair the read
-against that write's parser **both ways**: every argument the read accepts reachable by
-the same spelling, and every one the write adds askable here at all. RK1458 and RK1461
-are that second direction, each met as a wrong number rather than a refusal.
-`test_composing`'s shape, and an exemption nobody can see reads like a rule being kept.
-
-What must not come out of it is a rename. `section amend` is right to take its anchor by
-position and `retire` is right to say `--superseded-by`; the read is the one verb asked
-about every subject, so the aliases belong on it.
-
 ### §RK1484 The span the writer already knew
 
 RK1460 writes a verified criterion under the ledger entry, as a continuation of the

@@ -1709,8 +1709,13 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     # The draft, at the door that already states the allowance (RK1190). Measured and never
     # composed: a `why` twice its limit is a number here and a refusal on `add`, and that
     # difference is the whole reason this argument exists rather than a `--dry-run`.
+    # `--reason` beside it (RK1483): `retire` and `defer` each call this one sentence by that
+    # word and accept `--why` alongside (RK1038), so the read that prices both was the one
+    # surface where a caller's own spelling was refused. The crossing is declared in
+    # `serving._DESTS` like every other, so the cheap reader answers about it too.
     budget_parser.add_argument(
         "--why",
+        "--reason",
         help=(
             "a draft of the why, measured against its allowance instead of refused by it"
             + _PIPE
@@ -1770,8 +1775,13 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     # maximum is neither the published one nor the one a ship is quoted. A value and not a
     # flag, for `--tools`' reason: bare is the abandonment and named is the supersession, which
     # spends more of the field before the author starts.
+    # And `--superseded-by`, which is the word the write uses for the same id (RK1483): a
+    # caller pricing `retire RK1 --superseded-by RK9` typed it here and was refused for the
+    # spelling they had just been given. Bare it still reads as the abandonment, the value
+    # being optional on both spellings — one action, so the two cannot mean different things.
     budget_parser.add_argument(
         "--retire",
+        "--superseded-by",
         nargs="?",
         const="",
         metavar="SUPERSEDED_BY",
