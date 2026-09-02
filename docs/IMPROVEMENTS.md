@@ -631,6 +631,29 @@ costs rather than that it exists — naming a verb the installed copy does not d
 a sentence nobody reads past. Or the summary line could carry it, since a reader who
 skims one line a run sees that one and not the fifteen above it.
 
+### §RK1485 The guard with no way in
+
+RK1462 gave `install` a record — `[install] wired` — so a refresh cannot be a downgrade.
+Every project already wired has no such record, and that is exactly the population the
+defect was measured in: an adopter whose surfaces came from a later engine, running an
+older one, being offered the write that deletes a fix.
+
+The record arrives on the next `install`, and the next `install` is the write being
+guarded against. So on the tree that needs it most the guard is inert until somebody
+makes the very edit it exists to refuse — and having made it, the record says the older
+engine wrote the surfaces, which is then true.
+
+Nothing is wrong with the design; what is missing is a way in. Two shapes are visible.
+`install --check` could say the record is absent and name what would establish it, which
+puts the reader in front of the decision. Or the version could be *derivable*: the
+bridge and the skill are copies of files this package ships, so a checkout with its own
+history could order them without a record — though an adopter's clone cannot.
+
+The narrow answer may be that absence should read as *unknown and worth saying*, not as
+*behind*: `install.stale`'s sentence claims a direction it has not established, and
+where no record exists that claim is a guess with a write attached. Saying so costs a
+clause and tells the one population this task could not reach.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
