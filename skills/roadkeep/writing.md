@@ -229,7 +229,10 @@ A **second** `--part` is refused and says why: one id carries one partial and th
 completion, so work arriving in more halves than that files each delivered step as its own
 line, and the refusal spells the id that line takes under this project's `[ids]`. **A
 pause is none of those three**: `defer <id> --reason "…"` moves the line to the deferred
-store, keeping the id, the deps, the symptom and the section a departure deletes — refused
+store, keeping the id, the deps, the symptom and the section a departure deletes. The reason
+is *wrapped* around the design carried forward, so what bounds it is the **line** and not the
+`why` limit — `budget <id> --defer` is that number before you compose one, and a reason past
+it is refused. Refused too
 where `[files]` declares no `deferred` path, and never scaffolding one on the way past, a
 store invented at the moment one is needed being a format decided by a verb; `init
 --deferred` writes the key and the skeleton together on a project being *created*, and

@@ -33,7 +33,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 💭 **RK1479** (deps: —) **a pause's reason is the one departure budget cannot price, its field holding a wrapper and the design carried forward** — RK1458 shipped --ship beside --retire and left --defer, because the carry is neither a derived prefix nor a replaced field and Budget has no third reading. → §RK1479
 - 💭 **RK1486** (deps: —) **the brief ceiling was argued from a backlog with no deps at all, so the lists that grow with the graph are outside it** — This repository's lines carry no deps, and deps, settled deps and chains are the three parts of a brief that grow with the graph rather than the prose. → §RK1486
 - 💭 **RK1490** (deps: —) **a caller who can see a withheld line is worth starting still has no way to take it, only to disbelieve the refusal** — RK1467 made the gate legible and left the half unreachable, so ship --part is the only place this tool says a line has parts, and it says it afterwards. → §RK1490
 - 💭 **RK1495** (deps: —) **the near rows an add prints come from the ledger alone, so two sessions filing one defect never see each other** — RK1472 duplicated RK1461 while it was open and ranks second against the delivered corpus, so the window was right and the corpus had no open lines in it. → §RK1495

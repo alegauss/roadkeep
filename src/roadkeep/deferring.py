@@ -47,7 +47,14 @@ from roadkeep.config import DESIGN_ROLES, Config
 from roadkeep.kernel.document import Document, Entry, save_all
 from roadkeep.markers import refresh
 from roadkeep.provenance import invocation
-from roadkeep.kernel.schema import PAUSED_CLOSE, PAUSED_OPEN, Task, authored_why, pause_reason
+from roadkeep.kernel.schema import (
+    PAUSED_CLOSE,
+    PAUSED_OPEN,
+    SchemaError,
+    Task,
+    authored_why,
+    pause_reason,
+)
 from roadkeep.sections import declaring
 
 __all__ = [
@@ -505,12 +512,26 @@ def defer(config: Config, task_id: str, *, reason: str) -> Pause:
         raise SetAside(task_id, config.relative(config.path("deferred")), held.lineno)
 
     marker = config.schema.deferred_marker
-    insertion = place(
-        store,
-        _as_paused(entry.task, marker, reason),
-        role="deferred",
-        config=config,
-    )
+    # Validated before it is rendered, under the store's own grammar (RK1479). `_as_paused`
+    # re-renders from data and checks nothing, so a reason that pushed the wrapped field past
+    # `[limits.deferred]` landed as a line the gate then refuses — the only write here that
+    # composed prose and did not measure it, which is L1's own rule unapplied to this door.
+    # And it is what `budget --defer` predicts: a read that names a number the write does not
+    # enforce is worse than none, an author composing to a figure nothing holds.
+    paused = _as_paused(entry.task, marker, reason)
+    # The one rule this argument can break, and only that one (RK1479, RK1262's shape): the
+    # reason is charged to `why.too-long` not at all — RK1115 measures a paused line's author
+    # half with the wrapper taken back off, which here is the design carried forward — so what
+    # bounds it is the rendered line. Every other violation belongs to `place`, which says it
+    # with the anchor and the outline a bare rule cannot name.
+    over = [
+        one
+        for one in config.schema_for("deferred").validate(paused)
+        if one.code == "line.too-long"
+    ]
+    if over:
+        raise SchemaError(tuple(over))
+    insertion = place(store, paused, role="deferred", config=config)
     remaining = remove_entry(roadmap, entry)
     # And the queue entry, in the same rewrite (RK327). Worth naming apart from the two
     # terminal doors: the line is still work, so an entry naming it reads as live — and yet

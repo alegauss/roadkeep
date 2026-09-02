@@ -3594,3 +3594,108 @@ def test_neither_half_is_the_largest_served_tool():
     sized = dict((name, n) for n, name in ranked)
     assert sized["budget"] < sized[largest]
     assert sized["cost"] < sized["budget"]
+
+
+# -- the fifth, and the departure the fourth could not price (RK1479) ----------
+
+
+DEFERRED = """# Deferred
+
+## Block A — The model
+"""
+
+
+def _with_store(tmp_path: Path, roadmap: str = BACKLOG) -> Config:
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'deferred = "DEFERRED.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "ROADMAP.md").write_text(roadmap, encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(LEDGER, encoding="utf-8")
+    (tmp_path / "DEFERRED.md").write_text(DEFERRED, encoding="utf-8")
+    return Config.discover(tmp_path)
+
+
+def test_the_pause_carries_the_design_forward_and_the_number_says_so(tmp_path):
+    """RK1479. RK1458 named three departures and shipped one, `--defer` left out because
+    `Budget` had no shape for what a pause does to the field: the reason is *wrapped* — an open
+    marker, the reason, a close marker — with the roadmap's own sentence carried whole after
+    it. Neither a derived prefix nor a replaced field, so priced as either the row reports a
+    prefix that is not one or an allowance that ignores prose still in the field."""
+    config = _with_store(tmp_path)
+    shaped = budget(config, "RK2", defer=True)
+    assert shaped.departure == "defer" and shaped.role == "deferred"
+    # The three pieces, each named by the reading that describes it.
+    assert shaped.derived == "set aside ("
+    assert shaped.carried == "): Because of another one."
+    assert shaped.task.status == config.schema.deferred_marker
+
+
+def test_the_carry_is_counted_against_the_limit_the_reason_is_refused_by(tmp_path):
+    # The whole reason the third reading exists: an allowance measured as if the field were
+    # empty is the figure `--ship` correctly reports and this one must not.
+    config = _with_store(tmp_path)
+    share = budget(config, "RK2", defer=True).share("why")
+    assert share.taken == len("set aside (): Because of another one.")
+    assert not share.replaced, "the store keeps the design; nothing here replaces the field"
+
+
+def test_the_figure_is_the_reason_defer_actually_accepts(tmp_path, capsys):
+    """The prediction and the write, with nothing between them changing the line (RK1199).
+
+    Against `reason_room` and not the `why` share's remainder, because RK1115 settled that a
+    paused line's `why.too-long` measures the author's half with the wrapper taken back off —
+    which here is the design carried forward, so the reason is charged to that rule not at all.
+    What refuses it is the line."""
+    config = _with_store(tmp_path)
+    root = str(tmp_path)
+    room = budget(config, "RK2", defer=True).reason_room
+    assert main(["-C", root, "defer", "RK2", "--reason", "x" * (room + 1)]) != EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", root, "defer", "RK2", "--reason", "x" * room]) == EXIT_OK
+
+
+def test_the_state_word_names_the_store_and_not_the_ledger(tmp_path, capsys):
+    """The printer said *the ledger line* about every departure, which was true while the only
+    two wrote to the changelog. A pause's line goes to the store, under the store's grammar."""
+    _with_store(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "RK2", "--defer"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "(the deferred line defer writes)" in said
+    assert "derived    `set aside (`" in said
+    assert "carried    `): Because of another one.`" in said
+    room = budget(Config.discover(tmp_path), "RK2", defer=True).reason_room
+    assert f"the line leaves your reason {room}" in said
+
+
+def test_the_payload_publishes_the_carry_and_the_file(tmp_path, capsys):
+    _with_store(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "RK2", "--defer", "--json"]) == EXIT_OK
+    held = json.loads(capsys.readouterr().out)
+    assert held["departure"] == "defer" and held["role"] == "deferred"
+    assert held["carried"] == "): Because of another one."
+    assert held["reason_room"] > 0
+    # Empty and never omitted elsewhere, for `derived`'s reason: a client can tell a write
+    # that carries nothing from a build that did not know the third shape existed.
+    assert json.loads(
+        json.dumps(budget(Config.discover(tmp_path), "RK2", ship=True).payload())
+    )["carried"] == ""
+
+
+def test_a_project_with_no_store_is_refused_rather_than_answered(tmp_path):
+    # A number about a line nobody can write is what `govern` refuses one file over, and this
+    # is that rule about a role: `defer` itself raises exactly this.
+    from roadkeep.deferring import NoStore
+
+    with pytest.raises(NoStore):
+        budget(project(tmp_path), "RK2", defer=True)
+
+
+def test_two_departures_in_one_call_are_two_answers(tmp_path, capsys):
+    """The dispatch returns on the first subject it sees, so `--ship --defer` answered as
+    `--ship` and said nothing about the flag it dropped — RK465's finding, on a verb that had
+    only one departure when the rule was written."""
+    _with_store(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "RK2", "--ship", "--defer"]) == EXIT_USAGE
+    assert "one answer per call" in capsys.readouterr().err

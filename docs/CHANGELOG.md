@@ -446,6 +446,7 @@
 - ✅ **RK1473** **`unclosed` counts roadkeep's own prose edits as evidence a line shipped, so its report is mostly its own writes** — unclosed drops a commit that touched only governed files, so a corrected why or rationale no longer reads as work that landed and the report is code again.
 - ✅ **RK1476** **an unscoped list over a ledger is bounded by nothing, so the transport refuses an answer this tool already composed** — A ceiling declared as `[reads] list`, held by the verb on the answer it composes: over it `list` prints that selection's blocks and counts, and the largest `--block` that fits.
 - ✅ **RK1477** **a re-filing of shipped work in other words ranks 7th, outside both windows, so the add that wrote it agreed it was new** — The corpus is both prose fields now, the why being where two authors of one defect agree: nine of the eleven known pairs land inside the five, worst rank three.
+- ✅ **RK1479** **a pause's reason is the one departure budget cannot price, its field holding a wrapper and the design carried forward** — budget --defer prices it: Budget.carried is prose the field keeps and the caller does not retype, and reason_room is what the line leaves, which defer now refuses past.
 
 ## Block D — The gate
 

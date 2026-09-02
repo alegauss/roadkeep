@@ -483,6 +483,9 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
             # The fourth (RK1458), and a flag rather than a value: a ship writes no prefix into
             # the field, so there is nothing about the departure to name here.
             ship=args.ship,
+            # And the fifth (RK1479), the subject RK1458 named and left: a pause's reason is
+            # wrapped around prose the store carries forward, which `Budget.carried` is.
+            defer=args.defer,
         )
     except REFUSALS as error:
         return _refused(error)
@@ -1788,6 +1791,17 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
             "which is a different number"
         ),
     )
+    # RK1479, and the subject RK1458 named and could not price: a pause writes its reason
+    # *wrapped*, with the roadmap's own sentence carried whole after it, so the field holds
+    # three pieces and only two had a reading. A flag and not a value, like `--ship`.
+    budget_parser.add_argument(
+        "--defer",
+        action="store_true",
+        help=(
+            "price the reason a `defer` writes: the store's limit, less the wrapper and the "
+            "design carried forward"
+        ),
+    )
     budget_parser.add_argument(
         "--non-goal",
         dest="non_goal",
@@ -1833,11 +1847,18 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     # Named rather than inferred from the positional: under the id scheme `RK12` is both a
     # line and an anchor, and a command that guessed which one was meant would be a budget
     # the caller has to check before trusting.
+    # The three departures are answers too (RK1479). They were not, while `--retire` was the
+    # only one and a second could not be passed; `--ship` made two and `--defer` three, and
+    # the dispatch below returns on the first it sees — so `budget --ship --defer` answered as
+    # `--ship` and said nothing about the flag it dropped, which is RK465's finding exactly.
     answers(
         budget_parser,
         ("anchor", "one section's prose"),
         ("non_goal", "the roadmap's other bullet"),
         ("file", "an every-turn file"),
+        ("retire", "the reason a retirement writes"),
+        ("ship", "the sentence a ship writes"),
+        ("defer", "the reason a pause writes"),
     )
 
     # The other half of what `budget` was (RK1321). Eight subjects under one name made it the

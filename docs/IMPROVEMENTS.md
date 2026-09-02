@@ -175,30 +175,6 @@ that refusal is the reason the door is narrow.
 
 ## Block C — Query
 
-### §RK1479 The carry a budget has no word for
-
-RK1458 named three departures and shipped one. `--retire` existed, `--ship` landed, and
-`--defer` was left out because :class:`Budget` has no shape for what a pause does to the
-field.
-
-The other two are simple in the same way. A ship writes the author's whole sentence into
-a fresh ledger line, so the room is the whole allowance; a retirement writes `abandoned:
-` first, so the prefix is `derived` and the reason is what is left. A pause is neither.
-`_as_paused` composes the store's `why` as the reason *wrapped* — an open marker, the
-reason, a close marker — and the roadmap's own `why` after it, carried whole. The field
-holds a wrapper, the author's new sentence, and the old one.
-
-`Budget` can say `derived` — prose the tool writes before the caller's — and `replaced`
-— whether the next write takes the field entire. Neither is true here: the carry is a
-suffix, and it is somebody's prose rather than the tool's. Priced with the shapes that
-exist, a `--defer` row would report either a prefix that is not one or an allowance that
-ignores the design still sitting in the field.
-
-What is missing is a third reading: prose the field keeps that the caller does not
-retype. That is one attribute and one row, and it makes the pause's number honest — and
-it is worth having beyond this verb, because the same fact is what `[limits.deferred]`
-is measured against and what a `defer --reason` is refused by.
-
 ### §RK1486 The ceiling and the corpus it was not read on
 
 RK1463 was filed as *four fifths of the answer*. It measured, on a six-dep fixture built

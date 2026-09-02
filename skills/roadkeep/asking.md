@@ -64,7 +64,10 @@ limits are the list's own and not the task line's. **And `budget <id> --ship` pr
 sentence a *ship* writes**, which is a different number from the line's — the ledger drops
 the deps and the pointer, so there is more room and a draft written to the line's figure
 throws characters away; `--retire` is the same question for the other departure, where a
-derived `abandoned:` or `superseded by <id>:` prefix is inside the field and counted.
+derived `abandoned:` or `superseded by <id>:` prefix is inside the field and counted; and
+`--defer` is the third, where the reason is *wrapped* around the design the store carries
+forward — so the row that matters is `carried`, naming what the line leaves your sentence,
+the field's own limit measuring the carry and never the reason. One departure per call.
 **`budget --file <p>` is the fourth
 subject**, and the one that is not about prose at all: what an every-turn file `[budgets]`
 declares costs in lines and bytes and what is left — bare, every declared budget. Read it

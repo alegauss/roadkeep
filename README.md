@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 4 | 226 | 2 |
-| C — Query (consult without reading the file) | 5 | 153 | 4 |
+| C — Query (consult without reading the file) | 4 | 154 | 4 |
 | D — The gate | 9 | 210 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 142 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 962 | 14 |
+| **Total** | 22 | 963 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1479** (deps: —) **a pause's reason is the one departure budget cannot price, its field holding a wrapper and the design carried forward** — RK1458 shipped --ship beside --retire and left --defer, because the carry is neither a derived prefix nor a replaced field and Budget has no third reading. → §RK1479
+- 📋 **RK1480** (deps: —) **amend replaces the whole dep group, so adding one means retyping every dep the line already carries** — The retyped group is also wider, so a why that fitted before the add is refused after it, and one edit becomes two failures. → §RK1480
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

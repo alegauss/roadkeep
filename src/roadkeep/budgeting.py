@@ -380,6 +380,60 @@ class Budget:
     #: *the line add would write next*. Which write a figure is about is a fact about the call,
     #: and inferring it from a field that happens to be empty is how the two came apart.
     departure: str = ""
+    #: Prose the field **keeps that the caller does not retype** (RK1479). The third reading
+    #: this record needed, and `defer` is what needed it: `_as_paused` composes the store's
+    #: `why` as the reason *wrapped* — an open marker, the reason, a close marker — with the
+    #: roadmap's own sentence carried whole after it. So the field holds a wrapper, a new
+    #: sentence and an old one, and neither shape that existed describes the third.
+    #:
+    #: Not :attr:`derived`, which is prose *this tool* writes and writes **first**: the carry
+    #: is somebody's own sentence and it is a suffix. Not :attr:`Share.replaced` either, which
+    #: says the next write takes the field entire. Priced with those two alone a `--defer` row
+    #: would report a prefix that is not one, or an allowance that ignores a design still
+    #: sitting in the field — which is why the flag was left out of RK1458 rather than
+    #: approximated.
+    #:
+    #: Empty everywhere else, which is every budget about a line, a ship and a retirement.
+    carried: str = ""
+    #: The **file** a departure's line goes into, as its role — `""` for a line as it stands
+    #: (RK1479). Beside :attr:`departure` because the two are different facts and the printer
+    #: was guessing one from the other: it said *the ledger line* about every departure, which
+    #: was true while the only two wrote to the changelog and is wrong about a pause, whose
+    #: line goes to the deferred store under that store's own grammar.
+    role: str = ""
+
+    @property
+    def reason_room(self) -> int:
+        """What the caller's own sentence has, where the field carries prose around it (RK1479).
+
+        The number `defer --reason` is actually refused by, and it is the **line's** and not
+        the field's. RK1115 settled that a paused line's `why.too-long` measures the author's
+        half with the derived wrapper taken back off — which on this line is the design carried
+        forward, so the reason is charged to that rule not at all. What bounds it is
+        `line.too-long`, measured on everything rendered: the structure, the symptom, the
+        wrapper and the carry, and what is left over is this.
+
+        Zero everywhere else, which is every budget whose field carries nothing: a subtraction
+        of empty strings is the allowance already on the `why` row, said twice.
+        """
+        if not self.carried and not self.derived:
+            return 0
+        taken = width(self.task.symptom) if self.share_of("symptom") else 0
+        return max(0, self.prose - taken - width(self.derived) - width(self.carried))
+
+    def share_of(self, field: str) -> Share | None:
+        """The share for this field, or `None` where the grammar does not carry it."""
+        return next((one for one in self.shares if one.field == field), None)
+
+    @property
+    def writes_into(self) -> str:
+        """What to call the file this departure writes, as a reader of this project names it.
+
+        `ledger` for the changelog, because that is the word `brief`, the skill and every
+        refusal already use for it; the role otherwise, there being no second name for the
+        store. Empty where nothing departs.
+        """
+        return "ledger" if self.role == "changelog" else self.role
 
     def share(self, field: str) -> Share:
         return next(one for one in self.shares if one.field == field)
@@ -399,7 +453,7 @@ class Budget:
         if self.open_line:
             state = "open line"
         elif self.departure:
-            state = f"the ledger line {self.departure} writes"
+            state = f"the {self.writes_into} line {self.departure} writes"
         else:
             state = "the line add would write next"
         deps = ", ".join(dep.render() for dep in self.task.deps) or "—"
@@ -432,6 +486,16 @@ class Budget:
             rows.append(
                 f"  derived    `{self.derived}` — written into the why before a word of "
                 f"yours, and counted against the same limit"
+            )
+        if self.carried:
+            # Beside `derived` and after it, in the order the field is composed: the tool's
+            # prefix, then the caller's sentence, then this (RK1479). Quoted in full where it
+            # fits and elided by its own width otherwise, because what a reader needs is that
+            # the number below is already carrying somebody else's prose, not to re-read it.
+            shown = self.carried if len(self.carried) <= 60 else f"{self.carried[:57]}…"
+            rows.append(
+                f"  carried    `{shown}` — kept after yours, so the line leaves your "
+                f"reason {self.reason_room}"
             )
         rows.append(f"  prose      {self.prose}")
         # One row and not a clause per field (RK1366), which is where `derived` puts the same
@@ -503,10 +567,22 @@ class Budget:
             # and never omitted, for `section_absence`'s reason: a client can then tell a write
             # that derives nothing from a build that did not know the field existed.
             "derived": self.derived,
+            # And what it keeps after the caller's (RK1479). Empty and never omitted, for the
+            # reason above it: a client can then tell a write that carries nothing from a
+            # build that did not know the third shape existed.
+            "carried": self.carried,
+            # And the number that carry leaves the caller's own sentence (RK1479), which is
+            # the line's rule and not the field's: 0 where nothing is carried, the `why` row
+            # being the whole answer there.
+            "reason_room": self.reason_room,
             # Which write this answers about (RK1458): `""` for a line as it stands, and the
             # verb otherwise. Beside `open_line` and not folded into it, the two answering
             # different questions — whether the line exists, and which write is being priced.
             "departure": self.departure,
+            # And which file it writes into (RK1479). Empty where nothing departs, which is
+            # the same absence `departure` reports and is published beside it because a
+            # consumer holding one still cannot derive the other.
+            "role": self.role,
         }
 
     def delta(self, base: "Budget | None", against: str | None) -> dict[str, object]:
@@ -567,6 +643,7 @@ def budget(
     body: str | None = None,
     retire: str | None = None,
     ship: bool = False,
+    defer: bool = False,
 ) -> Budget:
     """The prose budget of a line, named by id or described by the fields an `add` takes.
 
@@ -605,11 +682,15 @@ def budget(
     read the number out of an earlier brief, or wrote to the stricter of the two and spent
     characters that were there, or to the looser and spent a refusal.
 
-    **A subject and not a number**: `budget <id>` prices the line the id is on, and this asks
-    about the line a departure would write instead. `defer` is the third such subject and is not
-    here: its sentence is *wrapped around* the design the store carries forward rather than
-    written before it, so what it carries is neither a prefix nor a replacement, and pricing it
-    honestly needs a shape :class:`Budget` does not have yet.
+    ``defer`` is the **fifth**, and the one RK1458 named and could not price (RK1479). A pause
+    writes its reason *wrapped* — `set aside (`, the reason, `): ` — with the roadmap's own
+    sentence carried whole after it, so the field holds a wrapper, a new sentence and an old
+    one. That is neither a derived prefix nor a replaced field, and pricing it as either would
+    report a prefix that is not one or an allowance that ignores the design still in the field.
+    :attr:`Budget.carried` is the third reading that makes the number honest.
+
+    **A subject and not a number**: `budget <id>` prices the line the id is on, and each of
+    these asks about the line a departure would write instead.
 
     ``requires`` is the group `add --requires` puts on the line (RK1461), and this read had no
     way to be told it was coming. The gap is exact: `budget --block C --symptom … --why …`
@@ -642,6 +723,8 @@ def budget(
         return _retirement(config, task, retire, why=why, body=body)
     if ship:
         return _shipment(config, task, why=why, body=body)
+    if defer:
+        return _deferral(config, task, why=why, body=body)
     answer = budget_of(
         config,
         task,
@@ -698,6 +781,52 @@ def _shipment(config: Config, task: Task, *, why: str | None, body: str | None) 
             body=body,
         ),
         departure="ship",
+        role="changelog",
+    )
+
+
+def _deferral(config: Config, task: Task, *, why: str | None, body: str | None) -> Budget:
+    """What a pause's reason has, before it is written (RK1479).
+
+    Composed through the write's own :func:`~roadkeep.deferring._as_paused` under
+    `[limits.deferred]`, which is `_shipment`'s rule and `_retirement`'s: a second computation
+    of the store line's shape is how a figure and the write it describes come apart.
+
+    Three pieces share one field, and this is the only budget where that is true. The wrapper's
+    open marker is :attr:`Budget.derived` — prose this tool writes before a word of the
+    caller's, exactly as a retirement's prefix is. The close marker and the roadmap's own `why`
+    are :attr:`Budget.carried`: the store keeps that sentence whole, and the author neither
+    retypes it nor may delete it, so an allowance measured as if the field were empty is the
+    figure `--ship` deliberately does report and this one must not.
+
+    The reason is `""` where the caller drafted none, which is what `defer` with no `--reason`
+    writes — a floor, and the one number a caller asking *have I got room* wants first.
+    """
+    from roadkeep.deferring import NoStore, _as_paused  # noqa: PLC0415 - RK260
+    from roadkeep.kernel.schema import PAUSED_CLOSE, PAUSED_OPEN  # noqa: PLC0415 - RK260
+
+    if not config.has("deferred"):
+        # The write's own refusal, raised by the read that stands in for it: a project with no
+        # store cannot pause anything, and a number about a line nobody can write is the shape
+        # `govern` refuses one file over. `budget --file` refuses a file this repository has
+        # not got for the same reason, and this is that rule about a role.
+        raise NoStore(task.id)
+    paused = _as_paused(task, config.schema.deferred_marker, why or "")
+    return replace(
+        budget_of(
+            config,
+            paused,
+            open_line=False,
+            schema=config.schema_for("deferred"),
+            # Drafted only where the caller drafted, `_retirement`'s rule: the wrapper and the
+            # carry are measured either way and neither is theirs.
+            why=paused.why if why is not None else None,
+            body=body,
+        ),
+        derived=PAUSED_OPEN,
+        carried=f"{PAUSED_CLOSE}{task.why}",
+        departure="defer",
+        role="deferred",
     )
 
 
@@ -735,6 +864,7 @@ def _retirement(
         ),
         derived=prefix,
         departure="retire",
+        role="changelog",
     )
 
 
