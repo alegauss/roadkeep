@@ -181,7 +181,10 @@ and `record amend --symptom` take a correction only where it folds to the one on
 bytes that never arrived are fixable and a claim that turned out wrong is still `retire`.
 And `--why` is **required**, because the roadmap's sentence states a problem and
 the ledger's states an outcome, so inheriting it files a defect report under a heading
-meaning "done" (`record amend <id> --why` is the repair where one already did). **A path
+meaning "done" (`record amend <id> --why` is the repair where one already did). That repair
+asks `--lines <n>` only where the entry's continuation is prose **nobody parsed**: an entry
+wrapped by `--checked` alone is corrected in one call, the carried lines staying where the
+ship wrote them, because re-supplying a derivation is not what the count is for. **A path
 ledger prose names has to resolve**: `ship`, `retire` and both `record` verbs refuse a
 sentence citing a file this repository does not have, because an entry there claims the
 work is done — the gate's own `path.missing`, asked before the prose exists rather than

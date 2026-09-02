@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 💭 **RK1484** (deps: —) **a ship recording a checked criterion wraps the entry, so correcting its sentence costs a span this tool wrote** — record amend refuses a wrapped entry without --lines, and after RK1460 the wrap is derived prose the caller would have to read back and retype. → §RK1484
-
 ## Block C — Query (consult without reading the file)
 
 - 💭 **RK1486** (deps: —) **the brief ceiling was argued from a backlog with no deps at all, so the lists that grow with the graph are outside it** — This repository's lines carry no deps, and deps, settled deps and chains are the three parts of a brief that grow with the graph rather than the prose. → §RK1486

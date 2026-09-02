@@ -815,3 +815,94 @@ def test_a_task_line_under_the_heading_belongs_to_the_task_reader(tmp_path):
     assert ("block.missing", misfiled) in codes, sorted(codes)
     # And the bullet below it keeps the diagnosis it earns, so this narrows one line.
     assert ("criterion.shape", unshaped) in codes, sorted(codes)
+
+
+# -- correcting an entry whose wrap this tool wrote (RK1484) -------------------
+
+
+def test_the_sentence_is_corrected_without_reading_back_the_carried_lines(tmp_path):
+    """RK1484. RK1460 makes the entry wrapped, and a wrapped entry costs every later door a
+    count: `record amend --why` was refused until `--lines` said how many it replaces. That
+    rule is right for a hand-wrapped ledger — those lines are somebody's paragraphs — and here
+    the span is `_verified`'s own output, composed from a bullet this tool had parsed. Asking
+    for it back is asking a caller to re-supply a derivation (RK16)."""
+    from roadkeep.shipping import amend as amend_record, ship
+
+    config = _shipping(tmp_path)
+    ship(config, "RK1", why="The first symptom no longer happens.",
+         checked=["An idle window issues no draw calls"]).save()
+
+    config = Config.discover(tmp_path)
+    corrected = amend_record(config, "RK1", why="The first symptom is gone.")
+    corrected.save()
+
+    text = ledger_of(Config.discover(tmp_path))
+    assert "The first symptom is gone." in text
+    # The carried line is still there, unread and unretyped, exactly as the ship wrote it.
+    assert "  checked **An idle window issues no draw calls**" in text
+    ledger = Config.discover(tmp_path).document("changelog")
+    (entry,) = [one for one in ledger.entries if one.task.id == "RK1"]
+    assert entry.last == entry.lineno + 1
+    ledger.ensure_writable()
+
+
+def test_a_hand_wrapped_entry_still_costs_the_count(tmp_path):
+    """What must not follow: `--lines` becoming optional in general. A hand-wrapped entry is
+    prose nobody parsed, and that refusal is the reason the door is narrow (RK1049)."""
+    from roadkeep.kernel.document import Wrapped
+    from roadkeep.shipping import amend as amend_record, ship
+
+    config = _shipping(tmp_path)
+    ship(config, "RK1", why="The first symptom no longer happens.").save()
+    path = tmp_path / CHANGELOG
+    text = path.read_text(encoding="utf-8")
+    marked = text.replace(
+        "The first symptom no longer happens.\n",
+        "The first symptom no longer happens.\n  a note somebody wrote by hand\n",
+        1,
+    )
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        handle.write(marked)
+
+    with pytest.raises(Wrapped):
+        amend_record(Config.discover(tmp_path), "RK1", why="The first symptom is gone.")
+
+
+def test_one_carried_line_beside_one_hand_written_note_is_hand_wrapped(tmp_path):
+    """All or nothing: the writer cannot claim a span it did not compose in full, and a partial
+    answer would let a correction delete the half nobody parsed."""
+    from roadkeep.kernel.document import Wrapped
+    from roadkeep.shipping import amend as amend_record, ship
+
+    config = _shipping(tmp_path)
+    ship(config, "RK1", why="The first symptom no longer happens.",
+         checked=["An idle window issues no draw calls"]).save()
+    path = tmp_path / CHANGELOG
+    text = path.read_text(encoding="utf-8")
+    marked = text.replace(
+        "  checked **An idle window issues no draw calls**",
+        "  a note somebody wrote by hand\n  checked **An idle window issues no draw calls**",
+        1,
+    )
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        handle.write(marked)
+
+    with pytest.raises(Wrapped):
+        amend_record(Config.discover(tmp_path), "RK1", why="The first symptom is gone.")
+
+
+def test_the_count_still_works_where_the_caller_gives_one(tmp_path):
+    # The door RK1049 built is untouched: a caller who read the span may still write it back.
+    from roadkeep.shipping import amend as amend_record, ship
+
+    config = _shipping(tmp_path)
+    ship(config, "RK1", why="The first symptom no longer happens.",
+         checked=["An idle window issues no draw calls"]).save()
+    corrected = amend_record(
+        Config.discover(tmp_path),
+        "RK1",
+        why="The first symptom is gone.\n  checked **An idle window issues no draw calls** verified by the suite's idle assertions.",
+        lines=2,
+    )
+    corrected.save()
+    assert "The first symptom is gone." in ledger_of(Config.discover(tmp_path))

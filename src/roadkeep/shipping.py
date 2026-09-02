@@ -2247,8 +2247,15 @@ def amend(
         return Corrected(task_id=task_id, ledger=ledger, entry=entry)
 
     # Asked after `changed`, so an amend that alters nothing never demands a count for a
-    # write it is not going to make.
-    counted(task_id, where, entry, lines, verb="correcting it", keeps_tail=True)
+    # write it is not going to make — and not asked at all where every continuation under this
+    # entry is one this tool wrote (RK1484). The count is the caller saying they read a span
+    # nobody parsed; a `checked` line is a span this writer composed from a bullet it had
+    # already parsed, so demanding it back is the retyping RK16 confines to the derived.
+    kept = _derived_tail(ledger, entry)
+    if lines is None and kept:
+        below = kept
+    else:
+        counted(task_id, where, entry, lines, verb="correcting it", keeps_tail=True)
 
     document = ledger.rewrite_entry(entry, ledger.schema.check(wanted), below)
     return Corrected(
@@ -2258,6 +2265,32 @@ def amend(
         changed=changed,
         below=len(below),
     )
+
+
+def _derived_tail(ledger: Document, entry: Entry) -> tuple[str, ...] | None:
+    """The lines under this entry where **every one of them is this tool's** (RK1484).
+
+    `()` for an entry that owns no continuation, the lines themselves where the writer wrote
+    all of them, and `None` where any of them is prose nobody parsed.
+
+    The distinction is the whole of RK1049's rule kept rather than relaxed. `--lines` is the
+    caller saying they read the span, and it is right for a hand-wrapped ledger: those lines
+    are somebody's paragraphs, and a write that replaced the first and dropped the rest would
+    delete history the format never held. After RK1460 the span can instead be `_verified`'s
+    own output — one derived word, a bold lead the criteria grammar wrote, and that
+    criterion's own sentence — composed from a bullet this tool had already parsed. Asking a
+    caller to read that back and retype it is asking them to re-supply a derivation.
+
+    **All or nothing.** An entry carrying one `checked` line and one hand-written note is
+    hand-wrapped: the writer cannot claim a span it did not compose in full, and a partial
+    answer here would let a correction delete the half nobody parsed.
+    """
+    if not entry.wrapped:
+        return ()
+    under = tuple(ledger.lines[entry.index + 1 : entry.stop])
+    if all(one.strip("\r\n").startswith(f"  {_CHECKED} **") for one in under):
+        return under
+    return None
 
 
 def _unwrapped(why: str | None, lines: int | None) -> tuple[str | None, tuple[str, ...]]:
