@@ -483,32 +483,6 @@ named.
 
 ## Block F — The plugin
 
-### §RK1464 Vendor, then generate — and it is the other way round
-
-`install --vendor` does two things in one run: it writes the surfaces, and it replaces
-the engine those surfaces are generated from. It does them in that order, so the files
-it wrote are the outgoing engine's.
-
-Measured here. `.roadkeep` held 0.2.4; the machine could reach 0.2.60. One run reported
-`updated` on the launcher and the skill, then `vendored 0.2.60`, and `answers 0.2.60, as
-chosen`. The launcher on disk afterwards was 0.2.4's — the one without RK1446's Windows
-branch, which is a project whose MCP server exits 0 and serves nothing. `install
---check` immediately after exited non-zero on both surfaces, and `lint` reported the
-same `install.stale` the run was called to clear. A second `install`, with nothing else
-changed, wrote the right bytes and both went quiet.
-
-So the one run that is supposed to move a project forward moves it backwards first and
-lands it in the state its own `--check` refuses. Nobody reading that output would know:
-`vendored` and `answers` are the last two lines, and `updated` is above them, which
-reads as the new engine's work.
-
-The order is the whole of it. Vendor, then generate — the flag exists to change which
-engine ships the surfaces, so writing them from the one being retired is the one order
-that cannot be what was meant.
-
-Worth weighing: a caller who ran it once and committed has a tree that looks installed
-and is a downgrade, which is worse than the failure it was fixing.
-
 ### §RK1465 The probe that costs what it protects
 
 Measured on Windows 11 against this checkout, five runs each, `initialize` written to

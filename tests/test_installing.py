@@ -1410,6 +1410,128 @@ def test_a_rerun_replaces_the_tree_rather_than_merging_into_it(tmp_path, monkeyp
     assert not (project / ".roadkeep" / "src" / "left-behind.txt").exists()
 
 
+# -- vendor, then generate, and never the other way (RK1464) -------------------
+
+
+def _engine_copy(into: Path, version: str, mark: str) -> Path:
+    """A whole engine this command can wire from: everything `CARRIED` names, marked."""
+    import shutil
+
+    for part in ("hooks", "skills", "scripts", ".claude-plugin", "src"):
+        source, target = HERE / part, into / part
+        if source.is_dir():
+            shutil.copytree(source, target, dirs_exist_ok=True)
+    init = into / "src" / "roadkeep" / "__init__.py"
+    held = init.read_text(encoding="utf-8")
+    stated = next(one for one in held.splitlines() if one.startswith("__version__"))
+    init.write_text(
+        held.replace(stated, f'__version__ = "{version}"'), encoding="utf-8", newline=""
+    )
+    skill = into / PLUGIN_SKILL
+    skill.write_text(
+        skill.read_text(encoding="utf-8") + f"\n{mark}\n", encoding="utf-8", newline=""
+    )
+    return into
+
+
+def test_the_surfaces_come_from_the_engine_being_vendored(tmp_path, monkeypatch, capsys):
+    """RK1464. `install --vendor` writes the surfaces and replaces the engine those surfaces
+    are generated from, and it did them in that order — so the files it wrote were the
+    outgoing engine's. Measured vendoring 0.2.60 over 0.2.4: the run reported `updated`, then
+    `vendored 0.2.60`, and the launcher on disk was 0.2.4's, without RK1446's Windows branch.
+    Its own `--check` refused the tree immediately after, and a second `install` fixed it.
+
+    Nobody reading that output would know: `vendored` and `answers` are the last two lines and
+    `updated` is above them, which reads as the new engine's work."""
+    only_here(monkeypatch, tmp_path)
+    old = _engine_copy(tmp_path / "old", "0.0.1", "THE OUTGOING ENGINE WROTE THIS.")
+    new = _engine_copy(tmp_path / "new", "9.9.9", "THE VENDORED ENGINE WROTE THIS.")
+    project = tmp_path / "adopter"
+    project.mkdir()
+    install(project, source=old)
+    assert "OUTGOING" in (project / PROJECT_SKILL).read_text(encoding="utf-8")
+
+    monkeypatch.setenv("ROADKEEP_SRC", str(new))
+    capsys.readouterr()
+    assert main(["-C", str(project), "install", "--vendor"]) == EXIT_OK
+
+    landed = (project / PROJECT_SKILL).read_text(encoding="utf-8")
+    assert "THE VENDORED ENGINE WROTE THIS." in landed
+    assert "OUTGOING" not in landed, "one run, and the outgoing engine's copy is gone"
+
+
+def test_the_run_leaves_a_tree_its_own_check_passes(tmp_path, monkeypatch, capsys):
+    # The state the defect ended in: `install --check` exited non-zero on both surfaces
+    # immediately after the run called to clear them, and `lint` reported the same
+    # `install.stale`. One run has to be enough, which is the whole claim.
+    from roadkeep.config import Config
+    from roadkeep.linting import lint
+
+    only_here(monkeypatch, tmp_path)
+    old = _engine_copy(tmp_path / "old", "0.0.1", "THE OUTGOING ENGINE WROTE THIS.")
+    _engine_copy(tmp_path / "new", "9.9.9", "THE VENDORED ENGINE WROTE THIS.")
+    project = declaring(tmp_path / "adopter", CLEAN)
+    install(project, source=old)
+
+    monkeypatch.setenv("ROADKEEP_SRC", str(tmp_path / "new"))
+    capsys.readouterr()
+    assert main(["-C", str(project), "install", "--vendor"]) == EXIT_OK
+    capsys.readouterr()
+
+    assert main(["-C", str(project), "install", "--check"]) == EXIT_OK
+    assert "install.stale" not in [
+        one.code for one in lint(Config.discover(project)).notes
+    ]
+
+
+def test_the_record_names_the_engine_that_wrote_them_and_not_this_process(
+    tmp_path, monkeypatch, capsys
+):
+    """RK1462's record, one door over: under `--vendor` the copy that writes the bytes is the
+    tree copied in, so a record naming this process would make the next check refuse the
+    surfaces the run just installed correctly."""
+    from roadkeep.config import Config
+
+    only_here(monkeypatch, tmp_path)
+    _engine_copy(tmp_path / "new", "9.9.9", "THE VENDORED ENGINE WROTE THIS.")
+    project = declaring(tmp_path / "adopter", CLEAN)
+
+    monkeypatch.setenv("ROADKEEP_SRC", str(tmp_path / "new"))
+    capsys.readouterr()
+    assert main(["-C", str(project), "install", "--vendor"]) == EXIT_OK
+    assert Config.discover(project).install_wired == "9.9.9"
+
+
+def test_a_plan_keeps_the_engine_the_project_pinned(tmp_path, monkeypatch):
+    """`_carrying`'s rule one variant over (RK1113, RK1464): which engine a project runs is a
+    fact on its disk, and a plan reading the running checkout instead would offer to re-point
+    every declaration at it — undoing the pin, in the vocabulary of a refresh."""
+    from roadkeep.installing import _pinned_engine
+
+    only_here(monkeypatch, tmp_path)
+    project = tmp_path / "adopter"
+    project.mkdir()
+    assert _pinned_engine(project) is None, "no pin is no pin"
+
+    _engine_copy(project / ".roadkeep", "9.9.9", "THE VENDORED ENGINE WROTE THIS.")
+    assert _pinned_engine(project) == project / ".roadkeep"
+    assert plan(project).source == project / ".roadkeep"
+    # And a caller who named a tree still wins: that is an answer they gave.
+    assert plan(project, source=HERE).source == HERE
+
+
+def test_a_half_copied_pin_is_not_a_source(tmp_path, monkeypatch):
+    # Asked as *does it carry what this command translates* and never as *is it there*: a
+    # `.roadkeep/` mid-copy is not an engine, and falling through is what a project with no
+    # pin already gets.
+    from roadkeep.installing import _pinned_engine
+
+    only_here(monkeypatch, tmp_path)
+    project = tmp_path / "adopter"
+    (project / ".roadkeep" / "scripts").mkdir(parents=True)
+    assert _pinned_engine(project) is None
+
+
 def test_the_ignore_line_is_printed_and_never_written(tmp_path, monkeypatch):
     """`.gitignore` is the project's file, so this is `merge --register`'s rule about the `git
     config` half: the line is stated and running it is the author's. Said only where nothing

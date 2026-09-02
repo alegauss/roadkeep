@@ -45,7 +45,10 @@ launcher resolves that ahead of any sibling checkout. By version and never by se
 so every machine pins the same one; a *working* checkout is skipped unless `ROADKEEP_SRC`
 names it, a tree mid-refactor being the thing a pin exists to stop running; `.git` is
 excluded so the copy is an artefact and not a second repository; and what landed is asked
-its version, a disagreement being a refusal that leaves the tree there to look at. Add
+its version, a disagreement being a refusal that leaves the tree there to look at. The pin
+lands **first** and the surfaces are then written from it, so one run is enough and what it
+leaves is a tree its own `--check` passes; every later `install` keeps that engine unless
+you name a `--source`. Add
 `.roadkeep/` to `.gitignore` — the command says so and does not write it. `install
 --committed`
 wires a launcher committed to the repository instead of a path into a checkout, which is

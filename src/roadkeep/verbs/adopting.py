@@ -251,6 +251,15 @@ def _engines(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK if found.agree else EXIT_GATE
 
 
+def _vendored_source(pinned: object, checked: bool) -> str:
+    """The tree an `install --vendor` wires the project from (RK1464).
+
+    The copy where it landed, and on a `--check` the candidate it came from — nothing was
+    copied there, so what the run *would* read is the source it would have read it out of.
+    """
+    return str(pinned.chosen.home if checked else pinned.into)  # type: ignore[attr-defined]
+
+
 def _install(config: Config, args: argparse.Namespace) -> int:
     """Wire the harness for a project the plugin did not install (RK100).
 
@@ -261,23 +270,34 @@ def _install(config: Config, args: argparse.Namespace) -> int:
     """
     del config
     try:
+        # **Before the surfaces, and that is the whole order** (RK1464). RK1193 put the vendor
+        # after them so a run that copied an engine and failed to wire it could not leave a
+        # copy nothing reaches — a real hazard, and the wrong way round: the surfaces are
+        # *generated from* an engine, so writing them first writes the outgoing one's. Measured
+        # here, vendoring 0.2.60 over 0.2.4: the run said `updated`, then `vendored 0.2.60`,
+        # and the launcher left on disk was 0.2.4's, without RK1446's Windows branch. Its own
+        # `--check` refused the tree immediately after, and a second `install` fixed it.
+        #
+        # The hazard RK1193 named survives as the smaller one: a copy nothing points at is one
+        # more `install` away, and the bytes it replaces are not a downgrade somebody commits.
+        pinned = vendor(args.directory, checked=args.check) if args.vendor else None
+        # And the surfaces come from what was just pinned, unless the caller named a tree: a
+        # `--vendor` that wired from anywhere else would be the same defect with the copy in
+        # the right place. Under `--check` nothing was copied, so the candidate's own home is
+        # what the run would have read — which is what a check has to report about.
+        source = args.source or (None if pinned is None else _vendored_source(pinned, args.check))
         intent = (
             # `--check` writes nothing, so it reports the driver as unwritten either way: a
             # check that registered one would be a check that changed the repository (RK148).
-            plan(args.directory, source=args.source, committed=args.committed)
+            plan(args.directory, source=source, committed=args.committed)
             if args.check
             else install(
                 args.directory,
-                source=args.source,
+                source=source,
                 register_merge=args.register_merge,
                 committed=args.committed,
             )
         )
-        # After the surfaces and never instead of them (RK1193): the engine is what those
-        # declarations *point at*, so a run that vendored one and failed to wire it would
-        # leave a copy nothing reaches. Inside the same try, so a machine with no engine to
-        # copy refuses in the words every other bad input gets.
-        pinned = vendor(args.directory, checked=args.check) if args.vendor else None
     except (ValueError, OSError) as error:
         return _refused(error)
 

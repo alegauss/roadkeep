@@ -914,6 +914,7 @@
 - ✅ **RK1451** **engines lists only the copy it is, so a vendored engine the launcher runs has no row and both copies exit clean** — engines reads a fifth copy, the engine vendored under .roadkeep/, so two local versions get a row each, a differ line naming both pens, and exit 1 instead of two clean reads.
 - ✅ **RK1452** **the server reports the version it loaded while that same path holds another, and calls the result agreed** — engines reads what the running home states now, so a copy swapped in place under a live server is a swapped row and a refused verdict instead of agreed.
 - ✅ **RK1462** **install rewrites a surface with an older engine's copy, so the remedy lint names undoes a fix that shipped** — install records the engine that wrote each surface, so a project whose copies came from a later one is refused and named the direction instead of downgraded.
+- ✅ **RK1464** **install --vendor writes the surfaces before it replaces the engine, so one run leaves the outgoing engine's copy on disk** — install --vendor pins the engine before it writes the surfaces and wires from what it pinned, so one run leaves a tree its own check passes.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

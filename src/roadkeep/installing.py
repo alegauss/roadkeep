@@ -438,7 +438,7 @@ class Plan:
             # and the report says which way the write goes before it lists the files.
             rows.append(
                 f"  ahead          written by {self.ahead} and the engine here is "
-                f"{engine().version}, so a rewrite is a downgrade — `install --vendor` moves "
+                f"{writing_from(self.source)}, so a rewrite is a downgrade — `install --vendor` moves "
                 f"the engine, `uninstall` then `install` says it out loud"
             )
         for surface in self.surfaces:
@@ -483,7 +483,7 @@ class Plan:
             # none* does not touch a sixth silently, and this row is what the next check reads.
             rows.append(
                 f"  recorded       {CONFIG_NAME}: [install] wired = "
-                f"{engine().version} — which is what tells the next check which side is newer"
+                f"{writing_from(self.source)} — which tells the next check which side is newer"
             )
         if not checked:
             rows += [f"  from here      {one}" for one in self.orientation()]
@@ -553,7 +553,7 @@ class Plan:
                 f"{len(differing)} surface(s) differ from what this checkout ships: "
                 + (
                     f"they were written by {self.ahead} and this engine is "
-                    f"{engine().version}, so `{invocation()} install` refuses — `install "
+                    f"{writing_from(self.source)}, so `{invocation()} install` refuses — `install "
                     f"--vendor` moves the engine forward"
                     if self.ahead
                     else f"`{invocation()} install` writes them"
@@ -696,7 +696,16 @@ def plan(
     about a variant — and unlike a flag, it cannot happen by running the repair a check named.
     """
     base = Path(root).resolve()
-    origin = Path(source).resolve() if source is not None else _source()
+    # A project that vendored an engine has **chosen** one, on disk, and a plan that read the
+    # running checkout instead would offer to re-point every declaration at it — undoing the
+    # pin, in the vocabulary of a refresh. `_carrying`'s rule one variant over (RK1113), and
+    # the half RK1464 leaves without it: the run that vendors is clean and the `--check` that
+    # follows is not. The caller's `--source` still wins, being an answer they gave.
+    origin = (
+        Path(source).resolve()
+        if source is not None
+        else (_pinned_engine(base) or _source())
+    )
     carried = not committed and _carrying(base)
     committed = committed or carried
     _carried(origin, committed=committed)
@@ -782,7 +791,7 @@ def plan(
         # Read here so `--check` and the write answer from one computation (RK1462): which
         # side is newer is a fact about the project, and a check that did not ask it is the
         # check that offered a downgrade.
-        ahead=ahead_of(base),
+        ahead=ahead_of(base, origin),
         # Over what would be written and never every surface: a directory nobody needs to
         # create is not in anybody's way (RK393).
         blocked=tuple(
@@ -823,7 +832,7 @@ def install(
     # a finding spoke in one direction. Only where something would actually be rewritten: a
     # project whose files already match is not being downgraded by a run that writes nothing.
     if intent.ahead and any(one.existed for one in intent.changing):
-        raise SurfacesAhead(intent.root, intent.ahead, engine().version)
+        raise SurfacesAhead(intent.root, intent.ahead, writing_from(intent.source))
     # With the rest of the refusals and above the first write (RK393), which is what the
     # paragraph above claims and the `mkdir` below used to break.
     if intent.blocked:
@@ -840,7 +849,10 @@ def install(
     # And the record that makes the refusal above possible next time (RK1462), after the
     # writes rather than before them: it says *these surfaces came from this engine*, which is
     # a claim about files that are now on disk.
-    written_down = _recorded(intent.root, engine().version)
+    # The version that **wrote** them (RK1464), which under `--vendor` is the tree copied in
+    # and not this process: a record naming the retiring engine would make the next check
+    # refuse the surfaces this run just installed correctly.
+    written_down = _recorded(intent.root, writing_from(intent.source))
     if governed is not None:
         intent = replace(intent, registered=register(governed))
     return replace(intent, recorded=written_down)
@@ -861,9 +873,24 @@ def wired_by(root: Path) -> str:
         return ""
 
 
-def ahead_of(root: Path) -> str:
+def writing_from(origin: Path) -> str:
+    """The version of the tree these surfaces are generated **from** (RK1462, RK1464).
+
+    Read off the tree and not off this process, because the two come apart at exactly the door
+    that matters: `install --vendor` copies a newer engine in and then wires the project from
+    it, so the copy that writes the bytes is a directory rather than the running package.
+    Through :func:`~roadkeep.provenance.stated_at`, which is this package's one reader for
+    *what does this directory say it is*.
+
+    Falls back to the running engine, which is every ordinary `install`: the source is the
+    checkout answering, and its literal is that version anyway.
+    """
+    return stated_at(origin / "src" / "roadkeep") or engine().version
+
+
+def ahead_of(root: Path, origin: Path | None = None) -> str:
     """The version this project's surfaces were written by, where it is **newer** than the
-    engine answering — or `""` where it is not, or where nothing recorded one (RK1462).
+    tree about to write them — or `""` where it is not, or where nothing recorded one (RK1462).
 
     The comparison `install --check` never made. That one asks whether the bytes differ and
     speaks in one direction — stale, behind, refresh — so a project whose engine is older than
@@ -879,7 +906,11 @@ def ahead_of(root: Path) -> str:
     recorded = wired_by(root)
     if not recorded:
         return ""
-    return recorded if _numbered(recorded) > _numbered(engine().version) else ""
+    # Against the tree that would **write**, not against this process (RK1464): `--vendor`
+    # copies a newer engine in and wires the project from it, so comparing with the running
+    # copy would call that upgrade a downgrade and refuse the one run that is moving forward.
+    writing = engine().version if origin is None else writing_from(origin)
+    return recorded if _numbered(recorded) > _numbered(writing) else ""
 
 
 class SurfacesAhead(ValueError):
@@ -1560,6 +1591,23 @@ def _source() -> Path:
     checkout disagree about (RK79). Deriving it a second way here would be a second answer.
     """
     return engine().home.parent.parent
+
+
+def _pinned_engine(base: Path) -> Path | None:
+    """The engine this project vendored, where it is one this command could wire from (RK1464).
+
+    `_carrying`'s question about the other variant: which engine a project runs is a fact on
+    its disk, and reading the checkout answering instead makes every `--check` after an
+    `install --vendor` report drift and offer the write that un-pins it.
+
+    Asked as *does it carry what this command translates* and never as *is the directory
+    there*: a half-copied `.roadkeep/` is not a source, and falling through to the running
+    engine there is the same answer a project with no pin gets.
+    """
+    home = base / PROJECT_ENGINE
+    if not home.is_dir():
+        return None
+    return home if all((home / part).is_file() for part in CARRIED) else None
 
 
 def _carried(root: Path, *, committed: bool = False) -> None:
