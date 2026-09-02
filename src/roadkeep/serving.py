@@ -755,7 +755,16 @@ _DESTS: Mapping[str, Mapping[str, str]] = {
     "add": {"--dep": "deps", "--marker": "status", "--id": "task_id", "--prefix": "family"},
     "amend": {"--dep": "deps"},
     "anchors": {"--next": "only_next"},
-    "budget": {"--dep": "deps", "--marker": "status", "--prefix": "family"},
+    # And the two aliases this verb answers to (RK1459): it is the one read asked about both
+    # bodies — the one `section add` writes and the one an `add` writes beside a line — so it
+    # takes each write's own spelling, and both reach the field argparse named off the first.
+    "budget": {
+        "--dep": "deps",
+        "--marker": "status",
+        "--prefix": "family",
+        "--section-body": "body",
+        "--section-body-file": "body_file",
+    },
     # The two that call the one sentence `--reason` and accept `--why` beside it (RK1038):
     # the same crossing `--marker` and `--status` make, so the same rows.
     "defer": {"--why": "reason"},

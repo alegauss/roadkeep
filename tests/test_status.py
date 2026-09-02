@@ -625,6 +625,12 @@ SPELLINGS = {
     "`--reason` in the shipped skill and accept both (RK1038)",
     ("--body",): "a section's paragraph, which is a different field with its own limit",
     ("--section-body",): "that paragraph inside an `add`, where the line is written too",
+    # RK1459. The one verb asked about **both** subjects, so it answers to both spellings: a
+    # caller pricing a design with `--body-file` and then filing it was refused by the parser
+    # for the name it had been told to use one call earlier. An alias and not a rename — the
+    # two names above stay right where they are, each on the write that earned it.
+    ("--body", "--section-body"): "the same paragraph on `budget`, which prices what "
+    "`section add` writes and what `add` writes in one call",
     # RK1176. Not a synonym for the sentence and not a paragraph: a clause naming the address
     # of the rationale a shipment overtook, which lands inside the `why` the ledger publishes.
     # It reads the pipe for the reason the sentence does — the address carries a `§`, which a
@@ -694,8 +700,11 @@ def test_the_two_that_rename_it_accept_the_name_the_rest_use():
     """The rule itself, stated so that dropping the alias is a red rather than a quiet
     return to the state this task was filed from."""
     for names, where in prose_fields().items():
-        if names in (("--body",), ("--section-body",)):
-            continue  # a paragraph is a different field, with its own limit
+        if names in (("--body",), ("--section-body",), ("--body", "--section-body")):
+            # A paragraph is a different field, with its own limit — and the pair is the read
+            # that prices both writes, aliased to each write's own name and not to `--why`
+            # (RK1459).
+            continue
         if names in (("--superseded-design",), ("--symptom",), ("--decides",)):
             # A clause about another address rather than this line's own sentence (RK1176),
             # and the claim the line is rather than the reason for it (RK1187). The alias rule

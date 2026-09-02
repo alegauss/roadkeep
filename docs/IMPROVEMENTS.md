@@ -77,31 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1459 The flag the price used, and the flag the write wanted
-
-`budget` is the read this tool asks callers to make before a write, and the write it
-prices does not take the argument it took.
-
-Pricing a design section is `budget <id> --body-file <p>`. Filing that section in the
-same transaction as the line is `add … --section-body-file <p>`. The path is the same
-path and the content is the same content; only the flag changed, and a caller moving
-from the price to the write in one step is refused by the argument parser for the name
-it was told to use one call earlier.
-
-The refusal is well written — it lists what `add` declares, right flag included, so the
-cost is a turn and never a wrong write. But it is a turn every time, and it lands inside
-the loop this tool most wants taken: price it, then write it. A read whose arguments do
-not survive into the write costs more than going without one.
-
-Both names are right where they are. `section add` takes `--body-file` because a body is
-the only thing it writes; `add` takes `--section-body-file` because there the body is
-one of two, and the prefix says which. So this is an alias and not a rename: `budget` is
-the verb asked about both subjects, and it can accept either spelling of an argument it
-already understands.
-
-Worth weighing: an alias that is never printed is one nobody finds, so the help and the
-refusal are half of it.
-
 ### §RK1460 Where the evidence for a run goes
 
 `ship` prints every criterion the task carries under `unmet`, and that is the whole of

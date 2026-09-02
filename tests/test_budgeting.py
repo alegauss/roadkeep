@@ -1968,6 +1968,65 @@ def test_a_body_and_a_path_are_still_two_answers_to_one_question(tmp_path, capsy
     assert "two answers to one question" in capsys.readouterr().err
 
 
+# -- the argument that did not survive into the write (RK1459) -----------------
+
+
+def test_the_price_and_the_write_take_the_same_argument(tmp_path, capsys):
+    """RK1459. `budget` is the read this tool asks callers to make before a write, and the
+    write it prices did not take the argument it took: pricing a design is `budget <id>
+    --body-file <p>` and filing it with the line is `add … --section-body-file <p>`. Same path,
+    same content, and a caller moving from the price to the write in one step was refused by
+    the parser for the name it had been told to use one call earlier.
+
+    An alias and not a rename: both names are right where they are — `section add` writes only
+    a body, and `add` writes a body as one of two — and this verb is the one asked about both
+    subjects."""
+    root = str(tmp_path)
+    with_prose(tmp_path)
+    draft = tmp_path / "draft.md"
+    draft.write_text("The reasoning the line has no room for.\n", encoding="utf-8")
+
+    assert main(["-C", root, "budget", "--block", "A", "--section-body", "A body."]) == EXIT_OK
+    took = capsys.readouterr().out
+    assert main(["-C", root, "budget", "--block", "A", "--body", "A body."]) == EXIT_OK
+    assert capsys.readouterr().out == took, "one argument, two spellings, one answer"
+
+    assert main([
+        "-C", root, "budget", "--block", "A", "--section-body-file", str(draft)
+    ]) == EXIT_OK
+    by_path = capsys.readouterr().out
+    assert main(["-C", root, "budget", "--block", "A", "--body-file", str(draft)]) == EXIT_OK
+    assert capsys.readouterr().out == by_path
+
+
+def test_the_alias_is_printed_where_a_caller_would_look(tmp_path, capsys):
+    # An alias that is never printed is one nobody finds. argparse lists both spellings on the
+    # option itself, so neither `help` restates it and neither pays for it over a transport
+    # where no flag is ever typed.
+    with_prose(tmp_path)
+    with pytest.raises(SystemExit):
+        main(["-C", str(tmp_path), "budget", "--help"])
+    said = capsys.readouterr().out
+    assert "--body, --section-body" in said
+    assert "--body-file, --section-body-file" in said
+
+
+def test_the_served_surface_publishes_one_spelling(tmp_path):
+    # The first option string is what the schema names, so an alias costs the session nothing:
+    # a caller on that transport passes a property and never a flag.
+    from roadkeep.serving import handle
+
+    with_prose(tmp_path)
+    answered = handle(
+        {"jsonrpc": "2.0", "id": 1, "method": "tools/list"}, str(tmp_path)
+    )
+    (priced,) = [
+        one for one in answered["result"]["tools"] if one["name"] == "budget"
+    ]
+    fields = priced["inputSchema"]["properties"]
+    assert "body" in fields and "section_body" not in fields
+
+
 # -- the rules that are not widths (RK1225) ------------------------------------
 
 

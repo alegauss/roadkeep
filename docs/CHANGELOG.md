@@ -282,6 +282,7 @@
 - ✅ **RK1441** **the --have help names a (needs: ...) group the parser does not read, so a caller copying it is refused** — Four sites now spell the slot the parser reads, and a test holds every backticked group in this repository to the template that declares them (design recorded in `tests/test_quoting.py`).
 - ✅ **RK1453** **A decision's sentence has no correction door, so a typo outlives the decision** — revise corrects a decision sentence where it stands, keeping the entry, its marker and the superseded clause it did not author, so a typo no longer outlives the decision.
 - ✅ **RK1454** **block drop refuses a finished block without naming the ending that is correct** — block drop names what became of the block in the refusal, in the words block list already uses, so a sweep told to run it last gets an ending instead of a dead end.
+- ✅ **RK1459** **The read that prices a body and the write that files it name the same argument differently, so the loop costs a refusal** — budget answers to --section-body and --section-body-file too, so the flag a caller priced a design with is the flag the add that files it takes.
 
 ## Block C — Query
 
