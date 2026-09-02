@@ -453,6 +453,10 @@ TOOLS: tuple[Tool, ...] = (
             "superseded_design",
             "recorded_in",
             "decides",
+            # RK1460. The agent that ran the check is the one shipping, and the check happened
+            # in a session about to end: a flag only the CLI could reach would put the evidence
+            # out of reach of the caller who is the only one holding it.
+            "checked",
         ),
         # Where the decision's body goes, on a project whose anchors are addresses (RK1363).
         # Conditional for `add --ref`'s reason exactly: nothing derives it there, so a

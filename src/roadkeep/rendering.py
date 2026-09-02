@@ -353,6 +353,18 @@ def _dequeued_rows(token: str | None) -> list[str]:
     return [f"  dequeued {token} left the priority queue with the line"]
 
 
+def _checked_rows(leads: Sequence[str]) -> list[str]:
+    """What a departure said it verified, and where that now reads (RK1460).
+
+    `_unmet_rows`' twin and printed above it, because the two are the distinction this exists
+    to make: a criterion nobody named leaves and is reported as leaving, and one a ship named
+    leaves *into the ledger entry*, carrying the sentence its author wrote under it.
+    """
+    return [
+        f"  checked  {lead} — its criterion went into the ledger entry" for lead in leads
+    ]
+
+
 def _unmet_rows(leads: Sequence[str], went_with: str = "the line") -> list[str]:
     """What a departure took out of a criteria list (RK1268, RK1316).
 

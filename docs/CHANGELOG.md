@@ -283,6 +283,7 @@
 - ✅ **RK1453** **A decision's sentence has no correction door, so a typo outlives the decision** — revise corrects a decision sentence where it stands, keeping the entry, its marker and the superseded clause it did not author, so a typo no longer outlives the decision.
 - ✅ **RK1454** **block drop refuses a finished block without naming the ending that is correct** — block drop names what became of the block in the refusal, in the words block list already uses, so a sweep told to run it last gets an ending instead of a dead end.
 - ✅ **RK1459** **The read that prices a body and the write that files it name the same argument differently, so the loop costs a refusal** — budget answers to --section-body and --section-body-file too, so the flag a caller priced a design with is the flag the add that files it takes.
+- ✅ **RK1460** **A criterion checked by running something ships looking exactly like one nobody looked at** — ship --checked names a criterion this task carries and moves its own sentence under the ledger entry, so a verified claim no longer reads like an ignored one.
 
 ## Block C — Query
 

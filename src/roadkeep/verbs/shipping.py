@@ -72,6 +72,9 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
             recorded_in=args.recorded_in,
             decides=args.decides,
             decides_ref=args.decides_ref,
+            # The seventh, and the one that composes nothing (RK1460): each value addresses a
+            # criterion the roadmap already carries, and its own sentence is what is written.
+            checked=args.checked,
         )
         # The files this transaction wrote, answered by the write itself (RK309) — the half
         # of the commit's contents no author declares, and never a second list rebuilt here.
@@ -530,6 +533,19 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
             "where the decision's body goes, as an outline anchor — required beside "
             "--decides where `ref_scheme = \"outline\"` and refused where the anchor is the "
             "id; `anchors --role decisions --next` names a free one"
+        ),
+    )
+    # RK1460. Repeatable and an address rather than prose: it names one of this task's own
+    # criteria, and what lands in the ledger is that criterion's own sentence — so there is
+    # nothing here for a shell to eat and no pipe to declare.
+    ship_parser.add_argument(
+        "--checked",
+        action="append",
+        default=[],
+        metavar="LEAD",
+        help=(
+            "a criterion of this task that was verified, repeatable: its own sentence goes "
+            "under the ledger entry, and one nobody names reads as unchecked"
         ),
     )
     ship_parser.add_argument("--json", action="store_true", help="every edit, as data")

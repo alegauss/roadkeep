@@ -117,7 +117,7 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 6 | 223 | 2 |
+| B — Authoring (insert, never hand-edit) | 5 | 224 | 2 |
 | C — Query (consult without reading the file) | 9 | 146 | 3 |
 | D — The gate | 2 | 208 | 2 |
 | E — Adoption | 0 | 117 | 1 |
@@ -125,11 +125,11 @@ called unbuilt were already in the ledger.
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 24 | 944 | 13 |
+| **Total** | 23 | 945 | 13 |
 
 **Next ready:**
 
-- 📋 **RK1460** (deps: —) **A criterion checked by running something ships looking exactly like one nobody looked at** — ship lists every criterion as unmet, so the ledger cannot tell a verified claim from an ignored one. → §RK1460
+- 📋 **RK1461** (deps: —) **budget cannot price a line that will carry a requires, so the number it quotes is 21 characters too generous** — add takes --requires and budget does not, so a sentence priced without one is refused for the exact width of the (requires: word) the write adds. → §RK1461
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

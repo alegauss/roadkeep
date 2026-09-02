@@ -445,6 +445,110 @@ def test_the_line_takes_its_own_list_with_it_when_it_ships(tmp_path):
     assert lint(Config.discover(tmp_path)).findings == ()
 
 
+# -- the checked claim, told from the ignored one (RK1460) ---------------------
+
+
+def _shipping(tmp_path: Path) -> Config:
+    """A task carrying two criteria, which is the state a ship of real work is in."""
+    config = project(tmp_path)
+    criteria.add(config, "RK1", "The window shows what a session printed",
+                 "verified against a running client.").save()
+    criteria.add(Config.discover(tmp_path), "RK1", "An idle window issues no draw calls",
+                 "verified by the suite's idle assertions.").save()
+    return Config.discover(tmp_path)
+
+
+def ledger_of(config: Config) -> str:
+    with (config.root / CHANGELOG).open("r", encoding="utf-8", newline="") as handle:
+        return handle.read()
+
+
+def test_a_checked_criterion_goes_into_the_ledger_and_an_unnamed_one_does_not(tmp_path):
+    """RK1460. `ship` printed every criterion the same way, so a claim somebody verified was
+    indistinguishable from one nobody looked at, and the ledger recorded a finished task
+    beside criteria reading as open. Measured shipping QS116 in quickshell: two leads, both
+    checked — one against a running client with a screenshot, one against the suite's idle
+    assertions — and nowhere to say so."""
+    from roadkeep.shipping import ship
+
+    config = _shipping(tmp_path)
+    departure = ship(
+        config,
+        "RK1",
+        why="The first symptom no longer happens.",
+        checked=["The window shows what a session printed"],
+    )
+    departure.save()
+
+    # The criterion's **own sentence**, relocated with one derived word: this writes no prose.
+    body = ledger_of(Config.discover(tmp_path))
+    assert "  checked **The window shows what a session printed** verified against a "            "running client." in body
+    assert "An idle window issues no draw calls" not in body
+    # And the two are two lists on the record, which is the distinction that was missing.
+    assert departure.checked == ("The window shows what a session printed",)
+    assert departure.unmet == ("An idle window issues no draw calls",)
+    assert lint(Config.discover(tmp_path)).findings == ()
+
+
+def test_the_carried_line_is_the_entry_s_own_and_the_file_round_trips(tmp_path):
+    # A continuation of the bullet, which is what `carrying` has always written (RK157): the
+    # parse reads the entry as wrapped and every line it owns comes back verbatim.
+    from roadkeep.shipping import ship
+
+    config = _shipping(tmp_path)
+    ship(config, "RK1", why="The first symptom no longer happens.",
+         checked=["An idle window issues no draw calls"]).save()
+
+    config = Config.discover(tmp_path)
+    ledger = config.document("changelog")
+    (entry,) = [one for one in ledger.entries if one.task.id == "RK1"]
+    assert entry.last == entry.lineno + 1, "the carried line is the entry's, not a stray"
+    # And the whole file still reads back byte for byte, which is the law the write is under.
+    ledger.ensure_writable()
+
+
+def test_a_lead_the_list_does_not_carry_is_refused_before_anything_is_written(tmp_path):
+    # `criteria`' own refusal, naming the leads that exist: a `--checked` matched loosely
+    # would file a claim about a sentence nobody wrote.
+    from roadkeep.shipping import ship
+
+    config = _shipping(tmp_path)
+    before = read(config)
+    with pytest.raises(KeyError) as caught:
+        ship(config, "RK1", why="It works now.", checked=["Something nobody wrote"])
+
+    said = str(caught.value)
+    assert "leads with 'Something nobody wrote'" in said
+    assert "The window shows what a session printed" in said
+    assert read(Config.discover(tmp_path)) == before
+
+
+def test_a_partial_keeps_its_list_so_there_is_nothing_to_have_checked(tmp_path):
+    """`--decides`' refusal one flag over: a partial leaves the line and its criteria list
+    where they are, so nothing is being carried out of the roadmap."""
+    from roadkeep.shipping import NoneChecked, ship
+
+    config = _shipping(tmp_path)
+    with pytest.raises(NoneChecked) as caught:
+        ship(config, "RK1", why="Half of it works.", part="the first half",
+             checked=["An idle window issues no draw calls"])
+
+    assert "the `ship RK1` that completes" in str(caught.value)
+
+
+def test_the_register_prints_the_two_kinds_apart(tmp_path, capsys):
+    # One row saying a claim was verified and where it now reads, one saying a claim left
+    # unmentioned — which is what a reader of the ledger could not otherwise tell.
+    _shipping(tmp_path)
+    assert main([
+        "-C", str(tmp_path), "ship", "RK1", "--why", "The first symptom no longer happens.",
+        "--checked", "The window shows what a session printed",
+    ]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "checked  The window shows what a session printed — its criterion went into" in said
+    assert "finished An idle window issues no draw calls — its criterion left with the line" in said
+
+
 def test_naming_both_addresses_is_refused_before_anything_is_read(tmp_path, capsys):
     # Two addresses on one call is a caller who believes both took effect, and the wrong one
     # is a claim about somebody else's finish line.

@@ -741,6 +741,24 @@ class NoDecision(ValueError):
         )
 
 
+class NoneChecked(ValueError):
+    """`--checked` on a `ship --part` (:class:`NoDecision`'s refusal, one flag over — RK1460).
+
+    A partial keeps the line and keeps its criteria list, so nothing is being carried out of
+    the roadmap and there is nothing a reader of the ledger would be missing. The completion is
+    the call that spends the list, and it is the one that knows what was verified.
+    """
+
+    def __init__(self, task_id: str, part: str) -> None:
+        self.task_id = task_id
+        self.part = part
+        super().__init__(
+            f"a partial keeps {task_id}'s criteria list, so nothing has left the roadmap "
+            f"yet: pass --checked on the `ship {task_id}` that completes ({part}), which is "
+            f"the call that spends the list"
+        )
+
+
 class NoSupersession(ValueError):
     """A clause about a deleted design, on a `ship --part` (RK310, RK1267).
 
@@ -1162,9 +1180,14 @@ class Departure:
     #: is derived dead by the departure — unlike :attr:`dependents` and :attr:`cited`, which
     #: are somebody else's lines and somebody else's prose.
     dequeued: str | None = None
-    #: The leads of this task's own criteria list, which left with the line (RK1268). Empty on
-    #: every departure of a task nobody wrote one for, which is the ordinary case.
+    #: The leads of this task's own criteria list that left with the line and **nobody named**
+    #: (RK1268, RK1460). Empty on every departure of a task nobody wrote one for, which is the
+    #: ordinary case — and, since a ship can say what it checked, no longer the whole list.
     unmet: tuple[str, ...] = ()
+    #: The leads this ship said were **checked** (RK1460), whose own sentences went into the
+    #: ledger under the entry. Beside `unmet` and not folded into it: the distinction is the
+    #: task, and a reader handed one list cannot tell a verified claim from an ignored one.
+    checked: tuple[str, ...] = ()
     #: Open lines that still name this id. Reported and not refused: a supersession is
     #: legitimate and those lines are the author's next edit, which `lint` (RK14) gates.
     dependents: tuple[str, ...] = ()
@@ -1254,6 +1277,7 @@ class Departure:
         a transaction that may not have landed.
         """
         from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _checked_rows,
             _cited_rows,
             _decided_body_rows,
             _dequeued_rows,
@@ -1298,6 +1322,10 @@ class Departure:
         if self.refreshed:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
         rows += _dequeued_rows(self.dequeued)
+        # Above the leads nobody named (RK1460), because they are the ones that went into the
+        # file: this row says a claim was verified and where it now reads, and the row under it
+        # says a claim left unmentioned.
+        rows += _checked_rows(self.checked)
         rows += _unmet_rows(self.unmet)
         # Last before the event line, because it is about the commit this ship precedes rather
         # than about the three edits above it (RK294).
@@ -1349,8 +1377,13 @@ class Departure:
             # What left the order with the line (RK327), named because a plan that silently
             # got shorter is a change with no sentence about it.
             "dequeued": self.dequeued,
-            # And the task's own criteria that went with it (RK1268), for the same reason.
+            # And the task's own criteria that went with it (RK1268), for the same reason —
+            # the ones nobody named, since RK1460 split the list in two.
             "unmet": list(self.unmet),
+            # The other half: the leads this ship said were checked, whose sentences the entry
+            # now carries. Empty and never omitted, so a consumer tells a ship that verified
+            # nothing from a build that did not know the field existed.
+            "checked": list(self.checked),
             # The fourth file (RK1269), shaped as the ledger's own block above: a write with a
             # file and a line, never the sentence alone.
             "decisions": None
@@ -1728,6 +1761,7 @@ class Closure:
         record rather than assumed to be the roadmap (RK1088).
         """
         from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _checked_rows,
             _cited_rows,
             _decided_body_rows,
             _dequeued_rows,
@@ -2621,6 +2655,7 @@ def ship(
     recorded_in: str | None = None,
     decides: str | None = None,
     decides_ref: str | None = None,
+    checked: Sequence[str] = (),
 ) -> Departure | Closure | Partial:
     """Move one task from the backlog to the ledger. Validates all three edits first.
 
@@ -2676,6 +2711,25 @@ def ship(
     the section copied over, which is the accreting rationale file this tool exists to refuse;
     refused where the project declares no such role, naming `declare decisions`, and on a
     partial, whose section stays and so has outlived nothing yet.
+
+    `checked` is the seventh, and the only one that carries something **out of** the roadmap
+    rather than composing anything (RK1460). A task's criteria list leaves with the line, and
+    every lead was reported the same way whether somebody had verified it or nobody had looked
+    — so the ledger recorded a finished task beside criteria reading as open. Measured shipping
+    QS116 in quickshell: two leads printed, both checked, one against a running client with a
+    screenshot and one against its suite's idle assertions, and nowhere to say so.
+
+    Each value names one of **this task's own** leads, and what is written under the ledger
+    entry is that criterion's own sentence — the author's, relocated, with one derived word in
+    front of it. So this writes no prose (L4), it is presence and not enforcement exactly as
+    the list itself is, and a lead nobody named stays unmentioned, which is the distinction
+    that was missing. Refused on a lead the list does not carry, naming the ones it does, and
+    on a partial: the line stays there and so does its list, so nothing is being lost yet.
+
+    `evidence` is the neighbouring verb and not this one: that runs a `roadkeep-evidence`
+    block of `<pathspec> :: <regex>` against the tree, so it answers for criteria a source file
+    can satisfy. A criterion checked against a running client has no pathspec — the run is the
+    evidence, and it happened in a session about to end.
     """
     _refuse_absent(
         config,
@@ -2709,6 +2763,11 @@ def ship(
             # (RK1363): the refusal above already covers `--decides`, and this one is the
             # same sentence about the argument that rides with it.
             raise DecidesAlone(task_id)
+        if checked:
+            # `--decides`' refusal one flag over (RK1460): a partial leaves the line and its
+            # criteria list where they are, so nothing is being carried out of the roadmap and
+            # a record of what was verified would be filed against work still open.
+            raise NoneChecked(task_id, part)
         return _partial(config, task_id, part, why, remainder)
     recorded = _already_recorded(config, task_id)
     if recorded is None:
@@ -2722,6 +2781,7 @@ def ship(
             recorded_in=recorded_in,
             decides=decides,
             decides_ref=decides_ref,
+            checked=checked,
         )
     if why is not None:
         raise NoRestatement(task_id, recorded)
@@ -3351,6 +3411,7 @@ def _depart(
     recorded_in: str | None = None,
     decides: str | None = None,
     decides_ref: str | None = None,
+    checked: Sequence[str] = (),
 ) -> Departure:
     """The one transaction both doors are: validate everything, then write nothing yet."""
     roadmap = config.document("roadmap")
@@ -3499,7 +3560,17 @@ def _depart(
         replaced = ledger.rewrite_entry(completing, ledger.schema.check(recorded), below)
         insertion = Insertion(document=replaced, entry=replaced.by_id()[task_id])
     else:
-        insertion = place(ledger, recorded, role="changelog", config=config)
+        # The verified criteria ride into the ledger as the entry's own continuation (RK1460),
+        # which is what `carrying` has always been for (RK157) — lines an entry owns beyond the
+        # one the schema renders. Composed and refused **before** anything is written, like
+        # every field here: a lead the list does not carry is a refusal and not a silent skip.
+        insertion = place(
+            ledger,
+            recorded,
+            role="changelog",
+            config=config,
+            carrying=_verified(config, roadmap, task_id, checked),
+        )
     remaining = remove_entry(roadmap, entry)
     # One more change to a document already in hand (RK327): the queue names work, this line
     # is the work, and no state exists where the line has left and the order still names it.
@@ -3539,7 +3610,8 @@ def _depart(
         recorded_in=recorded_in,
         decided=decided,
         dequeued=dequeued,
-        unmet=unmet,
+        unmet=tuple(one for one in unmet if criteria.address(one) not in _addressed(checked)),
+        checked=tuple(checked),
         dependents=tuple(
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
         ),
@@ -3550,6 +3622,52 @@ def _depart(
         # line still carries 🛠 here, and a claim is only ever read against that marker.
         scope=claiming.departing(config, task_id, roadmap.entries),
     )
+
+
+#: The one word this write derives, in front of the author's own criterion (RK1460). A
+#: retirement's `abandoned: ` is the same shape and the same argument: prose the tool writes
+#: before the caller's, so a reader can tell a relocated sentence from a new one.
+_CHECKED = "checked"
+
+
+def _addressed(leads: Sequence[str]) -> frozenset[str]:
+    """The leads a caller named, folded the way a list addresses one (`criteria.address`)."""
+    return frozenset(criteria.address(one) for one in leads)
+
+
+def _verified(
+    config: Config, roadmap: Document, task_id: str, checked: Sequence[str]
+) -> tuple[str, ...]:
+    """The criteria a ship says were checked, as the lines the ledger entry will own (RK1460).
+
+    Each is that criterion's **own sentence**, relocated with one derived word in front of it:
+    a lead is an address, and what says *how* it was checked is the reason the author already
+    wrote under it. So there is no second field to compose, nothing here writes prose (L4), and
+    a list whose sentences say nothing useful produces a ledger that says nothing useful —
+    which is the honest outcome, presence and not enforcement being what the list is.
+
+    Indented by two, which is what a continuation of a bullet is: the parse reads the entry as
+    wrapped, `show` prints every line the entry owns, and `record amend --lines` is the door
+    that corrects one afterwards — the cost a wrapped entry already has (RK179, RK1049).
+
+    Refused on a lead the task's list does not carry, naming the ones it does, which is
+    `criteria`' own refusal: a `--checked` matched loosely would file a claim about a sentence
+    nobody wrote.
+    """
+    if not checked:
+        return ()
+    held = criteria.read(roadmap, task_id)
+    by_address = {criteria.address(one.lead): one for one in held}
+    where = config.relative(config.path("roadmap"))
+    out: list[str] = []
+    for lead in checked:
+        found = by_address.get(criteria.address(lead))
+        if found is None:
+            raise criteria.NoSuchCriterion(
+                lead, task_id, where, tuple(one.lead for one in held)
+            )
+        out.append(f"  {_CHECKED} **{found.lead}** {' '.join(found.why.split())}")
+    return tuple(out)
 
 
 def _decided(

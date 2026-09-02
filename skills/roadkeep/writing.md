@@ -421,7 +421,10 @@ an agent about to execute one wants — the spec is the symptom, the non-goals, 
 this, and only this was written one altitude up. The id has to be a line the roadmap still
 carries, naming both addresses is refused, and the list **leaves with the line**: a ship or a
 retirement takes the whole `## Done when — <id>` region in its own transaction, where a
-block's list stays, that one outliving its lines. `brief`
+block's list stays, that one outliving its lines. **Say which of them you checked**:
+`ship --checked "<lead>"`, repeatable, moves that criterion's own sentence under the ledger
+entry, so a claim somebody verified is told from one nobody looked at — a lead the list does
+not carry is refused, and a partial keeps its list and so takes none. `brief`
 prints both, each carrying its address, so a task started through it never has to ask, and
 `criterion list [--block <x>|--task <id>]` is the read across them — it says which empty it
 found. **The

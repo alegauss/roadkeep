@@ -68,7 +68,15 @@ why = 200
 # the largest, and it is tighter now than before: 56 characters, against 134 when ship
 # led. So a description growing by a paragraph is still a finding, and nothing else was
 # loosened to make room.
-characters = 2800
+# Raised from 2800 with the seventh subject on ship (RK1460): --checked names a
+# criterion this task's own list carries and moves that criterion's sentence into the
+# ledger entry, so a verified claim is told from an ignored one. 233 characters, and
+# ship is the largest tool at 2,790. The headroom this ceiling was set for is the room
+# above the largest, and 60 is the discipline of the 56 the last raise left rather than
+# a looser one - a description growing by a paragraph is still a finding. Nothing was
+# trimmed to pay for it beyond the new field's own help, which was written twice before
+# it fit.
+characters = 2850
 
 # Re-taken as a number about this checkout (RK1364), which is what RK1360 made it:
 # publication is per project now, so the reading here is 63,594 at 64 tools and the
@@ -122,7 +130,15 @@ characters = 2800
 # Nothing was trimmed to pay for it - the description had no paragraph nobody had
 # edited, which is the test RK1059 sets before a raise. 65,675, headroom 123, which is
 # the discipline of the 123 above it.
-session = 65675
+# Raised from 65,675 for the seventh subject on ship (RK1460): --checked carries a
+# verified criterion's own sentence into the ledger entry, so a shipped task's checked
+# claims stop reading like its ignored ones. 233 characters and the reading here is
+# 65,771. What the headroom buys is the only moment the evidence exists - the agent that
+# ran the check is the one shipping, in a session about to end, so a flag the CLI alone
+# could reach would put it out of reach of the only caller holding it. Nothing was
+# trimmed to pay for it beyond that field's own help, rewritten once to fit the per-tool
+# ceiling. 65,890, headroom 119, which is the discipline of the 123 above it.
+session = 65890
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at
