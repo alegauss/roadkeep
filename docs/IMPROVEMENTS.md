@@ -193,11 +193,11 @@ position* and the argv it wants — and both are a turn, every time, inside the 
 tool most wants taken: price it, then write it.
 
 The population is enumerable, which is what makes this a check rather than a sweep.
-`budget` has eight subjects and each names the write it prices; a test can pair every
-argument the read accepts against the arguments that write's parser declares, and
-require each one to be reachable by the same spelling or to be listed with a reason.
-That is `test_composing`'s shape and `test_surfaces`', both written for this class of
-defect: an exemption nobody can see reads exactly like a rule being kept.
+`budget` has eight subjects and each names the write it prices; a test can pair the read
+against that write's parser **both ways**: every argument the read accepts reachable by
+the same spelling, and every one the write adds askable here at all. RK1458 and RK1461
+are that second direction, each met as a wrong number rather than a refusal.
+`test_composing`'s shape, and an exemption nobody can see reads like a rule being kept.
 
 What must not come out of it is a rename. `section amend` is right to take its anchor by
 position and `retire` is right to say `--superseded-by`; the read is the one verb asked
