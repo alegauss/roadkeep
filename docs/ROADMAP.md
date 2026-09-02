@@ -49,6 +49,7 @@
 - 💭 **RK1497** (deps: —) **nothing catches the bytes a wrong decode leaves, so mojibake reaches a permanent file and a correction is what cleans it** — RK1474 built the correction and the gate already refuses an invisible codepoint on the same argument, which is a character no author meant. → §RK1497
 - 💭 **RK1498** (deps: —) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — RK1475 published a door that would have refused, and what catches that is running the sites test_composing enumerates and calls unreached. → §RK1498
 - 💭 **RK1499** (deps: —) **whether a governed number has a gate behind it is a flag typed at the reading, and no test holds it against the findings** — RK1476 declared a key no finding reads and the refusal fired anyway; the flag that fixed it defaults to the answer that lets a red be declared. → §RK1499
+- 💭 **RK1500** (deps: —) **the query side of the duplicate ranking cannot be measured, every known answer being a note written after the answer** — RK1477 measured the corpus half and had to declare the other half an argument, because a retired why names its partner and paraphrases it. → §RK1500
 
 ## Block E — Adoption
 

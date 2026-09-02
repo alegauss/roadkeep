@@ -487,6 +487,28 @@ tables neither of which was written for it, which is the shape `test_composing` 
 `test_surfaces` already use. `prose` and `claims.held` are the same fact stated a third
 way, in prose a gate cannot read.
 
+### §RK1500 The half of the ranking nothing can score
+
+RK1477 joined the `why` to the ranked corpus and measured it: six of eleven known pairs
+inside the five became nine, worst reached rank 11 → 3. The other half of that change
+could not be measured at all.
+
+`add` ranks the line it just wrote, and that query has a `why` too. Joining it looked
+better — RK1303 moved 3 → 2, RK1456 2 → 1 — and the reading is worthless. A retired
+entry's `why` is written **at the retirement**: it names the partner and paraphrases it.
+So the eleven queries whose answer is known are the population where the ground truth is
+an input, and a figure over them scores the ledger's own bookkeeping.
+
+The corpus side is clean because the corpus is the *partner's* text, which no retirement
+wrote. That asymmetry is what makes one half of this change a measurement and the other
+an argument, and `claim` says which it is — the shape this project already uses for
+`prose` and `claims.held`, where the honest answer is that nothing measures the key.
+
+What would settle it is a query population answered before the answer was known: the
+`add`s whose volunteered rows the author acted on. Nothing records those, so nothing
+knows which proposals this read has already caught — the one fact that would price its
+own query side, and the absence RK441 worked around by using retirements.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
