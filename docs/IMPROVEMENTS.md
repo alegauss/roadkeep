@@ -495,6 +495,29 @@ cut. A subject per clause — `engine.disagreement` filed once per differing cop
 `install.stale` is filed per surface — keeps one code, gives each row its own remedy,
 and lets a project quiet the one it has decided about without silencing the rest.
 
+### §RK1497 The bytes a gate could have refused
+
+RK1474 gave the copied claim a respelling door in the ledger and the decisions file, and
+the door is deliberately narrow: the correction must fold to the claim on record. What
+nothing does is stop the mangling happening.
+
+The measured case is undetectable at the door — an ASCII transliteration is legal prose,
+and `add --symptom "Menu do site novo e semeado"` is a caller writing exactly what they
+typed. But it is the *cheap* case, and the expensive one is detectable: `Ã©`, `â€™` and
+the replacement character are what a wrong decode leaves, and a symptom carrying them is
+bytes that arrived wrong rather than words somebody chose.
+
+The gate already has the shape. `lint` refuses an invisible codepoint by name, on the
+argument that a character a reader cannot see is one no author meant — and mojibake is
+that argument with the character visible and meaningless. The write path is where it
+belongs (L1): a symptom refused at `add` costs a retyped field, and one caught by the
+gate costs the respelling door this task had to build.
+
+What is not obvious is the boundary. Prose may legitimately quote a byte sequence, and a
+check refusing `Ã` outright would refuse a line about encoding bugs — which this backlog
+has. So the rule is probably a note, or a refusal a flag steps over; either way it is a
+reading taken against a real corpus and not a pattern written from memory.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
