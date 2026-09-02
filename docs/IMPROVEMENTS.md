@@ -625,6 +625,29 @@ Worth weighing beside it: `uninstall` takes the declarations out and leaves
 remove is a question about what an artefact is, and the answer may be that it says where
 it is rather than deleting somebody's megabyte.
 
+### §RK1492 The argument nobody marked
+
+RK1469 made `engines --invoke` read this project's own `.mcp.json` and stop at the
+program, because the declaration ends in `mcp` and a caller is about to put a verb
+there. Finding the program means finding the last argument that looks like a Python file
+— which works for every spelling this tool writes and is a guess about somebody else's.
+
+`.mcp.json` is a **declaration**, and `install` merges into it rather than owning it:
+the file is the project's and other tools declare in it. So the roadkeep entry can hold
+something this reader did not write — a wrapper, an interpreter with flags, `uv run`
+with the launcher three arguments in — and `.py` is what tells them apart today.
+
+Where it is wrong it is wrong quietly. A declaration whose program is not a `.py`
+returns the whole argv, `mcp` and all, and the line a caller pastes runs a server
+instead of the verb they appended; one carrying a `.py` *option value* stops in the
+wrong place.
+
+The fact is knowable rather than guessable. `install` writes the declaration and knows
+which argument is the program — it is `_rooted`'s own substitution point — so the honest
+answer is for the argument that ends the command to be marked at the moment it is
+written, or for the read to match the launcher path it already computes rather than a
+suffix. Either turns a heuristic over somebody else's file into a fact about ours.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
