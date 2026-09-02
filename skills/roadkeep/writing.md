@@ -77,7 +77,10 @@ write the command you just ran would have made, because then the refusal is that
 rule and not this one's. **And `engines --invoke` prints, on one line and alone, the
 command that reaches the copy wired to this project** — reach for it before composing any
 shell call, because the tools here always find the right copy and a shell does not: a
-stale one in another plugins root does not fail, it agrees with a rule that has moved. On a
+stale one in another plugins root does not fail, it agrees with a rule that has moved. It is
+**read off this project's own `.mcp.json`** and not derived, so a `$ROADKEEP_HOME` pin, a
+vendored copy and a committed bridge all answer correctly — whatever the harness runs is
+what it prints, up to the program and never the `mcp` after it. On a
 project that declared `[install] enforced`, it no longer only agrees: a write from a copy
 `behind` the registered plugin is **refused before the lock**, and the refusal names that
 read. Only `behind` and only where that key was declared — a modified checkout is where a

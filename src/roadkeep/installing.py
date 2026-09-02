@@ -858,6 +858,44 @@ def install(
     return replace(intent, recorded=written_down)
 
 
+def declared_launcher(root: Path) -> str:
+    """The command this project's own `.mcp.json` runs for the roadkeep server, or `""`.
+
+    **Read and never re-derived** (RK1469). `Engines.invoke` answers *which copy to call*, and
+    it did so by restating a resolution order the launcher already holds: `$ROADKEEP_HOME`,
+    then `.roadkeep/`, then a sibling checkout, then the cache clone, each probed. It knew the
+    middle of that list and neither end, so a project pinning `ROADKEEP_HOME` to a tree outside
+    itself was handed a copy that is not the pen — RK1230's own failure, one wiring along.
+
+    The order does not need restating, because the answer is on disk: whatever `install` wrote
+    into this file **is** what the harness runs, and where that is the committed bridge the
+    order is resolved at the moment it is used, by the file that owns it. So a second statement
+    of `_candidates` never appears here, and no subprocess is spent on a read `lint` reaches.
+
+    `""` on a project served by a plugin alone, whose `.mcp.json` declares no such server —
+    and on anything unreadable, which is the direction every reader in this module takes.
+    """
+    try:
+        declared = json.loads(_read(root / PROJECT_MCP))["mcpServers"][SERVER]
+        argv = [str(declared["command"]), *(str(one) for one in declared["args"])]
+    except (OSError, ValueError, KeyError, TypeError):
+        return ""
+    # Up to the program and no further: the declaration ends in `mcp`, which is the mode the
+    # harness wants and the one thing a shell caller is about to replace with a verb. The
+    # program is the last argument that is a Python file, which is the one shape every
+    # spelling of this declaration has — a launcher, a bridge, or an engine's own script.
+    ends = max(
+        (n for n, one in enumerate(argv) if one.endswith(".py")), default=len(argv) - 1
+    )
+    # The two spellings `install` writes, resolved against the tree they address (RK1200's
+    # rule, one file over): a command carrying a placeholder is one nobody can paste.
+    where = root.as_posix()
+    return " ".join(
+        one.replace(PROJECT_DIR_OR_CWD, where).replace(PROJECT_DIR, where)
+        for one in argv[: ends + 1]
+    ).strip()
+
+
 def wired_by(root: Path) -> str:
     """The engine version that last wrote this project's surfaces, or `""` (RK1462).
 
@@ -1121,6 +1159,11 @@ class Engines:
     vendored: Vendor | None = None
     #: `(file, ref)` per workflow step calling the action, in file order.
     gates: tuple[tuple[str, str], ...] = ()
+    #: The command this project's own `.mcp.json` declares for the roadkeep server, resolved,
+    #: or `""` where it declares none (RK1469). Read and never derived: it is literally what
+    #: the harness runs, so :meth:`invoke` answers it rather than restating the launcher's
+    #: resolution order — which it knew two of four entries of.
+    declared: str = ""
     #: The command git would run to merge a governed file, or `""` where nothing is wired
     #: (RK1385). The **fourth** copy, and the one that runs when nobody is watching: git
     #: invokes it mid-merge, on the files whose whole claim is that their merge is decidable,
@@ -1236,18 +1279,24 @@ class Engines:
         and a table is the thing a caller was reduced to grepping.
 
         The **plugin's** where one is registered, because that is what "wired to this project"
-        means — the copy the hook and the skill run. Then the **vendored** one (RK1451): with no
-        plugin, the launcher an adopter commits resolves `.roadkeep/` above every clone and
-        cache, so that is the copy the guard and the served tools already write with, and naming
-        this shell's instead is how a session comes to run two engines against one file. Only
-        where a project holds neither is the running engine's own invocation the honest answer:
-        the copy the caller reaches *is* the one that answers, and naming a second would be
-        inventing a disagreement.
+        means — the copy the hook and the skill run.
+
+        Then **what this project declares** (RK1469), which is read and never derived: RK1451
+        taught this to name the vendored copy, and both rules were restatements of a resolution
+        order the launcher owns — `$ROADKEEP_HOME`, `.roadkeep/`, a sibling, the cache clone —
+        of which this knew the middle and neither end. A project pinning `ROADKEEP_HOME` outside
+        itself was handed a copy that is not the pen, which is RK1230's failure one wiring along.
+        The declaration is what the harness runs, and where it names the committed bridge the
+        order is resolved at the moment it is used, by the file that owns it.
+
+        Only where a project declares neither is the running engine's own invocation the honest
+        answer: the copy the caller reaches *is* the one that answers, and naming a second would
+        be inventing a disagreement.
         """
         if self.plugin is not None and self.plugin.home is not None:
             return f"python {(self.plugin.home / LAUNCHER).as_posix()}"
-        if self.vendored is not None:
-            return f"python {(self.vendored.home.parent.parent / LAUNCHER).as_posix()}"
+        if self.declared:
+            return self.declared
         return invocation()
 
     def stated(self) -> str:
@@ -1432,6 +1481,9 @@ def engines(root: str | Path = ".") -> Engines:
         # The fifth (RK1451), read out of the project's own tree: one `read_text` where a copy
         # is vendored and one failed open where none is.
         vendored=vendored_at(base),
+        # What this project runs, as it wrote it down (RK1469) — one small JSON read, and the
+        # answer `--invoke` prints rather than an order restated here.
+        declared=declared_launcher(base),
         gates=gated_at(base),
         # The fourth copy (RK1385), read out of git config and never run. Swallowed the way
         # every other absence here is: a tree git cannot be asked about answers "nothing

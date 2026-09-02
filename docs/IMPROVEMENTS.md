@@ -508,31 +508,6 @@ it is what this task is.
 
 ## Block F — The plugin
 
-### §RK1469 The order that is stated twice and read once
-
-RK1230 exists because a session found its engine by listing a plugins cache and reached
-a copy the project does not write with. `Engines.invoke` is the answer to that, and
-RK1451 taught it a second rule: with no plugin registered, name the launcher of the copy
-vendored under `.roadkeep/`, because that is what the guard and the served tools run.
-
-Both rules re-derive an order the launcher already holds. `hooks/roadkeep-launch.py`
-resolves `$ROADKEEP_HOME`, then `.roadkeep/`, then a sibling checkout, then the cache
-clone — and it *probes* each, because RK1214 measured a sibling mid-refactor that
-resolved, answered a version and then raised. `invoke` knows the middle of that list and
-neither end.
-
-So a project pinning `ROADKEEP_HOME` to a tree outside itself gets a line naming a copy
-that is not the pen — the exact failure RK1230 was written for, one wiring further
-along. The line is pasted, it runs, it does not fail, and it judges by rules the writing
-copy does not hold.
-
-What is unresolved is who owns the order. Copying `_candidates` into this package makes
-two statements of one resolution, which is the drift the whole vendoring task refused;
-asking the launcher costs a subprocess on a read that `lint` reaches. A third reading:
-`invoke` answers the **bridge** an adopter commits — `.claude/hooks/roadkeep-launch.py`
-— where one exists, so the order is resolved once, at the moment it is used, by the file
-that owns it. Then `engines` never needs to know what the order is.
-
 ### §RK1470 The note that has the weaker of two readings
 
 The served staleness note (RK155, narrowed by RK267 and RK1443) turns on `Engine.stale`:

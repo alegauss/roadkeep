@@ -50,6 +50,7 @@ from roadkeep.installing import (
     PLUGIN_PAGES,
     PLUGIN_ROOT,
     PLUGIN_SKILL,
+    PROJECT_ENGINE,
     PROJECT_MCP,
     PROJECT_PAGES,
     PROJECT_SETTINGS,
@@ -2224,8 +2225,10 @@ def test_the_count_a_sentence_states_says_which_question_it_is_about():
     from roadkeep.installing import Engines
 
     read = {one.name for one in fields(Engines)} - {"running"}
-    # Five rows: the pen, the plugin, the vendored copy, the gates and the driver.
-    assert read == {"plugin", "vendored", "gates", "driver"}, sorted(read)
+    # Five rows: the pen, the plugin, the vendored copy, the gates and the driver — and the
+    # declaration, which is not a copy at all (RK1469): it is what this project says it runs,
+    # read so `--invoke` answers off the file instead of restating the launcher's own order.
+    assert read == {"plugin", "vendored", "gates", "driver", "declared"}, sorted(read)
     # And the verdict still compares two: adding a driver never moves it, whatever it holds,
     # and neither does a vendored copy — that one is `split`, which is a different pair
     # (RK1451) and deliberately has no standing to refuse a write.
@@ -2307,12 +2310,31 @@ def test_a_project_that_vendored_nothing_gets_no_row(tmp_path, capsys, monkeypat
     assert "vendored" not in capsys.readouterr().out
 
 
-def test_the_line_a_shell_pastes_reaches_the_vendored_copy(tmp_path, capsys, monkeypatch):
-    """RK1230 answers *which copy to call*, and with a vendored engine in place the answer had
-    become the very copy the caller already had. The launcher resolves `.roadkeep/` above every
-    clone and cache, so that is the pen — and pointing a shell at this one is how a session
-    comes to run two engines against one file."""
-    from roadkeep.installing import LAUNCHER
+def test_the_line_a_shell_pastes_is_the_one_this_project_declares(tmp_path, capsys, monkeypatch):
+    """RK1230 answers *which copy to call*, and RK1451 taught it to name the vendored copy —
+    both restatements of a resolution order the launcher owns, of which this knew the middle
+    and neither end (RK1469). What it answers now is what the project wrote down, which is
+    literally what the harness runs."""
+    only_here(monkeypatch, tmp_path)
+    root = declaring(tmp_path / "project", CLEAN)
+    _engine_copy(root / PROJECT_ENGINE, "9.9.9", "THE VENDORED ENGINE WROTE THIS.")
+    install(root)
+    capsys.readouterr()
+
+    assert main(["-C", str(root), "engines", "--invoke"]) == EXIT_OK
+    (said,) = capsys.readouterr().out.splitlines()
+    # The declaration, resolved and up to the program: a command carrying
+    # `${CLAUDE_PROJECT_DIR}` is one nobody can paste, and one ending in `mcp` is one no verb
+    # can follow. The vendored copy is where `install` pointed it (RK1464).
+    assert "${CLAUDE_PROJECT_DIR" not in said
+    assert not said.endswith(" mcp"), said
+    assert said.endswith(f"{PROJECT_ENGINE}/{LAUNCHER}"), said
+
+
+def test_a_project_that_declares_nothing_names_the_copy_answering(tmp_path, capsys, monkeypatch):
+    # A `.roadkeep/` nothing points at is a directory: with no declaration the copy the caller
+    # reaches *is* the one that answers, and naming a second would invent a disagreement.
+    from roadkeep.provenance import invocation
 
     root = tmp_path / "project"
     root.mkdir()
@@ -2320,9 +2342,7 @@ def test_the_line_a_shell_pastes_reaches_the_vendored_copy(tmp_path, capsys, mon
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "empty"))
 
     assert main(["-C", str(root), "engines", "--invoke"]) == EXIT_OK
-    assert capsys.readouterr().out.splitlines() == [
-        f"python {(root / '.roadkeep' / LAUNCHER).as_posix()}"
-    ]
+    assert capsys.readouterr().out.strip() == invocation()
 
 
 def test_a_directory_with_no_package_in_it_is_not_an_engine(tmp_path, monkeypatch):
