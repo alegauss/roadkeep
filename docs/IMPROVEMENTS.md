@@ -466,7 +466,7 @@ check refusing `Ã` outright would refuse a line about encoding bugs — which t
 has. So the rule is probably a note, or a refusal a flag steps over; either way it is a
 reading taken against a real corpus and not a pattern written from memory.
 
-### §RK1498 The door that runs and fails
+### §RK1498 The doors nothing has ever run
 
 RK1475 withdrew one offer that would refuse. The rule it broke — *a finding naming a
 command that then refuses is worse* — is `removable`'s own docstring, held by the gate
@@ -474,19 +474,42 @@ for one finding, and now by the event for one door. Nothing holds it for the res
 
 There are many. Every refusal in this tool ends with a door and several compose one from
 a state they did not check: `add`'s follow-up `section add`, the remedy table's rows,
-the `install --check` verdict, the criteria and priority families. `test_composing` runs
-the doors a test happens to exercise and calls the rest a work-list — thirty-odd sites,
-six executed — so the population is enumerated and the property is not.
+the `install --check` verdict, the criteria and priority families.
 
-What makes this checkable rather than a sweep to write by hand is that a door is already
-a record: `Door` carries the argv, and `runs()` executes one against a fixture. The gap
-is that running one proves it *parses*, not that it succeeds — `runs` asserts nothing
-about the exit code, and RK1475's door parsed perfectly and exited 2.
+The instrument is not the gap. `runs()` executes each command a message composes and
+asserts the exit code it was told to expect, which is exactly the property RK1475 broke.
+The gap is the population it is pointed at: `SITES` accounts for thirty-six composers
+and thirty of them are `unreached` — a work-list with a reason per row, honest and never
+run. Six are executed, and RK1476's narrowing is a thirty-seventh that reaches `runs()`
+only because a test was written for it by hand, which is the arrangement this is about.
 
-So the shape is `runs()` with a verdict: a door executed against the state that produced
-it either works or is declared as one that cannot. That turns thirty unreached sites
-into thirty answerable questions, and it would have caught this one at the moment RK1454
-was written — which is when its own refusal was being taught to name the ending.
+So the work is fixtures, not a verdict: each `unreached` row is a state no test builds
+yet, and what turns it into an answerable question is the state. That is a task per
+family rather than one sweep — and the reason to file it as one line is that the six
+that do run were each bought by a defect that had already shipped.
+
+### §RK1499 The gate a limit claims to have
+
+`govern` refuses a number the corpus already breaks, on an exact argument: a limit whose
+first act is a finding is one somebody lowers, reads the report and raises again. RK1476
+declared a key that has no finding at all — `[reads] list` bounds an answer the verb
+declines to compose, and the ledger it is declared against is over it permanently and by
+design. So the refusal fired on the one project the key exists for, and the write was
+undeclarable.
+
+The fix was a `refuses` flag on `Measured`, False at that one reading. What it says is
+*no gate reads this key* — a fact about `linting.py` restated by hand in `governing.py`,
+with nothing holding the two together. A key marked True whose finding is withdrawn
+refuses writes for a gate that is gone; one marked False that a gate does read lets a
+red be declared, the exact failure `Violated` exists to stop. It defaults to True, so
+both drifts arrive silently.
+
+The population is enumerable. `GOVERNED` names five tables, `describing.TABLES` every
+key in them, and four functions in `linting.py` read one. So the property is: for each
+governed address, `refuses` agrees with whether any finding reads it — one test over two
+tables neither of which was written for it, which is the shape `test_composing` and
+`test_surfaces` already use. `prose` and `claims.held` are the same fact stated a third
+way, in prose a gate cannot read.
 
 ## Block E — Adoption
 
