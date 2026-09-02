@@ -1044,32 +1044,72 @@ def test_what_is_shown_and_what_is_stored_are_one_reading(tmp_path):
     assert found.as_dict()["environment"] == found.environment.as_dict()
 
 
-# -- the name the other surface publishes (RK353) -----------------------------
+# -- the name the other surface publishes, taken (RK353, RK1481) --------------
 
 
-def test_a_tool_name_typed_at_the_cli_is_answered_with_the_verb_it_is_here(capsys):
-    """Measured in a session: the skill teaches `scope`, argparse answers `invalid choice`
-    and forty verbs, and none of them is the one the reader was sent for. The arguments they
-    typed are already the right ones, so the answer is the verb and nothing else."""
-    with pytest.raises(SystemExit):
-        main(["scope", "RK1", "--path", "src/x.py"])
+def test_a_tool_name_typed_at_the_cli_is_taken_as_the_verb_it_is_here(capsys, tmp_path):
+    """RK353 measured it and RK1481 finished it. The skill teaches `scope`, argparse answered
+    `invalid choice` and forty verbs, and RK353 made the refusal name the crossing — which is
+    a good refusal and still costs the call. The arguments typed are already the right ones,
+    so the call runs, and the note says which spelling this CLI uses."""
+    root = project(tmp_path)
+    assert main(["-C", str(root), "scope", "RK1", "--path", "src/x.py"]) != EXIT_OK
     err = capsys.readouterr().err
-    assert f"the same act is `{invocation()} claim`" in err
-    assert "publishes that verb as over MCP" in err
+    assert f"at this CLI the verb is `{invocation()} claim`" in err
+    assert "taken as typed" in err
+    # And it ran: what came back is `claim`'s own refusal about the line, not argparse's.
+    assert "no live claim on RK1" in err
 
 
-def test_the_qualified_name_is_answered_too(capsys):
+def test_the_qualified_name_is_taken_too(capsys, tmp_path):
     # A name pasted out of a tool list arrives with its prefix (RK333).
-    with pytest.raises(SystemExit):
-        main(["mcp__roadkeep__merge_check"])
-    assert f"the same act is `{invocation()} merge --check`" in capsys.readouterr().err
+    root = project(tmp_path)
+    main(["-C", str(root), "mcp__roadkeep__merge_check"])
+    assert f"at this CLI the verb is `{invocation()} merge --check`" in capsys.readouterr().err
+
+
+def test_a_verb_this_cli_has_is_never_respelled(capsys, tmp_path):
+    """The rule the whole substitution turns on: `claim` is a command here *and* the tool name
+    for `brief --claim`, so respelling it would rewrite a call the caller typed correctly into
+    a different act — the one failure worse than the refusal this replaces."""
+    root = project(tmp_path)
+    main(["-C", str(root), "claim", "RK1", "--path", "src/x.py"])
+    assert "at this CLI the verb is" not in capsys.readouterr().err
+
+
+def test_the_field_name_the_schema_publishes_is_taken_as_the_flag(capsys, tmp_path):
+    """The second of the three crossings measured in one session: the MCP argument is
+    `replacement` and the CLI flag is `--with`, and a caller moving between the two surfaces
+    has no way to know which spelling they are holding."""
+    root = project(tmp_path)
+    main(["-C", str(root), "budget", "--block", "A", "--symptom", "x", "--why", "y.",
+          "--deps", "RK1"])
+    err = capsys.readouterr().err
+    assert "`--deps` is the field name the schema publishes" in err
+    assert "the argument is `--dep`" in err
+
+
+def test_a_flag_this_verb_declares_is_never_respelled(capsys, tmp_path):
+    """`list --status` is a spelling this parser already has (RK1038's crossing), and rewriting
+    it to `--marker` would be answering a question nobody asked."""
+    root = project(tmp_path)
+    main(["-C", str(root), "list", "--status", "📋", "--ids"])
+    assert "is the field name the schema publishes" not in capsys.readouterr().err
+
+
+def test_a_name_no_action_carries_is_left_for_the_parser_to_refuse(capsys, tmp_path):
+    # Nothing is invented: where the lookup answers nothing the argv reaches argparse as it
+    # arrived, and the refusal is the one the verb already wrote.
+    root = project(tmp_path)
+    main(["-C", str(root), "list", "--nonsense", "x"])
+    assert "is the field name the schema publishes" not in capsys.readouterr().err
 
 
 def test_a_typo_is_not_told_about_a_tool(capsys):
     # A name nothing publishes is a typo, and the offer below is the whole of what is said.
     with pytest.raises(SystemExit):
         main(["nonsence"])
-    assert "publishes that verb" not in capsys.readouterr().err
+    assert "at this CLI the verb is" not in capsys.readouterr().err
 
 
 def test_a_word_inside_an_argument_is_not_read_as_the_verb(capsys, tmp_path):
@@ -1077,7 +1117,7 @@ def test_a_word_inside_an_argument_is_not_read_as_the_verb(capsys, tmp_path):
     # not the command somebody typed.
     with pytest.raises(SystemExit):
         main(["-C", str(tmp_path), "add", "--why", "scope"])
-    assert "publishes that verb" not in capsys.readouterr().err
+    assert "at this CLI the verb is" not in capsys.readouterr().err
 
 
 # -- a capture nothing counts is a note in a drawer (RK1139) --------------------

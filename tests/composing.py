@@ -140,7 +140,10 @@ SITES: tuple[Site, ...] = (
     Site("linting.py:_judged", "run"),
     # RK1242. The one row whose composed text is the engine alone, and it says so.
     Site("guarding.py:Notice.__str__", "deliberate", NOT_A_COMMAND),
-    Site("cli.py:_crossed", "unreached", NO_FIXTURE),
+    # RK1481. Run by `test_capturing`, which types the MCP name and then reads the note: the
+    # composed line is not a step to take but the spelling this CLI used, and the call it
+    # names has already run — so what proves it is the answer that came back.
+    Site("cli.py:_accepting", "run"),
     Site("cli.py:_unrecognised", "unreached", NO_FIXTURE),
     Site("config.py:_skew", "unreached", NO_FIXTURE),
     Site("counting.py:Census.notes", "unreached", NO_FIXTURE),

@@ -77,29 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1481 One act, two spellings, and no way to tell which you are holding
-
-Met three times in one session, by a caller moving between the two surfaces roadkeep
-publishes.
-
-The MCP tool is named next_id and the CLI verb is next-id. The MCP argument is
-replacement and the CLI flag is --with. Both refusals are good ones - each names the
-surface it is on and offers the spelling it wants - so nothing was lost but a call each.
-
-What makes it worth a line is that the caller has no way to know which spelling they are
-holding. A session that has been using the tools all day has next_id in mind because
-that is what it just called; the CLI is the same engine, the same verb and the same
-arguments, and the name is different for a reason that belongs to the transport rather
-than to the act.
-
-Two shapes, and the cheap one is probably right. Either the CLI accepts the MCP spelling
-as an alias - underscores for hyphens, and the argument names the tools publish - or the
-tools publish the CLI's spelling and the transport does the mapping. The first costs
-nothing anybody can see and makes every remembered call work; the second is tidier and
-moves the surface everything is already written against.
-
-What should not happen is a third surface that spells it a third way.
-
 ### §RK1483 The pairs a sweep would have named
 
 RK1459 fixed one pair by hand: `budget --body-file` and `add --section-body-file` are

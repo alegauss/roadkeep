@@ -47,7 +47,7 @@ from roadkeep.capturing import offer
 from roadkeep.config import Config, ConfigError
 from roadkeep.locking import LockBusy, exclusive
 from roadkeep.provenance import engine, invocation, invoked, read_by
-from roadkeep.serving import Prose, spelled
+from roadkeep.serving import Prose
 from roadkeep.remaining import declared
 from roadkeep.verbs.adopting import declare_wiring
 from roadkeep.verbs.authoring import declare_lines
@@ -138,7 +138,7 @@ def _verb_reached(parser: argparse.ArgumentParser, argv: Sequence[str]):
     Read by walking the tree the way argparse does rather than by re-listing the verbs: the
     parser is the authority on what a command is, and a second table would answer about a
     surface that has moved. `-C <path>` is the one option before the verb that consumes what
-    follows it, in both spellings, which is `_crossed`'s rule and the same reason for it.
+    follows it, in both spellings, which is `_accepting`'s rule and the same reason for it.
     """
     reached, path, skipping, opened = parser, [], False, len(argv)
     for index, token in enumerate(argv):
@@ -276,36 +276,93 @@ def _unrecognised(
     return chr(10).join(rows)
 
 
-def _crossed(argv: Sequence[str]) -> str | None:
-    """The other surface's name for the verb this argv asked for, if that is what it is (RK353).
+def _accepting(parser: argparse.ArgumentParser, argv: list[str]) -> tuple[list[str], str]:
+    """The same call with this project's **other** surface's spellings taken (RK1481).
 
-    Read from :func:`~roadkeep.serving.spelled`, which is the tool table's answer: the parser is
-    the authority on what a *command* is and the table is the authority on what a **tool** is
-    called, so this asks rather than carrying a second mapping that could disagree with either.
+    RK353 taught the refusal to name the crossing — `next_id` over MCP, `next-id` here — and a
+    good refusal still costs the call. Measured three times in one session by one caller moving
+    between the two: `next_id` against `next-id`, `replacement` against `--with`, and each time
+    the caller had no way to know which spelling they were holding. A session that has been
+    calling the tools all day has the tool's name in mind because that is what it just used.
 
-    The first token that is not an option, and nothing after it: the verb is the first positional
-    argument, and scanning further would read a `--why` somebody wrote about `scope` as the
-    command they typed. `-C <path>` is the one option before the verb that consumes what follows
-    it, in both spellings and in the `=` form, which needs no skip at all.
+    So the CLI takes it. **Derived and never a second table**: the verb is respelled through
+    :func:`~roadkeep.serving.spelled`, which is the tool table's own answer and already carries
+    the flags that make an act a tool, and an argument is respelled through the subparser's own
+    actions — a `--X` this command does not declare, whose name is a dest it does, is that dest
+    spelled the way the schema publishes it. Nothing is invented: where either lookup answers
+    nothing, the argv is handed to argparse exactly as it arrived.
+
+    **Said, never silent.** The note goes to stderr with the spelling this CLI uses, because a
+    substitution nobody is told about is one the caller keeps needing — which is RK353's whole
+    point kept rather than replaced. What changes is that the call runs.
     """
-    skipping = False
-    for token in argv:
+    from roadkeep.serving import _parsers, _subparser, spelled  # noqa: PLC0415 - RK260
+
+    said: list[str] = []
+    out = list(argv)
+    at, skipping = None, False
+    for index, token in enumerate(out):
         if skipping:
             skipping = False
             continue
         if token.startswith("-"):
             skipping = token in _VALUED
             continue
-        line = spelled(token)
-        if line is None or line == token:
-            # Silent where the two surfaces agree, which is most of them: `add` is `add`, so a
-            # refusal about a missing `--block` would otherwise be told the verb it already used.
-            return None
-        return (
-            f"roadkeep: `{token}` is what this tool publishes that verb as over MCP; at this "
-            f"CLI the same act is `{invocation()} {line}`, which takes the arguments you typed."
+        at = index
+        break
+    if at is None:
+        return out, ""
+    index = _parsers(parser)
+    # **Only where this CLI has no such verb**, which is the rule the whole substitution turns
+    # on: `claim` is a command here *and* the tool name for `brief --claim`, and `scope` is a
+    # command here and the tool name for `claim --path`. Respelling either would rewrite a call
+    # the caller typed correctly into a different act — the one failure worse than the refusal
+    # this replaces. The parser is the authority on what a command is (RK353's own division).
+    line = None if out[at] in index else spelled(out[at])
+    if line is not None and line != out[at]:
+        said.append(
+            f"roadkeep: `{out[at]}` is the MCP name; at this CLI the verb is "
+            f"`{invocation()} {line}` — taken as typed"
         )
-    return None
+        out[at : at + 1] = line.split()
+    # The command's own actions decide the arguments, so a flag is respelled only where this
+    # verb does not declare it: `list --status` is a spelling this parser already has, and
+    # rewriting it to `--marker` would be answering a question nobody asked.
+    path = [one for one in out[at:] if not one.startswith("-")]
+    command = next(
+        (
+            " ".join(path[:size])
+            for size in (2, 1)
+            if " ".join(path[:size]) in index
+        ),
+        "",
+    )
+    if not command:
+        return out, "\n".join(said)
+    declared = _subparser(command, index)
+    options = {
+        one for action in declared._actions for one in action.option_strings  # noqa: SLF001
+    }
+    spellings = {
+        action.dest: action.option_strings[0]
+        for action in declared._actions  # noqa: SLF001
+        if action.option_strings
+    }
+    for position, token in enumerate(out):
+        if position <= at or not token.startswith("--"):
+            continue
+        name, sep, value = token.partition("=")
+        if name in options:
+            continue
+        wanted = spellings.get(name.lstrip("-").replace("-", "_"))
+        if wanted is None:
+            continue
+        said.append(
+            f"roadkeep: `{name}` is the field name the schema publishes; at this CLI the "
+            f"argument is `{wanted}` — taken as typed"
+        )
+        out[position] = f"{wanted}{sep}{value}" if sep else wanted
+    return out, "\n".join(said)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -315,6 +372,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     harden()
     argv = list(sys.argv[1:] if argv is None else argv)
     parser = build_parser()
+    argv, respelled = _accepting(parser, argv)
+    if respelled:
+        print(respelled, file=sys.stderr)
     try:
         # `parse_known_args` and not `parse_args`, so the one refusal argparse used to write
         # is one this tool writes (RK1026). Every other parse failure — a missing required
@@ -329,9 +389,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         # argparse refuses before a handler exists, and its exit 2 is one of the three
         # places RK86 names. The argv is all this knows, and all the offer needs.
         if exit_.code:
-            crossed = _crossed(argv)
-            if crossed is not None:
-                print(crossed, file=sys.stderr)
+            # No crossing to name here any more (RK1481): `_accepting` took the other
+            # surface's spelling before this parse, so an argv that reaches argparse and
+            # fails has failed about something the caller typed and not about which of the
+            # two names they were holding. The refusal RK353 wrote became an acceptance.
             print(offer(argv), file=sys.stderr)
         raise
     try:
