@@ -629,6 +629,29 @@ The narrow answer may be that absence should read as *unknown and worth saying*,
 where no record exists that claim is a guess with a write attached. Saying so costs a
 clause and tells the one population this task could not reach.
 
+### §RK1487 The copy a refusal does not mention
+
+RK1464 moved the vendor in front of the surfaces and accepted the hazard RK1193 put it
+behind them for: a run that copies an engine and then fails to wire it leaves a copy
+nothing points at. The trade is right — a downgrade somebody commits is worse than a
+directory one more `install` clears — but nothing says so when it happens.
+
+The failure is quiet in both directions. `install` writes every surface or none, and a
+refusal after the vendor exits non-zero with a `.roadkeep/` on disk that no declaration
+names; the caller reads what stopped the surfaces and not what landed. And a pinned
+project is now the *source* for every later plan, so a wrong-version tree there is what
+the surfaces come from — which `_pinned_engine` guards by requiring the five carried
+files, a shape test and not a version one.
+
+What is missing is one sentence at the one door. A refusal raised after the copy could
+name what landed and what it is not yet wired to, which is `NotVerified`'s own shape —
+that one leaves the tree on disk deliberately and says why. Nothing here does.
+
+Worth weighing beside it: `uninstall` takes the declarations out and leaves
+`.roadkeep/`, so the pair is not symmetric either. Whether the copy is `uninstall`'s to
+remove is a question about what an artefact is, and the answer may be that it says where
+it is rather than deleting somebody's megabyte.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
