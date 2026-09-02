@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 6 | 224 | 2 |
-| C — Query (consult without reading the file) | 9 | 146 | 3 |
+| C — Query (consult without reading the file) | 8 | 147 | 3 |
 | D — The gate | 2 | 208 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 7 | 136 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 24 | 945 | 13 |
+| **Total** | 23 | 946 | 13 |
 
 **Next ready:**
 
-- 📋 **RK1461** (deps: —) **budget cannot price a line that will carry a requires, so the number it quotes is 21 characters too generous** — add takes --requires and budget does not, so a sentence priced without one is refused for the exact width of the (requires: word) the write adds. → §RK1461
+- 📋 **RK1462** (deps: —) **install rewrites a surface with an older engine's copy, so the remedy lint names undoes a fix that shipped** — The vendored engine is 0.2.4 and the committed launcher carried RK1446; install --check called it stale and install wrote the pre-fix version back over it. → §RK1462
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

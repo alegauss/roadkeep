@@ -420,6 +420,9 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
             args.id,
             block=args.block,
             deps=args.deps,
+            # The second group the line carries (RK1461), and the one `add` adds 21 characters
+            # of structure for while this read priced the sentence as if it would not.
+            requires=args.requires,
             status=args.status,
             symptom=args.symptom,
             family=args.family,
@@ -1633,6 +1636,18 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         dest="deps",
         metavar="DEP",
         help="a dep the line would carry, repeatable: the group is what moves the number",
+    )
+    # RK1461. The other group the write adds and this read could not be told about: 21
+    # characters for `(requires: upstream) `, on the lines whose sentence is longest because
+    # it has to say what is missing as well as what is wrong. Repeatable for `--dep`'s reason
+    # — two of them cost two words and a separator, and one flag would mis-price the rest.
+    budget_parser.add_argument(
+        "--requires",
+        action="append",
+        default=[],
+        dest="requires",
+        metavar="REQUIREMENT",
+        help="a requirement the line would carry, repeatable: `add` puts it on the line",
     )
     _marker_flag(
         budget_parser, "the marker the line would carry (default: the first declared)"

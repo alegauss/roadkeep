@@ -19,9 +19,12 @@ is a **UTF-16 code unit**, which every payload declares and every refusal names 
 differs from what an editor shows — the stricter of the two counts, so a line this accepts
 is one a gate written in Java, C# or JavaScript accepts too, and a status marker costs two
 of them where `✅` costs one. `budget --block
-<x> --dep <id> [--symptom "…"]` is the line an `add` is about to write, and `budget <id>`
+<x> --dep <id> [--requires <word>] [--symptom "…"]` is the line an `add` is about to write,
+and `budget <id>`
 the one an `amend` is about to rewrite; the field's own `maxLength` is the ceiling, and
-what comes back is the lower number that actually binds. Where `ref_scheme = "outline"`
+what comes back is the lower number that actually binds. **Pass every flag the write will
+carry**: a `(requires: upstream)` group is 21 characters of structure, so a sentence priced
+without one is refused by the `add` for exactly its width. Where `ref_scheme = "outline"`
 the pointer is structure the caller chooses, so **pass the same `--ref` you will pass
 `add`** — unnamed, the answer assumes the widest anchor on file and says so, which is
 never more room than the `add` will allow. **It answers for the whole transaction, not the

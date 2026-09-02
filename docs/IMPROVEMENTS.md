@@ -228,32 +228,6 @@ that refusal is the reason the door is narrow.
 
 ## Block C — Query
 
-### §RK1461 The one field the price is never told about
-
-`add --requires <word>` puts `(requires: <word>)` on the line, and `budget` has no way
-to be told that is coming.
-
-The gap is exact. Pricing a task with `budget --block C --symptom … --why …` answered
-`why 165 of 200`. The same sentence, written with `add --block C --requires upstream
---marker 💭`, was refused: `why: 158 characters, limit is 144`. The difference is 21, the
-width of `(requires: upstream) ` — structure the write adds and the price was never told
-about.
-
-`--marker` is already a flag here, and it is the same kind of fact: something that
-changes what surrounds the prose rather than the prose. So this is not a new idea about
-what `budget` is. It is a field nobody gave it when `[requirements] declared` arrived.
-
-What makes it a line rather than a shrug is which callers meet it. A requirement is
-written by somebody filing work they cannot do — a server they do not have, an upstream
-repository they cannot push to — and that is the moment the sentence is longest, because
-it has to say what is missing as well as what is wrong. The price is least reliable
-exactly where it is most wanted.
-
-Worth weighing: `--requires` is repeatable on `add`, and two of them cost two words and
-a separator. A flag that takes one word here would answer the common case and quietly
-mis-price the rest, which is the failure being removed rather than a smaller version of
-it.
-
 ### §RK1463 The evidence for a boolean, printed whether or not it fired
 
 Measured starting a task in an adopting project: `brief` with no id answered about 4,000

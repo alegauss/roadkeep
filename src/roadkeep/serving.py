@@ -624,8 +624,11 @@ TOOLS: tuple[Tool, ...] = (
         # sentence is held to a different number from the line's, `brief` quotes both, and this
         # read quoted the line's — so an agent pricing a ship sentence over this transport was
         # answered about a write nobody was making, and paid the refusal it came here to avoid.
-        ("id", "block", "deps", "status", "symptom", "why", "anchor", "role", "body",
-         "non_goal", "lead", "file", "retire", "ship"),
+        # And `requires` beside `deps` (RK1461), which is the same kind of fact and was the
+        # one group this read could not be told about: 21 characters of structure the write
+        # adds, on the lines whose sentence is longest because it has to say what is missing.
+        ("id", "block", "deps", "requires", "status", "symptom", "why", "anchor", "role",
+         "body", "non_goal", "lead", "file", "retire", "ship"),
         conditional=("ref",),
     ),
     # The other tense (RK1321). `tools`, `session` and `brief` left `budget` with the verb

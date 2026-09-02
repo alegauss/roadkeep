@@ -35,7 +35,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 📋 **RK1461** (deps: —) **budget cannot price a line that will carry a requires, so the number it quotes is 21 characters too generous** — add takes --requires and budget does not, so a sentence priced without one is refused for the exact width of the (requires: word) the write adds. → §RK1461
 - 📋 **RK1463** (deps: —) **brief spends four fifths of its answer on deps that are all shipped and settled long ago** — Each resolved dep carries two full commit subjects, so starting a six-dep task costs thousands of tokens of history nobody asked about. → §RK1463
 - 📋 **RK1466** (deps: —) **a project numbering by id gets every address in one answer, which at this repository's size is 961 rows and 175 KB** — RK1450 replaced a count nothing could open with a listing nothing bounds, because the register it stood in for was also what held the rows back. → §RK1466
 - 💭 **RK1467** (deps: —) **A requirement gates the whole line, so the half of a task that needs nothing is never offered** — `ship --part` records that a half landed, and `pick` has no matching idea beforehand: a caller that could build that half is told there is nothing to pick. → §RK1467

@@ -558,6 +558,7 @@ def budget(
     *,
     block: str = "",
     deps: Sequence[str] = (),
+    requires: Sequence[str] = (),
     status: str | None = None,
     symptom: str = "",
     family: str | None = None,
@@ -609,12 +610,29 @@ def budget(
     here: its sentence is *wrapped around* the design the store carries forward rather than
     written before it, so what it carries is neither a prefix nor a replacement, and pricing it
     honestly needs a shape :class:`Budget` does not have yet.
+
+    ``requires`` is the group `add --requires` puts on the line (RK1461), and this read had no
+    way to be told it was coming. The gap is exact: `budget --block C --symptom … --why …`
+    answered `why 165 of 200`, and the same sentence written with `add --block C --requires
+    upstream` was refused `why: 158 characters, limit is 144` — 21 apart, which is the width of
+    `(requires: upstream) `. Not a new idea about what this verb is: `--marker` is already a
+    flag here and is the same kind of fact, something that changes what surrounds the prose
+    rather than the prose.
+
+    **Repeatable, like `deps`**, because two requirements cost two words and a separator and a
+    flag taking one would answer the common case and quietly mis-price the rest — which is the
+    failure being removed rather than a smaller version of it. Through
+    :func:`~roadkeep.authoring.compose`, so the group the write reads back and the group priced
+    here are one function's answer (RK1297). And it matters most where it is least reliable: a
+    requirement is written by somebody filing work they cannot do, which is the moment the
+    sentence has to say what is missing as well as what is wrong.
     """
     task, open_line, assumed = _subject(
         config,
         task_id,
         block=block,
         deps=deps,
+        requires=requires,
         status=status,
         symptom=symptom,
         family=family,
@@ -644,7 +662,10 @@ def budget(
         answer
         if held is None
         else replace(
-            answer, stated=_stated(held.task, block, deps, status, symptom, ref)
+            answer,
+            stated=_stated(
+                held.task, block, deps, status, symptom, ref, requires
+            ),
         )
     )
 
@@ -873,6 +894,7 @@ def _stated(
     status: str | None,
     symptom: str,
     ref: str | None,
+    requires: Sequence[str] = (),
 ) -> tuple[str, ...]:
     """Which of the caller's fields differ from the line's own, by flag name (RK1221).
 
@@ -890,6 +912,10 @@ def _stated(
     named = [flag for flag, stated, held in given if stated and stated != held]
     if deps and tuple(deps) != tuple(dep.render() for dep in task.deps):
         named.append("--dep")
+    # The group the write adds and this read could not be told about (RK1461), named for the
+    # reason every other flag here is: the caller has to see that the number is theirs.
+    if requires and tuple(requires) != tuple(task.requires):
+        named.append("--requires")
     return tuple(named)
 
 
@@ -903,6 +929,7 @@ def _subject(
     symptom: str,
     family: str | None,
     ref: str | None = None,
+    requires: Sequence[str] = (),
 ) -> tuple[Task, bool, bool]:
     """The line the budget is about, whether the roadmap holds it, and whether it guessed.
 
@@ -928,7 +955,7 @@ def _subject(
         entry = config.document("roadmap").by_id().get(task_id)
         if entry is not None:
             task = entry.task
-            stated = _stated(task, block, deps, status, symptom, ref)
+            stated = _stated(task, block, deps, status, symptom, ref, requires)
             if not stated:
                 # Nothing of the caller's to apply, which is every call before RK1221 and the
                 # one `brief` makes: the entry's own task, untouched and uncomposed.
@@ -942,6 +969,9 @@ def _subject(
                     why=task.why,
                     status=status or task.status,
                     deps=tuple(deps) if deps else tuple(dep.render() for dep in task.deps),
+                    requires=(
+                        tuple(requires) if requires else tuple(task.requires)
+                    ),
                     ref=ref if ref is not None else task.ref,
                 ),
                 True,
@@ -957,6 +987,7 @@ def _subject(
             why="",
             status=status,
             deps=deps,
+            requires=requires,
             ref=_widest_anchor(config) if assumed else ref,
         ),
         False,

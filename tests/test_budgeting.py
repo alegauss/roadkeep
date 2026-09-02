@@ -1968,6 +1968,74 @@ def test_a_body_and_a_path_are_still_two_answers_to_one_question(tmp_path, capsy
     assert "two answers to one question" in capsys.readouterr().err
 
 
+# -- the group the price was never told about (RK1461) -------------------------
+
+
+#: The vocabulary a `(requires: …)` group may quote from — declared, because a requirement
+#: nothing states is a word the write refuses (RK1297).
+REQUIRING = (
+    'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+    '[requirements]\ndeclared = ["upstream", "sandbox"]\n'
+)
+
+
+def _requiring(tmp_path: Path) -> Config:
+    (tmp_path / "roadkeep.toml").write_text(REQUIRING, encoding="utf-8")
+    (tmp_path / "ROADMAP.md").write_text(BACKLOG, encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(LEDGER, encoding="utf-8")
+    return Config.discover(tmp_path)
+
+
+def test_the_group_the_write_adds_is_taken_off_the_price(tmp_path):
+    """RK1461. `add --requires <word>` puts `(requires: <word>)` on the line and this read had
+    no way to be told it was coming. The gap is exact: a sentence priced at `165 of 200` was
+    refused at `158 characters, limit is 144` by the `add` that carried one — 21 apart, which
+    is the width of `(requires: upstream) `."""
+    config = _requiring(tmp_path)
+    bare = budget(config, block="A")
+    carried = budget(config, block="A", requires=["upstream"])
+
+    assert bare.prose - carried.prose == len("(requires: upstream) ")
+    # And the structure is what moved, not the field: the limit is untouched and the room is not.
+    assert carried.share("why").allowed <= bare.share("why").allowed
+
+
+def test_the_number_is_the_one_the_add_then_enforces(tmp_path, capsys):
+    # The prediction and the refusal, asked of one line with nothing between them changing it,
+    # which is the only thing that can hold a pre-write number honest (RK1199's shape).
+    from roadkeep.verbs.refusing import EXIT_USAGE as REFUSED
+
+    config = _requiring(tmp_path)
+    root = str(tmp_path)
+    left = budget(config, block="A", requires=["upstream"]).share("why").left
+    common = [
+        "-C", root, "add", "--block", "A", "--requires", "upstream",
+        "--symptom", "A third symptom",
+    ]
+    assert main([*common, "--why", "x" * (left + 1) + "."]) == REFUSED
+    capsys.readouterr()
+    assert main([*common, "--why", "x" * (left - 1) + "."]) == EXIT_OK
+
+
+def test_two_requirements_cost_more_than_one(tmp_path):
+    """Repeatable for `--dep`'s reason: two of them cost two words and a separator, so a flag
+    taking one would answer the common case and quietly mis-price the rest — which is the
+    failure being removed rather than a smaller version of it."""
+    config = _requiring(tmp_path)
+
+    one = budget(config, block="A", requires=["upstream"]).prose
+    two = budget(config, block="A", requires=["upstream", "sandbox"]).prose
+    assert two < one
+
+
+def test_the_flag_is_named_where_it_was_the_caller_s(tmp_path, capsys):
+    # `--dep`'s rule, one group over (RK1221): a caller who passed it and reads a number has to
+    # see that the number was theirs, and one whose flag matched the file changed nothing.
+    config = _requiring(tmp_path)
+    assert budget(config, "RK1", requires=["upstream"]).stated == ("--requires",)
+    assert budget(config, "RK1").stated == ()
+
+
 # -- the argument that did not survive into the write (RK1459) -----------------
 
 

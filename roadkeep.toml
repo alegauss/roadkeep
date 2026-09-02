@@ -138,7 +138,16 @@ characters = 2850
 # could reach would put it out of reach of the only caller holding it. Nothing was
 # trimmed to pay for it beyond that field's own help, rewritten once to fit the per-tool
 # ceiling. 65,890, headroom 119, which is the discipline of the 123 above it.
-session = 65890
+# Raised from 65,890 for a field this read was missing rather than one added (RK1461):
+# budget priced a sentence as if the (requires: word) the write adds were not coming,
+# and the gap is exactly its 21 characters - measured at 165 of 200 here against a limit
+# of 144 there. 138 characters, and the reading here is 65,923. What the headroom buys
+# is a number that is right where it is least reliable: a requirement is written by
+# somebody filing work they cannot do, which is the moment the sentence has to say what
+# is missing as well as what is wrong. Nothing was trimmed to pay for it - the field's
+# help is one line and no paragraph here is one nobody had edited. 66,040, headroom 117,
+# which is the discipline of the 119 above it.
+session = 66040
 
 [budgets]
 # Files loaded on every turn, and what each may cost (RK30). This budget lived in prose at
