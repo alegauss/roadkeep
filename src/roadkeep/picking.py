@@ -324,6 +324,9 @@ def pick(
                 set_aside=set_aside,
                 lacking=lacking,
                 standing=standing,
+                # What each of those words was declared to mean (RK1467), where the project
+                # said: a refusal naming a token nobody defined can only be believed.
+                means=config.requirement_means,
             ),
             ready=len(survey.ready),
             **counts,
@@ -427,6 +430,7 @@ def _absence(
     set_aside: int,
     lacking: tuple[Lacking, ...] = (),
     standing: Standing | None = None,
+    means: Mapping[str, str] | None = None,
 ) -> str:
     """Why nothing was offered — five sentences, because they are five different states.
 
@@ -450,7 +454,7 @@ def _absence(
     if lacking and not held and not set_aside:
         return (
             f"every ready task{scope} needs something this caller does not have: "
-            f"{_missing(lacking)} — `--have` is how a caller that has one says so"
+            f"{_missing(lacking, means)} — `--have` is how a caller that has one says so"
         )
     if held and not set_aside:
         return f"every ready task{scope} is claimed by a worker who has not finished it"
@@ -464,14 +468,25 @@ def _absence(
     return f"every open task{scope} is blocked, so there is nothing to start"
 
 
-def _missing(lacking: Sequence[Lacking]) -> str:
+def _missing(lacking: Sequence[Lacking], means: Mapping[str, str] | None = None) -> str:
     """Every requirement standing between this caller and the ranking, once each.
 
     The union and not a line-by-line list: the sentence is about what the caller has to
     acquire, and one word repeated across six lines is one thing to go and get. Which lines
     those are is :attr:`Choice.lacking`, printed under it and named there.
+
+    **With what the project declared each one to be** (RK1467), where it declared anything: a
+    requirement is one word on a line, and one word is what a caller then has to decide about
+    a whole task. Measured on a project whose `requires: upstream` set aside every ready line;
+    what the work needed was a step in an action already in the repository the caller had, and
+    the upstream half shrank to a pin bump — which nobody could see, because the word stood
+    alone. Once each and never per line, so the sentence stays the size of the vocabulary.
     """
-    return ", ".join(dict.fromkeys(one for entry in lacking for one in entry.missing))
+    said = dict.fromkeys(one for entry in lacking for one in entry.missing)
+    stated = means or {}
+    return ", ".join(
+        f"{one} ({stated[one]})" if stated.get(one) else one for one in said
+    )
 
 
 @dataclass(frozen=True, slots=True)

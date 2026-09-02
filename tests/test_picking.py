@@ -681,6 +681,68 @@ def test_a_backlog_of_hardware_work_says_so_and_names_what_is_missing(tmp_path):
     assert choice.ready == 2
 
 
+# -- the word a whole line is withheld for, and what it means (RK1467) ---------
+
+
+#: The same vocabulary as a table, which is the second shape `declared` takes: the words are
+#: the keys, so every reader is unchanged, and the sentences are what a refusal can quote.
+MEANT = (
+    "[requirements]\n"
+    'declared = { dualsense = "a DualSense pad plugged into this machine", '
+    'ps5 = "a retail PS5 on the same network" }\n\n'
+)
+
+
+def test_the_refusal_says_what_the_word_it_names_was_declared_to_be(tmp_path):
+    """RK1467. A requirement gates the whole line, and one word is what a caller then has to
+    decide about a whole task. Measured on a project whose `requires: upstream` set aside every
+    ready line and answered *nothing to pick*; what the work needed was a step in an action
+    already in the repository the caller had, and the upstream half shrank to a pin bump. The
+    line that would have led anyone there was the one withheld, and nothing said what the word
+    meant — so the refusal could only be believed."""
+    config = project(
+        tmp_path, BLOCKS + line("RK4", requires="dualsense"), extra=MEANT
+    )
+    choice = pick(config)
+    assert not choice.found
+    assert "dualsense (a DualSense pad plugged into this machine)" in choice.reason
+
+
+def test_a_vocabulary_declared_as_a_list_says_the_word_alone(tmp_path):
+    # The first shape is unchanged and is every project until one writes a sentence: the
+    # vocabulary is the contract and the meaning is a courtesy on top of it.
+    config = project(
+        tmp_path, BLOCKS + line("RK4", requires="dualsense"), extra=DECLARED
+    )
+    choice = pick(config)
+    assert "dualsense — `--have`" in choice.reason
+    assert "(" not in choice.reason.split("does not have:")[1].split("—")[0]
+
+
+def test_the_two_shapes_declare_the_same_vocabulary(tmp_path):
+    # The keys are the words, so the schema, the write refusal and `pick`'s filter all read
+    # exactly what they read before — which is why this is one key and not two.
+    listed = project(tmp_path, BLOCKS + line("RK4"), extra=DECLARED)
+    (tmp_path / "other").mkdir()
+    tabled = project(tmp_path / "other", BLOCKS + line("RK4"), extra=MEANT)
+    assert listed.schema.requirements == tabled.schema.requirements
+    assert listed.requirement_means == {}
+    assert set(tabled.requirement_means) == set(tabled.schema.requirements)
+
+
+def test_the_meaning_is_said_once_and_not_once_per_line(tmp_path):
+    # The sentence stays the size of the vocabulary: six lines needing one word is one thing
+    # to go and get, which is the rule the union was already written for.
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK4", requires="ps5") + line("RK9", requires="ps5"),
+        extra=MEANT,
+    )
+    choice = pick(config)
+    assert choice.reason.count("a retail PS5 on the same network") == 1
+    assert len(choice.lacking) == 2
+
+
 def test_a_line_that_requires_nothing_is_unaffected(tmp_path):
     # The axis is opt-in at every level: a project declaring a vocabulary does not make
     # every line subject to it, and a caller declaring nothing is the ordinary case.

@@ -228,29 +228,6 @@ that refusal is the reason the door is narrow.
 
 ## Block C — Query
 
-### §RK1467 What a requirement withholds beyond itself
-
-`[requirements]` is a property of a line: `pick` withholds it whole from a caller that
-has not declared what it names. That is right where the requirement is what the work is
-— a Terraform module for a provider nobody holds an account with is not half-writable.
-
-It is wrong often enough to notice. In one project a line carried `requires: upstream`,
-declared as the ability to land a workflow and a secret in a second repository. `pick`
-set it aside with every ready line and answered "nothing to pick". What the work needed,
-once somebody read past that, was a step in an action already in the repository the
-caller did have; the upstream half shrank to a pin bump. The line that would have led
-anyone there was the one withheld.
-
-`ship --part` is the idea this is missing, arriving after the fact. It already knows a
-line can land in halves: it records the one that did and leaves the rest open with a
-`why` of its own. Nothing says so beforehand, so the split is a discovery a caller makes
-by disbelieving a refusal — the opposite of what a refusal is for.
-
-What the fix is, is the open question. A second `why` per requirement is prose that will
-go stale beside the first. Cheaper: the refusal already names the requirement, and
-printing that requirement's own declared sentence beside it would let a caller weigh the
-cost in the line they are already reading.
-
 ### §RK1472 The pre-flight that does not know about requirements
 
 `budget` prices the line from what is known before the first word: the id, the marker,

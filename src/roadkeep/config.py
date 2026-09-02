@@ -195,7 +195,10 @@ _CLAIMS_KEYS = frozenset({"held"})
 #: `[requirements]` — the words a `(requires: …)` group may draw on (RK1297). Its own table for
 #: `[markers]`' reason: the vocabulary is one part of a shape whose other parts are a caller's
 #: (`pick --have`) and a line's, and a bare `requirements` beside `priority` would read as a
-#: list this backlog is subject to rather than one its lines quote from.
+#: list this backlog is subject to rather than one its lines quote from. `declared` takes a
+#: list of words or a table mapping each to what having it means (RK1467), and the second is
+#: what a refusal quotes: a caller told a whole line is withheld for `upstream` can weigh that
+#: only if something says what `upstream` was declared to be.
 _REQUIREMENTS_KEYS = frozenset({"declared"})
 #: `[headings]` — the word a project files work under (RK75). Its own table and not a top
 #: key, because the heading is a shape with more than one part and the next question about
@@ -574,6 +577,12 @@ class Config:
     #: before this key existed, which reads as *unknown* and behaves exactly as before — the
     #: first `install` after the upgrade records it.
     install_wired: str = ""
+    #: What each declared requirement **is**, where `[requirements] declared` was written as a
+    #: table rather than a list (RK1467). Empty otherwise, which is every project until one
+    #: writes a sentence: the vocabulary is the contract and this is a courtesy on top of it —
+    #: read by the refusal that withholds a line, so a caller can weigh it rather than believe
+    #: it. Not on the schema: it shapes no line, it decides what a message can say.
+    requirement_means: Mapping[str, str] = field(default_factory=dict)
     #: `[headings] permanent` — whether this project's block headings outlive the work filed
     #: under them (RK1121). Here and not on the schema: it shapes no line, it decides whether a
     #: door is offered, which is `held`'s kind of fact rather than the grammar's.
@@ -699,6 +708,7 @@ class Config:
             install_pinned=pinned,
             install_enforced=enforced,
             install_wired=wired,
+            requirement_means=_requirement_means(data.get("requirements")),
             source=source,
         )
 
@@ -1509,6 +1519,35 @@ _REPORT_KEYS = frozenset({"upstream"})
 _UPSTREAM = re.compile(r"^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$")
 
 
+def _requirement_means(raw: object) -> dict[str, str]:
+    """What each declared requirement **is**, where the project said so (RK1467).
+
+    `[requirements] declared` may be written as a list of words or as a table mapping each to
+    a sentence, and this reads the second half of the second form. One key and not two, so
+    there is no pair to police: a `means` beside `declared` could name a word nothing declares,
+    and the shape that cannot be wrong is the one where the sentence hangs off the word.
+
+    Measured on a project whose line carried `requires: upstream`. `pick` set it aside with
+    every ready line and answered *nothing to pick*; what the work needed, once somebody read
+    past that, was a step in an action already in the repository the caller did have, and the
+    upstream half shrank to a pin bump. Nothing anywhere said what `upstream` had been declared
+    to mean, so the refusal could not be weighed — only believed.
+
+    Empty for the list form and for anything unreadable, which is every project until one
+    writes a sentence: the vocabulary is the contract and this is a courtesy on top of it.
+    """
+    if not isinstance(raw, Mapping):
+        return {}
+    stated = raw.get("declared")
+    if not isinstance(stated, Mapping):
+        return {}
+    return {
+        str(word): value.strip()
+        for word, value in stated.items()
+        if isinstance(value, str) and value.strip()
+    }
+
+
 def _requirements(raw: object, problems: list[str]) -> tuple[str, ...]:
     """`[requirements] declared` — the vocabulary a `(requires: …)` group quotes from (RK1297).
 
@@ -1529,9 +1568,15 @@ def _requirements(raw: object, problems: list[str]) -> tuple[str, ...]:
         problems.append("requirements must be a table")
         return ()
     _reject_unknown(raw, _REQUIREMENTS_KEYS, "requirements.", problems)
-    declared = tuple(
-        dict.fromkeys(_string_list(raw.get("declared"), "requirements.declared", problems))
+    # A table declares the same vocabulary **and what each word means** (RK1467): the keys are
+    # the words, so every reader below is unchanged and the sentences are read separately.
+    stated = raw.get("declared")
+    named = (
+        list(stated)
+        if isinstance(stated, Mapping)
+        else _string_list(stated, "requirements.declared", problems)
     )
+    declared = tuple(dict.fromkeys(named))
     bad = [one for one in declared if not one or one.strip() != one or _UNQUOTABLE.search(one)]
     if bad:
         problems.append(

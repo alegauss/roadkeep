@@ -103,7 +103,9 @@ line comes back every call, because every tier is a function of the file. `add -
 <word>` states it, `amend <id> --requires …` adds it to a line already there, and the word
 is one `[requirements] declared` names — the one table `declare` does *not* open, because a
 vocabulary is a list of words and an empty one governs nothing, so a project opting in
-declares its own words once. Then `pick` sets those lines aside for a caller that did not
+declares its own words once — as a list, or as a table saying what each word *is*, which
+is what the refusal then quotes so a caller can weigh it rather than believe it. Then
+`pick` sets those lines aside for a caller that did not
 say it has them, **names** each with what it is missing, and still counts them ready: what
 narrows is the offer, never the truth. A caller that does have the thing passes `--have
 <word>`, repeatable, on `pick` and `brief` alike — which is the whole difference from
