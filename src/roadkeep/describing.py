@@ -136,6 +136,9 @@ WHERE: Mapping[tuple[str, str], object] = {
     ("headings", "permanent"): lambda: False,
     ("install", "pinned"): lambda: False,
     ("install", "enforced"): lambda: False,
+    # A record and not a decision (RK1462), so its absence is *unknown* rather than a value:
+    # nothing wrote it until an `install` did, and the check reads it to order two copies.
+    ("install", "wired"): lambda: "",
     ("markers", "open"): lambda: Config.default().schema.markers,
     ("markers", "shipped"): lambda: Config.default().schema.shipped_marker,
     ("markers", "retired"): lambda: Config.default().schema.retired_marker,

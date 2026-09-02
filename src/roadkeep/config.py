@@ -186,7 +186,7 @@ _READS_KEYS = frozenset({"brief"})
 #: `[install]` — whether this project holds its wired launcher, hook and skill at the version
 #: they are (RK1192). Its own table and not a `[rules]` entry, because every key there is a
 #: prose rule one governed *file* is not held to, and this is about the harness around them.
-_INSTALL_KEYS = frozenset({"pinned", "enforced"})
+_INSTALL_KEYS = frozenset({"pinned", "enforced", "wired"})
 #: `[claims]` — how long a claim on a line reads as held (RK151). Its own table for the reason
 #: `[headings]` has one: a bare `held` beside `prefix` would read as one of the limits, and it
 #: is not a limit on any field — it is the one number in the claim mechanism that is a
@@ -561,6 +561,19 @@ class Config:
     #: note read this one; borrowing `pinned` read a project that had quieted a finding as
     #: having asked for a refusal on every write.
     install_enforced: bool = False
+    #: `[install] wired` — the engine version that last wrote this project's surfaces, or `""`
+    #: where none has (RK1462). Written by `install` and read by the check, because the
+    #: comparison it makes is *bytes differ* and never *which side is newer*: this project's
+    #: engine is the vendored 0.2.4 and its committed launcher carried a fix from a far later
+    #: one, so `install.stale` called the surface behind — behind in the sense of different,
+    #: which on that file meant ahead — and the repair it named wrote the pre-fix version back.
+    #:
+    #: Recorded here and not stamped into the surfaces, which is the cheaper half of the same
+    #: fact: those are byte-compared against the plugin's own copies, so a version inside one
+    #: would be a difference every check then had to learn to ignore. `""` on a project wired
+    #: before this key existed, which reads as *unknown* and behaves exactly as before — the
+    #: first `install` after the upgrade records it.
+    install_wired: str = ""
     #: `[headings] permanent` — whether this project's block headings outlive the work filed
     #: under them (RK1121). Here and not on the schema: it shapes no line, it decides whether a
     #: door is offered, which is `held`'s kind of fact rather than the grammar's.
@@ -635,6 +648,7 @@ class Config:
         requirements = _requirements(data.get("requirements"), problems)
         pinned = _pinned_surfaces(data.get("install"), problems)
         enforced = _enforced_engine(data.get("install"), problems)
+        wired = _wired_version(data.get("install"), problems)
 
         schema = None
         if not problems:
@@ -684,6 +698,7 @@ class Config:
             standing=standing,
             install_pinned=pinned,
             install_enforced=enforced,
+            install_wired=wired,
             source=source,
         )
 
@@ -1069,6 +1084,27 @@ def _enforced_engine(raw: object, problems: list[str]) -> bool:
     if not isinstance(raw, Mapping):
         return False
     return _install_flag(raw, "enforced", problems)
+
+
+def _wired_version(raw: object, problems: list[str]) -> str:
+    """`[install] wired` — the engine version that last wrote this project's surfaces (RK1462).
+
+    Not a decision, unlike the two booleans beside it: this is a **record**, written by
+    `install` and read by the check so that *which side is newer* is answerable at all. The
+    check compares bytes, and bytes differ in both directions — a project whose engine is
+    older than its surfaces was offered a downgrade in the vocabulary of an update.
+
+    `""` where nothing declared one, which is every project wired before this key and is
+    read as *unknown* rather than as *zero*: an absent record cannot order the two copies, so
+    the check behaves exactly as it did and the next `install` writes the version down.
+    """
+    if not isinstance(raw, Mapping):
+        return ""
+    value = raw.get("wired", "")
+    if not isinstance(value, str):
+        problems.append("install.wired must be the version string install wrote")
+        return ""
+    return value
 
 
 def _install_flag(raw: Mapping[str, object], key: str, problems: list[str]) -> bool:

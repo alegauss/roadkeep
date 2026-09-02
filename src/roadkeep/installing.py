@@ -365,6 +365,13 @@ class Plan:
     #: It decides which workflow is written, and it is on the plan because a decision taken
     #: from a measurement the report does not state is one the adopter cannot check.
     debt: int | None = None
+    #: The version that wrote these surfaces where it is **newer** than the engine answering,
+    #: or `""` (RK1462). On the plan and not decided at the write, because `--check` is the
+    #: same computation and this is the half that says which way the write would go.
+    ahead: str = ""
+    #: Whether the write recorded `[install] wired` — a fifth file this command touches, so it
+    #: is answered rather than assumed (RK298). False on every `--check`, which writes nothing.
+    recorded: bool = False
     #: The merge driver, where `--register-merge` asked for it (RK148) — the attribute lines
     #: written and the `git config` line to run, exactly as `merge --register` reports them.
     registered: Registration | None = None
@@ -425,6 +432,15 @@ class Plan:
                 f"  committed      this project already runs {PROJECT_BRIDGE}, so the "
                 f"wiring stays on it — `uninstall` then `install` moves it to a checkout"
             )
+        if self.ahead:
+            # Above the surfaces, because it changes what every `updated` under it means
+            # (RK1462): the bytes on disk came from a newer engine, so the word is *downgrade*,
+            # and the report says which way the write goes before it lists the files.
+            rows.append(
+                f"  ahead          written by {self.ahead} and the engine here is "
+                f"{engine().version}, so a rewrite is a downgrade — `install --vendor` moves "
+                f"the engine, `uninstall` then `install` says it out loud"
+            )
         for surface in self.surfaces:
             # `--check` writes nothing, so it reports in the conditional: the same three words
             # in the past tense would claim a file changed that did not.
@@ -462,6 +478,13 @@ class Plan:
             f"so the directory cannot be made"
             for path, parent in self.blocked
         ]
+        if self.recorded:
+            # The fifth file (RK1462, RK298): a command whose contract is *every surface or
+            # none* does not touch a sixth silently, and this row is what the next check reads.
+            rows.append(
+                f"  recorded       {CONFIG_NAME}: [install] wired = "
+                f"{engine().version} — which is what tells the next check which side is newer"
+            )
         if not checked:
             rows += [f"  from here      {one}" for one in self.orientation()]
         return "\n".join(rows)
@@ -522,9 +545,19 @@ class Plan:
         differing = [one for one in self.changing if one.path not in blocked]
         rows = []
         if differing:
+            # And which way (RK1462). The sentence named one command in one direction, so a
+            # project whose surfaces are newer than the engine answering was handed the write
+            # that deletes them — in the vocabulary of an update, once a session, until
+            # somebody took it. `install` refuses there, and this says so before they run it.
             rows.append(
                 f"{len(differing)} surface(s) differ from what this checkout ships: "
-                f"`{invocation()} install` writes them"
+                + (
+                    f"they were written by {self.ahead} and this engine is "
+                    f"{engine().version}, so `{invocation()} install` refuses — `install "
+                    f"--vendor` moves the engine forward"
+                    if self.ahead
+                    else f"`{invocation()} install` writes them"
+                )
             )
         if self.blocked:
             rows.append(
@@ -547,6 +580,12 @@ class Plan:
             "carried": self.carried,
             "checked": checked,
             "debt": self.debt,
+            # Which side is newer (RK1462): the version that wrote these surfaces where it is
+            # ahead of the engine answering, and null where it is not — so a consumer tells a
+            # refresh from a downgrade without reading the sentence. `recorded` is the fifth
+            # file this write touches, said for the reason every staged path is (RK298).
+            "ahead": self.ahead or None,
+            "recorded": self.recorded,
             "surfaces": [
                 {
                     "path": surface.path.relative_to(self.root).as_posix(),
@@ -740,6 +779,10 @@ def plan(
         surfaces=tuple(surfaces),
         skipped=tuple(skipped),
         debt=debt,
+        # Read here so `--check` and the write answer from one computation (RK1462): which
+        # side is newer is a fact about the project, and a check that did not ask it is the
+        # check that offered a downgrade.
+        ahead=ahead_of(base),
         # Over what would be written and never every surface: a directory nobody needs to
         # create is not in anybody's way (RK393).
         blocked=tuple(
@@ -775,6 +818,12 @@ def install(
     register refuses instead of leaving four surfaces written and a flag unhonoured.
     """
     intent = plan(root, source=source, registering=register_merge, committed=committed)
+    # First of the refusals (RK1462): the surfaces on disk came from an engine this one is
+    # behind, so *refresh* means *downgrade* — and the caller asked for it because a check and
+    # a finding spoke in one direction. Only where something would actually be rewritten: a
+    # project whose files already match is not being downgraded by a run that writes nothing.
+    if intent.ahead and any(one.existed for one in intent.changing):
+        raise SurfacesAhead(intent.root, intent.ahead, engine().version)
     # With the rest of the refusals and above the first write (RK393), which is what the
     # paragraph above claims and the `mkdir` below used to break.
     if intent.blocked:
@@ -788,9 +837,129 @@ def install(
     for surface in intent.changing:
         surface.path.parent.mkdir(parents=True, exist_ok=True)
         surface.path.write_text(surface.text, encoding="utf-8", newline="")
+    # And the record that makes the refusal above possible next time (RK1462), after the
+    # writes rather than before them: it says *these surfaces came from this engine*, which is
+    # a claim about files that are now on disk.
+    written_down = _recorded(intent.root, engine().version)
     if governed is not None:
         intent = replace(intent, registered=register(governed))
-    return intent
+    return replace(intent, recorded=written_down)
+
+
+def wired_by(root: Path) -> str:
+    """The engine version that last wrote this project's surfaces, or `""` (RK1462).
+
+    `[install] wired`, read through `Config` so the key is parsed once and refused once — and
+    silent on an unreadable project, which is every reader in this module's rule: a record that
+    cannot be read is one nobody wrote, and the check then behaves as it did before it existed.
+    """
+    from roadkeep.config import Config  # noqa: PLC0415 - RK260
+
+    try:
+        return Config.discover(root).install_wired
+    except Exception:  # noqa: BLE001 - an unreadable tree recorded nothing, to this reader
+        return ""
+
+
+def ahead_of(root: Path) -> str:
+    """The version this project's surfaces were written by, where it is **newer** than the
+    engine answering — or `""` where it is not, or where nothing recorded one (RK1462).
+
+    The comparison `install --check` never made. That one asks whether the bytes differ and
+    speaks in one direction — stale, behind, refresh — so a project whose engine is older than
+    its surfaces is offered a downgrade in the vocabulary of an update, once a session, until
+    somebody takes it. Measured here: the vendored 0.2.4 answered, the committed launcher
+    carried RK1446's Windows branch, `install.stale` called it behind, and the repair the
+    finding named wrote the pre-fix version back over it.
+
+    Ordered by :func:`_numbered`, which is `install --vendor`'s own comparison and for the same
+    reason (RK1193): `0.1.10` sorts under `0.1.9` as text, and two adopting projects got that
+    right only by never having a two-digit patch.
+    """
+    recorded = wired_by(root)
+    if not recorded:
+        return ""
+    return recorded if _numbered(recorded) > _numbered(engine().version) else ""
+
+
+class SurfacesAhead(ValueError):
+    """`install` asked to write a surface a **newer** engine wrote (RK1462).
+
+    A refusal and not a warning, because what the write does is delete a fix: the bytes on disk
+    came from an engine this one is behind, so *refresh* means *downgrade* and the caller asked
+    for it in the vocabulary of an update.
+
+    Two doors, and neither is a flag on this verb. `install --vendor` moves the **engine**
+    forward, which is the direction a project in this state usually wants and the reason that
+    command exists. `uninstall` then `install` is the deliberate downgrade, which is already
+    how a project changes its mind about a variant (see :func:`plan`) — and unlike a flag, it
+    cannot happen by running the repair a check named.
+    """
+
+    def __init__(self, root: Path, recorded: str, running: str) -> None:
+        self.recorded = recorded
+        self.running = running
+        super().__init__(
+            f"{root.as_posix()} was wired by {recorded} and the engine here is {running}: "
+            f"rewriting these surfaces would put an older copy over a newer one — `install "
+            f"--vendor` moves the engine forward, and `uninstall` then `install` is the "
+            f"downgrade said out loud"
+        )
+
+
+def record_wired(config_source: Path, version: str) -> bool:
+    """Write `[install] wired = "<version>"` into this project's config (RK1462).
+
+    A targeted insertion and never a serialiser, which is `adopting._with_role`'s rule: a
+    `tomllib` round-trip drops the comments a scaffolded config is mostly made of. The key is
+    replaced where it stands, appended under an existing `[install]`, and the table is opened
+    at the end where the project has none — the three states a config can be in about it.
+
+    Answers whether it wrote, so the report can say so: a fifth file touched by a command whose
+    contract is *every surface or none* is not a write to leave unmentioned (RK298).
+    """
+    text = config_source.read_text(encoding="utf-8")
+    line, row = chr(10), f'wired = "{version}"'
+    lines = text.split(line)
+    at = next((n for n, one in enumerate(lines) if one.strip() == "[install]"), None)
+    if at is None:
+        blank = line * 2
+        tail = "" if text.endswith(blank) else (line if text.endswith(line) else blank)
+        config_source.write_text(
+            f"{text}{tail}[install]{line}{row}{line}", encoding="utf-8", newline=""
+        )
+        return True
+    end = next(
+        (n for n in range(at + 1, len(lines)) if lines[n].lstrip().startswith("[")),
+        len(lines),
+    )
+    held = next(
+        (n for n in range(at + 1, end) if lines[n].split("=")[0].strip() == "wired"), None
+    )
+    if held is not None:
+        if lines[held] == row:
+            return False
+        lines[held] = row
+    else:
+        lines.insert(at + 1, row)
+    config_source.write_text(line.join(lines), encoding="utf-8", newline="")
+    return True
+
+
+def _recorded(root: Path, version: str) -> bool:
+    """Write the version down where this project has a config to write it into (RK1462).
+
+    Silent on a project with none, which is one `install` is wiring before `init` ran: the
+    record is a convenience for the next check and never a reason to fail a write that
+    otherwise landed whole.
+    """
+    from roadkeep.config import Config  # noqa: PLC0415 - RK260
+
+    try:
+        source = Config.discover(root).source
+        return False if source is None else record_wired(source, version)
+    except Exception:  # noqa: BLE001 - a config this cannot write is one nobody will read
+        return False
 
 
 def stale(root: str | Path = ".") -> tuple[str, ...]:
@@ -822,6 +991,12 @@ def stale(root: str | Path = ".") -> tuple[str, ...]:
     try:
         intent = plan(base, gauging=False)
     except (ValueError, OSError):
+        return ()
+    if intent.ahead:
+        # The one direction this read cannot report (RK1462). Every word it has is *behind*,
+        # *stale*, *refresh*, and the remedy it names is the write that would delete the newer
+        # copy — so where the surfaces are ahead there is nothing here to say, and `install
+        # --check` is where the state is reported in words that fit it.
         return ()
     return tuple(
         surface.path.relative_to(base).as_posix()

@@ -443,6 +443,131 @@ def test_a_project_that_pinned_its_version_is_not_told_every_turn(project):
     ]
 
 
+# -- which side is newer, which nothing asked (RK1462) -------------------------
+
+
+def _ahead(project: Path, version: str = "9.9.9") -> None:
+    """A project whose surfaces were written by an engine this one is behind.
+
+    Through the writer itself, which is the whole reason it is a function: a test appending
+    its own `[install]` would declare the table twice on a project `install` had already
+    recorded into, and be measuring its own TOML rather than this one's.
+    """
+    from roadkeep.installing import record_wired
+
+    record_wired(project / "roadkeep.toml", version)
+
+
+def test_the_write_refuses_to_put_an_older_copy_over_a_newer_one(project):
+    """RK1462. `lint` reported `install.stale` on both of a project's surfaces every run and
+    the finding names its remedy — running it removed RK1446's Windows branch from the
+    committed launcher and wrote back the version whose `mcp` mode exits 0 and serves nothing.
+    Nothing misbehaved by its own account: the engine answering was a vendored 0.2.4 and the
+    surfaces came from a far later one, so `behind` was true in the sense of *different*,
+    which on that file meant ahead."""
+    from roadkeep.installing import SurfacesAhead
+
+    install(wired(project), source=HERE)
+    (project / PROJECT_SKILL).write_text("newer\n", encoding="utf-8")
+    _ahead(project)
+
+    before = (project / PROJECT_SKILL).read_text(encoding="utf-8")
+    with pytest.raises(SurfacesAhead) as caught:
+        install(project, source=HERE)
+
+    said = str(caught.value)
+    assert "install --vendor" in said, "the direction that moves the engine"
+    assert "uninstall" in said, "and the downgrade said out loud"
+    assert (project / PROJECT_SKILL).read_text(encoding="utf-8") == before
+
+
+def test_the_gate_says_nothing_where_its_only_word_would_be_wrong(project):
+    """`install.stale`'s whole vocabulary is *behind*, *stale*, *refresh*, and the remedy it
+    names is the write that deletes the newer copy. So where the surfaces are ahead there is
+    nothing for it to say, and `install --check` is where the state is reported in words that
+    fit it."""
+    from roadkeep.config import Config
+    from roadkeep.linting import lint
+
+    install(wired(project), source=HERE)
+    (project / PROJECT_SKILL).write_text("newer\n", encoding="utf-8")
+    assert "install.stale" in [one.code for one in lint(Config.discover(project)).notes]
+
+    _ahead(project)
+    assert "install.stale" not in [
+        one.code for one in lint(Config.discover(project)).notes
+    ]
+
+
+def test_the_check_names_the_direction_before_it_lists_the_files(project, capsys):
+    from roadkeep.cli import EXIT_GATE
+
+    install(wired(project), source=HERE)
+    (project / PROJECT_SKILL).write_text("newer\n", encoding="utf-8")
+    _ahead(project)
+
+    assert main(["-C", str(project), "install", "--source", str(HERE), "--check"]) == EXIT_GATE
+    printed = capsys.readouterr()
+    assert "ahead          written by 9.9.9" in printed.out
+    # And the sentence that offered the write, which is the one a caller acts on.
+    assert "install --vendor" in printed.err
+    assert "refuses" in printed.err
+
+
+def test_the_write_records_the_version_that_made_it(project, capsys):
+    """The record that makes the comparison possible at all, written where a project's own
+    decisions are and not stamped into the surfaces — those are byte-compared against the
+    plugin's copies, so a version inside one is a difference every check has to ignore."""
+    from roadkeep.config import Config
+    from roadkeep.provenance import engine
+
+    intent = install(wired(project), source=HERE)
+    assert intent.recorded
+    assert Config.discover(project).install_wired == engine().version
+    # And said out loud, because it is a fifth file this command touched (RK298) — on the run
+    # that wrote it, and never on one that found the same version already there.
+    capsys.readouterr()
+    assert main(["-C", str(project), "install", "--source", str(HERE)]) == 0
+    assert "[install] wired" not in capsys.readouterr().out, "unchanged is not a write"
+
+    (project / "roadkeep.toml").write_text(CLEAN[0], encoding="utf-8", newline="")
+    assert main(["-C", str(project), "install", "--source", str(HERE)]) == 0
+    assert "[install] wired" in capsys.readouterr().out
+
+
+def test_a_project_wired_before_the_record_behaves_exactly_as_it_did(project):
+    # `""` reads as *unknown* and never as *zero*: an absent record cannot order two copies,
+    # so the check is what it was and the next `install` writes the version down.
+    from roadkeep.config import Config
+    from roadkeep.installing import ahead_of
+    from roadkeep.linting import lint
+
+    install(wired(project), source=HERE)
+    (project / "roadkeep.toml").write_text(CLEAN[0], encoding="utf-8", newline="")
+    (project / PROJECT_SKILL).write_text("stale\n", encoding="utf-8")
+
+    assert Config.discover(project).install_wired == ""
+    assert ahead_of(project) == ""
+    assert "install.stale" in [one.code for one in lint(Config.discover(project)).notes]
+
+
+def test_the_versions_are_ordered_as_numbers_and_not_as_text(project):
+    # `install --vendor`'s own comparison and for its reason (RK1193): `0.1.10` sorts under
+    # `0.1.9` as text, and two adopting projects got that right by never having two digits.
+    from roadkeep.installing import ahead_of
+    from roadkeep.provenance import engine
+
+    install(wired(project), source=HERE)
+    major, minor, patch = (int(one) for one in engine().version.split(".")[:3])
+    (project / "roadkeep.toml").write_text(CLEAN[0], encoding="utf-8", newline="")
+    _ahead(project, f"{major}.{minor}.{patch - 1}")
+    assert ahead_of(project) == "", "an older record is not ahead"
+
+    (project / "roadkeep.toml").write_text(CLEAN[0], encoding="utf-8", newline="")
+    _ahead(project, f"{major}.{minor}.{patch + 1}")
+    assert ahead_of(project) == f"{major}.{minor}.{patch + 1}"
+
+
 def test_an_unwired_project_has_no_vendored_copy_to_be_behind(project, source):
     """Every plugin-served project, which is most of them: there is no copy to drift, and the
     one `is_file` that says so is what the whole check costs them."""

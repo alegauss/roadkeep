@@ -482,32 +482,6 @@ named.
 
 ## Block F — The plugin
 
-### §RK1462 Stale, behind, refresh — in one direction only
-
-`lint` reported `install.stale` on both of this project's surfaces on every run, and the
-finding names its remedy: `roadkeep install` rewrites them. Running it removed RK1446
-from `.claude/hooks/roadkeep-launch.py` — the Windows branch that runs the server as a
-child instead of `execv`ing it — and wrote back the version whose `mcp` mode exits 0 and
-serves nothing: a session told by its own hooks to call tools the harness has already
-dropped.
-
-Nothing misbehaved by its own account. The engine answering here is the vendored 0.2.4
-under `.roadkeep`; the committed surfaces were written by a far later one.
-`install.stale` says the surface is behind the roadkeep answering, and it was — behind
-in the sense of different, which on this file meant ahead.
-
-So the comparison is the defect, not the copy. `install --check` asks whether the bytes
-differ and never which side is newer, and it and the finding speak in one direction:
-stale, behind, refresh. A project whose engine is older than its surfaces is offered a
-downgrade in the vocabulary of an update, once a session, until somebody takes it.
-
-The engine knows its version and generates the surfaces, so the version that wrote one
-could travel with it. What to do when the surface is the newer side is the open
-question: refuse, or name which way the write goes and let the caller answer.
-
-Worth weighing: `--vendor` exists for this and points the other way. Naming it in the
-finding is most of the fix.
-
 ### §RK1464 Vendor, then generate — and it is the other way round
 
 `install --vendor` does two things in one run: it writes the surfaces, and it replaces

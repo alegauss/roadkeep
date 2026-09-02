@@ -35,7 +35,11 @@ type it, because **the gate now asks**: a vendored launcher, hook or skill behin
 roadkeep answering here is `install.stale`, filed at that file, and `install` is what closes
 it. A project holding its version on purpose says `[install] pinned = true` and the finding
 stops; the check and `engines` still answer, a pin being a decision and not a claim that the
-files agree. **`install --vendor` pins the engine itself**, which nothing else here does:
+files agree. **And the write knows which side is newer**: `install` records `[install]
+wired = "<version>"`, so a project whose surfaces came from a *later* engine is refused
+rather than downgraded — the gate says nothing there and `install --check` names the
+direction, `--vendor` being what moves the engine forward instead.
+**`install --vendor` pins the engine itself**, which nothing else here does:
 it copies the highest-versioned roadkeep this machine can reach into `.roadkeep/` and the
 launcher resolves that ahead of any sibling checkout. By version and never by search order,
 so every machine pins the same one; a *working* checkout is skipped unless `ROADKEEP_SRC`
