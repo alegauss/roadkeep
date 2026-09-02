@@ -145,6 +145,51 @@ def test_a_refusal_emits_nothing(tmp_path, capsys):
 # -- the machine-readable form -----------------------------------------------
 
 
+def test_the_offer_is_withdrawn_where_a_file_would_refuse_the_drop(tmp_path, capsys):
+    """RK1475. `removable` states this rule in its own docstring — *a finding naming a command
+    that then refuses is worse* — and holds it for the gate. The ship's offer is the other
+    reader of the same question and never learned it: a `ship --decides` files a record under
+    that very heading, so the run that finished a block handed over the command its own write
+    had just blocked. Observed on a throwaway project, `block drop D` refused immediately."""
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    assert main([*where, "declare", "decisions"]) == EXIT_OK
+    assert main([
+        *where, "add", "--block", "A",
+        "--symptom", "Nothing seeds the menu", "--why", "Because nothing does.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+
+    assert main([
+        *where, "ship", "RK1", "--why", "It seeds now.",
+        "--decides", "The menu is seeded at build time.",
+    ]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "block drop" not in said, "the offer its own write had just blocked"
+    # And the ending instead, in the words `block drop` uses when it refuses (RK1454): silence
+    # would lose the fact the block finished, which is what the sweep came for.
+    assert "the heading stays — decisions files under it" in said
+
+
+def test_the_offer_stands_where_only_the_ledger_holds_the_heading(tmp_path, capsys):
+    # The ledger is skipped for `drop_block`'s reason: its headings hold history for ever, so
+    # what is filed under one is not an obstacle to clear and the offer is right.
+    where = ["-C", str(tmp_path)]
+    assert main([*where, "init"]) == EXIT_OK
+    assert main([
+        *where, "add", "--block", "A",
+        "--symptom", "Nothing seeds the menu", "--why", "Because nothing does.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+
+    assert main([*where, "ship", "RK1", "--why", "It seeds now."]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "block drop A" in said
+    assert "the heading stays" not in said
+    # And running it works, which is the whole claim: an offer is a command or it is noise.
+    assert main([*where, "block", "drop", "A"]) == EXIT_OK
+
+
 def test_json_carries_the_event_from_every_mutator(tmp_path, capsys):
     project(tmp_path)
     assert (
@@ -191,6 +236,9 @@ def test_json_carries_the_event_from_every_mutator(tmp_path, capsys):
         "id": "RK2",
         "block": "B",
         "stage": "finished",
+        # Empty where the offer stands (RK1475): this names the file that would refuse the
+        # drop, and there is none — the ledger's heading is not an obstacle to clear.
+        "kept": "",
         "standing": {
             "block": "B",
             "state": "finished",
@@ -338,7 +386,9 @@ def test_the_payload_carries_the_offer_the_stage_no_longer_implies(tmp_path, cap
     project(tmp_path)
     assert main(["-C", str(tmp_path), "ship", "--json", "RK1", "--why", "Works."]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    assert set(payload["event"]) == {"id", "block", "stage", "standing", "criteria", "unchecked", "doors"}
+    assert set(payload["event"]) == {
+        "id", "block", "stage", "standing", "criteria", "unchecked", "doors", "kept"
+    }
     assert payload["event"]["stage"] == "finished"
     # `doors` and always a list (RK1324), which is the one name and one shape a payload
     # publishes a runnable command under — so a consumer reads them with one loop.

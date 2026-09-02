@@ -55,6 +55,7 @@ ENTRY = (
 #: boundary is doing, or say that nobody has looked.
 CYCLES: dict[tuple[str, str], str] = {
     ("authoring", "rendering"): PRINTER,
+    ("blocking", "rendering"): PRINTER,
     ("briefing", "rendering"): PRINTER,
     ("claiming", "rendering"): PRINTER,
     ("deferring", "rendering"): PRINTER,

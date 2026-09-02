@@ -117,7 +117,7 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 5 | 225 | 2 |
+| B — Authoring (insert, never hand-edit) | 4 | 226 | 2 |
 | C — Query (consult without reading the file) | 7 | 151 | 4 |
 | D — The gate | 6 | 209 | 2 |
 | E — Adoption | 0 | 117 | 1 |
@@ -125,11 +125,11 @@ called unbuilt were already in the ledger.
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 958 | 14 |
+| **Total** | 22 | 959 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1475** (deps: —) **the ship that finishes a block offers a block drop the decisions file will refuse, on every project that files decisions** — RK1454 made the refusal name the ending and left the offer that sends a sweep into it, though the same ship just wrote the entry that blocks it. → §RK1475
+- 💭 **RK1476** (deps: —) **an unscoped list over a ledger is bounded by nothing, so the transport refuses an answer this tool already composed** — RK1455 pointed a caller at the structure and left the listing at 117,815 characters, and no ceiling here is declared, measured or read. → §RK1476
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

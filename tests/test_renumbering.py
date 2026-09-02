@@ -355,6 +355,9 @@ def test_json_says_which_files_the_transaction_touched(tmp_path, capsys):
         "id": "RK92",
         "block": "A",
         "stage": "live",
+        # Empty on a live block (RK1475): there is no offer to have withdrawn, so there is
+        # nothing to say about why one is absent.
+        "kept": "",
         "standing": {
             "block": "A",
             "state": "live",

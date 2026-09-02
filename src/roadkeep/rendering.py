@@ -195,6 +195,15 @@ def _event(task_id: str, block: str, roadmap: Document, config: Config) -> dict[
             for one in (_drop_door(config, block, standing.stage),)
             if one is not None
         ],
+        # Why there is no door where the stage would have allowed one (RK1475). The offer is
+        # withdrawn because a file still files something under that heading, and silence there
+        # loses the fact the block finished — so the ending is said instead, in the words
+        # `block drop` itself uses when it refuses (RK1454).
+        "kept": (
+            _holding(config, block)
+            if standing.stage in _DROPPABLE and not config.permanent_headings
+            else ""
+        ),
     }
 
 
@@ -212,9 +221,42 @@ def _drop_door(config: Config, block: str, stage: Stage) -> Door | None:
     — `config --json` publishes it — and this map is published nowhere.
     """
     because = None if config.permanent_headings else _DROPPABLE.get(stage)
-    if because is None:
+    if because is None or _holding(config, block):
         return None
     return Door(("block", "drop", block), because)
+
+
+def _holding(config: Config, block: str) -> str:
+    """The file that would refuse `block drop` here, or `""` (RK1475).
+
+    `removable` states this rule in its own docstring — *a finding naming a command that then
+    refuses is worse* — and holds it for the gate, where a doubled heading is reported only
+    where the drop would work. The ship's offer is the other reader of the same question and
+    never learned it: a `ship --decides` files a record under that very heading, so the run
+    that finishes a block hands over the command its own write has just blocked.
+
+    Observed on a throwaway project: one line shipped with `--decides`, `its last open line
+    just left — roadkeep block drop D`, and the drop refused because the decisions file files
+    the record under that heading. RK1454 made that refusal name the ending; this stops the
+    caller being sent to it.
+
+    The ledger is skipped for :func:`~roadkeep.blocking.drop_block`'s reason: its headings hold
+    history for ever, so what is filed under one is not an obstacle to clear. Every failure is
+    silence — an unreadable file is not evidence, and this only ever withdraws an offer.
+    """
+    from roadkeep.blocking import BLOCK_ROLES, removable  # noqa: PLC0415 - RK260
+
+    for role in BLOCK_ROLES:
+        if role == "changelog" or not config.has(role):
+            continue
+        try:
+            if not config.path(role).is_file():
+                continue
+            if removable(config.document(role), block) is None:
+                return role
+        except Exception:  # noqa: BLE001 - an unreadable file is not evidence, so no offer moves
+            continue
+    return ""
 
 
 #: The two stages a heading is droppable in, and the clause that says which one it is
@@ -309,6 +351,13 @@ def _event_rows(
             f"{indent}         {door['what']} — "
             f"`{invocation()} {' '.join(door['argv'])}` withdraws the heading, "
             f"where this project drops one"
+        )
+    # And the ending where there is no door (RK1475): a sweep told to drop the heading once
+    # nothing is open was being sent into a refusal this very write had just caused.
+    if event.get("kept"):
+        rows.append(
+            f"{indent}         the heading stays — {event['kept']} files under it, which is "
+            f"how a block that recorded work ends"
         )
     return rows
 
