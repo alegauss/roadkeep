@@ -507,6 +507,31 @@ skipped for a different reason. So it is one verb and not the roster — which o
 judgement, and therefore the page's to state rather than this tool's to rank (L4). That
 makes it a line of frontmatter in the skill pages and a read here, not a heuristic.
 
+### §RK1506 The lines a departure writes and this cannot price
+
+RK1483 paired `budget` against six writes and found the table wants a seventh column.
+Eight of the exemptions it had to write are `ship`'s, and four of those say the same
+thing in different words: the field belongs to a *different line* than the one this
+subject prices.
+
+`--remainder` writes the roadmap line's why. `--decides` writes the decision's. `--part`
+and `--decides-ref` are structure on lines this subject is not about. `brief` already
+knows this — it prints `shipping`, `deciding` and the line's own row off one read, three
+budgets for three lines — and `budget` has one subject per *verb* rather than one per
+line, so a ship that writes three lines is priced as one and the other two are
+exemptions.
+
+That is the asymmetry worth naming. What `brief` gives free is what `budget` cannot be
+asked: there is no `budget <id> --decides`, and the number is already composed a few
+frames away. A caller mid-ship who wants the decision's allowance has `brief`'s whole
+answer, or nothing.
+
+The cheap shape is not a subject per line but a departure's subject pricing *every* line
+that departure writes, as `brief` already composes them: `budget <id> --ship` printing
+the ledger sentence it prints now and the decision's beside it where `--decides` is
+passed. The exemption table then loses four rows, which is the test saying what the
+surface should have been.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
