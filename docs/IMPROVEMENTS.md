@@ -270,6 +270,30 @@ same question RK1495 just answered for the write. If it can, the row names one c
 as it does today and the corpus behind it is the one the rows came from — which is the
 version that costs no characters at all.
 
+### §RK1529 The declared path nothing checks
+
+RK1496 added `[history] incidental`, a list of paths a commit here carries for reasons
+that are not the work. The parser refuses an absolute one and normalises a backslash,
+and nothing anywhere asks whether the file exists.
+
+`[budgets]` is the same shape without that gap: a path declared there and absent from
+disk is a finding — *declares a budget and is not on disk: the entry holds nothing*. An
+entry naming nothing is not something the parser can see, a project being free to
+declare before it scaffolds; it is a fact the gate reads off the tree.
+
+What the silence costs here is worse than a wasted entry. `incidental` only ever
+*removes* rows from `unclosed`, so an entry that matches nothing makes the report louder
+— and one that stops matching, because a hook was rewritten or a file renamed, makes it
+louder without anything having changed in the report's own code. The failure is a filter
+quietly doing less, which is precisely the shape RK1496 was filed about from the other
+side.
+
+The row is one more `_Rule` over a list the config already parsed, on the sentence
+`[budgets]`' own row already carries. What needs deciding is only the severity: a budget
+naming nothing is a finding, and an incidental path naming nothing may be a note — the
+report is advisory, and failing a build over a path somebody removed on purpose is the
+gate turned off in a week.
+
 ## Block D — The gate
 
 ### §RK1497 The bytes a gate could have refused
