@@ -244,6 +244,106 @@ def test_the_role_a_decision_needs_is_opened_by_the_command_the_refusal_names(tm
     assert lint(Config.discover(root)).clean
 
 
+# -- the doors of a departure that cannot happen (RK1498) ---------------------
+
+#: A governed project on the id scheme, whole: a pointer that resolves and a design under it,
+#: so a door refused for the *fixture* — `ref.missing`, an unopened family — is not read as a
+#: door that refuses. RK1475 published one that would have refused and the rule it broke is
+#: `removable`'s own; what holds it is running the command, against a state that is otherwise
+#: clean.
+WHOLE = (
+    'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+    'improvements = "IMPROVEMENTS.md"\ndeferred = "DEFERRED.md"\n'
+)
+LINE = (
+    "- {marker} **RK1** (deps: —) **A symptom worth reading here** — "
+    "Because of a reason. → §RK1\n"
+)
+
+
+def departing(tmp_path: Path, *, marker: str = "📋", **files: str) -> Path:
+    """One open line with its design, and whichever other files a refusal needs."""
+    written = {
+        "roadkeep.toml": WHOLE,
+        "ROADMAP.md": "# Roadmap\n\n## Block A\n\n" + LINE.format(marker=marker),
+        "CHANGELOG.md": "# Shipped\n\n## Block A\n",
+        "IMPROVEMENTS.md": (
+            "# Improvements\n\n## Block A\n\n### §RK1 A design\n\n"
+            "The reasoning the line has no room for.\n"
+        ),
+        "DEFERRED.md": "# Deferred\n\n## Block A\n",
+        **files,
+    }
+    for name, body in written.items():
+        with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return tmp_path
+
+
+#: A ledger holding RK1, which is what makes a second departure a refusal.
+def _recorded(symptom: str = "A symptom worth reading here") -> str:
+    return f"# Shipped\n\n## Block A\n\n- ✅ **RK1** **{symptom}** — It works now.\n"
+
+
+def test_the_door_a_line_the_ledger_already_records_names_runs(tmp_path, capsys):
+    """RK1498. `runs()` executes each command a message composes and asserts the code it was
+    told to expect, which is exactly the property RK1475 broke — and it was pointed at six of
+    thirty-six composers. This is one of the thirty, and the state is two lines of fixture:
+    an id the ledger holds whole, and a roadmap line still carrying ⏳ beside it — which is
+    the one state that door is true of (RK1045), a `--part` against an entry with no half in
+    it having nowhere else to go."""
+    root = departing(tmp_path, marker="⏳", **{"CHANGELOG.md": _recorded()})
+    assert main([
+        "-C", str(root), "ship", "RK1", "--part", "the second half", "--why", "It works now."
+    ]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    # The closure, which is the one state that door is true of (RK1045): it runs, and what it
+    # writes is the roadmap edit the interrupted transaction never made.
+    ran = runs(root, said)
+    assert ran and ran[0][:2] == ["ship", "RK1"], said
+    capsys.readouterr()
+    assert "RK1" not in (root / "ROADMAP.md").read_text(encoding="utf-8")
+
+
+def test_the_door_a_paused_line_names_runs(tmp_path, capsys):
+    # The store still says paused while the roadmap says open, so a departure would record the
+    # work as gone against a copy that has not moved. The door removes the store's copy.
+    root = departing(
+        tmp_path,
+        **{"DEFERRED.md": "# Deferred\n\n## Block A\n\n" + LINE.format(marker="⏸")},
+    )
+    assert main(["-C", str(root), "ship", "RK1", "--why", "It works now."]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    ran = runs(root, said)
+    assert ran and ran[0][:2] == ["resume", "RK1"], said
+    capsys.readouterr()
+    # And the call that was refused now lands, which is the half a matched sentence cannot say.
+    assert main(["-C", str(root), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
+
+
+def test_the_door_two_tasks_sharing_an_id_names_runs(tmp_path, capsys):
+    # Both files carry RK1 and describe different work, so they are two tasks with one address
+    # rather than an interrupted transaction — and the door gives the open one its own.
+    root = departing(tmp_path, **{"CHANGELOG.md": _recorded("A wholly different symptom")})
+    assert main(["-C", str(root), "ship", "RK1"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    ran = runs(root, said)
+    assert ran and ran[0][:2] == ["renumber", "RK1"], said
+
+
+def test_the_offer_an_emptied_block_makes_runs(tmp_path, capsys):
+    """The event line every write ends with, which names the heading a departure left behind.
+    Composed on the closure path and never run: a `block drop` offered on a block that still
+    holds a line is the shape RK1475 withdrew one instance of."""
+    root = departing(tmp_path, **{"CHANGELOG.md": _recorded()})
+    assert main(["-C", str(root), "ship", "RK1"]) == EXIT_OK
+    said = capsys.readouterr().out
+    ran = runs(root, said)
+    assert ran and ran[-1][:2] == ["block", "drop"], said
+    capsys.readouterr()
+    assert "## Block A" not in (root / "ROADMAP.md").read_text(encoding="utf-8")
+
+
 #: Defective lines whose remedy doors the sweep can already fill, each closing one code. The
 #: fixture is a *table* and not one hand-made defect because that is the finding RK1338
 #: measured: the door-execution test above builds a state producing exactly one finding, so

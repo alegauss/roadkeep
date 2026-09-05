@@ -190,7 +190,9 @@ SITES: tuple[Site, ...] = (
     Site("remedying.py:Door.quoted", "run"),
     # The other half of a decision, named by every `ship --decides` (RK1361).
     Site("rendering.py:_decided_body_rows", "run"),
-    Site("rendering.py:_event_rows", "unreached", NO_FIXTURE),
+    # RK1498. The offer a departure's event line makes when the block it left is empty, run by
+    # `test_composing`: the closure path takes the last line out and `block drop A` runs.
+    Site("rendering.py:_event_rows", "run"),
     # The stairs RK1198, RK1205 and RK1207 each walked by hand.
     # The address a decision's body needs where the file numbers its own headings (RK1363).
     Site("shipping.py:DecidesUnaddressed.__init__", "run"),
@@ -208,10 +210,15 @@ SITES: tuple[Site, ...] = (
     # to build first is a project that has neither, which is the state `init` is *for*.
     Site("governing.py:NoSuchKey.__init__", "unreached", NO_FIXTURE),
     Site("governing.py:govern", "unreached", NO_FIXTURE),
-    Site("shipping.py:AlreadyRecorded.__init__", "unreached", NO_FIXTURE),
-    Site("shipping.py:AlsoPaused.__init__", "unreached", NO_FIXTURE),
+    # RK1498. Three departures that cannot happen, each run by `test_composing` against the
+    # state that produces it: an id the ledger holds whole beside a ⏳ line, whose door is the
+    # closure (the one state RK1045 made it true of); a line the deferred store still names,
+    # whose door removes that copy; and two tasks sharing an address, whose door gives the open
+    # one its own. Two lines of fixture each, which is what "unreached" was hiding.
+    Site("shipping.py:AlreadyRecorded.__init__", "run"),
+    Site("shipping.py:AlsoPaused.__init__", "run"),
     Site("shipping.py:Delivered.__str__", "unreached", NO_FIXTURE),
-    Site("shipping.py:Divergent.__init__", "unreached", NO_FIXTURE),
+    Site("shipping.py:Divergent.__init__", "run"),
     # RK1281. The `govern` it names is the second of two doors and the one that is not a
     # complete argv: which number a wider limit should be is the reading that verb takes, so
     # the command as printed carries a placeholder and is filled the way every blank is.

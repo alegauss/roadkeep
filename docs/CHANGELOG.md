@@ -675,6 +675,7 @@
 - ✅ **RK1491** **the note a wired project reads on every turn is 475 characters at full length and no cadence prices it** — cost --notes prices the sixth cadence: 282 per run here, 643 for the widest note composed, and no ceiling — small beside every other cadence.
 - ✅ **RK1494** **one gate code now carries four causes with four remedies, so explain can only describe their union** — engine.disagreement files one row per differing copy, each carrying the move that closes it: 893 units against 643 joined, which RK1491 made readable.
 - ✅ **RK1497** **nothing catches the bytes a wrong decode leaves, so mojibake reaches a permanent file and a correction is what cleans it** — char.mangled refuses a field whose bytes came through the wrong codec: 0 false positives over 3,962 fields, 18 over prose, so it reads fields only.
+- ✅ **RK1498 (the departure refusals, four of thirty)** **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — AlreadyRecorded, AlsoPaused, Divergent and the emptied-block event now run the doors they compose.
 
 ## Block E — Adoption
 
