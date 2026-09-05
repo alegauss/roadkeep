@@ -252,6 +252,50 @@ message about the marker a write just moved being legitimate — that fact came 
 file. So what is missing is a stated shape rather than a rule: a *composed command*
 carrying a marker constant is the wrong one, and a report of what a write did is not.
 
+### §RK1527 The window that did not grow with the corpus
+
+RK1495 doubled the corpus the near rows are drawn from — a block's deliveries and now
+its open lines — and left the window at `VOLUNTEERED`, which is three. So three rows
+cover twice as much, and the two halves compete for them.
+
+That is not obviously wrong and it is certainly not measured. RK441 fixed the count at
+three because an absolute score separates nothing and a longer list is a verdict wearing
+an order; RK442 made the bound say so. Both arguments were made about one corpus. With
+two, a long ledger can fill all three rows while the open line somebody filed an hour
+ago sits fourth — the case RK1495 exists for, losing to the case it was not.
+
+RK1477 measured the other end of the same read: a real pair ranked 7th against a window
+of 3, and widening was left open. This adds a reason to take that up and a second axis
+with it, because the choice is no longer only *how many*: three of each, or three
+overall with the open ones preferred on a tie, are different answers, and the second
+costs nothing.
+
+What decides it is a reading nobody has: how often the open half wins a slot, and how
+often it would with a window of four. Both are answerable from this repository's history
+— every duplicate here was filed against a block whose two corpora are on disk.
+
+### §RK1528 The door for one of two corpora
+
+The near row ends with the command that shows the rest: `roadkeep delivered A` is all 6.
+RK442's guarantee — a bounded answer says it is bounded and names where the rest are —
+made about a corpus that was the ledger alone.
+
+RK1495 made it two. The row now counts both halves and offers the door to one of them,
+so a reader who suspects the fourth-nearest is the duplicate can open the deliveries and
+not the open lines. `list --block A` is that door and the row does not say it, which
+leaves the half the task was filed for as the half a reader cannot follow up on.
+
+Naming both is one more phrase on a row already carrying two counts, which is the
+argument against doing it carelessly: this row is printed on every `add`, and RK1374 got
+it to its present size by choosing `delivered <block>`'s own two phrases over a second
+wording. A second command doubles that clause.
+
+The cheaper shape is one door that shows both, which may already exist: `delivered
+--near` is the read this row volunteers, and whether it can take the open lines is the
+same question RK1495 just answered for the write. If it can, the row names one command
+as it does today and the corpus behind it is the one the rows came from — which is the
+version that costs no characters at all.
+
 ## Block D — The gate
 
 ### §RK1497 The bytes a gate could have refused
