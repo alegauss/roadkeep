@@ -130,6 +130,12 @@ SITES: tuple[Site, ...] = (
     # one deliberately does not resolve — and `test_budgeting` runs exactly that line, which
     # is the whole reason it is composed rather than described.
     Site("budgeting.py:Skilled.stated", "run"),
+    # RK1501. The one door that carries a design's answer past the ship that deletes it, named
+    # by `brief` because `--decides` is a flag on the departure and nothing files a decision
+    # afterwards. Run by `test_briefing` as far as a door with an author's blank in it can be:
+    # filled, and parsed by the real parser — composing the sentence would be the synthesis L4
+    # forbids, so the argv is proved and the words stay the caller's.
+    Site("briefing.py:_settling_rows", "run"),
     # RK1286. Both name `cost --brief`, which `test_budgeting` executes — the gate's finding
     # composes the door with the id substituted and the read composes the sentence a backlog
     # with nothing open gets, and `remedying.Door` is what renders the first for a terminal.

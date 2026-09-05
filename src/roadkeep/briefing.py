@@ -613,6 +613,10 @@ class Brief:
                 f"  done     {named}: ... and {self.done_when.elided} more under Done when"
             )
         rows += [f"  not      {lead}" for lead in self.non_goals.leads]
+        # And what this line's own design settles, at the one moment the answer can still be
+        # carried past the work (RK1501). Under the constraints and above the section it is
+        # read off, which is the order a reader meets them in.
+        rows += _settling_rows(config, self.view)
         if self.non_goals.elided:
             # Where the list was cut, and not silently: a bounded list that reads as the whole
             # one is a proposal made against a scope it never saw (RK68).
@@ -687,6 +691,10 @@ class Brief:
             },
             "non_goals": list(self.non_goals.leads),
             "non_goals_elided": self.non_goals.elided,
+            # What this line's design settles (RK1501), which is the fact a caller acts on
+            # before the work: the ship deletes the design, `ship --decides` is the only door
+            # that files a decision, and it is a flag on the departure. `[]` and never omitted.
+            "settles": _settles(config, self.view),
             "done_when": list(self.done_when.leads),
             "done_when_elided": self.done_when.elided,
             # The task's own, as its own key (RK1268): a caller merging the two would be
@@ -769,6 +777,58 @@ class Brief:
             },
             "event": _claim_event(self.claim, config),
         }
+
+
+def _settles(config: Config, view: View) -> list[str]:
+    """The constraint leads this line's design answers, for both registers (RK1501).
+
+    One reader, so the row and the payload cannot come to disagree about what a design settles
+    — which is the rule `scoping.answered` already holds for the gate and the listing.
+    """
+    from roadkeep import scoping  # noqa: PLC0415 - RK260
+
+    if view.section is None:
+        return []
+    return list(scoping.answered(config.document("roadmap"), view.section.body))
+
+
+def _settling_rows(config: Config, view: View) -> list[str]:
+    """What this line's design settles, said before the work rather than after it (RK1501).
+
+    RK1457 put the answer to `non-goal.reaches` in the design because it **ages out with the
+    work**, and RK1478 made it readable from the rule's side. Neither makes it survive: the
+    ship deletes the section, so the clause that settled a constraint goes with it — both of
+    this repository's answers were lost that way inside an hour, which is the incident this is
+    filed from. The next `add` on that subject meets the note again with no trace the question
+    was asked, and RK1488's row names the loss at the one moment nothing can be done about it.
+
+    So this is the moment that can. `ship --decides` is the only door that files a decision,
+    and it is a flag on the departure itself — there is no verb that writes one afterwards, so
+    a sentence printed at the ship names a door that has closed. `brief` is the read a session
+    makes *before* the work, and this is what it can say: your design answers a constraint, and
+    the file for facts that outlive the work is one flag away.
+
+    **Named and never composed** (L4). What a decision says is the author's sentence about what
+    the constraint cost, and a `--decides` written from the design would be this tool
+    synthesising one — which is the non-goal that decides every question here. The row says
+    which constraint and which flag, and stops.
+
+    Silent where the design settles nothing, which is nearly every line: the note fires on a
+    shared rare word and most designs never quote a lead.
+    """
+    from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
+    answered = _settles(config, view)
+    if not answered:
+        return []
+    # Through `invocation()`, because this is a door and not a verb being named: the census in
+    # `tests/composing.py` finds a command by that prefix, and a row a reader is meant to run
+    # that spells the verb bare is one no sweep can execute (RK1209).
+    return [
+        f"  settles  {lead!r} — this design answers it, and the ship deletes the design; "
+        f"`{invocation()} ship {view.task.id} --decides \"<what it cost>\"` outlives the line"
+        for lead in answered
+    ]
 
 
 def brief(

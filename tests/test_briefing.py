@@ -1019,3 +1019,75 @@ def test_the_clauses_are_absent_where_no_anchor_could_carry_them(tmp_path, capsy
     project(tmp_path, roadmap=ROADMAP.replace(" → §RK1", "").replace(" → §RK4", ""))
     assert main(["-C", str(tmp_path), "brief", "RK1", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["clause_costs"] == []
+
+
+# -- the answer a ship takes with it (RK1501) ---------------------------------
+
+#: A design that settles one of this fixture's constraints, by quoting its lead — which is
+#: `scoping.settles`' rule and what RK1457 taught the gate to fall silent on.
+SETTLING = """# Improvements
+
+## Block A — The model
+
+### §RK1 A first design
+
+**No web UI and no server.** stands: the answer is a file this command writes, so the rule
+bounds the work without forbidding it.
+"""
+
+
+def test_the_brief_says_the_design_answers_a_constraint_and_names_what_carries_it(
+    tmp_path, capsys
+):
+    """RK1501. RK1457 put the answer in the design because it ages out with the work; RK1478
+    made it readable from the rule. Neither makes it survive — the ship deletes the section, so
+    the clause goes with it, and both of this repository's answers were lost that way inside an
+    hour.
+
+    Said *before* the work, because `ship --decides` is a flag on the departure and no verb
+    files a decision afterwards: a sentence printed at the ship names a door that has closed."""
+    root = project(tmp_path, improvements=SETTLING).root
+    assert main(["-C", str(root), "brief", "RK1"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "settles  'No web UI and no server.'" in said
+    assert "--decides" in said
+
+
+def test_the_door_it_names_is_a_command_this_cli_accepts(tmp_path, capsys):
+    # A door and not a verb named in prose, so it carries the invocation and the sweep can
+    # find it (RK1209). Filled and parsed rather than run: the blank is the author's sentence
+    # about what the constraint cost, and composing one here would be the synthesis L4 forbids.
+    from composing import commands, filled, supplied
+    from roadkeep.cli import build_parser
+
+    root = project(tmp_path, improvements=SETTLING).root
+    main(["-C", str(root), "brief", "RK1"])
+    (argv,) = [one for one in commands(capsys.readouterr().out) if one[:1] == ["ship"]]
+    ready = supplied(filled(argv))
+    assert ready[:2] == ["ship", "RK1"]
+    assert build_parser().parse_args(ready)
+
+
+def test_a_design_that_settles_nothing_says_nothing(tmp_path, capsys):
+    # Nearly every line: the note fires on a shared rare word and most designs never quote a
+    # lead, so a row on every brief is the field a reader stops reading.
+    root = project(tmp_path).root
+    assert main(["-C", str(root), "brief", "RK1"]) == EXIT_OK
+    assert "settles" not in capsys.readouterr().out
+
+
+def test_the_payload_carries_the_leads_this_design_answers(tmp_path, capsys):
+    root = project(tmp_path, improvements=SETTLING).root
+    assert main(["-C", str(root), "brief", "RK1", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["settles"] == ["No web UI and no server."]
+
+
+def test_the_row_and_the_payload_read_one_rule(tmp_path, capsys):
+    # `scoping.answered` for both, which is what keeps the gate, the listing, the departure and
+    # this read from coming to disagree about what quoting a lead is.
+    from roadkeep import scoping
+
+    config = project(tmp_path, improvements=SETTLING)
+    assert scoping.answered(
+        config.document("roadmap"), SETTLING.split("\n\n")[-1]
+    ) == ("No web UI and no server.",)

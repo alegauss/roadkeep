@@ -318,30 +318,6 @@ yet, and what turns it into an answerable question is the state. That is a task 
 family rather than one sweep — and the reason to file it as one line is that the six
 that do run were each bought by a defect that had already shipped.
 
-### §RK1501 The answer a ship takes with it
-
-RK1478 made the answer readable from the rule. It did not make it survive. `settling`
-reads open lines only, and has to: a ship deletes the design, so the clause that settled
-a constraint goes with it. Both of this repository's answers were lost that way inside
-an hour — the incident the task was filed from — and the report shows a `settled` row
-until the line ships.
-
-That is the shape of the store and not a defect in the read: a decision argued in a
-design lives as long as the work, and the constraint outlives it. So the next `add` on
-that subject gets `non-goal.reaches` again with no trace the question was asked — the
-loop RK1457 broke, closing back up one ship later.
-
-There is already a file for facts that outlive the work: `DECISIONS.md`, what was
-weighed and what a constraint cost, which `ship --decides` writes from the open line's
-claim. Nothing carries the settling clause across, though the ship knows it is deleting
-a design and `settles` can say which constraint that design answered.
-
-The judgement is not the tool's (L4): a ship whose design settles a constraint says so,
-and the sentence is the author's — a door at the moment the design is deleted, never a
-synthesis. The alternative already rejected is a second store keyed by lead, and the
-decisions file is not that: it is where this project already writes what a constraint
-cost.
-
 ### §RK1502 The write that measures nothing
 
 RK1479 set out to price a pause and found the write did not measure it. `defer --reason`

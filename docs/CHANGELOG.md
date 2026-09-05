@@ -678,6 +678,7 @@
 - ✅ **RK1498 (the departure refusals, four of thirty)** **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — AlreadyRecorded, AlsoPaused, Divergent and the emptied-block event now run the doors they compose.
 - ✅ **RK1499** **whether a governed number has a gate behind it is a flag typed at the reading, and no test holds it against the findings** — a test holds refuses against what lint does with each governed key, and the two that no gate reads say so in the field.
 - ✅ **RK1500** **the query side of the duplicate ranking cannot be measured, every known answer being a note written after the answer** — a test holds why the query half cannot be scored: all eleven known answers are written into the field a query would join.
+- ✅ **RK1501** **the clause that settles a constraint is deleted by the ship, so the answer lasts exactly as long as the work** — brief says a design answers a constraint and names the ship flag that carries it, before the ship deletes the design.
 
 ## Block E — Adoption
 
