@@ -801,6 +801,31 @@ it may be what an architecture note is, or may be the file filling with claims n
 paid for. What decides it is who writes one: measured here, both answers this repository
 lost were written by an author who had just done the work.
 
+### §RK1537 The limit one door does not read
+
+RK1502's sweep nearly filed a defect that was not one. On a fixture declaring `[limits]
+why` and no `line`, `defer --reason` accepts a 172-character reason where every other
+write in the table refuses — which reads exactly like the defect RK1479 repaired, coming
+back.
+
+It is not. A pause is charged against the **rendered line** and never against `why`
+(RK1479, RK1115): the field carries a wrapper and the design carried forward, so what
+bounds it is what the line comes to. Declare `line` and the same call is refused. The
+fixture was wrong and the verb right — and the two are indistinguishable from outside: a
+caller sees a long reason land and cannot tell *nothing measured it* from *the number
+you declared is not the one this reads*.
+
+That is the thing to close. Every other over-long field is refused with the limit it
+broke and the key it comes from; a pause under a `why` nobody declared `line` for is
+accepted in silence, and the author who set `why` to bound their prose has bounded
+nothing here.
+
+`budget --defer` already prices the pause correctly, so the refusal is not the place —
+the write is right to accept. What is missing is a sentence where the number is chosen:
+`govern limits.why` could say a pause is not held to it, which is
+`Measured.unmeasured`'s reading one level down — the key is read, and one door does not
+read it.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
