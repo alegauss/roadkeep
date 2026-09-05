@@ -67,6 +67,7 @@
 
 - 💭 **RK1493** (deps: —) **the served notes are four kinds keyed by string literals invented at each call site, and nothing enumerates them** — RK1470 added a fourth beside two others and which of them repeats is written as the absence of a call, so a fifth arrives unchecked and a mistyped key silences one. → §RK1493
 - 💭 **RK1514** (deps: —) **uninstall leaves the vendored engine on disk and its own kept field never mentions it** — RK1487 made a refusal name the copy nothing points at, and the successful removal one verb over leaves the same copy with the same silence. → §RK1514
+- 💭 **RK1523** (deps: —) **a declaration whose program engines cannot name is silent, and reads exactly like a project that declares none** — RK1492 made the reader refuse to guess, and the report has no row for the one command the harness literally runs. → §RK1523
 
 ## Block G — The editor surface (the backlog where the file is open)
 
