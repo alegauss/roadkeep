@@ -412,6 +412,27 @@ def settles(design: str, lead: str) -> bool:
     return bool(design) and quotes(design, lead)
 
 
+def answered(document: Document, design: str) -> tuple[str, ...]:
+    """The constraint leads one design settles, in file order (RK1488).
+
+    :func:`settling` read at a single section, for the moment the section is about to stop
+    existing. RK1457 put the answer in a design because it **ages out with the work** — and
+    the ship that deletes it said nothing, so the answer was as silent going out as it had
+    been coming in: the only sign anything had happened on the shipment that proved it was a
+    `ref.dangling` from a different section that happened to cite the one deleted.
+
+    Third caller of :func:`settles` and for its reason: the gate falls silent on this reading,
+    `non-goal list` reports the silence, and a departure names what the silence loses. A fourth
+    spelling of *quoting a lead* is the drift RK1478 gave this rule one home to prevent.
+
+    Ungated, as :func:`settling` is. `[non_goals]` is the opt-in for the **note**, and a
+    listing that says a line settles a lead beside a ship that will not say the same line took
+    it away is two answers about one fact — which is what having one reader is for. Where the
+    file has no such heading there are no leads, and the answer is empty by construction.
+    """
+    return tuple(lead for lead in leads(document) if settles(design, lead))
+
+
 def settling(config: Config, document: Document) -> dict[str, tuple[str, ...]]:
     """Per non-goal lead, the open lines whose design quotes it (RK1478).
 

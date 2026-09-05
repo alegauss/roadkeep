@@ -1155,6 +1155,11 @@ class Departure:
     #: Sections whose prose cited what this drop deleted (RK206). Named and never refused:
     #: the ship is right and the citing prose is the author's next edit, in this commit.
     cited: tuple[str, ...] = ()
+    #: The non-goal leads the deleted design quoted (RK1488). RK1457 put the answer to
+    #: `non-goal.reaches` in the design *because* it ages out with the work, and this is the
+    #: other half of that choice: a judgement somebody argued leaves with the section, and the
+    #: write deleting it is the last reader that still has it.
+    settled: tuple[str, ...] = ()
     #: The parent anchor this drop left with no subsections (RK400), or None. The one thing
     #: a ship leaves standing that nothing named: an introduction to children that have all
     #: shipped, in the present tense, and the first thing anyone reads about that family.
@@ -1286,6 +1291,7 @@ class Departure:
             _event_rows,
             _prose_file,
             _scope_rows,
+            _settled_rows,
         )
 
         roadmap = config.relative(config.path("roadmap"))
@@ -1299,6 +1305,9 @@ class Departure:
             if self.nested:
                 rows.append(f"  nested   {', '.join(f'§{a}' for a in self.nested)} went with it")
             rows += _cited_rows(self.cited)
+            # Under the citation and above the emptied parent, which is the order the three
+            # are in: what the deletion broke, what it settled, what it left standing.
+            rows += _settled_rows(self.settled)
             rows += _emptied_rows(self.emptied)
         else:
             rows.append(f"  kept     nothing dropped: {self.kept}")
@@ -1362,6 +1371,10 @@ class Departure:
                 },
                 "nested": list(self.nested),
                 "cited": list(self.cited),
+                # The constraints whose answer the deletion took (RK1488). Empty and never
+                # omitted, so a consumer tells a departure that settled nothing from a build
+                # that did not know the field was there.
+                "settled": list(self.settled),
                 "emptied": self.emptied,
                 "kept": self.kept,
                 # What the deleted design was overtaken by (RK310), beside the anchor it was
@@ -1420,6 +1433,7 @@ class Departure:
             _event_rows,
             _prose_file,
             _scope_rows,
+            _settled_rows,
         )
 
         roadmap = config.relative(config.path("roadmap"))
@@ -1439,6 +1453,10 @@ class Departure:
             )
         if self.dropped is not None:
             rows.append(f"  dropped  {self.dropped} from {_prose_file(config, self.prose)}")
+            # The same deletion on the other door, so the same last reading (RK1488): a
+            # retirement takes the design out exactly as a shipment does, and an answer that
+            # left with an abandoned line is no more re-derivable than one that shipped.
+            rows += _settled_rows(self.settled)
         if self.dependents:
             # Reported, not refused: a supersession is legitimate and these lines are the
             # author's next edit. `deps` now resolves them as unresolvable, not as satisfied.
@@ -1467,6 +1485,8 @@ class Departure:
                 "removed": self.removed_from,
             },
             "dropped": None if self.dropped is None else self.dropped.anchor,
+            # Beside the anchor, as the shipment's payload carries it (RK1488).
+            "settled": list(self.settled),
             "dependents": list(self.dependents),
             "refreshed": list(self.refreshed),
             "scope": _scope_json(self.scope, wrote),
@@ -1696,6 +1716,8 @@ class Closure:
     nested: tuple[str, ...] = ()
     #: Sections left citing what the drop deleted, as :class:`Departure` reports them (RK206).
     cited: tuple[str, ...] = ()
+    #: The constraints the deleted design settled, as :class:`Departure` carries them (RK1488).
+    settled: tuple[str, ...] = ()
     #: The parent this drop left with no subsections, as :class:`Departure` reports it (RK400).
     emptied: str | None = None
     refreshed: tuple[str, ...] = ()
@@ -1770,6 +1792,7 @@ class Closure:
             _event_rows,
             _prose_file,
             _scope_rows,
+            _settled_rows,
         )
 
         ledger = config.relative(config.path("changelog"))
@@ -1784,6 +1807,10 @@ class Closure:
             if self.nested:
                 rows.append(f"  nested   {', '.join(f'§{a}' for a in self.nested)} went with it")
             rows += _cited_rows(self.cited)
+            # A closure deletes the design its sibling would have, so it owes the same last
+            # sentence (RK1488) — this door is `ship` minus the ledger edit, and the deletion
+            # is not the edit it is missing.
+            rows += _settled_rows(self.settled)
             rows += _emptied_rows(self.emptied)
         if self.refreshed:
             rows.append(f"  derived  {', '.join(self.refreshed)} (dep annotations re-derived)")
@@ -1827,6 +1854,9 @@ class Closure:
                 else {"anchor": self.dropped.anchor, "title": self.dropped.title},
                 "nested": list(self.nested),
                 "cited": list(self.cited),
+                # As :class:`Departure` carries it (RK1488): the same deletion, so the same
+                # field, and a consumer reading one door reads the other.
+                "settled": list(self.settled),
                 "emptied": self.emptied,
                 "kept": self.kept,
             },
@@ -3704,6 +3734,7 @@ def _depart(
         kept=kept,
         nested=taken,
         cited=cited,
+        settled=_settling(roadmap, dropped),
         emptied=emptied,
         refreshed=derived.changed,
         marker=marker,
@@ -4072,6 +4103,7 @@ def _close(
         kept=kept,
         nested=taken,
         cited=cited,
+        settled=_settling(roadmap, dropped),
         emptied=emptied,
         refreshed=derived.changed,
         dependents=tuple(
@@ -4125,6 +4157,25 @@ def as_recorded(task: Task, marker: str, why: str | None, ref: str | None = None
         # beneath whatever entry happened to precede it.
         indent="",
     )
+
+
+def _settling(roadmap: Document, dropped: Section | None) -> tuple[str, ...]:
+    """The constraints the design about to be deleted answered (RK1488).
+
+    Read off the roadmap **this write has in hand** and the section it is deleting, which is
+    the whole of why it is here: from the next command on, neither exists to be asked. A drop
+    that kept the section (RK64, RK196) answers nothing — the design is still there, so nobody
+    has lost the reading and a row saying so would be a report about a file that is intact.
+
+    The rule is :func:`~roadkeep.scoping.answered`, called and not repeated: the gate falls
+    silent on this reading and `non-goal list` reports the silence, and this is what happens
+    when the silence ends.
+    """
+    from roadkeep import scoping  # noqa: PLC0415 - RK260
+
+    if dropped is None:
+        return ()
+    return scoping.answered(roadmap, dropped.body)
 
 
 def _drop_section(

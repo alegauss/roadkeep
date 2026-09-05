@@ -667,6 +667,7 @@
 - ✅ **RK1457** **non-goal.reaches fires on every lint and nothing clears it, so a project that decided reads the same note forever** — non-goal.reaches falls silent where the line's design quotes the constraint's lead, so a decision made once is recorded where it ages out with the work.
 - ✅ **RK1468** **the gate's engine note reads the plugin alone, so a project running two local copies at two versions passes it clean** — the gate note carries a third clause for the engine vendored here, so a project running two local pens at two versions is told once per commit and not only on demand.
 - ✅ **RK1478** **a settled constraint-line pair is a sentence in one design and no read names it, so the gate's silence has no witness** — non-goal list now carries a settled row per constraint, naming the open lines whose design quotes its lead, so the gate's silence is readable from the rule as well.
+- ✅ **RK1488** **a ship deletes the clause that answered a constraint and says nothing, so the answer ages out unremarked** — ship, retire and close now name the constraint whose answer went with the design they deleted.
 
 ## Block E — Adoption
 

@@ -508,6 +508,29 @@ def _cited_rows(cited: Sequence[str]) -> list[str]:
     ]
 
 
+def _settled_rows(leads: Sequence[str]) -> list[str]:
+    """The constraints whose answer went with the deleted design (RK1488).
+
+    Beside the citation line and the emptied one, and for exactly their reason: this is the
+    only moment it can be said. RK1457 chose the design to hold an answer to `non-goal.reaches`
+    **because** it ages out with the work — no stale bookkeeping anywhere — and the other half
+    of that choice is that the write ending it owes a sentence. Shipping RK1465 is where it
+    showed: its design carried the clause answering *No supported Python API.*, the drop was
+    correct, and nothing said a judgement somebody argued was among the words going.
+
+    A report and never a re-record. The line is gone, so the pair the clause was about no
+    longer exists, and re-filing the answer somewhere would be the stale bookkeeping RK1457
+    rejected the field for. Saying it left is the whole of what is owed — which is why this
+    names no door: there is no edit to ask for.
+    """
+    if not leads:
+        return []
+    return [
+        f"  settled  {lead!r} — the clause answering it went with the design"
+        for lead in leads
+    ]
+
+
 def _scope_rows(scope: claiming.Scope | None, wrote: Sequence[str] = ()) -> list[str]:
     """What the tree holds that this commit's claim does not name (RK280, RK294).
 

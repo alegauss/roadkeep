@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 230 | 2 |
 | C — Query (consult without reading the file) | 6 | 155 | 4 |
-| D — The gate | 17 | 210 | 2 |
+| D — The gate | 16 | 211 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 145 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 27 | 971 | 14 |
+| **Total** | 26 | 972 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1488** (deps: —) **a ship deletes the clause that answered a constraint and says nothing, so the answer ages out unremarked** — RK1457 put the answer in the design because it ages out with the work, and the ship that deletes it reports the section and never what the section settled. → §RK1488
+- 💭 **RK1489** (deps: —) **the pair sweep reads a flag as swallowed where its fixture cannot hold the state the flag is about** — anchors --retired reads git diffs and the fixture inits no repository, so a correct flag was proved honoured by a payload key echoing the request. → §RK1489
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

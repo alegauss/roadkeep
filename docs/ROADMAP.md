@@ -39,7 +39,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1488** (deps: —) **a ship deletes the clause that answered a constraint and says nothing, so the answer ages out unremarked** — RK1457 put the answer in the design because it ages out with the work, and the ship that deletes it reports the section and never what the section settled. → §RK1488
 - 💭 **RK1489** (deps: —) **the pair sweep reads a flag as swallowed where its fixture cannot hold the state the flag is about** — anchors --retired reads git diffs and the fixture inits no repository, so a correct flag was proved honoured by a payload key echoing the request. → §RK1489
 - 💭 **RK1491** (deps: —) **the note a wired project reads on every turn is 475 characters at full length and no cadence prices it** — cost has five subjects and a note is in none of them, so engine.disagreement grew a clause in each of three tasks against no number at all. → §RK1491
 - 💭 **RK1494** (deps: —) **one gate code now carries four causes with four remedies, so explain can only describe their union** — RK1440, RK1468 and RK1471 each added a clause joined by and, where every other multi-cause finding here is split so each names its own door. → §RK1494
