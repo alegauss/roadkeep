@@ -251,31 +251,6 @@ read the author needs at the moment before writing and can only reach after.
 
 ## Block D — The gate
 
-### §RK1489 The fixture that cannot hold the answer
-
-RK467's sweep runs every pair of a verb's flags against one fixture and reads a
-swallowed flag off the output: if `a b` answers exactly as `b` alone, `a` did nothing.
-It is a good reading and it has a blind spot — a flag whose subject the fixture cannot
-contain.
-
-Met adding `anchors --retired` (RK1466). Retired addresses are read out of **git
-diffs**, and the pairs fixture writes four files and inits no repository, so it holds
-none: the flag is correct, the wide listing genuinely has nothing to withhold there, and
-`--retired --json` answers byte for byte as `--json`. The sweep reports it as swallowed,
-which is false.
-
-What closed it was publishing `retired_listed` — the call's own narrowing, beside
-`family` and `role`, which the payload publishes for a stated reason. That is a real
-improvement and it is also the shape the sweep will accept from anything: a key echoing
-the request makes any flag look honoured, whether or not it changed the answer.
-
-So the sweep now has a way to be satisfied that is not evidence. What is missing is the
-fixture's own reach: it declares an outline project on purpose, because under ids
-`anchors` refuses and every pair exits 2 — the same reasoning one state further. A
-repository with one deleted section, one shipped line and one claim would let three
-verbs answer about the states they are for, and the flags whose subject is history would
-be measured rather than declared.
-
 ### §RK1491 The cadence nobody counts
 
 `engine.disagreement` is composed one clause per fact and joined with `and`, which is

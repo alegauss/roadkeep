@@ -2346,6 +2346,24 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     )
     origin_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     origin_parser.set_defaults(handler=_origin, reads_only=True)
+    withheld(
+        origin_parser,
+        why=(
+            "how a terminal prints: the payload carries every commit's `reasoning` already, "
+            "so a caller over this transport has what the flag composes — and the server "
+            "appends `--json` to every call, which made the served flag inert"
+        ),
+    )
+    # Two output *forms* of one read, `list`'s rule and RK465's (RK1489). Found by the pair
+    # sweep the moment its fixture could hold a history to resolve against: `--json` publishes
+    # `reasoning` unconditionally, so `origin RK1 --why --json` answered as `--json` alone,
+    # byte for byte. Refused rather than made to narrow the payload — withholding a field until
+    # a flag asks for it is the shape RK1466 had to add a flag to undo.
+    answers(
+        origin_parser,
+        ("why", "the shipping commit's message under the two rows"),
+        ("json", "the payload"),
+    )
 
     weight_parser = subcommands.add_parser(
         "weight",

@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 230 | 2 |
 | C — Query (consult without reading the file) | 6 | 155 | 4 |
-| D — The gate | 18 | 211 | 2 |
+| D — The gate | 17 | 212 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 145 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 28 | 972 | 14 |
+| **Total** | 27 | 973 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1489** (deps: —) **the pair sweep reads a flag as swallowed where its fixture cannot hold the state the flag is about** — anchors --retired reads git diffs and the fixture inits no repository, so a correct flag was proved honoured by a payload key echoing the request. → §RK1489
+- 💭 **RK1490** (deps: —) **a caller who can see a withheld line is worth starting still has no way to take it, only to disbelieve the refusal** — RK1467 made the gate legible and left the half unreachable, so ship --part is the only place this tool says a line has parts, and it says it afterwards. → §RK1490
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

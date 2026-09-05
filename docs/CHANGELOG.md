@@ -668,6 +668,7 @@
 - ✅ **RK1468** **the gate's engine note reads the plugin alone, so a project running two local copies at two versions passes it clean** — the gate note carries a third clause for the engine vendored here, so a project running two local pens at two versions is told once per commit and not only on demand.
 - ✅ **RK1478** **a settled constraint-line pair is a sentence in one design and no read names it, so the gate's silence has no witness** — non-goal list now carries a settled row per constraint, naming the open lines whose design quotes its lead, so the gate's silence is readable from the rule as well.
 - ✅ **RK1488** **a ship deletes the clause that answered a constraint and says nothing, so the answer ages out unremarked** — ship, retire and close now name the constraint whose answer went with the design they deleted.
+- ✅ **RK1489** **the pair sweep reads a flag as swallowed where its fixture cannot hold the state the flag is about** — the pairs fixture is a repository with a shipped section, and what it still cannot reach is named — which found origin --why --json swallowed.
 
 ## Block E — Adoption
 

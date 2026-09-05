@@ -29,6 +29,17 @@ subjects at `add_parser` and one dispatcher enforces them, so each pair below is
 before it is run: a pair the declaration separates must exit 2, and one it does not must
 compose. What this sweep now measures is whether the declaration is **complete**, which is a
 question about a table rather than a hunt through eighty verbs.
+
+**A reading is only as wide as the fixture** (RK1489). Both halves of the signature above are
+about output that did or did not move, which says nothing where the fixture cannot hold the
+state a flag is about: four files in a bare directory have no history, so `anchors --retired`
+answered as `--json` alone and a correct flag was reported swallowed. The other half was
+quieter — nine pairs exited non-zero for want of a git repository, a `[non_goals]` table or a
+deferred store, and this file read every one of them as two subjects refusing. So the fixture
+is a repository with a section shipped away between its two commits, and what it still cannot
+reach is `_UNMEASURED`, named with the state each row wants. The first thing that came out of
+the widening was a real defect: `origin --why --json`, where the payload carries the message
+either way and the served tool set a flag that shaped nothing.
 """
 
 from __future__ import annotations
@@ -37,10 +48,12 @@ import argparse
 import contextlib
 import io
 import itertools
+import shutil
 from pathlib import Path
 
 import pytest
 
+from conftest import git_commit, git_init
 from roadkeep.cli import _one_answer, build_parser, main
 
 ROADMAP = """# Roadmap
@@ -79,6 +92,15 @@ The reasoning the line has no room for.
 The reasoning the other line has no room for.
 """
 
+#: The section this fixture ships away between its two commits (RK1489), so the diff holds a
+#: retired address. Pointed at by nothing: what retires an address is a heading that was there
+#: and is not, and a live pointer to it would be `ref.dangling` rather than history.
+SHIPPED = """
+### I.3 The design that has shipped
+
+The reasoning a line that has left no longer needs.
+"""
+
 #: Flags that **write**, inside commands whose parser is declared read-only. Each is the
 #: RK16 exception — the repair belongs where a human is standing — and none of them belongs
 #: in a sweep that runs every pair against one fixture: a `--fix` in the middle of it would
@@ -107,26 +129,89 @@ _UNREACHED = {
 #: an unnamed one, and the assertion below is what makes adding a row a decision.
 _IDEMPOTENT: dict[tuple[str, str, str], str] = {}
 
+#: Pairs whose non-zero exit is the **fixture** and not the declaration, with the state each
+#: wants (RK1489). The sweep used to end on any non-zero code — "refused, which is two
+#: subjects saying so" — and nine exits were nothing of the kind, so its own reach was being
+#: read as a result. RK1466 met that from the other side: `anchors --retired` answered as
+#: `--json` alone because a directory with no `.git` has no retired address to withhold, and a
+#: correct flag was reported swallowed.
+#:
+#: The history is in the fixture now, which is what took `origin` and `weight` off this list
+#: and turned `origin --why --json` into the defect it was hiding. What is left is state a
+#: read-only sweep cannot give itself: three of these want a `roadkeep.toml` that is not this
+#: one, and a project cannot declare two schemes at once.
+_UNMEASURED: dict[tuple[str, str, str], str] = {
+    ("adopt", "--ledger", "--sections"): (
+        "the verb refuses this pair in its own handler rather than by declaring two subjects, "
+        "so `separated` is right that nothing separates them and the exit is still correct"
+    ),
+    ("adopt", "--ledger", "--json"): "this fixture's ledger is the roadmap `NEEDS` names",
+    ("adopt", "--sections", "--json"): "the same, one flag over",
+    ("brief", "--designed", "--json"): "no line here is both ready and designed",
+    ("budget", "--defer", "--json"): "no `deferred` store is declared, and declaring one "
+    "would change what every other pair on this fixture is measured against",
+    ("budget", "--non-goal", "--json"): "no `[non_goals]` table, which is opt-in (RK66)",
+    ("merge", "--check", "--json"): "exit 1 is this verb's finding and not a refusal — a "
+    "clean tree is the state it wants, and the fixture's is mid-build",
+}
 
-def project(tmp_path: Path) -> Path:
-    for name, body in (
-        (
-            "roadkeep.toml",
-            # An **outline** project (RK467): under `ref_scheme = "id"` the anchor is the id,
-            # so `anchors` refuses for want of a family and every pair on it exits 2 — which
-            # a sweep reads as "refused, nothing to check" and learns nothing from. The
-            # commands this exists to watch have to answer here.
-            'prefix = "RK"\nref_scheme = "outline"\n[files]\n'
-            'roadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
-            'improvements = "IMPROVEMENTS.md"\n',
-        ),
-        ("ROADMAP.md", ROADMAP),
-        ("CHANGELOG.md", LEDGER),
-        ("IMPROVEMENTS.md", PROSE),
-    ):
-        with (tmp_path / name).open("w", encoding="utf-8", newline="") as handle:
-            handle.write(body)
-    return tmp_path
+
+def _write(root: Path, name: str, body: str) -> None:
+    with (root / name).open("w", encoding="utf-8", newline="") as handle:
+        handle.write(body)
+
+
+def _build(root: Path) -> Path:
+    """The fixture, and the history three of these flags are about (RK1489).
+
+    An **outline** project (RK467): under `ref_scheme = "id"` the anchor is the id, so
+    `anchors` refuses for want of a family and every pair on it exits 2 — which a sweep reads
+    as "refused, nothing to check" and learns nothing from.
+
+    And **a repository, with a section shipped away between two commits** (RK1489). The sweep's
+    reading of a swallowed flag is that the output did not move, which is only evidence where
+    the fixture can hold what the flag is about. It could not: retired addresses come out of
+    `git log -U0` over the prose file and this wrote four files into a bare directory, so
+    `anchors --retired --json` answered byte for byte as `--json` and the sweep called a
+    correct flag swallowed. `origin --why` and `weight --records` did not answer at all —
+    "no history to resolve against", which the pair test read as a refusal two subjects made.
+
+    So the state is here rather than exempted: one commit with §I.3 in it, one that takes the
+    heading out. Nothing gives an address back, which is the whole of what `--retired` lists.
+    """
+    _write(
+        root,
+        "roadkeep.toml",
+        'prefix = "RK"\nref_scheme = "outline"\n[files]\n'
+        'roadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\n',
+    )
+    _write(root, "ROADMAP.md", ROADMAP)
+    _write(root, "CHANGELOG.md", LEDGER)
+    _write(root, "IMPROVEMENTS.md", PROSE + SHIPPED)
+    git_init(root)
+    git_commit(root, "the project, with a design whose line has not left yet")
+    _write(root, "IMPROVEMENTS.md", PROSE)
+    git_commit(root, "ship the line that pointed at I.3")
+    return root
+
+
+@pytest.fixture(scope="session")
+def _origin(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Built once and copied per test, because it is now nine processes and not four writes.
+
+    Every call this sweep makes is read-only by construction — `_WRITES` is the list of what is
+    kept out for exactly that reason — so the copy is about isolating a `.git` from a test that
+    might one day stop being, and not about a tree these runs change.
+    """
+    return _build(tmp_path_factory.mktemp("pairs"))
+
+
+@pytest.fixture
+def project(_origin: Path, tmp_path: Path) -> Path:
+    root = tmp_path / "project"
+    shutil.copytree(_origin, root)
+    return root
 
 
 #: What a verb needs before its flags mean anything: the positional it declares required. One
@@ -197,14 +282,24 @@ def pairs() -> list[tuple[str, str, str]]:
 
 
 @pytest.mark.parametrize("command, first, second", pairs())
-def test_a_pair_is_refused_or_answers_as_neither_half(tmp_path, command, first, second):
+def test_a_pair_is_refused_or_answers_as_neither_half(project, command, first, second):
     """The defect this catches, stated as the shape it leaves: exit 0, and an answer that is
     one half's to the character. Both halves are run against the same fixture, so what
     separates a composed pair from a swallowed one is only whether the output moved."""
-    root = project(tmp_path)
+    root = project
     code, both = run(root, command, first, second)
     if code != 0:
-        return  # refused, which is two subjects saying so
+        # **Only where the declaration is what produced it** (RK1489). A non-zero exit used to
+        # end this test with "refused, which is two subjects saying so", and nine of these
+        # exits were nothing of the kind: no `[non_goals]` table, no deferred store, a `merge`
+        # with a finding. That is the fixture's reach reported as a result, which is the same
+        # mistake one state further than the one this task was filed for.
+        assert separated(command, first, second) or (command, first, second) in _UNMEASURED, (
+            f"`{command} {first} {second}` exited {code} and the declaration does not "
+            f"separate the two: this is the fixture failing to hold what the pair is about, "
+            f"not a refusal — give it that state, or name the pair in _UNMEASURED with why"
+        )
+        return
     _, alone_first = run(root, command, first)
     _, alone_second = run(root, command, second)
     if alone_first == alone_second == both:
@@ -257,11 +352,31 @@ def test_the_sweep_reaches_every_read_that_takes_two(tmp_path):
     assert any(separated(*one) for one in found), found
 
 
+def test_the_fixture_holds_the_history_the_flags_are_about(project):
+    """RK1489's deliverable, asserted rather than assumed. Two commits and a shipped heading
+    are three lines of fixture that nothing else here reads, so without this they rot quietly
+    and the sweep goes back to measuring its own reach — which is the defect, not a symptom of
+    it: `anchors --retired` was reported swallowed for want of exactly this state."""
+    wide, retired = run(project, "anchors")[1], run(project, "anchors", "--retired")[1]
+    assert "I.3" in retired, retired
+    assert "I.3" not in wide, wide
+    # And the two verbs that could not answer at all, which is what a sweep reads as a refusal.
+    # Through `run`, so the id comes off `NEEDS` exactly as it does for every pair above.
+    assert run(project, "origin")[0] == 0
+    assert run(project, "weight", "--records")[0] == 0
+
+
 def test_what_the_sweep_does_not_run_says_why(tmp_path):
-    """Both exclusions are named with a reason, so widening either is a decision somebody
+    """Every exclusion is named with a reason, so widening any of them is a decision somebody
     writes down rather than a filter that quietly grew."""
     assert all(reason for reason in _UNREACHED.values())
     assert all(reason for reason in _IDEMPOTENT.values())
+    # The third list (RK1489), held to the same rule and to one more: a row here is a pair the
+    # fixture cannot hold, so it may not name a pair the declaration already separates — that
+    # would be an exemption standing in front of a working refusal.
+    assert all(reason for reason in _UNMEASURED.values())
+    assert not [one for one in _UNMEASURED if separated(*one)], sorted(_UNMEASURED)
+    assert set(_UNMEASURED) <= set(pairs()), sorted(set(_UNMEASURED) - set(pairs()))
     # And the sweep's own finding: nothing needed an exception. `lint --quiet --json` and
     # `list --ids --json` were the two it caught, and both are refused now rather than listed
     # here — a flag shaping one form beside another form is RK465's rule, not an exemption.

@@ -727,7 +727,11 @@ TOOLS: tuple[Tool, ...] = (
     # exists because dropping a withdrawn argument was a hand edit to this file, so serving the
     # stacking one alone leaves the agent exactly where the defect was.
     Tool("govern", ("key", "at", "role", "file", "because", "instead")),
-    Tool("origin", ("id", "why")),
+    # `--why` is withheld, and it is the one withholding this transport *caused* (RK1489):
+    # every call here is made with `--json` appended, and that form publishes each commit's
+    # `reasoning` already — so the served flag shaped nothing, and an agent setting it read an
+    # unchanged payload as the one it had asked for.
+    Tool("origin", ("id",)),
     Tool("reversals", ("task_id",)),
     # `--prune` writes the registry, so it is withheld exactly as `lint --fix` is (RK16).
     Tool("claims", ()),
