@@ -72,6 +72,7 @@
 - 💭 **RK1523** (deps: —) **a declaration whose program engines cannot name is silent, and reads exactly like a project that declares none** — RK1492 made the reader refuse to guess, and the report has no row for the one command the harness literally runs. → §RK1523
 - 💭 **RK1524** (deps: —) **the four notes this server appends to a tool result are priced by nothing, on a heavier cadence than the gate's** — RK1491 gave the gate's notes a number and RK1493 enumerated a second population, and two of these were already cut by reading rather than against a figure. → §RK1524
 - 💭 **RK1525** (deps: —) **the kinds sweep is total over the notes that make a call and silent over the ones that do not** — RK1493 reads the literals passed to _said_once, so the per-call kind is in the table by hand and a second one arrives as invisibly as the four did. → §RK1525
+- 💭 **RK1534** (deps: —) **the orientation an install prints names five commands in an order the tree it is printed to cannot run** — RK1498 pointed the sweep at it and every command refuses there, so a test asserting what is printed would be asserting the defect. → §RK1534
 
 ## Block G — The editor surface (the backlog where the file is open)
 
