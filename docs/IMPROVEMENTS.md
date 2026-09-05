@@ -318,31 +318,6 @@ yet, and what turns it into an answerable question is the state. That is a task 
 family rather than one sweep — and the reason to file it as one line is that the six
 that do run were each bought by a defect that had already shipped.
 
-### §RK1502 The write that measures nothing
-
-RK1479 set out to price a pause and found the write did not measure it. `defer --reason`
-composed a store line and validated nothing: `_as_paused` re-renders from data, `place`
-checks the anchor and the block, and the field the caller had just typed went in
-unmeasured. A reason that pushed the line past 320 landed, and `lint` reported it
-afterwards — L1 inverted on the one door where nobody had noticed.
-
-The repair was three lines; finding it took a budget predicting a refusal that never
-came. That is the interesting part. Every other write here is held by the same law and
-nothing says which ones are: `add`, `amend`, `ship`, `retire`, `restate` and the three
-list verbs each compose prose and each validate it, and `defer` looked exactly like them
-from outside.
-
-The population is enumerable the way `test_surfaces` enumerates wired writes: verbs that
-hand a composed `Task` to a renderer, against the ones calling `validate` first. What
-made this one invisible is that its field is *composed* rather than taken — the wrapper
-and the carry are the tool's, so a reader scanning for a bare `--why` reaching a schema
-sees nothing missing.
-
-So the check is not *does this verb validate* but *is every field it writes measured
-before it is rendered*. One test over the writes census this suite already builds, and
-it would have named `defer` the day the store shipped rather than when somebody tried to
-price it.
-
 ### §RK1503 The limit that is not in the file
 
 RK1480 set out to name the dep in a refusal and found the refusal does not name the line

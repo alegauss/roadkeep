@@ -408,3 +408,174 @@ def test_the_docstring_no_longer_carries_a_number_that_can_drift():
     opening = (adopting.__doc__ or "").split("\n\n")[0]
     assert "whose subject is this tool" in opening
     assert not re.search(r"\bthe (two|three|four|five|six)\b", opening), opening
+
+
+# -- every prose field a write renders is measured first (RK1502) --------------
+
+#: A project with something for every write below to act on, and limits small enough that a
+#: sentence of ordinary length is over one of them. `line` is declared too, because that is
+#: what a pause is charged against (RK1479) and a fixture without it reads `defer` as accepting
+#: prose it is in fact measuring — the false positive this table was nearly written around.
+MEASURING = """prefix = "RK"
+
+[files]
+roadmap = "ROADMAP.md"
+changelog = "CHANGELOG.md"
+improvements = "IMPROVEMENTS.md"
+decisions = "DECISIONS.md"
+deferred = "DEFERRED.md"
+
+[limits]
+line = 140
+symptom = 40
+why = 40
+section = 6
+
+[non_goals]
+lead = 60
+why = 60
+
+[criteria]
+lead = 60
+why = 60
+"""
+
+MEASURING_FILES = {
+    "ROADMAP.md": """# Roadmap
+
+## Block A
+
+- 📋 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1
+- ⏳ **RK3** (deps: —) **A third symptom** — Because of a reason. → §RK3
+
+## Non-goals
+
+- **No web UI.** Files and a CLI.
+
+## Done when — Block A
+
+- **The gate passes** It passes on this project's own docs.
+""",
+    "CHANGELOG.md": "# Shipped\n\n## Block A\n\n- ✅ **RK9** **A shipped symptom** — It works now.\n",
+    "IMPROVEMENTS.md": (
+        "# Improvements\n\n## Block A\n\n### §RK1 A first design\n\nThe reasoning.\n\n"
+        "### §RK3 A third design\n\nThe other reasoning.\n"
+    ),
+    "DECISIONS.md": (
+        "# Decisions\n\n## Block A\n\n"
+        "- ✅ **RK9** **A shipped symptom** — The store is the repository.\n"
+    ),
+    "DEFERRED.md": "# Deferred\n\n## Block A\n",
+}
+
+OVER = ("a word that is plainly far too long to fit " * 4).strip() + "."
+OVER_BODY = ("a word " * 200).strip() + "."
+
+#: `(command, prose dest)` → the argv that reaches the write with that field over its limit.
+#: Held **total** against what the parsers declare, so a nineteenth prose field is a red here
+#: until somebody says how to reach it — which is the whole of what RK1479 cost: three lines to
+#: repair, and a budget predicting a refusal that never came to find.
+MEASURED: dict[tuple[str, str], list[str]] = {
+    ("add", "why"): ["add", "--block", "A", "--symptom", "A symptom", "--why", OVER],
+    ("add", "section_body"): [
+        "add", "--block", "A", "--symptom", "A symptom", "--why", "Because.",
+        "--section", "A design", "--section-body", OVER_BODY,
+    ],
+    ("amend", "why"): ["amend", "RK1", "--why", OVER],
+    ("restate", "symptom"): ["restate", "RK1", "--symptom", OVER],
+    ("defer", "reason"): ["defer", "RK1", "--reason", OVER],
+    ("retire", "reason"): ["retire", "RK1", "--reason", OVER],
+    ("ship", "why"): ["ship", "RK1", "--why", OVER],
+    ("ship", "decides"): ["ship", "RK1", "--why", "Done.", "--decides", OVER],
+    ("ship", "superseded_design"): [
+        "ship", "RK1", "--why", "Done.", "--superseded-design", OVER,
+    ],
+    ("record add", "why"): [
+        "record", "add", "--block", "A", "--symptom", "A symptom", "--why", OVER,
+    ],
+    ("record amend", "why"): ["record", "amend", "RK9", "--why", OVER],
+    ("revise", "decides"): ["revise", "RK9", "--decides", OVER],
+    ("section add", "body"): [
+        "section", "add", "RK3", "--title", "A design", "--body", OVER_BODY,
+    ],
+    ("section amend", "body"): ["section", "amend", "RK1", "--body", OVER_BODY],
+    ("non-goal add", "why"): ["non-goal", "add", "--lead", "No second UI", "--why", OVER],
+    ("non-goal amend", "why"): ["non-goal", "amend", "No web UI.", "--why", OVER],
+    ("criterion add", "why"): [
+        "criterion", "add", "--block", "A", "--lead", "A second criterion", "--why", OVER,
+    ],
+    ("criterion amend", "why"): [
+        "criterion", "amend", "The gate passes", "--block", "A", "--why", OVER,
+    ],
+}
+
+
+def prose_fields() -> set[tuple[str, str]]:
+    """Every prose field a **write** declares, off the parsers that declare them.
+
+    `reads_stdin` is where a command says which of its arguments is a paragraph (RK171), which
+    makes the population derived rather than listed — the property RK1502 asked for, since what
+    made `defer` invisible was that its field is *composed* by the tool rather than taken from
+    a flag, so a reader scanning for a bare `--why` reaching a schema saw nothing missing.
+    """
+    found: set[tuple[str, str]] = set()
+
+    def walk(parser, path=()):
+        for action in parser._actions:
+            if isinstance(action, argparse._SubParsersAction):
+                for name, sub in action.choices.items():
+                    walk(sub, (*path, name))
+        if not parser.get_default("reads_only"):
+            for one in parser.get_default("reads_stdin") or ():
+                found.add((" ".join(path), one.dest))
+
+    walk(build_parser())
+    return found
+
+
+def _measuring(root: Path) -> Path:
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "roadkeep.toml").write_text(MEASURING, encoding="utf-8", newline="")
+    for name, body in MEASURING_FILES.items():
+        with (root / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return root
+
+
+def test_every_prose_field_a_write_takes_is_named_in_the_table():
+    """RK1502. RK1479 set out to price a pause and found the write did not measure it: a reason
+    that pushed the line past its limit landed, and `lint` reported it afterwards — L1 inverted
+    on the one door where nobody had noticed. The repair was three lines; finding it took a
+    budget predicting a refusal that never came.
+
+    Total against the parsers, so a nineteenth field is a red until somebody says how to reach
+    it — which is the difference between this and the reader that missed `defer`."""
+    declared = prose_fields()
+    assert declared == set(MEASURED), {
+        "declared, unreachable here": sorted(declared - set(MEASURED)),
+        "named, no longer declared": sorted(set(MEASURED) - declared),
+    }
+
+
+@pytest.mark.parametrize("case", sorted(MEASURED))
+def test_the_field_is_refused_before_anything_is_rendered(tmp_path, capsys, case):
+    """Refused and **nothing written**, which is the half that makes it L1 rather than a gate:
+    a write that renders first and reports afterwards has already spent the paragraph.
+
+    On the *fact* of a refusal and never on which limit: what bounds a pause is the rendered
+    line and not the `why` (RK1479), and a test naming the code would encode that decision here
+    instead of leaving it where the reasoning is."""
+    from roadkeep.cli import main
+
+    root = _measuring(tmp_path / "project")
+    before = {
+        name: (root / name).read_text(encoding="utf-8") for name in MEASURING_FILES
+    }
+    assert main(["-C", str(root), *MEASURED[case]]) != 0, case
+    said = capsys.readouterr().err
+    # `limit is` and not a code: five of these refusals are composed by the verb rather than
+    # rendered from a `Violation`, so a code would test which door happened to raise. What is
+    # under test is that a *number* was compared, which every one of them states.
+    assert "limit is" in said, (case, said)
+    for name, held in before.items():
+        assert (root / name).read_text(encoding="utf-8") == held, (case, name)

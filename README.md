@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 230 | 2 |
 | C — Query (consult without reading the file) | 8 | 158 | 4 |
-| D — The gate | 22 | 219 | 2 |
+| D — The gate | 21 | 220 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 147 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 36 | 985 | 14 |
+| **Total** | 35 | 986 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1502** (deps: —) **a write that composes a prose field can render it without measuring it, and nothing enumerates which ones do** — RK1479 found defer validating nothing, invisible because its field is composed by the tool rather than taken from a flag. → §RK1502
+- 💭 **RK1503** (deps: —) **a field refused by the line quotes a ceiling no config declares, so the reader shortens the prose that fits** — RK1480 had to reframe one such refusal by inspection, and every other door adding structure to a line meets the same sentence. → §RK1503
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
