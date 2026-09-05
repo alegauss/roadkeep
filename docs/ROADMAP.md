@@ -62,6 +62,7 @@
 - 💭 **RK1530** (deps: —) **the corpus reading a refusal was drawn from lives in a docstring and nothing re-takes it** — RK1497 measured 18 false positives over prose against zero over fields and threw the probe away, so the number that decided the boundary cannot be checked. → §RK1530
 - 💭 **RK1531** (deps: —) **a section title takes the mangled bytes the line's own fields refuse** — RK1497's boundary is field and not body, and a title is a bounded composed field that lands as a permanent heading with no door in front of it. → §RK1531
 - 💭 **RK1532** (deps: —) **thirty rows of the composer work-list share one reason, so none of them says what it would cost** — RK1498 took four out in a sitting at two lines of fixture each, and the constant they all carried is why nobody had started at any. → §RK1532
+- 💭 **RK1533** (deps: —) **govern writes a number the config parser then refuses, leaving every verb unable to read the file** — Violated guards a number the corpus breaks and nothing guards one two keys in a table forbid, so the repair is the hand edit the guard denies. → §RK1533
 
 ## Block E — Adoption
 
