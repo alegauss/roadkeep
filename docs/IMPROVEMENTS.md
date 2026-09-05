@@ -225,6 +225,57 @@ The cheap version is one clause in an answer already composed, and it is worth p
 against RK1309's finding that a first body is written blind: both are the same shape, a
 read the author needs at the moment before writing and can only reach after.
 
+### §RK1519 The marker a project may not declare
+
+Measured. A project declaring `[markers] open = ["📋", "💡", "🔨"]` — legal, validated, and
+exactly what L6 says a project may do — gets this from `pick --claim`:
+
+    status: '🛠' is not one of 📋 💡 🔨 [status.unknown]
+
+`take` writes `set_status(config, id, IN_PROGRESS)` with the package constant, and
+`claiming` compares against it in five more places. `[markers]` has five keys — `open`,
+`shipped`, `retired`, `deferred`, `undesigned` — and no sixth, so the marker the whole
+claim machinery turns on is the one thing about a marker vocabulary a project cannot
+say.
+
+The reach is every door that claims — `pick --claim`, `brief --claim`, `hold`, and
+`claiming.follow`, which releases by asking whether the marker just written was that
+one. On such a project `claims` lists nothing ever, no line being able to reach the
+state it lists, and nothing says why. RK1490 found it by composing `status <id> 🛠` and
+running it.
+
+The fix is a sixth key and a reader, and the shape is settled by the other five: `open`
+already carries the marker, so `markers.working` naming one of them is a narrowing and
+not a new vocabulary — with the refusal every other key has when it names something
+`open` does not.
+
+What it must not become is a guess. Picking "the open marker that is not `undesigned`"
+would answer 📋 here, which is the *default add* marker, and a tool that quietly claimed
+lines by moving them to the state a fresh `add` writes is worse than one that refuses.
+
+### §RK1520 The gate the fix walks past
+
+`test_no_module_writes_a_marker_a_project_declares` scans the package for a literal
+marker codepoint, on the ground that `[markers]` is per-project and a message naming one
+tells the reader about a glyph their files may not use. It works: RK1490 wrote `status
+<id> 🛠` into a composed sentence and the gate caught it inside a minute.
+
+The repair it accepts is to interpolate the constant instead, and that is the whole
+problem. `f"status {task_id} {IN_PROGRESS}"` renders the same six bytes, says the same
+wrong thing to the same reader, and is invisible to a scan for the codepoint. Both of
+this package's remaining sites are that shape, and one of them is a refusal telling a
+caller how to take a line.
+
+So the gate rewards the fix that does not fix it. What it looks for is a message naming
+a marker the reader's project may not declare; the literal is one route there, and the
+import is the other — the one a developer takes *because* the gate is there.
+
+Reading the import is mechanical: the name is `IN_PROGRESS` and the same scan finds it
+one token over. What a scan cannot decide is whether an interpolation is wrong, a
+message about the marker a write just moved being legitimate — that fact came off the
+file. So what is missing is a stated shape rather than a rule: a *composed command*
+carrying a marker constant is the wrong one, and a report of what a write did is not.
+
 ## Block D — The gate
 
 ### §RK1491 The cadence nobody counts

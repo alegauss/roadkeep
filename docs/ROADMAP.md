@@ -35,6 +35,8 @@
 - 📋 **RK1510** (deps: —) **no read says how many lines a shipped task filed behind it, so granularity is judged from a feel** — weight answers what a task cost from the commits that shipped it; what it filed behind it has no verb, so the reading is rebuilt from git log every time somebody asks. → §RK1510
 - 📋 **RK1512** (deps: —) **pick and brief never name the deferred store, so a set-aside line and the reason it cites go unread** — RK92 resolves a dep on a paused task, which is the only way a deferral reaches an answer here, and a reason can expire while the decision it justified stays put. → §RK1512
 - 📋 **RK1513** (deps: —) **brief hands over a line carrying no criteria in silence, and the absence is reported only once part landed** — RK1185 rides the criterion with the brief where one exists and RK1433 reports its absence at the partial marker, so the moment before the first edit says nothing. → §RK1513
+- 💭 **RK1519** (deps: —) **a project that declares its own open markers cannot claim a line, and nothing anywhere says so** — The claim machinery writes and compares the package's in-progress marker, and [markers] has no key by which a project could name its own. → §RK1519
+- 💭 **RK1520** (deps: —) **the marker-leak gate rewards the repair that renders the same wrong bytes** — It scans the package for a literal codepoint, so interpolating the constant passes it while the reader is told about a glyph their project may not declare. → §RK1520
 
 ## Block D — The gate
 
