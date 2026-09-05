@@ -236,7 +236,10 @@ SITES: tuple[Site, ...] = (
     Site("shipping.py:PartRecorded.__init__", "unreached", NO_FIXTURE),
     Site("shipping.py:Partial.stated", "unreached", NO_FIXTURE),
     Site("shipping.py:SecondPartial.__init__", "unreached", NO_FIXTURE),
-    Site("showing.py:_instead", "unreached", NO_FIXTURE),
+    # RK1498. Run by `test_showing`: a caller who addressed a section is sent to the verb that
+    # prints one, and what makes naming a verb one word away worth anything is that the word
+    # is right — so the door runs and the section it prints is the one that was asked for.
+    Site("showing.py:_instead", "run"),
     Site("showing.py:_paused", "run"),
     Site("showing.py:_where_it_went", "unreached", NO_FIXTURE),
     Site("verbs/querying.py:_anchors", "unreached", NO_FIXTURE),

@@ -686,3 +686,22 @@ def test_a_paused_id_is_told_where_it_went_and_not_that_it_never_was(tmp_path):
     with pytest.raises(NoSuchTask) as absent:
         show(config, "RK99")
     assert NoSuchTask.ABSENT in absent.value.args[0]
+
+
+# -- the verb one word away, run rather than matched (RK1498) ------------------
+
+
+def test_the_section_reader_this_refusal_names_runs(tmp_path, capsys):
+    """RK1025 sends a caller who addressed a *section* to the verb that prints one, and the
+    sentence had never been executed — which is the arrangement RK1498 is about, and RK1475
+    the instance of it that shipped a door refusing.
+
+    The whole value of naming a verb one word away is that the word is right."""
+    root = project(tmp_path).root
+    assert main(["-C", str(root), "show", "§RK1"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    ran = runs(root, said)
+    assert ran and ran[0][:2] == ["section", "show"], said
+    # And what it prints is the section the caller asked for, which is the half a matched
+    # sentence cannot claim: a verb that runs and answers about something else is worse.
+    assert "A first design" in capsys.readouterr().out
