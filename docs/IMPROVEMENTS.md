@@ -103,30 +103,6 @@ second write cannot see today. Whether the fold is right stays the author's judg
 
 ## Block C — Query
 
-### §RK1495 The neighbours that have not shipped yet
-
-Every `add` prints its three nearest neighbours and the row says what they are drawn
-from: `3 nearest of 154 delivered under this block`. The ledger, and only the ledger. An
-open line is not in the corpus, so two callers filing one defect within the hour cannot
-see each other — which is precisely when a duplicate is cheapest to catch and most
-likely to happen.
-
-Measured here. RK1472 was filed against `budget` taking no `--requires`, and RK1461 said
-the same thing in almost the same words and was **open** at the time; both quote the
-same 21 characters of `(requires: upstream) `. RK1461 shipped, RK1472 was designed and
-briefed and then retired as superseded. Ranked against the delivered corpus afterwards
-it comes back **second** — the window would have named it, had it been in the corpus at
-all.
-
-RK1477 is the other failure of the same read and not this one: there the pair ranked 7th
-against a window of 3, so widening or re-ranking is the question. Here the ranking is
-already right and the corpus is wrong.
-
-Why deliveries alone is worth keeping: RK385 argues the symptoms are what a proposal is
-checked against, and a delivery is a claim made good on. An open line is not — which is
-a different fact and, here, the more urgent one: a duplicate of shipped work wastes a
-task, and a duplicate of open work wastes two sessions at once.
-
 ### §RK1496 The bump that defeats the filter
 
 RK1473 drops a commit that touched only files this tool governs, and it works on the

@@ -30,7 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 💭 **RK1495** (deps: —) **the near rows an add prints come from the ledger alone, so two sessions filing one defect never see each other** — RK1472 duplicated RK1461 while it was open and ranks second against the delivered corpus, so the window was right and the corpus had no open lines in it. → §RK1495
 - 💭 **RK1496** (deps: —) **the filter that makes unclosed honest is inert here, where a hook touches three ungoverned files every commit** — RK153's version bump means no commit here touches governed files alone, so the fixture that proves the format cannot exercise the rule it proves. → §RK1496
 - 📋 **RK1510** (deps: —) **no read says how many lines a shipped task filed behind it, so granularity is judged from a feel** — weight answers what a task cost from the commits that shipped it; what it filed behind it has no verb, so the reading is rebuilt from git log every time somebody asks. → §RK1510
 - 📋 **RK1512** (deps: —) **pick and brief never name the deferred store, so a set-aside line and the reason it cites go unread** — RK92 resolves a dep on a paused task, which is the only way a deferral reaches an answer here, and a reason can expire while the decision it justified stays put. → §RK1512

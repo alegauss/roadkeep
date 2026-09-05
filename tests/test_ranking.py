@@ -258,6 +258,60 @@ def test_the_volunteered_rows_say_they_are_bounded_and_where_the_rest_are(tmp_pa
     assert len(payload["near"]) == VOLUNTEERED
 
 
+def test_an_open_line_is_in_the_corpus_the_next_proposal_is_ranked_against(tmp_path, capsys):
+    """RK1495. The corpus was the ledger alone, so two callers filing one defect within the
+    hour could not see each other — which is precisely when a duplicate is cheapest to catch
+    and most likely to happen. Measured here: RK1472 was filed against `budget` taking no
+    `--requires` while RK1461 said the same thing in almost the same words and was **open**;
+    ranked against the delivered corpus afterwards it comes back second, so the window was
+    right and the corpus had no open lines in it."""
+    root = project(tmp_path)
+    capsys.readouterr()
+    _added(root, "A vendored decoder crashes on a truncated frame")
+    capsys.readouterr()
+    # The second session, minutes later, saying the same thing in its own words.
+    assert main([
+        "-C", str(root), "add", "--block", "A", "--json",
+        "--symptom", "The vendored decoder crashes when a frame is truncated",
+        "--why", "Because.",
+    ]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    # The open line leads, which is the whole finding: it was invisible before.
+    assert payload["near"][0]["symptom"] == "A vendored decoder crashes on a truncated frame"
+    # Counted apart, so a reader knows which corpus each row came from — and each row already
+    # carries its marker, which is what tells a delivery from a claim somebody is making.
+    assert payload["near_open"] >= 1
+    assert payload["near_recorded"] == 6
+
+
+def test_the_two_corpora_are_counted_apart_in_the_row_a_terminal_reads(tmp_path, capsys):
+    # Both numbers, because the commands that show the rest are different: `delivered <block>`
+    # is the ledger's and the open lines are the roadmap's own listing.
+    root = project(tmp_path)
+    _added(root, "A first thing")
+    capsys.readouterr()
+    _added(root, "A second thing")
+    said = capsys.readouterr().out
+    assert "delivered and" in said
+    assert "open under this block" in said
+    # The bound is still stated against the ledger, which is what `delivered A` shows.
+    assert "delivered A` is all 6" in said
+
+
+def test_the_line_being_filed_is_not_ranked_against_itself(tmp_path, capsys):
+    # The roadmap read is the pre-write one and the id is excluded besides, so the words a
+    # caller has just written are never handed back to them as a neighbour.
+    root = project(tmp_path)
+    assert main([
+        "-C", str(root), "add", "--block", "A", "--json",
+        "--symptom", "A wholly unprecedented symptom nothing else says",
+        "--why", "Because.",
+    ]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    filed = payload["id"]
+    assert filed not in [one["id"] for one in payload["near"]]
+
+
 def test_the_volunteered_rows_carry_no_score(tmp_path, capsys):
     """RK441's rule at the door that did not exist when it was written: the absolute figure
     separates nothing, so a row or a payload carrying one is a turn from a threshold the

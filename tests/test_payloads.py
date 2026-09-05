@@ -311,6 +311,9 @@ RECORDS: dict[str, dict[str, str | None]] = {
         # total read as a three-entry block, which is the guarantee RK442 made about the
         # bounded listing this one volunteers.
         "near_recorded": "near_recorded",
+        # And what it holds open (RK1495), counted apart because a duplicate of shipped work
+        # wastes a task and a duplicate of open work wastes two sessions at once.
+        "near_open": "near_open",
     },
     "StatusChange": {
         "document": None,

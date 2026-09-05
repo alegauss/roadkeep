@@ -527,8 +527,12 @@ def test_a_role_whose_path_names_a_directory_is_read_as_the_absent_file_it_is(tm
         symptom="A symptom filed against a ledger that is a directory",
         why="Because of another reason.",
     )
-    # Answered and not raised, and the line is in the file the caller asked for.
-    assert written.near == ()
+    # Answered and not raised, and the line is in the file the caller asked for. The ledger
+    # contributes nothing, which is what "read as the absent file it is" means; since RK1495
+    # the open lines are the other half of the corpus, so what comes back is the roadmap's
+    # alone — the count of delivered is the assertion, not the emptiness of the rows.
+    assert written.near_recorded == 0
+    assert all(one.task.status not in ("✅", "🗑") for one in written.near), written.near
     assert "A symptom filed against a ledger that is a directory" in source(config)
 
 

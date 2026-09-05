@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 230 | 2 |
-| C — Query (consult without reading the file) | 7 | 156 | 4 |
+| C — Query (consult without reading the file) | 6 | 157 | 4 |
 | D — The gate | 20 | 214 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 147 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 32 | 978 | 14 |
+| **Total** | 31 | 979 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1495** (deps: —) **the near rows an add prints come from the ledger alone, so two sessions filing one defect never see each other** — RK1472 duplicated RK1461 while it was open and ranks second against the delivered corpus, so the window was right and the corpus had no open lines in it. → §RK1495
+- 💭 **RK1496** (deps: —) **the filter that makes unclosed honest is inert here, where a hook touches three ungoverned files every commit** — RK153's version bump means no commit here touches governed files alone, so the fixture that proves the format cannot exercise the rule it proves. → §RK1496
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

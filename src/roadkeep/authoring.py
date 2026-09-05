@@ -385,6 +385,12 @@ class Insertion:
     #: the guarantee the unbounded one gave — a reader handed three rows reads a three-entry
     #: block. Zero where nothing was ranked, which is the same answer as the empty tuple above.
     near_recorded: int = 0
+    #: And what the block holds **open**, which since RK1495 is ranked beside the delivered
+    #: (RK1495). Its own count and not folded into the one above: a delivery is a claim made
+    #: good on and an open line is a claim somebody is making, which is what `delivered`'s own
+    #: corpus rule is about — and the two commands that show the rest are different. Zero on a
+    #: block whose only other line is the one just filed, which this deliberately excludes.
+    near_open: int = 0
 
     @property
     def rendered(self) -> str:
@@ -553,8 +559,17 @@ class Insertion:
             # because this is that read volunteered and a second wording for one fact is what
             # RK1375 is about. The block's own listing and never a `--near` rendered with the
             # symptom in it, which is the second grammar RK313 declined.
+            # The **open** lines beside the delivered since RK1495, counted apart and named
+            # apart: two callers filing one defect within the hour could not see each other,
+            # which is precisely when a duplicate is cheapest to catch. Each row already
+            # carries its marker, so which corpus a neighbour came from is read off the row.
+            held = (
+                f"{self.near_recorded} delivered and {self.near_open} open"
+                if self.near_open
+                else f"{self.near_recorded} delivered"
+            )
             rows.append(
-                f"  near     {len(self.near)} nearest of {self.near_recorded} delivered under "
+                f"  near     {len(self.near)} nearest of {held} under "
                 f"this block — an order and not a verdict; `{invocation()} delivered "
                 f"{self.entry.task.block}` is all {self.near_recorded}"
             )
@@ -647,6 +662,11 @@ class Insertion:
             # `delivered` calls `recorded`: a consumer handed three rows and no total reads a
             # three-entry block, and the whole use of this list is deciding a duplicate.
             "near_recorded": self.near_recorded,
+            # And what it holds open (RK1495), counted apart for the reason the rows name it
+            # apart: a duplicate of shipped work wastes a task, and a duplicate of open work
+            # wastes two sessions at once. `0` and never omitted, so a consumer tells a block
+            # with nothing else open from a build that did not rank the open lines at all.
+            "near_open": self.near_open,
             # Every path this write touched, projections included (RK1129) — the same key a
             # departure's scope carries, so a client staging one stages the other.
             "wrote": [config.relative(one) for one in self.wrote],
@@ -1024,18 +1044,39 @@ def add(
     # is a *report* and not a gate — nothing here refuses a duplicate and nothing could (RK441)
     # — so it costs the same ranking whichever side of `save` it runs, and running it here keeps
     # every refusal above untouched by a read that cannot refuse anything.
-    shown, recorded = _near(config, insertion)
+    shown, recorded, open_lines = _near(config, insertion)
     return replace(
-        insertion, wrote=insertion.save(), near=shown, near_recorded=recorded
+        insertion,
+        wrote=insertion.save(),
+        near=shown,
+        near_recorded=recorded,
+        near_open=open_lines,
     )
 
 
-def _near(config: Config, insertion: Insertion) -> tuple[tuple[Entry, ...], int]:
-    """This block's nearest delivered entries, and how many it holds (RK1370, RK1374).
+def _near(config: Config, insertion: Insertion) -> tuple[tuple[Entry, ...], int, int]:
+    """This block's nearest entries, delivered and open, and how many it holds of each.
 
     The block's own ledger and never the whole of it, which is `delivered`'s rule: a duplicate
     collides with a claim filed under the same heading, and ranking across blocks would offer a
     caller entries from a part of the plan they did not propose into.
+
+    **And the block's open lines beside them** (RK1495). The corpus was the ledger alone, so
+    two callers filing one defect within the hour could not see each other — precisely when a
+    duplicate is cheapest to catch and most likely to happen. Measured here: RK1472 was filed
+    against `budget` taking no `--requires` while RK1461 said the same thing in almost the same
+    words and was open; ranked against the delivered corpus afterwards it comes back second, so
+    the window was right and the corpus had no open lines in it.
+
+    Deliveries stay in for RK385's reason — the symptoms are what a proposal is checked
+    against, and a delivery is a claim made good on — and the open lines are the other fact,
+    counted apart and marked apart: a duplicate of shipped work wastes a task, and a duplicate
+    of open work wastes two sessions at once.
+
+    The roadmap **as it was**, which is what `config.document` hands back here: `place` returned
+    a new document and this one is the pre-write read, so the line being filed cannot rank
+    against itself. Excluded by id as well, because a project whose scheme lets a caller name an
+    id could otherwise file over one already there and be shown its own words back.
 
     **Symptoms and not outcomes**, for that verb's reason: a shipped line states a problem and
     a fix, and a proposal collides with the problem — an outcome is written in the vocabulary of
@@ -1057,14 +1098,20 @@ def _near(config: Config, insertion: Insertion) -> tuple[tuple[Entry, ...], int]
     *after* `save`, so that error would fail a call whose files are already written. Every other
     reader treats such a path as the absent file it effectively is.
     """
-    if not config.has("changelog") or not config.path("changelog").is_file():
-        return (), 0
     task = insertion.entry.task
-    entries = config.document("changelog").block(task.block)
+    delivered: list[Entry] = []
+    if config.has("changelog") and config.path("changelog").is_file():
+        delivered = list(config.document("changelog").block(task.block))
+    open_lines = [
+        one
+        for one in config.document("roadmap").block(task.block)
+        if one.task.id != task.id
+    ]
+    entries = [*delivered, *open_lines]
     if not entries:
-        return (), 0
-    # The block's own count beside the shown one (RK1374), off the same read: a second lookup
-    # for it is the two figures coming to disagree about which block was ranked.
+        return (), 0, 0
+    # The block's own counts beside the shown ones (RK1374), off the same reads: a second
+    # lookup for either is the figures coming to disagree about which block was ranked.
     return (
         tuple(
             entries[index]
@@ -1077,7 +1124,8 @@ def _near(config: Config, insertion: Insertion) -> tuple[tuple[Entry, ...], int]
                 VOLUNTEERED,
             )
         ),
-        len(entries),
+        len(delivered),
+        len(open_lines),
     )
 
 
