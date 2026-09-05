@@ -681,6 +681,7 @@
 - ✅ **RK1501** **the clause that settles a constraint is deleted by the ship, so the answer lasts exactly as long as the work** — brief says a design answers a constraint and names the ship flag that carries it, before the ship deletes the design.
 - ✅ **RK1502** **a write that composes a prose field can render it without measuring it, and nothing enumerates which ones do** — a sweep over the prose fields the parsers declare refuses each one over its limit, with nothing written.
 - ✅ **RK1503** **a field refused by the line quotes a ceiling no config declares, so the reader shortens the prose that fits** — a length violation carries which ceiling refused it, and a line-bound refusal says the field is legal and cites the line's key.
+- ✅ **RK1504** **a served tool name that is also a CLI verb of a different act is a collision nothing enumerates** — a table names every served name that is also a verb of a different act, held total against both enumerations.
 
 ## Block E — Adoption
 

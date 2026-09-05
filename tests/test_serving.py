@@ -2928,3 +2928,76 @@ def test_the_read_for_choosing_a_cut_names_the_ceiling_that_sent_you(capsys):
     # `each` already behaves beside it.
     assert sent.payload("u", None, None)["session"] is None
     assert "held," not in sent.stated("u", None, 1)
+
+
+# -- the name that is two acts (RK1504) ----------------------------------------
+
+#: A served tool name that is also a command of this CLI, where the two are **different
+#: acts** — with the reason each pair is right. RK1481 made the CLI take the MCP spelling and
+#: the guard it needed is the finding: respelling one of these rewrites a correct call into
+#: another act, which is a silent wrong write and worse than the refusal it replaced.
+#:
+#: Named rather than derived, and total against both enumerations, so a third pair is a red
+#: here rather than a `named=` nobody had a reason to look twice at. Renaming a side is the
+#: wrong repair — each name is right on its own surface — and what was missing is that nobody
+#: is told the collision exists.
+COLLIDING: dict[str, str] = {
+    "claim": (
+        "the tool for `brief --claim`, which takes the next line; the CLI's `claim` reads a "
+        "commit's scope back against the tree, and RK1481's rule is that neither is respelled"
+    ),
+}
+
+
+def _commands() -> set[str]:
+    """Every command path this CLI answers, as a tool name would spell one."""
+    found: set[str] = set()
+
+    def walk(parser, path=()):
+        for action in parser._actions:
+            if isinstance(action, argparse._SubParsersAction):
+                for name, sub in action.choices.items():
+                    walk(sub, (*path, name))
+        if parser.get_default("handler") is not None:
+            found.add(" ".join(path))
+
+    walk(cli.build_parser())
+    return found
+
+
+def test_every_served_name_that_is_also_a_verb_names_the_same_act():
+    """RK1504. Two surfaces may name one act differently on purpose, and that is what `named=`
+    is for. What nothing enumerated is the other case: a tool name that is a verb *here* and a
+    different act *there* — `claim` is a command and the tool for `brief --claim`.
+
+    Total against both, so the next `Tool(..., named=...)` that lands on an existing verb is
+    a red rather than a call somebody's session gets rewritten."""
+    verbs = _commands()
+    colliding = {
+        one.name: one.command
+        for one in serving.TOOLS
+        if one.name in verbs and one.name != one.command
+    }
+    assert set(colliding) == set(COLLIDING), {
+        "collides, unnamed": sorted(set(colliding) - set(COLLIDING)),
+        "named, no longer a collision": sorted(set(COLLIDING) - set(colliding)),
+    }
+    assert all(reason for reason in COLLIDING.values())
+
+
+def test_the_cli_never_respells_a_verb_it_has(tmp_path):
+    """RK1481's rule, held rather than commented. `_accepting` takes the MCP spelling where the
+    CLI has no such verb; where it has one, the word the caller typed is the act they meant —
+    and rewriting it would be the silent wrong write this table is about."""
+    for name in COLLIDING:
+        argv, respelled = cli._accepting(cli.build_parser(), [name, "--help"])
+        assert argv[0] == name, (name, argv)
+        assert not respelled, (name, respelled)
+
+
+def test_a_name_this_cli_does_not_have_is_still_taken(tmp_path, capsys):
+    # The other half, which is what RK1481 shipped: a session taught the tool name types it
+    # and gets the act, rather than argparse's `invalid choice` and forty verbs.
+    argv, respelled = cli._accepting(cli.build_parser(), ["scope", "RK1", "--path", "x"])
+    assert argv[0] == "claim", argv
+    assert respelled
