@@ -278,30 +278,6 @@ carrying a marker constant is the wrong one, and a report of what a write did is
 
 ## Block D — The gate
 
-### §RK1494 The four causes wearing one code
-
-`engine.disagreement` now composes four clauses — a modified checkout, a plugin at
-another number, a vendored copy at a third, and a home that states a fourth. Each was
-added by a task that measured it, each is right, and they are joined by `and` into one
-sentence with one code.
-
-So the gate has one row for four different states with four different remedies: look at
-the tree, `/plugin update`, `install --vendor`, restart. A reader acts on whichever
-clauses are true, and `explain engine.disagreement` — the read that says what a code
-means and which doors close it — can only describe the union.
-
-Every other multi-cause finding here is split. `priority.block`, `priority.unmigrated`
-and `priority.config` are three codes about one section precisely so each names its own
-door, and `remedying` keys the table by code. This one is four causes wearing one, which
-is the arrangement RK420 built the table to avoid.
-
-The question is whether they are four codes or one code with a subject. They differ from
-the priority family in a way that matters: two of them can be true at once and often
-are, and four rows on one commit about one subject is the noise RK1308 and RK1443 each
-cut. A subject per clause — `engine.disagreement` filed once per differing copy, the way
-`install.stale` is filed per surface — keeps one code, gives each row its own remedy,
-and lets a project quiet the one it has decided about without silencing the rest.
-
 ### §RK1497 The bytes a gate could have refused
 
 RK1474 gave the copied claim a respelling door in the ledger and the decisions file, and

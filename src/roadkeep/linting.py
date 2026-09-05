@@ -3010,28 +3010,23 @@ def _disagreeing(config: Config, tree: Tree) -> list[Note]:
     # reader of a gate cannot perform mid-run and an agent cannot perform at all, so a verdict
     # moving here would be a wall with no door (RK313). Told, once per commit, and that is all.
     swapped = found.swapped
-    if not (working or skewed or split or swapped):
-        return []
     return [
-        Note(
-            "engine.disagreement",
-            where,
-            disagreement(
-                running.version,
-                running.home.as_posix(),
-                None if plugin is None else plugin.version,
-                None if vendored is None else vendored.version,
-                running.on_disk,
-                working=working,
-                skewed=skewed,
-                split=split,
-                swapped=swapped,
-            ),
+        Note("engine.disagreement", where, message, subject=subject)
+        for subject, message in disagreements(
+            running.version,
+            running.home.as_posix(),
+            None if plugin is None else plugin.version,
+            None if vendored is None else vendored.version,
+            running.on_disk,
+            working=working,
+            skewed=skewed,
+            split=split,
+            swapped=swapped,
         )
     ]
 
 
-def disagreement(
+def disagreements(
     version: str,
     home: str,
     plugin: str | None,
@@ -3042,53 +3037,66 @@ def disagreement(
     skewed: bool,
     split: bool,
     swapped: bool,
-) -> str:
-    """The note's text, composed from the four facts and from nothing else (RK1491).
+) -> tuple[tuple[str, str], ...]:
+    """One row per copy that differs, each naming its own door (RK1494).
 
-    Lifted out of :func:`_engines` so a second reader exists: this message fires through the
-    `Stop` hook on every turn of a wired project, it is the widest thing a clean run says, and
-    `cost` had no way to ask how wide — the state that makes all four clauses true cannot be
-    built by a project whose engine is the tree it is judging, which is every checkout of this
-    one. `deny_cost`'s rule, one message over: measured off the thing that composes it, so a
-    clause reworded here moves the figure rather than a fixture agreeing until somebody edits.
+    RK1440, RK1468 and RK1471 each measured a state and each added a clause, joined with
+    `and` into one sentence under one code — so the gate had one row for four states with four
+    remedies (look at the tree, `/plugin update`, `install --vendor`, restart), and
+    `explain engine.disagreement` could only describe their union. That is the arrangement
+    RK420 built the remedy table to avoid, and every other multi-cause family here is split for
+    exactly that reason: `priority.block`, `priority.unmigrated` and `priority.config` are
+    three codes about one section so each names its own door.
 
-    One clause per fact and in the order they are stated, because a reader acts on a different
-    thing for each: an unpinnable verdict is a tree to look at, and a version behind is a judge
-    to move. Unchanged from RK1440's shape, which is the point — this is the same sentence with
-    the facts arriving as arguments.
+    **One code with a subject**, and not four codes, which is where this family differs from
+    that one: two of these can be true at once and often are, so four codes would be four
+    unrelated rows about one question. A subject per copy — the way `install.stale` files per
+    surface — keeps the code, gives each row the move that closes it, and lets a project quiet
+    the copy it has decided about without silencing the rest.
+
+    Each row stands alone, so each states what this gate is: a row saying the plugin is at
+    0.2.5 without the number it differs from is a fact with nothing to compare.
+
+    A composer with two readers (RK1491): `cost --notes` prices what a run of the gate can say
+    beside its verdict, and the state making all four true cannot be built by a project whose
+    engine is the tree it judges — which is every checkout of this one.
     """
     gate = f"this gate is {version}"
+    reads = "`engines` reads every copy and names the revision each one is at"
+    out: list[tuple[str, str]] = []
     if working:
-        gate += f" from a **modified** checkout at {home}"
+        out.append((
+            "checkout",
+            f"{gate} from a **modified** checkout at {home}: a verdict here is that working "
+            f"tree's — {reads}",
+        ))
     if skewed and plugin is not None:
-        gate += f", and the plugin wired to this project is {plugin}"
+        out.append((
+            "plugin",
+            f"{gate} and the plugin wired to this project is {plugin}: a hook's refusal is "
+            f"that copy's rule — {reads}; `/plugin update` moves the judge",
+        ))
     if split and vendored is not None:
-        gate += f", and the engine vendored here is {vendored}"
+        # Both pens, which is why this row is about the *write* and not about a judge: the
+        # launcher runs the vendored copy and a shell reaches this one, so which rules a line
+        # was written under depends on which door the session came through. Named and never
+        # chosen (RK1468) — re-vendoring is one answer and not reaching past the launcher is
+        # the other, and which is right is the project's call rather than this note's.
+        out.append((
+            "vendored",
+            f"{gate} and the engine vendored here is {vendored}: a line written here was "
+            f"written by whichever answered — {reads}; `install --vendor` re-pins the copy "
+            f"the launcher runs",
+        ))
     if swapped:
-        gate += f", loaded from a directory that states {on_disk} now"
-    means = " and ".join(
-        [
-            *(["a verdict here is that working tree's"] if working else []),
-            *(["a hook's refusal is that copy's rule"] if skewed else []),
-            # Both pens, which is why this clause is about the *write* and not about a judge:
-            # the launcher runs the vendored copy and a shell reaches this one, so which rules
-            # a line was written under depends on which door the session came through.
-            *(["a line written here was written by whichever answered"] if split else []),
-            # The sharpest of the four: not *which* copy judged, but that no copy on disk did.
-            *(["this verdict came from code no disk holds"] if swapped else []),
-        ]
-    )
-    # Named and never chosen (RK1468): re-vendoring is one answer and not reaching past the
-    # launcher is the other, and which is right is the project's call rather than this note's.
-    moves = "; `/plugin update` moves the judge" if skewed else ""
-    if split:
-        moves += "; `install --vendor` re-pins the copy the launcher runs"
-    if swapped:
-        moves += "; a restart is the only thing that reloads a home replaced under a process"
-    return (
-        f"{gate}: {means} — `engines` reads every copy and names the revision each "
-        f"one is at{moves}"
-    )
+        # The sharpest of the four: not *which* copy judged, but that no copy on disk did.
+        out.append((
+            "home",
+            f"{gate}, loaded from a directory that states {on_disk} now: this verdict came "
+            f"from code no disk holds — {reads}; a restart is the only thing that reloads a "
+            f"home replaced under a process",
+        ))
+    return tuple(out)
 
 
 def _repeated(config: Config, files: dict[str, Document]) -> list[Finding]:

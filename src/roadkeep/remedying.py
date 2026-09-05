@@ -1568,10 +1568,14 @@ _TABLE: Mapping[str, _Rule] = {
         "the copy that judged this tree is older than the one `[install] pinned` names, so "
         "a clean verdict here is that copy's; this reads all three and says which answered",
     ),
+    # Filed once **per differing copy** since RK1494, so the row in front of a reader already
+    # names the move that closes it — the tree to look at, `/plugin update`, `install
+    # --vendor`, a restart. What this row owes is what the code means and the read every one
+    # of them shares, because a table keyed by code cannot hold four remedies.
     "engine.disagreement": _read(
         ("engines",),
-        "three copies of this tool can be in play and they may differ; this reads all "
-        "three and names which one refused",
+        "four copies of this tool can be in play and they may differ; one row is filed per "
+        "copy that does, each carrying its own move, and this reads all four",
     ),
     # ------------------------------------------------------------------- the unreadable line
     # The one row that names no verb reaching it, and says so. Every write above starts from

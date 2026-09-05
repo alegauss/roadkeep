@@ -2101,9 +2101,11 @@ class Noted:
 
     #: One row per note this run of the gate emitted, widest first — code and width.
     emitted: tuple[Part, ...] = ()
-    #: `engine.disagreement` composed with every clause true, which is the widest a note here
-    #: can be. Named rather than derived from :attr:`emitted`, which on this project holds none
-    #: of it: what is being priced is the sentence, not the state that happens to be on disk.
+    #: Every `engine.disagreement` row a run can carry at once, summed — the most this gate
+    #: can say beside a verdict. Since RK1494 that is four rows and not one sentence, and the
+    #: total is what a run costs: a reader on a machine where all four are true is handed all
+    #: four. Named rather than derived from :attr:`emitted`, which on this project holds none
+    #: of it: what is being priced is the sentences, not the state that happens to be on disk.
     widest: int = 0
 
     @property
@@ -2115,7 +2117,7 @@ class Noted:
         rows = [
             f"notes      {self.here} {unit} on every run of the gate — a commit through the "
             f"hook, a turn through `Stop` — and no ceiling is declared for it",
-            f"  widest   {self.widest:>6}  `engine.disagreement` with every clause true, "
+            f"  widest   {self.widest:>6}  every `engine.disagreement` row at once, "
             f"which this checkout cannot produce",
         ]
         rows += [
@@ -2154,7 +2156,7 @@ def note_cost(config: Config) -> Noted:
     one a reader here would meet if the four facts were true, rather than one measured against
     invented strings of a different length.
     """
-    from roadkeep.linting import disagreement, lint  # noqa: PLC0415 - RK260
+    from roadkeep.linting import disagreements, lint  # noqa: PLC0415 - RK260
     from roadkeep.provenance import engine  # noqa: PLC0415 - RK260
 
     running = engine()
@@ -2162,10 +2164,14 @@ def note_cost(config: Config) -> Noted:
         (Part(one.code, 1, len(str(one).encode()), width(str(one))) for one in lint(config).notes),
         key=lambda one: -(one.characters or 0),
     )
+    # Summed and not maximised (RK1494): the note is four rows now, and a machine where all
+    # four facts hold is handed all four — so the figure a reader needs is the run's, which is
+    # the total. One `max` here would price the cheapest possible worst case.
     return Noted(
         emitted=tuple(emitted),
-        widest=width(
-            disagreement(
+        widest=sum(
+            width(message)
+            for _, message in disagreements(
                 running.version,
                 running.home.as_posix(),
                 running.version,

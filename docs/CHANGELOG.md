@@ -671,6 +671,7 @@
 - ✅ **RK1488** **a ship deletes the clause that answered a constraint and says nothing, so the answer ages out unremarked** — ship, retire and close now name the constraint whose answer went with the design they deleted.
 - ✅ **RK1489** **the pair sweep reads a flag as swallowed where its fixture cannot hold the state the flag is about** — the pairs fixture is a repository with a shipped section, and what it still cannot reach is named — which found origin --why --json swallowed.
 - ✅ **RK1491** **the note a wired project reads on every turn is 475 characters at full length and no cadence prices it** — cost --notes prices the sixth cadence: 282 per run here, 643 for the widest note composed, and no ceiling — small beside every other cadence.
+- ✅ **RK1494** **one gate code now carries four causes with four remedies, so explain can only describe their union** — engine.disagreement files one row per differing copy, each carrying the move that closes it: 893 units against 643 joined, which RK1491 made readable.
 
 ## Block E — Adoption
 

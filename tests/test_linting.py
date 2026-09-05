@@ -766,6 +766,17 @@ def test_the_same_label_in_two_files_is_the_normal_state(tmp_path):
 # -- the pen and the judge, where they are two versions (RK415) --------------
 
 
+def _engine_notes(report) -> list:
+    """The rows this gate files about the copies in play — one per copy since RK1494.
+
+    A helper because the selection is now by **subject**: four causes wore one code and were
+    joined with `and`, so a test asserting on `note.message` was asserting on whatever else
+    happened to be true at the same time. This suite runs from a checkout that is modified
+    more often than not, which is exactly one of those clauses.
+    """
+    return [one for one in report.notes if one.code == "engine.disagreement"]
+
+
 def test_a_plugin_older_than_the_gate_is_a_note_and_not_a_finding(tmp_path, monkeypatch):
     import sys
 
@@ -780,7 +791,9 @@ def test_a_plugin_older_than_the_gate_is_a_note_and_not_a_finding(tmp_path, monk
     # A cache lagging a checkout is allowed; what is not survivable is not being told (RK79),
     # so the exit code does not move and the sentence is said once per commit.
     assert report.clean
-    (note,) = [n for n in report.notes if n.code == "engine.disagreement"]
+    # By subject since RK1494: this suite runs from a checkout that is modified more often
+    # than not, so the *plugin* row is what this test is about and the tree's is its own row.
+    (note,) = [n for n in _engine_notes(report) if n.subject == "plugin"]
     assert "the plugin wired to this project is 0.1.285" in note.message
 
 
@@ -801,12 +814,12 @@ def test_the_gate_names_the_vendored_copy_the_launcher_runs(tmp_path):
     home.mkdir(parents=True)
     (home / "__init__.py").write_text('__version__ = "0.1.1269"\n', encoding="utf-8")
 
-    (note,) = [
-        n for n in lint(config).notes if n.code == "engine.disagreement"
-    ]
+    (note,) = [n for n in _engine_notes(lint(config)) if n.subject == "vendored"]
     assert "the engine vendored here is 0.1.1269" in note.message
     assert "written by whichever answered" in note.message
-    # Named and never chosen: both are pens, so the note offers the re-pin and stops there.
+    # Named and never chosen: both are pens, so the row offers the re-pin and stops there.
+    # Its **own** row since RK1494, which is what makes this assertion mean anything: before
+    # the split, `/plugin update` being absent was a fact about the fixture's plugin.
     assert "install --vendor" in note.message
     assert "/plugin update" not in note.message
 
@@ -831,7 +844,7 @@ def test_the_gate_says_a_verdict_came_from_code_no_disk_holds(tmp_path, monkeypa
         "roadkeep.installing.engines", lambda root=".": Engines(running=running)
     )
 
-    (note,) = [n for n in lint(config).notes if n.code == "engine.disagreement"]
+    (note,) = [n for n in _engine_notes(lint(config)) if n.subject == "home"]
     assert "loaded from a directory that states" in note.message
     assert "no disk holds" in note.message
     assert "a restart is the only thing" in note.message
@@ -873,9 +886,10 @@ def test_a_gate_that_is_somebody_s_working_tree_says_so_with_no_plugin_wired(tmp
     report = lint(config)
     # This suite runs from a checkout, and one under test is modified more often than not —
     # so the assertion is on the shape of the answer for whichever state it is in.
-    notes = [n for n in report.notes if n.code == "engine.disagreement"]
+    notes = _engine_notes(report)
     if engine().modified:
         (note,) = notes
+        assert note.subject == "checkout"
         assert "**modified** checkout" in note.message
         assert "that working tree's" in note.message
         # And never a `/plugin update`, which moves a judge that is not what is wrong here.
@@ -884,6 +898,48 @@ def test_a_gate_that_is_somebody_s_working_tree_says_so_with_no_plugin_wired(tmp
         assert notes == [], "a clean engine and no plugin is nothing to report"
     # A note either way: a working tree is allowed to be broken, and being told is the fix.
     assert report.clean
+
+
+def test_each_copy_that_differs_gets_a_row_carrying_only_its_own_move(tmp_path):
+    """RK1494. Four causes wore one code joined by `and`, so the gate had one row for four
+    states with four remedies — look at the tree, `/plugin update`, `install --vendor`,
+    restart — and `explain` could only describe their union. Every other multi-cause family
+    here is split so each names its own door.
+
+    One code with a subject and not four codes: two of these are true at once often enough
+    that four codes would be four unrelated rows about one question."""
+    from roadkeep.linting import disagreements
+
+    rows = dict(
+        disagreements(
+            "1.0.0", "/tree", "2.0.0", "3.0.0", "4.0.0",
+            working=True, skewed=True, split=True, swapped=True,
+        )
+    )
+    assert list(rows) == ["checkout", "plugin", "vendored", "home"]
+    # Each row carries the move that closes it and nobody else's, which is the whole finding.
+    assert "/plugin update" in rows["plugin"]
+    assert "install --vendor" in rows["vendored"]
+    assert "a restart is the only thing" in rows["home"]
+    for subject, move in (("checkout", "/plugin update"), ("plugin", "install --vendor")):
+        assert move not in rows[subject], (subject, move)
+    # And every row states what this gate is: a row saying the plugin is at 2.0.0 without the
+    # number it differs from is a fact with nothing to compare.
+    assert all("this gate is 1.0.0" in one for one in rows.values())
+
+
+def test_a_fact_that_is_false_files_no_row_at_all(tmp_path):
+    # The other half of the split: a clause that used to be absent from one sentence is now an
+    # absent row, so a project quieting the copy it has decided about silences nothing else.
+    from roadkeep.linting import disagreements
+
+    rows = dict(
+        disagreements(
+            "1.0.0", "/tree", None, None, "1.0.0",
+            working=True, skewed=False, split=False, swapped=False,
+        )
+    )
+    assert list(rows) == ["checkout"]
 
 
 def test_a_project_that_wired_nothing_is_running_a_copy_it_chose(tmp_path):

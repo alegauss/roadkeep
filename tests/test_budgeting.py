@@ -1666,11 +1666,11 @@ def test_the_note_is_measured_off_the_composer_and_not_a_fixture(tmp_path):
     somebody edits a clause."""
     from roadkeep.budgeting import note_cost
     from roadkeep.kernel.schema import width
-    from roadkeep.linting import disagreement
+    from roadkeep.linting import disagreements
     from roadkeep.provenance import engine
 
     running = engine()
-    composed = disagreement(
+    composed = disagreements(
         running.version,
         running.home.as_posix(),
         running.version,
@@ -1681,33 +1681,40 @@ def test_the_note_is_measured_off_the_composer_and_not_a_fixture(tmp_path):
         split=True,
         swapped=True,
     )
-    assert note_cost(Config.discover(tmp_path)).widest == width(composed)
-    # Every clause is in it, which is what "full length" means: four facts, four readings.
+    # Summed and not maximised (RK1494): the note is four rows, and a machine where all four
+    # facts hold is handed all four — so the figure a reader needs is what the run costs.
+    assert note_cost(Config.discover(tmp_path)).widest == sum(
+        width(message) for _, message in composed
+    )
+    # Every reading is in it, which is what "at once" means: four facts, four rows.
+    said = " ".join(message for _, message in composed)
     for clause in (
         "a verdict here is that working tree's",
         "a hook's refusal is that copy's rule",
         "a line written here was written by whichever answered",
         "this verdict came from code no disk holds",
     ):
-        assert clause in composed
+        assert clause in said
 
 
 def test_the_gate_and_the_reader_compose_one_sentence(tmp_path):
-    """One composer and two readers, which is why it was lifted: the note the gate emits and
-    the figure `cost` publishes cannot come to disagree about what the sentence is."""
-    from roadkeep.linting import disagreement
+    """One composer and two readers, which is why it was lifted: the rows the gate emits and
+    the figure `cost` publishes cannot come to disagree about what they are."""
+    from roadkeep.linting import disagreements
 
     # The gate's own path, with one fact true: the same function, so a clause reworded moves
     # both. Asserted through the shape rather than through a state this fixture cannot hold.
-    one = disagreement(
+    ((subject, one),) = disagreements(
         "1.0.0", "/tree", None, None, "1.0.0",
         working=True, skewed=False, split=False, swapped=False,
     )
+    assert subject == "checkout"
     assert "a **modified** checkout at /tree" in one
     assert "/plugin update" not in one
-    # And a clause that is false contributes nothing, which is what makes the widest the widest.
-    assert len(one) < len(
-        disagreement(
+    # And a fact that is false files no row, which is what makes the total the total.
+    assert len(one) < sum(
+        len(message)
+        for _, message in disagreements(
             "1.0.0", "/tree", "2.0.0", "3.0.0", "4.0.0",
             working=True, skewed=True, split=True, swapped=True,
         )
