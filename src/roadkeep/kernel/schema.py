@@ -719,6 +719,16 @@ class Violation:
     code: str
     field: str
     message: str
+    #: Which ceiling refused this, where a field has two (RK1503). `"line"` means the number
+    #: quoted is the line's remainder and not a key any config declares — derived per line from
+    #: the symptom's width and whatever structure the line carries — and `"field"` means the
+    #: field's own maximum. `""` everywhere else, which is every rule that is not a length.
+    #:
+    #: A field and not a sentence, because three readers need it and each says it differently:
+    #: the write path reframes the refusal, the gate's remedy table decides which door closes
+    #: it, and a caller over the protocol branches. RK1480 reframed one case by inspection and
+    #: the other doors adding structure to a line — `--requires`, `--ref` — reframe nothing.
+    bound: str = ""
 
     def __str__(self) -> str:
         return f"{self.field}: {self.message} [{self.code}]"
@@ -1891,13 +1901,27 @@ class Schema:
         measured = authored_why(task.why) if self.is_deferred else task.why
         budget = self.why_budget(task)
         because = ""
+        bound = ""
         if budget < self.why_max:
             # Said only where the two differ, and then it is the whole explanation: the
             # number the author was given is not the number that refused them, and which
             # line they are writing is why (RK183).
             taken = width(task.symptom) if self.symptom_field else 0
+            # **And which of the two ceilings that is** (RK1503). The number quoted here is
+            # derived per line and no `[limits]` key holds it, so a reader shortening the
+            # sentence is obeying a limit that is not in the file — measured, on an author who
+            # did exactly that after a dep widened the annotation. Where the sentence is inside
+            # the field's own maximum the honest answer is that the *line* is full, and the
+            # edit that works is the structure around the prose.
+            bound = "line" if width(measured) <= self.why_max else "field"
+            inside = (
+                f" — the field's own limit of {self.why_max} is not what refused this: the "
+                f"sentence is inside it and the line is full"
+                if bound == "line"
+                else f" — over the field's own limit of {self.why_max} as well"
+            )
             because = (
-                f" (the line's own limit of {self.line_max} leaves "
+                f"{inside} (the line's own limit of {self.line_max} leaves "
                 f"{self.prose_budget(task)} for prose, and the symptom takes {taken})"
             )
         out = self._check_text(
@@ -1905,8 +1929,13 @@ class Schema:
             task.why,
             budget,
             because,
-            source=self.source_of("why_max"),
+            # The key the number actually came from (RK1067, RK1503). Citing `[limits].why`
+            # beside a figure it did not produce is the defect one clause over: an author
+            # opening that key finds a number that is not the one they were refused by, and
+            # the key that would move this one is the line's.
+            source=self.source_of("line_max" if bound else "why_max"),
             charged=measured,
+            bound=bound,
         )
         why = measured.strip()
         if why and self.terminator and not why.endswith(_TERMINATORS):
@@ -1988,8 +2017,15 @@ class Schema:
         because: str = "",
         source: str = "",
         charged: str | None = None,
+        bound: str = "",
     ) -> list[Violation]:
         """The checks that apply to both prose fields, including round-trip safety.
+
+        ``bound`` is which of two ceilings ``limit`` is, where a field has two (RK1503): the
+        caller knows, because only they folded the line's remainder into the field's own
+        maximum. It reaches :attr:`Violation.bound` and nothing else here reads it — the
+        message is composed by the caller's ``because``, and this carries the fact so a reader
+        that is not a terminal can act on it.
 
         ``source`` is which declaration set `limit`, passed by the caller for the reason
         :func:`over_by` takes one (RK1067): this method is handed a number and only the
@@ -2059,6 +2095,7 @@ class Schema:
                         source=source,
                     )
                     + ELSEWHERE,
+                    bound=bound,
                 )
             )
         return out

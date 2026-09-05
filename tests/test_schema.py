@@ -992,3 +992,60 @@ def _message(code, **fields):
     return next(
         v.message for v in SCHEMA.validate(_task(**fields)) if v.code == code
     )
+
+
+# -- which of the two ceilings refused a field (RK1503) ------------------------
+
+
+def test_a_field_the_line_binds_says_the_field_is_not_what_refused_it():
+    """RK1503. Where the line binds, `why_budget` folds the line's remainder into the field's
+    own ceiling and the refusal quotes the result: `limit is 162`, with no `[limits]` key
+    holding 162. The number is derived per line from the symptom's width and whatever the line
+    carries, and the door it named was the `why` — so the measured author shortened a sentence
+    that was already inside its limit, after a dep had widened the annotation."""
+    over = task(symptom="x" * 120, why="y " * 99 + "z.")
+    (violation,) = SCHEMA.validate(over)
+    assert violation.bound == "line"
+    assert f"the field's own limit of {SCHEMA.why_max} is not what refused" in violation.message
+    assert "the line is full" in violation.message
+
+
+def test_a_field_over_its_own_limit_says_that_instead():
+    # The other side of the same branch: a sentence past both is past its own field's number
+    # too, and telling that author the line is full would be the reframing arriving where it
+    # is false. The flag says which, so a reader that is not a terminal can act on it.
+    over = task(symptom="x" * 120, why="y " * (SCHEMA.why_max // 2 + 20) + "z.")
+    violations = [one for one in SCHEMA.validate(over) if one.code == "why.too-long"]
+    (violation,) = violations
+    assert violation.bound == "field"
+    assert f"over the field's own limit of {SCHEMA.why_max} as well" in violation.message
+
+
+def test_a_field_its_own_limit_bounds_carries_no_flag():
+    # `""` is every rule that is not a length, and every length with one ceiling: a field on a
+    # line with room to spare is refused by its own number, and there is nothing to disambiguate.
+    over = task(symptom="x" * 10, why="y " * 200 + "z.")
+    (violation,) = [one for one in SCHEMA.validate(over) if one.code == "why.too-long"]
+    assert violation.bound == ""
+
+
+def test_the_citation_names_the_key_the_number_came_from(tmp_path):
+    """RK1067's rule, kept where the number is derived: an author sent to `[limits].why` finds
+    a figure that is not the one that refused them. Where the line binds, the key that would
+    move it is the line's — so that is the one cited.
+
+    Through a declared config, because a citation is what a *project* recorded: a bare schema
+    answers "this tool's default", which is the honest answer there and not this claim."""
+    from roadkeep.config import Config
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\n'
+        "[limits]\nline = 320\nsymptom = 120\nwhy = 200\n",
+        encoding="utf-8",
+    )
+    schema = Config.discover(tmp_path).schema
+    over = task(symptom="x" * 120, why="y " * 99 + "z.")
+    (violation,) = [one for one in schema.validate(over) if one.code == "why.too-long"]
+    assert violation.bound == "line"
+    assert "[limits].line" in violation.message
+    assert "[limits].why)" not in violation.message
