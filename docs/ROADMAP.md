@@ -62,6 +62,7 @@
 - 💭 **RK1536** (deps: —) **a decision can only be filed by a departure, so the moment its answer is lost is the moment nothing can be done** — RK1501 had to say it in brief because --decides is a flag on the ship, and the ledger has record add for exactly the route the decisions role lacks. → §RK1536
 - 💭 **RK1537** (deps: —) **a pause is not held to the why limit a project declared, and nothing at the number says so** — RK1502's sweep read that as the defect RK1479 repaired, because a field nothing measures and one measured against another key look the same from outside. → §RK1537
 - 💭 **RK1538** (deps: —) **the flag saying which ceiling refused a field reaches neither the remedy table nor a payload** — RK1503 made the fact structural for three readers and only the write path uses it, so the other two still match on prose. → §RK1538
+- 💭 **RK1539** (deps: —) **the comment explaining the respelling guard names a verb this CLI does not have** — RK1504's enumeration found one collision where two were described, both examples having been written from the tool table and neither checked against the parser. → §RK1539
 
 ## Block E — Adoption
 
