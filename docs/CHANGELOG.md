@@ -943,6 +943,7 @@
 - ✅ **RK1485** **the record that stops a downgrade arrives on the write it guards, so an already-wired project is unprotected until then** — install --check names the absent record and the gate says the direction is unestablished, so a project wired before RK1462 is told rather than guessed about.
 - ✅ **RK1487** **a vendor that lands and then fails to wire leaves a copy nothing points at, and no refusal says it is there** — install now says what landed when a vendor copies an engine and the surfaces then refuse.
 - ✅ **RK1492** **the invoke line finds the program by a .py suffix, which is a guess about a file this tool merges into** — the declaration reader recognises the launcher this command writes, and answers nothing where it finds neither spelling.
+- ✅ **RK1493** **the served notes are four kinds keyed by string literals invented at each call site, and nothing enumerates them** — serving.NOTES declares every note kind with the rule it is under, held total against the literals the module passes.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

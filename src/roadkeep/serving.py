@@ -2673,11 +2673,65 @@ def _answered(
     )
 
 
+@dataclass(frozen=True, slots=True)
+class Kind:
+    """One note this server adds beside an answer, and whether it repeats (RK1493).
+
+    The kinds were four string literals invented at the call sites that pass them, and which
+    of them is once-per-process was written as the *absence* of a call: RK1443 argued the rule
+    and RK267 argued the exception, and both arguments lived in the docstring of whichever
+    branch happened to make it. So the population was whatever the code did — a fifth kind
+    arrives as one more literal nothing checks, and two spellings of one key are a note said
+    twice with nothing anywhere to disagree with.
+
+    `composing.SITES`' shape, which this suite already keeps twice: a declared row per kind
+    with the sentence saying why, held total against what the module actually passes.
+    """
+
+    name: str
+    #: Whether it is said at most once per process. `False` is a decision and not a default,
+    #: which is why it is a field: a note that repeats has a reason to.
+    once: bool
+    why: str
+
+
+#: Every note this module adds, and the rule each is under (RK1493).
+NOTES: tuple[Kind, ...] = (
+    Kind(
+        "swapped",
+        True,
+        "the home this process imported is gone from disk, which is a fact about the process "
+        "and does not become more true on the fourth call — and the remedy is a restart, so "
+        "repeating it is asking again for the one thing the reader already declined (RK1470)",
+    ),
+    Kind(
+        "landed",
+        True,
+        "the same paragraph on every write of a batch is how advice becomes text a reader "
+        "skips, including on the write where a stale validator mattered (RK1443)",
+    ),
+    Kind(
+        "inventory",
+        True,
+        "a refusal this process never witnessed gets the full list, which is the same "
+        "paragraph on every such refusal and unread by the third (RK155, RK1443)",
+    ),
+    Kind(
+        "witnessed",
+        False,
+        "per-call by construction: it names which modules decided *that* refusal, and a rule "
+        "about repetition is not a reason to withhold information about the call in hand "
+        "(RK267) — so it makes no `_said_once` call, which is what `once` False means here",
+    ),
+)
+
+#: The names under the once-per-process rule, derived from the table so the guard below and
+#: the sentences above cannot come apart.
+_ONCE = frozenset(one.name for one in NOTES if one.once)
+
 #: Which of the process-scoped notes this process has already said (RK1443). Module state,
 #: because the unit the fact is about is the server process and nothing smaller has one —
-#: a request is not the thing that imported stale code. The **witnessed** refusal note is
-#: deliberately not in here: that one names which modules decided *that* refusal, which is
-#: per-call information, and a rule about repetition is not a reason to withhold it.
+#: a request is not the thing that imported stale code.
 _SAID: set[str] = set()
 
 
@@ -2687,7 +2741,18 @@ def _said_once(kind: str) -> bool:
     A predicate with a side effect, which is what "once" is. Cleared by nothing at runtime:
     a process that has said it has said it, and a second server is a second process. Tests
     reach `_SAID` directly, that being the only reader for which the state is not a fact.
+
+    **Refused on a kind :data:`NOTES` does not declare** (RK1493). An undeclared literal is
+    never a fifth note somebody meant to add quietly — it is a typo, and the failure it
+    produces is a note under no rule at all: said once under a key nothing else uses, while
+    the kind it was meant to be goes on repeating. A `KeyError` here is that, at the one
+    moment it is still cheap.
     """
+    if kind not in _ONCE:
+        raise KeyError(
+            f"{kind!r} is not a once-per-process note: `serving.NOTES` declares "
+            f"{', '.join(sorted(_ONCE))}, and a kind that repeats makes no call at all"
+        )
     if kind in _SAID:
         return False
     _SAID.add(kind)

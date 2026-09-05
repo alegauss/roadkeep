@@ -2183,6 +2183,49 @@ def test_the_refusal_that_names_what_decided_it_is_said_every_time(tmp_path, mon
         assert DECIDES in said, said
 
 
+def test_every_kind_the_module_passes_is_declared_with_a_reason():
+    """RK1493. The kinds were four string literals invented at the call sites that pass them,
+    and which of them repeats was written as the *absence* of a call — so the population was
+    whatever the code did, and a fifth arrives as one more literal nothing checks.
+
+    Total against the source, which is `composing.SITES`' shape: a kind added tomorrow is a
+    red here until somebody says which rule it is under."""
+    import ast
+    from pathlib import Path as _Path
+
+    from roadkeep.serving import NOTES, _ONCE
+
+    source = _Path(serving.__file__).read_text(encoding="utf-8")
+    passed = {
+        node.args[0].value
+        for node in ast.walk(ast.parse(source))
+        if isinstance(node, ast.Call)
+        and getattr(node.func, "id", "") == "_said_once"
+        and node.args
+        and isinstance(node.args[0], ast.Constant)
+    }
+    assert passed == set(_ONCE), {
+        "passed, undeclared": sorted(passed - set(_ONCE)),
+        "declared, never passed": sorted(set(_ONCE) - passed),
+    }
+    # Every row says why, including the one whose rule is that it has none: `once` False is a
+    # decision and a table where it read as a default would hide which.
+    assert all(one.why for one in NOTES), [one.name for one in NOTES if not one.why]
+    repeats = [one.name for one in NOTES if not one.once]
+    assert repeats, "if this empties, the field that carries the exception should go too"
+
+
+def test_a_kind_nobody_declared_is_refused_rather_than_given_a_rule_of_its_own():
+    """The failure the table exists to catch: a mistyped literal is said once under a key
+    nothing else uses, while the kind it was meant to be goes on repeating — and nothing
+    anywhere disagrees with it."""
+    from roadkeep.serving import _said_once
+
+    with pytest.raises(KeyError) as refused:
+        _said_once("landeed")
+    assert "serving.NOTES" in str(refused.value)
+
+
 def test_the_note_follows_the_act_and_not_the_verb_it_is_spelled_from(tmp_path, monkeypatch):
     """Off the same derived hint `tools/list` publishes as `readOnlyHint` (RK168), so a tool a
     client was told is free to ask is one this stays silent about — one answer, two readers.
