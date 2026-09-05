@@ -18,6 +18,7 @@
 
   "char.bom": "Almost always an editor on Windows that saved the file as \"UTF-8 with BOM\", or a script that wrote it with Python's `utf-8-sig`. Nothing renders differently, which is why it survives review.",
   "char.invisible": "Usually text pasted out of a browser, a chat client or a PDF, which carry zero-width joiners and variation selectors that no editor shows. The line looks correct because it is correct on screen.",
+  "char.mangled": "A file read as Latin-1 or cp1252 and written back as UTF-8: the accented letter that went in comes out as two, and every reader after copies the pair forward. Usually a paste out of a terminal, an editor with the wrong default, or a script that opened the file without naming an encoding.",
   "char.mixed-endings": "A file edited on two machines with different `core.autocrlf` settings, or a script that rewrote the whole file with Python's `write_text` — which normalises every line ending, not just the ones it touched.",
   "char.space": "A non-breaking space, typically from a word processor or a chat client's autocorrect. The grammar reads the fields either side of it as one word, so the line stops parsing for a reason nothing on screen shows.",
   "char.tab": "An editor configured to indent with tabs, in a format that separates fields with a single space.",

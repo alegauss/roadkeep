@@ -525,3 +525,66 @@ def test_the_lookalikes_a_design_has_to_quote_are_still_prose(tmp_path):
     # has a `ref.missing` of its own to report, and the question here is only whether the
     # character pass reached prose it was argued out of reaching.
     assert b"char." not in cli(root, "lint").stdout
+
+
+# -- the bytes a wrong decode leaves (RK1497) ---------------------------------
+
+
+def test_a_field_carrying_bytes_read_through_the_wrong_codec_is_refused(tmp_path):
+    """RK1497. RK1474 built the respelling door a mangled ledger line needs and nothing
+    stopped the mangling. The gate already refuses an invisible codepoint on the argument that
+    a character a reader cannot see is one no author meant; this is that argument with the
+    character visible and meaningless."""
+    root = project(tmp_path)
+    done = cli(
+        root, "add", "--block", "A",
+        "--symptom", "Menu do site novo Ã© semeado",
+        "--why", "Because of a reason.",
+    )
+    assert done.returncode != 0
+    assert b"char.mangled" in done.stderr
+    # The refusal names what the bytes *were*, which is what tells a reader it is a decode and
+    # not a spelling they chose — printed as UTF-8 whatever the terminal declared.
+    assert "é".encode() in done.stderr
+
+
+def test_the_same_bytes_already_in_a_line_are_named_by_the_gate(tmp_path):
+    # Both surfaces, one function: the rule reads a field, so a file that already carries the
+    # bytes is reported rather than being a state only a write could have prevented.
+    root = project(tmp_path)
+    roadmap = root / "ROADMAP.md"
+    roadmap.write_bytes(
+        roadmap.read_bytes().replace(
+            "A symptom".encode(), "Menu do site novo Ã© semeado".encode()
+        )
+    )
+    assert b"char.mangled" in cli(root, "lint").stdout
+
+
+def test_the_design_that_quotes_the_mangling_is_prose_and_not_a_finding(tmp_path):
+    """The boundary, and the whole of what the measurement decided. Over the prose of three
+    real corpora the signature fires 18 times and every one is a false positive — this
+    repository's own design quoting the examples, and Shio's `×–`, a multiplication sign and
+    an en dash that round-trips to a Hebrew letter. Over the *fields* of the same three, 3,962
+    symptoms and whys, it fires zero times. So an author writing about mojibake has somewhere
+    to put the example, and it is the place §RK1497 already put it."""
+    root = project(tmp_path)
+    prose = root / "IMPROVEMENTS.md"
+    prose.write_bytes(
+        prose.read_bytes()
+        + (
+            "\n### §RK1 A design\n\nA rationale quoting Ã© and â€™ "
+            "as what a wrong decode leaves.\n"
+        ).encode()
+    )
+    assert b"char.mangled" not in cli(root, "lint").stdout
+
+
+def test_a_single_upper_latin_character_is_ordinary_text(tmp_path):
+    # The pair is the signature and one alone is a word: a symptom in Portuguese, or one
+    # naming a resolution, is text somebody typed and the round trip is what separates them.
+    from roadkeep.kernel.schema import mangled_runs
+
+    assert mangled_runs("Menu do site novo é semeado") == []
+    assert mangled_runs("1024 × 768 – a legitimate sentence") == []
+    assert [run for run, _ in mangled_runs("Menu Ã© semeado")] == ["Ã©"]

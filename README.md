@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 230 | 2 |
 | C — Query (consult without reading the file) | 8 | 158 | 4 |
-| D — The gate | 20 | 214 | 2 |
+| D — The gate | 19 | 215 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 147 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 33 | 980 | 14 |
+| **Total** | 32 | 981 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1497** (deps: —) **nothing catches the bytes a wrong decode leaves, so mojibake reaches a permanent file and a correction is what cleans it** — RK1474 built the correction and the gate already refuses an invisible codepoint on the same argument, which is a character no author meant. → §RK1497
+- 💭 **RK1498** (deps: —) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — RK1475 published a door that would have refused, and what catches that is running the sites test_composing enumerates and calls unreached. → §RK1498
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

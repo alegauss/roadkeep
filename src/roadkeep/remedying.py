@@ -630,6 +630,21 @@ _TABLE: Mapping[str, _Rule] = {
         "control character — so every other diagnosis of the line names a consequence",
         "the codepoint is deleted wherever it sits, inside a line no parse reaches",
     ),
+    # Not `--fix`'s, and that is the decision rather than a gap (RK1497). The bytes decode to
+    # something, so a repair is *writable* — and writing it would put words in a line nobody
+    # typed, which is the one thing a fixer of derived data may not do (RK16, L4). What the
+    # author has to say is what they meant; the tool can only say the field arrived wrong.
+    # Two doors because the code names two fields, and they are two acts: a symptom is the
+    # claim the line is, so its respelling goes through the verb RK1474 built for exactly
+    # this — `--typo`, a slip of the pen rather than a false premise — and a `why` is
+    # `amend`'s as every other correction to it is.
+    "char.mangled": _decide(
+        "a run of bytes that were UTF-8 read through another codec, so the field carries "
+        "characters nobody chose. Retype the field; an example of the mangling belongs in "
+        "the design section, which is prose this rule does not read:",
+        (("restate", "{id}", "--symptom", "…", "--typo"), "where the symptom is what arrived wrong"),
+        (("amend", "{id}", "--why", "…"), "where the why is"),
+    ),
     # Not the character pass's: it works on the body and puts the ending back exactly as it
     # was read, deliberately, so a fixer for this would be the pass that joins the file.
     "char.mixed-endings": _compose(

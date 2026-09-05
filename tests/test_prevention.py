@@ -160,6 +160,14 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("char.tab", "refused", _add("--symptom", SYMPTOM, "--why", "Because\tof it.")),
     Prevented("char.invisible", "refused", _add("--symptom", SYMPTOM, "--why", "Because​of it.")),
     Prevented("char.space", "refused", _add("--symptom", SYMPTOM, "--why", "Because of it.")),
+    # Closed by RK1497, and measured before it was written: over the fields of three real
+    # corpora the signature fires zero times, which is what puts it at the door rather than
+    # leaving it a note somebody may ignore.
+    Prevented(
+        "char.mangled",
+        "refused",
+        _add("--symptom", SYMPTOM, "--why", "Because a menu Ã© semeado."),
+    ),
     # Closed by RK500, the pair a write can decide about the backlog in front of it.
     Prevented("deps.unknown", "refused", _add("--dep", "RK999", "--symptom", SYMPTOM, "--why", WHY)),
     Prevented("deps.cycle", "refused", _add("--dep", "Block A", "--symptom", SYMPTOM, "--why", WHY)),

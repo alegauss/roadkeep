@@ -2045,6 +2045,7 @@ class Schema:
                 )
             )
         out += _codepoints(field, value)
+        out += _mangled(field, value)
         if width(measured) > limit:
             out.append(
                 Violation(
@@ -2104,6 +2105,75 @@ def _codepoints(field: str, value: str) -> list[Violation]:
                 field,
                 f"{_named_codepoint(char)} at position {at + 1}: {because} — pass the "
                 f"field on stdin with `-`, where nothing rewrites it",
+            )
+        ]
+    return []
+
+
+#: The characters a UTF-8 byte lands on when it is read through cp1252 — Latin-1's upper half
+#: plus the codepoints cp1252 puts in 0x80–0x9F. Built from the codec rather than typed, so
+#: nothing is left out by hand and a smart quote's mangling is covered with an accent's.
+_THROUGH_CP1252 = "".join(
+    bytes([point]).decode("cp1252", errors="ignore") for point in range(0x80, 0x100)
+)
+#: Two or more of them in a row, which is what a multi-byte character becomes. One alone is
+#: ordinary text — `é`, `×`, `—` — and the pair is the signature.
+_MANGLED_RUN = re.compile(f"[{re.escape(_THROUGH_CP1252)}]{{2,}}")
+
+
+def mangled_runs(value: str) -> list[tuple[str, str]]:
+    """Runs that were UTF-8 bytes read as another page, with what they were (RK1497).
+
+    A **round trip** and never a table of literals: the run is re-encoded through cp1252 and
+    decoded as UTF-8, and it is a finding only where that succeeds and yields something outside
+    ASCII. So `Ã©` is caught because it *is* `é`, and a pattern list nobody maintains is not
+    what decides — which is the difference between this and the `Ã` scan the design rejected.
+
+    Public because the gate asks it too: `add` refuses a field carrying one and `lint` names a
+    line whose field does, and the two may not come to disagree about what the signature is.
+    """
+    out: list[tuple[str, str]] = []
+    for run in _MANGLED_RUN.findall(value):
+        try:
+            back = run.encode("cp1252").decode("utf-8")
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            continue
+        if any(ord(one) > 127 for one in back):
+            out.append((run, back))
+    return out
+
+
+def _mangled(field: str, value: str) -> list[Violation]:
+    """Bytes that arrived through the wrong codec, refused at the door (RK1497).
+
+    RK1474 built the respelling door a mangled ledger line needs and nothing stopped the
+    mangling. The gate already refuses an invisible codepoint on the argument that a character
+    a reader cannot see is one no author meant; this is that argument with the character
+    visible and meaningless.
+
+    **Measured before it was written**, which is what the design asked for. Over the prose of
+    three real corpora the signature fires 18 times and every one is a false positive: this
+    repository's own §RK1497 quoting the examples, and Shio's `×–` — a multiplication sign and
+    an en dash, which round-trips to a Hebrew letter and is a legitimate sentence. Over the
+    **fields** of the same three — 3,962 symptoms and whys — it fires **zero** times.
+
+    So the rule is a field's and never a body's, and that boundary is the whole answer to the
+    design's open question. An author writing *about* mojibake has somewhere to put the
+    example already: §RK1497 quotes both of these in a section body, which this does not read.
+    No flag steps over it, because there is nothing to step over.
+
+    The **first** run only, for :func:`_codepoints`' reason: one mis-decoded paste carries
+    several and the first already sends the reader to the cause.
+    """
+    for run, back in mangled_runs(value):
+        return [
+            Violation(
+                "char.mangled",
+                field,
+                f"{run!r} at position {value.index(run) + 1} is {back!r} read through the "
+                f"wrong codec: bytes that arrived wrong rather than words somebody chose — "
+                f"retype the field, or put the example in the design section, which is prose "
+                f"this does not read",
             )
         ]
     return []

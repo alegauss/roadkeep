@@ -98,6 +98,10 @@ BACKSTOP: tuple[Backstopped, ...] = (
         "char.tab",
         "char.space",
         "char.invisible",
+        # RK1497. The door refuses it and the gate names the same line: the rule reads a
+        # *field*, so both surfaces ask one function and a file already carrying the bytes is
+        # reported rather than being a state only a write could have prevented.
+        "char.mangled",
         "deps.compound",
         "deps.duplicate",
         "deps.format",
