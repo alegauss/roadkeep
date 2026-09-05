@@ -654,6 +654,56 @@ written. The one question is the seam — `drop` takes a `Document` and not a `C
 purpose, so the leads arrive the way `claimed` and `where` do, passed in by the verb
 holding both.
 
+### §RK1517 The flag the transport makes inert
+
+`serving` appends `--json` to every call it makes, so a flag whose whole effect is on
+the terminal rendering shapes nothing over this transport. `origin --why` was one: the
+payload carries each commit's `reasoning` either way, and an agent setting the flag read
+an unchanged answer as the one it had asked for. RK1489 found it by accident — the pair
+sweep could see it only once its fixture had a git history to resolve against.
+
+Eighteen boolean flags are served today and nothing asks this of them. The pair sweep is
+the closest thing and not close: it runs `reads_only` verbs, so the four on writes are
+out by construction, and three more sit in `_UNMEASURED`. What it does cover it covers
+by comparing `X --json` against `--json` — the right reading, aimed at the wrong
+population.
+
+The read that would answer it is one call per served boolean: run the tool's own argv
+with the flag and without, and a payload identical both ways is a flag this surface
+cannot honour. Cheap, total, and it says which of the three things is true — the flag
+shapes the payload, the payload already carries what it composes, or it belongs in
+`withheld`.
+
+The value flags are the harder half and probably not this task's: 122 of them, most
+narrowing a listing, and "identical payload" is the right signature for a boolean and a
+weak one for a value that may legitimately match the default.
+
+### §RK1518 The refusal a declaration was built to replace
+
+RK489 replaced twenty-five hand-written lines inside `budget` with a declaration every
+verb makes at `add_parser`, so one dispatcher refuses two answers before a handler runs.
+`adopt` kept its own: `--ledger and --sections measure different units` is raised from
+inside `adopting.adopt`, six hundred lines past the parser and after the file has been
+located.
+
+The refusal is right and its sentence is better than a generic one. What it costs is
+that nothing else knows. `_one_answer` lets the pair through and `separated()` reports
+the two as compatible — which is how RK1489 met it, as a row in `_UNMEASURED` saying a
+correct exit came from somewhere the sweep cannot read. The served surface is the
+sharper half: over MCP the pair is discoverable only by making the call and reading the
+error.
+
+The estimator makes it concrete. `_widened` retries the other role when nothing was
+asked, and its own comment says "tried separately because the two flags are refused
+together, and the estimator is what declines the pair" — a function reasoning about a
+rule enforced two files away, which is the coupling the declaration exists to remove.
+
+What closes it is `answers(adopt_parser, ("ledger", …), ("sections", …))` and deleting
+the raise, with the sentence moved into the group's `what` so nothing is lost. The one
+thing to check first is whether any caller reaches `adopt()` directly with both set —
+the library door has no parser in front of it, and a rule that lived there may still be
+load-bearing.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
