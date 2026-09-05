@@ -706,6 +706,52 @@ thing to check first is whether any caller reaches `adopt()` directly with both 
 the library door has no parser in front of it, and a rule that lived there may still be
 load-bearing.
 
+### §RK1521 The population a note figure is taken over
+
+RK1491 gave notes a cadence and could not say what it left out. The read prices the
+notes this project's gate emits — one, at 282 — and one composed worst case, and there
+is no third number because there is no list: nothing anywhere says how many note codes
+exist.
+
+The registry is almost there. `remedying`'s table is asserted **total** over every code
+`linting` and `schema` can emit (RK421), and it holds 122 of them — but a note and a
+finding sit in it side by side with nothing separating them, so the population of notes
+is not derivable from the one place that knows the population of codes.
+
+What that costs is what `brief` refused to accept for its own subject. `read.priced`
+exists because a figure taken over part of a population is one a reader misreads: it
+says *4 of 26 open lines priced, 22 not asked for*. `cost --notes` says nothing of the
+kind and cannot — 282 reads like the answer when it is one of an unknown number of
+sentences.
+
+The split is a field on the remedy row or a set beside the table — a decision about
+where the fact lives, not a discovery. What it buys is the sentence `brief` prints and
+one more: an unmeasured note code is a clause somebody adds without meeting a number,
+which is the drift RK1491 was filed against and closed for one note out of however many
+there are.
+
+### §RK1522 The record used three ways and documented as one
+
+`Part` is documented as "one `##` section of an every-turn file, and what it costs", and
+its fields say so: `heading`, verbatim, or `""` for what stands above the first one.
+RK1491 needed a row per note and reused it, so `heading` holds `read.priced` — a code,
+which is not a heading, is never `""`, and has no file to be a section of.
+
+The reuse is not accidental, and that is the argument for it. Three subjects want one
+shape — a label, a width, a rank — and `Skilled.pages` stretched it once already, to a
+reference page where `heading` holds a path. A good shape attracting a third caller is
+ordinary; three records with identical fields would be three names for one idea.
+
+What it costs is the docstring, which `agents.md` makes the authority on what a record
+is. It describes one of three uses, so a reader meeting `Part("read.priced", 1, …)`
+works out from the call site that `heading` is a lie. `lines` and `bytes` are worse: a
+note row fills them with 1 and a length nobody reads, because the record demands them.
+
+Two ways out, and they are different bets. Rename it to what it is — a labelled weight,
+`heading` becoming `label`, the counts optional — or leave it and write the three uses
+into the docstring. The second is not the lesser fix: a record used three ways honestly
+is a record, and the same one used three ways silently is the drift.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

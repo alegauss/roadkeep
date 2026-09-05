@@ -58,6 +58,8 @@
 - 💭 **RK1516** (deps: —) **section drop deletes a design and never says the constraint answer went with it** — RK1488 taught the three departure doors that a deletion is the last reading, and the verb whose whole job is deleting a section inherited nothing. → §RK1516
 - 💭 **RK1517** (deps: —) **a served flag that only shapes the terminal form is inert, and nothing asks that of the eighteen** — The server appends --json to every call, so origin --why shaped nothing for as long as it was served and was found only when a test fixture grew a git history. → §RK1517
 - 💭 **RK1518** (deps: —) **adopt refuses two answers inside its estimator, so the dispatcher and the served surface read them as compatible** — RK489 replaced exactly those hand-written refusals with one declaration, and this one survived where nothing but a call can discover it. → §RK1518
+- 💭 **RK1521** (deps: —) **the note cadence prices what fired and cannot say what it left out, no list of note codes existing** — RK1491 measured one note of an unknown number, and the remedy table that knows every code does not separate a note from a finding. → §RK1521
+- 💭 **RK1522** (deps: —) **one record is a file section, a reference page and a note row, and its docstring describes only the first** — RK1491 filled Part's heading with a note code and its lines and bytes with numbers nobody reads, because the record demanded them. → §RK1522
 
 ## Block E — Adoption
 
