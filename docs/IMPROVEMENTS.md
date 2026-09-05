@@ -707,6 +707,29 @@ exception is visible rather than inferred.
 Cheap, and the sweep exists twice over in this suite — which is the argument for doing
 it rather than for a third one.
 
+### §RK1514 The copy uninstall keeps and does not report
+
+RK1487 gave `install` one sentence about a copy it left behind: a vendor that lands and
+then fails to wire now names what is on disk and what the next run does with it. The
+same tree pointed the other way says nothing.
+
+`removal` already has the field for it. `Removal.kept` exists precisely so "a surface
+silently kept reads as missed", and RK284 made what goes in it a reading of the disk
+rather than a constant — but only one path is ever considered, the CI workflow. A pinned
+project's `.roadkeep/` is the whole engine, several megabytes of it, and after a clean
+`uninstall` it is a directory nobody declared, nothing points at, and no line of the
+report mentioned. The caller who asked for the tool to be gone reads a success and still
+has it.
+
+Deleting it is the wrong reflex, which is why this is a report and not a removal. The
+bytes may be committed, they are the adopter's, and a verb whose subject is declarations
+is not licensed to take out an artefact a later `install` would reuse. What closes this
+is one `kept` row on the same terms as the workflow's: the copy is there, nothing is
+wired to it now, and here is what removes it.
+
+Worth deciding alongside: whether `--check` counts it, since the `changing` verdict is
+about surfaces and a copy is not one.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
