@@ -631,6 +631,54 @@ what governing it would cost, and the widest brief is a number of that kind. Not
 default and not a finding — a figure in the report, so the project choosing a ceiling
 has the reading in front of it at the moment it chooses.
 
+### §RK1515 The citation that reads as a decision
+
+Measured on RK1488's own shipment. Its design quoted *No supported Python API.* while
+**describing** RK1465 — the case that proved an answer leaves silently — and the ship
+printed `settled 'No supported Python API.'` as though a judgement had been made and
+lost. None had: the clause was a citation of somebody else's decision.
+
+The rule is `settles`, a substring match on the lead, and RK1457 chose it deliberately —
+a lead is the constraint's address, matching it is cheap, and the alternative is a
+reader of intent, which is L4. That trade was made for a **note falling silent**, where
+a wrong match costs one advisory nobody sees. RK1478 put the match in a listing and
+RK1488 in a write's report, so it now carries two claims it was never sized for: this
+line settled that rule, and the answer just left.
+
+The corpus: this repository has two designs quoting a lead and one of them is a
+citation. Fifty percent of two is not a number, but it is the only one there is, and it
+fired on the first shipment after the feature landed.
+
+What might close it is a shape and not a reader — an answer names the rule in a sentence
+about the rule, while these citations are prose about another line and carry its id.
+Whether that is recognisable without a model is the open question, and the honest
+outcome may be a weaker verb in the sentence rather than a narrower match.
+
+### §RK1516 The fourth door that deletes a design
+
+RK1488 gave `ship`, `retire` and the closure door a row naming the constraint whose
+answer went with the design they deleted, on the ground that the write is the last
+reader that still has the section. `section drop` deletes a design too, and says
+nothing.
+
+The three that were taught share `_drop_section`, which is why they were one change.
+`sections.Deleted` is a different record for a different verb and already carries the
+neighbouring facts — what nested under the heading, who is left citing it — so the field
+it lacks is the one this task added next door. RK206's history repeating: the citation
+line came through the departure path first, and this verb stayed silent for a year.
+
+The argument for doing it is unchanged from the departures. Against it: this verb is
+aimed by hand at a section the author is looking at, so they may already know. That does
+not survive contact — dropping prose somebody else wrote a year ago is the ordinary
+case, and RK1478's whole finding was that the clause reads as a stray remark about its
+subject.
+
+Cheap either way: the reader is `scoping.answered`, already called by
+`shipping._settling` for exactly this, and the row is `rendering._settled_rows`, already
+written. The one question is the seam — `drop` takes a `Document` and not a `Config` on
+purpose, so the leads arrive the way `claimed` and `where` do, passed in by the verb
+holding both.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

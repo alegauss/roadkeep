@@ -55,6 +55,8 @@
 - 💭 **RK1507** (deps: —) **a line this tool writes under a ledger entry is composed by one function and recognised by another, matching on a prefix** — RK1484 added the second reader, and a change to the indent or the word makes it stop matching with nothing anywhere going red. → §RK1507
 - 💭 **RK1508** (deps: —) **which engine wrote a project's surfaces is derivable from their bytes and is only ever read out of a record** — RK1485 could name the absent record and not fill it, and the one decision it cannot inform is whether the refresh in front of you is an upgrade. → §RK1508
 - 💭 **RK1509** (deps: —) **an adopting project is never shown what its briefs cost, so a ceiling is chosen with no reading in front of it** — RK1486 found this repository's own number argued from the wrong corpus, and an adopter has no moment at which the figure is offered. → §RK1509
+- 💭 **RK1515** (deps: —) **a design quoting a constraint to describe somebody else's case reads as having settled it** — RK1488 printed that claim on its own shipment, so a substring sized for a note falling silent now carries two assertions it was never measured for. → §RK1515
+- 💭 **RK1516** (deps: —) **section drop deletes a design and never says the constraint answer went with it** — RK1488 taught the three departure doors that a deletion is the last reading, and the verb whose whole job is deleting a section inherited nothing. → §RK1516
 
 ## Block E — Adoption
 
