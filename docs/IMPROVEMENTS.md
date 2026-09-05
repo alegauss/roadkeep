@@ -803,6 +803,54 @@ written, and where the program is not one this command wrote, said so rather tha
 dropped. Read and never judged, which is `driver`'s rule one row over — a command beside
 the trees, with the comparison left to whoever reads it.
 
+### §RK1524 The notes on the transport nobody counts
+
+RK1491 gave the **gate's** notes a cadence: `cost --notes` prices what a clean run says
+beside its verdict, on the argument that a paragraph nobody counts is a paragraph that
+grows. RK1493 then enumerated a second population entirely — the four notes this server
+adds beside a tool result — and nothing measures any of them.
+
+They are the same kind of text under a heavier cadence. `_landed` rides on a successful
+write, `_inventory` on a refusal this process did not witness, `_swapped` on a home gone
+from disk, and the witnessed paragraph on every refusal that overlaps — each of them
+appended to an answer an agent is already paying for, over the transport L5 exists to
+keep cheap. Three are once-per-process, which bounds them; the fourth is per-call by
+design.
+
+The history is the argument. RK267 cut one for being 450 characters of correct and
+irrelevant text on a refusal that had said everything actionable in one line; RK1443 cut
+another for arriving four times in a batch. Both cuts were made by reading and neither
+left a number, so the third growth is invited exactly as `engine.disagreement`'s was —
+which RK1491 found had grown 35% since the task naming it was filed.
+
+`Noted` is the shape and `NOTES` is now the population, so what is missing is the
+composer being callable the way `linting.disagreement` was made callable: each note
+built with its worst-case arguments, ranked, and the per-call one marked as the one paid
+every time.
+
+### §RK1525 The half a call-site sweep cannot see
+
+RK1493 made `serving.NOTES` total against the literals the module passes to
+`_said_once`, so a fifth once-per-process note is a red until somebody declares it. That
+is three of the four kinds. The fourth is in the table by hand and matched by nothing.
+
+The asymmetry is structural rather than an oversight. A once-per-process note is
+recognisable because it *makes a call* — the guard is the thing the sweep reads — and a
+per-call note is recognisable by nothing at all: it is a branch that appends a
+paragraph, which is what most of this module does. So the sweep is total over the half
+that announces itself and silent over the half that does not, and a second per-call note
+added tomorrow arrives exactly as the kinds did before RK1493: invisible.
+
+What makes it worth closing rather than accepting is that the per-call half is the
+expensive one. Three kinds are bounded by the process; the fourth is paid on every
+refusal that overlaps, which is the population RK267 had to cut once already.
+
+The reading that would work is the one `test_composing` takes over `invocation()`: find
+the sites rather than the calls — every `return Answer(f"{text}\n\n…")` in `_advise`,
+which is what appending a note *is* — and hold the count against the table. That names a
+shape the module already has instead of asking a per-call note to announce itself, which
+is the `_said_once` guard turned into ceremony for a kind that needs no guard.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
