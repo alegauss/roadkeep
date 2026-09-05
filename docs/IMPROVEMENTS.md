@@ -802,6 +802,32 @@ the write is right to accept. What is missing is a sentence where the number is 
 `Measured.unmeasured`'s reading one level down — the key is read, and one door does not
 read it.
 
+### §RK1538 The fact made structural and read as prose
+
+RK1503 put `bound` on the violation so a reader can tell *the field is over* from *the
+line is full*, and reframed the sentence the write path prints. Two readers it was
+argued for do not use it.
+
+The remedy table is one. `why.too-long` has a single row and a single door, and the two
+states want different edits: a field over its own number is shortened, and a field the
+line binds is a line whose *structure* is full — a dep, a `requires` group, a pointer.
+RK1480 reframed exactly that case by inspection inside `DepRefused`, which is one door
+of several and the only one that knows.
+
+The protocol surface is the other. A `Violation` reaches a caller as a string, so an
+agent over MCP reads the reframing as prose and branches on it by matching — which is
+the reading `test_composing` exists to say is not a reading. The field is on the record
+and no payload publishes it.
+
+Neither is a defect today: the sentence is right and a terminal reader acts on it. What
+is missing is that the fact was made structural and is still consumed as prose, which is
+the arrangement it was made structural to end.
+
+Worth deciding together, because they are one question: whether `bound` belongs in the
+payload every refusal already publishes, and whether the remedy table keys on `(code,
+bound)` — at which point `DepRefused`'s inspection becomes a row, and the doors that
+reframe nothing get one.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
