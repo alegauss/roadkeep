@@ -129,7 +129,7 @@ called unbuilt were already in the ledger.
 
 **Next ready:**
 
-- ⏳ **RK1498** (deps: —) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Thirty of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
+- 💭 **RK1500** (deps: —) **the query side of the duplicate ranking cannot be measured, every known answer being a note written after the answer** — RK1477 measured the corpus half and had to declare the other half an argument, because a retired why names its partner and paraphrases it. → §RK1500
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
