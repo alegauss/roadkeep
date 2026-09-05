@@ -801,6 +801,32 @@ parse says no. One `Config.parse` against a string this verb has already compose
 it turns a class of unreadable configs into a refusal that names the rule the parser
 would have.
 
+### §RK1535 The readings nobody keeps
+
+RK1500 held the reason one half of the duplicate read cannot be scored: every known
+answer is written into the field a query would join, so the only population with a
+ground truth is the one where the truth is an input. That leaves the read half-measured
+for as long as the corpus is retirements.
+
+The population that would settle it exists and is not recorded. Every `add` prints three
+ranked neighbours, and some of those authors then act — `restate`, `retire
+--superseded-by`, or nothing at all. Each of those is an answer given **before** the
+answer was known, which is exactly what the retirement corpus is not.
+
+Nothing writes it down. The rows are composed, printed and dropped; the ledger records
+the retirement and not the reading before it, so which proposals this read has caught is
+unknowable — and RK441's threshold measurement was taken over retirements for that
+absence.
+
+What would record it is a decision about scope and not a design: the ids a write
+volunteered, in the transaction that volunteered them, so a later `retire
+--superseded-by` joins to whether the read had named its partner. That is a fourth thing
+the roadmap holds, which is why it is weighed rather than done — a log of readings is
+not a fact about the backlog, and L2 says what the store is.
+
+The cheaper half may be enough: `add --json` publishes `near` already, so a session
+keeping its transcripts has the population without this tool storing anything.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
