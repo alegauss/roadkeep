@@ -792,6 +792,29 @@ label. Each is a short composed field in a governed file, and whether the rule r
 them is answered today by which validator the door happens to call — which is what to
 find out first, because the answer may be one shared function away.
 
+### §RK1532 The work-list with no sizes in it
+
+Thirty-eight rows of `composing.SITES` carried one shared sentence: *the message needs a
+state no fixture in this suite builds yet.* True of all of them, and it is why none was
+picked for as long as the list existed — an item whose cost is unstated reads as
+open-ended, and a work-list of thirty-eight open-ended items is a list nobody starts at.
+
+Measured by starting at it. Four of the thirty-eight came out in one sitting, and each
+wanted **two lines of fixture**: a ledger entry beside a ⏳ line, a deferred copy beside
+an open one, two symptoms sharing an id. The shared reason was accurate about every one
+and useful about none, because what a picker needs is not *why not yet* but *what would
+it take*.
+
+`_UNMEASURED` in `test_pairs` is the same table one file over and says the state each
+row wants — *no `[non_goals]` table*, *no deferred store*, *a clean tree* — which is
+what makes a row there something somebody can act on. This list has the field and spends
+it on a constant.
+
+What it buys is a size. A row naming the state names how far the suite is from it: *a
+project with no config at all* is `init`'s own fixture and cheap, *a home replaced under
+a live process* is not, and saying so stops the two looking alike. RK1498's remainder is
+thirty rows, a number that means nothing until each says what it costs.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
