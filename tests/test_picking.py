@@ -767,7 +767,11 @@ def test_the_payload_carries_the_ids_and_what_each_would_take(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "pick", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
     assert payload["pick"] is None
-    assert payload["lacking"] == [{"id": "RK4", "missing": ["ps5"]}]
+    # `symptom` beside them since RK1490: where this list is the whole answer, the question is
+    # whether the part the caller wants needs the word, which is a judgement about the line.
+    assert payload["lacking"] == [
+        {"id": "RK4", "missing": ["ps5"], "symptom": "A symptom for RK4"}
+    ]
 
 
 def test_the_flag_declares_what_the_caller_has(tmp_path, capsys):
@@ -787,6 +791,78 @@ def test_a_claim_never_takes_a_line_this_caller_cannot_finish(tmp_path):
     taken = take(config)
     assert not taken.taken
     assert (tmp_path / "ROADMAP.md").read_text(encoding="utf-8").count(IN_PROGRESS) == 0
+
+
+# -- the half a caller can see is worth starting, and could not take (RK1490) --
+
+
+def test_the_absence_names_the_line_and_the_two_ways_to_take_it(tmp_path, capsys):
+    """RK1490. RK1297 stops offering a line whose requirement is not on this desk and RK1467
+    made the refusal legible; between them the caller who reads *requires upstream* and knows
+    the part they want is in the repository they have had no move. `--have upstream` is a lie,
+    `pick` takes a line whole or not at all, and `ship --part` is this tool holding the idea
+    that a line has parts and saying so only after the work."""
+    project(tmp_path, BLOCKS + line("RK4", requires="ps5"), extra=DECLARED)
+    assert main(["-C", str(tmp_path), "pick"]) == EXIT_OK
+    out = capsys.readouterr().out
+    # The answer is unchanged: the ranking is right and nothing was picked.
+    assert out.startswith("nothing to pick:")
+    # And the line is judgeable, which an id is not.
+    assert "absent   RK4 is ready and requires ps5" in out
+    assert "A symptom for RK4" in out
+    assert f"status RK4 {IN_PROGRESS}" in out
+    assert "ship RK4 --part" in out
+
+
+def test_the_door_it_names_runs_and_moves_the_marker(tmp_path, capsys):
+    # The whole value of printing a command is that it runs (RK1209): the caller who decided
+    # the part they want needs nothing types this and holds the line.
+    project(tmp_path, BLOCKS + line("RK4", requires="ps5"), extra=DECLARED)
+    main(["-C", str(tmp_path), "pick"])
+    printed = capsys.readouterr().out
+    assert f"status RK4 {IN_PROGRESS}" in printed
+    assert main(["-C", str(tmp_path), "status", "RK4", IN_PROGRESS]) == EXIT_OK
+    capsys.readouterr()
+    assert IN_PROGRESS in (tmp_path / "ROADMAP.md").read_text(encoding="utf-8")
+
+
+def test_a_pick_that_found_a_line_says_none_of_it(tmp_path, capsys):
+    """The rows are the answer only where the requirements *are* the answer. On a pick that
+    succeeded, `absent` is a hand-over note about somebody else's lines — a symptom each and a
+    door under them is the report growing past what a tool result should carry."""
+    project(
+        tmp_path, BLOCKS + line("RK4", requires="ps5") + line("RK9"), extra=DECLARED
+    )
+    assert main(["-C", str(tmp_path), "pick"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.splitlines()[0].startswith("RK9")
+    assert "absent   RK4 is ready and requires ps5" in out
+    assert "A symptom for RK4" not in out
+    assert "take " not in out
+
+
+def test_the_offer_is_a_reading_and_never_a_claim(tmp_path):
+    """The non-goal this is bounded by: `--have` stays a contract. A caller claiming a
+    requirement it lacks makes every later refusal meaningless, and a `--claim` that took the
+    line would be this tool answering the question it just said is the caller's."""
+    config = project(tmp_path, BLOCKS + line("RK4", requires="ps5"), extra=DECLARED)
+    from roadkeep.picking import take
+
+    taken = take(config)
+    assert not taken.taken
+    assert taken.choice is not None and not taken.choice.found
+    assert (tmp_path / "ROADMAP.md").read_text(encoding="utf-8").count(IN_PROGRESS) == 0
+
+
+def test_no_line_of_it_is_printed_where_nothing_was_withheld(tmp_path, capsys):
+    # Every other absence is unchanged: a backlog that is blocked, finished or all ideas has
+    # no line a requirement is standing in front of, so there is nothing to offer.
+    project(tmp_path, BLOCKS + line("RK4", deps="RK99"), extra=DECLARED)
+    assert main(["-C", str(tmp_path), "pick"]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert out.startswith("nothing to pick:")
+    assert "take " not in out
+    assert "yours" not in out
 
 
 # -- the line the picker offers is a line the claim can take (RK1114) ----------

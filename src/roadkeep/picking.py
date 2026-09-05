@@ -142,6 +142,12 @@ class Lacking:
     id: str
     #: The declared requirements this caller did not say it has, in the line's own order.
     missing: tuple[str, ...]
+    #: The line's own symptom (RK1490). Carried because the decision this row now supports is
+    #: *does the part I want need that word*, and an id cannot be judged: the caller who reads
+    #: `requires upstream` and knows their half is in the repository they have could only get
+    #: there by opening the roadmap, which is the reading this verb exists to replace. Empty
+    #: where the reader never needs it, which is every call that found a line to offer.
+    symptom: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -285,7 +291,9 @@ def pick(
     # continue it. Stepped around here, so the tiers rank only what could actually be done.
     has = frozenset(available)
     lacking = tuple(
-        Lacking(entry.task.id, missing)
+        # The symptom rides along (RK1490): where this list turns out to be the whole answer,
+        # the caller has to judge the line and an id is not a line.
+        Lacking(entry.task.id, missing, entry.task.symptom or "")
         for entry in ordered
         if (missing := tuple(one for one in entry.task.requires if one not in has))
     )
@@ -313,6 +321,13 @@ def pick(
         # lines that are waiting on nothing.
         "waiting": _waiting(backlog, config, ordered, considered),
     }
+    # **Before the absence, and only where there is nothing else** (RK1490). RK1297 stops
+    # offering a line whose requirement is not on this desk and RK1467 made the refusal
+    # legible, and between them the caller who can see the half they want needs nothing still
+    # has no move but to disbelieve the sentence. So the line is put in front of them, under a
+    # tier that says what it is. Not a widening of `--have`: that vocabulary stays a contract,
+    # and a caller claiming a requirement it lacks is what would make every later refusal
+    # meaningless. What this offers is the reading, and `take` refuses to claim it.
     if not ordered:
         return Choice(
             entry=None,
@@ -670,6 +685,7 @@ class Picked:
             _stalled_rows,
             _undesigned_rows,
             _waiting_rows,
+            _withheld_rows,
         )
 
         choice, config = self.choice, self.config
@@ -680,6 +696,9 @@ class Picked:
                     f"  backlog  {choice.counts}",
                     *_undesigned_rows(choice),
                     *_lacking_rows(choice),
+                    # Under the lines it is about (RK1490): those say which and what for, and
+                    # this says what the caller may do about it — the move RK1467 left unbuilt.
+                    *_withheld_rows(choice),
                     *_waiting_rows(choice),
                     *_held_rows(choice),
                     *_stalled_rows(choice),
@@ -767,8 +786,12 @@ class Picked:
             # The ready lines this caller cannot finish, and what each would take (RK1297).
             # A list and not a count, for `held`'s reason and one more: a loop that hands
             # work back to a person has to be able to say *which* work and *what for*.
+            # `symptom` beside them (RK1490), for the reason the row carries it: where this
+            # list is the whole answer, the question in front of the caller is whether the
+            # part they want needs the word, and that is a judgement about the line.
             "lacking": [
-                {"id": one.id, "missing": list(one.missing)} for one in choice.lacking
+                {"id": one.id, "missing": list(one.missing), "symptom": one.symptom}
+                for one in choice.lacking
             ],
             # What the declared priority is waiting on (RK1304), where nothing ready answers
             # it. `[]` on every other call and never omitted: a consumer reading a missing key

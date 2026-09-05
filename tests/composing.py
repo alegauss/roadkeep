@@ -181,6 +181,10 @@ SITES: tuple[Site, ...] = (
     Site("markers.py:_naming_the_lines", "unreached", NO_FIXTURE),
     Site("merging.py:Wiring.repairs", "deliberate", FOREIGN),
     Site("merging.py:_spent", "deliberate", FOREIGN),
+    # RK1490. The two doors under a line the ranking set aside for a requirement — take the
+    # whole thing, or take the half that does not need it — run by `test_picking`, which
+    # executes the `status <id> 🛠` this composes and reads the marker it moved.
+    Site("rendering.py:_withheld_rows", "run"),
     # The two that render a remedy, and so every door the gate offers.
     Site("remedying.py:Door.command", "run"),
     Site("remedying.py:Door.quoted", "run"),

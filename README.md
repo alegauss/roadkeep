@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 230 | 2 |
-| C — Query (consult without reading the file) | 6 | 155 | 4 |
+| C — Query (consult without reading the file) | 5 | 156 | 4 |
 | D — The gate | 19 | 212 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 145 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 29 | 973 | 14 |
+| **Total** | 28 | 974 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1490** (deps: —) **a caller who can see a withheld line is worth starting still has no way to take it, only to disbelieve the refusal** — RK1467 made the gate legible and left the half unreachable, so ship --part is the only place this tool says a line has parts, and it says it afterwards. → §RK1490
+- 💭 **RK1491** (deps: —) **the note a wired project reads on every turn is 475 characters at full length and no cadence prices it** — cost has five subjects and a note is in none of them, so engine.disagreement grew a clause in each of three tasks against no number at all. → §RK1491
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

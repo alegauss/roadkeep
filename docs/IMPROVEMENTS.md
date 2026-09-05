@@ -103,30 +103,6 @@ second write cannot see today. Whether the fold is right stays the author's judg
 
 ## Block C — Query
 
-### §RK1490 The half a pick cannot offer
-
-RK1467's symptom was that a requirement gates the **whole** line, so the half of a task
-that needs nothing is never offered. What shipped makes the gate legible: the refusal
-quotes what the word was declared to mean, so a caller can judge it. It does not make
-the half reachable, and the design said as much.
-
-So the split is still a discovery made by disbelieving a refusal. A caller who reads
-*this needs upstream, which is push access to the second repository* and thinks *the
-part I want is in this repository* has no way to say so: `--have upstream` is a lie,
-`pick` has no flag for taking a line partly, and the only honest move is to work outside
-the ranking and let `ship --part` record it afterwards.
-
-The shape is small and half-built. `ship --part <what landed>` leaves the remainder open
-with a `why` of its own, which is this tool already holding the idea that a line has
-parts. What is missing is the same idea *before* the work: a line could name which
-requirement gates which part, or — cheaper and with no new field — `pick` could offer a
-withheld line under a tier saying *ready except for what it requires*, so the caller
-reads the whole thing and decides.
-
-What must not follow is `--have` becoming a way to say *not really*: the vocabulary is a
-contract, and a caller claiming a requirement it lacks makes every later refusal
-meaningless.
-
 ### §RK1495 The neighbours that have not shipped yet
 
 Every `add` prints its three nearest neighbours and the row says what they are drawn

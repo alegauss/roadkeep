@@ -58,7 +58,7 @@ from roadkeep.merging import (
 from roadkeep.picking import Choice, Claim
 from roadkeep.provenance import invocation, served_by
 from roadkeep.remedying import Door
-from roadkeep.kernel.schema import UTF16_UNITS, width as measured_width
+from roadkeep.kernel.schema import IN_PROGRESS, UTF16_UNITS, width as measured_width
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK
 
 
@@ -950,11 +950,56 @@ def _lacking_rows(choice: Choice) -> list[str]:
     `absent` and not `waiting`, because nothing here is pending: the line is ready, the
     backlog is right, and what is missing is in the room rather than in the files. Nor
     `needs`, which is the row an `add` prints for the section it left owing (RK1297).
+
+    **With the symptom where this list is the whole answer** (RK1490). A hand-over note needs
+    the id and the word: whoever has the thing looks the line up. But where nothing was picked
+    *because* of these rows, the caller is being asked to judge whether the part they want
+    needs the word — and an id cannot be judged, so the reading it replaces is opening the
+    roadmap. Not added to every row: on a pick that succeeded these are somebody else's lines,
+    and a symptom each is the answer growing past what a tool result should carry.
     """
+    named = choice.entry is None
     return [
         f"  absent   {one.id} is ready and requires {', '.join(one.missing)}, "
         f"which this caller did not declare"
+        + (f" — {one.symptom}" if named and one.symptom else "")
         for one in choice.lacking
+    ]
+
+
+def _withheld_rows(choice: Choice) -> list[str]:
+    """The way to take a line the requirement filter set aside (RK1490).
+
+    Printed only where the requirements are the **whole** answer — `pick` found nothing and
+    `lacking` is why. RK1297 stops offering such a line as work and is right to; RK1467 then
+    made the refusal legible, so a caller can read what the word was declared to mean. What
+    neither built is the move that follows from believing it: the caller who reads *requires
+    upstream, which is push access to the second repository* and knows the part they want is
+    in the repository they have had nothing to say. `--have upstream` is a lie, `pick` takes a
+    line whole or not at all, and `ship --part` is this tool holding the idea that a line has
+    parts and saying so only after the work.
+
+    So the answer stays *nothing to pick* — the ranking is right and `found` still means what
+    it meant — and this is the sentence beside it, which is `waiting`'s shape one axis over
+    (RK1304). Two doors, because the caller has two decisions: take the whole line, or take
+    the half that needs nothing and let the record say it was a half.
+
+    The marker is interpolated and never spelled, which is `claiming`'s own sentence one file
+    over: `[markers]` is per-project (L6), so a codepoint written into this package names a
+    glyph the reader's files may not use. And the verb is `status` rather than `pick --claim`,
+    which is the flag that just declined to take this — a caller sent back to it reads the
+    same answer again. `--part` and `--why` are the author's own sentences (L4), so the blanks
+    are left as blanks.
+    """
+    if choice.entry is not None or not choice.lacking:
+        return []
+    task_id = choice.lacking[0].id
+    return [
+        "  yours    whether the part you want needs that is a reading, and it is yours: "
+        "this filter is about the whole line",
+        f"  take     `{invocation()} status {task_id} {IN_PROGRESS}` takes it whole; "
+        f"`{invocation()} ship {task_id} --part <what landed> --why <one sentence>` "
+        f"records the half that did not need it",
     ]
 
 
