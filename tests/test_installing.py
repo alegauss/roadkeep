@@ -2745,3 +2745,41 @@ def test_a_check_that_refuses_names_no_copy_because_it_made_none(tmp_path, monke
     capsys.readouterr()
     main(["-C", str(project), "install", "--vendor", "--check"])
     assert "nothing is wired to it" not in capsys.readouterr().err
+
+
+# -- the doors this command's own verdicts compose (RK1498) --------------------
+
+
+def test_the_command_a_check_names_for_surfaces_that_differ_runs(tmp_path, monkeypatch, capsys):
+    """RK1498. `--check` exits non-zero on a project whose surfaces are not what this engine
+    writes, and names the command that closes it. Three of these verdicts are composed and
+    none was ever run — which is the arrangement RK1475 published one broken door out of."""
+    from composing import runs
+
+    only_here(monkeypatch, tmp_path)
+    project = declaring(tmp_path / "project", CLEAN)
+    assert main(["-C", str(project), "install", "--check"]) != EXIT_OK
+    said = capsys.readouterr().err
+    ran = runs(project, said)
+    assert ran and ran[0][:1] == ["install"], said
+    capsys.readouterr()
+    # And the check the door was offered by is now clean, which is the only proof it was the
+    # right command: a verdict whose remedy leaves the verdict standing is a loop.
+    assert main(["-C", str(project), "install", "--check"]) == EXIT_OK
+
+
+def test_the_command_a_removal_check_names_runs(tmp_path, monkeypatch, capsys):
+    # The same shape pointed the other way (RK138): what is still wired is what `uninstall`
+    # takes out, and the sentence saying so had never been executed.
+    from composing import runs
+
+    only_here(monkeypatch, tmp_path)
+    project = declaring(tmp_path / "project", CLEAN)
+    install(project)
+    capsys.readouterr()
+    assert main(["-C", str(project), "uninstall", "--check"]) != EXIT_OK
+    said = capsys.readouterr().err
+    ran = runs(project, said)
+    assert ran and ran[0][:1] == ["uninstall"], said
+    capsys.readouterr()
+    assert main(["-C", str(project), "uninstall", "--check"]) == EXIT_OK

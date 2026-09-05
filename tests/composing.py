@@ -169,8 +169,13 @@ SITES: tuple[Site, ...] = (
     # and unreached for the same reason: the fixture here is an adopter with no line filed, so
     # a `brief`, a `show <id>` or a `ship <id> --why …` has nothing to run against yet.
     Site("installing.py:Plan.orientation", "unreached", NO_FIXTURE),
-    Site("installing.py:Plan.verdict", "unreached", NO_FIXTURE),
-    Site("installing.py:Removal.verdict", "unreached", NO_FIXTURE),
+    # RK1498. Both verdicts, run by `test_installing` against the state each is about: a
+    # project whose surfaces are not what this engine writes, and a wired one being taken
+    # apart. Each door is run and the check that offered it is then clean, which is the only
+    # proof it was the right command — a verdict whose remedy leaves the verdict standing is
+    # the loop RK393 named.
+    Site("installing.py:Plan.verdict", "run"),
+    Site("installing.py:Removal.verdict", "run"),
     Site("installing.py:_governed", "unreached", NO_FIXTURE),
     Site("installing.py:plan", "unreached", NO_FIXTURE),
     Site("linting.py:_projections", "unreached", NO_FIXTURE),
@@ -312,13 +317,24 @@ def commands(said: str) -> tuple[list[str], ...]:
 
     A span that is not a command — a flag being named, a file being quoted — is skipped rather
     than refused: a message is prose and backticks are how it emphasises anything.
+
+    **And the prefix has to end where a word ends** (RK1498). `startswith` alone read
+    `` `roadkeep.toml` `` as `roadkeep` plus the verb `.toml`, which is RK1220's own failure one
+    step in: the config file is named after the tool, so every message that quotes it composed
+    a command. Found by pointing this at the `install` note that names it — a message that had
+    never been run, which is the population RK1498 is about.
     """
     prefix = invocation()
     out: list[list[str]] = []
     for span in _SPAN.findall(" ".join(said.split())):
         if not span.startswith(prefix):
             continue
-        rest = span[len(prefix):].strip()
+        rest = span[len(prefix):]
+        # A verb is a separate word: `roadkeep.toml` is a filename and `roadkeep-launch.py` is
+        # a script, and neither is this tool being called.
+        if rest and not rest[:1].isspace():
+            continue
+        rest = rest.strip()
         if not rest:
             continue
         try:

@@ -86,6 +86,21 @@ def test_a_command_is_found_by_its_backticks_and_never_by_a_line_prefix():
     assert all("refused," not in one for argv in found for one in argv)
 
 
+def test_a_name_the_tool_is_a_prefix_of_is_not_a_command(tmp_path):
+    """RK1498. `startswith` alone read `` `roadkeep.toml` `` as this tool plus the verb
+    `.toml`, so every message quoting the config composed a command — RK1220's own failure one
+    step in, and invisible until the sweep was pointed at a message that names the file.
+
+    A verb is a separate word, which is the whole of the rule: the character after the prefix
+    has to be whitespace or the span has to end there."""
+    prefix = invocation()
+    found = commands(
+        f"declares no `{prefix}.toml`, so `{prefix} init` comes first — "
+        f"the launcher is `{prefix}-launch.py`"
+    )
+    assert [one[0] for one in found] == ["init"], found
+
+
 def test_a_placeholder_is_filled_and_never_stripped():
     """`add --why …` with the flag removed is a different command, refused for a reason this
     sweep is not about (L4): the words are the author's, so the harness supplies one rather
