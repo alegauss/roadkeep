@@ -406,3 +406,71 @@ def test_the_pair_out_of_reach_is_the_one_whose_sentences_are_not_the_pair():
     # The half whose symptom matches is reached; the half the retirement names is not.
     assert "RK348" in found
     assert "RK1152" not in found
+
+
+# -- the half of the ranking nothing can score (RK1500) ------------------------
+
+
+def _known_pairs():
+    """The retirements whose partner is named on the line, which is the only ground truth
+    this ledger holds — and, since RK1500, the reason one half of the read is unmeasured."""
+    ledger = Config.discover(HERE).document("changelog")
+    return [
+        (entry, entry.task.why.split("superseded by ", 1)[1].split(":", 1)[0].strip())
+        for entry in ledger.entries
+        if "superseded by " in entry.task.why
+    ]
+
+
+def test_the_ground_truth_is_written_into_the_field_a_query_would_join():
+    """RK1500. RK1477 measured the corpus half and could only argue the other: a retired
+    entry's `why` is written *at* the retirement and names its partner, so a query taking that
+    field scores the ledger's own bookkeeping. The argument was a paragraph and nothing held
+    it — and the figure it warns about looks like an improvement, which is what makes a later
+    session likely to take it.
+
+    Measured rather than asserted: all eleven, not most."""
+    pairs = _known_pairs()
+    assert len(pairs) >= 11, "the corpus this reasoning is measured on lost its known answers"
+    naming = [
+        f"{retired.task.id}→{partner}"
+        for retired, partner in pairs
+        if partner in retired.task.why
+    ]
+    assert len(naming) == len(pairs), {
+        "the why names its partner": naming,
+        "it does not": [
+            f"{r.task.id}→{p}" for r, p in pairs if p not in r.task.why
+        ],
+    }
+
+
+def test_joining_the_query_scores_the_bookkeeping_and_looks_like_a_gain():
+    """The other half of the same point, and why the paragraph alone was not enough: the
+    unsound reading is *better*. Held as the shape and not as a pair of numbers — what may not
+    happen is somebody reading a rise here as a measurement of the read."""
+    pairs = _known_pairs()
+    ledger = Config.discover(HERE).document("changelog")
+
+    def first(query) -> int:
+        found = 0
+        for retired, partner in pairs:
+            block = [
+                one
+                for one in ledger.entries
+                if one.task.block == retired.task.block and one.task.id != retired.task.id
+            ]
+            order = nearest(
+                query(retired), [claim(e.task.symptom, e.task.why) for e in block], NEAREST
+            )
+            if [block[index].task.id for index in order][:1] == [partner]:
+                found += 1
+        return found
+
+    honest = first(lambda one: one.task.symptom)
+    scored = first(lambda one: claim(one.task.symptom, one.task.why))
+    # The rise is real and means nothing: the field it comes from contains the answer, which
+    # the test above measures. Asserted as an inequality rather than as two constants, so the
+    # claim survives a corpus that grows.
+    assert scored >= honest, {"symptom alone": honest, "with the why": scored}
+    assert honest, "the honest reading reached nothing: this comparison is about nothing"

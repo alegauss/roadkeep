@@ -119,6 +119,13 @@ def claim(symptom: str, why: str) -> str:
     `add` joins it anyway, that caller's `why` being an author's own sentence about a line
     nothing has superseded — an argument, and said to be one.
 
+    **And the argument has a witness now** (RK1500). All eleven of those `why` fields name
+    their partner's id literally — measured, not asserted — so a query taking the field scores
+    the ledger's bookkeeping and not the read: joining it moves the partner to rank 1 in 8 of
+    11 against 7, which is the number a later session would otherwise read as an improvement.
+    `test_ranking` holds that property, so the reason this half is unmeasured is a red rather
+    than a paragraph somebody has to find.
+
     Joined with a space and never concatenated: the two fields are separate sentences and a
     tokeniser splitting on non-alphanumerics would fuse the last word of one to the first of
     the other. Empty halves fall out, so an entry or a query with only a symptom is exactly

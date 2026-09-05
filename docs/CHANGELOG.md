@@ -677,6 +677,7 @@
 - ✅ **RK1497** **nothing catches the bytes a wrong decode leaves, so mojibake reaches a permanent file and a correction is what cleans it** — char.mangled refuses a field whose bytes came through the wrong codec: 0 false positives over 3,962 fields, 18 over prose, so it reads fields only.
 - ✅ **RK1498 (the departure refusals, four of thirty)** **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — AlreadyRecorded, AlsoPaused, Divergent and the emptied-block event now run the doors they compose.
 - ✅ **RK1499** **whether a governed number has a gate behind it is a flag typed at the reading, and no test holds it against the findings** — a test holds refuses against what lint does with each governed key, and the two that no gate reads say so in the field.
+- ✅ **RK1500** **the query side of the duplicate ranking cannot be measured, every known answer being a note written after the answer** — a test holds why the query half cannot be scored: all eleven known answers are written into the field a query would join.
 
 ## Block E — Adoption
 
