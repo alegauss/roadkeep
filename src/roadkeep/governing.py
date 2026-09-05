@@ -342,6 +342,10 @@ def reading(config: Config, address: str, *, file: str = "", role: str = "") -> 
             address=address,
             unit="minutes",
             declared=declared,
+            # No gate reads it either (RK1499), and the flag says so rather than leaving the
+            # sentence above to: a claim window is read by `claims` and by the picker, and
+            # nothing in `lint` has an opinion about a number of minutes.
+            refuses=False,
             unmeasured=(
                 "how long a claim reads as held is a judgement about how long work takes, "
                 "and no file here holds evidence about that"
@@ -416,6 +420,11 @@ def _limits(
             address=address,
             unit="utf-16 code units",
             declared=declared,
+            # Said in the field as well as in the sentence (RK1499). The prose above has read
+            # "no gate refuses" since RK1272 and the flag carried its default, which is the
+            # answer that lets a red be declared — inert here only because `sites` is zero,
+            # and a fact restated in prose a gate cannot read is one nothing holds.
+            refuses=False,
             unmeasured=(
                 "the width a written section is filled to, which no gate refuses — an "
                 "adopted file's own lines are wider and are not wrong"

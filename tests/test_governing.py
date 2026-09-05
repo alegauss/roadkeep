@@ -721,3 +721,139 @@ def test_an_undeclared_key_is_told_what_holds_it_and_not_that_something_does(tmp
     assert json.loads(capsys.readouterr().out)["default"] is None
     assert main(["-C", str(config.root), "govern", "limits.symptom", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["default"] == 120
+
+
+# -- the gate a limit claims to have (RK1499) ---------------------------------
+
+#: A project with something under every governed key: a line and its design, a ledger entry
+#: carrying a qualifier, and a resident file. Whole rather than minimal, because the question
+#: each row below asks is whether the *gate* reads the key, and a key with nothing to measure
+#: answers "no" for the wrong reason.
+GOVERNABLE = """prefix = "RK"
+
+[files]
+roadmap = "ROADMAP.md"
+changelog = "CHANGELOG.md"
+improvements = "IMPROVEMENTS.md"
+"""
+
+GOVERNABLE_ROADMAP = """# Roadmap
+
+## Block A
+
+- 📋 **RK1** (deps: —) **A symptom that is plainly long enough to read** — Because of a reason. → §RK1
+"""
+
+GOVERNABLE_LEDGER = """# Shipped
+
+## Block A
+
+- ✅ **RK9 (the local half)** **A shipped symptom** — The local half landed.
+"""
+
+GOVERNABLE_PROSE = """# Improvements
+
+## Block A
+
+### §RK1 A design
+
+The reasoning the line has no room for, written at enough length that a word count is not
+zero and a width is not one.
+"""
+
+#: One governed address to the table declaring it at a number nothing can be under. Every
+#: governed key is here, which is the property: a key added tomorrow is a red until somebody
+#: says which of the two it is.
+IMPOSSIBLE: dict[str, str] = {
+    "limits.line": "[limits]\nline = 1\n",
+    "limits.part": "[limits]\npart = 1\n",
+    "limits.prose": "[limits]\nprose = 1\n",
+    "limits.section": "[limits]\nsection = 1\n",
+    "limits.symptom": "[limits]\nsymptom = 1\n",
+    "limits.why": "[limits]\nwhy = 1\n",
+    "tools.characters": "[tools]\ncharacters = 1\n",
+    "tools.session": "[tools]\ncharacters = 100\nsession = 100\n",
+    "claims.held": "[claims]\nheld = 1\n",
+    "reads.brief": "[reads]\nbrief = 1\n",
+    "reads.list": "[reads]\nlist = 1\n",
+    "budgets.bytes": '[budgets]\n"agents.md" = { bytes = 1 }\n',
+    "budgets.lines": '[budgets]\n"agents.md" = { lines = 1 }\n',
+}
+
+
+def _governable(root: Path, extra: str = "") -> Config:
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "roadkeep.toml").write_text(GOVERNABLE + extra, encoding="utf-8", newline="")
+    for name, body in (
+        ("ROADMAP.md", GOVERNABLE_ROADMAP),
+        ("CHANGELOG.md", GOVERNABLE_LEDGER),
+        ("IMPROVEMENTS.md", GOVERNABLE_PROSE),
+        ("agents.md", "# Agents\n\nA paragraph of prose, longer than one byte and one line.\n"),
+    ):
+        with (root / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return Config.discover(root)
+
+
+def _reading(config: Config, address: str) -> governing.Measured:
+    """The reading, with the one address that needs a file told which."""
+    if address.startswith("budgets."):
+        return governing.reading(config, address, file="agents.md")
+    return governing.reading(config, address)
+
+
+def test_every_governed_address_is_named_in_the_table_below():
+    """RK1499. `refuses` says *some gate reads this key*, and it is a fact about `linting.py`
+    restated by hand in `governing.py` with nothing holding the two together. The population
+    is enumerable — `GOVERNED` names five tables and `describing.TABLES` every key in them —
+    so a key added tomorrow is a red here rather than a flag defaulting to the answer that
+    lets a red be declared."""
+    from roadkeep.describing import TABLES
+
+    declared = {
+        f"{table.split('.')[0]}.{key}"
+        for table in governing.GOVERNED
+        for key in TABLES[table]
+    }
+    assert declared == set(IMPOSSIBLE), {
+        "governed, unnamed": sorted(declared - set(IMPOSSIBLE)),
+        "named, not governed": sorted(set(IMPOSSIBLE) - declared),
+    }
+
+
+@pytest.mark.parametrize("address", sorted(IMPOSSIBLE))
+def test_the_flag_agrees_with_whether_a_finding_reads_the_key(tmp_path, address):
+    """The property, asked of the gate and not of a second list. RK1476 declared a key no
+    finding reads and the refusal fired anyway; the flag that fixed it defaults to True, so a
+    key whose finding is withdrawn goes on refusing writes for a gate that is gone, and one
+    marked False that a gate does read lets a red be declared — the exact failure `Violated`
+    exists to stop. Both drifts arrive silently.
+
+    Behavioural, because *reads it* is a fact about what `lint` does: the key is declared at a
+    number nothing can be under and the finding either arrives or does not."""
+    from roadkeep.linting import lint
+
+    plain = {one.code for one in lint(_governable(tmp_path / "plain")).findings}
+    tightened = _governable(tmp_path / "tight", IMPOSSIBLE[address])
+    gated = {one.code for one in lint(tightened).findings} - plain
+    assert bool(gated) == _reading(tightened, address).refuses, {
+        "address": address,
+        "the gate says": sorted(gated),
+        "the flag says": _reading(tightened, address).refuses,
+    }
+
+
+def test_the_two_keys_no_gate_reads_say_so_in_the_field_and_not_only_in_prose(tmp_path):
+    """`limits.prose` and `claims.held` have said *no gate refuses this* in their `unmeasured`
+    sentence since RK1272, and carried `refuses` at its default — inert only because `sites`
+    is zero. A fact stated in prose a gate cannot read is one nothing holds."""
+    config = _governable(tmp_path)
+    for address in ("limits.prose", "claims.held"):
+        measured = _reading(config, address)
+        assert measured.unmeasured, address
+        assert not measured.refuses, address
+    # And the one that is measured and still refuses nothing, which is the other side of the
+    # rule rather than an exception to it (RK1476): a ceiling the ledger is over by design.
+    listings = _reading(config, "reads.list")
+    assert not listings.refuses
+    assert not listings.unmeasured

@@ -318,29 +318,6 @@ yet, and what turns it into an answerable question is the state. That is a task 
 family rather than one sweep — and the reason to file it as one line is that the six
 that do run were each bought by a defect that had already shipped.
 
-### §RK1499 The gate a limit claims to have
-
-`govern` refuses a number the corpus already breaks, on an exact argument: a limit whose
-first act is a finding is one somebody lowers, reads the report and raises again. RK1476
-declared a key that has no finding at all — `[reads] list` bounds an answer the verb
-declines to compose, and the ledger it is declared against is over it permanently and by
-design. So the refusal fired on the one project the key exists for, and the write was
-undeclarable.
-
-The fix was a `refuses` flag on `Measured`, False at that one reading. What it says is
-*no gate reads this key* — a fact about `linting.py` restated by hand in `governing.py`,
-with nothing holding the two together. A key marked True whose finding is withdrawn
-refuses writes for a gate that is gone; one marked False that a gate does read lets a
-red be declared, the exact failure `Violated` exists to stop. It defaults to True, so
-both drifts arrive silently.
-
-The population is enumerable. `GOVERNED` names five tables, `describing.TABLES` every
-key in them, and four functions in `linting.py` read one. So the property is: for each
-governed address, `refuses` agrees with whether any finding reads it — one test over two
-tables neither of which was written for it, which is the shape `test_composing` and
-`test_surfaces` already use. `prose` and `claims.held` are the same fact stated a third
-way, in prose a gate cannot read.
-
 ### §RK1500 The half of the ranking nothing can score
 
 RK1477 joined the `why` to the ranked corpus and measured it: six of eleven known pairs
