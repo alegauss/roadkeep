@@ -50,6 +50,7 @@ from roadkeep.installing import (
     PLUGIN_PAGES,
     PLUGIN_ROOT,
     PLUGIN_SKILL,
+    PROJECT_BRIDGE,
     PROJECT_ENGINE,
     PROJECT_MCP,
     PROJECT_PAGES,
@@ -2329,6 +2330,64 @@ def test_the_line_a_shell_pastes_is_the_one_this_project_declares(tmp_path, caps
     assert "${CLAUDE_PROJECT_DIR" not in said
     assert not said.endswith(" mcp"), said
     assert said.endswith(f"{PROJECT_ENGINE}/{LAUNCHER}"), said
+
+
+def _declaring_mcp(root: Path, command: str, args: list[str]) -> None:
+    """A `.mcp.json` written by hand, which is what this file is: a declaration `install`
+    merges into rather than owns, and other tools declare in it too."""
+    (root / ".mcp.json").write_text(
+        json.dumps({"mcpServers": {"roadkeep": {"command": command, "args": args}}}),
+        encoding="utf-8",
+    )
+
+
+def test_a_declaration_this_tool_did_not_write_is_not_guessed_at(tmp_path, capsys, monkeypatch):
+    """RK1492. RK1469 found the cut before `mcp` by taking the last argument ending in `.py`,
+    which is one shape of a file this command merges into rather than owns. A declaration whose
+    program is not a Python file returned the **whole** argv, `mcp` included, so the line a
+    caller pasted started a server instead of running the verb they appended."""
+    from roadkeep.provenance import invocation
+
+    only_here(monkeypatch, tmp_path)
+    root = tmp_path / "project"
+    root.mkdir()
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "empty"))
+    # A console script, which is how this tool is meant to be installed and carries no `.py`
+    # anywhere. The old reader returned `roadkeep mcp`; a verb appended to that runs a server.
+    _declaring_mcp(root, "roadkeep", ["mcp"])
+    assert main(["-C", str(root), "engines", "--invoke"]) == EXIT_OK
+    said = capsys.readouterr().out.strip()
+    assert said == invocation()
+    assert not said.endswith(" mcp")
+
+
+def test_a_py_option_value_no_longer_decides_where_the_command_ends(tmp_path, capsys, monkeypatch):
+    # The other half of the same guess: a `.py` that is an *option value* stopped the cut in
+    # the wrong place, so the program never made it into the line.
+    only_here(monkeypatch, tmp_path)
+    root = tmp_path / "project"
+    root.mkdir()
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "empty"))
+    _declaring_mcp(root, "uv", ["run", "--with", "of.py", "roadkeep", "mcp"])
+    assert main(["-C", str(root), "engines", "--invoke"]) == EXIT_OK
+    assert "of.py" not in capsys.readouterr().out
+
+
+def test_the_program_is_the_launcher_this_command_writes(tmp_path, capsys, monkeypatch):
+    """The fact in place of the guess: both spellings `install` writes, wherever they are
+    addressed from — a relative walk, a placeholder, three arguments in."""
+    from roadkeep.installing import declared_launcher
+
+    only_here(monkeypatch, tmp_path)
+    root = tmp_path / "project"
+    root.mkdir()
+    _declaring_mcp(root, "uv", ["run", "python", f"../engine/{LAUNCHER}", "mcp"])
+    assert declared_launcher(root).endswith(f"../engine/{LAUNCHER}")
+    assert not declared_launcher(root).endswith(" mcp")
+    # And the bridge a project commits where no plugin can be (RK1108), under its placeholder.
+    _declaring_mcp(root, "python", ["${CLAUDE_PROJECT_DIR:-.}/" + PROJECT_BRIDGE, "mcp"])
+    assert declared_launcher(root).endswith(PROJECT_BRIDGE)
+    assert "${CLAUDE_PROJECT_DIR" not in declared_launcher(root)
 
 
 def test_a_project_that_declares_nothing_names_the_copy_answering(tmp_path, capsys, monkeypatch):

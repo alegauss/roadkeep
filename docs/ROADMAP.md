@@ -65,7 +65,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 💭 **RK1492** (deps: —) **the invoke line finds the program by a .py suffix, which is a guess about a file this tool merges into** — RK1469 reads the argv the harness runs and has to stop before its mode, and a wrapper, an interpreter flag or uv run puts the program somewhere the suffix does not. → §RK1492
 - 💭 **RK1493** (deps: —) **the served notes are four kinds keyed by string literals invented at each call site, and nothing enumerates them** — RK1470 added a fourth beside two others and which of them repeats is written as the absence of a call, so a fifth arrives unchecked and a mistyped key silences one. → §RK1493
 - 💭 **RK1514** (deps: —) **uninstall leaves the vendored engine on disk and its own kept field never mentions it** — RK1487 made a refusal name the copy nothing points at, and the successful removal one verb over leaves the same copy with the same silence. → §RK1514
 

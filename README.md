@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 7 | 156 | 4 |
 | D — The gate | 20 | 213 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 145 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 146 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 31 | 975 | 14 |
+| **Total** | 30 | 976 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1492** (deps: —) **the invoke line finds the program by a .py suffix, which is a guess about a file this tool merges into** — RK1469 reads the argv the harness runs and has to stop before its mode, and a wrapper, an interpreter flag or uv run puts the program somewhere the suffix does not. → §RK1492
+- 💭 **RK1493** (deps: —) **the served notes are four kinds keyed by string literals invented at each call site, and nothing enumerates them** — RK1470 added a fourth beside two others and which of them repeats is written as the absence of a call, so a fifth arrives unchecked and a mistyped key silences one. → §RK1493
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

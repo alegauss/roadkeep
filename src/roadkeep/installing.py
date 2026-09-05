@@ -904,19 +904,32 @@ def declared_launcher(root: Path) -> str:
 
     `""` on a project served by a plugin alone, whose `.mcp.json` declares no such server —
     and on anything unreadable, which is the direction every reader in this module takes.
+
+    **And on a declaration this tool did not write** (RK1492). The command has to be cut
+    before `mcp`, which is the mode the harness wants and the one argument a shell caller is
+    about to replace with a verb — and RK1469 found that cut by taking the last argument
+    ending in `.py`. `.mcp.json` is a *declaration*: `install` merges into it and does not own
+    it, so the roadkeep entry can hold a wrapper, an interpreter with flags, or `uv run` with
+    the launcher three arguments in, and the suffix is what told them apart. Where it was
+    wrong it was wrong quietly — no `.py` at all returned the whole argv, `mcp` included, so
+    the line a caller pasted started a server instead of running their verb.
+
+    So the program is recognised by :data:`_PROGRAMS`, which is what *this* command writes,
+    and an argv holding none of them is answered `""` rather than guessed at. A fact about our
+    own file in place of a heuristic over somebody else's, and the fall-through is already
+    right: :meth:`Engines.invoke` then names the copy that is answering, which for a
+    declaration this tool cannot read is the honest answer rather than an invented one.
     """
     try:
         declared = json.loads(_read(root / PROJECT_MCP))["mcpServers"][SERVER]
         argv = [str(declared["command"]), *(str(one) for one in declared["args"])]
     except (OSError, ValueError, KeyError, TypeError):
         return ""
-    # Up to the program and no further: the declaration ends in `mcp`, which is the mode the
-    # harness wants and the one thing a shell caller is about to replace with a verb. The
-    # program is the last argument that is a Python file, which is the one shape every
-    # spelling of this declaration has — a launcher, a bridge, or an engine's own script.
     ends = max(
-        (n for n, one in enumerate(argv) if one.endswith(".py")), default=len(argv) - 1
+        (n for n, one in enumerate(argv) if one.endswith(_PROGRAMS)), default=-1
     )
+    if ends < 0:
+        return ""
     # The two spellings `install` writes, resolved against the tree they address (RK1200's
     # rule, one file over): a command carrying a placeholder is one nobody can paste.
     where = root.as_posix()
@@ -924,6 +937,15 @@ def declared_launcher(root: Path) -> str:
         one.replace(PROJECT_DIR_OR_CWD, where).replace(PROJECT_DIR, where)
         for one in argv[: ends + 1]
     ).strip()
+
+
+#: The programs `install` writes into a declaration, as the suffix an argument ends with
+#: (RK1492). Both spellings and nothing else: the launcher a sibling or vendored checkout is
+#: addressed through, and the bridge a project commits where no plugin can be (RK1108). A
+#: suffix rather than an equality, because the argument carries the path it was addressed by —
+#: a placeholder, a relative walk or an absolute drive — and the tail is the part this command
+#: chose. Read from the constants the writer uses, so a launcher that moves moves both.
+_PROGRAMS = (LAUNCHER, PROJECT_BRIDGE)
 
 
 def wired_by(root: Path) -> str:
