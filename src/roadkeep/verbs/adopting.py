@@ -269,6 +269,10 @@ def _install(config: Config, args: argparse.Namespace) -> int:
     because a copy held in step by a gate is the whole point of there being a check.
     """
     del config
+    # Named before the try, so the refusal below can say what landed (RK1487): the vendor runs
+    # first and the surfaces come from it, so a run that copies an engine and then refuses
+    # leaves a copy on disk that the exception is not about and never mentions.
+    pinned = None
     try:
         # **Before the surfaces, and that is the whole order** (RK1464). RK1193 put the vendor
         # after them so a run that copied an engine and failed to wire it could not leave a
@@ -280,7 +284,8 @@ def _install(config: Config, args: argparse.Namespace) -> int:
         #
         # The hazard RK1193 named survives as the smaller one: a copy nothing points at is one
         # more `install` away, and the bytes it replaces are not a downgrade somebody commits.
-        pinned = vendor(args.directory, checked=args.check) if args.vendor else None
+        if args.vendor:
+            pinned = vendor(args.directory, checked=args.check)
         # And the surfaces come from what was just pinned, unless the caller named a tree: a
         # `--vendor` that wired from anywhere else would be the same defect with the copy in
         # the right place. Under `--check` nothing was copied, so the candidate's own home is
@@ -299,7 +304,13 @@ def _install(config: Config, args: argparse.Namespace) -> int:
             )
         )
     except (ValueError, OSError) as error:
-        return _refused(error)
+        code = _refused(error)
+        if pinned is not None and not args.check:
+            # After the refusal and never instead of it (RK1487): what stopped the surfaces is
+            # the answer, and what is now in the tree is the half no exception here is about.
+            # Silent under `--check`, which copied nothing.
+            print(pinned.stranded(), file=sys.stderr)
+        return code
 
     if args.json:
         payload = intent.payload(args.check)

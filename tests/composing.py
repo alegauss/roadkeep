@@ -160,6 +160,10 @@ SITES: tuple[Site, ...] = (
     # RK1230. Run by `test_installing`, which asserts the line it composes *is* the copy the
     # registry names — the one composed command here whose whole point is being pasted.
     Site("installing.py:Engines.invoke", "run"),
+    # RK1487. The copy a refusal does not mention, and the read it names is what says which
+    # surfaces are still to write — run by `test_installing`, which lands a vendor into a tree
+    # whose `.claude` is a file and reads the sentence the exception above it is not about.
+    Site("installing.py:Vendored.stranded", "run"),
     # RK1438. The five lines a write ends with, which name the verbs a day uses with the id
     # and the sentence left as placeholders — the same shape as `Retrofitted.stated` above,
     # and unreached for the same reason: the fixture here is an adopter with no line filed, so

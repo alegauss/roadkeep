@@ -77,6 +77,30 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1511 The door a one-task-one-commit rule needs
+
+One task, one commit has a consequence nothing here has a door for. A task that finds
+work inside its own sentence cannot do it, because the commit is that task's; so it
+files a line instead, and the tree carries the half-built thing until the second line is
+worked. In the port this tool governs, four of the nine idea-marked lines are that exact
+shape: a seam nothing calls, a check its own commit reworded around, a departure
+recorded only in a comment.
+
+The other reading is that they were never separate work. Had the finding been a
+criterion on the task that found it, the line would have shipped partial under RK1433's
+rule and finished under the same id, and nothing would have been carried between two
+commits.
+
+What is missing is the move from the first shape to the second. `criterion add --task`
+writes the sentence and `retire` ends the line, but they are two writes: the criterion
+cites no origin, the retirement cites no destination, and the id is spent either way
+with no record that the two acts were one.
+
+A fold is one transaction: the open line's own symptom becomes the criterion's lead
+under the task named, the line leaves by the door `retire` already opens, and the ledger
+says which task absorbed it. It refuses where the target has shipped, the case the
+second write cannot see today. Whether the fold is right stays the author's judgement.
+
 ## Block C — Query
 
 ### §RK1490 The half a pick cannot offer
@@ -152,6 +176,78 @@ the project that has one.
 
 Worth weighing against both: the report is advisory, and being loud here costs a reader
 who is already this repository's maintainer.
+
+### §RK1510 The question weight is the other half of
+
+`weight` (RK71) prices what a comparable task cost, so granularity is a query rather
+than a feel. Nothing prices what a task left behind. In the port this tool governs that
+reading took two `git log` runs and a `comm` over roadmap snapshots: the backlog held 19
+to 26 open lines for three weeks while the id counter went from 66 to 727. Neither
+figure is derivable from anything this tool prints.
+
+It matters because a backlog decomposing and a backlog discovering look identical from
+the count alone. Four of the nine idea-marked lines open there were debts the
+immediately preceding commit chose to leave, not findings the work turned up, and which
+of the two it is decides whether the answer is a smaller task or a criterion written
+earlier.
+
+The join is the one `unclosed` already makes from the other end: a commit names ids, the
+ledger dates each entry, and an id first appearing within a span after an entry is that
+entry's fallout. RK94's correction binds here too - a commit shipping several entries
+gives its filings to none of them rather than a share, a divided count being one no
+commit contains.
+
+Two axes and no score, the way `weight` refuses one: filings per entry, and the span
+they arrived over. Whether a rate is too high is a judgement this has no model for, and
+the block whose lines file the most behind them is often the block where the leverage
+is.
+
+### §RK1512 A store the picker does not know is there
+
+`defer` is the door for work that is neither shipped nor abandoned, and the store it
+writes to is read by nothing that picks. `picking.py` and `briefing.py` mention the role
+nowhere: the `paused` counter is lines blocked on a paused dep, RK92's answer, which
+reaches a deferral only where something open still depends on it. A deferral nothing
+depends on is invisible to every tier.
+
+Measured in the port this tool governs: roughly thirty-four loop iterations ran on one
+block without the file being opened once. Six of its seven deferrals were honestly
+waiting on hardware. The seventh was set aside as accepted, citing a premise that twenty
+files under the tree had already falsified, and nothing went red for it because a reason
+is prose and prose does not go red.
+
+So the ask is not that `pick` offer them - a pause is a decision and offering it would
+undo the decision. It is that the answer stop being silent about a store the project
+declared: the count, and the oldest reason, in the sentence that already names ready,
+blocked and paused. A caller then knows there is a file to read, at the one moment the
+backlog looks fully gated.
+
+The audit is the second half and belongs with it: a deferral carries a reason, and a
+reason has a date and no expiry. What `resume` needs is not a prompt but a reading, and
+the reading starts with knowing the lines are there.
+
+### §RK1513 The absence nothing says before the work
+
+RK1185 settled that a criterion is read before the first edit rather than at the ship,
+and it settled it for lines that have one. Where a line has none the brief prints
+nothing, and the absence is first said out loud by `criterion.absent` - which
+`linting.py` scopes to the partial marker, so it fires after part of the work has landed
+and the question it raises is how much is left.
+
+That is the wrong end for the one case this repository already has evidence about. A
+task that will find work inside its own sentence is exactly the task whose criteria
+would have caught it, and the only moment those can still be written is the call that
+starts it.
+
+Not a gate, and not a demand that every line carry one: most do not need one, and RK1358
+already refuses to read an empty list as a met one. What the brief owes is the same
+sentence it gives the deps - this line carries no criteria - so the absence is a thing
+the caller declined rather than a thing nobody was shown. The judgement stays the
+author's, which is L4.
+
+The cheap version is one clause in an answer already composed, and it is worth pricing
+against RK1309's finding that a first body is written blind: both are the same shape, a
+read the author needs at the moment before writing and can only reach after.
 
 ## Block D — The gate
 
@@ -561,29 +657,6 @@ has the reading in front of it at the moment it chooses.
 ## Block E — Adoption
 
 ## Block F — The plugin
-
-### §RK1487 The copy a refusal does not mention
-
-RK1464 moved the vendor in front of the surfaces and accepted the hazard RK1193 put it
-behind them for: a run that copies an engine and then fails to wire it leaves a copy
-nothing points at. The trade is right — a downgrade somebody commits is worse than a
-directory one more `install` clears — but nothing says so when it happens.
-
-The failure is quiet in both directions. `install` writes every surface or none, and a
-refusal after the vendor exits non-zero with a `.roadkeep/` on disk that no declaration
-names; the caller reads what stopped the surfaces and not what landed. And a pinned
-project is now the *source* for every later plan, so a wrong-version tree there is what
-the surfaces come from — which `_pinned_engine` guards by requiring the five carried
-files, a shape test and not a version one.
-
-What is missing is one sentence at the one door. A refusal raised after the copy could
-name what landed and what it is not yet wired to, which is `NotVerified`'s own shape —
-that one leaves the tree on disk deliberately and says why. Nothing here does.
-
-Worth weighing beside it: `uninstall` takes the declarations out and leaves
-`.roadkeep/`, so the pair is not symmetric either. Whether the copy is `uninstall`'s to
-remove is a question about what an artefact is, and the answer may be that it says where
-it is rather than deleting somebody's megabyte.
 
 ### §RK1492 The argument nobody marked
 

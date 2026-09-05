@@ -2630,3 +2630,59 @@ def test_nothing_wired_is_not_a_record_that_is_missing(project, capsys):
     # would govern nothing is noise.
     main(["-C", str(project), "install", "--check", "--json"])
     assert json.loads(capsys.readouterr().out)["unrecorded"] is False
+
+
+# -- the copy a refusal does not mention (RK1487) ------------------------------
+
+
+def test_a_vendor_that_lands_and_then_refuses_says_what_is_on_disk(
+    tmp_path, monkeypatch, capsys
+):
+    """RK1487. RK1464 moved the vendor in front of the surfaces and accepted the hazard RK1193
+    had put it behind them for: a run that copies an engine and then fails to wire it leaves a
+    copy nothing points at. The trade is right — a downgrade somebody commits is worse than a
+    directory one more `install` clears — and it was silent, so the caller read what stopped
+    the surfaces and nothing about what landed."""
+    only_here(monkeypatch, tmp_path)
+    _engine_copy(tmp_path / "new", "9.9.9", "THE VENDORED ENGINE WROTE THIS.")
+    project = tmp_path / "adopter"
+    project.mkdir()
+    # A `.claude` that is a file, which is RK393's own blocker: the vendor lands and the
+    # surfaces cannot be written, which is exactly the shape this refusal is about.
+    (project / ".claude").write_text("not a directory\n", encoding="utf-8")
+
+    monkeypatch.setenv("ROADKEEP_SRC", str(tmp_path / "new"))
+    capsys.readouterr()
+    assert main(["-C", str(project), "install", "--vendor"]) != EXIT_OK
+    err = capsys.readouterr().err
+    assert "9.9.9 landed in" in err and "nothing is wired to it" in err
+    assert "install --check" in err
+    # And the copy is on disk, which is what the sentence is about.
+    assert (project / ".roadkeep" / "src" / "roadkeep").is_dir()
+
+
+def test_a_run_that_wires_says_nothing_about_a_stranded_copy(tmp_path, monkeypatch, capsys):
+    # The sentence is about a refusal, so a run that finished has nothing to say with it.
+    only_here(monkeypatch, tmp_path)
+    _engine_copy(tmp_path / "new", "9.9.9", "THE VENDORED ENGINE WROTE THIS.")
+    project = declaring(tmp_path / "adopter", CLEAN)
+
+    monkeypatch.setenv("ROADKEEP_SRC", str(tmp_path / "new"))
+    capsys.readouterr()
+    assert main(["-C", str(project), "install", "--vendor"]) == EXIT_OK
+    assert "nothing is wired to it" not in capsys.readouterr().err
+
+
+def test_a_check_that_refuses_names_no_copy_because_it_made_none(tmp_path, monkeypatch, capsys):
+    # Silent under `--check`, which copied nothing: a sentence about a landing that did not
+    # happen is the report describing a tree it did not write.
+    only_here(monkeypatch, tmp_path)
+    _engine_copy(tmp_path / "new", "9.9.9", "THE VENDORED ENGINE WROTE THIS.")
+    project = tmp_path / "adopter"
+    project.mkdir()
+    (project / ".claude").write_text("not a directory\n", encoding="utf-8")
+
+    monkeypatch.setenv("ROADKEEP_SRC", str(tmp_path / "new"))
+    capsys.readouterr()
+    main(["-C", str(project), "install", "--vendor", "--check"])
+    assert "nothing is wired to it" not in capsys.readouterr().err

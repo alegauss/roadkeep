@@ -937,6 +937,7 @@
 - ✅ **RK1471** **a write from an engine whose home was swapped is allowed, on rules no disk holds and with no pin to compare against** — the gate names a verdict that came from code no disk holds, and the write is not refused: the only remedy is a restart, which is a door neither a gate nor an agent can open.
 - ✅ **RK1482** **a finding about the reader's own stale tooling sits in lint's list at the same weight as a line over its limit** — The gate tells a surface behind this engine from a page the project never had, and the summary line a skimming reader sees carries the count and the door.
 - ✅ **RK1485** **the record that stops a downgrade arrives on the write it guards, so an already-wired project is unprotected until then** — install --check names the absent record and the gate says the direction is unestablished, so a project wired before RK1462 is told rather than guessed about.
+- ✅ **RK1487** **a vendor that lands and then fails to wire leaves a copy nothing points at, and no refusal says it is there** — install now says what landed when a vendor copies an engine and the surfaces then refuse.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

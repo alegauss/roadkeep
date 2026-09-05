@@ -26,11 +26,16 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1511** (deps: —) **a line filed because the task that found it could not fit it has no door back into that task's criteria** — retire ends the line and criterion add writes a sentence that names nothing, so folding one into the other is two writes and neither records that they were one act. → §RK1511
+
 ## Block C — Query (consult without reading the file)
 
 - 💭 **RK1490** (deps: —) **a caller who can see a withheld line is worth starting still has no way to take it, only to disbelieve the refusal** — RK1467 made the gate legible and left the half unreachable, so ship --part is the only place this tool says a line has parts, and it says it afterwards. → §RK1490
 - 💭 **RK1495** (deps: —) **the near rows an add prints come from the ledger alone, so two sessions filing one defect never see each other** — RK1472 duplicated RK1461 while it was open and ranks second against the delivered corpus, so the window was right and the corpus had no open lines in it. → §RK1495
 - 💭 **RK1496** (deps: —) **the filter that makes unclosed honest is inert here, where a hook touches three ungoverned files every commit** — RK153's version bump means no commit here touches governed files alone, so the fixture that proves the format cannot exercise the rule it proves. → §RK1496
+- 📋 **RK1510** (deps: —) **no read says how many lines a shipped task filed behind it, so granularity is judged from a feel** — weight answers what a task cost from the commits that shipped it; what it filed behind it has no verb, so the reading is rebuilt from git log every time somebody asks. → §RK1510
+- 📋 **RK1512** (deps: —) **pick and brief never name the deferred store, so a set-aside line and the reason it cites go unread** — RK92 resolves a dep on a paused task, which is the only way a deferral reaches an answer here, and a reason can expire while the decision it justified stays put. → §RK1512
+- 📋 **RK1513** (deps: —) **brief hands over a line carrying no criteria in silence, and the absence is reported only once part landed** — RK1185 rides the criterion with the brief where one exists and RK1433 reports its absence at the partial marker, so the moment before the first edit says nothing. → §RK1513
 
 ## Block D — The gate
 
@@ -56,7 +61,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 💭 **RK1487** (deps: —) **a vendor that lands and then fails to wire leaves a copy nothing points at, and no refusal says it is there** — RK1464 accepted that hazard to stop the downgrade and left it silent, so the caller reads what stopped the surfaces and not what is now on disk. → §RK1487
 - 💭 **RK1492** (deps: —) **the invoke line finds the program by a .py suffix, which is a guess about a file this tool merges into** — RK1469 reads the argv the harness runs and has to stop before its mode, and a wrapper, an interpreter flag or uv run puts the program somewhere the suffix does not. → §RK1492
 - 💭 **RK1493** (deps: —) **the served notes are four kinds keyed by string literals invented at each call site, and nothing enumerates them** — RK1470 added a fourth beside two others and which of them repeats is written as the absence of a call, so a fifth arrives unchecked and a mistyped key silences one. → §RK1493
 

@@ -117,19 +117,19 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 230 | 2 |
-| C — Query (consult without reading the file) | 3 | 155 | 4 |
+| B — Authoring (insert, never hand-edit) | 1 | 230 | 2 |
+| C — Query (consult without reading the file) | 6 | 155 | 4 |
 | D — The gate | 17 | 210 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 144 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 145 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 23 | 970 | 14 |
+| **Total** | 26 | 971 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1487** (deps: —) **a vendor that lands and then fails to wire leaves a copy nothing points at, and no refusal says it is there** — RK1464 accepted that hazard to stop the downgrade and left it silent, so the caller reads what stopped the surfaces and not what is now on disk. → §RK1487
+- 💭 **RK1488** (deps: —) **a ship deletes the clause that answered a constraint and says nothing, so the answer ages out unremarked** — RK1457 put the answer in the design because it ages out with the work, and the ship that deletes it reports the section and never what the section settled. → §RK1488
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

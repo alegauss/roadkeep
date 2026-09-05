@@ -2158,6 +2158,27 @@ class Vendored:
             )
         return "\n".join(rows)
 
+    def stranded(self) -> str:
+        """What is on disk after a run that copied this engine and then refused (RK1487).
+
+        RK1464 moved the vendor in front of the surfaces and accepted the hazard RK1193 had
+        put it behind them for: a run that copies an engine and then fails to wire it leaves a
+        copy nothing points at. The trade is right — a downgrade somebody commits is worse
+        than a directory one more `install` clears — and it was **silent**, so the caller read
+        what stopped the surfaces and nothing about what landed.
+
+        :class:`NotVerified`'s own shape, one failure over: that one leaves the tree on disk
+        deliberately and says why, and this says the same about a copy the refusal above it
+        never mentioned. Not an offer to delete it — the bytes are the evidence, and the next
+        `install` is what points at them.
+        """
+        return (
+            f"roadkeep: {self.chosen.version} landed in {self.into.as_posix()} and nothing "
+            f"is wired to it: the copy is left where it is, because the write that points at "
+            f"it is the one that just refused — `{invocation()} install --check` says what is "
+            f"still to write, and a second `install` writes it"
+        )
+
     def payload(self) -> dict[str, object]:
         return {
             "into": self.into.as_posix(),
