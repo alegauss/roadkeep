@@ -426,14 +426,18 @@ def _cost(config: Config, args: argparse.Namespace) -> int:
         return _skill_budget(config, args)
     if args.deny:
         return _deny_budget(config, args)
+    if args.notes:
+        return _notes_budget(config, args)
     # No subject is the default here, unlike `budget`, whose bare form is about the line `add`
-    # would write next. These are five cadences — once at connect, once per turn, once per
-    # read, once per turn that loads the write path (RK1424) and once per refused write
-    # (RK1428) — and privileging one would make the others look like narrowings of it.
+    # would write next. These are six cadences — once at connect, once per turn, once per
+    # read, once per turn that loads the write path (RK1424), once per refused write (RK1428)
+    # and once per run of the gate (RK1491) — and privileging one would make the others look
+    # like narrowings of it.
     print(
         "roadkeep: cost takes a subject: --tools for the served surface, --brief for what "
         "that read costs a tool result, --session for both against their cadences, --skill "
-        "for the write path on the turns that load it, --deny for one refused write",
+        "for the write path on the turns that load it, --deny for one refused write, --notes "
+        "for what a clean run says beside its verdict",
         file=sys.stderr,
     )
     return EXIT_USAGE
@@ -779,6 +783,33 @@ def _deny_budget(config: Config, args: argparse.Namespace) -> int:
     from roadkeep.budgeting import deny_cost  # noqa: PLC0415 - RK260
 
     found = deny_cost(config)
+    if args.json:
+        print(json.dumps(found.payload(CHARACTER_UNIT), indent=2))
+    else:
+        print(found.stated(CHARACTER_UNIT))
+    return EXIT_OK
+
+
+def _notes_budget(config: Config, args: argparse.Namespace) -> int:
+    """What a clean run of the gate says beside its verdict (RK1491).
+
+    The sixth cadence, and the one nothing counted. `engine.disagreement` fires through the
+    `Stop` hook on every turn of a wired project and grew a clause in each of three tasks,
+    against no number at all — RK30's argument one surface over, a limit nobody counts being a
+    limit that moves.
+
+    Two figures, because the note's size is a **composition** and not a state: what this
+    project's gate emits now, and the widest that note can be with every clause true — which
+    no checkout of this repository can produce, its engine being the tree it judges. A read
+    that priced only what fired would report nothing about the sentence this was filed for.
+
+    **And no ceiling**, for `--skill`'s reason and `--deny`'s: `govern` refuses a limit nobody
+    has argued for, so declaring one would be a number picked before the reading that decides
+    it. This is the reading.
+    """
+    from roadkeep.budgeting import note_cost  # noqa: PLC0415 - RK260
+
+    found = note_cost(config)
     if args.json:
         print(json.dumps(found.payload(CHARACTER_UNIT), indent=2))
     else:
@@ -1942,6 +1973,11 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         action="store_true",
         help="what one refused write costs the session that meets it",
     )
+    cost_parser.add_argument(
+        "--notes",
+        action="store_true",
+        help="what a clean run of the gate says beside its verdict",
+    )
     cost_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     cost_parser.set_defaults(handler=_cost, reads_only=True)
     answers(
@@ -1954,6 +1990,9 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         ("skill", "what the write path costs the turns that load it"),
         # And the fifth (RK1428), paid per refused write by the surface this plugin is for.
         ("deny", "what one refused write costs the session that meets it"),
+        # The sixth (RK1491), paid on every run of the gate by a project that wired it: what a
+        # clean report says beside its verdict, which no other cadence here counts.
+        ("notes", "what a clean run of the gate says beside its verdict"),
     )
     # The one subject of this verb the surface does not offer (RK1428), and `list --ids`'
     # reason exactly: a caller over that transport is *handed the denial itself*, so the
@@ -1967,6 +2006,14 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
             "the caller over this transport is handed the denial itself, so the figure adds "
             "nothing it could not count from the text in front of it — and exposing it costs "
             "102 characters against 19 of room under `[tools] session`"
+        ),
+        # The second subject withheld, on the first one's argument (RK1491): a note is handed
+        # to the session that meets it, so the figure adds nothing to a caller already holding
+        # the sentence — and the reader who can shorten a clause is the author at a terminal.
+        notes=(
+            "the session that meets a note is handed the note, so the figure adds nothing it "
+            "could not count from the text in front of it — and the author who can shorten a "
+            "clause is at a terminal, where `[tools] session` is not what they are spending"
         ),
     )
     narrows(budget_parser, "role", "anchor")

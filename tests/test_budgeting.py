@@ -1629,6 +1629,110 @@ def test_the_denial_read_is_the_one_subject_the_surface_withholds(tmp_path, caps
     assert "one answer per call" in capsys.readouterr().err
 
 
+# -- the sixth cadence: what a clean run says beside its verdict (RK1491) ------
+
+
+def test_the_notes_a_clean_run_says_are_priced(tmp_path, capsys):
+    """RK1491. Five cadences and a note is in none of them, while `engine.disagreement` fires
+    through the `Stop` hook on every turn of a wired project. It grew a clause in each of three
+    tasks, each time for a good reason, each time against no number at all — RK30's argument
+    one surface over, a limit nobody counts being a limit that moves."""
+    _priced(tmp_path)
+    assert main(["-C", str(tmp_path), "cost", "--notes", "--json"]) == EXIT_OK
+    found = json.loads(capsys.readouterr().out)
+    assert found["characters"] == sum(one["characters"] for one in found["notes"])
+    # No ceiling of its own, for `--skill`'s and `--deny`'s reason.
+    assert "limit" not in found
+
+
+def test_the_widest_a_note_can_be_is_measured_where_it_cannot_fire(tmp_path, capsys):
+    """The half a state-only reading cannot reach. `engine.disagreement`'s first clause
+    requires the engine *not* to be carried by the tree it judges, so no checkout of this
+    repository can produce it — and the note this task was filed about would be priced at
+    zero by a read that only summed what fired. RK1489's finding, one day and one subject
+    over: a reading is only as wide as the fixture."""
+    from roadkeep.budgeting import note_cost
+
+    found = note_cost(Config.discover(Path(__file__).resolve().parents[1]))
+    # Not a state anywhere on disk here, so it is composed — and it is by a wide margin the
+    # largest single thing the gate can say beside a verdict.
+    assert found.widest > found.here
+    assert "engine.disagreement" not in [one.heading for one in found.emitted]
+
+
+def test_the_note_is_measured_off_the_composer_and_not_a_fixture(tmp_path):
+    """`deny_cost`'s rule one message over: RK1491 lifted the clause assembly out of the gate
+    so a second reader exists, and a fixture pasted into this reader would agree until
+    somebody edits a clause."""
+    from roadkeep.budgeting import note_cost
+    from roadkeep.kernel.schema import width
+    from roadkeep.linting import disagreement
+    from roadkeep.provenance import engine
+
+    running = engine()
+    composed = disagreement(
+        running.version,
+        running.home.as_posix(),
+        running.version,
+        running.version,
+        running.on_disk,
+        working=True,
+        skewed=True,
+        split=True,
+        swapped=True,
+    )
+    assert note_cost(Config.discover(tmp_path)).widest == width(composed)
+    # Every clause is in it, which is what "full length" means: four facts, four readings.
+    for clause in (
+        "a verdict here is that working tree's",
+        "a hook's refusal is that copy's rule",
+        "a line written here was written by whichever answered",
+        "this verdict came from code no disk holds",
+    ):
+        assert clause in composed
+
+
+def test_the_gate_and_the_reader_compose_one_sentence(tmp_path):
+    """One composer and two readers, which is why it was lifted: the note the gate emits and
+    the figure `cost` publishes cannot come to disagree about what the sentence is."""
+    from roadkeep.linting import disagreement
+
+    # The gate's own path, with one fact true: the same function, so a clause reworded moves
+    # both. Asserted through the shape rather than through a state this fixture cannot hold.
+    one = disagreement(
+        "1.0.0", "/tree", None, None, "1.0.0",
+        working=True, skewed=False, split=False, swapped=False,
+    )
+    assert "a **modified** checkout at /tree" in one
+    assert "/plugin update" not in one
+    # And a clause that is false contributes nothing, which is what makes the widest the widest.
+    assert len(one) < len(
+        disagreement(
+            "1.0.0", "/tree", "2.0.0", "3.0.0", "4.0.0",
+            working=True, skewed=True, split=True, swapped=True,
+        )
+    )
+
+
+def test_the_notes_read_is_the_second_subject_the_surface_withholds(tmp_path, capsys):
+    """`--deny`'s argument, unchanged: the session that meets a note is handed the note, so
+    the figure adds nothing a caller could not count from the text in front of it — and the
+    author who can shorten a clause is at a terminal."""
+    from roadkeep import serving
+
+    assert "notes" in serving.withheld()["cost"]
+    _priced(tmp_path)
+    assert main(["-C", str(tmp_path), "cost", "--notes", "--deny"]) == EXIT_USAGE
+    assert "one answer per call" in capsys.readouterr().err
+
+
+def test_the_bare_verb_names_the_sixth_subject(tmp_path, capsys):
+    # Six cadences and no default: privileging one would make the others read as narrowings.
+    _priced(tmp_path)
+    assert main(["-C", str(tmp_path), "cost"]) == EXIT_USAGE
+    assert "--notes" in capsys.readouterr().err
+
+
 def test_the_two_surface_reads_share_one_measurement(tmp_path, capsys):
     """RK1096. `--tools` summed the descriptors and the handshake, `--session` summed the
     same two, and neither called the other — one arithmetic written twice, which agrees right

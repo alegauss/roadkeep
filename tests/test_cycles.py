@@ -74,6 +74,11 @@ CYCLES: dict[tuple[str, str], str] = {
         "shape: a call-time import whose own docstring argues it — a projection refresh planned "
         "anywhere but where the transaction is assembled lands outside the all-or-nothing write"
     ),
+    ("budgeting", "linting"): (
+        "shape: the gate already reads a budget, and RK1491 made the reading go the other way "
+        "too — a note's width is measured off `linting.disagreement`, which composes it, "
+        "because a fixture pasted into the reader agrees until somebody edits a clause"
+    ),
     ("adopting", "serving"): UNEXAMINED,
     ("authoring", "blocking"): UNEXAMINED,
     ("authoring", "budgeting"): UNEXAMINED,

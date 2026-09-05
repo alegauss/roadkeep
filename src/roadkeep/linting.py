@@ -3012,18 +3012,60 @@ def _disagreeing(config: Config, tree: Tree) -> list[Note]:
     swapped = found.swapped
     if not (working or skewed or split or swapped):
         return []
-    gate = f"this gate is {running.version}"
+    return [
+        Note(
+            "engine.disagreement",
+            where,
+            disagreement(
+                running.version,
+                running.home.as_posix(),
+                None if plugin is None else plugin.version,
+                None if vendored is None else vendored.version,
+                running.on_disk,
+                working=working,
+                skewed=skewed,
+                split=split,
+                swapped=swapped,
+            ),
+        )
+    ]
+
+
+def disagreement(
+    version: str,
+    home: str,
+    plugin: str | None,
+    vendored: str | None,
+    on_disk: str,
+    *,
+    working: bool,
+    skewed: bool,
+    split: bool,
+    swapped: bool,
+) -> str:
+    """The note's text, composed from the four facts and from nothing else (RK1491).
+
+    Lifted out of :func:`_engines` so a second reader exists: this message fires through the
+    `Stop` hook on every turn of a wired project, it is the widest thing a clean run says, and
+    `cost` had no way to ask how wide — the state that makes all four clauses true cannot be
+    built by a project whose engine is the tree it is judging, which is every checkout of this
+    one. `deny_cost`'s rule, one message over: measured off the thing that composes it, so a
+    clause reworded here moves the figure rather than a fixture agreeing until somebody edits.
+
+    One clause per fact and in the order they are stated, because a reader acts on a different
+    thing for each: an unpinnable verdict is a tree to look at, and a version behind is a judge
+    to move. Unchanged from RK1440's shape, which is the point — this is the same sentence with
+    the facts arriving as arguments.
+    """
+    gate = f"this gate is {version}"
     if working:
-        gate += f" from a **modified** checkout at {running.home.as_posix()}"
-    if skewed:
-        gate += f", and the plugin wired to this project is {plugin.version}"
+        gate += f" from a **modified** checkout at {home}"
+    if skewed and plugin is not None:
+        gate += f", and the plugin wired to this project is {plugin}"
     if split and vendored is not None:
-        gate += f", and the engine vendored here is {vendored.version}"
+        gate += f", and the engine vendored here is {vendored}"
     if swapped:
-        gate += f", loaded from a directory that states {running.on_disk} now"
-    # One clause per fact and in the order they are stated, because a reader acts on a
-    # different thing for each: an unpinnable verdict is a tree to look at, and a version
-    # behind is a judge to move.
+        gate += f", loaded from a directory that states {on_disk} now"
     means = " and ".join(
         [
             *(["a verdict here is that working tree's"] if working else []),
@@ -3043,14 +3085,10 @@ def _disagreeing(config: Config, tree: Tree) -> list[Note]:
         moves += "; `install --vendor` re-pins the copy the launcher runs"
     if swapped:
         moves += "; a restart is the only thing that reloads a home replaced under a process"
-    return [
-        Note(
-            "engine.disagreement",
-            where,
-            f"{gate}: {means} — `engines` reads every copy and names the revision each "
-            f"one is at{moves}",
-        )
-    ]
+    return (
+        f"{gate}: {means} — `engines` reads every copy and names the revision each "
+        f"one is at{moves}"
+    )
 
 
 def _repeated(config: Config, files: dict[str, Document]) -> list[Finding]:

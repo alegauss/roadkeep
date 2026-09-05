@@ -40,7 +40,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1491** (deps: —) **the note a wired project reads on every turn is 475 characters at full length and no cadence prices it** — cost has five subjects and a note is in none of them, so engine.disagreement grew a clause in each of three tasks against no number at all. → §RK1491
 - 💭 **RK1494** (deps: —) **one gate code now carries four causes with four remedies, so explain can only describe their union** — RK1440, RK1468 and RK1471 each added a clause joined by and, where every other multi-cause finding here is split so each names its own door. → §RK1494
 - 💭 **RK1497** (deps: —) **nothing catches the bytes a wrong decode leaves, so mojibake reaches a permanent file and a correction is what cleans it** — RK1474 built the correction and the gate already refuses an invisible codepoint on the same argument, which is a character no author meant. → §RK1497
 - 💭 **RK1498** (deps: —) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — RK1475 published a door that would have refused, and what catches that is running the sites test_composing enumerates and calls unreached. → §RK1498

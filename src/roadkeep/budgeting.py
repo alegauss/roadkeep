@@ -2075,6 +2075,111 @@ _SHELL_TABLE = "Or the same engine in a shell"
 _READING = "Reading is never refused"
 
 
+@dataclass(frozen=True, slots=True)
+class Noted:
+    """What a clean run of the gate says beside its verdict (RK1491).
+
+    The sixth cadence, and the one nothing counted. `[budgets]` prices the every-turn files,
+    `[tools]` the served surface, `[reads] brief` the read that replaces opening a file, and
+    `deny` the refused write — and a **note** is in none of them, while `engine.disagreement`
+    fires through the `Stop` hook on every turn of a wired project. It grew a clause in each of
+    three tasks, each time for a good reason, each time against no number at all. RK30's
+    argument, one surface over: a limit nobody counts is a limit that moves.
+
+    **Two readings and not one**, because the note's size is a composition rather than a
+    state. :attr:`emitted` is what this project's gate actually says right now, which is what a
+    session here pays; :attr:`widest` is `engine.disagreement` with all four clauses true,
+    which no checkout of this repository can produce — the engine is the tree it judges, so
+    the clause that starts the sentence is a tautology here and the note never fires. A read
+    that priced only what fired would report nothing about the thing this was filed for, which
+    is RK1489's finding one day and one subject over.
+
+    **No limit**, for :class:`Skilled`'s reason: `govern` refuses a ceiling nobody has argued
+    for, and what it should be is the reading this is. The figure and where it went, with the
+    judgement left to whoever takes it.
+    """
+
+    #: One row per note this run of the gate emitted, widest first — code and width.
+    emitted: tuple[Part, ...] = ()
+    #: `engine.disagreement` composed with every clause true, which is the widest a note here
+    #: can be. Named rather than derived from :attr:`emitted`, which on this project holds none
+    #: of it: what is being priced is the sentence, not the state that happens to be on disk.
+    widest: int = 0
+
+    @property
+    def here(self) -> int:
+        """What a clean run costs now — the sum, which is the per-commit and per-turn figure."""
+        return sum(one.characters or 0 for one in self.emitted)
+
+    def stated(self, unit: str) -> str:
+        rows = [
+            f"notes      {self.here} {unit} on every run of the gate — a commit through the "
+            f"hook, a turn through `Stop` — and no ceiling is declared for it",
+            f"  widest   {self.widest:>6}  `engine.disagreement` with every clause true, "
+            f"which this checkout cannot produce",
+        ]
+        rows += [
+            f"  note     {one.characters or 0:>6}  {one.heading}" for one in self.emitted
+        ]
+        if not self.emitted:
+            rows.append("  note          0  this run says nothing beside its verdict")
+        return chr(10).join(rows)
+
+    def payload(self, unit: str) -> dict[str, object]:
+        return {
+            "characters": self.here,
+            "unit": unit,
+            "of": "every note this project's gate emits, per run",
+            # The two readings kept apart in the payload as they are in the rows: a consumer
+            # adding them would be charging a session for a sentence it cannot meet.
+            "widest": self.widest,
+            "notes": [
+                {"code": one.heading, "characters": one.characters or 0}
+                for one in self.emitted
+            ],
+            # No `limit` key, for `Skilled`'s reason: a `null` there reads as a ceiling this
+            # build failed to find rather than as one nobody has argued for.
+        }
+
+
+def note_cost(config: Config) -> Noted:
+    """Price the notes off the gate that emits them, never off a second spelling.
+
+    :func:`deny_cost`'s rule, and the same two halves: what this project meets is read off a
+    real report, and the sentence it cannot meet is read off the function that composes it —
+    :func:`~roadkeep.linting.disagreement`, which RK1491 lifted out of the gate for exactly
+    this. A fixture pasted here would agree until somebody edits a clause.
+
+    The composed figure uses this project's own running version and home, so the number is the
+    one a reader here would meet if the four facts were true, rather than one measured against
+    invented strings of a different length.
+    """
+    from roadkeep.linting import disagreement, lint  # noqa: PLC0415 - RK260
+    from roadkeep.provenance import engine  # noqa: PLC0415 - RK260
+
+    running = engine()
+    emitted = sorted(
+        (Part(one.code, 1, len(str(one).encode()), width(str(one))) for one in lint(config).notes),
+        key=lambda one: -(one.characters or 0),
+    )
+    return Noted(
+        emitted=tuple(emitted),
+        widest=width(
+            disagreement(
+                running.version,
+                running.home.as_posix(),
+                running.version,
+                running.version,
+                running.on_disk,
+                working=True,
+                skewed=True,
+                split=True,
+                swapped=True,
+            )
+        ),
+    )
+
+
 def notice_budget(config: Config) -> tuple[int, int | None]:
     """What this project's `SessionStart` line costs, and what it may (RK1243).
 

@@ -278,31 +278,6 @@ carrying a marker constant is the wrong one, and a report of what a write did is
 
 ## Block D — The gate
 
-### §RK1491 The cadence nobody counts
-
-`engine.disagreement` is composed one clause per fact and joined with `and`, which is
-the shape RK1440 gave it and the reason RK1468 could add a third in a line. Composed
-with all three true it is **475 characters**, and it fires through the `Stop` hook on
-every turn.
-
-Nothing prices it. `[budgets]` holds the every-turn files, `[tools]` the served surface,
-`[reads] brief` the read that replaces reading a file, and `cost --deny` a refused write
-— five cadences, and a note is in none. So the message a wired project reads on every
-turn is the one no number is kept about.
-
-RK30's argument is exactly this and was made about `agents.md`: a limit nobody counts is
-a limit that moves. This note has moved twice in three tasks, each time for a good
-reason, each time by a clause nobody measured against anything.
-
-The reading is cheap and the verb for it exists. `cost` has five subjects and each is a
-cadence; notes are a sixth — what a clean run says beside its verdict, which is what a
-session pays for being told nothing is wrong. Then `[reads] notes` or a ceiling of its
-own is a number somebody argues rather than a paragraph that grows.
-
-Worth weighing against it: there are few notes and they fire rarely, so the total may be
-small enough that a ceiling is ceremony. That is a reading and not a guess, and taking
-it is what this task is.
-
 ### §RK1494 The four causes wearing one code
 
 `engine.disagreement` now composes four clauses — a modified checkout, a plugin at

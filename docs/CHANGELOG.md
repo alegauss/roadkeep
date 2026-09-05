@@ -670,6 +670,7 @@
 - ✅ **RK1478** **a settled constraint-line pair is a sentence in one design and no read names it, so the gate's silence has no witness** — non-goal list now carries a settled row per constraint, naming the open lines whose design quotes its lead, so the gate's silence is readable from the rule as well.
 - ✅ **RK1488** **a ship deletes the clause that answered a constraint and says nothing, so the answer ages out unremarked** — ship, retire and close now name the constraint whose answer went with the design they deleted.
 - ✅ **RK1489** **the pair sweep reads a flag as swallowed where its fixture cannot hold the state the flag is about** — the pairs fixture is a repository with a shipped section, and what it still cannot reach is named — which found origin --why --json swallowed.
+- ✅ **RK1491** **the note a wired project reads on every turn is 475 characters at full length and no cadence prices it** — cost --notes prices the sixth cadence: 282 per run here, 643 for the widest note composed, and no ceiling — small beside every other cadence.
 
 ## Block E — Adoption
 
