@@ -30,7 +30,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 💭 **RK1496** (deps: —) **the filter that makes unclosed honest is inert here, where a hook touches three ungoverned files every commit** — RK153's version bump means no commit here touches governed files alone, so the fixture that proves the format cannot exercise the rule it proves. → §RK1496
 - 📋 **RK1510** (deps: —) **no read says how many lines a shipped task filed behind it, so granularity is judged from a feel** — weight answers what a task cost from the commits that shipped it; what it filed behind it has no verb, so the reading is rebuilt from git log every time somebody asks. → §RK1510
 - 📋 **RK1512** (deps: —) **pick and brief never name the deferred store, so a set-aside line and the reason it cites go unread** — RK92 resolves a dep on a paused task, which is the only way a deferral reaches an answer here, and a reason can expire while the decision it justified stays put. → §RK1512
 - 📋 **RK1513** (deps: —) **brief hands over a line carrying no criteria in silence, and the absence is reported only once part landed** — RK1185 rides the criterion with the brief where one exists and RK1433 reports its absence at the partial marker, so the moment before the first edit says nothing. → §RK1513

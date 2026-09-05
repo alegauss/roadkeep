@@ -103,32 +103,6 @@ second write cannot see today. Whether the fold is right stays the author's judg
 
 ## Block C — Query
 
-### §RK1496 The bump that defeats the filter
-
-RK1473 drops a commit that touched only files this tool governs, and it works on the
-adopting project it was measured against. It does nothing here, and the reason is this
-repository's own `.githooks/pre-commit`: every commit bumps the patch version (RK153),
-so every commit also touches `src/roadkeep/__init__.py`, `.claude-plugin/plugin.json`
-and `editor/package.json`.
-
-Measured after shipping it: `unclosed` reports two of twenty-three open lines, both of
-them commits that amended a roadmap line and a rationale section and nothing else — the
-exact false positives the task removed — kept alive by three files a hook wrote.
-
-The rule is right and must not learn about the bump: *the files my own pre-commit
-touches* is not a fact roadkeep may encode, and a project that bumps a version in every
-commit is entitled to do so. But the conformance fixture is this repository, and a
-filter that is inert on it is one whose next regression nothing here will catch.
-
-Two readings are open. A diff could be asked whether a one-line change matching a
-version literal is a bump — clever, and cleverness in a history reader is how a false
-negative gets written. Or the project declares it: `[budgets]` is already a list of
-paths, so a key naming what a hook writes every commit is the same shape, argued once by
-the project that has one.
-
-Worth weighing against both: the report is advisory, and being loud here costs a reader
-who is already this repository's maintainer.
-
 ### §RK1510 The question weight is the other half of
 
 `weight` (RK71) prices what a comparable task cost, so granularity is a query rather

@@ -454,6 +454,7 @@
 - ✅ **RK1486** **the brief ceiling was argued from a backlog with no deps at all, so the lists that grow with the graph are outside it** — The reading is taken at the pins and it falsifies the premise: Shio's widest brief is 3354 against 3300, and the graph rows are a tenth of it, which cost --brief now splits.
 - ✅ **RK1490** **a caller who can see a withheld line is worth starting still has no way to take it, only to disbelieve the refusal** — the absence a requirement produces now carries the line's symptom and the two commands that take it.
 - ✅ **RK1495** **the near rows an add prints come from the ledger alone, so two sessions filing one defect never see each other** — the near rows rank the block's open lines beside its deliveries, counted apart and marked apart.
+- ✅ **RK1496** **the filter that makes unclosed honest is inert here, where a hook touches three ungoverned files every commit** — [history] incidental names what a hook writes every commit, and the projections join the paths this tool writes.
 
 ## Block D — The gate
 

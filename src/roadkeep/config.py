@@ -159,8 +159,23 @@ _TOP_KEYS = frozenset(
         "install",
         # RK1297. What a line may say has to be *present* before it can be finished.
         "requirements",
+        # RK1496. What a commit here touches for reasons that are not the work.
+        "history",
     }
 )
+#: `[history]` — what a reader of this project's commits may not take at face value (RK1496).
+#: One key, because there is one such fact and it is a **declaration**: `unclosed` drops a
+#: commit that touched governed files and nothing else, on the argument that such a commit is
+#: the tool's own write. A project whose hook stamps a version into every commit has no such
+#: commit — this repository is one (RK153) — so the filter that makes the report honest is
+#: inert on the very fixture that proves the format.
+#:
+#: Declared and never derived, which is the whole of the choice. The alternative was asking a
+#: diff whether a one-line change looks like a version bump, and cleverness in a history reader
+#: is how a false negative gets written; *the files my own pre-commit touches* is a fact about
+#: somebody's repository and not one roadkeep may encode. So the project that has a hook says
+#: so, once, in the file every other per-project rule is read out of (L6).
+_HISTORY_KEYS = frozenset({"incidental"})
 #: `[grammar.<role>]` — the shape of a role's records, which L6 declared everything about
 #: except (RK1064). Three keys and no fourth: what a record starts from, which markers it
 #: may carry, and which slots it does without. `states` is not among them — whether a file
@@ -540,6 +555,12 @@ class Config:
     #: tracker. Nothing is ever sent from here — this only addresses the command a person
     #: runs.
     upstream: str | None = None
+    #: `[history] incidental` — paths a commit here touches for reasons that are not the work
+    #: (RK1496), posix-separated and relative to the root. Read beside the governed files by
+    #: `unclosed`, so a commit that amended a roadmap line and got a version stamped into it by
+    #: a hook still reads as the tool's own write. Empty on every project without such a hook,
+    #: which is the ordinary case and the one RK1473 was measured on.
+    incidental: tuple[str, ...] = ()
     #: `[claims] held` — how many **minutes** a claim on a line reads as held (RK151). Per
     #: project, because how long a task takes is the one thing about a claim that differs
     #: between backlogs (L6), and bounded by :data:`CLAIM_HELD_MAX`, because a window nobody
@@ -659,6 +680,7 @@ class Config:
         non_goals = _scope(data.get("non_goals"), problems)
         criteria = _scope(data.get("criteria"), problems, "criteria")
         upstream = _upstream(data.get("report"), problems)
+        incidental = _incidental(data.get("history"), problems)
         held = _held(data.get("claims"), problems)
         permanent = _permanent_headings(data.get("headings"), problems)
         standing = _standing_blocks(data.get("blocks"), problems)
@@ -711,6 +733,7 @@ class Config:
             non_goals=non_goals,
             criteria=criteria,
             upstream=upstream,
+            incidental=incidental,
             held=held,
             permanent_headings=permanent,
             standing=standing,
@@ -1645,6 +1668,35 @@ def _upstream(raw: object, problems: list[str]) -> str | None:
         problems.append("report.upstream must be 'owner/repo'")
         return None
     return value
+
+
+def _incidental(raw: object, problems: list[str]) -> tuple[str, ...]:
+    """`[history] incidental` — paths a commit touches that are not the work (RK1496).
+
+    Refused the way every other path key here is: relative, posix-separated, and named rather
+    than matched. No globs, deliberately — a pattern is a rule about files nobody has listed,
+    and the whole argument for declaring this is that a project states the three files its own
+    hook writes rather than a reader guessing at a shape.
+    """
+    if raw is None:
+        return ()
+    if not isinstance(raw, Mapping):
+        problems.append("history must be a table with 'incidental'")
+        return ()
+    _reject_unknown(raw, _HISTORY_KEYS, "history.", problems)
+    value = raw.get("incidental")
+    if value is None:
+        return ()
+    named = _string_list(value, "history.incidental", problems)
+    out: list[str] = []
+    for one in named:
+        if Path(one).is_absolute():
+            problems.append(f"history.incidental '{one}' must be relative to the project root")
+            continue
+        # As git spells one, which is what the reader compares against: a backslash here is a
+        # path that silently matches nothing, and matching nothing is this filter doing less.
+        out.append(one.replace("\\", "/"))
+    return tuple(out)
 
 
 def _budgets(raw: object, base: Path, problems: list[str]) -> tuple[Budget, ...]:

@@ -1050,7 +1050,26 @@ def _governed_paths(config: Config) -> frozenset[str]:
     is as much this tool's as any of them. Posix-separated, because that is what `git log`
     prints on both platforms and comparing a `WindowsPath` against it is the one way this can
     be quietly wrong.
+
+    **And whatever the project declares as incidental** (RK1496), which is not a widening of
+    what this tool writes but of what a commit may carry without stopping being about the
+    backlog. RK1473's filter was measured on a project with no such files and is inert here,
+    where `.githooks/pre-commit` stamps a version into three of them on every commit (RK153) —
+    so this repository, the conformance fixture, could not exercise the rule it proves. The
+    fact is the project's to state and never this reader's to infer: *the files my own hook
+    touches* is a fact about somebody's repository, and a diff asked whether a one-line change
+    looks like a bump is the cleverness that writes a false negative.
+
+    **And the projections** (RK1496), which this function's own first sentence already claimed
+    and did not include: `export` writes the derived block into a README, every write here
+    answers those paths among the ones it wrote (RK1129), and the gate reports a stale one — so
+    a commit that amended a line and refreshed the table is the tool's own write in all three
+    files. Found the way the gate finds them (RK1110, RK37): through the resolver the *write*
+    uses, and only where the file carries the begin marker, because a README restating nothing
+    is not a file this tool writes.
     """
+    from roadkeep.exporting import BEGIN, DEFAULTS, target_of  # noqa: PLC0415 - RK260
+
     out = {
         config.path(role).relative_to(config.root).as_posix()
         for role in ROLES
@@ -1059,7 +1078,16 @@ def _governed_paths(config: Config) -> frozenset[str]:
     if config.source is not None:
         with contextlib.suppress(ValueError):
             out.add(config.source.relative_to(config.root).as_posix())
-    return frozenset(out)
+    for flag in DEFAULTS:
+        path = target_of(config, flag)
+        if path is None or not path.is_file():
+            continue
+        # Silent on anything unreadable, which is every reader here: a file this cannot open
+        # is one it knows nothing about, and this filter only ever *removes* rows.
+        with contextlib.suppress(OSError, ValueError):
+            if BEGIN in path.read_text(encoding="utf-8", errors="replace"):
+                out.add(path.relative_to(config.root).as_posix())
+    return frozenset(out | set(config.incidental))
 
 
 def _touched(root: Path, shas: set[str]) -> dict[str, tuple[str, ...]]:

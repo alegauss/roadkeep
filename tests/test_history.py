@@ -2378,3 +2378,101 @@ def test_the_config_is_this_tool_s_file_too(tmp_path):
 
     (row,) = [one for one in pending(Config.discover(tmp_path)) if one.id == "RK1"]
     assert row.commits == ()
+
+
+# -- the bump that defeated the filter (RK1496) --------------------------------
+
+
+def test_a_file_the_project_declares_incidental_does_not_keep_a_commit_alive(tmp_path):
+    """RK1496. RK1473's filter works on the project it was measured against and did nothing
+    here, because `.githooks/pre-commit` stamps the patch version into three files on every
+    commit (RK153) — so no commit in this repository touches governed files alone, and the
+    conformance fixture could not exercise the rule it proves.
+
+    Declared and never inferred: *the files my own hook touches* is a fact about somebody's
+    repository, and a diff asked whether a one-line change looks like a bump is the cleverness
+    that writes a false negative."""
+    from roadkeep.history import pending
+
+    config = repo(tmp_path)
+    propose(config, "RK1", "docs: file RK1")
+    append(config.path("roadmap"), "\n")
+    (tmp_path / "version.json").write_text('{"version": "0.0.2"}\n', encoding="utf-8")
+    git_commit(config.root, "docs(RK1): correct the why")
+
+    # Undeclared, the stamped file is somebody's code and the row stands — which is the
+    # behaviour every project without such a hook keeps.
+    (row,) = [one for one in pending(Config.discover(tmp_path)) if one.id == "RK1"]
+    assert len(row.commits) == 1
+
+    append(config.root / "roadkeep.toml", '\n[history]\nincidental = ["version.json"]\n')
+    (row,) = [one for one in pending(Config.discover(tmp_path)) if one.id == "RK1"]
+    assert row.commits == ()
+
+
+def test_a_declared_incidental_file_does_not_excuse_a_commit_that_touched_code(tmp_path):
+    # The filter still only removes what it is about: a commit carrying the stamp *and* a
+    # source file is the session this verb was written for, and stays reported.
+    from roadkeep.history import pending
+
+    config = repo(tmp_path)
+    append(config.root / "roadkeep.toml", '\n[history]\nincidental = ["version.json"]\n')
+    propose(config, "RK1", "docs: file RK1")
+    (tmp_path / "version.json").write_text('{"version": "0.0.2"}\n', encoding="utf-8")
+    (tmp_path / "thing.py").write_text("x = 1\n", encoding="utf-8")
+    git_commit(config.root, "feat(RK1): the thing works now")
+
+    (row,) = [one for one in pending(Config.discover(tmp_path)) if one.id == "RK1"]
+    assert len(row.commits) == 1
+
+
+def test_the_projection_this_tool_writes_is_this_tool_writing(tmp_path):
+    """The other half of the same inertness, and this function's own first sentence: `export`
+    writes the derived block into a README, every write here answers that path among the ones
+    it wrote (RK1129), and the gate reports a stale one — so a commit that amended a line and
+    refreshed the table is the tool's own write in both files."""
+    from roadkeep.exporting import BEGIN, END
+    from roadkeep.history import pending
+
+    config = repo(tmp_path)
+    (tmp_path / "README.md").write_text(f"# It\n\n{BEGIN}\n{END}\n", encoding="utf-8")
+    git_commit(config.root, "docs: a readme with a derived block")
+    propose(config, "RK1", "docs: file RK1")
+    append(config.path("roadmap"), "\n")
+    append(tmp_path / "README.md", "\n")
+    git_commit(config.root, "docs(RK1): correct the why and refresh the table")
+
+    (row,) = [one for one in pending(Config.discover(tmp_path)) if one.id == "RK1"]
+    assert row.commits == ()
+
+
+def test_a_file_that_restates_nothing_is_not_a_projection(tmp_path):
+    # The markers are the declaration (RK37): a README with no derived block is not a file
+    # this tool writes, so a commit touching it is somebody's prose and stays reported.
+    from roadkeep.history import pending
+
+    config = repo(tmp_path)
+    (tmp_path / "README.md").write_text("# It\n\nProse nobody derived.\n", encoding="utf-8")
+    git_commit(config.root, "docs: a readme")
+    propose(config, "RK1", "docs: file RK1")
+    append(config.path("roadmap"), "\n")
+    append(tmp_path / "README.md", "\nA sentence somebody wrote.\n")
+    git_commit(config.root, "docs(RK1): correct the why and the readme")
+
+    (row,) = [one for one in pending(Config.discover(tmp_path)) if one.id == "RK1"]
+    assert len(row.commits) == 1
+
+
+def test_this_repository_can_now_exercise_the_rule_it_proves(tmp_path):
+    """The finding's own success criterion. `docs/` is this format's conformance fixture, and
+    a filter inert on it is one whose next regression nothing here will catch — so what is
+    asserted is that the filter *reaches* the commits here, not a number that moves."""
+    from roadkeep.history import _governed_paths
+
+    config = Config.discover(HERE)
+    ours = _governed_paths(config)
+    # The three the hook stamps, declared; and the projection, found the way the gate finds it.
+    assert {"src/roadkeep/__init__.py", ".claude-plugin/plugin.json"} <= ours
+    assert "README.md" in ours
+    # And nothing has swallowed the source tree: a commit touching code is still reported.
+    assert "src/roadkeep/history.py" not in ours

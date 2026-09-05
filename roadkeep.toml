@@ -21,6 +21,18 @@ id_sources = ["agents.md"]
 [report]
 upstream = "alegauss/roadkeep"
 
+# what a commit here carries that is not the work (RK1496). `.githooks/pre-commit` stamps the
+# patch version into these three on every commit (RK153), so no commit here touches governed
+# files alone — and `unclosed`'s filter, which drops a commit that did, was inert on the one
+# repository that is this format's conformance fixture. Declared and never inferred: the files
+# a project's own hook writes are that project's fact to state.
+[history]
+incidental = [
+  "src/roadkeep/__init__.py",
+  ".claude-plugin/plugin.json",
+  "editor/package.json",
+]
+
 [files]
 roadmap = "docs/ROADMAP.md"
 changelog = "docs/CHANGELOG.md"
