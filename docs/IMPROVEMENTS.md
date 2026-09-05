@@ -746,6 +746,52 @@ not use it. What is not obvious is the shape: a line above four rows is a groupi
 report has never had, and inventing one for a single code is the ceremony RK1443 cut.
 Measure it first.
 
+### §RK1530 The measurement behind a refusal
+
+RK1497 drew its boundary from a number: over the prose of three real corpora the
+mojibake signature fires 18 times and every one is a false positive; over the 3,962
+fields of the same three it fires zero. That reading is why the rule is a field's and
+never a body's, and it exists nowhere but in a docstring and a changelog `why`.
+
+The probe was a scratchpad script. Nothing re-runs it, so the next person weighing
+whether to widen the rule — to a section title, to a body behind a flag, to a second
+codec — has the sentence and not the measurement. RK30's argument in the shape this
+repository keeps meeting: a number nobody counts is one that stops being true.
+
+The suite already has the corpus. `tests/corpora.py` pins Shio and Turing at a revision
+and skips where they are absent, which is what CI does and why a green run here proves
+more than a green run there. A test walking the two populations and asserting the split
+— zero in fields, non-zero in prose — costs one pass over files the suite already opens.
+
+It catches both directions. A field growing a run is either a real mangling in a live
+backlog or a signature that has begun matching prose people write; a prose count falling
+to zero means the boundary bought nothing. The second is what nobody would look for, a
+rule that never fires reading exactly like one that is right.
+
+### §RK1531 The field on the wrong side of the boundary
+
+Measured one command after RK1497 shipped. `add --section "O menu Ã© semeado"` is
+accepted and writes the heading, while the same six bytes in the symptom beside it are
+refused. The title lands in a prose file as a permanent heading, which is the durability
+the refusal exists for.
+
+The boundary RK1497 drew is *field, not body*, and a title is on the field side by every
+property the measurement used: one line, bounded by a limit, composed by a caller as an
+argument, and never where somebody quotes an example — the design section under it is.
+All 18 false positives were in bodies. So this is not a widening but the population
+already argued for, minus a door.
+
+It is worse than a mangled symptom in one way. A symptom is corrected by `restate
+--typo`, which RK1474 built for exactly this and the remedy row names; a heading is
+`section amend --title` and the anchor stays, so the correction is cheap. But a heading
+is what `ref.dangling` and every listing quote, so the bytes are copied onward before
+anybody looks.
+
+The same question is open one field over: a non-goal's lead, a criterion's lead, a block
+label. Each is a short composed field in a governed file, and whether the rule reaches
+them is answered today by which validator the door happens to call — which is what to
+find out first, because the answer may be one shared function away.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
