@@ -162,6 +162,11 @@
   the accretion this tool refuses, so a page renders the file that owns the words or
   carries no version of them.
 
+## Done when — RK1498
+
+- **Every site is run or deliberate** No row of composing.SITES states unreached, so the
+  work-list is empty and each composer has had its command executed.
+
 ## Non-goals
 
 Deliberately **not** built — check this list before proposing work:
