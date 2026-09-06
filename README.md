@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 230 | 2 |
 | C — Query (consult without reading the file) | 8 | 158 | 4 |
-| D — The gate | 22 | 224 | 2 |
+| D — The gate | 21 | 225 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 147 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 36 | 990 | 14 |
+| **Total** | 35 | 991 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1507** (deps: —) **a line this tool writes under a ledger entry is composed by one function and recognised by another, matching on a prefix** — RK1484 added the second reader, and a change to the indent or the word makes it stop matching with nothing anywhere going red. → §RK1507
+- 💭 **RK1508** (deps: —) **which engine wrote a project's surfaces is derivable from their bytes and is only ever read out of a record** — RK1485 could name the absent record and not fill it, and the one decision it cannot inform is whether the refresh in front of you is an upgrade. → §RK1508
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

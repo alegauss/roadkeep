@@ -3844,3 +3844,44 @@ def test_the_verb_reaches_the_command_line_and_stages_the_file(tmp_path, capsys)
     # The clause is printed as kept, at the one door that could be read as having dropped it.
     assert "(superseded by RK2)" in said and "derived and not yours to retype" in said
     assert f"git add -- {DECISIONS}" in said
+
+
+# -- the carried line's two readers, made one (RK1507) -------------------------
+
+
+def test_a_composed_carried_line_is_recognised_as_one():
+    """RK1507. RK1484 taught `record amend` to recognise a continuation this tool wrote, by a
+    prefix matched against what `_verified` composes a thousand lines away in the same module.
+    Two readers of one shape, failing silently in the direction that costs: change the indent
+    or the word and the recogniser stops matching, the entry reads as hand-wrapped, and the
+    door goes back to demanding a span.
+
+    The kernel's own rule at the smaller scale — one writer of a line format, one reader — and
+    this is what makes the pair a pair rather than two functions that agree today."""
+    from roadkeep.shipping import carried, carries
+
+    assert carries(carried("A lead", "Because of a reason."))
+    # As the file holds it, which is what the recogniser is handed: a line with its ending on.
+    assert carries(carried("A lead", "Because of a reason.") + "\n")
+    assert carries(carried("A lead", "Because of a reason.") + "\r\n")
+
+
+def test_a_line_this_tool_did_not_write_is_not_one():
+    # The all-or-nothing rule the recogniser exists for (RK1049): an entry carrying one of
+    # these and one hand-written note is hand-wrapped, and a partial answer would let a
+    # correction delete the half nobody parsed.
+    from roadkeep.shipping import carries
+
+    assert not carries("  a paragraph somebody wrote under the entry")
+    assert not carries("checked **A lead** with no indent")
+    assert not carries("  checked A lead with no bold")
+
+
+def test_the_sentence_is_flattened_and_the_lead_is_the_address():
+    # Nothing here composes prose (L4): the sentence is the author's with its wrapping taken
+    # out, and the lead is the address the criteria grammar already writes.
+    from roadkeep.shipping import carried
+
+    assert carried("A lead", "One\n  sentence,   wrapped.") == (
+        "  checked **A lead** One sentence, wrapped."
+    )

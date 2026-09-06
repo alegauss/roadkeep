@@ -2318,7 +2318,7 @@ def _derived_tail(ledger: Document, entry: Entry) -> tuple[str, ...] | None:
     if not entry.wrapped:
         return ()
     under = tuple(ledger.lines[entry.index + 1 : entry.stop])
-    if all(one.strip("\r\n").startswith(f"  {_CHECKED} **") for one in under):
+    if all(carries(one) for one in under):
         return under
     return None
 
@@ -3762,6 +3762,41 @@ def _depart(
 _CHECKED = "checked"
 
 
+def carried(lead: str, why: str) -> str:
+    """One continuation line this tool composes under a ledger entry (RK1460, RK1507).
+
+    Indented by two, which is what a continuation of a bullet is: the parse reads the entry as
+    wrapped, `show` prints every line the entry owns, and `record amend --lines` is the door
+    that corrects one afterwards. The lead is the criterion's address in the grammar the
+    criteria list already writes, and the sentence is the author's own with its wrapping
+    flattened — nothing here composes prose (L4).
+    """
+    return f"  {_CHECKED} **{lead}** {' '.join(why.split())}"
+
+
+def carries(line: str) -> bool:
+    """Whether this line is one :func:`carried` wrote (RK1507).
+
+    **Beside the writer, because that is the whole finding.** RK1484 taught `record amend` to
+    recognise a continuation this tool wrote and the recogniser matched a prefix composed a
+    thousand lines away in the same module. Two readers of one shape fail silently in the
+    direction that costs: change the indent or the word, this stops matching, the entry reads
+    as hand-wrapped, and the door goes back to demanding a span — nothing red, and the caller
+    meets the refusal RK1484 removed.
+
+    The kernel's rule, at the smaller scale: `Schema.render` is the only writer of the line
+    format and `Document` the only reader of a file, because a field written by one function
+    and read by another is one the two come to disagree about. A carried line is a line of a
+    governed file; it had a writer and a reader and neither was next to the other.
+
+    A prefix and not a re-render, which is what this can know: the lead and the sentence are
+    the entry's, so what identifies the line is the shape around them. What the pairing buys is
+    that the shape is spelled once — `tests/test_shipping.py` round-trips a composed line back
+    through this, so a change to either is a change to both or a red.
+    """
+    return line.strip("\r\n").startswith(f"  {_CHECKED} **")
+
+
 def _addressed(leads: Sequence[str]) -> frozenset[str]:
     """The leads a caller named, folded the way a list addresses one (`criteria.address`)."""
     return frozenset(criteria.address(one) for one in leads)
@@ -3798,7 +3833,7 @@ def _verified(
             raise criteria.NoSuchCriterion(
                 lead, task_id, where, tuple(one.lead for one in held)
             )
-        out.append(f"  {_CHECKED} **{found.lead}** {' '.join(found.why.split())}")
+        out.append(carried(found.lead, found.why))
     return tuple(out)
 
 
