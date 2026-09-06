@@ -161,6 +161,7 @@ from roadkeep.kernel.schema import (
     width,
 )
 from roadkeep.sections import (
+    Deleted,
     Section,
     declaring,
     find,
@@ -3834,8 +3835,11 @@ def _depart(
             config, remaining, folds_into, entry.task.symptom or task_id, folded_reason
         )
         remaining, folded = written.document, written.criterion.lead
-    prose, dropped, kept, taken, cited, emptied = _drop_section(
-        config, entry.task.ref, leaving=task_id
+    # The roadmap **this write has in hand** (RK1488, RK1552): from the next command on
+    # neither it nor the section exists to be asked, so the constraints go in rather than
+    # being read back out of a second call.
+    deleted, kept, emptied = _drop_section(
+        config, entry.task.ref, leaving=task_id, constraints=roadmap
     )
     # Resolved against the state this write *creates* — the id is in the ledger and gone
     # from the roadmap — so a dependent's annotation is derived from what will be on
@@ -3849,12 +3853,12 @@ def _depart(
         ledger=insertion,
         roadmap=derived.document,
         removed_from=entry.lineno,
-        prose=prose,
-        dropped=dropped,
+        prose=None if deleted is None else deleted.document,
+        dropped=None if deleted is None else deleted.section,
         kept=kept,
-        nested=taken,
-        cited=cited,
-        quoted=_settling(roadmap, dropped),
+        nested=() if deleted is None else deleted.nested,
+        cited=() if deleted is None else deleted.cited,
+        quoted=() if deleted is None else deleted.quoted,
         emptied=emptied,
         refreshed=derived.changed,
         marker=marker,
@@ -4272,8 +4276,11 @@ def _close(
     # The rest of the transaction that stopped halfway (RK62, RK1268): the entry is on disk,
     # so what is left is every edit the roadmap side owes — the list among them.
     remaining, unmet = criteria.without(remaining, task_id)
-    prose, dropped, kept, taken, cited, emptied = _drop_section(
-        config, entry.task.ref, leaving=task_id
+    # The roadmap **this write has in hand** (RK1488, RK1552): from the next command on
+    # neither it nor the section exists to be asked, so the constraints go in rather than
+    # being read back out of a second call.
+    deleted, kept, emptied = _drop_section(
+        config, entry.task.ref, leaving=task_id, constraints=roadmap
     )
     derived = refresh(
         Backlog.during(config, roadmap=remaining, ledger=config.document("changelog"))
@@ -4283,12 +4290,12 @@ def _close(
         remaining=derived.document,
         removed_from=entry.lineno,
         recorded=recorded,
-        prose=prose,
-        dropped=dropped,
+        prose=None if deleted is None else deleted.document,
+        dropped=None if deleted is None else deleted.section,
         kept=kept,
-        nested=taken,
-        cited=cited,
-        quoted=_settling(roadmap, dropped),
+        nested=() if deleted is None else deleted.nested,
+        cited=() if deleted is None else deleted.cited,
+        quoted=() if deleted is None else deleted.quoted,
         emptied=emptied,
         refreshed=derived.changed,
         dependents=tuple(
@@ -4345,35 +4352,9 @@ def as_recorded(task: Task, marker: str, why: str | None, ref: str | None = None
     )
 
 
-def _settling(roadmap: Document, dropped: Section | None) -> tuple[str, ...]:
-    """The constraints the design about to be deleted answered (RK1488).
-
-    Read off the roadmap **this write has in hand** and the section it is deleting, which is
-    the whole of why it is here: from the next command on, neither exists to be asked. A drop
-    that kept the section (RK64, RK196) answers nothing — the design is still there, so nobody
-    has lost the reading and a row saying so would be a report about a file that is intact.
-
-    The rule is :func:`~roadkeep.scoping.answered`, called and not repeated: the gate falls
-    silent on this reading and `non-goal list` reports the silence, and this is what happens
-    when the silence ends.
-    """
-    from roadkeep import scoping  # noqa: PLC0415 - RK260
-
-    if dropped is None:
-        return ()
-    return scoping.answered(roadmap, dropped.body)
-
-
 def _drop_section(
-    config: Config, anchor: str | None, *, leaving: str = ""
-) -> tuple[
-    Document | None,
-    Section | None,
-    str | None,
-    tuple[str, ...],
-    tuple[str, ...],
-    str | None,
-]:
+    config: Config, anchor: str | None, *, leaving: str = "", constraints: Document | None = None
+) -> tuple[Deleted | None, str | None, str | None]:
     """Delete the rationale section the departing line pointed at, if it is only that line's.
 
     Absence is reported, never refused: a task can ship without a section, and a command
@@ -4420,9 +4401,22 @@ def _drop_section(
     `section drop` away and a `lint` that reports nothing, while prose deleted is somebody's
     memo and a `git show`. No heuristic about what the prose *says* — only who it names, which
     is the claim RK61 already reads.
+
+    **The record and not five of its fields** (RK1552). This unpacked `Deleted` into a
+    six-tuple, so `quoted` — the field that arrived after the shape was fixed — went around it
+    and the constraints were read a second time, by a `_settling` here and by `sections`' own
+    reader on the standalone path. Two readings of one rule on two paths deleting the same
+    section through the same `drop`: a citation is suppressed by the substring either way, and
+    the next question about *which* quotations count would have been a change to one reader
+    and a grep for the other. Returning the record also retires a signature whose positions
+    both callers spelled out, which is the shape that acquires a seventh element rather than
+    a name.
+
+    `(record, kept, emptied)`: the deletion is `drop`'s answer whole, `kept` is the reason it
+    made none, and `emptied` is this module's own reading of what the drop left standing.
     """
     if anchor is None:
-        return None, None, "the line carried no pointer", (), (), None
+        return None, "the line carried no pointer", None
     # The design's two and never every prose role (RK1361), which is the one place that
     # distinction is load-bearing rather than cosmetic: this function *deletes*, and a
     # decisions file joining the search would let the ship that files a decision delete the
@@ -4430,24 +4424,10 @@ def _drop_section(
     # deleted — the one departure is `supersede`, and it keeps both entries and both bodies.
     roles = tuple(role for role in DESIGN_ROLES if config.has(role))
     if not roles:
-        return (
-            None,
-            None,
-            f"this project declares no {' or '.join(DESIGN_ROLES)} file",
-            (),
-            (),
-            None,
-        )
+        return None, f"this project declares no {' or '.join(DESIGN_ROLES)} file", None
     others = _others_pointing(config, anchor, leaving)
     if others:
-        return (
-            None,
-            None,
-            f"§{anchor} is also pointed at by {', '.join(others)}",
-            (),
-            (),
-            None,
-        )
+        return None, f"§{anchor} is also pointed at by {', '.join(others)}", None
 
     named = " or ".join(config.relative(config.path(role)) for role in roles)
     # One resolver, called and not repeated (RK229): three verbs ask which file declares an
@@ -4457,15 +4437,12 @@ def _drop_section(
         both = " and ".join(config.relative(config.path(role)) for role in holders)
         return (
             None,
-            None,
             f"§{anchor} is declared by {both}: one anchor names one section, and a ship "
             f"that deleted one of two would be choosing which the line meant",
-            (),
-            (),
             None,
         )
     if not holders:
-        return None, None, f"no §{anchor} section in {named}", (), (), None
+        return None, f"no §{anchor} section in {named}", None
 
     role = holders[0]
     # The grammar of a section lives in one place (RK9), so shipping calls it rather than
@@ -4475,24 +4452,18 @@ def _drop_section(
     if held is not None:
         claim = owners(held, config.schema.id_pattern())
         if leaving and leaving not in claim:
-            return None, None, _unowned(anchor, claim), (), (), None
+            return None, _unowned(anchor, claim), None
     deleted = drop_section(
         prose,
         anchor,
         claimed=pointers(config, leaving=leaving),
         where=config.relative(config.path(role)),
+        constraints=constraints,
     )
-    # `cited` and `nested` are both `drop`'s own answers (RK209, RK1170): the deletion knows
-    # what it breaks and what it took, and a second reading of the same file here would be two
-    # more things to keep true.
-    return (
-        deleted.document,
-        deleted.section,
-        None,
-        deleted.nested,
-        deleted.cited,
-        _emptied(config, deleted.document, anchor),
-    )
+    # `cited`, `nested` and `quoted` are all `drop`'s own answers (RK209, RK1170, RK1552): the
+    # deletion knows what it breaks, what it took and what its prose quoted, and a second
+    # reading of the same file here would be three more things to keep true.
+    return deleted, None, _emptied(config, deleted.document, anchor)
 
 
 def _emptied(config: Config, document: Document, anchor: str) -> str | None:

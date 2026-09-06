@@ -224,30 +224,6 @@ verb placing it anywhere else would move a section a reader knows the position o
 
 ## Block D — The gate
 
-### §RK1552 The reading taken twice
-
-RK1516 gave `section drop` the row the three departure doors had, and did it by adding a
-second call to `scoping.answered`: `sections._quoting` on the standalone path,
-`shipping._settling` on the departures'. The rule stays one function, which is what
-RK1478 was protecting, but the *reading* is now taken twice on two paths that delete the
-same section through the same `sections.drop`.
-
-They already share more than that. `shipping._drop_section` calls `drop`, gets a
-`Deleted` carrying `cited` and `nested`, and returns five of its fields as a six-tuple —
-the comment beside it says so: those are `drop`'s own answers, and a second reading here
-would be two more things to keep true. `quoted` is the field that arrived after the
-tuple was fixed, so it is the one that went around.
-
-The close is to stop unpacking. `_drop_section` passes `constraints` the way the verb
-does and returns the record; the departures read `deleted.quoted` and `_settling` is
-deleted. That also removes a six-tuple whose positions the two callers spell out, which
-is the sort of signature that acquires a seventh element rather than a name.
-
-What makes it worth doing rather than tolerating is what the two would drift into. A
-citation is suppressed by the substring either way, and the next question about *which*
-quotations count is a change to one reader — with two, it is a change to one reader and
-a grep for the other.
-
 ### §RK1553 The harder half of the same question
 
 RK1517 asked one question of eighteen booleans and left it unasked of a hundred and

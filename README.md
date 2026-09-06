@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
 | C — Query (consult without reading the file) | 6 | 171 | 4 |
-| D — The gate | 26 | 265 | 2 |
+| D — The gate | 25 | 266 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 155 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 37 | 1053 | 14 |
+| **Total** | 36 | 1054 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1552** (deps: —) **the leads a deleted design quoted are read once per path, though the record the departure unpacks carries them** — RK1516 added the second call because _drop_section returns a fixed six-tuple, so the field that arrived after it went around it. → §RK1552
+- 💭 **RK1553** (deps: —) **no sweep asks of a served value flag what RK1517 asks of a boolean, and there are a hundred and twenty-two** — identical payload is a strong signature for a flag left off and a weak one for a value that may legitimately match the default. → §RK1553
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
