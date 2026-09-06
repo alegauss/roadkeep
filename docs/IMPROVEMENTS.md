@@ -312,32 +312,6 @@ yet, and what turns it into an answerable question is the state. That is a task 
 family rather than one sweep — and the reason to file it as one line is that the six
 that do run were each bought by a defect that had already shipped.
 
-### §RK1518 The refusal a declaration was built to replace
-
-RK489 replaced twenty-five hand-written lines inside `budget` with a declaration every
-verb makes at `add_parser`, so one dispatcher refuses two answers before a handler runs.
-`adopt` kept its own: `--ledger and --sections measure different units` is raised from
-inside `adopting.adopt`, six hundred lines past the parser and after the file has been
-located.
-
-The refusal is right and its sentence is better than a generic one. What it costs is
-that nothing else knows. `_one_answer` lets the pair through and `separated()` reports
-the two as compatible — which is how RK1489 met it, as a row in `_UNMEASURED` saying a
-correct exit came from somewhere the sweep cannot read. The served surface is the
-sharper half: over MCP the pair is discoverable only by making the call and reading the
-error.
-
-The estimator makes it concrete. `_widened` retries the other role when nothing was
-asked, and its own comment says "tried separately because the two flags are refused
-together, and the estimator is what declines the pair" — a function reasoning about a
-rule enforced two files away, which is the coupling the declaration exists to remove.
-
-What closes it is `answers(adopt_parser, ("ledger", …), ("sections", …))` and deleting
-the raise, with the sentence moved into the group's `what` so nothing is lost. The one
-thing to check first is whether any caller reaches `adopt()` directly with both set —
-the library door has no parser in front of it, and a rule that lived there may still be
-load-bearing.
-
 ### §RK1521 The population a note figure is taken over
 
 RK1491 gave notes a cadence and could not say what it left out. The read prices the

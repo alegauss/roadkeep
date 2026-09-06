@@ -1644,11 +1644,18 @@ def test_a_rationale_file_claims_no_prefix(tmp_path: Path) -> None:
     assert (estimate.families, estimate.prefix, estimate.inferred) == ((), "", False)
 
 
-def test_two_units_are_two_runs(tmp_path: Path) -> None:
+def test_two_units_are_two_runs(tmp_path: Path, capsys) -> None:
+    """RK1518. The refusal was raised in `adopt` itself until the parser declared the two
+    flags two answers, so it is asserted where it is now made: before a handler runs, by the
+    dispatcher both surfaces come through, and in the sentence the declaration carries."""
     target = tmp_path / "IMPROVEMENTS.md"
     target.write_text(RATIONALE, encoding="utf-8")
-    with pytest.raises(ValueError, match="its own run"):
-        adopt(Config.default(tmp_path), target, ledger=True, sections=True)
+    argv = ["-C", str(tmp_path), "adopt", str(target), "--ledger", "--sections"]
+    assert main(argv) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "one answer per call" in said
+    assert "a changelog, measured in lines (--ledger)" in said
+    assert "a rationale file, measured in sections (--sections)" in said
 
 
 def test_the_longest_prints_even_when_nothing_is_over(tmp_path: Path, capsys) -> None:
@@ -1754,7 +1761,11 @@ A paragraph about the project, several lines long.
 #: because it shipped before the two whose task *was* the refusal. A fourth arrives here with
 #: its row empty, which is the whole reason for the shape.
 REFUSED_PAIRS = (
-    ("--ledger with --sections", {"ledger": True, "sections": True}, "measure different units"),
+    # `--ledger with --sections` was the oldest row here and is gone (RK1518): the parser
+    # declares the two flags two answers now, so the refusal is the dispatcher's and the
+    # sentence is the declaration's — a row asserting a `ValueError` would be asserting the
+    # copy that was deleted. What is left is the two rules a subject declaration cannot
+    # spell, both of which are about a flag needing another to mean anything.
     (
         "--with without --sections",
         {"alongside": ["STRATEGY.md"]},

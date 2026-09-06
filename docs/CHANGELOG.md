@@ -694,6 +694,7 @@
 - ✅ **RK1515** **a design quoting a constraint to describe somebody else's case reads as having settled it** — every register now states the quotation it measured rather than a settlement it cannot see, so a design citing somebody else's answer no longer reads as having made one.
 - ✅ **RK1516** **section drop deletes a design and never says the constraint answer went with it** — section drop now names the constraints the deleted prose quoted, so the fourth door that removes a design reports what the three departure doors already did.
 - ✅ **RK1517** **a served flag that only shapes the terminal form is inert, and nothing asks that of the eighteen** — every served boolean is now run with the flag and without through the argv the server composes, so a flag this transport makes inert is a red rather than an answer nobody can tell apart.
+- ✅ **RK1518** **adopt refuses two answers inside its estimator, so the dispatcher and the served surface read them as compatible** — adopt declares --ledger and --sections two answers, so the dispatcher refuses the pair before a handler runs and the served schema, the sweep and both surfaces read the same rule.
 
 ## Block E — Adoption
 

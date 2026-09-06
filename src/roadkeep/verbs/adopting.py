@@ -65,7 +65,7 @@ from roadkeep.installing import (
 from roadkeep.rendering import _estimate_json, _print_estimate
 from roadkeep.serving import serve
 from roadkeep.capturing import PARTS
-from roadkeep.verbs.declaring import _JSON_HELP
+from roadkeep.verbs.declaring import _JSON_HELP, answers
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, _refused
 
 #: The subcommands here whose subject is a defect in **this tool** rather than a backlog
@@ -177,8 +177,9 @@ def _better_read(config: Config, args: argparse.Namespace, estimate):
     best = estimate
     # Both other roles and not one (RK1347): a rationale file read as a backlog reported
     # *nothing in 837 line(s) was read in any shape*, where `--sections` read 51 conforming
-    # sections and 19 paragraphs over a limit. Tried separately because the two flags are
-    # refused together, and the estimator is what declines the pair.
+    # sections and 19 paragraphs over a limit. One role per call, because they are two units
+    # and the parser declares them two answers (RK1518) — this is two readings of one file
+    # and never one reading under both.
     for role in ({"ledger": True}, {"sections": True}):
         try:
             other = adopt(
@@ -889,6 +890,17 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
         ),
     )
     adopt_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    # The refusal RK489 replaced everywhere else, moved here last (RK1518). It was raised six
+    # hundred lines into `adopting.adopt`, after the file had been located — right, and
+    # invisible: `_one_answer` let the pair through, the pair sweep read a correct exit as
+    # something it could not account for, and over MCP the only way to learn of it was to make
+    # the call. The sentence it carried is these two `what` phrases, which is where the
+    # dispatcher's own refusal reads it from.
+    answers(
+        adopt_parser,
+        ("ledger", "a changelog, measured in lines"),
+        ("sections", "a rationale file, measured in sections"),
+    )
     # Read-only, which RK18 has been true of since this verb existed and nothing declared:
     # `adopt` measures a file and exits 0, writing nothing anywhere. Undeclared it took the
     # write lock for a run that cannot conflict with one, and — since RK1147 published a door

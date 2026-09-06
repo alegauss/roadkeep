@@ -434,7 +434,7 @@ class NotACorpus(ValueError):
 
     A refusal and not a count, which is the choice §RK374 left open. `adopt` exits 0 over a
     corpus however far from the format it is (RK18) — the estimate is the thing being bought
-    — and refuses the *arguments* that name no corpus to measure: `--ledger` with `--sections`,
+    — and refuses the *arguments* that name no corpus to measure: `--with` without `--sections`,
     a path that does not open, and this. Measuring it would need a counter and a sentence for
     a file nobody wants measured, while the refusal is the one already written down as true in
     :class:`WouldOverwrite`, which leaves the configuration out of the door it offers on
@@ -1673,6 +1673,14 @@ def adopt(
     adopting commitclerk actually did. A flag and not a second command, because a corpus
     measured by two commands is two sets of numbers to keep in step.
 
+    It is the other half and never the same run, and **the parser is what says so** (RK1518).
+    This function used to raise on the pair, six hundred lines in and after the file had been
+    located: right, and knowable only by making the call — `_one_answer` let it through, so the
+    dispatcher, the sweep that reads declarations and the served schema all had the two down as
+    compatible. The rule is `answers(adopt_parser, …)` now, refused before a handler runs and
+    on both surfaces. Called directly with both, this measures as a ledger and says nothing,
+    which is what *No supported Python API* means about a door with no parser in front of it.
+
     ``alongside`` names the *rest of the set* the doubled-address finding is about (RK359).
     That finding is the one measure here that is not a property of one file, and until this
     it was reachable only where the target was already one of this project's own — so the
@@ -1690,11 +1698,6 @@ def adopt(
     # path in a report is the message `provenance.invocation` refuses — about a machine rather
     # than about a project.
     from_root = Path(_relative(target.resolve(), config.root))
-    if ledger and sections:
-        raise ValueError(
-            "--ledger and --sections measure different units — a ledger in lines and a "
-            "rationale file in sections — so each is its own run over its own file"
-        )
     if alongside and not sections:
         raise ValueError(
             "--with names the other prose files an address could be doubled across, which "

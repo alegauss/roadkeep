@@ -153,11 +153,13 @@ _IDEMPOTENT: dict[tuple[str, str, str], str] = {}
 #: and turned `origin --why --json` into the defect it was hiding. What is left is state a
 #: read-only sweep cannot give itself: three of these want a `roadkeep.toml` that is not this
 #: one, and a project cannot declare two schemes at once.
+#:
+#: `adopt --ledger --sections` left it the other way (RK1518). Its row said the exit was right
+#: and came from a refusal raised inside the estimator, where nothing reading declarations can
+#: see it — which is the row a table like this exists to make legible. The verb declares the
+#: two flags two answers now, so `separated` reports it and this list is shorter by the one
+#: entry that was describing a defect rather than a fixture.
 _UNMEASURED: dict[tuple[str, str, str], str] = {
-    ("adopt", "--ledger", "--sections"): (
-        "the verb refuses this pair in its own handler rather than by declaring two subjects, "
-        "so `separated` is right that nothing separates them and the exit is still correct"
-    ),
     ("adopt", "--ledger", "--json"): "this fixture's ledger is the roadmap `NEEDS` names",
     ("adopt", "--sections", "--json"): "the same, one flag over",
     ("brief", "--designed", "--json"): "no line here is both ready and designed",
