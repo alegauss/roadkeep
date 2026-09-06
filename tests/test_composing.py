@@ -602,3 +602,70 @@ def test_the_door_a_retirement_over_a_recorded_half_names_runs(tmp_path, capsys)
     assert ["ship", "RK1"] in [one[:2] for one in ran], said
     capsys.readouterr()
     assert "RK1" not in (root / "ROADMAP.md").read_text(encoding="utf-8")
+
+
+# -- the `declare` family (RK1498, sized by RK1532) ----------------------------
+
+#: The same project `departing` writes, with the opt-in tables left out — which `init` is not:
+#: that verb opens `[non_goals]` and `[criteria]` itself (RK1313), and the half RK1328 was
+#: filed for is every project already past that.
+UNGOVERNED = WHOLE.replace('deferred = "DEFERRED.md"\n', "")
+
+#: The heading that declares the list. `init` writes it and no other verb does, which is why
+#: the fixture below has to (RK1573).
+NON_GOALS = "\n## Non-goals\n"
+
+
+def test_the_door_a_scaffold_names_runs(tmp_path, capsys):
+    """RK1498. `init` says what the backlog now takes and names the write that puts the first
+    line in it — the one composed command in this family that a bare directory reaches, which
+    is what its row now says it costs."""
+    assert main(["-C", str(tmp_path), "init"]) == EXIT_OK
+    said = capsys.readouterr().out
+    ran = runs(tmp_path, said)
+    # The one door a scaffold offers, and it ends in the caller's own `…` — so it is filled
+    # and run as the template it is, which is what `abridged` exists to tell apart.
+    assert [one[:3] for one in ran] == [["add", "--block", "A"]], said
+    capsys.readouterr()
+    # The line landed, which is the whole claim: a scaffold that names a write nobody can make
+    # is a scaffold that answered about somebody else's project.
+    assert "RK1" in (tmp_path / "docs" / "ROADMAP.md").read_text(encoding="utf-8")
+
+
+def test_the_door_a_retrofitted_role_names_runs(tmp_path, capsys):
+    """`declare <role>` opens a file a configured project was missing, and names the verb that
+    role exists for. Two writes of fixture: the scaffold, then the role it left out."""
+    assert main(["-C", str(tmp_path), "init"]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "declare", "deferred"]) == EXIT_OK
+    said = capsys.readouterr().out
+    (argv,) = [one for one in commands(said) if one[:1] == ["defer"]]
+    ready = supplied(filled(argv))
+    # Parsed and not run: `defer` takes an id and a reason, and which line a caller sets aside
+    # is theirs — the door names the verb, which is what the refusal that sent them here was
+    # about. `<id>` is the one token no table fills, being the caller's own line.
+    assert build_parser().parse_args([one if one != "<id>" else "RK1" for one in ready])
+
+
+def test_the_door_an_opened_table_names_runs(tmp_path, capsys):
+    """`declare non_goals` opens the table that governs a list, and names the write it gates —
+    RK1328's own point, since a table opened and never written to is a project that opted in
+    and got nothing."""
+    # A configured project that does **not** declare the table, which `init` is not: that verb
+    # opens `[non_goals]` and `[criteria]` itself (RK1313), and the half RK1328 was filed for
+    # is every project already past it.
+    departing(tmp_path)
+    (tmp_path / "roadkeep.toml").write_text(UNGOVERNED, encoding="utf-8")
+    # **With the heading already there**, which is the state the door it names can be taken in
+    # (RK1573): `non-goal add` refuses where the roadmap declares no list, exactly as a task
+    # line refuses under a block nothing declares (RK37) — and nothing writes that heading into
+    # a project past `init`, so a project without it is opened into a table it cannot use.
+    with (tmp_path / "ROADMAP.md").open("a", encoding="utf-8", newline="") as handle:
+        handle.write(NON_GOALS)
+    assert main(["-C", str(tmp_path), "declare", "non_goals"]) == EXIT_OK
+    said = capsys.readouterr().out
+    ran = runs(tmp_path, said)
+    assert ["non-goal", "add"] == ran[-1][:2], said
+    capsys.readouterr()
+    # And it wrote one, which is what makes the door a door rather than a verb being named.
+    assert "Non-goals" in (tmp_path / "ROADMAP.md").read_text(encoding="utf-8")

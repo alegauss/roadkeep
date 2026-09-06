@@ -37,10 +37,11 @@
 - 💭 **RK1566** (deps: —) **the near window is measured on a ledger far larger than its backlog, the ratio it is least about** — RK1527 found the open half takes one slot of thirty-three here, a figure that inverts on a project whose backlog outnumbers its deliveries. → §RK1566
 - 💭 **RK1567** (deps: —) **the near rows are described as delivered --near volunteered, and that read has ranked a different corpus since RK1495** — add ranks a block's deliveries and its open lines while the verb the row names reads the ledger alone, so running it answers differently. → §RK1567
 - 💭 **RK1568** (deps: —) **an incidental entry that is on disk and filters no commit is silent, which is the half of the reading RK1529 gave** — existence is a blob this gate already reads and matched-anything is a history walk, so the second half was left where nothing asks it. → §RK1568
+- 💭 **RK1573** (deps: —) **declare non_goals opens a table whose verb refuses, nothing writing the heading that declares the list** — init writes it once at scaffold time, so a project past that is opened into a list it can only start with the hand edit the guard denies. → §RK1573
 
 ## Block D — The gate
 
-- ⏳ **RK1498** (deps: RK1532 ✅) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Twenty-eight of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
+- ⏳ **RK1498** (deps: RK1532 ✅) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Twenty-five of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
 - 💭 **RK1533** (deps: —) **govern writes a number the config parser then refuses, leaving every verb unable to read the file** — Violated guards a number the corpus breaks and nothing guards one two keys in a table forbid, so the repair is the hand edit the guard denies. → §RK1533
 - 💭 **RK1535** (deps: —) **nothing records which volunteered rows an author acted on, so the population that could score the read has none** — RK1500 proved the retirement corpus cannot score the query half, and the answers given before the answer was known are printed and dropped. → §RK1535
 - 💭 **RK1536** (deps: —) **a decision can only be filed by a departure, so the moment its answer is lost is the moment nothing can be done** — RK1501 had to say it in brief because --decides is a flag on the ship, and the ledger has record add for exactly the route the decisions role lacks. → §RK1536
@@ -63,6 +64,7 @@
 - 💭 **RK1569** (deps: —) **the prose half of the re-taken split reds on somebody else's edit, which says nothing about the rule** — RK1530 asserts a non-zero count over corpora this project does not own, and two of the three hits are one sentence in Shio. → §RK1569
 - 💭 **RK1570** (deps: —) **a block title is written into every governed file and nothing validates it, not even the codec rule** — RK1531 reached the fields whose families already validate them, and blocking has no validator for the rule to be missing from. → §RK1570
 - 💭 **RK1571** (deps: —) **the composer work-list names a state per row and cannot show that fifteen of them want five fixtures between them** — RK1532 made each row sizeable on its own, and a picker still reads thirty-one items where the states cluster into families. → §RK1571
+- 💭 **RK1574** (deps: —) **two composer families turned up three doors that cannot be taken, and the rest are unplanned against that rate** — RK1572 and this family each found a defect per two rows, which is the number the ordering of the rest should be argued from. → §RK1574
 
 ## Block E — Adoption
 

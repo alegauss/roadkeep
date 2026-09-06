@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
-| C — Query (consult without reading the file) | 9 | 167 | 4 |
-| D — The gate | 23 | 238 | 2 |
+| C — Query (consult without reading the file) | 10 | 167 | 4 |
+| D — The gate | 24 | 239 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 152 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 38 | 1019 | 14 |
+| **Total** | 40 | 1020 | 14 |
 
 **Next ready:**
 
-- ⏳ **RK1498** (deps: RK1532 ✅) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Twenty-eight of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
+- ⏳ **RK1498** (deps: RK1532 ✅) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Twenty-five of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

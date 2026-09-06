@@ -103,29 +103,25 @@ FOREIGN = (
 #: composed command by meeting it; what was missing was not a test for any one of them but the
 #: statement that thirty-six others have never been run.
 SITES: tuple[Site, ...] = (
-    Site(
-        "adopting.py:Created.stated",
-        "unreached",
-        unreached("a directory with no `roadkeep.toml` at all, scaffolded by `init`"),
-    ),
+    # RK1498, the `declare` family (RK1532). `test_composing` takes the scaffold's one door —
+    # `add --block A …`, an ellipsis standing for the caller's own fields — and runs it filled,
+    # which is the shape `abridged` exists to tell from a blank.
+    Site("adopting.py:Created.stated", "run"),
     # RK1264, and the row above it is the same shape one door over: what `declare` composes is
     # the verb the role it just wrote opens, with the id and the reason left as placeholders —
     # so `test_adopting` builds the state and asserts the line, and running it as printed is
     # what a filled argv would have to buy first.
-    Site(
-        "adopting.py:Retrofitted.stated",
-        "unreached",
-        unreached("a project declaring some roles and not the one `declare` is then asked for"),
-    ),
+    # The role beside it: `declare deferred` opens the file and names the verb that role exists
+    # for. Parsed and not run, the door taking an id the caller chooses (L4).
+    Site("adopting.py:Retrofitted.stated", "run"),
     # RK1328, and the row above it one axis over: `declare` now opens an opt-in table too, and
     # what this composes is the verb that table gates — `criterion add` for one, `non-goal add`
     # for the other — with the lead and the reason left as placeholders, which is the same
     # reason the role's row is unreached.
-    Site(
-        "adopting.py:Opened.stated",
-        "unreached",
-        unreached("a project whose config omits an opt-in table `declare` opens"),
-    ),
+    # And the table (RK1328), which is the one of the three that found something: the door it
+    # names refuses on a project whose roadmap has no `## Non-goals` heading, and no verb past
+    # `init` writes one (RK1573). Run against a project that has it.
+    Site("adopting.py:Opened.stated", "run"),
     # RK1223. Run by `test_blocking`, which executes the `--organise` call this refusal names
     # rather than matching it — the reading this whole file is about.
     Site("blocking.py:BlockExists.__init__", "run"),

@@ -289,6 +289,29 @@ path.
 So the row belongs on `unclosed` rather than in the gate: *this many commits were set
 aside, and these entries set aside none*. The report knows both halves already.
 
+### §RK1573 The heading only the scaffold writes
+
+`declare non_goals` opens the table that governs the list and names the write it gates:
+`non-goal add --lead … --why …`. On a project past `init` that command refuses — *no
+non-goals heading in ROADMAP.md: the heading declares the list, exactly as a block
+heading declares a block* — and no verb writes that heading. `init` does, once, at
+scaffold time.
+
+So the door is unopenable on exactly the population RK1328 was filed for. That task
+opened the table for projects past scaffolding, because it went in by hand and no verb
+opened one; the same sentence is now true one level down, about the heading.
+
+The symmetric fix is one this format made twice. `criterion add` writes its `## Done
+when — Block X` heading where the block has none (RK427, RK1265), the list being opened
+by the act of writing the first entry, and `priority add` does the same. Either
+`declare` writes the heading with the table, or `non-goal add` opens it as its two
+siblings do — the second being more consistent, since a project may have the table and
+still be one write from the list.
+
+What it must not do is guess where. A block heading has a place in the file and this one
+does not: `init` writes it after the blocks, which is a convention and not a rule, and a
+verb placing it anywhere else would move a section a reader knows the position of.
+
 ## Block D — The gate
 
 ### §RK1498 The doors nothing has ever run
@@ -851,6 +874,30 @@ What it must not become is a taxonomy. Five names invented for five families is 
 vocabulary to keep true, and the honest form is the name of the **fixture that would
 build it**: `test_installing`'s `source`, `test_pairs`' `_origin`. A row pointing at a
 fixture that exists says how far the work is in the one unit that is not a guess.
+
+### §RK1574 The rate two families measured
+
+RK1572's family and this one are two of five, and both went the same way: the fixture
+was cheap, and taking it found a door that could not be taken. The partial-ship family
+turned up a `finish` spelled without backticks and a `ship <id>` that refused for want
+of a `--why`; the `declare` family turned up `non-goal add` named on a project with no
+heading for it (RK1573). Three defects, six rows, two sittings.
+
+That is the rate the remaining twenty-five should be planned against. RK1498's own
+sentence is that a composed command nobody runs is a command nobody has checked, and the
+evidence is now that roughly one row in two hides something — not a stale reason, an
+actual door that refuses, is invisible to the scan, or names a state the project cannot
+be in.
+
+What follows is ordering, not effort. The families left are a checkout beside the
+project, a git history with a retired address, and a stored capture; the first is the
+dearest fixture and the largest family. If the rate holds, the cheap ones are worth
+finishing first for RK1532's own reason: each that comes out argues the next from
+evidence.
+
+What must not happen is the rows going quiet again. Each one now names its state, and a
+row flipped to `run` on a test that asserts a sentence was printed would be the exact
+failure this list exists to have ended.
 
 ## Block E — Adoption
 

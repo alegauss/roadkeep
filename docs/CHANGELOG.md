@@ -708,6 +708,7 @@
 - ✅ **RK1531** **a section title takes the mangled bytes the line's own fields refuse** — a section title, a non-goal's lead and a criterion's are held to the mangled rule their own line's fields are, through one shared function, and a section body is still the prose it does not read.
 - ✅ **RK1532** **thirty rows of the composer work-list share one reason, so none of them says what it would cost** — every unreached row of the composer work-list names the state its fixture wants instead of one shared constant, and no two share a reason.
 - ✅ **RK1572** **three sites of the composer work-list compose doors nothing has ever run** — three composed doors of the partial-ship family are executed against two lines of ledger, which found one door no backtick scan could see and one that refused as printed.
+- ✅ **RK1575** **three more sites of the composer work-list compose doors nothing has ever run** — three more composed doors are executed against a scaffold and one write past it, which found declare non_goals naming a command that refuses on every project it was written for.
 
 ## Block E — Adoption
 
