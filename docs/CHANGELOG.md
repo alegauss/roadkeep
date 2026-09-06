@@ -747,6 +747,7 @@
 - ✅ **RK1555** **two of adopt's argument rules are still raised inside the estimator, where no declaration reader can see them** — The narrowing is declared at the parser, and the one rule no declaration can spell is measured as the only instance of its shape.
 - ✅ **RK1559** **twelve of the fifteen note codes have never been priced, this project's gate tripping only two of them** — Every note code now has a state that produces it, so the seventeen are 2741 characters measured against the 282 this project trips.
 - ✅ **RK1563** **a field that shares a name with the served prefix is reported as a carrier of it, which it is not** — The census names both acts a mismatch can take instead of asserting one, and the sentence is a function this suite reads back.
+- ✅ **RK1565** **the per-surface staleness rows may repeat one door six times, and nothing has measured what that costs** — Five stale surfaces printed 1,149 characters of which 791 was one sentence repeated; the run folds to that sentence once and its addresses, and an absent page naming a verb keeps its row.
 
 ## Block E — Adoption
 

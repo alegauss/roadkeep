@@ -314,6 +314,10 @@ SITES: tuple[Site, ...] = (
     # compares against — vendoring from a copy would report the fixture's own drift as the
     # state under test. The write runs and the notes go, which is RK393's half.
     Site("linting.py:_wired", "run"),
+    # The absent half of that pair, its own function since RK1565 because the sentence is read
+    # twice — as the row's message and as what its siblings share — and two spellings of one
+    # sentence is a fold that stops folding. Same door, run by the same tests.
+    Site("linting.py:_missing", "run"),
     # RK1498, over RK348/RK1152. A ship ticks its dependents and a ✅ is two characters wider,
     # so the line that overflows is somebody else's — run by `test_composing` against a
     # dependent with one character of room, where the door is the edit on **that** line and

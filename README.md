@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
 | C — Query (consult without reading the file) | 7 | 173 | 4 |
-| D — The gate | 23 | 271 | 2 |
+| D — The gate | 22 | 272 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 158 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 34 | 1069 | 14 |
+| **Total** | 33 | 1070 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1565** (deps: —) **the per-surface staleness rows may repeat one door six times, and nothing has measured what that costs** — RK1526 took 201 units off a four-row note by saying its shared read once, and install.stale files per surface with the same command on every row. → §RK1565
+- 💭 **RK1566** (deps: —) **the near window is measured on a ledger far larger than its backlog, the ratio it is least about** — RK1527 found the open half takes one slot of thirty-three here, a figure that inverts on a project whose backlog outnumbers its deliveries. → §RK1566
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

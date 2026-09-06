@@ -2784,6 +2784,87 @@ def test_the_absent_page_names_the_same_door(project):
     assert found is not None and found.doors[0].argv == ("install",)
 
 
+# -- the one sentence, said once (RK1565) --------------------------------------
+
+
+def _behind(project: Path) -> list[str]:
+    """Every surface this project holds, rewritten so the gate calls all of them stale."""
+    from roadkeep.installing import PROJECT_MCP, PROJECT_PAGES, PROJECT_SETTINGS
+
+    stale = [PROJECT_SKILL, *PROJECT_PAGES]
+    for one in stale:
+        (project / one).write_text("stale\n", encoding="utf-8")
+    # The two JSON surfaces are compared as parsed JSON, so a valid object that says
+    # something else is what drift is there — `stale\n` would be unreadable, not behind.
+    for one in (PROJECT_MCP, PROJECT_SETTINGS):
+        (project / one).write_text('{"stale": true}', encoding="utf-8")
+    return [PROJECT_MCP, PROJECT_SETTINGS, *stale]
+
+
+def test_the_stale_rows_say_their_one_sentence_once(project, capsys):
+    """RK1565. RK1526's arithmetic one note over, and the number is why it followed: five stale
+    surfaces printed 1,149 characters of report, of which 791 was the same 186-character
+    sentence said four more times. Each row's own fact is its **path** — the message has no
+    per-row half at all — and this note fires on every commit and every turn until somebody
+    runs `install`.
+
+    Folded by `Note.shared` and `_print_notes`, which is `Finding.shared` and RK469's grouping
+    one list over: the sentence once, every address under it, and nothing a reader could open
+    dropped for the saving."""
+    from roadkeep.cli import EXIT_OK, main
+
+    install(wired(project), source=HERE)
+    paths = _behind(project)
+    assert main(["-C", str(project), "lint"]) == EXIT_OK
+    said = capsys.readouterr().out
+
+    assert said.count("this surface is behind the roadkeep answering here") == 1
+    assert f"{len(paths)} surface(s)  install.stale" in said
+    for one in paths:
+        assert one in said, one
+
+
+def test_a_folded_run_is_smaller_than_the_rows_it_replaces(project, capsys):
+    """The saving, measured rather than asserted — a fold that grew the report would still
+    pass every claim above. Against the same notes printed one per line, which is what the
+    gate did before: a figure, so a clause added to the sentence shows up as a number."""
+    from roadkeep.config import Config
+    from roadkeep.linting import lint
+
+    install(wired(project), source=HERE)
+    _behind(project)
+    capsys.readouterr()
+    rows = [
+        one for one in lint(Config.discover(project)).notes if one.code == "install.stale"
+    ]
+    assert len(rows) >= 4, rows
+    from roadkeep.linting import _print_notes
+
+    _print_notes(rows)
+    folded = len(capsys.readouterr().out)
+    loose = sum(len(str(one)) + 1 for one in rows)
+    assert folded < loose // 2, {"folded": folded, "one row each": loose}
+
+
+def test_an_absent_page_that_names_a_verb_keeps_its_own_row(project, capsys):
+    """The half the fold must not take. An absent row names the verb its page would have
+    taught (RK1505), so those rows are different sentences and each keeps its line; a missing
+    surface that declares no verb says what every other one says, and those fold.
+
+    Which is one rule and not two — `shared` is declared where the sentence has nothing of the
+    row in it — and it is the rule that makes RK1482's answer survive the saving."""
+    from roadkeep.cli import EXIT_OK, main
+    from roadkeep.installing import PROJECT_PAGES
+
+    install(wired(project), source=HERE)
+    for one in PROJECT_PAGES:
+        (project / one).unlink()
+    assert main(["-C", str(project), "lint"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "`add`" in said and "`budget`" in said
+    assert said.count("this project has no copy of it") == 2
+
+
 # -- what the absent page would have said (RK1505) -----------------------------
 
 

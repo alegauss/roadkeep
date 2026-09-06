@@ -238,30 +238,6 @@ such filings in pportal, three needed correction.
 
 ## Block D — The gate
 
-### §RK1565 The same arithmetic, one note over
-
-RK1526 saved 201 code units on `engine.disagreement` by saying its shared read once, and
-the same shape is one file over. `install.stale` and `install.absent` file **per
-surface** — the skill, its two reference pages, the hook, the launcher, the workflow —
-so a project whose wiring is behind gets one row each, and RK1482 already measured a
-session reading past three of them for hours.
-
-Whether they repeat a read is the question, not an assumption. Each row carries the path
-and the same door: `install` rewrites the ones this checkout ships. That door is a fact
-about the *code* in exactly the sense RK1526 used — one command closes every one of them
-— while the path is the row's own. So the arithmetic is the same and the population is
-larger: six surfaces against four copies, on a note that fires on a wiring nobody has
-refreshed.
-
-What differs, and why this wants measuring rather than assuming, is that these rows are
-not one note. They are separate subjects, and a reader may meet one alone in a report
-about something else — the case RK1526's "whichever comes first" answer depends on not
-existing.
-
-So the honest first step is the number: what the six rows cost on a project with every
-surface stale, and what they would cost with the door said once. If it is another two
-hundred units the shape follows; if it is thirty, the rows are already right.
-
 ### §RK1569 The half that is somebody else's to change
 
 RK1530 re-takes the split RK1497 drew its boundary from: zero in fields, non-zero in

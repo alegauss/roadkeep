@@ -261,6 +261,17 @@ class Note:
     #: The same field :class:`Finding` grew for the same reason (RK420): a note carries a
     #: remedy too, and the thing it is about is not always printable in front of a message.
     subject: str = ""
+    #: :attr:`Finding.shared` one class over, and measured before it was taken (RK1565).
+    #: `install.stale` files per surface, and each row's own fact is its **path** — the
+    #: sentence is byte-identical on every one of them. Five stale surfaces are 930
+    #: characters of which 744 is the same 186 said again, against the 201 RK1526 took off
+    #: `engine.disagreement` for the same reason.
+    #:
+    #: Declared by the emitter and empty everywhere else, exactly as it is for a finding:
+    #: `install.absent` names the verb each missing page would have taught (RK1505), so its
+    #: rows are four sentences and not one repeated, and folding them would delete the half
+    #: RK1482 was filed to add.
+    shared: str = ""
 
     @property
     def token(self) -> str:
@@ -1556,25 +1567,45 @@ def _wired(config: Config) -> list[Note]:
     # read past three of these for hours, and what it was reading past was two pages that did
     # not exist — so it never learnt the verb that would have saved five refusals. A note that
     # says *what you do not have* is one nobody reads past; *this file is older* is not.
+    # **Composed once because it is one sentence** (RK1565). Every stale row says this and
+    # nothing else: the surface's own fact is the path, which the address already carries, so
+    # the message has no per-row half at all — five of them are 744 characters of repetition.
+    # Hoisted rather than spliced per row, so the text the report folds and the text a row
+    # prints alone cannot come to differ by a word.
+    behind = (
+        f"this surface is behind the roadkeep answering here, so a session reads a "
+        f"skill, hook or launcher older than the engine it names{unknown} — "
+        f"`{invocation()} install` rewrites the ones this checkout ships"
+    )
     return [
         Note(
             "install.stale" if one.existed else "install.absent",
             one.path,
-            (
-                f"this surface is behind the roadkeep answering here, so a session reads a "
-                f"skill, hook or launcher older than the engine it names{unknown} — "
-                f"`{invocation()} install` rewrites the ones this checkout ships"
-            )
-            if one.existed
-            else (
-                f"this project has no copy of it, so nothing a session reads here documents "
-                f"{_names(one)} — a verb it names is one nobody in this project can "
-                f"find; `{invocation()} install` writes the ones this checkout ships"
-            ),
+            behind if one.existed else _missing(one),
             subject=one.path,
+            # **Declared where the sentence has no per-row half**, which is one rule and not
+            # two: every stale row is `behind`, and an absent row is its own sentence only
+            # where the page named a verb (RK1505). A missing surface that declares none —
+            # the skill, the two JSON files — says what every other one says, so those fold
+            # too and `writing.md`'s `add` and `asking.md`'s `budget` still get their line.
+            shared=behind if one.existed else ("" if one.saves else _missing(one)),
         )
         for one in staleness(config.root)
     ]
+
+
+def _missing(page: object) -> str:
+    """The sentence an absent surface gets, composed in one place (RK1565).
+
+    Lifted out of the comprehension because it is now read twice — once as the row's message
+    and once as what the row shares with its siblings — and two spellings of one sentence is
+    a fold that stops folding the day somebody edits a clause.
+    """
+    return (
+        f"this project has no copy of it, so nothing a session reads here documents "
+        f"{_names(page)} — a verb it names is one nobody in this project can "
+        f"find; `{invocation()} install` writes the ones this checkout ships"
+    )
 
 
 def _names(page: object) -> str:
@@ -4801,8 +4832,7 @@ def _report_rows(config: Config, report: Report, applied: Fix, root: str, quiet:
         _print(applied.stated())
         # Notes before the findings and the summary: a note is what the gate says about a
         # file it is passing, and after an exit-1 report nobody would read it (RK35).
-        for note in report.notes:
-            print(str(note))
+        _print_notes(report.notes)
     for line in applied.refusals():
         print(line, file=sys.stderr)
     if report.clean:
@@ -4827,6 +4857,41 @@ def _report_rows(config: Config, report: Report, applied: Fix, root: str, quiet:
         # is identical on every finding it answers, so repeating it under each of them would
         # spend the report's length on the findings that cost the reader nothing.
         print(f"{mechanical} of them need no decision: {invocation()} lint --fix")
+
+
+def _print_notes(notes: Sequence[Note]) -> None:
+    """Every note, with a run that is one sentence said once (RK1565).
+
+    :func:`_print_findings`' shape one list over and for its argument (RK469): a report whose
+    bulk is one sentence repeated is one a reader learns to skip. Measured on a wired project
+    with every surface behind — five `install.stale` rows, 930 characters, 744 of them the
+    same 186 said again, on a note the commit hook and CI print on every run until somebody
+    runs `install`.
+
+    **Grouped by `(code, shared)` and not by file**, which is the one place this parts from
+    the findings' key. A finding's addresses are lines *in* a file, so its file is what the
+    group is about; a note's addresses **are** files, and keying on one would fold nothing —
+    every install row is a different surface, which is exactly what makes them a run.
+
+    Runs of two or more only, and the addresses under the sentence, so nothing a reader could
+    open is dropped for the saving. `--json` is untouched: a consumer acts per address.
+    """
+    runs: dict[tuple[str, str], list[Note]] = {}
+    for note in notes:
+        if note.shared:
+            runs.setdefault((note.code, note.shared), []).append(note)
+    printed: set[tuple[str, str]] = set()
+    for note in notes:
+        key = (note.code, note.shared)
+        run = runs.get(key, []) if note.shared else []
+        if len(run) < 2:
+            print(str(note))
+            continue
+        if key in printed:
+            continue
+        printed.add(key)
+        print(f"{len(run)} surface(s)  {note.code}  {note.shared}")
+        print(f"    {'  '.join(one.file for one in run)}")
 
 
 def _print_findings(config: Config, report: Report) -> int:
