@@ -723,6 +723,24 @@ constantly and are prose. What is undecided is whether the guarantee should be r
 over the population it actually covers, or the population widened to the doors
 `commanded` finds — RK1590's ninety spans are the same question asked about findability.
 
+### §RK1607 The four the sweep found next
+
+RK1518 moved one of `adopt`'s argument rules to the parser and RK1555 moved a second.
+The scan that decided the third — every raise in the package naming two flags — found
+**six**, and four of them are two answers `answers()` already spells:
+
+`govern --because/--instead`, `retire --folds-into/--superseded-by`, and
+`--block/--task` at `criterion list` and `criterion drop`. All four verbs declare **no
+subjects at all**, so `_one_answer` lets the pair through, the pair sweep reads a
+correct exit as something it cannot account for, and over MCP the rule is discoverable
+only by making the call — which is the cost RK1518 closed once and RK1555 closed twice.
+
+Each is one `answers(...)` call and a deleted raise, with the sentence moving into the
+two `what` phrases the dispatcher reads it from. What needs care is the fifth raise
+beside them: `criterion add` refuses a call naming **neither**, which is a required
+choice rather than two answers — the shape argparse spells on a command line and cannot
+spell over a transport where both fields exist and neither is marked required.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

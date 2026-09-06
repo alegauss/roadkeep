@@ -59,6 +59,7 @@
 - 📋 **RK1603** (deps: —) **a table's note is repeated on every key under it, and that repetition is 29 percent of the config payload** — One fact about a table is sent once per key it holds, so a caller asking the shape pays ten thousand code units for six copies of a sentence. → §RK1603
 - 📋 **RK1604** (deps: —) **the one reader saying whether a role is available answers a third question and has no docstring** — config.has is role in paths, true for a default pointing at no file, and 109 call sites read it as though it meant the project has one. → §RK1604
 - 📋 **RK1605** (deps: RK1590) **the composer census counts sites that call the invocation, so a door spelled without it is outside the guarantee** — Every site is run or deliberate is a claim about functions calling invocation(), and a bare door composes a command none of them see. → §RK1605
+- 📋 **RK1607** (deps: RK1555 ✅) **four two-answer rules are raised inside handlers where the declaration that spells them is one call away** — govern, retire and the two criterion doors declare no subjects at all, so the dispatcher, the pair sweep and the served schema see none of them. → §RK1607
 
 ## Block E — Adoption
 
