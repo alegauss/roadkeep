@@ -964,6 +964,7 @@
 - ✅ **RK1487** **a vendor that lands and then fails to wire leaves a copy nothing points at, and no refusal says it is there** — install now says what landed when a vendor copies an engine and the surfaces then refuse.
 - ✅ **RK1492** **the invoke line finds the program by a .py suffix, which is a guess about a file this tool merges into** — the declaration reader recognises the launcher this command writes, and answers nothing where it finds neither spelling.
 - ✅ **RK1493** **the served notes are four kinds keyed by string literals invented at each call site, and nothing enumerates them** — serving.NOTES declares every note kind with the rule it is under, held total against the literals the module passes.
+- ✅ **RK1514** **uninstall leaves the vendored engine on disk and its own kept field never mentions it** — uninstall now names the vendored engine among what it keeps, with the version where the tree states one, so the copy nothing points at is reported rather than left silent.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

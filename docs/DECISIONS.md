@@ -206,6 +206,7 @@ from outside the tree.
 - ✅ **RK1424** **The skill is 65,180 code units and nothing counts it, where the surface it is larger than has a ceiling** — A subject exposed over MCP is charged against [tools] session: this one put the surface 74 characters past it, and the description gave way rather than the ceiling.
 - ✅ **RK1428** **Nothing counts the guard's denial, and 1,760 of its 4,092 units re-spell the shell for a caller that has the tools** — The subject stays off the served surface: exposing it costs 102 characters against 19 of room, and a caller over that transport is handed the denial itself.
 - ✅ **RK1471** **a write from an engine whose home was swapped is allowed, on rules no disk holds and with no pin to compare against** — A state whose only remedy is restarting the process is told and never refused: a refusal there is a wall with no door for the reader and none at all for an agent.
+- ✅ **RK1514** **uninstall leaves the vendored engine on disk and its own kept field never mentions it** — a kept path is not a surface, so the vendored copy is reported and never deleted and --check's verdict does not count it.
 
 ### §RK1424 Why the description gave way and not the ceiling
 

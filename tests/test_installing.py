@@ -909,6 +909,66 @@ def test_a_workflow_that_is_there_is_still_reported_kept(project, source, capsys
     assert workflow.is_file()
 
 
+def test_the_vendored_engine_is_the_other_thing_uninstall_keeps(project, source, capsys):
+    """RK1514. RK1487 gave `install` one sentence about a copy it left behind; the same tree
+    pointed the other way said nothing. `.roadkeep/` is the whole engine, several megabytes of
+    it, and a caller who asked for the tool to be gone read a success and still had it."""
+    install(project, source=source)
+    _vendoring(project, "0.2.148")
+    assert [path for path, _ in removal(project).kept] == [PROJECT_WORKFLOW, PROJECT_ENGINE]
+    assert main(["-C", str(project), "uninstall"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert f"kept           {PROJECT_ENGINE}/" in printed
+    assert "the vendored engine at 0.2.148 stays on disk" in printed
+    # Reported, never deleted: the bytes may be committed and are the adopter's, and a verb
+    # whose subject is declarations does not take out an artefact `install --vendor` reuses.
+    assert (project / PROJECT_ENGINE / "src" / "roadkeep" / "__init__.py").is_file()
+
+
+def test_a_project_that_vendored_nothing_is_told_nothing_about_a_copy(project, source, capsys):
+    """RK284's rule, which this row is held to like the workflow's: a path never there was not
+    kept, and naming it does from the other side what the field exists to prevent."""
+    install(project, source=source)
+    assert not (project / PROJECT_ENGINE).exists()
+    assert [path for path, _ in removal(project).kept] == [PROJECT_WORKFLOW]
+    assert main(["-C", str(project), "uninstall"]) == EXIT_OK
+    assert PROJECT_ENGINE not in capsys.readouterr().out
+
+
+def test_a_directory_stating_no_version_is_still_bytes_this_command_kept(
+    project, source, capsys
+):
+    """`vendored_at` reads a `.roadkeep/` with no package in it as a directory rather than an
+    engine, and that reading is about *which copy writes*. This question is what stayed on
+    disk, so the row is written and only the version is withheld — the half-copied tree being
+    the one a reader is least likely to know is there."""
+    install(project, source=source)
+    (project / PROJECT_ENGINE).mkdir()
+    assert [path for path, _ in removal(project).kept] == [PROJECT_WORKFLOW, PROJECT_ENGINE]
+    assert main(["-C", str(project), "uninstall"]) == EXIT_OK
+    (row,) = [
+        line for line in capsys.readouterr().out.splitlines() if PROJECT_ENGINE in line
+    ]
+    assert "the vendored engine stays on disk" in row
+
+
+def test_the_copy_is_not_a_surface_and_does_not_move_the_check(project, source, capsys):
+    """The decision this task raised: `--check`'s verdict answers *is this project still wired
+    to a checkout*, and a kept path is by definition one nothing is wired to. Counting it would
+    make the check report work `uninstall` will not do."""
+    install(project, source=source)
+    assert main(["-C", str(project), "uninstall"]) == EXIT_OK
+    _vendoring(project, "0.2.148")
+    capsys.readouterr()
+
+    assert main(["-C", str(project), "uninstall", "--check"]) == EXIT_OK
+    printed = capsys.readouterr()
+    # Said, and not counted: the row is on stdout where a reader asked what is left, and the
+    # stderr verdict — which is what the exit code follows — has nothing to report.
+    assert "the vendored engine at 0.2.148 stays on disk" in printed.out
+    assert printed.err == ""
+
+
 #: The one rename each of these payloads makes (RK289), declared for the reason the estimate's
 #: is: `withdrawals` is what the code took out and `surfaces` is what a reader outside this
 #: package calls them. `Plan` renames nothing, and an empty map is the honest way to say so.

@@ -2634,7 +2634,14 @@ class Removal:
         return "\n".join(rows)
 
     def verdict(self) -> list[str]:
-        """What a `--check` has to say on **stderr**, where anything is left wired."""
+        """What a `--check` has to say on **stderr**, where anything is left wired.
+
+        :attr:`kept` is not counted here and the copy at `.roadkeep/` is the reason to say so
+        (RK1514). This verdict answers *is this project still wired to a checkout*, and a kept
+        path is by definition one nothing is wired to — so counting it would make `--check`
+        report work `uninstall` will not do. The row is in :meth:`stated`, where a reader who
+        asked what is left reads it.
+        """
         if not self.changing:
             return []
         return [
@@ -2695,6 +2702,28 @@ def removal(root: str | Path = ".") -> Removal:
                 PROJECT_WORKFLOW,
                 f"{PROJECT_WORKFLOW}: the gate calls the published action and not this "
                 f"checkout, so CI stays wired — delete it to stop gating",
+            )
+        )
+    if (base / PROJECT_ENGINE).is_dir():
+        # The second kept path, and by far the larger one (RK1514). `install --vendor` writes
+        # the whole engine here; un-wiring the surfaces leaves it, so a caller who asked for
+        # the tool to be gone reads a success and still has several megabytes of it in a
+        # directory nothing now points at.
+        #
+        # Reported and never deleted, which is why this is a `kept` row. The bytes may be
+        # committed, they are the adopter's, and a verb whose subject is *declarations* is not
+        # licensed to take out an artefact a later `install --vendor` would reuse. The version
+        # only where the tree states one: :func:`vendored_at`'s rule is that a `.roadkeep/`
+        # with no package in it is a directory rather than an engine, and it is still bytes
+        # this command kept.
+        vendor = vendored_at(base)
+        states = f" at {vendor.version}" if vendor else ""
+        kept.append(
+            (
+                PROJECT_ENGINE,
+                f"{PROJECT_ENGINE}/: the vendored engine{states} stays on disk and nothing "
+                f"points at it now — delete the directory to reclaim it, or leave it for a "
+                f"later `install --vendor` to replace",
             )
         )
     return Removal(
