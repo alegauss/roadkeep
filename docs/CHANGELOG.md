@@ -685,7 +685,7 @@
 - ✅ **RK1491** **the note a wired project reads on every turn is 475 characters at full length and no cadence prices it** — cost --notes prices the sixth cadence: 282 per run here, 643 for the widest note composed, and no ceiling — small beside every other cadence.
 - ✅ **RK1494** **one gate code now carries four causes with four remedies, so explain can only describe their union** — engine.disagreement files one row per differing copy, each carrying the move that closes it: 893 units against 643 joined, which RK1491 made readable.
 - ✅ **RK1497** **nothing catches the bytes a wrong decode leaves, so mojibake reaches a permanent file and a correction is what cleans it** — char.mangled refuses a field whose bytes came through the wrong codec: 0 false positives over 3,962 fields, 18 over prose, so it reads fields only.
-- ✅ **RK1498 (the departure refusals, four of thirty)** **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — AlreadyRecorded, AlsoPaused, Divergent and the emptied-block event now run the doors they compose.
+- ✅ **RK1498** **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Every one of the thirty-six sites is run or deliberate, and running them found eleven defects no reading of the same messages had.
 - ✅ **RK1499** **whether a governed number has a gate behind it is a flag typed at the reading, and no test holds it against the findings** — a test holds refuses against what lint does with each governed key, and the two that no gate reads say so in the field.
 - ✅ **RK1500** **the query side of the duplicate ranking cannot be measured, every known answer being a note written after the answer** — a test holds why the query half cannot be scored: all eleven known answers are written into the field a query would join.
 - ✅ **RK1501** **the clause that settles a constraint is deleted by the ship, so the answer lasts exactly as long as the work** — brief says a design answers a constraint and names the ship flag that carries it, before the ship deletes the design.
@@ -729,6 +729,7 @@
 - ✅ **RK1596** **three sites that compose a read about the ledger are a work-list, and one of them names two doors** — The three ledger reads run, and the restate door now carries the invocation, so both alternatives an inherited claim names are findable.
 - ✅ **RK1597** **two sites that compose a read about a line nothing counted are a work-list, and one is quoted with apostrophes** — The dependent's line and the uncounted read both run, and the audit door is backticked so a scan can take it.
 - ✅ **RK1598** **three sites that compose a read are a work-list, and each of the three sentences says something untrue** — The three reads run, engines survives the config it is offered for, and the two false clauses say what the tool does.
+- ✅ **RK1599** **two sites remain a work-list, and the door a capture names cannot be read back at all** — The capture path is quoted so its door runs, the transport rewrite is a decision, and no site is a work-list item.
 
 ## Block E — Adoption
 

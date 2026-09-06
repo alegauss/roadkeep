@@ -41,7 +41,6 @@
 
 ## Block D — The gate
 
-- ⏳ **RK1498** (deps: RK1532 ✅) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Two of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
 - ⏳ **RK1538** (deps: —) **the flag saying which ceiling refused a field reaches neither the remedy table nor a payload** — The payload half: a refusal reaches a caller as text, so publishing the flag needs a refusal payload. → §RK1538
 - ⏳ **RK1541** (deps: —) **the served budget has no room for a tenth subject, and which of its sixteen arguments callers use is unmeasured** — Which of the sixteen exposed arguments callers pass: nothing records a tool call, so that reading has no corpus here. → §RK1541
 - 💭 **RK1542** (deps: —) **the retirement prefix every ranking figure is measured through is split by hand in two tests** — RK1507 paired the carried line's two readers and this is the same shape one field over, with the composer in shipping and the readers in a test. → §RK1542
@@ -170,11 +169,6 @@
 - **No page restates prose another file owns** an area with room on every page invites
   the accretion this tool refuses, so a page renders the file that owns the words or
   carries no version of them.
-
-## Done when — RK1498
-
-- **Every site is run or deliberate** No row of composing.SITES states unreached, so the
-  work-list is empty and each composer has had its command executed.
 
 ## Done when — RK1538
 

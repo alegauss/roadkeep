@@ -20,6 +20,13 @@ site**: exercised, or unreached and why. The shape `test_surfaces` uses for a wr
 wired or exempted, for its reason — an exemption nobody can see reads exactly like a rule
 being kept.
 
+**The work-list is empty** (RK1599). Every site is `run` or `deliberate`, and the sixteen
+sittings that emptied it found eleven defects on the way: doors spelled with no invocation,
+with no backtick, with an apostrophe for one; a remedy whose command refuses on the state that
+emits it; three sentences describing behaviour this tool does not have. Every one was found by
+executing a message rather than reading it, which is the argument the file was opened on.
+`unreached` stays sayable, because a site added tomorrow is not covered by that history.
+
 :func:`commands` and :func:`runs` are the instrument. The three tasks that fixed one defect
 each wrote this by hand — RK1149 executes its retry, RK1198 walks its four steps, RK1207 runs
 the chain it names — three copies of one shape, with the next composed command covered by
@@ -92,6 +99,13 @@ FOREIGN = (
     "deliberate: the command it names is another tool's — git, or the harness — so running "
     "it here would be this suite asserting somebody else's contract"
 )
+A_REWRITE = (
+    "deliberate: it composes nothing — the invocation is read to **find** commands other "
+    "sites composed, and what goes back in is a tool name, which is not an argv this CLI "
+    "takes (RK1599). `test_serving` holds it in the vocabulary it belongs to: that the "
+    "rewrite is the report's own spelling (RK488), that it reaches both argv-bearing keys, "
+    "and that a `why` opening with a verb is left alone"
+)
 UNASKABLE = (
     "deliberate: the branch composing it is the one where `anchors` itself could not answer, "
     "and `anchors` falls back to the file rather than raising — a non-repository, a checkout "
@@ -105,10 +119,11 @@ UNASKABLE = (
 #: (RK1209). Held total against :func:`census`, so a site added tomorrow is a red here until
 #: somebody says which of the three it is.
 #:
-#: The honest shape of it today: six are executed and the rest are a **work-list**, which is
-#: what this task buys before it buys coverage. Four separate tasks each found one broken
-#: composed command by meeting it; what was missing was not a test for any one of them but the
-#: statement that thirty-six others have never been run.
+#: It began at six executed and thirty a **work-list**, which is what the census bought before
+#: it bought coverage: four separate tasks had each found one broken composed command by
+#: meeting it, and what was missing was not a test for any one of them but the statement that
+#: thirty-six others had never been run. The work-list is empty now (RK1599) — every row is
+#: `run` or `deliberate` — and the reason a row carries still says which.
 SITES: tuple[Site, ...] = (
     # RK1498, the `declare` family (RK1532). `test_composing` takes the scaffold's one door —
     # `add --block A …`, an ellipsis standing for the caller's own fields — and runs it filled,
@@ -134,14 +149,12 @@ SITES: tuple[Site, ...] = (
     Site("blocking.py:BlockExists.__init__", "run"),
     # The `add` that files a task prints the `section add` closing the pointer it just made.
     Site("authoring.py:Insertion.added", "run"),
-    Site(
-        "capturing.py:Capture.filing",
-        "unreached",
-        unreached(
-            "a capture whose path this splitter can carry — the door names the capture by "
-            "absolute path and `shlex` is POSIX, so a Windows separator does not survive it"
-        ),
-    ),
+    # RK1498. The `add` that files a capture, run by `test_composing` — and RK1599 is what
+    # made it runnable: the path was the one token appended outside `filing`'s `shlex.join`,
+    # so a directory with a space split it in two and a Windows separator did not survive
+    # being read back. One quoting closes both, the row having been a work-list item about
+    # the splitter rather than about the door.
+    Site("capturing.py:Capture.filing", "run"),
     # Not work, and never was (RK1579): what it composes is `report … --issue | gh issue
     # create`, a pipeline into another tool — and the half that is ours files a capture about
     # the run being tested, which is `NOT_A_STEP`'s own argument one verb over.
@@ -325,11 +338,7 @@ SITES: tuple[Site, ...] = (
     # declare would exit 2 in the reader's hands.
     Site("sections.py:_where_a_top_level_is", "run"),
     Site("sections.py:_where_the_anchor_is", "run"),
-    Site(
-        "serving.py:_rerouted",
-        "unreached",
-        unreached("a call arriving over the served surface, where every command it names is a tool"),
-    ),
+    Site("serving.py:_rerouted", "deliberate", A_REWRITE),
     # RK1272, run by `test_composing` (RK1498). Both name a read rather than a repair, and
     # the fixture each wanted was one line: a scaffolded project for the address that is a
     # name, and a bare directory for the tree with no table. The second row's state was

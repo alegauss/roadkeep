@@ -10,8 +10,9 @@ Two properties, and the first is the one that lasts. The **census** is total, so
 tomorrow is a red here until somebody says whether it is exercised; and what is exercised is
 *executed*, through one instrument rather than a fourth hand-written copy of it.
 
-The honest state of the second is written down in `composing.SITES` rather than implied:
-thirty-odd sites have never been run, and this file is where that stops being invisible.
+The honest state of the second was written down in `composing.SITES` rather than implied:
+thirty-odd sites had never been run, and this file is where that stopped being invisible.
+Every one of them runs now, or is a decision that says why (RK1599).
 """
 
 from __future__ import annotations
@@ -20,7 +21,18 @@ from pathlib import Path
 
 import pytest
 
-from composing import FILLS, SITES, STATES, census, commands, filled, runs, supplied
+from composing import (
+    FILLS,
+    FOREIGN,
+    SITES,
+    STATES,
+    census,
+    commands,
+    filled,
+    runs,
+    supplied,
+    unreached,
+)
 from conftest import git_commit, git_init
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
@@ -57,14 +69,21 @@ def test_every_row_states_one_of_the_three_and_carries_a_reason_where_it_must():
             assert one.why, f"{one.where}: not run, and nothing says why"
 
 
-def test_the_unreached_are_named_as_work_and_not_as_an_exemption():
-    """The number is the finding. Six sites are executed and the rest have never been run,
-    which is what four separate tasks each discovered one instance of."""
-    unreached = [one.where for one in SITES if one.state == "unreached"]
-    assert unreached, "if this empties, the row that says so should go too"
-    # Stated as a bound rather than a count, so ordinary progress does not fail this file:
-    # what a reader needs is which half they are standing on.
-    assert len(unreached) < len(SITES), "everything unreached would mean nothing is covered"
+def test_every_site_is_run_or_deliberate_and_the_work_list_is_empty():
+    """RK1599, and the sentence the emptied row asked for. This began as *six are executed and
+    thirty are a work-list*, which was the finding four separate tasks had each met one
+    instance of; the work-list is now gone, and what replaces the count is the claim it was
+    counting towards.
+
+    `unreached` stays a state a row may take. A site added tomorrow is a red here until
+    somebody says which of the three it is, and *not run and here is the state it wants* has
+    to remain sayable — what is asserted is that no row is standing on it today."""
+    working = [one.where for one in SITES if one.state == "unreached"]
+    assert not working, working
+    assert [one.where for one in SITES if one.state not in ("run", "deliberate")] == []
+    # And coverage is the majority of it, which the shape alone would not say: a table where
+    # every row is `deliberate` passes the line above and executes nothing.
+    assert len([one for one in SITES if one.state == "run"]) > len(SITES) / 2
 
 
 # -- the instrument -----------------------------------------------------------
@@ -503,35 +522,38 @@ def test_a_door_the_sweep_cannot_fill_is_named_and_not_dropped():
     assert filled(printed, continuation=True) == printed[:-1]
 
 
-def test_no_two_unreached_rows_share_one_reason():
-    """RK1532. Thirty-one rows carried one sentence — *the message needs a state no fixture in
-    this suite builds yet* — accurate about every one and useful about none: an item whose cost
-    is unstated reads as open-ended, and a list of thirty-one open-ended items is one nobody
-    starts at. RK1498 started at it anyway and took four out in a sitting at two lines of
-    fixture each, which is what the constant had been hiding.
+def test_no_two_rows_that_are_not_run_share_one_reason():
+    """RK1532, widened by RK1599. Thirty-one rows carried one sentence — *the message needs a
+    state no fixture in this suite builds yet* — accurate about every one and useful about
+    none: an item whose cost is unstated reads as open-ended, and a list of thirty-one
+    open-ended items is one nobody starts at. RK1498 started at it anyway, two lines of
+    fixture at a time, which is what the constant had been hiding.
 
-    Held as *distinct*, which is the property that keeps the field from collapsing back: a
-    shared reason is a constant wearing a sentence, and the day one arrives is the day this
-    table stops being a work-list a picker can size."""
-    reasons = [one.why for one in SITES if one.state == "unreached"]
-    assert reasons, "if this empties, the row that says so should go too"
+    Every not-run row and no longer the work-list alone, the work-list being empty: a shared
+    reason is a constant wearing a sentence whichever state it sits under, and `FOREIGN` is
+    shared on purpose — genuinely one cause, which is the exception the rule is stated
+    against."""
+    reasons = [one.why for one in SITES if one.state != "run"]
+    assert reasons
     shared = {one for one in reasons if reasons.count(one) > 1}
-    assert not shared, sorted(shared)
+    assert shared <= {FOREIGN}, sorted(shared - {FOREIGN})
 
 
-def test_every_unreached_row_names_the_state_its_fixture_wants():
+def test_a_row_filed_as_work_names_the_state_its_fixture_wants():
     """`_UNMEASURED` in `test_pairs` is the same table one file over, and what makes a row there
-    actionable is that it says the state — *no `[non_goals]` table*, *no deferred store*. This
-    asserts the shape rather than the wording: the kind word, then a state, and the sentence
-    that says a runnable command is on the other side of it."""
+    actionable is that it says the state — *no `[non_goals]` table*, *no deferred store*.
+
+    Asserted on the composer rather than on the table (RK1599): no row is `unreached` today,
+    and a loop over none would be a rule that stopped holding the moment it started mattering
+    — which is the sitting a new site is filed in."""
+    said = unreached("a prose file with two namespaces and a line pointing across them")
+    assert said.startswith("unreached: "), said
+    state = said[len("unreached: ") :]
+    assert "runnable once a fixture has it" in state, said
+    assert len(state.split(", and the command")[0].split()) >= 6, said
     for one in SITES:
-        if one.state != "unreached":
-            continue
-        assert one.why.startswith("unreached: "), one.where
-        state = one.why[len("unreached: ") :]
-        assert "runnable once a fixture has it" in state, one.where
-        # The state itself, and not only the tail every row shares.
-        assert len(state.split(", and the command")[0].split()) >= 6, one.where
+        if one.state == "unreached":
+            assert one.why.startswith("unreached: "), one.where
 
 
 #: A ledger holding half of RK1, which is the state the three doors below are true of.
@@ -753,21 +775,31 @@ def test_the_door_a_kept_capture_names_runs(tmp_path, capsys):
     the capture filled in (RK1141), because a command a caller has to complete is a second step.
 
     It was spelled bare until this ran it (RK1577's find, one family over): every composed
-    command here is backticked, and one that is not is a door no instrument can take."""
+    command here is backticked, and one that is not is a door no instrument can take.
+
+    And it is **run** since RK1599. `filing` is a `shlex.join` and the path was the one token
+    appended outside it, so a capture under a directory with a space split into two arguments
+    and a Windows separator did not survive being read back — one quoting fixes both, and the
+    row stops being a work-list item about the splitter."""
     root = departing(tmp_path)
+    # The block a capture is filed under, opened first — `report` defaults to it and a
+    # project without the heading is told to open it, which is a door of its own.
+    assert main(["-C", str(root), "block", "add", "F", "--title", "Defects in this tool"]) == EXIT_OK
     assert main([
         "-C", str(root), "report", "--symptom", "A symptom plainly long enough to read",
         "--why", "Because of a reason.", "--", "show", "RK9",
     ]) == EXIT_OK
     said = capsys.readouterr()
     (argv,) = [one for one in commands(said.err) if one[:1] == ["add"]]
-    # Found, which is what the backticks bought — and **not run here** (RK1579): the door
-    # carries the capture's absolute path, and `commands` splits with `shlex`, which is POSIX
-    # and eats a Windows separator. So this asserts the shape of the argv and the row stays
-    # unreached with that as its state, which is the honest half of RK1532's rule.
     assert argv[:3] == ["add", "--block", "F"], argv
-    assert "--capture" in argv, argv
-    assert build_parser().parse_args(argv)
+    assert Path(argv[argv.index("--capture") + 1]).is_file(), argv
+    assert main(["-C", str(root), *argv]) == EXIT_OK
+    # And the flag took effect, which is what filling it in was for (RK1141): the capture
+    # names the line that was filed, so a maintainer who ran this door has the evidence and
+    # the backlog entry joined rather than a second step to remember.
+    filed = capsys.readouterr().out
+    assert "now names" in filed, filed
+    assert "RK2" in Path(argv[argv.index("--capture") + 1]).read_text(encoding="utf-8")
 
 
 # -- the orientation an install prints (RK1498, sized by RK1532) ---------------

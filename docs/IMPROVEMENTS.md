@@ -314,28 +314,6 @@ verb placing it anywhere else would move a section a reader knows the position o
 
 ## Block D — The gate
 
-### §RK1498 The doors nothing has ever run
-
-RK1475 withdrew one offer that would refuse. The rule it broke — *a finding naming a
-command that then refuses is worse* — is `removable`'s own docstring, held by the gate
-for one finding, and now by the event for one door. Nothing holds it for the rest.
-
-There are many. Every refusal in this tool ends with a door and several compose one from
-a state they did not check: `add`'s follow-up `section add`, the remedy table's rows,
-the `install --check` verdict, the criteria and priority families.
-
-The instrument is not the gap. `runs()` executes each command a message composes and
-asserts the exit code it was told to expect, which is exactly the property RK1475 broke.
-The gap is the population it is pointed at: `SITES` accounts for thirty-six composers
-and thirty of them are `unreached` — a work-list with a reason per row, honest and never
-run. Six are executed, and RK1476's narrowing is a thirty-seventh that reaches `runs()`
-only because a test was written for it by hand, which is the arrangement this is about.
-
-So the work is fixtures, not a verdict: each `unreached` row is a state no test builds
-yet, and what turns it into an answerable question is the state. That is a task per
-family rather than one sweep — and the reason to file it as one line is that the six
-that do run were each bought by a defect that had already shipped.
-
 ### §RK1538 The fact made structural and read as prose
 
 RK1503 put `bound` on the violation so a reader can tell *the field is over* from *the

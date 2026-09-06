@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shlex
 import sys
 import tempfile
 
@@ -501,7 +502,16 @@ def _report(config: Config, args: argparse.Namespace) -> int:
     # With the flag that closes the row filled in (RK1141): the path is decided here, by
     # `keep`, so the capture cannot name itself — and a command a caller has to complete is a
     # second step, which is what RK86 is this block's own record of.
-    print(f"file  `{found.filing} --capture {kept.path}`", file=sys.stderr)
+    #
+    # **Quoted like every other word on the line** (RK1599). `filing` is a `shlex.join` and
+    # this was the one token appended outside it, so a capture under a directory with a space
+    # split into two arguments — RK1548's class, in the door a maintainer pastes. On Windows
+    # the quoting also makes the line readable back: single quotes keep a separator that an
+    # unquoted backslash is read as escaping.
+    print(
+        f"file  `{found.filing} {shlex.join(['--capture', str(kept.path)])}`",
+        file=sys.stderr,
+    )
     if kept.complaint:
         print(f"roadkeep: {kept.complaint}", file=sys.stderr)
     # Which of the two forms this is, said here because this is the only moment anybody can
