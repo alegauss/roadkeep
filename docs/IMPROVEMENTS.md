@@ -891,6 +891,29 @@ one governed file that had no such rule; a decision that says every writer is he
 code base where one is, is a decision that reads as kept. The honest form is a sweep:
 enumerate what writes `config.source`, and assert each goes through the read-back.
 
+### §RK1578 The state nothing measures until it is taken
+
+RK1532 gave thirty-one rows a state each, written in one sitting from the docstring at
+each site. RK1577 took two of them and both were wrong the same way: they said a git
+history with a retired address, and the reading wanted an outline with two families — a
+two-line fixture described as a repository.
+
+Overstating is the direction that costs. A row that reads dearer than it is stays
+unpicked, which is exactly the failure RK1532 was filed to end, one level up: the
+constant said *some state, unknown* and thirty-one rows went untouched; a state that
+says *a git history* when it means *two headings* does the same thing to one row at a
+time.
+
+Nothing checks them, and nothing can: a state is prose about a fixture that does not
+exist yet. What can be checked is the moment it is taken — a row flipped to `run` had
+its state tested against reality, and the honest move is to record what the fixture was.
+RK1577 did that in its comment; nothing made it.
+
+So the shape is a rule, not a check. A row that becomes `run` keeps a sentence saying
+what the fixture was — what the three families so far each wrote by hand — and the
+table's test asserts a `run` row carries one. Thirty-one guesses and a growing count of
+measurements is the most an unbuilt fixture can honestly be.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
