@@ -314,31 +314,6 @@ verb placing it anywhere else would move a section a reader knows the position o
 
 ## Block D — The gate
 
-### §RK1544 The brief priced without its other files
-
-RK1509 prices the widest brief for an adopter, and the reading is taken over the file
-the run was **handed** — because `adopt` exists for a tree that has declared nothing,
-where the roadmap role points at a path that is not there. Everything else the estimate
-reads comes from the same handed file for the same reason.
-
-`brief` does not. It resolves deps across the ledger and takes the design out of
-whichever prose role declares the anchor — so on an unconfigured tree both are absent,
-and the figure is a brief with no deps resolved and no design. Right about what this
-tool could answer today, and low against what it answers once the project declares its
-files.
-
-How low is measurable and unmeasured. On this repository the same read over the declared
-roles is what `cost --brief` prints; on a foreign tree there is nothing to compare
-against, which is exactly the population the figure is for.
-
-`adopt --with` already takes the other prose files for the doubled-anchor check, so the
-seam exists: the same flag could give the estimate a design to price. What it cannot
-give is the ledger, and deps are where a brief grows (RK1486) — so the honest shape may
-be the figure with a clause saying what it does not include, rather than a wider read.
-
-Either way the row currently states a number without saying which brief it is a brief
-of.
-
 ### §RK1550 The pointer that runs the other way
 
 RK1515 renamed one helper and two governed sections went stale: RK1516 named

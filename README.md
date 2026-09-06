@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
 | C — Query (consult without reading the file) | 10 | 167 | 4 |
-| D — The gate | 27 | 262 | 2 |
+| D — The gate | 26 | 263 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 154 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 42 | 1045 | 14 |
+| **Total** | 41 | 1046 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1544** (deps: —) **the brief an estimate prices has no deps and no design, and the row does not say so** — RK1509 reads the file adopt was handed because the tree has declared nothing, so every part of a brief that lives in another role is absent from the figure. → §RK1544
+- 💭 **RK1545** (deps: —) **the filings axis reads one per ship over one commit here, which is this session's cadence and not the work's** — RK1510 built the reading to tell a backlog decomposing from one discovering, and on this corpus a commit per thought flattens both to the same shape. → §RK1545
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

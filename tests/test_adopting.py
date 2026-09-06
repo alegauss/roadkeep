@@ -1369,7 +1369,15 @@ def test_a_roadmap_has_no_ledger_slots_to_report(tmp_path: Path) -> None:
 #: from the dataclass would be correct with no place left to say that.
 #: `surface` travels as `serves`, and as an object rather than an integer: the cadence has to
 #: reach a client with the number, or it is added to a per-turn figure (RK1100).
-ESTIMATE_RENAMES = {"path": "file", "surface": "serves", "widest_brief": "briefs"}
+#: `brief_absent` travels **inside** `briefs` and not beside it (RK1544), which is the same
+#: reason `surface` became an object: the qualification has to reach a client with the number
+#: it qualifies, and a top-level key would be a fact a consumer could read the figure without.
+ESTIMATE_RENAMES = {
+    "path": "file",
+    "surface": "serves",
+    "widest_brief": "briefs",
+    "brief_absent": "briefs",
+}
 
 
 def test_the_payload_carries_every_field_of_the_estimate(tmp_path: Path, capsys) -> None:
@@ -3085,3 +3093,62 @@ def test_the_report_states_no_verdict_on_the_figure(tmp_path: Path, capsys) -> N
     # declared, and stops. `read.over` is what a project that *chose* one then meets.
     assert " over" not in line
     assert "read." not in line
+
+
+# -- which brief the figure is a brief of (RK1544) -----------------------------
+
+
+def test_the_figure_says_it_is_a_floor_where_the_other_files_are_absent(tmp_path, capsys):
+    """RK1544. `adopt` prices the file it was handed, because it is the verb for a tree that
+    has declared nothing — and a brief resolves deps across the ledger and quotes the design
+    out of whichever prose role holds the anchor, so on that tree both are missing from the
+    number. Measured on this repository's own backlog, handed in from a bare tree: **1,359
+    against 3,235**, and a different task named as the widest, deps being where a brief grows.
+
+    A number 42% of the real one, printed beside `[reads] brief` at the moment somebody chooses
+    that ceiling, is worse than a number with a clause on it. The clause and not a wider read:
+    `adopt --with` could hand over the prose files and nothing can hand over a ledger a tree
+    has not got."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(CONFORMING, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target)]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "a floor: no dep resolves and no design is quoted" in said, said
+
+
+def test_a_project_with_its_files_is_not_told_the_figure_is_short(tmp_path, capsys):
+    """The correction this row went through, held: the first reading asked `config.has`, which
+    answers *is this role declared* — and on a tree with three defaulted paths pointing at
+    nothing it said yes, while on this repository it named `deferred` and `strategy`, roles the
+    project has simply chosen not to use.
+
+    So the clause is derived from what the reading **loses** and never from a role list: a
+    brief that quotes no strategy because there is no strategy is a whole brief."""
+    for name, body in (
+        ("ROADMAP.md", CONFORMING),
+        ("CHANGELOG.md", "# Shipped\n\n## Block A\n"),
+        ("IMPROVEMENTS.md", "# Improvements\n\n## Block A\n"),
+    ):
+        (tmp_path / name).write_text(body, encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "RK"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+        'improvements = "IMPROVEMENTS.md"\n',
+        encoding="utf-8",
+    )
+    assert main(["-C", str(tmp_path), "adopt", "ROADMAP.md"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "briefs" in said, said
+    assert "a floor" not in said, said
+
+
+def test_the_row_and_the_payload_answer_one_condition(tmp_path, capsys):
+    """Two derivations of one fact is the drift this package exists to remove, so `brief_floor`
+    is on the record and both surfaces spell it. `absent` is the evidence under it — the roles
+    with no file, a project's undeclared ones included — and `floor` is what a consumer
+    branches on."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(CONFORMING, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--json"]) == EXIT_OK
+    briefs = json.loads(capsys.readouterr().out)["briefs"]
+    assert briefs["floor"] == ["deps", "design"], briefs
+    assert "changelog" in briefs["absent"], briefs

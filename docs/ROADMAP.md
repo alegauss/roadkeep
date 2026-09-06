@@ -41,7 +41,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1544** (deps: —) **the brief an estimate prices has no deps and no design, and the row does not say so** — RK1509 reads the file adopt was handed because the tree has declared nothing, so every part of a brief that lives in another role is absent from the figure. → §RK1544
 - 💭 **RK1550** (deps: —) **a design keeps naming a function of this package after a rename, no gate reading that pointer** — ref.dangling covers section to section only, so two sections cited a helper that had stopped existing and lint was clean either way. → §RK1550
 - 💭 **RK1551** (deps: —) **the gate falls silent where a design quotes a constraint and the run that fell silent never says so** — RK1478 put the suppression in non-goal list, which is not the command a session runs when the gate is what it is reading. → §RK1551
 - 💭 **RK1552** (deps: —) **the leads a deleted design quoted are read once per path, though the record the departure unpacks carries them** — RK1516 added the second call because _drop_section returns a fixed six-tuple, so the field that arrived after it went around it. → §RK1552

@@ -1193,6 +1193,18 @@ def _reading_door(estimate: Estimate, flag: str, value: str) -> dict[str, object
     return {"doors": [found[0].payload()]} if found else {}
 
 
+def _listed(names: Sequence[str]) -> str:
+    """A short list as a clause reads it: `a`, `a and b`, `a, b and c` (RK1544).
+
+    Its own function because the caller is a sentence and `", ".join` inside one reads as a
+    fragment somebody forgot to finish — and the population here is one to five roles, which
+    is small enough that the last conjunction is the whole difference.
+    """
+    if len(names) < 2:
+        return names[0] if names else ""
+    return f"{', '.join(names[:-1])} and {names[-1]}"
+
+
 def _print_estimate(estimate: Estimate) -> None:
     where = estimate.path.as_posix()
     # Which of the three (RK485): a prefix nothing declared and nothing produced is the
@@ -1382,10 +1394,22 @@ def _print_estimate(estimate: Estimate) -> None:
         # A figure and never a verdict (L4): what to declare is the adopter's, and RK1486
         # measured a live corpus 54 over a ceiling it had never been told about.
         widest, whose = estimate.widest_brief
+        # And which brief it is a brief of (RK1544). A brief resolves deps across the ledger
+        # and quotes the design out of the prose role holding the anchor, and `adopt` is the
+        # verb for a tree that has neither — so on that tree the figure is a **floor**, and
+        # saying so is the difference between a reading and a number somebody sets a ceiling
+        # from. Measured on this repository's own backlog, handed in from a bare tree: 1,359
+        # against 3,235, naming a different task as the widest.
+        # What the reading loses, spelled from `brief_floor` rather than derived again here:
+        # the row and the payload answer one condition, and two derivations of it is the drift
+        # this package exists to remove.
+        said = {"deps": "no dep resolves", "design": "no design is quoted"}
+        lost = [said[one] for one in estimate.brief_floor]
+        absent = f" — a floor: {_listed(lost)} against this tree" if lost else ""
         print(
             f"  briefs   {widest} characters for the widest ({whose}), which is the read "
-            f"this tool offers instead of the file: `[reads] brief` is where a ceiling on "
-            f"that is declared"
+            f"this tool offers instead of the file{absent}: `[reads] brief` is where a "
+            f"ceiling on that is declared"
         )
     for marker, count in estimate.undeclared:
         print(f"  marker   {marker} on {count} line(s), declared by nothing in [markers]")
@@ -1547,6 +1571,14 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
             "characters": estimate.widest_brief[0],
             "widest": estimate.widest_brief[1],
             "cadence": "once per brief",
+            # Which brief it is a brief of (RK1544). `floor` is what a consumer branches on —
+            # `deps`, `design`, or empty where the figure is whole — and `absent` is the
+            # evidence under it: the roles the read consults that have no file here, which
+            # includes ones a project has simply chosen not to declare. Never omitted, for
+            # `withheld`'s reason one payload over: a consumer tells *nothing missing* from a
+            # build that did not look.
+            "floor": list(estimate.brief_floor),
+            "absent": list(estimate.brief_absent),
         },
         "unit": estimate.unit,
         # Which role decided the numbers (RK1147): `unit` says lines for a backlog and for a

@@ -979,6 +979,44 @@ class Estimate:
     #: this is the reading they would otherwise take by meeting a refusal or never. `(0, "")`
     #: where nothing could be briefed, which is a backlog with no open line.
     widest_brief: tuple[int, str] = (0, "")
+    #: The roles a brief reads that this tree has not got, which makes the figure above a
+    #: **floor** (RK1544). Empty where every one of them is there and the number is whole.
+    #:
+    #: `adopt` prices the file it was handed, because it is the verb for a tree that has
+    #: declared nothing — and a brief resolves deps across the ledger and quotes the design out
+    #: of whichever prose role holds the anchor, so on that tree both are absent from the
+    #: figure. Measured on this repository's own backlog, handed to `adopt` from a bare tree:
+    #: **1,359 against 3,235**, and a different task named as the widest, deps being where a
+    #: brief grows (RK1486). A number 42% of the real one, printed beside `[reads] brief` at
+    #: the moment somebody chooses that ceiling, is worse than a number with a clause on it.
+    #:
+    #: The clause and not a wider read, which is what RK1544 settled: `adopt --with` could
+    #: hand over the prose files, and nothing can hand over a ledger a tree does not have — so
+    #: the figure stays what this tool can answer and says which brief it is a brief of.
+    brief_absent: tuple[str, ...] = ()
+
+    @property
+    def brief_floor(self) -> tuple[str, ...]:
+        """What the figure above is missing, as the two facts rather than as a role list.
+
+        **The loss and not the roles**, which is the correction this went through: a project
+        declaring no `strategy` has a whole brief, and a clause listing the roles it does not
+        use said the opposite on the one tree where the figure is right. A dep resolves against
+        the ledger, and a design is quoted out of whichever prose role holds the anchor — so
+        the ledger decides the first and *every* prose role being absent decides the second.
+
+        Here and not in the printer, so the row and the payload cannot come to disagree: two
+        derivations of one condition is the drift this package exists to remove, and this one
+        is a `for` loop away from being written twice.
+        """
+        return tuple(
+            said
+            for said, missing in (
+                ("deps", "changelog" in self.brief_absent),
+                ("design", all(role in self.brief_absent for role in PROSE_ROLES)),
+            )
+            if missing
+        )
 
     @property
     def changing(self) -> int:
@@ -1793,6 +1831,9 @@ def adopt(
         # The read this project recommends over reading the file, priced where a ceiling is
         # chosen (RK1509). On the backlog run and not the prose one: a brief is about a line.
         widest_brief=_widest_brief(config, target),
+        # And which brief it is a brief of (RK1544): the figure is a floor wherever a role the
+        # read consults is not here, and the row would otherwise state a number without saying.
+        brief_absent=_brief_absent(config),
         rejects=_grouped(reject.reason for reject in document.rejects),
         codes=_ranked(counts),
         measures=_measures(document, schema),
@@ -2558,6 +2599,33 @@ def _widest_brief(config: Config, target: Path) -> tuple[int, str]:
         return 0, ""
     widest = max(priced, key=lambda one: one.characters, default=None)
     return (0, "") if widest is None else (widest.characters, widest.id)
+
+
+#: What a brief reads besides the line itself (RK1544). The ledger is where a dep resolves and
+#: where a shipped entry naming this id is found; the prose roles hold the design it quotes;
+#: the store is where a paused dep is. The roadmap is not here — it is the file this run was
+#: handed, and it is present by construction.
+_BRIEF_READS = ("changelog", "deferred", *PROSE_ROLES)
+
+
+def _brief_absent(config: Config) -> tuple[str, ...]:
+    """Which of the roles a brief reads has **no file here**, in `[files]` order (RK1544).
+
+    The file and not the declaration, which is the distinction that decides this: `has` answers
+    *is this role declared*, and on the tree `adopt` is for it says yes to three roles whose
+    paths are defaults pointing at nothing. A reading taken off it named `deferred` and
+    `strategy` on this repository — roles it simply does not use — and stayed silent about the
+    ledger and the improvements file that were actually missing, which is the qualification
+    RK285 refuses arriving on the one project where the figure is whole.
+
+    Empty on a configured project, and a role a project has chosen not to declare is not in it:
+    a brief that quotes no strategy because there is no strategy is a whole brief.
+    """
+    return tuple(
+        role
+        for role in _BRIEF_READS
+        if (found := config.paths.get(role)) is None or not found.is_file()
+    )
 
 
 def _grouped(reasons: Iterable[str]) -> tuple[tuple[str, int], ...]:
