@@ -207,11 +207,19 @@ def test_the_sibling_is_never_inferred_from_the_directory(tmp_path):
     assert adopt(config, notes, sections=True).ambiguous == ()
 
 
-def test_the_set_is_a_sections_measurement_and_a_backlog_refuses_it(tmp_path):
+def test_the_set_is_a_sections_measurement_and_a_backlog_refuses_it(tmp_path, capsys):
+    """RK1555. The rule is declared at the parser now — `--with` narrows `--sections` — so it
+    is refused by the dispatcher before a handler runs, and asserting a `ValueError` out of
+    `adopt` would be asserting a copy that was deleted.
+
+    Through `main`, which is where a caller meets it and the whole point of moving it: the
+    dispatcher's refusal names the flag that is missing, and the pair sweep and the served
+    schema can both see the rule now."""
     config, _, plans = unadopted(tmp_path)
-    with pytest.raises(ValueError) as caught:
-        adopt(config, config.path("roadmap"), alongside=[plans])
-    assert "a backlog holds lines and not headings" in str(caught.value)
+    assert main([
+        "-C", str(config.root), "adopt", str(config.path("roadmap")), "--with", plans
+    ]) == EXIT_USAGE
+    assert "--with narrows --sections" in capsys.readouterr().err
 
 
 def test_the_command_takes_the_second_file_and_names_both(tmp_path, capsys):

@@ -68,7 +68,7 @@ from roadkeep.installing import (
 from roadkeep.rendering import _estimate_json, _print_estimate
 from roadkeep.serving import serve
 from roadkeep.capturing import PARTS
-from roadkeep.verbs.declaring import _JSON_HELP, answers
+from roadkeep.verbs.declaring import _JSON_HELP, answers, narrows
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, _refused
 
 #: The subcommands here whose subject is a defect in **this tool** rather than a backlog
@@ -964,6 +964,17 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
         ("ledger", "a changelog, measured in lines"),
         ("sections", "a rationale file, measured in sections"),
     )
+    # The second of the three, moved the same way (RK1555). `--with` names the rest of the set
+    # a doubled address could be spread over, which is a `--sections` measurement — a narrowing
+    # and not an answer, and `narrows` is what spells that. It was raised beside the one above
+    # and stayed there when that one moved, so a caller over MCP still learnt of it by making
+    # the call.
+    #
+    # The **sentence** is why it took a second task rather than the same line: the refusal read
+    # *a backlog holds lines and not headings*, which is true and is about the file, and what a
+    # caller needs to be told is which flag they are missing. `narrows` says that from the two
+    # names, so the sentence stops being the raise's to carry.
+    narrows(adopt_parser, "alongside", "sections")
     # Read-only, which RK18 has been true of since this verb existed and nothing declared:
     # `adopt` measures a file and exits 0, writing nothing anywhere. Undeclared it took the
     # write lock for a run that cannot conflict with one, and — since RK1147 published a door

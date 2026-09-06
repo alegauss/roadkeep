@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
 | C — Query (consult without reading the file) | 6 | 171 | 4 |
-| D — The gate | 23 | 268 | 2 |
+| D — The gate | 22 | 269 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 155 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 34 | 1056 | 14 |
+| **Total** | 33 | 1057 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1555** (deps: —) **two of adopt's argument rules are still raised inside the estimator, where no declaration reader can see them** — RK1518 moved the one that is two answers, and a narrowing and a flag refused beside a subject were left behind. → §RK1555
+- 💭 **RK1556** (deps: —) **a project whose open set spells no partial marker ships a partial in silence, and the line keeps the marker it had** — RK1519 gave the claim marker a key and the partial one has none, so the fallback is right, unreported, and it closes the correction door. → §RK1556
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

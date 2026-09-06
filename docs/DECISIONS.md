@@ -152,6 +152,7 @@ is the opposite of an order.
 - ✅ **RK1540** **a reference page now opens with two lines addressed to the gate, and nothing prices them** — a figure that decides where something lives is published beside it, a number in a docstring being one nobody re-takes.
 - ✅ **RK1587** **ten records of six or more fields are built positionally, and which of them more than one module builds is unmeasured** — the hazard is a record shared across modules and built positionally, so keyword-only is required where both hold and is ceremony where neither does.
 - ✅ **RK1553** **no sweep asks of a served value flag what RK1517 asks of a boolean, and there are a hundred and twenty-two** — A sweep for an inert flag needs a claim about what that flag shapes; identical output alone reports the tool's own semantics as a defect.
+- ✅ **RK1555** **two of adopt's argument rules are still raised inside the estimator, where no declaration reader can see them** — A shape with one member gets a raise with a good sentence; a third kind of declaration is what a second member buys.
 
 ### §RK1394 Proof, not age
 
@@ -286,6 +287,22 @@ So *a difference the caller chose* still admits the false positive it was meant 
 what it shapes: a table, not a sweep.
 
 RK1517's population is a boolean, whose one alternative is absence.
+
+### §RK1555 The shape with one member
+
+`--with` without `--sections` is a **narrowing**, and `narrows` spells it: the
+dispatcher enforces it and the pair sweep and the served schema can both see it. What
+kept it in the handler was the sentence — the raise read *a backlog holds lines and not
+headings*, where a caller needs the flag they are missing.
+
+`--prefix` beside `--sections` stays a raise, and the measurement is why. Across the
+package **six** argument rules are raised inside a handler: four are two answers, one is
+that narrowing, and this is the sixth — a flag refused *by* a subject rather than
+narrowed *to* one, which neither `Answer` nor `narrowing` can spell.
+
+One member. So it gets a good sentence and a comment saying it is the exception rather
+than the oversight; a third declaration is what a second would buy, and the sweep that
+found this one will find that one.
 
 ## Block E — Adoption
 

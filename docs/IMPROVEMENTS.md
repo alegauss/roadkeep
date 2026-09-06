@@ -224,29 +224,6 @@ verb placing it anywhere else would move a section a reader knows the position o
 
 ## Block D — The gate
 
-### §RK1555 The two rules the declaration did not take
-
-RK1518 moved one of `adopt`'s three argument rules to the parser and left two where they
-were: `--with` without `--sections`, and `--prefix` with `--sections`. Both are raised
-six hundred lines into the estimator, after the file has been located, and both are
-invisible to everything that reads declarations — the dispatcher, the pair sweep, and
-the schema an agent is sent.
-
-They are not one job. `--with` is a narrowing, and `narrows(adopt_parser, "alongside",
-"sections")` says it exactly. Declaration and enforcement both exist; what stands in the
-way is the sentence, the caller reading *`--with` narrows a rationale file* rather than
-*a backlog holds lines and not headings* — the shorter truth and the less useful one.
-
-`--prefix` has no shape here at all. It is right beside `--ledger` and right alone, and
-wrong only beside `--sections` — a flag refused **by** a subject rather than narrowed
-**to** one, which `Answer` and `narrowing` between them cannot spell. So either a third
-kind of declaration or an honest exception, and the choice turns on whether a second
-instance of it exists anywhere in eighty verbs. If it does not, one raise with a good
-sentence is the right amount of machinery.
-
-What makes it worth a line is the surface: over MCP both are discoverable only by making
-the call and reading the error, which is the cost RK1518 closed for one rule of three.
-
 ### §RK1559 The twelve sentences nothing has measured
 
 The population is knowable now, and the first thing it says is that the figure covers

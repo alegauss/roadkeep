@@ -1736,11 +1736,16 @@ def adopt(
     # path in a report is the message `provenance.invocation` refuses — about a machine rather
     # than about a project.
     from_root = Path(_relative(target.resolve(), config.root))
-    if alongside and not sections:
-        raise ValueError(
-            "--with names the other prose files an address could be doubled across, which "
-            "is a --sections measurement: a backlog holds lines and not headings"
-        )
+    # `--with` without `--sections` is declared at the parser now (RK1555): it is a narrowing,
+    # `narrows` spells one, and a rule raised here is invisible to the dispatcher, the pair
+    # sweep and the schema an agent is sent.
+    #
+    # `--prefix` beside `--sections` stays, and **this is the exception rather than the
+    # oversight**. It is a flag refused *by* a subject rather than narrowed *to* one, which is
+    # a shape neither `Answer` nor `narrowing` can spell — and measured across the package it
+    # is the only instance: of six argument rules raised inside a handler, four are two answers
+    # and one is a narrowing. One raise with a good sentence is the right amount of machinery
+    # for a shape with one member, and a third kind of declaration is what a second would buy.
     if prefix is not None and sections:
         raise ValueError(
             "--prefix selects the ids to read, and --sections measures a rationale file "

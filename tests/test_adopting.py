@@ -1769,16 +1769,17 @@ A paragraph about the project, several lines long.
 #: because it shipped before the two whose task *was* the refusal. A fourth arrives here with
 #: its row empty, which is the whole reason for the shape.
 REFUSED_PAIRS = (
-    # `--ledger with --sections` was the oldest row here and is gone (RK1518): the parser
-    # declares the two flags two answers now, so the refusal is the dispatcher's and the
-    # sentence is the declaration's — a row asserting a `ValueError` would be asserting the
-    # copy that was deleted. What is left is the two rules a subject declaration cannot
-    # spell, both of which are about a flag needing another to mean anything.
-    (
-        "--with without --sections",
-        {"alongside": ["STRATEGY.md"]},
-        "a backlog holds lines and not headings",
-    ),
+    # Two of the three are gone. `--ledger with --sections` went at RK1518 and `--with without
+    # --sections` at RK1555: the parser declares the first two answers and the second a
+    # narrowing, so both refusals are the dispatcher's and both sentences are the declaration's
+    # — a row asserting a `ValueError` here would be asserting a copy that was deleted.
+    #
+    # **One left, and it is the exception rather than the oversight.** `--prefix` beside
+    # `--sections` is a flag refused *by* a subject rather than narrowed *to* one, which
+    # neither `Answer` nor `narrowing` can spell — and of the six argument rules raised inside
+    # a handler anywhere in this package, four are two answers and one is a narrowing. A shape
+    # with one member gets a raise with a good sentence; a third kind of declaration is what a
+    # second member would buy.
     ("--prefix with --sections", {"sections": True, "prefix": "SH"}, "for a prefix to choose"),
 )
 
