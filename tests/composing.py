@@ -206,11 +206,11 @@ SITES: tuple[Site, ...] = (
         "unreached",
         unreached("a config holding a key this build has no reader for, reported as a problem"),
     ),
-    Site(
-        "counting.py:Census.notes",
-        "unreached",
-        unreached("a listing whose silence has a cause — a label nothing declares, or a filter that emptied it"),
-    ),
+    # RK1498, over RK10. The read that shows what a count could not take, run by
+    # `test_composing` against a roadmap holding one marker-bearing line that is not a task.
+    # It was quoted with apostrophes rather than backticks (RK1597) — the same class as a
+    # door spelled with no delimiter at all, and invisible to this scan for the same reason.
+    Site("counting.py:Census.notes", "run"),
     Site("counting.py:Census.select", "run"),
     Site("history.py:Addresses.withheld", "run"),
     # RK1498. The refusal a `--marker` on the reconciling path gets, run by `test_composing`
@@ -285,11 +285,11 @@ SITES: tuple[Site, ...] = (
     # compares against — vendoring from a copy would report the fixture's own drift as the
     # state under test. The write runs and the notes go, which is RK393's half.
     Site("linting.py:_wired", "run"),
-    Site(
-        "markers.py:_naming_the_lines",
-        "unreached",
-        unreached("a roadmap line whose marker the schema refuses, reached through a write to it"),
-    ),
+    # RK1498, over RK348/RK1152. A ship ticks its dependents and a ✅ is two characters wider,
+    # so the line that overflows is somebody else's — run by `test_composing` against a
+    # dependent with one character of room, where the door is the edit on **that** line and
+    # taking it makes the refused ship land.
+    Site("markers.py:_naming_the_lines", "run"),
     Site("merging.py:Wiring.repairs", "deliberate", FOREIGN),
     Site("merging.py:_spent", "deliberate", FOREIGN),
     # RK1512. The store no tier offers, and the read that opens it — run by `test_picking`,

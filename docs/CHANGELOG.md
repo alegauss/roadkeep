@@ -727,6 +727,7 @@
 - ✅ **RK1594** **two of the sites that compose an outline read are accounted for as a work-list, and one of them cannot be reached at all** — Both branches of the malformed-anchor read run, and the move refusal is deliberate: the branch composing its command is one no fixture can reach.
 - ✅ **RK1595** **three of the sites that compose a read are accounted for as a work-list, and one was unrunnable by the instrument** — The two govern refusals run against a scaffolded project and a bare tree, and a help door is executed rather than treated as a failure.
 - ✅ **RK1596** **three sites that compose a read about the ledger are a work-list, and one of them names two doors** — The three ledger reads run, and the restate door now carries the invocation, so both alternatives an inherited claim names are findable.
+- ✅ **RK1597** **two sites that compose a read about a line nothing counted are a work-list, and one is quoted with apostrophes** — The dependent's line and the uncounted read both run, and the audit door is backticked so a scan can take it.
 
 ## Block E — Adoption
 

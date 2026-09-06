@@ -536,9 +536,12 @@ class Census:
         if self.missed:
             from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
 
+            # Backticked, like every other composed command here (RK1597). It was quoted with
+            # apostrophes, which reads the same to a person and is invisible to anything that
+            # scans for a door — the delimiter is what says *this span is a command*.
             rows.append(
                 f"roadkeep: {self.uncounted} marker-bearing line(s) in {self.file} "
-                f"were not counted; run '{invocation()} audit' to see them"
+                f"were not counted; `{invocation()} audit` names them"
             )
         return rows
 

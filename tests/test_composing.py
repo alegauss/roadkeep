@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pytest
 
-from composing import SITES, STATES, census, commands, filled, runs, supplied
+from composing import FILLS, SITES, STATES, census, commands, filled, runs, supplied
 from conftest import git_commit, git_init
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
@@ -1431,3 +1431,67 @@ def test_the_read_an_id_no_entry_leads_with_names_runs(tmp_path, capsys):
     said = capsys.readouterr().err
     assert "wrote it" in said, said
     assert runs(root, said) == (["gaps"],), said
+
+
+# -- the line a marker is written on, and the ones nothing counted (RK1498) ----
+
+
+_FIRST = "- 📋 **TT1** (deps: —) **A short first symptom** — Short. → §TT1"
+_SECOND = (
+    "- 📋 **TT2** (deps: TT1) **A second symptom worth it** "
+    "— A reason of some length here. → §TT2"
+)
+_DESIGNS = (
+    "# Improvements\n\n## Block A\n\n### §TT1 A design\n\nProse.\n\n"
+    "### §TT2 Another design\n\nMore prose.\n"
+)
+
+
+def _lined(tmp_path: Path, roadmap: str, limit: int | None = None) -> Path:
+    root = tmp_path / "lined"
+    root.mkdir(parents=True)
+    bound = "" if limit is None else f"[limits]\nline = {limit}\n"
+    for name, body in (
+        ("roadkeep.toml", f"{PLAIN}{bound}"),
+        ("ROADMAP.md", roadmap),
+        ("CHANGELOG.md", "# Shipped\n\n## Block A\n"),
+        ("IMPROVEMENTS.md", _DESIGNS),
+    ):
+        with (root / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return root
+
+
+def test_the_door_a_dependent_s_line_names_runs(tmp_path, capsys):
+    """RK1498, over RK348 and RK1152. A ship ticks its dependents' annotations, and a ✅ is two
+    characters wider — so the line that overflows is somebody else's, and the refusal leads
+    with **whose** before it says how much to delete.
+
+    The door is the edit on that line, and running it is the only thing that says the id in
+    it is the right one: a message naming the dependent and a door naming the caller's own id
+    would read as a path and be a loop, which is the shape RK1198 is about."""
+    # One character of room, so the ✅ is exactly what does not fit.
+    root = _lined(tmp_path, f"# Roadmap\n\n## Block A\n\n{_FIRST}\n{_SECOND}\n", len(_SECOND) + 1)
+    shipping = ["-C", str(root), "ship", "TT1", "--why", "It no longer happens."]
+    assert main(shipping) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "on TT2's line" in said, said
+    assert runs(root, said) == (["amend", "TT2", "--why", FILLS["--why"]],), said
+    assert main(shipping) == EXIT_OK
+
+
+def test_the_read_an_uncounted_line_names_runs(tmp_path, capsys):
+    """RK1498, over RK10. A listing that looked complete is the whole symptom, so a count says
+    how many marker-bearing lines it could not take — and names the read that shows them.
+
+    It was quoted with apostrophes rather than backticks (RK1597), which reads the same to a
+    person and is invisible to anything scanning for a door: the delimiter is what says *this
+    span is a command*, and RK1577 found the same thing spelled without one at all."""
+    root = _lined(
+        tmp_path,
+        f"# Roadmap\n\n## Block A\n\n{_FIRST}\n- 📋 a marker on a line that is not a task\n",
+    )
+    assert main(["-C", str(root), "list", "--block", "A"]) == EXIT_OK
+    said = capsys.readouterr().err
+    assert "1 marker-bearing line(s)" in said, said
+    assert runs(root, said) == (["audit"],), said
