@@ -74,8 +74,7 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1614** (deps: —) **ninety-five payload builders answer in twenty signatures and nothing declares the shape they share** — RK1170 moved one verb's two registers onto one result and three shapes now cover sixty-eight of them, so the rest are a register each author chose by copying a neighbour. → §RK1614
-- 📋 **RK1615** (deps: RK1614) **the served surface reads a handler's answer by capturing the stdout it printed for a terminal** — The result is an object one frame earlier and the transport renders it to text and re-parses it, so the surface this tool is built for is a scrape of the one it is not. → §RK1615
+- 📋 **RK1615** (deps: RK1614 ✅) **the served surface reads a handler's answer by capturing the stdout it printed for a terminal** — The result is an object one frame earlier and the transport renders it to text and re-parses it, so the surface this tool is built for is a scrape of the one it is not. → §RK1615
 - 📋 **RK1616** (deps: RK1615) **nothing refuses a handler whose answer is not a result, so the shape is held by review alone** — L1 refuses a bad roadmap line at insertion and a bad handler is refused by nobody, so this package's own shape is held by the review that files a follow-up after the fact. → §RK1616
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)

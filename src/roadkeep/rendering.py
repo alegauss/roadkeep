@@ -62,6 +62,38 @@ from roadkeep.kernel.schema import UTF16_UNITS, width as measured_width
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK
 
 
+#: The shapes a command's answer is built in, as what each register takes after `self` (RK1614).
+#:
+#: RK1170 moved one verb's two registers onto one result and said what was left: most of the
+#: printing never moved. Counted when this was written, ninety-two `payload` methods answered in
+#: **twenty** signatures and as many `stated` methods in twenty-one, with thirty-four `__str__`
+#: doing `stated`'s job under another name. Three of those twenty carry seventy of the
+#: ninety-two, and the third is a protocol already — what a write answers, spelled identically
+#: in twenty-eight places and declared in none.
+#:
+#: The seventeen one-offs are not variety. They are parameters that should have been fields:
+#: `Weighed` builds itself with `where`, `weights` and `records` and then answers either
+#: register with no argument, and where that was not done the caller threads the same fact at
+#: every call site instead of the result holding it once. Call sites drift, which is what
+#: seventeen shapes are.
+#:
+#: Declared here because this is the module a command's answer already belongs to, and as
+#: **data** because the enforcement is a sweep: :mod:`tests.test_registers` walks the package,
+#: classifies every builder against these rows, and refuses a twenty-first that nobody named.
+#: A protocol would not do it — `runtime_checkable` sees that a method exists and never what it
+#: takes, which is the whole of what drifted.
+SHAPES: dict[str, tuple[str, ...]] = {
+    # An answer that needs nothing: it holds the facts it states, which is what the other two
+    # rows are the absence of. The register RK1170 was shipped for.
+    "answer": (),
+    # The project, for an answer that names a path or reads a declared limit back.
+    "configured": ("config",),
+    # A write's answer: the project, and the paths this transaction left. Twenty-eight results
+    # in both registers, which is the row that was a protocol before anything declared one.
+    "written": ("config", "wrote"),
+}
+
+
 #: What every character figure this tool publishes is counted in (RK430). Declared in the
 #: payload rather than assumed, because the defect was two counters both being right: a
 #: consumer's gate reading UTF-16 and a `len` reading code points differ by one on the

@@ -821,32 +821,6 @@ their server.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-### §RK1614 One result, twenty signatures
-
-RK1170 moved one verb's two registers onto one result and said what was left: most of
-the printing never moved. Counted on this build, ninety-five `payload` methods answer in
-twenty signatures and eighty `stated` methods in about as many, with thirty-four
-`__str__` doing `stated`'s job under another name.
-
-Three shapes carry sixty-eight of the ninety-five. `(self)` is the read that needs
-nothing, twenty-eight times. `(self, config)` is fourteen. `(self, config, wrote)` is
-twenty-six, and that one is a protocol already — it is what a write answers, spelled
-identically in twenty-six places and declared in none. The remaining twenty-seven are
-seventeen one-off signatures: `(self, unit)`, `(self, served)`, `(self, root, served)`,
-`(self, config, applied, root)`, `(self, where, expected)`.
-
-The one-offs are not variety, they are parameters that should have been fields.
-`Weighed` already shows the alternative: `_weight` builds `Weighed(where=…, weights=…,
-records=…)` and then asks it for either register with no arguments. Where that was not
-done, the caller carries what the result needs, so the same fact is threaded at every
-call site instead of held once — and the call sites drift, which is what seventeen
-shapes are.
-
-The consequence is not the boilerplate. It is that nothing declares what a command's
-answer *is*, so a verb added tomorrow picks its register by copying whichever neighbour
-it was written beside — and neither the served surface nor a test can ask a handler for
-its answer without knowing which of twenty spellings that verb chose.
-
 ### §RK1615 The scrape at the boundary
 
 A handler is `(config, args) -> int`: it computes a result, prints one of its two

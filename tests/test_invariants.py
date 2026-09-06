@@ -190,6 +190,15 @@ INVARIANTS: tuple[Invariant, ...] = (
         held_by="test_remedying::test_every_complete_door_is_an_argv_the_cli_accepts",
     ),
     Invariant(
+        stated="RK1614",
+        rule=(
+            "every builder of a command's two registers answers in one of three declared "
+            "shapes, or is a carry named one row each and deleted when it conforms"
+        ),
+        over="roadkeep.rendering.SHAPES",
+        held_by="test_registers::test_a_builder_outside_the_three_shapes_is_one_somebody_named",
+    ),
+    Invariant(
         stated="RK167",
         rule="every tool this server publishes is a subcommand the CLI parses",
         over="roadkeep.serving.TOOLS",

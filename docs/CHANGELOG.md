@@ -1089,6 +1089,7 @@
 - ✅ **RK1397** **The module that declares the capture family says two verbs have this tool as their subject, and it declares four** — The two lists are declared constants and a census holds them against what the module puts on the parser, so a verb added to either half is a named failure and not a stale sentence.
 - ✅ **RK1448** **a test unpacking report.notes as a whole passes or fails on which unrelated note the gate happened to add** — A sweep refuses the whole note list unpacked, compared or indexed, following one binding, and the suite's own module set is declared once (design recorded in `tests/test_advisories.py`).
 - ✅ **RK1613** **a refusal reaches an agent as prose where the same refusal reaches a terminal as fields** — A refusal publishes its fields on both surfaces: the register asked for is its own slot beside the argv that says what the caller typed, and the payload is the served answer where there is one.
+- ✅ **RK1614** **ninety-five payload builders answer in twenty signatures and nothing declares the shape they share** — The three shapes seventy of ninety-two builders answer in are declared as data, and a sweep refuses a twenty-first nobody named, the forty-five one-offs being rows that leave as they conform.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
