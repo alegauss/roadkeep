@@ -3049,6 +3049,17 @@ def _disagreeing(config: Config, tree: Tree) -> list[Note]:
     ]
 
 
+#: The read behind every row of `engine.disagreement`, said once (RK1526). A fact about the
+#: *code* — how a reader tells which copy is which — where the three moves are facts about one
+#: copy each, so it goes on whichever row comes first and never on all four.
+READS = "`engines` reads every copy and names the revision each one is at"
+
+#: Where that read goes in a row's sentence, before the row's own move. A marker rather than a
+#: format field, so each row below reads as the sentence it is and the join is one rule at the
+#: bottom of the function instead of a conditional in four f-strings.
+_READS = "<the shared read>"
+
+
 def disagreements(
     version: str,
     home: str,
@@ -3080,24 +3091,32 @@ def disagreements(
     Each row stands alone, so each states what this gate is: a row saying the plugin is at
     0.2.5 without the number it differs from is a fact with nothing to compare.
 
+    **The read that lets a reader choose between them is said once** (RK1526). Splitting the
+    note bought four separately actionable rows for 250 code units, and 204 of that was one
+    sentence repeated: `engines` reads every copy, which is a fact about the *code* and not
+    about any one copy. The three moves are not the duplication — `/plugin update`,
+    `install --vendor` and the restart each appear on the row they close — so what moves is
+    the shared half, onto whichever row comes first. No grouping is invented for it: the rows
+    are one note about one code and are printed together, which is what makes "once" a place
+    a reader reaches rather than a line above a structure this report has never had.
+
     A composer with two readers (RK1491): `cost --notes` prices what a run of the gate can say
     beside its verdict, and the state making all four true cannot be built by a project whose
     engine is the tree it judges — which is every checkout of this one.
     """
     gate = f"this gate is {version}"
-    reads = "`engines` reads every copy and names the revision each one is at"
     out: list[tuple[str, str]] = []
     if working:
         out.append((
             "checkout",
             f"{gate} from a **modified** checkout at {home}: a verdict here is that working "
-            f"tree's — {reads}",
+            f"tree's{_READS}",
         ))
     if skewed and plugin is not None:
         out.append((
             "plugin",
             f"{gate} and the plugin wired to this project is {plugin}: a hook's refusal is "
-            f"that copy's rule — {reads}; `/plugin update` moves the judge",
+            f"that copy's rule{_READS}; `/plugin update` moves the judge",
         ))
     if split and vendored is not None:
         # Both pens, which is why this row is about the *write* and not about a judge: the
@@ -3108,7 +3127,7 @@ def disagreements(
         out.append((
             "vendored",
             f"{gate} and the engine vendored here is {vendored}: a line written here was "
-            f"written by whichever answered — {reads}; `install --vendor` re-pins the copy "
+            f"written by whichever answered{_READS}; `install --vendor` re-pins the copy "
             f"the launcher runs",
         ))
     if swapped:
@@ -3116,10 +3135,16 @@ def disagreements(
         out.append((
             "home",
             f"{gate}, loaded from a directory that states {on_disk} now: this verdict came "
-            f"from code no disk holds — {reads}; a restart is the only thing that reloads a "
+            f"from code no disk holds{_READS}; a restart is the only thing that reloads a "
             f"home replaced under a process",
         ))
-    return tuple(out)
+    # Once, on the row a reader meets first (RK1526). Whichever fired first and never the
+    # checkout row by name: the four are conditional, and a read attached to a row that is
+    # not there is a read nobody gets.
+    return tuple(
+        (name, message.replace(_READS, f" — {READS}" if n == 0 else "", 1))
+        for n, (name, message) in enumerate(out)
+    )
 
 
 def _repeated(config: Config, files: dict[str, Document]) -> list[Finding]:

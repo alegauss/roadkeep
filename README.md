@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
 | C — Query (consult without reading the file) | 9 | 164 | 4 |
-| D — The gate | 23 | 233 | 2 |
+| D — The gate | 22 | 234 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 152 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 38 | 1011 | 14 |
+| **Total** | 37 | 1012 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1526** (deps: —) **the read that lets a reader choose between four rows is repeated on each of them** — RK1494 split the note so each row carries its own move, and a note's message is the only place the gate renders a door, so the shared read went four ways. → §RK1526
+- 💭 **RK1527** (deps: —) **the near window stayed at three when the corpus it ranks over doubled** — RK1495 put the open lines beside the deliveries and the two halves now compete for the same three rows, with no reading of how often either wins one. → §RK1527
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

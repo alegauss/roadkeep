@@ -700,6 +700,7 @@
 - ✅ **RK1518** **adopt refuses two answers inside its estimator, so the dispatcher and the served surface read them as compatible** — adopt declares --ledger and --sections two answers, so the dispatcher refuses the pair before a handler runs and the served schema, the sweep and both surfaces read the same rule.
 - ✅ **RK1521** **the note cadence prices what fired and cannot say what it left out, no list of note codes existing** — the note codes are declared beside the remedy table and held total against the emitter, so cost --notes says how many of them fired here and how many this project never meets.
 - ✅ **RK1522** **one record is a file section, a reference page and a note row, and its docstring describes only the first** — Part's docstring states the three subjects that share it and a table holds the callers total, so a record used three ways says so and a fourth is a red.
+- ✅ **RK1526** **the read that lets a reader choose between four rows is repeated on each of them** — the read that lets a reader choose between the four rows is said once on whichever fires first, taking the note's worst case from 893 to 692 code units with every move still on its own row.
 
 ## Block E — Adoption
 

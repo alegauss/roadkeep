@@ -4271,3 +4271,56 @@ def test_the_widest_lists_the_modules_a_real_note_would_carry(tmp_path):
         if "changed on disk" not in message:
             continue
         assert every[0] in message and every[-1] in message
+
+
+def test_the_read_behind_the_four_rows_is_said_once(tmp_path):
+    """RK1526. RK1494 bought four separately actionable rows for 250 code units and 204 of that
+    was one sentence four times: `engines` reads every copy, which is a fact about the code and
+    not about any one copy. The three moves are not the duplication — each appears on the row
+    it closes — so what moved is the shared half, onto whichever row comes first.
+
+    No grouping was invented for it, which is the half worth asserting: the rows are one note
+    about one code, printed together, and "once" is a place a reader reaches."""
+    from roadkeep.linting import READS, _READS, disagreements
+
+    rows = disagreements(
+        "0.2.1", "/home", "0.2.2", "0.2.3", "0.2.4",
+        working=True, skewed=True, split=True, swapped=True,
+    )
+    assert [n for n, message in rows if READS in message] == ["checkout"]
+    assert not [one for _, one in rows if _READS in one], "the marker is a join, not text"
+    # And each row still carries its own move, which is what the split was for.
+    moves = {name: message for name, message in rows}
+    assert "/plugin update" in moves["plugin"]
+    assert "install --vendor" in moves["vendored"]
+    assert "a restart" in moves["home"]
+
+
+def test_the_read_rides_whichever_row_is_there(tmp_path):
+    """The four are conditional, so a read attached to the checkout row by name is a read a
+    project without a modified checkout never gets — which is most projects."""
+    from roadkeep.linting import READS, disagreements
+
+    (name, message), = disagreements(
+        "0.2.1", "/home", None, "0.2.3", "0.2.4",
+        working=False, skewed=False, split=True, swapped=False,
+    )
+    assert name == "vendored"
+    assert READS in message
+
+
+def test_saying_it_once_is_what_the_price_now_reads(tmp_path):
+    """The measurement, held so the trade cannot quietly be undone: the widest note is the four
+    rows with the read on one of them, and `cost --notes` prices exactly that."""
+    from roadkeep.budgeting import note_cost
+    from roadkeep.kernel.schema import width
+    from roadkeep.linting import READS, disagreements
+    from roadkeep.provenance import engine
+
+    running = engine()
+    rows = disagreements(
+        running.version, running.home.as_posix(), running.version, running.version,
+        running.on_disk, working=True, skewed=True, split=True, swapped=True,
+    )
+    assert note_cost(Config.discover(tmp_path)).widest == sum(width(one) for _, one in rows)
+    assert sum(message.count(READS) for _, message in rows) == 1

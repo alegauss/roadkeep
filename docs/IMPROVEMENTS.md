@@ -310,29 +310,6 @@ yet, and what turns it into an answerable question is the state. That is a task 
 family rather than one sweep — and the reason to file it as one line is that the six
 that do run were each bought by a defect that had already shipped.
 
-### §RK1526 The read a code owns and every row repeats
-
-RK1494 split `engine.disagreement` into a row per differing copy, and RK1491's reading
-priced the trade the same day: 643 code units joined, 893 split — 250 more for four rows
-a reader can act on separately. That is the right side of the trade and not free, and
-most of what it cost is one sentence said four times.
-
-Every row ends with the same clause: *`engines` reads every copy and names the revision
-each one is at*. It is there because a note's message is where its door goes — the
-remedy table feeds `explain`, and the gate's report renders the message and nothing else
-— so a row without it is a row with no read behind its move.
-
-The specific moves are not the duplication: `/plugin update`, `install --vendor` and the
-restart each appear once, on the row they close. What repeats is the read that lets a
-reader choose between them, which is a fact about the *code* and not about any one copy.
-
-So the question is whether a report can attach a code's shared read once beside rows
-that carry their own. `remedying` holds that sentence for `explain` already, and
-`_report_rows` is where a terminal renders a row — the fact exists and the render does
-not use it. What is not obvious is the shape: a line above four rows is a grouping this
-report has never had, and inventing one for a single code is the ceremony RK1443 cut.
-Measure it first.
-
 ### §RK1530 The measurement behind a refusal
 
 RK1497 drew its boundary from a number: over the prose of three real corpora the
