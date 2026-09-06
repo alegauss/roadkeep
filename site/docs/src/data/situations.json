@@ -71,6 +71,7 @@
   "incidental.absent": "You renamed or removed a file that `[history] incidental` names — a hook that used to bump a version, a manifest a release step rewrote — so the entry that kept those commits out of `unclosed` now matches nothing and they are counted as work again.",
   "install.absent": "A surface this checkout ships — one of the skill's reference pages, say — is not in the project at all, so nothing a session reads there documents what it covers, and a verb it names is one nobody working in that repository can find.",
   "install.stale": "The wired launcher, hook or skill were written by an older copy of roadkeep than the one answering now, which happens whenever the package is upgraded without re-running `install`.",
+  "code.renamed": "Prose in a governed file names a symbol of this package — `rendering._settled_rows` — that the tree no longer defines. Usually a rename the design was not amended for.",
   "law.unknown": "You cited a law by number in prose — L4, L7 — and `[laws]` does not declare it. Usually a renumbering, or a law that was discussed and never written down.",
   "line.non-canonical": "A hand edit to a line that a verb would have written differently — an extra space, a reordered field, a bold marker that did not close. The line still parses, which is why nothing complained at the time.",
   "line.too-long": "You wrote the sentence before asking what room it had. `budget` prices both fields before a word is composed, which is the call that stops this arriving at all.",

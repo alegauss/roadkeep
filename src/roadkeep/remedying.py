@@ -1164,6 +1164,25 @@ _TABLE: Mapping[str, _Rule] = {
             "where it is in a ledger entry, which is the third prose a law is cited from",
         ),
     ),
+    # RK1550, and `law.unknown`'s shape one citation over: which verb corrects it is decided
+    # by where the sentence sits, and the sentence itself is the author's — a rename has no
+    # derivable replacement, so nothing here can compose the new name.
+    "code.renamed": _decide(
+        "prose names a symbol this package no longer defines, and where it sits decides the "
+        "verb that corrects it:",
+        (
+            ("section", "amend", "{id}", "--body", "-"),
+            "where it is in a design, which is where a pointer into the code usually is",
+        ),
+        (
+            ("record", "amend", "{id}", "--why", "-"),
+            "where it is in a ledger entry, the sentence arriving on stdin",
+        ),
+        (
+            ("amend", "{id}", "--why", "-"),
+            "where it is in a roadmap line's why",
+        ),
+    ),
     "section.too-long": _compose(
         ("section", "amend", "{id}", "--body", "-"),
         "past the word budget; the shorter prose is yours and arrives on stdin",

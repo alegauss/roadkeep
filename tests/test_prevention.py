@@ -208,6 +208,10 @@ PREVENTION: tuple[Prevented, ...] = (
     # are the project's own to state. An `add` has nothing to check here: the citation is
     # inside a paragraph, and reading which token in it is a law is what the gate does once.
     Prevented("law.unknown", "gate", because=LATER),
+    # RK1550. The citation runs the other way — from prose into the code — and the same
+    # reason holds twice over: the symbol is named inside a paragraph, and it goes stale
+    # at a *rename* that happens long after the sentence was written and refused nothing.
+    Prevented("code.renamed", "gate", because=LATER),
     Prevented("grammar.unreadable", "gate", because=RULE),
     Prevented("block.unorganised", "gate", because=FILE),
     Prevented("export.unmarked", "gate", because=FILE),

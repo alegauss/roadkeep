@@ -94,6 +94,7 @@ points at exist, and did anything loaded every turn outgrow what it was allowed?
 
 from __future__ import annotations
 
+import ast
 import os
 import re
 import unicodedata
@@ -775,6 +776,9 @@ def _rules() -> tuple[_Rule, ...]:
         # prose ones alone: a law is cited from a ledger sentence and a roadmap `why` as
         # readily as from a design.
         found += _laws(scan.config, scan.documents, scan.prose)
+        # The fifth, and the one running the other way (RK1550): a citation of this package's
+        # own code, resolved against the tree rather than against another governed file.
+        found += _cited_code(scan.config, scan.documents, scan.prose)
         for role, document in scan.prose.items():
             found += _orphans(
                 scan.config, scan.documents, document, scan.anchors, role=role
@@ -3724,6 +3728,121 @@ def _laws(
                     )
                 )
     return out
+
+
+#: A backticked span citing this package's own code (RK1550). Two spellings and no third:
+#: `rendering._settled_rows` — a dotted module and a name — and `installing.py:Plan.verdict`,
+#: the address `composing.SITES` uses. Anything else in backticks is a flag, a filename, a
+#: config key or another tool's symbol, and is never asked about: a check that read every span
+#: would be reporting on prose it has no business in, which is how a gate is switched off.
+#:
+#: `(?!py$)` on the dotted branch because a **filename is not a citation**: `rendering.py`
+#: parses as a module and the name `py`, and the ledger names files constantly. The `.py:`
+#: branch keeps its own colon, which is what tells `installing.py:Plan` from `installing.py`.
+_CITED_CODE = re.compile(
+    r"^(?:([\w.]+)\.py:|([\w.]+)\.)(?!py$)([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)$"
+)
+
+
+def _symbols(home: Path) -> dict[str, set[str]]:
+    """Every module of this package and the top-level names it defines (RK1550).
+
+    An AST walk of the tree `surface.modules` enumerates for the suite, made here because the
+    gate runs where that file is not: `lint` ships to adopters and the suite does not.
+
+    Keyed by both spellings a design uses — `kernel.schema` and the bare `schema` — because
+    prose names the module a reader would import and the package's own layout is two deep in
+    one place. A leaf shared by two modules answers for both, which is the safe direction:
+    this check exists to catch a name that is **gone**, and a name that is somewhere is not.
+    """
+    out: dict[str, set[str]] = {}
+    for path in sorted(home.rglob("*.py")):
+        if "__pycache__" in path.parts:
+            continue
+        names: set[str] = set()
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except (OSError, SyntaxError):
+            continue
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                names.add(node.name)
+            elif isinstance(node, ast.Assign):
+                names |= {one.id for one in node.targets if isinstance(one, ast.Name)}
+            elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+                names.add(node.target.id)
+        where = path.relative_to(home).with_suffix("").as_posix().replace("/", ".")
+        out[where] = out.get(where, set()) | names
+        leaf = where.rsplit(".", 1)[-1]
+        out[leaf] = out.get(leaf, set()) | names
+    return out
+
+
+def _cited_code(
+    config: Config, documents: dict[str, Document], prose: dict[str, Document]
+) -> list[Finding]:
+    """A symbol of this package that a governed sentence names and the tree does not have.
+
+    RK1550. The pointer between two sections has `ref.dangling`; the pointer from prose **into
+    the package** had nothing. RK1515 renamed one helper and two shipped designs went stale —
+    `rendering._settled_rows` and a row that no longer existed — and `lint` was clean before
+    the amend and clean after it. Both were found by grep.
+
+    That asymmetry is the finding, and it is not that prose is harder to check: an open design
+    is read by the session about to do the work, and a name it cannot find costs exactly the
+    turn `ref.dangling` was built to save.
+
+    **Silent where the package is not here**, which is every adopter: this resolves against the
+    engine answering, and a project whose prose names its own code is naming a tree this gate
+    has no reader for. So the population is a repository developing roadkeep, which is the one
+    whose docs are the conformance fixture.
+
+    No `--fix`. The sentence is the author's and a rename has no derivable replacement — the
+    finding names the section, which is where the edit is.
+    """
+    from roadkeep.provenance import engine  # noqa: PLC0415 - RK260
+
+    home = engine().home
+    if not home.is_dir() or config.root not in home.parents:
+        # The engine inside this project, and never a plugin cache or an installed copy: a
+        # design here is prose about *this* checkout, and resolving it against somebody else's
+        # tree would report a rename that has not happened to the reader it is shown to.
+        return []
+    known = _symbols(home)
+    out: list[Finding] = []
+    for role, document in {**documents, **prose}.items():
+        file = config.relative(config.path(role))
+        owner = _owners(document)
+        for lineno, line in enumerate(document.lines, start=1):
+            for span in _SPANNED.finditer(line):
+                found = _CITED_CODE.match(span.group(1).strip())
+                if found is None:
+                    continue
+                module = found.group(1) or found.group(2)
+                if module not in known:
+                    continue
+                # The leading segment alone: `Plan.verdict` resolves once `Plan` is there,
+                # because a method is a name inside a class this walk does not descend into
+                # — and a check that demanded the whole path would report every method.
+                if found.group(3).split(".")[0] in known[module]:
+                    continue
+                out.append(
+                    Finding(
+                        "code.renamed",
+                        file,
+                        f"cites `{span.group(1)}`, which {module} does not define: prose "
+                        f"naming a symbol that has been renamed sends the session reading it "
+                        f"to a grep that finds nothing, and nothing else here resolves it",
+                        lineno,
+                        owner.get(lineno, ""),
+                        column=span.start(1) + 1,
+                    )
+                )
+    return out
+
+
+#: A backticked span, one line at a time — the delimiter every citation in this prose uses.
+_SPANNED = re.compile(r"`([^`\n]+)`")
 
 
 def _owners(document: Document) -> dict[int, str]:

@@ -224,30 +224,6 @@ verb placing it anywhere else would move a section a reader knows the position o
 
 ## Block D — The gate
 
-### §RK1550 The pointer that runs the other way
-
-RK1515 renamed one helper and two governed sections went stale: RK1516 named
-`rendering._settled_rows` and RK1536 named RK1488's `settled` row, both prose about code
-that had just stopped existing. Both were found by grepping `docs/` — `lint` was clean
-before the amend and clean after it, and a shipped design citing a dead symbol is
-exactly what this repository's docs being the conformance fixture is supposed to catch.
-
-The pointer between two sections has `ref.dangling`; the pointer from prose into the
-package has nothing. That asymmetry is the whole finding, and it is not about prose
-being harder to check: an open design is read by the session about to do the work, and a
-name it cannot find is the same wasted turn `ref.dangling` was built to prevent.
-
-The rule is narrow enough to be safe. A backticked `<module>.<name>` or
-`<module>.py:<Name>` whose module is one of this package's is a claim about code, and
-resolving it is an AST walk of the tree `surface.modules` already enumerates. Anything
-else — a flag, a filename, another tool's symbol — is not shaped like that and is never
-asked about, which keeps the check off prose it has no business reading.
-
-What decides its worth is which side it errs on. A design citing a symbol that a later
-refactor renames is stale the moment the rename lands, and the finding has to name the
-section rather than the rename: there is no automatic repair here, the sentence being
-the author's.
-
 ### §RK1551 The note that says nothing about its own silence
 
 RK1515 made every register honest about what it measured and left the gate where it was:
@@ -692,9 +668,9 @@ turn` — is a claim about a surface that moves, and the ones that matter are th
 What would settle it is a sweep for digit-groups in package prose beside the reads that
 would re-take them. That is noisy — most numbers in these docstrings are corpus
 measurements whose whole point is being historical, and RK1530's own docstring quotes
-two on purpose. So the honest first step is smaller: the reasons `cli.withheld` declares
-are a closed set, each is a decision, and each can be read for a figure the tool can now
-compute.
+two on purpose. So the honest first step is smaller: the reasons `serving.withheld`
+declares are a closed set, each is a decision, and each can be read for a figure the
+tool can now compute.
 
 ### §RK1590 The prefix that says a span is a door
 

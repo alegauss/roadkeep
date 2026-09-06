@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
 | C — Query (consult without reading the file) | 6 | 171 | 4 |
-| D — The gate | 28 | 263 | 2 |
+| D — The gate | 27 | 264 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 155 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 39 | 1051 | 14 |
+| **Total** | 38 | 1052 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1550** (deps: —) **a design keeps naming a function of this package after a rename, no gate reading that pointer** — ref.dangling covers section to section only, so two sections cited a helper that had stopped existing and lint was clean either way. → §RK1550
+- 💭 **RK1551** (deps: —) **the gate falls silent where a design quotes a constraint and the run that fell silent never says so** — RK1478 put the suppression in non-goal list, which is not the command a session runs when the gate is what it is reading. → §RK1551
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

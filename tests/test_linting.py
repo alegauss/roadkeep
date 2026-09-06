@@ -2994,3 +2994,92 @@ def test_the_project_reading_rules_are_a_declared_domain():
         "isinstance", "list", "sum", "len", "tuple",
     }
     assert called <= allowed, {"called by name, outside the domain": called - allowed}
+
+
+# -- the pointer that runs the other way (RK1550) ------------------------------
+
+
+def test_a_symbol_this_package_no_longer_defines_is_a_finding(tmp_path):
+    """RK1550. The pointer between two sections has `ref.dangling`; the pointer from prose into
+    the package had nothing. RK1515 renamed one helper and two shipped designs went stale, and
+    `lint` was clean before the amend and clean after it — both found by grep.
+
+    An open design is read by the session about to do the work, so a name it cannot find costs
+    exactly the turn `ref.dangling` was built to save. Run against this repository, which is
+    the only population: the check resolves against the engine inside the project."""
+    from roadkeep.config import Config
+    from roadkeep.kernel.document import Document
+    from roadkeep.linting import _cited_code
+
+    # Rooted here, because the check resolves against the engine **inside** the project and
+    # this is the only tree that has one — with a document of this test's own, so the claim is
+    # about the reading rather than about whatever the live file happens to say today.
+    config = Config.discover(Path(__file__).resolve().parents[1])
+    schema = config.schema_for("improvements")
+    said = chr(10).join([
+        "# Improvements",
+        "",
+        "## Block A",
+        "",
+        "### §RK1 A design",
+        "",
+        "The reasoning, which `rendering._settled_rows` settles.",
+        "",
+    ])
+    (found,) = _cited_code(config, {}, {"improvements": Document.parse(said, schema)})
+    assert found.code == "code.renamed"
+    assert "rendering does not define" in found.message
+    assert found.id == "RK1", "the section holding the sentence, which is where the edit is"
+    # The column, because one backticked name in a paragraph is not findable by eye (RK34) —
+    # at the name and not at the tick, which is one character early and not what was cited.
+    line = said.splitlines()[found.lineno - 1]
+    assert line[found.column - 1 :].startswith("rendering._settled_rows"), line
+    # And a name the tree does have is not a finding, which is the other half of the reading.
+    whole = Document.parse(said.replace("_settled_rows", "_event_rows"), schema)
+    assert _cited_code(config, {}, {"improvements": whole}) == []
+
+
+def test_the_reading_tells_a_citation_from_a_filename(tmp_path):
+    """`rendering.py` is a file this ledger names constantly and `rendering.render` is a claim
+    about code. One character apart, and a check that read the first would open with three
+    false findings on a corpus that has none — which is how a gate comes to be switched off."""
+    from roadkeep.linting import _CITED_CODE
+
+    assert _CITED_CODE.match("rendering.py") is None
+    assert _CITED_CODE.match("docs/ROADMAP.md") is None
+    assert _CITED_CODE.match("--section-body") is None
+    # Both spellings a design uses, and the address `composing.SITES` writes.
+    assert _CITED_CODE.match("rendering._settled_rows").group(2) == "rendering"
+    assert _CITED_CODE.match("installing.py:Plan.verdict").group(1) == "installing"
+    assert _CITED_CODE.match("kernel.schema.Task").group(2) == "kernel.schema"
+
+
+def test_a_method_resolves_once_its_class_is_there(tmp_path):
+    """The leading segment alone: a walk that does not descend into a class cannot see its
+    methods, and demanding the whole path would report every one of them. What this catches is
+    a name that is **gone**, and `Plan` being there is that answer."""
+    from roadkeep.linting import _symbols
+
+    here = Path(__file__).resolve().parents[1] / "src" / "roadkeep"
+    known = _symbols(here)
+    assert "Plan" in known["installing"]
+    assert "_settled_rows" not in known["rendering"]
+    # Both spellings of a nested module, because prose names the one a reader would import.
+    assert known["kernel.schema"] == known["schema"]
+
+
+def test_the_check_is_silent_where_the_package_is_not_here(tmp_path):
+    """Every adopter. This resolves against the engine answering, and a project whose prose
+    names its own code is naming a tree this gate has no reader for — so the population is a
+    repository developing roadkeep, which is the one whose docs are the conformance fixture."""
+    from roadkeep.config import Config
+    from roadkeep.linting import _cited_code
+
+    config = project(
+        tmp_path,
+        improvements=LAWFUL.replace(
+            "The reasoning the second line has no room for.",
+            "The reasoning, which `rendering._gone_entirely` settles.",
+        ),
+    )
+    assert _cited_code(config, {}, {"improvements": config.document("improvements")}) == []
