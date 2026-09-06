@@ -26,6 +26,7 @@ from pathlib import Path
 
 import pytest
 
+from conftest import git_commit, git_init
 from roadkeep.authoring import IdInUse, StatusElsewhere, refuse_reuse, set_status
 from roadkeep.backlog import Backlog, DepStatus, NotOpen, Readiness, Whereabouts
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
@@ -916,3 +917,103 @@ def test_the_gate_reads_the_qualifier_off_the_ledger_and_not_off_the_second_file
     # A half: the two files agreeing that work arrived in halves, and the store holds the rest.
     config = project(tmp_path, {"DEFERRED.md": store, "CHANGELOG.md": halved})
     assert "id.paused-and-gone" not in [f.code for f in lint(config).findings]
+
+
+# -- the reason with no expiry, ordered by age (RK1547) ------------------------
+
+
+def _paused_repo(tmp_path: Path, gap: int = 4) -> Config:
+    """Two pauses with commits between them, so the order has something to order.
+
+    A repository, because the store cannot say which line is oldest: a deferral carries a
+    reason and no date, and the file's order is by block. Age is history's to answer.
+    """
+    config = project(tmp_path)
+    git_init(tmp_path)
+    git_commit(tmp_path, "the files")
+    assert main(["-C", str(tmp_path), "defer", "RK1", "--reason", "It waits on a decision."]) == 0
+    git_commit(tmp_path, "pause RK1")
+    for number in range(gap):
+        ledger = tmp_path / "CHANGELOG.md"
+        with ledger.open("a", encoding="utf-8", newline="") as handle:
+            handle.write(f"<!-- {number} -->\n")
+        git_commit(tmp_path, f"noise {number}")
+    assert main(["-C", str(tmp_path), "defer", "RK4", "--reason", "It waits on the first."]) == 0
+    git_commit(tmp_path, "pause RK4")
+    return Config.discover(tmp_path)
+
+
+def test_the_oldest_pause_is_first_and_carries_the_reason_it_stood_on(tmp_path, capsys):
+    """RK1547. RK1512 asked for the count **and the oldest reason** and shipped the count: the
+    store holds no date, so which line is oldest is history's answer and `pick` — which prints
+    that count every loop iteration — is the one path a git call may not be on.
+
+    A deferral is the one governed line with a reason and no expiry: nothing goes red for it,
+    prose not going red. The measured case is exact — one of seven pauses in a live port cited
+    a premise twenty files under the tree had already falsified, and it outlived that by weeks.
+
+    So the age is here, behind a read a caller takes once, with the reason beside it: an age
+    alone is a number, and the reason is what makes it actionable."""
+    config = _paused_repo(tmp_path)
+    capsys.readouterr()
+    # No `--role`: the flag names the store, which is what keeps it from being a modifier
+    # that shapes nothing on a listing with no pauses in it.
+    assert main(["-C", str(config.root), "list", "--stale"]) == EXIT_OK
+    rows = [one for one in capsys.readouterr().err.splitlines() if "set aside" in one]
+    # RK2 was in the store before the first commit, so history places it oldest of the three.
+    assert [one.split()[1] for one in rows] == ["RK2", "RK1", "RK4"], rows
+    assert "RK1 set aside 5 commit(s) ago" in rows[1], rows
+    assert rows[1].endswith("It waits on a decision."), rows
+    assert "RK4 set aside 0 commit(s) ago" in rows[2], rows
+
+
+def test_the_age_is_commits_and_never_a_date(tmp_path):
+    """"No dates or quarters" is a non-goal of this project, and `ordering`'s own rule says why
+    beyond that: a timestamp invites an arithmetic about days that a rebase makes wrong. What
+    is asked is *which has stood longest*, and a count over the files this backlog lives in
+    answers it in the unit every other span here is measured in."""
+    from roadkeep.deferring import standing
+
+    found = standing(_paused_repo(tmp_path))
+    assert [one.task_id for one in found] == ["RK2", "RK1", "RK4"]
+    assert [one.since for one in found] == [6, 5, 0]
+    assert all(isinstance(one.since, int) for one in found)
+
+
+def test_the_reason_is_the_pause_s_and_not_the_line_s(tmp_path):
+    """The `why` carries both: `defer` wraps the author's design sentence in the pause's reason
+    (RK1115), so a listing showing the whole field would put an age beside a fact that did not
+    change when the line stopped."""
+    from roadkeep.deferring import standing
+
+    found = {one.task_id: one.reason for one in standing(_paused_repo(tmp_path))}
+    assert found["RK1"] == "It waits on a decision."
+    assert "set aside" not in found["RK1"]
+
+
+def test_a_pause_history_cannot_place_is_said_and_sorted_last(tmp_path, capsys):
+    """`since=None` rather than a guess, and **last** rather than first: an unknown age sorted
+    to the top would put the line the reading knows nothing about in front of the one it knows
+    most about, which is the opposite of what an order is for."""
+    from roadkeep.deferring import standing
+
+    config = project(tmp_path)
+    assert main(["-C", str(tmp_path), "defer", "RK1", "--reason", "It waits."]) == 0
+    # No repository at all, which is the state every figure here degrades through.
+    found = standing(Config.discover(tmp_path))
+    assert [one.since for one in found] == [None] * len(found)
+    capsys.readouterr()
+    assert main(["-C", str(tmp_path), "list", "--stale"]) == EXIT_OK
+    assert "set aside before this history" in capsys.readouterr().err
+
+
+def test_a_role_the_caller_names_is_taken_at_their_word(tmp_path, capsys):
+    """The flag **implies** a file and never overrides one. A caller who says `--role roadmap`
+    beside it has named the file, and a git call for pauses that role does not hold would be
+    paid for silence — so the ages are the store's question and nothing else's."""
+    config = _paused_repo(tmp_path)
+    capsys.readouterr()
+    assert main(["-C", str(config.root), "list", "--role", "roadmap", "--stale"]) == EXIT_OK
+    said = capsys.readouterr()
+    assert "set aside" not in said.err
+    assert "**RK1**" not in said.out, "the roadmap is what was asked for"

@@ -28,7 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 💭 **RK1547** (deps: —) **a pause carries a reason with no date and no expiry, so nothing ever asks whether it still holds** — RK1512 shipped the count and left the age, the store having no date and pick being the one path a git call may not be on. → §RK1547
 - 💭 **RK1548** (deps: —) **a composed door whose placeholder holds a space is printed unquoted, so the command as printed cannot be run** — shlex takes the first word as the value and the rest as stray arguments, and nothing checks the spelling because the blank never matches. → §RK1548
 - 💭 **RK1556** (deps: —) **a project whose open set spells no partial marker ships a partial in silence, and the line keeps the marker it had** — RK1519 gave the claim marker a key and the partial one has none, so the fallback is right, unreported, and it closes the correction door. → §RK1556
 - 💭 **RK1558** (deps: —) **one marker scan skips what a caller is shown and the one beside it does not, with nothing saying they differ** — RK1520 walks every f-string including a help string, where the three scans above it exempt the words a parser shows a caller. → §RK1558

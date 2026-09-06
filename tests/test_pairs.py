@@ -166,6 +166,10 @@ _UNMEASURED: dict[tuple[str, str, str], str] = {
     ("budget", "--defer", "--json"): "no `deferred` store is declared, and declaring one "
     "would change what every other pair on this fixture is measured against",
     ("budget", "--non-goal", "--json"): "no `[non_goals]` table, which is opt-in (RK66)",
+    ("list", "--ids", "--stale"): "`--stale` names the deferred store (RK1547) and this "
+    "fixture declares none — the same state `budget --defer` wants, and declaring one here "
+    "would change what every other pair is measured against",
+    ("list", "--json", "--stale"): "the same, one form over",
     ("merge", "--check", "--json"): "exit 1 is this verb's finding and not a refusal — a "
     "clean tree is the state it wants, and the fixture's is mid-build",
 }

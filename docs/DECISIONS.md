@@ -67,6 +67,7 @@ on the prose roles.
 - ✅ **RK1527** **the near window stayed at three when the corpus it ranks over doubled** — the near window is set from what the known pairs reach, so a corpus added beside another widens it only where a pair is measured outside it.
 - ✅ **RK1545** **the filings axis reads one per ship over one commit here, which is this session's cadence and not the work's** — A reading suspected of measuring the session is answered by taking it on another corpus, not by qualifying it.
 - ✅ **RK1546** **a folded criterion cites no origin, so a reader of the absorbing task cannot tell it was somebody's line** — An answer a reader needs is joined where they ask it, never stored as a reference the store would have to outlive.
+- ✅ **RK1547** **a pause carries a reason with no date and no expiry, so nothing ever asks whether it still holds** — A reading that costs a git call belongs on a read taken once, never on the path a loop runs every iteration.
 
 ### §RK1362 Why a projection and not a wider read
 
@@ -116,6 +117,22 @@ who asks: a reader is holding a brief, not grepping a changelog.
 So the join is made where the question is asked. `brief` already opens both files, the
 fold wrote the symptom into each, and the reader is `superseded` (RK1542). One lookup,
 no grammar change.
+
+### §RK1547 The age that is not a date
+
+RK1512 asked for the count and the oldest reason and shipped the count: the store holds
+no date, so which pause is oldest is history's answer — and `pick` prints that count
+every iteration, where a git call is a cost the number does not have.
+
+Three things were settled. **Where**: on `list`, taken once, and `--stale` names the
+store rather than modifying whichever role was listed — a modifier on a roadmap listing
+is a git call paid for silence. **The unit**: commits over the governed files. "No dates
+or quarters" is a non-goal, and a timestamp invites an arithmetic a rebase makes wrong.
+**The verdict**: none. How long a pause may stand is a judgement about work, the same
+one `[claims] held` refuses for a claim.
+
+An age history cannot place is said and sorted last: unknown in front of the best-known
+is the opposite of an order.
 
 ## Block D — The gate
 

@@ -757,3 +757,77 @@ def _refuse_recorded(config: Config, task_id: str) -> None:
     )
 
 
+
+
+@dataclass(frozen=True, slots=True)
+class Standing:
+    """One paused line, how long it has stood, and the reason it stood on (RK1547)."""
+
+    task_id: str
+    #: The reason `defer` recorded — what makes the age actionable rather than a number.
+    #:
+    #: The **pause's** reason and not the line's `why`, which carries it wrapped: the design
+    #: sentence is what the line always said and the reason is what stopped it, so a listing
+    #: showing the first would be an age beside a fact that did not change when it was paused.
+    reason: str
+    #: Commits over the governed files since the pause was written, or `None` where history
+    #: cannot say: an id added before this clone's history, a tree with no git.
+    #:
+    #: **A position and never a date** (RK1512, and `ordering`'s own rule): "No dates or
+    #: quarters" is a non-goal of this project, and a timestamp would invite an arithmetic
+    #: about days that a rebase makes wrong. What is being asked is *which has stood longest*,
+    #: and a count of commits over the files this backlog lives in answers it.
+    since: int | None = None
+
+
+def standing(config: Config) -> tuple[Standing, ...]:
+    """Every paused line, oldest first, with the reason beside its age (RK1547).
+
+    RK1512 asked for the count **and the oldest reason** and shipped the count, because the
+    store cannot say which line is oldest: a deferral carries a reason and no date, and the
+    file's order is by block. Age is derivable — `added_ids` walks the deferred role in
+    `--reverse` — and the reason it was not derived there is that `pick` runs every loop
+    iteration and a git call is a cost the count does not have.
+
+    So it is **here**, behind a read a caller takes once. A deferral is the one governed line
+    with a reason and no expiry: nothing goes red for it, prose not going red, and the measured
+    case is exact — one of seven pauses in a live port cited a premise twenty files under the
+    tree had already falsified, and it outlived that by weeks.
+
+    An **order and never a verdict** (L4). How long a pause may stand is a judgement about
+    work, the same one `[claims] held` refuses to make for a claim, so nothing here is stale
+    by a number this tool chose: the oldest is first, and what that means is the reader's.
+
+    `since=None` rather than a guess where the history cannot reach a pause, and the whole
+    listing unordered-by-age where git cannot answer at all: a reading that silently ranked by
+    file order would be an order somebody could act on and nothing supports.
+    """
+    from roadkeep.history import HistoryUnavailable, added_ids, ordering
+
+    if not config.has("deferred") or not config.path("deferred").is_file():
+        return ()
+    entries = config.document("deferred").entries
+    try:
+        paused = added_ids(config, "deferred")
+        order = ordering(config, ("roadmap", "changelog", "deferred"))
+    except (HistoryUnavailable, OSError):
+        paused, order = {}, {}
+    latest = max(order.values(), default=0)
+    found = [
+        Standing(
+            task_id=entry.task.id,
+            reason=pause_reason(entry.task.why) or entry.task.why,
+            since=(
+                latest - order[sha]
+                if (sha := paused.get(entry.task.id)) is not None and sha in order
+                else None
+            ),
+        )
+        for entry in entries
+    ]
+    # Oldest first, and the ones history could not place **last** rather than first: an unknown
+    # age sorted to the top would put a line the reading knows nothing about in front of the
+    # one it knows most about, which is the opposite of what the order is for.
+    return tuple(
+        sorted(found, key=lambda one: (one.since is None, -(one.since or 0), one.task_id))
+    )

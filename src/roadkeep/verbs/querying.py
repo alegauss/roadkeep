@@ -77,6 +77,24 @@ from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, REFUSALS, _r
 from roadkeep.weighing import Weighed, weigh
 
 
+def _role(args: argparse.Namespace) -> str:
+    """Which file this listing is of, with `--stale`'s implication resolved (RK1547).
+
+    `--stale` is the store's question — how long each pause has stood — so it **names the
+    file** rather than modifying whichever one was being listed. That is what keeps it from
+    being a flag that shapes nothing: a modifier on the roadmap listing would answer about a
+    role with no pauses in it, which is a git call paid for silence.
+
+    `list`'s own `--role` defaults to `None` so the two can be told apart here; every other
+    counting verb keeps the shared `"roadmap"`, and a caller naming a role beside `--stale`
+    is taken at their word — the flag implies a file and never overrides one.
+    """
+    named = getattr(args, "role", None)
+    if named:
+        return named
+    return "deferred" if getattr(args, "stale", False) else "roadmap"
+
+
 def _census(config: Config, args: argparse.Namespace) -> tuple[Census, Standing | None]:
     """The census a `--block` narrows, and what became of the label it named (RK429).
 
@@ -93,7 +111,7 @@ def _census(config: Config, args: argparse.Namespace) -> tuple[Census, Standing 
     reason it exists: it is the only one that is a typo.
     """
     marker = getattr(args, "marker", None)
-    census = Census.read(config, args.role)
+    census = Census.read(config, _role(args))
     if args.block is None:
         return census.select(marker=marker), None
     if not config.has("roadmap") or not config.path("roadmap").is_file():
@@ -122,8 +140,8 @@ def _list_argv(args: argparse.Namespace) -> tuple[str, ...]:
     :func:`~roadkeep.serving.argv`'s. What that composes is a door for the transport in hand.
     """
     out = ["list"]
-    if args.role != "roadmap":
-        out += ["--role", args.role]
+    if _role(args) != "roadmap":
+        out += ["--role", _role(args)]
     if getattr(args, "marker", None):
         out += ["--marker", args.marker]
     if args.ids:
@@ -172,7 +190,35 @@ def _list(config: Config, args: argparse.Namespace) -> int:
         print(listed)
     for note in census.notes(standing):
         print(note, file=sys.stderr)
+    for row in _standing_rows(config, args):
+        print(row, file=sys.stderr)
     return EXIT_OK
+
+
+def _standing_rows(config: Config, args: argparse.Namespace) -> list[str]:
+    """How long each pause has stood, where that is what was asked (RK1547).
+
+    On **stderr**, beside the notes and never in the listing: stdout here is what the file
+    says, verbatim, and a caller piping `--ids` gets ids (RK1170). What this adds is the order
+    the store cannot hold — a deferral carries a reason and no date, and the file's order is
+    by block.
+
+    Silent on any other role, and silent where nothing is paused: the flag is about the store,
+    and a row on a roadmap listing would be an answer to a question the caller did not ask.
+    """
+    if not getattr(args, "stale", False) or _role(args) != "deferred":
+        return []
+    from roadkeep.deferring import standing as paused  # noqa: PLC0415 - RK260
+
+    rows = []
+    for one in paused(config):
+        # `since` unknown is said and never guessed: a pause added before this clone's history
+        # is one the reading cannot place, and a zero there would sort it as the newest.
+        aged = (
+            f"{one.since} commit(s) ago" if one.since is not None else "before this history"
+        )
+        rows.append(f"roadkeep: {one.task_id} set aside {aged}: {one.reason}")
+    return rows
 
 
 def _stats(config: Config, args: argparse.Namespace) -> int:
@@ -1497,15 +1543,32 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         metavar="REQUIREMENT",
         help=_HAVE_COUNTING_HELP,
     )
+    # How long each pause has stood, where the store is what is being listed (RK1547). Opt-in,
+    # because the age is a git call and this verb has none: `pick` prints the store's count
+    # every loop iteration and could not afford one, which is the whole reason RK1512 shipped a
+    # number and left the age. Here a caller has asked once. Nothing on stdout moves — the
+    # order goes to stderr beside the notes, this verb's own rule about that stream (RK1170).
+    list_parser.add_argument(
+        "--stale",
+        action="store_true",
+        help=(
+            "list the deferred store with how long each pause has stood — in commits over "
+            "the governed files, oldest first, with the reason beside it. An order and never "
+            "a verdict: how long a pause may stand is a judgement about work"
+        ),
+    )
     withheld(
         list_parser,
         ids='how a terminal prints: the payload carries every id in `tasks`, so a caller over this transport already has what the flag composes',
         have='the caller on this transport is the one with no hands, which is what the split already assumes — and the flag `brief` and `pick` expose costs the connect budget a read that answers without it does not',
+        stale='the age is a git call and this surface is charged at connect for every session that never asks it; a caller here reads the store with `--role deferred` and takes the ordering at a terminal, where the cost is paid by whoever wanted it',
     )
     # `verdict=True` for `lint`'s reason (RK1421): the one non-zero exit this verb has is the
     # answer *your listing is past `[reads] list`, and here is its shape* — a bound this verb
     # applies to itself, not a fall, so offering to file a defect about it would be a regress.
-    list_parser.set_defaults(handler=_list, reads_only=True, verdict=True)
+    # `None` rather than the shared `"roadmap"`, so `--stale` can imply the store without
+    # overriding a role the caller named (RK1547): `_role` is the one reader of the pair.
+    list_parser.set_defaults(handler=_list, reads_only=True, verdict=True, role=None)
     # Two output *forms* of one read are two answers, exactly as `budget`'s subjects are
     # (RK465's rule, RK467's find): the payload came back whole with nothing said about the
     # flag that shaped nothing.
