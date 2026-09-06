@@ -213,11 +213,10 @@ SITES: tuple[Site, ...] = (
         "unreached",
         unreached("a project with a priority queue and a line resumed into it"),
     ),
-    Site(
-        "history.py:Addresses.stated",
-        "unreached",
-        unreached("a prose file whose addresses include one a ship retired, which needs two commits"),
-    ),
+    # RK1498, the outline family (RK1532). Two doors, both run by `test_composing`: the one a
+    # block spanning two families prints, and the narrowing a wide listing names. The state its
+    # row guessed was a git history; the reading wanted only an outline (RK1577).
+    Site("history.py:Addresses.stated", "run"),
     Site(
         "history.py:opens",
         "unreached",
@@ -387,11 +386,10 @@ SITES: tuple[Site, ...] = (
         "unreached",
         unreached("a ledger entry delivering two ids, so `show` on the second finds nothing in the parse"),
     ),
-    Site(
-        "verbs/querying.py:_anchors",
-        "unreached",
-        unreached("a prose file whose addresses a ship has retired, which wants a git history"),
-    ),
+    # The refusal beside it, on the same fixture: `--block` and `--family` are two questions,
+    # and both doors it names now run — which is what found the second half spelling its
+    # placeholder `<one of them>`, a token any shell splits (RK1548).
+    Site("verbs/querying.py:_anchors", "run"),
 )
 
 #: The three states a site can be in. `run` is coverage; the other two are both "not run" and

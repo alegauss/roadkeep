@@ -669,3 +669,75 @@ def test_the_door_an_opened_table_names_runs(tmp_path, capsys):
     capsys.readouterr()
     # And it wrote one, which is what makes the door a door rather than a verb being named.
     assert "Non-goals" in (tmp_path / "ROADMAP.md").read_text(encoding="utf-8")
+
+
+# -- the outline's own listing (RK1498, sized by RK1532) -----------------------
+
+#: Two families under one block, which is what makes `anchors --block` ambiguous and the door
+#: it prints a real one. No git in it: the row's state guessed a history and the reading wanted
+#: only an outline (RK1577).
+SPANNING = "\n".join(
+    [
+        "# Roadmap",
+        "",
+        "## Block A",
+        "",
+        "- 📋 **TT1** (deps: —) **A symptom worth reading here** — "
+        "Because of a reason. → §I.1",
+        "- 📋 **TT2** (deps: —) **A second symptom worth reading** — "
+        "Because of another. → §II.1",
+        "",
+    ]
+)
+
+FAMILIED = (
+    "# Improvements\n\n## Block A\n\n## I A family\n\nProse enough to matter.\n\n"
+    "### I.1 A design\n\nThe reasoning.\n\n## II Another family\n\nMore prose here.\n\n"
+    "### II.1 A second design\n\nThe other reasoning.\n"
+)
+
+
+def test_the_door_two_families_under_one_block_names_runs(tmp_path, capsys):
+    """RK1498. A block whose prose spans two families cannot be narrowed for the caller — which
+    subtree a new line belongs under is a judgement no file holds — so the listing names the
+    command that picks one, with a family it read off the file rather than a blank."""
+    root = outlined(tmp_path)
+    (root / "IMPROVEMENTS.md").write_text(FAMILIED, encoding="utf-8", newline="")
+    # Two lines pointing into the two families, which is what makes a block resolve
+    # to more than one: a block with no pointer under it has no prose to narrow.
+    (root / "ROADMAP.md").write_text(SPANNING, encoding="utf-8", newline="")
+    assert main(["-C", str(root), "anchors", "--block", "A"]) == EXIT_OK
+    said = capsys.readouterr().out
+    ran = runs(root, said)
+    assert ["anchors", "--family", "I"] in ran, said
+
+
+def test_the_door_a_wide_outline_listing_names_runs(tmp_path, capsys):
+    """The addresses are what a caller came for and are one flag away, never printed by the
+    hundred unasked (RK1466) — so the door is the narrowing, and `<anchor>` is the one token a
+    reader substitutes from the rows above it."""
+    root = outlined(tmp_path)
+    (root / "IMPROVEMENTS.md").write_text(FAMILIED, encoding="utf-8", newline="")
+    assert main(["-C", str(root), "anchors"]) == EXIT_OK
+    said = capsys.readouterr().out
+    (argv,) = [one for one in commands(said) if one[:2] == ["anchors", "--family"]]
+    assert main(["-C", str(root), *[one if one != "<anchor>" else "II" for one in argv]]) == EXIT_OK
+
+
+def test_the_doors_a_two_answer_refusal_names_run(tmp_path, capsys):
+    """RK1498, and the third defect this sweep has found in a family it took: the narrowing door
+    spelled its placeholder `<one of them>`, which any shell splits — RK1548's class, met in a
+    command a caller is being told to run."""
+    root = outlined(tmp_path)
+    (root / "IMPROVEMENTS.md").write_text(FAMILIED, encoding="utf-8", newline="")
+    # Two lines pointing into the two families, which is what makes a block resolve
+    # to more than one: a block with no pointer under it has no prose to narrow.
+    (root / "ROADMAP.md").write_text(SPANNING, encoding="utf-8", newline="")
+    assert main(["-C", str(root), "anchors", "--block", "A", "--family", "I"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    argv = [one for one in commands(said) if one[:1] == ["anchors"]]
+    assert [one[1] for one in argv] == ["--block", "--family"], argv
+    # Both, in the order printed: the first names the families and the second narrows to one.
+    assert main(["-C", str(root), *argv[0]]) == EXIT_OK
+    filled_in = [one if one != "<family>" else "I" for one in argv[1]]
+    assert main(["-C", str(root), *filled_in]) == EXIT_OK

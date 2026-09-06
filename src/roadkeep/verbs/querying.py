@@ -1185,7 +1185,9 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
         print(
             "roadkeep: --block resolves to a family, so passing both asks two questions: "
             f"`{invocation()} anchors --block {block}` names the families, and "
-            f"`{invocation()} anchors --family <one of them>` narrows to it",
+            # One token (RK1548): a placeholder with a space in it is split by the shell that
+            # runs the line, so the door as printed names a different command.
+            f"`{invocation()} anchors --family <family>` narrows to it",
             file=sys.stderr,
         )
         return EXIT_USAGE

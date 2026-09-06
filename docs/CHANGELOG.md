@@ -710,6 +710,7 @@
 - ✅ **RK1572** **three sites of the composer work-list compose doors nothing has ever run** — three composed doors of the partial-ship family are executed against two lines of ledger, which found one door no backtick scan could see and one that refused as printed.
 - ✅ **RK1575** **three more sites of the composer work-list compose doors nothing has ever run** — three more composed doors are executed against a scaffold and one write past it, which found declare non_goals naming a command that refuses on every project it was written for.
 - ✅ **RK1533** **govern writes a number the config parser then refuses, leaving every verb unable to read the file** — govern reads back the file it would write and refuses with the parser's own sentence, so a number two keys forbid no longer lands and closes every verb behind it.
+- ✅ **RK1577** **two more sites of the composer work-list compose doors nothing has ever run** — two more composed doors are executed against an outline with two families, which found a narrowing door whose placeholder any shell splits and two row states that overstated the fixture.
 
 ## Block E — Adoption
 
