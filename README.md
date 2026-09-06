@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
-| C — Query (consult without reading the file) | 9 | 164 | 4 |
+| C — Query (consult without reading the file) | 8 | 165 | 4 |
 | D — The gate | 23 | 234 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 152 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 38 | 1012 | 14 |
+| **Total** | 37 | 1013 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1527** (deps: —) **the near window stayed at three when the corpus it ranks over doubled** — RK1495 put the open lines beside the deliveries and the two halves now compete for the same three rows, with no reading of how often either wins one. → §RK1527
+- 💭 **RK1528** (deps: —) **the near row offers the door to the delivered half and none to the open half it now counts** — RK1495 made the corpus two and RK442's guarantee names where the rest of one of them are, leaving the half the task was filed for unfollowable. → §RK1528
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

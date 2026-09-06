@@ -80,6 +80,18 @@ NEAREST = 5
 #: is RK441's own finding arriving from the other side: no threshold separates a duplicate from
 #: a neighbour, so a filter here would be the impossible gate rebuilt as a silence. The rows are
 #: the same rows `--near` prints, and the sentence above them says what the order is not.
+#:
+#: **Three still, with the corpus doubled** (RK1495, RK1527). Putting a block's open lines
+#: beside its deliveries left two halves competing for three rows and no reading of how often
+#: either wins one. Measured over the eleven pairs this ledger knows the answer to: the open
+#: half takes **1 slot of 33**, and widening to four or five reaches no pair three did not —
+#: the two outside are the two RK1183 recorded as correctly out of reach. So the window is
+#: unchanged and the reason is now a number rather than an argument made about one corpus.
+#:
+#: What that figure is a property of is the **ratio**, not the window: this ledger is 167
+#: entries against a block's nine open lines, and a project whose backlog outnumbers its
+#: deliveries would measure the other way. The reading is this repository's, and it is the one
+#: available — a bound argued from a corpus nobody has is the template L6 refuses.
 VOLUNTEERED = 3
 
 #: Saturation and length normalisation, at the figures BM25 is published with. Not

@@ -79,28 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1527 The window that did not grow with the corpus
-
-RK1495 doubled the corpus the near rows are drawn from — a block's deliveries and now
-its open lines — and left the window at `VOLUNTEERED`, which is three. So three rows
-cover twice as much, and the two halves compete for them.
-
-That is not obviously wrong and it is certainly not measured. RK441 fixed the count at
-three because an absolute score separates nothing and a longer list is a verdict wearing
-an order; RK442 made the bound say so. Both arguments were made about one corpus. With
-two, a long ledger can fill all three rows while the open line somebody filed an hour
-ago sits fourth — the case RK1495 exists for, losing to the case it was not.
-
-RK1477 measured the other end of the same read: a real pair ranked 7th against a window
-of 3, and widening was left open. This adds a reason to take that up and a second axis
-with it, because the choice is no longer only *how many*: three of each, or three
-overall with the open ones preferred on a tie, are different answers, and the second
-costs nothing.
-
-What decides it is a reading nobody has: how often the open half wins a slot, and how
-often it would with a window of four. Both are answerable from this repository's history
-— every duplicate here was filed against a block whose two corpora are on disk.
-
 ### §RK1528 The door for one of two corpora
 
 The near row ends with the command that shows the rest: `roadkeep delivered A` is all 6.

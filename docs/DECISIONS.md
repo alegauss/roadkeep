@@ -64,6 +64,7 @@ on the prose roles.
 - ✅ **RK1320** **one drafted flag answers two ways about the same prose, so a number is labelled the caller's on a line the file holds** — A flag about whose prose a figure measures is passed by the caller that wrote it, never derived from a shape that once implied it.
 - ✅ **RK1362** **the spec an agent executes is assembled per call by brief and exists nowhere a review or a second tool can read** — A read bounded to a tool result gets a projection beside it, never a wider bound on the read itself.
 - ✅ **RK1519** **a project that declares its own open markers cannot claim a line, and nothing anywhere says so** — a claim is a marker on an open line, so the working marker is a narrowing of markers.open and never guessed from it.
+- ✅ **RK1527** **the near window stayed at three when the corpus it ranks over doubled** — the near window is set from what the known pairs reach, so a corpus added beside another widens it only where a pair is measured outside it.
 
 ### §RK1362 Why a projection and not a wider read
 

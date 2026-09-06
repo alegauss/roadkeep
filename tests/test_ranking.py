@@ -474,3 +474,75 @@ def test_joining_the_query_scores_the_bookkeeping_and_looks_like_a_gain():
     # claim survives a corpus that grows.
     assert scored >= honest, {"symptom alone": honest, "with the why": scored}
     assert honest, "the honest reading reached nothing: this comparison is about nothing"
+
+
+def test_the_two_corpora_do_not_compete_for_the_volunteered_rows():
+    """RK1527. RK1495 doubled what the near rows are drawn from — a block's deliveries and now
+    its open lines — and left the window at three, so two halves compete for the same rows with
+    no reading of how often either wins one. This is that reading.
+
+    Measured in `add`'s own shape: both prose fields on both sides, the block's shipped entries
+    followed by its open ones, over the eleven pairs this ledger knows the answer to. The open
+    half takes one slot of thirty-three, which is what makes three still the right number —
+    and a ranking change that makes them compete is a red here rather than a silence."""
+    config = Config.discover(HERE)
+    ledger, roadmap = config.document("changelog"), config.document("roadmap")
+    pairs = [
+        (entry, entry.task.why.split("superseded by ", 1)[1].split(":", 1)[0].strip())
+        for entry in ledger.entries
+        if "superseded by " in entry.task.why
+    ]
+    assert len(pairs) >= 11
+    taken = 0
+    for retired, _ in pairs:
+        block = retired.task.block
+        delivered = [
+            one
+            for one in ledger.entries
+            if one.task.block == block and one.task.id != retired.task.id
+        ]
+        entries = [*delivered, *(one for one in roadmap.entries if one.task.block == block)]
+        order = nearest(
+            claim(retired.task.symptom, retired.task.why),
+            [claim(one.task.symptom, one.task.why) for one in entries],
+            VOLUNTEERED,
+        )
+        taken += sum(1 for index in order if index >= len(delivered))
+    # A ceiling and not an equality: a delivery filed tomorrow moves the order, and what may
+    # not happen is the open half taking the rows the measurement says it does not need.
+    assert taken <= VOLUNTEERED, {"slots the open half took": taken}
+
+
+def test_widening_the_window_reaches_no_pair_three_does_not():
+    """The other half of the same decision, and the one that would have been an assumption:
+    the window is not too small either. Four and five reach exactly what three reaches — the
+    two pairs outside are the two RK1183 recorded as correctly out of reach, where the
+    retirement names the task that delivered the larger half rather than the nearest symptom."""
+    config = Config.discover(HERE)
+    ledger, roadmap = config.document("changelog"), config.document("roadmap")
+    by_id = {entry.task.id: entry for entry in ledger.entries}
+    pairs = [
+        (entry, entry.task.why.split("superseded by ", 1)[1].split(":", 1)[0].strip())
+        for entry in ledger.entries
+        if "superseded by " in entry.task.why
+    ]
+    reached = {}
+    for count in (VOLUNTEERED, VOLUNTEERED + 1, VOLUNTEERED + 2):
+        found = 0
+        for retired, partner in pairs:
+            block = retired.task.block
+            delivered = [
+                one
+                for one in ledger.entries
+                if one.task.block == block and one.task.id != retired.task.id
+            ]
+            entries = [*delivered, *(one for one in roadmap.entries if one.task.block == block)]
+            order = nearest(
+                claim(retired.task.symptom, retired.task.why),
+                [claim(one.task.symptom, one.task.why) for one in entries],
+                count,
+            )
+            found += partner in [entries[index].task.id for index in order]
+        reached[count] = found
+    assert by_id, "the ledger this is measured over is readable"
+    assert len(set(reached.values())) == 1, reached
