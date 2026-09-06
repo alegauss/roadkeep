@@ -21,7 +21,7 @@ from pathlib import Path
 import pytest
 
 from composing import SITES, STATES, census, commands, filled, runs, supplied
-from conftest import git_init
+from conftest import git_commit, git_init
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
 from roadkeep.linting import Finding, lint
@@ -1315,3 +1315,119 @@ def test_the_position_a_flag_spelled_wrong_names_runs(tmp_path, capsys):
     with pytest.raises(SystemExit) as ended:
         main(["-C", str(root), *surface])
     assert (ended.value.code or 0) == EXIT_OK
+
+
+# -- what a ledger already holds, and what it holds under one id (RK1498) ------
+
+
+PLAIN = (
+    'prefix = "TT"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+    'improvements = "IMPROVEMENTS.md"\n'
+)
+
+
+def blocked(tmp_path: Path, declare: str = PLAIN, **files: str) -> Path:
+    """A project with one block and nothing in it, which the three tests below fill."""
+    root = tmp_path / "blocked"
+    root.mkdir(parents=True)
+    written = {
+        "roadkeep.toml": declare,
+        "ROADMAP.md": "# Roadmap\n\n## Block A\n\n",
+        "CHANGELOG.md": "# Shipped\n\n## Block A\n",
+        "IMPROVEMENTS.md": "# Improvements\n\n## Block A\n",
+        **files,
+    }
+    for name, body in written.items():
+        with (root / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return root
+
+
+def _filed(root: Path, number: int) -> None:
+    assert main([
+        "-C", str(root), "add", "--block", "A",
+        "--symptom", f"A symptom number {number} worth reading",
+        "--why", "Because of a reason.",
+        "--section", f"A design number {number}",
+        "--section-body", "Prose enough to matter, and it ends.",
+    ]) == EXIT_OK
+
+
+def test_the_read_the_near_row_names_runs(tmp_path, capsys):
+    """RK1498, over RK441. The nearest lines are ranked by word overlap and that is an order
+    rather than a verdict, so the row says how many it left out and names the two reads that
+    are the whole of them — one over the ledger, one over what is still open.
+
+    Run against a block that has **recorded** something, which is the state the count is about:
+    a listing whose `is all 0` never opened a file would answer the same on a ledger of two
+    hundred, and nothing here would have noticed."""
+    root = blocked(tmp_path)
+    _filed(root, 1)
+    _filed(root, 2)
+    assert main(["-C", str(root), "ship", "TT1", "--why", "The first no longer happens."]) == EXIT_OK
+    capsys.readouterr()
+    _filed(root, 3)
+    said = capsys.readouterr().out
+    assert "is all 1" in said, said
+    assert runs(root, said) == (["delivered", "A"], ["list", "--block", "A"]), said
+
+
+def test_the_two_doors_an_inherited_claim_names_each_close_it(tmp_path, capsys):
+    """RK1281's refusal, run. A `--decides` writes no symptom of its own — the claim is the
+    roadmap line's, carried whole — so the ordinary *shorten it* remedy would send the author
+    to a rationale section this very ship is deleting.
+
+    Two doors and they are alternatives, so each is run on its own tree: rewriting the claim
+    in both files, and widening the number the decisions role is held to. Either has to make
+    the refused call land, which is the only thing that makes printing two of them better
+    than printing one.
+
+    The first was spelled with no invocation in front of it while the second, in the same
+    sentence, carried one — RK1589's class again (RK1596), and found the same way: a scan
+    reading the prefix took it for prose, so the sweep saw one door where there are two."""
+    declaring = f"{PLAIN}[limits.decisions]\nsymptom = 20\n".replace(
+        'improvements = "IMPROVEMENTS.md"\n',
+        'improvements = "IMPROVEMENTS.md"\ndecisions = "DECISIONS.md"\n',
+    )
+    shipping = [
+        "ship", "TT1", "--why", "It no longer happens at all.",
+        "--decides", "The store is the repository: no database and no service.",
+    ]
+    for closing in (
+        ["restate", "TT1", "--symptom", "A shorter claim"],
+        ["govern", "limits.symptom", "60", "--role", "decisions"],
+    ):
+        root = blocked(
+            tmp_path / closing[0], declaring, **{"DECISIONS.md": "# Decisions\n\n## Block A\n"}
+        )
+        _filed(root, 1)
+        capsys.readouterr()
+        assert main(["-C", str(root), *shipping]) == EXIT_USAGE
+        said = capsys.readouterr().err
+        named = [one for one in commands(said) if one[:1] == [closing[0]]]
+        assert named, (closing, said)
+        assert main(["-C", str(root), *closing]) == EXIT_OK
+        assert main(["-C", str(root), *shipping]) == EXIT_OK
+
+
+def test_the_read_an_id_no_entry_leads_with_names_runs(tmp_path, capsys):
+    """RK1498, over RK1048. An entry keyed by the id it **leads with** is invisible under the
+    second one it delivered, and history knows better than the parse does — so the refusal
+    stops saying *never written* and names the read that resolves which line holds it.
+
+    The commit is what makes the sentence true, so the fixture commits: a refusal claiming a
+    commit wrote an id, on a tree with no history, would be a message about nothing."""
+    root = blocked(
+        tmp_path,
+        PLAIN,
+        **{
+            "CHANGELOG.md": "# Shipped\n\n## Block A\n\n"
+            "- ✅ **TT7** **A first symptom** — it was done, and so was **TT8**.\n"
+        },
+    )
+    git_init(root)
+    git_commit(root, "feat: two at once")
+    assert main(["-C", str(root), "show", "TT8"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "wrote it" in said, said
+    assert runs(root, said) == (["gaps"],), said

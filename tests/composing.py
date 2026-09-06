@@ -347,20 +347,17 @@ SITES: tuple[Site, ...] = (
     Site("shipping.py:NotAbsorbable.__init__", "run"),
     Site("shipping.py:AlreadyRecorded.__init__", "run"),
     Site("shipping.py:AlsoPaused.__init__", "run"),
-    Site(
-        "shipping.py:Delivered.__str__",
-        "unreached",
-        unreached("a ledger with entries under the block asked about, which every `--near` test already builds"),
-    ),
+    # RK1498, over RK441. The `near` row's two reads, run by `test_composing` against a block
+    # that has recorded something — the state the count is about, a listing whose `is all 0`
+    # never opened a file answering the same on a ledger of two hundred.
+    Site("shipping.py:Delivered.__str__", "run"),
     Site("shipping.py:Divergent.__init__", "run"),
-    # RK1281. The `govern` it names is the second of two doors and the one that is not a
-    # complete argv: which number a wider limit should be is the reading that verb takes, so
-    # the command as printed carries a placeholder and is filled the way every blank is.
-    Site(
-        "shipping.py:InheritedClaim.__init__",
-        "unreached",
-        unreached("a decision filed against a line whose claim came from the task it superseded"),
-    ),
+    # RK1281, run by `test_composing` (RK1498). Two doors and they are alternatives, so each
+    # is taken on its own tree and each has to make the refused ship land. The `govern` is the
+    # one that is not a complete argv — which number a wider limit should be is the reading
+    # that verb takes — and the `restate` beside it was spelled with no invocation at all,
+    # which is why the sweep saw one door where there are two (RK1596).
+    Site("shipping.py:InheritedClaim.__init__", "run"),
     # RK1269. Run by `test_composing`, which executes the `declare decisions` this refusal
     # names and then makes the `ship --decides` land — the whole reading of this file, on the
     # one door where the remedy is a role a project has not opened yet.
@@ -384,11 +381,11 @@ SITES: tuple[Site, ...] = (
     # is right — so the door runs and the section it prints is the one that was asked for.
     Site("showing.py:_instead", "run"),
     Site("showing.py:_paused", "run"),
-    Site(
-        "showing.py:_where_it_went",
-        "unreached",
-        unreached("a ledger entry delivering two ids, so `show` on the second finds nothing in the parse"),
-    ),
+    # RK1498, over RK1048. An entry is keyed by the id it leads with, so the second one it
+    # delivered is invisible to the parse and visible to history — run by `test_composing`
+    # against a committed ledger, a refusal claiming a commit wrote an id being a message
+    # about nothing on a tree with none.
+    Site("showing.py:_where_it_went", "run"),
     # The refusal beside it, on the same fixture: `--block` and `--family` are two questions,
     # and both doors it names now run — which is what found the second half spelling its
     # placeholder `<one of them>`, a token any shell splits (RK1548).

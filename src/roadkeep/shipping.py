@@ -718,9 +718,10 @@ class InheritedClaim(SchemaError):
         self.about = (
             f"--decides writes no symptom: {task_id}'s claim is the roadmap line's, carried "
             f"into {where} whole, so the remainder cannot go in the rationale section this "
-            f"ship is deleting. Either `restate {task_id} --symptom \"…\"`, which rewrites "
-            f"the claim in both files, or declare a wider limit — `{invocation()} govern "
-            f"limits.symptom <n> --role decisions` takes the reading first"
+            f"ship is deleting. Either `{invocation()} restate {task_id} --symptom \"…\"`, "
+            f"which rewrites the claim in both files, or declare a wider limit — "
+            f"`{invocation()} govern limits.symptom <n> --role decisions` takes the reading "
+            f"first"
         )
 
 
