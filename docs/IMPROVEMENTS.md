@@ -900,6 +900,27 @@ What is not settled is the shape. A door elsewhere is `{argv, what}`; a retry ha
 `what`, being the caller's own call. Whether it publishes as a bare list, or beside the
 address that was substituted into it, is the decision this line is for.
 
+### §RK1601 The flag named and the call unspelled
+
+RK1541 gave `cost --tools <name>` the reading, and pointing it at the whole surface
+answers with a number nobody had: **58 arguments across 33 tools**, worth 9,939 code
+units of schema, appear in no call the shipped guidance spells.
+
+Not undocumented. `ship --decides` is written about at length in `writing.md` and
+appears in no `ship …` span there; `section amend --replace` has a paragraph and no
+call. That is the distinction `tests/composing` draws between a flag named in prose and
+a command somebody pastes, and for an agent-first tool it is the one that matters: an
+agent reading the orientation is told the flag exists and left to compose the call,
+which is exactly the composition RK1198's whole family found going wrong.
+
+The cost is paid twice. Every session pays the schema at connect, and the session that
+needs the flag pays a refusal to learn how it goes.
+
+What is not settled is which way to close each one. A call spelled in the pages costs
+words on an every-turn budget `lint` holds (RK30); withholding the argument costs a
+caller the subject entirely. The reading now exists per tool, so the decision is per
+tool — and `ship` at five arguments and 967 units is where it is worth making first.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
