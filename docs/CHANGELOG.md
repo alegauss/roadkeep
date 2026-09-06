@@ -461,6 +461,7 @@
 - ✅ **RK1513** **brief hands over a line carrying no criteria in silence, and the absence is reported only once part landed** — brief now says a line carries no criteria and names the command that writes one, so the absence is read before the first edit rather than at the partial marker.
 - ✅ **RK1519** **a project that declares its own open markers cannot claim a line, and nothing anywhere says so** — markers.working is the sixth key, so every door that takes, reads or releases a claim uses the marker this project declares and a backlog spelling its own can be worked.
 - ✅ **RK1520** **the marker-leak gate rewards the repair that renders the same wrong bytes** — a composed command carrying a marker constant is now a red, so the repair the codepoint scan rewarded is caught by the shape a backticked span makes it.
+- ✅ **RK1557** **the gate against a composed marker reads a bare name, so the same constant reached through its module walks past** — the gate reads a marker constant under both spellings, imported and reached through its module, and holds the pair as a pair so a third arrives as a red.
 
 ## Block D — The gate
 

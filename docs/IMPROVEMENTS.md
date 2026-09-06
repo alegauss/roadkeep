@@ -262,30 +262,6 @@ What decides whether the key is worth it is whether a partial is a *state* or a
 the sentence is the fix alone. `pick`'s tiers say otherwise: the marker is what makes a
 remainder findable.
 
-### §RK1557 The spelling the new gate does not read
-
-RK1520 shut the route its own predecessor's repair took: a marker interpolated into a
-composed command renders the bytes the codepoint scan reads and is invisible to it. The
-scan it wrote looks for an `ast.Name`, so `f"`status {one} {schema.IN_PROGRESS}`"` walks
-past — the same defect one dereference along, in the gate written to close it.
-
-That is not a hypothetical spelling. Half this package reaches the kernel through `from
-roadkeep.kernel import schema` and reads `schema.PARTIAL`; the modules that import the
-constant by name do so because they use it more than once. Either is ordinary style
-here, and only one of the two is seen.
-
-The fix is one branch: an `ast.Attribute` whose `attr` is in the same set counts exactly
-as a `Name` whose `id` is. Nothing else about the reading changes — the shape is still
-the backtick, the exemption is still that a report of what a write did carries no
-command.
-
-What it also wants is the property stated as a property. The gate's exhibition test
-shows one spelling caught and one walked past, which is the right instrument aimed at
-one pair; what it cannot say is that every way of *naming* a marker constant is read. A
-list of the spellings Python has for one name is short — a name, an attribute, and an
-alias nothing here uses — so the honest form is a row per spelling with the verdict
-beside it, and a fourth spelling arriving as a red.
-
 ### §RK1558 The exemption one of two scans keeps
 
 `test_configured`'s three literal scans skip what a caller is shown: `help`,

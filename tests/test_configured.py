@@ -137,6 +137,22 @@ MARKER_NAMES = frozenset(
 SPAN = "`"
 
 
+#: Every way this package spells a marker constant's **name**: imported, and reached through
+#: its module. Both are ordinary style here — a module using one marker once reaches for the
+#: second — and a gate that read one of them would be the defect RK1520 is about, one
+#: dereference along (RK1557). Asserted as a pair below, so a third arrives as a red.
+SPELLINGS = ("Name.id", "Attribute.attr")
+
+
+def _named_marker(node: ast.AST) -> str:
+    """The marker constant this node names, under either spelling, or `""`."""
+    if isinstance(node, ast.Name) and node.id in MARKER_NAMES:
+        return node.id
+    if isinstance(node, ast.Attribute) and node.attr in MARKER_NAMES:
+        return node.attr
+    return ""
+
+
 def _composed_markers(source: str) -> list[str]:
     """Every f-string that composes a command and interpolates a marker constant (RK1520).
 
@@ -147,8 +163,14 @@ def _composed_markers(source: str) -> list[str]:
 
     So the shape is the backtick. A span in backticks is how every composed command in this
     package is delimited, and a marker constant inside one is this package deciding what a
-    project's vocabulary is. A marker read from the config arrives as a parameter or an
-    attribute, and neither is a name in this set.
+    project's vocabulary is. A marker read from the config arrives as a parameter or as
+    `config.schema.<field>`, and neither is one of these names.
+
+    **Every spelling of the name, and not the bare one** (RK1557). A constant is reached here
+    two ways — imported (`IN_PROGRESS`) and through its module (`schema.IN_PROGRESS`) — and a
+    scan that read only the first would be this gate walking past the same defect it was
+    written to catch, one dereference along. :data:`SPELLINGS` is that pair, asserted as a
+    pair, so a third way of naming one arrives as a red rather than as a silence.
     """
     found = []
     for node in ast.walk(ast.parse(source)):
@@ -162,11 +184,11 @@ def _composed_markers(source: str) -> list[str]:
         if SPAN not in literal:
             continue
         named = {
-            inner.id
+            _named_marker(inner)
             for one in node.values
             if isinstance(one, ast.FormattedValue)
             for inner in ast.walk(one.value)
-            if isinstance(inner, ast.Name) and inner.id in MARKER_NAMES
+            if _named_marker(inner)
         }
         found += [f"{node.lineno}: {name}" for name in sorted(named)]
     return found
@@ -203,6 +225,22 @@ def test_the_two_routes_to_one_message_are_both_shut():
     # And the reading that stays legitimate: a report of what a write did is not a command,
     # so it carries no backtick and this says nothing about it.
     assert _composed_markers('x = f"moved to {IN_PROGRESS}"') == []
+
+
+def test_both_spellings_of_a_constant_are_one_defect(tmp_path):
+    """RK1557. The first cut of this gate read an `ast.Name`, so the same constant reached
+    through its module walked past — the defect it was written to catch, one dereference along.
+
+    Held as a **pair** and never as one example each: what the rule is about is a marker
+    constant being *named*, and Python has these two ways to name one. A third would arrive
+    here as a red, which is what keeps the sweep's population honest."""
+    assert set(SPELLINGS) == {"Name.id", "Attribute.attr"}
+    imported = 'x = f"`status {one} {IN_PROGRESS}`"'
+    dereferenced = 'x = f"`status {one} {schema.IN_PROGRESS}`"'
+    assert _composed_markers(imported) == ["1: IN_PROGRESS"]
+    assert _composed_markers(dereferenced) == ["1: IN_PROGRESS"]
+    # And the exemption survives the widening: an attribute is not a command either.
+    assert _composed_markers('x = f"moved to {schema.IN_PROGRESS}"') == []
 
 
 def test_no_module_writes_an_id_in_this_project_s_shape():
