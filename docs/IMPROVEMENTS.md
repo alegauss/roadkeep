@@ -1057,6 +1057,32 @@ and held by this sweep going red, and that is the right amount: a convention wit
 reader and one failure. A second check that the composer is named after its kind would
 be the same fact asserted twice, and the second copy is the one that goes stale.
 
+### §RK1581 The config this verb looks for and the one every other finds
+
+RK1534 made the orientation lead with `init` on a tree that governs nothing, and the
+reading that decides it is `(root / "roadkeep.toml").is_file()`. That is a path this
+module spells for itself. Everywhere else the config's location is `Config.source`,
+discovered by walking up from a directory — and the two answer differently on a project
+whose config lives in a parent, which is every subdirectory of every governed
+repository.
+
+The consequence is small and the wrong way round. `install -C sub/` on a governed
+monorepo reads no `roadkeep.toml` beside it and tells the adopter that nothing is
+governed yet, naming `init` — which would scaffold a second project inside the first.
+That is the failure `_init`'s own comment names in as many words: a discovered config
+would be an ancestor's, and scaffolding under someone else's paths is how a subproject
+writes into its parent's roadmap.
+
+So the literal is not obviously wrong: `install` is aimed at a tree, and the question
+*does this tree declare its own* is a different one from *is this tree governed by
+something*. What is missing is that the sentence answers the second and the reading
+answers the first.
+
+The fix is a sentence rather than a reader, if the reading is right: a tree under a
+governed parent wants to be told so, not offered `init`. Whether `install` should
+discover at all is the question behind it, and `Config.discover` answers it for every
+other verb — the asymmetry worth stating before either changes.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

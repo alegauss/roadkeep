@@ -77,6 +77,7 @@
 - 💭 **RK1560** (deps: —) **install replaces a server declaration an adopter wrote themselves and no row names what was there** — the merge keeps every entry but this project's own, and RK1492 established that entry may legitimately hold a wrapper. → §RK1560
 - 💭 **RK1561** (deps: —) **engines --invoke prints a command and never that the declaration it fell through was one this tool cannot read** — RK1523 gave the report that row and the flag a caller actually pipes still answers as though nothing were declared. → §RK1561
 - 💭 **RK1564** (deps: —) **the note sweep reads every call inside an answer's text, so a helper beside a note reads as a kind** — RK1525 is exact because each site interpolates one composer, and a suffix clause of the sort three composers already use would break it. → §RK1564
+- 💭 **RK1581** (deps: —) **install reads roadkeep.toml beside the tree where every other verb discovers it, so a governed subtree reads as none** — RK1534 needed to know whether a tree governs anything and asked the filesystem, where Config.source answers a different question. → §RK1581
 
 ## Block G — The editor surface (the backlog where the file is open)
 
