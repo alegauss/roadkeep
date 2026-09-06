@@ -804,6 +804,31 @@ at the price of the page no longer stating its own claim, which is why RK1505 pu
 there. Or the figure is taken and 90 characters turns out not to be worth moving, which
 is a reading and not a guess.
 
+### §RK1541 The surface trimmed by argument and never by reading
+
+RK1506 added `budget --ship --decides` and exposing it over MCP put the tool at 2947
+characters against the 2850 `[tools] characters` allows. So the flag is withheld, with
+that number as the reason — and the caller it was written for is exactly the one that
+cannot reach it.
+
+The argument for the flag is a transport argument. `brief` prices all three lines a
+departure writes and answers about the whole task; a caller composing one sentence wants
+the allowance for that sentence, and over MCP a refusal costs the whole payload again.
+That is the case for `--why`, `--retire`, `--ship` and `--defer`, each of which *is*
+served. The tenth subject is the one the ceiling stopped, and nothing about it is
+different in kind.
+
+`budget` is where this bites because RK1321 already split it once: `tools`, `session`
+and `brief` moved to `cost` when eight subjects under one name made it the largest
+served tool. The split bought room and the room is gone, and the next subject meets the
+same wall — so the answer *raise the ceiling* is the reviewer's limit RK30 replaced, and
+the answer *split again* has no obvious seam left.
+
+What is worth reading before either: which of `budget`'s sixteen exposed arguments the
+served callers actually pass. `cost --tools budget` ranks the fields by what they cost
+and nothing ranks them by what they are used for, so the surface has been trimmed twice
+by argument and never once by measurement.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

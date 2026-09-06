@@ -62,6 +62,7 @@
 - 💭 **RK1538** (deps: —) **the flag saying which ceiling refused a field reaches neither the remedy table nor a payload** — RK1503 made the fact structural for three readers and only the write path uses it, so the other two still match on prose. → §RK1538
 - 💭 **RK1539** (deps: —) **the comment explaining the respelling guard names a verb this CLI does not have** — RK1504's enumeration found one collision where two were described, both examples having been written from the tool table and neither checked against the parser. → §RK1539
 - 💭 **RK1540** (deps: —) **a reference page now opens with two lines addressed to the gate, and nothing prices them** — RK1505 put the declaration in the page so the page states its own claim, on files RK1437 split off precisely for what opening one costs. → §RK1540
+- 💭 **RK1541** (deps: —) **the served budget has no room for a tenth subject, and which of its sixteen arguments callers use is unmeasured** — RK1506's flag was withheld at 97 characters over, and the split RK1321 made to buy that room has no obvious seam left. → §RK1541
 
 ## Block E — Adoption
 
