@@ -60,6 +60,8 @@
 - 💭 **RK1541** (deps: —) **the served budget has no room for a tenth subject, and which of its sixteen arguments callers use is unmeasured** — RK1506's flag was withheld at 97 characters over, and the split RK1321 made to buy that room has no obvious seam left. → §RK1541
 - 💭 **RK1542** (deps: —) **the retirement prefix every ranking figure is measured through is split by hand in two tests** — RK1507 paired the carried line's two readers and this is the same shape one field over, with the composer in shipping and the readers in a test. → §RK1542
 - 💭 **RK1544** (deps: —) **the brief an estimate prices has no deps and no design, and the row does not say so** — RK1509 reads the file adopt was handed because the tree has declared nothing, so every part of a brief that lives in another role is absent from the figure. → §RK1544
+- 💭 **RK1550** (deps: —) **a design keeps naming a function of this package after a rename, no gate reading that pointer** — ref.dangling covers section to section only, so two sections cited a helper that had stopped existing and lint was clean either way. → §RK1550
+- 💭 **RK1551** (deps: —) **the gate falls silent where a design quotes a constraint and the run that fell silent never says so** — RK1478 put the suppression in non-goal list, which is not the command a session runs when the gate is what it is reading. → §RK1551
 
 ## Block E — Adoption
 

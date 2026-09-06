@@ -780,6 +780,54 @@ be the figure with a clause saying what it does not include, rather than a wider
 Either way the row currently states a number without saying which brief it is a brief
 of.
 
+### §RK1550 The pointer that runs the other way
+
+RK1515 renamed one helper and two governed sections went stale: §RK1516 named
+`rendering._settled_rows` and §RK1536 named RK1488's `settled` row, both of them prose
+about code that had just stopped existing. Both were found by grepping `docs/` — `lint`
+was clean before the amend and clean after it, and a shipped design citing a dead symbol
+is exactly what this repository's docs being the conformance fixture is supposed to
+catch.
+
+The pointer between two sections has `ref.dangling`; the pointer from prose into the
+package has nothing. That asymmetry is the whole finding, and it is not about prose
+being harder to check: an open design is read by the session about to do the work, and a
+name it cannot find is the same wasted turn `ref.dangling` was built to prevent.
+
+The rule is narrow enough to be safe. A backticked `<module>.<name>` or
+`<module>.py:<Name>` whose module is one of this package's is a claim about code, and
+resolving it is an AST walk of the tree `surface.modules` already enumerates. Anything
+else — a flag, a filename, another tool's symbol — is not shaped like that and is never
+asked about, which keeps the check off prose it has no business reading.
+
+What decides its worth is which side it errs on. A design citing a symbol that a later
+refactor renames is stale the moment the rename lands, and the finding has to name the
+section rather than the rename: there is no automatic repair here, the sentence being
+the author's.
+
+### §RK1551 The note that says nothing about its own silence
+
+RK1515 made every register honest about what it measured and left the gate where it was:
+`non-goal.reaches` still falls silent the moment a design quotes a lead, answer or
+citation alike. The suppression is right — RK1457's trade holds — but it is now the one
+claim here nobody can see, the only place it is reported being `non-goal list`, which a
+session runs when it is writing a constraint and not when the gate is what it is
+reading.
+
+So the finding is a missing sentence, not a missing rule. `lint` is where the note lives
+and where its absence is a fact about the run: a line the note *would* have named,
+silent because its own design quotes the lead. Said where a clean gate says what it did
+not report, beside the counts, and never as a finding — nothing is wrong, and a project
+whose designs answer their constraints would go red for having done the right thing.
+
+What it buys is the case RK1515 was measured on. A citation suppresses a note about a
+line whose author decided nothing, and the only reader who can tell is the one being
+shown that it happened. Today they would have to run a second command to find out a
+first one stayed quiet.
+
+The cost is a line on a lint already printing two advisory rows, bounded by the same
+rarity: most designs never quote a lead, and a project with none sees nothing.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
