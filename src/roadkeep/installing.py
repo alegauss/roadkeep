@@ -945,22 +945,45 @@ def declared_launcher(root: Path) -> str:
     right: :meth:`Engines.invoke` then names the copy that is answering, which for a
     declaration this tool cannot read is the honest answer rather than an invented one.
     """
-    try:
-        declared = json.loads(_read(root / PROJECT_MCP))["mcpServers"][SERVER]
-        argv = [str(declared["command"]), *(str(one) for one in declared["args"])]
-    except (OSError, ValueError, KeyError, TypeError):
-        return ""
+    argv = declared_argv(root)
     ends = max(
         (n for n, one in enumerate(argv) if one.endswith(_PROGRAMS)), default=-1
     )
     if ends < 0:
         return ""
-    # The two spellings `install` writes, resolved against the tree they address (RK1200's
-    # rule, one file over): a command carrying a placeholder is one nobody can paste.
+    return _resolved(root, argv[: ends + 1])
+
+
+def declared_argv(root: Path) -> list[str]:
+    """The whole argv this project's `.mcp.json` declares for the server, or `[]` (RK1523).
+
+    :func:`declared_launcher`'s first half, lifted out because the two absences it collapses
+    are two facts. A project that declares no server and one that declares a server whose
+    program this command did not write both answer `""` there — and only the second means the
+    harness runs something the report cannot name, which is the state `engines` exists for.
+    RK415 made exactly that distinction for the plugin ("no plugin" against "a plugin this
+    could not read") and it was never made for the declaration.
+
+    Read and never judged, which is `_driver`'s rule one row over: a wrapper, `uv run` or a
+    shell script is a legitimate thing to declare, and what a reader gets is the command
+    beside the trees with the comparison left to them.
+    """
+    try:
+        declared = json.loads(_read(root / PROJECT_MCP))["mcpServers"][SERVER]
+        return [str(declared["command"]), *(str(one) for one in declared["args"])]
+    except (OSError, ValueError, KeyError, TypeError):
+        return []
+
+
+def _resolved(root: Path, argv: Sequence[str]) -> str:
+    """One declared argv as a command a reader can paste (RK1200's rule, one file over).
+
+    The two spellings `install` writes, resolved against the tree they address: a command
+    carrying a placeholder is one nobody can run.
+    """
     where = root.as_posix()
     return " ".join(
-        one.replace(PROJECT_DIR_OR_CWD, where).replace(PROJECT_DIR, where)
-        for one in argv[: ends + 1]
+        one.replace(PROJECT_DIR_OR_CWD, where).replace(PROJECT_DIR, where) for one in argv
     ).strip()
 
 
@@ -1369,6 +1392,17 @@ class Engines:
     #: the harness runs, so :meth:`invoke` answers it rather than restating the launcher's
     #: resolution order — which it knew two of four entries of.
     declared: str = ""
+    #: The whole argv this project's `.mcp.json` declares for the server, resolved, or `""`
+    #: where it declares none (RK1523). The **fifth** copy, and the only one that is a
+    #: *command* rather than a tree: whatever this says is literally what the harness starts,
+    #: and the copy it reaches is inside it.
+    #:
+    #: Beside :attr:`declared` and not instead of it, because the two answer different
+    #: questions and their absences are different facts. That one is the launcher this command
+    #: recognises, which is what `--invoke` prints; this one is what the file says, so a
+    #: declaration naming a wrapper — `uv run`, a shell script, an interpreter with flags —
+    #: is reported as unreadable rather than as absent (RK1492's honest `""` said one way).
+    declaration: str = ""
     #: The command git would run to merge a governed file, or `""` where nothing is wired
     #: (RK1385). The **fourth** copy, and the one that runs when nobody is watching: git
     #: invokes it mid-merge, on the files whose whole claim is that their merge is decidable,
@@ -1572,6 +1606,23 @@ class Engines:
                 else "  another copy — `merge --check` names the line that re-wires it"
             )
             rows.append(f"merge    {self.driver}{whose}")
+        # The fifth (RK1523), and the only row that is a command the harness runs rather than
+        # a tree somebody wrote. Three states and not two, which is the whole finding: nothing
+        # declared, a declaration this command wrote, and a declaration it did not — that last
+        # one used to read exactly like the first, so a project whose server is started by a
+        # wrapper was reported as declaring none.
+        if not self.declaration:
+            rows.append(
+                "server   —         this project's own `.mcp.json` declares no roadkeep "
+                "server, so nothing here starts one and a plugin is what serves it"
+            )
+        elif self.declared:
+            rows.append(f"server   {self.declaration}")
+        else:
+            rows.append(
+                f"server   {self.declaration}  a program this command did not write, so "
+                f"which copy it reaches is inside it"
+            )
         if self.verdict == UNPINNABLE:
             # The state that used to read as agreement, and the one a machine developing this
             # tool is in every day (RK418): the numbers match, the checkout has uncommitted
@@ -1636,6 +1687,11 @@ class Engines:
             # would mean running it. `""` and never omitted, so a consumer tells "nothing
             # wired" from "this build predates the row".
             "driver": self.driver,
+            # The fifth (RK1523), published as two keys because it is two facts: what the
+            # file declares, and whether this command recognises the program in it. A
+            # consumer reading only the first cannot tell a wrapper from an absence.
+            "declaration": self.declaration,
+            "readable": bool(self.declared),
             # The command a shell caller runs (RK1230), on the ordinary payload as well as
             # behind its own flag: a consumer already reading this answer should not have to
             # make a second call for the one field it acts on.
@@ -1689,6 +1745,10 @@ def engines(root: str | Path = ".") -> Engines:
         # What this project runs, as it wrote it down (RK1469) — one small JSON read, and the
         # answer `--invoke` prints rather than an order restated here.
         declared=declared_launcher(base),
+        # The same file read once more and never judged (RK1523): what `install` merged into
+        # is a declaration, so the whole of it is the answer to *which command the harness
+        # runs* and the launcher above is only the part this tool can name.
+        declaration=_resolved(base, declared_argv(base)),
         gates=gated_at(base),
         # The fourth copy (RK1385), read out of git config and never run. Swallowed the way
         # every other absence here is: a tree git cannot be asked about answers "nothing

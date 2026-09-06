@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 9 | 164 | 4 |
 | D — The gate | 22 | 233 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 148 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 149 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 37 | 1007 | 14 |
+| **Total** | 36 | 1008 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1523** (deps: —) **a declaration whose program engines cannot name is silent, and reads exactly like a project that declares none** — RK1492 made the reader refuse to guess, and the report has no row for the one command the harness literally runs. → §RK1523
+- 💭 **RK1524** (deps: —) **the four notes this server appends to a tool result are priced by nothing, on a heavier cadence than the gate's** — RK1491 gave the gate's notes a number and RK1493 enumerated a second population, and two of these were already cut by reading rather than against a figure. → §RK1524
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

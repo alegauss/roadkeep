@@ -828,30 +828,6 @@ twelve numbers with no argument behind them would be twelve limits that move.
 
 ## Block F — The plugin
 
-### §RK1523 The fifth copy, which is a command
-
-RK1492 stopped `declared_launcher` guessing at a program it did not write, and the
-honest answer where it finds neither launcher is `""`. `Engines.invoke` then falls
-through to the copy that is answering, which is right — and indistinguishable from a
-project that declares no server at all.
-
-Two facts share one silence. *Nothing is declared here* means the running copy is the
-only one; *this project declares a server whose program I do not recognise* means the
-harness runs something the report cannot name, the state `engines` exists for. RK415's
-own argument from the row above: "no plugin" and "a plugin this could not read" look the
-same, and only one of them means the writes are unjudged. That distinction was made for
-the plugin and never for the declaration.
-
-The declaration is in no report either way. `Engines.declared` feeds `--invoke` and
-appears in neither `stated` nor `payload`, so a reader asking which copies this project
-runs sees four rows and not the thing the harness executes. A wrapper, `uv run`, a shell
-script — any of them starts the server, and the answer to "which copy" is inside it.
-
-What closes it is a fifth row on the same terms as the other four: the declaration as
-written, and where the program is not one this command wrote, said so rather than
-dropped. Read and never judged, which is `driver`'s rule one row over — a command beside
-the trees, with the comparison left to whoever reads it.
-
 ### §RK1524 The notes on the transport nobody counts
 
 RK1491 gave the **gate's** notes a cadence: `cost --notes` prices what a clean run says

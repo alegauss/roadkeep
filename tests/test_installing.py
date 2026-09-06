@@ -2286,10 +2286,19 @@ def test_the_count_a_sentence_states_says_which_question_it_is_about():
     from roadkeep.installing import Engines
 
     read = {one.name for one in fields(Engines)} - {"running"}
-    # Five rows: the pen, the plugin, the vendored copy, the gates and the driver — and the
-    # declaration, which is not a copy at all (RK1469): it is what this project says it runs,
-    # read so `--invoke` answers off the file instead of restating the launcher's own order.
-    assert read == {"plugin", "vendored", "gates", "driver", "declared"}, sorted(read)
+    # Five rows: the pen, the plugin, the vendored copy, the gates and the driver — and two
+    # fields for the declaration, which is not a copy at all: `declared` is the launcher this
+    # command recognises, which is what `--invoke` answers off the file (RK1469), and
+    # `declaration` is the whole argv, so a wrapper is reported as unreadable rather than as
+    # nothing declared (RK1523). Two absences, two facts, and one row that says which.
+    assert read == {
+        "plugin",
+        "vendored",
+        "gates",
+        "driver",
+        "declared",
+        "declaration",
+    }, sorted(read)
     # And the verdict still compares two: adding a driver never moves it, whatever it holds,
     # and neither does a vendored copy — that one is `split`, which is a different pair
     # (RK1451) and deliberately has no standing to refuse a write.
@@ -2956,3 +2965,74 @@ def test_the_skill_is_not_dated_because_it_is_not_a_copy(project):
     shipped = (HERE / PLUGIN_SKILL).read_text(encoding="utf-8")
     assert written != shipped
     assert "roadkeep-launch.py" in written
+
+
+# -- the fifth copy, which is a command (RK1523) -------------------------------
+
+
+def _declaring(root: Path, argv: list[str]) -> None:
+    """A project whose `.mcp.json` declares the roadkeep server as this argv."""
+    (root / PROJECT_MCP).parent.mkdir(parents=True, exist_ok=True)
+    (root / PROJECT_MCP).write_text(
+        json.dumps({"mcpServers": {"roadkeep": {"command": argv[0], "args": argv[1:]}}}),
+        encoding="utf-8",
+    )
+
+
+def test_a_declaration_this_command_did_not_write_is_named_and_not_dropped(
+    project, capsys, monkeypatch
+):
+    """RK1523. RK1492 stopped the reader guessing at a program it did not write, and the
+    honest `""` it returns collapsed two facts: *nothing is declared here* and *this project
+    declares a server whose program I do not recognise*. Only the second means the harness
+    runs something the report cannot name — RK415's own distinction for the plugin, never
+    made for the declaration."""
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(project / "empty"))
+    _declaring(project, ["uv", "run", "--project", ".", "serve-roadkeep", "mcp"])
+    assert main(["-C", str(project), "engines"]) in (EXIT_OK, EXIT_GATE)
+    (row,) = [
+        line for line in capsys.readouterr().out.splitlines() if line.startswith("server")
+    ]
+    assert "uv run --project . serve-roadkeep mcp" in row
+    assert "a program this command did not write" in row
+
+
+def test_a_project_that_declares_no_server_says_that_instead(project, capsys, monkeypatch):
+    # The other fact, and the one the silence used to mean: nothing here starts a server.
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(project / "empty"))
+    assert main(["-C", str(project), "engines"]) in (EXIT_OK, EXIT_GATE)
+    (row,) = [
+        line for line in capsys.readouterr().out.splitlines() if line.startswith("server")
+    ]
+    assert "declares no roadkeep server" in row
+
+
+def test_a_declaration_this_command_wrote_is_the_command_itself(project, source, capsys, monkeypatch):
+    """The third state, and the ordinary one: `install` wrote the launcher, so the row is what
+    the harness runs — resolved, because a command carrying a placeholder is one nobody pastes."""
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(project / "empty"))
+    install(project, source=source)
+    capsys.readouterr()
+    assert main(["-C", str(project), "engines"]) in (EXIT_OK, EXIT_GATE)
+    (row,) = [
+        line for line in capsys.readouterr().out.splitlines() if line.startswith("server")
+    ]
+    assert LAUNCHER.rsplit("/", 1)[-1] in row
+    assert "did not write" not in row and "declares no" not in row
+    assert "${" not in row, "a placeholder is a command nobody can run"
+
+
+def test_the_payload_says_what_was_declared_and_whether_it_was_read(
+    project, capsys, monkeypatch
+):
+    """Two keys because it is two facts: a consumer reading only the command cannot tell a
+    wrapper from an absence, which is the reading this task is about."""
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(project / "empty"))
+    _declaring(project, ["uv", "run", "serve-roadkeep", "mcp"])
+    assert main(["-C", str(project), "engines", "--json"]) in (EXIT_OK, EXIT_GATE)
+    found = json.loads(capsys.readouterr().out)
+    assert found["declaration"] == "uv run serve-roadkeep mcp"
+    assert found["readable"] is False
+    # And the launcher answer is unchanged: `--invoke` still falls through to the copy that
+    # is answering, which for a declaration this tool cannot read is the honest reply.
+    assert found["invoke"]
