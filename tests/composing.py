@@ -253,11 +253,13 @@ SITES: tuple[Site, ...] = (
         "unreached",
         unreached("a project `merge --register` is aimed at whose config cannot be read"),
     ),
-    Site(
-        "installing.py:plan",
-        "unreached",
-        unreached("a checkout of this tool beside the project, which `test_installing` builds and this suite does not"),
-    ),
+    # RK1498, the fifth surface's row. Three states and three doors, run by `test_composing`
+    # against a governed project in a repository: unwired, where both commands run in the order
+    # printed and the second was spelled with no invocation at all; already wired, where one is
+    # a write with nothing to write and the other a read whose 1 is its answer; and blocked,
+    # where the sentence predicts a refusal and is held to it. The remedy is run and the row
+    # re-read, which is the only proof it was the right command (RK393).
+    Site("installing.py:plan", "run"),
     Site(
         "linting.py:_projections",
         "unreached",

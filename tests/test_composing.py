@@ -21,7 +21,8 @@ from pathlib import Path
 import pytest
 
 from composing import SITES, STATES, census, commands, filled, runs, supplied
-from roadkeep.cli import EXIT_OK, EXIT_USAGE, build_parser, main
+from conftest import git_init
+from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
 from roadkeep.linting import Finding, lint
 from roadkeep.provenance import invocation
@@ -847,3 +848,114 @@ def test_a_governed_tree_is_told_what_it_already_is(tmp_path, capsys):
     assert "nothing here is governed yet" not in said
     argv = commands(_oriented(said))
     assert argv[0][:1] == ["brief"], argv[:2]
+
+
+# -- the merge row an install prints (RK1498, sized by RK1532) -----------------
+
+
+def _adopter(tmp_path: Path) -> Path:
+    """A governed project inside a repository, which is the state the merge row is about.
+
+    `git init` because the row's three states are about what git would find: without a
+    repository `_routed` cannot answer, and the fixture would be reading the tool's fallback
+    rather than the state the sentence names.
+    """
+    project = tmp_path / "adopter"
+    git_init(project)
+    assert main(["-C", str(project), "init"]) == EXIT_OK
+    return project
+
+
+def _attributes(said: str) -> str:
+    """The one row of the plan this family is about, which all three states begin with."""
+    return chr(10).join(one for one in said.splitlines() if ".gitattributes" in one)
+
+
+def test_the_doors_an_unwired_merge_row_names_run(tmp_path, capsys):
+    """RK1498. The fifth surface is opt-in, so the row that says it is unwritten is the only
+    place an adopter is told the driver exists — and it names two commands for one write
+    (RK148). Both are run here, in the order printed, which is what makes it a path.
+
+    The find is the second of them: `install --register-merge` was spelled without the
+    invocation, so `commands` skipped it as prose. Not a scan's problem — RK1220's, met again:
+    a door that omits the prefix is a line that does nothing on a machine whose console script
+    is named anything else, and the sibling door in the same sentence always carried it."""
+    project = _adopter(tmp_path)
+    capsys.readouterr()
+    assert main([
+        "-C", str(project), "install", "--check", "--source", str(_wired(tmp_path)),
+    ]) == EXIT_GATE
+    row = _attributes(capsys.readouterr().out)
+    ran = runs(project, row)
+    assert [one[:2] for one in ran] == [
+        ["merge", "--register"],
+        ["install", "--register-merge"],
+    ], row
+
+
+def test_the_remedy_moves_the_row_it_was_offered_from(tmp_path, capsys):
+    """RK393's rule, which is the only proof the door was the right command: a verdict whose
+    remedy leaves the verdict standing is a loop. So the row is read twice — once before the
+    command it names and once after — and it has to have moved to the state that says the
+    attribute half is written."""
+    project = _adopter(tmp_path)
+    capsys.readouterr()
+    source = _wired(tmp_path)
+    checking = ["-C", str(project), "install", "--check", "--source", str(source)]
+    assert main(checking) == EXIT_GATE
+    assert "wires the merge driver" in _attributes(capsys.readouterr().out)
+    assert main(["-C", str(project), "merge", "--register"]) == EXIT_OK
+    capsys.readouterr()
+    assert main(checking) == EXIT_GATE
+    row = _attributes(capsys.readouterr().out)
+    assert "the attribute half is written" in row, row
+    assert "wires the merge driver" not in row, row
+
+
+def test_the_door_a_wired_merge_row_names_answers_rather_than_refuses(tmp_path, capsys):
+    """The second door of the wired state is a **read**, and its 1 is that read's answer: the
+    config half is a `git config` this tool prints and never runs (RK266), so a clone that
+    holds the attributes and not the key is exactly what `merge --check` exists to say.
+
+    Which is why this asserts the code rather than passing the row to `runs`: the sweep's
+    contract is one expected code per message, and a message whose two doors answer with
+    different ones is a message that has to name which is which."""
+    project = _adopter(tmp_path)
+    assert main(["-C", str(project), "merge", "--register"]) == EXIT_OK
+    capsys.readouterr()
+    assert main([
+        "-C", str(project), "install", "--check", "--source", str(_wired(tmp_path)),
+    ]) == EXIT_GATE
+    row = _attributes(capsys.readouterr().out)
+    argv = commands(row)
+    assert [one[:2] for one in argv] == [
+        ["install", "--register-merge"],
+        ["merge", "--check"],
+    ], row
+    # The write first, and the row's own claim about it: there is nothing here for it to
+    # write, so the file it would have written comes back byte-identical.
+    before = (project / ".gitattributes").read_bytes()
+    assert main(["-C", str(project), *argv[0]]) == EXIT_OK
+    assert (project / ".gitattributes").read_bytes() == before
+    assert main(["-C", str(project), *argv[1]]) == EXIT_GATE
+
+
+def test_the_door_a_blocked_merge_row_names_refuses_as_it_says(tmp_path, capsys):
+    """RK394's state, and the one sentence in this family that predicts a refusal: with the
+    path taken by something that is not a file the row stops advertising the flag and says
+    that running it would exit 2.
+
+    A claim about a command, so it is checked by running the command — and by the half the
+    sentence leaves implicit, which is the one RK393 was filed for: *nothing was written*."""
+    project = _adopter(tmp_path)
+    (project / ".gitattributes").mkdir()
+    capsys.readouterr()
+    assert main([
+        "-C", str(project), "install", "--check", "--source", str(_wired(tmp_path)),
+    ]) == EXIT_GATE
+    row = _attributes(capsys.readouterr().out)
+    (argv,) = commands(row)
+    assert argv == ["install", "--register-merge"], row
+    assert main(["-C", str(project), *argv]) == EXIT_USAGE
+    assert not (project / ".mcp.json").exists()
+    assert not (project / ".claude").exists()

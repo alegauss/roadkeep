@@ -721,6 +721,7 @@
 - ✅ **RK1586** **a shared record is built positionally by one of its callers, so a field inserted above another moves a figure** — the record three subjects share is keyword-only, so a field inserted above another is a compile-time question rather than a published figure moving in silence.
 - ✅ **RK1587** **ten records of six or more fields are built positionally, and which of them more than one module builds is unmeasured** — no record is both built by two modules and reached by position, so the sweep is declined and the intersection is held as the gate that catches the next one.
 - ✅ **RK1541 (the price of what is held back)** **the served budget has no room for a tenth subject, and which of its sixteen arguments callers use is unmeasured** — cost --tools prices each withheld argument against the room there is now, so how far over a subject would put a tool is a figure and not prose.
+- ✅ **RK1589** **the merge row an install prints names three doors and nothing has ever run one of them** — The three states of the .gitattributes row run against a repository, and the door two of them name is spelled with the invocation, which is what makes it findable.
 
 ## Block E — Adoption
 

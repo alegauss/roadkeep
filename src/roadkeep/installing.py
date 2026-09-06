@@ -182,16 +182,21 @@ ACTION_REF = "main"
 MERGE = (
     ".gitattributes: `{invocation} merge --register` wires the merge driver for the governed "
     "files, so two branches appending under one heading is two additions and not a conflict "
-    "— opt-in configuration, and `install --register-merge` runs it here"
+    "— opt-in configuration, and `{invocation} install --register-merge` runs it here"
 )
 
 #: The same line where that file cannot be written at all (RK394). `not written` is the honest
 #: half of the report and it names a remedy on every run; a remedy that exits 2 is a different
 #: entry from one the caller simply has not chosen yet, so it says which this is and stops
 #: advertising the flag.
+#:
+#: The one row in this family that predicts a **refusal**, which is why RK1498 runs it: a
+#: sentence saying a command would refuse is a claim about that command, and until it was
+#: executed here nothing held the two together.
 MERGE_BLOCKED = (
     ".gitattributes: {blocker} is in the way, so the merge driver cannot be wired here at "
-    "all — `install --register-merge` would refuse, and moving that is what comes first"
+    "all — `{invocation} install --register-merge` would refuse, and moving that is what "
+    "comes first"
 )
 
 #: And the third state (RK1387), by :data:`MERGE_BLOCKED`'s own argument one step further: an
@@ -206,8 +211,8 @@ MERGE_BLOCKED = (
 #: `merge --check` exists to say, so quoting it here would be the second answer this closes.
 MERGE_WIRED = (
     ".gitattributes: the attribute half is written and the governed files route to the merge "
-    "driver, so there is nothing here for `install --register-merge` to write — whether this "
-    "clone holds the config to run them is `{invocation} merge --check`"
+    "driver, so there is nothing here for `{invocation} install --register-merge` to write — "
+    "whether this clone holds the config to run them is `{invocation} merge --check`"
 )
 
 #: What the two *copies* become when the tree being wired is the tree answering (RK235). Not
@@ -832,7 +837,7 @@ def plan(
         # holds the path; `_routed` answers whether ours already does, which is the question
         # this row never asked and `merge --check` has always answered.
         described = (
-            MERGE_BLOCKED.format(blocker=driver.name)
+            MERGE_BLOCKED.format(blocker=driver.name, invocation=invocation())
             if driver is not None
             else MERGE_WIRED.format(invocation=invocation())
             if _routed(base)

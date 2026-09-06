@@ -650,7 +650,9 @@ def test_a_driver_already_routed_stops_the_row_advertising_the_flag(project, sou
     )
     said = capsys.readouterr().out
     assert "route to the merge driver" in said
-    assert "`install --register-merge` runs it here" not in said
+    # Without the backtick, which the door now carries the invocation in front of (RK1498):
+    # a literal anchored on that tick would pass here for the spelling rather than the state.
+    assert "install --register-merge` runs it here" not in said
     # And the read that does answer the other half is named rather than quoted.
     assert "merge --check" in said
 
@@ -1049,7 +1051,7 @@ def test_the_report_stops_advertising_a_flag_that_would_refuse(project, source, 
     )
     said = capsys.readouterr().out
     assert "the merge driver cannot be wired here at all" in said
-    assert "`install --register-merge` runs it here" not in said
+    assert "install --register-merge` runs it here" not in said
 
 
 def test_the_uninstall_payload_carries_every_field_of_the_removal(project, source, capsys):
