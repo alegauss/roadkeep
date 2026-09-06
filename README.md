@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
 | C — Query (consult without reading the file) | 10 | 167 | 4 |
-| D — The gate | 26 | 261 | 2 |
+| D — The gate | 25 | 261 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 153 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 42 | 1043 | 14 |
+| **Total** | 41 | 1043 | 14 |
 
 **Next ready:**
 
-- ⏳ **RK1541** (deps: —) **the served budget has no room for a tenth subject, and which of its sixteen arguments callers use is unmeasured** — Which of the sixteen exposed arguments callers pass: nothing records a tool call, so that reading has no corpus here. → §RK1541
+- 💭 **RK1542** (deps: —) **the retirement prefix every ranking figure is measured through is split by hand in two tests** — RK1507 paired the carried line's two readers and this is the same shape one field over, with the composer in shipping and the readers in a test. → §RK1542
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

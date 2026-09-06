@@ -1431,6 +1431,23 @@ class Detail:
     #: Derived by asking :func:`descriptor` for the tool with the argument added, so it is the
     #: payload's own arithmetic and never an estimate of it — the rule this whole read keeps.
     withheld: tuple[tuple[str, int, str], ...] = ()
+    #: Every exposed argument the shipped guidance never shows **inside a call** of this tool
+    #: (RK1541), largest first — `(dest, characters)`.
+    #:
+    #: The reading that surface had never had. It has been trimmed twice by argument — RK1321
+    #: split `budget` when eight subjects made it the largest tool, and RK1506's `--decides`
+    #: was withheld for being over — and never once by what a caller is told to pass. The
+    #: corpus for *what callers actually pass* does not exist here: nothing records a tool
+    #: call, and a tool that logged its callers' calls to find out would be answering the
+    #: question by becoming something this one is not. What does exist is the skill and its
+    #: pages, which are the calls this tool tells a session to make.
+    #:
+    #: **In a call and not in the prose**, which is `tests/composing`'s own distinction and the
+    #: whole of what this claims. `ship --decides` is discussed at length in `writing.md` and
+    #: appears in no `ship …` span there, so an agent reading the orientation is told the flag
+    #: exists and never shown the call — which is a different gap from an undocumented one and
+    #: the one an agent-first tool cares about.
+    silent: tuple[tuple[str, int], ...] = ()
 
     @property
     def envelope(self) -> int:
@@ -1479,6 +1496,12 @@ class Detail:
         rows += [
             f"  {'+' + str(size):>6}  {dest}  (withheld)" for dest, size, _why in self.withheld
         ]
+        # And what the guidance never names (RK1541), below the price of what is not here:
+        # both rows are about arguments a reader is deciding the fate of, and this one is the
+        # only evidence in the answer that is not about size.
+        rows += [
+            f"  {size:>6}  {dest}  (never in a call)" for dest, size in self.silent
+        ]
         return chr(10).join(rows)
 
     def payload(self, unit: str, each: int | None) -> dict[str, Any]:
@@ -1505,6 +1528,12 @@ class Detail:
             "withheld": [
                 {"argument": dest, "characters": size, "why": why}
                 for dest, size, why in self.withheld
+            ],
+            # And the reading that is not about size (RK1541): an exposed argument the shipped
+            # guidance never passes to this tool. `[]` and never omitted, for `withheld`'s
+            # reason — a consumer tells *none* from *this build did not read them*.
+            "silent": [
+                {"argument": dest, "characters": size} for dest, size in self.silent
             ],
         }
 
@@ -1548,6 +1577,71 @@ def _would_cost(
     return tuple(out)
 
 
+#: A backticked span in the guidance, across a line break: the pages wrap, so a call spelled
+#: `` `budget --block <x> --dep <id>` `` sits on two lines in the source and is one command.
+_SPAN = re.compile(r"`([^`]+)`", re.S)
+
+
+def _guided(tool: Tool, config: Config, parts: Mapping[str, int]) -> tuple[tuple[str, int], ...]:
+    """Every field of this tool the shipped guidance never shows inside a call of it (RK1541).
+
+    **The corpus that exists.** *Which arguments callers pass* has none here — nothing records
+    a tool call, and the tool that logged its callers' calls to find out would be answering
+    the question by becoming something this one is not. The skill and its two pages are the
+    calls this tool tells a session to make, and that is a reading the surface has never had:
+    it was trimmed by argument twice and by measurement never.
+
+    Found by **backticks and the verb**, which is `tests/composing`'s rule read here: a span
+    that names the command is a call, and a flag inside one is that call passing it. A scan
+    over the whole page would count `--why` on an `add` as evidence about `budget` — and it
+    would also count `--decides` discussed on its own as evidence about `ship`, which is the
+    finding rather than the noise: five of that verb's arguments are written about at length
+    and shown in no call, so the orientation says the flag exists and never spells the call.
+
+    Silent where the guidance cannot be read at all — a plugin cache this read does not
+    resolve is `engines`' question (RK1451), and an empty answer would say *the guidance
+    names nothing*, which is a claim about somebody's pages rather than about this one's.
+    """
+    from roadkeep.budgeting import skill_cost  # noqa: PLC0415 - RK260, the reading path only
+
+    read = skill_cost(config)
+    if not read.origin:
+        return ()
+    home = (config.root / read.path).parent if read.origin == "project" else Path(read.path).parent
+    corpus: list[str] = []
+    for page in (home / "SKILL.md", *(home / one for one in ("writing.md", "asking.md"))):
+        try:
+            corpus.append(page.read_text(encoding="utf-8"))
+        except OSError:
+            continue
+    if not corpus:
+        return ()
+    spans = [" ".join(one.split()) for one in _SPAN.findall("\n".join(corpus))]
+    verb = tool.command.replace("_", " ")
+    calls = [one for one in spans if re.search(rf"(^|\s)(\S+\s+)?{re.escape(verb)}(\s|$)", one)]
+    parser = _subparser(tool.command, parsers=_parsers())
+    named = {
+        action.dest
+        for action in getattr(parser, "_actions", ())
+        for one in calls
+        if (
+            any(flag in one for flag in action.option_strings)
+            if action.option_strings
+            else re.search(rf"{re.escape(verb)}\s+(?!--)\S", one)
+        )
+    }
+    return tuple(
+        sorted(
+            (
+                (dest, parts[dest])
+                for dest in tool.exposed(config)
+                if dest not in named and dest in parts
+            ),
+            key=lambda row: (-row[1], row[0]),
+        )
+    )
+
+
 def detail(config: Config, name: str) -> Detail:
     """One published tool, ranked by what each field of it costs (RK1236).
 
@@ -1581,6 +1675,7 @@ def detail(config: Config, name: str) -> Detail:
             characters=whole,
             where=_declared_in(tool, parsers, config),
             withheld=_would_cost(tool, config, parsers, whole),
+            silent=_guided(tool, config, parts),
             # Nothing to split where the description is the parser's own sentence alone.
             described=(
                 ()

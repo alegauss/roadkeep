@@ -4443,3 +4443,73 @@ def test_a_tool_that_withholds_nothing_says_nothing(tmp_path):
 
     config = Config.discover(Path(__file__).resolve().parents[1])
     assert detail(config, "gaps").withheld == ()
+
+
+# -- what the guidance never spells a call for (RK1541) ------------------------
+
+
+def test_an_argument_no_call_in_the_guidance_passes_is_named(tmp_path):
+    """RK1541. The surface has been trimmed by argument twice — RK1321 split `budget` when
+    eight subjects made it the largest tool, and RK1506's `--decides` was withheld for putting
+    it over — and never once by what a caller is told to pass.
+
+    The corpus for *what callers pass* does not exist here: nothing records a tool call, and a
+    tool that logged its callers' calls to find out would be answering the question by becoming
+    something this one is not. The skill and its pages do exist, and they are the calls this
+    tool tells a session to make."""
+    from roadkeep.serving import detail
+
+    config = Config.discover(Path(__file__).resolve().parents[1])
+    found = detail(config, "budget")
+    silent = dict(found.silent)
+    assert silent, "the guidance stopped leaving anything out, so this asserts nothing"
+    # Each is a field of the tool with a real price, and none is one the guidance does spell.
+    priced = dict(found.parts)
+    for dest, size in found.silent:
+        assert priced[dest] == size, dest
+    assert "block" not in silent, "`budget --block <x>` is spelled in asking.md"
+    assert "id" not in silent, "`budget <id> --ship` is spelled there too"
+
+
+def test_the_reading_is_about_a_call_and_never_about_the_prose(tmp_path):
+    """`tests/composing`'s own distinction, made here: a flag named in a sentence is not a call
+    somebody pastes. `ship --decides` is written about at length in `writing.md` and appears in
+    no `ship …` span there, so it is named — which is the finding rather than the noise, an
+    orientation that says a flag exists and never spells the call being a different gap from
+    one that says nothing at all."""
+    from roadkeep.serving import detail
+
+    config = Config.discover(Path(__file__).resolve().parents[1])
+    assert "decides" in dict(detail(config, "ship").silent)
+    pages = Path(__file__).resolve().parents[1] / "skills" / "roadkeep"
+    assert "--decides" in (pages / "writing.md").read_text(encoding="utf-8")
+
+
+def test_the_answer_is_a_read_of_the_pages_beside_the_project(tmp_path):
+    """It is the **vendored** skill where a project has one, which is the copy a session in that
+    project is loaded with — so the answer is about the guidance that session was given and not
+    about whatever the engine happens to ship.
+
+    Proved by moving it: a page that spells one more call takes that argument out of the list,
+    which is what makes this a read rather than a table somebody keeps."""
+    from roadkeep.installing import PROJECT_PAGES, PROJECT_SKILL
+    from roadkeep.serving import detail
+
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "TT"\n[files]\nroadmap = "ROADMAP.md"\n', encoding="utf-8"
+    )
+    (tmp_path / "ROADMAP.md").write_text("# Roadmap\n\n## Block A\n", encoding="utf-8")
+    home = tmp_path / PROJECT_SKILL
+    home.parent.mkdir(parents=True)
+    home.write_text("# The skill\n\n`roadkeep budget <id>` prices a field.\n", encoding="utf-8")
+    for page in PROJECT_PAGES:
+        (tmp_path / page).write_text("# A page\n\nNothing is spelled here.\n", encoding="utf-8")
+    config = Config.discover(tmp_path)
+    assert "role" in dict(detail(config, "budget").silent)
+    # One more call, and the argument leaves — the pages are the corpus and nothing else is.
+    home.write_text(
+        "# The skill\n\n`roadkeep budget <id>` prices a field, and "
+        "`roadkeep budget --anchor <a> --role improvements` prices one in another.\n",
+        encoding="utf-8",
+    )
+    assert "role" not in dict(detail(config, "budget").silent)

@@ -79,6 +79,12 @@ CYCLES: dict[tuple[str, str], str] = {
         "too — a note's width is measured off `linting.disagreement`, which composes it, "
         "because a fixture pasted into the reader agrees until somebody edits a clause"
     ),
+    ("budgeting", "serving"): (
+        "shape: a call-time import in the direction RK1541 opened — the served surface asks "
+        "`skill_cost` where this project's guidance was loaded from, because which copy of the "
+        "skill a session reads is a fact about the project and `budgeting` is where that "
+        "resolution already lives; asking again here would be a second answer to it"
+    ),
     ("adopting", "serving"): UNEXAMINED,
     ("authoring", "blocking"): UNEXAMINED,
     ("authoring", "budgeting"): UNEXAMINED,
