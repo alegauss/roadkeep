@@ -235,11 +235,12 @@ SITES: tuple[Site, ...] = (
     # and the sentence left as placeholders — the same shape as `Retrofitted.stated` above,
     # and unreached for the same reason: the fixture here is an adopter with no line filed, so
     # a `brief`, a `show <id>` or a `ship <id> --why …` has nothing to run against yet.
-    Site(
-        "installing.py:Plan.orientation",
-        "unreached",
-        unreached("a checkout beside an adopting project, wired far enough for the write to succeed"),
-    ),
+    # RK1498, the orientation (RK1534). Run against a checkout beside a bare project, which
+    # is what found the defect: the five lines named five commands that all refused there,
+    # and the sentence saying what has to happen first was not among them. What is asserted
+    # is the **order** — `init` first on a tree that governs nothing — because the rest are
+    # verbs named in prose rather than a path (RK1198's distinction, the other way round).
+    Site("installing.py:Plan.orientation", "run"),
     # RK1498. Both verdicts, run by `test_installing` against the state each is about: a
     # project whose surfaces are not what this engine writes, and a wired one being taken
     # apart. Each door is run and the check that offered it is then clean, which is the only

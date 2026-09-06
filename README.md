@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 10 | 167 | 4 |
 | D — The gate | 26 | 242 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 152 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 153 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 42 | 1023 | 14 |
+| **Total** | 41 | 1024 | 14 |
 
 **Next ready:**
 
-- ⏳ **RK1498** (deps: RK1532 ✅) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Twenty-two of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
+- ⏳ **RK1498** (deps: RK1532 ✅) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Twenty-one of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

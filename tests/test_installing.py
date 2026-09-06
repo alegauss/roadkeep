@@ -2150,10 +2150,30 @@ def test_the_write_ends_by_saying_what_the_surfaces_now_let_a_session_do(project
     # The verbs a day uses, the gate, the two reads that save a refusal, and the check.
     for verb in ("brief", "add", "ship", "lint", "repair", "budget", "show", "install --check"):
         assert f"`roadkeep {verb}" in joined or f"{verb}`" in joined, verb
-    # And what stopped being hand-editable, which is the fact the guard enforces.
-    assert "roadkeep.toml" in joined
+    # And what stopped being hand-editable, which is the fact the guard enforces — on a
+    # project that declares something. This fixture does not, so it is told what it owes
+    # first instead (RK1534): the five commands below need a config, and a tree with none
+    # was being handed five refusals in the order they would be met.
+    assert "nothing here is governed yet" in joined
+    assert "`roadkeep init`" in joined
     # After the surfaces, never among them: a reader scanning states is not reading prose.
     assert said.index("from here") > said.rindex("not written")
+
+
+def test_a_governed_project_is_told_what_its_files_now_are(project, source):
+    """The other branch (RK1534), and the one the sentence was written for: an adopter with a
+    `roadkeep.toml` reads that those files are the tool's now, which is true of them — and the
+    line is conditional rather than always, because it is false of a tree that declares none."""
+    (project / "roadkeep.toml").write_text(
+        chr(10).join(['prefix = "RK"', "[files]", 'roadmap = "ROADMAP.md"', ""]),
+        encoding="utf-8",
+    )
+    said = install(project, source=source).stated(checked=False)
+    orientation = [line for line in said.splitlines() if "from here" in line]
+    assert len(orientation) == 5, said
+    joined = " ".join(orientation)
+    assert "the files `roadkeep.toml` declares are the tool's now" in joined
+    assert "nothing here is governed yet" not in joined
 
 
 def test_the_check_prints_no_orientation_because_ci_runs_it_every_push(project, source):

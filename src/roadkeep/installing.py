@@ -348,6 +348,25 @@ class Surface:
         return self.state in ("created", "updated")
 
 
+def _ORIENTED(say: str) -> list[str]:
+    """The four verbs an orientation names, whichever tree it is printed to (RK1438, RK1534).
+
+    Lifted so the two branches above share them rather than spelling them twice: what changes
+    between a governed project and one that declares nothing is the **first** line — what the
+    tree already is — and never the commands, which are the same tool either way.
+    """
+    return [
+        f"`{say} brief` picks the next line and briefs it; `{say} add` files one, and "
+        f"`{say} ship <id> --why \"…\"` closes it in all three files",
+        f"`{say} lint` is the gate, and `{say} repair` spends a whole report of findings "
+        f"in one call",
+        f"`{say} budget` prices a field before the sentence exists and `{say} show <id>` "
+        f"reads a line back, so the refusal is one you never meet",
+        f"`{say} install --check` is what a CI job or a pre-commit hook runs to keep the "
+        f"copies here in step with the checkout they came from",
+    ]
+
+
 @dataclass(frozen=True, slots=True)
 class Plan:
     """What `install` would write, computed before a byte reaches disk (all-or-nothing)."""
@@ -388,6 +407,11 @@ class Plan:
     #: Whether the write recorded `[install] wired` — a fifth file this command touches, so it
     #: is answered rather than assumed (RK298). False on every `--check`, which writes nothing.
     recorded: bool = False
+    #: Whether this project declares a `roadkeep.toml` at all (RK1534). Read here so the write
+    #: and `--check` answer from one computation, as every other field is — and used by one
+    #: reader: the orientation names five commands, and on a tree that declares nothing every
+    #: one of them refuses, so the sentence saying what has to happen first has to be first.
+    governed: bool = True
     #: The merge driver, where `--register-merge` asked for it (RK148) — the attribute lines
     #: written and the `git config` line to run, exactly as `merge --register` reports them.
     registered: Registration | None = None
@@ -550,17 +574,23 @@ class Plan:
         second grammar for something no caller asked to branch on.
         """
         say = invocation()
+        if not self.governed:
+            # **What this tree still owes, before what it can now do** (RK1534). Measured while
+            # widening RK1498's sweep: on a project with no `roadkeep.toml` the five lines
+            # below name five commands and every one of them refuses, because there is nothing
+            # to brief, add to, ship from or lint. The orientation is right about a governed
+            # project and was printed to both; this is the one sentence that makes the rest of
+            # it true, and `runs()` reads a message in the order it is printed (RK1198).
+            return [
+                f"nothing here is governed yet, so the five reads below have no files to "
+                f"answer from — `{say} init` scaffolds them, or `{say} adopt <path>` measures "
+                f"a backlog you already keep before you commit to the schema",
+                *_ORIENTED(say),
+            ]
         return [
             "the files `roadkeep.toml` declares are the tool's now — the guard denies a hand "
             "edit and answers with the verb that makes it",
-            f"`{say} brief` picks the next line and briefs it; `{say} add` files one, and "
-            f"`{say} ship <id> --why \"…\"` closes it in all three files",
-            f"`{say} lint` is the gate, and `{say} repair` spends a whole report of findings "
-            f"in one call",
-            f"`{say} budget` prices a field before the sentence exists and `{say} show <id>` "
-            f"reads a line back, so the refusal is one you never meet",
-            f"`{say} install --check` is what a CI job or a pre-commit hook runs to keep the "
-            f"copies here in step with the checkout they came from",
+            *_ORIENTED(say),
         ]
 
     def verdict(self) -> list[str]:
@@ -630,6 +660,11 @@ class Plan:
             # a build that could not ask.
             "derived": self.derived,
             "recorded": self.recorded,
+            # Whether this tree declares anything (RK1534). Published rather than left behind
+            # the orientation's first sentence, which is where RK1447 leaves the rest of that
+            # prose: this one is a fact a consumer branches on — *has this project been
+            # scaffolded* — and reading it out of a paragraph would be parsing English.
+            "governed": self.governed,
             "surfaces": [
                 {
                     "path": surface.path.relative_to(self.root).as_posix(),
@@ -854,6 +889,10 @@ def plan(
             for surface in surfaces
             if surface.writes and (parent := blocking(surface.path))
         ),
+        # Whether this tree declares anything at all (RK1534): the orientation names five
+        # commands and every one of them needs a `roadkeep.toml`, so the answer decides which
+        # sentence comes first rather than whether any of them is printed.
+        governed=(base / "roadkeep.toml").is_file(),
         # Always, and not only under `--register-merge` (RK394): the report names the flag on
         # every run, so whether running it could work is part of every run's answer.
         driver=driver,

@@ -990,6 +990,7 @@
 - ✅ **RK1524** **the four notes this server appends to a tool result are priced by nothing, on a heavier cadence than the gate's** — cost --notes prices the four notes this server appends, composed at their widest from the functions the answers use, and says which one is paid on every call.
 - ✅ **RK1562** **the served notes are priced against a module list built here rather than the one a real note carries** — the widest served note is composed against Engine.every_module, so the list it prices is the one a real note carries and in the spelling every other reader uses.
 - ✅ **RK1525** **the kinds sweep is total over the notes that make a call and silent over the ones that do not** — the kinds table is held against the sites that append a note rather than the guard three of them call, so the per-call kind is covered and a second one is a red.
+- ✅ **RK1534** **the orientation an install prints names five commands in an order the tree it is printed to cannot run** — the orientation leads with what an ungoverned tree still owes, so the first command it names is the one that makes the other four answerable, and the sweep runs it.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

@@ -41,7 +41,7 @@
 
 ## Block D — The gate
 
-- ⏳ **RK1498** (deps: RK1532 ✅) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Twenty-two of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
+- ⏳ **RK1498** (deps: RK1532 ✅) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Twenty-one of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
 - 💭 **RK1535** (deps: —) **nothing records which volunteered rows an author acted on, so the population that could score the read has none** — RK1500 proved the retirement corpus cannot score the query half, and the answers given before the answer was known are printed and dropped. → §RK1535
 - 💭 **RK1536** (deps: —) **a decision can only be filed by a departure, so the moment its answer is lost is the moment nothing can be done** — RK1501 had to say it in brief because --decides is a flag on the ship, and the ledger has record add for exactly the route the decisions role lacks. → §RK1536
 - 💭 **RK1537** (deps: —) **a pause is not held to the why limit a project declared, and nothing at the number says so** — RK1502's sweep read that as the defect RK1479 repaired, because a field nothing measures and one measured against another key look the same from outside. → §RK1537
@@ -72,7 +72,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 💭 **RK1534** (deps: —) **the orientation an install prints names five commands in an order the tree it is printed to cannot run** — RK1498 pointed the sweep at it and every command refuses there, so a test asserting what is printed would be asserting the defect. → §RK1534
 - 💭 **RK1543** (deps: —) **a version here names one commit and the surfaces that consume one speak of it as a release, with nothing saying which** — RK1508 assumed a walk over tags and found one tag against 1650 commits, every one of which the hook stamps a version into. → §RK1543
 - 💭 **RK1549** (deps: —) **no verb removes the vendored engine, so the report that names it hands the last step back to the reader in English** — RK1514 settled that an unasked deletion is wrong and left the asked-for one unbuilt, so uninstall un-wires and the tool stays on disk. → §RK1549
 - 💭 **RK1560** (deps: —) **install replaces a server declaration an adopter wrote themselves and no row names what was there** — the merge keeps every entry but this project's own, and RK1492 established that entry may legitimately hold a wrapper. → §RK1560

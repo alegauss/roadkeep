@@ -767,3 +767,83 @@ def test_the_door_a_kept_capture_names_runs(tmp_path, capsys):
     assert argv[:3] == ["add", "--block", "F"], argv
     assert "--capture" in argv, argv
     assert build_parser().parse_args(argv)
+
+
+# -- the orientation an install prints (RK1498, sized by RK1532) ---------------
+
+
+def _oriented(said: str) -> str:
+    """The orientation's own rows, which is what these three read (RK1534).
+
+    The report names other commands — `merge --register` on a `.gitattributes` it did not
+    write, and the capture offer — and the claim here is about the order **within** the five
+    lines a session is handed at the end. `from here` is the label `stated` gives them.
+    """
+    return chr(10).join(
+        one for one in said.splitlines() if one.strip().startswith("from here")
+    )
+
+
+def _wired(tmp_path: Path) -> Path:
+    """A checkout of this tool beside a project, which is what `install` needs to run."""
+    from roadkeep.installing import CARRIED
+
+    here = Path(__file__).resolve().parents[1]
+    source = tmp_path / "roadkeep"
+    for part in CARRIED:
+        target = source / part
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((here / part).read_bytes())
+    return source
+
+
+def test_the_orientation_names_what_has_to_happen_first(tmp_path, capsys):
+    """RK1534. On a tree with no `roadkeep.toml` the orientation named five commands and every
+    one of them refused — there is nothing to brief, add to, ship from or lint — and the
+    sentence saying what has to happen first was not there at all.
+
+    What the sweep reads is the order printed (RK1198), so the assertion is the order: the
+    first command an ungoverned tree is handed is the one that governs it, and it runs."""
+    project = tmp_path / "adopter"
+    project.mkdir()
+    assert main(["-C", str(project), "install", "--source", str(_wired(tmp_path))]) == EXIT_OK
+    said = capsys.readouterr().out
+    argv = commands(_oriented(said))
+    assert argv[0][:1] == ["init"], argv[:2]
+    assert main(["-C", str(project), *argv[0]]) == EXIT_OK
+    capsys.readouterr()
+    assert (project / "roadkeep.toml").is_file()
+
+
+def test_every_verb_the_orientation_names_is_one_this_cli_takes(tmp_path, capsys):
+    """The rest are a **list of verbs and not a path**, which is what the order above settles:
+    `roadkeep add` here is a verb being named in a sentence, not a call somebody pastes, so
+    what is asserted is that each names a subcommand this CLI declares — the same distinction
+    `composing` draws everywhere between a command and a word in prose."""
+    project = tmp_path / "adopter"
+    project.mkdir()
+    assert main(["-C", str(project), "install", "--source", str(_wired(tmp_path))]) == EXIT_OK
+    said = capsys.readouterr().out
+    verbs = [
+        one for one in build_parser()._actions if getattr(one, "choices", None)  # noqa: SLF001
+    ][0].choices
+    named = commands(_oriented(said))
+    assert len(named) >= 8, named
+    for argv in named:
+        assert argv[0] in verbs, argv
+
+
+def test_a_governed_tree_is_told_what_it_already_is(tmp_path, capsys):
+    """The other branch, and the reason the first line is conditional rather than added: an
+    adopter with files reads *these are the tool's now*, which is true of them and false of a
+    tree that declares nothing."""
+    project = tmp_path / "adopter"
+    project.mkdir()
+    assert main(["-C", str(project), "init"]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", str(project), "install", "--source", str(_wired(tmp_path))]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "the files `roadkeep.toml` declares are the tool's now" in said
+    assert "nothing here is governed yet" not in said
+    argv = commands(_oriented(said))
+    assert argv[0][:1] == ["brief"], argv[:2]

@@ -942,29 +942,6 @@ door on a Windows checkout has never been takeable.
 
 ## Block F — The plugin
 
-### §RK1534 The orientation printed before there is anything to orient
-
-Measured while widening RK1498's sweep. The orientation `install` prints on a tree with
-no governed files names five commands: `brief` picks the next line, `add` files one,
-`ship` closes it — and none of them can run there. `runs()` executes a message's
-commands **in the order printed**, which is RK1198's finding, and here the sentence
-saying what has to happen first is not first.
-
-Nothing is wrong with any one line. Each names the right command and the orientation is
-correct about a governed project. What is missing is that the same five lines are
-printed to a reader who has one and to a reader who does not, and only the second needs
-the order to mean something.
-
-That is why the site is still `unreached`. A fixture that runs the orientation has to be
-a project the orientation is *about*, and building one is a task: a config, three files,
-a line filed and a design under it — at which point the five commands run and the sweep
-says something. On the tree where the note actually appears they refuse, and a test
-asserting that would be asserting the defect.
-
-So the shape to decide is whether the orientation belongs on that answer at all, or
-belongs after whatever the project still owes. `Plan` knows which surfaces it wrote and
-what it could not; the orientation is composed from neither.
-
 ### §RK1543 The version that is a commit
 
 RK1508's design proposed dating a surface against "the same file at every tag this
