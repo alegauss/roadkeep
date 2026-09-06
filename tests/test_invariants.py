@@ -155,6 +155,20 @@ INVARIANTS: tuple[Invariant, ...] = (
         held_by="test_configured::test_no_composed_command_carries_a_marker_this_package_spells",
     ),
     Invariant(
+        stated="RK1558",
+        rule=(
+            "no command a help string offers carries a marker, an id or a governed file's "
+            "name, which is where the exemption for a shown word ends"
+        ),
+        # The third reading of L6's rule, and the one that reconciles the two above: `_values`
+        # exempts the words a caller is shown and the composed scan does not, so the row that
+        # was missing is the one saying where the line between them falls. Measured before it
+        # was drawn — 192 backticked spans in those strings and not one carrying a value — so
+        # this holds what the code already does rather than asking it to change.
+        over="surface.modules",
+        held_by="test_configured::test_no_command_a_help_string_offers_carries_a_project_value",
+    ),
+    Invariant(
         stated="RK421",
         rule="every code the gate can emit has a row in the remedy table",
         over="roadkeep.remedying.codes",

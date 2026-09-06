@@ -29,6 +29,19 @@ and would report noise for ever.
 and `e.g. docs/ROADMAP.md`, and none of it is derivable: :func:`~roadkeep.cli.build_parser`
 is built without a config, so an example in a help string has no project to read. Scanning
 them would produce an allow-list of forty strings, which is the same red nobody keeps.
+
+**The exemption ends at a backtick** (RK1558). It was written for an *example* — `e.g. RK7`
+illustrates the shape of an argument and claims nothing about the reader's vocabulary — and
+a backticked span is not one: it is a command this package is telling somebody to run, and a
+marker inside it offers a write their own schema refuses. That distinction is why the scan
+below takes no exemption at all, and this was the only place saying so: the two readings
+differed, one of them silently.
+
+Measured before the rule was stated, so it is the code's own and not an opinion imposed on
+it: of **192** backticked spans inside the words this parser shows a caller, not one carries
+a marker, an id or a governed file's name. What help strings do carry is `add`, `pick`,
+`git add --` — the verb, with the values left as placeholders — which is the rule already,
+held by nothing.
 """
 
 from __future__ import annotations
@@ -57,6 +70,10 @@ DECLARES = frozenset({"config.py", "kernel/schema.py"})
 #: The keyword arguments whose value is shown to a caller rather than used as one. Skipped
 #: with the reason this module's docstring gives: nothing in a help string can be derived,
 #: because the parser that carries it is built before any project is known.
+#:
+#: Skipped as an **example** and never as a command (RK1558): the backticked spans inside
+#: these are held by :func:`test_no_command_a_help_string_offers_carries_a_project_value`,
+#: which is where this exemption ends.
 SHOWN = frozenset({"help", "description", "metavar", "epilog", "title"})
 
 MARKERS = (DESIGNED, IDEA, PARTIAL, IN_PROGRESS, SHIPPED, RETIRED, DEFERRED)
@@ -171,6 +188,13 @@ def _composed_markers(source: str) -> list[str]:
     scan that read only the first would be this gate walking past the same defect it was
     written to catch, one dereference along. :data:`SPELLINGS` is that pair, asserted as a
     pair, so a third way of naming one arrives as a red rather than as a silence.
+
+    **And no exemption for the words a caller is shown** (RK1558), where :func:`_values` has
+    one. Deliberate, and it follows from the shape above rather than contradicting that
+    exemption: what a help string may do is *illustrate* a value, and what it may not do is
+    build a command round one — so the backtick is already the line, and it falls in the same
+    place here. `test_no_command_a_help_string_offers_carries_a_project_value` holds the other
+    side of it, for the literal this scan does not read.
     """
     found = []
     for node in ast.walk(ast.parse(source)):
@@ -241,6 +265,93 @@ def test_both_spellings_of_a_constant_are_one_defect(tmp_path):
     assert _composed_markers(dereferenced) == ["1: IN_PROGRESS"]
     # And the exemption survives the widening: an attribute is not a command either.
     assert _composed_markers('x = f"moved to {schema.IN_PROGRESS}"') == []
+
+
+# -- where the exemption for a shown word ends (RK1558) -----------------------
+
+#: One backticked span. The same delimiter :data:`SPAN` names and the census in
+#: `tests/composing.py` finds a command by — read here as a pattern rather than as a
+#: character, because what this scan wants is the text *between* two of them.
+SPANS = re.compile(r"`([^`]+)`")
+
+
+def _shown(source: str) -> list[tuple[int, str]]:
+    """Every string a parser shows a caller, with its line — exactly what :func:`_values` skips.
+
+    The complement of that function's exemption, so the two cannot drift apart: one reads
+    every string a module uses and drops these, this one reads these and nothing else.
+    """
+    out = []
+    for node in ast.walk(ast.parse(source)):
+        if not isinstance(node, ast.Call):
+            continue
+        for keyword in node.keywords:
+            if keyword.arg not in SHOWN:
+                continue
+            out += [
+                (inner.lineno, inner.value)
+                for inner in ast.walk(keyword.value)
+                if isinstance(inner, ast.Constant) and isinstance(inner.value, str)
+            ]
+    return out
+
+
+def _offered(text: str) -> str:
+    """The backticked spans of one shown string, joined — what a reader is told to *run*.
+
+    The rest of the sentence is an illustration and stays exempt, which is the whole of this
+    task's decision: `e.g. RK7` claims nothing about the reader's vocabulary, and
+    `` `status RK7 🛠` `` is a command whose two values their own config decides.
+    """
+    return " ".join(SPANS.findall(text))
+
+
+def test_no_command_a_help_string_offers_carries_a_project_value():
+    """RK1558. Two scans read this package for the same rule and disagreed about the words a
+    caller is shown — :func:`_values` exempts them and :func:`_composed_markers` does not —
+    and nothing said which reading was the rule. Neither flagged anything, so the difference
+    was invisible in both directions.
+
+    Settled towards the narrower exemption, on a measurement rather than a preference: of the
+    192 backticked spans inside these strings, not one carries a marker, an id or a governed
+    file's name. The code already keeps the rule; stating it is what keeps it kept — and the
+    third route, a *literal* marker inside a help string's command, was caught by neither scan.
+
+    The whole check and not just the marker, because the three values leak the same way: a
+    command shown to a reader whose prefix is `SH` and whose roadmap is `docs/BACKLOG.md` is
+    a command they cannot run, whichever of the three this package spelled.
+    """
+    found: dict[str, list[str]] = {}
+    for module in modules():
+        if module.where in DECLARES:
+            continue
+        for lineno, text in _shown(module.text):
+            offered = _offered(text)
+            leaked = (
+                any(marker in offered for marker in MARKERS)
+                or IS_A_GOVERNED_FILE.search(offered)
+                or any(IS_AN_ID.match(word.strip(".,;:")) for word in offered.split())
+            )
+            if leaked:
+                found.setdefault(module.where, []).append(f"{lineno}: {offered[:60]!r}")
+    assert found == {}, (
+        "a help string may illustrate a value and may not build a command round one: the "
+        "reader's own config decides it, and this parser is built before any config is read"
+    )
+
+
+def test_the_illustration_stays_exempt_and_the_command_does_not():
+    """The distinction, exhibited — because it is the only thing this rule is, and a scan that
+    held both halves the same way would be the forty-string allow-list the module rejects."""
+    assert _shown('p.add_argument("--id", help="an existing line, e.g. RK12")') == [
+        (1, "an existing line, e.g. RK12")
+    ]
+    # Outside a backtick nothing is offered, so the example this module was written to allow
+    # is still allowed.
+    assert _offered("an existing line, e.g. RK12") == ""
+    assert _offered("take it first with `status RK7 🛠`") == "status RK7 🛠"
+    # And the shape the code actually writes: the verb, with the values left as placeholders.
+    assert _offered("what a commit script feeds to `git add --`") == "git add --"
 
 
 def test_no_module_writes_an_id_in_this_project_s_shape():

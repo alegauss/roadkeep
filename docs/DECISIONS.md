@@ -69,6 +69,7 @@ on the prose roles.
 - ✅ **RK1546** **a folded criterion cites no origin, so a reader of the absorbing task cannot tell it was somebody's line** — An answer a reader needs is joined where they ask it, never stored as a reference the store would have to outlive.
 - ✅ **RK1547** **a pause carries a reason with no date and no expiry, so nothing ever asks whether it still holds** — A reading that costs a git call belongs on a read taken once, never on the path a loop runs every iteration.
 - ✅ **RK1556** **a project whose open set spells no partial marker ships a partial in silence, and the line keeps the marker it had** — A shape's second member is what turns two copies of a rule into one function; the first gets a good sentence.
+- ✅ **RK1558** **one marker scan skips what a caller is shown and the one beside it does not, with nothing saying they differ** — Where two scans of one rule disagree, the line between them is drawn by measuring what the code already does.
 
 ### §RK1362 Why a projection and not a wider read
 
@@ -151,6 +152,23 @@ partial the file lacks.
 
 RK1555 kept a raise because its shape had one member. `working` was that shape with one,
 `partial` is its second, and the branches became `_narrowed`.
+
+### §RK1558 Where the exemption ends
+
+Two scans read the package for L6 and disagreed about the words a parser shows a caller:
+the literal sweep skips `help` and `description`, RK1520's f-string sweep walks them.
+Neither flagged anything, so the difference was invisible both ways.
+
+Both cases are arguable, so the answer came off a measurement. Of the 192 backticked
+spans in those strings, not one carries a marker, an id or a governed file's name; they
+carry `add`, `pick`, `git add --` — the verb, the values left as placeholders.
+
+So the line is the backtick. An example illustrates a shape and claims nothing about the
+reader's vocabulary; a command is something they are told to run, and this parser is
+built before any config is read.
+
+That closed a hole neither scan covered: a *literal* marker inside a help string's
+command. The new property holds all three values, which leak alike.
 
 ## Block D — The gate
 

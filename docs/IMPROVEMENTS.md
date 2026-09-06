@@ -79,30 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1558 The exemption one of two scans keeps
-
-`test_configured`'s three literal scans skip what a caller is shown: `help`,
-`description` and `metavar` are full of `e.g. RK7`, and the module says why — the parser
-carrying them is built before any project is known, so nothing in a help string is
-derivable and scanning them would produce an allow-list of forty strings.
-
-RK1520's scan does not apply that exemption. It walks every f-string in the module,
-including the ones inside an `add_argument(help=…)`, so a help string composing a
-command round a package marker is a red there and invisible to the scan beside it.
-Nothing is flagged today, which is why this is a question and not a defect: the two
-readings differ and neither states that they do.
-
-The case for keeping the difference is real. The exemption exists because a help string
-cannot name *this* project's values, and a **command** in one is not that: it is
-something the reader is told to run, and a marker inside it is wrong for the reason it
-is wrong anywhere else. Under that reading the new scan is right and the inconsistency
-is a sentence.
-
-The case against is that a help string is the one place an example is legitimate, and
-`status <id> 🛠` shown as an example of the syntax is not a claim about the reader's
-vocabulary. Which of the two holds is a judgement about the text, so the answer is a
-stated rule either way and never a scan that quietly has one.
-
 ### §RK1566 The corpus this measurement cannot exhibit
 
 RK1527 measured the near window over both corpora and kept three, on a figure that is a
