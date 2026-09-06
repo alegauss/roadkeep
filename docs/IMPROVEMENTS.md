@@ -805,6 +805,30 @@ the *names* and left open for the *prose about them*. `test_configured` scans th
 package for a marker literal already; a comment naming a verb this CLI has not got is
 the same claim.
 
+### §RK1540 The frontmatter a reader pays for
+
+RK1505 put two lines of frontmatter on `asking.md` and `writing.md` so the absent-page
+note can name the verb a reader is missing. Those pages are loaded by a session that
+opens them, and the frontmatter is loaded with them — on every turn that opens a page,
+for a fact only the gate reads.
+
+It is small: two keys, about 90 characters each. It is also exactly the kind of cost
+this project measures rather than assumes. `[budgets]` prices what loads every turn,
+`cost --skill` prices the write path, and RK1437 split the pages off `SKILL.md` because
+65k units a turn was a reference loaded as an orientation. A page whose whole reason for
+being a separate file is what it costs to open now opens with two lines addressed to
+somebody else.
+
+Nothing measures it either way. `cost --skill` reports `pages` beside the skill — one
+row per reference page — so the figure exists and the frontmatter is inside it,
+indistinguishable from prose a reader uses.
+
+Two shapes are worth weighing. The declaration could live where the other per-file facts
+do — `PLUGIN_PAGES` is a tuple and a second element per entry costs a reader nothing —
+at the price of the page no longer stating its own claim, which is why RK1505 put it
+there. Or the figure is taken and 90 characters turns out not to be worth moving, which
+is a reading and not a guess.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
