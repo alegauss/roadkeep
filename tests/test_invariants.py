@@ -237,6 +237,19 @@ INVARIANTS: tuple[Invariant, ...] = (
         held_by="test_prevention::test_every_code_the_gate_can_emit_has_a_row",
     ),
     Invariant(
+        stated="RK1559",
+        rule=(
+            "every note this build can say has a state that produces it, so its width is a "
+            "measurement and not the one figure this project happens to trip"
+        ),
+        # RK498's row over the other population: that one asks whether a write refuses a
+        # code and this asks whether anything has ever read the sentence. Sixteen of the
+        # seventeen had not, which is `read.priced`'s own warning pointed at the notes —
+        # a figure over part of a population, taken for the population.
+        over="roadkeep.remedying.notes",
+        held_by="test_priced::test_every_note_this_build_can_say_has_a_state_that_says_it",
+    ),
+    Invariant(
         stated="RK1004",
         rule=(
             "every code a write refuses says what the gate reports about a file already in "

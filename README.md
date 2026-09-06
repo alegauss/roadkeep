@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
 | C — Query (consult without reading the file) | 6 | 173 | 4 |
-| D — The gate | 23 | 269 | 2 |
+| D — The gate | 22 | 270 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 155 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 34 | 1059 | 14 |
+| **Total** | 33 | 1060 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1559** (deps: —) **twelve of the fifteen note codes have never been priced, this project's gate tripping only two of them** — RK1521 made the population knowable and the figure still covers what this repository happens to emit, which is the reach RK1489 warns is read as a result. → §RK1559
+- 💭 **RK1560** (deps: —) **install replaces a server declaration an adopter wrote themselves and no row names what was there** — the merge keeps every entry but this project's own, and RK1492 established that entry may legitimately hold a wrapper. → §RK1560
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -189,6 +189,7 @@ command. The new property holds all three values, which leak alike.
 - ✅ **RK1587** **ten records of six or more fields are built positionally, and which of them more than one module builds is unmeasured** — the hazard is a record shared across modules and built positionally, so keyword-only is required where both hold and is ceremony where neither does.
 - ✅ **RK1553** **no sweep asks of a served value flag what RK1517 asks of a boolean, and there are a hundred and twenty-two** — A sweep for an inert flag needs a claim about what that flag shapes; identical output alone reports the tool's own semantics as a defect.
 - ✅ **RK1555** **two of adopt's argument rules are still raised inside the estimator, where no declaration reader can see them** — A shape with one member gets a raise with a good sentence; a third kind of declaration is what a second member buys.
+- ✅ **RK1559** **twelve of the fifteen note codes have never been priced, this project's gate tripping only two of them** — A figure over part of a population is a reading of that part; the population is the census that closes over it.
 
 ### §RK1394 Proof, not age
 
@@ -339,6 +340,23 @@ narrowed *to* one, which neither `Answer` nor `narrowing` can spell.
 One member. So it gets a good sentence and a comment saying it is the exception rather
 than the oversight; a third declaration is what a second would buy, and the sweep that
 found this one will find that one.
+
+### §RK1559 Seventeen states, and no ceiling
+
+The line said fifteen codes and two priced. Both had moved by the time it was picked —
+seventeen exist and `cost --notes` reports one — which is the symptom restating itself.
+
+Every code now has a state that produces it, and the states are the deliverable. Five
+need a commit and a diff against it, two an installed tree, one a registry naming a
+version this engine has not reached, and `engine.disagreement` is composed off the gate
+own function. No project makes them all, which is why `note_cost` could not.
+
+The reading: 2741 characters if a reader met every one, against 282 here — widest
+`install.absent` at 281, narrowest `block.reopened` at 79, a spread one figure describes
+at neither end.
+
+No ceiling, per code or over them. What is held is that the population is covered and
+each state fires, so a note that doubles moves a number.
 
 ## Block E — Adoption
 

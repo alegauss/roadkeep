@@ -745,6 +745,7 @@
 - ✅ **RK1553** **no sweep asks of a served value flag what RK1517 asks of a boolean, and there are a hundred and twenty-two** — Measured: 2 of 119 declare choices and both separate, and the wider signature calls budget --block inert where a block is not part of a line.
 - ✅ **RK1554** **the pair fixture's commits carry a subject and no body, so a flag about a commit body cannot be read there** — One of the fixture's two commits carries a body and the sweep asks origin about the id that shipped, so a flag printing a message is readable.
 - ✅ **RK1555** **two of adopt's argument rules are still raised inside the estimator, where no declaration reader can see them** — The narrowing is declared at the parser, and the one rule no declaration can spell is measured as the only instance of its shape.
+- ✅ **RK1559** **twelve of the fifteen note codes have never been priced, this project's gate tripping only two of them** — Every note code now has a state that produces it, so the seventeen are 2741 characters measured against the 282 this project trips.
 
 ## Block E — Adoption
 
