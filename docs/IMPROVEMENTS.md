@@ -914,6 +914,30 @@ what the fixture was — what the three families so far each wrote by hand — a
 table's test asserts a `run` row carries one. Thirty-one guesses and a growing count of
 measurements is the most an unbuilt fixture can honestly be.
 
+### §RK1580 The shell the composer assumes
+
+`capturing.Capture.filing` composes with `shlex.join` and `tests/composing.commands`
+reads with `shlex.split`. Both are POSIX by default, and this project's own platform is
+not: a capture's absolute path goes in as `C:\Users\…\x.json` and comes out as
+`C:UsersalexaTemp…`, because a backslash is an escape to the splitter that reads it.
+
+Two halves of one question, and only one of them is a test's. The splitter is the
+sweep's, and what it costs is a row that stays unreached with an honest state (RK1579).
+The **joiner** is the tool's: a line composed for a reader to paste is quoted for a
+shell they may not be running, on the one command whose whole job is to be pasted by a
+maintainer.
+
+Which shell that is, this package cannot know and should not guess —
+`provenance.invocation` already refuses to describe a machine. What it can do is not add
+quoting that is wrong everywhere but one family of shells: the fields here are a
+symptom, a why and a path, and the only one that needs quoting is a value with a space
+in it, which `shlex.quote` handles and `shlex.join` applies to the whole argv.
+
+The measurement that would decide it is small and this platform is the one that has it:
+take the line this repository's own `report` prints, and see whether `cmd`, PowerShell
+and Git Bash each run it. If all three do, this closes as declined; if one does not, the
+door on a Windows checkout has never been takeable.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
