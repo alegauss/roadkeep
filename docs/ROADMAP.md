@@ -41,7 +41,6 @@
 ## Block D — The gate
 
 - ⏳ **RK1498** (deps: RK1532) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Thirty of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
-- 💭 **RK1531** (deps: —) **a section title takes the mangled bytes the line's own fields refuse** — RK1497's boundary is field and not body, and a title is a bounded composed field that lands as a permanent heading with no door in front of it. → §RK1531
 - 💭 **RK1532** (deps: —) **thirty rows of the composer work-list share one reason, so none of them says what it would cost** — RK1498 took four out in a sitting at two lines of fixture each, and the constant they all carried is why nobody had started at any. → §RK1532
 - 💭 **RK1533** (deps: —) **govern writes a number the config parser then refuses, leaving every verb unable to read the file** — Violated guards a number the corpus breaks and nothing guards one two keys in a table forbid, so the repair is the hand edit the guard denies. → §RK1533
 - 💭 **RK1535** (deps: —) **nothing records which volunteered rows an author acted on, so the population that could score the read has none** — RK1500 proved the retirement corpus cannot score the query half, and the answers given before the answer was known are printed and dropped. → §RK1535

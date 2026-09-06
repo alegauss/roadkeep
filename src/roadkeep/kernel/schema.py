@@ -2095,7 +2095,7 @@ class Schema:
                 )
             )
         out += _codepoints(field, value)
-        out += _mangled(field, value)
+        out += mangled(field, value)
         if width(measured) > limit:
             out.append(
                 Violation(
@@ -2194,7 +2194,7 @@ def mangled_runs(value: str) -> list[tuple[str, str]]:
     return out
 
 
-def _mangled(field: str, value: str) -> list[Violation]:
+def mangled(field: str, value: str) -> list[Violation]:
     """Bytes that arrived through the wrong codec, refused at the door (RK1497).
 
     RK1474 built the respelling door a mangled ledger line needs and nothing stopped the
@@ -2223,6 +2223,13 @@ def _mangled(field: str, value: str) -> list[Violation]:
 
     The **first** run only, for :func:`_codepoints`' reason: one mis-decoded paste carries
     several and the first already sends the reader to the cause.
+
+    **Public, because a prose field is not the only field** (RK1531). A section title takes the
+    same six bytes and lands them as a permanent heading — one line, bounded by a limit,
+    composed by a caller as an argument, and never where somebody quotes an example, which is
+    every property the measurement used. So do a non-goal's lead and a criterion's, each
+    validated by its own family; the rule is one function and the door is wherever the field
+    is created (L1). A section **body** is still not one of them, which is the boundary.
     """
     for run, back in mangled_runs(value):
         return [

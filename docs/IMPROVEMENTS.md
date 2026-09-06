@@ -313,30 +313,6 @@ yet, and what turns it into an answerable question is the state. That is a task 
 family rather than one sweep — and the reason to file it as one line is that the six
 that do run were each bought by a defect that had already shipped.
 
-### §RK1531 The field on the wrong side of the boundary
-
-Measured one command after RK1497 shipped. `add --section "O menu Ã© semeado"` is
-accepted and writes the heading, while the same six bytes in the symptom beside it are
-refused. The title lands in a prose file as a permanent heading, which is the durability
-the refusal exists for.
-
-The boundary RK1497 drew is *field, not body*, and a title is on the field side by every
-property the measurement used: one line, bounded by a limit, composed by a caller as an
-argument, and never where somebody quotes an example — the design section under it is.
-All 18 false positives were in bodies. So this is not a widening but the population
-already argued for, minus a door.
-
-It is worse than a mangled symptom in one way. A symptom is corrected by `restate
---typo`, which RK1474 built for exactly this and the remedy row names; a heading is
-`section amend --title` and the anchor stays, so the correction is cheap. But a heading
-is what `ref.dangling` and every listing quote, so the bytes are copied onward before
-anybody looks.
-
-The same question is open one field over: a non-goal's lead, a criterion's lead, a block
-label. Each is a short composed field in a governed file, and whether the rule reaches
-them is answered today by which validator the door happens to call — which is what to
-find out first, because the answer may be one shared function away.
-
 ### §RK1532 The work-list with no sizes in it
 
 Thirty-eight rows of `composing.SITES` carried one shared sentence: *the message needs a

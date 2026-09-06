@@ -71,6 +71,7 @@ from roadkeep.kernel.schema import (
     SchemaError,
     Task,
     Violation,
+    mangled,
     over_by,
     split_ref,
 )
@@ -3227,7 +3228,13 @@ def _check(
         out.append(
             Violation("title.markup", "title", "the level is a field, not part of the text")
         )
-    elif title.strip() == anchor or title.strip() == f"§{anchor}":
+    # Bytes that arrived through the wrong codec, on the field side of RK1497's boundary
+    # (RK1531). Measured one command after that rule shipped: `add --section "O menu Ã© semeado"`
+    # was accepted and wrote the heading, while the same six bytes in the symptom beside it were
+    # refused. A title is one line, bounded, composed as an argument and never where somebody
+    # quotes an example — the design section under it is, and this does not read it.
+    out += mangled("title", title)
+    if title.strip() == anchor or title.strip() == f"§{anchor}":
         # The address stated twice with no words in it (RK1329). Measured across one session:
         # nine sections filed and nine titled with their own anchor, every one by a caller who
         # had just been thinking in ids and read a bare positional beside `--block` as one.

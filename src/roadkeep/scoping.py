@@ -39,7 +39,7 @@ from pathlib import Path
 
 from roadkeep.config import Config, Scope
 from roadkeep.kernel.document import Document, blank
-from roadkeep.kernel.schema import SchemaError, Violation, over_by, width
+from roadkeep.kernel.schema import SchemaError, Violation, mangled, over_by, width
 
 __all__ = [
     "HEADING",
@@ -548,6 +548,11 @@ def validate(config: Config, lead: str, why: str) -> tuple[Violation, ...]:
         out.append(
             Violation(WHY, "why", over_by(width(reason), scope.why, measured=reason))
         )
+    # The same rule the line's own fields are held to (RK1531): a lead and a reason are
+    # bounded fields composed as arguments, on the field side of RK1497's boundary, and
+    # this family validates its own — so the door is here, where the text is created (L1).
+    out += mangled("lead", head)
+    out += mangled("why", reason)
     return tuple(out)
 
 

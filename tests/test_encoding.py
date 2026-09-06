@@ -588,3 +588,58 @@ def test_a_single_upper_latin_character_is_ordinary_text(tmp_path):
     assert mangled_runs("Menu do site novo é semeado") == []
     assert mangled_runs("1024 × 768 – a legitimate sentence") == []
     assert [run for run, _ in mangled_runs("Menu Ã© semeado")] == ["Ã©"]
+
+
+def test_a_section_title_takes_the_same_bytes_the_line_refuses(tmp_path):
+    """RK1531. Measured one command after RK1497 shipped: `add --section` was accepted with the
+    six bytes in the title while the symptom beside it was refused, and the heading landed in a
+    prose file permanently — which is the durability the refusal exists for.
+
+    A title is on the field side by every property the measurement used: one line, bounded by a
+    limit, composed by a caller as an argument, and never where somebody quotes an example. The
+    design section under it is, and that is still not read."""
+    root = project(tmp_path)
+    done = cli(
+        root, "add", "--block", "A",
+        "--symptom", "A symptom plainly long enough to read",
+        "--why", "Because of a reason.",
+        "--section", "O menu Ã© semeado",
+        "--section-body", "Prose enough to matter, and a sentence that ends.",
+    )
+    assert done.returncode != 0
+    assert b"char.mangled" in done.stderr
+    assert b"title" in done.stderr
+
+
+def test_a_non_goal_and_a_criterion_are_fields_too(tmp_path):
+    """The population already argued for, minus a door (RK1531): each of these is a short
+    composed field in a governed file, validated by its own family — so the rule is one shared
+    function and the refusal is wherever the text is created (L1)."""
+    from roadkeep import criteria, scoping
+    from roadkeep.config import Config, Scope
+    from dataclasses import replace as _replace
+
+    root = project(tmp_path)
+    config = Config.discover(root)
+    governed = _replace(config, non_goals=Scope(), criteria=Scope())
+    for validate in (scoping.validate, criteria.validate):
+        codes = [one.code for one in validate(governed, "No menu Ã© semeado", "Because of it.")]
+        assert "char.mangled" in codes, validate
+        # And the reason beside it, which is the other bounded field this family composes.
+        codes = [one.code for one in validate(governed, "No second backlog.", "Because Ã© so.")]
+        assert "char.mangled" in codes, validate
+
+
+def test_a_section_body_is_still_prose_the_rule_does_not_read(tmp_path):
+    """The boundary held from the other side: widening to the title is the population the
+    measurement argued for and not a widening of the rule, so the body it deliberately skips
+    still takes the example an author is writing *about* mojibake."""
+    root = project(tmp_path)
+    done = cli(
+        root, "add", "--block", "A",
+        "--symptom", "A symptom plainly long enough to read",
+        "--why", "Because of a reason.",
+        "--section", "What a wrong decode leaves",
+        "--section-body", "A rationale quoting Ã© and â€™ as what a wrong decode leaves.",
+    )
+    assert done.returncode == 0, done.stderr
