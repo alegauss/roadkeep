@@ -220,6 +220,27 @@ class Engine:
         return tuple(where for where in changed if where)
 
     @property
+    def every_module(self) -> tuple[str, ...]:
+        """What :attr:`stale` reports on a tree where every module was touched (RK1562).
+
+        The widest that reading can be, and here rather than at the caller that wants it: a
+        note composed against a module list is a note whose size depends on this answer, and
+        RK1524 rebuilt it — `glob` where this walks recursively, `Path.name` where this spells
+        a submodule with its directory. Forty-eight names against sixty-one, in a reader whose
+        claim is that it measures what a caller is handed.
+
+        Which is the failure :func:`named` exists to have ended, one caller further out: two
+        vocabularies for this package's own modules made the comparison meaningless, and the
+        answer then was one spelling shared by both readers of the note. This is that answer
+        for the third reader — the one that prices it.
+        """
+        return tuple(
+            sorted(
+                filter(None, (named(one, self.home) for one in self.home.rglob("*.py")))
+            )
+        )
+
+    @property
     def on_disk(self) -> str:
         """What :attr:`home` states now, against the :attr:`version` this process is running.
 

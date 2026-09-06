@@ -990,30 +990,6 @@ makes between a report and its verdict.
 What it must not do is refuse. A declaration this tool cannot read is a legitimate state
 and the caller asked for a command to run, not for an opinion about their harness.
 
-### §RK1562 The second reading of a list provenance already owns
-
-RK1524 composes each served note with every module listed as changed, because the list
-is the part that varies and a session editing this tree is who these notes are written
-for. It builds that list with `home.glob("*.py")` and `Path.name`. What a real note
-carries is `Engine.stale`, which is `rglob` and `provenance.named` — 61 modules against
-48, and the thirteen missing are spelled `kernel/schema.py` where this reads
-`schema.py`.
-
-So the figure is short and the spelling is wrong, in a reader whose whole claim is that
-it comes off the same composers a caller is handed. It does — the prose is exact — and
-the arguments are a second reading of a fact `provenance` already answers, which is what
-the comment above `stale` warns about in as many words: one spelling, shared with
-`raised_in`, because two vocabularies made the comparison meaningless.
-
-The fix is to ask rather than to rebuild: the widest list is what `stale` would report
-on a tree where every module was touched, so the reading belongs beside it in
-`provenance` and both callers take it from there. That also removes the only place in
-this package where a module list is assembled outside the module that owns the question.
-
-What it changes about the number is a floor rising, not a bound moving — every note
-gains the thirteen names it would really have carried. Nothing about which note is
-widest is likely to move, the three that list modules all listing the same ones.
-
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

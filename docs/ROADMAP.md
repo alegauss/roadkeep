@@ -74,7 +74,6 @@
 - 💭 **RK1549** (deps: —) **no verb removes the vendored engine, so the report that names it hands the last step back to the reader in English** — RK1514 settled that an unasked deletion is wrong and left the asked-for one unbuilt, so uninstall un-wires and the tool stays on disk. → §RK1549
 - 💭 **RK1560** (deps: —) **install replaces a server declaration an adopter wrote themselves and no row names what was there** — the merge keeps every entry but this project's own, and RK1492 established that entry may legitimately hold a wrapper. → §RK1560
 - 💭 **RK1561** (deps: —) **engines --invoke prints a command and never that the declaration it fell through was one this tool cannot read** — RK1523 gave the report that row and the flag a caller actually pipes still answers as though nothing were declared. → §RK1561
-- 💭 **RK1562** (deps: —) **the served notes are priced against a module list built here rather than the one a real note carries** — RK1524 globbed the package root and named files by basename, where Engine.stale walks it recursively and spells a submodule with its directory. → §RK1562
 
 ## Block G — The editor surface (the backlog where the file is open)
 

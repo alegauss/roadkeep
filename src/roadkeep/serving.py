@@ -2795,10 +2795,11 @@ def composed(root: Path, served: str = "") -> tuple[tuple[str, str], ...]:
     text a caller gets — a fixture would agree until somebody edits a clause.
     """
     running = engine()
-    # Every module of the copy answering, sorted, which is what `Engine.stale` reports on a
-    # tree where each one was touched — derived from the home and never a list here (L6's
-    # argument one register over: a name written down is a name that stops being true).
-    changed = tuple(sorted(one.name for one in running.home.glob("*.py")))
+    # `Engine.every_module` and never a walk of our own (RK1562): what a real note carries is
+    # `stale`, which is recursive and spells a submodule with its directory — a second reading
+    # here was short by thirteen names and printed them in a vocabulary no note uses, which is
+    # exactly the disagreement `provenance.named` exists to have ended.
+    changed = running.every_module
     return (
         ("swapped", _swapped(running, served)),
         ("landed", _landed(changed, root)),

@@ -4255,3 +4255,19 @@ def test_the_widest_is_composed_from_the_functions_the_answers_use(tmp_path):
     assert priced == {
         kind: width(message) for kind, message in composed(Config.discover(tmp_path).root)
     }
+
+
+def test_the_widest_lists_the_modules_a_real_note_would_carry(tmp_path):
+    """RK1562. The first cut of this reading globbed the package root and named files by
+    basename — 48 against the 61 `Engine.stale` walks, spelled `schema.py` where a real note
+    says `kernel/schema.py`. A price built on a second reading of a list `provenance` owns,
+    which is the disagreement `named` exists to have ended, one reader further out."""
+    from roadkeep.provenance import engine
+    from roadkeep.serving import composed
+
+    every = engine().every_module
+    assert any("/" in one for one in every), "the walk is recursive, as `stale` is"
+    for _, message in composed(Config.discover(tmp_path).root):
+        if "changed on disk" not in message:
+            continue
+        assert every[0] in message and every[-1] in message
