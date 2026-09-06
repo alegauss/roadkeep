@@ -75,8 +75,6 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1616** (deps: RK1615 ✅) **nothing refuses a handler whose answer is not a result, so the shape is held by review alone** — L1 refuses a bad roadmap line at insertion and a bad handler is refused by nobody, so this package's own shape is held by the review that files a follow-up after the fact. → §RK1616
-
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
 ## Done when — Block D

@@ -845,28 +845,4 @@ their server.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-### §RK1616 L1, turned on this package
-
-L1 enforces the schema where the text is created, `lint` being only the backstop. This
-package applies that to an author's roadmap line and not to its own code.
-
-The evidence is the backlog's shape. All thirty-four open lines cite a prior id in their
-why: each is residue of a shipped task, filed by a human who read a diff and saw an edge
-left. `weight` measures the rate — the `filed` spread is the ids a task opened behind
-it, and Block D's median is one. A thousand entries have not converged because each ship
-emits a follow-up, found by review and never refused by a type.
-
-The lines say so themselves. RK1602 calls itself "the third instance of the shape RK1507
-and RK1542 each removed once". RK1585 names "the shape it is an instance of", which "has
-five tables and no rule". RK1571 says the states "cluster into families" the picker
-cannot show. Three lines, one complaint: the tool fixes instances and never the form.
-
-A declared result type is the first place that can change, because it is checkable. One
-test walks every `handler=` the parser holds and asserts a `Result` comes back, refusing
-at authoring time the whole family of "this verb answers a way the served surface cannot
-read" — instead of finding each member after it ships.
-
-Block H's `filed` median is zero against Block D's one: work on this tool's shape has
-not bred follow-ups, which is the argument for spending here.
-
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)

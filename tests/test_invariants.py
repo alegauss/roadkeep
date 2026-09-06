@@ -204,11 +204,11 @@ INVARIANTS: tuple[Invariant, ...] = (
             "every verb handler answers with a value a second surface can take, or is named "
             "one row each in the list the migration empties"
         ),
-        # `every handler under verbs/`: the population RK494 created by putting a module per
-        # verb family there, narrowed so `cli.dispatch` — whose signature is a handler's
-        # exactly — stays out of a rule about the things it calls. The holder derives that
-        # from `surface.modules` in a helper of its own, and there is no name to import for
-        # the narrowed set, which is RK478's blank and not a row nobody finished.
+        # Every `handler=` the parser holds — the population RK1616 replaced a signature
+        # heuristic with, that read having counted `cli.dispatch`, whose signature is a
+        # handler's exactly, and being blind to one spelling its parameters otherwise. The
+        # holder derives it in a helper of its own and there is no name to import for the set,
+        # which is RK478's blank rather than a row nobody finished.
         over="",
         held_by="test_registers::test_a_handler_that_prints_its_answer_is_one_somebody_named",
     ),

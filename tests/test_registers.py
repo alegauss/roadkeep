@@ -25,6 +25,11 @@ RK1617 added the second list and RK1615 emptied it down to nine. :data:`PRINTING
 handler still answering `(config, args) -> int`, and what is left in it is not work nobody got
 to — each has a prior reason, and none of the nine is served.
 
+RK1616 re-based the sweep on the parser. :func:`handlers` asks what is registered as one rather
+than what looks like one, which is the difference between a rule and a resemblance — the old
+read counted `cli.dispatch` and would have missed any handler spelling its parameters
+otherwise. L1 applied to this package: the shape is refused where a verb is declared.
+
 That last clause is the invariant, and
 :func:`test_no_tool_this_project_serves_answers_in_an_exit_code` is what holds it. "Empty" was
 the wrong target: `guard` has no plain register at all — three harness protocols keyed by hook
@@ -203,30 +208,36 @@ PRINTING: frozenset[tuple[str, str]] = frozenset(
 
 
 def handlers() -> dict[tuple[str, str], str]:
-    """Every verb handler in the package, with what it returns.
+    """Every verb handler this build declares, with what it returns.
 
-    A handler is `(config, args: argparse.Namespace)` and nothing else: `verbs/declaring` has
-    two helpers taking `(x, args)` and `verbs/querying` two more taking a config, and a sweep
-    keyed on the shape alone counted all four as verbs this contract is about.
+    **Off the parser's own `handler=` and never a signature that looks like one** (RK1616).
+    RK1617 swept `verbs/` for `(config, args: argparse.Namespace)`, which is a heuristic with
+    two known holes: it counted `cli.dispatch`, whose signature is a handler's exactly and
+    which is the thing that *calls* them, and it would silently miss a handler whose parameters
+    were spelled any other way. Both are the same mistake — asking the source what a handler
+    looks like instead of asking what is registered as one.
 
-    Under `verbs/` and nowhere else, because `cli.dispatch` has a handler's exact signature and
-    is the thing that *calls* them — a sweep over the whole package told the dispatcher to
-    return its own answer as a value. RK494 put a module per verb family there, so the
-    directory is the population rather than a list of files.
+    The parser is the authority, and it is the same read :mod:`roadkeep.serving` makes to
+    resolve a tool's module. Eighty-two of eighty-nine subparsers carry one; the seven without
+    are the groups — `section`, `block`, `record` and the rest — whose verbs are their children.
+
+    Addressed as `verbs/<module>.py` so the rows read the way the package is laid out, which is
+    what :data:`PRINTING` is written in.
     """
+    from roadkeep.cli import build_parser  # noqa: PLC0415 - imported for the parser it builds
+    from roadkeep.serving import _parsers
+
+    source = {one.where: one.text for one in modules()}
     found: dict[tuple[str, str], str] = {}
-    for module in modules():
-        if not module.where.startswith("verbs/"):
+    for parser in _parsers(build_parser()).values():
+        handler = parser.get_default("handler")
+        if handler is None:
             continue
-        for node in ast.walk(ast.parse(module.text)):
-            if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
-                continue
-            taken = node.args.args
-            if len(taken) != 2 or taken[0].arg != "config" or taken[1].arg != "args":
-                continue
-            if ast.unparse(taken[1].annotation or ast.Constant(None)) != "argparse.Namespace":
-                continue
-            found[module.where, node.name] = ast.unparse(node.returns) if node.returns else ""
+        where = f"verbs/{handler.__module__.rpartition('.')[2]}.py"
+        for node in ast.walk(ast.parse(source[where])):
+            if isinstance(node, ast.FunctionDef) and node.name == handler.__name__:
+                found[where, node.name] = ast.unparse(node.returns) if node.returns else ""
+                break
     return found
 
 
