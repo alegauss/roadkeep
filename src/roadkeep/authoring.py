@@ -661,6 +661,14 @@ class Insertion:
             # reading a missing key cannot tell "nothing is near" from "this build is older",
             # and deciding a duplicate is the whole use of it. No score, the ordering being the
             # answer and a figure beside it one turn from the threshold RK441 rules out.
+            #
+            # **And this is the population that could score the read** (RK1535). RK1500 held
+            # that the retirement corpus cannot: every known answer is written into the field a
+            # query would join, so the truth is an input. What is not an input is the reading
+            # given *before* the answer was known — these rows — and each carries the `id` and
+            # the `rank` a later `retire --superseded-by` joins on. So the readings are
+            # published and never stored: a log of them is not a fact about the backlog (L2),
+            # and a session keeping its own transcripts already has the corpus.
             "near": [
                 {
                     "id": one.task.id,

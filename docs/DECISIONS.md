@@ -92,6 +92,7 @@ JSON of the same join would be the drift this projection exists to have none of.
 - ✅ **RK1419** **The capture offer rides lint --fix and repair, whose exit 1 is the verdict lint's own is exempt from** — Whether an exit is a verdict is one fact per verb, declared by the parser and withdrawable by the run; that a command writes is a different question.
 - ✅ **RK1515** **a design quoting a constraint to describe somebody else's case reads as having settled it** — a substring on a lead cannot tell an answer from a citation of one, so the tool reports that a design quotes a constraint and never that it settled it.
 - ✅ **RK1533** **govern writes a number the config parser then refuses, leaving every verb unable to read the file** — a write to the config is refused unless the file it would leave parses, the verb that moved a number being the verb that has to be able to move it back.
+- ✅ **RK1535** **nothing records which volunteered rows an author acted on, so the population that could score the read has none** — a reading is published and never stored: a log of what was shown is not a fact about the backlog, and the payload already carries what a later join needs.
 
 ### §RK1394 Proof, not age
 
@@ -160,6 +161,21 @@ firing on a line whose author already answered it — the noise RK1457 removed.
 What was kept is cheaper and does not expire. The register states the measurement, so
 whichever the design is, nothing printed is wrong; the shape test can still be added, on
 a corpus large enough to test it.
+
+### §RK1535 Why the readings are not kept
+
+The alternative was to store them: the ids a write volunteered, in the transaction that
+volunteered them, so a later `retire --superseded-by` joins to whether the read had
+named its partner — the population RK1500 proved the retirement corpus cannot be.
+
+Declined on L2. The store is the repository, and a log of what a command showed somebody
+is a fact about a session rather than about the backlog: a fourth kind of thing in the
+governed files, growing per `add`, read back by no verb and pruned by nothing.
+
+Declining was cheap because the payload already carries the join — each row publishes
+its id and rank, and a retirement names its partner by id. What it leaves open is whose
+transcript: a session that discards its output has no corpus, and this tool cannot know
+which do.
 
 ## Block E — Adoption
 

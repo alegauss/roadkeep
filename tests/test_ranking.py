@@ -576,3 +576,53 @@ def test_widening_the_window_reaches_no_pair_three_does_not():
         reached[count] = found
     assert by_id, "the ledger this is measured over is readable"
     assert len(set(reached.values())) == 1, reached
+
+
+def test_the_reading_before_the_answer_is_published_and_never_stored(tmp_path, capsys):
+    """RK1535. RK1500 held that the retirement corpus cannot score the query half of this read:
+    every known answer is written into the field a query would join, so the ground truth is an
+    input. The population that could score it is the reading given **before** the answer was
+    known — the rows an `add` volunteers — and nothing records those.
+
+    Nothing here starts to. What is asserted is that the payload already carries what a later
+    join needs, so a session keeping its transcripts has the corpus without this tool storing a
+    log of readings, which is not a fact about the backlog (L2)."""
+    root = project(tmp_path)
+    _added(root, "A first thing")
+    capsys.readouterr()
+    assert main([
+        "-C", str(root), "add", "--block", "A", "--json",
+        "--symptom", "A second thing that is nearly the first",
+        "--why", "Because of a reason.",
+    ]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    rows = payload["near"]
+    assert rows, "nothing volunteered: this join is about nothing"
+    # The two fields a later `retire --superseded-by` joins on: which line was named, and how
+    # near it was said to be. Without either, a transcript records that something was shown.
+    assert [one["rank"] for one in rows] == list(range(1, len(rows) + 1))
+    assert all(one["id"] for one in rows)
+    # And which corpus each came from, since RK1495 made it two — a hit against an open line
+    # and one against a delivery are different claims about the read.
+    assert {"near_recorded", "near_open"} <= set(payload)
+    assert all(one["marker"] for one in rows)
+
+
+def test_the_id_the_ledger_would_join_on_is_the_one_the_rows_carry(tmp_path, capsys):
+    """The join stated as itself: a retirement names its partner by id, and that is the field
+    these rows publish — so *was the partner volunteered, and at what rank* is answerable from
+    a transcript and a ledger, with nothing in between."""
+    root = project(tmp_path)
+    _added(root, "A vendored decoder crashes on a truncated frame")
+    capsys.readouterr()
+    assert main([
+        "-C", str(root), "add", "--block", "A", "--json",
+        "--symptom", "The vendored decoder crashes when a frame is truncated",
+        "--why", "Because of a reason.",
+    ]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    named = {one["id"]: one["rank"] for one in payload["near"]}
+    # The partner is in it, which is the case the read exists for — and the rank is what a
+    # scoring pass reports, rather than a score this tool refuses to publish (RK441).
+    assert named, payload["near"]
+    assert min(named.values()) == 1
