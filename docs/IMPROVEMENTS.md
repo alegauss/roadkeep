@@ -910,6 +910,30 @@ seeing (RK1443's rule, one register over), so the honest form is the figure besi
 was written rather than a sentence explaining the rule — the rule is at `govern`, where
 the number is chosen, and this is the measurement.
 
+### §RK1584 The one answer with no payload
+
+RK1538's remaining half turned out to be larger than the sentence describing it. A
+refusal does not have a payload: `_refused` prints to stderr and returns an exit code,
+and over MCP `serving.call` hands the caller that text with `isError`. So there is
+nowhere to publish the bound — not because nobody added a key, but because the surface
+every write refuses through has no structure.
+
+That is worth stating on its own, because it is the same finding one level up. This
+package publishes a payload for every answer — `add --json`, `lint --json`, `brief
+--json` — and the thing an agent most often meets is the one it can only read as prose.
+`--json` on a refused call prints nothing to stdout and the diagnosis goes to stderr as
+English.
+
+What a caller does with it today is match. `serving` reroutes the command names inside
+the text (RK475) so the sentence names tools rather than a shell; the rest — which
+field, which code, which limit, which of two ceilings — is left in a paragraph, and the
+agent reading it has exactly the options RK1503 was filed to remove.
+
+What it must not become is a second vocabulary. Every violation already carries `code`,
+`field`, `bound` and a message; a refusal payload is those, published, and never a new
+set of names invented for the wire. Whether the exit code stays the contract is
+untouched — the payload is what a caller reads *after* it has decided.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
