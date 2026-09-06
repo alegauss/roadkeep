@@ -685,6 +685,7 @@
 - ✅ **RK1505** **the note about a missing page says it is missing and not what it would have told the reader** — each reference page declares the one verb it saves a reader, and the absent-page note quotes it.
 - ✅ **RK1506** **budget prices one line per departure and a ship writes three, so the other two are exemptions rather than answers** — budget --ship --decides prices the decision line beside the ledger one, and the exemption naming it is gone.
 - ✅ **RK1507** **a line this tool writes under a ledger entry is composed by one function and recognised by another, matching on a prefix** — one function composes a carried line and one beside it decides whether a line is one, round-tripped by a test.
+- ✅ **RK1508** **which engine wrote a project's surfaces is derivable from their bytes and is only ever read out of a record** — install --check dates the committed bridge from its bytes where no record does, over this engine's own history.
 
 ## Block E — Adoption
 

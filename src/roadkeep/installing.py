@@ -379,6 +379,12 @@ class Plan:
     #: False on a project with nothing wired at all — there is no surface whose provenance
     #: could be unknown, and a row about a record that would govern nothing is noise.
     unrecorded: bool = False
+    #: The version the committed bridge's **bytes** say wrote it, where they say one (RK1508).
+    #: Read only where :attr:`unrecorded` is true, which is the one decision it informs — is
+    #: the refresh in front of you an upgrade — and everything after the first `install` is the
+    #: record's. `""` on every other project: one with the record, one whose bridge is not a
+    #: byte copy this engine's history holds, and every clone with no history of this package.
+    derived: str = ""
     #: Whether the write recorded `[install] wired` — a fifth file this command touches, so it
     #: is answered rather than assumed (RK298). False on every `--check`, which writes nothing.
     recorded: bool = False
@@ -447,10 +453,19 @@ class Plan:
             # row's absence rather than the rows below: *not ahead* on a project that recorded
             # nothing is *not known to be ahead*, and the reader deciding whether to run this
             # is the one who has to be told which of the two they are looking at.
+            # And the version the bytes carry, where they carry one (RK1508): the record is
+            # absent and this is the one thing that can answer in its place, once, before the
+            # first `install` writes it. Said inside the row rather than under it, because it
+            # is the same sentence with the missing half filled in.
+            dated = (
+                f" — the committed bridge's bytes are {self.derived}'s"
+                if self.derived
+                else ""
+            )
             rows.append(
                 f"  record         none — nothing here says which engine wrote these "
-                f"surfaces, so a refresh cannot be told from a downgrade; `install` writes "
-                f"that record, and this report is what to read before it does"
+                f"surfaces, so a refresh cannot be told from a downgrade{dated}; `install` "
+                f"writes that record, and this report is what to read before it does"
             )
         if self.ahead:
             # Above the surfaces, because it changes what every `updated` under it means
@@ -610,6 +625,10 @@ class Plan:
             # nothing that is *not known to be ahead* — two states a consumer branching on one
             # key cannot tell apart, which is the guess this whole task is about.
             "unrecorded": self.unrecorded,
+            # The version the bridge's bytes carry (RK1508), where the record is absent and
+            # they carry one. `""` and never omitted, so a caller tells *nothing matched* from
+            # a build that could not ask.
+            "derived": self.derived,
             "recorded": self.recorded,
             "surfaces": [
                 {
@@ -822,6 +841,12 @@ def plan(
         # check that reported *behind* about a project that recorded nothing was stating a
         # direction it had not established.
         unrecorded=not wired_by(base) and any(one.existed for one in surfaces),
+        # And the version the bytes carry, only where the record is absent (RK1508): four git
+        # processes for the one decision a missing record cannot inform, and nothing at all on
+        # every project that has one — which is every project after its first `install`.
+        derived=""
+        if wired_by(base) or not any(one.existed for one in surfaces)
+        else written_by(base),
         # Over what would be written and never every surface: a directory nobody needs to
         # create is not in anybody's way (RK393).
         blocked=tuple(
@@ -946,6 +971,63 @@ def declared_launcher(root: Path) -> str:
 #: a placeholder, a relative walk or an absolute drive — and the tail is the part this command
 #: chose. Read from the constants the writer uses, so a launcher that moves moves both.
 _PROGRAMS = (LAUNCHER, PROJECT_BRIDGE)
+
+
+def written_by(root: str | Path = ".") -> str:
+    """Which version of this package wrote the committed bridge, off its bytes (RK1508).
+
+    RK1462 wrote a record because the version was not derivable, and RK1485 could only say the
+    record was absent. The second shape that design named is this: the bridge is a **copy** of
+    a file this package ships, so which engine wrote it is a question its bytes answer — not a
+    guess, a lookup, over the one candidate set that exists.
+
+    **The bridge and not the skill**, which is the measured bound rather than a choice. The
+    surfaces this command writes are not all copies: `SKILL.md` is rewritten per project — the
+    invocation line names the launcher this project runs — so its bytes date the *adopter* and
+    not the engine. The launcher is written through unchanged, and it is the only one.
+
+    The candidates are the revisions of the shipped file in **this engine's own checkout**.
+    Measured here: `hooks/roadkeep-launch.py` has nine, and the repository carries **one tag** —
+    so the walk over tags the design assumed would have had one candidate and answered almost
+    never. The version at a matching commit is what the hook stamps into `__init__.py` on every
+    one (RK153), which is what makes a revision a version at all.
+
+    Four processes, once, on a `--check` that has a reason to ask. `""` where nothing matches —
+    a bridge somebody edited, or one from a release this clone has no history of — and where
+    git cannot answer, which is every adopter's clone and is the honest limit: a project with
+    no history of this package cannot date a copy of it.
+    """
+    from roadkeep.history import HistoryUnavailable, _run  # noqa: PLC0415 - RK260
+
+    here = Path(root).resolve() / PROJECT_BRIDGE
+    engine = _source()
+    shipped = PLUGIN_BRIDGE
+    if not here.is_file():
+        return ""
+    try:
+        blob = _run(engine, "hash-object", "--", str(here)).strip()
+        revisions = _run(engine, "log", "--format=%H", "--", shipped).split()
+        if not blob or not revisions:
+            return ""
+        # One batch and never one call per revision: `SKILL.md` has 193 of them, and a process
+        # each is the 30-second probe `vendored_at` refuses to be (RK1451).
+        found = _run(
+            engine,
+            "cat-file",
+            "--batch-check",
+            fed=[f"{one}:{shipped}" for one in revisions],
+        ).split()
+        # `<blob> blob <size>` per row, in the order asked, so the newest match is the first.
+        at = next(
+            (revisions[index] for index, one in enumerate(found[::3]) if one == blob), ""
+        )
+        if not at:
+            return ""
+        stated = _run(engine, "show", f"{at}:src/roadkeep/__init__.py")
+    except (HistoryUnavailable, OSError, IndexError):
+        return ""
+    match = re.search(r'__version__\s*=\s*"([^"]+)"', stated)
+    return match.group(1) if match else ""
 
 
 def wired_by(root: Path) -> str:

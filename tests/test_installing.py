@@ -2834,3 +2834,65 @@ def test_the_command_a_removal_check_names_runs(tmp_path, monkeypatch, capsys):
     assert ran and ran[0][:1] == ["uninstall"], said
     capsys.readouterr()
     assert main(["-C", str(project), "uninstall", "--check"]) == EXIT_OK
+
+
+# -- the version the bytes already carry (RK1508) ------------------------------
+
+
+def test_the_check_dates_the_committed_bridge_where_no_record_does(project, capsys):
+    """RK1508. RK1462 wrote a record because the version was not derivable and RK1485 could
+    only say the record was absent. The bridge is a *copy* of a file this package ships, so
+    which engine wrote it is a question its bytes answer — a lookup over the revisions of that
+    file in this engine's own checkout, which is where the candidates are."""
+    import re
+
+    from roadkeep.installing import plan
+
+    install(wired(project), source=HERE, committed=True)
+    source = project / "roadkeep.toml"
+    source.write_text(
+        source.read_text(encoding="utf-8").split("[install]")[0], encoding="utf-8"
+    )
+    intent = plan(project, source=HERE)
+    assert intent.unrecorded
+    # A version this checkout's history holds, and the one whose bytes match.
+    assert re.fullmatch(r"\d+\.\d+\.\d+", intent.derived), intent.derived
+
+
+def test_a_project_with_the_record_is_not_dated_by_its_bytes(project):
+    # Four git processes for a decision the record already informs is four nobody asked for:
+    # everything after the first `install` is the record's, which is why this is a read taken
+    # once and only where it can answer something.
+    from roadkeep.installing import plan
+
+    install(wired(project), source=HERE, committed=True)
+    intent = plan(project, source=HERE)
+    assert not intent.unrecorded
+    assert intent.derived == ""
+
+
+def test_a_bridge_somebody_edited_is_dated_by_nothing(project):
+    """The honest `""`: a surface whose bytes match no revision is not from a release this
+    clone has history of, or is not this tool's copy any more. Said as an absence rather than
+    guessed at, which is every reader in this module's direction."""
+    from roadkeep.installing import PROJECT_BRIDGE, written_by
+
+    install(wired(project), source=HERE, committed=True)
+    bridge = project / PROJECT_BRIDGE
+    bridge.write_text(
+        bridge.read_text(encoding="utf-8") + "\n# somebody's own line\n", encoding="utf-8"
+    )
+    assert written_by(project) == ""
+
+
+def test_the_skill_is_not_dated_because_it_is_not_a_copy(project):
+    """The measured bound. Not every surface is a copy: `SKILL.md` is rewritten per project —
+    the invocation line names the launcher *that* project runs — so its bytes date the adopter
+    and not the engine. The launcher is written through unchanged, and it is the only one."""
+    from roadkeep.installing import PLUGIN_SKILL, PROJECT_SKILL
+
+    install(wired(project), source=HERE, committed=True)
+    written = (project / PROJECT_SKILL).read_text(encoding="utf-8")
+    shipped = (HERE / PLUGIN_SKILL).read_text(encoding="utf-8")
+    assert written != shipped
+    assert "roadkeep-launch.py" in written
