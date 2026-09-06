@@ -912,6 +912,30 @@ take the line this repository's own `report` prints, and see whether `cmd`, Powe
 and Git Bash each run it. If all three do, this closes as declined; if one does not, the
 door on a Windows checkout has never been takeable.
 
+### §RK1582 The third cadence nobody counts
+
+Every `add` prints a header and three ranked neighbours, and nothing counts them. RK1491
+gave the gate's notes a cadence, RK1524 gave the transport's, and this is the third:
+prose composed per write, on the one command an agent runs most, never measured against
+anything.
+
+The argument is the one those two made and it applies harder here. A note fires on a
+state; the near rows fire on **every** `add`, and they grew in three tasks — RK1370
+wrote them, RK1374 added the counts, RK1495 added the second corpus and RK1528 the
+second door. Each was argued and none was counted, which is exactly what RK30 says a
+limit nobody counts does.
+
+The reading is cheap and the shape exists. `Noted` prices what a run of the gate says,
+and the same record fits: the header, the rows at the width this project's own symptoms
+reach, and the sentence that says what the order is not. `VOLUNTEERED` bounds the rows
+at three, so the figure has a ceiling by construction — which is more than the notes
+had.
+
+What it must not become is a limit. The rows are the duplicate read, and a project that
+shortened them to fit a number would be trading the one thing this answer is for.
+`Skilled`'s rule: the figure and where it went, with the judgement left to whoever takes
+it.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
