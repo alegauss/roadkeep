@@ -1449,7 +1449,7 @@ USES: Mapping[str, str] = {
 }
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class Part:
     """One labelled weight in a ranked breakdown — three subjects use it (RK1092, RK1522).
 
@@ -1468,7 +1468,7 @@ class Part:
     **And then two more callers, which is what this docstring is for** (RK1522). A good shape
     attracting a third subject is ordinary — three records with identical fields would be
     three names for one idea — but a docstring describing one of three uses leaves a reader
-    meeting `Part("read.priced", 1, …)` to work out from the call site that :attr:`heading`
+    meeting `Part(heading="read.priced", …)` to work out from the call site that :attr:`heading`
     is not a heading. So the three are declared, and :data:`USES` is the same statement as a
     table `tests/test_budgeting.py` holds total: a fourth caller is a red until it is named.
 
@@ -1507,9 +1507,11 @@ class Part:
     #: and the pages are the one surface RK1437 separated *because of what opening one
     #: costs* — so the share is published rather than argued about, 0 being every other use.
     #:
-    #: **Last, because two of the three callers build this record positionally** (RK1522):
-    #: a field inserted above `characters` moved the note's width into it silently, and the
-    #: sweep that priced the transport's notes went to `None` in one edit.
+    #: Declared last and reached by name, which is now the only way (RK1586): this record is
+    #: **keyword-only**, because a field inserted above `characters` moved a note's width into
+    #: it silently and the sweep pricing the transport's notes went to `None` in one edit. The
+    #: order stopped being load-bearing the moment three subjects shared the shape (RK1522), and
+    #: a rule nobody can enforce is what the comment saying so would have been.
     declared: int = 0
 
 
@@ -2358,7 +2360,15 @@ def note_cost(config: Config) -> Noted:
 
     running = engine()
     emitted = sorted(
-        (Part(one.code, 1, len(str(one).encode()), width(str(one))) for one in lint(config).notes),
+        (
+            Part(
+                heading=one.code,
+                lines=1,
+                bytes=len(str(one).encode()),
+                characters=width(str(one)),
+            )
+            for one in lint(config).notes
+        ),
         key=lambda one: -(one.characters or 0),
     )
     # Summed and not maximised (RK1494): the note is four rows now, and a machine where all
@@ -2374,7 +2384,12 @@ def note_cost(config: Config) -> Noted:
         appended=tuple(
             sorted(
                 (
-                    Part(kind, 1, len(message.encode()), width(message))
+                    Part(
+                        heading=kind,
+                        lines=1,
+                        bytes=len(message.encode()),
+                        characters=width(message),
+                    )
                     for kind, message in composed(config.root)
                 ),
                 key=lambda one: -(one.characters or 0),

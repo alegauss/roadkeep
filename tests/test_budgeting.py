@@ -4375,3 +4375,21 @@ def test_a_page_with_no_declaration_says_nothing_about_one(tmp_path):
     # An opening fence nothing closes is not a declaration, and reading to the end of the file
     # would price the whole page as one.
     assert _frontmatter(b"---\nsaves: add\n") == b""
+
+
+def test_the_shared_record_is_reached_by_name_and_never_by_order():
+    """RK1586. Adding one field to `Part` moved a note's width into it and the transport's
+    prices went to `None` — caught by the one test that compares a composed figure against its
+    composer, and green everywhere a figure is merely published.
+
+    Three subjects share this shape (RK1522), so its field order stopped being anybody's to
+    rely on. Keyword-only makes the next insertion a compile-time question rather than a silent
+    reassignment, which is what a comment saying *do not reorder* could never be."""
+    import dataclasses
+
+    from roadkeep.budgeting import Part
+
+    assert all(field.kw_only for field in dataclasses.fields(Part))
+    with pytest.raises(TypeError):
+        Part("a heading", 1, 2)  # type: ignore[misc]
+    assert Part(heading="a heading", lines=1, bytes=2).declared == 0

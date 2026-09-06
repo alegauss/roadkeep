@@ -911,31 +911,6 @@ The cheap version is a helper: given a table and its neighbouring comment, asser
 member is named and nothing claimed that the table lacks. Whether the second half is
 decidable depends on the table, which makes this a design rather than a chore.
 
-### §RK1586 The order nothing says is load-bearing
-
-Adding one field to `Part` broke a reading in another module and the suite caught it,
-which is the good half. The bad half is why: two of the three callers build the record
-**positionally**, so a field declared above `characters` took the note's width and the
-transport's prices went to `None` — measured, in one edit, on a record RK1522 had just
-documented as shared by three subjects.
-
-The record is right and the construction is what is fragile. `_parts` and `_pages` pass
-keywords; `note_cost` passes four values in order, and nothing anywhere says the order
-is load- bearing. RK1522's own table names who builds one and what its label holds — it
-does not say *how*, and how is the part that broke.
-
-The fix is small and is not a comment. `Part` can be keyword-only, which costs one line
-at the declaration and turns every future insertion into a compile-time question rather
-than a silent reassignment; RK1522's table then keeps meaning what it says. The
-alternative is a rule nobody can enforce, which is what the note now beside the field
-is.
-
-What makes it worth doing rather than shrugging is what was nearly kept. The break
-surfaced because one test compares a composed figure against the composer; a field added
-where nothing did that would have moved a published number and gone green — which is
-precisely the class `test_pairs` and `composing.SITES` exist to make visible everywhere
-else.
-
 ## Block E — Adoption
 
 ## Block F — The plugin
