@@ -264,6 +264,30 @@ What it must not become is a rule. How long a pause may stand is a judgement abo
 (L4), the same one `[claims] held` refuses to make for a claim — so the answer is an
 order and never a verdict, which is what `weight` already is for a different question.
 
+### §RK1548 The placeholder that cannot survive its own quotes
+
+RK1513's door read `--lead <what is true when it is>`, and the test that parses it
+refused the call: `shlex.split` takes `<what` as the value and hands argparse four stray
+words. The fix is a quote, and the rule is one this tree already breaks three more times
+— `ship <id> --part <what landed>`, `section move <a> --to <free anchor>`, `anchors
+--family <one of them>` — in a tool whose claim is that the door it names is the door.
+
+Nothing catches it. `composing._BLANKS` accepts both spellings, `<x>` and `"<x>"`, and
+only the quoted one survives the split — so the unquoted placeholder never matches, and
+`filled`'s loud `<unfilled --flag>` branch, which exists so an argument is never quietly
+dropped, does not see it either. It arrives as literal argv and the command silently
+becomes a different one.
+
+The check does not need the site to be reached, which is what makes it worth having
+beside RK1498: a span holding a placeholder with a space in it is wrong from the string
+alone, so one pass covers the thirty-odd sites no test runs as well as the ones it does.
+Three of the four here were found by grep after the fourth was found by a hand-written
+test.
+
+What it must not do is police prose. `--part <what landed>` outside backticks is a flag
+being named in a sentence, and is correct; the rule binds a backticked span that starts
+with the invocation, the boundary `commands` already draws.
+
 ## Block D — The gate
 
 ### §RK1498 The doors nothing has ever run

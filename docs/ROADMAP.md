@@ -36,6 +36,7 @@
 - 💭 **RK1545** (deps: —) **the filings axis reads one per ship over one commit here, which is this session's cadence and not the work's** — RK1510 built the reading to tell a backlog decomposing from one discovering, and on this corpus a commit per thought flattens both to the same shape. → §RK1545
 - 💭 **RK1546** (deps: —) **a folded criterion cites no origin, so a reader of the absorbing task cannot tell it was somebody's line** — RK1511 records the destination in the ledger and the criterion says nothing, which is the half of the join its own design named and left. → §RK1546
 - 💭 **RK1547** (deps: —) **a pause carries a reason with no date and no expiry, so nothing ever asks whether it still holds** — RK1512 shipped the count and left the age, the store having no date and pick being the one path a git call may not be on. → §RK1547
+- 💭 **RK1548** (deps: —) **a composed door whose placeholder holds a space is printed unquoted, so the command as printed cannot be run** — shlex takes the first word as the value and the rest as stray arguments, and nothing checks the spelling because the blank never matches. → §RK1548
 
 ## Block D — The gate
 
