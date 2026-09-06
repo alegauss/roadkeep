@@ -713,6 +713,7 @@
 - ✅ **RK1577** **two more sites of the composer work-list compose doors nothing has ever run** — two more composed doors are executed against an outline with two families, which found a narrowing door whose placeholder any shell splits and two row states that overstated the fixture.
 - ✅ **RK1579** **two more sites of the composer work-list are accounted for, one of them as work it never was** — the capture dump's filing door is backticked and found, and the handoff row is reclassified as the pipeline into another tool it always was.
 - ✅ **RK1535** **nothing records which volunteered rows an author acted on, so the population that could score the read has none** — the reading an add volunteers carries the id and rank a later retirement joins on, so the population that could score the query half is published and no log of readings is stored.
+- ✅ **RK1536** **a decision can only be filed by a departure, so the moment its answer is lost is the moment nothing can be done** — sixty of sixty decisions were filed by a departure, so the role keeps no door of its own and the measurement that says why is held as a test.
 
 ## Block E — Adoption
 

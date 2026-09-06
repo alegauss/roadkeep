@@ -336,29 +336,6 @@ yet, and what turns it into an answerable question is the state. That is a task 
 family rather than one sweep — and the reason to file it as one line is that the six
 that do run were each bought by a defect that had already shipped.
 
-### §RK1536 The decision with no door of its own
-
-RK1501 had to put its sentence in `brief` rather than at the deletion, for a reason
-worth naming on its own: `ship --decides` is a flag on the departure, and no verb files
-a decision afterwards. `revise` corrects one that exists, `supersede` replaces one —
-both start from a record. So the moment the answer is lost is the moment nothing can be
-done.
-
-That shapes every door around it. RK1488's `quoted` row names the constraint whose
-answer just went and can offer nothing; RK1501's row has to fire on a read taken
-*before* the work, which means a session that skips `brief` never sees it. Two rows
-about one fact, one of them too early to act on and one too late.
-
-The ledger does not have this problem. `record add` writes an entry that was never a
-roadmap line, on the argument that the only route in was a fictitious line shipped in
-the same breath — which taught that the format can be gamed. The decisions role has no
-such door, so that route is the only one: file a line, ship it with `--decides`.
-
-Whether it should is a real question, not obviously yes. A decision with no work behind
-it may be what an architecture note is, or may be the file filling with claims nothing
-paid for. What decides it is who writes one: measured here, both answers this repository
-lost were written by an author who had just done the work.
-
 ### §RK1537 The limit one door does not read
 
 RK1502's sweep nearly filed a defect that was not one. On a fixture declaring `[limits]

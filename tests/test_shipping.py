@@ -3885,3 +3885,26 @@ def test_the_sentence_is_flattened_and_the_lead_is_the_address():
     assert carried("A lead", "One\n  sentence,   wrapped.") == (
         "  checked **A lead** One sentence, wrapped."
     )
+
+
+def test_every_decision_this_project_records_was_filed_by_a_departure():
+    """RK1536. `ship --decides` is a flag on the departure and no verb files a decision
+    afterwards — `revise` corrects one that exists and `supersede` replaces one, and both start
+    from a record. The question that leaves open is whether the role wants `record add`'s
+    equivalent: a door for a decision with no work behind it.
+
+    Measured here rather than argued: sixty of sixty entries name an id this project's ledger
+    holds, so the whole population was written by an author who had just done the work — which
+    is what the departure flag is for. A row that stops naming a shipped id is a decision filed
+    some other way, and that is a change somebody should have to make on purpose."""
+    from roadkeep.config import Config
+
+    config = Config.discover(Path(__file__).resolve().parents[1])
+    if not config.has("decisions"):
+        pytest.skip("this project declares no decisions role")
+    shipped = {one.task.id for one in config.document("changelog").entries}
+    filed = [one.task.id for one in config.document("decisions").entries]
+    assert len(filed) >= 40, f"only {len(filed)} decisions: this measurement is about nothing"
+    assert not [one for one in filed if one not in shipped], [
+        one for one in filed if one not in shipped
+    ]
