@@ -40,8 +40,7 @@
 
 ## Block D — The gate
 
-- ⏳ **RK1498** (deps: RK1532) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Thirty of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
-- 💭 **RK1532** (deps: —) **thirty rows of the composer work-list share one reason, so none of them says what it would cost** — RK1498 took four out in a sitting at two lines of fixture each, and the constant they all carried is why nobody had started at any. → §RK1532
+- ⏳ **RK1498** (deps: RK1532 ✅) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Thirty of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
 - 💭 **RK1533** (deps: —) **govern writes a number the config parser then refuses, leaving every verb unable to read the file** — Violated guards a number the corpus breaks and nothing guards one two keys in a table forbid, so the repair is the hand edit the guard denies. → §RK1533
 - 💭 **RK1535** (deps: —) **nothing records which volunteered rows an author acted on, so the population that could score the read has none** — RK1500 proved the retirement corpus cannot score the query half, and the answers given before the answer was known are printed and dropped. → §RK1535
 - 💭 **RK1536** (deps: —) **a decision can only be filed by a departure, so the moment its answer is lost is the moment nothing can be done** — RK1501 had to say it in brief because --decides is a flag on the ship, and the ledger has record add for exactly the route the decisions role lacks. → §RK1536

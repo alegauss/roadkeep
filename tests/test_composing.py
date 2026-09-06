@@ -500,3 +500,34 @@ def test_a_door_the_sweep_cannot_fill_is_named_and_not_dropped():
     # still dropped, which is the case the reading was right about.
     printed = ["add", "--block", "Z", "--ref", "XXI.1", "…"]
     assert filled(printed, continuation=True) == printed[:-1]
+
+
+def test_no_two_unreached_rows_share_one_reason():
+    """RK1532. Thirty-one rows carried one sentence — *the message needs a state no fixture in
+    this suite builds yet* — accurate about every one and useful about none: an item whose cost
+    is unstated reads as open-ended, and a list of thirty-one open-ended items is one nobody
+    starts at. RK1498 started at it anyway and took four out in a sitting at two lines of
+    fixture each, which is what the constant had been hiding.
+
+    Held as *distinct*, which is the property that keeps the field from collapsing back: a
+    shared reason is a constant wearing a sentence, and the day one arrives is the day this
+    table stops being a work-list a picker can size."""
+    reasons = [one.why for one in SITES if one.state == "unreached"]
+    assert reasons, "if this empties, the row that says so should go too"
+    shared = {one for one in reasons if reasons.count(one) > 1}
+    assert not shared, sorted(shared)
+
+
+def test_every_unreached_row_names_the_state_its_fixture_wants():
+    """`_UNMEASURED` in `test_pairs` is the same table one file over, and what makes a row there
+    actionable is that it says the state — *no `[non_goals]` table*, *no deferred store*. This
+    asserts the shape rather than the wording: the kind word, then a state, and the sentence
+    that says a runnable command is on the other side of it."""
+    for one in SITES:
+        if one.state != "unreached":
+            continue
+        assert one.why.startswith("unreached: "), one.where
+        state = one.why[len("unreached: ") :]
+        assert "runnable once a fixture has it" in state, one.where
+        # The state itself, and not only the tail every row shares.
+        assert len(state.split(", and the command")[0].split()) >= 6, one.where

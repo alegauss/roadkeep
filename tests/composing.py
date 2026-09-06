@@ -64,10 +64,21 @@ class Site:
 #: Reasons a site is not executed here. Shared where the cause genuinely is the same, and the
 #: point of naming them at all is that a reader can see which: `unreached` is a work-list and
 #: `deliberate` is a decision, and a table that spelled both as "no" would hide the difference.
-NO_FIXTURE = (
-    "unreached: the message needs a state no fixture in this suite builds yet, and the "
-    "command it composes is runnable once one does"
-)
+def unreached(state: str) -> str:
+    """A row's reason, as **the state its fixture wants** (RK1532).
+
+    Thirty-one rows shared one sentence — *the message needs a state no fixture in this suite
+    builds yet* — true of every one of them and useful about none: an item whose cost is
+    unstated reads as open-ended, and a work-list of thirty-one open-ended items is a list
+    nobody starts at. RK1498 started at it anyway and took four out in a sitting, each wanting
+    **two lines of fixture**, which is what that constant had been hiding.
+
+    `_UNMEASURED` in `test_pairs` is the same table one file over and says what each row wants
+    — *no `[non_goals]` table*, *no deferred store*, *a clean tree* — which is what makes a row
+    there something somebody can act on. So this composes the kind word with the state, one
+    spelling of the first and a sentence per row of the second.
+    """
+    return f"unreached: {state}, and the command it composes is runnable once a fixture has it"
 NOT_A_STEP = (
     "deliberate: what it composes is the capture offer, which every refusal ends with and "
     "which is a defect report about the run being tested rather than a step of anything"
@@ -92,24 +103,44 @@ FOREIGN = (
 #: composed command by meeting it; what was missing was not a test for any one of them but the
 #: statement that thirty-six others have never been run.
 SITES: tuple[Site, ...] = (
-    Site("adopting.py:Created.stated", "unreached", NO_FIXTURE),
+    Site(
+        "adopting.py:Created.stated",
+        "unreached",
+        unreached("a directory with no `roadkeep.toml` at all, scaffolded by `init`"),
+    ),
     # RK1264, and the row above it is the same shape one door over: what `declare` composes is
     # the verb the role it just wrote opens, with the id and the reason left as placeholders —
     # so `test_adopting` builds the state and asserts the line, and running it as printed is
     # what a filled argv would have to buy first.
-    Site("adopting.py:Retrofitted.stated", "unreached", NO_FIXTURE),
+    Site(
+        "adopting.py:Retrofitted.stated",
+        "unreached",
+        unreached("a project declaring some roles and not the one `declare` is then asked for"),
+    ),
     # RK1328, and the row above it one axis over: `declare` now opens an opt-in table too, and
     # what this composes is the verb that table gates — `criterion add` for one, `non-goal add`
     # for the other — with the lead and the reason left as placeholders, which is the same
     # reason the role's row is unreached.
-    Site("adopting.py:Opened.stated", "unreached", NO_FIXTURE),
+    Site(
+        "adopting.py:Opened.stated",
+        "unreached",
+        unreached("a project whose config omits an opt-in table `declare` opens"),
+    ),
     # RK1223. Run by `test_blocking`, which executes the `--organise` call this refusal names
     # rather than matching it — the reading this whole file is about.
     Site("blocking.py:BlockExists.__init__", "run"),
     # The `add` that files a task prints the `section add` closing the pointer it just made.
     Site("authoring.py:Insertion.added", "run"),
-    Site("capturing.py:Capture.filing", "unreached", NO_FIXTURE),
-    Site("capturing.py:handoff", "unreached", NO_FIXTURE),
+    Site(
+        "capturing.py:Capture.filing",
+        "unreached",
+        unreached("a capture already stored, which is a `report` run and its store"),
+    ),
+    Site(
+        "capturing.py:handoff",
+        "unreached",
+        unreached("a capture whose repository is not this one, so the filing is somebody else's to make"),
+    ),
     Site("capturing.py:offer", "deliberate", NOT_A_STEP),
     # RK1394. The one door in this family that is takeable here: `--check` prints the delete it
     # would make, and `test_capturing` runs exactly that line — which is the whole reason the
@@ -159,15 +190,43 @@ SITES: tuple[Site, ...] = (
     # composed line is not a step to take but the spelling this CLI used, and the call it
     # names has already run — so what proves it is the answer that came back.
     Site("cli.py:_accepting", "run"),
-    Site("cli.py:_unrecognised", "unreached", NO_FIXTURE),
-    Site("config.py:_skew", "unreached", NO_FIXTURE),
-    Site("counting.py:Census.notes", "unreached", NO_FIXTURE),
+    Site(
+        "cli.py:_unrecognised",
+        "unreached",
+        unreached("a call carrying a flag the verb's own parser does not declare"),
+    ),
+    Site(
+        "config.py:_skew",
+        "unreached",
+        unreached("a config holding a key this build has no reader for, reported as a problem"),
+    ),
+    Site(
+        "counting.py:Census.notes",
+        "unreached",
+        unreached("a listing whose silence has a cause — a label nothing declares, or a filter that emptied it"),
+    ),
     Site("counting.py:Census.select", "run"),
     Site("history.py:Addresses.withheld", "run"),
-    Site("deferring.py:NoPlacement.__init__", "unreached", NO_FIXTURE),
-    Site("deferring.py:Resumption.requeue", "unreached", NO_FIXTURE),
-    Site("history.py:Addresses.stated", "unreached", NO_FIXTURE),
-    Site("history.py:opens", "unreached", NO_FIXTURE),
+    Site(
+        "deferring.py:NoPlacement.__init__",
+        "unreached",
+        unreached("a deferred store with no heading the resumed line's block could return under"),
+    ),
+    Site(
+        "deferring.py:Resumption.requeue",
+        "unreached",
+        unreached("a project with a priority queue and a line resumed into it"),
+    ),
+    Site(
+        "history.py:Addresses.stated",
+        "unreached",
+        unreached("a prose file whose addresses include one a ship retired, which needs two commits"),
+    ),
+    Site(
+        "history.py:opens",
+        "unreached",
+        unreached("a top-level anchor in a prose file that no task line claims"),
+    ),
     # RK1230. Run by `test_installing`, which asserts the line it composes *is* the copy the
     # registry names — the one composed command here whose whole point is being pasted.
     Site("installing.py:Engines.invoke", "run"),
@@ -179,7 +238,11 @@ SITES: tuple[Site, ...] = (
     # and the sentence left as placeholders — the same shape as `Retrofitted.stated` above,
     # and unreached for the same reason: the fixture here is an adopter with no line filed, so
     # a `brief`, a `show <id>` or a `ship <id> --why …` has nothing to run against yet.
-    Site("installing.py:Plan.orientation", "unreached", NO_FIXTURE),
+    Site(
+        "installing.py:Plan.orientation",
+        "unreached",
+        unreached("a checkout beside an adopting project, wired far enough for the write to succeed"),
+    ),
     # RK1498. Both verdicts, run by `test_installing` against the state each is about: a
     # project whose surfaces are not what this engine writes, and a wired one being taken
     # apart. Each door is run and the check that offered it is then clean, which is the only
@@ -187,14 +250,38 @@ SITES: tuple[Site, ...] = (
     # the loop RK393 named.
     Site("installing.py:Plan.verdict", "run"),
     Site("installing.py:Removal.verdict", "run"),
-    Site("installing.py:_governed", "unreached", NO_FIXTURE),
-    Site("installing.py:plan", "unreached", NO_FIXTURE),
-    Site("linting.py:_projections", "unreached", NO_FIXTURE),
+    Site(
+        "installing.py:_governed",
+        "unreached",
+        unreached("a project `merge --register` is aimed at whose config cannot be read"),
+    ),
+    Site(
+        "installing.py:plan",
+        "unreached",
+        unreached("a checkout of this tool beside the project, which `test_installing` builds and this suite does not"),
+    ),
+    Site(
+        "linting.py:_projections",
+        "unreached",
+        unreached("a README carrying a derived block the ledger has since moved past"),
+    ),
     # The gate's own report, which is where every door below is rendered for a terminal.
     Site("linting.py:_report_rows", "run"),
-    Site("linting.py:_served", "unreached", NO_FIXTURE),
-    Site("linting.py:_wired", "unreached", NO_FIXTURE),
-    Site("markers.py:_naming_the_lines", "unreached", NO_FIXTURE),
+    Site(
+        "linting.py:_served",
+        "unreached",
+        unreached("a served tool whose schema is over the `[tools]` ceiling this project declares"),
+    ),
+    Site(
+        "linting.py:_wired",
+        "unreached",
+        unreached("a project whose vendored surfaces are older than the engine answering, which wants two writes"),
+    ),
+    Site(
+        "markers.py:_naming_the_lines",
+        "unreached",
+        unreached("a roadmap line whose marker the schema refuses, reached through a write to it"),
+    ),
     Site("merging.py:Wiring.repairs", "deliberate", FOREIGN),
     Site("merging.py:_spent", "deliberate", FOREIGN),
     # RK1512. The store no tier offers, and the read that opens it — run by `test_picking`,
@@ -220,17 +307,37 @@ SITES: tuple[Site, ...] = (
     # RK1378: the read it names is the branch where `anchors` could not be read, and the one
     # `test_the_refusal_names_the_free_address_and_not_only_the_family` exercises is the other
     # — where the address is stated and no command is composed at all.
-    Site("sections.py:NotASibling.__init__", "unreached", NO_FIXTURE),
+    Site(
+        "sections.py:NotASibling.__init__",
+        "unreached",
+        unreached("a prose file with two families, so a `section move` crosses from one parent to another"),
+    ),
     Site("sections.py:UnknownParent.__init__", "run"),
     Site("sections.py:_the_path_into", "run"),
-    Site("sections.py:_where_a_top_level_is", "unreached", NO_FIXTURE),
+    Site(
+        "sections.py:_where_a_top_level_is",
+        "unreached",
+        unreached("a malformed anchor whose leading segment names a family the file declares"),
+    ),
     Site("sections.py:_where_the_anchor_is", "run"),
-    Site("serving.py:_rerouted", "unreached", NO_FIXTURE),
+    Site(
+        "serving.py:_rerouted",
+        "unreached",
+        unreached("a call arriving over the served surface, where every command it names is a tool"),
+    ),
     # RK1272. Both name a read rather than a repair — `config` lists the keys an address was
     # not among, and `init` is what a tree with no config needs — so what a fixture would have
     # to build first is a project that has neither, which is the state `init` is *for*.
-    Site("governing.py:NoSuchKey.__init__", "unreached", NO_FIXTURE),
-    Site("governing.py:govern", "unreached", NO_FIXTURE),
+    Site(
+        "governing.py:NoSuchKey.__init__",
+        "unreached",
+        unreached("a `govern` aimed at an address this build declares no key for"),
+    ),
+    Site(
+        "governing.py:govern",
+        "unreached",
+        unreached("a governed number this project's own corpus lets it declare, which wants a reading first"),
+    ),
     # RK1498. Three departures that cannot happen, each run by `test_composing` against the
     # state that produces it: an id the ledger holds whole beside a ⏳ line, whose door is the
     # closure (the one state RK1045 made it true of); a line the deferred store still names,
@@ -242,27 +349,55 @@ SITES: tuple[Site, ...] = (
     Site("shipping.py:NotAbsorbable.__init__", "run"),
     Site("shipping.py:AlreadyRecorded.__init__", "run"),
     Site("shipping.py:AlsoPaused.__init__", "run"),
-    Site("shipping.py:Delivered.__str__", "unreached", NO_FIXTURE),
+    Site(
+        "shipping.py:Delivered.__str__",
+        "unreached",
+        unreached("a ledger with entries under the block asked about, which every `--near` test already builds"),
+    ),
     Site("shipping.py:Divergent.__init__", "run"),
     # RK1281. The `govern` it names is the second of two doors and the one that is not a
     # complete argv: which number a wider limit should be is the reading that verb takes, so
     # the command as printed carries a placeholder and is filled the way every blank is.
-    Site("shipping.py:InheritedClaim.__init__", "unreached", NO_FIXTURE),
+    Site(
+        "shipping.py:InheritedClaim.__init__",
+        "unreached",
+        unreached("a decision filed against a line whose claim came from the task it superseded"),
+    ),
     # RK1269. Run by `test_composing`, which executes the `declare decisions` this refusal
     # names and then makes the `ship --decides` land — the whole reading of this file, on the
     # one door where the remedy is a role a project has not opened yet.
     Site("shipping.py:NoDecisions.__init__", "run"),
     Site("shipping.py:_elsewhere", "run"),
-    Site("shipping.py:PartRecorded.__init__", "unreached", NO_FIXTURE),
-    Site("shipping.py:Partial.stated", "unreached", NO_FIXTURE),
-    Site("shipping.py:SecondPartial.__init__", "unreached", NO_FIXTURE),
+    Site(
+        "shipping.py:PartRecorded.__init__",
+        "unreached",
+        unreached("a retirement against an id whose half the ledger already records"),
+    ),
+    Site(
+        "shipping.py:Partial.stated",
+        "unreached",
+        unreached("a `ship --part` on a line the roadmap keeps open, which is one write"),
+    ),
+    Site(
+        "shipping.py:SecondPartial.__init__",
+        "unreached",
+        unreached("a second `ship --part` against an id whose first half the ledger holds"),
+    ),
     # RK1498. Run by `test_showing`: a caller who addressed a section is sent to the verb that
     # prints one, and what makes naming a verb one word away worth anything is that the word
     # is right — so the door runs and the section it prints is the one that was asked for.
     Site("showing.py:_instead", "run"),
     Site("showing.py:_paused", "run"),
-    Site("showing.py:_where_it_went", "unreached", NO_FIXTURE),
-    Site("verbs/querying.py:_anchors", "unreached", NO_FIXTURE),
+    Site(
+        "showing.py:_where_it_went",
+        "unreached",
+        unreached("a ledger entry delivering two ids, so `show` on the second finds nothing in the parse"),
+    ),
+    Site(
+        "verbs/querying.py:_anchors",
+        "unreached",
+        unreached("a prose file whose addresses a ship has retired, which wants a git history"),
+    ),
 )
 
 #: The three states a site can be in. `run` is coverage; the other two are both "not run" and
