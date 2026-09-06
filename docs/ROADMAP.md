@@ -62,6 +62,7 @@
 - 💭 **RK1565** (deps: —) **the per-surface staleness rows may repeat one door six times, and nothing has measured what that costs** — RK1526 took 201 units off a four-row note by saying its shared read once, and install.stale files per surface with the same command on every row. → §RK1565
 - 💭 **RK1569** (deps: —) **the prose half of the re-taken split reds on somebody else's edit, which says nothing about the rule** — RK1530 asserts a non-zero count over corpora this project does not own, and two of the three hits are one sentence in Shio. → §RK1569
 - 💭 **RK1570** (deps: —) **a block title is written into every governed file and nothing validates it, not even the codec rule** — RK1531 reached the fields whose families already validate them, and blocking has no validator for the rule to be missing from. → §RK1570
+- 💭 **RK1571** (deps: —) **the composer work-list names a state per row and cannot show that fifteen of them want five fixtures between them** — RK1532 made each row sizeable on its own, and a picker still reads thirty-one items where the states cluster into families. → §RK1571
 
 ## Block E — Adoption
 
