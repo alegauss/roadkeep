@@ -107,6 +107,12 @@ class NoPlacement(ValueError):
     The remedy is the ordinary one — `status <id> <marker>` writes the marker of a line that
     is already there — and it is named, because a refusal that only says no costs the reader
     the turn this one saves.
+
+    **Both steps and in order** (RK1593). It named that one alone, and running it as printed
+    refuses: `status` will not write a marker for an id the store still holds, status living
+    in exactly one file. The removal is what this call was going to do and did not, so the
+    same call without the flag has to come first — RK1198's distinction, a path rather than a
+    set, met in the two commands a refusal hands back.
     """
 
     def __init__(self, task_id: str, where: str, lineno: int) -> None:
@@ -114,8 +120,9 @@ class NoPlacement(ValueError):
         super().__init__(
             f"--marker names the marker a returned line comes back at, and this call places "
             f"none: {task_id} is already open at {where}:{lineno} and only the store's copy "
-            f"is removed — `{invocation()} status {task_id} <marker>` writes the marker of a "
-            f"line that is already there"
+            f"would go — `{invocation()} resume {task_id}` without the flag removes it, and "
+            f"`{invocation()} status {task_id} <marker>` then writes the marker of a line "
+            f"that is already there"
         )
 
 

@@ -205,16 +205,16 @@ SITES: tuple[Site, ...] = (
     ),
     Site("counting.py:Census.select", "run"),
     Site("history.py:Addresses.withheld", "run"),
-    Site(
-        "deferring.py:NoPlacement.__init__",
-        "unreached",
-        unreached("a deferred store with no heading the resumed line's block could return under"),
-    ),
-    Site(
-        "deferring.py:Resumption.requeue",
-        "unreached",
-        unreached("a project with a priority queue and a line resumed into it"),
-    ),
+    # RK1498. The refusal a `--marker` on the reconciling path gets, run by `test_composing`
+    # against a roadmap and a store that both hold the id. What running it found is RK1593:
+    # the one command it named refuses there, the store still holding the line, so the same
+    # call without the flag is the step before it and the refusal now names both in order.
+    Site("deferring.py:NoPlacement.__init__", "run"),
+    # RK1498, RK327's offer. The rank is the half a pause cannot keep, so a resume names the
+    # command that puts the line back in the order rather than choosing a place for it —
+    # run against a roadmap that declares one, an offer nothing refuses being an offer only
+    # the reader who pasted it would ever find broken.
+    Site("deferring.py:Resumption.requeue", "run"),
     # RK1498, the outline family (RK1532). Two doors, both run by `test_composing`: the one a
     # block spanning two families prints, and the narrowing a wide listing names. The state its
     # row guessed was a git history; the reading wanted only an outline (RK1577).

@@ -1066,3 +1066,101 @@ def test_the_door_a_surface_behind_the_engine_names_runs(tmp_path):
     for note in notes:
         assert runs(project, note.message) == (["install"],), note.message
     assert not _vendored(project)
+
+
+# -- the pause, and what does not come back with it (RK1498) -------------------
+
+
+PAUSING = (
+    'prefix = "TT"\n[files]\nroadmap = "ROADMAP.md"\nchangelog = "CHANGELOG.md"\n'
+    'improvements = "IMPROVEMENTS.md"\ndeferred = "DEFERRED.md"\n'
+)
+
+QUEUED = (
+    "# Roadmap\n\n## Priority\n\n1. TT2\n\n## Block A\n\n"
+    "- 📋 **TT1** (deps: —) **A symptom worth reading** — Because of a reason. → §TT1\n"
+    "- 📋 **TT2** (deps: —) **A second symptom worth it** — Because of another. → §TT2\n"
+)
+
+_TT1 = "- 📋 **TT1** (deps: —) **A symptom worth reading** — Because of a reason. → §TT1\n"
+
+PAUSED_DESIGNS = (
+    "# Improvements\n\n## Block A\n\n### §TT1 A design\n\nProse enough to matter.\n\n"
+    "### §TT2 Another design\n\nProse enough to matter here too.\n"
+)
+
+
+def paused(tmp_path: Path) -> Path:
+    """A project with a store to pause into and an order in the roadmap to fall out of.
+
+    Both halves, because the two sites this fixture serves need one each: the store is what
+    `resume` reconciles against, and the queue is what a resumed line is no longer in.
+    """
+    root = tmp_path / "paused"
+    root.mkdir()
+    for name, body in (
+        ("roadkeep.toml", PAUSING),
+        ("ROADMAP.md", QUEUED),
+        ("CHANGELOG.md", "# Shipped\n\n## Block A\n"),
+        ("IMPROVEMENTS.md", PAUSED_DESIGNS),
+        ("DEFERRED.md", "# Deferred\n\n## Block A\n"),
+    ):
+        with (root / name).open("w", encoding="utf-8", newline="") as handle:
+            handle.write(body)
+    return root
+
+
+def test_the_offer_a_resumed_line_makes_runs(tmp_path, capsys):
+    """RK1498, over RK327's offer. The pause takes the line out of the order and the store
+    keeps a line rather than a rank, so where it sat is the one thing a resume cannot put
+    back — and the verb says so by naming the command that would, rather than choosing a
+    position nobody stated (L4, one field over).
+
+    An offer and not a remedy, which is why running it is the whole claim: nothing refuses if
+    it is ignored, so a command that had quietly stopped being accepted would never be met by
+    anyone but the reader who pasted it."""
+    root = paused(tmp_path)
+    assert main([
+        "-C", str(root), "defer", "TT2", "--reason", "It waits on a decision.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", str(root), "resume", "TT2"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "if it goes back in the order" in said, said
+    assert runs(root, said) == (["priority", "add", "TT2"],), said
+    assert "1. TT2" in (root / "ROADMAP.md").read_text(encoding="utf-8")
+
+
+def test_the_door_a_resume_that_places_nothing_names_runs(tmp_path, capsys):
+    """RK1083's refusal, run — and RK1593, which is what running it found. It named one
+    command, `status <id> <marker>`, and that command **refuses** in the state the refusal
+    is about: the store still holds the id, and status lives in exactly one file.
+
+    The removal is what this call was going to do and did not, so the same call without the
+    flag is the step before it. Both are asserted in the order printed, which is the half
+    RK1198 is about: a sequence whose second step refuses is a sequence, not a set.
+
+    The marker itself is filled here rather than by `filled`: a positional blank has no flag
+    in front of it to read a value off, which is what `<unfilled positional>` says out loud
+    instead of guessing — so the substitution is the test's, from the project's own schema."""
+    root = paused(tmp_path)
+    assert main([
+        "-C", str(root), "defer", "TT1", "--reason", "It waits on a decision.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+    # The line back in the roadmap while the store still holds it, which is the state the
+    # reconciling path is about: two copies, and only one of them is the work.
+    text = (root / "ROADMAP.md").read_text(encoding="utf-8")
+    with (root / "ROADMAP.md").open("w", encoding="utf-8", newline="") as handle:
+        handle.write(text.replace("## Block A\n\n", f"## Block A\n\n{_TT1}"))
+    working = Config.discover(root).schema.working
+    assert main(["-C", str(root), "resume", "TT1", "--marker", working]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    first, second = [one for one in commands(said) if one[:1] != ["report"]]
+    assert first == ["resume", "TT1"], said
+    assert second == ["status", "TT1", "<marker>"], said
+    assert main(["-C", str(root), *first]) == EXIT_OK
+    assert main([
+        "-C", str(root), *[one if one != "<marker>" else working for one in second]
+    ]) == EXIT_OK
+    assert f"{working} **TT1**" in (root / "ROADMAP.md").read_text(encoding="utf-8")
