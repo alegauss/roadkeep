@@ -197,6 +197,26 @@ What it must not do is guess where. A block heading has a place in the file and 
 does not: `init` writes it after the blocks, which is a convention and not a rule, and a
 verb placing it anywhere else would move a section a reader knows the position of.
 
+### §RK1608 The narrowing that could not narrow
+
+Measured on a throwaway project whose open set is `["📋"]` and declares no undesigned
+marker: `pick --designed` exits 0, returns the same line `pick` returns bare, and prints
+nothing about the flag. `config.schema.undesigned` narrowed to the empty tuple —
+correct, RK83's rule, and the same fallback RK1556 just gave a sentence to one key over.
+
+`pick --have upstream` is the second instance and looser: `[requirements] declared` is
+empty by default, so the token names a word the project has never defined, and the
+answer is again the unnarrowed one.
+
+What decides the shape is whether the caller is wrong or the project is silent.
+`--designed` on a backlog with no undesigned markers is not a mistake — it is a flag
+that has nothing to do here, and the answer should say so on the `skipped` row that
+already exists and prints only when the count is non-zero. `--have` may be the other
+kind: a token `[requirements]` does not declare is a word nothing can satisfy, which
+RK1467 refuses on the line side and not on the caller's.
+
+Both are one row or one refusal, and which each gets is what this line has to settle.
+
 ## Block D — The gate
 
 ### §RK1559 The twelve sentences nothing has measured

@@ -33,6 +33,7 @@
 - 💭 **RK1567** (deps: —) **the near rows are described as delivered --near volunteered, and that read has ranked a different corpus since RK1495** — add ranks a block's deliveries and its open lines while the verb the row names reads the ledger alone, so running it answers differently. → §RK1567
 - 💭 **RK1568** (deps: —) **an incidental entry that is on disk and filters no commit is silent, which is the half of the reading RK1529 gave** — existence is a blob this gate already reads and matched-anything is a history walk, so the second half was left where nothing asks it. → §RK1568
 - 💭 **RK1573** (deps: —) **declare non_goals opens a table whose verb refuses, nothing writing the heading that declares the list** — init writes it once at scaffold time, so a project past that is opened into a list it can only start with the hand edit the guard denies. → §RK1573
+- 💭 **RK1608** (deps: —) **a narrowing flag whose vocabulary the project declared nothing for filters nothing and says nothing** — RK1556 gave the partial fallback a sentence and left --designed and --have with the same silence, so a caller reads an answer as narrowed that was not. → §RK1608
 
 ## Block D — The gate
 
