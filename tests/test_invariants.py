@@ -199,6 +199,20 @@ INVARIANTS: tuple[Invariant, ...] = (
         held_by="test_registers::test_a_builder_outside_the_three_shapes_is_one_somebody_named",
     ),
     Invariant(
+        stated="RK1617",
+        rule=(
+            "every verb handler answers with a value a second surface can take, or is named "
+            "one row each in the list the migration empties"
+        ),
+        # `every handler under verbs/`: the population RK494 created by putting a module per
+        # verb family there, narrowed so `cli.dispatch` — whose signature is a handler's
+        # exactly — stays out of a rule about the things it calls. The holder derives that
+        # from `surface.modules` in a helper of its own, and there is no name to import for
+        # the narrowed set, which is RK478's blank and not a row nobody finished.
+        over="",
+        held_by="test_registers::test_a_handler_that_prints_its_answer_is_one_somebody_named",
+    ),
+    Invariant(
         stated="RK167",
         rule="every tool this server publishes is a subcommand the CLI parses",
         over="roadkeep.serving.TOOLS",

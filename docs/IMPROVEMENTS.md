@@ -868,30 +868,4 @@ read" — instead of finding each member after it ships.
 Block H's `filed` median is zero against Block D's one: work on this tool's shape has
 not bred follow-ups, which is the argument for spending here.
 
-### §RK1617 The contract before the migration
-
-RK1614 declared the three shapes a result is built in and stopped there: it sweeps
-classes, and no caller asks a handler for one. Ninety-five still answer `(config, args)
--> int`, printing one register and returning a code.
-
-That is why the closing half cannot land alone. `serving` may stop capturing stdout only
-once **every** handler returns a value, one that still prints being one whose answer
-exists nowhere else — so it is a single transaction over ninety-five handlers and two
-hundred and eighty-two print sites, several times the largest entry this block has — a
-change reviewed by being trusted.
-
-So the contract arrives first and the migration follows it. `dispatch` takes `Result |
-int`, renders the result where it gets one, and leaves the printing handlers as they
-are; those still answering in a code are a named list, on RK1614's own pattern, which
-shrinks to empty rather than becoming an exemption nobody re-reads.
-
-The first family is the writes. Twenty-eight results already spell `(config, wrote)` in
-both registers — the shape that was a protocol before anything declared one — so
-`verbs/authoring` is eight handlers needing no new fields, and it proves the seam
-against the case that already fits. What it cannot prove is the one-offs, which argues
-for doing it before them rather than instead of them.
-
-The capture stays until the list is empty, so the served surface is unchanged meanwhile.
-That is the property making two commits safe where one is not.
-
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)

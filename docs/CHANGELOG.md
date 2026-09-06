@@ -1090,6 +1090,7 @@
 - ✅ **RK1448** **a test unpacking report.notes as a whole passes or fails on which unrelated note the gate happened to add** — A sweep refuses the whole note list unpacked, compared or indexed, following one binding, and the suite's own module set is declared once (design recorded in `tests/test_advisories.py`).
 - ✅ **RK1613** **a refusal reaches an agent as prose where the same refusal reaches a terminal as fields** — A refusal publishes its fields on both surfaces: the register asked for is its own slot beside the argv that says what the caller typed, and the payload is the served answer where there is one.
 - ✅ **RK1614** **ninety-five payload builders answer in twenty signatures and nothing declares the shape they share** — The three shapes seventy of ninety-two builders answer in are declared as data, and a sweep refuses a twenty-first nobody named, the forty-five one-offs being rows that leave as they conform.
+- ✅ **RK1617** **a handler answers in a printed register and an exit code, so no second surface can take its answer as a value** — A handler may answer with a Result carrying both registers and its code, dispatch renders it, and the eighty-seven still printing are named in a list RK1615 empties.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 

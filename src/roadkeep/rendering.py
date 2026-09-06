@@ -27,7 +27,9 @@ about which code answered, which is the whole point of that read.
 from __future__ import annotations
 
 import argparse
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
+from dataclasses import dataclass
+from pathlib import Path
 
 from roadkeep import claiming, criteria
 from roadkeep.adopting import Estimate
@@ -92,6 +94,54 @@ SHAPES: dict[str, tuple[str, ...]] = {
     # in both registers, which is the row that was a protocol before anything declared one.
     "written": ("config", "wrote"),
 }
+
+
+@dataclass(frozen=True, slots=True)
+class Result:
+    """One command's answer as a value instead of as two prints and a code (RK1617).
+
+    A handler is `(config, args) -> int`: it computes a result, prints one register and returns
+    a code. That contract is a terminal's, so the served surface reconstructs the answer by
+    capturing what was printed for one — which is what RK1615 closes and this makes possible.
+
+    Both registers, because which one a caller wanted is not the handler's question: eighty-one
+    of them wrote the same `if args.json` two lines, and a branch spelled ninety-five times is
+    ninety-four opportunities to spell it differently. The code stays a field rather than being
+    derived from the content, because 0, 1 and 2 are the contract RK4 declared and a read's
+    verdict of 1 is not a refusal (RK271).
+    """
+
+    #: The payload register, as `--json` carries it.
+    fields: Mapping[str, object]
+    #: The plain register, as a terminal reads it — the whole of what would have been printed.
+    said: str
+    #: The exit code: 0 success, 1 the gate says no, 2 usage or configuration.
+    code: int = EXIT_OK
+
+
+def answered(
+    one: object,
+    *,
+    config: Config | None = None,
+    wrote: Sequence[Path] | None = None,
+    code: int = EXIT_OK,
+) -> Result:
+    """Both registers off one builder, in whichever of :data:`SHAPES` it answers in (RK1617).
+
+    Three branches and exactly three, because that is what RK1614 declared: a caller passing
+    neither argument gets `answer`, one passing a config gets `configured`, one passing the
+    paths a transaction left gets `written`. The caller says which by what it hands over, so
+    nothing here inspects a signature — a shape is chosen at the call site that already knew.
+
+    This is :data:`SHAPES`' second reader, and the one that makes it more than a census. A row
+    nothing dispatches on is a comment; a row this function branches on is the reason a
+    twenty-first shape has nowhere to go.
+    """
+    if wrote is not None:
+        return Result(one.payload(config, wrote), one.stated(config, wrote), code)
+    if config is not None:
+        return Result(one.payload(config), one.stated(config), code)
+    return Result(one.payload(), one.stated(), code)
 
 
 #: What every character figure this tool publishes is counted in (RK430). Declared in the

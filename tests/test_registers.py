@@ -20,6 +20,13 @@ is what keeps the list from becoming a permanent exemption as RK1615 empties it.
 
 Not a `Protocol`: `runtime_checkable` sees that a method exists and never what it takes, and
 what drifted here is exactly the parameters. The shapes are data and this is the reader.
+
+RK1617 added the second list. :data:`PRINTING` is every handler still answering
+`(config, args) -> int` — printing one register and returning a code, so its answer exists
+nowhere a second surface can take it. Eighty-seven when the contract landed, and the same rule
+governs it: named rather than counted, shrinking rather than exempting, and empty is what
+RK1615 means by done — at which point `serving` stops capturing stdout for an answer it was
+handed one frame earlier.
 """
 
 from __future__ import annotations
@@ -157,3 +164,153 @@ def test_the_declared_shapes_are_the_ones_the_package_actually_answers_in():
     answered = set(builders().values())
     unused = sorted(name for name, taken in SHAPES.items() if taken not in answered)
     assert not unused, f"SHAPES declares a shape no builder answers in: {unused}"
+
+#: Every handler still answering `(config, args) -> int`: it prints one register and returns a
+#: code, so its answer exists nowhere a second surface can take it. Eighty-seven rows when
+#: RK1617 landed the contract and migrated the first six, and the list RK1615 empties — at
+#: which point `serving` stops capturing stdout and `cli._rendered`'s passthrough branch goes
+#: with it.
+#:
+#: Named and not counted, for :data:`CARRIED`'s reason: a count passes while the next verb is
+#: written on the old contract by copying the neighbour it sits beside, which is exactly how
+#: twenty signatures happened one module at a time.
+PRINTING: frozenset[tuple[str, str]] = frozenset(
+    {
+        ("verbs/adopting.py", "_init"),
+        ("verbs/adopting.py", "_declare"),
+        ("verbs/adopting.py", "_adopt"),
+        ("verbs/adopting.py", "_engines"),
+        ("verbs/adopting.py", "_install"),
+        ("verbs/adopting.py", "_capture_filed"),
+        ("verbs/adopting.py", "_capture_sweep"),
+        ("verbs/adopting.py", "_uninstall"),
+        ("verbs/adopting.py", "_report"),
+        ("verbs/adopting.py", "_replay"),
+        ("verbs/adopting.py", "_mcp"),
+        ("verbs/authoring.py", "_next_id"),
+        ("verbs/authoring.py", "_add"),
+        ("verbs/linting.py", "_merge"),
+        ("verbs/linting.py", "_merge_check"),
+        ("verbs/linting.py", "_lint"),
+        ("verbs/linting.py", "_repair"),
+        ("verbs/linting.py", "_explain"),
+        ("verbs/linting.py", "_guard"),
+        ("verbs/querying.py", "_list"),
+        ("verbs/querying.py", "_stats"),
+        ("verbs/querying.py", "_audit"),
+        ("verbs/querying.py", "_claims"),
+        ("verbs/querying.py", "_claim"),
+        ("verbs/querying.py", "_writes"),
+        ("verbs/querying.py", "_brief"),
+        ("verbs/querying.py", "_show"),
+        ("verbs/querying.py", "_cost"),
+        ("verbs/querying.py", "_budget"),
+        ("verbs/querying.py", "_body_budget"),
+        ("verbs/querying.py", "_file_budget"),
+        ("verbs/querying.py", "_non_goal_budget"),
+        ("verbs/querying.py", "_session_budget"),
+        ("verbs/querying.py", "_skill_budget"),
+        ("verbs/querying.py", "_deny_budget"),
+        ("verbs/querying.py", "_notes_budget"),
+        ("verbs/querying.py", "_brief_budget"),
+        ("verbs/querying.py", "_tools_budget"),
+        ("verbs/querying.py", "_pick"),
+        ("verbs/querying.py", "_export"),
+        ("verbs/querying.py", "_gaps"),
+        ("verbs/querying.py", "_govern"),
+        ("verbs/querying.py", "_config_shape"),
+        ("verbs/querying.py", "_commands"),
+        ("verbs/querying.py", "_anchors"),
+        ("verbs/querying.py", "_deps"),
+        ("verbs/querying.py", "_origin"),
+        ("verbs/querying.py", "_cited"),
+        ("verbs/querying.py", "_weight"),
+        ("verbs/querying.py", "_remaining"),
+        ("verbs/querying.py", "_unclosed"),
+        ("verbs/querying.py", "_evidence"),
+        ("verbs/sections.py", "_block_add"),
+        ("verbs/sections.py", "_block_drop"),
+        ("verbs/sections.py", "_block_amend"),
+        ("verbs/sections.py", "_block_merge"),
+        ("verbs/sections.py", "_block_list"),
+        ("verbs/sections.py", "_section_add"),
+        ("verbs/sections.py", "_refs"),
+        ("verbs/sections.py", "_section_amend"),
+        ("verbs/sections.py", "_section_move"),
+        ("verbs/sections.py", "_section_show"),
+        ("verbs/sections.py", "_section_find"),
+        ("verbs/sections.py", "_section_drop"),
+        ("verbs/sections.py", "_non_goal_add"),
+        ("verbs/sections.py", "_non_goal_amend"),
+        ("verbs/sections.py", "_non_goal_list"),
+        ("verbs/sections.py", "_non_goal_drop"),
+        ("verbs/sections.py", "_criterion_add"),
+        ("verbs/sections.py", "_criterion_amend"),
+        ("verbs/sections.py", "_criterion_drop"),
+        ("verbs/sections.py", "_criterion_list"),
+        ("verbs/sections.py", "_priority_add"),
+        ("verbs/sections.py", "_priority_list"),
+        ("verbs/sections.py", "_priority_drop"),
+        ("verbs/sections.py", "_priority_migrate"),
+        ("verbs/shipping.py", "_ship"),
+        ("verbs/shipping.py", "_record"),
+        ("verbs/shipping.py", "_record_amend"),
+        ("verbs/shipping.py", "_record_move"),
+        ("verbs/shipping.py", "_record_renumber"),
+        ("verbs/shipping.py", "_record_drop"),
+        ("verbs/shipping.py", "_delivered"),
+        ("verbs/shipping.py", "_reversals"),
+        ("verbs/shipping.py", "_supersede"),
+        ("verbs/shipping.py", "_revise"),
+        ("verbs/shipping.py", "_retire"),
+    }
+)
+
+
+def handlers() -> dict[tuple[str, str], str]:
+    """Every verb handler in the package, with what it returns.
+
+    A handler is `(config, args: argparse.Namespace)` and nothing else: `verbs/declaring` has
+    two helpers taking `(x, args)` and `verbs/querying` two more taking a config, and a sweep
+    keyed on the shape alone counted all four as verbs this contract is about.
+
+    Under `verbs/` and nowhere else, because `cli.dispatch` has a handler's exact signature and
+    is the thing that *calls* them — a sweep over the whole package told the dispatcher to
+    return its own answer as a value. RK494 put a module per verb family there, so the
+    directory is the population rather than a list of files.
+    """
+    found: dict[tuple[str, str], str] = {}
+    for module in modules():
+        if not module.where.startswith("verbs/"):
+            continue
+        for node in ast.walk(ast.parse(module.text)):
+            if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+                continue
+            taken = node.args.args
+            if len(taken) != 2 or taken[0].arg != "config" or taken[1].arg != "args":
+                continue
+            if ast.unparse(taken[1].annotation or ast.Constant(None)) != "argparse.Namespace":
+                continue
+            found[module.where, node.name] = ast.unparse(node.returns) if node.returns else ""
+    return found
+
+
+def test_a_handler_that_prints_its_answer_is_one_somebody_named():
+    """A verb written on the old contract by copying its neighbour is a row, not a silence."""
+    printing = sorted(
+        where for where, returns in handlers().items()
+        if returns == "int" and where not in PRINTING
+    )
+    assert not printing, (
+        "a handler answers in a printed register and a code — return `answered(...)` so a "
+        f"second surface can take the answer, or add the row to PRINTING: {printing}"
+    )
+
+
+def test_a_migrated_handler_is_a_row_to_delete():
+    """The list is RK1615's work-list, so a handler it already moved has to leave it."""
+    found = handlers()
+    moved = sorted(one for one in PRINTING if found.get(one, "int") != "int")
+    gone = sorted(one for one in PRINTING if one not in found)
+    assert not moved, f"these no longer print their answer - delete their rows: {moved}"
+    assert not gone, f"these name a handler this package no longer has: {gone}"

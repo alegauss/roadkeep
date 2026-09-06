@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import argparse
 import difflib
+import json
 import sys
 import tomllib
 import traceback
@@ -483,18 +484,36 @@ def dispatch(config: Config, args: argparse.Namespace) -> int:
     if refused is not None:
         return refused
     if _only_reads(args):
-        return args.handler(config, args)
+        return _rendered(args.handler(config, args), args)
     refused = _behind(config, args)
     if refused is not None:
         return refused
     with exclusive(config.root):
-        code = args.handler(config, args)
+        code = _rendered(args.handler(config, args), args)
         # Still under the lock, and after the handler rather than before: what is recorded
         # is the bytes a verb left, so a later turn can say that bytes which are not these
         # arrived some other way (RK175). A refusal wrote nothing and re-records the same
         # digests, which is the right answer and not a special case.
         attest(config)
         return code
+
+
+def _rendered(answer: object, args: argparse.Namespace) -> int:
+    """One command's answer, printed in the register asked for (RK1617).
+
+    The seam the migration needs and the only place that decides it. A handler that still
+    answers in a code passes straight through — the two contracts run side by side while
+    `tests/test_registers.py` names which handlers are still on the old one, and that list is
+    what RK1615 empties before this branch and the transport's stdout capture both go.
+
+    Printed here rather than returned onward, because the served surface still reads what was
+    printed: making the answer a value and moving where it is written are two changes, and one
+    of them is reviewable on its own.
+    """
+    if isinstance(answer, int):
+        return answer
+    print(json.dumps(answer.fields, indent=2) if args.json else answer.said)
+    return answer.code
 
 
 def _behind(config: Config, args: argparse.Namespace) -> int | None:

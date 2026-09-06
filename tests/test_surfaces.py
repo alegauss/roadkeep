@@ -355,6 +355,17 @@ def test_every_wired_write_reaches_the_one_printer():
         # delegation rather than calling a moved verb a missing one.
         if any(f".{name}(" in body for name in composing):
             continue
+        # **The hop RK1617 put between them.** A migrated handler no longer names a register at
+        # all: it hands its record to `answered`, which reads both off it. So reaching that is
+        # reaching the composing method, one frame further out.
+        #
+        # Exactly as strong as the line above and not less, which is worth saying because it
+        # looks weaker. That one matches a *method name* — any body containing `.stated(`
+        # passes, whatever class the record is — so neither resolves the type, and `answered`
+        # calls `.stated(` unconditionally. What it is not is a list: there is one contract
+        # function, and a second would be the drift this file exists to catch.
+        if "answered(" in body:
+            continue
         missing.append(handler)
     assert not missing, missing
 

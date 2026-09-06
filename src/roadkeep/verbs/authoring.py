@@ -36,6 +36,7 @@ from roadkeep.verbs.declaring import (
     answers,
     withheld,
 )
+from roadkeep.rendering import Result, answered
 from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
 
 
@@ -113,29 +114,31 @@ def _add(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-def _status(config: Config, args: argparse.Namespace) -> int:
+def _status(config: Config, args: argparse.Namespace) -> Result | int:
     """Write one task's marker, and say what that did to the claim on its line (RK7, RK158).
 
     Both registers come off the record (RK1170), the no-op reading included: a marker that did
     not move still followed its claim, so the branch belongs with the answer and not in a door.
+    Returned rather than printed since RK1617 — which register the caller wanted was never this
+    handler's question, and it was answering it in two lines ninety-five verbs spelled.
+
+    `Result | int` and not `Result`, because a refusal is a code that has already written: it
+    goes to stderr with its payload beside it (RK1584), which is a second stream this type does
+    not carry and a change nothing here needs.
     """
     try:
         change = set_status(config, args.id, args.marker)
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(change.payload(config), indent=2))
-    else:
-        print(change.stated(config))
-    return EXIT_OK
+    return answered(change, config=config)
 
 
-def _amend(config: Config, args: argparse.Namespace) -> int:
+def _amend(config: Config, args: argparse.Namespace) -> Result | int:
     """Correct one open line's why, deps or pointer, keeping its symptom and its id (RK65).
 
-    Both registers come off the record (RK1170), exactly as `restate`'s do: this door chooses
-    which reading to print and composes neither.
+    Both registers come off the record (RK1170), exactly as `restate`'s do: this door composes
+    neither, and since RK1617 it does not choose between them either.
     """
     # `--requires` counts (RK1311). The flag is in the parser, documented in the help two lines
     # above this message, and works — and the guard that decides whether anything was asked for
@@ -174,18 +177,14 @@ def _amend(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(amended.payload(config), indent=2))
-    else:
-        print(amended.stated(config))
-    return EXIT_OK
+    return answered(amended, config=config)
 
 
-def _restate(config: Config, args: argparse.Namespace) -> int:
+def _restate(config: Config, args: argparse.Namespace) -> Result | int:
     """Correct one open line's symptom, keeping its id, its deps and its section (RK178).
 
     Both registers come off the record (RK1170): a write verb's answer is what the transaction
-    produced, and this door only chooses which reading to print.
+    produced, and since RK1617 this door does not read one of them out.
     """
     try:
         restated = restate(
@@ -194,18 +193,15 @@ def _restate(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(restated.payload(config), indent=2))
-    else:
-        print(restated.stated(config))
-    return EXIT_OK
+    return answered(restated, config=config)
 
 
-def _renumber(config: Config, args: argparse.Namespace) -> int:
+def _renumber(config: Config, args: argparse.Namespace) -> Result | int:
     """Move one line to a free id, with its section, its subsections and its claim (RK74).
 
     Both registers come off the record (RK1170); `wrote` is passed because saving is this
-    door's step, so the paths are a fact about the call and not about the transaction.
+    door's step, so the paths are a fact about the call and not about the transaction — which
+    is the `written` shape RK1614 declared, and what picks the branch in `answered`.
     """
     try:
         moved = renumber(config, args.id, args.to)
@@ -213,14 +209,10 @@ def _renumber(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(moved.payload(config, wrote), indent=2))
-    else:
-        print(moved.stated(config, wrote))
-    return EXIT_OK
+    return answered(moved, config=config, wrote=wrote)
 
 
-def _defer(config: Config, args: argparse.Namespace) -> int:
+def _defer(config: Config, args: argparse.Namespace) -> Result | int:
     """Set one open line aside in the store, keeping its design where it is (RK229, RK327).
 
     Both registers come off the record (RK1170); `wrote` is passed because saving is this
@@ -232,25 +224,17 @@ def _defer(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(pause.payload(config, wrote), indent=2))
-    else:
-        print(pause.stated(config, wrote))
-    return EXIT_OK
+    return answered(pause, config=config, wrote=wrote)
 
 
-def _resume(config: Config, args: argparse.Namespace) -> int:
+def _resume(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         resumption = resume(config, args.id, marker=args.marker)
         wrote = resumption.save()
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(resumption.payload(config, wrote), indent=2))
-    else:
-        print(resumption.stated(config, wrote))
-    return EXIT_OK
+    return answered(resumption, config=config, wrote=wrote)
 
 
 def declare_lines(subcommands: argparse._SubParsersAction) -> None:
