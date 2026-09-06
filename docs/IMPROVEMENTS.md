@@ -803,6 +803,54 @@ citation is suppressed by the substring either way, and the next question about 
 quotations count is a change to one reader — with two, it is a change to one reader and
 a grep for the other.
 
+### §RK1553 The harder half of the same question
+
+RK1517 asked one question of eighteen booleans and left it unasked of a hundred and
+twenty-two values. The transport is the same — `serving` appends `--json` to every call
+— so a value flag whose whole effect is on the rendered form is inert in exactly the way
+`origin --why` was, and nothing anywhere would say so.
+
+What stops the same sweep being pointed at them is the signature. A boolean has one
+other form: leave it off. A value has as many as the field takes, and "identical
+payload" is strong evidence for the boolean and weak for the value — `list --block A` on
+a project with one block answers what `list` answers, correctly, and a sweep reading
+that as inert would be reporting its own fixture again.
+
+The shape that might work is a **difference the caller chose**: run the flag with two
+values the fixture can tell apart, rather than against its absence. `--block A` beside
+`--block B`, `--role improvements` beside `--role strategy`. Identical there is a much
+harder thing to explain away, and it needs a fixture with two of everything the flags
+narrow by — which is most of what this one already is.
+
+The cheaper half first, if either: the values that are **enums**, where the parser
+declares `choices` and the alternative value is derivable rather than invented. That is
+a population the parser can enumerate, unlike a free string, and it is where a narrowing
+flag that reaches nothing would hide best.
+
+### §RK1554 The history with nothing written under it
+
+RK1489 gave the pair fixture a history because a flag about the past cannot be read
+against a directory with no `.git`. It gave it commits, not messages: both are written
+with a subject and no body, so `origin --why` — which adds each commit's body under the
+rows — answers identically to `origin` on the terminal too, and not only over the
+transport RK1517 measured.
+
+That went unnoticed because the flag is closed twice over. It is withheld from the
+served tool and `--why` and `--json` are declared two subjects, so neither sweep asks it
+anything any more. The next flag about a commit body will not have those, and the
+fixture will answer the same way: no difference, for a reason that is nothing to do with
+the flag.
+
+The fix is one string. `git_commit` takes a message, and a body is a blank line and a
+sentence; giving one of the two commits a real one costs nothing and takes an entire
+class of flag out of the unmeasurable. What it must not do is give *both* a body, since
+the fixture's value is that its two commits differ in named ways.
+
+Worth doing because it is cheap, not because anything is broken. This is the third time
+this fixture's reach has been the thing under discussion — RK1466 read it as a swallowed
+flag, RK1489 as nine refusals — and each time widening it cost less than the reading it
+produced.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
