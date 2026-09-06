@@ -151,6 +151,7 @@ is the opposite of an order.
 - ✅ **RK1536** **a decision can only be filed by a departure, so the moment its answer is lost is the moment nothing can be done** — a decision is filed by the write that made it and never on its own, the whole recorded population having been written by an author who had just done the work.
 - ✅ **RK1540** **a reference page now opens with two lines addressed to the gate, and nothing prices them** — a figure that decides where something lives is published beside it, a number in a docstring being one nobody re-takes.
 - ✅ **RK1587** **ten records of six or more fields are built positionally, and which of them more than one module builds is unmeasured** — the hazard is a record shared across modules and built positionally, so keyword-only is required where both hold and is ceremony where neither does.
+- ✅ **RK1553** **no sweep asks of a served value flag what RK1517 asks of a boolean, and there are a hundred and twenty-two** — A sweep for an inert flag needs a claim about what that flag shapes; identical output alone reports the tool's own semantics as a defect.
 
 ### §RK1394 Proof, not age
 
@@ -267,6 +268,24 @@ What is kept instead is the property. `test_importing` computes both halves and 
 the intersection is empty, so the day a record becomes shared *and* somebody builds it
 by position the suite says so — with the two lists in the message, which is the reading
 a fix starts from.
+
+### §RK1553 The signature that reports semantics
+
+Measured. **119** served value flags; **2** declare `choices`, the cheap half RK1553
+named. Both separate on a fixture with two prose roles, so that half finds nothing and
+guards two flags.
+
+The wider half was tried: two blocks, two roles, each derivable-alternative flag run
+with two values. Its first row is `budget --block A` ≡ `budget --block B` — and that is
+**correct**. A block is where a line is filed, not part of the line, so `Schema.render`
+is identical and no project can make it otherwise. `budget --status` is the same
+wherever two markers have one width.
+
+So *a difference the caller chose* still admits the false positive it was meant to avoid
+— not from the fixture, from the semantics. What would work is a claim per flag about
+what it shapes: a table, not a sweep.
+
+RK1517's population is a boolean, whose one alternative is absence.
 
 ## Block E — Adoption
 

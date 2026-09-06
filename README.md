@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
 | C — Query (consult without reading the file) | 6 | 171 | 4 |
-| D — The gate | 25 | 266 | 2 |
+| D — The gate | 24 | 267 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 155 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 36 | 1054 | 14 |
+| **Total** | 35 | 1055 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1553** (deps: —) **no sweep asks of a served value flag what RK1517 asks of a boolean, and there are a hundred and twenty-two** — identical payload is a strong signature for a flag left off and a weak one for a value that may legitimately match the default. → §RK1553
+- 💭 **RK1554** (deps: —) **the pair fixture's commits carry a subject and no body, so a flag about a commit body cannot be read there** — RK1489 gave it a history and not a message, and origin --why answers identically on the terminal too for a reason that is not the flag. → §RK1554
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

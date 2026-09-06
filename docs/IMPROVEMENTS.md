@@ -224,30 +224,6 @@ verb placing it anywhere else would move a section a reader knows the position o
 
 ## Block D — The gate
 
-### §RK1553 The harder half of the same question
-
-RK1517 asked one question of eighteen booleans and left it unasked of a hundred and
-twenty-two values. The transport is the same — `serving` appends `--json` to every call
-— so a value flag whose whole effect is on the rendered form is inert in exactly the way
-`origin --why` was, and nothing anywhere would say so.
-
-What stops the same sweep being pointed at them is the signature. A boolean has one
-other form: leave it off. A value has as many as the field takes, and "identical
-payload" is strong evidence for the boolean and weak for the value — `list --block A` on
-a project with one block answers what `list` answers, correctly, and a sweep reading
-that as inert would be reporting its own fixture again.
-
-The shape that might work is a **difference the caller chose**: run the flag with two
-values the fixture can tell apart, rather than against its absence. `--block A` beside
-`--block B`, `--role improvements` beside `--role strategy`. Identical there is a much
-harder thing to explain away, and it needs a fixture with two of everything the flags
-narrow by — which is most of what this one already is.
-
-The cheaper half first, if either: the values that are **enums**, where the parser
-declares `choices` and the alternative value is derivable rather than invented. That is
-a population the parser can enumerate, unlike a free string, and it is where a narrowing
-flag that reaches nothing would hide best.
-
 ### §RK1554 The history with nothing written under it
 
 RK1489 gave the pair fixture a history because a flag about the past cannot be read

@@ -740,6 +740,7 @@
 - ✅ **RK1550** **a design keeps naming a function of this package after a rename, no gate reading that pointer** — A backticked module.name in governed prose is resolved against the package, so a design naming a renamed symbol is a finding.
 - ✅ **RK1551** **the gate falls silent where a design quotes a constraint and the run that fell silent never says so** — A clean gate says how many lines a constraint reaches whose own design answered it, so the suppression is visible where the gate is read.
 - ✅ **RK1552** **the leads a deleted design quoted are read once per path, though the record the departure unpacks carries them** — The departures read the deletion's own record, so the constraints a dropped design quoted are read once by the function that deletes it.
+- ✅ **RK1553** **no sweep asks of a served value flag what RK1517 asks of a boolean, and there are a hundred and twenty-two** — Measured: 2 of 119 declare choices and both separate, and the wider signature calls budget --block inert where a block is not part of a line.
 
 ## Block E — Adoption
 
