@@ -62,6 +62,7 @@
 - 💭 **RK1554** (deps: —) **the pair fixture's commits carry a subject and no body, so a flag about a commit body cannot be read there** — RK1489 gave it a history and not a message, and origin --why answers identically on the terminal too for a reason that is not the flag. → §RK1554
 - 💭 **RK1555** (deps: —) **two of adopt's argument rules are still raised inside the estimator, where no declaration reader can see them** — RK1518 moved the one that is two answers, and a narrowing and a flag refused beside a subject were left behind. → §RK1555
 - 💭 **RK1559** (deps: —) **twelve of the fifteen note codes have never been priced, this project's gate tripping only two of them** — RK1521 made the population knowable and the figure still covers what this repository happens to emit, which is the reach RK1489 warns is read as a result. → §RK1559
+- 💭 **RK1563** (deps: —) **a field that shares a name with the served prefix is reported as a carrier of it, which it is not** — the census sweeps by name alone, so an ordinary use of the word lands in a table about something else wearing an assertion it cannot answer. → §RK1563
 
 ## Block E — Adoption
 
@@ -73,6 +74,7 @@
 - 💭 **RK1549** (deps: —) **no verb removes the vendored engine, so the report that names it hands the last step back to the reader in English** — RK1514 settled that an unasked deletion is wrong and left the asked-for one unbuilt, so uninstall un-wires and the tool stays on disk. → §RK1549
 - 💭 **RK1560** (deps: —) **install replaces a server declaration an adopter wrote themselves and no row names what was there** — the merge keeps every entry but this project's own, and RK1492 established that entry may legitimately hold a wrapper. → §RK1560
 - 💭 **RK1561** (deps: —) **engines --invoke prints a command and never that the declaration it fell through was one this tool cannot read** — RK1523 gave the report that row and the flag a caller actually pipes still answers as though nothing were declared. → §RK1561
+- 💭 **RK1562** (deps: —) **the served notes are priced against a module list built here rather than the one a real note carries** — RK1524 globbed the package root and named files by basename, where Engine.stale walks it recursively and spells a submodule with its directory. → §RK1562
 
 ## Block G — The editor surface (the backlog where the file is open)
 

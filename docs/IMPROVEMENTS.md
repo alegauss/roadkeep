@@ -824,6 +824,29 @@ is *what this build can say*, beside *what this project meets*, which is the pai
 It must not become a ceiling per code: RK1491 declined one for the whole cadence, and
 twelve numbers with no argument behind them would be twelve limits that move.
 
+### §RK1563 The census that reads a word and asserts a meaning
+
+`tests/carrying.py` sweeps the package for a class with a field named `served` and
+asserts the population matches a table of four. It found a fifth:
+`budgeting.Noted.served`, the notes this server appends, which carries no prefix and
+never could. The red was right and the message was not — it says *carries the prefix,
+unaccounted for*, which is a claim about a field that has nothing to do with the prefix.
+
+The census cannot tell the two apart, which is a property of what it reads. `served` is
+the invocation prefix a caller is handed and also the ordinary word for anything this
+server does; the sweep is by name, so any record reaching for it lands in a table about
+something else.
+
+Two ways, and different bets. Narrow the reading — a carrier is a `str` filled from
+`served_by`, which the third test already checks and could check first. Or keep it and
+fix the sentence: say what the field would have to be, so a reader meeting the red is
+told to rename or to add a row rather than told a falsehood.
+
+The second is smaller and closes the actual cost, which was one reading of a message
+that did not describe the state. The first is what stops the next one arriving — and
+both are cheap, so the question is only whether a name this generic is worth guarding by
+shape.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
@@ -966,6 +989,30 @@ makes between a report and its verdict.
 
 What it must not do is refuse. A declaration this tool cannot read is a legitimate state
 and the caller asked for a command to run, not for an opinion about their harness.
+
+### §RK1562 The second reading of a list provenance already owns
+
+RK1524 composes each served note with every module listed as changed, because the list
+is the part that varies and a session editing this tree is who these notes are written
+for. It builds that list with `home.glob("*.py")` and `Path.name`. What a real note
+carries is `Engine.stale`, which is `rglob` and `provenance.named` — 61 modules against
+48, and the thirteen missing are spelled `kernel/schema.py` where this reads
+`schema.py`.
+
+So the figure is short and the spelling is wrong, in a reader whose whole claim is that
+it comes off the same composers a caller is handed. It does — the prose is exact — and
+the arguments are a second reading of a fact `provenance` already answers, which is what
+the comment above `stale` warns about in as many words: one spelling, shared with
+`raised_in`, because two vocabularies made the comparison meaningless.
+
+The fix is to ask rather than to rebuild: the widest list is what `stale` would report
+on a tree where every module was touched, so the reading belongs beside it in
+`provenance` and both callers take it from there. That also removes the only place in
+this package where a module list is assembled outside the module that owns the question.
+
+What it changes about the number is a floor rising, not a bound moving — every note
+gains the thirteen names it would really have carried. Nothing about which note is
+widest is likely to move, the three that list modules all listing the same ones.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
