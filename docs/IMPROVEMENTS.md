@@ -946,6 +946,52 @@ half worth settling: an engine an adopter has edited is not an artefact any more
 What would decide it is how large the copy is on a real adopter. Small enough to ignore
 and the sentence is the whole answer, and this closes by being declined.
 
+### §RK1560 The one entry the merge rule does not protect
+
+`.mcp.json` is a declaration this tool merges into and does not own, and RK1492 stopped
+a reader guessing at the program inside it precisely because a wrapper or `uv run` is a
+legitimate thing an adopter writes there. `install` replaces it. Measured: a project
+declaring `uv run serve-roadkeep mcp` runs `install`, exits 0, and holds the launcher —
+the adopter's command gone, with no row naming what was there.
+
+The merge rule is kept and that is what hides it. What survives is everything that is
+not *this project's roadkeep entry*, which is right for a file other tools declare in
+and wrong for the one entry an adopter may have written themselves. The two are told
+apart by RK1523's own reading: a declaration whose program this command wrote is ours to
+refresh, and one whose program it does not recognise is somebody's decision.
+
+So the write splits where the report already does. Where the program is one of
+`_PROGRAMS`, refresh it as now. Where it is not, the honest outcomes are to leave it and
+say so, or to replace it and say what was replaced — and the choice is the adopter's,
+which argues for the first plus a line naming the flag that overrides.
+
+It must not refuse the whole run. `install` writes five surfaces, and a refusal over one
+entry leaves a project half-wired for a decision about a file the other four do not
+touch — the shape RK370 settled the other way.
+
+### §RK1561 The fall-through the one-line answer does not mention
+
+RK1523 gave the report a row for a declaration whose program this command did not write.
+`engines --invoke` still answers as though there were none: it falls through to the copy
+that is answering and prints `roadkeep`, which is correct as a shell instruction and
+silent about the thing that makes it interesting — the harness is starting something
+else, and which copy that reaches is inside a wrapper this tool cannot read.
+
+The fall-through is right and RK1492 argued it: an invented answer is worse than the
+honest one. What is missing is the same sentence the row now carries, at the one flag a
+caller uses when it has decided to run something. A session reading `--invoke` alone
+gets a command; the row beside it, which it did not ask for, holds the fact that the
+command may not be the copy its tools go through.
+
+Cheap, and the shape is settled by the flag's own history. RK1230 made `--invoke` one
+line with no verdict, deliberately, because it answers *which copy to call* and a
+paragraph there is a paragraph in a pipe. So the note belongs on stderr, where the
+answer stays one line and a reader who piped it loses nothing — the same split `lint`
+makes between a report and its verdict.
+
+What it must not do is refuse. A declaration this tool cannot read is a legitimate state
+and the caller asked for a command to run, not for an opinion about their harness.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
