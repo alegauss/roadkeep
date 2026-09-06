@@ -720,6 +720,7 @@
 - ✅ **RK1540** **a reference page now opens with two lines addressed to the gate, and nothing prices them** — a page's row says what of it is the declaration, measured at a fifth of a percent to half a percent, so the frontmatter stays where the page states its own claim.
 - ✅ **RK1586** **a shared record is built positionally by one of its callers, so a field inserted above another moves a figure** — the record three subjects share is keyword-only, so a field inserted above another is a compile-time question rather than a published figure moving in silence.
 - ✅ **RK1587** **ten records of six or more fields are built positionally, and which of them more than one module builds is unmeasured** — no record is both built by two modules and reached by position, so the sweep is declined and the intersection is held as the gate that catches the next one.
+- ✅ **RK1541 (the price of what is held back)** **the served budget has no room for a tenth subject, and which of its sixteen arguments callers use is unmeasured** — cost --tools prices each withheld argument against the room there is now, so how far over a subject would put a tool is a figure and not prose.
 
 ## Block E — Adoption
 

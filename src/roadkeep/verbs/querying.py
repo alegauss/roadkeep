@@ -1902,7 +1902,7 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         budget_parser,
         family="`add`'s reason read back: the answer is about the id this project would issue next, and a prefix typed here asks about one it would not",
         body_file="this read exists because a refusal over the transport costs the whole payload again, and the three verbs that write a body now take a path (RK1260), which is refused for the corrected field alone — so the draft still worth pricing here is the one that arrived in the call",
-        decides="measured (RK1506): exposing it puts this tool at 2947 characters against the 2850 `[tools] characters` allows, and a ceiling raised to admit a subject is the reviewer's limit RK30 replaced — the caller it serves has `brief`, which prices this line and the other two off one read",
+        decides="measured (RK1506): exposing it puts this tool over what `[tools] characters` allows, and a ceiling raised to admit a subject is the reviewer's limit RK30 replaced — `cost --tools budget` prices it against the room there is now (RK1541), and the caller it serves has `brief`, which reads this line and the other two at once",
     )
     # Declared although this verb writes nothing (RK1260). `reads_stdin` is not about the
     # write lock: it is what a surface with no pipe reads to refuse `-` by name instead of

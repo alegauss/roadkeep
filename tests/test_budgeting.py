@@ -4393,3 +4393,53 @@ def test_the_shared_record_is_reached_by_name_and_never_by_order():
     with pytest.raises(TypeError):
         Part("a heading", 1, 2)  # type: ignore[misc]
     assert Part(heading="a heading", lines=1, bytes=2).declared == 0
+
+
+# -- what the surface holds back, priced (RK1541) ------------------------------
+
+
+def test_a_withheld_argument_is_priced_against_the_room_there_is(tmp_path, capsys):
+    """RK1541. RK1506 withheld `budget --decides` for putting the tool over `[tools]
+    characters`, and *how far over* lived in that task's prose — where it went stale inside the
+    session that wrote it, the surface having moved underneath.
+
+    So the figure is taken rather than quoted: the header says the room and this says what the
+    next subject would take, which is the subtraction a ceiling argument needs and nobody
+    could make."""
+    from roadkeep.serving import detail
+
+    config = Config.discover(Path(__file__).resolve().parents[1])
+    found = detail(config, "budget")
+    priced = {dest: size for dest, size, _why in found.withheld}
+    assert "decides" in priced, found.withheld
+    # A real cost and not a placeholder: the argument carries a `help=` and a type, so
+    # exposing it is worth more than the two braces around it.
+    assert priced["decides"] > 50
+    assert all(why for _dest, _size, why in found.withheld)
+
+
+def test_the_price_is_the_payload_s_own_arithmetic(tmp_path):
+    """Asked of `descriptor` with the argument exposed, which is what keeps it from being a
+    second estimate — the drift every reading in that module is written to avoid."""
+    import json as _json
+    from dataclasses import replace as _replace
+
+    from roadkeep.kernel.schema import width
+    from roadkeep.serving import TOOLS, descriptor, detail
+
+    config = Config.discover(Path(__file__).resolve().parents[1])
+    found = detail(config, "budget")
+    tool = next(one for one in TOOLS if one.name == "budget")
+    for dest, size, _why in found.withheld:
+        widened = _replace(tool, unconditional=(*tool.unconditional, dest))
+        grown = width(_json.dumps(descriptor(widened, config), ensure_ascii=False))
+        assert grown - found.characters == size, dest
+
+
+def test_a_tool_that_withholds_nothing_says_nothing(tmp_path):
+    # Silent where there is nothing held back, which is most of them: a row per tool saying
+    # *nothing withheld* is the field a reader stops reading.
+    from roadkeep.serving import detail
+
+    config = Config.discover(Path(__file__).resolve().parents[1])
+    assert detail(config, "gaps").withheld == ()

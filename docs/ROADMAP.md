@@ -43,7 +43,7 @@
 
 - ⏳ **RK1498** (deps: RK1532 ✅) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Twenty-one of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
 - ⏳ **RK1538** (deps: —) **the flag saying which ceiling refused a field reaches neither the remedy table nor a payload** — The payload half: a refusal reaches a caller as text, so publishing the flag needs a refusal payload. → §RK1538
-- 💭 **RK1541** (deps: —) **the served budget has no room for a tenth subject, and which of its sixteen arguments callers use is unmeasured** — RK1506's flag was withheld at 97 characters over, and the split RK1321 made to buy that room has no obvious seam left. → §RK1541
+- ⏳ **RK1541** (deps: —) **the served budget has no room for a tenth subject, and which of its sixteen arguments callers use is unmeasured** — Which of the sixteen exposed arguments callers pass: nothing records a tool call, so that reading has no corpus here. → §RK1541
 - 💭 **RK1542** (deps: —) **the retirement prefix every ranking figure is measured through is split by hand in two tests** — RK1507 paired the carried line's two readers and this is the same shape one field over, with the composer in shipping and the readers in a test. → §RK1542
 - 💭 **RK1544** (deps: —) **the brief an estimate prices has no deps and no design, and the row does not say so** — RK1509 reads the file adopt was handed because the tree has declared nothing, so every part of a brief that lives in another role is absent from the figure. → §RK1544
 - 💭 **RK1550** (deps: —) **a design keeps naming a function of this package after a rename, no gate reading that pointer** — ref.dangling covers section to section only, so two sections cited a helper that had stopped existing and lint was clean either way. → §RK1550
@@ -177,6 +177,11 @@
 
 - **A refusal publishes which ceiling refused** A caller over the protocol reads the
   bound as a field and never by matching the sentence.
+
+## Done when — RK1541
+
+- **The served surface is trimmed against a reading** Which arguments callers pass is
+  answerable from something this project keeps.
 
 ## Non-goals
 

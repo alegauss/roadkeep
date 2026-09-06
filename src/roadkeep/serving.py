@@ -84,7 +84,7 @@ import json
 import re
 import sys
 from collections.abc import Callable, Iterator, Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, TextIO
@@ -1422,6 +1422,15 @@ class Detail:
     #: sentence (RK1239) — `(source, characters)`, and empty where there is nothing to split.
     #: The clause as written, so these sum to the sentence and not to the serialised row.
     described: tuple[tuple[str, int], ...] = ()
+    #: What each **withheld** argument would cost if it were exposed (RK1541), as `(dest,
+    #: characters, why)`. The ranking above says where the size went and this says what the
+    #: next subject would take — which is the reading a ceiling argument needs and did not
+    #: have: RK1506's `--decides` was withheld at 97 over, and that number lived in a task's
+    #: prose rather than beside the figure it is measured against.
+    #:
+    #: Derived by asking :func:`descriptor` for the tool with the argument added, so it is the
+    #: payload's own arithmetic and never an estimate of it — the rule this whole read keeps.
+    withheld: tuple[tuple[str, int, str], ...] = ()
 
     @property
     def envelope(self) -> int:
@@ -1464,6 +1473,12 @@ class Detail:
                         f"  {self.quoting:>6}    (its key, quoting, and the space between)"
                     )
         rows.append(f"  {self.envelope:>6}  (the JSON around them: name, keys, required)")
+        # After the ranking, because it is about what is *not* here (RK1541): a reader deciding
+        # whether a tenth subject fits has the room on the header row and the price here, and
+        # the two were previously a subtraction nobody could make.
+        rows += [
+            f"  {'+' + str(size):>6}  {dest}  (withheld)" for dest, size, _why in self.withheld
+        ]
         return chr(10).join(rows)
 
     def payload(self, unit: str, each: int | None) -> dict[str, Any]:
@@ -1484,7 +1499,53 @@ class Detail:
             # subtracted (RK1241) — the same row `envelope` is, one level in.
             "description_quoting": self.quoting,
             "envelope": self.envelope,
+            # What the arguments this surface holds back would cost (RK1541), each with the
+            # reason it is held back — `[]` and never omitted, so a consumer tells a tool that
+            # withholds nothing from a build that did not price them.
+            "withheld": [
+                {"argument": dest, "characters": size, "why": why}
+                for dest, size, why in self.withheld
+            ],
         }
+
+
+def _would_cost(
+    tool: Tool,
+    config: Config,
+    parsers: Mapping[str, argparse.ArgumentParser],
+    whole: int,
+) -> tuple[tuple[str, int, str], ...]:
+    """What each argument this tool holds back would add to its schema (RK1541).
+
+    Asked of :func:`descriptor` with the argument exposed, which is the same arithmetic the
+    figure above it is: a second estimate would be the drift every reading in this module is
+    written to avoid, and the number a ceiling argument turns on is the one that must not be
+    guessed.
+
+    RK1506 is the case. `budget --ship --decides` was withheld for being over, and *how far
+    over* lived in a task's prose rather than beside the total it is measured against — where
+    it went stale within the session that wrote it, the surface having moved underneath. So the
+    figure is taken here and never quoted: the withholding reason says the argument is over and
+    this says by how much, today. `budget` is also where it bites: RK1321 split that verb once
+    to buy room, the room is gone, and *split again* has no obvious seam left.
+
+    Silent where a tool withholds nothing, which is most of them.
+    """
+    reasons = _subparser(tool.command, parsers).get_default("withheld") or {}
+    out: list[tuple[str, int, str]] = []
+    for dest, why in sorted(reasons.items()):
+        if dest in tool.exposed(config):
+            continue
+        try:
+            widened = descriptor(
+                replace(tool, unconditional=(*tool.unconditional, dest)), config, parsers
+            )
+        except (KeyError, ValueError):
+            # An argument the parser cannot expose is not a price this read can quote, and a
+            # figure invented for it would be the estimate the docstring above refuses.
+            continue
+        out.append((dest, width(json.dumps(widened, ensure_ascii=False)) - whole, why))
+    return tuple(out)
 
 
 def detail(config: Config, name: str) -> Detail:
@@ -1513,11 +1574,13 @@ def detail(config: Config, name: str) -> Detail:
         for field, schema in payload["inputSchema"]["properties"].items():
             parts[field] = width(json.dumps({field: schema}, ensure_ascii=False))
         written = _described(tool, _subparser(tool.command, parsers))
+        whole = width(json.dumps(payload, ensure_ascii=False))
         return Detail(
             name=name,
             parts=tuple(sorted(parts.items(), key=lambda row: (-row[1], row[0]))),
-            characters=width(json.dumps(payload, ensure_ascii=False)),
+            characters=whole,
             where=_declared_in(tool, parsers, config),
+            withheld=_would_cost(tool, config, parsers, whole),
             # Nothing to split where the description is the parser's own sentence alone.
             described=(
                 ()
