@@ -92,6 +92,13 @@ FOREIGN = (
     "deliberate: the command it names is another tool's — git, or the harness — so running "
     "it here would be this suite asserting somebody else's contract"
 )
+UNASKABLE = (
+    "deliberate: the branch composing it is the one where `anchors` itself could not answer, "
+    "and `anchors` falls back to the file rather than raising — a non-repository, a checkout "
+    "with no git and this repository all take the branch that states the address instead "
+    "(RK1594). Building the state would mean removing git from the machine or patching the "
+    "read, and a mock here is a fixture asserting its own return value"
+)
 
 
 #: Every function in the package that composes a command, and how this suite accounts for it
@@ -307,18 +314,14 @@ SITES: tuple[Site, ...] = (
     # RK1378: the read it names is the branch where `anchors` could not be read, and the one
     # `test_the_refusal_names_the_free_address_and_not_only_the_family` exercises is the other
     # — where the address is stated and no command is composed at all.
-    Site(
-        "sections.py:NotASibling.__init__",
-        "unreached",
-        unreached("a prose file with two families, so a `section move` crosses from one parent to another"),
-    ),
+    Site("sections.py:NotASibling.__init__", "deliberate", UNASKABLE),
     Site("sections.py:UnknownParent.__init__", "run"),
     Site("sections.py:_the_path_into", "run"),
-    Site(
-        "sections.py:_where_a_top_level_is",
-        "unreached",
-        unreached("a malformed anchor whose leading segment names a family the file declares"),
-    ),
+    # RK1498, RK363's read. Both listings, run by `test_composing` against one outline: a
+    # leading segment naming a live family narrows to it, and one naming none gets the whole
+    # outline — two reads from one refusal, and a narrowing on a family the file does not
+    # declare would exit 2 in the reader's hands.
+    Site("sections.py:_where_a_top_level_is", "run"),
     Site("sections.py:_where_the_anchor_is", "run"),
     Site(
         "serving.py:_rerouted",

@@ -1164,3 +1164,47 @@ def test_the_door_a_resume_that_places_nothing_names_runs(tmp_path, capsys):
         "-C", str(root), *[one if one != "<marker>" else working for one in second]
     ]) == EXIT_OK
     assert f"{working} **TT1**" in (root / "ROADMAP.md").read_text(encoding="utf-8")
+
+
+# -- the address a malformed anchor is answered with (RK1498) ------------------
+
+
+@pytest.mark.parametrize(
+    "typed, listing, offered",
+    [
+        # A family the file declares, mistyped in its separator: the answer is that family's
+        # next child, and the listing is narrowed to it (RK363).
+        ("I-2", ["anchors", "--family", "I"], "I.2"),
+        # A segment naming no family at all, where the answer is the free top-level and the
+        # listing is the whole outline — a different read, from the same refusal.
+        ("ZZ-2", ["anchors"], "III"),
+    ],
+    ids=["a-family-typed", "no-family-typed"],
+)
+def test_the_listing_a_malformed_anchor_is_answered_with_runs(
+    tmp_path, capsys, typed, listing, offered
+):
+    """RK1498, over RK363's read. A malformed address is answered with a free one *and* with
+    the listing that shows what is taken — and which listing depends on what the caller typed,
+    a leading segment naming a live family being a typo inside it rather than a new subtree.
+
+    Two branches and two reads, so both are run: a narrowing that named a family the file does
+    not declare would exit 2 in the reader's hands, and nothing said the wide one was still a
+    command at all."""
+    root = outlined(tmp_path)
+    (root / "IMPROVEMENTS.md").write_text(FAMILIED, encoding="utf-8", newline="")
+    assert main([
+        "-C", str(root), "section", "add", typed,
+        "--title", "A title", "--body", "Prose enough to matter, and it ends.",
+    ]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    (argv,) = [one for one in commands(said) if one[:1] == ["anchors"]]
+    assert argv == listing, said
+    assert main(["-C", str(root), *argv]) == EXIT_OK
+    # The address beside the listing is the retry's, and it is **not** a composed command:
+    # the `retry` row prints it unbackticked, which is `commands`' own rule about what a
+    # message offers to run. Asserted as text, because which address the branch gives is the
+    # whole of what the two differ on — a narrowing that answered `III` would be the guess
+    # RK363 refused, printed beside the read that contradicts it.
+    assert f"--ref {offered}" in said, said
+    assert f"§{offered} " in said, said

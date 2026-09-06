@@ -724,6 +724,7 @@
 - ✅ **RK1589** **the merge row an install prints names three doors and nothing has ever run one of them** — The three states of the .gitattributes row run against a repository, and the door two of them name is spelled with the invocation, which is what makes it findable.
 - ✅ **RK1592** **three of the sites that compose a gate door are accounted for as a work-list, so nothing runs one** — The three linting sites run against fixtures of their own, and the flag export.unmarked names now follows the finding rather than a literal.
 - ✅ **RK1593** **two of the sites that compose a door out of a pause are accounted for as a work-list, so nothing runs one** — The two deferring sites run against a store and a queue, and the reconciling refusal names the resume that has to happen before the status it named.
+- ✅ **RK1594** **two of the sites that compose an outline read are accounted for as a work-list, and one of them cannot be reached at all** — Both branches of the malformed-anchor read run, and the move refusal is deliberate: the branch composing its command is one no fixture can reach.
 
 ## Block E — Adoption
 
