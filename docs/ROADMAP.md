@@ -37,7 +37,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1554** (deps: —) **the pair fixture's commits carry a subject and no body, so a flag about a commit body cannot be read there** — RK1489 gave it a history and not a message, and origin --why answers identically on the terminal too for a reason that is not the flag. → §RK1554
 - 💭 **RK1555** (deps: —) **two of adopt's argument rules are still raised inside the estimator, where no declaration reader can see them** — RK1518 moved the one that is two answers, and a narrowing and a flag refused beside a subject were left behind. → §RK1555
 - 💭 **RK1559** (deps: —) **twelve of the fifteen note codes have never been priced, this project's gate tripping only two of them** — RK1521 made the population knowable and the figure still covers what this repository happens to emit, which is the reach RK1489 warns is read as a result. → §RK1559
 - 💭 **RK1563** (deps: —) **a field that shares a name with the served prefix is reported as a carrier of it, which it is not** — the census sweeps by name alone, so an ordinary use of the word lands in a table about something else wearing an assertion it cannot answer. → §RK1563

@@ -114,6 +114,26 @@ SHIPPED = """
 The reasoning a line that has left no longer needs.
 """
 
+#: The **first** commit's message, with a body (RK1554). A blank line and a sentence, which is
+#: all a commit body is and all a flag that prints one needs to be readable — `origin --why`
+#: adds each commit's under the rows, and against two subject-only commits it answered exactly
+#: what `origin` answered, for a reason that was the fixture and not the flag.
+#:
+#: The first and **not the second**, which is the half writing it found: `--why` prints the
+#: *shipping* commit's message, and the ledger's one shipped line lands in this commit. Which
+#: also moved `NEEDS["origin"]` off RK1 — a line only ever proposed is one that flag can never
+#: fire on, so the id was as much of why it read as inert as the missing body was.
+#:
+#: Its own constant so the two halves are visible together: the subject is what `origin` prints
+#: and the body is what the flag adds, and a message assembled inline would put the difference
+#: this fixture exists to hold inside a string literal in a call.
+PROPOSING_MESSAGE = (
+    "the project, with a design whose line has not left yet\n"
+    "\n"
+    "RK9 is recorded shipped here, which is the row `origin RK9 --why` reads — and this "
+    "body is what that flag adds under it, which a subject alone cannot make readable."
+)
+
 #: Flags that **write**, inside commands whose parser is declared read-only. Each is the
 #: RK16 exception — the repair belongs where a human is standing — and none of them belongs
 #: in a sweep that runs every pair against one fixture: a `--fix` in the middle of it would
@@ -197,6 +217,18 @@ def _build(root: Path) -> Path:
 
     So the state is here rather than exempted: one commit with §I.3 in it, one that takes the
     heading out. Nothing gives an address back, which is the whole of what `--retired` lists.
+
+    **And a message under one of them** (RK1554). RK1489 gave this a history and not a
+    message: both commits were a subject with no body, so `origin --why` — which adds each
+    commit's body under the rows — answered identically to `origin` on the terminal too, for a
+    reason that is nothing to do with the flag. It went unnoticed because that one is closed
+    twice over, withheld from the served tool and declared a second subject beside `--json`,
+    so neither sweep asks it anything; the next flag about a commit body will have neither.
+
+    **One of the two and never both**, which is this fixture's whole value: its commits differ
+    in named ways, and a body on each would take a difference back out to add one. The one that
+    carries it is the **first**, because `--why` prints the *shipping* commit's message and the
+    ledger's one shipped line is recorded there.
     """
     _write(
         root,
@@ -209,7 +241,7 @@ def _build(root: Path) -> Path:
     _write(root, "CHANGELOG.md", LEDGER)
     _write(root, "IMPROVEMENTS.md", PROSE + SHIPPED)
     git_init(root)
-    git_commit(root, "the project, with a design whose line has not left yet")
+    git_commit(root, PROPOSING_MESSAGE)
     _write(root, "IMPROVEMENTS.md", PROSE)
     git_commit(root, "ship the line that pointed at I.3")
     return root
@@ -244,7 +276,10 @@ def project(_origin: Path, tmp_path: Path) -> Path:
 NEEDS = {
     "claim": ["RK2"],
     "show": ["RK1"],
-    "origin": ["RK1"],
+    # **A line this fixture shipped** (RK1554), which RK1 is not: `origin --why` prints the
+    # *shipping* commit's message, so an id that only ever got proposed is one that flag can
+    # never fire on — the id was as much of why it read as inert as the missing body was.
+    "origin": ["RK9"],
     "adopt": ["docs/ROADMAP.md"],
 }
 
@@ -643,8 +678,9 @@ def test_the_defect_this_was_filed_from_is_closed_at_both_ends(project):
     both = argv(served_again, {"id": "RK1", "why": True}, config)
     assert both == ["origin", "RK1", "--why", "--json"]
     assert _ran(project, both)[0] == 2, "two subjects, so the composed call never answers"
-    # And never on the terminal form either, here: `--why` adds each commit's message *body*
-    # under the rows, and this fixture's two commits are a subject and nothing else. Which is
-    # the sweep's own lesson one step in — a flag that moves nothing on a fixture that cannot
-    # hold what it is about says nothing, and the reading above is why it is not asked here.
-    assert run(project, "origin")[1] == run(project, "origin", "--why")[1]
+    # **And on the terminal form it shapes something, which is now checkable** (RK1554). This
+    # read the two as identical and said so: `--why` adds each commit's message *body* under
+    # the rows, and both commits were a subject and nothing else — so the flag moved nothing
+    # for a reason that was the fixture. One of them has a body now, and the assertion is the
+    # one that was wanted all along.
+    assert run(project, "origin")[1] != run(project, "origin", "--why")[1]
