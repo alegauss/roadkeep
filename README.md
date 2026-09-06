@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 230 | 2 |
 | C — Query (consult without reading the file) | 8 | 158 | 4 |
-| D — The gate | 22 | 222 | 2 |
+| D — The gate | 21 | 223 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 147 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 36 | 988 | 14 |
+| **Total** | 35 | 989 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1505** (deps: —) **the note about a missing page says it is missing and not what it would have told the reader** — RK1482 measured a session that skipped three notes about tooling, and the fourth is the same kind of sentence one code over. → §RK1505
+- 💭 **RK1506** (deps: —) **budget prices one line per departure and a ship writes three, so the other two are exemptions rather than answers** — RK1483's table had to exempt four ship fields for belonging to a line this read has no subject for, which brief composes for free. → §RK1506
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

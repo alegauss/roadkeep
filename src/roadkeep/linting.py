@@ -1535,13 +1535,36 @@ def _wired(config: Config) -> list[Note]:
             if one.existed
             else (
                 f"this project has no copy of it, so nothing a session reads here documents "
-                f"what that page does — a verb it names is one nobody in this project can "
+                f"{_names(one)} — a verb it names is one nobody in this project can "
                 f"find; `{invocation()} install` writes the ones this checkout ships"
             ),
             subject=one.path,
         )
         for one in staleness(config.root)
     ]
+
+
+def _names(page: object) -> str:
+    """What the absent page would have told this reader, in the page's own words (RK1505).
+
+    RK1482 split the note in two and answered *which* pages are missing. The cost it measured
+    was never the absence: `budget --anchor` measures a section before it is sent, the session
+    did not know, and one design took five refusals against the word limit — each re-sending
+    the paragraph. A session that had already read past three notes about tooling was then
+    given a fourth saying a file is not there.
+
+    So the note names **one verb**, which the page declares and this quotes (L4, RK1505). One
+    and not the roster, because a note that grows a list is skipped for a different reason —
+    the failure the whole gate is written against.
+
+    Falls back to what it said before where the page declares nothing, which is every surface
+    that is not a reference page: the sentence is still true and says less.
+    """
+    saves = getattr(page, "saves", "")
+    if not saves:
+        return "what that page does"
+    because = getattr(page, "because", "")
+    return f"`{saves}`{f', which {because}' if because else ''}"
 
 
 def _judged(config: Config) -> list[Note]:

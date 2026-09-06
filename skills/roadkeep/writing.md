@@ -1,3 +1,8 @@
+---
+saves: add
+because: writes the line and its rationale in one transaction, under the same limits
+---
+
 # roadkeep — the write path
 
 The reference half of the `roadkeep` skill, read when a turn is about to write. `SKILL.md`

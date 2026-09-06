@@ -1098,6 +1098,15 @@ class Drifted:
     #: False where this project has no copy at all. A surface that never existed is not drift
     #: between two versions of a text; it is a page the reader has never been able to open.
     existed: bool
+    #: The one verb this page documents that a reader without it has no way to find (RK1505),
+    #: as the page itself declares — `""` for a surface that declares none, which is every one
+    #: that is not a reference page. The whole cost RK1482 measured was never the absence: it
+    #: was that the session did not learn `budget`, and a note saying *a page is missing* is a
+    #: fourth sentence about tooling for a reader who skipped three.
+    saves: str = ""
+    #: What that verb does, in the page's own words. Read and never composed (L4): which verb
+    #: matters is a judgement, so it is the page's to state and this tool's to quote.
+    because: str = ""
 
 
 def staleness(root: str | Path = ".") -> tuple[Drifted, ...]:
@@ -1112,10 +1121,45 @@ def staleness(root: str | Path = ".") -> tuple[Drifted, ...]:
     if intent.ahead:
         return ()
     return tuple(
-        Drifted(surface.path.relative_to(base).as_posix(), surface.existed)
+        Drifted(
+            surface.path.relative_to(base).as_posix(),
+            surface.existed,
+            *declares(surface.path.name),
+        )
         for surface in intent.changing
         if surface.refresh
     )
+
+
+def declares(name: str) -> tuple[str, str]:
+    """What the page of this name says it saves a reader, off **this checkout's** copy (RK1505).
+
+    The project has no copy — that is what the note is about — so the shipped page is the one
+    read, and it is the right one: what a page documents is a property of the text this engine
+    would write, not of a file that is absent.
+
+    Two lines of frontmatter and no parser: `saves:` is a verb and `because:` is the page's own
+    sentence about it. Declared rather than derived, which is the whole of the choice (L4) — the
+    backticked commands in a reference page are enumerable and ranking them would be this tool
+    deciding which verb matters, on a page written by somebody who already knows.
+
+    `("", "")` for a name that is not a page, unreadable, or declaring neither key: every reader
+    in this module's direction, and the note then says what it said before.
+    """
+    page = next((one for one in PLUGIN_PAGES if one.endswith(f"/{name}")), None)
+    if page is None:
+        return "", ""
+    try:
+        text = _read(_source() / page)
+    except OSError:
+        return "", ""
+    found = {}
+    for line in text.splitlines()[1:]:
+        if line.startswith("---"):
+            break
+        key, _, value = line.partition(":")
+        found[key.strip()] = value.strip()
+    return found.get("saves", ""), found.get("because", "")
 
 
 def stale(root: str | Path = ".") -> tuple[str, ...]:

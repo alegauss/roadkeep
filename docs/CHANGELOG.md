@@ -682,6 +682,7 @@
 - ✅ **RK1502** **a write that composes a prose field can render it without measuring it, and nothing enumerates which ones do** — a sweep over the prose fields the parsers declare refuses each one over its limit, with nothing written.
 - ✅ **RK1503** **a field refused by the line quotes a ceiling no config declares, so the reader shortens the prose that fits** — a length violation carries which ceiling refused it, and a line-bound refusal says the field is legal and cites the line's key.
 - ✅ **RK1504** **a served tool name that is also a CLI verb of a different act is a collision nothing enumerates** — a table names every served name that is also a verb of a different act, held total against both enumerations.
+- ✅ **RK1505** **the note about a missing page says it is missing and not what it would have told the reader** — each reference page declares the one verb it saves a reader, and the absent-page note quotes it.
 
 ## Block E — Adoption
 

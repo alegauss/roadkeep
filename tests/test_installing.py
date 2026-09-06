@@ -2605,6 +2605,57 @@ def test_the_absent_page_names_the_same_door(project):
     assert found is not None and found.doors[0].argv == ("install",)
 
 
+# -- what the absent page would have said (RK1505) -----------------------------
+
+
+def test_the_absent_page_names_the_verb_it_documents(project):
+    """RK1505. RK1482 answered *which* page is missing and stopped there. The cost it measured
+    was never the absence: `budget --anchor` prices a section before it is sent, the session
+    did not know, and one design took five refusals against the word limit — each re-sending
+    the paragraph. That session had already read past three notes about tooling, and a fourth
+    saying a file is not there is the same kind of sentence."""
+    from roadkeep.config import Config
+    from roadkeep.linting import lint
+
+    install(wired(project), source=HERE)
+    (project / ".claude" / "skills" / "roadkeep" / "asking.md").unlink()
+    (note,) = [
+        one for one in lint(Config.discover(project)).notes if one.code == "install.absent"
+    ]
+    assert "`budget`" in note.message
+    # And what it does, in the page's own words: which verb matters is a judgement, so the
+    # page states it and this quotes (L4).
+    assert "prices a field before the sentence exists" in note.message
+
+
+def test_every_reference_page_declares_one_verb_this_cli_has():
+    """The page's claim, held against the parser. A page naming a verb this build does not
+    have would send a reader to `invalid choice` — the failure RK353 closed one surface over,
+    arriving through a note instead of a tool name.
+
+    Total over `PLUGIN_PAGES`, so a third page is a red until it says what it saves."""
+    from roadkeep.cli import build_parser
+    from roadkeep.installing import PLUGIN_PAGES, declares
+
+    (choices,) = [
+        one.choices for one in build_parser()._actions if getattr(one, "choices", None)
+    ]
+    for page in PLUGIN_PAGES:
+        saves, because = declares(page.rsplit("/", 1)[1])
+        assert saves, page
+        assert because, page
+        assert saves in choices, (page, saves)
+
+
+def test_a_surface_that_declares_nothing_says_what_it_said_before():
+    # Every surface that is not a reference page: the hook, the launcher, the manifest. The
+    # sentence is still true and says less, which is the direction every reader here takes.
+    from roadkeep.installing import Drifted
+    from roadkeep.linting import _names
+
+    assert _names(Drifted("hooks/roadkeep-launch.py", False)) == "what that page does"
+
+
 # -- the guard with no way in (RK1485) -----------------------------------------
 
 
