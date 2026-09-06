@@ -1625,14 +1625,17 @@ class Partial:
             f"  waits    this line is offered again until it says what it is waiting on — "
             f"`{invocation()} {' '.join(doors[0].argv)}` names it, where the rest of "
             f"the work waits on something still open",
-            f"  finish   {invocation()} {' '.join(doors[1].argv)}"
+            # Backticked, as `waits` above already is (RK1498): a backticked span is how
+            # every composed command in this tool is delimited, and the sweep that runs one
+            # finds it that way — so a door spelled bare is a door no instrument can take.
+            f"  finish   `{invocation()} {' '.join(doors[1].argv)}`"
             f"  (drops the qualifier)",
         ]
         # RK1433, and after both: those two are what to do with the work, and this is what to
         # write down about it — the sentence a reader checks the remainder off against.
         if len(doors) > 2:
             rows.append(
-                f"  measure  {invocation()} {' '.join(doors[2].argv)}"
+                f"  measure  `{invocation()} {' '.join(doors[2].argv)}`"
                 f"  (nothing yet says how much is left)"
             )
         if self.refreshed:
@@ -1660,7 +1663,18 @@ class Partial:
                 ("amend", self.task_id, "--dep", "<id>"),
                 "the remainder waits on something still open, and this names it",
             ),
-            Door(("ship", self.task_id), "the rest of it landed, and this drops the qualifier"),
+            # **With the `--why` the completion requires** (RK1498). Spelled bare, this door
+            # refused as printed: completing a partial replaces the ledger's qualified entry,
+            # so the outcome is written afresh and is never inherited from the roadmap's
+            # sentence — the one thing `ship` refuses to guess. A blank, because that sentence
+            # is the author's (L4), and the same blank every other door here carries.
+            Door(
+                # One token, as the criterion door below spells its two: a placeholder with a
+                # space in it is split by any shell that runs the line (RK1548), and the door
+                # this suite executes is the one a reader pastes.
+                ("ship", self.task_id, "--why", "<why>"),
+                "the rest of it landed, and this drops the qualifier",
+            ),
         ]
         # RK1433. L1, on the one write that creates the state the gate reports: this call puts
         # ⏳ on the line, and ⏳ is the marker whose whole question is *how much is left*.

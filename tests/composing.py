@@ -368,21 +368,19 @@ SITES: tuple[Site, ...] = (
     # one door where the remedy is a role a project has not opened yet.
     Site("shipping.py:NoDecisions.__init__", "run"),
     Site("shipping.py:_elsewhere", "run"),
-    Site(
-        "shipping.py:PartRecorded.__init__",
-        "unreached",
-        unreached("a retirement against an id whose half the ledger already records"),
-    ),
-    Site(
-        "shipping.py:Partial.stated",
-        "unreached",
-        unreached("a `ship --part` on a line the roadmap keeps open, which is one write"),
-    ),
-    Site(
-        "shipping.py:SecondPartial.__init__",
-        "unreached",
-        unreached("a second `ship --part` against an id whose first half the ledger holds"),
-    ),
+    # RK129 through the same two lines of ledger: retiring an id whose half is recorded would
+    # replace the entry holding it, and the exit is the completion — which `test_composing`
+    # now runs, RK1138 being the task that found this door naming something that was not one.
+    Site("shipping.py:PartRecorded.__init__", "run"),
+    # RK1498, one fixture family in (RK1532). The one door here that rides a **successful**
+    # write: `test_composing` takes the partial, then the completion it printed — which is
+    # what found the two defects in it, a bare `finish` no backtick scan could see and a
+    # `ship <id>` that refused as printed for want of the `--why` a completion may not inherit.
+    Site("shipping.py:Partial.stated", "run"),
+    # The refusal beside it, same fixture: one id carries one partial and then the completion,
+    # so a second is two answers about one piece of work. Parsed and not run — the door is an
+    # `add` whose symptom, why and block are the author's own readings (L4).
+    Site("shipping.py:SecondPartial.__init__", "run"),
     # RK1498. Run by `test_showing`: a caller who addressed a section is sent to the verb that
     # prints one, and what makes naming a verb one word away worth anything is that the word
     # is right — so the door runs and the section it prints is the one that was asked for.

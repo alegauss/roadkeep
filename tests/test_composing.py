@@ -21,7 +21,7 @@ from pathlib import Path
 import pytest
 
 from composing import SITES, STATES, census, commands, filled, runs, supplied
-from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
+from roadkeep.cli import EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
 from roadkeep.linting import Finding, lint
 from roadkeep.provenance import invocation
@@ -531,3 +531,74 @@ def test_every_unreached_row_names_the_state_its_fixture_wants():
         assert "runnable once a fixture has it" in state, one.where
         # The state itself, and not only the tail every row shares.
         assert len(state.split(", and the command")[0].split()) >= 6, one.where
+
+
+#: A ledger holding half of RK1, which is the state the three doors below are true of.
+def _half(part: str = "the local half") -> str:
+    return (
+        f"# Shipped\n\n## Block A\n\n- ✅ **RK1 ({part})** **A symptom worth reading here** "
+        f"— The local half landed.\n"
+    )
+
+
+def test_the_door_a_partial_ship_names_runs(tmp_path, capsys):
+    """RK1498, one fixture family in (RK1532). `ship --part` leaves the line open and names
+    what completes it — the one composed command here that rides a **successful** write rather
+    than a refusal, so what it proves is that a door offered on the way out is takeable.
+
+    Two writes of fixture, which is what the row now says it costs: the partial, then the
+    command it printed."""
+    root = departing(tmp_path, marker="🛠")
+    assert main([
+        "-C", str(root), "ship", "RK1", "--part", "the local half",
+        "--why", "The local half landed.", "--remainder", "The rest of it is still open.",
+    ]) == EXIT_OK
+    said = capsys.readouterr().out
+    # Two doors, and only one of them is this suite's to take: `--dep <id>` names what the
+    # remainder waits on, which is the author's reading of their own backlog (L4) and has no
+    # legal fill here — a fixture with one line can only name itself. So it is parsed, as
+    # every author-blank door in this suite is, and the completion is the one that runs.
+    (waits,) = [one for one in commands(said) if one[:1] == ["amend"]]
+    assert build_parser().parse_args([one if one != "<id>" else "RK1" for one in waits])
+    (finish,) = [one for one in commands(said) if one[:1] == ["ship"]]
+    # Filled and run: the completion carries the `--why` it requires, which is the half the
+    # door was printed without — spelled bare it refused as printed, on the one write whose
+    # outcome may not be inherited from the line's own sentence.
+    assert main(["-C", str(root), *supplied(filled(finish))]) == EXIT_OK, finish
+    capsys.readouterr()
+    # The completion landed, which is what makes the door a door: the line is gone and the
+    # ledger holds one entry per outcome rather than a qualifier nobody replaced.
+    assert "RK1" not in (root / "ROADMAP.md").read_text(encoding="utf-8")
+
+
+def test_the_door_a_second_partial_names_runs(tmp_path, capsys):
+    """One id carries one partial and then the completion, so a second is two answers about one
+    piece of work. The door is an `add` for the step that was delivered — filled, since the
+    symptom and the why are the author's own sentences (L4), and the block is a placeholder
+    this project's own listing decides."""
+    root = departing(tmp_path, marker="⏳", **{"CHANGELOG.md": _half()})
+    assert main([
+        "-C", str(root), "ship", "RK1", "--part", "the second half", "--why", "It works now."
+    ]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    (argv,) = [one for one in commands(said) if one[:1] == ["add"]]
+    ready = supplied(filled(argv))
+    assert ready[:1] == ["add"]
+    # `<x>` is the block, which this project spells `A` — the one placeholder no table fills,
+    # because which block a delivered step belongs under is the author's reading.
+    assert build_parser().parse_args([one if one != "<x>" else "A" for one in ready])
+
+
+def test_the_door_a_retirement_over_a_recorded_half_names_runs(tmp_path, capsys):
+    """RK129's refusal: retiring an id whose half the ledger records would replace the entry
+    holding it, so the half that shipped would leave the only file that holds it. The exit is
+    the completion, and RK1138 is why it has to be a door that runs rather than a hint."""
+    root = departing(tmp_path, marker="⏳", **{"CHANGELOG.md": _half()})
+    assert main([
+        "-C", str(root), "retire", "RK1", "--reason", "The rest will not be built."
+    ]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    ran = runs(root, said)
+    assert ["ship", "RK1"] in [one[:2] for one in ran], said
+    capsys.readouterr()
+    assert "RK1" not in (root / "ROADMAP.md").read_text(encoding="utf-8")
