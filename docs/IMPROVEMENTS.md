@@ -265,6 +265,28 @@ criteria list — so the cheapest shape may be neither: the *brief* could name t
 ids, joining the ledger it already reads to the list it already prints, and the file
 stays as it is. That keeps L2's store and puts the answer where somebody is asking.
 
+### §RK1547 The reason with no expiry
+
+RK1512 asked for the count **and the oldest reason** and shipped the count. The store
+cannot say which line is oldest: a deferral carries a reason and no date, and the file's
+order is by block. Age is derivable — `added_ids` over the deferred role walks
+`--reverse` — but `pick` runs every loop iteration, and a git call there is a cost the
+count does not have.
+
+That is the second half RK1512 called the audit. A deferral is the one governed line
+with a reason and no expiry: nothing goes red for it, prose not going red. The measured
+case is exact — one of seven deferrals in a live port cited a premise twenty files under
+the tree had already falsified, and the pause outlived it by weeks.
+
+What can be said cheaply is age, and the reason beside it is what makes age actionable.
+So the read belongs where a git call is already paid: `weight` takes two and `unclosed`
+takes two, and neither is on the loop's path. A `resume --stale` would put the oldest
+pauses in front of a reader once, rather than a number in front of them every time.
+
+What it must not become is a rule. How long a pause may stand is a judgement about work
+(L4), the same one `[claims] held` refuses to make for a claim — so the answer is an
+order and never a verdict, which is what `weight` already is for a different question.
+
 ## Block D — The gate
 
 ### §RK1498 The doors nothing has ever run
