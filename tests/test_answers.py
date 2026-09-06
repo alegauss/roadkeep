@@ -36,11 +36,12 @@ from __future__ import annotations
 
 import contextlib
 import io
+import json
 from pathlib import Path
 
 import pytest
 
-from roadkeep.cli import EXIT_OK, main
+from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.rendering import _staging_rows
 
 ROADMAP = """# Roadmap
@@ -341,3 +342,71 @@ def test_no_exclusion_is_left_as_a_placeholder():
     no reason in it, so each is a sentence about *this* verb and long enough to be one."""
     for command, why in ELSEWHERE.items():
         assert len(why.split()) >= 8, f"{command} has no reason in it"
+
+
+# -- the answer a refusal has, which was prose alone (RK1584) ------------------
+
+
+def _refusal(root: Path, argv: tuple[str, ...]) -> tuple[dict[str, object], str]:
+    """One refused call's payload and the text beside it, from the same run.
+
+    Both, because the claim is that they are two channels over one composition: a test that
+    read only the JSON could not see the sentence drift away from it.
+    """
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        code = main(["-C", str(root), *argv])
+    assert code == EXIT_USAGE, f"{' '.join(argv)} exited {code}"
+    return json.loads(out.getvalue()), err.getvalue()
+
+
+def test_a_refused_call_publishes_the_rules_that_refused_it(project):
+    """RK1584. `add --json`, `lint --json` and `brief --json` all answer in fields, and the one
+    answer an agent meets most often came back as English on stderr with nothing on stdout —
+    so which field, which rule and which of two ceilings were a paragraph to match.
+
+    The keys are the record's own (`code`, `field`, `bound`, `message`), because a payload
+    that renamed them would be a second vocabulary for one fact."""
+    payload, _ = _refusal(project, (
+        "add", "--block", "A", "--symptom", "A symptom plainly long enough to read",
+        "--why", "y " * 200 + "z.", "--json",
+    ))
+    assert set(payload) == {"refused", "beside", "about", "said"}
+    (first, *_) = payload["refused"]
+    assert set(first) == {"code", "field", "bound", "message"}
+    assert first["code"] == "why.too-long"
+    assert first["field"] == "why"
+
+
+def test_the_payload_is_beside_the_sentence_and_never_instead_of_it(project):
+    """The transport's founding argument is that the refusal an agent reads over MCP is
+    byte-identical to the one a terminal reads, so this adds a channel rather than replacing
+    one — and `said` carries the whole sentence, so a caller holding the payload has not lost
+    the prose it came from."""
+    payload, said = _refusal(project, (
+        "add", "--block", "A", "--symptom", "A symptom plainly long enough to read",
+        "--why", "y " * 200 + "z.", "--json",
+    ))
+    assert payload["said"] == said.rstrip("\n").split("\nIf roadkeep itself")[0]
+    assert "roadkeep: refused, nothing written:" in payload["said"]
+
+
+def test_a_refusal_carrying_no_rules_publishes_an_empty_list(project):
+    """`[]` and not a missing key: a `show` on an id nothing carries is a sentence and no
+    violation, and *no rule decided this* is an answer where an absent field says only that
+    nobody wrote one."""
+    payload, _ = _refusal(project, ("show", "RK9999", "--json"))
+    assert payload["refused"] == []
+    assert "RK9999" in payload["said"]
+
+
+def test_nothing_is_published_where_the_caller_asked_for_prose(project):
+    """The flag is the whole condition, read off the argv this run recorded (RK1149's slot).
+    A terminal caller who did not ask for JSON gets what they always got, and stdout on a
+    refused write stays empty — which is what a `--ids` consumer downstream of one relies on.
+    """
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        main(["-C", str(project), "show", "RK9999"])
+    assert out.getvalue() == ""
+    assert "RK9999" in err.getvalue()

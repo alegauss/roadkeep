@@ -11,6 +11,7 @@ them enough.
 
 from __future__ import annotations
 
+import json
 import sys
 
 from roadkeep import provenance
@@ -127,6 +128,36 @@ def _foreseeing(error: SchemaError) -> list[str]:
     return []
 
 
+def _payload(error: Exception, said: str) -> None:
+    """The refusal as data on stdout, where the caller asked for data (RK1584).
+
+    **The one answer this package published as prose alone.** `add --json`, `lint --json` and
+    `brief --json` all answer a caller in fields; a refused call printed nothing to stdout and
+    left the diagnosis on stderr as English — so an agent that needs which field, which rule or
+    which of two ceilings matched a sentence, which is the reading RK1503 was filed to remove
+    and then left where nothing structural could reach it.
+
+    Read off the argv this run recorded and not threaded through eighty-one call sites
+    (RK1149's slot, under its rules): the flag is a fact about the invocation, `invocation_argv`
+    is written before dispatch and read only where a refusal is being rendered, and a parameter
+    would be one edit per handler and eighty of them enough.
+
+    **Beside the text and never instead of it.** The transport's own argument is that the
+    refusal an agent reads over MCP is byte-identical to the one a terminal reads, so this adds
+    a channel rather than replacing one — `said` is the whole sentence, published so a caller
+    that has the payload has not lost the prose it came from. The exit code stays the contract:
+    this is what a caller reads *after* it has decided.
+    """
+    if "--json" not in provenance.invocation_argv():
+        return
+    from roadkeep.kernel.schema import SchemaError as _SchemaError  # noqa: PLC0415 - RK260
+
+    payload: dict[str, object] = (
+        error.payload() if isinstance(error, _SchemaError) else {"refused": [], "beside": "", "about": ""}
+    )
+    print(json.dumps({**payload, "said": said}, indent=2))
+
+
 def _refused(error: Exception) -> int:
     """One error path for every command that writes. The exit code is the contract.
 
@@ -135,29 +166,37 @@ def _refused(error: Exception) -> int:
     those cannot tell a `why.too-long` from `schema.py` apart from a `ref.missing` from
     `sections.py`. Free on this path — a refusal is already the slow branch — and read by nothing
     a terminal reaches.
+
+    It is also where the **payload** is published (RK1584), for the same reason: this is the
+    last place the structure exists, and every writing command already ends here.
     """
     provenance.witness(error)
     if isinstance(error, SchemaError):
         # Every violation at once, each naming its limit: a refusal that reports one
         # problem per run turns a single fix into a conversation.
-        print("roadkeep: refused, nothing written:", file=sys.stderr)
+        #
+        # Collected before it is printed (RK1584), so the payload beside it carries the same
+        # sentence rather than a second rendering of the same facts — one composition, two
+        # channels, which is the arrangement `Schema.render` holds one layer down.
+        rows = ["roadkeep: refused, nothing written:"]
         if error.beside:
             # First, and above the fields (RK1256): it is the half a caller cannot fix by
             # editing prose, so a reader who stops at the first line has stopped at the one
             # that decides whether the rest is worth rewriting.
-            print(f"  {error.beside}", file=sys.stderr)
+            rows.append(f"  {error.beside}")
         if error.about:
             # Above the fields for the same reason and a narrower one (RK1262): it says which
             # argument the rows below are about, and a reader who reads them first has already
             # started editing the wrong one.
-            print(f"  {error.about}", file=sys.stderr)
-        for violation in error.violations:
-            print(f"  {violation}", file=sys.stderr)
-        for row in _foreseeing(error):
-            print(f"  {row}", file=sys.stderr)
+            rows.append(f"  {error.about}")
+        rows += [f"  {violation}" for violation in error.violations]
+        rows += [f"  {row}" for row in _foreseeing(error)]
         retry = _retrying(error)
         if retry is not None:
-            print(f"  retry    {retry}", file=sys.stderr)
+            rows.append(f"  retry    {retry}")
+        said = "\n".join(rows)
+        print(said, file=sys.stderr)
+        _payload(error, said)
         return EXIT_USAGE
     if isinstance(error, (RoundTripError, StaleFile)):
         # The file drifted before this command ran, so the gate says no: normalizing a
@@ -168,11 +207,17 @@ def _refused(error: Exception) -> int:
         return EXIT_GATE
     # KeyError renders its message in quotes, which reads as a stray token in a report.
     message = error.args[0] if isinstance(error, KeyError) else error
-    print(f"roadkeep: {message}", file=sys.stderr)
+    rows = [f"roadkeep: {message}"]
     # The other refusal that computed an address (RK1149): a `section add` onto one a shipped
     # entry's prose still cites, whose remedy sentence names the free child. Here and not only in
     # the SchemaError branch, because that is where `SectionExists` arrives — a ValueError.
     retry = _retrying(error)
     if retry is not None:
-        print(f"  retry    {retry}", file=sys.stderr)
+        rows.append(f"  retry    {retry}")
+    said = "\n".join(rows)
+    print(said, file=sys.stderr)
+    # With an empty `refused` and not with a key omitted (RK1584): a refusal this class raises
+    # carries a sentence and no rules, and `[]` says *no violation decided this* where a
+    # missing key says only that somebody did not write one.
+    _payload(error, said)
     return EXIT_USAGE

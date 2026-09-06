@@ -702,6 +702,24 @@ class SchemaError(ValueError):
         self.about = ""
         super().__init__("; ".join(str(v) for v in self.violations))
 
+    def payload(self) -> dict[str, object]:
+        """Every violation as data, with the two clauses the caller above filled in (RK1584).
+
+        The three channels this class declares are published beside the rules they qualify,
+        because a reader that had the violations and not `beside` would branch on the half of
+        the refusal that is answerable and miss the half that decides whether the rest is
+        worth rewriting (RK1256) — which is the ordering the printed report already makes.
+
+        `offered` is not here. It is an **address a retry substitutes**, already published by
+        the surface that can offer one (RK1149), and a second copy on this record would be two
+        answers to where the retry's argument comes from.
+        """
+        return {
+            "refused": [one.payload() for one in self.violations],
+            "beside": self.beside,
+            "about": self.about,
+        }
+
 
 #: The door appended to an over-long prose field: where the words that will not fit go. A
 #: **named constant and not an inline clause** (RK1285), because it is advice and not the rule
@@ -732,6 +750,26 @@ class Violation:
 
     def __str__(self) -> str:
         return f"{self.field}: {self.message} [{self.code}]"
+
+    def payload(self) -> dict[str, str]:
+        """The same four facts as data, for the caller that reads a refusal (RK1584).
+
+        **The record's own names and no others.** A refusal is the one answer this package
+        publishes as prose alone, so an agent that needs which field, which rule or which of
+        two ceilings has to match a sentence — the reading RK1503 made structural and then
+        left where nobody structural could see it. What goes on the wire is these fields,
+        spelled as the dataclass spells them: a payload that renamed them would be a second
+        vocabulary for one fact, which is the drift this package exists to remove.
+
+        `bound` is `""` on every rule that is not a length, which is the answer *this is not
+        a ceiling question* rather than a missing key.
+        """
+        return {
+            "code": self.code,
+            "field": self.field,
+            "bound": self.bound,
+            "message": self.message,
+        }
 
 
 @dataclass(frozen=True, slots=True)

@@ -497,10 +497,15 @@ def test_the_empty_answer_is_never_a_success(tmp_path, capsys):
     assert main(["-C", str(tmp_path), "brief", "--block", "A", "--json"]) == EXIT_USAGE
     capsys.readouterr()
     # A block nothing declares never reaches that branch at all — it is a different refusal,
-    # and it stays prose on stderr with no payload to mistake for an empty one.
+    # and since RK1584 it carries a payload of its own. **Which is the distinction, not a
+    # collision**: a refusal answers in `refused`/`said` and an empty brief in `brief`/`empty`,
+    # so the two exits that share a code are told apart by shape and not by an absent stdout.
     assert main(["-C", str(tmp_path), "brief", "--block", "Z", "--json"]) == EXIT_USAGE
     out = capsys.readouterr()
-    assert out.out == ""
+    refusal = json.loads(out.out)
+    assert set(refusal) == {"refused", "beside", "about", "said"}
+    assert "brief" not in refusal
+    assert "no heading declares Block Z" in refusal["said"]
     assert "no heading declares Block Z" in out.err
 
 

@@ -715,7 +715,7 @@
 - ✅ **RK1535** **nothing records which volunteered rows an author acted on, so the population that could score the read has none** — the reading an add volunteers carries the id and rank a later retirement joins on, so the population that could score the query half is published and no log of readings is stored.
 - ✅ **RK1536** **a decision can only be filed by a departure, so the moment its answer is lost is the moment nothing can be done** — sixty of sixty decisions were filed by a departure, so the role keeps no door of its own and the measurement that says why is held as a test.
 - ✅ **RK1537** **a pause is not held to the why limit a project declared, and nothing at the number says so** — govern names the door a limit does not reach, so an author choosing limits.why is told a pause is charged against the rendered line instead of finding out by a long reason landing.
-- ✅ **RK1538 (the remedy table)** **the flag saying which ceiling refused a field reaches neither the remedy table nor a payload** — the preventive read is keyed on which ceiling refused, so a why the line bound is offered the read that prices the line instead of one that says the draft fits.
+- ✅ **RK1538** **the flag saying which ceiling refused a field reaches neither the remedy table nor a payload** — The bound reaches a caller as a field of the refusal payload, which is the half the remedy table had already taken.
 - ✅ **RK1539** **the comment explaining the respelling guard names a verb this CLI does not have** — the guard's comment names the one collision the enumeration finds, and a test holds the prose against the table so a word called a command here has to be one.
 - ✅ **RK1540** **a reference page now opens with two lines addressed to the gate, and nothing prices them** — a page's row says what of it is the declaration, measured at a fifth of a percent to half a percent, so the frontmatter stays where the page states its own claim.
 - ✅ **RK1586** **a shared record is built positionally by one of its callers, so a field inserted above another moves a figure** — the record three subjects share is keyword-only, so a field inserted above another is a compile-time question rather than a published figure moving in silence.
@@ -730,6 +730,7 @@
 - ✅ **RK1597** **two sites that compose a read about a line nothing counted are a work-list, and one is quoted with apostrophes** — The dependent's line and the uncounted read both run, and the audit door is backticked so a scan can take it.
 - ✅ **RK1598** **three sites that compose a read are a work-list, and each of the three sentences says something untrue** — The three reads run, engines survives the config it is offered for, and the two false clauses say what the tool does.
 - ✅ **RK1599** **two sites remain a work-list, and the door a capture names cannot be read back at all** — The capture path is quoted so its door runs, the transport rewrite is a decision, and no site is a work-list item.
+- ✅ **RK1584** **a refused call publishes no payload, so every field of a violation reaches an agent as prose to match on** — A refused call under --json publishes the violations, the two clauses above them and the sentence, in the record's own names.
 
 ## Block E — Adoption
 

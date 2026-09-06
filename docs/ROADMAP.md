@@ -41,7 +41,6 @@
 
 ## Block D — The gate
 
-- ⏳ **RK1538** (deps: —) **the flag saying which ceiling refused a field reaches neither the remedy table nor a payload** — The payload half: a refusal reaches a caller as text, so publishing the flag needs a refusal payload. → §RK1538
 - ⏳ **RK1541** (deps: —) **the served budget has no room for a tenth subject, and which of its sixteen arguments callers use is unmeasured** — Which of the sixteen exposed arguments callers pass: nothing records a tool call, so that reading has no corpus here. → §RK1541
 - 💭 **RK1542** (deps: —) **the retirement prefix every ranking figure is measured through is split by hand in two tests** — RK1507 paired the carried line's two readers and this is the same shape one field over, with the composer in shipping and the readers in a test. → §RK1542
 - 💭 **RK1544** (deps: —) **the brief an estimate prices has no deps and no design, and the row does not say so** — RK1509 reads the file adopt was handed because the tree has declared nothing, so every part of a brief that lives in another role is absent from the figure. → §RK1544
@@ -63,7 +62,6 @@
 - 💭 **RK1580** (deps: —) **the capture's filing door is POSIX-quoted on a platform whose shell is not, and nothing has run it there** — RK1579 found the splitter eats a Windows separator, and the joiner that wrote it has the same assumption one layer up. → §RK1580
 - 💭 **RK1582** (deps: —) **the rows an add volunteers are prose on every write and no cadence counts them** — RK1491 priced the gate's notes and RK1524 the transport's, and the third per-write text grew in four tasks against no number. → §RK1582
 - 💭 **RK1583** (deps: —) **a deferral says nothing about the limit its reason was measured against, only govern does** — RK1537 closed the choosing end and the accepting end still reports a write whose bound the caller has to infer. → §RK1583
-- 💭 **RK1584** (deps: —) **a refused call publishes no payload, so every field of a violation reaches an agent as prose to match on** — RK1538 could not publish the ceiling that refused because refusals print to stderr and return an exit code, with no structure anywhere. → §RK1584
 - 💭 **RK1585** (deps: —) **prose beside a total table is taken for the table, and one check reads one phrase in one comment** — RK1539 closed the instance it met and the shape it is an instance of has five tables and no rule. → §RK1585
 - 💭 **RK1588** (deps: —) **a withholding reason quoted a total that was stale within the session that read it, and no sweep says how many are** — RK1541 replaced one frozen figure with a read after RK1530 and RK1540 each did the same, and the population of numbers a decision rests on is uncounted. → §RK1588
 - 📋 **RK1590** (deps: —) **ninety backticked spans outside a docstring name a verb with no invocation, so nothing can tell a door from prose** — A command a caller pastes and a flag family being named read alike, and the composer sweep counts the second as absent rather than as skipped. → §RK1590
@@ -169,11 +167,6 @@
 - **No page restates prose another file owns** an area with room on every page invites
   the accretion this tool refuses, so a page renders the file that owns the words or
   carries no version of them.
-
-## Done when — RK1538
-
-- **A refusal publishes which ceiling refused** A caller over the protocol reads the
-  bound as a field and never by matching the sentence.
 
 ## Done when — RK1541
 

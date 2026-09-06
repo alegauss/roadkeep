@@ -29,7 +29,15 @@ from roadkeep import (
     SchemaError,
     Task,
 )
-from roadkeep.kernel.schema import CHARS_PER_WORD, RETIRED, over_by, width, words, words_over
+from roadkeep.kernel.schema import (
+    CHARS_PER_WORD,
+    RETIRED,
+    Violation,
+    over_by,
+    width,
+    words,
+    words_over,
+)
 
 ROADMAP = Path(__file__).resolve().parents[1] / "docs" / "ROADMAP.md"
 CHANGELOG = Path(__file__).resolve().parents[1] / "docs" / "CHANGELOG.md"
@@ -1049,3 +1057,59 @@ def test_the_citation_names_the_key_the_number_came_from(tmp_path):
     assert violation.bound == "line"
     assert "[limits].line" in violation.message
     assert "[limits].why)" not in violation.message
+
+
+# -- the same four facts as data (RK1584) --------------------------------------
+
+
+def test_a_violation_publishes_the_record_s_own_names_and_no_others():
+    """RK1584. A refusal is the one answer this package published as prose alone, so an agent
+    that needed which field, which rule or which of two ceilings matched a sentence — the
+    reading RK1503 made structural and then left where nothing structural could reach it.
+
+    Keyed as the dataclass keys it, which is the claim: a payload that renamed anything would
+    be a second vocabulary for one fact, and the drift would be invisible until a caller
+    branched on the wrong half."""
+    over = task(symptom="x" * 120, why="y " * 99 + "z.")
+    (violation,) = SCHEMA.validate(over)
+    assert violation.payload() == {
+        "code": violation.code,
+        "field": violation.field,
+        "bound": violation.bound,
+        "message": violation.message,
+    }
+    # The distinction RK1538 was filed to publish, on the wire rather than in a sentence.
+    assert violation.payload()["bound"] == "line"
+
+
+def test_a_rule_that_is_not_a_length_publishes_an_empty_bound():
+    """`""` and not a missing key: *this is not a ceiling question* is an answer, and a payload
+    whose keys came and went would make a reader check for the field before reading it."""
+    (violation,) = [
+        one for one in SCHEMA.validate(task(why="no terminator here")) if one.field == "why"
+    ]
+    assert violation.payload()["bound"] == ""
+    assert set(violation.payload()) == {"code", "field", "bound", "message"}
+
+
+def test_the_error_publishes_every_violation_and_the_two_clauses_above_them():
+    """The three channels this class declares, published beside the rules they qualify: a
+    reader holding the violations and not `beside` would branch on the half of the refusal
+    that is answerable and miss the half deciding whether the rest is worth rewriting (RK1256),
+    which is the ordering the printed report already makes.
+
+    `offered` is not among them — it is an address a retry substitutes, already published by
+    the surface that can offer one (RK1149), and a second copy would be two answers to where
+    the retry's argument comes from."""
+    raised = SchemaError((
+        Violation("why.too-long", "why", "too long", "line"),
+        Violation("symptom.too-long", "symptom", "also too long"),
+    ))
+    raised.beside = "the block does not exist"
+    raised.about = "--remainder becomes the why"
+    payload = raised.payload()
+    assert set(payload) == {"refused", "beside", "about"}
+    assert [one["code"] for one in payload["refused"]] == ["why.too-long", "symptom.too-long"]
+    assert [one["bound"] for one in payload["refused"]] == ["line", ""]
+    assert payload["beside"] == raised.beside
+    assert payload["about"] == raised.about

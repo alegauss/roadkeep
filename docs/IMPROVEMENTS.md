@@ -314,32 +314,6 @@ verb placing it anywhere else would move a section a reader knows the position o
 
 ## Block D — The gate
 
-### §RK1538 The fact made structural and read as prose
-
-RK1503 put `bound` on the violation so a reader can tell *the field is over* from *the
-line is full*, and reframed the sentence the write path prints. Two readers it was
-argued for do not use it.
-
-The remedy table is one. `why.too-long` has a single row and a single door, and the two
-states want different edits: a field over its own number is shortened, and a field the
-line binds is a line whose *structure* is full — a dep, a `requires` group, a pointer.
-RK1480 reframed exactly that case by inspection inside `DepRefused`, which is one door
-of several and the only one that knows.
-
-The protocol surface is the other. A `Violation` reaches a caller as a string, so an
-agent over MCP reads the reframing as prose and branches on it by matching — which is
-the reading `test_composing` exists to say is not a reading. The field is on the record
-and no payload publishes it.
-
-Neither is a defect today: the sentence is right and a terminal reader acts on it. What
-is missing is that the fact was made structural and is still consumed as prose, which is
-the arrangement it was made structural to end.
-
-Worth deciding together, because they are one question: whether `bound` belongs in the
-payload every refusal already publishes, and whether the remedy table keys on `(code,
-bound)` — at which point `DepRefused`'s inspection becomes a row, and the doors that
-reframe nothing get one.
-
 ### §RK1541 The surface trimmed by argument and never by reading
 
 RK1506 added `budget --ship --decides` and exposing it over MCP put the tool at 2947
@@ -840,30 +814,6 @@ What it must not do is repeat itself. A clause on every pause is the note a read
 seeing (RK1443's rule, one register over), so the honest form is the figure beside what
 was written rather than a sentence explaining the rule — the rule is at `govern`, where
 the number is chosen, and this is the measurement.
-
-### §RK1584 The one answer with no payload
-
-RK1538's remaining half turned out to be larger than the sentence describing it. A
-refusal does not have a payload: `_refused` prints to stderr and returns an exit code,
-and over MCP `serving.call` hands the caller that text with `isError`. So there is
-nowhere to publish the bound — not because nobody added a key, but because the surface
-every write refuses through has no structure.
-
-That is worth stating on its own, because it is the same finding one level up. This
-package publishes a payload for every answer — `add --json`, `lint --json`, `brief
---json` — and the thing an agent most often meets is the one it can only read as prose.
-`--json` on a refused call prints nothing to stdout and the diagnosis goes to stderr as
-English.
-
-What a caller does with it today is match. `serving` reroutes the command names inside
-the text (RK475) so the sentence names tools rather than a shell; the rest — which
-field, which code, which limit, which of two ceilings — is left in a paragraph, and the
-agent reading it has exactly the options RK1503 was filed to remove.
-
-What it must not become is a second vocabulary. Every violation already carries `code`,
-`field`, `bound` and a message; a refusal payload is those, published, and never a new
-set of names invented for the wire. Whether the exit code stays the contract is
-untouched — the payload is what a caller reads *after* it has decided.
 
 ### §RK1585 The prose beside a table
 
