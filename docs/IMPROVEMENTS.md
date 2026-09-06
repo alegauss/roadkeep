@@ -336,37 +336,6 @@ yet, and what turns it into an answerable question is the state. That is a task 
 family rather than one sweep — and the reason to file it as one line is that the six
 that do run were each bought by a defect that had already shipped.
 
-### §RK1533 The write that closes the file behind it
-
-Measured. On a project declaring `[tools] characters = 3000, session = 70000`:
-
-    roadkeep govern tools.characters 80000
-    roadkeep.toml:7  tools.characters = 80000 (was 3000)
-
-    roadkeep lint
-    roadkeep: tools.session is 70000 and tools.characters is 80000:
-    a surface may not cost less than one tool in it
-
-The write landed and the file is now unreadable. Every verb fails on it, `govern` among
-them — so the number cannot be put back by the verb that moved it, and the repair is the
-hand edit the guard denies.
-
-`Violated` guards one thing and guards it well: a number the *corpus* already breaks.
-This is the other kind — a number the *config's own parser* refuses, because two keys in
-one table constrain each other. The parser knows the rule and says it clearly; `govern`
-never asks. It reads the corpus, writes, and hands back a reading.
-
-The population is small and enumerable, which is what makes this worth closing rather
-than accepting: cross-key rules live in `config.py`'s own validators, and the one
-measured here is the only pair in `[tools]`. `[markers]` has three such rules and
-`declare` writes that table.
-
-The shape of the fix is the shape `Document` already has for a governed file (L3):
-render the file that would be written, parse it back, and refuse the whole write if the
-parse says no. One `Config.parse` against a string this verb has already composed — and
-it turns a class of unreadable configs into a refusal that names the rule the parser
-would have.
-
 ### §RK1535 The readings nobody keeps
 
 RK1500 held the reason one half of the duplicate read cannot be scored: every known

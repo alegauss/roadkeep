@@ -857,3 +857,61 @@ def test_the_two_keys_no_gate_reads_say_so_in_the_field_and_not_only_in_prose(tm
     listings = _reading(config, "reads.list")
     assert not listings.refuses
     assert not listings.unmeasured
+
+
+# -- the write that would close the file behind it (RK1533) --------------------
+
+#: `[tools]`' own cross-key rule, which is the one pair this build has: a surface may not cost
+#: less than one tool in it, and the parser is the only thing that says so.
+TOOLED = CONFIG + "\n[tools]\ncharacters = 3000\nsession = 70000\n"
+
+
+def test_a_number_this_file_s_parser_would_refuse_is_not_written(tmp_path):
+    """RK1533. Measured: `govern tools.characters 80000` landed, and the file was then
+    unreadable to every verb — `govern` among them, so the number could not be put back by the
+    command that moved it and the repair was the hand edit the guard denies.
+
+    `Violated` guards a number the **corpus** breaks; this is the other kind, a number two keys
+    in one table forbid. The shape is `Document`'s own rule for a governed file (L3): render
+    what would be written, read it back, refuse the whole write when the read says no."""
+    config = project(tmp_path, config=TOOLED)
+    before = written(config)
+    with pytest.raises(governing.Unreadable) as caught:
+        governing.govern(config, "tools.characters", 80000)
+
+    said = str(caught.value)
+    # The parser's own sentence, which names the rule — a second wording composed here would
+    # be this module holding an opinion about a rule `config.py` owns.
+    assert "a surface may not cost less than one tool in it" in said
+    assert "nothing was written" in said
+    assert written(Config.discover(tmp_path)) == before
+
+
+def test_the_refusal_names_no_absolute_path(tmp_path):
+    # `ConfigError` prefixes its source, and an absolute path in a message is about a machine
+    # rather than about a project — the rule `provenance.invocation` states and this keeps.
+    config = project(tmp_path, config=TOOLED)
+    with pytest.raises(governing.Unreadable) as caught:
+        governing.govern(config, "tools.characters", 80000)
+    assert str(tmp_path) not in str(caught.value)
+
+
+def test_a_number_the_parser_accepts_still_writes(tmp_path):
+    """The other direction, which is what keeps the guard from being a wall: the pair is a
+    *rule*, not a ceiling on the key, so anything under the surface's own figure lands."""
+    config = project(tmp_path, config=TOOLED)
+    declared = governing.govern(config, "tools.characters", 60000)
+    assert declared.at == 60000
+    assert "characters = 60000" in written(Config.discover(tmp_path))
+
+
+def test_the_verb_that_moved_it_can_still_move_it_back(tmp_path):
+    """The property the defect took away, stated as itself: after a refusal every verb still
+    reads the file, so `govern` is reachable — which it was not once the write had landed."""
+    config = project(tmp_path, config=TOOLED)
+    with pytest.raises(governing.Unreadable):
+        governing.govern(config, "tools.characters", 80000)
+    # A figure the corpus allows and the surface's own rule permits, which is the point: the
+    # file is still readable, so the verb that refused is the verb that answers next.
+    assert main(["-C", str(tmp_path), "govern", "tools.characters", "9000"]) == EXIT_OK
+    assert "characters = 9000" in written(Config.discover(tmp_path))

@@ -91,6 +91,7 @@ JSON of the same join would be the drift this projection exists to have none of.
 - ✅ **RK1416** **The decision field explain publishes is the same string as the cause on every code that carries one** — A payload publishes the sentence once: explain drops decision because cause is derived from it, and repair keeps it because nothing there states it twice.
 - ✅ **RK1419** **The capture offer rides lint --fix and repair, whose exit 1 is the verdict lint's own is exempt from** — Whether an exit is a verdict is one fact per verb, declared by the parser and withdrawable by the run; that a command writes is a different question.
 - ✅ **RK1515** **a design quoting a constraint to describe somebody else's case reads as having settled it** — a substring on a lead cannot tell an answer from a citation of one, so the tool reports that a design quotes a constraint and never that it settled it.
+- ✅ **RK1533** **govern writes a number the config parser then refuses, leaving every verb unable to read the file** — a write to the config is refused unless the file it would leave parses, the verb that moved a number being the verb that has to be able to move it back.
 
 ### §RK1394 Proof, not age
 

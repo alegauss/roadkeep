@@ -90,6 +90,39 @@ class Violated(ValueError):
         )
 
 
+class Unreadable(ValueError):
+    """A number this file's own parser refuses, caught before the write lands (RK1533).
+
+    :class:`Violated`'s other half, and the one that had no guard. That one refuses a number
+    the **corpus** already breaks; this refuses a number the **config's own parser** does,
+    because two keys in one table constrain each other — measured on `[tools]`, where
+    `characters` may not exceed `session`:
+
+        roadkeep govern tools.characters 80000   → written
+        roadkeep lint                            → a surface may not cost less than one tool
+
+    The write landed and the file was then unreadable to every verb, `govern` among them, so
+    the number could not be put back by the command that moved it and the repair was the hand
+    edit the guard denies.
+
+    The shape is the one :class:`~roadkeep.kernel.document.Document` already has for a governed
+    file (L3): render what would be written, read it back, and refuse the whole write when the
+    read says no. What the caller is handed is the parser's own sentence — it names the rule,
+    it is the sentence they would have met on the next command, and composing a second one
+    here would be this module holding an opinion about a rule `config.py` owns.
+    """
+
+    def __init__(self, address: str, at: int, said: str) -> None:
+        self.address = address
+        self.at = at
+        self.said = said
+        super().__init__(
+            f"{address} = {at} would leave roadkeep.toml unreadable: {said} — nothing was "
+            f"written, because every verb reads this file and one that lands here cannot be "
+            f"undone by a command"
+        )
+
+
 @dataclass(frozen=True, slots=True)
 class Measured:
     """What the corpus says about one governed number, now.
@@ -767,6 +800,10 @@ def govern(
     text, lineno, before, stands, displaced = _inserted(
         config.source, written, at, argument, withdrawing=bool(instead)
     )
+    # Read back before it lands (RK1533), which is `Document`'s own rule for a governed file
+    # one file over: a number two keys in a table forbid is refused by the parser and by
+    # nothing else, so the write that closes the file behind it is the write this checks.
+    _readable(config, address, at, text)
     config.source.write_text(text, encoding="utf-8", newline="")
     return Declared(
         address=address,
@@ -778,6 +815,37 @@ def govern(
         standing=stands,
         displaced=displaced,
     )
+
+
+def _readable(config: Config, address: str, at: int, text: str) -> None:
+    """Refuse a write whose result this file's own parser would not read (RK1533).
+
+    Against the composed string and never against the file: the point is to know before the
+    bytes land, and a check that read the disk afterwards would be reporting a state it had
+    just created. One `Config.parse` of what `_inserted` returned, which costs a TOML parse of
+    a file every command already parses once.
+
+    Its message is the parser's, quoted. `config.py` owns the cross-key rules — three in
+    `[markers]`, one in `[tools]` — and it states each of them in a sentence written for the
+    author; a second wording composed here would be two spellings of one rule, which is the
+    drift this package spends most of its docstrings refusing.
+    """
+    import tomllib  # noqa: PLC0415 - RK260, this refusal's path only
+
+    from roadkeep.config import ConfigError  # noqa: PLC0415 - RK260
+
+    try:
+        Config.parse(tomllib.loads(text), config.root, config.source)
+    except ConfigError as refused:
+        # Without the source path it prefixes: the caller knows which file they are governing,
+        # and an absolute path in a message is about a machine rather than about a project —
+        # which is the rule `provenance.invocation` states and every report here keeps.
+        said = str(refused).removeprefix(f"{config.source}: ")
+        raise Unreadable(address, at, said) from refused
+    except tomllib.TOMLDecodeError as broken:
+        # A composed line that will not lex at all, which no argument this verb takes should
+        # produce — and if one ever does, this is the moment it costs nothing.
+        raise Unreadable(address, at, f"the file would not parse as TOML: {broken}") from broken
 
 
 def _spelled(table: str, key: str, *, file: str, role: str) -> tuple[str, str, str]:

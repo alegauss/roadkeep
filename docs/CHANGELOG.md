@@ -709,6 +709,7 @@
 - ✅ **RK1532** **thirty rows of the composer work-list share one reason, so none of them says what it would cost** — every unreached row of the composer work-list names the state its fixture wants instead of one shared constant, and no two share a reason.
 - ✅ **RK1572** **three sites of the composer work-list compose doors nothing has ever run** — three composed doors of the partial-ship family are executed against two lines of ledger, which found one door no backtick scan could see and one that refused as printed.
 - ✅ **RK1575** **three more sites of the composer work-list compose doors nothing has ever run** — three more composed doors are executed against a scaffold and one write past it, which found declare non_goals naming a command that refuses on every project it was written for.
+- ✅ **RK1533** **govern writes a number the config parser then refuses, leaving every verb unable to read the file** — govern reads back the file it would write and refuses with the parser's own sentence, so a number two keys forbid no longer lands and closes every verb behind it.
 
 ## Block E — Adoption
 
