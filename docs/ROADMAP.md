@@ -26,8 +26,6 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
-- 📋 **RK1511** (deps: —) **a line filed because the task that found it could not fit it has no door back into that task's criteria** — retire ends the line and criterion add writes a sentence that names nothing, so folding one into the other is two writes and neither records that they were one act. → §RK1511
-
 ## Block C — Query (consult without reading the file)
 
 - 📋 **RK1512** (deps: —) **pick and brief never name the deferred store, so a set-aside line and the reason it cites go unread** — RK92 resolves a dep on a paused task, which is the only way a deferral reaches an answer here, and a reason can expire while the decision it justified stays put. → §RK1512

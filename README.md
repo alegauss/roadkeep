@@ -117,7 +117,7 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 230 | 2 |
+| B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
 | C — Query (consult without reading the file) | 8 | 159 | 4 |
 | D — The gate | 21 | 227 | 2 |
 | E — Adoption | 0 | 117 | 1 |
@@ -125,11 +125,11 @@ called unbuilt were already in the ledger.
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 36 | 994 | 14 |
+| **Total** | 35 | 995 | 14 |
 
 **Next ready:**
 
-- 📋 **RK1511** (deps: —) **a line filed because the task that found it could not fit it has no door back into that task's criteria** — retire ends the line and criterion add writes a sentence that names nothing, so folding one into the other is two writes and neither records that they were one act. → §RK1511
+- 📋 **RK1512** (deps: —) **pick and brief never name the deferred store, so a set-aside line and the reason it cites go unread** — RK92 resolves a dep on a paused task, which is the only way a deferral reaches an answer here, and a reason can expire while the decision it justified stays put. → §RK1512
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

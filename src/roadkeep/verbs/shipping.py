@@ -458,6 +458,9 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
             args.id,
             reason=_piped(args.reason),
             superseded_by=args.superseded_by,
+            # The other answer about where the work went (RK1511): a fold says it was never
+            # separate, and the two are refused together for that reason.
+            folds_into=args.folds_into,
         )
         wrote = departure.save()
     except REFUSALS as error:
@@ -919,6 +922,18 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
         help=(
             "the id that takes the work over, which is a replacement and not an "
             "abandonment; omitted, the line is recorded as abandoned"
+        ),
+    )
+    # RK1511. The door a one-task-one-commit rule needs: a task that finds work inside its own
+    # sentence cannot do it, so it files a line — and the other reading is that the finding was
+    # never separate work. This is the move between the two shapes, in one transaction.
+    retire_parser.add_argument(
+        "--folds-into",
+        dest="folds_into",
+        metavar="ID",
+        help=(
+            "the open line that absorbs this one: its symptom becomes a criterion there and "
+            "the line leaves, in one write — refused where that id has already left"
         ),
     )
     _reason_flag(

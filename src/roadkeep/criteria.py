@@ -502,9 +502,22 @@ def add(config: Config, about: str, lead: str, why: str) -> Written:
     declares, and a task has to be a line it still carries (RK1268), so a typo in either opens
     no list.
     """
+    return into(config, config.document("roadmap"), about, lead, why)
+
+
+def into(config: Config, document: Document, about: str, lead: str, why: str) -> Written:
+    """The same insertion, into a roadmap the caller is already holding (RK1511).
+
+    The seam a fold needs. `retire --folds-into` is one transaction — the criterion is written
+    under the task that absorbs the line and the line leaves in the same rewrite — and a write
+    that re-read the file here would compose its half against a document the departure has
+    already changed, which is two writes wearing one command.
+
+    :func:`add` is this with the document read for you, which is what every other caller
+    means: a `Config`, and *the roadmap as it is on disk*.
+    """
     if config.criteria is None:
         raise NotGoverned(config.relative(config.source or config.root))
-    document = config.document("roadmap")
     where = config.relative(config.path("roadmap"))
     label = _addressed(config, document, about, where)
     check(config, lead, why)

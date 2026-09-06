@@ -470,7 +470,10 @@ TOOLS: tuple[Tool, ...] = (
         # `--decides` without it files a record whose body no later call can reach.
         conditional=("decides_ref",),
     ),
-    Tool("retire", ("id", "reason", "superseded_by")),
+    # `folds_into` rides with `superseded_by` (RK1511) and for its reason: the two are the
+    # answers to *where did the work go*, and the session that found the work inside another
+    # task's sentence is the agent on this transport — which has no hand edit to fall back on.
+    Tool("retire", ("id", "reason", "superseded_by", "folds_into")),
     # The decisions role's one departure (RK1274), served for the reason `ship --decides` is:
     # the session that just replaced a constraint is the one that knows which it replaced, and
     # over this transport the alternative is a hand edit the guard denies.

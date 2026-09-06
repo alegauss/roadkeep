@@ -226,6 +226,10 @@ SITES: tuple[Site, ...] = (
     # closure (the one state RK1045 made it true of); a line the deferred store still names,
     # whose door removes that copy; and two tasks sharing an address, whose door gives the open
     # one its own. Two lines of fixture each, which is what "unreached" was hiding.
+    # RK1511. The one refusal a fold has, and the door it names is the *other* answer about
+    # where the work went: run by `test_retiring`, which folds into a line that has shipped and
+    # then executes the supersession the message offers.
+    Site("shipping.py:NotAbsorbable.__init__", "run"),
     Site("shipping.py:AlreadyRecorded.__init__", "run"),
     Site("shipping.py:AlsoPaused.__init__", "run"),
     Site("shipping.py:Delivered.__str__", "unreached", NO_FIXTURE),

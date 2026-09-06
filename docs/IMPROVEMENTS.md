@@ -77,30 +77,6 @@ already written, not authorship.
 
 ## Block B — Authoring
 
-### §RK1511 The door a one-task-one-commit rule needs
-
-One task, one commit has a consequence nothing here has a door for. A task that finds
-work inside its own sentence cannot do it, because the commit is that task's; so it
-files a line instead, and the tree carries the half-built thing until the second line is
-worked. In the port this tool governs, four of the nine idea-marked lines are that exact
-shape: a seam nothing calls, a check its own commit reworded around, a departure
-recorded only in a comment.
-
-The other reading is that they were never separate work. Had the finding been a
-criterion on the task that found it, the line would have shipped partial under RK1433's
-rule and finished under the same id, and nothing would have been carried between two
-commits.
-
-What is missing is the move from the first shape to the second. `criterion add --task`
-writes the sentence and `retire` ends the line, but they are two writes: the criterion
-cites no origin, the retirement cites no destination, and the id is spent either way
-with no record that the two acts were one.
-
-A fold is one transaction: the open line's own symptom becomes the criterion's lead
-under the task named, the line leaves by the door `retire` already opens, and the ledger
-says which task absorbed it. It refuses where the target has shipped, the case the
-second write cannot see today. Whether the fold is right stays the author's judgement.
-
 ## Block C — Query
 
 ### §RK1512 A store the picker does not know is there

@@ -290,6 +290,7 @@
 - ✅ **RK1481** **the CLI and the MCP surface spell several verbs and flags differently, so a call copied between them is refused** — The CLI takes the MCP spelling of a verb and of a field, saying which one it used, and never respells a verb it has of its own, RK353's refusal becoming an acceptance.
 - ✅ **RK1483** **budget and the writes it prices disagree about arguments in both directions, and nothing enumerates the pairs** — A table pairs each budget subject with the write it prices and holds the option spellings both ways, and the two words retire and defer use are taken here.
 - ✅ **RK1484** **a ship recording a checked criterion wraps the entry, so correcting its sentence costs a span this tool wrote** — record amend asks no count where every continuation is one this tool wrote, so a checked entry is corrected in one call and a hand-wrapped one still costs the span.
+- ✅ **RK1511** **a line filed because the task that found it could not fit it has no door back into that task's criteria** — retire --folds-into moves a line's own claim into another task's criteria and ends the line, in one write.
 
 ## Block C — Query
 

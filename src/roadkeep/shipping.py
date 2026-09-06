@@ -1196,6 +1196,10 @@ class Departure:
     #: Open lines that still name this id. Reported and not refused: a supersession is
     #: legitimate and those lines are the author's next edit, which `lint` (RK14) gates.
     dependents: tuple[str, ...] = ()
+    #: The criterion lead a fold wrote under the task absorbing this line (RK1511), or `""`.
+    #: The departing line's own symptom, moved rather than composed (L4): what the fold claims
+    #: is that this was never separate work, and the claim is the sentence already written.
+    folded: str = ""
     #: The role whose file holds `--superseded-by`'s target — `roadmap`, `changelog` or
     #: `deferred` (RK244). In the answer and never in the ledger line: a paused replacement
     #: is a supersession waiting on a `resume`, which the retired line's id alone cannot
@@ -1443,6 +1447,14 @@ class Departure:
             f"under Block {self.block}",
             f"  removed  {roadmap}:{self.removed_from}",
         ]
+        if self.folded:
+            # Above `found`, because it is what happened rather than where the target is: the
+            # claim moved into somebody else's definition of done, and that is the whole of
+            # what a fold says (RK1511).
+            rows.append(
+                f"  folded   into {self.replacement} as a criterion — "
+                f"**{self.folded}**, which is this line's own claim and not a new one"
+            )
         if self.replacement_in is not None:
             # Where the replacement was found, because the three files are three different
             # promises (RK244): shipped is a supersession already delivered, open is one being
@@ -1475,6 +1487,10 @@ class Departure:
             "marker": self.marker,
             "superseded_by": self.replacement,
             "replacement_in": self.replacement_in,
+            # The criterion a fold wrote under the target (RK1511), or `""` — which is every
+            # ordinary retirement, so a consumer tells a fold from a supersession by a field
+            # rather than by matching the sentence.
+            "folded": self.folded,
             "changelog": {
                 "file": config.relative(config.path("changelog")),
                 "line": self.ledger.lineno,
@@ -2867,35 +2883,87 @@ def ship(
     return _close(config, task_id, recorded, decides=decides, decides_ref=decides_ref)
 
 
+class NotAbsorbable(ValueError):
+    """A fold whose target is not a line that can still absorb one (RK1511).
+
+    `--superseded-by` accepts a shipped id and is right to: work moved to a task that has since
+    landed is a legitimate history. A **fold** is not that — it says *this was never separate
+    work*, which is a claim about a line somebody is still going to do. A criterion written
+    under a task the ledger already holds is a definition of done for work that is done.
+    """
+
+    def __init__(self, target: str, task_id: str, where: str) -> None:
+        self.target = target
+        super().__init__(
+            f"{target} is {where}, so {task_id} cannot fold into it: a fold writes a "
+            f"criterion under a line somebody is still going to do — "
+            f"`{invocation()} retire {task_id} --superseded-by {target} --reason "
+            f"\"<one sentence>\"` is the door for work that moved to a task which has "
+            f"already left"
+        )
+
+
 def retire(
     config: Config,
     task_id: str,
     *,
     reason: str,
     superseded_by: str | None = None,
+    folds_into: str | None = None,
 ) -> Departure:
     """Record a line leaving without shipping: superseded by a named id, or abandoned.
 
     The `why` is a derived prefix plus the author's own sentence — the same split as every
     other field the tool fills in (RK8): "superseded by RK41" is a fact this command holds
     and the reason is prose it will not write (L4).
+
+    ``folds_into`` is the door a one-task-one-commit rule needs (RK1511). A task that finds
+    work inside its own sentence cannot do it — the commit is that task's — so it files a line,
+    and the tree carries the half-built thing until the second line is worked. Measured in the
+    port this tool governs: four of the nine idea-marked lines are that exact shape. The other
+    reading is that they were never separate work, and had the finding been a *criterion* on
+    the task that found it, the line would have shipped partial under RK1433's rule and
+    finished under the same id.
+
+    What was missing is the move between the two shapes. `criterion add --task` writes the
+    sentence and `retire` ends the line, but they are two writes: the criterion cites no
+    origin, the retirement cites no destination, and the id is spent either way with no record
+    that the two acts were one. So this is one transaction — the departing line's own symptom
+    becomes the criterion's lead under the task named, the line leaves by the door this verb
+    already opens, and the ledger says which task absorbed it.
+
+    It refuses where the target has already left, which is the case the second write cannot
+    see. Whether the fold is right stays the author's judgement (L4): what this owns is that
+    the two halves land together or neither does.
     """
     _refuse_absent(config, **{"--reason": reason})
+    if folds_into is not None and superseded_by is not None:
+        raise ValueError(
+            "--folds-into and --superseded-by are two answers about where the work went: "
+            "a fold says it was never separate, and a supersession says it moved"
+        )
+    into = folds_into or superseded_by
     holder: str | None = None
-    if superseded_by is not None:
-        if superseded_by == task_id:
-            raise NoSuchReplacement(superseded_by, task_id, itself=True)
-        holder = _holding(Backlog.load(config), superseded_by)
+    if into is not None:
+        if into == task_id:
+            raise NoSuchReplacement(into, task_id, itself=True)
+        holder = _holding(Backlog.load(config), into)
         if holder is None:
-            raise NoSuchReplacement(superseded_by, task_id)
-    why = retiring(reason, superseded_by)
+            raise NoSuchReplacement(into, task_id)
+    if folds_into is not None and holder != "roadmap":
+        raise NotAbsorbable(
+            folds_into, task_id, config.relative(config.path(holder or "changelog"))
+        )
+    why = retiring(reason, into)
     return _depart(
         config,
         task_id,
         config.schema.retired_marker,
         why,
         replacement_in=holder,
-        replacement=superseded_by,
+        replacement=into,
+        folds_into=folds_into,
+        folded_reason=reason,
     )
 
 
@@ -3543,6 +3611,8 @@ def _depart(
     decides: str | None = None,
     decides_ref: str | None = None,
     checked: Sequence[str] = (),
+    folds_into: str | None = None,
+    folded_reason: str = "",
 ) -> Departure:
     """The one transaction both doors are: validate everything, then write nothing yet."""
     roadmap = config.document("roadmap")
@@ -3714,6 +3784,16 @@ def _depart(
     # question about work the ledger already answers. A block's list is untouched — that one
     # outlives its lines, which is the whole difference between the two addresses.
     remaining, unmet = criteria.without(remaining, task_id)
+    # And the fold, into the same rewrite (RK1511): the departing line's own symptom becomes a
+    # criterion under the task absorbing it, so the two halves land together or neither does.
+    # After `without`, which takes this line's *own* list out — a fold moves the claim and not
+    # the definition of done that was about doing it separately.
+    folded = ""
+    if folds_into is not None:
+        written = criteria.into(
+            config, remaining, folds_into, entry.task.symptom or task_id, folded_reason
+        )
+        remaining, folded = written.document, written.criterion.lead
     prose, dropped, kept, taken, cited, emptied = _drop_section(
         config, entry.task.ref, leaving=task_id
     )
@@ -3749,6 +3829,7 @@ def _depart(
         ),
         replacement_in=replacement_in,
         replacement=replacement,
+        folded=folded,
         root=config.root,
         # Read off the roadmap as it *was*, and before `save` releases the claim (RK294): the
         # line still carries 🛠 here, and a claim is only ever read against that marker.

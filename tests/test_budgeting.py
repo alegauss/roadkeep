@@ -3853,7 +3853,18 @@ _PRICING: tuple[Priced, ...] = (
             "--capture": "a capture id, which is a reference and carries no prose",
         },
     ),
-    Priced("--retire", "retire", {}),
+    Priced(
+        "--retire",
+        "retire",
+        {
+            # RK1511. A fold writes the same ledger sentence a supersession does — `superseded
+            # by <id>: <reason>` — so `--retire <id>` is already pricing it. What differs is
+            # the criterion it writes under the target, which is a line this subject is not
+            # about: `budget --block <label> --symptom …` prices that one.
+            "--folds-into": "the ledger sentence is a supersession's, which `--retire <id>` "
+            "prices already; what a fold adds is a criterion under another line",
+        },
+    ),
     Priced(
         "--ship",
         "ship",

@@ -455,3 +455,86 @@ def test_no_gaps_says_so(tmp_path, capsys):
     project(tmp_path, roadmap=roadmap)
     assert main(["-C", str(tmp_path), "gaps"]) == EXIT_OK
     assert "no gaps" in capsys.readouterr().out
+
+
+# -- the door a one-task-one-commit rule needs (RK1511) ------------------------
+
+#: The opt-in a fold needs: a criterion is written under the absorbing task, and the list is
+#: governed on its own declaration (RK1265) exactly as the non-goals are.
+GOVERNED_CRITERIA = "[criteria]\nlead = 60\nwhy = 200\n"
+
+
+
+def test_a_fold_writes_the_criterion_and_ends_the_line_in_one_write(tmp_path, capsys):
+    """RK1511. A task that finds work inside its own sentence cannot do it — the commit is that
+    task's — so it files a line, and the tree carries the half-built thing until the second
+    line is worked. Measured in the port this tool governs: four of the nine idea-marked lines
+    are that exact shape.
+
+    The other reading is that they were never separate work, and had the finding been a
+    criterion on the task that found it, the line would have shipped partial and finished under
+    the same id. This is the move between the two shapes, and it is one transaction."""
+    root = project(tmp_path, declare=GOVERNED_CRITERIA).root
+    assert main([
+        "-C", str(root), "retire", "RK1", "--folds-into", "RK7",
+        "--reason", "It is a check RK7 has to make, not a task of its own.",
+    ]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "folded   into RK7 as a criterion" in said
+    written = (root / "ROADMAP.md").read_text(encoding="utf-8")
+    # The departing line's own claim, moved rather than composed (L4).
+    assert "## Done when — RK7" in written
+    assert "**A first symptom**" in written
+    assert "- 📋 **RK1**" not in written
+
+
+def test_a_fold_into_a_line_that_has_left_is_refused(tmp_path, capsys):
+    """`--superseded-by` accepts a shipped id and is right to: work that moved to a task which
+    has since landed is a legitimate history. A fold is not that — it says *this was never
+    separate work*, which is a claim about a line somebody is still going to do."""
+    from composing import runs
+
+    root = project(tmp_path, declare=GOVERNED_CRITERIA).root
+    assert main([
+        "-C", str(root), "ship", "RK7", "--why", "It works now."
+    ]) == EXIT_OK
+    capsys.readouterr()
+    assert main([
+        "-C", str(root), "retire", "RK1", "--folds-into", "RK7", "--reason", "A reason."
+    ]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    # And the door it names runs, which is the whole value of naming one (RK1209).
+    ran = runs(root, said)
+    assert ran and ran[0][:2] == ["retire", "RK1"], said
+
+
+def test_the_two_answers_about_where_the_work_went_are_refused_together(tmp_path, capsys):
+    # A fold says it was never separate and a supersession says it moved: two subjects, and a
+    # call carrying both is a caller who has not decided which happened.
+    root = project(tmp_path, declare=GOVERNED_CRITERIA).root
+    assert main([
+        "-C", str(root), "retire", "RK1", "--folds-into", "RK7",
+        "--superseded-by", "RK7", "--reason", "A reason.",
+    ]) == EXIT_USAGE
+    assert "two answers about where the work went" in capsys.readouterr().err
+
+
+def test_the_payload_says_a_fold_happened_by_a_field(tmp_path, capsys):
+    # A field and never a sentence to match: a consumer tells a fold from a supersession
+    # without reading prose, which is what every other half of this record already gives it.
+    root = project(tmp_path, declare=GOVERNED_CRITERIA).root
+    assert main([
+        "-C", str(root), "retire", "RK1", "--folds-into", "RK7",
+        "--reason", "A reason.", "--json",
+    ]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["folded"] == "A first symptom"
+    assert payload["superseded_by"] == "RK7"
+
+
+def test_an_ordinary_retirement_folds_nothing(tmp_path, capsys):
+    root = project(tmp_path, declare=GOVERNED_CRITERIA).root
+    assert main([
+        "-C", str(root), "retire", "RK1", "--reason", "A reason.", "--json"
+    ]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["folded"] == ""
