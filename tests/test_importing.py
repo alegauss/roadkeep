@@ -272,3 +272,97 @@ def test_the_directive_exclusion_covers_every_module_that_imports_at_all():
         if not directive and _bound(tree):
             missing.append(module.where)
     assert missing == [], missing
+
+
+# -- a record two modules build is reached by name (RK1586, RK1587) ------------
+
+
+def _records() -> dict[str, tuple[str, bool, int]]:
+    """Every dataclass this package declares once, as `(home, keyword-only, fields)`.
+
+    Declared **once**, which is the distinction that makes the reading honest: twenty names
+    here belong to two classes apiece — `Dropped` is one record in `criteria` and another in
+    `shipping` — and keying by the bare name would report a record shared where two modules
+    happen to have written the same word.
+    """
+    found: dict[str, tuple[str, bool, int]] = {}
+    seen: dict[str, int] = {}
+    for module in modules():
+        for node in ast.parse(module.text).body:
+            if not isinstance(node, ast.ClassDef):
+                continue
+            if not any(
+                (isinstance(one, ast.Call) and getattr(one.func, "id", "") == "dataclass")
+                or getattr(one, "id", "") == "dataclass"
+                for one in node.decorator_list
+            ):
+                continue
+            seen[node.name] = seen.get(node.name, 0) + 1
+            found[node.name] = (
+                module.where,
+                any(
+                    isinstance(word, ast.keyword) and word.arg == "kw_only"
+                    for one in node.decorator_list
+                    if isinstance(one, ast.Call)
+                    for word in one.keywords
+                ),
+                len(
+                    [
+                        one
+                        for one in node.body
+                        if isinstance(one, ast.AnnAssign) and isinstance(one.target, ast.Name)
+                    ]
+                ),
+            )
+    return {name: one for name, one in found.items() if seen[name] == 1}
+
+
+def _construction() -> tuple[dict[str, set[str]], dict[str, list[str]]]:
+    """Where each record is built, and where it is built **by position** with two or more."""
+    built: dict[str, set[str]] = {}
+    ordered: dict[str, list[str]] = {}
+    for module in modules():
+        for node in ast.walk(ast.parse(module.text)):
+            if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)):
+                continue
+            built.setdefault(node.func.id, set()).add(module.where)
+            if len(node.args) >= 2:
+                ordered.setdefault(node.func.id, []).append(f"{module.where}:{node.lineno}")
+    return built, ordered
+
+
+def test_no_record_two_modules_build_is_reached_by_position():
+    """RK1587. RK1586 made `Part` keyword-only after one inserted field moved a published
+    figure in silence, and the population sharing that hazard was never counted. It is two
+    properties and the hazard is their **intersection**: a record more than one module builds
+    has an order nobody owns, and one built positionally has an order somebody relies on.
+
+    Measured: fifteen records of six or more fields are one or the other and none is both, so
+    `Part` was the only instance and the sweep RK1587 weighed is declined. What is held is the
+    property rather than the list — the day a record becomes both, this is the red."""
+    records = _records()
+    built, ordered = _construction()
+    hazard = [
+        name
+        for name, (home, kw, fields) in records.items()
+        if not kw
+        and fields >= 6
+        and built.get(name, set()) - {home}
+        and ordered.get(name)
+    ]
+    assert not hazard, {
+        one: {"built in": sorted(built[one]), "by position at": ordered[one]} for one in hazard
+    }
+
+
+def test_both_halves_of_that_intersection_are_populated():
+    """The reading is only worth having while each half exists: an intersection of two empty
+    sets is empty for a reason that says nothing, which is the vacuous green this suite refuses
+    everywhere it counts a population."""
+    records = _records()
+    built, ordered = _construction()
+    wide = {name for name, (_, kw, fields) in records.items() if not kw and fields >= 6}
+    shared = {one for one in wide if built.get(one, set()) - {records[one][0]}}
+    positional = {one for one in wide if ordered.get(one)}
+    assert len(shared) >= 4, sorted(shared)
+    assert len(positional) >= 4, sorted(positional)

@@ -95,6 +95,7 @@ JSON of the same join would be the drift this projection exists to have none of.
 - ✅ **RK1535** **nothing records which volunteered rows an author acted on, so the population that could score the read has none** — a reading is published and never stored: a log of what was shown is not a fact about the backlog, and the payload already carries what a later join needs.
 - ✅ **RK1536** **a decision can only be filed by a departure, so the moment its answer is lost is the moment nothing can be done** — a decision is filed by the write that made it and never on its own, the whole recorded population having been written by an author who had just done the work.
 - ✅ **RK1540** **a reference page now opens with two lines addressed to the gate, and nothing prices them** — a figure that decides where something lives is published beside it, a number in a docstring being one nobody re-takes.
+- ✅ **RK1587** **ten records of six or more fields are built positionally, and which of them more than one module builds is unmeasured** — the hazard is a record shared across modules and built positionally, so keyword-only is required where both hold and is ceremony where neither does.
 
 ### §RK1394 Proof, not age
 

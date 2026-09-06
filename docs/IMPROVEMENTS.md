@@ -911,30 +911,6 @@ The cheap version is a helper: given a table and its neighbouring comment, asser
 member is named and nothing claimed that the table lacks. Whether the second half is
 decidable depends on the table, which makes this a design rather than a chore.
 
-### §RK1587 The nine other records built by position
-
-RK1586 made `Part` keyword-only after one inserted field moved a published number in
-silence. The population that shares the hazard is measurable and was not measured: ten
-records of six or more fields are built positionally somewhere in this package,
-`Finding` and `Note` among them — the two the gate composes on every run.
-
-They are not equally exposed. `Part` was dangerous because **three subjects** build it
-and the field a fourth wanted sat naturally in the middle; `Finding` has one shape and
-one meaning, so a field added to it is added by somebody looking at every call site.
-What decides risk is not the count but whether the record is shared, and only the shared
-ones need the guard.
-
-So the honest move is a reading rather than a sweep. Keyword-only on all ten is a large
-diff that touches the gate's hot path for a hazard most of them do not have;
-keyword-only on the shared ones is three or four lines and answers the question `Part`
-asked. Which are shared is derivable — a record built from more than one module — and
-that is the number nobody has.
-
-What it must not become is a style rule. This package builds small records positionally
-everywhere and reads fine; the argument is about a specific failure, and a rule applied
-where the failure cannot happen is ceremony that makes the next reader wonder what it
-prevents.
-
 ## Block E — Adoption
 
 ## Block F — The plugin
