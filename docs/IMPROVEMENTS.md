@@ -269,6 +269,28 @@ naming nothing is a finding, and an incidental path naming nothing may be a note
 report is advisory, and failing a build over a path somebody removed on purpose is the
 gate turned off in a week.
 
+### §RK1545 The axis measured on the wrong corpus
+
+RK1510's first reading over this repository: 110 of 229 Block D comparables filed
+something behind them, at a median of 0 and a p90 of 2 — and the span is 1 commit at
+every percentile up to p90. Every recent entry reads `filed 1 over 1`.
+
+That last figure is not a property of the work but of the loop. A session that ships a
+task and immediately files the improvement it turned up produces one filing one commit
+later, every time, whether the task decomposed into real follow-on work or somebody had
+a thought. The distinction RK1510 exists to make is flattened by a cadence.
+
+The span carries the same problem in the unit. Commits over the two governed files is a
+proxy for elapsed work, and it is a good one where commits are work; where a session
+commits a docs line per idea it is a count of the loop's own steps. The port RK1510 was
+measured in went from id 66 to 727 over three weeks, and *that* is the shape the reading
+was built for.
+
+So the axis is right and this corpus is the wrong one to read it on — which is worth
+saying before somebody reads a median of 0 here as a fact about how roadkeep is worked.
+The honest next step is the reading over Shio or Turing, where the cadence is not one
+commit per thought, and `tests/corpora.py` already pins both.
+
 ## Block D — The gate
 
 ### §RK1498 The doors nothing has ever run
