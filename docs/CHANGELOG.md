@@ -468,6 +468,7 @@
 - ✅ **RK1545** **the filings axis reads one per ship over one commit here, which is this session's cadence and not the work's** — Taken on both pinned corpora the axis reads the same as here, and this repository has the longest span, so the shape is the reading's.
 - ✅ **RK1546** **a folded criterion cites no origin, so a reader of the absorbing task cannot tell it was somebody's line** — A brief names the id a folded criterion came from, joined out of the two files it already opens, so no bullet grows a field.
 - ✅ **RK1547** **a pause carries a reason with no date and no expiry, so nothing ever asks whether it still holds** — The store lists oldest pause first with its age in commits and the reason beside it, behind a flag a caller takes once.
+- ✅ **RK1548** **a composed door whose placeholder holds a space is printed unquoted, so the command as printed cannot be run** — A backticked command holding an unquoted placeholder with a space is a red, read off what the package composes rather than off its prose.
 
 ## Block D — The gate
 

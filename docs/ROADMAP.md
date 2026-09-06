@@ -28,7 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 💭 **RK1548** (deps: —) **a composed door whose placeholder holds a space is printed unquoted, so the command as printed cannot be run** — shlex takes the first word as the value and the rest as stray arguments, and nothing checks the spelling because the blank never matches. → §RK1548
 - 💭 **RK1556** (deps: —) **a project whose open set spells no partial marker ships a partial in silence, and the line keeps the marker it had** — RK1519 gave the claim marker a key and the partial one has none, so the fallback is right, unreported, and it closes the correction door. → §RK1556
 - 💭 **RK1558** (deps: —) **one marker scan skips what a caller is shown and the one beside it does not, with nothing saying they differ** — RK1520 walks every f-string including a help string, where the three scans above it exempt the words a parser shows a caller. → §RK1558
 - 💭 **RK1566** (deps: —) **the near window is measured on a ledger far larger than its backlog, the ratio it is least about** — RK1527 found the open half takes one slot of thirty-three here, a figure that inverts on a project whose backlog outnumbers its deliveries. → §RK1566

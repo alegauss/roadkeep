@@ -1814,10 +1814,16 @@ def add(
 #:
 #: At an `add` the address has not been chosen, so "put it somewhere else" is one flag away.
 #: At an `amend` the section is already there and the prose being handed over replaces prose
-#: that exists: `anchors --next` opens nothing, and taking the subtree elsewhere is `section
-#: move`, a different act with consequences for every pointer at it. What is left is shorten
-#: this, or shorten the parent — and the second is invisible from here, the overage being the
-#: parent's while the paragraph in front of the caller is the child's.
+#: that exists: `anchors --next` opens nothing. What is left is shorten this, or shorten the
+#: parent — and the second is invisible from here, the overage being the parent's while the
+#: paragraph in front of the caller is the child's.
+#:
+#: **And never a third way out** (RK1548). This offered `section move {anchor} --to <free
+#: anchor>` as *what takes the subtree out from under it*, and that verb refuses exactly that:
+#: :class:`NotASibling` bounds a move to the parent the section already had, because a
+#: destination elsewhere is a relocation carrying prose the caller never named (RK377). So the
+#: sentence promised the one act the door declines — wrong since RK1034 wrote it, and found by
+#: running it after RK1548 quoted the placeholder that had kept it unrunnable.
 _WAYS_OUT = {
     "add": (
         "a subsection is charged to the address that owns it, so this prose belongs at a "
@@ -1825,8 +1831,7 @@ _WAYS_OUT = {
     ),
     "amend": (
         "the overage is §{parent}'s and this paragraph is §{anchor}'s, so the ways out are "
-        "shortening this body or amending §{parent}'s own prose — `section move {anchor} "
-        "--to <free anchor>` is what takes the subtree out from under it"
+        "shortening this body or amending §{parent}'s own prose"
     ),
 }
 

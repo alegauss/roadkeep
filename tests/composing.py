@@ -50,10 +50,11 @@ import ast
 import re
 import shlex
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 from roadkeep.provenance import invocation
-from surface import modules
+from surface import Module, modules
 
 
 @dataclass(frozen=True, slots=True)
@@ -647,3 +648,114 @@ def runs(root: Path, said: str, *, expect: int = 0) -> tuple[list[str], ...]:
         assert code == expect, (argv, code)
         ran.append(argv)
     return tuple(ran)
+
+
+#: A placeholder — `<…>` with no quote inside it. The **space** is tested separately rather
+#: than written into the pattern (RK1548): `<[^>"']*\s[^>]*>` says the same thing and
+#: backtracks, which took this sweep from milliseconds to minutes over the package's longest
+#: strings. One character class and one `in` is the same reading, linear.
+_HOLDER = re.compile(r"<[^>\"']*>")
+
+
+def spoken(module: Module) -> list[tuple[int, str]]:
+    """Every string one module **composes**, docstrings left out (RK1548).
+
+    Read off the AST and never off the file's text, which is what makes this a reading of what
+    the tool prints. Raw text puts a backtick in a comment and a backtick in an f-string on the
+    same footing, and the span between them is a sentence nobody wrote: pointed at
+    `sections.py` that way, the first attempt at this check reported a span running from a
+    comment about free anchors into the code three functions later.
+
+    A `JoinedStr` is flattened with `{}` where its expressions are, so a door composed from
+    fields is read as the shape it prints — `amend {id} --why …` is the command, and the id it
+    interpolates is not the question.
+
+    Docstrings are prose about the code and excluded on purpose: a flag named in a sentence is
+    correct there, which is the line RK1548 draws and the reason this is not a text search.
+    """
+    tree = ast.parse(module.text)
+    prose = {
+        id(first.value)
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+        for first in (next(iter(getattr(node, "body", ())), None),)
+        if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant)
+    }
+    found: list[tuple[int, str]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            if id(node) not in prose:
+                found.append((node.lineno, node.value))
+        elif isinstance(node, ast.JoinedStr):
+            found.append((
+                node.lineno,
+                "".join(
+                    part.value if isinstance(part, ast.Constant) else "{}"
+                    for part in node.values
+                ),
+            ))
+    return found
+
+
+@lru_cache(maxsize=1)
+def _verbs() -> frozenset[str]:
+    """Every subcommand this CLI declares, built once.
+
+    Cached for `_reading`'s reason one file over: :func:`commanded` is asked of every string
+    the package composes, and building the parser per span took this sweep from a second to
+    two minutes — the same shape as the regex above it, and the same fix.
+    """
+    from roadkeep.cli import build_parser  # noqa: PLC0415 - the suite's own edge
+
+    return frozenset(
+        [one for one in build_parser()._actions if getattr(one, "choices", None)][0].choices  # noqa: SLF001
+    )
+
+
+def commanded(said: str) -> list[str]:
+    """Every backticked span in one string that **is a command**, flattened to one line.
+
+    Wider than :func:`commands`' boundary, and RK1548 is why: that one takes spans opening
+    with the invocation, because it goes on to run them. This one asks whether a printed door
+    is *runnable as printed*, and a door spelled without the prefix is still a door — the one
+    live site this found was `section move {anchor} --to <free anchor>`, bare and unquoted at
+    once, which the narrower reading walked straight past.
+    """
+    verbs = _verbs()
+    prefix = invocation()
+    out: list[str] = []
+    for span in _SPAN.findall(said):
+        flat = " ".join(span.split())
+        words = flat.split()
+        if words and words[0] == prefix:
+            words = words[1:]
+        if words and words[0] in verbs:
+            out.append(flat)
+    return out
+
+
+def loose(said: str) -> list[str]:
+    """Every command in this string whose placeholder holds an unquoted space (RK1548).
+
+    `shlex.split` takes `<what` as the value and hands the verb the rest as stray arguments, so
+    the printed line is a *different* command — and nothing here caught it: `_BLANKS` accepts
+    both spellings and only the quoted one survives a split, so the unquoted placeholder never
+    matches and `filled`'s loud `<unfilled --flag>` branch never sees it either.
+
+    Checked from the **string alone**, which is what makes it worth having beside `SITES`: a
+    span holding one is wrong whether or not any test reaches the site that prints it, so one
+    pass covers the sites nothing runs as well as the ones it does.
+    """
+    found: list[str] = []
+    for flat in commanded(said):
+        for hit in _HOLDER.finditer(flat):
+            if " " not in hit.group(0):
+                continue
+            quoted = flat[: hit.start()][-1:] in ('"', "'") and flat[hit.end():][:1] in (
+                '"',
+                "'",
+            )
+            if not quoted:
+                found.append(flat)
+                break
+    return found

@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
-| C — Query (consult without reading the file) | 7 | 170 | 4 |
+| C — Query (consult without reading the file) | 6 | 171 | 4 |
 | D — The gate | 27 | 263 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 154 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 39 | 1049 | 14 |
+| **Total** | 38 | 1050 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1548** (deps: —) **a composed door whose placeholder holds a space is printed unquoted, so the command as printed cannot be run** — shlex takes the first word as the value and the rest as stray arguments, and nothing checks the spelling because the blank never matches. → §RK1548
+- 💭 **RK1549** (deps: —) **no verb removes the vendored engine, so the report that names it hands the last step back to the reader in English** — RK1514 settled that an unasked deletion is wrong and left the asked-for one unbuilt, so uninstall un-wires and the tool stays on disk. → §RK1549
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

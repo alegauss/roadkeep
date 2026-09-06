@@ -29,10 +29,13 @@ from composing import (
     census,
     commands,
     filled,
+    loose,
     runs,
+    spoken,
     supplied,
     unreached,
 )
+from surface import modules
 from conftest import git_commit, git_init
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
@@ -1596,3 +1599,60 @@ def test_the_door_a_registration_with_no_config_names_runs(tmp_path, capsys):
     assert main(registering) == EXIT_OK
     assert (bare / ".gitattributes").is_file()
     assert (bare / ".mcp.json").is_file()
+
+
+# -- the placeholder that cannot survive its own quotes (RK1548) ---------------
+
+
+def test_no_composed_command_holds_an_unquoted_placeholder_with_a_space():
+    """RK1548. RK1513's door read `--lead <what is true when it is>` and the test that parses
+    it refused the call: `shlex.split` takes `<what` as the value and hands argparse four
+    stray words, so the line as printed is a **different command**.
+
+    Nothing caught it. `_BLANKS` accepts `<x>` and `"<x>"` alike and only the quoted one
+    survives a split, so the unquoted placeholder never matches — and `filled`'s loud
+    `<unfilled --flag>` branch, which exists so an argument is never quietly dropped, never
+    sees it either. It arrives as literal argv.
+
+    **From the string alone**, which is what makes this worth having beside `SITES`: a span
+    holding one is wrong whether or not a test reaches the site that prints it, so one pass
+    covers what nothing runs as well as what does. Three of the four RK1548 named were found
+    by grep after the fourth was found by a hand-written test."""
+    found = [
+        f"{module.where}:{lineno}: {said}"
+        for module in modules()
+        for lineno, text in spoken(module)
+        for said in loose(text)
+    ]
+    assert not found, found
+
+
+def test_the_reading_is_of_what_the_tool_prints_and_not_of_its_prose():
+    """The line RK1548 draws: `--part <what landed>` outside backticks is a flag being named
+    in a sentence and is correct, and a docstring is prose about the code. So the population is
+    the strings a module **composes**, read off the AST — pointed at the file's text instead,
+    the first attempt matched a backtick in a comment against one three functions later and
+    reported the span between them."""
+    said = "a door `roadkeep section move I.1 --to <free anchor>` here"
+    assert loose(said) == ["roadkeep section move I.1 --to <free anchor>"]
+    # Quoted is the fix, and it is what the check is for.
+    assert not loose('a door `roadkeep ship RK1 --part "<what landed>"` here')
+    # A flag named in a sentence is not a command, backticks or none.
+    assert not loose("a flag <what landed> named in a sentence")
+    assert not loose("`<what landed>` is where the qualifier goes")
+    # And one word inside the brackets is runnable as printed.
+    assert not loose("`roadkeep anchors --family <family>`")
+
+
+def test_a_door_spelled_without_the_invocation_is_still_read():
+    """Wider than `commands`' boundary, and the one live site is why: `section move {anchor}
+    --to <free anchor>` was bare **and** unquoted at once, and a reading that took only
+    prefixed spans walked straight past it.
+
+    Two checks, not one. RK1590 asks whether a door is findable at all; this asks whether the
+    one in front of a reader runs as printed, and a door missing its prefix is still a door."""
+    assert loose("`section move I.1 --to <free anchor>`") == [
+        "section move I.1 --to <free anchor>"
+    ]
+    # A word that is not a verb of this CLI is prose, whichever way it is delimited.
+    assert not loose("`shuffle the deck --to <a new place>`")

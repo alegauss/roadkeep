@@ -3469,7 +3469,9 @@ def test_the_two_doors_say_different_ways_out(tmp_path):
     assert "limit is 30 with this section under it" in said
     assert "limit is 30 with this section under it" in wrote
     assert "anchors --next" in wrote and "anchors --next" not in said
-    assert "`section move IX.1 --to <free anchor>`" in said
+    # And **no** third way out (RK1548): this offered `section move` as what takes the subtree
+    # out from under §IX, and that verb refuses a destination under another parent by name.
+    assert "section move" not in said
     assert "amending §IX's own prose" in said
 
 
@@ -4261,3 +4263,4 @@ def test_the_body_refusal_names_the_read_that_measures_the_same_draft(tmp_path, 
         if line.strip().startswith("foresee")
     ]
     assert "budget --anchor <id> --body-file <path>" in row
+
