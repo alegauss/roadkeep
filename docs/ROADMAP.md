@@ -37,7 +37,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1563** (deps: —) **a field that shares a name with the served prefix is reported as a carrier of it, which it is not** — the census sweeps by name alone, so an ordinary use of the word lands in a table about something else wearing an assertion it cannot answer. → §RK1563
 - 💭 **RK1565** (deps: —) **the per-surface staleness rows may repeat one door six times, and nothing has measured what that costs** — RK1526 took 201 units off a four-row note by saying its shared read once, and install.stale files per surface with the same command on every row. → §RK1565
 - 💭 **RK1569** (deps: —) **the prose half of the re-taken split reds on somebody else's edit, which says nothing about the rule** — RK1530 asserts a non-zero count over corpora this project does not own, and two of the three hits are one sentence in Shio. → §RK1569
 - 💭 **RK1570** (deps: —) **a block title is written into every governed file and nothing validates it, not even the codec rule** — RK1531 reached the fields whose families already validate them, and blocking has no validator for the rule to be missing from. → §RK1570
@@ -74,6 +73,11 @@
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+- 📋 **RK1613** (deps: —) **a refusal reaches an agent as prose where the same refusal reaches a terminal as fields** — RK1584's payload gates on the argv slot the transport clears where a call begins, so the structure is published only where a reader could already parse the sentence. → §RK1613
+- 📋 **RK1614** (deps: —) **ninety-five payload builders answer in twenty signatures and nothing declares the shape they share** — RK1170 moved one verb's two registers onto one result and three shapes now cover sixty-eight of them, so the rest are a register each author chose by copying a neighbour. → §RK1614
+- 📋 **RK1615** (deps: RK1614) **the served surface reads a handler's answer by capturing the stdout it printed for a terminal** — The result is an object one frame earlier and the transport renders it to text and re-parses it, so the surface this tool is built for is a scrape of the one it is not. → §RK1615
+- 📋 **RK1616** (deps: RK1615) **nothing refuses a handler whose answer is not a result, so the shape is held by review alone** — L1 refuses a bad roadmap line at insertion and a bad handler is refused by nobody, so this package's own shape is held by the review that files a follow-up after the fact. → §RK1616
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 

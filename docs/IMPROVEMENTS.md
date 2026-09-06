@@ -214,29 +214,6 @@ is one helper the three share, and the third value kind on the scan that reads o
 
 ## Block D — The gate
 
-### §RK1563 The census that reads a word and asserts a meaning
-
-`tests/carrying.py` sweeps the package for a class with a field named `served` and
-asserts the population matches a table of four. It found a fifth:
-`budgeting.Noted.served`, the notes this server appends, which carries no prefix and
-never could. The red was right and the message was not — it says *carries the prefix,
-unaccounted for*, which is a claim about a field that has nothing to do with the prefix.
-
-The census cannot tell the two apart, which is a property of what it reads. `served` is
-the invocation prefix a caller is handed and also the ordinary word for anything this
-server does; the sweep is by name, so any record reaching for it lands in a table about
-something else.
-
-Two ways, and different bets. Narrow the reading — a carrier is a `str` filled from
-`served_by`, which the third test already checks and could check first. Or keep it and
-fix the sentence: say what the field would have to be, so a reader meeting the red is
-told to rename or to add a row rather than told a falsehood.
-
-The second is smaller and closes the actual cost, which was one reading of a message
-that did not describe the state. The first is what stops the next one arriving — and
-both are cheap, so the question is only whether a name this generic is worth guarding by
-shape.
-
 ### §RK1565 The same arithmetic, one note over
 
 RK1526 saved 201 code units on `engine.disagreement` by saying its shared read once, and
@@ -843,5 +820,102 @@ their server.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
+
+### §RK1613 The refusal the agent does not get
+
+RK1584 gave a refused call a payload, because an agent needing which field or which rule
+matched a sentence was being handed English. It reads the flag off the argv this run
+recorded — RK1149's slot — and that is right for a terminal: the flag is a fact about
+the invocation, and threading it through eighty-one call sites would have been eighty
+edits and one of them enough.
+
+The transport has no argv. `call` composes one, appends `--json`, parses it and
+dispatches — and clears the provenance slot first, deliberately, so a retry composed
+here can never name the last terminal call this process served. So `_payload` reads an
+empty tuple, finds no `--json`, and returns before publishing anything.
+
+Measured on this build: a `show` of an id nothing carries, with `--json`, prints
+`refused`, `beside`, `about` and `said`. The same call over MCP returns one sentence and
+`isError`. Successful reads publish on both surfaces, success being printed to stdout
+and captured — only the refusal path, writing to stderr and gating on argv, diverges. So
+the structure reaches the reader who could already parse the sentence.
+
+Two ways close it, and they are not equal. The composed argv can reach the slot the
+payload reads, which is one line and leaves the coupling RK1149 warned about. Or a
+refusal becomes a value the transport renders — which is the handler contract, and not
+this line's to decide.
+
+### §RK1614 One result, twenty signatures
+
+RK1170 moved one verb's two registers onto one result and said what was left: most of
+the printing never moved. Counted on this build, ninety-five `payload` methods answer in
+twenty signatures and eighty `stated` methods in about as many, with thirty-four
+`__str__` doing `stated`'s job under another name.
+
+Three shapes carry sixty-eight of the ninety-five. `(self)` is the read that needs
+nothing, twenty-eight times. `(self, config)` is fourteen. `(self, config, wrote)` is
+twenty-six, and that one is a protocol already — it is what a write answers, spelled
+identically in twenty-six places and declared in none. The remaining twenty-seven are
+seventeen one-off signatures: `(self, unit)`, `(self, served)`, `(self, root, served)`,
+`(self, config, applied, root)`, `(self, where, expected)`.
+
+The one-offs are not variety, they are parameters that should have been fields.
+`Weighed` already shows the alternative: `_weight` builds `Weighed(where=…, weights=…,
+records=…)` and then asks it for either register with no arguments. Where that was not
+done, the caller carries what the result needs, so the same fact is threaded at every
+call site instead of held once — and the call sites drift, which is what seventeen
+shapes are.
+
+The consequence is not the boilerplate. It is that nothing declares what a command's
+answer *is*, so a verb added tomorrow picks its register by copying whichever neighbour
+it was written beside — and neither the served surface nor a test can ask a handler for
+its answer without knowing which of twenty spellings that verb chose.
+
+### §RK1615 The scrape at the boundary
+
+A handler is `(config, args) -> int`: it computes a result, prints one of its two
+registers, returns an exit code. That is the whole contract, and it is a terminal's.
+
+So the served surface reconstructs the answer from the print. `call` renders the
+arguments back into an argv, re-parses it into a namespace, dispatches, and captures
+stdout and stderr into `StringIO` buffers — then hands the concatenated text back as the
+tool result. The payload the handler built as a dict one frame earlier is serialised to
+JSON, written to a captured stream, and returned as a string the client parses again.
+`--json` is appended to every composed argv so what is captured is machine-readable —
+the tell: the transport asks the handler to print in a format it can re-read.
+
+Three consequences, all already filed or measured. `isError` is inferred from a captured
+`SystemExit` or a returned int rather than stated. A refusal gates its payload on an
+argv slot this surface clears, so it arrives as prose. And `_spent_stdin` hands handlers
+a stream at EOF, because three of them read a pipe that does not exist here.
+
+The alternative is one line: `handler(config, args) -> Result`. One caller renders it
+for a terminal, another returns `result.payload()` on the wire, and nothing is captured.
+What needs deciding is the exit code — a field on the result, or still the dispatcher's,
+given that a read and the gate's verdict mean different things by 1.
+
+### §RK1616 L1, turned on this package
+
+L1 enforces the schema where the text is created, `lint` being only the backstop. This
+package applies that to an author's roadmap line and not to its own code.
+
+The evidence is the backlog's shape. All thirty-four open lines cite a prior id in their
+why: each is residue of a shipped task, filed by a human who read a diff and saw an edge
+left. `weight` measures the rate — the `filed` spread is the ids a task opened behind
+it, and Block D's median is one. A thousand entries have not converged because each ship
+emits a follow-up, found by review and never refused by a type.
+
+The lines say so themselves. RK1602 calls itself "the third instance of the shape RK1507
+and RK1542 each removed once". RK1585 names "the shape it is an instance of", which "has
+five tables and no rule". RK1571 says the states "cluster into families" the picker
+cannot show. Three lines, one complaint: the tool fixes instances and never the form.
+
+A declared result type is the first place that can change, because it is checkable. One
+test walks every `handler=` the parser holds and asserts a `Result` comes back, refusing
+at authoring time the whole family of "this verb answers a way the served surface cannot
+read" — instead of finding each member after it ships.
+
+Block H's `filed` median is zero against Block D's one: work on this tool's shape has
+not bred follow-ups, which is the argument for spending here.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)

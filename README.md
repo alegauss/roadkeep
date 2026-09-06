@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
 | C — Query (consult without reading the file) | 6 | 173 | 4 |
-| D — The gate | 24 | 270 | 2 |
+| D — The gate | 23 | 271 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 157 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
-| H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
+| H — The tool's own shape (what one verb costs to change) | 4 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 34 | 1062 | 14 |
+| **Total** | 37 | 1063 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1563** (deps: —) **a field that shares a name with the served prefix is reported as a carrier of it, which it is not** — the census sweeps by name alone, so an ordinary use of the word lands in a table about something else wearing an assertion it cannot answer. → §RK1563
+- 💭 **RK1564** (deps: —) **the note sweep reads every call inside an answer's text, so a helper beside a note reads as a kind** — RK1525 is exact because each site interpolates one composer, and a suffix clause of the sort three composers already use would break it. → §RK1564
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

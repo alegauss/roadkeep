@@ -190,6 +190,7 @@ command. The new property holds all three values, which leak alike.
 - ✅ **RK1553** **no sweep asks of a served value flag what RK1517 asks of a boolean, and there are a hundred and twenty-two** — A sweep for an inert flag needs a claim about what that flag shapes; identical output alone reports the tool's own semantics as a defect.
 - ✅ **RK1555** **two of adopt's argument rules are still raised inside the estimator, where no declaration reader can see them** — A shape with one member gets a raise with a good sentence; a third kind of declaration is what a second member buys.
 - ✅ **RK1559** **twelve of the fifteen note codes have never been priced, this project's gate tripping only two of them** — A figure over part of a population is a reading of that part; the population is the census that closes over it.
+- ✅ **RK1563** **a field that shares a name with the served prefix is reported as a carrier of it, which it is not** — A red that made somebody look is the mechanism working; narrowing the sweep that raised it trades a misleading message for a missed one.
 
 ### §RK1394 Proof, not age
 
@@ -357,6 +358,23 @@ at neither end.
 
 No ceiling, per code or over them. What is held is that the population is covered and
 each state fires, so a note that doubles moves a number.
+
+### §RK1563 The red that did its job
+
+The census sweeps for a field named `served`. `budgeting.Noted.served` — the notes this
+server appends — landed in it and was told it *carries the prefix, unaccounted for*, a
+claim about a field that carries no prefix and never could.
+
+Two repairs were open: narrow the sweep to `str` fields, or fix the sentence. The
+history decides it. That red was right and made somebody look, and the outcome was the
+better name the field now has — a census seeing only `str` would have let the collision
+through, trading a misleading message for a missed one.
+
+So the population stays, and the message names both acts: add a row where the record
+carries the prefix, rename where the field is something else.
+
+The sentence is a function, so this suite reads it back. A message nothing tests is
+prose, and this one was wrong for a class of member.
 
 ## Block E — Adoption
 

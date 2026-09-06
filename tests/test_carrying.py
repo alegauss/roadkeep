@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import pytest
 
-from carrying import CARRIERS, FIELD, SOURCE, carriers, filled_in
+from carrying import CARRIERS, FIELD, SOURCE, carriers, filled_in, unaccounted
 
 
 def test_every_record_that_carries_the_prefix_is_accounted_for():
@@ -16,10 +16,30 @@ def test_every_record_that_carries_the_prefix_is_accounted_for():
     match a table with four rows in it."""
     declared = {one.where for one in CARRIERS}
     found = set(carriers())
-    assert declared == found, {
-        "carries the prefix, unaccounted for": sorted(found - declared),
-        "accounted for, carries nothing": sorted(declared - found),
-    }
+    assert declared == found, unaccounted(found, declared)
+
+
+def test_the_message_names_both_acts_and_asserts_neither():
+    """RK1563. The sweep is by name and `served` is two words, so a record reaching for the
+    second sense lands here — `budgeting.Noted.served` did, and was told it *carries the
+    prefix*, which it did not and could not.
+
+    Held as a message rather than as a shape. Narrowing the sweep to `str` fields would have
+    let that collision through in silence, and the red is what made somebody look."""
+    said = unaccounted({"budgeting.py:Noted"}, set())
+    assert said[f"a field named {FIELD!r}, with no row here"] == ["budgeting.py:Noted"]
+    claim = said["a row claims"]
+    # Both acts, so the reader decides which their field is rather than being told.
+    assert "Add a row" in claim and "rename the field" in claim
+    # And no assertion about the field that met it, which is the sentence that was wrong.
+    assert "carries the prefix, unaccounted" not in str(said)
+
+
+def test_the_message_reads_the_two_names_the_census_is_built_on():
+    # Composed from `FIELD` and `SOURCE` and never spelled again: a message naming a field
+    # this sweep no longer looks for is the drift the derived population exists to avoid.
+    claim = unaccounted(set(), set())["a row claims"]
+    assert SOURCE in claim and f"`{FIELD}`" in claim
 
 
 def test_the_population_is_never_empty():

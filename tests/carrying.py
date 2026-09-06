@@ -27,6 +27,19 @@ here rather than a survey that quietly stops covering anything.
 somewhere — would have caught RK479 and nothing else. What is asserted instead is that the
 named function constructs the record *with `served=` off `served_by`*, which also catches a
 site filling it from something the answer is not.
+
+**Swept by name, and the message is what carries the meaning** (RK1563). `served` is the
+prefix a caller is handed and also the ordinary word for anything this server does, so a
+record reaching for the second sense lands in this table wearing an assertion about the
+first — which is what `budgeting.Noted.served` did, and the sentence it met said *carries
+the prefix, unaccounted for* about a field that carries no prefix and never could.
+
+Narrowing the sweep by shape was the other repair and is **declined**, on what that red
+actually did: it was right, it made somebody look, and the outcome was the better name the
+field has now. A census that only saw `str` fields would have let the collision through
+silently, which trades one misleading message for a missed one. So the population stays what
+it is and :func:`unaccounted` says what a row claims — a reader meeting the red is told to
+add a row *or* to rename, rather than told something false about their field.
 """
 
 from __future__ import annotations
@@ -114,6 +127,32 @@ def carriers() -> tuple[str, ...]:
             if FIELD in fields:
                 found.append(f"{module.where}:{node.name}")
     return tuple(sorted(found))
+
+
+def unaccounted(found: set[str], declared: set[str]) -> dict[str, object]:
+    """What a mismatch between :data:`CARRIERS` and the source means (RK1563).
+
+    A function rather than a dict literal inside the assertion, so the sentence a reader meets
+    on the one run that matters is one this suite can read back. That is `remedying`'s rule for
+    a finding's door, applied to a census: a message nothing tests is prose, and this one was
+    wrong for a whole class of member.
+
+    **Two acts and never one.** The sweep is by name, so a row missing here means either *this
+    record carries the prefix and nobody said which site fills it* or *this field is some other
+    thing this server does and wants a different name*. The old sentence asserted the first,
+    which is a claim about the reader's field that the census is in no position to make.
+    """
+    return {
+        f"a field named {FIELD!r}, with no row here": sorted(found - declared),
+        f"a row here, with no field named {FIELD!r}": sorted(declared - found),
+        # What the table is *about*, so the reader picks the act rather than being told one.
+        "a row claims": (
+            f"this record carries the invocation prefix a served session's tools arrive "
+            f"under, filled at its construction site from `{SOURCE}`. Add a row where that "
+            f"is true; rename the field where it is some other thing this server does — "
+            f"`{FIELD}` is both words, which is why this sweep cannot tell them apart"
+        ),
+    }
 
 
 def filled_in(module_where: str, record: str) -> tuple[str, ...]:
