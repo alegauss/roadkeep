@@ -313,28 +313,6 @@ yet, and what turns it into an answerable question is the state. That is a task 
 family rather than one sweep — and the reason to file it as one line is that the six
 that do run were each bought by a defect that had already shipped.
 
-### §RK1530 The measurement behind a refusal
-
-RK1497 drew its boundary from a number: over the prose of three real corpora the
-mojibake signature fires 18 times and every one is a false positive; over the 3,962
-fields of the same three it fires zero. That reading is why the rule is a field's and
-never a body's, and it exists nowhere but in a docstring and a changelog `why`.
-
-The probe was a scratchpad script. Nothing re-runs it, so the next person weighing
-whether to widen the rule — to a section title, to a body behind a flag, to a second
-codec — has the sentence and not the measurement. RK30's argument in the shape this
-repository keeps meeting: a number nobody counts is one that stops being true.
-
-The suite already has the corpus. `tests/corpora.py` pins Shio and Turing at a revision
-and skips where they are absent, which is what CI does and why a green run here proves
-more than a green run there. A test walking the two populations and asserting the split
-— zero in fields, non-zero in prose — costs one pass over files the suite already opens.
-
-It catches both directions. A field growing a run is either a real mangling in a live
-backlog or a signature that has begun matching prose people write; a prose count falling
-to zero means the boundary bought nothing. The second is what nobody would look for, a
-rule that never fires reading exactly like one that is right.
-
 ### §RK1531 The field on the wrong side of the boundary
 
 Measured one command after RK1497 shipped. `add --section "O menu Ã© semeado"` is

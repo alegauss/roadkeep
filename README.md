@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
 | C — Query (consult without reading the file) | 9 | 167 | 4 |
-| D — The gate | 23 | 234 | 2 |
+| D — The gate | 22 | 235 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 152 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 38 | 1015 | 14 |
+| **Total** | 37 | 1016 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1530** (deps: —) **the corpus reading a refusal was drawn from lives in a docstring and nothing re-takes it** — RK1497 measured 18 false positives over prose against zero over fields and threw the probe away, so the number that decided the boundary cannot be checked. → §RK1530
+- 💭 **RK1531** (deps: —) **a section title takes the mangled bytes the line's own fields refuse** — RK1497's boundary is field and not body, and a title is a bounded composed field that lands as a permanent heading with no door in front of it. → §RK1531
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

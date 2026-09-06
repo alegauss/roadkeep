@@ -341,3 +341,84 @@ def test_a_second_repair_over_this_corpus_finds_nothing_it_left(corpus, tmp_path
         f"{corpus.name}: a second run dispatched "
         f"{[' '.join(step.argv) for step in again.steps]}, so the first closed nothing by them"
     )
+
+
+# -- the reading a refusal was drawn from (RK1530) -----------------------------
+
+#: The roles whose **fields** the mangled-run rule applies to, and the roles whose **prose**
+#: it deliberately does not read. RK1497 drew the boundary from a count over both and kept the
+#: count in a docstring; these two tuples are what the count is taken over now.
+FIELDED = ("roadmap", "changelog")
+PROSE = ("improvements", "strategy")
+
+
+def _fielded(corpus) -> list[str]:
+    """Every symptom and why this corpus carries at the pin — the population the rule reads."""
+    return [
+        one
+        for role in FIELDED
+        if corpora.has(corpus, role)
+        for entry in corpora.document(corpus, role).entries
+        for one in (entry.task.symptom, entry.task.why)
+    ]
+
+
+def _prose(corpus) -> list[str]:
+    """Every prose file this corpus carries at the pin, whole — the population it does not."""
+    return [corpora.text(corpus, role) for role in PROSE if corpora.has(corpus, role)]
+
+
+def _here() -> tuple[list[str], list[str]]:
+    """This repository's own two populations, read the way the corpora's are."""
+    config = Config.discover(Path(__file__).resolve().parents[1])
+    fields = [
+        one
+        for role in FIELDED
+        if config.has(role)
+        for entry in config.document(role).entries
+        for one in (entry.task.symptom, entry.task.why)
+    ]
+    prose = [
+        config.path(role).read_text(encoding="utf-8")
+        for role in PROSE
+        if config.has(role) and config.path(role).is_file()
+    ]
+    return fields, prose
+
+
+def test_the_mangled_signature_still_fires_nowhere_in_a_field():
+    """RK1530. RK1497 made the rule a field's and never a body's from a number: over the prose
+    of three real corpora the signature fires 18 times and every one is a false positive, and
+    over the 3,962 fields of the same three it fires zero. The probe was a scratchpad script,
+    so the measurement that decided the boundary existed nowhere but a docstring.
+
+    This is that reading, re-taken. A field growing a run is one of two things and both want
+    looking at: a real mangling in a live backlog, or a signature that has begun matching the
+    prose people actually write."""
+    from roadkeep.kernel.schema import mangled_runs
+
+    fields, _ = _here()
+    for corpus in corpora.BOTH:
+        corpora.require(corpus)
+        fields += _fielded(corpus)
+    # Non-vacuous, on the rule this suite holds every derived population to: a survey that
+    # covers nothing passes exactly like one that covers everything.
+    assert len(fields) >= 2000, f"only {len(fields)} fields reached"
+    caught = [(one, mangled_runs(one)) for one in fields if mangled_runs(one)]
+    assert not caught, caught[:3]
+
+
+def test_the_prose_it_does_not_read_is_where_the_signature_does_fire():
+    """The other direction, and the one nobody would look for: a rule that never fires anywhere
+    reads exactly like a rule that is right. The boundary bought something only while the prose
+    count is non-zero — this repository's own §RK1497 quotes the examples, and Shio writes `×–`,
+    a multiplication sign and an en dash that round-trips to a Hebrew letter."""
+    from roadkeep.kernel.schema import mangled_runs
+
+    _, prose = _here()
+    for corpus in corpora.BOTH:
+        corpora.require(corpus)
+        prose += _prose(corpus)
+    assert prose, "no prose reached: this comparison is about nothing"
+    fired = sum(len(mangled_runs(one)) for one in prose)
+    assert fired, "the signature fires nowhere in prose either, so the boundary bought nothing"

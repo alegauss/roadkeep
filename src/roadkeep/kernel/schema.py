@@ -2213,6 +2213,14 @@ def _mangled(field: str, value: str) -> list[Violation]:
     example already: §RK1497 quotes both of these in a section body, which this does not read.
     No flag steps over it, because there is nothing to step over.
 
+    **And the count is re-taken rather than remembered** (RK1530). That probe was a scratchpad
+    script, so the number deciding the boundary lived here and nowhere else — RK30's argument
+    in the shape this repository keeps meeting. `tests/test_corpora.py` walks the same two
+    populations at the pins now: zero in the fields, non-zero in the prose. The figures have
+    already moved — 5,318 fields against 3,962, and three prose hits against eighteen, the
+    corpora having advanced and §RK1497 having been deleted by its own ship — which is why
+    what is asserted is the **split** and never either number.
+
     The **first** run only, for :func:`_codepoints`' reason: one mis-decoded paste carries
     several and the first already sends the reader to the cause.
     """
