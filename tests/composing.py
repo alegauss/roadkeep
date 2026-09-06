@@ -295,6 +295,10 @@ SITES: tuple[Site, ...] = (
     # emits the finding, so `repair` dispatches a door it cannot open. Named, not asserted
     # away — the row's flag now follows the finding, which is the half that was decidable.
     Site("linting.py:_projections", "run"),
+    # RK1551. The read a suppressed note names, run by `test_scoping` against a design that
+    # quotes its constraint's lead: `non-goal list` is the one register reporting the
+    # suppression, and naming it is the whole of what the row owes a reader.
+    Site("linting.py:_reaching", "run"),
     # The gate's own report, which is where every door below is rendered for a terminal.
     Site("linting.py:_report_rows", "run"),
     # RK1498. A ceiling under every tool, so the finding fires and the ranking it names is the

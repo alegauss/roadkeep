@@ -336,6 +336,10 @@ PREVENTION: tuple[Prevented, ...] = (
     # RK1287. `MEANT` for `deps.collective`'s reason exactly: it is a note and not a defect,
     # said because a report that omits without saying so reads as one that covered
     # everything — and the door beside it is the read that answers the whole question.
+    # RK1551. `MEANT` again, and one step further: this reports a note the gate chose
+    # *not* to make, so there is nothing for a write to refuse — the suppression is a
+    # relationship between a design and a constraint, seen only where both are read.
+    Prevented("non-goal.settled", "gate", because=MEANT),
     Prevented("read.priced", "gate", because=MEANT),
     # RK1434, and `RULE`'s reason pointed at two records instead of one: what this reports is a
     # relationship between a non-goal and a task, and neither write is in a position to see it

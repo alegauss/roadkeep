@@ -1130,3 +1130,60 @@ def test_the_four_doors_that_delete_a_design_read_one_rule_and_word_it_once(tmp_
             "  quoted   'No local patch to the vendored C.' — whatever the design said "
             "about it went with the design"
         )
+
+
+# -- the run that fell silent, saying so (RK1551) ------------------------------
+
+
+def _settled_note(config: Config) -> list:
+    from roadkeep.linting import lint
+
+    return [one for one in lint(config).notes if one.code == "non-goal.settled"]
+
+
+def test_a_suppressed_note_is_counted_where_the_gate_is_read(tmp_path):
+    """RK1551. The suppression is right and RK1457's trade holds, but it was the one claim here
+    nobody could see: reported only by `non-goal list`, which a session runs when it is writing
+    a constraint and not when the gate is what it is reading.
+
+    So the finding is a missing sentence, not a missing rule — a line the note *would* have
+    named, silent because its own design quotes the lead, said where a clean gate reports what
+    it did not report."""
+    config = _deciding(tmp_path, SETTLED)
+    assert not _reaches(config), "the design answered it, which is the state under test"
+    (one,) = _settled_note(config)
+    assert one.message.startswith("1 line(s) a constraint reaches are answered")
+    assert "non-goal list" in one.message, "the read that names which"
+
+
+def test_it_is_not_a_finding_because_nothing_is_wrong(tmp_path):
+    """A project whose designs answer their constraints would go red for having done the right
+    thing. So it rides beside the counts, where `read.priced` already reports what a clean gate
+    left out, and the exit code does not move."""
+    from roadkeep.linting import lint
+
+    report = lint(_deciding(tmp_path, SETTLED))
+    assert [one.code for one in report.notes if one.code == "non-goal.settled"]
+    # In the notes and never in the findings, which is what decides the exit code: this
+    # fixture has an unrelated `ref.unresolved` and the claim here is about *this* row.
+    assert not [one for one in report.findings if one.code == "non-goal.settled"]
+
+
+def test_a_project_that_settled_nothing_says_nothing(tmp_path):
+    """Bounded by the same rarity the note itself is: most designs never quote a lead, and a
+    project with none sees no row — which is what keeps this off a gate already printing two
+    advisory lines."""
+    assert not _settled_note(_governed(tmp_path))
+    # And the unsettled case still reports the note itself, which is the half this does not move.
+    assert _reaches(_governed(tmp_path))
+
+
+def test_a_design_quoting_the_lead_about_another_line_is_not_counted(tmp_path):
+    """RK1515's case, which is what this row exists to make visible: a citation suppresses a
+    note about a line whose author decided nothing. The reading that tells the two apart is
+    `_settled`'s and unchanged here — what this adds is that the count follows it, so a run
+    reporting one suppression is reporting one decision."""
+    config = _deciding(tmp_path, CITING)
+    # Whichever way `_settled` reads this sentence, the count and the note agree about it:
+    # exactly one of the two rows is present, and never both or neither.
+    assert len(_reaches(config)) + len(_settled_note(config)) == 1

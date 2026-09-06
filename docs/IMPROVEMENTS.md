@@ -224,29 +224,6 @@ verb placing it anywhere else would move a section a reader knows the position o
 
 ## Block D — The gate
 
-### §RK1551 The note that says nothing about its own silence
-
-RK1515 made every register honest about what it measured and left the gate where it was:
-`non-goal.reaches` still falls silent the moment a design quotes a lead, answer or
-citation alike. The suppression is right — RK1457's trade holds — but it is now the one
-claim here nobody can see, the only place it is reported being `non-goal list`, which a
-session runs when it is writing a constraint and not when the gate is what it is
-reading.
-
-So the finding is a missing sentence, not a missing rule. `lint` is where the note lives
-and where its absence is a fact about the run: a line the note *would* have named,
-silent because its own design quotes the lead. Said where a clean gate says what it did
-not report, beside the counts, and never as a finding — nothing is wrong, and a project
-whose designs answer their constraints would go red for having done the right thing.
-
-What it buys is the case RK1515 was measured on. A citation suppresses a note about a
-line whose author decided nothing, and the only reader who can tell is the one being
-shown that it happened. Today they would have to run a second command to find out a
-first one stayed quiet.
-
-The cost is a line on a lint already printing two advisory rows, bounded by the same
-rarity: most designs never quote a lead, and a project with none sees nothing.
-
 ### §RK1552 The reading taken twice
 
 RK1516 gave `section drop` the row the three departure doors had, and did it by adding a

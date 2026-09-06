@@ -37,7 +37,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1551** (deps: —) **the gate falls silent where a design quotes a constraint and the run that fell silent never says so** — RK1478 put the suppression in non-goal list, which is not the command a session runs when the gate is what it is reading. → §RK1551
 - 💭 **RK1552** (deps: —) **the leads a deleted design quoted are read once per path, though the record the departure unpacks carries them** — RK1516 added the second call because _drop_section returns a fixed six-tuple, so the field that arrived after it went around it. → §RK1552
 - 💭 **RK1553** (deps: —) **no sweep asks of a served value flag what RK1517 asks of a boolean, and there are a hundred and twenty-two** — identical payload is a strong signature for a flag left off and a weak one for a value that may legitimately match the default. → §RK1553
 - 💭 **RK1554** (deps: —) **the pair fixture's commits carry a subject and no body, so a flag about a commit body cannot be read there** — RK1489 gave it a history and not a message, and origin --why answers identically on the terminal too for a reason that is not the flag. → §RK1554

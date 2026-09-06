@@ -1495,6 +1495,14 @@ _TABLE: Mapping[str, _Rule] = {
     # RK1287. A note and not a defect: the gate priced what a session is about to brief and
     # says how many it left out, which is `deps.collective`'s shape — the door is the read
     # that answers the whole question, and there is nothing here to repair.
+    # RK1551. A `read` for `read.priced`'s reason exactly: nothing is wrong, and what the note
+    # owes is the command that names *which* lines it fell silent about — the one register that
+    # already reports the suppression, and the one a session does not run while reading a gate.
+    "non-goal.settled": _read(
+        ("non-goal", "list"),
+        "the constraints and which lines answer them, which is where a suppressed note is "
+        "reported and the reason this one says the run stayed quiet",
+    ),
     "read.priced": _read(
         ("cost", "--brief"),
         "the gate prices the briefs `pick` offers next, so a backlog's length never reaches "
@@ -1755,6 +1763,7 @@ NOTES: frozenset[str] = frozenset(
         "install.absent",
         "install.stale",
         "non-goal.reaches",
+        "non-goal.settled",
         "priority.block-unstarted",
         "priority.config",
         "read.priced",

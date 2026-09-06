@@ -2381,11 +2381,20 @@ def _reaching(
     }
     designs = _designs(anchors)
     out: list[Note] = []
+    # Every line this note **would** have named and did not, because its own design quotes the
+    # lead (RK1551). Counted rather than dropped: the suppression is right and RK1457's trade
+    # holds, but it was the one claim here nobody could see — reported only by `non-goal list`,
+    # which a session runs when it is writing a constraint and not when the gate is what it is
+    # reading. So a run that fell silent says so, below.
+    settled = 0
     for non_goal in scoping.read(roadmap):
         forbidden = _terms(non_goal.lead) & rare
         for entry, terms in spoken:
             shared = sorted(forbidden & terms)
-            if not shared or _settled(designs.get(entry.task.ref or ""), non_goal.lead):
+            if not shared:
+                continue
+            if _settled(designs.get(entry.task.ref or ""), non_goal.lead):
+                settled += 1
                 continue
             out.append(
                 Note(
@@ -2400,6 +2409,22 @@ def _reaching(
                     subject=entry.task.id,
                 )
             )
+    if settled:
+        # **Not a finding**, which is the whole of it: nothing is wrong, and a project whose
+        # designs answer their constraints would go red for having done the right thing. Said
+        # beside the counts, where a clean gate reports what it did not report — `read.priced`'s
+        # own shape, one register over, and bounded by the same rarity: most designs never
+        # quote a lead, and a project with none sees nothing.
+        out.append(
+            Note(
+                "non-goal.settled",
+                file,
+                f"{settled} line(s) a constraint reaches are answered in their own design, "
+                f"so nothing is reported for them — `{invocation()} non-goal list` names "
+                f"which, and a design quoting a lead is where that answer is recorded",
+                subject=str(settled),
+            )
+        )
     return out
 
 

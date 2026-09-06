@@ -738,6 +738,7 @@
 - ✅ **RK1542** **the retirement prefix every ranking figure is measured through is split by hand in two tests** — The id a retirement names is read by a function beside the one that writes it, and a second site taking the head off by hand is refused.
 - ✅ **RK1544** **the brief an estimate prices has no deps and no design, and the row does not say so** — The row says the figure is a floor where no dep resolves and no design is quoted, measured at 1359 against 3235 on this backlog.
 - ✅ **RK1550** **a design keeps naming a function of this package after a rename, no gate reading that pointer** — A backticked module.name in governed prose is resolved against the package, so a design naming a renamed symbol is a finding.
+- ✅ **RK1551** **the gate falls silent where a design quotes a constraint and the run that fell silent never says so** — A clean gate says how many lines a constraint reaches whose own design answered it, so the suppression is visible where the gate is read.
 
 ## Block E — Adoption
 
