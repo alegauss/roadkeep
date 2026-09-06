@@ -1656,3 +1656,69 @@ def test_a_door_spelled_without_the_invocation_is_still_read():
     ]
     # A word that is not a verb of this CLI is prose, whichever way it is delimited.
     assert not loose("`shuffle the deck --to <a new place>`")
+
+
+# -- the vendored copy the un-wiring keeps (RK1549) ----------------------------
+
+
+def test_the_door_the_kept_engine_names_reclaims_it(tmp_path, capsys):
+    """RK1549. RK1514 gave the vendored copy a `kept` row and left the removal to a sentence —
+    *delete the directory* — the one line in an un-wiring report that hands work back to the
+    reader in English. What decided it was the size, and the size is **22 MiB across 970
+    files** on this repository's own checkout.
+
+    So the row names a verb, and the whole value of that is the verb running: the copy is
+    weighed, the door reclaims it, and the row is gone from the next report."""
+    project = tmp_path / "adopter"
+    project.mkdir()
+    assert main(["-C", str(project), "init"]) == EXIT_OK
+    home = project / ".roadkeep" / "src" / "roadkeep"
+    home.mkdir(parents=True)
+    (home / "__init__.py").write_text('__version__ = "0.2.0"\n', encoding="utf-8")
+    capsys.readouterr()
+    assert main(["-C", str(project), "uninstall", "--check"]) == EXIT_OK
+    said = capsys.readouterr().out
+    (argv,) = [one for one in commands(said) if one[:2] == ["uninstall", "--engine"]]
+    assert main(["-C", str(project), *argv]) == EXIT_OK
+    assert not (project / ".roadkeep").exists()
+    # And the row it came from is gone, which is what makes the door the right one (RK393).
+    capsys.readouterr()
+    assert main(["-C", str(project), "uninstall", "--check"]) == EXIT_OK
+    assert ".roadkeep/" not in capsys.readouterr().out
+
+
+def test_the_removal_is_weighed_before_it_is_taken(tmp_path, capsys):
+    """`--check` is the same computation with the deletion left off, which is `install
+    --check`'s rule one verb over — and the count is in both answers, because a caller about
+    to lose megabytes is owed the number before the loss and not after it."""
+    project = tmp_path / "adopter"
+    project.mkdir()
+    assert main(["-C", str(project), "init"]) == EXIT_OK
+    (project / ".roadkeep").mkdir()
+    (project / ".roadkeep" / "big.txt").write_text("x" * 4096, encoding="utf-8")
+    capsys.readouterr()
+    assert main(["-C", str(project), "uninstall", "--engine", "--check"]) == EXIT_GATE
+    said = capsys.readouterr().out
+    assert "would delete   1 file(s), 4,096 bytes" in said, said
+    assert (project / ".roadkeep").is_dir(), "a check writes nothing"
+
+
+def test_a_clone_at_that_path_is_refused_and_left(tmp_path, capsys):
+    """The one refusal, and the only state where a caller's *yes* is about something else than
+    they think: `install --vendor` excludes `.git` by name, so a `.roadkeep/` carrying one is
+    somebody's clone and removing it takes history this command cannot give back.
+
+    Anything else in the tree is the caller's judgement (L4) — an engine an adopter has edited
+    is still an engine they asked to remove, and a check guessing at edits would refuse the
+    ordinary case."""
+    project = tmp_path / "adopter"
+    project.mkdir()
+    assert main(["-C", str(project), "init"]) == EXIT_OK
+    (project / ".roadkeep" / ".git").mkdir(parents=True)
+    capsys.readouterr()
+    assert main(["-C", str(project), "uninstall", "--engine"]) == EXIT_USAGE
+    said = capsys.readouterr()
+    assert "is a clone and not a vendored copy" in said.err
+    # And the row above it does not claim a write that did not happen.
+    assert "deleted" not in said.out, said.out
+    assert (project / ".roadkeep").is_dir()

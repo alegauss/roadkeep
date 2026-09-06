@@ -869,29 +869,6 @@ over the population it actually covers, or the population widened to the doors
 
 ## Block F — The plugin
 
-### §RK1549 The last step this tool cannot take
-
-RK1514 gave the copy a row and decided the default: a kept path is not a surface, so
-`uninstall` reports the vendored engine and never deletes it. What that leaves is an
-adopter who cannot get this tool off their disk with this tool. The row names no verb
-because there is none — it says "delete the directory", the only sentence in the
-un-wiring report that hands the work back to the reader.
-
-The decision binds the default and nothing else. Deleting a `.roadkeep/` nobody asked
-about is the reflex RK1514 refused, and every reason turns on the caller's silence: the
-bytes may be committed, they are the adopter's, and a later `install --vendor` reuses
-them. An `uninstall --engine` is the opposite act — the caller named the copy — so what
-is left is that the removal is megabytes and irreversible.
-
-Which makes it a design question, not a flag. Every other write here is all-or-nothing
-over files this tool wrote; this one takes out a tree copied from somewhere else, and
-`--check` has to say so first — *would delete*, which the withdrawal vocabulary already
-spells. Whether it refuses a tree holding anything the copy did not put there is the
-half worth settling: an engine an adopter has edited is not an artefact any more.
-
-What would decide it is how large the copy is on a real adopter. Small enough to ignore
-and the sentence is the whole answer, and this closes by being declined.
-
 ### §RK1560 The one entry the merge rule does not protect
 
 `.mcp.json` is a declaration this tool merges into and does not own, and RK1492 stopped

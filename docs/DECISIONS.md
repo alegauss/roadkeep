@@ -334,6 +334,7 @@ from outside the tree.
 - ✅ **RK1471** **a write from an engine whose home was swapped is allowed, on rules no disk holds and with no pin to compare against** — A state whose only remedy is restarting the process is told and never refused: a refusal there is a wall with no door for the reader and none at all for an agent.
 - ✅ **RK1514** **uninstall leaves the vendored engine on disk and its own kept field never mentions it** — a kept path is not a surface, so the vendored copy is reported and never deleted and --check's verdict does not count it.
 - ✅ **RK1543** **a version here names one commit and the surfaces that consume one speak of it as a release, with nothing saying which** — A version names the commit that wrote it: the hook stamps every commit and no release is cut, so pinning holds a revision.
+- ✅ **RK1549** **no verb removes the vendored engine, so the report that names it hands the last step back to the reader in English** — A destructive write this tool would otherwise hand back in English is built once its cost is measured, never on the guess that it is small.
 
 ### §RK1424 Why the description gave way and not the ceiling
 
@@ -391,6 +392,25 @@ revision promises more than they may have meant.
 
 The second is answered by saying so, not by changing the model. The tag stays, claiming
 nothing — deleting a published ref to tidy a model breaks whatever resolved it.
+
+### §RK1549 The size that decided it
+
+RK1514 named what would settle this: how large the copy is, *small enough to ignore and
+the sentence is the whole answer*. Measured as `install --vendor` writes it: **22 MiB
+across 970 files**.
+
+So the verb is built, and three things with it.
+
+**The default is unchanged.** An unasked deletion is the reflex RK1514 refused and every
+reason holds — the bytes may be committed, they are the adopter's, a later vendor reuses
+them. The `kept` row names the act rather than doing it.
+
+**The cost comes first.** `--check` is the same computation with the deletion left off,
+and the count is in both answers: a caller about to lose megabytes is owed the number
+before the loss.
+
+**One refusal.** A `.roadkeep/` carrying a `.git` is a clone — `--vendor` excludes
+`.git` by name — and removing history is not reclamation. Edits stay the caller's (L4).
 
 ## Block G — The editor surface (the backlog where the file is open)
 

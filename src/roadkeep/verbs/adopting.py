@@ -56,9 +56,11 @@ from roadkeep.capturing import (
 from roadkeep.backlog import Backlog
 from roadkeep.config import ROLES, Config
 from roadkeep.installing import (
+    PROJECT_ENGINE,
     engines,
     install,
     plan,
+    remove_engine,
     removal,
     uninstall,
     vendor,
@@ -435,6 +437,55 @@ def _capture_sweep(config: Config, args: argparse.Namespace) -> int:
     return EXIT_USAGE if found.refused else EXIT_OK
 
 
+def _reclaim(args: argparse.Namespace) -> int:
+    """`uninstall --engine`: the vendored copy, weighed and then taken out (RK1549).
+
+    Its own function because it is a different subject on different files — the wiring is
+    declarations this tool wrote, and this is a tree copied from somewhere else. What they
+    share is the tense: `--check` is the same computation with the deletion left off, which
+    is `install --check`'s rule and the reason the count is in both answers.
+
+    Exit 1 on a check that found something, for `_uninstall`'s reason one branch over: a
+    report is not a success, and the write that closes it is the same call without the flag.
+    """
+    try:
+        found = remove_engine(args.directory, checked=args.check)
+    except OSError as error:
+        return _refused(error)
+    if args.json:
+        print(json.dumps(
+            {
+                "path": found.path.as_posix(),
+                "present": found.present,
+                "files": found.files,
+                "bytes": found.bytes,
+                "version": found.version,
+                # `""` where nothing stopped it, never omitted: a consumer tells *allowed*
+                # from a build that did not look.
+                "refused": found.refused,
+                "checked": args.check,
+            },
+            indent=2,
+        ))
+    elif not found.present:
+        print(f"{PROJECT_ENGINE}/ is not here, so there is no vendored engine to reclaim")
+    else:
+        at = f" at {found.version}" if found.version else ""
+        # **`would delete` where nothing was**, refusal included (RK1549): a row saying
+        # `deleted` above a refusal is this command reporting a write it declined to make,
+        # which is the one thing an all-or-nothing answer may never do.
+        did = "deleted" if not args.check and not found.refused else "would delete"
+        print(f"{found.path.as_posix()}  ←  the vendored engine{at}")
+        print(f"  {did:<14} {found.files} file(s), {found.bytes:,} bytes")
+    if found.refused:
+        print(f"roadkeep: {found.refused}", file=sys.stderr)
+        return EXIT_USAGE
+    if args.check and found.present:
+        args.verdict = True
+        return EXIT_GATE
+    return EXIT_OK
+
+
 def _uninstall(config: Config, args: argparse.Namespace) -> int:
     """Take the harness back out of a project that was wired to a checkout (RK138).
 
@@ -443,6 +494,8 @@ def _uninstall(config: Config, args: argparse.Namespace) -> int:
     after the checkout it named is gone — which is when it is usually wanted.
     """
     del config
+    if getattr(args, "engine", False):
+        return _reclaim(args)
     try:
         intent = removal(args.directory) if args.check else uninstall(args.directory)
     except (ValueError, OSError) as error:
@@ -1035,6 +1088,19 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
         help=(
             "take nothing out and exit 1 while anything is still wired: the same tense "
             "`install --check` reports in, on the other direction"
+        ),
+    )
+    # The last step this tool could not take (RK1549). RK1514 gave the vendored copy a `kept`
+    # row and left the removal to a sentence — the one line in the un-wiring report that hands
+    # work back to the reader in English — on the argument that an unasked deletion is wrong.
+    # It is, and this is the asked-for one: measured at **22 MiB across 970 files** on this
+    # repository's own checkout, which is not a directory anybody should delete by hand.
+    uninstall_parser.add_argument(
+        "--engine",
+        action="store_true",
+        help=(
+            "remove the vendored copy at .roadkeep/ instead of the wiring — weighed first, "
+            "and refused where the tree carries a .git, which is a clone and not an artefact"
         ),
     )
     uninstall_parser.add_argument("--json", action="store_true", help=_JSON_HELP)

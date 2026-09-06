@@ -2785,6 +2785,85 @@ _WOULD_REMOVE = {
 }
 
 
+@dataclass(frozen=True, slots=True)
+class Engine:
+    """The vendored copy as a thing that can be taken out, weighed first (RK1549)."""
+
+    path: Path
+    files: int = 0
+    bytes: int = 0
+    #: The version the tree states, where it states one — `""` for a `.roadkeep/` that is a
+    #: directory rather than an engine, which is still bytes somebody asked about.
+    version: str = ""
+    #: Why this may not be removed, or `""`. The one refusal there is: a tree carrying a `.git`
+    #: is not an artefact a vendor wrote, it is somebody's clone, and deleting it takes history
+    #: nothing here can give back.
+    refused: str = ""
+
+    @property
+    def present(self) -> bool:
+        return self.files > 0 or self.path.is_dir()
+
+
+def engine_at(root: str | Path = ".") -> Engine:
+    """What `uninstall --engine` would remove, measured before anything is touched (RK1549).
+
+    RK1514 settled that an unasked deletion is wrong and left the asked-for one unbuilt, so
+    `uninstall` un-wired the surfaces and the tool stayed on disk — the one row in that report
+    that hands the work back to the reader in English. What decided it was the size, and the
+    size is not small: **22 MiB across 970 files** on this repository's own checkout, which is
+    not a directory anybody should be told to delete by hand.
+
+    Weighed and never assumed, because the number is what makes `--check` worth reading: this
+    is the only write in this module that takes out a tree copied from somewhere else, so the
+    caller gets *would delete, this much* before they get a deletion.
+
+    **One refusal, and it is the one that costs**: a `.roadkeep/` carrying a `.git` is not a
+    vendored artefact — `install --vendor` excludes it by name — so it is a clone somebody put
+    there, and removing it takes history this tool cannot give back. Anything else in the tree
+    is left to the caller's judgement (L4): an engine an adopter has edited is still an engine
+    they asked to remove, and a check that guessed at edits would refuse the ordinary case.
+    """
+    home = Path(root).resolve() / PROJECT_ENGINE
+    if not home.is_dir():
+        return Engine(path=home)
+    files = [one for one in home.rglob("*") if one.is_file()]
+    vendored = vendored_at(Path(root).resolve())
+    return Engine(
+        path=home,
+        files=len(files),
+        bytes=sum(one.stat().st_size for one in files),
+        version=vendored.version if vendored else "",
+        refused=(
+            f"{PROJECT_ENGINE}/.git is here, so this is a clone and not a vendored copy — "
+            f"`install --vendor` excludes `.git` by name, and removing history is not a "
+            f"reclamation this command can undo"
+            if (home / ".git").exists()
+            else ""
+        ),
+    )
+
+
+def remove_engine(root: str | Path = ".", *, checked: bool = False) -> Engine:
+    """Take the vendored copy out, or say what taking it out would cost (RK1549).
+
+    All-or-nothing like every other write here, and **weighed first**: the answer carries the
+    file count and the bytes whether or not anything is removed, so `--check` is the same
+    computation with the deletion left off — `install --check`'s rule, one verb over.
+
+    Refuses rather than deleting where the tree is a clone, which is :func:`engine_at`'s one
+    refusal and the only state where the caller's *yes* is about something else than they
+    think it is.
+    """
+    import shutil  # noqa: PLC0415 - RK260
+
+    found = engine_at(root)
+    if checked or not found.present or found.refused:
+        return found
+    shutil.rmtree(found.path)
+    return found
+
+
 def removal(root: str | Path = ".") -> Removal:
     """Read the project's own surfaces and answer what un-wiring would take out.
 
@@ -2830,9 +2909,14 @@ def removal(root: str | Path = ".") -> Removal:
         kept.append(
             (
                 PROJECT_ENGINE,
+                # And the verb, which this row spent RK1514 not having (RK1549): it read
+                # *delete the directory*, the one line in an un-wiring report handing work
+                # back to the reader in English. Still a `kept` row — the default is
+                # unchanged, and an unasked deletion is the reflex RK1514 refused — but the
+                # asked-for one is now a command rather than a sentence.
                 f"{PROJECT_ENGINE}/: the vendored engine{states} stays on disk and nothing "
-                f"points at it now — delete the directory to reclaim it, or leave it for a "
-                f"later `install --vendor` to replace",
+                f"points at it now — `{invocation()} uninstall --engine` reclaims it, or "
+                f"leave it for a later `{invocation()} install --vendor` to replace",
             )
         )
     return Removal(

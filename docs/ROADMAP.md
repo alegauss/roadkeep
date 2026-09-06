@@ -70,7 +70,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 💭 **RK1549** (deps: —) **no verb removes the vendored engine, so the report that names it hands the last step back to the reader in English** — RK1514 settled that an unasked deletion is wrong and left the asked-for one unbuilt, so uninstall un-wires and the tool stays on disk. → §RK1549
 - 💭 **RK1560** (deps: —) **install replaces a server declaration an adopter wrote themselves and no row names what was there** — the merge keeps every entry but this project's own, and RK1492 established that entry may legitimately hold a wrapper. → §RK1560
 - 💭 **RK1561** (deps: —) **engines --invoke prints a command and never that the declaration it fell through was one this tool cannot read** — RK1523 gave the report that row and the flag a caller actually pipes still answers as though nothing were declared. → §RK1561
 - 💭 **RK1564** (deps: —) **the note sweep reads every call inside an answer's text, so a helper beside a note reads as a kind** — RK1525 is exact because each site interpolates one composer, and a suffix clause of the sort three composers already use would break it. → §RK1564

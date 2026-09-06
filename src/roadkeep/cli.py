@@ -579,6 +579,11 @@ GATE_VERDICTS: Mapping[str, str] = {
         "`--check` found entries still wiring this project, and the write that takes them out "
         "is the same verb without the flag; stated by the run"
     ),
+    "verbs/adopting.py:_reclaim": (
+        "the same answer about the other subject (RK1549): `--check` found a vendored copy and "
+        "said what removing it would cost, and the write is the same call without the flag — a "
+        "figure a caller reads before losing megabytes, not a fault"
+    ),
     "verbs/adopting.py:_replay": (
         "the capture stopped reproducing, which is the answer this verb exists to give — and "
         "a capture is already a report about this tool, so offering to file one is a regress"

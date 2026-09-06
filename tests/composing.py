@@ -270,6 +270,11 @@ SITES: tuple[Site, ...] = (
     # the loop RK393 named.
     Site("installing.py:Plan.verdict", "run"),
     Site("installing.py:Removal.verdict", "run"),
+    # RK1549. The `kept` row that spent RK1514 handing its last step back in English — *delete
+    # the directory* — now names the verb, and `test_composing` runs it: the copy is measured,
+    # the door reclaims it, and the row is gone from the next report. Which is the only proof
+    # a `kept` row naming a command is better than one naming none.
+    Site("installing.py:removal", "run"),
     # RK1498. A driver is wired per governed file, so a tree declaring none has nothing to
     # register — run by `test_composing` through `install --register-merge`, which is the verb
     # that reaches it and not the one this row named. The sentence said the four surfaces did

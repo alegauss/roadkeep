@@ -1017,6 +1017,7 @@
 - ✅ **RK1525** **the kinds sweep is total over the notes that make a call and silent over the ones that do not** — the kinds table is held against the sites that append a note rather than the guard three of them call, so the per-call kind is covered and a second one is a red.
 - ✅ **RK1534** **the orientation an install prints names five commands in an order the tree it is printed to cannot run** — the orientation leads with what an ungoverned tree still owes, so the first command it names is the one that makes the other four answerable, and the sweep runs it.
 - ✅ **RK1543** **a version here names one commit and the surfaces that consume one speak of it as a release, with nothing saying which** — The table sentence a listing prints says a version names the commit that wrote it, which is what pinning here holds.
+- ✅ **RK1549** **no verb removes the vendored engine, so the report that names it hands the last step back to the reader in English** — uninstall --engine weighs the vendored copy and removes it, refusing a tree that carries a .git, and the kept row names it.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

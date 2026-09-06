@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 6 | 171 | 4 |
 | D — The gate | 28 | 263 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 154 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 155 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 39 | 1050 | 14 |
+| **Total** | 38 | 1051 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1549** (deps: —) **no verb removes the vendored engine, so the report that names it hands the last step back to the reader in English** — RK1514 settled that an unasked deletion is wrong and left the asked-for one unbuilt, so uninstall un-wires and the tool stays on disk. → §RK1549
+- 💭 **RK1550** (deps: —) **a design keeps naming a function of this package after a rename, no gate reading that pointer** — ref.dangling covers section to section only, so two sections cited a helper that had stopped existing and lint was clean either way. → §RK1550
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
