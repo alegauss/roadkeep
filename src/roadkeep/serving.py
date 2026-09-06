@@ -2714,6 +2714,19 @@ class Kind:
 
 
 #: Every note this module adds, and the rule each is under (RK1493).
+#:
+#: **Each kind's paragraph is composed by `_<name>`, and that is a rule and not a habit**
+#: (RK1525). RK1493 held this table total against the literals passed to `_said_once`, which
+#: reads the once-per-process half and nothing else: a per-call note makes no such call — it
+#: is a branch that appends a paragraph, which is what most of this module does — so the
+#: fourth kind sat here matched by nothing, and a second per-call note would arrive exactly
+#: as the four did before that task, invisible.
+#:
+#: So the sweep reads the **sites**: every `Answer(f"{text}\n\n{_kind(…)}")` in :func:`_advise`
+#: is what appending a note *is*, and the composer's name is the kind's. `tests/test_serving.py`
+#: holds the two halves together, which is why RK1524's lift of the last inline paragraph into
+#: :func:`_witnessed` mattered beyond being measurable: it made the fourth site the same shape
+#: as the other three.
 NOTES: tuple[Kind, ...] = (
     Kind(
         "swapped",

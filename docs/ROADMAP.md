@@ -68,7 +68,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 💭 **RK1525** (deps: —) **the kinds sweep is total over the notes that make a call and silent over the ones that do not** — RK1493 reads the literals passed to _said_once, so the per-call kind is in the table by hand and a second one arrives as invisibly as the four did. → §RK1525
 - 💭 **RK1534** (deps: —) **the orientation an install prints names five commands in an order the tree it is printed to cannot run** — RK1498 pointed the sweep at it and every command refuses there, so a test asserting what is printed would be asserting the defect. → §RK1534
 - 💭 **RK1543** (deps: —) **a version here names one commit and the surfaces that consume one speak of it as a release, with nothing saying which** — RK1508 assumed a walk over tags and found one tag against 1650 commits, every one of which the hook stamps a version into. → §RK1543
 - 💭 **RK1549** (deps: —) **no verb removes the vendored engine, so the report that names it hands the last step back to the reader in English** — RK1514 settled that an unasked deletion is wrong and left the asked-for one unbuilt, so uninstall un-wires and the tool stays on disk. → §RK1549

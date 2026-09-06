@@ -851,29 +851,6 @@ shape.
 
 ## Block F — The plugin
 
-### §RK1525 The half a call-site sweep cannot see
-
-RK1493 made `serving.NOTES` total against the literals the module passes to
-`_said_once`, so a fifth once-per-process note is a red until somebody declares it. That
-is three of the four kinds. The fourth is in the table by hand and matched by nothing.
-
-The asymmetry is structural rather than an oversight. A once-per-process note is
-recognisable because it *makes a call* — the guard is the thing the sweep reads — and a
-per-call note is recognisable by nothing at all: it is a branch that appends a
-paragraph, which is what most of this module does. So the sweep is total over the half
-that announces itself and silent over the half that does not, and a second per-call note
-added tomorrow arrives exactly as the kinds did before RK1493: invisible.
-
-What makes it worth closing rather than accepting is that the per-call half is the
-expensive one. Three kinds are bounded by the process; the fourth is paid on every
-refusal that overlaps, which is the population RK267 had to cut once already.
-
-The reading that would work is the one `test_composing` takes over `invocation()`: find
-the sites rather than the calls — every `return Answer(f"{text}\n\n…")` in `_advise`,
-which is what appending a note *is* — and hold the count against the table. That names a
-shape the module already has instead of asking a per-call note to announce itself, which
-is the `_said_once` guard turned into ceremony for a kind that needs no guard.
-
 ### §RK1534 The orientation printed before there is anything to orient
 
 Measured while widening RK1498's sweep. The orientation `install` prints on a tree with

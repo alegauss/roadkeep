@@ -3001,3 +3001,54 @@ def test_a_name_this_cli_does_not_have_is_still_taken(tmp_path, capsys):
     argv, respelled = cli._accepting(cli.build_parser(), ["scope", "RK1", "--path", "x"])
     assert argv[0] == "claim", argv
     assert respelled
+
+
+def test_every_kind_is_a_site_that_appends_one(tmp_path):
+    """RK1525. RK1493's sweep reads the literals passed to `_said_once`, which is the
+    once-per-process half and nothing else: a per-call note makes no such call, so the fourth
+    kind sat in the table matched by nothing and a second one would arrive as invisibly as the
+    four did.
+
+    So this reads the **sites** instead — every `Answer(f"{text}\n\n{_kind(…)}")` is what
+    appending a note *is*, and the composer's name is the kind's. Total over both halves, which
+    is what `_said_once` could never be: it asks a per-call note to announce itself with a
+    guard it does not need."""
+    import ast
+    from pathlib import Path as _Path
+
+    from roadkeep.serving import NOTES
+
+    source = _Path(serving.__file__).read_text(encoding="utf-8")
+    appended: set[str] = set()
+    for node in ast.walk(ast.parse(source)):
+        if not (
+            isinstance(node, ast.Call)
+            and getattr(node.func, "id", "") == "Answer"
+            and node.args
+            and isinstance(node.args[0], ast.JoinedStr)
+        ):
+            continue
+        appended |= {
+            inner.func.id.lstrip("_")
+            for one in node.args[0].values
+            if isinstance(one, ast.FormattedValue)
+            for inner in ast.walk(one.value)
+            if isinstance(inner, ast.Call) and isinstance(inner.func, ast.Name)
+        }
+    assert appended == {one.name for one in NOTES}, {
+        "appends a note, undeclared": sorted(appended - {one.name for one in NOTES}),
+        "declared, appended nowhere": sorted({one.name for one in NOTES} - appended),
+    }
+
+
+def test_the_two_halves_of_the_sweep_disagree_about_exactly_one_kind(tmp_path):
+    """The asymmetry stated rather than left to be noticed: the call-site reading covers the
+    three under the once rule, and the site reading covers all four. Their difference is the
+    per-call kind — so if that set empties or grows, one of the two readings has stopped
+    describing what the module does."""
+    from roadkeep.serving import NOTES, _ONCE
+
+    assert {one.name for one in NOTES} - _ONCE == {
+        one.name for one in NOTES if not one.once
+    }
+    assert len({one.name for one in NOTES} - _ONCE) == 1
