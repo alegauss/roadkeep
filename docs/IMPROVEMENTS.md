@@ -911,6 +911,30 @@ What it must not become is a second vocabulary. Every violation already carries 
 set of names invented for the wire. Whether the exit code stays the contract is
 untouched — the payload is what a caller reads *after* it has decided.
 
+### §RK1585 The prose beside a table
+
+RK1539's check reads one comment and one phrase: a backticked word within forty
+characters of *command here* has to be a verb this parser has. It caught the defect it
+was written for and it is narrower than the finding, which was that a comment naming a
+population had been written from one of the two enumerations it compares.
+
+The general form is not available cheaply, and saying why is worth a line. A bare
+backticked word in this package is a verb, a flag, a field, a file, a config key or an
+English word in emphasis, and nothing in the text separates them — `composing` can check
+a backticked span that starts with the invocation because that prefix *is* the marker,
+and prose about a verb carries no such thing.
+
+What is available is the other direction: the enumerations. `COLLIDING`,
+`serving.TOOLS`, `remedying.codes`, `composing.SITES` and the six laws are each a set
+this suite already holds total, and each has prose beside it that a reader takes for the
+set. RK1539's check is one instance of *the prose beside a table names what the table
+holds* — and the question is whether that is a rule stated five times or a shape built
+once.
+
+The cheap version is a helper: given a table and its neighbouring comment, assert every
+member is named and nothing claimed that the table lacks. Whether the second half is
+decidable depends on the table, which makes this a design rather than a chore.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
