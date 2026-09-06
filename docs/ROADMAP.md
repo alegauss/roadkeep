@@ -28,7 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 💭 **RK1546** (deps: —) **a folded criterion cites no origin, so a reader of the absorbing task cannot tell it was somebody's line** — RK1511 records the destination in the ledger and the criterion says nothing, which is the half of the join its own design named and left. → §RK1546
 - 💭 **RK1547** (deps: —) **a pause carries a reason with no date and no expiry, so nothing ever asks whether it still holds** — RK1512 shipped the count and left the age, the store having no date and pick being the one path a git call may not be on. → §RK1547
 - 💭 **RK1548** (deps: —) **a composed door whose placeholder holds a space is printed unquoted, so the command as printed cannot be run** — shlex takes the first word as the value and the rest as stray arguments, and nothing checks the spelling because the blank never matches. → §RK1548
 - 💭 **RK1556** (deps: —) **a project whose open set spells no partial marker ships a partial in silence, and the line keeps the marker it had** — RK1519 gave the claim marker a key and the partial one has none, so the fallback is right, unreported, and it closes the correction door. → §RK1556

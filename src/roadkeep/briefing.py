@@ -143,6 +143,16 @@ class DoneWhen:
     own: tuple[str, ...] = ()
     #: How many the task's own list held beyond the ones carried. 0 means these are all.
     own_elided: int = 0
+    #: Which of :attr:`own` was somebody else's line, as `(lead, the id it came from)` and
+    #: sparse — only the folded ones (RK1546).
+    #:
+    #: A fold names its destination in the ledger and the criterion it writes says nothing
+    #: (RK1511), so RK7's list carries a claim whose id is spent and the only route back was
+    #: `origin` over history. **Not a field on the bullet**: a criterion's grammar is a lead
+    #: and a reason (RK1265), and an id in either is a reference outliving the work — RK1457's
+    #: argument against putting an answer in a non-goal. So the join is made where somebody is
+    #: asking, out of two files this verb already has open, and the store stays as it is (L2).
+    folded: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -607,7 +617,17 @@ class Brief:
         # The task's own first and the block's under it, each carrying its address (RK1268):
         # two altitudes printed as one list is a reader taking the block's finish line for
         # this line's, which is the conflation the second address exists to end.
-        rows += [f"  done     {self.view.task.id}: {lead}" for lead in self.done_when.own]
+        # With the id it was somebody else's line under (RK1546): a fold writes this bullet
+        # from a departing line's own symptom and the criterion says nothing, so a reader of
+        # this brief met a claim whose id is spent and no route back but `origin` over history.
+        # The clause and not a field on the bullet — the store is unchanged (L2), and the join
+        # is made out of two files this verb already has open.
+        came_from = dict(self.done_when.folded)
+        rows += [
+            f"  done     {self.view.task.id}: {lead}"
+            + (f"  (folded from {came_from[lead]})" if lead in came_from else "")
+            for lead in self.done_when.own
+        ]
         # And the absence, said here rather than at the ship (RK1513). RK1185 settled that a
         # criterion is read before the first edit and settled it for lines that have one; where
         # a line has none the brief printed nothing, and the first mention was `criterion.absent`
@@ -735,6 +755,10 @@ class Brief:
             # asserting the block's finish line about this line.
             "done_when_own": list(self.done_when.own),
             "done_when_own_elided": self.done_when.own_elided,
+            # Which of those was somebody else's line, and whose (RK1546). Sparse and keyed by
+            # the lead as this answer carries it, so a consumer joins without re-deriving the
+            # cut — and `{}` on every task nothing was folded into, which is nearly all of them.
+            "done_when_folded": dict(self.done_when.folded),
             # What the design says would prove this done, with what each clause matches now
             # (RK1185). The clauses and the counts and never the sites: this answer is bounded
             # to a tool result, and the addresses are `evidence`'s once the work is under way.
@@ -957,7 +981,7 @@ def _gather(
         chains=graph.chains(task_id)[:CHAINS] if entry is not None else (),
         leverage=graph.leverage(task_id),
         non_goals=non_goals(config, backlog.roadmap),
-        done_when=done_when(config, backlog.roadmap, task.block, task.id),
+        done_when=done_when(config, backlog.roadmap, task.block, task.id, backlog.ledger),
         choice=chosen,
         claim=claim,
         settled=_settled(config, view, backlog.resolve(task) if entry is not None else ()),
@@ -1033,8 +1057,40 @@ def non_goals(config: Config, document: Document) -> NonGoals:
 
 
 
+def _folded_into(ledger: Document | None, task_id: str, leads: Sequence[str]) -> dict[str, str]:
+    """Which of these leads a retirement handed over, by the id it was that line's (RK1546).
+
+    The join a fold already records and nothing read back. `retire --folds-into` writes two
+    things (RK1511): a ledger entry whose sentence names the destination, and a criterion under
+    it whose **lead is the departing line's own symptom**. So the key is that symptom, and the
+    reader is :func:`~roadkeep.shipping.superseded` — the one that takes the derived head off
+    a retirement, beside the function that writes it (RK1542).
+
+    Matched on the symptom and not on the reason, because the reason is the author's and two
+    folds into one task may share it; the symptom is a line's claim and the format keeps ids
+    unique, so it is the half that identifies.
+
+    `{}` where the project has no ledger open, which is `adopt`'s tree and every state where
+    this brief is being taken over a file rather than a project.
+    """
+    from roadkeep.shipping import superseded  # noqa: PLC0415 - RK260, the reading path only
+
+    if ledger is None or not task_id:
+        return {}
+    wanted = set(leads)
+    return {
+        entry.task.symptom: entry.task.id
+        for entry in ledger.entries
+        if entry.task.symptom in wanted and superseded(entry.task.why) == task_id
+    }
+
+
 def done_when(
-    config: Config, document: Document, block: str, task_id: str = ""
+    config: Config,
+    document: Document,
+    block: str,
+    task_id: str = "",
+    ledger: Document | None = None,
 ) -> DoneWhen:
     """What finishes this task and what finishes its block, in file order and bounded (RK1265).
 
@@ -1061,8 +1117,23 @@ def done_when(
         )
 
     leads, elided = bounded(criteria.leads(document, block))
-    own, own_elided = bounded(criteria.leads(document, task_id) if task_id else ())
-    return DoneWhen(leads=leads, elided=elided, own=own, own_elided=own_elided)
+    # The whole leads before the cut, because the join is on the symptom a fold wrote and a
+    # shortened one is a different string (RK1546) — so the lookup is made here and the answer
+    # is keyed by what the row will print.
+    mine = criteria.leads(document, task_id) if task_id else ()
+    came_from = _folded_into(ledger, task_id, mine)
+    own, own_elided = bounded(mine)
+    return DoneWhen(
+        leads=leads,
+        elided=elided,
+        own=own,
+        own_elided=own_elided,
+        folded=tuple(
+            (shortened, came_from[whole])
+            for shortened, whole in zip(own, mine, strict=False)
+            if whole in came_from
+        ),
+    )
 
 
 def _criterion(config: Config, view: View) -> tuple[tuple[Clause, int], ...]:

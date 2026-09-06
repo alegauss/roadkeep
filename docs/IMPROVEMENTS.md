@@ -79,28 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1546 The criterion with no origin
-
-RK1511's fold names the destination in the ledger — `superseded by RK7: <reason>` — and
-writes the criterion under RK7. The criterion says nothing about where it came from.
-
-That is the half of the join the design explicitly asked for and this did not build:
-*the criterion cites no origin*. After the fold, RK7's list carries a claim whose id is
-spent, and the only route back is `origin` over history or reading the ledger for a
-retirement naming RK7. A reader of RK7's brief sees a definition of done with one bullet
-that was somebody else's line and no way to tell.
-
-It is not a missing field so much as a decided one. A criterion's grammar is a lead and
-a reason (RK1265), and an id in either would be a reference outliving the work —
-RK1457's argument against putting an answer in a non-goal. So the options are a third
-element on that bullet, changing a grammar two verbs write, or nothing, the ledger
-holding the fact.
-
-What decides it is who asks. A reader of RK7 is holding a brief, and `brief` prints the
-criteria list — so the cheapest shape may be neither: the *brief* could name the folded
-ids, joining the ledger it already reads to the list it already prints, and the file
-stays as it is. That keeps L2's store and puts the answer where somebody is asking.
-
 ### §RK1547 The reason with no expiry
 
 RK1512 asked for the count **and the oldest reason** and shipped the count. The store

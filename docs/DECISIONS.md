@@ -66,6 +66,7 @@ on the prose roles.
 - ✅ **RK1519** **a project that declares its own open markers cannot claim a line, and nothing anywhere says so** — a claim is a marker on an open line, so the working marker is a narrowing of markers.open and never guessed from it.
 - ✅ **RK1527** **the near window stayed at three when the corpus it ranks over doubled** — the near window is set from what the known pairs reach, so a corpus added beside another widens it only where a pair is measured outside it.
 - ✅ **RK1545** **the filings axis reads one per ship over one commit here, which is this session's cadence and not the work's** — A reading suspected of measuring the session is answered by taking it on another corpus, not by qualifying it.
+- ✅ **RK1546** **a folded criterion cites no origin, so a reader of the absorbing task cannot tell it was somebody's line** — An answer a reader needs is joined where they ask it, never stored as a reference the store would have to outlive.
 
 ### §RK1362 Why a projection and not a wider read
 
@@ -99,6 +100,22 @@ corpora were pinned already and the reading is one call.
 
 The general form is the decision. Held as properties and not as the twelve figures,
 because a live tree moves.
+
+### §RK1546 The reference that was not stored
+
+A fold writes two things: the destination into the ledger, and a criterion under the
+absorbing task whose lead is the departing line's own symptom. The criterion said
+nothing about where it came from, so a reader of that brief met a claim whose id is
+spent.
+
+Three shapes were weighed. A third element on the bullet — refused: a criterion's
+grammar is a lead and a reason, and an id in either is a reference the store must keep
+true after the work it names is gone. Nothing, the ledger holding the fact — refused for
+who asks: a reader is holding a brief, not grepping a changelog.
+
+So the join is made where the question is asked. `brief` already opens both files, the
+fold wrote the symptom into each, and the reader is `superseded` (RK1542). One lookup,
+no grammar change.
 
 ## Block D — The gate
 

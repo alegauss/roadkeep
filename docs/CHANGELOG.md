@@ -466,6 +466,7 @@
 - ✅ **RK1528** **the near row offers the door to the delivered half and none to the open half it now counts** — the near row names the listing for each half it counts, so a reader who suspects the fourth-nearest can open the open lines as well as the deliveries.
 - ✅ **RK1529** **an incidental path naming no file is silent, where a budget naming none is a finding** — an incidental path this tree does not hold is a note naming the report it stopped filtering, so a filter that quietly does less is said rather than read as a louder backlog.
 - ✅ **RK1545** **the filings axis reads one per ship over one commit here, which is this session's cadence and not the work's** — Taken on both pinned corpora the axis reads the same as here, and this repository has the longest span, so the shape is the reading's.
+- ✅ **RK1546** **a folded criterion cites no origin, so a reader of the absorbing task cannot tell it was somebody's line** — A brief names the id a folded criterion came from, joined out of the two files it already opens, so no bullet grows a field.
 
 ## Block D — The gate
 

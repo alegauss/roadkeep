@@ -538,3 +538,72 @@ def test_an_ordinary_retirement_folds_nothing(tmp_path, capsys):
         "-C", str(root), "retire", "RK1", "--reason", "A reason.", "--json"
     ]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["folded"] == ""
+
+
+# -- the criterion that was somebody's line (RK1546) ---------------------------
+
+
+def test_the_brief_of_the_absorbing_task_names_where_the_criterion_came_from(
+    tmp_path, capsys
+):
+    """RK1546, the half RK1511's design named and left. A fold writes the destination into the
+    ledger and a criterion under the task, and the criterion says nothing — so RK7's list
+    carries a claim whose id is spent and the only route back was `origin` over history.
+
+    Answered where somebody is asking rather than by a field on the bullet: a criterion's
+    grammar is a lead and a reason (RK1265), and an id in either is a reference outliving the
+    work. `brief` already opens both files, so the join costs a lookup and the store is
+    untouched (L2)."""
+    root = project(tmp_path, declare=GOVERNED_CRITERIA).root
+    assert main([
+        "-C", str(root), "retire", "RK1", "--folds-into", "RK7",
+        "--reason", "It is a check RK7 has to make, not a task of its own.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", str(root), "brief", "RK7"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "done     RK7: A first symptom  (folded from RK1)" in said, said
+
+
+def test_a_criterion_nobody_folded_carries_no_origin(tmp_path, capsys):
+    """The sparse half, which is nearly every criterion: a clause on a bullet somebody wrote
+    directly would name an id that has nothing to do with it, and a reader who saw one
+    everywhere would stop reading them."""
+    root = project(tmp_path, declare=GOVERNED_CRITERIA).root
+    assert main([
+        "-C", str(root), "criterion", "add", "--task", "RK7",
+        "--lead", "A check nobody folded in", "--why", "Because it is checked here.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", str(root), "brief", "RK7"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "done     RK7: A check nobody folded in" in said, said
+    assert "folded from" not in said, said
+
+
+def test_the_origin_is_published_beside_the_leads_it_is_about(tmp_path, capsys):
+    """Keyed by the lead as the answer carries it, so a consumer joins without re-deriving the
+    cut `[criteria] lead` makes — and `{}` on a task nothing was folded into, which is an
+    answer rather than a build that did not look."""
+    root = project(tmp_path, declare=GOVERNED_CRITERIA).root
+    assert main([
+        "-C", str(root), "retire", "RK1", "--folds-into", "RK7", "--reason", "A reason here.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", str(root), "brief", "RK7", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["done_when_folded"] == {"A first symptom": "RK1"}, payload
+    assert set(payload["done_when_folded"]) <= set(payload["done_when_own"])
+
+
+def test_a_supersession_that_moved_no_criterion_names_nothing(tmp_path, capsys):
+    """The other door of the same verb. `--superseded-by` says the work *moved* and writes no
+    criterion, so the destination's list is unchanged and there is nothing to attribute — the
+    join is on the symptom a fold copied, which a plain supersession never copies."""
+    root = project(tmp_path, declare=GOVERNED_CRITERIA).root
+    assert main([
+        "-C", str(root), "retire", "RK1", "--superseded-by", "RK7", "--reason", "It moved.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", str(root), "brief", "RK7", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["done_when_folded"] == {}

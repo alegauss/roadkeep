@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
-| C — Query (consult without reading the file) | 9 | 168 | 4 |
+| C — Query (consult without reading the file) | 8 | 169 | 4 |
 | D — The gate | 27 | 263 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 154 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 41 | 1047 | 14 |
+| **Total** | 40 | 1048 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1546** (deps: —) **a folded criterion cites no origin, so a reader of the absorbing task cannot tell it was somebody's line** — RK1511 records the destination in the ledger and the criterion says nothing, which is the half of the join its own design named and left. → §RK1546
+- 💭 **RK1547** (deps: —) **a pause carries a reason with no date and no expiry, so nothing ever asks whether it still holds** — RK1512 shipped the count and left the age, the store having no date and pick being the one path a git call may not be on. → §RK1547
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
