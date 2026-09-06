@@ -64,6 +64,7 @@
 - 📋 **RK1602** (deps: —) **the decisions pointer says it is built from the constant that writes it and spells the literal again** — One clause, two spellings, and a comment claiming otherwise — the third instance of the shape RK1507 and RK1542 each removed once. → §RK1602
 - 📋 **RK1603** (deps: —) **a table's note is repeated on every key under it, and that repetition is 29 percent of the config payload** — One fact about a table is sent once per key it holds, so a caller asking the shape pays ten thousand code units for six copies of a sentence. → §RK1603
 - 📋 **RK1604** (deps: —) **the one reader saying whether a role is available answers a third question and has no docstring** — config.has is role in paths, true for a default pointing at no file, and 109 call sites read it as though it meant the project has one. → §RK1604
+- 📋 **RK1605** (deps: RK1590) **the composer census counts sites that call the invocation, so a door spelled without it is outside the guarantee** — Every site is run or deliberate is a claim about functions calling invocation(), and a bare door composes a command none of them see. → §RK1605
 
 ## Block E — Adoption
 

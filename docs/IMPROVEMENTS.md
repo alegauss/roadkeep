@@ -845,6 +845,26 @@ is for. Two wrong answers from one call, and the correction was `paths.get(role)
 What is worth deciding is whether the other 108 want the same correction, or whether the
 name should say which question it takes.
 
+### §RK1605 The population the guarantee is over
+
+RK1498 ends with a sentence worth being exact about: *every site is run or deliberate*.
+The population it quantifies over is `census()`, which is every function calling
+`invocation()` — so a door composed without the prefix is not a site, is not counted,
+and is covered by nothing.
+
+Met, not theorised. `sections._WAYS_OUT["amend"]` printed `section move {anchor} --to
+<free anchor>` at every over-long amend since RK1034 and appeared in no census. It was
+bare, so nothing found it; the placeholder held a space, so nothing could have run it;
+and the sentence promised the one act `section move` refuses by name (RK377). Three
+defects in one clause, none reachable by the sweep built to find exactly this. It
+surfaced only because RK1548 added the invocation while quoting the placeholder — which
+made it a site, which made the census red.
+
+The fix is not to widen `census()` to every backticked verb: help strings name verbs
+constantly and are prose. What is undecided is whether the guarantee should be restated
+over the population it actually covers, or the population widened to the doors
+`commanded` finds — RK1590's ninety spans are the same question asked about findability.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
