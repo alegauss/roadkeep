@@ -155,6 +155,13 @@ class Measured:
     #: Absent where nothing measures this key — `[claims] held` is a judgement about how long
     #: work takes, which no file here holds evidence about (said, never invented).
     unmeasured: str = ""
+    #: A **door that does not read this key**, named (RK1537). :attr:`unmeasured`'s reading one
+    #: level down: that one says nothing measures the number at all, and this says the number is
+    #: read and one write is not held to it. Measured on `defer --reason`, which is charged
+    #: against the rendered line (RK1479, RK1115) because the field carries a wrapper and the
+    #: design carried forward — so an author who set `why` to bound their prose has bounded
+    #: nothing there, and from outside that is indistinguishable from a limit nothing reads.
+    excepted: str = ""
     #: The argument standing above the key, one string per comment line and the `#` stripped
     #: (RK1296). Kept in the file by `--because` and handed back here, because a reason the
     #: read does not return is one the caller opens the config for — the read L5 exists to
@@ -190,6 +197,11 @@ class Measured:
                 f"  reading  {self.sites} site(s), widest {self.worst}"
                 + (f" at {self.where}" if self.where else "")
             )
+        if self.excepted:
+            # Under the reading and above the number (RK1537): the reading says what the key
+            # measures and this says which write it does not reach, which is what an author
+            # choosing the figure needs before they choose it rather than after.
+            rows.append(f"  except   {self.excepted}")
         if standing:
             if self.declared is not None:
                 rows.append(f"  declared {self.declared}")
@@ -332,6 +344,11 @@ class Declared:
                 "worst": self.measured.worst,
                 "where": self.measured.where,
                 "unmeasured": self.measured.unmeasured or None,
+                # The door this key does not reach (RK1537), `null` where every write reads it.
+                # Its own key and never folded into the one above: *nothing measures this* and
+                # *one write is not held to this* are different facts, and a consumer branching
+                # on one of them would be acting on the other.
+                "excepted": self.measured.excepted or None,
             },
         }
 
@@ -503,7 +520,26 @@ def _limits(
         where=where,
         sites=sites,
         declared=declared,
+        # The one write this key does not bound (RK1537, RK1479): a pause is charged against
+        # the **rendered line**, because the reason arrives wrapped in `set aside (…): ` and
+        # the design's own sentence is carried forward — so a project that declared `why` and
+        # not `line` has bounded every field but that one, and nothing at the number said so.
+        excepted=_EXCEPTED.get(key, ""),
     )
+
+
+#: Per key, the door that does not read it (RK1537). A table rather than a branch, because the
+#: population is a fact about writes and a second one arriving is a row: what makes this
+#: sayable at all is that the exception is *known*, and RK1502's sweep nearly filed it as a
+#: defect precisely because a field nothing measures and one measured against another key look
+#: the same from outside.
+_EXCEPTED = {
+    "why": (
+        "`defer --reason` is not held to it — a pause is charged against the rendered line, "
+        "the reason arriving wrapped and the design's sentence carried forward, so "
+        "`[limits] line` is what bounds one"
+    ),
+}
 
 
 def _carried(config: Config, key: str, role: str) -> tuple[tuple[object, int], ...]:

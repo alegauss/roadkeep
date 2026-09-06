@@ -915,3 +915,45 @@ def test_the_verb_that_moved_it_can_still_move_it_back(tmp_path):
     # file is still readable, so the verb that refused is the verb that answers next.
     assert main(["-C", str(tmp_path), "govern", "tools.characters", "9000"]) == EXIT_OK
     assert "characters = 9000" in written(Config.discover(tmp_path))
+
+
+# -- the limit one door does not read (RK1537) ---------------------------------
+
+
+def test_the_key_a_pause_is_not_held_to_says_so_where_it_is_chosen(tmp_path, capsys):
+    """RK1537. RK1502's sweep nearly filed a defect that was not one: on a project declaring
+    `[limits] why` and no `line`, `defer --reason` accepts a reason every other write refuses.
+    It is right — a pause is charged against the rendered line (RK1479), the reason arriving
+    wrapped and the design's sentence carried forward — and from outside that is
+    indistinguishable from a limit nothing measures.
+
+    So the sentence goes where the number is chosen. `unmeasured` says *nothing measures this*;
+    this says *the number is read and one write is not held to it*, which is the fact an author
+    setting `why` to bound their prose needs before they set it."""
+    config = project(tmp_path)
+    found = governing.reading(config, "limits.why")
+    assert found.excepted, found
+    assert "defer --reason" in found.excepted
+    assert "`[limits] line` is what bounds one" in found.excepted
+    # And it is not the other row: the key *is* measured, over this project's own fields.
+    assert not found.unmeasured
+    assert found.sites
+
+
+def test_the_row_is_printed_by_the_verb_that_declares_the_number(tmp_path, capsys):
+    # Where the choice is made, and not at the write that accepts a long pause: `budget --defer`
+    # already prices one correctly, so the refusal is not the place — the door is right.
+    config = project(tmp_path)
+    assert main(["-C", str(tmp_path), "govern", "limits.why", "180"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "except   `roadkeep defer --reason`" in said or "except   `defer --reason`" in said
+    assert "charged against the rendered line" in said
+
+
+def test_every_other_limit_says_nothing_about_a_door(tmp_path):
+    """The population is one, which is what makes it sayable: a table of exceptions with a row
+    per key would be prose nobody could check, and a second one arriving is a row somebody
+    writes down rather than a branch they add."""
+    config = project(tmp_path)
+    assert not governing.reading(config, "limits.symptom").excepted
+    assert not governing.reading(config, "limits.line").excepted

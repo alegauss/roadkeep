@@ -336,31 +336,6 @@ yet, and what turns it into an answerable question is the state. That is a task 
 family rather than one sweep — and the reason to file it as one line is that the six
 that do run were each bought by a defect that had already shipped.
 
-### §RK1537 The limit one door does not read
-
-RK1502's sweep nearly filed a defect that was not one. On a fixture declaring `[limits]
-why` and no `line`, `defer --reason` accepts a 172-character reason where every other
-write in the table refuses — which reads exactly like the defect RK1479 repaired, coming
-back.
-
-It is not. A pause is charged against the **rendered line** and never against `why`
-(RK1479, RK1115): the field carries a wrapper and the design carried forward, so what
-bounds it is what the line comes to. Declare `line` and the same call is refused. The
-fixture was wrong and the verb right — and the two are indistinguishable from outside: a
-caller sees a long reason land and cannot tell *nothing measured it* from *the number
-you declared is not the one this reads*.
-
-That is the thing to close. Every other over-long field is refused with the limit it
-broke and the key it comes from; a pause under a `why` nobody declared `line` for is
-accepted in silence, and the author who set `why` to bound their prose has bounded
-nothing here.
-
-`budget --defer` already prices the pause correctly, so the refusal is not the place —
-the write is right to accept. What is missing is a sentence where the number is chosen:
-`govern limits.why` could say a pause is not held to it, which is
-`Measured.unmeasured`'s reading one level down — the key is read, and one door does not
-read it.
-
 ### §RK1538 The fact made structural and read as prose
 
 RK1503 put `bound` on the violation so a reader can tell *the field is over* from *the
