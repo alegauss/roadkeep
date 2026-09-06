@@ -887,6 +887,29 @@ shortened them to fit a number would be trading the one thing this answer is for
 `Skilled`'s rule: the figure and where it went, with the judgement left to whoever takes
 it.
 
+### §RK1583 The other end of the sentence
+
+RK1537 says at `govern limits.why` that a pause is not held to it. The other end of that
+sentence is silent: `defer --reason` accepts a reason no `why` limit bounds and reports
+nothing about what did bound it, so a caller who set that number and then paused a line
+still learns the answer by inference.
+
+The write is right to accept — the pause is charged against the rendered line (RK1479),
+and `budget --defer` prices it correctly. What is missing is one word in the answer. A
+deferral already reports what it wrote; saying the reason was measured against the line,
+at the figure it came to, costs a clause and closes the loop RK1537 opened at the other
+end.
+
+The register exists. Every over-long field is refused with the limit it broke and the
+key it came from, and RK1503 taught the refusal to say *which of two ceilings* bound a
+field where it has both. This is the same fact on the accepting side: the number that
+did apply, said once, where a caller can see it against the number they declared.
+
+What it must not do is repeat itself. A clause on every pause is the note a reader stops
+seeing (RK1443's rule, one register over), so the honest form is the figure beside what
+was written rather than a sentence explaining the rule — the rule is at `govern`, where
+the number is chosen, and this is the measurement.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
