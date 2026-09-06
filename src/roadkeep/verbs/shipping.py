@@ -6,14 +6,14 @@ later undone. Filed by their subject, an entry in the ledger, and not by whether
 one: a proposal is checked against both, and the two reads come before it, not after.
 
 **Every write here renders both registers off its own record** (RK1170), so each door is the
-call, the save and a choice of reading — and this module no longer imports `rendering` at all.
-The two reads still compose their answers here, which is the rest of that task.
+call and the save. The choice of reading went too (RK1615): a handler returns the `Result`
+holding both, so `rendering` is imported again — for the type this module answers in, which is
+the opposite of the printing it was imported for.
 """
 
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from collections.abc import Sequence
 
@@ -34,6 +34,7 @@ from roadkeep.shipping import (
     retire,
     ship,
 )
+from roadkeep.rendering import Result, answered
 from roadkeep.serving import Prose
 from roadkeep.verbs.declaring import (
     _JSON_HELP,
@@ -46,7 +47,7 @@ from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, REFUSALS, _r
 
 
 
-def _ship(config: Config, args: argparse.Namespace) -> int:
+def _ship(config: Config, args: argparse.Namespace) -> Result | int:
     if args.remainder is not None and args.part is None:
         # Refused rather than ignored (RK465, RK1233): a remainder on a whole shipment is a
         # sentence about a line that is being removed, and honouring it silently would write
@@ -92,34 +93,22 @@ def _ship(config: Config, args: argparse.Namespace) -> int:
         # entry already was.
         return _closed(config, shipment, args, wrote)
 
-    if args.json:
-        print(json.dumps(shipment.payload(config, wrote), indent=2))
-    else:
-        print(shipment.stated(config, wrote))
-    return EXIT_OK
+    return answered(shipment, config=config, wrote=wrote)
 
 
-def _partly(config: Config, partial: Partial, args: argparse.Namespace) -> int:
+def _partly(config: Config, partial: Partial, args: argparse.Namespace) -> Result | int:
     """Half of a task recorded, with its roadmap line still open (RK121)."""
-    if args.json:
-        print(json.dumps(partial.payload(config), indent=2))
-    else:
-        print(partial.stated(config))
-    return EXIT_OK
+    return answered(partial, config=config)
 
 
 def _closed(
     config: Config, closure: Closure, args: argparse.Namespace, wrote: Sequence[str] = ()
-) -> int:
+) -> Result | int:
     """A roadmap line closed against an entry the ledger already had (RK62)."""
-    if args.json:
-        print(json.dumps(closure.payload(config, wrote), indent=2))
-    else:
-        print(closure.stated(config, wrote))
-    return EXIT_OK
+    return answered(closure, config=config, wrote=wrote)
 
 
-def _record(config: Config, args: argparse.Namespace) -> int:
+def _record(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         entry = record(
             config,
@@ -134,14 +123,10 @@ def _record(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(entry.payload(config, wrote), indent=2))
-    else:
-        print(entry.stated(config, wrote))
-    return EXIT_OK
+    return answered(entry, config=config, wrote=wrote)
 
 
-def _record_amend(config: Config, args: argparse.Namespace) -> int:
+def _record_amend(config: Config, args: argparse.Namespace) -> Result | int:
     if args.why is None and args.part is None and args.symptom is None:
         print(
             "roadkeep: nothing to amend: pass --why, --part or --symptom", file=sys.stderr
@@ -169,14 +154,15 @@ def _record_amend(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(corrected.payload(config, wrote, undone_by), indent=2))
-    else:
-        print(corrected.stated(config, wrote, undone_by))
-    return EXIT_OK
+    # `Result` and not `answered`, this record taking the reversal beside the paths (RK1614's
+    # carry list): one result, two registers, and a shape outside the declared three.
+    return Result(
+        corrected.payload(config, wrote, undone_by),
+        corrected.stated(config, wrote, undone_by),
+    )
 
 
-def _record_move(config: Config, args: argparse.Namespace) -> int:
+def _record_move(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         refiled = move_record(config, args.id, to_block=args.to_block)
         # Nothing is written where the entry already sits under that heading, so nothing is
@@ -185,42 +171,30 @@ def _record_move(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(refiled.payload(config, wrote), indent=2))
-    else:
-        print(refiled.stated(config, wrote))
-    return EXIT_OK
+    return answered(refiled, config=config, wrote=wrote)
 
 
-def _record_renumber(config: Config, args: argparse.Namespace) -> int:
+def _record_renumber(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         moved = readdress_record(config, args.id, lineno=args.line, to=args.to)
         wrote = moved.save()
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(moved.payload(config, wrote), indent=2))
-    else:
-        print(moved.stated(config, wrote))
-    return EXIT_OK
+    return answered(moved, config=config, wrote=wrote)
 
 
-def _record_drop(config: Config, args: argparse.Namespace) -> int:
+def _record_drop(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         dropped = drop_record(config, args.id, lineno=args.line)
         wrote = dropped.save()
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(dropped.payload(config, wrote), indent=2))
-    else:
-        print(dropped.stated(config, wrote))
-    return EXIT_OK
+    return answered(dropped, config=config, wrote=wrote)
 
 
-def _delivered(config: Config, args: argparse.Namespace) -> int:
+def _delivered(config: Config, args: argparse.Namespace) -> Result | int:
     """Every claim this block has already made good on (RK385).
 
     **Symptoms and not entries.** A shipped line states two things — the problem it claimed
@@ -355,11 +329,10 @@ def _delivered(config: Config, args: argparse.Namespace) -> int:
     # a duplicate, so the two had better say the same thing — and they were a printer and a
     # payload builder in this handler, agreeing by hand over a header, a bound and a per-entry
     # mark. The payload now carries what the listing shows by construction.
-    print(json.dumps(answer.payload(), indent=2) if args.json else answer)
-    return EXIT_OK
+    return Result(answer.payload(), str(answer))
 
 
-def _reversals(config: Config, args: argparse.Namespace) -> int:
+def _reversals(config: Config, args: argparse.Namespace) -> Result | int:
     """What the ledger already undid (RK416), and with `--id` whether one thing is among it.
 
     `--id` exits 1 rather than 0 for a reason the plain listing does not need: the caller is
@@ -382,14 +355,10 @@ def _reversals(config: Config, args: argparse.Namespace) -> int:
         asked=args.task_id or "",
     )
 
-    if args.json:
-        print(json.dumps(answer.payload(), indent=2))
-    else:
-        print(answer.stated())
-    return EXIT_GATE if answer.gated else EXIT_OK
+    return answered(answer, code=EXIT_GATE if answer.gated else EXIT_OK)
 
 
-def _supersede(config: Config, args: argparse.Namespace) -> int:
+def _supersede(config: Config, args: argparse.Namespace) -> Result | int:
     """The one door a decision leaves by (RK1274), which is not a departure from a backlog.
 
     Nothing is deleted and nothing is composed: both entries stay, the marker says which is
@@ -404,14 +373,10 @@ def _supersede(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(found.payload(config, wrote), indent=2))
-    else:
-        print(found.stated(config, wrote))
-    return EXIT_OK
+    return answered(found, config=config, wrote=wrote)
 
 
-def _revise(config: Config, args: argparse.Namespace) -> int:
+def _revise(config: Config, args: argparse.Namespace) -> Result | int:
     """The correction door the decisions file had none of (RK1453).
 
     `supersede`'s sibling and not its flag: that one replaces a decision, this one replaces a
@@ -438,14 +403,10 @@ def _revise(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(corrected.payload(config, wrote), indent=2))
-    else:
-        print(corrected.stated(config, wrote))
-    return EXIT_OK
+    return answered(corrected, config=config, wrote=wrote)
 
 
-def _retire(config: Config, args: argparse.Namespace) -> int:
+def _retire(config: Config, args: argparse.Namespace) -> Result | int:
     """Record a line leaving without shipping, and say where its replacement is (RK32, RK244).
 
     Both registers come off the record (RK1170) — the *retirement* pair, one shape carrying two
@@ -466,11 +427,9 @@ def _retire(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(departure.retirement(config, wrote), indent=2))
-    else:
-        print(departure.retired(config, wrote))
-    return EXIT_OK
+    # The retirement pair and not `payload`/`stated`: one shape carries two doors' answers, so
+    # the register names are this record's own and the branch is still gone.
+    return Result(departure.retirement(config, wrote), departure.retired(config, wrote))
 
 
 def declare_departures(subcommands: argparse._SubParsersAction) -> None:

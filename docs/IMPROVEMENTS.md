@@ -212,6 +212,30 @@ somewhere different. `_composed_markers` already joins an f-string's literal par
 before looking for a backtick, which is the reading the other two want — so the repair
 is one helper the three share, and the third value kind on the scan that reads one.
 
+### §RK1618 Nothing to file is a finding
+
+`delivered` states what a block shipped and `reversals` what it undid, and both are
+named as the read before an `add`. Neither answers the third question a proposal meets:
+was this looked at already and deliberately not filed?
+
+pportal has twenty-five such findings and keeps them in a per-user memory directory
+outside its git, so a second machine, a second agent or a second person re-traces them.
+The tracing is the whole cost. `session.c:970` returns without closing a socket and is
+harmless only because `ChiakiTarget` has six values, two of which the guard excludes,
+leaving exactly the four the formatter answers for — reading that took longer than any
+fix it ruled out.
+
+A free-prose reason cannot carry it. An entry that says checked, fine is unfalsifiable
+and gets re-traced; what makes one durable is the premise it names, because that is the
+thing a later commit can break. A seventh target value makes `session.c:970` real, and
+nothing else does.
+
+This is none of the three doors that exist. `retire` is for a line that was filed,
+`defer` for work still waiting, `reversals` for a decision undone. Here nothing was ever
+filed and the finding is that there is nothing to file, which is exactly why it has
+nowhere to live — and why the same suspicion is filed from resemblance instead: of four
+such filings in pportal, three needed correction.
+
 ## Block D — The gate
 
 ### §RK1565 The same arithmetic, one note over
@@ -820,29 +844,6 @@ their server.
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
-
-### §RK1615 The scrape at the boundary
-
-A handler is `(config, args) -> int`: it computes a result, prints one of its two
-registers, returns an exit code. That is the whole contract, and it is a terminal's.
-
-So the served surface reconstructs the answer from the print. `call` renders the
-arguments back into an argv, re-parses it into a namespace, dispatches, and captures
-stdout and stderr into `StringIO` buffers — then hands the concatenated text back as the
-tool result. The payload the handler built as a dict one frame earlier is serialised to
-JSON, written to a captured stream, and returned as a string the client parses again.
-`--json` is appended to every composed argv so what is captured is machine-readable —
-the tell: the transport asks the handler to print in a format it can re-read.
-
-Three consequences, all already filed or measured. `isError` is inferred from a captured
-`SystemExit` or a returned int rather than stated. A refusal gates its payload on an
-argv slot this surface clears, so it arrives as prose. And `_spent_stdin` hands handlers
-a stream at EOF, because three of them read a pipe that does not exist here.
-
-The alternative is one line: `handler(config, args) -> Result`. One caller renders it
-for a terminal, another returns `result.payload()` on the wire, and nothing is captured.
-What needs deciding is the exit code — a field on the result, or still the dispatcher's,
-given that a read and the gate's verdict mean different things by 1.
 
 ### §RK1616 L1, turned on this package
 

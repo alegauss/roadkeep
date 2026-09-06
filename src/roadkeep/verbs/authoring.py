@@ -16,7 +16,6 @@ id being stdout a shell captures and the promise a sentence that must not reach 
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 
 from roadkeep.authoring import add, amend, restate, set_status
@@ -37,11 +36,11 @@ from roadkeep.verbs.declaring import (
     withheld,
 )
 from roadkeep.rendering import Result, answered
-from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
+from roadkeep.verbs.refusing import EXIT_USAGE, REFUSALS, _refused
 
 
 
-def _next_id(config: Config, args: argparse.Namespace) -> int:
+def _next_id(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         derived = derivation(config, args.family)
     except ValueError as error:
@@ -50,16 +49,14 @@ def _next_id(config: Config, args: argparse.Namespace) -> int:
     # Three streams and not two (RK1170): the id is stdout because this command exists to be
     # captured in a shell, and the promise is stderr because a second line in that capture is
     # a broken id — so the branch is which reading, never whether to add a sentence.
-    if args.json:
-        print(json.dumps(derived.payload(config, family), indent=2))
-        return EXIT_OK
-    print(derived.stated())
-    for note in derived.notice():
-        print(note, file=sys.stderr)
-    return EXIT_OK
+    return Result(
+        derived.payload(config, family),
+        derived.stated(),
+        noted="\n".join(derived.notice()),
+    )
 
 
-def _add(config: Config, args: argparse.Namespace) -> int:
+def _add(config: Config, args: argparse.Namespace) -> Result | int:
     # The pipe clash is `dispatch`'s, asked over what this verb's parser declares (RK1176) —
     # this had the only copy of it, which is how `ship` sent two arguments to one stream with
     # the refusal sitting one module away. What is left here is the other question: a body given
@@ -107,11 +104,12 @@ def _add(config: Config, args: argparse.Namespace) -> int:
     stamped = (
         stamp(config.locate(args.capture), insertion.entry.task.id) if args.capture else False
     )
-    if args.json:
-        print(json.dumps(insertion.addition(config, args.capture, stamped), indent=2))
-    else:
-        print(insertion.added(config, args.capture, stamped))
-    return EXIT_OK
+    # `addition`/`added` and not `payload`/`stated`: this record spells its two registers with
+    # its own names, which is a carry RK1614 lists and not a reason to keep the branch.
+    return Result(
+        insertion.addition(config, args.capture, stamped),
+        insertion.added(config, args.capture, stamped),
+    )
 
 
 def _status(config: Config, args: argparse.Namespace) -> Result | int:

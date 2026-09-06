@@ -48,6 +48,7 @@ from roadkeep.capturing import offer
 from roadkeep.config import Config, ConfigError
 from roadkeep.locking import LockBusy, exclusive
 from roadkeep.provenance import asking, engine, invocation, invoked, read_by
+from roadkeep.rendering import Result
 from roadkeep.serving import Prose
 from roadkeep.remaining import declared
 from roadkeep.verbs.adopting import declare_wiring
@@ -454,7 +455,28 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def dispatch(config: Config, args: argparse.Namespace) -> int:
+    """Run one command's handler and print its answer, returning the exit code.
+
+    What a terminal caller wants, and what `repair` re-enters per step: :func:`answer` does the
+    work and this writes the register asked for. Split at RK1615, so the surface that does not
+    print has something to call — see that function for why the split is the whole task.
+    """
+    return _rendered(answer(config, args), args)
+
+
+def answer(config: Config, args: argparse.Namespace) -> Result | int:
     """Run one command's handler, under the write lock unless its parser only reads (RK117).
+
+    **Returns the answer rather than printing it** (RK1615). The served surface used to
+    reconstruct it from the print: `call` composed an argv, re-parsed it, dispatched under a
+    `redirect_stdout`, and handed back the captured text — so the payload a handler built as a
+    dict one frame earlier was serialised, written to a captured stream, and returned as a
+    string for the client to parse again. It takes the value now.
+
+    An `int` still comes back from a refusal, which has already written to stderr with its
+    fields beside it (RK1584), and from the handlers that answer in a code for a reason:
+    `guard` has no plain register at all, `merge`'s driver branches are bytes in git's `%A`,
+    and neither is served. `tests/test_registers.py` names them.
 
     Here and not inside :func:`main`, because the MCP server dispatches the same parsed
     args in-process and never goes through `main` (RK24) — which is the write path an agent
@@ -484,12 +506,12 @@ def dispatch(config: Config, args: argparse.Namespace) -> int:
     if refused is not None:
         return refused
     if _only_reads(args):
-        return _rendered(args.handler(config, args), args)
+        return args.handler(config, args)
     refused = _behind(config, args)
     if refused is not None:
         return refused
     with exclusive(config.root):
-        code = _rendered(args.handler(config, args), args)
+        code = args.handler(config, args)
         # Still under the lock, and after the handler rather than before: what is recorded
         # is the bytes a verb left, so a later turn can say that bytes which are not these
         # arrived some other way (RK175). A refusal wrote nothing and re-records the same
@@ -512,7 +534,25 @@ def _rendered(answer: object, args: argparse.Namespace) -> int:
     """
     if isinstance(answer, int):
         return answer
-    print(json.dumps(answer.fields, indent=2) if args.json else answer.said)
+    if args.json:
+        print(json.dumps(answer.fields, indent=2))
+        # And no note, which is what every handler that had both already did: `next-id` and
+        # `section show` return before theirs under `--json`, because a payload is one object
+        # and the fact the note states is a field of it. The note is the *plain* register's
+        # second stream, so it belongs to the branch that prints the plain register.
+        return answer.code
+    if answer.writer is not None:
+        answer.writer()
+    elif answer.said:
+        # Empty is *nothing on stdout* and never a blank line, which `list` depends on: over its
+        # cap it says so on stderr and leaves the stream a consumer pipes `--ids` out of clean,
+        # and a newline there is a line that consumer then has to know to drop.
+        print(answer.said)
+    # After stdout and never folded into it (RK1615): a handler writing both is one whose two
+    # streams mean different things — `next-id` puts the id where a shell captures it and the
+    # promise where that capture stays one token — and the order is the one a terminal read.
+    if answer.noted:
+        print(answer.noted, file=sys.stderr)
     return answer.code
 
 

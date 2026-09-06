@@ -34,6 +34,7 @@ from roadkeep.linting import lint
 from roadkeep.merging import markers, merge, register, role_of, wiring
 from roadkeep.remedying import codes as remedy_codes, explain
 from roadkeep.rendering import (
+    Result,
     _served,
     registration_report,
 )
@@ -43,12 +44,18 @@ from roadkeep.verbs.declaring import _JSON_HELP, answers, withheld
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, REFUSALS, _refused
 
 
-def _merge(config: Config, args: argparse.Namespace) -> int:
+def _merge(config: Config, args: argparse.Namespace) -> Result | int:
     """Git's driver contract: leave the result in `ours`, exit 0 clean and 1 conflicted.
 
     The refusal writes too, and that is deliberate: git has handed the merge over by the
     time this runs, so a non-zero exit that left `%A` untouched would leave the reviewer a
     file that reads as though one side simply won.
+
+    **The driver's own branches keep the code** (RK1615), and this is not a migration missed.
+    Git reads an exit code and the bytes left in `%A`; there is no second register to unify,
+    which is the same argument this function already makes about refusing `--json`. What does
+    answer with a value is the branch that delegates — `--check`, which is the query on this
+    command and the one the transport serves.
     """
     # `--json` is the form of one argument on this command, and a request nothing else here can
     # honour (RK317). Argparse scopes a flag to the subparser rather than to the branch, so `merge
@@ -129,7 +136,7 @@ def _merge_register(config: Config) -> int:
     return EXIT_OK
 
 
-def _merge_check(config: Config, args: argparse.Namespace) -> int:
+def _merge_check(config: Config, args: argparse.Namespace) -> Result | int:
     """Ask whether git would run this driver at all, and write nothing (RK266, RK270).
 
     The verb RK266 exists for. `lint` was the other candidate and is the wrong one: it is the
@@ -154,14 +161,12 @@ def _merge_check(config: Config, args: argparse.Namespace) -> int:
     exit code as a boolean, so nothing has to infer it from the absence of repairs.
     """
     wired = wiring(config)
-    if args.json:
-        print(json.dumps(wired.payload(config), indent=2))
-    else:
-        print(wired.stated())
-    return EXIT_OK if wired.sound else EXIT_GATE
+    return Result(
+        wired.payload(config), wired.stated(), code=EXIT_OK if wired.sound else EXIT_GATE
+    )
 
 
-def _lint(config: Config, args: argparse.Namespace) -> int:
+def _lint(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         # The mechanical pass runs first and the report is taken afterwards, so what is
         # printed is what is left — the whole point of RK16.
@@ -178,14 +183,19 @@ def _lint(config: Config, args: argparse.Namespace) -> int:
     # *is* a wrong working directory, so a spelling relative to one would print `.` and
     # attribute the report to wherever it was misread from.
     root = config.root.as_posix()
-    if args.json:
-        print(json.dumps(report.payload(config, applied, root), indent=2))
-    else:
-        report.stated(config, applied, root, quiet=args.quiet)
-    return EXIT_OK if passed else EXIT_GATE
+    # The one answer that streams, carried as a writer rather than as a string (RK1615):
+    # `Report.stated` writes its rows as it composes them, because a finding's remedy is fetched
+    # per finding and a corpus-sized report held as a list is one handed straight to `print`.
+    # RK1170 left that standing and this keeps it, in the type instead of in a handler.
+    return Result(
+        report.payload(config, applied, root),
+        "",
+        code=EXIT_OK if passed else EXIT_GATE,
+        writer=lambda: report.stated(config, applied, root, quiet=args.quiet),
+    )
 
 
-def _repair(config: Config, args: argparse.Namespace) -> int:
+def _repair(config: Config, args: argparse.Namespace) -> Result | int:
     """Apply what the gate already knows how to close, and print what it does not (RK422).
 
     The runner handed down is this module's own dispatcher, re-entered per step: the write
@@ -204,12 +214,6 @@ def _repair(config: Config, args: argparse.Namespace) -> int:
         return _refused(error)
 
     root = config.root.as_posix()
-    if args.json:
-        print(json.dumps(outcome.payload(root, _served(config)), indent=2))
-    else:
-        print(outcome.stated(root))
-        for line in outcome.warnings():
-            print(line, file=sys.stderr)
     # The verdict this parser declares, withdrawn for the one exit that is not one (RK1419):
     # a step is an argv this tool composed from its own table, so one that came back non-zero
     # is a door of ours that did not work — RK86's subject exactly, and the offer belongs on
@@ -218,9 +222,13 @@ def _repair(config: Config, args: argparse.Namespace) -> int:
         args.verdict = False
     # Clean means clean, and `--dry-run` is never that: a run that wrote nothing has not
     # closed anything, so reporting 0 would tell a CI job the tree passes when it does not.
-    if outcome.dry_run:
-        return EXIT_OK if outcome.clean else EXIT_GATE
-    return EXIT_OK if outcome.clean and not outcome.failed else EXIT_GATE
+    clean = outcome.clean if outcome.dry_run else outcome.clean and not outcome.failed
+    return Result(
+        outcome.payload(root, _served(config)),
+        outcome.stated(root),
+        noted="\n".join(outcome.warnings()),
+        code=EXIT_OK if clean else EXIT_GATE,
+    )
 
 
 def _step(config: Config) -> Callable[[Sequence[str]], int]:
@@ -252,7 +260,7 @@ def _step(config: Config) -> Callable[[Sequence[str]], int]:
     return run
 
 
-def _explain(config: Config, args: argparse.Namespace) -> int:
+def _explain(config: Config, args: argparse.Namespace) -> Result | int:
     """The vocabulary, as a command (RK423) — which is L5 applied to the gate's own codes.
 
     Read-only and config-aware at once: the two rows L6 makes per-project (RK420) answer
@@ -261,16 +269,19 @@ def _explain(config: Config, args: argparse.Namespace) -> int:
     """
     if args.code is None:
         listing = [explain(code, config) for code in remedy_codes()]
-        if args.json:
-            print(json.dumps([one.payload(_served(config)) for one in listing if one], indent=2))
-        else:
-            for one in listing:
-                if one is not None:
-                    # One line each: the listing is a menu, and a caller that wants the
-                    # three fields asks for the code it found here.
-                    print(f"{one.code:26} {one.kind:8} {one.remedy.doors[0].command}")
-            print(f"{len(listing)} code(s) this gate can report")
-        return EXIT_OK
+        return Result.of(
+            # A list and not a mapping, which is what this payload has always been: the type's
+            # field is the payload a caller reads, and a listing's is an array.
+            [one.payload(_served(config)) for one in listing if one],
+            # One line each: the listing is a menu, and a caller that wants the three fields
+            # asks for the code it found here.
+            *(
+                f"{one.code:26} {one.kind:8} {one.remedy.doors[0].command}"
+                for one in listing
+                if one is not None
+            ),
+            f"{len(listing)} code(s) this gate can report",
+        )
 
     found = explain(args.code, config)
     if found is None:
@@ -281,8 +292,7 @@ def _explain(config: Config, args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return EXIT_USAGE
-    print(json.dumps(found.payload(_served(config)), indent=2) if args.json else str(found))
-    return EXIT_OK
+    return Result(found.payload(_served(config)), str(found))
 
 
 def _guard(config: Config, args: argparse.Namespace) -> int:

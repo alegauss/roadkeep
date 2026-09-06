@@ -34,6 +34,7 @@
 - 💭 **RK1573** (deps: —) **declare non_goals opens a table whose verb refuses, nothing writing the heading that declares the list** — init writes it once at scaffold time, so a project past that is opened into a list it can only start with the hand edit the guard denies. → §RK1573
 - 💭 **RK1608** (deps: —) **a narrowing flag whose vocabulary the project declared nothing for filters nothing and says nothing** — RK1556 gave the partial fallback a sentence and left --designed and --have with the same silence, so a caller reads an answer as narrowed that was not. → §RK1608
 - 💭 **RK1609** (deps: —) **three scans of one rule reconstruct a composed command three ways, and a value sits in the gap between them** — RK1558 stated where the exemption ends and left the span split across an f-string's parts, so a literal value inside a help command is read by none of them. → §RK1609
+- 💭 **RK1618** (deps: —) **delivered and reversals are the reads before an add, and neither holds what was traced and not filed** — pportal keeps twenty-five such findings outside its git; only the premise an entry names can reopen it, and a free-prose reason has no slot for one. → §RK1618
 
 ## Block D — The gate
 
@@ -74,8 +75,7 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-- 📋 **RK1615** (deps: RK1617 ✅) **the served surface reads a handler's answer by capturing the stdout it printed for a terminal** — The result is an object one frame earlier and the transport renders it to text and re-parses it, so the surface this tool is built for is a scrape of the one it is not. → §RK1615
-- 📋 **RK1616** (deps: RK1615) **nothing refuses a handler whose answer is not a result, so the shape is held by review alone** — L1 refuses a bad roadmap line at insertion and a bad handler is refused by nobody, so this package's own shape is held by the review that files a follow-up after the fact. → §RK1616
+- 📋 **RK1616** (deps: RK1615 ✅) **nothing refuses a handler whose answer is not a result, so the shape is held by review alone** — L1 refuses a bad roadmap line at insertion and a bad handler is refused by nobody, so this package's own shape is held by the review that files a follow-up after the fact. → §RK1616
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 

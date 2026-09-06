@@ -27,7 +27,7 @@ about which code answered, which is the whole point of that read.
 from __future__ import annotations
 
 import argparse
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -111,12 +111,59 @@ class Result:
     verdict of 1 is not a refusal (RK271).
     """
 
-    #: The payload register, as `--json` carries it.
-    fields: Mapping[str, object]
-    #: The plain register, as a terminal reads it — the whole of what would have been printed.
+    #: The payload register, as `--json` carries it. Whatever `json.dumps` takes and not a
+    #: mapping alone: `explain` with no code answers with an array, a listing's payload being
+    #: a list — and a type that said mapping would be describing most verbs rather than all.
+    fields: Mapping[str, object] | Sequence[object]
+    #: The plain register, as a terminal reads it — the whole of what would have been printed,
+    #: newlines included: eighteen handlers write three rows or more, and a type that held one
+    #: line would have moved the composition into every one of them.
     said: str
+    #: What goes to stderr beside the **plain** register, which is not the same answer (RK1615).
+    #: Twenty-one handlers write both, and the split is load-bearing: `next-id` puts the id on
+    #: stdout so a shell can capture it and the promise on stderr so that capture stays one
+    #: token. A type folding them together would make every such capture a broken id.
+    #:
+    #: Beside the plain register and not beside the payload, which is what those handlers
+    #: already did: each returned before its note under `--json`, because a payload is one
+    #: object and what the note says is a field of it.
+    noted: str = ""
     #: The exit code: 0 success, 1 the gate says no, 2 usage or configuration.
     code: int = EXIT_OK
+
+    #: The plain register **written** instead of held, for the one answer that streams (RK1615).
+    #:
+    #: `Report.stated` writes its rows as it composes them, and says why: a finding's remedy is
+    #: fetched per finding, so building the whole report as a list would hold a corpus-sized
+    #: report in memory to hand it straight to `print`. RK1170 left that standing on purpose and
+    #: this does not overturn it — a field rather than a silent exception, so the one answer that
+    #: streams is visible in the type instead of being a handler that quietly still prints.
+    #:
+    #: Never consulted on the payload branch: the served surface passes `--json` on every call,
+    #: so the streaming register is exactly the one it never asks for.
+    writer: Callable[[], None] | None = None
+
+    @classmethod
+    def of(
+        cls,
+        fields: Mapping[str, object] | Sequence[object],
+        *rows: str,
+        noted: Sequence[str] = (),
+        code: int = EXIT_OK,
+    ) -> Result:
+        """The same answer written as the rows a handler used to print, in order.
+
+        What a migrated multi-row handler wants: `print` per row is what it had, and joining at
+        each site is the composition this type exists to hold once. Empty rows are dropped, a
+        handler that printed nothing on a branch being one whose plain register is empty rather
+        than one that answered with a blank line.
+        """
+        return cls(
+            fields=fields,
+            said="\n".join(one for one in rows if one),
+            noted="\n".join(one for one in noted if one),
+            code=code,
+        )
 
 
 def answered(
@@ -137,11 +184,14 @@ def answered(
     nothing dispatches on is a comment; a row this function branches on is the reason a
     twenty-first shape has nowhere to go.
     """
+    # `code=` by keyword and never third-positional: `noted` sits between them, so a positional
+    # exit code lands on the stderr field — which is silent on every verb that returns 0 and
+    # showed up as a bare `1` printed beside `reversals --id`, with the call exiting 0.
     if wrote is not None:
-        return Result(one.payload(config, wrote), one.stated(config, wrote), code)
+        return Result(one.payload(config, wrote), one.stated(config, wrote), code=code)
     if config is not None:
-        return Result(one.payload(config), one.stated(config), code)
-    return Result(one.payload(), one.stated(), code)
+        return Result(one.payload(config), one.stated(config), code=code)
+    return Result(one.payload(), one.stated(), code=code)
 
 
 #: What every character figure this tool publishes is counted in (RK430). Declared in the

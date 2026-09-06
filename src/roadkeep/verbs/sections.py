@@ -7,15 +7,15 @@ against before it is written, and the queue that reorders what `pick` offers.
 One module because they share a shape none of the task-line verbs has: each addresses a
 place rather than a task, and each writes the same heading into every file that declares one.
 
-**Every write here renders both registers off its own record** (RK1170), so this module no
-longer imports `rendering` at all. What is left composing an answer in a door is the three
-reads — `section show`, `non-goal list` and `priority list` — which is the rest of that task.
+**Every write here renders both registers off its own record** (RK1170), and since RK1615 no
+door chooses between them: each returns the `Result` carrying both, so `rendering` is imported
+for the type this module answers in rather than for the printing it used to do. The three reads
+— `section show`, `non-goal list` and `priority list` — still compose their answers here.
 """
 
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from dataclasses import replace
 
@@ -67,7 +67,7 @@ from roadkeep.sections import (
     titled,
 )
 from roadkeep.remedying import BLANK, Door
-from roadkeep.rendering import _served
+from roadkeep.rendering import Result, _served, answered
 from roadkeep.serving import Prose
 from roadkeep.verbs.declaring import (
     _BODY_FILE,
@@ -76,10 +76,10 @@ from roadkeep.verbs.declaring import (
     withheld,
 )
 from roadkeep.verbs.reading import _body_reader, _one_body, _piped
-from roadkeep.verbs.refusing import EXIT_OK, EXIT_USAGE, REFUSALS, _refused
+from roadkeep.verbs.refusing import EXIT_USAGE, REFUSALS, _refused
 
 
-def _block_add(config: Config, args: argparse.Namespace) -> int:
+def _block_add(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         opened = open_block(
             config, args.label, args.title, after=args.after, organise=args.organise
@@ -88,56 +88,40 @@ def _block_add(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(opened.payload(config, wrote), indent=2))
-    else:
-        print(opened.stated(config, wrote))
-    return EXIT_OK
+    return answered(opened, config=config, wrote=wrote)
 
 
-def _block_drop(config: Config, args: argparse.Namespace) -> int:
+def _block_drop(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         closed = drop_block(config, args.label, prose=args.prose)
         wrote = closed.save()
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(closed.payload(config, wrote), indent=2))
-    else:
-        print(closed.stated(config, wrote))
-    return EXIT_OK
+    return answered(closed, config=config, wrote=wrote)
 
 
-def _block_amend(config: Config, args: argparse.Namespace) -> int:
+def _block_amend(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         retitled = amend_block(config, args.label, args.title)
         wrote = retitled.save()
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(retitled.payload(config, wrote), indent=2))
-    else:
-        print(retitled.stated(config, wrote))
-    return EXIT_OK
+    return answered(retitled, config=config, wrote=wrote)
 
 
-def _block_merge(config: Config, args: argparse.Namespace) -> int:
+def _block_merge(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         merged = merge_block(config, args.label, prose=args.prose)
         wrote = merged.save()
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(merged.payload(config, wrote), indent=2))
-    else:
-        print(merged.stated(config, wrote))
-    return EXIT_OK
+    return answered(merged, config=config, wrote=wrote)
 
 
-def _block_list(config: Config, args: argparse.Namespace) -> int:
+def _block_list(config: Config, args: argparse.Namespace) -> Result | int:
     """Print where a task may go, at the moment one is placed (RK1188).
 
     `non-goal list`'s sibling, and answered the same way: no argument, never refused, and
@@ -148,14 +132,10 @@ def _block_list(config: Config, args: argparse.Namespace) -> int:
     except (KeyError, OSError) as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(declared.payload(config), indent=2))
-    else:
-        print(declared.stated(config))
-    return EXIT_OK
+    return answered(declared, config=config)
 
 
-def _section_add(config: Config, args: argparse.Namespace) -> int:
+def _section_add(config: Config, args: argparse.Namespace) -> Result | int:
     # stdin by default: a paragraph does not fit comfortably in a shell argument, and a
     # heredoc is how the caller of this tool already passes prose. `--body-file` is the third
     # source (RK381), and the one whose retry costs the corrected field alone.
@@ -174,14 +154,10 @@ def _section_add(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(written.payload(config, wrote), indent=2))
-    else:
-        print(written.stated(config, wrote))
-    return EXIT_OK
+    return answered(written, config=config, wrote=wrote)
 
 
-def _refs(config: Config, args: argparse.Namespace) -> int:
+def _refs(config: Config, args: argparse.Namespace) -> Result | int:
     """Declare a prose file's namespace and carry its own citations into it (RK1168).
 
     The transaction the first half of this task made visible: `[refs]` re-addresses every heading
@@ -201,11 +177,7 @@ def _refs(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(found.payload(config, wrote), indent=2))
-    else:
-        print(found.stated(config, wrote))
-    return EXIT_OK
+    return answered(found, config=config, wrote=wrote)
 
 
 def _substitution(args: argparse.Namespace) -> Substitution | str | None:
@@ -237,7 +209,7 @@ def _substitution(args: argparse.Namespace) -> Substitution | str | None:
     return Substitution(old=old, new=new)
 
 
-def _section_amend(config: Config, args: argparse.Namespace) -> int:
+def _section_amend(config: Config, args: argparse.Namespace) -> Result | int:
     substitute = _substitution(args)
     if isinstance(substitute, str):
         print(f"roadkeep: {substitute}", file=sys.stderr)
@@ -314,11 +286,12 @@ def _section_amend(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(rewritten.payload(config, wrote, body is not None), indent=2))
-    else:
-        print(rewritten.stated(config, wrote, body is not None))
-    return EXIT_OK
+    # `Result` and not `answered`, this record taking a third argument (RK1614's carry list):
+    # both registers still come off one result, and only the shape is outside the three.
+    return Result(
+        rewritten.payload(config, wrote, body is not None),
+        rewritten.stated(config, wrote, body is not None),
+    )
 
 
 def _refused_elsewhere(config: Config, error: NotOneOccurrence) -> int:
@@ -350,21 +323,17 @@ def _refused_elsewhere(config: Config, error: NotOneOccurrence) -> int:
 _CARRIERS = 4
 
 
-def _section_move(config: Config, args: argparse.Namespace) -> int:
+def _section_move(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         moved = move_section(config, args.role, args.anchor, args.to)
         wrote = moved.save()
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(moved.payload(config, wrote), indent=2))
-    else:
-        print(moved.stated(config, wrote))
-    return EXIT_OK
+    return answered(moved, config=config, wrote=wrote)
 
 
-def _section_show(config: Config, args: argparse.Namespace) -> int:
+def _section_show(config: Config, args: argparse.Namespace) -> Result | int:
     """One section, at the extent the caller asked for (RK1107, RK1112, RK1118).
 
     Both registers come off the record (RK1170), and the third stream with them: the prose is
@@ -379,16 +348,14 @@ def _section_show(config: Config, args: argparse.Namespace) -> int:
         print(f"roadkeep: {error}", file=sys.stderr)
         return EXIT_USAGE
 
-    if args.json:
-        print(json.dumps(shown.payload(), indent=2))
-        return EXIT_OK
-    print(shown.stated(config.schema))
-    for note in shown.silence():
-        print(note, file=sys.stderr)
-    return EXIT_OK
+    return Result(
+        shown.payload(),
+        shown.stated(config.schema),
+        noted="\n".join(shown.silence()),
+    )
 
 
-def _section_find(config: Config, args: argparse.Namespace) -> int:
+def _section_find(config: Config, args: argparse.Namespace) -> Result | int:
     """Which anchors carry a sentence (RK1310) — the lookup a pointer does not do.
 
     Exit 0 on an empty answer, which is what makes it a read rather than a check: *nothing
@@ -401,15 +368,10 @@ def _section_find(config: Config, args: argparse.Namespace) -> int:
     except (KeyError, OSError, ValueError) as error:
         return _refused(error)
 
-    print(
-        json.dumps(found.payload(_served(config)), indent=2)
-        if args.json
-        else found.stated()
-    )
-    return EXIT_OK
+    return Result(found.payload(_served(config)), found.stated())
 
 
-def _section_drop(config: Config, args: argparse.Namespace) -> int:
+def _section_drop(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         deleted = drop_section(
             config.document(args.role),
@@ -427,42 +389,30 @@ def _section_drop(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(deleted.payload(config, wrote), indent=2))
-    else:
-        print(deleted.stated(config, wrote))
-    return EXIT_OK
+    return answered(deleted, config=config, wrote=wrote)
 
 
-def _non_goal_add(config: Config, args: argparse.Namespace) -> int:
+def _non_goal_add(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         written = add_non_goal(config, lead=args.lead, why=_piped(args.why))
         wrote = written.save()
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(written.payload(config, wrote), indent=2))
-    else:
-        print(written.stated(config, wrote))
-    return EXIT_OK
+    return answered(written, config=config, wrote=wrote)
 
 
-def _non_goal_amend(config: Config, args: argparse.Namespace) -> int:
+def _non_goal_amend(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         amended = amend_non_goal(config, args.lead, _piped(args.why))
         wrote = amended.save()
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(amended.payload(config, wrote), indent=2))
-    else:
-        print(amended.stated(config, wrote))
-    return EXIT_OK
+    return answered(amended, config=config, wrote=wrote)
 
 
-def _non_goal_list(config: Config, args: argparse.Namespace) -> int:
+def _non_goal_list(config: Config, args: argparse.Namespace) -> Result | int:
     """Print the list at the moment a task is proposed (RK69).
 
     The same leads `brief` carries, from the same reader and under the same bound (RK68): a
@@ -479,25 +429,17 @@ def _non_goal_list(config: Config, args: argparse.Namespace) -> int:
     except (KeyError, OSError) as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(gathered.payload(config), indent=2))
-    else:
-        print(gathered.stated(config))
-    return EXIT_OK
+    return answered(gathered, config=config)
 
 
-def _non_goal_drop(config: Config, args: argparse.Namespace) -> int:
+def _non_goal_drop(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         dropped = drop_non_goal(config, args.lead)
         wrote = dropped.save()
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(dropped.payload(config, wrote), indent=2))
-    else:
-        print(dropped.stated(config, wrote))
-    return EXIT_OK
+    return answered(dropped, config=config, wrote=wrote)
 
 
 def _addressed(args: argparse.Namespace) -> str:
@@ -536,7 +478,7 @@ def _required_address(args: argparse.Namespace) -> str:
     return about
 
 
-def _criterion_add(config: Config, args: argparse.Namespace) -> int:
+def _criterion_add(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         about = _required_address(args)
         written = add_criterion(config, about, lead=args.lead, why=_piped(args.why))
@@ -544,42 +486,30 @@ def _criterion_add(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(written.payload(config, wrote), indent=2))
-    else:
-        print(written.stated(config, wrote))
-    return EXIT_OK
+    return answered(written, config=config, wrote=wrote)
 
 
-def _criterion_amend(config: Config, args: argparse.Namespace) -> int:
+def _criterion_amend(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         amended = amend_criterion(config, _addressed(args), args.lead, _piped(args.why))
         wrote = amended.save()
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(amended.payload(config, wrote), indent=2))
-    else:
-        print(amended.stated(config, wrote))
-    return EXIT_OK
+    return answered(amended, config=config, wrote=wrote)
 
 
-def _criterion_drop(config: Config, args: argparse.Namespace) -> int:
+def _criterion_drop(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         dropped = drop_criterion(config, _addressed(args), args.lead)
         wrote = dropped.save()
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(dropped.payload(config, wrote), indent=2))
-    else:
-        print(dropped.stated(config, wrote))
-    return EXIT_OK
+    return answered(dropped, config=config, wrote=wrote)
 
 
-def _criterion_list(config: Config, args: argparse.Namespace) -> int:
+def _criterion_list(config: Config, args: argparse.Namespace) -> Result | int:
     """What would finish a block — one block's list, or every one this file declares.
 
     Reading is never refused, exactly as `non-goal list` is not: a project that has not opted in
@@ -595,47 +525,44 @@ def _criterion_list(config: Config, args: argparse.Namespace) -> int:
         return _refused(error)
 
     where = config.relative(config.path("roadmap"))
-    if args.json:
-        # Which empty, and the door that fills it (RK1307). The rows below have said both
-        # since RK1265 and this published neither, so the caller reading the served payload —
-        # every agent — got strictly less than the person at the terminal, and lost exactly
-        # the two things this verb is documented for. Measured on quickshell after QS12
-        # shipped and took its own criteria with it: `blocks` mixes block letters with the ids
-        # of tasks carrying criteria, so learning that QS12's list is *gone* rather than never
-        # opened meant noticing QS12 is absent from a list of something else.
-        empty, door = _criterion_empty(config, wanted, declared, about)
-        print(
-            json.dumps(
+    # Which empty, and the door that fills it (RK1307). The rows below have said both since
+    # RK1265 and this published neither, so the caller reading the served payload — every
+    # agent — got strictly less than the person at the terminal, and lost exactly the two
+    # things this verb is documented for. Measured on quickshell after QS12 shipped and took
+    # its own criteria with it: `blocks` mixes block letters with the ids of tasks carrying
+    # criteria, so learning that QS12's list is *gone* rather than never opened meant noticing
+    # QS12 is absent from a list of something else.
+    #
+    # Both registers built unconditionally since RK1615: this composed one or the other and
+    # then printed it, which is the branch the type removes — and the two are what the verb
+    # answers, not what the caller's flag selected.
+    empty, door = _criterion_empty(config, wanted, declared, about)
+    return Result(
+        {
+            "file": where,
+            "governed": config.criteria is not None,
+            "blocks": list(declared),
+            # `null` where the listing is not empty, which is an answer and not an absence: a
+            # consumer branching on it never has to count the array.
+            "empty": empty,
+            # `doors` and always a list (RK1324): the same key name carried a bare `Door` here
+            # and a `Remedy` — kind, decision, doors — on a lint finding, so a consumer reading
+            # it could not know which shape it had. One name, one shape, wherever a payload
+            # publishes a runnable command.
+            **({} if door is None else {"doors": [door.payload(_served(config))]}),
+            "criteria": [
                 {
-                    "file": where,
-                    "governed": config.criteria is not None,
-                    "blocks": list(declared),
-                    # `null` where the listing is not empty, which is an answer and not an
-                    # absence: a consumer branching on it never has to count the array.
-                    "empty": empty,
-                    # `doors` and always a list (RK1324): the same key name carried a bare
-                    # `Door` here and a `Remedy` — kind, decision, doors — on a lint finding,
-                    # so a consumer reading it could not know which shape it had. One name,
-                    # one shape, wherever a payload publishes a runnable command.
-                    **({} if door is None else {"doors": [door.payload(_served(config))]}),
-                    "criteria": [
-                        {
-                            "about": one.about,
-                            "lead": one.lead,
-                            "why": one.why,
-                            "line": one.first,
-                            "shaped": one.shaped,
-                        }
-                        for one in wanted
-                    ],
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
-    rows = _criterion_rows(config, where, wanted, declared, about)
-    print("\n".join(rows))
-    return EXIT_OK
+                    "about": one.about,
+                    "lead": one.lead,
+                    "why": one.why,
+                    "line": one.first,
+                    "shaped": one.shaped,
+                }
+                for one in wanted
+            ],
+        },
+        "\n".join(_criterion_rows(config, where, wanted, declared, about)),
+    )
 
 
 def _criterion_empty(
@@ -716,21 +643,17 @@ def _criterion_rows(
     return rows
 
 
-def _priority_add(config: Config, args: argparse.Namespace) -> int:
+def _priority_add(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         written = add_priority(config, args.token, after=args.after, first=args.first)
         wrote = written.save()
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(written.payload(config, wrote), indent=2))
-    else:
-        print(written.stated(config, wrote))
-    return EXIT_OK
+    return answered(written, config=config, wrote=wrote)
 
 
-def _priority_list(config: Config, args: argparse.Namespace) -> int:
+def _priority_list(config: Config, args: argparse.Namespace) -> Result | int:
     """The order, and which file declared it (RK325).
 
     Both, always. A project that wrote a section and is still being ordered by its config is
@@ -741,28 +664,20 @@ def _priority_list(config: Config, args: argparse.Namespace) -> int:
     except (KeyError, OSError) as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(queue.payload(config), indent=2))
-    else:
-        print(queue.stated(config))
-    return EXIT_OK
+    return answered(queue, config=config)
 
 
-def _priority_drop(config: Config, args: argparse.Namespace) -> int:
+def _priority_drop(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         dropped = drop_priority(config, args.token)
         wrote = dropped.save()
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(dropped.payload(config, wrote), indent=2))
-    else:
-        print(dropped.stated(config, wrote))
-    return EXIT_OK
+    return answered(dropped, config=config, wrote=wrote)
 
 
-def _priority_migrate(config: Config, args: argparse.Namespace) -> int:
+def _priority_migrate(config: Config, args: argparse.Namespace) -> Result | int:
     """Move the config's queue into the roadmap, which is the only door between them (RK427).
 
     Prints what `lint` will now say, because that is the half a caller would otherwise learn
@@ -776,11 +691,7 @@ def _priority_migrate(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(migrated.payload(config, wrote), indent=2))
-    else:
-        print(migrated.stated(config, wrote))
-    return EXIT_OK
+    return answered(migrated, config=config, wrote=wrote)
 
 
 def declare_places(subcommands: argparse._SubParsersAction) -> None:

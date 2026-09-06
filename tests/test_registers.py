@@ -21,12 +21,18 @@ is what keeps the list from becoming a permanent exemption as RK1615 empties it.
 Not a `Protocol`: `runtime_checkable` sees that a method exists and never what it takes, and
 what drifted here is exactly the parameters. The shapes are data and this is the reader.
 
-RK1617 added the second list. :data:`PRINTING` is every handler still answering
-`(config, args) -> int` — printing one register and returning a code, so its answer exists
-nowhere a second surface can take it. Eighty-seven when the contract landed, and the same rule
-governs it: named rather than counted, shrinking rather than exempting, and empty is what
-RK1615 means by done — at which point `serving` stops capturing stdout for an answer it was
-handed one frame earlier.
+RK1617 added the second list and RK1615 emptied it down to nine. :data:`PRINTING` is every
+handler still answering `(config, args) -> int`, and what is left in it is not work nobody got
+to — each has a prior reason, and none of the nine is served.
+
+That last clause is the invariant, and
+:func:`test_no_tool_this_project_serves_answers_in_an_exit_code` is what holds it. "Empty" was
+the wrong target: `guard` has no plain register at all — three harness protocols keyed by hook
+event, not readings of one result — and `merge`'s driver branches are bytes in git's `%A` and an
+exit code, which is the contract this tool is called under rather than an answer it composes.
+Forcing either into a `Result` would be inventing a register to satisfy a count. What the
+transport actually needs is that **no answer it asks for is one it has to read off a stream**,
+which nine unserved handlers do not threaten and a tenth served one would.
 """
 
 from __future__ import annotations
@@ -176,93 +182,22 @@ def test_the_declared_shapes_are_the_ones_the_package_actually_answers_in():
 #: twenty signatures happened one module at a time.
 PRINTING: frozenset[tuple[str, str]] = frozenset(
     {
-        ("verbs/adopting.py", "_init"),
-        ("verbs/adopting.py", "_declare"),
+        # `adopt`, `install`, `uninstall` and `mcp` are the once-per-project wiring verbs, and
+        # `report`, `replay` and `capture sweep` have this tool as their subject. None is
+        # served, and each writes a multi-part report a transport never asks for.
         ("verbs/adopting.py", "_adopt"),
-        ("verbs/adopting.py", "_engines"),
         ("verbs/adopting.py", "_install"),
-        ("verbs/adopting.py", "_capture_filed"),
         ("verbs/adopting.py", "_capture_sweep"),
         ("verbs/adopting.py", "_uninstall"),
         ("verbs/adopting.py", "_report"),
         ("verbs/adopting.py", "_replay"),
         ("verbs/adopting.py", "_mcp"),
-        ("verbs/authoring.py", "_next_id"),
-        ("verbs/authoring.py", "_add"),
-        ("verbs/linting.py", "_merge"),
-        ("verbs/linting.py", "_merge_check"),
-        ("verbs/linting.py", "_lint"),
-        ("verbs/linting.py", "_repair"),
-        ("verbs/linting.py", "_explain"),
+        # The one with no plain register at all: three harness protocols keyed by hook event,
+        # which are contracts rather than readings of one result. Its own docstring says so.
         ("verbs/linting.py", "_guard"),
-        ("verbs/querying.py", "_list"),
-        ("verbs/querying.py", "_stats"),
-        ("verbs/querying.py", "_audit"),
-        ("verbs/querying.py", "_claims"),
-        ("verbs/querying.py", "_claim"),
-        ("verbs/querying.py", "_writes"),
-        ("verbs/querying.py", "_brief"),
-        ("verbs/querying.py", "_show"),
-        ("verbs/querying.py", "_cost"),
-        ("verbs/querying.py", "_budget"),
-        ("verbs/querying.py", "_body_budget"),
-        ("verbs/querying.py", "_file_budget"),
-        ("verbs/querying.py", "_non_goal_budget"),
-        ("verbs/querying.py", "_session_budget"),
-        ("verbs/querying.py", "_skill_budget"),
-        ("verbs/querying.py", "_deny_budget"),
-        ("verbs/querying.py", "_notes_budget"),
-        ("verbs/querying.py", "_brief_budget"),
-        ("verbs/querying.py", "_tools_budget"),
-        ("verbs/querying.py", "_pick"),
+        # `--spec` writes markdown with no trailing newline, for a caller that pipes it — and a
+        # `Result` is printed with one. The rest of the verb writes files and reports the lines.
         ("verbs/querying.py", "_export"),
-        ("verbs/querying.py", "_gaps"),
-        ("verbs/querying.py", "_govern"),
-        ("verbs/querying.py", "_config_shape"),
-        ("verbs/querying.py", "_commands"),
-        ("verbs/querying.py", "_anchors"),
-        ("verbs/querying.py", "_deps"),
-        ("verbs/querying.py", "_origin"),
-        ("verbs/querying.py", "_cited"),
-        ("verbs/querying.py", "_weight"),
-        ("verbs/querying.py", "_remaining"),
-        ("verbs/querying.py", "_unclosed"),
-        ("verbs/querying.py", "_evidence"),
-        ("verbs/sections.py", "_block_add"),
-        ("verbs/sections.py", "_block_drop"),
-        ("verbs/sections.py", "_block_amend"),
-        ("verbs/sections.py", "_block_merge"),
-        ("verbs/sections.py", "_block_list"),
-        ("verbs/sections.py", "_section_add"),
-        ("verbs/sections.py", "_refs"),
-        ("verbs/sections.py", "_section_amend"),
-        ("verbs/sections.py", "_section_move"),
-        ("verbs/sections.py", "_section_show"),
-        ("verbs/sections.py", "_section_find"),
-        ("verbs/sections.py", "_section_drop"),
-        ("verbs/sections.py", "_non_goal_add"),
-        ("verbs/sections.py", "_non_goal_amend"),
-        ("verbs/sections.py", "_non_goal_list"),
-        ("verbs/sections.py", "_non_goal_drop"),
-        ("verbs/sections.py", "_criterion_add"),
-        ("verbs/sections.py", "_criterion_amend"),
-        ("verbs/sections.py", "_criterion_drop"),
-        ("verbs/sections.py", "_criterion_list"),
-        ("verbs/sections.py", "_priority_add"),
-        ("verbs/sections.py", "_priority_list"),
-        ("verbs/sections.py", "_priority_drop"),
-        ("verbs/sections.py", "_priority_migrate"),
-        ("verbs/shipping.py", "_ship"),
-        ("verbs/shipping.py", "_record"),
-        ("verbs/shipping.py", "_record_amend"),
-        ("verbs/shipping.py", "_record_move"),
-        ("verbs/shipping.py", "_record_renumber"),
-        ("verbs/shipping.py", "_record_drop"),
-        ("verbs/shipping.py", "_delivered"),
-        ("verbs/shipping.py", "_reversals"),
-        ("verbs/shipping.py", "_supersede"),
-        ("verbs/shipping.py", "_revise"),
-        ("verbs/shipping.py", "_retire"),
     }
 )
 
@@ -304,6 +239,36 @@ def test_a_handler_that_prints_its_answer_is_one_somebody_named():
     assert not printing, (
         "a handler answers in a printed register and a code — return `answered(...)` so a "
         f"second surface can take the answer, or add the row to PRINTING: {printing}"
+    )
+
+
+def test_no_tool_this_project_serves_answers_in_an_exit_code():
+    """What RK1615 actually bought, and the reason "PRINTING empty" was the wrong target.
+
+    The transport takes `Result.fields` now instead of capturing the stdout a handler printed
+    for a terminal. That holds exactly while every **served** verb answers with a value: one
+    that did not would send the transport back to reading its own output, and the nine rows in
+    :data:`PRINTING` are safe only because none of them is reachable over MCP.
+
+    Derived at both ends rather than listed. The tools come off `serving.TOOLS`, the handler off
+    the parser's own `handler` default — which is how `serving` resolves it — so a verb newly
+    served, or a served verb whose handler is rewritten to print, is red here on the day it
+    happens rather than on the day somebody notices the payload went back to prose.
+    """
+    from roadkeep.cli import build_parser  # noqa: PLC0415 - imported for the parser it builds
+    from roadkeep.serving import TOOLS, _parsers, _subparser
+
+    parsers = _parsers(build_parser())
+    printing = sorted(
+        (tool.name, handler.__name__)
+        for tool in TOOLS
+        if (handler := _subparser(tool.command, parsers).get_default("handler")) is not None
+        and (handler.__module__.rpartition(".")[2] + ".py", handler.__name__)
+        in {(where.rpartition("/")[2], name) for where, name in PRINTING}
+    )
+    assert not printing, (
+        "a served tool's handler answers in an exit code, so the transport is back to reading "
+        f"what it printed — return `Result` from it: {printing}"
     )
 
 

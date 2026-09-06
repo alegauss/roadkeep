@@ -94,6 +94,12 @@ from roadkeep.adopting import OPT_IN
 from roadkeep.config import PROSE_ROLES, ROLES, Config, ConfigError, Scope
 from roadkeep import provenance
 from roadkeep.provenance import engine, invocation, serving
+# The refusal code this module compares against, and the type a handler answers in. At module
+# scope since RK1615: `call` binds its answer before the try that may not reach a handler, so
+# both are read on a path a function-level import would have to run first. `rendering` does not
+# import this module, so the edge runs one way.
+from roadkeep.rendering import Result
+from roadkeep.verbs.refusing import EXIT_USAGE as _EXIT_USAGE
 # `words` from where it is *defined* and not from `budgeting`, which re-exports it (RK260):
 # `config` already loads `schema`, and reaching the name through `budgeting` cost the guard
 # 30 ms and eight modules — `authoring`, `sections`, `claiming`, `ids`, `markers` and the
@@ -2453,7 +2459,7 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     In-process rather than a subprocess: the tool is already running in one, and a second
     interpreter per call would make an `add` cost more over MCP than over `Bash`.
     """
-    from roadkeep.cli import dispatch
+    from roadkeep.cli import answer
 
     # Beside `dispatch`, and for the reason it is here rather than at the top (RK261): the guard
     # imports this module for `TOOLS` and never dispatches anything, so a module-level
@@ -2519,19 +2525,42 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         provenance.witness(error)
         return _answered(str(error), config.root, is_error=True, served=_spelled(tool, parsers))
     out, err = io.StringIO(), io.StringIO()
+    # Bound before the try, because two of its handlers exit without one: argparse refusing the
+    # composed argv raises `SystemExit` and the lock raises `LockBusy`, and neither reached a
+    # handler at all. An int is exactly the right value there — those are refusals, and the
+    # captured streams below are what carries them.
+    given: Result | int = _EXIT_USAGE
     try:
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), _spent_stdin():
             args = root.parse_args(["-C", directory, *line])
-            # Through the CLI's own dispatch and not straight to the handler, so a write
-            # over MCP takes the same lock a write over `Bash` does (RK117) — this is the
-            # path an agent uses, so it is the path the duplicate id was minted on.
-            code = dispatch(config, args)
+            # Through the CLI's own `answer` and not straight to the handler, so a write over
+            # MCP takes the same lock a write over `Bash` does (RK117) — this is the path an
+            # agent uses, so it is the path the duplicate id was minted on.
+            #
+            # **The value and not the print** (RK1615). This called `dispatch`, which renders,
+            # and then read the answer back out of a captured stream: the payload was built as
+            # a dict one frame down, serialised, written, captured and handed over as a string
+            # for the client to parse a second time. `answer` is that dict.
+            given = answer(config, args)
+            code = given if isinstance(given, int) else given.code
     except SystemExit as exit_:  # argparse refused the argv: a missing required argument
         code = exit_.code if isinstance(exit_.code, int) else 2
     except LockBusy as busy:
         provenance.witness(busy)
         return _answered(
             f"roadkeep: {busy}", config.root, is_error=True, served=_spelled(tool, parsers)
+        )
+    # The answer where the handler returned one, and the captured streams only where it did
+    # not (RK1615). What still writes is the refusal path — prose on stderr with its payload
+    # beside it (RK1584) — and the handful of handlers that answer in a code for a stated
+    # reason, none of which this surface serves.
+    if not isinstance(given, int):
+        return _answered(
+            json.dumps(given.fields, indent=2),
+            config.root,
+            is_error=bool(code),
+            served=_spelled(tool, parsers),
+            wrote=tool.writes_of(_subparser(tool.command, parsers)),
         )
     said, fields = err.getvalue().strip(), out.getvalue().strip()
     # A refused call publishes its sentence on stderr and its fields on stdout, which are two
@@ -2542,9 +2571,9 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     # On the refusal code alone, and never on a non-zero exit: `lint` reporting a finding exits
     # 1 having printed its report to stdout and its notes to stderr, and both are its answer —
     # the verdict a read returns is not the refusal `_payload` writes for (RK271).
-    from roadkeep.verbs.refusing import EXIT_USAGE  # noqa: PLC0415 - RK260
-
-    reported = fields if code == EXIT_USAGE and fields else "\n".join(p for p in (said, fields) if p)
+    reported = (
+        fields if code == _EXIT_USAGE and fields else "\n".join(p for p in (said, fields) if p)
+    )
     return _answered(
         reported or f"{tool.name}: exit {code}",
         config.root,

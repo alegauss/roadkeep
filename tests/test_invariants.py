@@ -213,6 +213,15 @@ INVARIANTS: tuple[Invariant, ...] = (
         held_by="test_registers::test_a_handler_that_prints_its_answer_is_one_somebody_named",
     ),
     Invariant(
+        stated="RK1615",
+        rule=(
+            "every verb this server publishes answers with a value, so the transport takes "
+            "the payload rather than reading back the stdout a handler printed"
+        ),
+        over="roadkeep.serving.TOOLS",
+        held_by="test_registers::test_no_tool_this_project_serves_answers_in_an_exit_code",
+    ),
+    Invariant(
         stated="RK167",
         rule="every tool this server publishes is a subcommand the CLI parses",
         over="roadkeep.serving.TOOLS",

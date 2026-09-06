@@ -53,10 +53,12 @@ from roadkeep.provenance import invocation
 from roadkeep.remaining import EVIDENCE, QueryError, count, declared
 from roadkeep.rendering import (
     CHARACTER_UNIT,
+    Result,
     _claim_event,
     _commits_json,
     _load_json,
     _nothing_json,
+    answered,
 )
 from roadkeep.serving import Prose, Withheld, detail, surface
 from roadkeep.showing import show
@@ -149,7 +151,7 @@ def _list_argv(args: argparse.Namespace) -> tuple[str, ...]:
     return tuple(out)
 
 
-def _list(config: Config, args: argparse.Namespace) -> int:
+def _list(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         census, standing = _census(config, args)
     except (KeyError, OSError) as error:
@@ -159,40 +161,38 @@ def _list(config: Config, args: argparse.Namespace) -> int:
     # already had the whole answer in hand when the transport refused it, and the only thing
     # it could not do was decline to hand it over. Measured on what would be printed, so the
     # three forms of this listing are each held against their own width.
-    if args.json:
-        # `--have` where the caller passed one, and nothing where it did not (RK1442): the
-        # payload's split is `stats`' own, so what a caller declares moves lines across here
-        # exactly as it does there. The served tool takes no such flag and never will while
-        # `[tools] session` is this close — the agent on that transport is the caller with no
-        # hands, which is the population this split already assumes.
-        have = getattr(args, "have", ())
-        answer = json.dumps(census.listing(standing, have), indent=2)
-        bound = census.bounded(
-            answer, config.list_read, scoped=bool(args.block), argv=_list_argv(args)
-        )
-        if bound is None:
-            print(answer)
-            return EXIT_OK
-        print(json.dumps(census.listing(standing, have, bound), indent=2))
-        return EXIT_GATE
-
+    # `--have` where the caller passed one, and nothing where it did not (RK1442): the payload's
+    # split is `stats`' own, so what a caller declares moves lines across here exactly as it does
+    # there. The served tool takes no such flag and never will while `[tools] session` is this
+    # close — the agent on that transport is the caller with no hands, which is the population
+    # this split already assumes.
+    have = getattr(args, "have", ())
     listed = census.listed(args.ids)
+    # **One bound, taken over the register that was asked for** (RK1615). The cap is measured on
+    # what would be *printed*, and the two registers are different sizes — so this reads
+    # `args.json` where the rest of the handler no longer does. That is not the branch the type
+    # removed: this decides the verdict, not which answer to hand over.
     bound = census.bounded(
-        listed, config.list_read, scoped=bool(args.block), argv=_list_argv(args)
+        json.dumps(census.listing(standing, have), indent=2) if args.json else listed,
+        config.list_read,
+        scoped=bool(args.block),
+        argv=_list_argv(args),
     )
     if bound is not None:
         # Nothing on stdout, which is this verb's own rule about that stream (RK1170): a
         # consumer piping `--ids` gets the empty listing the exit code explains, and never
         # a sentence where the ids were.
-        print(bound.stated(), file=sys.stderr)
-        return EXIT_GATE
-    if listed:
-        print(listed)
-    for note in census.notes(standing):
-        print(note, file=sys.stderr)
-    for row in _standing_rows(config, args):
-        print(row, file=sys.stderr)
-    return EXIT_OK
+        return Result(
+            census.listing(standing, have, bound),
+            "",
+            noted=bound.stated(),
+            code=EXIT_GATE,
+        )
+    return Result(
+        census.listing(standing, have),
+        listed,
+        noted="\n".join([*census.notes(standing), *_standing_rows(config, args)]),
+    )
 
 
 def _standing_rows(config: Config, args: argparse.Namespace) -> list[str]:
@@ -221,7 +221,7 @@ def _standing_rows(config: Config, args: argparse.Namespace) -> list[str]:
     return rows
 
 
-def _stats(config: Config, args: argparse.Namespace) -> int:
+def _stats(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         census, standing = _census(config, args)
     except (KeyError, OSError) as error:
@@ -230,31 +230,27 @@ def _stats(config: Config, args: argparse.Namespace) -> int:
     # of the file this counts, so reading one inside the census would make a count of the
     # roadmap depend on a directory git ignores.
     owed = debt(config)
-    if args.json:
-        print(json.dumps(census.counts(config, standing, owed, args.have), indent=2))
-    else:
-        print(census.counted_out(config, owed, args.have))
-        for note in census.silence(standing):
-            print(note, file=sys.stderr)
-    return EXIT_OK
+    return Result(
+        census.counts(config, standing, owed, args.have),
+        census.counted_out(config, owed, args.have),
+        noted="\n".join(census.silence(standing)),
+    )
 
 
-def _audit(config: Config, args: argparse.Namespace) -> int:
+def _audit(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         census, standing = _census(config, args)
     except (KeyError, OSError) as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(census.audit(standing), indent=2))
-    else:
-        print(census.audited())
-        for note in census.silence(standing):
-            print(note, file=sys.stderr)
-    return EXIT_OK
+    return Result(
+        census.audit(standing),
+        census.audited(),
+        noted="\n".join(census.silence(standing)),
+    )
 
 
-def _claims(config: Config, args: argparse.Namespace) -> int:
+def _claims(config: Config, args: argparse.Namespace) -> Result | int:
     """The registry read against the roadmap (RK161). Nothing here is a failure, so exit 0."""
     try:
         # The whole backlog and not the roadmap alone (RK164): three of the four ways an id can
@@ -275,14 +271,10 @@ def _claims(config: Config, args: argparse.Namespace) -> int:
         window=config.held,
     )
 
-    if args.json:
-        print(json.dumps(answer.payload(), indent=2))
-    else:
-        print(answer.stated())
-    return EXIT_OK
+    return answered(answer)
 
 
-def _claim(config: Config, args: argparse.Namespace) -> int:
+def _claim(config: Config, args: argparse.Namespace) -> Result | int:
     """One held line's scope: declared, or read back at the commit (RK280).
 
     The read is the half that earns the command. `git status` shows a tree two sessions wrote
@@ -357,28 +349,25 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
 
     # Three registers and not two (RK1170): `--porcelain` is a third reading of one result and
     # not a narrowing of either — a shell consumes it, so it carries paths and nothing else.
-    if args.porcelain:
-        print(answer.porcelain())
-    elif args.json:
-        print(json.dumps(answer.payload(), indent=2))
-    else:
-        print(answer.stated())
-    return EXIT_OK
+    #
+    # Two fields still, because the third is a **form of the plain register** (RK1615): a shell
+    # reads it off stdout exactly where it reads `stated()`, and what selects it is a flag about
+    # how to write that stream rather than a second answer. The payload is untouched by it.
+    return Result(
+        answer.payload(),
+        answer.porcelain() if args.porcelain else answer.stated(),
+    )
 
 
-def _writes(config: Config, args: argparse.Namespace) -> int:
+def _writes(config: Config, args: argparse.Namespace) -> Result | int:
     """The write record read against the files (RK200). Nothing here is a failure, so exit 0."""
     survey = attesting.Survey(
         attesting.survey(config), str(attesting.record_path(config.root))
     )
-    if args.json:
-        print(json.dumps(survey.payload(), indent=2))
-    else:
-        print(survey.stated())
-    return EXIT_OK
+    return answered(survey)
 
 
-def _brief(config: Config, args: argparse.Namespace) -> int:
+def _brief(config: Config, args: argparse.Namespace) -> Result | int:
     if args.id is not None and (args.block is not None or args.designed or args.have):
         # Two answers to one question: the id names a task and the others name a search.
         # `--have` joins them for the same reason and not a weaker one (RK1297): it narrows
@@ -425,11 +414,10 @@ def _brief(config: Config, args: argparse.Namespace) -> int:
     # Both registers off the record (RK1170), and the last of the verbs that task measured:
     # `Brief` is the answer, and its two readings were 20 prints here and a builder in
     # `rendering.py` — one answer in two files, with neither of them where a brief is composed.
-    print(json.dumps(gathered.payload(config), indent=2) if args.json else gathered.stated(config))
-    return EXIT_OK
+    return Result(gathered.payload(config), gathered.stated(config))
 
 
-def _show(config: Config, args: argparse.Namespace) -> int:
+def _show(config: Config, args: argparse.Namespace) -> Result | int:
     """One task, whole, from every file that holds a piece of it (RK9).
 
     Both registers come off the record (RK1170): `View` is the answer, and its two readings were a
@@ -441,14 +429,10 @@ def _show(config: Config, args: argparse.Namespace) -> int:
     except (KeyError, OSError) as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(view.payload(body=not args.no_body), indent=2))
-    else:
-        print(view.stated(config, body=not args.no_body))
-    return EXIT_OK
+    return Result(view.payload(body=not args.no_body), view.stated(config, body=not args.no_body))
 
 
-def _cost(config: Config, args: argparse.Namespace) -> int:
+def _cost(config: Config, args: argparse.Namespace) -> Result | int:
     """What this project's surface already spends (RK1321).
 
     `_budget`'s dispatch for the other tense. The three subjects moved here whole — the same
@@ -489,7 +473,7 @@ def _cost(config: Config, args: argparse.Namespace) -> int:
     return EXIT_USAGE
 
 
-def _budget(config: Config, args: argparse.Namespace) -> int:
+def _budget(config: Config, args: argparse.Namespace) -> Result | int:
     # Which of the three subjects was asked for, and whether `--role` or `--lead` came with
     # the one it narrows, are `answers` and `narrows` at this verb's own `add_parser` and
     # `dispatch`'s to refuse (RK489). What is left here is the dispatch itself.
@@ -548,13 +532,16 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
     # Both registers off the record (RK1170): `Budget` already was the result this verb computed,
     # and its two readings were a printer here and a builder in `rendering.py` — one answer in two
     # files, with neither holding both.
-    print(json.dumps(answer.payload(), indent=2) if args.json else answer)
     # Both halves of the transaction decide it (RK1224): a body three words over is a call the
     # `add` refuses whole, so an exit that spoke only for the line would answer a question
     # narrower than the one the caller asked.
-    return _verdict(
-        any(share.over for share in answer.shares if share.drafted)
-        or bool(answer.section is not None and answer.section.over)
+    return Result(
+        answer.payload(),
+        str(answer),
+        code=_verdict(
+            any(share.over for share in answer.shares if share.drafted)
+            or bool(answer.section is not None and answer.section.over)
+        ),
     )
 
 
@@ -574,7 +561,7 @@ def _verdict(over: bool) -> int:
     return EXIT_GATE if over else EXIT_OK
 
 
-def _body_budget(config: Config, args: argparse.Namespace) -> int:
+def _body_budget(config: Config, args: argparse.Namespace) -> Result | int:
     """What a section body may say, before it is written — and what a draft of it costs.
 
     The draft is read the way every writing verb reads one (RK381, RK329): a literal, a path,
@@ -597,44 +584,41 @@ def _body_budget(config: Config, args: argparse.Namespace) -> int:
         answer = body_budget(config, args.anchor, args.role, draft)
     except REFUSALS as error:
         return _refused(error)
-    if args.json:
-        print(json.dumps({"subject": "section", **answer.payload()}, indent=2))
-        return _verdict(bool(answer.over))
     state = "written" if answer.written else "the section add would write"
-    print(f"§{answer.anchor}  {answer.role}  ({state})")
-    print(f"  body       {answer.stated(named=False)}")
-    return _verdict(bool(answer.over))
+    return Result.of(
+        {"subject": "section", **answer.payload()},
+        f"§{answer.anchor}  {answer.role}  ({state})",
+        f"  body       {answer.stated(named=False)}",
+        code=_verdict(bool(answer.over)),
+    )
 
 
-def _file_budget(config: Config, args: argparse.Namespace) -> int:
+def _file_budget(config: Config, args: argparse.Namespace) -> Result | int:
     """What an always-loaded file has left, before the edit is composed (RK345)."""
     try:
         loads = file_budget(config, args.file or None)
     except REFUSALS as error:
         return _refused(error)
-    if args.json:
-        print(json.dumps({"subject": "file", "files": [_load_json(one) for one in loads]},
-                         indent=2))
-        return EXIT_OK
+    rows: list[str] = []
     for load in loads:
         # The state `lint` calls `budget.absent`, said here too: a declared file that is not
         # there has its whole budget free, which is the one reading that looks like room.
         state = "on disk" if load.present else "not on disk — the entry holds nothing"
-        print(f"{load.path}  budgeted  ({state})")
+        rows.append(f"{load.path}  budgeted  ({state})")
         for cost in load.costs:
             # No aim and no second unit (RK258): `[budgets]` is declared in what the loader
             # pays, so a word figure beside it would be a number this project never stated.
             over = f", {cost.over} over" if cost.over else f", {cost.left} left"
-            print(f"  {cost.unit:<11}{cost.taken} of {cost.limit}{over}")
+            rows.append(f"  {cost.unit:<11}{cost.taken} of {cost.limit}{over}")
         if load.translated:
             # The remainder the ceiling does not charge (RK1105). Printed under the units and
             # not beside one, because it is a fact about the checkout and not about the budget:
             # the number above decides, and this one is what a loader here actually reads.
-            print(
+            rows.append(
                 f"  {'checkout':<11}{load.translated} more, this tree's lines ending CRLF — "
                 f"counted as the commit stores them"
             )
-        _print_parts(load)
+        rows += _parts(load)
         if load.characters is not None:
             # The figure the author is actually deciding against (RK1250), on the read RK345
             # built for the moment before an edit — `--session` has had it since RK1245 and
@@ -650,11 +634,14 @@ def _file_budget(config: Config, args: argparse.Namespace) -> int:
             # sections, it was the total a reader met immediately before a list ranked in
             # another unit — so the adjacency said *this is what those are of*, which it is
             # not. The breakdown belongs to the ceiling above it; this belongs to neither.
-            print(
+            rows.append(
                 f"  {'reader':<11}{load.characters} utf-16-code-units, what a model is "
                 f"charged — a reading, and nothing here limits it"
             )
-    return EXIT_OK
+    return Result(
+        {"subject": "file", "files": [_load_json(one) for one in loads]},
+        "\n".join(rows),
+    )
 
 
 #: How many sections the terminal names, for `_LARGEST_TOOLS`' reason: the largest few are
@@ -662,8 +649,12 @@ def _file_budget(config: Config, args: argparse.Namespace) -> int:
 _LARGEST_PARTS = 4
 
 
-def _print_parts(load: Load) -> None:
+def _parts(load: Load) -> list[str]:
     """Where the size is, so the next compression is aimed (RK1092).
+
+    Returns its rows rather than printing them since RK1615, which is what lets the handler
+    above hold one answer: a helper that wrote to stdout was a second writer of the register,
+    and the whole of that task is that there is one.
 
     The read `cost --tools` makes about the served surface, one file over: a total says an
     edit will be refused and says nothing about what to take out, and `agents.md` reaching
@@ -678,7 +669,7 @@ def _print_parts(load: Load) -> None:
     ranking unit leads the row, so the column a reader sorts on is the column they scan.
     """
     if len(load.parts) < 2:
-        return
+        return []
     unit = "bytes" if load.tightest is None else load.tightest.unit
     other = "bytes" if unit == "lines" else "lines"
     ranked = load.ranked
@@ -686,7 +677,7 @@ def _print_parts(load: Load) -> None:
     # the ceiling and the third is a reading rather than a limit, so a row of bare numbers no
     # longer says which is which. Named in the order they are printed, ranking unit first.
     reading = "  reader" if ranked[0].characters is not None else ""
-    print(f"    {unit:>6}  {other:>6}{reading}")
+    rows = [f"    {unit:>6}  {other:>6}{reading}"]
     for part in ranked[:_LARGEST_PARTS]:
         first, second = (part.lines, part.bytes) if unit == "lines" else (part.bytes, part.lines)
         # Both declared columns at one width, because which of them leads now varies: a `>3`
@@ -694,29 +685,26 @@ def _print_parts(load: Load) -> None:
         said = f"    {first:>6}  {second:>6}"
         if part.characters is not None:
             said += f"  {part.characters:>6}"
-        print(f"{said}  {part.heading or '(before the first ##)'}")
+        rows.append(f"{said}  {part.heading or '(before the first ##)'}")
     if len(ranked) > _LARGEST_PARTS:
-        print(f"    … and {len(ranked) - _LARGEST_PARTS} more — `--json` lists every one")
+        rows.append(f"    … and {len(ranked) - _LARGEST_PARTS} more — `--json` lists every one")
+    return rows
 
 
-def _non_goal_budget(config: Config, args: argparse.Namespace) -> int:
+def _non_goal_budget(config: Config, args: argparse.Namespace) -> Result | int:
     """The two limits the roadmap's other bullet has (RK283)."""
     try:
         shares = non_goal_budget(config, args.lead)
     except REFUSALS as error:
         return _refused(error)
-    if args.json:
-        print(json.dumps({"subject": "non-goal", "lead": args.lead,
-                          "fields": [one.payload() for one in shares]}, indent=2))
-        return EXIT_OK
     where = config.relative(config.path("roadmap"))
     state = f"the bullet leading {args.lead!r}" if args.lead else "the bullet add would write"
-    print(f"non-goals  {where}  ({state})")
+    rows = [f"non-goals  {where}  ({state})"]
     # The line `Budget.__str__` prints for the same reason (RK1366): `non-goal amend --why`
     # replaces that argument, so each remainder below is the whole limit and a reader given
     # `37 written, 200 left` against 200 otherwise reads the two as adding up.
     if any(share.replaced and share.taken for share in shares):
-        print(
+        rows.append(
             "  replacing  what is written below, so each remainder is the whole limit and "
             "not what is left beside it — an amend rewrites the field"
         )
@@ -724,8 +712,15 @@ def _non_goal_budget(config: Config, args: argparse.Namespace) -> int:
         # No `bound_by_line`: a non-goal is two fields on two lines and there is no third
         # limit measured across them, which is the whole difference from a task line.
         taken = f", {share.taken} written, {share.left} left" if share.taken else ""
-        print(f"  {share.field:<11}{share.limit}{taken}  {share.aimed}")
-    return EXIT_OK
+        rows.append(f"  {share.field:<11}{share.limit}{taken}  {share.aimed}")
+    return Result(
+        {
+            "subject": "non-goal",
+            "lead": args.lead,
+            "fields": [one.payload() for one in shares],
+        },
+        "\n".join(rows),
+    )
 
 
 #: How many tools the listing names before it stops naming them one by one. The largest few
@@ -734,7 +729,7 @@ def _non_goal_budget(config: Config, args: argparse.Namespace) -> int:
 _LARGEST_TOOLS = 5
 
 
-def _session_budget(config: Config, args: argparse.Namespace) -> int:
+def _session_budget(config: Config, args: argparse.Namespace) -> Result | int:
     """Both halves of what a session pays, against the cadence each is paid at (RK1095).
 
     `--tools` totals the served schema and `--file` totals a resident file, and neither knew
@@ -777,14 +772,10 @@ def _session_budget(config: Config, args: argparse.Namespace) -> int:
         once_limit=config.tool_session,
     )
 
-    if args.json:
-        print(json.dumps(answer.payload(CHARACTER_UNIT), indent=2))
-    else:
-        print(answer.stated(CHARACTER_UNIT))
-    return EXIT_OK
+    return Result(answer.payload(CHARACTER_UNIT), answer.stated(CHARACTER_UNIT))
 
 
-def _skill_budget(config: Config, args: argparse.Namespace) -> int:
+def _skill_budget(config: Config, args: argparse.Namespace) -> Result | int:
     """What the write path costs the turns that load it (RK1424).
 
     The fourth cadence and the one nothing counted. `[budgets]` prices what loads on *every*
@@ -809,14 +800,10 @@ def _skill_budget(config: Config, args: argparse.Namespace) -> int:
     # than from a second walk that could disagree with it.
     schema = surface(config).characters
     found = skill_cost(config)
-    if args.json:
-        print(json.dumps(found.payload(CHARACTER_UNIT, schema), indent=2))
-    else:
-        print(found.stated(CHARACTER_UNIT, schema))
-    return EXIT_OK
+    return Result(found.payload(CHARACTER_UNIT, schema), found.stated(CHARACTER_UNIT, schema))
 
 
-def _deny_budget(config: Config, args: argparse.Namespace) -> int:
+def _deny_budget(config: Config, args: argparse.Namespace) -> Result | int:
     """What one refused write costs the session that meets it (RK1428).
 
     The fifth cadence. `guarding.py` hands a session two texts and only the small one was
@@ -834,14 +821,10 @@ def _deny_budget(config: Config, args: argparse.Namespace) -> int:
     from roadkeep.budgeting import deny_cost  # noqa: PLC0415 - RK260
 
     found = deny_cost(config)
-    if args.json:
-        print(json.dumps(found.payload(CHARACTER_UNIT), indent=2))
-    else:
-        print(found.stated(CHARACTER_UNIT))
-    return EXIT_OK
+    return Result(found.payload(CHARACTER_UNIT), found.stated(CHARACTER_UNIT))
 
 
-def _notes_budget(config: Config, args: argparse.Namespace) -> int:
+def _notes_budget(config: Config, args: argparse.Namespace) -> Result | int:
     """What a clean run of the gate says beside its verdict (RK1491).
 
     The sixth cadence, and the one nothing counted. `engine.disagreement` fires through the
@@ -861,14 +844,10 @@ def _notes_budget(config: Config, args: argparse.Namespace) -> int:
     from roadkeep.budgeting import note_cost  # noqa: PLC0415 - RK260
 
     found = note_cost(config)
-    if args.json:
-        print(json.dumps(found.payload(CHARACTER_UNIT), indent=2))
-    else:
-        print(found.stated(CHARACTER_UNIT))
-    return EXIT_OK
+    return Result(found.payload(CHARACTER_UNIT), found.stated(CHARACTER_UNIT))
 
 
-def _brief_budget(config: Config, args: argparse.Namespace) -> int:
+def _brief_budget(config: Config, args: argparse.Namespace) -> Result | int:
     """What a brief costs a tool result, per open line or for the one named (RK1286).
 
     The sixth subject, and the one about a **read** rather than about prose or a file. Every
@@ -883,47 +862,38 @@ def _brief_budget(config: Config, args: argparse.Namespace) -> int:
     except (KeyError, OSError) as error:
         return _refused(error)
 
-    if args.json:
-        print(
-            json.dumps(
-                {
-                    "unit": CHARACTER_UNIT,
-                    "limit": found.limit,
-                    "briefs": [
-                        {
-                            "id": one.id,
-                            "characters": one.characters,
-                            # The split, published always and never only when non-zero
-                            # (RK1486): a consumer comparing two backlogs needs the zero to
-                            # mean *no deps* rather than *this build did not measure it*.
-                            "graph": one.graph,
-                            "prose": one.prose,
-                            "over": one.over(found.limit),
-                        }
-                        for one in found.briefs
-                    ],
-                    # What the ranking could not measure (RK1288), which is the fact the
-                    # widest is wrong without: `[]` is an answer and never an absence.
-                    "unpriced": [
-                        {"id": one.id, "because": one.because} for one in found.unpriced
-                    ],
-                    # Carried and never reconstructed (RK1289): priced, refused and not asked
-                    # for are three numbers that add up to this one.
-                    "elided": found.elided,
-                    "open_lines": found.open_lines,
-                },
-                indent=2,
-            )
-        )
-        return EXIT_OK
+    fields = {
+        "unit": CHARACTER_UNIT,
+        "limit": found.limit,
+        "briefs": [
+            {
+                "id": one.id,
+                "characters": one.characters,
+                # The split, published always and never only when non-zero (RK1486): a
+                # consumer comparing two backlogs needs the zero to mean *no deps* rather
+                # than *this build did not measure it*.
+                "graph": one.graph,
+                "prose": one.prose,
+                "over": one.over(found.limit),
+            }
+            for one in found.briefs
+        ],
+        # What the ranking could not measure (RK1288), which is the fact the widest is wrong
+        # without: `[]` is an answer and never an absence.
+        "unpriced": [{"id": one.id, "because": one.because} for one in found.unpriced],
+        # Carried and never reconstructed (RK1289): priced, refused and not asked for are
+        # three numbers that add up to this one.
+        "elided": found.elided,
+        "open_lines": found.open_lines,
+    }
     # Both, because a ranking that is empty and a ranking whose every line refused are two
     # answers (RK1288): the second has everything to report and nothing in the first column.
     if not (found.briefs or found.unpriced):
-        print(
+        return Result(
+            fields,
             f"roadkeep: no open line to brief, so there is nothing to price — "
-            f"`{invocation()} list` says what the backlog holds"
+            f"`{invocation()} list` says what the backlog holds",
         )
-        return EXIT_OK
     # The verdict says what it was taken over (RK1292). `0 over` beside a listing that names
     # a line nobody could measure is a claim the ranking is not entitled to: the widest is
     # the bound, and an unmeasured line is the shape most likely to be it. The gate has no
@@ -951,11 +921,10 @@ def _brief_budget(config: Config, args: argparse.Namespace) -> int:
     # likely to have been the widest, so the top of the rest is not the answer while it is
     # unaccounted for — and what refused it is the tool's own sentence, not one composed here.
     rows += [f"  {one.id:<10} unpriced — {one.because}" for one in found.unpriced]
-    print("\n".join(rows))
-    return EXIT_OK
+    return Result(fields, "\n".join(rows))
 
 
-def _tools_budget(config: Config, args: argparse.Namespace) -> int:
+def _tools_budget(config: Config, args: argparse.Namespace) -> Result | int:
     """What this project's tool list costs a session, stated because nothing stated it (RK464).
 
     RK30 put `[budgets]` on the files a session loads every turn, because resident prose has
@@ -1005,26 +974,24 @@ def _tools_budget(config: Config, args: argparse.Namespace) -> int:
                 file=sys.stderr,
             )
             return EXIT_USAGE
-        if args.json:
-            print(json.dumps(one.payload(CHARACTER_UNIT, config.tool_characters), indent=2))
-        else:
-            print(one.stated(CHARACTER_UNIT, config.tool_characters))
-        return EXIT_OK
+        return Result(
+            one.payload(CHARACTER_UNIT, config.tool_characters),
+            one.stated(CHARACTER_UNIT, config.tool_characters),
+        )
 
     # The same measurement `--session` totals (RK1096), so the ranking and the total cannot
     # come to disagree about what a client is sent.
     sent = surface(config)
 
-    if args.json:
-        print(json.dumps(sent.payload(CHARACTER_UNIT, config.tool_characters, config.tool_session), indent=2))
-    else:
-        print(sent.stated(
+    return Result(
+        sent.payload(CHARACTER_UNIT, config.tool_characters, config.tool_session),
+        sent.stated(
             CHARACTER_UNIT, config.tool_characters, _LARGEST_TOOLS, config.tool_session
-        ))
-    return EXIT_OK
+        ),
+    )
 
 
-def _pick(config: Config, args: argparse.Namespace) -> int:
+def _pick(config: Config, args: argparse.Namespace) -> Result | int:
     """The next task this backlog offers, and why that one (RK11).
 
     Both registers come off one record (RK1170): the choice, the claim and the event reached this
@@ -1047,8 +1014,7 @@ def _pick(config: Config, args: argparse.Namespace) -> int:
     answer = Picked(
         config=config, choice=choice, claim=claim, event=_claim_event(claim, config)
     )
-    print(json.dumps(answer.payload(), indent=2) if args.json else answer)
-    return EXIT_OK
+    return Result(answer.payload(), str(answer))
 
 
 def _export(config: Config, args: argparse.Namespace) -> int:
@@ -1092,7 +1058,7 @@ def _export(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-def _gaps(config: Config, args: argparse.Namespace) -> int:
+def _gaps(config: Config, args: argparse.Namespace) -> Result | int:
     """Which ids below the highest no file carries, and what became of each (RK39, RK95).
 
     Both registers come off one result (RK1170): `Gapped` renders them beside the reading that
@@ -1100,11 +1066,10 @@ def _gaps(config: Config, args: argparse.Namespace) -> int:
     carries are two readings of one thing rather than two functions two files apart.
     """
     answer = Gapped(gaps=gaps(config))
-    print(json.dumps(answer.payload(), indent=2) if args.json else answer)
-    return EXIT_OK
+    return Result(answer.payload(), str(answer))
 
 
-def _govern(config: Config, args: argparse.Namespace) -> int:
+def _govern(config: Config, args: argparse.Namespace) -> Result | int:
     """A governed number, read and then declared in the same call (RK1272).
 
     The read alone where no value is passed, which is the half that already existed under four
@@ -1129,11 +1094,7 @@ def _govern(config: Config, args: argparse.Namespace) -> int:
     except REFUSALS as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(written.payload(config), indent=2))
-    else:
-        print(written.stated(config))
-    return EXIT_OK
+    return answered(written, config=config)
 
 
 def _reading_json(found) -> dict:
@@ -1154,7 +1115,7 @@ def _reading_json(found) -> dict:
     }
 
 
-def _config_shape(config: Config, args: argparse.Namespace) -> int:
+def _config_shape(config: Config, args: argparse.Namespace) -> Result | int:
     """What `roadkeep.toml` may declare, and what this project did (RK1270).
 
     Never refused over the project's *state* — a tree with no config at all is answered, that
@@ -1171,14 +1132,10 @@ def _config_shape(config: Config, args: argparse.Namespace) -> int:
     except KeyError as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(payload(found), indent=2))
-    else:
-        print(stated(found))
-    return EXIT_OK
+    return Result(payload(found), stated(found))
 
 
-def _commands(config: Config, args: argparse.Namespace) -> int:
+def _commands(config: Config, args: argparse.Namespace) -> Result | int:
     """What this build's command line takes, as data rather than as terminal text (RK1401).
 
     `_config_shape`'s twin, and refused the same way: never over the project's *state* — a
@@ -1193,14 +1150,10 @@ def _commands(config: Config, args: argparse.Namespace) -> int:
     except KeyError as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(payload(found), indent=2))
-    else:
-        print(stated(found))
-    return EXIT_OK
+    return Result(payload(found), stated(found))
 
 
-def _anchors(config: Config, args: argparse.Namespace) -> int:
+def _anchors(config: Config, args: argparse.Namespace) -> Result | int:
     """Live and retired addresses across this project's prose (RK247, RK297).
 
     Four readings off one record (RK1170) — the wide report and its payload, and the free
@@ -1255,10 +1208,13 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
         config, role, args.family or "", [role] if role else asked, block, spans
     )
     if args.only_next:
-        if args.json:
-            print(json.dumps(found.free_payload(), indent=2))
-            return EXIT_OK
         out, notes = found.freely()
+        if args.json:
+            # The narrow read keeps its register branch (RK1615), and this is the reason: the
+            # refusal below is about an empty *stdout* — the form exists to be captured by a
+            # shell — while the payload with no family is a complete answer that exits 0. One
+            # `Result` carries one code, and here the code is a fact about the register.
+            return Result(found.free_payload(), "")
         if not out:
             # The one refusal the narrow read has of its own: an empty stdout here reads as a
             # command that failed quietly, and this form exists to be captured.
@@ -1283,22 +1239,18 @@ def _anchors(config: Config, args: argparse.Namespace) -> int:
                 file=sys.stderr,
             )
             return EXIT_USAGE
-        print(chr(10).join(out))
-        for note in notes:
-            print(note, file=sys.stderr)
-        return EXIT_OK
+        return Result(found.free_payload(), chr(10).join(out), noted="\n".join(notes))
 
-    if args.json:
-        print(json.dumps(found.payload(config, args.claims, args.retired), indent=2))
-    else:
+    return Result(
+        found.payload(config, args.claims, args.retired),
         # RK1466. The retired half is what grows — one address per shipped task, pruned by
         # nothing — so the wide listing on a project with no families carries the live ones
         # and names the flag that prints the rest.
-        print(found.stated(config, args.claims, args.retired))
-    return EXIT_OK
+        found.stated(config, args.claims, args.retired),
+    )
 
 
-def _deps(config: Config, args: argparse.Namespace) -> int:
+def _deps(config: Config, args: argparse.Namespace) -> Result | int:
     try:
         backlog = Backlog.load(config)
     except (KeyError, OSError) as error:
@@ -1320,14 +1272,10 @@ def _deps(config: Config, args: argparse.Namespace) -> int:
             )
         )
 
-    if args.json:
-        print(json.dumps(found.payload(), indent=2))
-    else:
-        print(found.stated())
-    return EXIT_OK
+    return answered(found)
 
 
-def _origin(config: Config, args: argparse.Namespace) -> int:
+def _origin(config: Config, args: argparse.Namespace) -> Result | int:
     if args.id.startswith("§"):
         return _cited(config, args)
     try:
@@ -1336,25 +1284,26 @@ def _origin(config: Config, args: argparse.Namespace) -> int:
         print(f"roadkeep: no history to resolve against ({error})", file=sys.stderr)
         return EXIT_USAGE
 
-    if args.json:
-        print(json.dumps({"id": origin.task_id, **_commits_json(origin)}, indent=2))
-        return EXIT_OK
-
     if origin.proposed_in is None and origin.shipped_in is None:
-        print(f"{args.id}: nothing in history mentions it yet")
-        return EXIT_OK
-    for label, commit in (("proposed", origin.proposed_in), ("shipped", origin.shipped_in)):
-        if commit is None:
-            print(f"  {label:<9} —")
-            continue
-        print(f"  {label:<9} {commit.short}  {commit.date[:10]}  {commit.subject}")
-    if args.why and origin.shipped_in is not None:
-        print()
-        print(origin.shipped_in.reasoning)
-    return EXIT_OK
+        rows = [f"{args.id}: nothing in history mentions it yet"]
+    else:
+        rows = [
+            f"  {label:<9} —"
+            if commit is None
+            else f"  {label:<9} {commit.short}  {commit.date[:10]}  {commit.subject}"
+            for label, commit in (
+                ("proposed", origin.proposed_in),
+                ("shipped", origin.shipped_in),
+            )
+        ]
+        if args.why and origin.shipped_in is not None:
+            # The blank row is kept, so `Result` and not `Result.of`: that one drops empties,
+            # and here the gap between the commits and the reasoning is what separates them.
+            rows += ["", origin.shipped_in.reasoning]
+    return Result({"id": origin.task_id, **_commits_json(origin)}, "\n".join(rows))
 
 
-def _cited(config: Config, args: argparse.Namespace) -> int:
+def _cited(config: Config, args: argparse.Namespace) -> Result | int:
     """Where the design behind a dangling citation went (RK212).
 
     `ship` names the sections left citing what it deleted (RK206), which serves the author
@@ -1373,14 +1322,10 @@ def _cited(config: Config, args: argparse.Namespace) -> int:
     # Both registers off the record (RK1170), and the role spelled by this project (RK75): the
     # answer is `Cited`'s, and what the printed one needs beyond the fact is the file's name.
     where = config.relative(config.path(found.role)) if config.has(found.role) else found.role
-    if args.json:
-        print(json.dumps(found.payload(), indent=2))
-    else:
-        print(found.stated(where, why=args.why))
-    return EXIT_OK
+    return Result(found.payload(), found.stated(where, why=args.why))
 
 
-def _weight(config: Config, args: argparse.Namespace) -> int:
+def _weight(config: Config, args: argparse.Namespace) -> Result | int:
     """Print what comparable tasks cost (RK71). Numbers only — the judgement is the author's.
 
     No advice line: what a spread means for the line being written is an editorial call, and
@@ -1404,11 +1349,10 @@ def _weight(config: Config, args: argparse.Namespace) -> int:
         weights=weights,
         records=args.records,
     )
-    print(json.dumps(answer.payload(), indent=2) if args.json else answer)
-    return EXIT_OK
+    return Result(answer.payload(), str(answer))
 
 
-def _remaining(config: Config, args: argparse.Namespace) -> int:
+def _remaining(config: Config, args: argparse.Namespace) -> Result | int:
     """Run the query a task's own design declares, against this tree, now (RK492).
 
     A read in the strict sense: nothing is written, nothing is cached, and the exit code says
@@ -1442,12 +1386,11 @@ def _remaining(config: Config, args: argparse.Namespace) -> int:
             )
         return EXIT_OK
     found = count(config.root, args.id, clauses)
-    print(json.dumps(found.payload(), indent=2) if args.json else str(found))
-    return EXIT_OK
+    return Result(found.payload(), str(found))
 
 
 
-def _unclosed(config: Config, args: argparse.Namespace) -> int:
+def _unclosed(config: Config, args: argparse.Namespace) -> Result | int:
     """Open lines the history already speaks for (RK1201). Nothing here fails, so exit 0.
 
     Both registers come off one record (RK1170), and the exit code is not one of them: a
@@ -1459,15 +1402,11 @@ def _unclosed(config: Config, args: argparse.Namespace) -> int:
     except (KeyError, OSError) as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(answer.payload(), indent=2))
-    else:
-        print(answer.stated())
-    return EXIT_OK
+    return answered(answer)
 
 
 
-def _evidence(config: Config, args: argparse.Namespace) -> int:
+def _evidence(config: Config, args: argparse.Namespace) -> Result | int:
     """What a task's own design says would prove it done, counted now (RK1184).
 
     `remaining` with the sign flipped, and the same read: sites that must **exist** rather
@@ -1502,8 +1441,7 @@ def _evidence(config: Config, args: argparse.Namespace) -> int:
             )
         return EXIT_OK
     found = count(config.root, args.id, clauses, EVIDENCE)
-    print(json.dumps(found.payload(), indent=2) if args.json else str(found))
-    return EXIT_OK
+    return Result(found.payload(), str(found))
 
 
 def declare_reads(subcommands: argparse._SubParsersAction) -> None:

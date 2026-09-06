@@ -65,7 +65,7 @@ from roadkeep.installing import (
     uninstall,
     vendor,
 )
-from roadkeep.rendering import _estimate_json, _print_estimate
+from roadkeep.rendering import Result, _estimate_json, _print_estimate, answered
 from roadkeep.serving import serve
 from roadkeep.capturing import PARTS
 from roadkeep.verbs.declaring import _JSON_HELP, answers, narrows
@@ -91,7 +91,7 @@ ABOUT_THE_WIRING = (
 )
 
 
-def _init(config: Config, args: argparse.Namespace) -> int:
+def _init(config: Config, args: argparse.Namespace) -> Result | int:
     # `config` is deliberately unused: `init` is the one command that runs *before* a
     # project is configured, so it takes the directory it was pointed at. A discovered
     # config would be an ancestor's, and scaffolding under someone else's paths is how a
@@ -118,14 +118,10 @@ def _init(config: Config, args: argparse.Namespace) -> int:
     except (ValueError, OSError) as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(created.payload(args.directory), indent=2))
-    else:
-        print(created.stated())
-    return EXIT_OK
+    return Result(created.payload(args.directory), created.stated())
 
 
-def _declare(config: Config, args: argparse.Namespace) -> int:
+def _declare(config: Config, args: argparse.Namespace) -> Result | int:
     """`init`'s door for a project that is already configured (RK1264).
 
     Unlike `_init` this one **wants** the discovered config: the role is added to the project
@@ -149,11 +145,7 @@ def _declare(config: Config, args: argparse.Namespace) -> int:
     except (ValueError, OSError) as error:
         return _refused(error)
 
-    if args.json:
-        print(json.dumps(written.payload(config), indent=2))
-    else:
-        print(written.stated(config))
-    return EXIT_OK
+    return answered(written, config=config)
 
 
 def _better_read(config: Config, args: argparse.Namespace, estimate):
@@ -226,7 +218,7 @@ def _adopt(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-def _engines(config: Config, args: argparse.Namespace) -> int:
+def _engines(config: Config, args: argparse.Namespace) -> Result | int:
     """Every copy this project runs, and whether the versions agree (RK415, RK1451).
 
     `config` is read for its root alone — the registry is keyed by project path, so the
@@ -251,24 +243,16 @@ def _engines(config: Config, args: argparse.Namespace) -> int:
         # says it as a key, a dict having no line to break. Null and never omitted, so a
         # consumer tells "nothing was passed over" from "this build predates the field".
         unread = found.unread()
-        if args.json:
-            print(json.dumps({"invoke": found.invoke(), "unread": unread or None}, indent=2))
-        else:
-            print(found.invoke())
-            if unread:
-                # Flushed first, so the two streams land in the order they were written where
-                # a caller sent both to one file: stdout is fully buffered off a terminal and
-                # stderr is not, which puts the note above the answer it is about.
-                sys.stdout.flush()
-                print(unread, file=sys.stderr)
-        return EXIT_OK
+        # The flush RK1561 needed is the renderer's now (RK1615): one writer emits stdout and
+        # then stderr in that order, so the note cannot overtake the answer it is about.
+        return Result(
+            {"invoke": found.invoke(), "unread": unread or None},
+            found.invoke(),
+            noted=unread,
+        )
     # Both registers off the record (RK1170), the exit code included: whether the pen and the
     # judge are the same copy is a property of the reading and not a second decision here.
-    if args.json:
-        print(json.dumps(found.payload(), indent=2))
-    else:
-        print(found.stated())
-    return EXIT_OK if found.agree else EXIT_GATE
+    return answered(found, code=EXIT_OK if found.agree else EXIT_GATE)
 
 
 def _vendored_source(pinned: object, checked: bool) -> str:
@@ -365,7 +349,7 @@ def _install(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-def _capture_filed(config: Config, args: argparse.Namespace) -> int:
+def _capture_filed(config: Config, args: argparse.Namespace) -> Result | int:
     """Record which task a capture already on disk was filed as (RK1142).
 
     `add --capture` closes the row by the act that closes it, and covered every capture filed
@@ -434,11 +418,7 @@ def _capture_filed(config: Config, args: argparse.Namespace) -> int:
         asked=args.task_id,
     )
 
-    if args.json:
-        print(json.dumps(answer.payload(), indent=2))
-    else:
-        print(answer.stated())
-    return EXIT_OK
+    return answered(answer)
 
 
 def _capture_sweep(config: Config, args: argparse.Namespace) -> int:
