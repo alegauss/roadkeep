@@ -731,6 +731,7 @@
 - ✅ **RK1598** **three sites that compose a read are a work-list, and each of the three sentences says something untrue** — The three reads run, engines survives the config it is offered for, and the two false clauses say what the tool does.
 - ✅ **RK1599** **two sites remain a work-list, and the door a capture names cannot be read back at all** — The capture path is quoted so its door runs, the transport rewrite is a decision, and no site is a work-list item.
 - ✅ **RK1584** **a refused call publishes no payload, so every field of a violation reaches an agent as prose to match on** — A refused call under --json publishes the violations, the two clauses above them and the sentence, in the record's own names.
+- ✅ **RK1542** **the retirement prefix every ranking figure is measured through is split by hand in two tests** — The id a retirement names is read by a function beside the one that writes it, and a second site taking the head off by hand is refused.
 
 ## Block E — Adoption
 

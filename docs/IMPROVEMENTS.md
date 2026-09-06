@@ -314,33 +314,6 @@ verb placing it anywhere else would move a section a reader knows the position o
 
 ## Block D — The gate
 
-### §RK1542 The prefix the corpus is recovered through
-
-RK1507 paired the carried line's writer and reader and said the ledger's continuation is
-where the second such shape will be. It is already here, one field over, and it has
-three readers.
-
-`shipping._retired_why` composes a retirement's sentence as `superseded by <id>:
-<reason>` or `abandoned: <reason>` — a derived prefix in front of the author's own
-words, which the same docstring calls "the same shape and the same argument" as the
-carried line. Two places read it back by splitting on the literal:
-`tests/test_ranking.py` twice, to recover the partner id for the corpus every
-duplicate-ranking figure is measured on.
-
-So the number RK441, RK1183 and RK1477 all rest on is recovered by a hand-written
-`split("superseded by ", 1)[1].split(":", 1)[0]`, against a string composed in another
-module. Change the word and the pairs go to zero — and the test that would catch it is
-the one asserting *at least eleven pairs*, which is the assertion protecting exactly
-this and the reason nothing is silently wrong today.
-
-That makes it cheaper than the carried line was: the guard exists and the coupling does
-not. What is missing is the reader beside the writer — `superseded(why)` answering the
-id or `None`, next to what composes it — so the split is spelled once and the corpus
-reader asks for a fact rather than parsing a sentence.
-
-Worth doing with it: `abandoned:` has no reader at all today, which is why it is the one
-that will break first.
-
 ### §RK1544 The brief priced without its other files
 
 RK1509 prices the widest brief for an adopter, and the reading is taken over the file

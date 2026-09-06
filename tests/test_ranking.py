@@ -25,6 +25,7 @@ from pathlib import Path
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.ranking import NEAREST, VOLUNTEERED, claim, nearest, words
+from roadkeep.shipping import superseded
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -121,9 +122,9 @@ def test_every_pair_this_ledger_knows_the_answer_to_lands_inside_the_count():
     ledger = config.document("changelog")
     by_id = {entry.task.id: entry for entry in ledger.entries}
     pairs = [
-        (entry, entry.task.why.split("superseded by ", 1)[1].split(":", 1)[0].strip())
+        (entry, superseded(entry.task.why))
         for entry in ledger.entries
-        if "superseded by " in entry.task.why
+        if superseded(entry.task.why)
     ]
     assert len(pairs) >= 11, "the corpus this figure is measured on lost its known answers"
     reached: list[str] = []
@@ -446,9 +447,9 @@ def _known_pairs():
     this ledger holds — and, since RK1500, the reason one half of the read is unmeasured."""
     ledger = Config.discover(HERE).document("changelog")
     return [
-        (entry, entry.task.why.split("superseded by ", 1)[1].split(":", 1)[0].strip())
+        (entry, superseded(entry.task.why))
         for entry in ledger.entries
-        if "superseded by " in entry.task.why
+        if superseded(entry.task.why)
     ]
 
 
@@ -518,9 +519,9 @@ def test_the_two_corpora_do_not_compete_for_the_volunteered_rows():
     config = Config.discover(HERE)
     ledger, roadmap = config.document("changelog"), config.document("roadmap")
     pairs = [
-        (entry, entry.task.why.split("superseded by ", 1)[1].split(":", 1)[0].strip())
+        (entry, superseded(entry.task.why))
         for entry in ledger.entries
-        if "superseded by " in entry.task.why
+        if superseded(entry.task.why)
     ]
     assert len(pairs) >= 11
     taken = 0
@@ -552,9 +553,9 @@ def test_widening_the_window_reaches_no_pair_three_does_not():
     ledger, roadmap = config.document("changelog"), config.document("roadmap")
     by_id = {entry.task.id: entry for entry in ledger.entries}
     pairs = [
-        (entry, entry.task.why.split("superseded by ", 1)[1].split(":", 1)[0].strip())
+        (entry, superseded(entry.task.why))
         for entry in ledger.entries
-        if "superseded by " in entry.task.why
+        if superseded(entry.task.why)
     ]
     reached = {}
     for count in (VOLUNTEERED, VOLUNTEERED + 1, VOLUNTEERED + 2):

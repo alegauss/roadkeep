@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -3864,6 +3865,71 @@ def test_a_composed_carried_line_is_recognised_as_one():
     # As the file holds it, which is what the recogniser is handed: a line with its ending on.
     assert carries(carried("A lead", "Because of a reason.") + "\n")
     assert carries(carried("A lead", "Because of a reason.") + "\r\n")
+
+
+def test_a_retirement_names_back_the_id_it_was_composed_with():
+    """RK1542, and RK1507's shape one field over. `retiring` writes `superseded by <id>: <the
+    reason>` and four readers took the id back out by splitting on that literal, in another
+    module — so the word and the split were two spellings of one fact, kept in step by nobody.
+
+    The reader is beside the writer now, and the pair is what makes it a pair: this asserts
+    the round trip rather than the string, so a rewording that moved both is fine and one that
+    moved either is a red here instead of a corpus that silently emptied."""
+    from roadkeep.shipping import retiring, superseded
+
+    assert superseded(retiring("Because of a reason.", "RK41")) == "RK41"
+    # An abandonment names nobody, and `""` is that answer rather than a missing one.
+    assert superseded(retiring("Because of a reason.", None)) == ""
+    # A reason carrying a colon of its own is the author's, and only the derived head is cut.
+    assert superseded(retiring("It moved: the caller changed.", "RK9")) == "RK9"
+
+
+#: Taking the derived head off a retirement's sentence by hand, in any of the four spellings
+#: Python offers. The head itself is spelled in fixtures and asserted on all over this suite —
+#: which is right, those being about the sentence — so what is refused is the *recovery*:
+#: `superseded` is where that is done, and a second site is the coupling RK1542 removed.
+_BY_HAND = re.compile(
+    r"(?:split|rsplit|partition|rpartition|removeprefix)\(\s*[\"']superseded by "
+)
+
+
+def test_no_second_reader_takes_the_head_off_by_hand():
+    """RK1542's guard, and `carrying`'s shape at the smallest scale. Four call sites recovered
+    the partner id with `why.split("superseded by ", 1)[1].split(":", 1)[0]`, against a string
+    composed in another module — and what rested on it is the corpus every duplicate-ranking
+    figure is measured on (RK441, RK1183, RK1477).
+
+    Total against the source rather than a list kept by hand: a fifth site written tomorrow is
+    a red here, which is the only thing that stops the pair drifting back into two.
+
+    Both surfaces asked rather than globbed — `surface.modules` for the package and
+    `surface.suite` for the tests — which is RK496's rule: a survey deriving its own view of
+    the layout agrees with every other one until the layout moves."""
+    from surface import modules, suite
+
+    reading = [(one.where, one.text) for one in modules() if one.where != "shipping.py"]
+    reading += [
+        (path.name, path.read_text(encoding="utf-8"))
+        for path in suite()
+        if path.name != "test_shipping.py"
+    ]
+    found = [
+        f"{where}:{number}"
+        for where, text in reading
+        for number, line in enumerate(text.splitlines(), start=1)
+        if _BY_HAND.search(line)
+    ]
+    assert not found, found
+
+
+def test_a_why_that_is_not_a_retirement_names_nobody():
+    # The head has to **lead** the sentence, which is where `retiring` puts it: a `why` merely
+    # mentioning the phrase is an author's prose, and reading an id out of it would invent a
+    # pair the ledger never recorded — into the corpus every ranking figure rests on.
+    from roadkeep.shipping import superseded
+
+    assert superseded("It works now.") == ""
+    assert superseded("The entry says it was superseded by RK41 elsewhere.") == ""
 
 
 def test_a_line_this_tool_did_not_write_is_not_one():

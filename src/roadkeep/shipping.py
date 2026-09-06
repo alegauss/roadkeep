@@ -4083,8 +4083,36 @@ def retiring(reason: str, superseded_by: str | None) -> str:
     evidence. One writer, so the price and the write cannot come apart.
     """
     if superseded_by is not None:
-        return f"superseded by {superseded_by}: {reason}"
+        return f"{_RETIRED_BY}{superseded_by}: {reason}"
     return f"abandoned: {reason}"
+
+
+#: The derived head :func:`retiring` writes in front of the author's reason, spelled once so
+#: :func:`superseded` can take it off again (RK1542).
+_RETIRED_BY = "superseded by "
+
+
+def superseded(why: str) -> str:
+    """The id a retirement's sentence names, or `""` where it names none (RK1542).
+
+    :func:`retiring`'s reader, beside it. RK1507 paired the carried line's writer and reader
+    and said the ledger's continuation is where the second such shape would be; it was already
+    here, one field over, with the composer in this module and the split written out by hand
+    in four places — `why.split("superseded by ", 1)[1].split(":", 1)[0]`, against a string
+    composed somewhere else.
+
+    What rested on it is the corpus every duplicate-ranking figure is measured on (RK441,
+    RK1183, RK1477): change the word here and the pairs go to zero, with the only thing
+    catching it an assertion that there are *at least eleven* — which is why nothing was
+    silently wrong and why the coupling was worth removing before something was.
+
+    `""` and not `None` for the reason `Violation.bound` is `""`: every caller here is asking
+    *which id*, and an empty answer is *this sentence names none* — an abandonment, or a
+    `why` that was never a retirement's at all.
+    """
+    if not why.startswith(_RETIRED_BY):
+        return ""
+    return why[len(_RETIRED_BY) :].split(":", 1)[0].strip()
 
 
 def supersession_cost(anchor: str, task_id: str | None = None) -> int:
