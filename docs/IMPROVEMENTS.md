@@ -362,29 +362,6 @@ payload every refusal already publishes, and whether the remedy table keys on `(
 bound)` — at which point `DepRefused`'s inspection becomes a row, and the doors that
 reframe nothing get one.
 
-### §RK1539 The example written from one side
-
-RK1504's design names two collisions: `claim`, a verb here and the tool for `brief
---claim`, and `scope`, "a command here and the tool name for `claim --path`". The
-enumeration finds one. `scope` is not a verb of this CLI — it is a name `_accepting`
-*takes*, mapping it to `claim`, which is RK1481's own work.
-
-So the design's second example was wrong about which surface holds `scope`, and the
-sentence in `cli.py` that RK1481 left says the same thing: "`scope` is a command here
-and the tool name for `claim --path`". Both were written from the tool table, where
-`scope` is a name; neither checked the parser. Nothing broke, because the rule they
-justify — never respell a verb this CLI has — is right whichever example illustrates it.
-
-What that costs is a reader who follows the example. The comment sends them to look for
-a `scope` verb, and the guard it explains fires on `claim` alone; the sweep now says
-which, and the prose beside the guard still says the other.
-
-The fix is one sentence and the finding is not. It is that a comment naming a population
-was written from one of the two enumerations it compares — the shape RK1504 closed for
-the *names* and left open for the *prose about them*. `test_configured` scans this
-package for a marker literal already; a comment naming a verb this CLI has not got is
-the same claim.
-
 ### §RK1540 The frontmatter a reader pays for
 
 RK1505 put two lines of frontmatter on `asking.md` and `writing.md` so the absent-page

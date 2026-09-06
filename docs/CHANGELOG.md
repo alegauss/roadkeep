@@ -716,6 +716,7 @@
 - ✅ **RK1536** **a decision can only be filed by a departure, so the moment its answer is lost is the moment nothing can be done** — sixty of sixty decisions were filed by a departure, so the role keeps no door of its own and the measurement that says why is held as a test.
 - ✅ **RK1537** **a pause is not held to the why limit a project declared, and nothing at the number says so** — govern names the door a limit does not reach, so an author choosing limits.why is told a pause is charged against the rendered line instead of finding out by a long reason landing.
 - ✅ **RK1538 (the remedy table)** **the flag saying which ceiling refused a field reaches neither the remedy table nor a payload** — the preventive read is keyed on which ceiling refused, so a why the line bound is offered the read that prices the line instead of one that says the draft fits.
+- ✅ **RK1539** **the comment explaining the respelling guard names a verb this CLI does not have** — the guard's comment names the one collision the enumeration finds, and a test holds the prose against the table so a word called a command here has to be one.
 
 ## Block E — Adoption
 

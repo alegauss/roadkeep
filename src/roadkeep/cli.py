@@ -314,10 +314,17 @@ def _accepting(parser: argparse.ArgumentParser, argv: list[str]) -> tuple[list[s
         return out, ""
     index = _parsers(parser)
     # **Only where this CLI has no such verb**, which is the rule the whole substitution turns
-    # on: `claim` is a command here *and* the tool name for `brief --claim`, and `scope` is a
-    # command here and the tool name for `claim --path`. Respelling either would rewrite a call
-    # the caller typed correctly into a different act — the one failure worse than the refusal
-    # this replaces. The parser is the authority on what a command is (RK353's own division).
+    # on: `claim` is a command here *and* the tool name for `brief --claim`, so respelling it
+    # would rewrite a call the caller typed correctly into a different act — the one failure
+    # worse than the refusal this replaces. The parser is the authority on what a command is
+    # (RK353's own division).
+    #
+    # **One collision and not two** (RK1539). This named `scope` as a second, which is a tool
+    # name and no verb of this CLI — it is a spelling `spelled` *takes*, mapping it to `claim`,
+    # which is the substitution rather than an exception to it. Both examples were written from
+    # the tool table and neither was checked against the parser; the rule they illustrate held
+    # either way, and a reader following the wrong one looks for a verb that is not there.
+    # `COLLIDING` in `tests/test_serving.py` is the enumeration, total against both surfaces.
     line = None if out[at] in index else spelled(out[at])
     if line is not None and line != out[at]:
         said.append(

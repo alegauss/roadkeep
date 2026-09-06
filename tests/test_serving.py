@@ -3052,3 +3052,28 @@ def test_the_two_halves_of_the_sweep_disagree_about_exactly_one_kind(tmp_path):
         one.name for one in NOTES if not one.once
     }
     assert len({one.name for one in NOTES} - _ONCE) == 1
+
+
+def test_the_prose_beside_the_guard_names_the_collisions_the_table_finds():
+    """RK1539. The comment above `_accepting`'s substitution named two collisions and the
+    enumeration finds one: `scope` is a tool name and no verb of this CLI — it is a spelling
+    the guard *takes*, mapping it to `claim`, which is the substitution rather than an
+    exception to it. Both examples were written from the tool table and neither was checked
+    against the parser.
+
+    Nothing broke, because the rule they illustrate is right whichever example carries it. What
+    it cost is a reader following the wrong one, looking for a verb that is not there — so the
+    prose is held against the table, which is what the table was built to be."""
+    import re
+    from pathlib import Path as _Path
+
+    source = _Path(cli.__file__).read_text(encoding="utf-8")
+    guard = source.split("**Only where this CLI has no such verb**", 1)[1].split('"""', 1)[0]
+    guard = guard[: guard.index("line = None")]
+    verbs = _commands()
+    for word in re.findall(r"`([a-z][a-z-]*)`(?=[^`]{0,40}?command here)", guard):
+        assert word in verbs, f"the prose calls `{word}` a command here and the parser has none"
+    # And every collision the table knows is named, so a second one arriving is a comment
+    # somebody edits rather than an example that quietly describes one of two.
+    for name in COLLIDING:
+        assert f"`{name}`" in guard, name
