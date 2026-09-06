@@ -67,6 +67,7 @@
 - 📋 **RK1600** (deps: —) **a refusal payload publishes rules and never the retry the same refusal composed** — The retry is an argv this tool derived and it reaches a caller inside the sentence, so the one part they would execute is the part they must parse. → §RK1600
 - 📋 **RK1601** (deps: —) **fifty-eight served arguments across thirty-three tools are spelled in no call the guidance shows** — Nine thousand code units of schema are sent to every session for arguments its orientation never shows being passed. → §RK1601
 - 📋 **RK1602** (deps: —) **the decisions pointer says it is built from the constant that writes it and spells the literal again** — One clause, two spellings, and a comment claiming otherwise — the third instance of the shape RK1507 and RK1542 each removed once. → §RK1602
+- 📋 **RK1603** (deps: —) **a table's note is repeated on every key under it, and that repetition is 29 percent of the config payload** — One fact about a table is sent once per key it holds, so a caller asking the shape pays ten thousand code units for six copies of a sentence. → §RK1603
 
 ## Block E — Adoption
 
