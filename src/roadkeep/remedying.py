@@ -82,7 +82,7 @@ from __future__ import annotations
 
 import shlex
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import lru_cache
 
 from .config import PROSE_ROLES, ROLES, Config
@@ -1535,9 +1535,26 @@ _TABLE: Mapping[str, _Rule] = {
         ),
         varies="target",
     ),
-    "export.unmarked": _run(
-        ("export", "--readme"),
-        "the target carries no roadkeep markers, so nothing there is governed yet",
+    # `varies` and not a literal `--readme`, which is the reading its sibling above got and
+    # this row was left out of (RK1110, corrected by RK1591): the emission site passes the
+    # flag as the finding's subject for **both** codes, so a stale `--site` block was told to
+    # re-run the README's projection.
+    #
+    # Still a `run`, and the `what` now says what has to be true first. The command refuses on
+    # the state that emits the finding — `export` may not invent where a block belongs in a
+    # file this tool does not own — so `repair` dispatches it and reports it refused. Named
+    # rather than hidden: RK1591 holds the question, there being no kind for a remedy whose
+    # first step is an edit outside this tool.
+    "export.unmarked": _Rule(
+        "run",
+        (
+            (
+                ("export", "--readme"),
+                "paste the two lines the message prints where the block belongs, and this "
+                "writes it — until they are there it refuses, the place being yours",
+            ),
+        ),
+        varies="target",
     ),
     # A `run` and not a `read`, which is the whole point of putting this at the gate (RK1192):
     # `install --check` reported it and nobody ran that, so the finding names the command that
@@ -1981,7 +1998,11 @@ def _varied(
         flag = values.get("id", "")
         if flag in DEFAULTS:
             argv, what = rule.doors[0]
-            return _Rule("run", (((*argv[:-1], f"--{flag}"), what),))
+            # The row's **own** kind, carried through (RK1591). Rebuilding it as a `run` was
+            # right while one code varied and wrong the moment a second did: `export.unmarked`
+            # is a decision — where in a file this tool does not own the block belongs is the
+            # author's — and a substitution that renamed the kind handed it to `repair`.
+            return replace(rule, doors=(((*argv[:-1], f"--{flag}"), what),), varies="")
         return rule
     if rule.varies == "nested":
         blockers = _claimed_below(finding, config)

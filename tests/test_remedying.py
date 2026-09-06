@@ -500,7 +500,31 @@ def test_the_varying_rows_are_derived_from_the_table():
         # A literal `--readme` was right while there were two targets in one file each, and
         # with a third it became a door contradicting the message printed above it.
         "export.stale": "target",
+        # And its sibling, which was left out of that reading (RK1591). The emission site
+        # passes the flag as the subject for both codes, so the row that ignored it named
+        # `--readme` about a `--site` block — the same contradiction, on the branch where the
+        # reader has less to go on. Adding it is what made the substitution keep the row's
+        # kind rather than assume `run`, this one being a `decide`.
+        "export.unmarked": "target",
     }
+
+
+def test_both_export_rows_follow_the_projection_the_finding_names(tmp_path):
+    """RK1591. RK1110 read one of the pair. The emission site passes the flag as the subject
+    for **both** codes, and only `export.stale` varied on it — so a `--site` block with a
+    marker and no end was told to re-run the README's projection, which is the contradiction
+    RK1110 was filed for, on the branch where the reader has less to go on.
+
+    The kind is asserted beside the flag because the substitution rebuilds the row: it carried
+    the kind as a literal `run`, correct for one code and an assumption the moment a second
+    varied on the same question."""
+    config = _project(tmp_path)
+    for code in ("export.stale", "export.unmarked"):
+        for flag in ("readme", "site", "contents"):
+            found = remedy(Finding(code, "README.md", "", 3, subject=flag), config)
+            assert found is not None, code
+            assert found.kind == "run", (code, flag, found.kind)
+            assert found.doors[0].argv == ("export", f"--{flag}"), (code, flag)
 
 
 def test_a_duplicate_id_in_the_roadmap_is_renumber_and_not_record_renumber(tmp_path):

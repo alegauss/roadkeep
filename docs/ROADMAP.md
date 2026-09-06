@@ -41,7 +41,7 @@
 
 ## Block D — The gate
 
-- ⏳ **RK1498** (deps: RK1532 ✅) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Twenty of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
+- ⏳ **RK1498** (deps: RK1532 ✅) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Seventeen of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
 - ⏳ **RK1538** (deps: —) **the flag saying which ceiling refused a field reaches neither the remedy table nor a payload** — The payload half: a refusal reaches a caller as text, so publishing the flag needs a refusal payload. → §RK1538
 - ⏳ **RK1541** (deps: —) **the served budget has no room for a tenth subject, and which of its sixteen arguments callers use is unmeasured** — Which of the sixteen exposed arguments callers pass: nothing records a tool call, so that reading has no corpus here. → §RK1541
 - 💭 **RK1542** (deps: —) **the retirement prefix every ranking figure is measured through is split by hand in two tests** — RK1507 paired the carried line's two readers and this is the same shape one field over, with the composer in shipping and the readers in a test. → §RK1542
@@ -68,6 +68,7 @@
 - 💭 **RK1585** (deps: —) **prose beside a total table is taken for the table, and one check reads one phrase in one comment** — RK1539 closed the instance it met and the shape it is an instance of has five tables and no rule. → §RK1585
 - 💭 **RK1588** (deps: —) **a withholding reason quoted a total that was stale within the session that read it, and no sweep says how many are** — RK1541 replaced one frozen figure with a read after RK1530 and RK1540 each did the same, and the population of numbers a decision rests on is uncounted. → §RK1588
 - 📋 **RK1590** (deps: —) **ninety backticked spans outside a docstring name a verb with no invocation, so nothing can tell a door from prose** — A command a caller pastes and a flag family being named read alike, and the composer sweep counts the second as absent rather than as skipped. → §RK1590
+- 📋 **RK1591** (deps: —) **a remedy whose first step is an edit outside this tool has no kind, so repair dispatches a door that refuses** — The six kinds say who supplies the prose and who runs the command, and none says the state has to change first. → §RK1591
 
 ## Block E — Adoption
 

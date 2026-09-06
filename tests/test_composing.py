@@ -959,3 +959,110 @@ def test_the_door_a_blocked_merge_row_names_refuses_as_it_says(tmp_path, capsys)
     assert main(["-C", str(project), *argv]) == EXIT_USAGE
     assert not (project / ".mcp.json").exists()
     assert not (project / ".claude").exists()
+
+
+# -- what the gate says about a project's own surfaces (RK1498) ----------------
+
+
+PROJECTED = (
+    "# A project\n\n<!-- roadkeep:begin -->\nnothing the governed files render\n"
+    "<!-- roadkeep:end -->\n"
+)
+
+
+def test_the_door_a_stale_projection_names_runs(tmp_path):
+    """RK1498. A derived block is compared and never repaired (L4), so the whole of what the
+    finding carries is the command that rewrites it — and nothing had run one.
+
+    The gate is read again at the end, which is what makes it a door rather than a sentence:
+    a remedy that leaves its own finding standing is the loop RK393 named."""
+    project = _adopter(tmp_path)
+    (project / "README.md").write_text(PROJECTED, encoding="utf-8", newline="")
+    (found,) = lint(Config.discover(project)).findings
+    assert found.code == "export.stale", found.code
+    assert runs(project, found.message) == (["export", "--readme"],), found.message
+    assert lint(Config.discover(project)).clean
+
+
+def test_the_door_a_half_marked_projection_names_refuses_until_the_paste(tmp_path):
+    """RK1591, which this family was taken to find. The other branch of the same function
+    emits a finding whose door **refuses on the state that emitted it**: `export` may not
+    invent where a block belongs in a file this tool does not own, so the paste comes first
+    and `repair`, which walks `run` doors, dispatches one it cannot open.
+
+    Recorded rather than asserted away — RK1591 holds the question, there being no kind for a
+    remedy whose first step is an edit outside this tool, and a `read` or a `decide` here
+    would each say something false about the command. What is held is the shape either answer
+    has to keep: the door names the projection the finding is about, it refuses before the
+    two lines are there, and it lands the moment they are."""
+    project = _adopter(tmp_path)
+    (project / "README.md").write_text(
+        "# A project\n\n<!-- roadkeep:begin -->\nnothing the governed files render\n",
+        encoding="utf-8",
+        newline="",
+    )
+    config = Config.discover(project)
+    (found,) = lint(config).findings
+    assert found.code == "export.unmarked", found.code
+    # The message composes nothing of its own: it says paste two lines, which is prose.
+    assert not commands(found.message), found.message
+    rule = remedy(found, config)
+    assert rule is not None
+    (door,) = rule.doors
+    assert list(door.argv) == ["export", "--readme"], rule
+    assert main(["-C", str(project), *door.argv]) == EXIT_USAGE
+    (project / "README.md").write_text(PROJECTED, encoding="utf-8", newline="")
+    assert main(["-C", str(project), *door.argv]) == EXIT_OK
+    assert lint(Config.discover(project)).clean
+
+
+def test_the_door_a_ceiling_over_the_served_surface_names_runs(tmp_path):
+    """RK1498. The tool budget is filed at `roadkeep.toml` and there is no path a reader can
+    open to see the cost, so the ranking the message names is the only way to the number —
+    which makes running it the whole claim.
+
+    One run for however many tools are over: every finding here composes the same read, and
+    the ranking is what answers *which*, so the door does not vary with the subject."""
+    project = _adopter(tmp_path)
+    declared = (project / "roadkeep.toml").read_text(encoding="utf-8")
+    (project / "roadkeep.toml").write_text(
+        f"{declared}\n[tools]\ncharacters = 200\n", encoding="utf-8", newline=""
+    )
+    over = [one for one in lint(Config.discover(project)).findings if one.code == "budget.tool"]
+    assert over, "the fixture stopped being over the ceiling, so this asserts nothing"
+    assert {tuple(commands(one.message)[0]) for one in over} == {("cost", "--tools")}
+    assert runs(project, over[0].message) == (["cost", "--tools"],), over[0].message
+
+
+def _vendored(project: Path) -> tuple:
+    """The notes this fixture is about, and never every note the gate carries.
+
+    `engine.disagreement` fires on a **modified** checkout, which is what a developer running
+    this suite has — so a test asserting the whole list would be green on a clean tree and red
+    on the one the work is done in, for a reason that is not the state under test.
+    """
+    return tuple(
+        one for one in lint(Config.discover(project)).notes if one.code.startswith("install.")
+    )
+
+
+def test_the_door_a_surface_behind_the_engine_names_runs(tmp_path):
+    """RK1498, over RK1192's note. Two codes and one door: a vendored surface older than the
+    engine answering, and one the project never had at all. `install --check` answers this on
+    demand and nobody runs it, which is why the gate says it — so what has to be true is that
+    the command it names writes both back and the note then goes.
+
+    Installed from the checkout this process is and not from a copy: `staleness` compares
+    against `_source()`, so a fixture vendoring from anywhere else would report drift that is
+    the fixture's own and call it the state under test."""
+    project = _adopter(tmp_path)
+    assert main(["-C", str(project), "install"]) == EXIT_OK
+    assert not _vendored(project), "the install left drift of its own"
+    skill = project / ".claude" / "skills" / "roadkeep"
+    (skill / "SKILL.md").write_text("older than the engine\n", encoding="utf-8", newline="")
+    (skill / "writing.md").unlink()
+    notes = _vendored(project)
+    assert {one.code for one in notes} == {"install.stale", "install.absent"}, notes
+    for note in notes:
+        assert runs(project, note.message) == (["install"],), note.message
+    assert not _vendored(project)

@@ -260,23 +260,23 @@ SITES: tuple[Site, ...] = (
     # where the sentence predicts a refusal and is held to it. The remedy is run and the row
     # re-read, which is the only proof it was the right command (RK393).
     Site("installing.py:plan", "run"),
-    Site(
-        "linting.py:_projections",
-        "unreached",
-        unreached("a README carrying a derived block the ledger has since moved past"),
-    ),
+    # RK1498. The derived block, both branches — run by `test_composing` against a README the
+    # governed files no longer render. The stale one composes the rewrite and closes itself;
+    # the half-marked one composes nothing, its message being `NoMarkers`', and what that
+    # found is RK1591: the remedy under it is a `run` whose command refuses on the state that
+    # emits the finding, so `repair` dispatches a door it cannot open. Named, not asserted
+    # away — the row's flag now follows the finding, which is the half that was decidable.
+    Site("linting.py:_projections", "run"),
     # The gate's own report, which is where every door below is rendered for a terminal.
     Site("linting.py:_report_rows", "run"),
-    Site(
-        "linting.py:_served",
-        "unreached",
-        unreached("a served tool whose schema is over the `[tools]` ceiling this project declares"),
-    ),
-    Site(
-        "linting.py:_wired",
-        "unreached",
-        unreached("a project whose vendored surfaces are older than the engine answering, which wants two writes"),
-    ),
+    # RK1498. A ceiling under every tool, so the finding fires and the ranking it names is the
+    # only route to the number — there being no file a reader could open to see the cost.
+    Site("linting.py:_served", "run"),
+    # RK1498. Both codes, one door: a surface behind the engine answering and one the project
+    # never had. Installed from the checkout this process is, because that is what `staleness`
+    # compares against — vendoring from a copy would report the fixture's own drift as the
+    # state under test. The write runs and the notes go, which is RK393's half.
+    Site("linting.py:_wired", "run"),
     Site(
         "markers.py:_naming_the_lines",
         "unreached",
