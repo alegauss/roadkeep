@@ -1091,3 +1091,84 @@ def test_the_row_and_the_payload_read_one_rule(tmp_path, capsys):
     assert scoping.answered(
         config.document("roadmap"), SETTLING.split("\n\n")[-1]
     ) == ("No web UI and no server.",)
+
+
+# -- the absence nothing said before the work (RK1513) -------------------------
+
+
+def _governed(tmp_path: Path) -> Path:
+    """A project that opted the criteria list in, which is what the row is about: `[criteria]`
+    governs the list (RK1265), so on a project declaring none the door would refuse."""
+    root = project(tmp_path).root
+    (root / "roadkeep.toml").write_text(
+        (root / "roadkeep.toml").read_text(encoding="utf-8")
+        + "\n[criteria]\nlead = 60\nwhy = 200\n",
+        encoding="utf-8",
+    )
+    return root
+
+
+
+def test_a_line_with_no_criteria_is_told_so_before_the_first_edit(tmp_path, capsys):
+    """RK1513. RK1185 settled that a criterion is read before the first edit, and settled it for
+    lines that have one. Where a line has none the brief printed nothing, and the absence was
+    first said by `criterion.absent` — which the gate scopes to the partial marker, so it fires
+    after part of the work has landed and asks how much is left.
+
+    That is the wrong end for the case this repository has evidence about: a task that will
+    find work inside its own sentence is exactly the one whose criteria would have caught it,
+    and this is the last call that can still write them."""
+    root = _governed(tmp_path)
+    assert main(["-C", str(root), "brief", "RK1"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "RK1: none — nothing here says what would prove this done" in said
+    assert "criterion add --task RK1" in said
+
+
+def test_the_door_it_offers_is_a_command_this_cli_accepts(tmp_path, capsys):
+    # Filled and parsed rather than run: the lead and the reason are the author's sentences
+    # about their own work, and composing them here would be the synthesis L4 forbids.
+    from composing import commands, filled, supplied
+    from roadkeep.cli import build_parser
+
+    root = _governed(tmp_path)
+    main(["-C", str(root), "brief", "RK1"])
+    (argv,) = [
+        one for one in commands(capsys.readouterr().out) if one[:1] == ["criterion"]
+    ]
+    ready = supplied(filled(argv))
+    assert ready[:4] == ["criterion", "add", "--task", "RK1"]
+    assert build_parser().parse_args(ready)
+
+
+def test_a_line_that_has_one_is_told_what_it_is_and_not_that_it_has_none(tmp_path, capsys):
+    root = _governed(tmp_path)
+    assert main([
+        "-C", str(root), "criterion", "add", "--task", "RK1",
+        "--lead", "The seam is called", "--why", "A test drives it through the door.",
+    ]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", str(root), "brief", "RK1"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "RK1: The seam is called" in said
+    assert "nothing here says what would prove this done" not in said
+
+
+def test_the_payload_already_said_it_and_the_row_is_the_half_that_was_missing(
+    tmp_path, capsys
+):
+    """`done_when_own` has published the empty list all along: what a consumer could read, a
+    reader could not. So this adds no key — the absence was structural and silent, and what it
+    lacked was a sentence at the moment somebody could act on it."""
+    root = _governed(tmp_path)
+    assert main(["-C", str(root), "brief", "RK1", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["done_when_own"] == []
+
+
+def test_a_project_that_declared_no_criteria_is_offered_no_door(tmp_path, capsys):
+    """RK1265's opt-in, and RK1475's rule: `[criteria]` is what governs the list, so on a
+    project that declares none this door refuses — and a row naming a command that then
+    refuses is worse than the row that names none."""
+    root = project(tmp_path).root
+    assert main(["-C", str(root), "brief", "RK1"]) == EXIT_OK
+    assert "criterion add" not in capsys.readouterr().out

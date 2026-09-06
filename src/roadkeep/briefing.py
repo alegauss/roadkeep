@@ -601,6 +601,31 @@ class Brief:
         # two altitudes printed as one list is a reader taking the block's finish line for
         # this line's, which is the conflation the second address exists to end.
         rows += [f"  done     {self.view.task.id}: {lead}" for lead in self.done_when.own]
+        # And the absence, said here rather than at the ship (RK1513). RK1185 settled that a
+        # criterion is read before the first edit and settled it for lines that have one; where
+        # a line has none the brief printed nothing, and the first mention was `criterion.absent`
+        # — scoped to the partial marker, so it fires after part of the work has landed and
+        # asks how much is left. The task that will find work inside its own sentence is exactly
+        # the one whose criteria would have caught it, and this is the last call that can.
+        #
+        # Not a gate and not a demand (L4, RK1358): what it owes is the sentence the deps get,
+        # so an empty list is a thing the caller declined rather than one nobody was shown.
+        # And only where the project opted in (RK1265, RK1475): `[criteria]` is what governs
+        # the list, so on a project that declares none this door refuses — and a finding
+        # naming a command that then refuses is worse than one naming none.
+        if (
+            config.criteria is not None
+            and not self.done_when.own
+            and not self.done_when.own_elided
+        ):
+            from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
+            rows.append(
+                f"  done     {self.view.task.id}: none — nothing here says what would prove "
+                f"this done; `{invocation()} criterion add --task {self.view.task.id} "
+                f'--lead "<what is true when it is done>" --why "<how that is checked>"` '
+                f"writes one"
+            )
         if self.done_when.own_elided:
             rows.append(
                 f"  done     {self.view.task.id}: ... and {self.done_when.own_elided} more "

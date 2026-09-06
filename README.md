@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
-| C — Query (consult without reading the file) | 9 | 160 | 4 |
+| C — Query (consult without reading the file) | 8 | 161 | 4 |
 | D — The gate | 21 | 227 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 147 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 36 | 996 | 14 |
+| **Total** | 35 | 997 | 14 |
 
 **Next ready:**
 
-- 📋 **RK1513** (deps: —) **brief hands over a line carrying no criteria in silence, and the absence is reported only once part landed** — RK1185 rides the criterion with the brief where one exists and RK1433 reports its absence at the partial marker, so the moment before the first edit says nothing. → §RK1513
+- 💭 **RK1514** (deps: —) **uninstall leaves the vendored engine on disk and its own kept field never mentions it** — RK1487 made a refusal name the copy nothing points at, and the successful removal one verb over leaves the same copy with the same silence. → §RK1514
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

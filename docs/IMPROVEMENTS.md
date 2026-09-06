@@ -79,29 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1513 The absence nothing says before the work
-
-RK1185 settled that a criterion is read before the first edit rather than at the ship,
-and it settled it for lines that have one. Where a line has none the brief prints
-nothing, and the absence is first said out loud by `criterion.absent` - which
-`linting.py` scopes to the partial marker, so it fires after part of the work has landed
-and the question it raises is how much is left.
-
-That is the wrong end for the one case this repository already has evidence about. A
-task that will find work inside its own sentence is exactly the task whose criteria
-would have caught it, and the only moment those can still be written is the call that
-starts it.
-
-Not a gate, and not a demand that every line carry one: most do not need one, and RK1358
-already refuses to read an empty list as a met one. What the brief owes is the same
-sentence it gives the deps - this line carries no criteria - so the absence is a thing
-the caller declined rather than a thing nobody was shown. The judgement stays the
-author's, which is L4.
-
-The cheap version is one clause in an answer already composed, and it is worth pricing
-against RK1309's finding that a first body is written blind: both are the same shape, a
-read the author needs at the moment before writing and can only reach after.
-
 ### §RK1519 The marker a project may not declare
 
 Measured. A project declaring `[markers] open = ["📋", "💡", "🔨"]` — legal, validated, and
