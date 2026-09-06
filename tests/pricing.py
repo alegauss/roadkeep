@@ -388,7 +388,15 @@ class Priced:
     because: str
 
     def measure(self, root: Path) -> Note:
-        """Run the state and hand back this row's note, refusing a row that produced none."""
+        """Run the state and hand back this row's note, refusing a row that produced none.
+
+        **The widest sentence and never the sum**, where a state fires several. That is the
+        other question from the one `budgeting.Noted.widest` asks: it sums every
+        `engine.disagreement` row because a machine where all four facts hold is handed all
+        four, and what this census is about is the sentence — how many rows fire is a fact
+        about the state a fixture happened to build, and `install.absent` firing once per
+        missing page would price this file's own choices as the code's width.
+        """
         found = [one for one in self.build(root) if one.code == self.code]
         assert found, f"{self.code}: {self.because} — and the gate said nothing"
         return max(found, key=lambda one: len(one.message))
