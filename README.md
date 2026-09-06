@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 230 | 2 |
-| C — Query (consult without reading the file) | 8 | 158 | 4 |
+| C — Query (consult without reading the file) | 7 | 159 | 4 |
 | D — The gate | 21 | 227 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 147 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 36 | 993 | 14 |
+| **Total** | 35 | 994 | 14 |
 
 **Next ready:**
 
-- 📋 **RK1510** (deps: —) **no read says how many lines a shipped task filed behind it, so granularity is judged from a feel** — weight answers what a task cost from the commits that shipped it; what it filed behind it has no verb, so the reading is rebuilt from git log every time somebody asks. → §RK1510
+- 📋 **RK1511** (deps: —) **a line filed because the task that found it could not fit it has no door back into that task's criteria** — retire ends the line and criterion add writes a sentence that names nothing, so folding one into the other is two writes and neither records that they were one act. → §RK1511
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

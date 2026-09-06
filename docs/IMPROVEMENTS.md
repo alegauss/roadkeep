@@ -103,31 +103,6 @@ second write cannot see today. Whether the fold is right stays the author's judg
 
 ## Block C — Query
 
-### §RK1510 The question weight is the other half of
-
-`weight` (RK71) prices what a comparable task cost, so granularity is a query rather
-than a feel. Nothing prices what a task left behind. In the port this tool governs that
-reading took two `git log` runs and a `comm` over roadmap snapshots: the backlog held 19
-to 26 open lines for three weeks while the id counter went from 66 to 727. Neither
-figure is derivable from anything this tool prints.
-
-It matters because a backlog decomposing and a backlog discovering look identical from
-the count alone. Four of the nine idea-marked lines open there were debts the
-immediately preceding commit chose to leave, not findings the work turned up, and which
-of the two it is decides whether the answer is a smaller task or a criterion written
-earlier.
-
-The join is the one `unclosed` already makes from the other end: a commit names ids, the
-ledger dates each entry, and an id first appearing within a span after an entry is that
-entry's fallout. RK94's correction binds here too - a commit shipping several entries
-gives its filings to none of them rather than a share, a divided count being one no
-commit contains.
-
-Two axes and no score, the way `weight` refuses one: filings per entry, and the span
-they arrived over. Whether a rate is too high is a judgement this has no model for, and
-the block whose lines file the most behind them is often the block where the leverage
-is.
-
 ### §RK1512 A store the picker does not know is there
 
 `defer` is the door for work that is neither shipped nor abandoned, and the store it

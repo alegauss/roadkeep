@@ -50,10 +50,11 @@ import statistics
 from collections import Counter
 from collections.abc import Mapping
 from dataclasses import dataclass
+from types import MappingProxyType
 
 from roadkeep.config import Config
 from roadkeep.kernel.document import Entry
-from roadkeep.history import Cost, added_ids, costs_of
+from roadkeep.history import Cost, added_ids, costs_of, ordering
 
 #: How many recent comparables a scoped answer names. Three, because the question it serves
 #: is "is the next line in this block one task or two", and the fourth is already a trend.
@@ -75,6 +76,19 @@ class Weight:
     #: `lines` and `files` are this task's own cost; above 1 they are the batch's, shared
     #: by every entry in it and belonging to none of them.
     shared: int = 1
+    #: The ids this task **filed behind it** (RK1510): those a commit after its ship and
+    #: before the next one first put on the roadmap. The other half of the question `weight`
+    #: answers — what a task cost is one axis, and what it left is the other, and a backlog
+    #: decomposing and a backlog discovering look identical from the count alone.
+    #:
+    #: Empty for a batched commit, RK94's rule kept exactly: a commit that shipped several
+    #: entries gives its filings to none of them, a divided count being one no commit holds.
+    filed: tuple[str, ...] = ()
+    #: How many commits over the two governed files those filings arrived across — the span,
+    #: which is the second axis and never a rate. A position and not a date, for the reason
+    #: `history.ordering` states: what is asked is which came first, and days invite an
+    #: arithmetic a rebase makes wrong. `0` where nothing was filed.
+    over: int = 0
 
     @property
     def alone(self) -> bool:
@@ -144,6 +158,19 @@ class Weights:
     #: distribution above. Named for `unresolved`'s reason: an exclusion the answer does not
     #: state is a count that reads as the whole ledger.
     co_shipped: tuple[str, ...] = ()
+    #: How many ids each comparable **filed behind it** (RK1510), over the same entries the
+    #: spreads above are taken on. The other half of the question this verb answers: a backlog
+    #: decomposing and one discovering look identical from the open count, and which of the
+    #: two decides whether the answer is a smaller task or a criterion written earlier.
+    #:
+    #: A distribution and no score, the way the two axes above refuse one: whether a rate is
+    #: too high is a judgement this has no model for (L4), and the block whose lines file the
+    #: most behind them is often the block where the leverage is.
+    filings: Spread = Spread()
+    #: And the span they arrived over, in commits to the two governed files. Beside the count
+    #: and never divided into it: five filings over one commit is a task that decomposed and
+    #: five over forty is a subject somebody kept returning to, and a rate hides which.
+    spans: Spread = Spread()
 
     @property
     def recent(self) -> tuple[Weight, ...]:
@@ -192,8 +219,12 @@ def weigh(config: Config, block: str | None = None) -> Weights:
     # own two of the forty-seven would call a batch a task.
     entries_per_commit = Counter(shipped.values())
 
+    # What each ship left behind it (RK1510), computed once over the whole ledger for the
+    # reason `entries_per_commit` is: a window is bounded by the *next* ship, and a `--block`
+    # question that only saw its own would read the gap to the next in-block ship as one span.
+    behind = _filings(config, shipped, entries_per_commit)
     every = tuple(
-        (entry, _weight(entry, shipped, costs, entries_per_commit))
+        (entry, _weight(entry, shipped, costs, entries_per_commit, behind))
         for entry in ledger.entries
     )
     scoped = tuple(
@@ -222,6 +253,12 @@ def weigh(config: Config, block: str | None = None) -> Weights:
         block=block,
         unresolved=tuple(entry.task.id for entry, weight in scoped if weight is None),
         co_shipped=tuple(w.task_id for w in weighed if not w.alone),
+        # Over the same population the spreads above are: an entry whose commit wrote several
+        # has no filings by RK94's rule, so including it would count a zero it never earned.
+        filings=Spread.of(tuple(len(w.filed) for w in alone)),
+        # And over the ones that filed something: a span is a fact about an arrival, so an
+        # entry that filed nothing has no span rather than a span of zero.
+        spans=Spread.of(tuple(w.over for w in alone if w.filed)),
     )
 
 
@@ -230,12 +267,14 @@ def _weight(
     shipped: dict[str, str],
     costs: dict[str, Cost],
     entries_per_commit: Mapping[str, int],
+    behind: Mapping[str, tuple[tuple[str, ...], int]] = MappingProxyType({}),
 ) -> Weight | None:
     """One entry as a weight, or None when no commit accounts for it."""
     sha = shipped.get(entry.task.id, "")
     cost = costs.get(sha)
     if cost is None:
         return None
+    filed, over = behind.get(sha, ((), 0))
     return Weight(
         task_id=entry.task.id,
         block=entry.task.block,
@@ -243,7 +282,63 @@ def _weight(
         files=cost.files,
         commit=cost.short,
         shared=entries_per_commit.get(sha, 1),
+        filed=filed,
+        over=over,
     )
+
+
+def _filings(
+    config: Config, shipped: Mapping[str, str], entries_per_commit: Mapping[str, int]
+) -> dict[str, tuple[tuple[str, ...], int]]:
+    """Per shipping commit, the ids filed after it and before the next one (RK1510).
+
+    `weight` prices what a task cost and nothing prices what it left. Measured in the port
+    this tool governs, that reading took two `git log` runs and a `comm` over roadmap
+    snapshots: the backlog held 19 to 26 open lines for three weeks while the id counter went
+    from 66 to 727 — and neither figure is derivable from anything this tool prints. It
+    matters because a backlog decomposing and one discovering look identical from the count.
+
+    The join is `unclosed`'s, from the other end: a commit names ids, the ledger dates each
+    entry, and an id first appearing after a ship and before the next is that ship's fallout.
+    The window is the **next ship** and never a constant — a span this tool invented would be
+    a number nobody could argue with, and the next ship is a boundary the history already has.
+
+    **RK94's rule kept.** A commit that shipped several entries is given no filings at all,
+    for the reason its lines are given to none of them: a divided count is one no commit
+    contains, and here it would be worse — the filings of a batch belong to whichever of its
+    tasks turned them up, which is exactly what the record does not say.
+
+    `{}` where git cannot answer, which the caller reports as an absent reading.
+    """
+    order = ordering(config, ("roadmap", "changelog"))
+    filed = added_ids(config, "roadmap")
+    if not order or not filed:
+        return {}
+    # The ships as positions, oldest first — one per commit and not one per entry, because
+    # the window between two ships is a fact about the commits and not about the ledger.
+    ships = sorted(
+        {sha for sha in shipped.values() if sha in order}, key=lambda one: order[one]
+    )
+    arrivals = sorted(
+        ((order[sha], task_id) for task_id, sha in filed.items() if sha in order),
+    )
+    out: dict[str, tuple[tuple[str, ...], int]] = {}
+    for index, sha in enumerate(ships):
+        after = order[sha]
+        until = order[ships[index + 1]] if index + 1 < len(ships) else None
+        if entries_per_commit.get(sha, 1) != 1:
+            continue
+        window = [
+            (at, task_id)
+            for at, task_id in arrivals
+            if at > after and (until is None or at <= until)
+        ]
+        if window:
+            out[sha] = (
+                tuple(task_id for _, task_id in window),
+                window[-1][0] - after,
+            )
+    return out
 
 
 @dataclass(frozen=True, slots=True)
@@ -280,6 +375,18 @@ class Weighed:
             f"  lines    {self.weights.lines}",
             f"  files    {self.weights.files}",
         ]
+        if self.weights.filings.count:
+            # The other half of the question (RK1510). Under the two cost axes and above the
+            # comparables, because it is the same kind of fact about the same entries — and
+            # the span beside the count and never divided into it: five filings over one
+            # commit is a task that decomposed and five over forty is a subject somebody
+            # kept returning to, which a rate would hide.
+            rows.append(f"  filed    {self.weights.filings}")
+            if self.weights.spans.count:
+                rows.append(
+                    f"  over     {self.weights.spans}  commits, for the "
+                    f"{self.weights.spans.count} that filed anything"
+                )
         if self.weights.block:
             # The number the block is being compared against, without a second command.
             rows.append(f"  ledger   {self.weights.everywhere}")
@@ -341,6 +448,11 @@ class Weighed:
             "lines": _spread_json(self.weights.lines),
             "files": _spread_json(self.weights.files),
             "ledger": _spread_json(self.weights.everywhere),
+            # The other half of the question (RK1510): what each comparable filed
+            # behind it, and the span those arrivals covered. Two keys and never a
+            # rate, the way the two cost axes above are two.
+            "filed": _spread_json(self.weights.filings),
+            "spans": _spread_json(self.weights.spans),
             "blocks": {
                 label: _spread_json(one) for label, one in self.weights.by_block().items()
             },
@@ -354,6 +466,10 @@ class Weighed:
                     # The entry keeps its real numbers and says what they are the size of, so
                     # the list stays checkable against `git show` (RK94).
                     "shared": one.shared,
+                    # The ids this one filed behind it, named and not counted: which
+                    # lines a ship turned up is the half a number cannot be checked by.
+                    "filed": list(one.filed),
+                    "over": one.over,
                 }
                 for one in self.weights.weighed
             ]

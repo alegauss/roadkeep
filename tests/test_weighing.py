@@ -433,3 +433,110 @@ def _config():
     from roadkeep.config import Config
 
     return Config.discover(Path(__file__).resolve().parents[1])
+
+
+# -- what a task left behind it (RK1510) ---------------------------------------
+
+
+def file_lines(config: Config, *ids: str, block: str = "A") -> str:
+    """Put ids on the roadmap in one commit — the arrivals a ship is followed by."""
+    roadmap = config.path("roadmap")
+    lines = roadmap.read_text(encoding="utf-8").splitlines(keepends=True)
+    at = next(
+        (n for n, line in enumerate(lines) if line.startswith(f"## Block {block}")), 0
+    )
+    for task_id in reversed(ids):
+        lines.insert(at + 1, f"- 📋 **{task_id}** (deps: —) **A symptom** — a reason.\n")
+    roadmap.write_text("".join(lines), encoding="utf-8")
+    return git_commit(config.root, f"docs: file {', '.join(ids)}")
+
+
+def test_a_ship_carries_the_ids_filed_before_the_next_one(tmp_path):
+    """RK1510. `weight` prices what a task cost and nothing priced what it left. Measured in
+    the port this tool governs, that reading took two `git log` runs and a `comm` over roadmap
+    snapshots: the backlog held 19 to 26 open lines for three weeks while the id counter went
+    66 to 727, and neither figure is derivable from anything this tool prints.
+
+    It matters because a backlog decomposing and one discovering look identical from the open
+    count, and which of the two decides whether the answer is a smaller task or a criterion
+    written earlier."""
+    config = repo(tmp_path)
+    ship(config, "RK1")
+    file_lines(config, "RK2", "RK3")
+    ship(config, "RK9")
+    file_lines(config, "RK10")
+
+    by_id = {one.task_id: one for one in weigh(config).weighed}
+    assert set(by_id["RK1"].filed) == {"RK2", "RK3"}
+    assert by_id["RK9"].filed == ("RK10",)
+
+
+def test_the_window_is_the_next_ship_and_never_a_constant(tmp_path):
+    # A span this tool invented would be a number nobody could argue with; the next ship is a
+    # boundary the history already has.
+    config = repo(tmp_path)
+    ship(config, "RK1")
+    file_lines(config, "RK2")
+    ship(config, "RK9")
+    file_lines(config, "RK3")
+
+    by_id = {one.task_id: one for one in weigh(config).weighed}
+    assert by_id["RK1"].filed == ("RK2",)
+    assert "RK3" not in by_id["RK1"].filed
+
+
+def test_a_batched_commit_is_given_no_filings_at_all(tmp_path):
+    """RK94's rule kept, and here it is sharper than for lines: the filings of a batch belong
+    to whichever of its tasks turned them up, which is exactly what the record does not say."""
+    config = repo(tmp_path)
+    ledger = config.path("changelog")
+    lines = ledger.read_text(encoding="utf-8").splitlines(keepends=True)
+    for task_id in ("RK2", "RK1"):
+        lines.insert(1, f"- {SHIPPED} **{task_id}** **A symptom** — a reason.\n")
+    ledger.write_text("".join(lines), encoding="utf-8")
+    git_commit(config.root, "feat: RK1 and RK2")
+    file_lines(config, "RK3")
+
+    for one in weigh(config).weighed:
+        assert one.filed == (), one.task_id
+
+
+def test_a_ship_that_filed_nothing_says_so_and_has_no_span(tmp_path):
+    # A span is a fact about an arrival, so an entry that filed nothing has none rather than
+    # a span of zero — which is why the two spreads are over different populations.
+    config = repo(tmp_path)
+    ship(config, "RK1")
+    ship(config, "RK9")
+
+    weights = weigh(config)
+    assert all(one.filed == () for one in weights.weighed)
+    assert weights.filings.count == 2
+    assert weights.spans.count == 0
+
+
+def test_the_report_states_the_count_and_the_span_apart(tmp_path, capsys):
+    # Never a rate: five filings over one commit is a task that decomposed and five over forty
+    # is a subject somebody kept returning to, and dividing hides which.
+    config = repo(tmp_path)
+    ship(config, "RK1")
+    file_lines(config, "RK2", "RK3")
+    ship(config, "RK9")
+
+    assert main(["-C", str(config.root), "weight"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "filed " in said
+    assert "over " in said
+    assert "per" not in said
+
+
+def test_the_payload_names_what_each_entry_filed(tmp_path, capsys):
+    config = repo(tmp_path)
+    ship(config, "RK1")
+    file_lines(config, "RK2")
+
+    assert main(["-C", str(config.root), "weight", "--records", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    (record,) = payload["weighed"]
+    assert record["filed"] == ["RK2"]
+    assert record["over"] >= 1
+    assert payload["filed"]["count"]

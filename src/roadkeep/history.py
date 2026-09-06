@@ -860,6 +860,37 @@ def _labels(sections: Sequence[Section], ids: re.Pattern[str]) -> frozenset[str]
     return frozenset(out)
 
 
+def ordering(config: Config, roles: Sequence[str]) -> dict[str, int]:
+    """Every commit that touched these roles, oldest first, as sha → position (RK1510).
+
+    The one thing two `added_ids` answers do not have between them: each is chronological
+    within its own file, and comparing a filing against a shipping needs them on one axis.
+    A position and never a date, which is the same choice :func:`added_ids` makes — what is
+    being asked is *which came first*, and a timestamp invites an arithmetic about days that
+    a rebase makes wrong.
+
+    One call whatever the size of the files, `added_ids`' own rule: `git log --reverse` over
+    both paths at once, not one walk per role and never one lookup per sha.
+
+    `{}` where git cannot answer, which every caller here reads as an absent reading rather
+    than as an order in which everything is first.
+    """
+    paths = [
+        str(config.path(role).relative_to(config.root))
+        if config.path(role).is_relative_to(config.root)
+        else str(config.path(role))
+        for role in roles
+        if config.has(role)
+    ]
+    if not paths:
+        return {}
+    try:
+        said = _run(config.root, "log", "--reverse", "--format=%H", "--", *paths)
+    except HistoryUnavailable:
+        return {}
+    return {sha: at for at, sha in enumerate(said.split())}
+
+
 def costs_of(config: Config, shas: tuple[str, ...]) -> dict[str, Cost]:
     """The size of each named commit, across every file it touched, in one call.
 
