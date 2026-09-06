@@ -123,6 +123,88 @@ def test_no_module_writes_a_marker_a_project_declares():
     assert _leaks(modules(), lambda text: any(m in text for m in MARKERS)) == {}
 
 
+#: The names those markers are imported under. The **other** route to the same message
+#: (RK1520): `f"status {task_id} {IN_PROGRESS}"` renders the six bytes the scan above refuses
+#: and is invisible to it — so the repair that gate rewards is the one a developer reaches for
+#: *because* the gate is there, and the reader is told about a glyph their project may not use.
+MARKER_NAMES = frozenset(
+    {"DESIGNED", "IDEA", "PARTIAL", "IN_PROGRESS", "SHIPPED", "RETIRED", "DEFERRED"}
+)
+
+#: How this tool delimits a composed command, everywhere: `sections.quotes` reads it, the
+#: census in `tests/composing.py` finds a command by it, and a message that carries one is
+#: offering the reader something to run.
+SPAN = "`"
+
+
+def _composed_markers(source: str) -> list[str]:
+    """Every f-string that composes a command and interpolates a marker constant (RK1520).
+
+    **A stated shape and never a rule about interpolation**, which is the distinction the
+    scan above cannot make on its own: a report of what a write just did may name the marker
+    it moved — that fact came off the file and is the reader's own — while a *command* built
+    round one is offering a write the reader's schema would refuse.
+
+    So the shape is the backtick. A span in backticks is how every composed command in this
+    package is delimited, and a marker constant inside one is this package deciding what a
+    project's vocabulary is. A marker read from the config arrives as a parameter or an
+    attribute, and neither is a name in this set.
+    """
+    found = []
+    for node in ast.walk(ast.parse(source)):
+        if not isinstance(node, ast.JoinedStr):
+            continue
+        literal = "".join(
+            one.value
+            for one in node.values
+            if isinstance(one, ast.Constant) and isinstance(one.value, str)
+        )
+        if SPAN not in literal:
+            continue
+        named = {
+            inner.id
+            for one in node.values
+            if isinstance(one, ast.FormattedValue)
+            for inner in ast.walk(one.value)
+            if isinstance(inner, ast.Name) and inner.id in MARKER_NAMES
+        }
+        found += [f"{node.lineno}: {name}" for name in sorted(named)]
+    return found
+
+
+def test_no_composed_command_carries_a_marker_this_package_spells():
+    """RK1520. The gate above scans for the codepoint, and interpolating the constant renders
+    the same bytes and walks past it — both of this package's remaining sites were that shape,
+    and one was a refusal telling a caller how to take a line.
+
+    Held over the same surface and for the same reason, one route further along: what the rule
+    is about is a message naming a marker the reader's project may not declare, and the literal
+    was only the first way to write one."""
+    found = {
+        module.where: leaked
+        for module in modules()
+        if module.where not in DECLARES and (leaked := _composed_markers(module.text))
+    }
+    assert found == {}, (
+        "a composed command built round a package marker offers the reader a write their "
+        "own schema refuses: read the marker off the config and pass it in"
+    )
+
+
+def test_the_two_routes_to_one_message_are_both_shut():
+    """The gate's own claim, exhibited: the literal and the constant render the same six bytes,
+    so a check that catches one and not the other is a check the repair walks past."""
+    spelled = f'x = "`status RK1 {IN_PROGRESS}`"'
+    composed = 'x = f"`status {one} {IN_PROGRESS}`"'
+    # One message, two sources. The first scan reads the codepoint and sees only the first.
+    assert any(one in spelled for one in MARKERS)
+    assert not any(one in composed for one in MARKERS)
+    assert _composed_markers(composed) == ["1: IN_PROGRESS"]
+    # And the reading that stays legitimate: a report of what a write did is not a command,
+    # so it carries no backtick and this says nothing about it.
+    assert _composed_markers('x = f"moved to {IN_PROGRESS}"') == []
+
+
 def test_no_module_writes_an_id_in_this_project_s_shape():
     """The prefix and the padding are `[ids]`', so a literal that *is* an id is a value from
     a project the package cannot have read. `capturing` held one: the placeholder a reported

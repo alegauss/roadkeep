@@ -144,6 +144,17 @@ INVARIANTS: tuple[Invariant, ...] = (
         held_by="test_configured::test_no_module_writes_a_marker_a_project_declares",
     ),
     Invariant(
+        stated="RK1520",
+        rule=(
+            "no command this package composes interpolates a marker constant, the codepoint "
+            "scan above being blind to the spelling its own repair reaches for"
+        ),
+        # L6's row one route along, and a row of its own because it is a different surface
+        # reading: that one asks what a module *spells* and this asks what a module *builds*.
+        over="surface.modules",
+        held_by="test_configured::test_no_composed_command_carries_a_marker_this_package_spells",
+    ),
+    Invariant(
         stated="RK421",
         rule="every code the gate can emit has a row in the remedy table",
         over="roadkeep.remedying.codes",

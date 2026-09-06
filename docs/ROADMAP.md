@@ -28,7 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 💭 **RK1520** (deps: —) **the marker-leak gate rewards the repair that renders the same wrong bytes** — It scans the package for a literal codepoint, so interpolating the constant passes it while the reader is told about a glyph their project may not declare. → §RK1520
 - 💭 **RK1527** (deps: —) **the near window stayed at three when the corpus it ranks over doubled** — RK1495 put the open lines beside the deliveries and the two halves now compete for the same three rows, with no reading of how often either wins one. → §RK1527
 - 💭 **RK1528** (deps: —) **the near row offers the door to the delivered half and none to the open half it now counts** — RK1495 made the corpus two and RK442's guarantee names where the rest of one of them are, leaving the half the task was filed for unfollowable. → §RK1528
 - 💭 **RK1529** (deps: —) **an incidental path naming no file is silent, where a budget naming none is a finding** — RK1496 added the key and the gate reads nothing off the tree for it, so a filter that stops matching makes a report louder with nothing having changed in it. → §RK1529

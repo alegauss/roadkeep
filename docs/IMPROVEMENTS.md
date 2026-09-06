@@ -79,29 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1520 The gate the fix walks past
-
-`test_no_module_writes_a_marker_a_project_declares` scans the package for a literal
-marker codepoint, on the ground that `[markers]` is per-project and a message naming one
-tells the reader about a glyph their files may not use. It works: RK1490 wrote `status
-<id> 🛠` into a composed sentence and the gate caught it inside a minute.
-
-The repair it accepts is to interpolate the constant instead, and that is the whole
-problem. `f"status {task_id} {IN_PROGRESS}"` renders the same six bytes, says the same
-wrong thing to the same reader, and is invisible to a scan for the codepoint. Both of
-this package's remaining sites are that shape, and one of them is a refusal telling a
-caller how to take a line.
-
-So the gate rewards the fix that does not fix it. What it looks for is a message naming
-a marker the reader's project may not declare; the literal is one route there, and the
-import is the other — the one a developer takes *because* the gate is there.
-
-Reading the import is mechanical: the name is `IN_PROGRESS` and the same scan finds it
-one token over. What a scan cannot decide is whether an interpolation is wrong, a
-message about the marker a write just moved being legitimate — that fact came off the
-file. So what is missing is a stated shape rather than a rule: a *composed command*
-carrying a marker constant is the wrong one, and a report of what a write did is not.
-
 ### §RK1527 The window that did not grow with the corpus
 
 RK1495 doubled the corpus the near rows are drawn from — a block's deliveries and now

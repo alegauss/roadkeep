@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
-| C — Query (consult without reading the file) | 9 | 162 | 4 |
+| C — Query (consult without reading the file) | 8 | 163 | 4 |
 | D — The gate | 23 | 231 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 148 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 38 | 1003 | 14 |
+| **Total** | 37 | 1004 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1520** (deps: —) **the marker-leak gate rewards the repair that renders the same wrong bytes** — It scans the package for a literal codepoint, so interpolating the constant passes it while the reader is told about a glyph their project may not declare. → §RK1520
+- 💭 **RK1521** (deps: —) **the note cadence prices what fired and cannot say what it left out, no list of note codes existing** — RK1491 measured one note of an unknown number, and the remedy table that knows every code does not separate a note from a finding. → §RK1521
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
