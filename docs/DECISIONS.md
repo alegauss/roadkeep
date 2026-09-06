@@ -178,6 +178,22 @@ its id and rank, and a retirement names its partner by id. What it leaves open i
 transcript: a session that discards its output has no corpus, and this tool cannot know
 which do.
 
+### §RK1536 Why the role has no door of its own
+
+The alternative was `record add`'s equivalent for this role: a door filing a decision
+with no departure behind it, which the ledger has and for a reason — the only route in
+was a fictitious line shipped in the same breath, which taught that the format can be
+gamed.
+
+Who writes one decided it. Sixty of sixty entries here name an id this ledger holds, so
+the whole recorded population is an author who had just done the work — the moment
+`--decides` is available. A door for the other case answers a question this corpus does
+not ask.
+
+It leaves open the ship that forgot the flag: the answer is lost and nothing files it
+after. RK1501 puts the offer in `brief`, before the work, and a session skipping that
+read has no second chance. That is the cost of declining, stated rather than hidden.
+
 ## Block E — Adoption
 
 - 🗑 **RK1272** **`[limits]`, `[budgets]` and `[markers]` have no verb, so the file governing every write is the ungoverned one** — The argument for a limit goes in the commit that wrote it, never in a comment beside the number (superseded by RK1293).

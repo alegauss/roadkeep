@@ -514,11 +514,10 @@ of.
 ### §RK1550 The pointer that runs the other way
 
 RK1515 renamed one helper and two governed sections went stale: RK1516 named
-`rendering._settled_rows` and §RK1536 named RK1488's `settled` row, both of them prose
-about code that had just stopped existing. Both were found by grepping `docs/` — `lint`
-was clean before the amend and clean after it, and a shipped design citing a dead symbol
-is exactly what this repository's docs being the conformance fixture is supposed to
-catch.
+`rendering._settled_rows` and RK1536 named RK1488's `settled` row, both prose about code
+that had just stopped existing. Both were found by grepping `docs/` — `lint` was clean
+before the amend and clean after it, and a shipped design citing a dead symbol is
+exactly what this repository's docs being the conformance fixture is supposed to catch.
 
 The pointer between two sections has `ref.dangling`; the pointer from prose into the
 package has nothing. That asymmetry is the whole finding, and it is not about prose
