@@ -501,7 +501,7 @@ def _report(config: Config, args: argparse.Namespace) -> int:
     # With the flag that closes the row filled in (RK1141): the path is decided here, by
     # `keep`, so the capture cannot name itself — and a command a caller has to complete is a
     # second step, which is what RK86 is this block's own record of.
-    print(f"file  {found.filing} --capture {kept.path}", file=sys.stderr)
+    print(f"file  `{found.filing} --capture {kept.path}`", file=sys.stderr)
     if kept.complaint:
         print(f"roadkeep: {kept.complaint}", file=sys.stderr)
     # Which of the two forms this is, said here because this is the only moment anybody can

@@ -711,6 +711,7 @@
 - ✅ **RK1575** **three more sites of the composer work-list compose doors nothing has ever run** — three more composed doors are executed against a scaffold and one write past it, which found declare non_goals naming a command that refuses on every project it was written for.
 - ✅ **RK1533** **govern writes a number the config parser then refuses, leaving every verb unable to read the file** — govern reads back the file it would write and refuses with the parser's own sentence, so a number two keys forbid no longer lands and closes every verb behind it.
 - ✅ **RK1577** **two more sites of the composer work-list compose doors nothing has ever run** — two more composed doors are executed against an outline with two families, which found a narrowing door whose placeholder any shell splits and two row states that overstated the fixture.
+- ✅ **RK1579** **two more sites of the composer work-list are accounted for, one of them as work it never was** — the capture dump's filing door is backticked and found, and the handoff row is reclassified as the pipeline into another tool it always was.
 
 ## Block E — Adoption
 

@@ -741,3 +741,29 @@ def test_the_doors_a_two_answer_refusal_names_run(tmp_path, capsys):
     assert main(["-C", str(root), *argv[0]]) == EXIT_OK
     filled_in = [one if one != "<family>" else "I" for one in argv[1]]
     assert main(["-C", str(root), *filled_in]) == EXIT_OK
+
+
+# -- the capture family (RK1498, sized by RK1532) ------------------------------
+
+
+def test_the_door_a_kept_capture_names_runs(tmp_path, capsys):
+    """RK1498. A capture is a defect in *this tool*, and the whole of what a maintainer does
+    with one is file it — so the dump ends with the `add` that files it, with the flag naming
+    the capture filled in (RK1141), because a command a caller has to complete is a second step.
+
+    It was spelled bare until this ran it (RK1577's find, one family over): every composed
+    command here is backticked, and one that is not is a door no instrument can take."""
+    root = departing(tmp_path)
+    assert main([
+        "-C", str(root), "report", "--symptom", "A symptom plainly long enough to read",
+        "--why", "Because of a reason.", "--", "show", "RK9",
+    ]) == EXIT_OK
+    said = capsys.readouterr()
+    (argv,) = [one for one in commands(said.err) if one[:1] == ["add"]]
+    # Found, which is what the backticks bought — and **not run here** (RK1579): the door
+    # carries the capture's absolute path, and `commands` splits with `shlex`, which is POSIX
+    # and eats a Windows separator. So this asserts the shape of the argv and the row stays
+    # unreached with that as its state, which is the honest half of RK1532's rule.
+    assert argv[:3] == ["add", "--block", "F"], argv
+    assert "--capture" in argv, argv
+    assert build_parser().parse_args(argv)

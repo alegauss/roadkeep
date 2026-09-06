@@ -130,13 +130,15 @@ SITES: tuple[Site, ...] = (
     Site(
         "capturing.py:Capture.filing",
         "unreached",
-        unreached("a capture already stored, which is a `report` run and its store"),
+        unreached(
+            "a capture whose path this splitter can carry — the door names the capture by "
+            "absolute path and `shlex` is POSIX, so a Windows separator does not survive it"
+        ),
     ),
-    Site(
-        "capturing.py:handoff",
-        "unreached",
-        unreached("a capture whose repository is not this one, so the filing is somebody else's to make"),
-    ),
+    # Not work, and never was (RK1579): what it composes is `report … --issue | gh issue
+    # create`, a pipeline into another tool — and the half that is ours files a capture about
+    # the run being tested, which is `NOT_A_STEP`'s own argument one verb over.
+    Site("capturing.py:handoff", "deliberate", FOREIGN),
     Site("capturing.py:offer", "deliberate", NOT_A_STEP),
     # RK1394. The one door in this family that is takeable here: `--check` prints the delete it
     # would make, and `test_capturing` runs exactly that line — which is the whole reason the

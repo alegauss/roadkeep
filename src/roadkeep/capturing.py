@@ -498,7 +498,10 @@ class Capture:
                 *self._blocks(),
                 "",
                 "File it:",
-                f"  {self.filing}",
+                # Backticked, as every composed command in this tool is (RK1577): the
+                # census that runs a door finds it by its delimiter, so one spelled bare is
+                # a door no instrument can take — and this is the whole point of the dump.
+                f"  `{self.filing}`",
             ]
         )
 
