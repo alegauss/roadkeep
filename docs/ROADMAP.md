@@ -36,6 +36,7 @@
 - 💭 **RK1558** (deps: —) **one marker scan skips what a caller is shown and the one beside it does not, with nothing saying they differ** — RK1520 walks every f-string including a help string, where the three scans above it exempt the words a parser shows a caller. → §RK1558
 - 💭 **RK1566** (deps: —) **the near window is measured on a ledger far larger than its backlog, the ratio it is least about** — RK1527 found the open half takes one slot of thirty-three here, a figure that inverts on a project whose backlog outnumbers its deliveries. → §RK1566
 - 💭 **RK1567** (deps: —) **the near rows are described as delivered --near volunteered, and that read has ranked a different corpus since RK1495** — add ranks a block's deliveries and its open lines while the verb the row names reads the ledger alone, so running it answers differently. → §RK1567
+- 💭 **RK1568** (deps: —) **an incidental entry that is on disk and filters no commit is silent, which is the half of the reading RK1529 gave** — existence is a blob this gate already reads and matched-anything is a history walk, so the second half was left where nothing asks it. → §RK1568
 
 ## Block D — The gate
 
