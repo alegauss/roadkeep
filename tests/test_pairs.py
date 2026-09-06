@@ -40,6 +40,15 @@ is a repository with a section shipped away between its two commits, and what it
 reach is `_UNMEASURED`, named with the state each row wants. The first thing that came out of
 the widening was a real defect: `origin --why --json`, where the payload carries the message
 either way and the served tool set a flag that shaped nothing.
+
+**And that defect is the second sweep** (RK1517). One flag rather than two, over the transport
+rather than the terminal: `serving` appends `--json` to every call it makes, so a flag whose
+whole effect is on the rendered form shapes nothing an agent can see, and eighteen booleans are
+served with nothing asking that of them. The reading is the one above at arity one — the call
+the *server* composes, run with the flag and without — and it is here rather than in a file of
+its own because it is the same question, off the same fixture, through the same runner: a flag
+that moved nothing, and whether the fixture or the flag is why. What it does not share is the
+population: `pairs()` is every read-only verb and `served()` is `TOOLS`, writes included.
 """
 
 from __future__ import annotations
@@ -57,6 +66,10 @@ from conftest import git_commit, git_init
 from roadkeep.cli import _one_answer, build_parser, main
 
 ROADMAP = """# Roadmap
+
+## Priority
+
+- RK2
 
 ## Block A — The model
 
@@ -200,9 +213,11 @@ def _build(root: Path) -> Path:
 def _origin(tmp_path_factory: pytest.TempPathFactory) -> Path:
     """Built once and copied per test, because it is now nine processes and not four writes.
 
-    Every call this sweep makes is read-only by construction — `_WRITES` is the list of what is
-    kept out for exactly that reason — so the copy is about isolating a `.git` from a test that
-    might one day stop being, and not about a tree these runs change.
+    The pair sweep's calls are read-only by construction — `_WRITES` is the list of what is
+    kept out for exactly that reason — and the served sweep's are not (RK1517): five of the
+    eighteen tools write, so the copy that was about isolating a `.git` is now also what keeps
+    a `restate` out of every later row. Each of those calls takes a copy of its own besides,
+    the two forms of one flag being two trees.
     """
     return _build(tmp_path_factory.mktemp("pairs"))
 
@@ -417,3 +432,213 @@ def test_every_declared_answer_names_a_flag_its_verb_actually_has():
     # Five verbs declare between them, and the count is the claim: a declaration deleted with
     # the branch it replaced would leave this file measuring nothing.
     assert seen >= 12, seen
+
+
+# -- the flag one flag alone, over the transport that appends --json (RK1517) ---
+
+#: What a served tool needs before its own flag can mean anything, by **dest** — `NEEDS`'
+#: rule one surface over, and by dest rather than as argv because this half composes the call
+#: through `serving.argv` and never by hand. Only the tools whose parser declares a required
+#: positional appear: everything else takes its flag and nothing more.
+_SUPPLIED: dict[str, dict[str, object]] = {
+    "show": {"id": "RK1"},
+    "block drop": {"label": "B"},
+    "block merge": {"label": "A"},
+    "restate": {"id": "RK1", "symptom": "A restated symptom, plainly long enough"},
+    "priority add": {"token": "RK1"},
+}
+
+#: Served booleans whose two forms **both** refuse here, with the state each wants. The same
+#: rule as `_UNMEASURED` one arity up: a fixture that cannot reach a flag says so, because the
+#: alternative is reading its own reach as a result. Neither of these is about the transport —
+#: `block drop` wants a label with nothing filed under it and `block merge` wants a label
+#: written twice, and this fixture is one project with one well-formed Block A.
+_WITHOUT_STATE: dict[tuple[str, str], str] = {
+    ("block drop", "--prose"): "no empty block here: every label this project declares has "
+    "work filed under it, so the verb refuses by name before the flag is read",
+    ("block merge", "--prose"): "no duplicated heading here, which is the one state this "
+    "verb exists for and the one a well-formed fixture does not have",
+}
+
+
+def _subparser(command: str) -> argparse.ArgumentParser:
+    """The parser for a command path, nested or not — `serving._subparser`'s descent."""
+    parser = subcommands()[command.split()[0]]
+    for token in command.split()[1:]:
+        parser = next(
+            one.choices[token]
+            for one in parser._actions  # noqa: SLF001
+            if isinstance(one, argparse._SubParsersAction)  # noqa: SLF001
+        )
+    return parser
+
+
+def served() -> list[tuple[str, str, str]]:
+    """Every boolean flag this surface exposes, as (tool, command, flag) (RK1517).
+
+    Off `TOOLS` and the real parser, never a list here: a flag added to a served command
+    reaches this sweep by being exposed, which is the population the question is about.
+
+    `unconditional` and not :meth:`Tool.exposed`, which is the one place the two differ and a
+    difference this sweep can state rather than assume: a conditional argument is opened by a
+    project whose config makes it the only way to spell a legal id (RK111), so it is a *value*
+    and never a boolean — asserted below, so the day one is a boolean this population is a red
+    rather than a silence. Reading it that way also keeps the enumeration free of a config,
+    which is what lets it run at collection.
+    """
+    from roadkeep.serving import TOOLS
+
+    found = []
+    for tool in TOOLS:
+        found += [
+            (tool.named or tool.command, tool.command, one.option_strings[0])
+            for one in _subparser(tool.command)._actions  # noqa: SLF001
+            if isinstance(one, argparse._StoreTrueAction)  # noqa: SLF001
+            and one.dest in tool.unconditional
+        ]
+    return found
+
+
+def _tool(name: str):
+    """The served tool this row is about, by the name a client calls it."""
+    from roadkeep.serving import TOOLS
+
+    return next(one for one in TOOLS if (one.named or one.command) == name)
+
+
+def _dest(command: str, flag: str) -> str:
+    """The dest behind a flag, off the parser — the key `serving.argv` takes."""
+    return next(
+        one.dest
+        for one in _subparser(command)._actions  # noqa: SLF001
+        if flag in one.option_strings
+    )
+
+
+def _copied(root: Path, name: str) -> Path:
+    """A second tree beside this test's own, for the call that writes."""
+    into = root.parent / name
+    shutil.copytree(root, into)
+    return into
+
+
+def _ran(root: Path, args: list[str]) -> tuple[int, str]:
+    """One call with an argv composed elsewhere, and its stdout (`run`'s other half)."""
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
+        try:
+            code = main(["-C", str(root), *args])
+        except SystemExit as leaving:  # argparse refuses before a handler exists
+            code = leaving.code if isinstance(leaving.code, int) else 2
+    return code, out.getvalue()
+
+
+@pytest.mark.parametrize("name, command, flag", served())
+def test_a_served_boolean_is_not_made_inert_by_the_transport(project, name, command, flag):
+    """RK1517. `serving` appends `--json` to every call it makes, so a flag whose whole effect
+    is on the terminal rendering shapes nothing over this transport — `origin --why` was one,
+    the payload carrying each commit's `reasoning` either way, and an agent setting it read an
+    unchanged answer as the one it had asked for.
+
+    The signature is the pair sweep's one arity down: the call the **server** composes, run
+    with the flag and without, and an answer identical both ways is a flag this surface cannot
+    honour. Both argvs come from `serving.argv`, so what is measured is what the transport
+    sends — `--json` and the tool's `always` included — and never a line assembled here.
+
+    A refusal on one side and an answer on the other is a flag that shaped the call, which is
+    the whole question: what is asked is whether the flag reaches anything, not whether the
+    answer is right. Refused on **both** sides is the fixture's reach, named in
+    :data:`_WITHOUT_STATE` for `_UNMEASURED`'s reason.
+    """
+    from roadkeep.config import Config
+    from roadkeep.serving import argv
+
+    tool = _tool(name)
+    config = Config.discover(project)
+    supplied = _SUPPLIED.get(command, {})
+    dest = _dest(command, flag)
+    # Two copies and never one tree, because five of these tools write: what the flag did to
+    # the file is not what is being read, and the second call on a changed tree would answer
+    # differently for a reason that has nothing to do with the flag.
+    plain = _ran(_copied(project, "plain"), argv(tool, dict(supplied), config))
+    with_flag = _ran(_copied(project, "flag"), argv(tool, {**supplied, dest: True}, config))
+    if plain[0] and with_flag[0]:
+        assert (command, flag) in _WITHOUT_STATE, (
+            f"`{command} {flag}` refuses both with the flag and without on this fixture: "
+            f"that is this sweep's reach and not a reading — give it the state it wants, "
+            f"or name it in _WITHOUT_STATE with why"
+        )
+        return
+    assert plain != with_flag, (
+        f"`{command} {flag}` is served and answers identically with the flag and without it, "
+        f"over a transport that appends --json: the flag shapes the terminal form only, so "
+        f"either it belongs in `cli.withheld` or the payload has to carry what it composes"
+    )
+
+
+def test_the_sweep_reaches_every_boolean_this_surface_serves():
+    """The count is the claim, as it is one arity up: a flag that stops being served, or a
+    tool withdrawn, silently leaves this sweep — and eighteen is the number RK1517 was filed
+    against, so a run measuring five would be a green nobody could size."""
+    found = served()
+    assert len(found) >= 16, f"only {len(found)} served booleans reached: {found}"
+    assert {"budget", "anchors", "show", "engines", "cost"} <= {one for _, one, _ in found}
+    # The two tools that are one command with a flag always passed (RK150) are two rows here,
+    # because they are two calls: `claim` sends `--claim` and `brief` does not.
+    assert ("claim", "brief", "--designed") in found
+    assert ("brief", "brief", "--designed") in found
+
+
+def test_a_conditional_argument_is_never_one_of_these():
+    """What `served()` reads `unconditional` on, asserted rather than assumed: a conditional
+    argument exists because a project's config makes it the only way to spell a legal id
+    (RK111), so it is a value. The day one is a boolean, this population is quietly short by
+    one and nothing else in this file would say so."""
+    from roadkeep.serving import TOOLS
+
+    for tool in TOOLS:
+        booleans = {
+            one.dest
+            for one in _subparser(tool.command)._actions  # noqa: SLF001
+            if isinstance(one, argparse._StoreTrueAction)  # noqa: SLF001
+        }
+        assert not booleans & set(tool.conditional), (tool.command, booleans)
+
+
+def test_what_the_served_sweep_cannot_reach_says_why():
+    """`_UNMEASURED`'s rule at the other arity, and the second half is what keeps it honest: a
+    row here claims *both* forms refuse, so it may not name a flag this fixture in fact
+    answers — that would be an exemption standing in front of a working reading."""
+    assert all(reason for reason in _WITHOUT_STATE.values())
+    rows = {(command, flag) for _, command, flag in served()}
+    assert set(_WITHOUT_STATE) <= rows, sorted(set(_WITHOUT_STATE) - rows)
+    # And every one of them is a *write*, which is the honest shape of this list: what the
+    # read-only tools want, this fixture has. A read landing here is a fixture to widen.
+    for command, _ in _WITHOUT_STATE:
+        assert not _subparser(command).get_default("reads_only"), command
+
+
+def test_the_defect_this_was_filed_from_is_closed_at_both_ends(project):
+    """`origin --why` is the flag RK1489 found and RK1517 was filed from, and it cannot be
+    exhibited any more — which is worth asserting rather than assuming, because it is the
+    reason the sweep above is prospective and finds nothing today.
+
+    Two writes closed it and either would have. It is withheld from the tool, so no served
+    argv carries it; and `--why` and `--json` are declared **two subjects**, so the call the
+    server would compose is refused outright rather than answered identically. The flag itself
+    was never broken: on the terminal form it shapes exactly what it says it does.
+    """
+    from roadkeep.config import Config
+    from roadkeep.serving import Tool, argv, withheld
+
+    assert "why" in withheld().get("origin", {}), "the withholding RK1489 wrote"
+    served_again = Tool("origin", ("id", "why"))
+    config = Config.discover(project)
+    both = argv(served_again, {"id": "RK1", "why": True}, config)
+    assert both == ["origin", "RK1", "--why", "--json"]
+    assert _ran(project, both)[0] == 2, "two subjects, so the composed call never answers"
+    # And never on the terminal form either, here: `--why` adds each commit's message *body*
+    # under the rows, and this fixture's two commits are a subject and nothing else. Which is
+    # the sweep's own lesson one step in — a flag that moves nothing on a fixture that cannot
+    # hold what it is about says nothing, and the reading above is why it is not asked here.
+    assert run(project, "origin")[1] == run(project, "origin", "--why")[1]

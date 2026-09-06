@@ -312,30 +312,6 @@ yet, and what turns it into an answerable question is the state. That is a task 
 family rather than one sweep — and the reason to file it as one line is that the six
 that do run were each bought by a defect that had already shipped.
 
-### §RK1517 The flag the transport makes inert
-
-`serving` appends `--json` to every call it makes, so a flag whose whole effect is on
-the terminal rendering shapes nothing over this transport. `origin --why` was one: the
-payload carries each commit's `reasoning` either way, and an agent setting the flag read
-an unchanged answer as the one it had asked for. RK1489 found it by accident — the pair
-sweep could see it only once its fixture had a git history to resolve against.
-
-Eighteen boolean flags are served today and nothing asks this of them. The pair sweep is
-the closest thing and not close: it runs `reads_only` verbs, so the four on writes are
-out by construction, and three more sit in `_UNMEASURED`. What it does cover it covers
-by comparing `X --json` against `--json` — the right reading, aimed at the wrong
-population.
-
-The read that would answer it is one call per served boolean: run the tool's own argv
-with the flag and without, and a payload identical both ways is a flag this surface
-cannot honour. Cheap, total, and it says which of the three things is true — the flag
-shapes the payload, the payload already carries what it composes, or it belongs in
-`withheld`.
-
-The value flags are the harder half and probably not this task's: 122 of them, most
-narrowing a listing, and "identical payload" is the right signature for a boolean and a
-weak one for a value that may legitimately match the default.
-
 ### §RK1518 The refusal a declaration was built to replace
 
 RK489 replaced twenty-five hand-written lines inside `budget` with a declaration every
