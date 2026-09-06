@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
 | C — Query (consult without reading the file) | 9 | 164 | 4 |
-| D — The gate | 23 | 232 | 2 |
+| D — The gate | 22 | 233 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 148 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 38 | 1006 | 14 |
+| **Total** | 37 | 1007 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1522** (deps: —) **one record is a file section, a reference page and a note row, and its docstring describes only the first** — RK1491 filled Part's heading with a note code and its lines and bytes with numbers nobody reads, because the record demanded them. → §RK1522
+- 💭 **RK1523** (deps: —) **a declaration whose program engines cannot name is silent, and reads exactly like a project that declares none** — RK1492 made the reader refuse to guess, and the report has no row for the one command the harness literally runs. → §RK1523
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

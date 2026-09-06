@@ -1438,24 +1438,53 @@ class Cost:
         return max(0, self.taken - self.limit)
 
 
+#: Every caller of :class:`Part`, and what its label holds (RK1522). A record used three
+#: ways honestly is a record; the same one used three ways silently is the drift this package
+#: exists to stop — so the uses are declared here and held total against the constructors by
+#: `tests/test_budgeting.py`, which is what makes a fourth one arrive as a red.
+USES: Mapping[str, str] = {
+    "_parts": "a `##` section of an every-turn file, labelled by its heading",
+    "_pages": "a reference page the skill points at, labelled by its filename",
+    "note_cost": "a note the gate says beside its verdict, labelled by its code",
+}
+
+
 @dataclass(frozen=True, slots=True)
 class Part:
-    """One `##` section of an every-turn file, and what it costs (RK1092).
+    """One labelled weight in a ranked breakdown — three subjects use it (RK1092, RK1522).
 
-    The read `cost --tools` makes about the served surface, made about the resident file:
-    that one ranks tools so an author cutting the schema knows where the size went, and this
-    one had only a total. `agents.md` reached 8,392 of 8,400 bytes and the next compression
-    was a preference — RK203 says compress the prose rather than the Layout index, which was
-    an argument made when the prose had slack and nothing re-measured since.
+    Written for the first: a `##` section of an every-turn file, and what it costs. The read
+    `cost --tools` makes about the served surface, made about the resident file — that one
+    ranks tools so an author cutting the schema knows where the size went, and this one had
+    only a total. `agents.md` reached 8,392 of 8,400 bytes and the next compression was a
+    preference — RK203 says compress the prose rather than the Layout index, which was an
+    argument made when the prose had slack and nothing re-measured since.
 
     Sections and not paragraphs, because a `##` is what the file itself declares and a
     paragraph is where a reader happened to stop. What this deliberately does not answer is
     which of them a turn *uses*: that needs a model of the reading, which is L4's own line,
     and a number invented for it would be worse than the total it replaced.
+
+    **And then two more callers, which is what this docstring is for** (RK1522). A good shape
+    attracting a third subject is ordinary — three records with identical fields would be
+    three names for one idea — but a docstring describing one of three uses leaves a reader
+    meeting `Part("read.priced", 1, …)` to work out from the call site that :attr:`heading`
+    is not a heading. So the three are declared, and :data:`USES` is the same statement as a
+    table `tests/test_budgeting.py` holds total: a fourth caller is a red until it is named.
+
+    Each register already renames the field for its own subject — the payloads say `code` and
+    `path` where the rows say heading — so what was wrong was never the reuse. It was that the
+    one authority on what the record *is* knew about one third of it.
     """
 
-    #: The heading, verbatim, or `""` for whatever stands above the first one.
+    #: What this weight is labelled by, and it depends which of :data:`USES` built it: a
+    #: heading verbatim (`""` for whatever stands above the first one), a page's filename, or
+    #: a note's code. Never `""` in the latter two, which have no "above the first" to be.
     heading: str
+    #: How many lines and bytes it is. Read by the section breakdown and by the reference
+    #: pages; a note row fills them with 1 and a length nobody prints, because the record
+    #: requires them and a note has no lines to have. Stated rather than made optional: the
+    #: two readers that use them would then have to answer for a `None` neither can produce.
     lines: int
     bytes: int
     #: The section in UTF-16 code units, or `None` where the file does not decode (RK1253).

@@ -4128,3 +4128,64 @@ def test_the_read_and_the_write_agree_about_the_decision_line(tmp_path, capsys):
         "-C", str(tmp_path), "ship", "RK1", "--why", "It works now.", "--decides", over
     ]) != EXIT_OK
     assert f"limit is {allowed}" in capsys.readouterr().err
+
+
+# -- the record three subjects share (RK1522) ---------------------------------
+
+
+def _builders() -> set[str]:
+    """Every function in `budgeting` that constructs a :class:`Part`, by name.
+
+    Off the AST, for `emitted_as_notes`' reason one file over: a list here would be a second
+    population, and the day it matters is the day somebody adds a fourth caller.
+    """
+    import ast
+
+    source = (Path(__file__).resolve().parents[1] / "src/roadkeep/budgeting.py").read_text(
+        encoding="utf-8"
+    )
+    found: set[str] = set()
+    stack: list[str] = []
+
+    class Walk(ast.NodeVisitor):
+        def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+            stack.append(node.name)
+            self.generic_visit(node)
+            stack.pop()
+
+        visit_AsyncFunctionDef = visit_FunctionDef  # type: ignore[assignment]
+
+        def visit_Call(self, node: ast.Call) -> None:
+            if isinstance(node.func, ast.Name) and node.func.id == "Part" and stack:
+                found.add(stack[-1])
+            self.generic_visit(node)
+
+    Walk().visit(ast.parse(source))
+    return found
+
+
+def test_every_caller_of_the_shared_record_says_what_its_label_holds():
+    """RK1522. `Part` was documented as one `##` section of an every-turn file, and two more
+    subjects had taken the shape: a reference page whose label is a filename, and a note whose
+    label is a code — which is not a heading, is never `""`, and has no file to be a section of.
+
+    The reuse is right and the silence was not. Held total both ways, so a fourth caller is a
+    red until somebody writes down what its label means."""
+    from roadkeep.budgeting import USES
+
+    assert _builders() == set(USES)
+    assert all(what for what in USES.values())
+
+
+def test_the_note_row_fills_the_counts_the_record_requires():
+    """The cost the docstring now states rather than leaves to be inferred: a note has no
+    lines, so its row carries 1 and a length nothing prints. Asserted because it is the part
+    of the reuse a reader would otherwise read as data."""
+    from roadkeep import remedying
+    from roadkeep.budgeting import note_cost
+
+    found = note_cost(Config.discover(Path(__file__).resolve().parents[1]))
+    assert found.emitted, "this project's gate says at least one note"
+    assert {one.lines for one in found.emitted} == {1}
+    # And the label is the code, which is what every consumer of this row asks it for.
+    assert all(one.heading in set(remedying.NOTES) for one in found.emitted)

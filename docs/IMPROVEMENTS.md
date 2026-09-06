@@ -310,28 +310,6 @@ yet, and what turns it into an answerable question is the state. That is a task 
 family rather than one sweep — and the reason to file it as one line is that the six
 that do run were each bought by a defect that had already shipped.
 
-### §RK1522 The record used three ways and documented as one
-
-`Part` is documented as "one `##` section of an every-turn file, and what it costs", and
-its fields say so: `heading`, verbatim, or `""` for what stands above the first one.
-RK1491 needed a row per note and reused it, so `heading` holds `read.priced` — a code,
-which is not a heading, is never `""`, and has no file to be a section of.
-
-The reuse is not accidental, and that is the argument for it. Three subjects want one
-shape — a label, a width, a rank — and `Skilled.pages` stretched it once already, to a
-reference page where `heading` holds a path. A good shape attracting a third caller is
-ordinary; three records with identical fields would be three names for one idea.
-
-What it costs is the docstring, which `agents.md` makes the authority on what a record
-is. It describes one of three uses, so a reader meeting `Part("read.priced", 1, …)`
-works out from the call site that `heading` is a lie. `lines` and `bytes` are worse: a
-note row fills them with 1 and a length nobody reads, because the record demands them.
-
-Two ways out, and they are different bets. Rename it to what it is — a labelled weight,
-`heading` becoming `label`, the counts optional — or leave it and write the three uses
-into the docstring. The second is not the lesser fix: a record used three ways honestly
-is a record, and the same one used three ways silently is the drift.
-
 ### §RK1526 The read a code owns and every row repeats
 
 RK1494 split `engine.disagreement` into a row per differing copy, and RK1491's reading
