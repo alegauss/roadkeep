@@ -894,6 +894,29 @@ words on an every-turn budget `lint` holds (RK30); withholding the argument cost
 caller the subject entirely. The reading now exists per tool, so the decision is per
 tool — and `ship` at five arguments and 967 units is where it is worth making first.
 
+### §RK1602 The comment that says it is derived
+
+`reverting._MARK` recovers the forward pointer a superseded decision carries, and the
+comment above it reads: *Built from that constant rather than spelled again — the writer
+and the reader of one clause disagreeing is the defect this package is about, and a
+second literal here is how it would start.*
+
+It is a second literal. `_MARK = re.compile(r"\(superseded by ([^)]+)\)")` spells the
+head that `shipping._SUPERSEDED` composes, and nothing joins them. The comment is not
+merely stale — it is the argument for the pairing, written at the site that does not do
+it, which is worse than silence: a reader checking whether the coupling exists finds a
+sentence saying it does.
+
+Cheap, and the shape is settled twice over. RK1507 paired the carried line, RK1542
+paired the retirement head, and both landed as a reader beside the writer with a
+round-trip test between them. Here the writer is `_parenthesised(why,
+_SUPERSEDED.format(replacement=<id>))` and the reader wants the same treatment: one
+function in `shipping` answering the id a parenthesised clause names, and the regex
+built from the constant it already claims to be built from.
+
+What that also buys is the guard RK1542 wrote, widened: nothing outside `shipping`
+recovers either clause by hand.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

@@ -66,6 +66,7 @@
 - 📋 **RK1591** (deps: —) **a remedy whose first step is an edit outside this tool has no kind, so repair dispatches a door that refuses** — The six kinds say who supplies the prose and who runs the command, and none says the state has to change first. → §RK1591
 - 📋 **RK1600** (deps: —) **a refusal payload publishes rules and never the retry the same refusal composed** — The retry is an argv this tool derived and it reaches a caller inside the sentence, so the one part they would execute is the part they must parse. → §RK1600
 - 📋 **RK1601** (deps: —) **fifty-eight served arguments across thirty-three tools are spelled in no call the guidance shows** — Nine thousand code units of schema are sent to every session for arguments its orientation never shows being passed. → §RK1601
+- 📋 **RK1602** (deps: —) **the decisions pointer says it is built from the constant that writes it and spells the literal again** — One clause, two spellings, and a comment claiming otherwise — the third instance of the shape RK1507 and RK1542 each removed once. → §RK1602
 
 ## Block E — Adoption
 
