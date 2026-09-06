@@ -1724,3 +1724,54 @@ def test_the_placeholders_are_angled_because_the_caller_completes_them():
 
     for code, argv in FORESEEN.items():
         assert BLANK not in argv, code
+
+
+# -- which of those codes the gate says rather than fails on (RK1521) ----------
+
+
+def emitted_as_notes() -> set[str]:
+    """Every code `linting` constructs a :class:`~roadkeep.linting.Note` with.
+
+    Read off the AST and never listed here, for the reason :func:`emitted` is: a list in a
+    test is a second population, and the one moment either matters is the day somebody adds a
+    sixteenth. Two spellings, because the emitter uses both — a positional code, and the
+    conditional pair `install.stale`/`install.absent`, whose code is an expression and whose
+    two constants are what this reads.
+    """
+    import ast
+
+    text = (SOURCE / address("linting")).read_text(encoding="utf-8")
+    found: set[str] = set()
+    for node in ast.walk(ast.parse(text)):
+        if not (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "Note"
+        ):
+            continue
+        given = [*node.args[:1], *(one.value for one in node.keywords if one.arg == "code")]
+        for one in given:
+            found |= {
+                inner.value
+                for inner in ast.walk(one)
+                if isinstance(inner, ast.Constant) and isinstance(inner.value, str)
+            }
+    return found
+
+
+def test_every_note_the_gate_says_is_a_note_this_build_declares():
+    """RK1521. `cost --notes` priced one note of an unknown number, because nothing said how
+    many note codes exist — and a figure taken over part of a population is one a reader
+    misreads, which is what `read.priced` refuses for its own subject.
+
+    Held in both directions off the emitter's own source: a note code with no row here is a
+    population quietly larger than the figure, and a row here nothing emits is one quietly
+    smaller."""
+    assert emitted_as_notes() == set(remedying.NOTES)
+
+
+def test_a_note_code_is_a_code_and_answers_the_same_table():
+    """The set is beside the table and not a second registry: every note is a code, so it has
+    a door like any other finding, and only the exit differs."""
+    assert remedying.NOTES <= set(remedying.codes())
+    assert remedying.notes() == tuple(sorted(remedying.NOTES))

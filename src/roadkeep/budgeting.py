@@ -2158,6 +2158,12 @@ class Noted:
 
     #: One row per note this run of the gate emitted, widest first — code and width.
     emitted: tuple[Part, ...] = ()
+    #: Every note code that exists, from `remedying.NOTES` (RK1521). The population the two
+    #: figures above are taken **over**, and the half this read could not state: 282 reads like
+    #: the answer where it is one of an unknown number of sentences. `read.priced`'s own rule,
+    #: one subject over — a figure over part of a population is one a reader misreads, so the
+    #: report says how much of it fired here and how much this project never meets.
+    population: tuple[str, ...] = ()
     #: Every `engine.disagreement` row a run can carry at once, summed — the most this gate
     #: can say beside a verdict. Since RK1494 that is four rows and not one sentence, and the
     #: total is what a run costs: a reader on a machine where all four are true is handed all
@@ -2170,10 +2176,25 @@ class Noted:
         """What a clean run costs now — the sum, which is the per-commit and per-turn figure."""
         return sum(one.characters or 0 for one in self.emitted)
 
+    @property
+    def silent(self) -> tuple[str, ...]:
+        """The note codes this run did not emit, sorted — what the figure leaves out (RK1521).
+
+        Derived and never stored, for the reason the two figures are kept apart: what fired is
+        a fact about this checkout and the population is a fact about the build, and a stored
+        difference is a third thing that can disagree with either.
+        """
+        said = {one.heading for one in self.emitted}
+        return tuple(one for one in self.population if one not in said)
+
     def stated(self, unit: str) -> str:
         rows = [
             f"notes      {self.here} {unit} on every run of the gate — a commit through the "
             f"hook, a turn through `Stop` — and no ceiling is declared for it",
+            # The population the figure is over (RK1521), beside the figure and never under
+            # the rows: a reader who takes one number away takes this one with it.
+            f"  of       {len(self.emitted):>6}  of {len(self.population)} note code(s) "
+            f"this build can say, {len(self.silent)} of them never on this project",
             f"  widest   {self.widest:>6}  every `engine.disagreement` row at once, "
             f"which this checkout cannot produce",
         ]
@@ -2192,6 +2213,10 @@ class Noted:
             # The two readings kept apart in the payload as they are in the rows: a consumer
             # adding them would be charging a session for a sentence it cannot meet.
             "widest": self.widest,
+            # Both halves of the population, so a consumer can take the ratio the rows print
+            # without re-deriving it from a list it would have to know the length of (RK1521).
+            "population": len(self.population),
+            "silent": list(self.silent),
             "notes": [
                 {"code": one.heading, "characters": one.characters or 0}
                 for one in self.emitted
@@ -2215,6 +2240,7 @@ def note_cost(config: Config) -> Noted:
     """
     from roadkeep.linting import disagreements, lint  # noqa: PLC0415 - RK260
     from roadkeep.provenance import engine  # noqa: PLC0415 - RK260
+    from roadkeep.remedying import notes  # noqa: PLC0415 - RK260
 
     running = engine()
     emitted = sorted(
@@ -2226,6 +2252,9 @@ def note_cost(config: Config) -> Noted:
     # the total. One `max` here would price the cheapest possible worst case.
     return Noted(
         emitted=tuple(emitted),
+        # From the table that knows every code and not from a list here (RK1521): a second
+        # spelling of the population is the drift `VARIES` is derived to avoid one layer down.
+        population=notes(),
         widest=sum(
             width(message)
             for _, message in disagreements(

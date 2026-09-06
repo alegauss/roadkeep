@@ -41,7 +41,6 @@
 ## Block D — The gate
 
 - ⏳ **RK1498** (deps: RK1532) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Thirty of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
-- 💭 **RK1521** (deps: —) **the note cadence prices what fired and cannot say what it left out, no list of note codes existing** — RK1491 measured one note of an unknown number, and the remedy table that knows every code does not separate a note from a finding. → §RK1521
 - 💭 **RK1522** (deps: —) **one record is a file section, a reference page and a note row, and its docstring describes only the first** — RK1491 filled Part's heading with a note code and its lines and bytes with numbers nobody reads, because the record demanded them. → §RK1522
 - 💭 **RK1526** (deps: —) **the read that lets a reader choose between four rows is repeated on each of them** — RK1494 split the note so each row carries its own move, and a note's message is the only place the gate renders a door, so the shared read went four ways. → §RK1526
 - 💭 **RK1530** (deps: —) **the corpus reading a refusal was drawn from lives in a docstring and nothing re-takes it** — RK1497 measured 18 false positives over prose against zero over fields and threw the probe away, so the number that decided the boundary cannot be checked. → §RK1530

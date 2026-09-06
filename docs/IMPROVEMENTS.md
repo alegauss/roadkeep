@@ -310,30 +310,6 @@ yet, and what turns it into an answerable question is the state. That is a task 
 family rather than one sweep — and the reason to file it as one line is that the six
 that do run were each bought by a defect that had already shipped.
 
-### §RK1521 The population a note figure is taken over
-
-RK1491 gave notes a cadence and could not say what it left out. The read prices the
-notes this project's gate emits — one, at 282 — and one composed worst case, and there
-is no third number because there is no list: nothing anywhere says how many note codes
-exist.
-
-The registry is almost there. `remedying`'s table is asserted **total** over every code
-`linting` and `schema` can emit (RK421), and it holds 122 of them — but a note and a
-finding sit in it side by side with nothing separating them, so the population of notes
-is not derivable from the one place that knows the population of codes.
-
-What that costs is what `brief` refused to accept for its own subject. `read.priced`
-exists because a figure taken over part of a population is one a reader misreads: it
-says *4 of 26 open lines priced, 22 not asked for*. `cost --notes` says nothing of the
-kind and cannot — 282 reads like the answer when it is one of an unknown number of
-sentences.
-
-The split is a field on the remedy row or a set beside the table — a decision about
-where the fact lives, not a discovery. What it buys is the sentence `brief` prints and
-one more: an unmeasured note code is a clause somebody adds without meeting a number,
-which is the drift RK1491 was filed against and closed for one note out of however many
-there are.
-
 ### §RK1522 The record used three ways and documented as one
 
 `Part` is documented as "one `##` section of an every-turn file, and what it costs", and

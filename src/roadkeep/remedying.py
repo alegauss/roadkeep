@@ -1668,9 +1668,46 @@ VARIES: Mapping[str, str] = {
 }
 
 
+#: Which of those codes the gate **says** rather than fails on (RK1521). The table is total
+#: over every code `linting` and `schema` emit (RK421) and held nothing about which of them is
+#: a note, so the population a note figure is taken over was not derivable from the one place
+#: that knows the population of codes — `cost --notes` printed a number and could not say what
+#: it left out, which is exactly what `read.priced` exists to refuse for its own subject.
+#:
+#: A set beside the table and not a field on the row, because it is a fact about the *report*
+#: and the row is about the repair: a note and a finding with one code between them close the
+#: same way, and only the exit differs. Held total against `linting`'s own `Note(…)` sites by
+#: `tests/test_remedying.py`, so a sixteenth note code arrives here as a red rather than as a
+#: figure quietly taken over a smaller population.
+NOTES: frozenset[str] = frozenset(
+    {
+        "block.emptied",
+        "block.reopened",
+        "block.worked",
+        "budget.translated",
+        "deps.collective",
+        "engine.disagreement",
+        "gate.behind",
+        "install.absent",
+        "install.stale",
+        "non-goal.reaches",
+        "priority.block-unstarted",
+        "priority.config",
+        "read.priced",
+        "section.unpaired",
+        "task.worked",
+    }
+)
+
+
 def codes() -> tuple[str, ...]:
     """Every code this table answers, sorted — the vocabulary `explain` lists (RK423)."""
     return tuple(sorted(_TABLE))
+
+
+def notes() -> tuple[str, ...]:
+    """Every code the gate reports at exit 0, sorted — :data:`NOTES` as `codes` reads."""
+    return tuple(sorted(NOTES))
 
 
 @dataclass(frozen=True, slots=True)

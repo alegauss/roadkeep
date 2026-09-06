@@ -1645,6 +1645,35 @@ def test_the_notes_a_clean_run_says_are_priced(tmp_path, capsys):
     assert "limit" not in found
 
 
+def test_the_figure_says_how_much_of_the_population_it_is_over(tmp_path, capsys):
+    """RK1521. The number read like the answer where it was one of an unknown count: nothing
+    said how many note codes exist, so `cost --notes` could price what fired and say nothing
+    about what it left out — which is exactly what `read.priced` refuses for its own subject,
+    one cadence over."""
+    from roadkeep import remedying
+
+    _priced(tmp_path)
+    assert main(["-C", str(tmp_path), "cost", "--notes"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert f"of {len(remedying.NOTES)} note code(s) this build can say" in printed
+    assert main(["-C", str(tmp_path), "cost", "--notes", "--json"]) == EXIT_OK
+    found = json.loads(capsys.readouterr().out)
+    # Both halves, so a consumer takes the ratio rather than re-deriving one of them.
+    assert found["population"] == len(remedying.NOTES)
+    said = {one["code"] for one in found["notes"]}
+    assert set(found["silent"]) == set(remedying.notes()) - said
+    assert len(found["notes"]) + len(found["silent"]) == found["population"]
+
+
+def test_the_population_is_the_table_s_and_never_a_second_list(tmp_path):
+    """Read from `remedying`, which is the one place that knows every code this build emits —
+    a list in `budgeting` would be a second population, agreeing until somebody adds a note."""
+    from roadkeep import remedying
+    from roadkeep.budgeting import note_cost
+
+    assert note_cost(Config.discover(tmp_path)).population == remedying.notes()
+
+
 def test_the_widest_a_note_can_be_is_measured_where_it_cannot_fire(tmp_path, capsys):
     """The half a state-only reading cannot reach. `engine.disagreement`'s first clause
     requires the engine *not* to be carried by the tree it judges, so no checkout of this

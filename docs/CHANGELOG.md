@@ -698,6 +698,7 @@
 - ✅ **RK1516** **section drop deletes a design and never says the constraint answer went with it** — section drop now names the constraints the deleted prose quoted, so the fourth door that removes a design reports what the three departure doors already did.
 - ✅ **RK1517** **a served flag that only shapes the terminal form is inert, and nothing asks that of the eighteen** — every served boolean is now run with the flag and without through the argv the server composes, so a flag this transport makes inert is a red rather than an answer nobody can tell apart.
 - ✅ **RK1518** **adopt refuses two answers inside its estimator, so the dispatcher and the served surface read them as compatible** — adopt declares --ledger and --sections two answers, so the dispatcher refuses the pair before a handler runs and the served schema, the sweep and both surfaces read the same rule.
+- ✅ **RK1521** **the note cadence prices what fired and cannot say what it left out, no list of note codes existing** — the note codes are declared beside the remedy table and held total against the emitter, so cost --notes says how many of them fired here and how many this project never meets.
 
 ## Block E — Adoption
 
