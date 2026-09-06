@@ -822,6 +822,30 @@ sentence is the right amount of machinery.
 What makes it worth a line is the surface: over MCP both are discoverable only by making
 the call and reading the error, which is the cost RK1518 closed for one rule of three.
 
+### §RK1559 The twelve sentences nothing has measured
+
+The population is knowable now, and the first thing it says is that the figure covers
+two of it. Fifteen note codes exist; this project's gate emits `read.priced` and
+`non-goal.reaches`, and `engine.disagreement` is composed because no checkout here can
+produce it. The other twelve have never been measured by anything.
+
+That is RK1491's argument one step further along. A note is prose the gate says on every
+run; it grew a clause in each of three tasks against no number, and the answer was to
+price it — but what was priced is what this repository happens to trip. A sentence
+nobody meets is one nobody has read for length either, and a note is the kind of text
+that accretes: `block.emptied`, `task.worked` and `section.unpaired` each explain a
+state, and none has appeared in a `cost` run.
+
+Composing them is what `widest` already does for the fourth. Each of the twelve is a
+function of a state a fixture can hold — a block with nothing under it, a section
+addressed to no line — so the reading is one call per code against a fixture built for
+it, which is what `tests/test_linting.py` largely already has. The figure that comes out
+is *what this build can say*, beside *what this project meets*, which is the pair
+`widest` and `here` already are.
+
+It must not become a ceiling per code: RK1491 declined one for the whole cadence, and
+twelve numbers with no argument behind them would be twelve limits that move.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

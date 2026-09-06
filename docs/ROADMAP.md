@@ -62,6 +62,7 @@
 - 💭 **RK1553** (deps: —) **no sweep asks of a served value flag what RK1517 asks of a boolean, and there are a hundred and twenty-two** — identical payload is a strong signature for a flag left off and a weak one for a value that may legitimately match the default. → §RK1553
 - 💭 **RK1554** (deps: —) **the pair fixture's commits carry a subject and no body, so a flag about a commit body cannot be read there** — RK1489 gave it a history and not a message, and origin --why answers identically on the terminal too for a reason that is not the flag. → §RK1554
 - 💭 **RK1555** (deps: —) **two of adopt's argument rules are still raised inside the estimator, where no declaration reader can see them** — RK1518 moved the one that is two answers, and a narrowing and a flag refused beside a subject were left behind. → §RK1555
+- 💭 **RK1559** (deps: —) **twelve of the fifteen note codes have never been priced, this project's gate tripping only two of them** — RK1521 made the population knowable and the figure still covers what this repository happens to emit, which is the reach RK1489 warns is read as a result. → §RK1559
 
 ## Block E — Adoption
 
