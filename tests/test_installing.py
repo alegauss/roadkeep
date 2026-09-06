@@ -276,6 +276,92 @@ def test_a_declaration_keeps_everything_that_is_not_this_project_s_entry(project
     assert set(loaded(project / PROJECT_MCP)["mcpServers"]) == {"another", "roadkeep"}
 
 
+# -- the one entry the merge rule does not protect (RK1560) -------------------
+
+#: What an adopter legitimately writes there. RK1492 stopped the reader guessing at the program
+#: inside this entry for exactly this reason: a wrapper, an interpreter with flags or `uv run`
+#: is a real declaration, and the suffix test was what told it from one this command wrote.
+#: The same argv `test_a_declaration_this_command_did_not_write_is_named_and_not_dropped`
+#: reads, since RK1523's reading is the one this write now splits on.
+THEIRS = ["uv", "run", "serve-roadkeep", "mcp"]
+DECLARED = {"mcpServers": {"roadkeep": {"command": "uv", "args": THEIRS[1:]}}}
+
+
+def test_a_server_this_command_did_not_write_is_left_where_it_is(project, source):
+    """RK1560, measured: a project declaring `uv run serve-roadkeep mcp` ran `install`, exited
+    0, and held the launcher — the adopter's command gone, with no row naming what was there.
+    The merge kept every entry but this project's own, which is right for a file other tools
+    declare in and wrong for the one entry an adopter may have written themselves."""
+    _declaring(project, THEIRS)
+    intent = install(project, source=source)
+    assert loaded(project / PROJECT_MCP) == DECLARED
+    # And named, on the rule every skipped surface here follows: an adopter discovers a silent
+    # absence by needing it. With the flag that changes the answer, which is theirs to give.
+    (said,) = [one for name, one in intent.skipped if name == PROJECT_MCP]
+    assert "uv run serve-roadkeep mcp" in said
+    assert "install --replace-server" in said
+
+
+def test_the_other_four_surfaces_are_still_written(project, source):
+    # A skip and never a refusal: `install` writes five, and stopping over one entry leaves a
+    # project half-wired for a decision the other four do not touch.
+    _declaring(project, THEIRS)
+    written = {one.path for one in install(project, source=source).changing}
+    assert project / PROJECT_MCP not in written
+    assert project / PROJECT_SKILL in written and project / PROJECT_SETTINGS in written
+
+
+def test_the_flag_replaces_it_and_keeps_every_other_entry(project, source):
+    _declaring(project, THEIRS)
+    (project / PROJECT_MCP).write_text(
+        json.dumps({**DECLARED, "other": {"kept": True}}), encoding="utf-8"
+    )
+    install(project, source=source, replace_server=True)
+    after = loaded(project / PROJECT_MCP)
+    assert after["mcpServers"]["roadkeep"]["args"][-1] == "mcp"
+    assert after["mcpServers"]["roadkeep"]["command"] != "uv"
+    assert after["other"] == {"kept": True}
+
+
+def test_a_declaration_this_command_wrote_is_still_refreshed(project, source):
+    # The negative, and what the split is between: a program `install` writes is ours to
+    # refresh, and the report says nothing about an entry that was never somebody's decision.
+    install(project, source=source)
+    before = loaded(project / PROJECT_MCP)
+    _declaring(project, ["python", f"../gone/{LAUNCHER}", "mcp"])
+    intent = install(project, source=source)
+    assert loaded(project / PROJECT_MCP) == before
+    assert PROJECT_MCP not in [name for name, _ in intent.skipped]
+
+
+def test_the_check_answers_about_the_run_the_flag_would_make(project, source):
+    """`--replace-server` reaches the check too, unlike `--register-merge`: it changes what the
+    run would write, so a check that ignored it would report about a different run."""
+    _declaring(project, THEIRS)
+    left = plan(project, source=source)
+    assert PROJECT_MCP in [name for name, _ in left.skipped]
+    replaced = plan(project, source=source, replacing=True)
+    assert project / PROJECT_MCP in {one.path for one in replaced.changing}
+
+
+def test_un_wiring_keeps_a_declaration_it_did_not_write(project, source):
+    """The same reading with the sign flipped. `uninstall` took the entry out whoever wrote it,
+    which is this defect in the other direction — the entry gone and no row saying so."""
+    install(project, source=source)
+    _declaring(project, THEIRS)
+    (said,) = [one for name, one in removal(project).kept if name == PROJECT_MCP]
+    assert "uv run serve-roadkeep mcp" in said
+    uninstall(project)
+    assert loaded(project / PROJECT_MCP) == DECLARED
+
+
+def test_un_wiring_still_takes_out_the_entry_it_wrote(project, source):
+    install(project, source=source)
+    assert PROJECT_MCP not in [name for name, _ in removal(project).kept]
+    uninstall(project)
+    assert not (project / PROJECT_MCP).exists()
+
+
 def test_a_declaration_it_cannot_parse_refuses_the_whole_run(project, source):
     (project / ".claude").mkdir(parents=True)
     (project / PROJECT_SETTINGS).write_text("{ not json", encoding="utf-8")

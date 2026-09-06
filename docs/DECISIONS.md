@@ -425,6 +425,7 @@ from outside the tree.
 - ✅ **RK1514** **uninstall leaves the vendored engine on disk and its own kept field never mentions it** — a kept path is not a surface, so the vendored copy is reported and never deleted and --check's verdict does not count it.
 - ✅ **RK1543** **a version here names one commit and the surfaces that consume one speak of it as a release, with nothing saying which** — A version names the commit that wrote it: the hook stamps every commit and no release is cut, so pinning holds a revision.
 - ✅ **RK1549** **no verb removes the vendored engine, so the report that names it hands the last step back to the reader in English** — A destructive write this tool would otherwise hand back in English is built once its cost is measured, never on the guess that it is small.
+- ✅ **RK1560** **install replaces a server declaration an adopter wrote themselves and no row names what was there** — A file merged into and not owned is one where every entry an adopter may have authored is theirs, this project's name on it or not.
 
 ### §RK1424 Why the description gave way and not the ceiling
 
@@ -501,6 +502,25 @@ before the loss.
 
 **One refusal.** A `.roadkeep/` carrying a `.git` is a clone — `--vendor` excludes
 `.git` by name — and removing history is not reclamation. Edits stay the caller's (L4).
+
+### §RK1560 The entry with somebody else's name on it
+
+The merge kept every entry but this project own, which reads as protection and is the
+opposite: the one entry an adopter may have authored is the one it overwrote. Measured
+on `uv run serve-roadkeep mcp` — their command gone, nothing naming it.
+
+RK1523 already had the reading. A program this command wrote is ours to refresh; one it
+does not recognise is somebody decision. That split now decides the write, not the
+report alone.
+
+Left rather than replaced, with `--replace-server` named in the row. Both are honest and
+only one loses nothing; which is right is a fact about their project.
+
+A skip and never a refusal: `install` writes five surfaces, and stopping over one entry
+leaves a project half-wired for a decision the others do not touch.
+
+And `uninstall` keeps it too — taking out a declaration this command did not write is
+the same defect, sign flipped.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

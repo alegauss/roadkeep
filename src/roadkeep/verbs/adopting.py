@@ -298,13 +298,22 @@ def _install(config: Config, args: argparse.Namespace) -> int:
         intent = (
             # `--check` writes nothing, so it reports the driver as unwritten either way: a
             # check that registered one would be a check that changed the repository (RK148).
-            plan(args.directory, source=source, committed=args.committed)
+            # `--replace-server` reaches both, unlike `--register-merge` above: it changes what
+            # the run *would* write, so a check that ignored it would answer about a different
+            # run from the one the caller is about to make (RK1560).
+            plan(
+                args.directory,
+                source=source,
+                committed=args.committed,
+                replacing=args.replace_server,
+            )
             if args.check
             else install(
                 args.directory,
                 source=source,
                 register_merge=args.register_merge,
                 committed=args.committed,
+                replace_server=args.replace_server,
             )
         )
     except (ValueError, OSError) as error:
@@ -1037,6 +1046,16 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
             "copy the highest-versioned roadkeep this machine can reach into .roadkeep/, so "
             "the project runs a pinned engine instead of whichever copy a search order "
             "reaches first; ROADKEEP_SRC names a working checkout, which is otherwise skipped"
+        ),
+    )
+    install_parser.add_argument(
+        "--replace-server",
+        action="store_true",
+        help=(
+            "overwrite a server declaration this command did not write — a wrapper, an "
+            "interpreter with flags, `uv run`. Left alone by default and named in the report, "
+            "because `.mcp.json` is merged into and not owned, and that entry is the only "
+            "content here an adopter may have authored themselves"
         ),
     )
     install_parser.add_argument("--json", action="store_true", help=_JSON_HELP)

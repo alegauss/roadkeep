@@ -1027,6 +1027,7 @@
 - ✅ **RK1534** **the orientation an install prints names five commands in an order the tree it is printed to cannot run** — the orientation leads with what an ungoverned tree still owes, so the first command it names is the one that makes the other four answerable, and the sweep runs it.
 - ✅ **RK1543** **a version here names one commit and the surfaces that consume one speak of it as a release, with nothing saying which** — The table sentence a listing prints says a version names the commit that wrote it, which is what pinning here holds.
 - ✅ **RK1549** **no verb removes the vendored engine, so the report that names it hands the last step back to the reader in English** — uninstall --engine weighs the vendored copy and removes it, refusing a tree that carries a .git, and the kept row names it.
+- ✅ **RK1560** **install replaces a server declaration an adopter wrote themselves and no row names what was there** — A server declaration this command did not write is left where it is and named in the report, and uninstall keeps it for the same reason.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

@@ -731,29 +731,6 @@ table, say which, and keep RK1064`s sentence for the key that truly is unknown.
 
 ## Block F — The plugin
 
-### §RK1560 The one entry the merge rule does not protect
-
-`.mcp.json` is a declaration this tool merges into and does not own, and RK1492 stopped
-a reader guessing at the program inside it precisely because a wrapper or `uv run` is a
-legitimate thing an adopter writes there. `install` replaces it. Measured: a project
-declaring `uv run serve-roadkeep mcp` runs `install`, exits 0, and holds the launcher —
-the adopter's command gone, with no row naming what was there.
-
-The merge rule is kept and that is what hides it. What survives is everything that is
-not *this project's roadkeep entry*, which is right for a file other tools declare in
-and wrong for the one entry an adopter may have written themselves. The two are told
-apart by RK1523's own reading: a declaration whose program this command wrote is ours to
-refresh, and one whose program it does not recognise is somebody's decision.
-
-So the write splits where the report already does. Where the program is one of
-`_PROGRAMS`, refresh it as now. Where it is not, the honest outcomes are to leave it and
-say so, or to replace it and say what was replaced — and the choice is the adopter's,
-which argues for the first plus a line naming the flag that overrides.
-
-It must not refuse the whole run. `install` writes five surfaces, and a refusal over one
-entry leaves a project half-wired for a decision about a file the other four do not
-touch — the shape RK370 settled the other way.
-
 ### §RK1561 The fall-through the one-line answer does not mention
 
 RK1523 gave the report a row for a declaration whose program this command did not write.

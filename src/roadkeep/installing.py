@@ -252,6 +252,31 @@ _OWN_BRIDGE = (
     f"copy of the bridge beside the original is the drift `install` exists to remove"
 )
 
+#: The one entry the merge rule does not protect (RK1560). `.mcp.json` is a declaration this
+#: command merges into and does not own, and RK1492 stopped a reader guessing at the program
+#: inside it precisely because a wrapper, an interpreter with flags or `uv run` is a legitimate
+#: thing an adopter writes there. The merge kept every entry *but this project's own* — right
+#: for a file other tools declare in, and wrong for the one entry an adopter may have written.
+#:
+#: Measured: a project declaring `uv run serve-roadkeep mcp` runs `install`, exits 0, and holds
+#: the launcher — their command gone, with no row naming what was there. So the write splits
+#: where :func:`declared_launcher` already does: a program this command wrote is ours to
+#: refresh, and one it does not recognise is somebody's decision.
+DECLARED_SERVER = (
+    "{path}: this project declares the server as `{command}`, which this command did not "
+    "write — so it is left where it is, and `{invocation} install --replace-server` is what "
+    "replaces it with the launcher this checkout wires"
+)
+
+#: The same reading on the way out (RK1560). `uninstall` took the entry out whoever wrote it,
+#: which is this defect in the other direction: un-wiring is this command withdrawing what it
+#: wired, and a command it did not write is not that. A `kept` row for `PROJECT_ENGINE`'s
+#: reason — an unasked deletion of somebody's declaration is the reflex RK1514 refused.
+KEPT_SERVER = (
+    "{path}: the server entry declares `{command}`, which this command did not write — it "
+    "stays, because taking out somebody else's declaration is not un-wiring ours"
+)
+
 #: The surface this command names and does not write (L4), and why. Printed by `install`.
 CONTRIBUTING = (
     "CONTRIBUTING.md: one line telling a contributor the governed files are written by "
@@ -749,6 +774,7 @@ def plan(
     registering: bool = False,
     gauging: bool = True,
     committed: bool = False,
+    replacing: bool = False,
 ) -> Plan:
     """Read the plugin's surfaces and the project's, and answer what would change.
 
@@ -778,6 +804,12 @@ def plan(
     `install` it names no longer downgrades the wiring. Moving *back* to a checkout path is
     `uninstall` and then `install`, which is the same two commands as any other change of mind
     about a variant — and unlike a flag, it cannot happen by running the repair a check named.
+
+    ``replacing`` overwrites a server declaration this command did not write (RK1560). Opt-in
+    for `--committed`'s reason and a sharper one: the entry is the only content here an adopter
+    may have authored, and the two honest outcomes were to leave it and say so or to replace it
+    and say what was replaced. Which of those is right is a fact about their project, so the
+    default is the one that loses nothing and the flag is what a reader is handed to change it.
     """
     base = Path(root).resolve()
     # A project that vendored an engine has **chosen** one, on disk, and a plan that read the
@@ -805,15 +837,33 @@ def plan(
     # this repository declares by hand (RK81) — and the two copies do not, both being copies
     # of files already in the tree.
     own = base == origin
-    surfaces = [
-        _declaration(base / PROJECT_MCP, lambda current: _merged_mcp(current, server)),
-    ]
+    # The one entry the merge rule does not protect (RK1560), and the only surface here whose
+    # content an adopter may legitimately have authored. Left alone unless the caller asked,
+    # which is a **skip** and never a refusal: `install` writes five surfaces, and stopping the
+    # run over one entry leaves a project half-wired for a decision the other four do not touch
+    # — RK370's shape, settled the same way.
+    theirs = "" if replacing else foreign_server(base)
+    surfaces = (
+        []
+        if theirs
+        else [_declaration(base / PROJECT_MCP, lambda current: _merged_mcp(current, server))]
+    )
     # Conditioned on the tree *providing* the plugin and never on which repository this is
     # (RK402): a fork, a vendored copy and this checkout are the same situation, and a name
     # test would answer for one of them. The `.mcp.json` declaration stays either way — a
     # plugin's server and a project's are two entries the harness reads separately, and only
     # the hooks would fire twice.
     skipped: list[tuple[str, str]] = [(CONTRIBUTING.split(":")[0], CONTRIBUTING)]
+    if theirs:
+        skipped.insert(
+            0,
+            (
+                PROJECT_MCP,
+                DECLARED_SERVER.format(
+                    path=PROJECT_MCP, command=theirs, invocation=invocation()
+                ),
+            ),
+        )
     if _provides_plugin(base):
         skipped.insert(0, (PROJECT_SETTINGS, f"{PROJECT_SETTINGS}: {_OWN_HOOKS}"))
     else:
@@ -912,6 +962,7 @@ def install(
     source: str | Path | None = None,
     register_merge: bool = False,
     committed: bool = False,
+    replace_server: bool = False,
 ) -> Plan:
     """Write every surface that would change, or write nothing.
 
@@ -925,7 +976,13 @@ def install(
     project's own config is resolved *before* the first write, so a project with nothing to
     register refuses instead of leaving four surfaces written and a flag unhonoured.
     """
-    intent = plan(root, source=source, registering=register_merge, committed=committed)
+    intent = plan(
+        root,
+        source=source,
+        registering=register_merge,
+        committed=committed,
+        replacing=replace_server,
+    )
     # First of the refusals (RK1462): the surfaces on disk came from an engine this one is
     # behind, so *refresh* means *downgrade* — and the caller asked for it because a check and
     # a finding spoke in one direction. Only where something would actually be rewritten: a
@@ -1017,6 +1074,24 @@ def declared_argv(root: Path) -> list[str]:
         return [str(declared["command"]), *(str(one) for one in declared["args"])]
     except (OSError, ValueError, KeyError, TypeError):
         return []
+
+
+def foreign_server(root: str | Path = ".") -> str:
+    """The server command this project declares that this one did not write, or `""` (RK1560).
+
+    :func:`declared_launcher`'s reading, asked as a question about *ownership* instead of about
+    a path. That function answers the launcher where it can find one and `""` where it cannot,
+    which collapses the two states this needs apart: a project with no declaration at all, and
+    a project whose declaration is somebody's own command.
+
+    Verbatim and never resolved, unlike :func:`_resolved`'s answer: a placeholder in a command
+    this tool wrote is one it knows how to expand, and what is quoted here is the line an
+    adopter typed — so it is the line they will recognise in the file when they read the row.
+    """
+    argv = declared_argv(Path(root).resolve())
+    if not argv or any(one.endswith(_PROGRAMS) for one in argv):
+        return ""
+    return " ".join(argv)
 
 
 def _resolved(root: Path, argv: Sequence[str]) -> str:
@@ -2919,10 +2994,22 @@ def removal(root: str | Path = ".") -> Removal:
                 f"leave it for a later `{invocation()} install --vendor` to replace",
             )
         )
+    # The same ownership reading on the way out (RK1560). A declaration this command did not
+    # write is not this command's to withdraw, and taking it out was the install defect with
+    # the sign flipped — the entry gone and no row saying what had been there.
+    theirs = foreign_server(base)
+    if theirs:
+        kept.append(
+            (PROJECT_MCP, KEPT_SERVER.format(path=PROJECT_MCP, command=theirs))
+        )
     return Removal(
         root=base,
         withdrawals=(
-            _withdrawn(base / PROJECT_MCP, _without_server),
+            *(
+                ()
+                if theirs
+                else (_withdrawn(base / PROJECT_MCP, _without_server),)
+            ),
             _withdrawn(base / PROJECT_SETTINGS, _without_guard),
             _dropped(base / PROJECT_SKILL),
             # And the pages it points at, for the reason the skill itself is dropped (RK1437):
