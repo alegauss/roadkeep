@@ -28,7 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 💭 **RK1519** (deps: —) **a project that declares its own open markers cannot claim a line, and nothing anywhere says so** — The claim machinery writes and compares the package's in-progress marker, and [markers] has no key by which a project could name its own. → §RK1519
 - 💭 **RK1520** (deps: —) **the marker-leak gate rewards the repair that renders the same wrong bytes** — It scans the package for a literal codepoint, so interpolating the constant passes it while the reader is told about a glyph their project may not declare. → §RK1520
 - 💭 **RK1527** (deps: —) **the near window stayed at three when the corpus it ranks over doubled** — RK1495 put the open lines beside the deliveries and the two halves now compete for the same three rows, with no reading of how often either wins one. → §RK1527
 - 💭 **RK1528** (deps: —) **the near row offers the door to the delivered half and none to the open half it now counts** — RK1495 made the corpus two and RK442's guarantee names where the rest of one of them are, leaving the half the task was filed for unfollowable. → §RK1528

@@ -459,6 +459,7 @@
 - ✅ **RK1510** **no read says how many lines a shipped task filed behind it, so granularity is judged from a feel** — weight reports what each comparable filed behind it and the span it arrived over, bounded by the next ship.
 - ✅ **RK1512** **pick and brief never name the deferred store, so a set-aside line and the reason it cites go unread** — pick counts the deferred store beside ready and blocked, and names the read that opens it.
 - ✅ **RK1513** **brief hands over a line carrying no criteria in silence, and the absence is reported only once part landed** — brief now says a line carries no criteria and names the command that writes one, so the absence is read before the first edit rather than at the partial marker.
+- ✅ **RK1519** **a project that declares its own open markers cannot claim a line, and nothing anywhere says so** — markers.working is the sixth key, so every door that takes, reads or releases a claim uses the marker this project declares and a backlog spelling its own can be worked.
 
 ## Block D — The gate
 

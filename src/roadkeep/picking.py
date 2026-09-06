@@ -66,7 +66,7 @@ from roadkeep.config import Config
 from roadkeep.kernel.document import Entry, declares, shading
 from roadkeep.locking import exclusive
 from roadkeep.queueing import declared
-from roadkeep.kernel.schema import IN_PROGRESS, Dep
+from roadkeep.kernel.schema import Dep
 
 #: How many runners-up an answer carries. Bounded on purpose: the value of `pick` is that
 #: its output fits in a tool result, and a ranked list of everything is the file again.
@@ -303,7 +303,7 @@ def pick(
     claimed = (
         {entry.id: entry for entry in claiming.live(config, considered)} if claims else {}
     )
-    survey = _survey(backlog, considered, claimed)
+    survey = _survey(backlog, considered, claimed, config.schema.working)
     ordered = sorted(survey.ready, key=lambda e: id_order(e.task.id, config.schema))
     # Before the tiers and before `designed`, because a claim is a fact about the checkout
     # while the flag is the caller's intent (RK119) — and because tier 1 would otherwise
@@ -441,7 +441,7 @@ def take(
         choice = pick(config, block, designed, available=available)
         if choice.entry is None:
             return Claim(choice=choice)
-        change = set_status(config, choice.entry.task.id, IN_PROGRESS)
+        change = set_status(config, choice.entry.task.id, config.schema.working)
         # The entry is replaced by the line as written, so the answer shows the marker the
         # caller now holds rather than the one it was chosen under.
         return Claim(choice=replace(choice, entry=change.entry), change=change)
@@ -464,7 +464,7 @@ def hold(config: Config, task_id: str) -> Claim:
     move there anyway, `status <id> 🛠` being the same write with nothing guarding it.
     """
     with exclusive(config.root):
-        return Claim(choice=None, change=set_status(config, task_id, IN_PROGRESS))
+        return Claim(choice=None, change=set_status(config, task_id, config.schema.working))
 
 
 def _set_aside(config: Config) -> int:
@@ -570,7 +570,10 @@ class _Survey:
 
 
 def _survey(
-    backlog: Backlog, considered: list[Entry], claimed: Mapping[str, Held]
+    backlog: Backlog,
+    considered: list[Entry],
+    claimed: Mapping[str, Held],
+    working: str,
 ) -> _Survey:
     ready: list[Entry] = []
     blocked = outside = paused = 0
@@ -586,7 +589,7 @@ def _survey(
             paused += 1
         else:
             blocked += 1
-        if entry.task.status == IN_PROGRESS:
+        if working and entry.task.status == working:
             stalled.append(
                 Stalled(
                     id=entry.task.id,
@@ -667,7 +670,11 @@ def _waiting(
 
 def _first(ordered: list[Entry], config: Config) -> tuple[Entry, Tier, str]:
     """The three tiers, in order, each returning the reason it fired."""
-    started = [e for e in ordered if e.task.status == IN_PROGRESS]
+    started = (
+        [e for e in ordered if e.task.status == config.schema.working]
+        if config.schema.working
+        else []
+    )
     if started:
         return (
             started[0],
@@ -753,7 +760,7 @@ class Picked:
                     *_lacking_rows(choice),
                     # Under the lines it is about (RK1490): those say which and what for, and
                     # this says what the caller may do about it — the move RK1467 left unbuilt.
-                    *_withheld_rows(choice),
+                    *_withheld_rows(choice, config.schema.working),
                     *_waiting_rows(choice),
                     *_set_aside_rows(choice, config),
                     *_held_rows(choice),

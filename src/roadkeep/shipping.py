@@ -152,6 +152,7 @@ from roadkeep.remedying import Door
 from roadkeep.renumbering import NotAnId, SameId, family_of
 from roadkeep.kernel.schema import (
     ELSEWHERE,
+    IN_PROGRESS,
     PARTIAL,
     SchemaError,
     Task,
@@ -1214,6 +1215,11 @@ class Departure:
     #: The checkout, so the claim on a line that left for good is released (RK162) — the one
     #: thing this transaction touches that is not a governed file.
     root: Path | None = None
+    #: The marker a claim is written as on this project, `[markers] working` (RK1519). Carried
+    #: beside :attr:`root` because the release below is read against it: composed with the
+    #: package's own on a project that declares its own, this write would drop every other
+    #: live claim as no longer at the marker.
+    working: str = IN_PROGRESS
     #: What the working tree holds, split by whose claim names it (RK294) — read **before**
     #: :meth:`save` releases this line's claim, and `None` where no live claim declared a
     #: path. Reported and never refused: a loose path is a legitimate state, and a departure
@@ -1267,7 +1273,13 @@ class Departure:
             # in-progress one, so the rule every marker write obeys says *release* (RK162).
             # The entry is inert either way — an id is never reused — but a row that can never
             # mean anything is noise in the listing `claims` exists to be read (RK161).
-            claiming.follow(self.root, self.task_id, self.marker, self.roadmap.entries)
+            claiming.follow(
+                self.root,
+                self.task_id,
+                self.marker,
+                self.roadmap.entries,
+                self.working,
+            )
         return _spelled(self.root, written)
 
     @property
@@ -1757,6 +1769,11 @@ class Closure:
     scope: claiming.Scope | None = None
     #: The checkout, so this door releases the claim its sibling releases (RK306).
     root: Path | None = None
+    #: The marker a claim is written as on this project, `[markers] working` (RK1519). Carried
+    #: beside :attr:`root` because the release below is read against it: composed with the
+    #: package's own on a project that declares its own, this write would drop every other
+    #: live claim as no longer at the marker.
+    working: str = IN_PROGRESS
 
     @property
     def marker(self) -> str:
@@ -1786,7 +1803,13 @@ class Closure:
             self.prose,
         )
         if self.root is not None:
-            claiming.follow(self.root, self.task_id, self.marker, self.remaining.entries)
+            claiming.follow(
+                self.root,
+                self.task_id,
+                self.marker,
+                self.remaining.entries,
+                self.working,
+            )
         return _spelled(self.root, written)
 
     def event(self, config: Config) -> dict[str, object]:
@@ -3833,6 +3856,7 @@ def _depart(
         replacement=replacement,
         folded=folded,
         root=config.root,
+        working=config.schema.working,
         # Read off the roadmap as it *was*, and before `save` releases the claim (RK294): the
         # line still carries 🛠 here, and a claim is only ever read against that marker.
         scope=claiming.departing(config, task_id, roadmap.entries),
@@ -4232,6 +4256,7 @@ def _close(
         decided=decided,
         scope=claiming.departing(config, task_id, roadmap.entries),
         root=config.root,
+        working=config.schema.working,
     )
 
 

@@ -35,6 +35,7 @@ from roadkeep.kernel.schema import (
     DEFAULT_HEADING_WORD,
     DEFERRED,
     DROPPABLE,
+    IN_PROGRESS,
     MARKER_NAMES,
     OPEN_MARKERS,
     REF_PREFIX_RE,
@@ -254,7 +255,9 @@ _LIMIT_KEYS = {
     "section": "section_max",
     "prose": "prose_width",
 }
-_MARKER_KEYS = frozenset({"open", "shipped", "retired", "deferred", "undesigned"})
+_MARKER_KEYS = frozenset(
+    {"open", "shipped", "retired", "deferred", "undesigned", "working"}
+)
 # The invisible ones. A marker carrying U+FE0F renders identically and compares
 # unequal, so a config that declares one puts every line in the file permanently
 # out of round-trip. Refuse it where it is typed.
@@ -1166,6 +1169,7 @@ def _markers(raw: object, problems: list[str]) -> dict[str, object]:
         "retired_marker": RETIRED,
         "deferred_marker": DEFERRED,
         "undesigned": UNDESIGNED,
+        "working": IN_PROGRESS,
     }
     if raw is None:
         return default
@@ -1193,6 +1197,7 @@ def _markers(raw: object, problems: list[str]) -> dict[str, object]:
             "reads as a departure is the one distinction the state exists to make"
         )
     undesigned = _undesigned(raw, open_markers or OPEN_MARKERS, problems)
+    working = _working(raw, open_markers or OPEN_MARKERS, problems)
     for marker in (*open_markers, shipped, retired, deferred):
         _reject_invisible(marker, problems)
     if "ledger" in raw:
@@ -1209,6 +1214,7 @@ def _markers(raw: object, problems: list[str]) -> dict[str, object]:
         "retired_marker": retired,
         "deferred_marker": deferred,
         "undesigned": undesigned,
+        "working": working,
     }
 
 
@@ -1263,6 +1269,38 @@ def _undesigned(
             "a marker no line may carry is a distinction `pick` can never act on"
         )
     return tuple(m for m in declared if m in open_markers)
+
+
+def _working(
+    raw: Mapping[str, object], open_markers: tuple[str, ...], problems: list[str]
+) -> str:
+    """Which open marker a claim is written and read as (RK1519).
+
+    :func:`_undesigned`'s rule for a single marker, and the same two branches. Undeclared, it
+    is the built-in one **narrowed to what this project actually opens with** — so a backlog
+    whose marker set never spells 🛠 gets no working marker rather than one naming a codepoint
+    no line may carry. Declared, it has to be an open marker: a claim written outside the open
+    set is a line the schema then refuses, which is the failure this key exists to have ended.
+
+    Empty is a real answer and the doors say so. Nothing here invents one from the open set:
+    the only guess available is "the open marker that is not undesigned", and on the project
+    this was measured against that is 📋 — the marker a fresh `add` writes, so claiming would
+    move a line to the state it starts in and every reader would agree nothing had happened.
+    """
+    if "working" not in raw:
+        return IN_PROGRESS if IN_PROGRESS in open_markers else ""
+    declared = raw.get("working")
+    if not isinstance(declared, str):
+        problems.append("markers.working must be a string")
+        return ""
+    if declared not in open_markers:
+        problems.append(
+            f"markers.working names {declared}, which markers.open does not: a claim is a "
+            f"marker on an open line, so a marker no line may carry is a claim nothing can "
+            f"take"
+        )
+        return ""
+    return declared
 
 
 def _one_marker(

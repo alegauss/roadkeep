@@ -1544,7 +1544,9 @@ def set_status(config: Config, task_id: str, marker: str) -> StatusChange:
             document=roadmap,
             entry=entry,
             before=entry.task.status,
-            claim=claiming.follow(config.root, task_id, marker, roadmap.entries),
+            claim=claiming.follow(
+                config.root, task_id, marker, roadmap.entries, config.schema.working
+            ),
         )
     derived = refresh(replace(backlog, roadmap=roadmap.replace_task(entry, updated)))
     wrote = derived.document.save()
@@ -1556,7 +1558,13 @@ def set_status(config: Config, task_id: str, marker: str) -> StatusChange:
         refreshed=tuple(name for name in derived.changed if name != task_id),
         # After the save, and never a condition of it: the registry is transient state whose
         # worst failure is a claim lost, which is the behaviour before claims existed.
-        claim=claiming.follow(config.root, task_id, marker, derived.document.entries),
+        claim=claiming.follow(
+            config.root,
+            task_id,
+            marker,
+            derived.document.entries,
+            config.schema.working,
+        ),
     )
 
 

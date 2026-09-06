@@ -48,6 +48,7 @@ from roadkeep.kernel.document import Document, Entry, save_all
 from roadkeep.markers import refresh
 from roadkeep.provenance import invocation
 from roadkeep.kernel.schema import (
+    IN_PROGRESS,
     PAUSED_CLOSE,
     PAUSED_OPEN,
     SchemaError,
@@ -228,6 +229,11 @@ class Pause:
     #: releases one by moving the marker; this one takes the line out of the file the marker
     #: is read in, which no later read can tell from a claim still held.
     root: Path | None = None
+    #: The marker a claim is written as on this project, `[markers] working` (RK1519). Carried
+    #: beside :attr:`root` because the release below is read against it: composed with the
+    #: package's own on a project that declares its own, this write would drop every other
+    #: live claim as no longer at the marker.
+    working: str = IN_PROGRESS
     #: Whether this call **reconciled** a contradiction rather than returning a line (RK1081):
     #: the roadmap already carried the id, so the store entry was the stale half and only it
     #: was removed. Reported rather than inferred — the caller printing "returned to Block A"
@@ -246,7 +252,13 @@ class Pause:
             # Last, and never a condition of the write: the worker who set this aside is not
             # holding it, and a claim left behind would greet the `resume` (RK156). The same
             # rule every marker write obeys (RK158), the marker here being ⏸.
-            claiming.follow(self.root, self.task_id, self.marker, self.roadmap.entries)
+            claiming.follow(
+                self.root,
+                self.task_id,
+                self.marker,
+                self.roadmap.entries,
+                self.working,
+            )
         return wrote
 
     @property
@@ -351,6 +363,11 @@ class Resumption:
     #: What it did is not a field here — the command prints the marker, which is the fact, and
     #: a second copy of it would be a second thing to keep true.
     root: Path | None = None
+    #: The marker a claim is written as on this project, `[markers] working` (RK1519). Carried
+    #: beside :attr:`root` because the release below is read against it: composed with the
+    #: package's own on a project that declares its own, this write would drop every other
+    #: live claim as no longer at the marker.
+    working: str = IN_PROGRESS
     #: Whether this call **reconciled** a contradiction rather than returning a line (RK1081):
     #: the roadmap already carried the id, so the store entry was the stale half and only it
     #: was removed. Reported rather than inferred — the caller printing "returned to Block A"
@@ -364,7 +381,11 @@ class Resumption:
         wrote = save_all(self.roadmap, self.store)
         if self.root is not None:
             claiming.follow(
-                self.root, self.task_id, self.marker, self.roadmap.entries
+                self.root,
+                self.task_id,
+                self.marker,
+                self.roadmap.entries,
+                self.working,
             )
         return wrote
 
@@ -557,6 +578,7 @@ def defer(config: Config, task_id: str, *, reason: str) -> Pause:
             e.task.id for e in derived.document.entries if task_id in e.task.dep_ids
         ),
         root=config.root,
+        working=config.schema.working,
     )
 
 
@@ -633,6 +655,7 @@ def resume(config: Config, task_id: str, *, marker: str | None = None) -> Resump
         marker=status,
         was=_reason(held.task.why),
         root=config.root,
+        working=config.schema.working,
     )
 
 

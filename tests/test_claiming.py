@@ -2120,3 +2120,84 @@ def test_neither_reading_answers_for_a_sibling_that_only_begins_the_same(tmp_pat
     entries = config.document("roadmap").entries
     split = claiming.split(config, "RK2", entries, [".claude/skillsets/"])
     assert split.loose == (".claude/skillsets/",)
+
+
+# -- the marker a project declares for itself (RK1519) -------------------------
+
+#: A project whose open set is its own and spells no 🛠 — legal, validated, and exactly what
+#: L6 says `[markers]` is for. The vocabulary a real adopter wrote: 📋 to do, 💡 an idea, and
+#: 🔨 for work in hand, which is the state this tool had no key for.
+OWN_MARKERS = (
+    '[markers]\nopen = ["\U0001f4cb", "\U0001f4a1", "\U0001f528"]\n'
+    'undesigned = ["\U0001f4a1"]\nworking = "\U0001f528"\n'
+)
+HAMMER = "\U0001f528"
+CLIPBOARD = "\U0001f4cb"
+
+
+def _own(tmp_path: Path, status: str = CLIPBOARD) -> Config:
+    return project(tmp_path, BLOCKS + line("RK1", status=status), extra=OWN_MARKERS)
+
+
+def test_a_project_that_declares_its_own_working_marker_can_claim(tmp_path, capsys):
+    """RK1519. Measured: `pick --claim` on this project answered `status: '🛠' is not one of
+    📋 💡 🔨`, because every door that takes a line wrote the package's own marker and
+    `[markers]` had no key by which a project could name its own."""
+    root = _own(tmp_path).root
+    assert main(["-C", str(root), "pick", "--claim"]) == EXIT_OK
+    assert HAMMER in capsys.readouterr().out
+    assert HAMMER in (root / "ROADMAP.md").read_text(encoding="utf-8")
+
+
+def test_the_claim_is_then_listed_and_read_at_that_marker(tmp_path, capsys):
+    # The other half, and the one nothing would have said: `claims` listed nothing for ever on
+    # such a project, no line being able to reach the state it lists.
+    config = _own(tmp_path)
+    assert main(["-C", str(config.root), "pick", "--claim"]) == EXIT_OK
+    capsys.readouterr()
+    assert [one.id for one in claiming.live(config, _entries(config))] == ["RK1"]
+    assert main(["-C", str(config.root), "claims"]) == EXIT_OK
+    assert "RK1" in capsys.readouterr().out
+
+
+def test_a_marker_write_off_that_one_releases_it(tmp_path):
+    # `follow`'s rule with the project's own vocabulary: the working marker claims and every
+    # other release, so the state that had to be remembered is still only the marker.
+    config = _own(tmp_path)
+    entries = _entries(config)
+    assert claiming.follow(config.root, "RK1", HAMMER, entries, HAMMER) is Followed.CLAIMED
+    assert claiming.follow(config.root, "RK1", CLIPBOARD, entries, HAMMER) is Followed.RELEASED
+
+
+def test_a_working_marker_the_open_set_does_not_spell_is_refused(tmp_path):
+    """`undesigned`'s rule for a single marker: a claim is a marker on an open line, so one no
+    line may carry is a claim nothing can take — refused in the file it was typed in."""
+    with pytest.raises(ConfigError) as caught:
+        project(
+            tmp_path,
+            BLOCKS + line("RK1", status=CLIPBOARD),
+            extra='[markers]\nopen = ["\U0001f4cb"]\nworking = "\U0001f528"\n',
+        )
+    assert "markers.working" in str(caught.value)
+    assert "no line may carry" in str(caught.value)
+
+
+def test_a_project_whose_open_set_spells_no_working_marker_says_so(tmp_path, capsys):
+    """Undeclared, the built-in one is narrowed to what this project opens with — so a backlog
+    that spells no 🛠 and declares no `working` takes no claims at all. The doors say that
+    rather than composing a `status` write the schema would refuse (RK1475)."""
+    config = project(
+        tmp_path,
+        BLOCKS + line("RK1", status=CLIPBOARD),
+        extra='[markers]\nopen = ["\U0001f4cb", "\U0001f4a1"]\n',
+    )
+    assert config.schema.working == ""
+    assert claiming.live(config, _entries(config)) == ()
+    # And the scope door names the absence rather than a marker nothing can be written to.
+    with pytest.raises(claiming.NotHeld) as caught:
+        claiming.scope(config, "RK1", ["src/one.py"])
+    assert "declares no `[markers] working`" in str(caught.value)
+
+
+def _entries(config: Config):
+    return config.document("roadmap").entries

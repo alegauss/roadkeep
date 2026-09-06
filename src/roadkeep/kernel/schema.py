@@ -938,6 +938,20 @@ class Schema:
     #: refuses a line for carrying one: what it changes is what an answer *says*, and what
     #: `--designed` sets aside, since the bias belongs to the caller and not to the ranking.
     undesigned: tuple[str, ...] = UNDESIGNED
+    #: The open marker a claim is written and read as, `[markers] working` (RK1519). The sixth
+    #: key, and the one whose absence made a whole subsystem unreachable: every door that takes
+    #: a line wrote the package's own 🛠, so a project declaring `open = ["📋", "💡", "🔨"]` —
+    #: legal, validated, exactly what L6 says a project may say — was answered `'🛠' is not one
+    #: of 📋 💡 🔨` by `pick --claim`, and `claims` listed nothing for ever.
+    #:
+    #: A **narrowing** of :attr:`markers` and never a vocabulary of its own, which is
+    #: :attr:`undesigned`'s rule and for its reason: a marker no line may carry is a state
+    #: nothing can reach. Empty where this project's open set does not spell it and nothing
+    #: declared one — never guessed, because the guess available is "the open marker that is
+    #: not undesigned", which on the measured project is the marker a fresh `add` writes, and
+    #: a tool that claimed lines by moving them to the default state is worse than one that
+    #: says it cannot claim.
+    working: str = IN_PROGRESS
     #: The vocabulary a `(requires: …)` group draws on, `[requirements] declared` (RK1297).
     #: Empty by default, which makes the axis opt-in *and* makes it refusable: a project
     #: that has declared nothing refuses every token, so the first one an author writes

@@ -271,7 +271,7 @@ def _claim(config: Config, args: argparse.Namespace) -> int:
         else:
             held = next((one for one in claiming.live(config, entries) if one.id == args.id), None)
             if held is None:
-                raise claiming.NotHeld(args.id)
+                raise claiming.NotHeld(args.id, config.schema.working)
             mine = held.paths
     except (claiming.NotHeld, KeyError, OSError) as error:
         return _refused(error)

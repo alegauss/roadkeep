@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
-| C — Query (consult without reading the file) | 9 | 161 | 4 |
+| C — Query (consult without reading the file) | 8 | 162 | 4 |
 | D — The gate | 23 | 231 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 148 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 38 | 1002 | 14 |
+| **Total** | 37 | 1003 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1519** (deps: —) **a project that declares its own open markers cannot claim a line, and nothing anywhere says so** — The claim machinery writes and compares the package's in-progress marker, and [markers] has no key by which a project could name its own. → §RK1519
+- 💭 **RK1520** (deps: —) **the marker-leak gate rewards the repair that renders the same wrong bytes** — It scans the package for a literal codepoint, so interpolating the constant passes it while the reader is told about a glyph their project may not declare. → §RK1520
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -56,8 +56,9 @@ an id and deletes a design that was already right.
    sentence.** A second sentence is the signal the content belongs in the rationale file,
    which is what the pointer addresses.
 
-Markers are `[markers]` in `roadkeep.toml`: the open set is the roadmap's, and the shipped
-and retired ones are the ledger's alone — neither is legal in a roadmap. Limits are
+Markers are `[markers]` in `roadkeep.toml`: the open set is the roadmap's, `working` is the
+one a claim is taken at, and the shipped and retired ones are the ledger's alone — neither is
+legal in a roadmap. Limits are
 `[limits]`: `roadkeep lint` names the file, line and column of anything over, and `--fix`
 repairs only what is **derived** (annotation, pointer, dep order, marker codepoint,
 whitespace, the queue entry whose task shipped or was retired, and a criteria heading

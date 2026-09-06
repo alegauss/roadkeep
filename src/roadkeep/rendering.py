@@ -58,7 +58,7 @@ from roadkeep.merging import (
 from roadkeep.picking import Choice, Claim
 from roadkeep.provenance import invocation, served_by
 from roadkeep.remedying import Door
-from roadkeep.kernel.schema import IN_PROGRESS, UTF16_UNITS, width as measured_width
+from roadkeep.kernel.schema import UTF16_UNITS, width as measured_width
 from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK
 
 
@@ -997,7 +997,7 @@ def _set_aside_rows(choice: Choice, config: Config) -> list[str]:
     ]
 
 
-def _withheld_rows(choice: Choice) -> list[str]:
+def _withheld_rows(choice: Choice, working: str) -> list[str]:
     """The way to take a line the requirement filter set aside (RK1490).
 
     Printed only where the requirements are the **whole** answer — `pick` found nothing and
@@ -1014,9 +1014,11 @@ def _withheld_rows(choice: Choice) -> list[str]:
     (RK1304). Two doors, because the caller has two decisions: take the whole line, or take
     the half that needs nothing and let the record say it was a half.
 
-    The marker is interpolated and never spelled, which is `claiming`'s own sentence one file
-    over: `[markers]` is per-project (L6), so a codepoint written into this package names a
-    glyph the reader's files may not use. And the verb is `status` rather than `pick --claim`,
+    The marker is **this project's** and never the package's (RK1519), which is what that
+    sentence had claimed and not done: `[markers] working` is per-project (L6), and until it
+    existed the only marker to interpolate was a codepoint the reader's files may not use — so
+    the door offered a `status` write the schema then refused. Where a project declares none,
+    there is no marker to take a line with and the offer is the ship alone. And the verb is `status` rather than `pick --claim`,
     which is the flag that just declined to take this — a caller sent back to it reads the
     same answer again. `--part` and `--why` are the author's own sentences (L4), so the blanks
     are left as blanks.
@@ -1024,12 +1026,16 @@ def _withheld_rows(choice: Choice) -> list[str]:
     if choice.entry is not None or not choice.lacking:
         return []
     task_id = choice.lacking[0].id
+    records = (
+        f"`{invocation()} ship {task_id} --part <what landed> --why <one sentence>` "
+        f"records the half that did not need it"
+    )
     return [
         "  yours    whether the part you want needs that is a reading, and it is yours: "
         "this filter is about the whole line",
-        f"  take     `{invocation()} status {task_id} {IN_PROGRESS}` takes it whole; "
-        f"`{invocation()} ship {task_id} --part <what landed> --why <one sentence>` "
-        f"records the half that did not need it",
+        f"  take     `{invocation()} status {task_id} {working}` takes it whole; {records}"
+        if working
+        else f"  take     {records}",
     ]
 
 

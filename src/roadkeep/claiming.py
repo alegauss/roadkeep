@@ -304,7 +304,15 @@ def survey(backlog: Backlog) -> tuple[Dated, ...]:
     )
     now, held = time.time(), window(config)
     rows = [
-        _row(task_id, now - row.when, tasks.get(task_id), elsewhere, held, row.paths)
+        _row(
+            task_id,
+            now - row.when,
+            tasks.get(task_id),
+            elsewhere,
+            held,
+            config.schema.working,
+            row.paths,
+        )
         for task_id, row in dated.items()
     ]
     return tuple(sorted(rows, key=lambda row: -row.age))
@@ -316,9 +324,15 @@ def _row(
     task: Task | None,
     elsewhere: tuple[tuple[Where, object], ...],
     held: float,
+    working: str,
     paths: tuple[str, ...] = (),
 ) -> Dated:
-    """One registry entry as the two questions a reader is asking: is it a claim, and where."""
+    """One registry entry as the two questions a reader is asking: is it a claim, and where.
+
+    ``working`` is the marker a claim is written as, `[markers] working` (RK1519): passed in
+    because this function has no config, and never the package constant — a project whose open
+    set spells its own would have had every row read as stale here.
+    """
     if task is None:
         return Dated(
             id=task_id,
@@ -327,7 +341,7 @@ def _row(
             where=next((name for name, ids in elsewhere if task_id in ids), Where.NOWHERE),  # type: ignore[operator]
             paths=paths,
         )
-    if task.status != IN_PROGRESS:
+    if not working or task.status != working:
         state = State.STALE
     else:
         state = State.HELD if age < held else State.EXPIRED
@@ -401,7 +415,8 @@ def live(config: Config, entries: Iterable[Entry]) -> tuple[Held, ...]:
     return tuple(
         Held(entry.task.id, now - row.when, row.paths)
         for entry in entries
-        if entry.task.status == IN_PROGRESS
+        if config.schema.working
+        and entry.task.status == config.schema.working
         and (row := dated.get(entry.task.id)) is not None
         and now - row.when < held
     )
@@ -426,22 +441,33 @@ def refuse_taken(
     reason — the check that a write is allowed belongs at the write, not at whichever caller
     remembered it.
 
-    Only the in-progress marker. Writing any other one is how a claim is *released*, and a
-    release that could be refused is a line nobody can give back.
+    Only the working marker, which is this project's own (RK1519). Writing any other one is
+    how a claim is *released*, and a release that could be refused is a line nobody can give
+    back — and a project that declares none takes no claims, so nothing here can be taken.
     """
-    if marker != IN_PROGRESS:
+    working = config.schema.working
+    if not working or marker != working:
         return
     for one in live(config, entries):
         if one.id == task_id:
-            raise AlreadyHeld(task_id, one.since, IN_PROGRESS)
+            raise AlreadyHeld(task_id, one.since, working)
 
 
 def follow(
-    root: Path | str, task_id: str, marker: str, entries: Iterable[Entry]
+    root: Path | str,
+    task_id: str,
+    marker: str,
+    entries: Iterable[Entry],
+    working: str = IN_PROGRESS,
 ) -> Followed:
     """Make the claim follow the marker, on any door that writes one (RK158).
 
-    A claim is *read* against 🛠, so the marker is already the thing a claim is about — and
+    ``working`` is which marker that is on this project (RK1519), defaulted to the package's
+    own for the callers that hand a root rather than a config: declared empty, no marker claims
+    and every write here is a release, which is the honest state for a backlog that cannot take
+    a line at all.
+
+    A claim is *read* against the working marker, so it is already the thing a claim is about — and
     until this existed, the door that writes exactly that marker was the one door that did not
     date it: `status <id> 🛠` is a legitimate way to say "I am on this", and the next `pick`
     read the line as work somebody abandoned and offered it with tier 1's own reason.
@@ -469,14 +495,18 @@ def follow(
     that has to be remembered.
     """
     dated = _read(root)
-    started = {entry.task.id for entry in entries if entry.task.status == IN_PROGRESS}
+    started = {
+        entry.task.id
+        for entry in entries
+        if working and entry.task.status == working
+    }
     kept = {name: row for name, row in dated.items() if name in started}
-    if marker == IN_PROGRESS:
+    if working and marker == working:
         was = dated.get(task_id)
         kept[task_id] = Dating(time.time(), was.paths if was is not None else ())
     if kept != dated:
         _write(root, kept)
-    if marker == IN_PROGRESS:
+    if working and marker == working:
         return Followed.CLAIMED
     return Followed.RELEASED if task_id in dated else Followed.NEITHER
 
@@ -489,11 +519,17 @@ class NotHeld(ValueError):
     start work, which is the shape RK158 spent a task removing. Says the door that does open.
     """
 
-    def __init__(self, task_id: str) -> None:
+    def __init__(self, task_id: str, working: str = IN_PROGRESS) -> None:
         self.task_id = task_id
+        # The door names **this project's** working marker (RK1519): composed with the
+        # package's own, it told a project declaring its own open set to run a `status` that
+        # the schema then refuses — a remedy that cannot be taken, which is RK1475's rule.
         super().__init__(
             f"no live claim on {task_id}: a scope is what a claim carries, so take the "
-            f"line first with `status {task_id} {IN_PROGRESS}` (or `pick --claim`)"
+            f"line first with `status {task_id} {working}` (or `pick --claim`)"
+            if working
+            else f"no live claim on {task_id}: a scope is what a claim carries, and this "
+            f"project declares no `[markers] working`, so no line here can be taken"
         )
 
 
@@ -543,7 +579,7 @@ def scope(
     with exclusive(config.root):
         backlog = Backlog.load(config)
         if not any(one.id == task_id for one in live(config, backlog.roadmap.entries)):
-            raise NotHeld(task_id)
+            raise NotHeld(task_id, config.schema.working)
         dated = _read(config.root)
         row = dated[task_id]
         # Read inside the lock, like everything else this decides from: a scope composed from
