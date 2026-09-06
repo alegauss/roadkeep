@@ -153,7 +153,6 @@ from roadkeep.renumbering import NotAnId, SameId, family_of
 from roadkeep.kernel.schema import (
     ELSEWHERE,
     IN_PROGRESS,
-    PARTIAL,
     SchemaError,
     Task,
     Violation,
@@ -1561,6 +1560,12 @@ class Partial:
     #: project that declares no such marker. Reported because the two differ and a caller
     #: reading "partial" would otherwise not know which of them happened.
     status: str = ""
+    #: Whether :attr:`status` is this project's partial marker (RK1556). False is the second
+    #: of the two the field above distinguishes, and it is the one nothing said: the ledger
+    #: records the half, the line keeps the marker it had, and the shipment exited 0 about a
+    #: state the roadmap does not carry. Said rather than inferred, because the inference
+    #: needs `[markers]` and the caller has the answer in front of them.
+    marked: bool = True
     refreshed: tuple[str, ...] = ()
     #: The marker the ledger entry carries: ✅, on the part that shipped.
     marker: str = ""
@@ -1621,6 +1626,21 @@ class Partial:
                 # The other half, where the caller named it (RK1233): the line now *states*
                 # what is left, so the next reader is handed it rather than subtracting.
                 [f"  left     {self.remainder}"] if self.remainder else []
+            ),
+            *(
+                # And what this write could **not** record (RK1556). The row above says the
+                # line is open at a marker; without this one it does not say that the marker
+                # is the one it already had, so a caller reads a partial the file is not
+                # carrying — and every reader after them reads *to do* about half-done work.
+                # The absence and not a demand (L4): what a project's markers are is the
+                # project's to say, and this states the cost of having said nothing.
+                []
+                if self.marked
+                else [
+                    f"  unmarked this project declares no `[markers] partial`, so the line "
+                    f"keeps {self.status} and the entry above is the whole record that a "
+                    f"half landed"
+                ]
             ),
             # Before `finish`, because it is what to do **now** and that one is what to do at
             # the end: the line is open, so it is picked again before either happens.
@@ -1717,6 +1737,10 @@ class Partial:
                 "line": self.lineno,
                 "status": self.status,
                 "open": True,
+                # Whether `status` is the partial marker or the one the line already had
+                # (RK1556). A consumer holding the status alone cannot tell: that needs
+                # `[markers]`, which is one more call and a second reading of this rule.
+                "marked": self.marked,
             },
             "refreshed": list(self.refreshed),
             "event": self.event(config),
@@ -2303,8 +2327,10 @@ def amend(
         # where the line "is gone or closed", and here it is neither. So the write is exactly
         # the correction that makes the two files agree, after which the completion path a
         # partial already has — `ship <id>` with no `--part` — closes it.
+        # This project's partial marker and never the package's (RK1556): a backlog whose
+        # open set spells its own is one whose live partials this door would not have seen.
         open_line = config.document("roadmap").by_id().get(task_id)
-        if open_line is None or open_line.task.status != PARTIAL:
+        if open_line is None or open_line.task.status != config.schema.partial:
             raise NoQualifier(task_id, entry.lineno)
 
     if symptom is not None and not respelling(entry.task.symptom, symptom):
@@ -3588,10 +3614,16 @@ def _partial(
         as_recorded(entry.task, config.schema.shipped_marker, why), part=part
     )
     insertion = place(ledger, landed, role="changelog", config=config)
-    # ⏳ where the project declares it, and the line's own marker where it does not: the
-    # marker set is the project's (L6), and a command that invented one would write a line
+    # This project's partial marker where it has one, and the line's own where it has none:
+    # the marker set is the project's (L6), and a command that invented one would write a line
     # its own gate refuses. Either way the line stays open, which is the claim.
-    status = PARTIAL if PARTIAL in config.schema.markers else entry.task.status
+    #
+    # `[markers] partial` since RK1556, where `PARTIAL in config.schema.markers` was until the
+    # backlog that spells ⏳ for something else — the fallback was right and unreported, and
+    # a marker a project could not name was one it could not have. The **absence is reported**:
+    # :attr:`Partial.marked` is what carries it to both registers, because a caller told a half
+    # landed reads the ledger's word for it and the file goes on saying what it said.
+    status = config.schema.partial or entry.task.status
     # The **open half, as data** (RK1233). `--part` records what landed and RK1226 put that on
     # the brief; what stayed an inference is the remainder — a reader handed `landed the parser
     # half` beside a symptom describing the whole, working out the rest. `--remainder` is the
@@ -3633,6 +3665,7 @@ def _partial(
         part=part,
         remainder=remainder,
         status=status,
+        marked=bool(config.schema.partial),
         refreshed=derived.changed,
         marker=config.schema.shipped_marker,
     )

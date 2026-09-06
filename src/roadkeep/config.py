@@ -38,6 +38,7 @@ from roadkeep.kernel.schema import (
     IN_PROGRESS,
     MARKER_NAMES,
     OPEN_MARKERS,
+    PARTIAL,
     REF_PREFIX_RE,
     REF_SEPARATOR,
     RETIRED,
@@ -264,7 +265,7 @@ _LIMIT_KEYS = {
     "prose": "prose_width",
 }
 _MARKER_KEYS = frozenset(
-    {"open", "shipped", "retired", "deferred", "undesigned", "working"}
+    {"open", "shipped", "retired", "deferred", "undesigned", "working", "partial"}
 )
 # The invisible ones. A marker carrying U+FE0F renders identically and compares
 # unequal, so a config that declares one puts every line in the file permanently
@@ -1178,6 +1179,7 @@ def _markers(raw: object, problems: list[str]) -> dict[str, object]:
         "deferred_marker": DEFERRED,
         "undesigned": UNDESIGNED,
         "working": IN_PROGRESS,
+        "partial": PARTIAL,
     }
     if raw is None:
         return default
@@ -1205,7 +1207,9 @@ def _markers(raw: object, problems: list[str]) -> dict[str, object]:
             "reads as a departure is the one distinction the state exists to make"
         )
     undesigned = _undesigned(raw, open_markers or OPEN_MARKERS, problems)
-    working = _working(raw, open_markers or OPEN_MARKERS, problems)
+    spelled = open_markers or OPEN_MARKERS
+    working = _narrowed(raw, "working", IN_PROGRESS, spelled, problems, _WORKING_WHY)
+    partial = _narrowed(raw, "partial", PARTIAL, spelled, problems, _PARTIAL_WHY)
     for marker in (*open_markers, shipped, retired, deferred):
         _reject_invisible(marker, problems)
     if "ledger" in raw:
@@ -1223,6 +1227,7 @@ def _markers(raw: object, problems: list[str]) -> dict[str, object]:
         "deferred_marker": deferred,
         "undesigned": undesigned,
         "working": working,
+        "partial": partial,
     }
 
 
@@ -1279,33 +1284,53 @@ def _undesigned(
     return tuple(m for m in declared if m in open_markers)
 
 
-def _working(
-    raw: Mapping[str, object], open_markers: tuple[str, ...], problems: list[str]
+#: Why a marker no open line may carry is refused, per key — the clause a config error ends
+#: on, which is the only part of this rule that differs between the two (RK1519, RK1556).
+_WORKING_WHY = (
+    "a claim is a marker on an open line, so a marker no line may carry is a claim "
+    "nothing can take"
+)
+_PARTIAL_WHY = (
+    "a half-shipped line stays open, so a marker no line may carry is a partial "
+    "nothing can be left at"
+)
+
+
+def _narrowed(
+    raw: Mapping[str, object],
+    key: str,
+    default: str,
+    open_markers: tuple[str, ...],
+    problems: list[str],
+    why: str,
 ) -> str:
-    """Which open marker a claim is written and read as (RK1519).
+    """One open marker a mechanism is written and read at (RK1519, RK1556).
 
     :func:`_undesigned`'s rule for a single marker, and the same two branches. Undeclared, it
     is the built-in one **narrowed to what this project actually opens with** — so a backlog
     whose marker set never spells 🛠 gets no working marker rather than one naming a codepoint
-    no line may carry. Declared, it has to be an open marker: a claim written outside the open
+    no line may carry. Declared, it has to be an open marker: a marker written outside the open
     set is a line the schema then refuses, which is the failure this key exists to have ended.
 
     Empty is a real answer and the doors say so. Nothing here invents one from the open set:
     the only guess available is "the open marker that is not undesigned", and on the project
     this was measured against that is 📋 — the marker a fresh `add` writes, so claiming would
     move a line to the state it starts in and every reader would agree nothing had happened.
+
+    One function since RK1556 gave the shape its second member, which is the bar the raise
+    that stayed a raise was held to one task earlier (RK1555): `working` and `partial` differ
+    in the key, the built-in and the clause a refusal ends on, and in nothing else — so a
+    second copy of the two branches is two readings of one rule that can come to disagree.
     """
-    if "working" not in raw:
-        return IN_PROGRESS if IN_PROGRESS in open_markers else ""
-    declared = raw.get("working")
+    if key not in raw:
+        return default if default in open_markers else ""
+    declared = raw.get(key)
     if not isinstance(declared, str):
-        problems.append("markers.working must be a string")
+        problems.append(f"markers.{key} must be a string")
         return ""
     if declared not in open_markers:
         problems.append(
-            f"markers.working names {declared}, which markers.open does not: a claim is a "
-            f"marker on an open line, so a marker no line may carry is a claim nothing can "
-            f"take"
+            f"markers.{key} names {declared}, which markers.open does not: {why}"
         )
         return ""
     return declared

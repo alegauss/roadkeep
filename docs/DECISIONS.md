@@ -68,6 +68,7 @@ on the prose roles.
 - ✅ **RK1545** **the filings axis reads one per ship over one commit here, which is this session's cadence and not the work's** — A reading suspected of measuring the session is answered by taking it on another corpus, not by qualifying it.
 - ✅ **RK1546** **a folded criterion cites no origin, so a reader of the absorbing task cannot tell it was somebody's line** — An answer a reader needs is joined where they ask it, never stored as a reference the store would have to outlive.
 - ✅ **RK1547** **a pause carries a reason with no date and no expiry, so nothing ever asks whether it still holds** — A reading that costs a git call belongs on a read taken once, never on the path a loop runs every iteration.
+- ✅ **RK1556** **a project whose open set spells no partial marker ships a partial in silence, and the line keeps the marker it had** — A shape's second member is what turns two copies of a rule into one function; the first gets a good sentence.
 
 ### §RK1362 Why a projection and not a wider read
 
@@ -133,6 +134,23 @@ one `[claims] held` refuses for a claim.
 
 An age history cannot place is said and sorted last: unknown in front of the best-known
 is the opposite of an order.
+
+### §RK1556 The seventh key, and the second member
+
+RK1519 measured the first: a project spelling its own open set could not claim a line,
+every door having written the package's own 🛠. The partial marker is that absence one
+state on, and quieter — `ship --part` recorded the half and left the line as it was.
+
+The fallback was never the defect: a command inventing a marker writes a line its own
+gate refuses. What was wrong is the silence. `pick` cannot rank a remainder it cannot
+see, `criterion.absent` is scoped to the marker, `amend --part` asks the line is at it —
+three readers of a codepoint the project may never spell.
+
+So the key, then the sentence for a project declaring none: the absence stated, not a
+partial the file lacks.
+
+RK1555 kept a raise because its shape had one member. `working` was that shape with one,
+`partial` is its second, and the branches became `_narrowed`.
 
 ## Block D — The gate
 

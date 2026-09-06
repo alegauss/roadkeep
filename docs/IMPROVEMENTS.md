@@ -79,31 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1556 The seventh key, and the sentence for a project without it
-
-RK1519 gave `[markers]` a key for the marker a claim is taken at. The partial marker has
-none, and `ship --part` on a project whose open set spells no ⏳ writes the line's
-existing marker instead — deliberately, and in silence. Measured on the project the
-claim defect was found on: the ship exits 0, prints the ledger entry, and leaves the
-roadmap line as it was.
-
-The fallback is right; a command that invented a marker would write a line its own gate
-refuses. What is wrong is that it is unreported and closes a door. A partial the file
-cannot mark is a state nobody sees, `pick` never offers the remainder as one, and the
-later `--part` correcting a qualifier refuses with `NoQualifier` — it asks whether the
-open line is at ⏳.
-
-Two writes, and the second is smaller. A seventh key, `[markers] partial`, on
-`working`'s terms exactly: a narrowing of `open`, refused where the open set does not
-spell it, empty where a project declares neither. Then the sentence for a project that
-declares neither — the shipment saying what it could not record, rather than reporting a
-partial the file does not carry.
-
-What decides whether the key is worth it is whether a partial is a *state* or a
-*report*. If the ledger entry is the whole of it, the roadmap marker is decoration and
-the sentence is the fix alone. `pick`'s tiers say otherwise: the marker is what makes a
-remainder findable.
-
 ### §RK1558 The exemption one of two scans keeps
 
 `test_configured`'s three literal scans skip what a caller is shown: `help`,

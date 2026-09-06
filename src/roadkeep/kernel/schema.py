@@ -991,6 +991,19 @@ class Schema:
     #: a tool that claimed lines by moving them to the default state is worse than one that
     #: says it cannot claim.
     working: str = IN_PROGRESS
+    #: The open marker a half-shipped line is left at, `[markers] partial` (RK1556). The
+    #: seventh key, on :attr:`working`'s terms exactly and for its reason one state further
+    #: on: `ship --part` wrote the package's own ⏳ and a project whose open set does not
+    #: spell it kept the marker the line already had — right, since a command that invented
+    #: a marker would write a line its own gate refuses, and silent, so the file went on
+    #: saying *to do* about work half delivered.
+    #:
+    #: A **narrowing** of :attr:`markers`, empty where nothing declares one and the open set
+    #: does not spell it — and the emptiness is a real answer that the shipment now states,
+    #: rather than a marker guessed from the set. What it costs is not decoration: ⏳ is what
+    #: `pick` ranks a remainder by, what `criterion.absent` is scoped to, and what the later
+    #: `amend --part` asks the line is at before it will correct a qualifier.
+    partial: str = PARTIAL
     #: The vocabulary a `(requires: …)` group draws on, `[requirements] declared` (RK1297).
     #: Empty by default, which makes the axis opt-in *and* makes it refusable: a project
     #: that has declared nothing refuses every token, so the first one an author writes

@@ -134,7 +134,6 @@ from roadkeep.markers import derive
 from roadkeep.referring import PAIRS
 from roadkeep.kernel.schema import (
     CODEPOINT_KINDS,
-    PARTIAL,
     TAB,
     Dep,
     DepKind,
@@ -2607,11 +2606,16 @@ def _unmeasured(config: Config, roadmap: Document, file: str) -> list[Finding]:
     declared to replace.
 
     Twice opt-in, and neither gate is redundant. `[criteria]` undeclared means the project
-    never asked the question, and ⏳ absent from `[markers]` means it has no partial state to
-    ask it about — a project that ships whole lines only would otherwise be told, on every run,
-    about a marker it does not use.
+    never asked the question, and no partial marker in `[markers]` means it has no partial
+    state to ask it about — a project that ships whole lines only would otherwise be told, on
+    every run, about a marker it does not use.
+
+    `[markers] partial` since RK1556, and the same two lines read it: the marker was the
+    package's ⏳, so a backlog spelling its own was told nothing about the state this gate
+    exists for, and `ship --part` there had left the line at whatever it already carried.
     """
-    if PARTIAL not in config.schema.markers:
+    partial = config.schema.partial
+    if not partial:
         return []
     return [
         Finding(
@@ -2623,7 +2627,7 @@ def _unmeasured(config: Config, roadmap: Document, file: str) -> list[Finding]:
             subject=entry.task.id,
         )
         for entry in roadmap.entries
-        if entry.task.status == PARTIAL and not criteria.read(roadmap, entry.task.id)
+        if entry.task.status == partial and not criteria.read(roadmap, entry.task.id)
     ]
 
 

@@ -31,7 +31,7 @@ from roadkeep.kernel import document
 from roadkeep.authoring import UnknownBlock, add, set_status
 from roadkeep.backlog import Backlog, DepStatus
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, main
-from roadkeep.config import Config
+from roadkeep.config import Config, ConfigError
 from roadkeep.kernel.document import Document, RoundTripError, StaleFile
 from roadkeep.linting import lint
 from roadkeep.kernel.schema import (
@@ -1083,6 +1083,82 @@ def test_the_cli_json_says_the_line_is_still_open(tmp_path, capsys):
     assert payload["part"] == "local half"
     assert payload["roadmap"]["open"] is True
     assert payload["roadmap"]["status"] == "⏳"
+
+
+# -- the marker a project declares for itself (RK1556) ------------------------
+
+#: A backlog whose open set is its own and spells no ⏳ — legal, validated, and exactly what
+#: L6 says `[markers]` is for. The state `ship --part` leaves has no marker here at all.
+NO_PARTIAL = '[markers]\nopen = ["📋", "💭"]\n'
+#: And one that has the state under its own word for it, which is what the key buys.
+OWN_PARTIAL = '[markers]\nopen = ["📋", "💭", "🚧"]\npartial = "🚧"\n'
+
+
+def test_a_project_whose_open_set_spells_no_partial_marker_is_told_so(tmp_path, capsys):
+    """RK1556. The fallback is right — a command that invented a marker would write a line its
+    own gate refuses — and it was silent: the ship exited 0, printed the entry, and left the
+    line saying what it said, so every reader after it read *to do* about half-done work."""
+    project(tmp_path, extra_config=NO_PARTIAL)
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "It works.", "--part", "local half"]
+    assert main(argv) == EXIT_OK
+    rows = capsys.readouterr().out.splitlines()
+    said = next(r for r in rows if r.startswith("  unmarked"))
+    assert "declares no `[markers] partial`" in said and "📋" in said
+    # Said and not done: the line keeps its marker, which is the behaviour this reports.
+    assert "📋 **RK1**" in read(Config.discover(tmp_path), ROADMAP)
+
+
+def test_a_project_that_declares_one_leaves_the_line_at_it(tmp_path, capsys):
+    # The seventh key, on `working`'s terms: a narrowing of the open set, so the state the
+    # ledger records is a state the roadmap can carry and `pick` can rank a remainder by.
+    project(tmp_path, extra_config=OWN_PARTIAL)
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "It works.", "--part", "local half"]
+    assert main(argv) == EXIT_OK
+    assert "unmarked" not in capsys.readouterr().out
+    assert "🚧 **RK1**" in read(Config.discover(tmp_path), ROADMAP)
+
+
+def test_the_payload_says_which_of_the_two_markers_the_line_carries(tmp_path, capsys):
+    """A consumer holding `status` alone cannot tell the partial marker from the one the line
+    already had — that needs `[markers]`, which is one more call and a second reading."""
+    project(tmp_path, extra_config=NO_PARTIAL)
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "It works.", "--part", "half", "--json"]
+    assert main(argv) == EXIT_OK
+    roadmap = json.loads(capsys.readouterr().out)["roadmap"]
+    assert roadmap["marked"] is False and roadmap["status"] == "📋"
+
+
+def test_the_payload_says_marked_where_the_project_has_the_state(tmp_path, capsys):
+    project(tmp_path)
+    argv = ["-C", str(tmp_path), "ship", "RK1", "--why", "It works.", "--part", "half", "--json"]
+    assert main(argv) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["roadmap"]["marked"] is True
+
+
+def test_a_partial_marker_the_open_set_does_not_spell_is_refused(tmp_path):
+    """`working`'s rule and `undesigned`'s before it: a half-shipped line stays open, so a
+    marker no line may carry is a partial nothing can be left at — refused where it is typed,
+    because otherwise every `ship --part` would write a line the schema then rejects."""
+    with pytest.raises(ConfigError) as caught:
+        project(tmp_path, extra_config='[markers]\nopen = ["📋"]\npartial = "🚧"\n')
+    assert "markers.partial" in str(caught.value)
+    assert "no line may carry" in str(caught.value)
+
+
+def test_the_correction_door_reaches_a_live_partial_at_the_projects_own_marker(tmp_path):
+    """The fourth reader, and the one that closed a door (RK1046): `record amend --part` asks
+    whether the open line is a live partial, and asked it of ⏳ — so on a backlog spelling its
+    own the answer was always no, and the qualifier could never be written back."""
+    config = project(tmp_path, extra_config=OWN_PARTIAL)
+    set_status(config, "RK1", "🚧")
+    ledger = config.root / CHANGELOG
+    ledger.write_text(
+        ledger.read_text(encoding="utf-8").rstrip("\n")
+        + "\n\n- ✅ **RK1** **A first symptom** — It shipped once already.\n",
+        encoding="utf-8",
+    )
+    amend_record(Config.discover(tmp_path), "RK1", part="the first half").save()
+    assert "**RK1 (the first half)**" in read(Config.discover(tmp_path), CHANGELOG)
 
 
 # -- which prose file the drop is made against (RK196) ------------------------

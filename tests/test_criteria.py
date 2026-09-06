@@ -773,6 +773,28 @@ def test_a_project_with_no_partial_state_is_never_told_about_the_marker(tmp_path
     assert not [f for f in lint(config).findings if f.code == "criterion.absent"]
 
 
+def test_the_gate_follows_the_partial_marker_the_project_declared(tmp_path):
+    """RK1556. The trigger was the package's ⏳, so a backlog spelling its own state was told
+    nothing about the one marker this gate exists for — and `ship --part` there had left the
+    line at whatever it already carried, which is the silence the key ends."""
+    own = """# Roadmap
+
+## Block A — The model
+
+- 🚧 **RK1** (deps: —) **A first symptom** — Because of a reason. → §RK1
+"""
+    project(tmp_path, roadmap=own)
+    (tmp_path / "roadkeep.toml").write_text(
+        f'prefix = "RK"\n[files]\nroadmap = "{ROADMAP}"\nchangelog = "{CHANGELOG}"\n'
+        '[criteria]\n[markers]\nopen = ["📋", "💭", "🚧"]\npartial = "🚧"\n',
+        encoding="utf-8",
+    )
+    (one,) = [
+        f for f in lint(Config.discover(tmp_path)).findings if f.code == "criterion.absent"
+    ]
+    assert one.subject == "RK1"
+
+
 MISFILED = """# Roadmap
 
 ## Block A — The model

@@ -147,6 +147,7 @@ WHERE: Mapping[tuple[str, str], object] = {
     ("markers", "deferred"): lambda: Config.default().schema.deferred_marker,
     ("markers", "undesigned"): lambda: Config.default().schema.undesigned,
     ("markers", "working"): lambda: Config.default().schema.working,
+    ("markers", "partial"): lambda: Config.default().schema.partial,
     ("ledger", "marker"): lambda: Config.default().schema.ledger_marker,
     ("ledger", "symptom"): lambda: Config.default().schema.ledger_symptom,
     **{("limits", key): (lambda k=key: _limit(k)) for key in _LIMIT_KEYS},

@@ -27,7 +27,7 @@ from roadkeep.config import (
     spent,
 )
 from roadkeep.cli import EXIT_USAGE, main
-from roadkeep.kernel.schema import DESIGNED, IDEA, SHIPPED, Task
+from roadkeep.kernel.schema import DESIGNED, IDEA, PARTIAL, SHIPPED, Task
 from roadkeep.provenance import engine, invocation, read_by
 
 HERE = Path(__file__).resolve().parents[1]
@@ -528,6 +528,25 @@ def test_the_default_narrows_to_the_markers_the_project_opens_with(tmp_path):
     path = write(tmp_path, f'[markers]\nopen = ["{DESIGNED}"]\n')
     assert Config.load(path).schema.undesigned == ()
     assert Config.load(write(tmp_path, "prefix = \"RK\"\n")).schema.undesigned == (IDEA,)
+
+
+def test_the_two_narrowed_markers_are_read_by_one_rule(tmp_path):
+    """RK1556 gave the shape its second member, so the two branches became a function: they
+    differ in the key, the built-in and the clause a refusal ends on, and in nothing else."""
+    path = write(tmp_path, f'[markers]\nopen = ["{DESIGNED}", "{IDEA}"]\n')
+    schema = Config.load(path).schema
+    # Narrowed to what this project opens with, both of them — never a codepoint no line here
+    # may carry, and never a marker guessed from the set.
+    assert (schema.working, schema.partial) == ("", "")
+    assert Config.load(write(tmp_path, 'prefix = "RK"\n')).schema.partial == PARTIAL
+
+
+def test_a_partial_marker_no_line_may_carry_is_refused(tmp_path):
+    # `undesigned`'s rule and `working`'s: a half-shipped line stays open, so a marker the
+    # open set does not spell is a partial nothing can be left at.
+    path = write(tmp_path, f'[markers]\nopen = ["{DESIGNED}"]\npartial = "{IDEA}"\n')
+    with pytest.raises(ConfigError, match="markers.partial names"):
+        Config.load(path)
 
 
 def test_a_budget_reaches_the_config_with_both_units(tmp_path):
