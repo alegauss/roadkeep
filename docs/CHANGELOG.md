@@ -463,6 +463,7 @@
 - ✅ **RK1520** **the marker-leak gate rewards the repair that renders the same wrong bytes** — a composed command carrying a marker constant is now a red, so the repair the codepoint scan rewarded is caught by the shape a backticked span makes it.
 - ✅ **RK1557** **the gate against a composed marker reads a bare name, so the same constant reached through its module walks past** — the gate reads a marker constant under both spellings, imported and reached through its module, and holds the pair as a pair so a third arrives as a red.
 - ✅ **RK1527** **the near window stayed at three when the corpus it ranks over doubled** — the window stays three and the reason is now measured: the open half takes one slot of thirty-three and widening reaches no pair three does not, both held as tests.
+- ✅ **RK1528** **the near row offers the door to the delivered half and none to the open half it now counts** — the near row names the listing for each half it counts, so a reader who suspects the fourth-nearest can open the open lines as well as the deliveries.
 
 ## Block D — The gate
 

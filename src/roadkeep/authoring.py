@@ -563,15 +563,28 @@ class Insertion:
             # apart: two callers filing one defect within the hour could not see each other,
             # which is precisely when a duplicate is cheapest to catch. Each row already
             # carries its marker, so which corpus a neighbour came from is read off the row.
+            # And the door for **both** halves, where there are two (RK1528). RK442's
+            # guarantee is that a bounded answer names where the rest are, and it was given
+            # about a corpus that was the ledger alone: with the open lines counted here and
+            # unnamed, a reader who suspects the fourth-nearest is the duplicate can open the
+            # deliveries and not the lines this task was filed for. The second clause is a
+            # block's own listing and costs nothing on the projects that have no open half,
+            # which is the state the row keeps its present size in.
             held = (
                 f"{self.near_recorded} delivered and {self.near_open} open"
                 if self.near_open
                 else f"{self.near_recorded} delivered"
             )
+            rest = f"`{invocation()} delivered {self.entry.task.block}` is all "
+            rest += (
+                f"{self.near_recorded}, `{invocation()} list --block "
+                f"{self.entry.task.block}` the {self.near_open} open"
+                if self.near_open
+                else f"{self.near_recorded}"
+            )
             rows.append(
                 f"  near     {len(self.near)} nearest of {held} under "
-                f"this block — an order and not a verdict; `{invocation()} delivered "
-                f"{self.entry.task.block}` is all {self.near_recorded}"
+                f"this block — an order and not a verdict; {rest}"
             )
             rows += [
                 f"           {one.task.status} {one.task.id:<8} {one.task.symptom}"

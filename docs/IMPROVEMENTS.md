@@ -79,28 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1528 The door for one of two corpora
-
-The near row ends with the command that shows the rest: `roadkeep delivered A` is all 6.
-RK442's guarantee — a bounded answer says it is bounded and names where the rest are —
-made about a corpus that was the ledger alone.
-
-RK1495 made it two. The row now counts both halves and offers the door to one of them,
-so a reader who suspects the fourth-nearest is the duplicate can open the deliveries and
-not the open lines. `list --block A` is that door and the row does not say it, which
-leaves the half the task was filed for as the half a reader cannot follow up on.
-
-Naming both is one more phrase on a row already carrying two counts, which is the
-argument against doing it carelessly: this row is printed on every `add`, and RK1374 got
-it to its present size by choosing `delivered <block>`'s own two phrases over a second
-wording. A second command doubles that clause.
-
-The cheaper shape is one door that shows both, which may already exist: `delivered
---near` is the read this row volunteers, and whether it can take the open lines is the
-same question RK1495 just answered for the write. If it can, the row names one command
-as it does today and the corpus behind it is the one the rows came from — which is the
-version that costs no characters at all.
-
 ### §RK1529 The declared path nothing checks
 
 RK1496 added `[history] incidental`, a list of paths a commit here carries for reasons

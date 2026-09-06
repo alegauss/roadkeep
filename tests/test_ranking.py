@@ -294,8 +294,38 @@ def test_the_two_corpora_are_counted_apart_in_the_row_a_terminal_reads(tmp_path,
     said = capsys.readouterr().out
     assert "delivered and" in said
     assert "open under this block" in said
-    # The bound is still stated against the ledger, which is what `delivered A` shows.
+    # Both doors, since RK1528: RK442's guarantee is that a bounded answer names where the rest
+    # are, and it was given about a corpus that was the ledger alone. With the open half counted
+    # and unnamed, the reader who suspects the fourth-nearest can open one of the two.
     assert "delivered A` is all 6" in said
+    assert "list --block A` the 1 open" in said
+
+
+def test_the_row_names_one_door_where_there_is_one_corpus(tmp_path, capsys):
+    """RK1528's other half, and the reason the second clause is conditional: this row prints on
+    every `add`, and a project whose block has no open lines is told about a listing that would
+    answer with nothing. RK1374 got the row to its size by refusing a second wording."""
+    root = project(tmp_path)
+    _added(root, "The only line in this block")
+    said = capsys.readouterr().out
+    assert "delivered A` is all 6" in said
+    assert "list --block" not in said, "no open half, so no door to it"
+
+
+def test_both_doors_are_commands_this_cli_accepts(tmp_path, capsys):
+    """The rule every composed door here is held to (RK1209): a row a reader is meant to run
+    that names an argv this parser refuses is a door that is not one."""
+    from composing import commands
+    from roadkeep.cli import build_parser
+
+    root = project(tmp_path)
+    _added(root, "A first thing")
+    capsys.readouterr()
+    _added(root, "A second thing")
+    argv = [one for one in commands(capsys.readouterr().out) if one[:1] in (["delivered"], ["list"])]
+    assert [one[0] for one in argv] == ["delivered", "list"], argv
+    for one in argv:
+        assert build_parser().parse_args(one)
 
 
 def test_the_line_being_filed_is_not_ranked_against_itself(tmp_path, capsys):
