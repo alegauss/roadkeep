@@ -975,6 +975,7 @@
 - ✅ **RK1493** **the served notes are four kinds keyed by string literals invented at each call site, and nothing enumerates them** — serving.NOTES declares every note kind with the rule it is under, held total against the literals the module passes.
 - ✅ **RK1514** **uninstall leaves the vendored engine on disk and its own kept field never mentions it** — uninstall now names the vendored engine among what it keeps, with the version where the tree states one, so the copy nothing points at is reported rather than left silent.
 - ✅ **RK1523** **a declaration whose program engines cannot name is silent, and reads exactly like a project that declares none** — engines carries a fifth row for the command the harness runs, so a declaration naming a program this tool did not write is reported as unreadable rather than as none.
+- ✅ **RK1524** **the four notes this server appends to a tool result are priced by nothing, on a heavier cadence than the gate's** — cost --notes prices the four notes this server appends, composed at their widest from the functions the answers use, and says which one is paid on every call.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

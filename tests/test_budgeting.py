@@ -4189,3 +4189,69 @@ def test_the_note_row_fills_the_counts_the_record_requires():
     assert {one.lines for one in found.emitted} == {1}
     # And the label is the code, which is what every consumer of this row asks it for.
     assert all(one.heading in set(remedying.NOTES) for one in found.emitted)
+
+
+# -- the notes on the transport, which nothing counted (RK1524) ----------------
+
+
+def test_the_notes_this_server_appends_are_priced_too(tmp_path, capsys):
+    """RK1524. RK1491 gave the gate's notes a cadence on the argument that a paragraph nobody
+    counts is a paragraph that grows, and RK1493 then enumerated a second population — the four
+    this server adds beside a tool result — which nothing measured. They are the same kind of
+    text under a heavier cadence: appended to an answer an agent is already paying for, over
+    the transport L5 exists to keep cheap."""
+    from roadkeep.serving import NOTES as SERVED
+
+    _priced(tmp_path)
+    assert main(["-C", str(tmp_path), "cost", "--notes"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "note this server can append to an answer, at its widest" in printed
+    for kind in SERVED:
+        assert kind.name in printed, kind.name
+    # The per-call one is marked as such: three are bounded by being said once per process,
+    # and the fourth is paid on every refusal that overlaps.
+    assert f"1 of {len(SERVED)} on every call it fires on" in printed
+
+
+def test_which_of_them_repeats_is_read_off_the_rule_that_enforces_it(tmp_path):
+    """`serving.NOTES` already declares the once-per-process rule and a guard raises on a kind
+    it does not know — so the figure reads that field rather than deciding again, which is what
+    keeps the price and the rule from coming apart."""
+    from roadkeep.budgeting import note_cost
+    from roadkeep.serving import NOTES as SERVED
+
+    found = note_cost(Config.discover(tmp_path))
+    assert set(found.per_call) == {one.name for one in SERVED if not one.once}
+    assert {one.heading for one in found.appended} == {one.name for one in SERVED}
+
+
+def test_the_transport_s_notes_are_composed_and_never_summed_with_the_gate_s(tmp_path, capsys):
+    """Two cadences, kept apart in both registers: one is per run of the gate and the other is
+    per process or per call, and a total would charge one session for both."""
+    from roadkeep.budgeting import note_cost
+
+    found = note_cost(Config.discover(tmp_path))
+    assert found.here == sum(one.characters or 0 for one in found.emitted)
+    assert all(one.heading not in found.population for one in found.appended)
+    assert main(["-C", str(tmp_path), "cost", "--notes", "--json"]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["characters"] == found.here
+    assert {one["kind"] for one in payload["appended"]} == {
+        one.heading for one in found.appended
+    }
+    assert [one for one in payload["appended"] if one["every_call"]]
+
+
+def test_the_widest_is_composed_from_the_functions_the_answers_use(tmp_path):
+    """`disagreements`' rule one transport over: the figure comes off the same composers a
+    caller is handed, so a fixture pasted into the reader cannot agree until somebody edits a
+    clause and then disagree silently."""
+    from roadkeep.budgeting import note_cost
+    from roadkeep.kernel.schema import width
+    from roadkeep.serving import composed
+
+    found = note_cost(Config.discover(tmp_path))
+    priced = {one.heading: one.characters for one in found.appended}
+    assert priced == {
+        kind: width(message) for kind, message in composed(Config.discover(tmp_path).root)
+    }

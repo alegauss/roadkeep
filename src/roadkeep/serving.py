@@ -2665,14 +2665,29 @@ def _answered(
     if not both:
         return Answer(text, is_error=True)
     rest = tuple(one for one in changed if one not in decided)
+    return Answer(f"{text}\n\n{_witnessed(both, rest, root, served)}", is_error=True)
+
+
+def _witnessed(
+    both: Sequence[str], rest: Sequence[str], root: Path, served: str = ""
+) -> str:
+    """The note on a refusal a changed module decided — the per-call one (RK267, RK1524).
+
+    A function and no longer a branch, for the reason RK1491 lifted `linting.disagreement` out
+    of the gate: a paragraph nobody can call is a paragraph nobody can price, and this is the
+    one of the four paid on **every** refusal that overlaps rather than once per process. Two
+    tasks have already cut a note here by reading — RK267 for 450 characters of correct and
+    irrelevant text, RK1443 for arriving four times in a batch — and neither left a number, so
+    the third growth is invited exactly as `engine.disagreement`'s was.
+
+    Nothing about the sentence moved: the same text at the same call site, now addressable.
+    """
     behind = f" ({', '.join(rest)} also changed and did not.)" if rest else ""
-    return Answer(
-        f"{text}\n\n"
+    return (
         f"Separately, about this process and not about the refusal above: "
         f"{', '.join(both)} decided this refusal and changed on disk after this server imported "
         f"roadkeep, so the answer above is what the code it did import said — read it first, "
-        f"then re-run.{behind} {_remedy(root)}{_now(served)}",
-        is_error=True,
+        f"then re-run.{behind} {_remedy(root)}{_now(served)}"
     )
 
 
@@ -2760,6 +2775,38 @@ def _said_once(kind: str) -> bool:
         return False
     _SAID.add(kind)
     return True
+
+
+def composed(root: Path, served: str = "") -> tuple[tuple[str, str], ...]:
+    """Every note this server can append, built at its widest, by kind (RK1524).
+
+    :func:`~roadkeep.linting.disagreements`' shape one transport over, and lifted for its
+    reason: RK1491 gave the *gate's* notes a cadence on the argument that a paragraph nobody
+    counts is a paragraph that grows, and these four — appended to an answer an agent is
+    already paying for, over the transport L5 exists to keep cheap — are measured by nothing.
+    Two have already been cut by reading (RK267, RK1443) and neither cut left a number.
+
+    **Widest and never typical**, which is what makes the figure a bound: each note is composed
+    with every module of the running package listed as changed, because the list is the part
+    that varies and a session editing this tree is the population these notes are written for.
+    The prose is the half that grows, and it is the half a reader of this number is watching.
+
+    Composed from the same functions the answers use, so a figure here cannot drift from the
+    text a caller gets — a fixture would agree until somebody edits a clause.
+    """
+    running = engine()
+    # Every module of the copy answering, sorted, which is what `Engine.stale` reports on a
+    # tree where each one was touched — derived from the home and never a list here (L6's
+    # argument one register over: a name written down is a name that stops being true).
+    changed = tuple(sorted(one.name for one in running.home.glob("*.py")))
+    return (
+        ("swapped", _swapped(running, served)),
+        ("landed", _landed(changed, root)),
+        ("inventory", _inventory(changed, root, served)),
+        # Every module both decided the refusal and changed, which is the widest overlap —
+        # and no `rest`, since a module in both sets is not also in the tail.
+        ("witnessed", _witnessed(changed, (), root, served)),
+    )
 
 
 def _landed(changed: Sequence[str], root: Path) -> str:

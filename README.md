@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 9 | 164 | 4 |
 | D — The gate | 22 | 233 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 7 | 149 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 150 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 38 | 1008 | 14 |
+| **Total** | 37 | 1009 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1524** (deps: —) **the four notes this server appends to a tool result are priced by nothing, on a heavier cadence than the gate's** — RK1491 gave the gate's notes a number and RK1493 enumerated a second population, and two of these were already cut by reading rather than against a figure. → §RK1524
+- 💭 **RK1525** (deps: —) **the kinds sweep is total over the notes that make a call and silent over the ones that do not** — RK1493 reads the literals passed to _said_once, so the per-call kind is in the table by hand and a second one arrives as invisibly as the four did. → §RK1525
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

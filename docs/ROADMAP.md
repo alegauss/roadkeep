@@ -67,7 +67,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 💭 **RK1524** (deps: —) **the four notes this server appends to a tool result are priced by nothing, on a heavier cadence than the gate's** — RK1491 gave the gate's notes a number and RK1493 enumerated a second population, and two of these were already cut by reading rather than against a figure. → §RK1524
 - 💭 **RK1525** (deps: —) **the kinds sweep is total over the notes that make a call and silent over the ones that do not** — RK1493 reads the literals passed to _said_once, so the per-call kind is in the table by hand and a second one arrives as invisibly as the four did. → §RK1525
 - 💭 **RK1534** (deps: —) **the orientation an install prints names five commands in an order the tree it is printed to cannot run** — RK1498 pointed the sweep at it and every command refuses there, so a test asserting what is printed would be asserting the defect. → §RK1534
 - 💭 **RK1543** (deps: —) **a version here names one commit and the surfaces that consume one speak of it as a release, with nothing saying which** — RK1508 assumed a walk over tags and found one tag against 1650 commits, every one of which the hook stamps a version into. → §RK1543

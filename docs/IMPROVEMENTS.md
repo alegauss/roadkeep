@@ -828,31 +828,6 @@ twelve numbers with no argument behind them would be twelve limits that move.
 
 ## Block F — The plugin
 
-### §RK1524 The notes on the transport nobody counts
-
-RK1491 gave the **gate's** notes a cadence: `cost --notes` prices what a clean run says
-beside its verdict, on the argument that a paragraph nobody counts is a paragraph that
-grows. RK1493 then enumerated a second population entirely — the four notes this server
-adds beside a tool result — and nothing measures any of them.
-
-They are the same kind of text under a heavier cadence. `_landed` rides on a successful
-write, `_inventory` on a refusal this process did not witness, `_swapped` on a home gone
-from disk, and the witnessed paragraph on every refusal that overlaps — each of them
-appended to an answer an agent is already paying for, over the transport L5 exists to
-keep cheap. Three are once-per-process, which bounds them; the fourth is per-call by
-design.
-
-The history is the argument. RK267 cut one for being 450 characters of correct and
-irrelevant text on a refusal that had said everything actionable in one line; RK1443 cut
-another for arriving four times in a batch. Both cuts were made by reading and neither
-left a number, so the third growth is invited exactly as `engine.disagreement`'s was —
-which RK1491 found had grown 35% since the task naming it was filed.
-
-`Noted` is the shape and `NOTES` is now the population, so what is missing is the
-composer being callable the way `linting.disagreement` was made callable: each note
-built with its worst-case arguments, ranked, and the per-call one marked as the one paid
-every time.
-
 ### §RK1525 The half a call-site sweep cannot see
 
 RK1493 made `serving.NOTES` total against the literals the module passes to

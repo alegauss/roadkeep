@@ -2187,6 +2187,23 @@ class Noted:
 
     #: One row per note this run of the gate emitted, widest first — code and width.
     emitted: tuple[Part, ...] = ()
+    #: One row per note **this server** can append to a tool result, widest first (RK1524).
+    #: The second population and the heavier cadence: these ride on an answer an agent is
+    #: already paying for, over the transport L5 exists to keep cheap, and nothing measured
+    #: any of them. Three are once per process, which bounds them; `witnessed` is per-call by
+    #: construction, so it is the one paid on every refusal that overlaps.
+    #:
+    #: Beside :attr:`emitted` and never summed with it: the two are different cadences over
+    #: different surfaces, and a total would charge one session for both.
+    #: Named for what the server does with them and never `served`, which is the field
+    #: `tests/carrying.py` sweeps the package for: that one is the invocation prefix a
+    #: served caller is handed, and a second meaning under one name is what that census
+    #: exists to catch — it caught this one.
+    appended: tuple[Part, ...] = ()
+    #: Which of :attr:`appended` is paid on every call rather than once per process, from
+    #: `serving.NOTES`' own `once` field — read there and not decided here, so the guard that
+    #: enforces the rule and the figure that prices it cannot come apart.
+    per_call: tuple[str, ...] = ()
     #: Every note code that exists, from `remedying.NOTES` (RK1521). The population the two
     #: figures above are taken **over**, and the half this read could not state: 282 reads like
     #: the answer where it is one of an unknown number of sentences. `read.priced`'s own rule,
@@ -2232,6 +2249,20 @@ class Noted:
         ]
         if not self.emitted:
             rows.append("  note          0  this run says nothing beside its verdict")
+        if self.appended:
+            # A second heading and not more `note` rows (RK1524): the gate's cadence is per
+            # run and this one is per process or per call, and a reader adding the two would
+            # be charging one session for both.
+            rows.append(
+                f"appended   {sum(one.characters or 0 for one in self.appended)} {unit} "
+                f"of note this server can append to an answer, at its widest — "
+                f"{len(self.per_call)} of {len(self.appended)} on every call it fires on"
+            )
+            rows += [
+                f"  {'call' if one.heading in self.per_call else 'once'}"
+                f"     {one.characters or 0:>6}  {one.heading}"
+                for one in self.appended
+            ]
         return chr(10).join(rows)
 
     def payload(self, unit: str) -> dict[str, object]:
@@ -2246,6 +2277,16 @@ class Noted:
             # without re-deriving it from a list it would have to know the length of (RK1521).
             "population": len(self.population),
             "silent": list(self.silent),
+            # The transport's own notes as their own key (RK1524), for the rows' reason: two
+            # cadences, and a consumer that added them would price one session for both.
+            "appended": [
+                {
+                    "kind": one.heading,
+                    "characters": one.characters or 0,
+                    "every_call": one.heading in self.per_call,
+                }
+                for one in self.appended
+            ],
             "notes": [
                 {"code": one.heading, "characters": one.characters or 0}
                 for one in self.emitted
@@ -2270,6 +2311,8 @@ def note_cost(config: Config) -> Noted:
     from roadkeep.linting import disagreements, lint  # noqa: PLC0415 - RK260
     from roadkeep.provenance import engine  # noqa: PLC0415 - RK260
     from roadkeep.remedying import notes  # noqa: PLC0415 - RK260
+    from roadkeep.serving import NOTES as SERVED_NOTES  # noqa: PLC0415 - RK260
+    from roadkeep.serving import composed  # noqa: PLC0415 - RK260
 
     running = engine()
     emitted = sorted(
@@ -2284,6 +2327,18 @@ def note_cost(config: Config) -> Noted:
         # From the table that knows every code and not from a list here (RK1521): a second
         # spelling of the population is the drift `VARIES` is derived to avoid one layer down.
         population=notes(),
+        # The transport's four, composed rather than fixtured (RK1524) — `disagreements`' rule
+        # one surface over, so the figure cannot drift from the text a caller is handed.
+        appended=tuple(
+            sorted(
+                (
+                    Part(kind, 1, len(message.encode()), width(message))
+                    for kind, message in composed(config.root)
+                ),
+                key=lambda one: -(one.characters or 0),
+            )
+        ),
+        per_call=tuple(one.name for one in SERVED_NOTES if not one.once),
         widest=sum(
             width(message)
             for _, message in disagreements(
