@@ -1208,3 +1208,110 @@ def test_the_listing_a_malformed_anchor_is_answered_with_runs(
     # RK363 refused, printed beside the read that contradicts it.
     assert f"--ref {offered}" in said, said
     assert f"§{offered} " in said, said
+
+
+# -- the two ways a governed number is refused (RK1498) ------------------------
+
+
+def test_the_read_an_address_this_build_has_no_key_for_names_runs(tmp_path, capsys):
+    """RK1498, over RK1272's refusal. `govern` writes the tables a reading decides, so an
+    address that is a *name* — a `[files]` role, a `[markers]` glyph — is refused with the
+    listing of every key there is rather than with the subset this verb takes.
+
+    A read and not a repair, which is what makes running it the claim: nothing about the
+    caller's tree has to change, so the only way this door is ever wrong is by not being a
+    command any more — and the census had it as a state no fixture built."""
+    project = tmp_path / "governed"
+    project.mkdir()
+    assert main(["-C", str(project), "init"]) == EXIT_OK
+    capsys.readouterr()
+    assert main(["-C", str(project), "govern", "files.roadmap", "5"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert runs(project, said) == (["config"],), said
+
+
+def test_the_door_a_tree_with_no_table_names_runs(tmp_path, capsys):
+    """The other refusal of the same verb, and the census had this one wrong twice over: its
+    state named a corpus reading, and the command is composed on the branch **before** any
+    reading happens — a tree that declares no `roadkeep.toml` has no table to write into.
+
+    So the door is the scaffold, and what it has to buy is the call that was refused: `init`
+    runs, and the same `govern` then lands. That is the whole of RK393's rule — a remedy
+    leaving its own refusal standing is a loop — and it is the shape a two-step path takes
+    when the second step is the caller's original one."""
+    bare = tmp_path / "bare"
+    bare.mkdir()
+    governing = ["-C", str(bare), "govern", "limits.why", "200"]
+    assert main(governing) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert runs(bare, said) == (["init"],), said
+    assert (bare / "roadkeep.toml").is_file()
+    assert main(governing) == EXIT_OK
+
+
+# -- the surface a mistyped argument is answered with (RK1498) -----------------
+
+
+def _mistyped(tmp_path: Path) -> Path:
+    """An outline with one line, so a verb taking an id has one to be given."""
+    root = outlined(tmp_path)
+    (root / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A\n\n"
+        "- 📋 **TT1** (deps: —) **A symptom** — Because of a reason. → §I.1\n",
+        encoding="utf-8",
+        newline="",
+    )
+    (root / "IMPROVEMENTS.md").write_text(
+        "# Improvements\n\n## Block A\n\n### I A family\n\nProse.\n\n"
+        "### I.1 A design\n\nProse enough to matter.\n",
+        encoding="utf-8",
+        newline="",
+    )
+    return root
+
+
+@pytest.mark.parametrize(
+    "argv, doors",
+    [
+        # A flag the verb does not declare, where the whole answer is its own short surface.
+        (["list", "--nope"], (["list", "--help"],)),
+        # A stray positional, which keeps its own sentence: naming the flags of a verb that
+        # takes an id would be advice about a mistake nobody made.
+        (["show", "TT1", "TT2"], (["show", "--help"],)),
+        # A flag before the verb is the top level's, so the door carries no verb at all.
+        (["--vers", "list"], (["--help"],)),
+    ],
+    ids=["an-unknown-flag", "a-stray-positional", "before-the-verb"],
+)
+def test_the_surface_a_mistyped_argument_names_runs(tmp_path, capsys, argv, doors):
+    """RK1498, over RK1026 and RK1032. The answer to a mistyped argument is a **surface**, and
+    every shape of it ends in a door: the verb's own help where the flag was the verb's, and
+    the top level's where it was typed before one.
+
+    Running them is what the census could not do until now. `--help` opens by ending the
+    process, so `runs` reads a `SystemExit` as the code it carries (RK1595) — every `see
+    <verb> --help` row in this tool was a command the instrument treated as a failure, which
+    is a door being unrunnable for a reason that has nothing to do with the door."""
+    root = _mistyped(tmp_path)
+    assert main(["-C", str(root), *argv]) == EXIT_USAGE
+    assert runs(root, capsys.readouterr().err) == doors
+
+
+def test_the_position_a_flag_spelled_wrong_names_runs(tmp_path, capsys):
+    """RK1254's mirror, and the one shape composing two doors: a flag naming an argument the
+    verb takes **by order** is answered with the position and with the surface, because which
+    of the two an argument is is exactly what the caller had wrong.
+
+    The id is filled from the fixture's own line rather than by `filled`: a positional blank
+    has no flag in front of it to read a value off, which is what `<unfilled positional>` says
+    out loud instead of guessing."""
+    root = _mistyped(tmp_path)
+    assert main(["-C", str(root), "show", "--id", "TT1"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    position, surface = [one for one in commands(said) if one[:1] != ["report"]]
+    assert position == ["show", "<id>"], said
+    assert surface == ["show", "--help"], said
+    assert main(["-C", str(root), "show", "TT1"]) == EXIT_OK
+    with pytest.raises(SystemExit) as ended:
+        main(["-C", str(root), *surface])
+    assert (ended.value.code or 0) == EXIT_OK

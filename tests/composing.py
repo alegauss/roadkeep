@@ -195,11 +195,12 @@ SITES: tuple[Site, ...] = (
     # composed line is not a step to take but the spelling this CLI used, and the call it
     # names has already run — so what proves it is the answer that came back.
     Site("cli.py:_accepting", "run"),
-    Site(
-        "cli.py:_unrecognised",
-        "unreached",
-        unreached("a call carrying a flag the verb's own parser does not declare"),
-    ),
+    # RK1498, over RK1026/RK1032/RK1254. Four shapes, run by `test_composing`: the verb's own
+    # surface, the top level's where the flag was typed before a verb, and the position beside
+    # it where the flag named an argument taken by order. What kept them out of the census was
+    # the instrument — `--help` opens by ending the process, and `runs` read that as a failure
+    # until RK1595 taught it to read the code a `SystemExit` carries.
+    Site("cli.py:_unrecognised", "run"),
     Site(
         "config.py:_skew",
         "unreached",
@@ -328,19 +329,13 @@ SITES: tuple[Site, ...] = (
         "unreached",
         unreached("a call arriving over the served surface, where every command it names is a tool"),
     ),
-    # RK1272. Both name a read rather than a repair — `config` lists the keys an address was
-    # not among, and `init` is what a tree with no config needs — so what a fixture would have
-    # to build first is a project that has neither, which is the state `init` is *for*.
-    Site(
-        "governing.py:NoSuchKey.__init__",
-        "unreached",
-        unreached("a `govern` aimed at an address this build declares no key for"),
-    ),
-    Site(
-        "governing.py:govern",
-        "unreached",
-        unreached("a governed number this project's own corpus lets it declare, which wants a reading first"),
-    ),
+    # RK1272, run by `test_composing` (RK1498). Both name a read rather than a repair, and
+    # the fixture each wanted was one line: a scaffolded project for the address that is a
+    # name, and a bare directory for the tree with no table. The second row's state was
+    # wrong as well as unbuilt — it named a corpus reading, and the command is composed on
+    # the branch before any reading happens.
+    Site("governing.py:NoSuchKey.__init__", "run"),
+    Site("governing.py:govern", "run"),
     # RK1498. Three departures that cannot happen, each run by `test_composing` against the
     # state that produces it: an id the ledger holds whole beside a ⏳ line, whose door is the
     # closure (the one state RK1045 made it true of); a line the deferred store still names,
@@ -634,7 +629,14 @@ def runs(root: Path, said: str, *, expect: int = 0) -> tuple[list[str], ...]:
             # The capture offer, which every refusal ends with and which is not a step of
             # anything: running it would file a defect report about the run being tested.
             continue
-        code = main(["-C", str(root), *argv])
+        try:
+            code = main(["-C", str(root), *argv])
+        except SystemExit as ended:
+            # `--help` is a door like any other and argparse opens it by ending the process
+            # (RK1595). Read as the code it exits with, because that is what a caller pasting
+            # the line sees — refusing to run it would leave every `see  <verb> --help` row
+            # in this tool as a command nothing has executed.
+            code = 0 if ended.code is None else int(ended.code)
         assert code == expect, (argv, code)
         ran.append(argv)
     return tuple(ran)
