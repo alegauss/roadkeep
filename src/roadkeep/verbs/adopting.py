@@ -994,7 +994,15 @@ def declare_wiring(subcommands: argparse._SubParsersAction) -> None:
     engines_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     # A read, and the exit code is its verdict rather than a fault (RK271): the three lines
     # above it have already said everything, and `/plugin update` is the move.
-    engines_parser.set_defaults(handler=_engines, reads_only=True)
+    #
+    # And it survives a broken config (RK1598). `_skew` names this verb as the read for a key
+    # this build cannot parse — *a typo if nothing declares it, an upgrade if a newer roadkeep
+    # does* — and running it gave back the identical refusal, the config load being ahead of
+    # every handler. The reading needs the root and nothing else, which the docstring already
+    # says and the fallback config already supplies.
+    engines_parser.set_defaults(
+        handler=_engines, reads_only=True, tolerates_config_error=True
+    )
 
     uninstall_parser = subcommands.add_parser(
         "uninstall",

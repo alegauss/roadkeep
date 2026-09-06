@@ -1933,10 +1933,15 @@ def _governed(base: Path) -> Config:
     """
     config = Config.discover(base)
     if config.source is None:
+        # **Nothing was written either** (RK1598). This refusal sits above the first write by
+        # RK393's rule, four lines up, and the sentence said the four surfaces did not depend
+        # on it — true of the flag and false of this call, which lands before any of them and
+        # leaves the tree as it found it. A reader told *nothing was registered* beside *the
+        # surfaces above* concludes the install half happened.
         raise ValueError(
-            f"{base} declares no {CONFIG_NAME} and nothing was registered: a merge driver is "
-            f"wired per governed file, so `{invocation()} init` (or a config) comes first — the "
-            f"four surfaces above do not depend on it"
+            f"{base} declares no {CONFIG_NAME} and nothing was written: a merge driver is "
+            f"wired per governed file, so `{invocation()} init` (or a config) comes first, and "
+            f"the same call then writes the surfaces and registers the driver together"
         )
     return config
 

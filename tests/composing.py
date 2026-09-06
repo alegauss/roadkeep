@@ -201,11 +201,11 @@ SITES: tuple[Site, ...] = (
     # the instrument — `--help` opens by ending the process, and `runs` read that as a failure
     # until RK1595 taught it to read the code a `SystemExit` carries.
     Site("cli.py:_unrecognised", "run"),
-    Site(
-        "config.py:_skew",
-        "unreached",
-        unreached("a config holding a key this build has no reader for, reported as a problem"),
-    ),
+    # RK1498. The read offered for a key this build cannot parse, run by `test_composing`
+    # against a config holding one. It did not run: the config load is ahead of every handler,
+    # so the door gave back the identical refusal — `engines` now tolerates a broken config
+    # the way `guard` and `report` do, needing the root and nothing else (RK1598).
+    Site("config.py:_skew", "run"),
     # RK1498, over RK10. The read that shows what a count could not take, run by
     # `test_composing` against a roadmap holding one marker-bearing line that is not a task.
     # It was quoted with apostrophes rather than backticks (RK1597) — the same class as a
@@ -227,11 +227,11 @@ SITES: tuple[Site, ...] = (
     # block spanning two families prints, and the narrowing a wide listing names. The state its
     # row guessed was a git history; the reading wanted only an outline (RK1577).
     Site("history.py:Addresses.stated", "run"),
-    Site(
-        "history.py:opens",
-        "unreached",
-        unreached("a top-level anchor in a prose file that no task line claims"),
-    ),
+    # RK1498, over RK1140. The note a free top-level owes, run by `test_composing` — which
+    # found the sentence false: it said `add --ref <it>.1` refuses until a section exists, and
+    # the line lands (RK1598). It now names the command that acts and says what the gate says
+    # meanwhile, which is `ref.unresolved` and not a refusal at the door.
+    Site("history.py:opens", "run"),
     # RK1230. Run by `test_installing`, which asserts the line it composes *is* the copy the
     # registry names — the one composed command here whose whole point is being pasted.
     Site("installing.py:Engines.invoke", "run"),
@@ -256,11 +256,12 @@ SITES: tuple[Site, ...] = (
     # the loop RK393 named.
     Site("installing.py:Plan.verdict", "run"),
     Site("installing.py:Removal.verdict", "run"),
-    Site(
-        "installing.py:_governed",
-        "unreached",
-        unreached("a project `merge --register` is aimed at whose config cannot be read"),
-    ),
+    # RK1498. A driver is wired per governed file, so a tree declaring none has nothing to
+    # register — run by `test_composing` through `install --register-merge`, which is the verb
+    # that reaches it and not the one this row named. The sentence said the four surfaces did
+    # not depend on it, and this refusal sits above the first write, so none of them was
+    # there to not depend on it (RK1598).
+    Site("installing.py:_governed", "run"),
     # RK1498, the fifth surface's row. Three states and three doors, run by `test_composing`
     # against a governed project in a repository: unwired, where both commands run in the order
     # printed and the second was spelled with no invocation at all; already wired, where one is

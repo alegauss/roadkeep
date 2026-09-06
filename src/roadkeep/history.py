@@ -1970,13 +1970,20 @@ def _ownership(one: Anchor) -> str:
 
 
 def opens(family: str) -> str:
-    """The sentence a free top-level owes, and the command that makes it a section (RK1140)."""
+    """The sentence a free top-level owes, and the command that makes it a section (RK1140).
+
+    **What `add --ref` does there is accept** (RK1598). This said it *refuses until one
+    exists*, and running it does not: the line lands, and `add` prints the `section add` calls
+    that close the pointer it just made. A reader who believed the refusal would not file the
+    line at all — so the sentence names the command that acts and states what the gate says
+    about the pointer meanwhile, which is `ref.unresolved` and not a refusal at the door.
+    """
     from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
 
     return (
-        f"§{family} is free and not yet a section, so `{invocation()} add --ref {family}.1` "
-        f"refuses until one exists — `{invocation()} section add {family} --title \"…\"` "
-        f"opens it"
+        f"§{family} is free and not yet a section, so `{invocation()} section add {family} "
+        f"--title \"…\"` opens it — a line pointing at §{family}.1 lands either way, and its "
+        f"pointer is unresolved to the gate until a section answers it"
     )
 
 

@@ -1495,3 +1495,72 @@ def test_the_read_an_uncounted_line_names_runs(tmp_path, capsys):
     said = capsys.readouterr().err
     assert "1 marker-bearing line(s)" in said, said
     assert runs(root, said) == (["audit"],), said
+
+
+# -- the last three, and what each of them is about (RK1498) -------------------
+
+
+def test_the_read_a_key_this_build_cannot_read_names_runs(tmp_path, capsys):
+    """RK1498. An unknown key is a typo if nothing declares it and an **upgrade** if a newer
+    roadkeep does, and the config cannot tell which — so the clause names the one command that
+    says which copies answer here, and a caller who has three of them can look.
+
+    Run, and it did not run (RK1598): the config load is ahead of every handler, so the read
+    offered for a config this build cannot parse gave back the identical refusal. `engines`
+    needs the root and nothing else — its own docstring says so — and it now tolerates a
+    broken config the way `guard` and `report` already do."""
+    root = outlined(tmp_path)
+    (root / "roadkeep.toml").write_text(
+        f"{OUTLINED}nonsense = 1\n", encoding="utf-8", newline=""
+    )
+    assert main(["-C", str(root), "list"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "unknown to this build" in said, said
+    assert runs(root, said) == (["engines"],), said
+
+
+def test_the_command_a_free_top_level_names_opens_it(tmp_path, capsys):
+    """RK1140's note, run — and RK1598, which is what running it found. It said a free
+    top-level makes `add --ref <it>.1` **refuse until one exists**, and that is not what
+    happens: the line lands, and `add` prints the `section add` calls that close the pointer
+    it just made. A reader who believed the refusal would not have filed the line at all.
+
+    So the sentence names the command that acts and says what the gate says meanwhile. Both
+    halves are checked: the door opens the family, and a line pointing into it is accepted
+    with a pointer `lint` reports until a section answers."""
+    root = outlined(tmp_path)
+    (root / "IMPROVEMENTS.md").write_text(FAMILIED, encoding="utf-8", newline="")
+    assert main(["-C", str(root), "anchors", "--next"]) == EXIT_OK
+    said = capsys.readouterr().err
+    (opened,) = runs(root, said)
+    assert opened[:4] == ["section", "add", "III", "--title"], said
+    capsys.readouterr()
+    filed = ["add", "--block", "A", "--symptom", FILLS["--symptom"], "--why", FILLS["--why"]]
+    assert main(["-C", str(root), *filed, "--ref", "III.1"]) == EXIT_OK
+    unresolved = [
+        one for one in lint(Config.discover(root)).findings if one.code == "ref.unresolved"
+    ]
+    assert [one.subject for one in unresolved] == ["III.1"], unresolved
+
+
+def test_the_door_a_registration_with_no_config_names_runs(tmp_path, capsys):
+    """RK1498. A merge driver is wired per **governed file**, so a project declaring none has
+    nothing to register — writing lines for the paths a default config happens to name would
+    wire a driver for files nobody declared (L6).
+
+    The census had this one aimed at the wrong verb: `merge --register` writes on a bare tree,
+    and it is `install --register-merge` that reaches this refusal. And the sentence claimed
+    *the four surfaces above do not depend on it* (RK1598) — true of the flag and false of
+    this call, which sits above the first write by RK393's own rule and leaves the tree
+    exactly as it found it, so a reader was told the install half had happened."""
+    bare = tmp_path / "bare"
+    bare.mkdir()
+    registering = ["-C", str(bare), "install", "--register-merge"]
+    assert main(registering) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "nothing was written" in said, said
+    assert not (bare / ".mcp.json").exists(), "the refusal is above the first write"
+    assert runs(bare, said) == (["init"],), said
+    assert main(registering) == EXIT_OK
+    assert (bare / ".gitattributes").is_file()
+    assert (bare / ".mcp.json").is_file()
