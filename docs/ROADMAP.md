@@ -42,7 +42,6 @@
 ## Block D — The gate
 
 - ⏳ **RK1498** (deps: RK1532) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Thirty of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
-- 💭 **RK1509** (deps: —) **an adopting project is never shown what its briefs cost, so a ceiling is chosen with no reading in front of it** — RK1486 found this repository's own number argued from the wrong corpus, and an adopter has no moment at which the figure is offered. → §RK1509
 - 💭 **RK1515** (deps: —) **a design quoting a constraint to describe somebody else's case reads as having settled it** — RK1488 printed that claim on its own shipment, so a substring sized for a note falling silent now carries two assertions it was never measured for. → §RK1515
 - 💭 **RK1516** (deps: —) **section drop deletes a design and never says the constraint answer went with it** — RK1488 taught the three departure doors that a deletion is the last reading, and the verb whose whole job is deleting a section inherited nothing. → §RK1516
 - 💭 **RK1517** (deps: —) **a served flag that only shapes the terminal form is inert, and nothing asks that of the eighteen** — The server appends --json to every call, so origin --why shaped nothing for as long as it was served and was found only when a test fixture grew a git history. → §RK1517

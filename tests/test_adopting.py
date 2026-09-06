@@ -1369,7 +1369,7 @@ def test_a_roadmap_has_no_ledger_slots_to_report(tmp_path: Path) -> None:
 #: from the dataclass would be correct with no place left to say that.
 #: `surface` travels as `serves`, and as an object rather than an integer: the cadence has to
 #: reach a client with the number, or it is added to a per-turn figure (RK1100).
-ESTIMATE_RENAMES = {"path": "file", "surface": "serves"}
+ESTIMATE_RENAMES = {"path": "file", "surface": "serves", "widest_brief": "briefs"}
 
 
 def test_the_payload_carries_every_field_of_the_estimate(tmp_path: Path, capsys) -> None:
@@ -3007,3 +3007,70 @@ def test_the_estimate_counts_the_byte_level_codes_the_gate_raises(tmp_path, caps
     assert main(["-C", str(tmp_path), "adopt", str(target), "--prefix", "RK", "--json"]) == EXIT_OK
     codes = {row["code"]: row["count"] for row in json.loads(capsys.readouterr().out)["codes"]}
     assert codes.get("char.bom") == 1, codes
+
+
+# -- the reading nobody adopting is shown (RK1509) -----------------------------
+
+
+def test_the_estimate_prices_the_read_this_tool_offers_instead_of_the_file(
+    tmp_path: Path, capsys
+) -> None:
+    """RK1509. RK1486 measured Shio's widest brief at 3,354 against the 3,300 this repository
+    declares, and nothing told Shio: `[reads] brief` is opt-in, so a project that never
+    declared it hears nothing from the gate — the opt-in working, and the state every adopter
+    is in permanently. So an adopter learns their briefs are 3,354 by meeting a refusal, or
+    never.
+
+    Beside `serves` and for its reason: an estimate naming what the format gives and not what
+    its own reads cost is holding half the terms."""
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(CONFORMING, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target)]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "briefs" in said
+    assert "[reads] brief" in said
+
+
+def test_the_figure_is_this_backlog_s_widest_and_says_whose(tmp_path: Path, capsys) -> None:
+    # The widest and not a mean: what a ceiling has to clear is the largest answer this
+    # backlog produces, and which line it is is what an author would look at first.
+    from dataclasses import replace
+
+    from roadkeep.adopting import adopt
+    from roadkeep.budgeting import brief_budget
+    from roadkeep.config import Config
+
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(CONFORMING, encoding="utf-8")
+    config = Config.discover(tmp_path)
+    widest, whose = adopt(config, str(target)).widest_brief
+    # Over the file the run was handed, which is what `adopt` is for: a tree that has not
+    # declared a roadmap role, where the declared path names nothing.
+    asked = replace(config, paths={**config.paths, "roadmap": target})
+    priced = brief_budget(asked).briefs
+    assert widest == max(one.characters for one in priced)
+    assert whose in {one.id for one in priced}
+
+
+def test_a_backlog_with_nothing_open_is_priced_at_nothing(tmp_path: Path, capsys) -> None:
+    # `(0, "")` where there is no brief to take, which is a real answer and not a gap: the row
+    # is absent and the payload's key is null, so a consumer tells that from a build that did
+    # not ask.
+    target = tmp_path / "ROADMAP.md"
+    target.write_text("# Roadmap\n\n## Block A — The model\n", encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target), "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["briefs"] is None
+
+
+def test_the_report_states_no_verdict_on_the_figure(tmp_path: Path, capsys) -> None:
+    # L4 and RK66: what ceiling to declare is the adopter's, and a gate that reported a
+    # finding on adoption is a gate that gets bypassed rather than adopted.
+    target = tmp_path / "ROADMAP.md"
+    target.write_text(CONFORMING, encoding="utf-8")
+    assert main(["-C", str(tmp_path), "adopt", str(target)]) == EXIT_OK
+    said = capsys.readouterr().out
+    line = next(one for one in said.splitlines() if one.strip().startswith("briefs"))
+    # No comparison and no code: the row states a figure and where a ceiling would be
+    # declared, and stops. `read.over` is what a project that *chose* one then meets.
+    assert " over" not in line
+    assert "read." not in line

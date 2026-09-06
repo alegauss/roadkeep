@@ -968,6 +968,17 @@ class Estimate:
     #: once at connect where a resident file is paid every turn, so the two do not sum, and
     #: whether it is worth it is the adopter's call.
     surface: int = 0
+    #: What this backlog's **widest brief** would cost a tool result, and the id it is (RK1509).
+    #: The read this project recommends over reading the file, priced at the one moment an
+    #: adopter is choosing what to declare: RK1486 measured Shio's widest at 3,354 against the
+    #: 3,300 this repository declares, and nothing told Shio — `[reads] brief` is opt-in, so a
+    #: project that never declared it gets silence from the gate, which is the opt-in working
+    #: and is also the state every adopter is in permanently.
+    #:
+    #: A figure and never a finding (L4, RK66): what ceiling to declare is the adopter's, and
+    #: this is the reading they would otherwise take by meeting a refusal or never. `(0, "")`
+    #: where nothing could be briefed, which is a backlog with no open line.
+    widest_brief: tuple[int, str] = (0, "")
 
     @property
     def changing(self) -> int:
@@ -1776,6 +1787,9 @@ def adopt(
         ref_scheme=schema.ref_scheme,
         gains=_gains(config, _declared(config, target), document),
         surface=_surface(config),
+        # The read this project recommends over reading the file, priced where a ceiling is
+        # chosen (RK1509). On the backlog run and not the prose one: a brief is about a line.
+        widest_brief=_widest_brief(config, target),
         rejects=_grouped(reject.reason for reject in document.rejects),
         codes=_ranked(counts),
         measures=_measures(document, schema),
@@ -2508,6 +2522,39 @@ def _surface(config: Config) -> int:
         return surface(config).characters
     except (ValueError, KeyError, TypeError):
         return 0
+
+
+def _widest_brief(config: Config, target: Path) -> tuple[int, str]:
+    """The costliest brief this backlog would answer, and whose it is (RK1509).
+
+    The read this project recommends over reading the file, priced at the one moment an adopter
+    is choosing what to declare. RK1486 measured Shio's widest at 3,354 against the 3,300 this
+    repository holds itself to and nothing told Shio: `[reads] brief` is opt-in, so a project
+    that never declared it hears nothing from the gate — the opt-in working, and the state
+    every adopter is in permanently. So the number arrives where a ceiling is chosen instead of
+    at the refusal that would otherwise be the first mention of it.
+
+    **Unbounded**, unlike the gate's own reading (RK1287): that one prices the briefs a session
+    is about to ask for, because six seconds per commit is a gate nobody runs. This runs once,
+    by hand, on a tree somebody is deciding about — the same argument in the other direction.
+
+    `(0, "")` where nothing can be briefed and where the read cannot be taken at all, which is
+    every state `adopt` is already reporting on: a report that raised here would take away the
+    reading explaining why.
+    """
+    from roadkeep.budgeting import brief_budget  # noqa: PLC0415 - RK260, the cycle above
+
+    # Over the file this run was **handed** and never the declared role: `adopt` is the verb
+    # for a tree that has not declared one, which is the population this figure exists for.
+    # The rest of the config is the project's, so limits, non-goals and criteria are whatever
+    # it has — which is what a brief would cost here rather than under a default.
+    asked = replace(config, paths={**config.paths, "roadmap": target})
+    try:
+        priced = brief_budget(asked).briefs
+    except (KeyError, OSError, ValueError):
+        return 0, ""
+    widest = max(priced, key=lambda one: one.characters, default=None)
+    return (0, "") if widest is None else (widest.characters, widest.id)
 
 
 def _grouped(reasons: Iterable[str]) -> tuple[tuple[str, int], ...]:

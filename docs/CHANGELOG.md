@@ -686,6 +686,7 @@
 - ✅ **RK1506** **budget prices one line per departure and a ship writes three, so the other two are exemptions rather than answers** — budget --ship --decides prices the decision line beside the ledger one, and the exemption naming it is gone.
 - ✅ **RK1507** **a line this tool writes under a ledger entry is composed by one function and recognised by another, matching on a prefix** — one function composes a carried line and one beside it decides whether a line is one, round-tripped by a test.
 - ✅ **RK1508** **which engine wrote a project's surfaces is derivable from their bytes and is only ever read out of a record** — install --check dates the committed bridge from its bytes where no record does, over this engine's own history.
+- ✅ **RK1509** **an adopting project is never shown what its briefs cost, so a ceiling is chosen with no reading in front of it** — adopt prices this backlog's widest brief beside what the surface costs, at the moment a ceiling is chosen.
 
 ## Block E — Adoption
 

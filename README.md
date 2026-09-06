@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 230 | 2 |
 | C — Query (consult without reading the file) | 8 | 158 | 4 |
-| D — The gate | 21 | 226 | 2 |
+| D — The gate | 20 | 227 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 147 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 36 | 992 | 14 |
+| **Total** | 35 | 993 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1509** (deps: —) **an adopting project is never shown what its briefs cost, so a ceiling is chosen with no reading in front of it** — RK1486 found this repository's own number argued from the wrong corpus, and an adopter has no moment at which the figure is offered. → §RK1509
+- 📋 **RK1510** (deps: —) **no read says how many lines a shipped task filed behind it, so granularity is judged from a feel** — weight answers what a task cost from the commits that shipped it; what it filed behind it has no verb, so the reading is rebuilt from git log every time somebody asks. → §RK1510
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

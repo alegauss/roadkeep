@@ -1337,6 +1337,20 @@ def _print_estimate(estimate: Estimate) -> None:
             f"  serves   {estimate.surface} characters once at connect, if this project "
             f"serves the tools: `[tools]` is where a ceiling on that is declared"
         )
+    if estimate.widest_brief[0]:
+        # The read this tool recommends over reading the file, at the moment a ceiling is
+        # chosen (RK1509). Beside `serves` and for its reason: an estimate that names what the
+        # format gives and not what its own reads cost is holding half the terms — and this
+        # half is about *this* backlog, where that one is a fact about the package.
+        #
+        # A figure and never a verdict (L4): what to declare is the adopter's, and RK1486
+        # measured a live corpus 54 over a ceiling it had never been told about.
+        widest, whose = estimate.widest_brief
+        print(
+            f"  briefs   {widest} characters for the widest ({whose}), which is the read "
+            f"this tool offers instead of the file: `[reads] brief` is where a ceiling on "
+            f"that is declared"
+        )
     for marker, count in estimate.undeclared:
         print(f"  marker   {marker} on {count} line(s), declared by nothing in [markers]")
     for code, count in estimate.codes:
@@ -1488,6 +1502,16 @@ def _estimate_json(estimate: Estimate) -> dict[str, object]:
         # not about the file (RK1100). Its own object, so the cadence travels with the number:
         # a client adding this to a per-turn cost is the arithmetic RK1095 refused to print.
         "serves": {"characters": estimate.surface, "cadence": "once, at connect"},
+        # The read this tool offers instead of the file, at the moment a ceiling is chosen
+        # (RK1509). `null` where nothing could be briefed, which is a backlog with no open
+        # line — and never omitted, so a consumer tells that from a build that did not ask.
+        "briefs": None
+        if not estimate.widest_brief[0]
+        else {
+            "characters": estimate.widest_brief[0],
+            "widest": estimate.widest_brief[1],
+            "cadence": "once per brief",
+        },
         "unit": estimate.unit,
         # Which role decided the numbers (RK1147): `unit` says lines for a backlog and for a
         # ledger alike, and a ledger is measured under `[limits.changelog]` (RK76) — so a

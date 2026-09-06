@@ -318,30 +318,6 @@ yet, and what turns it into an answerable question is the state. That is a task 
 family rather than one sweep — and the reason to file it as one line is that the six
 that do run were each bought by a defect that had already shipped.
 
-### §RK1509 The reading nobody adopting is shown
-
-RK1486 took the reading its own design asked for and the reading falsified the design.
-The graph rows reach 133 units on Shio and 183 on Turing, a twentieth of a brief; what
-makes those briefs wide is prose. It shipped the split that proved it, corrected the
-argument above the key, and left the number alone.
-
-What it could not leave alone is that Shio's widest brief is 3,354 against the 3,300
-declared here. That number is this project's own (L6) and Shio declares none, so nothing
-is broken — and nothing tells Shio either. A project that has never declared `[reads]
-brief` gets silence from the gate, which is the opt-in working and also the state every
-adopter is in permanently.
-
-The reading is one command and now says something an author can act on. What is missing
-is the moment it reaches them: `install` and `declare` write configuration, `adopt`
-measures a tree before either, and none of the three prices the read this tool
-recommends over reading the file — so an adopter learns their briefs are 3,354 by
-meeting a refusal, or never.
-
-The narrow shape is `adopt` reporting it: that verb reads a foreign backlog and states
-what governing it would cost, and the widest brief is a number of that kind. Not a
-default and not a finding — a figure in the report, so the project choosing a ceiling
-has the reading in front of it at the moment it chooses.
-
 ### §RK1515 The citation that reads as a decision
 
 Measured on RK1488's own shipment. Its design quoted *No supported Python API.* while
