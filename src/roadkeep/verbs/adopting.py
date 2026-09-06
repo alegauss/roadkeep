@@ -244,7 +244,23 @@ def _engines(config: Config, args: argparse.Namespace) -> int:
         # `--json` is honoured rather than refused, because the served surface appends it to
         # every call (RK319): a flag that only worked on a terminal would be one this project's
         # own agent could not use, which is the caller the whole task is about.
-        print(json.dumps({"invoke": found.invoke()}, indent=2) if args.json else found.invoke())
+        #
+        # And what the answer fell **through** (RK1561), in whichever register was asked for.
+        # On stdout it would break the one-line contract this flag is for, so the text register
+        # says it on stderr — `lint`'s split between a report and its verdict — and the payload
+        # says it as a key, a dict having no line to break. Null and never omitted, so a
+        # consumer tells "nothing was passed over" from "this build predates the field".
+        unread = found.unread()
+        if args.json:
+            print(json.dumps({"invoke": found.invoke(), "unread": unread or None}, indent=2))
+        else:
+            print(found.invoke())
+            if unread:
+                # Flushed first, so the two streams land in the order they were written where
+                # a caller sent both to one file: stdout is fully buffered off a terminal and
+                # stderr is not, which puts the note above the answer it is about.
+                sys.stdout.flush()
+                print(unread, file=sys.stderr)
         return EXIT_OK
     # Both registers off the record (RK1170), the exit code included: whether the pen and the
     # judge are the same copy is a property of the reading and not a second decision here.

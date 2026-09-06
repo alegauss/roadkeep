@@ -1657,6 +1657,36 @@ class Engines:
             return self.declared
         return invocation()
 
+    def unread(self) -> str:
+        """What :meth:`invoke` fell **through**, where the declaration is one it cannot read.
+
+        RK1523 gave :meth:`stated` a row for the third state — nothing declared, a declaration
+        this command wrote, and a declaration it did not — and `--invoke` kept answering as
+        though the third were the first. It falls through to the copy that is answering and
+        prints `roadkeep`, which is correct as a shell instruction and silent about the thing
+        that makes it interesting: the harness starts something else, and which copy that
+        reaches is inside a wrapper nothing here can read.
+
+        The fall-through stays, and RK1492 argued it: an invented answer is worse than the
+        honest one, and the caller asked for a command to run rather than for an opinion about
+        their harness. What was missing is the sentence, at the flag a caller actually pipes.
+
+        `""` on the other two states, which is what keeps it quiet: a project declaring nothing
+        has no fall-through to report, and one whose program this command wrote has had its
+        declaration answered rather than passed over.
+        """
+        if not self.declaration or self.declared:
+            return ""
+        # Standing on its own and never "the line above" (RK1561): this goes to stderr while
+        # the answer goes to stdout, and which of the two a reader sees first is decided by
+        # whatever they piped them into — so a sentence that points at a position is one that
+        # is wrong half the time.
+        return (
+            f"declared as `{self.declaration}`, which this command did not write — so the "
+            f"harness starts that, and the copy inside it may not be the one this names; "
+            f"`{invocation()} engines` reads all five"
+        )
+
     def stated(self) -> str:
         """Every copy this project runs, and where the three that state a version differ.
 

@@ -731,29 +731,6 @@ table, say which, and keep RK1064`s sentence for the key that truly is unknown.
 
 ## Block F — The plugin
 
-### §RK1561 The fall-through the one-line answer does not mention
-
-RK1523 gave the report a row for a declaration whose program this command did not write.
-`engines --invoke` still answers as though there were none: it falls through to the copy
-that is answering and prints `roadkeep`, which is correct as a shell instruction and
-silent about the thing that makes it interesting — the harness is starting something
-else, and which copy that reaches is inside a wrapper this tool cannot read.
-
-The fall-through is right and RK1492 argued it: an invented answer is worse than the
-honest one. What is missing is the same sentence the row now carries, at the one flag a
-caller uses when it has decided to run something. A session reading `--invoke` alone
-gets a command; the row beside it, which it did not ask for, holds the fact that the
-command may not be the copy its tools go through.
-
-Cheap, and the shape is settled by the flag's own history. RK1230 made `--invoke` one
-line with no verdict, deliberately, because it answers *which copy to call* and a
-paragraph there is a paragraph in a pipe. So the note belongs on stderr, where the
-answer stays one line and a reader who piped it loses nothing — the same split `lint`
-makes between a report and its verdict.
-
-What it must not do is refuse. A declaration this tool cannot read is a legitimate state
-and the caller asked for a command to run, not for an opinion about their harness.
-
 ### §RK1564 The suffix that would read as a fifth note
 
 RK1525 finds a note by its site: an `Answer` whose text is an f-string, and the name of

@@ -1807,8 +1807,10 @@ def test_the_payload_carries_it_without_the_flag(tmp_path, capsys, monkeypatch):
     assert main(["-C", str(root), "engines", "--json"]) == EXIT_OK
     assert "invoke" in json.loads(capsys.readouterr().out)
 
+    # Two keys since RK1561, and the claim is unchanged: the flag's payload is the answer and
+    # what the answer fell through, not the whole reading `engines` bare publishes.
     assert main(["-C", str(root), "engines", "--invoke", "--json"]) == EXIT_OK
-    assert set(json.loads(capsys.readouterr().out)) == {"invoke"}
+    assert set(json.loads(capsys.readouterr().out)) == {"invoke", "unread"}
 
 
 # -- the write a stale copy should not make (RK1235) --------------------------
@@ -3144,3 +3146,63 @@ def test_the_payload_says_what_was_declared_and_whether_it_was_read(
     # And the launcher answer is unchanged: `--invoke` still falls through to the copy that
     # is answering, which for a declaration this tool cannot read is the honest reply.
     assert found["invoke"]
+
+
+# -- the fall-through the one-line answer does not mention (RK1561) -----------
+
+from roadkeep.provenance import invocation  # noqa: E402
+
+
+def test_the_invoke_line_says_what_it_fell_through(project, capsys, monkeypatch):
+    """RK1523 gave the report the row and `--invoke` kept answering as though nothing were
+    declared: it falls through to the copy that is answering and prints `roadkeep`, correct as
+    a shell instruction and silent about the harness starting something else."""
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(project / "empty"))
+    _declaring(project, ["uv", "run", "serve-roadkeep", "mcp"])
+    assert main(["-C", str(project), "engines", "--invoke"]) == EXIT_OK
+    said = capsys.readouterr()
+    # One line on stdout, which is the contract RK1230 gave this flag: a caller reads it into
+    # a shell variable, so a paragraph there is a paragraph in a pipe.
+    assert said.out.strip().splitlines() == [said.out.strip()]
+    assert "uv run serve-roadkeep mcp" in said.err
+    assert "did not write" in said.err
+
+
+def test_the_answer_it_prints_is_unchanged(project, capsys, monkeypatch):
+    # The fall-through stays and RK1492 argued it: an invented answer is worse than the honest
+    # one, and the caller asked for a command to run rather than an opinion about their harness.
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(project / "empty"))
+    _declaring(project, ["uv", "run", "serve-roadkeep", "mcp"])
+    assert main(["-C", str(project), "engines", "--invoke"]) == EXIT_OK
+    assert capsys.readouterr().out.strip() == invocation()
+
+
+def test_the_other_two_states_say_nothing(project, source, capsys, monkeypatch):
+    """Quiet where there is no fall-through to report: a project that declares nothing was
+    never passed over, and one whose program this command wrote had its declaration answered."""
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(project / "empty"))
+    assert main(["-C", str(project), "engines", "--invoke"]) == EXIT_OK
+    assert capsys.readouterr().err == ""
+    install(project, source=source)
+    capsys.readouterr()
+    assert main(["-C", str(project), "engines", "--invoke"]) == EXIT_OK
+    assert capsys.readouterr().err == ""
+
+
+def test_the_payload_carries_it_as_a_key(project, capsys, monkeypatch):
+    """One reading, two registers (RK1170). A dict has no line to break, so the fact goes in
+    it — and null rather than omitted, so a consumer tells nothing-passed-over from a build
+    that predates the field. The served surface appends `--json` to every call (RK319), so
+    this is the register the caller this task is about actually reads."""
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(project / "empty"))
+    _declaring(project, ["uv", "run", "serve-roadkeep", "mcp"])
+    assert main(["-C", str(project), "engines", "--invoke", "--json"]) == EXIT_OK
+    found = json.loads(capsys.readouterr().out)
+    assert "uv run serve-roadkeep mcp" in found["unread"]
+    assert found["invoke"] == invocation()
+
+
+def test_the_payload_says_null_where_nothing_was_passed_over(project, capsys, monkeypatch):
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(project / "empty"))
+    assert main(["-C", str(project), "engines", "--invoke", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["unread"] is None

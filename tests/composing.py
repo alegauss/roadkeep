@@ -249,6 +249,11 @@ SITES: tuple[Site, ...] = (
     # RK1230. Run by `test_installing`, which asserts the line it composes *is* the copy the
     # registry names — the one composed command here whose whole point is being pasted.
     Site("installing.py:Engines.invoke", "run"),
+    # RK1561. The sentence the line above does not carry: `--invoke` falls through a
+    # declaration this command cannot read and prints the copy that is answering, which is
+    # correct and silent about the harness starting something else. Run by `test_installing`,
+    # which reads it off stderr beside the one-line answer on stdout.
+    Site("installing.py:Engines.unread", "run"),
     # RK1487. The copy a refusal does not mention, and the read it names is what says which
     # surfaces are still to write — run by `test_installing`, which lands a vendor into a tree
     # whose `.claude` is a file and reads the sentence the exception above it is not about.

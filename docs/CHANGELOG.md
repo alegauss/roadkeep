@@ -1028,6 +1028,7 @@
 - ✅ **RK1543** **a version here names one commit and the surfaces that consume one speak of it as a release, with nothing saying which** — The table sentence a listing prints says a version names the commit that wrote it, which is what pinning here holds.
 - ✅ **RK1549** **no verb removes the vendored engine, so the report that names it hands the last step back to the reader in English** — uninstall --engine weighs the vendored copy and removes it, refusing a tree that carries a .git, and the kept row names it.
 - ✅ **RK1560** **install replaces a server declaration an adopter wrote themselves and no row names what was there** — A server declaration this command did not write is left where it is and named in the report, and uninstall keeps it for the same reason.
+- ✅ **RK1561** **engines --invoke prints a command and never that the declaration it fell through was one this tool cannot read** — The declaration --invoke fell through is now said on stderr and as a payload key, so the one-line answer is unchanged and no longer silent.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

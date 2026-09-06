@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 6 | 173 | 4 |
 | D — The gate | 23 | 270 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 156 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 157 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 34 | 1061 | 14 |
+| **Total** | 33 | 1062 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1561** (deps: —) **engines --invoke prints a command and never that the declaration it fell through was one this tool cannot read** — RK1523 gave the report that row and the flag a caller actually pipes still answers as though nothing were declared. → §RK1561
+- 💭 **RK1563** (deps: —) **a field that shares a name with the served prefix is reported as a carrier of it, which it is not** — the census sweeps by name alone, so an ordinary use of the word lands in a table about something else wearing an assertion it cannot answer. → §RK1563
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

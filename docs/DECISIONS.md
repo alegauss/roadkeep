@@ -426,6 +426,7 @@ from outside the tree.
 - ✅ **RK1543** **a version here names one commit and the surfaces that consume one speak of it as a release, with nothing saying which** — A version names the commit that wrote it: the hook stamps every commit and no release is cut, so pinning holds a revision.
 - ✅ **RK1549** **no verb removes the vendored engine, so the report that names it hands the last step back to the reader in English** — A destructive write this tool would otherwise hand back in English is built once its cost is measured, never on the guess that it is small.
 - ✅ **RK1560** **install replaces a server declaration an adopter wrote themselves and no row names what was there** — A file merged into and not owned is one where every entry an adopter may have authored is theirs, this project's name on it or not.
+- ✅ **RK1561** **engines --invoke prints a command and never that the declaration it fell through was one this tool cannot read** — A one-line contract is kept by choosing the stream, not by dropping the fact.
 
 ### §RK1424 Why the description gave way and not the ceiling
 
@@ -521,6 +522,23 @@ leaves a project half-wired for a decision the others do not touch.
 
 And `uninstall` keeps it too — taking out a declaration this command did not write is
 the same defect, sign flipped.
+
+### §RK1561 One line, and the fact beside it
+
+RK1230 made `--invoke` one line with no verdict: a caller reads it into a shell
+variable, so a paragraph there is a paragraph in a pipe. That contract kept the
+fall-through silent — RK1523 gave the report a row for a declaration this command cannot
+read, and the flag answered as though there were none.
+
+Both were right, so the fix is the stream. stdout stays the one line; stderr carries the
+sentence; `--json` carries it as a key, a dict having no line to break. The split `lint`
+makes between report and verdict.
+
+The fall-through stays, and RK1492 argued it: an invented answer is worse than the
+honest one, and the caller asked for a command, not an opinion about their harness.
+
+The sentence names no position: which stream a reader sees first is what they piped them
+into, so `the line above` is wrong half the time.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
