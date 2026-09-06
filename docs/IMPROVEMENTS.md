@@ -829,6 +829,30 @@ So the honest first step is the number: what the six rows cost on a project with
 surface stale, and what they would cost with the door said once. If it is another two
 hundred units the shape follows; if it is thirty, the rows are already right.
 
+### §RK1569 The half that is somebody else's to change
+
+RK1530 re-takes the split RK1497 drew its boundary from: zero in fields, non-zero in
+prose. The first half is sound — 5,318 fields against the 3,962 the original counted,
+and still zero. The second is a hard assertion resting on somebody else's checkout
+keeping a sentence that happens to look mangled.
+
+It has already moved. Eighteen prose hits at the measurement, three now: the corpora
+advanced and RK1497's design, which quoted both examples, was deleted by its own ship.
+Two of the three that remain are Shio's `×–` — a multiplication sign and an en dash, a
+legitimate sentence somebody may reword tomorrow. When that happens the test goes red,
+and what it will be saying is *somebody edited a backlog we do not own*, which is
+nothing about the rule.
+
+The suite already has the register for this. `test_corpora` warns and stays green where
+the subject is a corpus that moved — the pins advisory is exactly that shape — and reds
+only where the claim is about this build. A prose count falling to zero is worth a
+reader's attention and is not a broken build, which is the definition of advisory this
+module already wrote down.
+
+What must not happen is a fixture. A string invented here that exhibits the signature
+would make the assertion pass forever and measure nothing, which is the scratchpad probe
+RK1530 replaced, one step further from the corpus.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
