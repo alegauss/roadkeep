@@ -717,6 +717,7 @@
 - ✅ **RK1537** **a pause is not held to the why limit a project declared, and nothing at the number says so** — govern names the door a limit does not reach, so an author choosing limits.why is told a pause is charged against the rendered line instead of finding out by a long reason landing.
 - ✅ **RK1538 (the remedy table)** **the flag saying which ceiling refused a field reaches neither the remedy table nor a payload** — the preventive read is keyed on which ceiling refused, so a why the line bound is offered the read that prices the line instead of one that says the draft fits.
 - ✅ **RK1539** **the comment explaining the respelling guard names a verb this CLI does not have** — the guard's comment names the one collision the enumeration finds, and a test holds the prose against the table so a word called a command here has to be one.
+- ✅ **RK1540** **a reference page now opens with two lines addressed to the gate, and nothing prices them** — a page's row says what of it is the declaration, measured at a fifth of a percent to half a percent, so the frontmatter stays where the page states its own claim.
 
 ## Block E — Adoption
 

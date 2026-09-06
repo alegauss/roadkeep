@@ -1501,6 +1501,16 @@ class Part:
     #: while its other sections read fine, and reporting those would be a breakdown that does
     #: not sum to the total above it. So the absence is the file's and never a section's.
     characters: int | None = None
+    #: What of this weight is a **declaration** rather than the text a reader came for
+    #: (RK1540), in the same unit as :attr:`characters`. Non-zero only for a reference page
+    #: opening with frontmatter: RK1505 put two keys there so the page states its own claim,
+    #: and the pages are the one surface RK1437 separated *because of what opening one
+    #: costs* — so the share is published rather than argued about, 0 being every other use.
+    #:
+    #: **Last, because two of the three callers build this record positionally** (RK1522):
+    #: a field inserted above `characters` moved the note's width into it silently, and the
+    #: sweep that priced the transport's notes went to `None` in one edit.
+    declared: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -1935,6 +1945,10 @@ class Skilled:
         rows += [
             f"  page     {(page.characters if page.characters is not None else page.bytes):>6}"
             f"  {page.heading}  on the turns that open it, not on every turn"
+            # And what of it is addressed to the gate rather than to the reader (RK1540), where
+            # the page carries a declaration: RK1437 split these off for what opening one
+            # costs, so the share is said where the figure is rather than argued about.
+            + (f", of which {page.declared} is the declaration" if page.declared else "")
             for page in self.pages
         ]
         return chr(10).join(rows)
@@ -1970,6 +1984,10 @@ class Skilled:
                     "path": page.heading,
                     "lines": page.lines,
                     "bytes": page.bytes,
+                    # The declaration's own share (RK1540), `0` where the page carries none —
+                    # never omitted, so a consumer tells a page without frontmatter from a
+                    # build that did not measure it.
+                    "declared": page.declared,
                     "characters": page.characters,
                 }
                 for page in self.pages
@@ -2037,9 +2055,33 @@ def _pages(home: Path, named: tuple[str, ...]) -> tuple[Part, ...]:
                 lines=raw.count(b"\n"),
                 bytes=len(raw),
                 characters=_characters(raw),
+                declared=_characters(_frontmatter(raw)),
             )
         )
     return tuple(found)
+
+
+#: What a page's declaration is fenced by, as `installing.declares` reads one.
+_FENCE = b"---\n"
+
+
+def _frontmatter(raw: bytes) -> bytes:
+    """The declaration a page opens with, or empty where it carries none (RK1540).
+
+    Measured rather than assumed, which is this task's whole content. RK1505 put two keys on
+    the reference pages so the absent-page note can name the verb a reader is missing, and
+    RK1437 split those pages off `SKILL.md` *because of what opening one costs* — so a fact
+    only the gate reads now rides on every turn that opens a page, and nothing said how much.
+
+    The answer is 110 of 19,424 and 104 of 45,756: a fifth of a percent to half a percent, so
+    the declaration stays in the page. The figure is published beside it rather than remembered
+    here, for RK1530's reason — a number that decided something and lives in a docstring is one
+    nobody re-takes.
+    """
+    if not raw.startswith(_FENCE):
+        return b""
+    end = raw.find(_FENCE, len(_FENCE))
+    return b"" if end < 0 else raw[: end + len(_FENCE)]
 
 
 @dataclass(frozen=True, slots=True)

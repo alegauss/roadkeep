@@ -4324,3 +4324,54 @@ def test_saying_it_once_is_what_the_price_now_reads(tmp_path):
     )
     assert note_cost(Config.discover(tmp_path)).widest == sum(width(one) for _, one in rows)
     assert sum(message.count(READS) for _, message in rows) == 1
+
+
+# -- the frontmatter a reader pays for (RK1540) --------------------------------
+
+
+def test_a_page_says_what_of_it_is_addressed_to_the_gate(tmp_path, capsys):
+    """RK1540. RK1505 put two keys on the reference pages so the absent-page note can name the
+    verb a reader is missing, and RK1437 split those pages off `SKILL.md` **because of what
+    opening one costs** — so a fact only the gate reads rides on every turn that opens a page,
+    and nothing said how much.
+
+    The answer is a fifth of a percent to half a percent, which is why the declaration stays in
+    the page and why the figure is published rather than remembered: a number that decided
+    something and lives in a docstring is one nobody re-takes (RK1530)."""
+    from roadkeep.budgeting import _pages
+    from roadkeep.installing import PLUGIN_PAGES
+
+    here = Path(__file__).resolve().parents[1]
+    pages = _pages(here / "skills" / "roadkeep", PLUGIN_PAGES)
+    assert pages, "no reference page reached: this measurement is about nothing"
+    for page in pages:
+        assert page.declared, page.heading
+        # The share the decision turned on, held as a bound rather than a figure: what may not
+        # happen is a declaration growing into something a reader pays for.
+        assert page.declared < (page.characters or page.bytes) // 50, page.heading
+
+
+def test_the_share_is_printed_beside_the_page_and_published(tmp_path, capsys):
+    from roadkeep.installing import PLUGIN_PAGES
+
+    assert main(["-C", str(Path(__file__).resolve().parents[1]), "cost", "--skill"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "of which" in said and "is the declaration" in said
+    assert main([
+        "-C", str(Path(__file__).resolve().parents[1]), "cost", "--skill", "--json"
+    ]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert len(payload["pages"]) == len(PLUGIN_PAGES)
+    assert all(one["declared"] for one in payload["pages"])
+
+
+def test_a_page_with_no_declaration_says_nothing_about_one(tmp_path):
+    """`0` and never omitted, which is this report's rule everywhere: a consumer tells a page
+    that carries no frontmatter from a build that did not measure it."""
+    from roadkeep.budgeting import _frontmatter
+
+    assert _frontmatter(b"# A page\n\nProse.\n") == b""
+    assert _frontmatter(b"---\nsaves: add\n---\n# A page\n") == b"---\nsaves: add\n---\n"
+    # An opening fence nothing closes is not a declaration, and reading to the end of the file
+    # would price the whole page as one.
+    assert _frontmatter(b"---\nsaves: add\n") == b""
