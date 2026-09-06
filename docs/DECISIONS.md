@@ -65,6 +65,7 @@ on the prose roles.
 - ✅ **RK1362** **the spec an agent executes is assembled per call by brief and exists nowhere a review or a second tool can read** — A read bounded to a tool result gets a projection beside it, never a wider bound on the read itself.
 - ✅ **RK1519** **a project that declares its own open markers cannot claim a line, and nothing anywhere says so** — a claim is a marker on an open line, so the working marker is a narrowing of markers.open and never guessed from it.
 - ✅ **RK1527** **the near window stayed at three when the corpus it ranks over doubled** — the near window is set from what the known pairs reach, so a corpus added beside another widens it only where a pair is measured outside it.
+- ✅ **RK1545** **the filings axis reads one per ship over one commit here, which is this session's cadence and not the work's** — A reading suspected of measuring the session is answered by taking it on another corpus, not by qualifying it.
 
 ### §RK1362 Why a projection and not a wider read
 
@@ -78,6 +79,26 @@ The cost accepted is that `export` now has two subjects, one about the backlog a
 about a line, so `--spec` composes with neither destination and is refused beside
 `--json`. The payload was already there: `brief <id> --json` answers it, and a second
 JSON of the same join would be the drift this projection exists to have none of.
+
+### §RK1545 The corpus that answered the doubt
+
+The reading, taken live on all three:
+
+    roadkeep  filed 0–17  median 0  p75 1  p90 2   over 1–15  median 1  p90 2
+    shio      filed 0–41  median 0  p75 1  p90 2   over 1–7   median 1  p90 2
+    turing    filed 0–26  median 0  p75 0  p90 2   over 1–5   median 1  p90 2
+
+They agree, and the longest **span** is this repository's — the opposite of the
+flattening the line suspected. So median-0, p90-2 is a property of the reading and not
+of a session's rhythm.
+
+What was weighed is qualifying the figure instead: a clause saying the axis may be
+reading the loop. Against, decisively — the doubt was whether the number means anything,
+and a clause saying *perhaps not* leaves a reader where the doubt found them. The
+corpora were pinned already and the reading is one call.
+
+The general form is the decision. Held as properties and not as the twelve figures,
+because a live tree moves.
 
 ## Block D — The gate
 

@@ -18,6 +18,7 @@ from pathlib import Path
 
 import pytest
 
+import corpora
 from conftest import git, git_init, git_commit
 
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
@@ -540,3 +541,41 @@ def test_the_payload_names_what_each_entry_filed(tmp_path, capsys):
     assert record["filed"] == ["RK2"]
     assert record["over"] >= 1
     assert payload["filed"]["count"]
+
+
+# -- the axis re-taken where the cadence is not this one (RK1545) --------------
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda one: one.name)
+def test_the_filings_axis_reads_the_same_on_a_backlog_worked_differently(corpus):
+    """RK1545, which was filed as a worry and is answered by taking the reading.
+
+    The worry: this repository ships a task and files the improvement it turned up in the
+    next commit, so `filed 1 over 1` might be the loop's signature rather than the work's —
+    and RK1510 exists to tell a backlog decomposing from one discovering. The check it named
+    is the two corpora, where the cadence is nothing like this one.
+
+    Taken, live, on both::
+
+        roadkeep  filed 0–17  median 0  p75 1  p90 2   over 1–15  median 1  p90 2
+        shio      filed 0–41  median 0  p75 1  p90 2   over 1–7   median 1  p90 2
+        turing    filed 0–26  median 0  p75 0  p90 2   over 1–5   median 1  p90 2
+
+    They agree, and the longest **span** is this repository's — the opposite of flattened. So
+    the median-0, p90-2 shape is a property of the reading and not of a session's rhythm, and
+    the axis is portable. Held as properties and not as the figures, for RK1486's reason: a
+    live tree moves, and what may not change is that a third corpus answers in the same range.
+    """
+    corpora.require(corpus)
+    found = weigh(corpora.checkout(corpus))
+    assert found.filings.count, "a corpus whose ships filed nothing would not be this one"
+    # The shape, on a backlog nobody worked one commit per thought: most ships file nothing,
+    # and the ones that file file few. A median above one would be the decomposition RK1510
+    # was built to name, and it is not what either of these corpora is doing.
+    assert found.filings.median == 0, found.filings
+    assert found.filings.p90 <= 4, found.filings
+    # And the span in the same range, which is the half RK1545 doubted hardest: it reads as
+    # `over 1` here because a filing follows its ship closely everywhere, not because this
+    # session commits per idea.
+    assert found.spans.median == 1, found.spans
+    assert found.spans.p90 <= 4, found.spans
