@@ -129,7 +129,7 @@ called unbuilt were already in the ledger.
 
 **Next ready:**
 
-- ⏳ **RK1498** (deps: RK1532 ✅) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Thirty of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
+- ⏳ **RK1498** (deps: RK1532 ✅) **thirty of the thirty-six sites that compose a door are accounted for as a work-list, so nothing ever runs one** — Twenty-eight of the sites are still accounted for as a work-list rather than run, one fixture family at a time. → §RK1498
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
