@@ -868,6 +868,29 @@ What must not happen is the rows going quiet again. Each one now names its state
 row flipped to `run` on a test that asserts a sentence was printed would be the exact
 failure this list exists to have ended.
 
+### §RK1576 The rule one writer of five keeps
+
+RK1533 gave `govern` a read-back — render the file, parse it, refuse the whole write
+when the parse says no — and filed the rule as a decision: *a write to the config is
+refused unless the file it would leave parses*. That rule now binds five writers and one
+of them implements it.
+
+The others are `declare <role>`, which adds a `[files]` row; `declare <table>`, which
+opens an opt-in table; and two in `installing`. None reads back, and none is obviously
+safe — which is the point: today's cross-key rules sit in `[tools]` and `[markers]`, and
+the next lands wherever a table grows a second key constraining the first.
+
+The fix is not five copies. `_readable` takes a composed string and a config and raises
+the parser's own sentence; making it public and calling it from each writer is one
+import per site, and what it costs is a TOML parse of a file every command already
+parses once.
+
+What makes it a task rather than a tidy is the property behind it. This package holds
+`Document`'s round-trip over governed files by refusing the write, and the config is the
+one governed file that had no such rule; a decision that says every writer is held and a
+code base where one is, is a decision that reads as kept. The honest form is a sweep:
+enumerate what writes `config.source`, and assert each goes through the read-back.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
