@@ -707,6 +707,26 @@ beside them: `criterion add` refuses a call naming **neither**, which is a requi
 choice rather than two answers — the shape argparse spells on a command line and cannot
 spell over a transport where both fields exist and neither is marked required.
 
+### §RK1610 The key that exists, one table over
+
+Measured twice while building RK1559`s fixtures, both times by writing valid TOML in the
+wrong order. `priority = ["RK1"]` after a `[files]` header is `files.priority`, and
+`roadmap = 10` after `[limits]` is `limits.roadmap`. Both are refused as unknown, and
+both keys exist — one table away.
+
+The sentence RK1064 wrote is right about the case it was written for and wrong about
+this one: "a typo if nothing declares it, an upgrade if a newer roadkeep does" points a
+reader at their spelling and at their version, and the edit is neither. It is a header,
+three lines up, that they cannot see from the message.
+
+What makes this cheap is that the answer is already assembled. `describing.py` holds the
+whole map — `_DESCRIBED` names every table and `_DEFAULTS` every key under it — for the
+surface `config` prints, and the reader that composes this refusal has no route to it
+only because the two were written a year apart.
+
+So the clause is conditional: where the key names one this build knows under another
+table, say which, and keep RK1064`s sentence for the key that truly is unknown.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
