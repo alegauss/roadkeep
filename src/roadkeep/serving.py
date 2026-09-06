@@ -2930,6 +2930,10 @@ class Kind:
 #: holds the two halves together, which is why RK1524's lift of the last inline paragraph into
 #: :func:`_witnessed` mattered beyond being measurable: it made the fourth site the same shape
 #: as the other three.
+#:
+#: The kind is the **first** call in that f-string and not every call in it (RK1564): a site
+#: appends one note, and a clause after it — :func:`_now`, which three composers already end
+#: with — is a sentence fragment nothing here declares.
 NOTES: tuple[Kind, ...] = (
     Kind(
         "swapped",

@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 7 | 173 | 4 |
 | D — The gate | 23 | 271 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 157 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 158 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 34 | 1068 | 14 |
+| **Total** | 33 | 1069 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1564** (deps: —) **the note sweep reads every call inside an answer's text, so a helper beside a note reads as a kind** — RK1525 is exact because each site interpolates one composer, and a suffix clause of the sort three composers already use would break it. → §RK1564
+- 💭 **RK1565** (deps: —) **the per-surface staleness rows may repeat one door six times, and nothing has measured what that costs** — RK1526 took 201 units off a four-row note by saying its shared read once, and install.stale files per surface with the same command on every row. → §RK1565
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

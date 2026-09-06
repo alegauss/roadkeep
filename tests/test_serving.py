@@ -3050,6 +3050,46 @@ def test_a_name_this_cli_does_not_have_is_still_taken(tmp_path, capsys):
     assert respelled
 
 
+def _notes_appended(source: str) -> set[str]:
+    """The kind every `Answer(f"…")` site appends: **the first call in the f-string** (RK1564).
+
+    One site appends one note, so one site names one kind. RK1525 read *every* call inside the
+    text instead, which was exact only because each of the four sites interpolates a composer
+    and nothing else. A site closing with the clause this module reaches for — `{_landed(changed,
+    root)}{_now(served)}`, and three composers already end that way one dereference in — would
+    have reported `now` as a fifth kind: a census reading a token and asserting a meaning.
+
+    First, because the note is what the site is *for* and a suffix is not. Not a list of exempt
+    helpers, which would rot, and not a check that a composer is named after its kind: `_<kind>`
+    is stated in `serving.NOTES` and held by this sweep going red, which is one reader and one
+    failure — a second copy of that fact is the one that goes stale.
+    """
+    found: set[str] = set()
+    for node in ast.walk(ast.parse(source)):
+        if not (
+            isinstance(node, ast.Call)
+            and getattr(node.func, "id", "") == "Answer"
+            and node.args
+            and isinstance(node.args[0], ast.JoinedStr)
+        ):
+            continue
+        # `values` is source order and `ast.walk` is breadth-first, so this is the outermost
+        # call of the leftmost interpolation that has one — the note, whatever follows it.
+        first = next(
+            (
+                inner
+                for one in node.args[0].values
+                if isinstance(one, ast.FormattedValue)
+                for inner in ast.walk(one.value)
+                if isinstance(inner, ast.Call) and isinstance(inner.func, ast.Name)
+            ),
+            None,
+        )
+        if first is not None:
+            found.add(first.func.id.lstrip("_"))
+    return found
+
+
 def test_every_kind_is_a_site_that_appends_one(tmp_path):
     """RK1525. RK1493's sweep reads the literals passed to `_said_once`, which is the
     once-per-process half and nothing else: a per-call note makes no such call, so the fourth
@@ -3060,32 +3100,26 @@ def test_every_kind_is_a_site_that_appends_one(tmp_path):
     appending a note *is*, and the composer's name is the kind's. Total over both halves, which
     is what `_said_once` could never be: it asks a per-call note to announce itself with a
     guard it does not need."""
-    import ast
     from pathlib import Path as _Path
 
     from roadkeep.serving import NOTES
 
-    source = _Path(serving.__file__).read_text(encoding="utf-8")
-    appended: set[str] = set()
-    for node in ast.walk(ast.parse(source)):
-        if not (
-            isinstance(node, ast.Call)
-            and getattr(node.func, "id", "") == "Answer"
-            and node.args
-            and isinstance(node.args[0], ast.JoinedStr)
-        ):
-            continue
-        appended |= {
-            inner.func.id.lstrip("_")
-            for one in node.args[0].values
-            if isinstance(one, ast.FormattedValue)
-            for inner in ast.walk(one.value)
-            if isinstance(inner, ast.Call) and isinstance(inner.func, ast.Name)
-        }
+    appended = _notes_appended(_Path(serving.__file__).read_text(encoding="utf-8"))
     assert appended == {one.name for one in NOTES}, {
         "appends a note, undeclared": sorted(appended - {one.name for one in NOTES}),
         "declared, appended nowhere": sorted({one.name for one in NOTES} - appended),
     }
+
+
+def test_a_clause_after_the_note_is_not_a_fifth_kind():
+    """RK1564, and the half a green sweep cannot show: today's four sites read the same under
+    either rule, so the narrowing is only visible against the site that would have broken it.
+
+    Both shapes here are ones this module writes — a suffix beside the note, and a composer
+    called inside another's arguments. Neither is a kind, and the reading that said they were
+    would have been asking `NOTES` to declare a sentence fragment."""
+    assert _notes_appended('Answer(f"{text}\\n\\n{_landed(a, b)}{_now(served)}")') == {"landed"}
+    assert _notes_appended('Answer(f"{text}\\n\\n{_landed(_remedy(root), b)}")') == {"landed"}
 
 
 def test_the_two_halves_of_the_sweep_disagree_about_exactly_one_kind(tmp_path):

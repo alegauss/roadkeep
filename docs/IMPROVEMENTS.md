@@ -752,28 +752,6 @@ with nothing written down is a rule that will be discovered a third time.
 
 ## Block F — The plugin
 
-### §RK1564 The suffix that would read as a fifth note
-
-RK1525 finds a note by its site: an `Answer` whose text is an f-string, and the name of
-any function called inside it. Four sites, four kinds, and the reading is exact today
-because each site interpolates one composer and nothing else.
-
-It is exact by accident. A site appending a note and a suffix — `{_landed(changed,
-root)}{_now(served)}` — would report `now` as a fifth kind, and `_now` is the clause
-this module reaches for: three composers already end with it, one dereference further
-in. The sweep would be saying *a note nobody declared* about a sentence fragment, which
-is RK1563's shape one file over — a census reading a token and asserting a meaning.
-
-Narrowing it is cheap and there are two shapes. Take the **first** call in the f-string,
-on the ground that the note is what the site is for and a suffix is not; or require the
-call to be the whole of one `FormattedValue`, which is what a note appended by itself
-looks like. Neither needs a list of exempt helpers, which is the answer that would rot.
-
-What it must not become is a rule about naming. `_<kind>` is stated in `serving.NOTES`
-and held by this sweep going red, and that is the right amount: a convention with one
-reader and one failure. A second check that the composer is named after its kind would
-be the same fact asserted twice, and the second copy is the one that goes stale.
-
 ### §RK1581 The config this verb looks for and the one every other finds
 
 RK1534 made the orientation lead with `init` on a tree that governs nothing, and the
