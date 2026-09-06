@@ -266,6 +266,30 @@ shape `nearest` does not have and would need arguing for. Either way what is mis
 the second reading, and a bound set from one corpus is the thing RK1477 already had to
 reopen once.
 
+### §RK1567 The read the row says it is
+
+The near rows an `add` prints are `delivered --near` volunteered — the code says so, and
+RK1374 chose that verb's own two phrases for the row rather than invent a second
+wording. Since RK1495 they are not the same read. `add` ranks over a block's deliveries
+**and** its open lines; `delivered --near` ranks over the ledger alone, so a caller
+running the read the row is a copy of gets a different answer from the one shown.
+
+Nothing is wrong on either side. `add` was widened because two sessions filing one
+defect within the hour could not see each other, and `delivered` is named for the ledger
+— asking it about undelivered work is a verb answering outside its own subject. What is
+wrong is that one of them is described as the other.
+
+Three ways out, unequally cheap. Widen `--near` and accept that `delivered` answers
+about open lines under one flag; leave the reads apart and stop calling the row that
+verb's; or give the duplicate read a door of its own — the honest shape and the dearest,
+since a verb whose subject is *a block's whole corpus* is what both callers want and
+neither `delivered` nor `list` is it.
+
+The measurement deciding it is small: how often the two answers differ across this
+repository's blocks. If the open half rarely enters the volunteered rows — RK1527
+measured one slot in thirty-three — the reads agree nearly always, and the second is the
+cheapest honest answer.
+
 ## Block D — The gate
 
 ### §RK1498 The doors nothing has ever run
