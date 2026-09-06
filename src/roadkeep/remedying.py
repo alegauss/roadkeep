@@ -1648,10 +1648,28 @@ FORESEEN: Mapping[str, tuple[str, ...]] = {
     "non-goal.why": ("budget", "--non-goal", "--lead", "<lead>"),
 }
 
+#: The rows that change with **which ceiling refused** (RK1503, RK1538). One today, and it is
+#: the case the flag was made structural for: a `why` inside its own maximum, refused because
+#: the *line* is full, is not answered by `budget --why <draft>` — that read prices the field
+#: and would say the draft fits, sending the caller back to the same refusal. Priced against
+#: the line, it says which of the two binds, in as many words.
+#:
+#: Keyed by `(code, bound)` and consulted first, so a violation carrying no bound reads the
+#: table above unchanged — which is every code but this one.
+FORESEEN_BOUND: Mapping[tuple[str, str], tuple[str, ...]] = {
+    ("why.too-long", "line"): ("budget", "<id>", "--why", "<draft>"),
+}
 
-def foreseen(code: str) -> Door | None:
-    """The preventive read for one code, or ``None`` where nothing predicts it (RK1435)."""
-    argv = FORESEEN.get(code)
+
+def foreseen(code: str, bound: str = "") -> Door | None:
+    """The preventive read for one code, or ``None`` where nothing predicts it (RK1435).
+
+    ``bound`` is which ceiling refused, where the violation says (RK1503, RK1538). RK1503 made
+    that fact structural for three readers and this was one of the two still matching on prose:
+    a field over its own number and a field a full line refused want different reads, and
+    naming the field's one on the second sends a caller to a measurement that says it fits.
+    """
+    argv = FORESEEN_BOUND.get((code, bound)) or FORESEEN.get(code)
     if argv is None:
         return None
     return Door(

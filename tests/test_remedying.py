@@ -1775,3 +1775,48 @@ def test_a_note_code_is_a_code_and_answers_the_same_table():
     a door like any other finding, and only the exit differs."""
     assert remedying.NOTES <= set(remedying.codes())
     assert remedying.notes() == tuple(sorted(remedying.NOTES))
+
+
+# -- the ceiling that refused, read rather than matched (RK1538) ---------------
+
+
+def test_the_preventive_read_follows_which_ceiling_refused():
+    """RK1538. RK1503 made *which of two ceilings* structural so a reader could tell **the
+    field is over** from **the line is full**, and the preventive read was one of the two
+    consumers still matching on prose: it offered `budget --why <draft>` on both.
+
+    On the second that read is wrong in the direction that costs a round trip — it prices the
+    field, the draft is inside it, and the caller is sent back to the same refusal. Priced
+    against the line it says which of the two binds."""
+    from roadkeep.remedying import foreseen
+
+    field = foreseen("why.too-long", "field")
+    line = foreseen("why.too-long", "line")
+    assert field is not None and line is not None
+    assert "<id>" not in field.argv, field.argv
+    # The id is what makes it a reading of the line rather than of the field.
+    assert line.argv[:2] == ("budget", "<id>"), line.argv
+
+
+def test_a_code_with_no_bound_reads_the_table_it_always_did():
+    """Every other code, which is all of them: the bound-keyed table is consulted first and
+    falls through, so a violation that carries none is answered exactly as before."""
+    from roadkeep.remedying import FORESEEN, foreseen
+
+    for code in FORESEEN:
+        assert foreseen(code) is not None, code
+        assert foreseen(code, "").argv == FORESEEN[code], code
+    # And an unbound reading of the one code that varies is still the field's.
+    assert foreseen("why.too-long").argv == FORESEEN["why.too-long"]
+
+
+def test_every_bound_keyed_row_names_a_code_the_table_above_has():
+    """The population is one and the join is what keeps it honest: a row keyed on a code the
+    plain table does not carry would be a preventive read reachable only through a flag, which
+    is the drift a second table invites and this assertion refuses."""
+    from roadkeep.remedying import FORESEEN, FORESEEN_BOUND
+
+    assert FORESEEN_BOUND
+    for code, bound in FORESEEN_BOUND:
+        assert code in FORESEEN, code
+        assert bound in ("line", "field"), bound

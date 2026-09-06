@@ -118,7 +118,10 @@ def _foreseeing(error: SchemaError) -> list[str]:
     from roadkeep.remedying import foreseen  # noqa: PLC0415 - RK260
 
     for violation in error.violations:
-        door = foreseen(violation.code)
+        # With the ceiling that refused (RK1538): a `why` inside its own maximum and a `why`
+        # a full line refused are two states, and the read that prevents the second prices
+        # the line — the first was being offered on both, and says the draft fits.
+        door = foreseen(violation.code, violation.bound)
         if door is not None:
             return [f"foresee  {provenance.invocation()} {' '.join(door.argv)}  ({door.what})"]
     return []
