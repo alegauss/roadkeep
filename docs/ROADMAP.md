@@ -66,6 +66,7 @@
 - 💭 **RK1583** (deps: —) **a deferral says nothing about the limit its reason was measured against, only govern does** — RK1537 closed the choosing end and the accepting end still reports a write whose bound the caller has to infer. → §RK1583
 - 💭 **RK1584** (deps: —) **a refused call publishes no payload, so every field of a violation reaches an agent as prose to match on** — RK1538 could not publish the ceiling that refused because refusals print to stderr and return an exit code, with no structure anywhere. → §RK1584
 - 💭 **RK1585** (deps: —) **prose beside a total table is taken for the table, and one check reads one phrase in one comment** — RK1539 closed the instance it met and the shape it is an instance of has five tables and no rule. → §RK1585
+- 💭 **RK1588** (deps: —) **a withholding reason quoted a total that was stale within the session that read it, and no sweep says how many are** — RK1541 replaced one frozen figure with a read after RK1530 and RK1540 each did the same, and the population of numbers a decision rests on is uncounted. → §RK1588
 
 ## Block E — Adoption
 

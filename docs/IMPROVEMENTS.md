@@ -911,6 +911,30 @@ The cheap version is a helper: given a table and its neighbouring comment, asser
 member is named and nothing claimed that the table lacks. Whether the second half is
 decidable depends on the table, which makes this a design rather than a chore.
 
+### §RK1588 The figures a decision rests on
+
+RK1541's read found its own subject stale: the withholding reason for `budget --decides`
+quoted *2947 characters against 2850*, and the tool measures 2758 today. The number was
+right when RK1506 wrote it and wrong within the session that read it back — a surface
+moves whenever a `help=` is edited, and nothing connects the two.
+
+That is one instance of a shape this project keeps meeting. RK1530 re-took the mangled
+rule's split for it, RK1540 published a page's declaration share for it, and this task
+removed a third frozen figure by replacing it with a read. What none of them did is ask
+how many are left.
+
+The population is enumerable and nobody has enumerated it. A number in a docstring or a
+withholding reason that names a measured total — `2947`, `3,962 fields`, `65k units a
+turn` — is a claim about a surface that moves, and the ones that matter are those a
+*decision* rests on: withheld arguments, declined ceilings, chosen limits.
+
+What would settle it is a sweep for digit-groups in package prose beside the reads that
+would re-take them. That is noisy — most numbers in these docstrings are corpus
+measurements whose whole point is being historical, and RK1530's own docstring quotes
+two on purpose. So the honest first step is smaller: the reasons `cli.withheld` declares
+are a closed set, each is a decision, and each can be read for a figure the tool can now
+compute.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
