@@ -196,6 +196,23 @@ It leaves open the ship that forgot the flag: the answer is lost and nothing fil
 after. RK1501 puts the offer in `brief`, before the work, and a session skipping that
 read has no second chance. That is the cost of declining, stated rather than hidden.
 
+### §RK1587 Why not keyword-only everywhere
+
+The alternative was keyword-only on all ten records of six or more fields built
+positionally. Declined on the measurement: those ten are built inside one module each,
+where the order is owned by whoever adds the field, and the six records more than one
+module builds are already reached by name.
+
+So the hazard is the intersection, and it was empty the moment `Part` was fixed.
+Applying the guard to either half alone would put it on nine records that cannot fail
+and leave the shape uncaught, which is the ceremony a reader later wonders what
+prevents.
+
+What is kept instead is the property. `test_importing` computes both halves and asserts
+the intersection is empty, so the day a record becomes shared *and* somebody builds it
+by position the suite says so — with the two lists in the message, which is the reading
+a fix starts from.
+
 ## Block E — Adoption
 
 - 🗑 **RK1272** **`[limits]`, `[budgets]` and `[markers]` have no verb, so the file governing every write is the ungoverned one** — The argument for a limit goes in the commit that wrote it, never in a comment beside the number (superseded by RK1293).
