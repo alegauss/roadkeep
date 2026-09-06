@@ -710,9 +710,10 @@ class SchemaError(ValueError):
         the refusal that is answerable and miss the half that decides whether the rest is
         worth rewriting (RK1256) — which is the ordering the printed report already makes.
 
-        `offered` is not here. It is an **address a retry substitutes**, already published by
-        the surface that can offer one (RK1149), and a second copy on this record would be two
-        answers to where the retry's argument comes from.
+        `offered` is not here. It is an **address a retry substitutes** (RK1149) and it is
+        meaningless without the argv it goes into — which this layer does not have, the kernel
+        knowing no invocation. The retry reaches the caller inside the sentence, and whether
+        the argv itself belongs on the wire is a question about the surface that composes one.
         """
         return {
             "refused": [one.payload() for one in self.violations],
