@@ -72,7 +72,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 💭 **RK1543** (deps: —) **a version here names one commit and the surfaces that consume one speak of it as a release, with nothing saying which** — RK1508 assumed a walk over tags and found one tag against 1650 commits, every one of which the hook stamps a version into. → §RK1543
 - 💭 **RK1549** (deps: —) **no verb removes the vendored engine, so the report that names it hands the last step back to the reader in English** — RK1514 settled that an unasked deletion is wrong and left the asked-for one unbuilt, so uninstall un-wires and the tool stays on disk. → §RK1549
 - 💭 **RK1560** (deps: —) **install replaces a server declaration an adopter wrote themselves and no row names what was there** — the merge keeps every entry but this project's own, and RK1492 established that entry may legitimately hold a wrapper. → §RK1560
 - 💭 **RK1561** (deps: —) **engines --invoke prints a command and never that the declaration it fell through was one this tool cannot read** — RK1523 gave the report that row and the flag a caller actually pipes still answers as though nothing were declared. → §RK1561

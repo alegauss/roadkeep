@@ -921,30 +921,6 @@ recovers either clause by hand.
 
 ## Block F — The plugin
 
-### §RK1543 The version that is a commit
-
-RK1508's design proposed dating a surface against "the same file at every tag this
-repository carries". Measured while building it: this repository carries **one** tag,
-`v0.2.0`, and 1,650 commits. The read had to walk revisions of the file instead, and the
-reason it works at all is RK153 — the hook stamps a version into `__init__.py` on every
-commit, so every revision is a version.
-
-That is the finding: this project releases by bumping a patch number on every commit and
-tagging almost nothing. Two things read as if it did otherwise. `origin` resolves a task
-to the commits that proposed and shipped it, which is right; but `[install] pinned`, the
-`gate.yml` reader and the plugin manifest all speak of versions as if a version were a
-release somebody cut, and what a version actually names here is one commit.
-
-Nothing is broken. Every version is real, every one is reachable, and `engines` compares
-them correctly. What is absent is a statement of which model this project is on, in a
-repository whose own docs are the conformance fixture for what a project should write
-down. An adopter reading `[install] pinned` cannot tell whether pinning `0.2.103` pins a
-release or a commit, and the answer changes what pinning means.
-
-The cheap half is a sentence in `agents.md` or a decision record; the honest half is
-asking whether the tag should exist at all, since a tool published as an action and a
-plugin is consumed by ref.
-
 ### §RK1549 The last step this tool cannot take
 
 RK1514 gave the copy a row and decided the default: a kept path is not a surface, so

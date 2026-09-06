@@ -278,6 +278,7 @@ from outside the tree.
 - ✅ **RK1428** **Nothing counts the guard's denial, and 1,760 of its 4,092 units re-spell the shell for a caller that has the tools** — The subject stays off the served surface: exposing it costs 102 characters against 19 of room, and a caller over that transport is handed the denial itself.
 - ✅ **RK1471** **a write from an engine whose home was swapped is allowed, on rules no disk holds and with no pin to compare against** — A state whose only remedy is restarting the process is told and never refused: a refusal there is a wall with no door for the reader and none at all for an agent.
 - ✅ **RK1514** **uninstall leaves the vendored engine on disk and its own kept field never mentions it** — a kept path is not a surface, so the vendored copy is reported and never deleted and --check's verdict does not count it.
+- ✅ **RK1543** **a version here names one commit and the surfaces that consume one speak of it as a release, with nothing saying which** — A version names the commit that wrote it: the hook stamps every commit and no release is cut, so pinning holds a revision.
 
 ### §RK1424 Why the description gave way and not the ceiling
 
@@ -318,6 +319,23 @@ can shorten the tables is at a terminal.
 Unsettled: the shell half. RK447 decided the tools lead and RK448 narrowed the deny's
 other routes; neither measured the table, and 1,760 units is now a number rather than an
 impression.
+
+### §RK1543 The tag that was not the model
+
+Measured: 1,746 commits and one tag, `v0.2.0`. RK153 stamps a patch number on every
+commit, so every revision carries a version — which is why RK1508's read works at all,
+its design having assumed a walk over tags.
+
+What was weighed is cutting releases instead. Against: the three surfaces an adopter
+reaches this through are consumed **by ref** — `ACTION_REF` is `main`, a plugin installs
+from a branch — so a tag names what nobody asks for, and a release train puts a second
+number beside the one the hook writes.
+
+For: an adopter pinning `0.2.103` cannot tell a release from a revision, and pinning a
+revision promises more than they may have meant.
+
+The second is answered by saying so, not by changing the model. The tag stays, claiming
+nothing — deleting a published ref to tidy a model breaks whatever resolved it.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

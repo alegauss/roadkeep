@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 10 | 167 | 4 |
 | D — The gate | 26 | 262 | 2 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 153 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 154 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 42 | 1044 | 14 |
+| **Total** | 41 | 1045 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1543** (deps: —) **a version here names one commit and the surfaces that consume one speak of it as a release, with nothing saying which** — RK1508 assumed a walk over tags and found one tag against 1650 commits, every one of which the hook stamps a version into. → §RK1543
+- 💭 **RK1544** (deps: —) **the brief an estimate prices has no deps and no design, and the row does not say so** — RK1509 reads the file adopt was handed because the tree has declared nothing, so every part of a brief that lives in another role is absent from the figure. → §RK1544
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

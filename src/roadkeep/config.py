@@ -200,8 +200,16 @@ _TOOLS_KEYS = frozenset({"characters", "session"})
 #: fields a line carries, and this is the size of an answer about one.
 _READS_KEYS = frozenset({"brief", "list"})
 #: `[install]` — whether this project holds its wired launcher, hook and skill at the version
-#: they are (RK1192). Its own table and not a `[rules]` entry, because every key there is a
-#: prose rule one governed *file* is not held to, and this is about the harness around them.
+#: they are, where a version names **the commit that wrote them** and not a release (RK1192,
+#: RK1543). Its own table and not a `[rules]` entry, because every key there is a prose rule
+#: one governed *file* is not held to, and this is about the harness around them.
+#:
+#: The clause is in the sentence a listing prints because that is where the question is asked
+#: (RK1543). roadkeep stamps a patch number into `__init__.py` on **every commit** (RK153) and
+#: cuts no releases: 1,746 commits and one tag, and the action, the plugin and a checkout are
+#: all consumed by ref. So `pinned = true` pins a commit's stamp, `wired` records the commit
+#: that last wrote the surfaces, and an adopter reading either is holding a revision — which
+#: changes what pinning means and was nowhere written down.
 _INSTALL_KEYS = frozenset({"pinned", "enforced", "wired"})
 #: `[claims]` — how long a claim on a line reads as held (RK151). Its own table for the reason
 #: `[headings]` has one: a bare `held` beside `prefix` would read as one of the limits, and it
