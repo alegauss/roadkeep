@@ -87,6 +87,14 @@ _WITNESSED: tuple[str, ...] | None = None
 #: somebody else's program entirely (RK1149).
 _INVOKED: tuple[str, ...] = ()
 
+#: Whether this run was asked for fields rather than prose, as the surface that parsed the
+#: question read it — `False` where nothing set it. Its own slot and never `--json` read out of
+#: :data:`_INVOKED` (RK1613): that tuple answers *what the caller typed, so a refusal can hand
+#: the call back*, and the served surface empties it deliberately, having no call of the
+#: caller's to offer. One slot answering both questions read that emptiness as *no fields
+#: wanted*, so RK1584's payload was published everywhere except the surface it was filed for.
+_ASKED_FIELDS: bool = False
+
 
 def _codecs() -> tuple[tuple[str, str], ...]:
     """`name -> encoding/errors` for the three streams, as they are right now.
@@ -390,6 +398,28 @@ def invoked(argv: Sequence[str]) -> None:
 def invocation_argv() -> tuple[str, ...]:
     """The argv :func:`invoked` recorded, or `()` where this surface has none."""
     return _INVOKED
+
+
+def asking(fields: bool) -> None:
+    """Record which of the two registers this run was asked for (RK1613).
+
+    :func:`witness`'s arrangement under :func:`invoked`'s rules: one slot, written by the
+    surface that owns the question, read only where a refusal is being rendered, cleared or set
+    before dispatch so nothing reads an earlier call's answer.
+
+    A **second** slot rather than a flag read off :data:`_INVOKED`, because those are two
+    questions about one run — what the caller typed, and which register they asked it to be
+    answered in — and the served surface has an answer to the second precisely where it has
+    none for the first. Asking one tuple both is what published a refusal's fields at a
+    terminal and its prose to the agent that needed the fields.
+    """
+    global _ASKED_FIELDS
+    _ASKED_FIELDS = fields
+
+
+def asked_fields() -> bool:
+    """Whether this run asked for fields, `False` being *no surface said* (RK1613)."""
+    return _ASKED_FIELDS
 
 
 

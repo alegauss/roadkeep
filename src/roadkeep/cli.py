@@ -46,7 +46,7 @@ from roadkeep.attesting import attest
 from roadkeep.capturing import offer
 from roadkeep.config import Config, ConfigError
 from roadkeep.locking import LockBusy, exclusive
-from roadkeep.provenance import engine, invocation, invoked, read_by
+from roadkeep.provenance import asking, engine, invocation, invoked, read_by
 from roadkeep.serving import Prose
 from roadkeep.remaining import declared
 from roadkeep.verbs.adopting import declare_wiring
@@ -426,6 +426,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     # sentence to read, extract and retype (RK1149). After `discover`, so a run that never reached
     # a project leaves the slot as the served path expects to find it — empty.
     invoked(argv)
+    # And which register it asked for, beside that tuple and never read out of it (RK1613). The
+    # served surface composes an argv carrying `--json` and then empties the slot above on
+    # purpose, so a refusal asking it whether to publish its payload was told *no* on the one
+    # surface RK1584 was filed for.
+    asking("--json" in argv)
     faulted = False
     try:
         code = dispatch(config, args)

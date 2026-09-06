@@ -137,10 +137,16 @@ def _payload(error: Exception, said: str) -> None:
     which of two ceilings matched a sentence, which is the reading RK1503 was filed to remove
     and then left where nothing structural could reach it.
 
-    Read off the argv this run recorded and not threaded through eighty-one call sites
-    (RK1149's slot, under its rules): the flag is a fact about the invocation, `invocation_argv`
-    is written before dispatch and read only where a refusal is being rendered, and a parameter
+    Read off a slot this run recorded and not threaded through eighty-one call sites (under
+    RK1149's rules): the register asked for is a fact about the invocation, `asked_fields` is
+    written before dispatch and read only where a refusal is being rendered, and a parameter
     would be one edit per handler and eighty of them enough.
+
+    Its **own** slot since RK1613, and that is the whole of that task. This read `--json` out of
+    `invocation_argv`, which is a different question — what the caller typed, so a retry can
+    hand the call back — and the served surface empties that one deliberately, having no call of
+    the caller's to offer. So the payload was published at a terminal, whose reader parses prose
+    already, and withheld from the agent it was filed for.
 
     **Beside the text and never instead of it.** The transport's own argument is that the
     refusal an agent reads over MCP is byte-identical to the one a terminal reads, so this adds
@@ -148,7 +154,7 @@ def _payload(error: Exception, said: str) -> None:
     that has the payload has not lost the prose it came from. The exit code stays the contract:
     this is what a caller reads *after* it has decided.
     """
-    if "--json" not in provenance.invocation_argv():
+    if not provenance.asked_fields():
         return
     from roadkeep.kernel.schema import SchemaError as _SchemaError  # noqa: PLC0415 - RK260
 

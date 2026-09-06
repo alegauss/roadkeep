@@ -2671,6 +2671,53 @@ def test_the_same_refusal_at_a_terminal_is_the_one_the_cli_wrote(tmp_path, capsy
     assert invocation() in said and "mcp__" not in said
 
 
+def test_a_refused_call_answers_the_agent_in_the_fields_it_answers_a_terminal_in(tmp_path):
+    """RK1613. RK1584 gave a refused call a payload because an agent needing which field and
+    which rule matched a sentence was being handed English — and it asked `invocation_argv`
+    whether `--json` was passed, which is a *different* question about the run: what the caller
+    typed, so a refusal can hand the call back (RK1149). This surface empties that slot on
+    purpose, having no call of the caller's to offer, so one slot answering both read the
+    emptiness as *no fields wanted*: the payload reached the terminal, whose reader parses
+    prose already, and never the agent it was filed for.
+
+    The register has its own slot now, and the streams merge here — two channels at a terminal
+    and one string over this transport — so the payload is the answer where there is one.
+    Nothing is lost by preferring it: `said` is a field of it, and joining both would send the
+    prose, then the prose again inside the JSON the reader actually parses.
+    """
+    tree = project(tmp_path, config=OUTLINED, improvements=DESIGN)
+    answer = called(
+        tree, "add", block="A", symptom="A widget stalls on a cold cache",
+        why="Nothing warms it before the first read.",
+    )
+    assert answer["isError"]
+    published = json.loads(text_of(answer))
+    assert [one["code"] for one in published["refused"]] == ["ref.missing"]
+    # Beside the text and never instead of it, which is RK1584's own rule: a caller holding the
+    # payload has not lost the sentence it came from.
+    assert "ref.missing" in published["said"]
+
+
+def test_the_terminal_that_asked_for_prose_is_not_handed_a_payload_the_server_asked_for(tmp_path, capsys):
+    """The risk a slot adds is that it stays set, so this is the pair to the test above (RK1613).
+    Under the server the register is always fields and one process serves many calls; a later
+    run that asked for prose reading a stale answer would print JSON onto stdout — the half
+    `roadkeep next-id` is composable for, and the half a refusal deliberately leaves empty.
+
+    The served call comes first precisely so the slot is `True` when `main` is entered.
+    """
+    tree = project(tmp_path, config=OUTLINED, improvements=DESIGN)
+    assert called(
+        tree, "add", block="A", symptom="A widget stalls on a cold cache",
+        why="Nothing warms it before the first read.",
+    )["isError"]
+    capsys.readouterr()
+    assert main(["-C", str(tree), "add", "--block", "A", "--symptom",
+                 "A widget stalls on a cold cache", "--why", "Nothing warms it."]) == EXIT_USAGE
+    said = capsys.readouterr()
+    assert "ref.missing" in said.err and said.out == ""
+
+
 def test_a_command_this_surface_withholds_keeps_its_shell_spelling(tmp_path):
     """Empty on anything the surface cannot answer for — a verb it does not serve, an argv
     the parser refuses, a field outside `exposes` — because there the shell spelling is what

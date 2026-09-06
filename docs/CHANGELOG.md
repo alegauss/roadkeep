@@ -1088,6 +1088,7 @@
 - ✅ **RK1383** **twenty-one pairs of modules import each other and nothing names them, so a new cycle looks like the ones already there** — Every pair that imports itself back is named — thirteen with what the boundary does, eight as work nobody has looked at (design recorded in `tests/test_cycles.py`).
 - ✅ **RK1397** **The module that declares the capture family says two verbs have this tool as their subject, and it declares four** — The two lists are declared constants and a census holds them against what the module puts on the parser, so a verb added to either half is a named failure and not a stale sentence.
 - ✅ **RK1448** **a test unpacking report.notes as a whole passes or fails on which unrelated note the gate happened to add** — A sweep refuses the whole note list unpacked, compared or indexed, following one binding, and the suite's own module set is declared once (design recorded in `tests/test_advisories.py`).
+- ✅ **RK1613** **a refusal reaches an agent as prose where the same refusal reaches a terminal as fields** — A refusal publishes its fields on both surfaces: the register asked for is its own slot beside the argv that says what the caller typed, and the payload is the served answer where there is one.
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 

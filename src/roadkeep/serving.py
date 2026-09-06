@@ -2472,6 +2472,11 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     # here a command about somebody else's invocation. One call, one out-parameter, cleared where
     # the call begins.
     provenance.invoked(())
+    # And the register this surface asks for, which is a constant (RK1613): `argv` appends
+    # `--json` to every line it composes, so a transport that re-reads what the handler printed
+    # is asking for fields whatever the tool is. Beside the empty argv and not inside it — the
+    # two slots answer different questions, and this one has an answer here.
+    provenance.asking(True)
     try:
         config = Config.discover(directory)
     except ConfigError as error:
@@ -2528,7 +2533,18 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
         return _answered(
             f"roadkeep: {busy}", config.root, is_error=True, served=_spelled(tool, parsers)
         )
-    reported = "\n".join(part for part in (err.getvalue().strip(), out.getvalue().strip()) if part)
+    said, fields = err.getvalue().strip(), out.getvalue().strip()
+    # A refused call publishes its sentence on stderr and its fields on stdout, which are two
+    # channels at a terminal and one string here (RK1613). `said` is a field of that payload, so
+    # joining them sends the prose, then the prose again inside the JSON the reader parses. The
+    # payload carries both, so it is the answer where there is one.
+    #
+    # On the refusal code alone, and never on a non-zero exit: `lint` reporting a finding exits
+    # 1 having printed its report to stdout and its notes to stderr, and both are its answer —
+    # the verdict a read returns is not the refusal `_payload` writes for (RK271).
+    from roadkeep.verbs.refusing import EXIT_USAGE  # noqa: PLC0415 - RK260
+
+    reported = fields if code == EXIT_USAGE and fields else "\n".join(p for p in (said, fields) if p)
     return _answered(
         reported or f"{tool.name}: exit {code}",
         config.root,

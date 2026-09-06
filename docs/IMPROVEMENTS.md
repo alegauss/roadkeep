@@ -821,30 +821,6 @@ their server.
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
-### §RK1613 The refusal the agent does not get
-
-RK1584 gave a refused call a payload, because an agent needing which field or which rule
-matched a sentence was being handed English. It reads the flag off the argv this run
-recorded — RK1149's slot — and that is right for a terminal: the flag is a fact about
-the invocation, and threading it through eighty-one call sites would have been eighty
-edits and one of them enough.
-
-The transport has no argv. `call` composes one, appends `--json`, parses it and
-dispatches — and clears the provenance slot first, deliberately, so a retry composed
-here can never name the last terminal call this process served. So `_payload` reads an
-empty tuple, finds no `--json`, and returns before publishing anything.
-
-Measured on this build: a `show` of an id nothing carries, with `--json`, prints
-`refused`, `beside`, `about` and `said`. The same call over MCP returns one sentence and
-`isError`. Successful reads publish on both surfaces, success being printed to stdout
-and captured — only the refusal path, writing to stderr and gating on argv, diverges. So
-the structure reaches the reader who could already parse the sentence.
-
-Two ways close it, and they are not equal. The composed argv can reach the slot the
-payload reads, which is one line and leaves the coupling RK1149 warned about. Or a
-refusal becomes a value the transport renders — which is the handler contract, and not
-this line's to decide.
-
 ### §RK1614 One result, twenty signatures
 
 RK1170 moved one verb's two registers onto one result and said what was left: most of
