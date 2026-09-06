@@ -1036,7 +1036,7 @@ bounds the work without forbidding it.
 """
 
 
-def test_the_brief_says_the_design_answers_a_constraint_and_names_what_carries_it(
+def test_the_brief_says_the_design_names_a_constraint_and_what_would_carry_it(
     tmp_path, capsys
 ):
     """RK1501. RK1457 put the answer in the design because it ages out with the work; RK1478
@@ -1049,7 +1049,7 @@ def test_the_brief_says_the_design_answers_a_constraint_and_names_what_carries_i
     root = project(tmp_path, improvements=SETTLING).root
     assert main(["-C", str(root), "brief", "RK1"]) == EXIT_OK
     said = capsys.readouterr().out
-    assert "settles  'No web UI and no server.'" in said
+    assert "quotes   'No web UI and no server.'" in said
     assert "--decides" in said
 
 
@@ -1068,18 +1068,18 @@ def test_the_door_it_names_is_a_command_this_cli_accepts(tmp_path, capsys):
     assert build_parser().parse_args(ready)
 
 
-def test_a_design_that_settles_nothing_says_nothing(tmp_path, capsys):
+def test_a_design_that_names_no_constraint_says_nothing(tmp_path, capsys):
     # Nearly every line: the note fires on a shared rare word and most designs never quote a
     # lead, so a row on every brief is the field a reader stops reading.
     root = project(tmp_path).root
     assert main(["-C", str(root), "brief", "RK1"]) == EXIT_OK
-    assert "settles" not in capsys.readouterr().out
+    assert "quotes" not in capsys.readouterr().out
 
 
-def test_the_payload_carries_the_leads_this_design_answers(tmp_path, capsys):
+def test_the_payload_carries_the_leads_this_design_names(tmp_path, capsys):
     root = project(tmp_path, improvements=SETTLING).root
     assert main(["-C", str(root), "brief", "RK1", "--json"]) == EXIT_OK
-    assert json.loads(capsys.readouterr().out)["settles"] == ["No web UI and no server."]
+    assert json.loads(capsys.readouterr().out)["quotes"] == ["No web UI and no server."]
 
 
 def test_the_row_and_the_payload_read_one_rule(tmp_path, capsys):

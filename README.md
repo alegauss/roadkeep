@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
 | C — Query (consult without reading the file) | 9 | 161 | 4 |
-| D — The gate | 21 | 227 | 2 |
+| D — The gate | 20 | 228 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 148 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 36 | 998 | 14 |
+| **Total** | 35 | 999 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1515** (deps: —) **a design quoting a constraint to describe somebody else's case reads as having settled it** — RK1488 printed that claim on its own shipment, so a substring sized for a note falling silent now carries two assertions it was never measured for. → §RK1515
+- 💭 **RK1516** (deps: —) **section drop deletes a design and never says the constraint answer went with it** — RK1488 taught the three departure doors that a deletion is the last reading, and the verb whose whole job is deleting a section inherited nothing. → §RK1516
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

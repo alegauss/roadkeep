@@ -440,9 +440,9 @@ address, so a constraint whose lead changes is one dropped and one written. **Ca
 `non-goal list` before an `add`** — the list binds what may be proposed, so reading it
 after the line exists is reading it too late; it prints on a project that never opted in,
 and nothing checks a proposal against it for you, that being a judgement about meaning and
-this tool having no model (L4). A `settled` row under a constraint names the open lines
-whose design quotes its lead — the `non-goal.reaches` note answered, read from the rule's
-side, so a clause somebody is about to tidy away is one a command already named. **That
+this tool having no model (L4). A `quoted` row under a constraint names the open lines
+whose design cites its lead — what the `non-goal.reaches` note falls silent for, read from
+the rule's side; whether that is an answer or a citation of one is yours to read. **That
 list's positive twin is `criterion`**, where `[criteria]` declares it governed: a non-goal
 says what is not built and this says what must
 be **true** for a block to be finished, which nothing else states — a definition of done

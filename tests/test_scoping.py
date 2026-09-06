@@ -851,6 +851,15 @@ SETTLED = (
     "is untouched, so the rule bounds this work without forbidding it.\n"
 )
 
+#: A design that quotes the same lead to describe **somebody else's** case (RK1515): the
+#: sentence is about RK7 and decides nothing here. Indistinguishable from the one above by a
+#: substring on the lead, which is the whole of what the readers below have to go on.
+CITING = (
+    "# Improvements\n\n## Block A — The model\n\n### §RK1 What RK7 was measured on\n\n"
+    "RK7 shipped with a design quoting **No local patch to the vendored C.** while arguing\n"
+    "about its own call site, and the note fell silent for a line nobody had decided about.\n"
+)
+
 #: One that argues the work and never names the rule — which is every design, and is why the
 #: note fires in the first place.
 UNSETTLED = (
@@ -897,7 +906,7 @@ def test_the_note_names_the_section_the_answer_goes_in(tmp_path):
 # -- the answer read from the rule's side (RK1478) -----------------------------
 
 
-def test_the_listing_names_the_line_whose_design_settled_a_constraint(tmp_path, capsys):
+def test_the_listing_names_the_line_whose_design_quotes_a_constraint(tmp_path, capsys):
     """RK1478. RK1457 gave the note a way to be answered and left the answer readable from one
     side only: the clause doing the work is a sentence in somebody's rationale, matched by
     substring, and nothing said a gate row had been closed. Both of this repository's own were
@@ -905,14 +914,14 @@ def test_the_listing_names_the_line_whose_design_settled_a_constraint(tmp_path, 
     root = _deciding(tmp_path, SETTLED).root
     assert main(["-C", str(root), "non-goal", "list"]) == EXIT_OK
     printed = capsys.readouterr().out
-    assert "settled  RK1 —" in printed
+    assert "quoted   RK1 —" in printed
     assert "non-goal.reaches" in printed
 
 
-def test_a_design_that_argues_the_work_alone_settles_nothing(tmp_path, capsys):
+def test_a_design_that_argues_the_work_alone_quotes_nothing(tmp_path, capsys):
     root = _deciding(tmp_path, UNSETTLED).root
     assert main(["-C", str(root), "non-goal", "list"]) == EXIT_OK
-    assert "settled" not in capsys.readouterr().out
+    assert "quoted" not in capsys.readouterr().out
 
 
 def test_the_payload_carries_only_the_leads_somebody_answered(tmp_path, capsys):
@@ -920,8 +929,34 @@ def test_the_payload_carries_only_the_leads_somebody_answered(tmp_path, capsys):
     # which is `Debt.stated`'s rule one list over.
     root = _deciding(tmp_path, SETTLED).root
     assert main(["-C", str(root), "non-goal", "list", "--json"]) == EXIT_OK
-    held = json.loads(capsys.readouterr().out)["non_goals_settled"]
+    held = json.loads(capsys.readouterr().out)["non_goals_quoted"]
     assert held == {"No local patch to the vendored C.": ["RK1"]}
+
+
+def test_a_citation_and_an_answer_are_one_reading_and_the_register_says_which(
+    tmp_path, capsys
+):
+    """RK1515. Measured on RK1488's own shipment: its design quoted *No supported Python API.*
+    while describing the case that proved an answer leaves silently, and the ship printed
+    `settled` as though a judgement had been made and lost. None had.
+
+    The match is a substring on the lead, so a citation of somebody else's answer looks exactly
+    like an answer — and a shape that told them apart would be a reader of intent (L4), on a
+    corpus of two designs. So the fix is the verb: every register states the quotation, which
+    is what was measured, and leaves the judgement to whoever reads it."""
+    for name, design in (("answering", SETTLED), ("citing", CITING)):
+        (tmp_path / name).mkdir()
+        root = _deciding(tmp_path / name, design).root
+        assert main(["-C", str(root), "non-goal", "list"]) == EXIT_OK
+        printed = capsys.readouterr().out
+        assert "quoted   RK1 — named in a design" in printed
+        # The word that made the claim, in the register that made it: no row anywhere says a
+        # constraint was settled, answered or decided by a design this tool only saw quote it.
+        assert not [
+            line
+            for line in printed.splitlines()
+            if any(word in line for word in ("settled", "answers it", "is answered"))
+        ]
 
 
 def test_the_listing_and_the_gate_read_one_rule(tmp_path):
@@ -948,7 +983,7 @@ def test_a_shipped_line_is_not_an_answer_anybody_can_still_read(tmp_path):
 # -- the answer that leaves without a word (RK1488) ----------------------------
 
 
-def test_the_ship_names_the_constraint_whose_answer_it_deleted(tmp_path, capsys):
+def test_the_ship_names_the_constraint_the_deleted_design_quoted(tmp_path, capsys):
     """RK1488. RK1457 put the answer in the design because it **ages out with the work**, and
     the write ending it said nothing. Shipping RK1465 proved the other half: its design carried
     the clause answering *No supported Python API.*, the drop was correct, and the only sign
@@ -958,7 +993,7 @@ def test_the_ship_names_the_constraint_whose_answer_it_deleted(tmp_path, capsys)
         "-C", str(root), "ship", "RK1", "--why", "The decoder no longer crashes."
     ]) == EXIT_OK
     printed = capsys.readouterr().out
-    assert "settled  'No local patch to the vendored C.'" in printed
+    assert "quoted   'No local patch to the vendored C.'" in printed
     assert "went with the design" in printed
 
 
@@ -967,21 +1002,21 @@ def test_the_shipment_is_the_last_reading_and_nothing_after_it_can_say_so(tmp_pa
     # read off does not exist, so the listing that reported the answer has nothing to report.
     root = _deciding(tmp_path, SETTLED).root
     assert main(["-C", str(root), "non-goal", "list", "--json"]) == EXIT_OK
-    assert json.loads(capsys.readouterr().out)["non_goals_settled"]
+    assert json.loads(capsys.readouterr().out)["non_goals_quoted"]
     main(["-C", str(root), "ship", "RK1", "--why", "The decoder no longer crashes."])
     capsys.readouterr()
     assert main(["-C", str(root), "non-goal", "list", "--json"]) == EXIT_OK
-    assert json.loads(capsys.readouterr().out)["non_goals_settled"] == {}
+    assert json.loads(capsys.readouterr().out)["non_goals_quoted"] == {}
 
 
-def test_a_design_that_settled_nothing_leaves_the_shipment_silent(tmp_path, capsys):
+def test_a_design_that_quoted_nothing_leaves_the_shipment_silent(tmp_path, capsys):
     # Every design argues its own work and names no rule, which is why the note fires at all —
     # so a row on every shipment would be the field a reader stops reading.
     root = _deciding(tmp_path, UNSETTLED).root
     assert main([
         "-C", str(root), "ship", "RK1", "--why", "The decoder no longer crashes."
     ]) == EXIT_OK
-    assert "settled" not in capsys.readouterr().out
+    assert "quoted" not in capsys.readouterr().out
 
 
 def test_the_payload_carries_the_leads_that_left_with_the_design(tmp_path, capsys):
@@ -990,7 +1025,7 @@ def test_the_payload_carries_the_leads_that_left_with_the_design(tmp_path, capsy
         "-C", str(root), "ship", "RK1", "--why", "The decoder no longer crashes.", "--json"
     ]) == EXIT_OK
     held = json.loads(capsys.readouterr().out)["improvements"]
-    assert held["settled"] == ["No local patch to the vendored C."]
+    assert held["quoted"] == ["No local patch to the vendored C."]
 
 
 def test_a_retirement_deletes_the_same_design_and_owes_the_same_sentence(tmp_path, capsys):
@@ -1000,7 +1035,7 @@ def test_a_retirement_deletes_the_same_design_and_owes_the_same_sentence(tmp_pat
     assert main([
         "-C", str(root), "retire", "RK1", "--reason", "The upstream release landed."
     ]) == EXIT_OK
-    assert "settled  'No local patch to the vendored C.'" in capsys.readouterr().out
+    assert "quoted   'No local patch to the vendored C.'" in capsys.readouterr().out
 
 
 def test_a_departure_that_deleted_no_design_says_nothing_about_an_answer(tmp_path, capsys):

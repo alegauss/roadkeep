@@ -88,6 +88,7 @@ JSON of the same join would be the drift this projection exists to have none of.
 - ✅ **RK1394** **nothing deletes a capture whose task shipped, so the reports directory grows for ever and is cleared by hand** — Evidence is deleted only on proof, never on age: a capture goes when the ledger answers for it, and a state this project cannot check leaves the file where it is.
 - ✅ **RK1416** **The decision field explain publishes is the same string as the cause on every code that carries one** — A payload publishes the sentence once: explain drops decision because cause is derived from it, and repair keeps it because nothing there states it twice.
 - ✅ **RK1419** **The capture offer rides lint --fix and repair, whose exit 1 is the verdict lint's own is exempt from** — Whether an exit is a verdict is one fact per verb, declared by the parser and withdrawable by the run; that a command writes is a different question.
+- ✅ **RK1515** **a design quoting a constraint to describe somebody else's case reads as having settled it** — a substring on a lead cannot tell an answer from a citation of one, so the tool reports that a design quotes a constraint and never that it settled it.
 
 ### §RK1394 Proof, not age
 
@@ -141,6 +142,21 @@ safe way to be wrong.
 
 The withdrawal is the half worth keeping. `repair` takes the verdict back for a step
 whose argv came back non-zero — a door of ours that did not work.
+
+### §RK1515 Why not a narrower match
+
+The alternative was a narrower match. An answer names the rule in a sentence about the
+rule, while both citations here are prose about another line and carry its id — so a
+shape test, no model needed: reject a quotation whose sentence names a task.
+
+It was rejected on the corpus. Two designs here quote a lead, one of them a citation,
+and a rule fitted to one example is fitted to nothing. Nor are the two errors symmetric:
+a false positive is a row a reader discounts, a false negative is `non-goal.reaches`
+firing on a line whose author already answered it — the noise RK1457 removed.
+
+What was kept is cheaper and does not expire. The register states the measurement, so
+whichever the design is, nothing printed is wrong; the shape test can still be added, on
+a corpus large enough to test it.
 
 ## Block E — Adoption
 

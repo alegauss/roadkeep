@@ -406,6 +406,14 @@ def settles(design: str, lead: str) -> bool:
 
     Through `sections.quotes`, so a lead the wrap broke across two lines still reads as one —
     how a paragraph is wrapped is not the author's problem here either.
+
+    **It reads a quotation and never a judgement** (RK1515), and every register that prints it
+    says so in those words. A design citing somebody else's answer carries the lead exactly as
+    one making its own does — measured on RK1488's own shipment, where a sentence describing
+    another line's case was reported as a constraint settled and lost. Telling the two apart is
+    a reading of intent (L4), so this answers what it can see and the caller judges the rest;
+    the trade RK1457 made — cheap address matching against a reader of meaning — is unchanged,
+    and what moved is only what the tool claims about the result.
     """
     from roadkeep.sections import quotes  # noqa: PLC0415 - RK260
 

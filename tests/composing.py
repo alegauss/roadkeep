@@ -135,11 +135,11 @@ SITES: tuple[Site, ...] = (
     # afterwards. Run by `test_briefing` as far as a door with an author's blank in it can be:
     # filled, and parsed by the real parser — composing the sentence would be the synthesis L4
     # forbids, so the argv is proved and the words stay the caller's.
-    Site("briefing.py:_settling_rows", "run"),
+    Site("briefing.py:_quoting_rows", "run"),
     # RK1513. The absence said before the work rather than at the ship: a line with no criteria
     # is offered the door that writes one, with the two fields left as the author's (L4). Run by
     # `test_briefing`, as far as a door with two blanks in it can be — filled, and parsed by the
-    # real parser, which is `_settling_rows`' own arrangement one row over.
+    # real parser, which is `_quoting_rows`' own arrangement one row over.
     Site("briefing.py:Brief.stated", "run"),
     # RK1286. Both name `cost --brief`, which `test_budgeting` executes — the gate's finding
     # composes the door with the id substituted and the read composes the sentence a backlog

@@ -312,29 +312,6 @@ yet, and what turns it into an answerable question is the state. That is a task 
 family rather than one sweep — and the reason to file it as one line is that the six
 that do run were each bought by a defect that had already shipped.
 
-### §RK1515 The citation that reads as a decision
-
-Measured on RK1488's own shipment. Its design quoted *No supported Python API.* while
-**describing** RK1465 — the case that proved an answer leaves silently — and the ship
-printed `settled 'No supported Python API.'` as though a judgement had been made and
-lost. None had: the clause was a citation of somebody else's decision.
-
-The rule is `settles`, a substring match on the lead, and RK1457 chose it deliberately —
-a lead is the constraint's address, matching it is cheap, and the alternative is a
-reader of intent, which is L4. That trade was made for a **note falling silent**, where
-a wrong match costs one advisory nobody sees. RK1478 put the match in a listing and
-RK1488 in a write's report, so it now carries two claims it was never sized for: this
-line settled that rule, and the answer just left.
-
-The corpus: this repository has two designs quoting a lead and one of them is a
-citation. Fifty percent of two is not a number, but it is the only one there is, and it
-fired on the first shipment after the feature landed.
-
-What might close it is a shape and not a reader — an answer names the rule in a sentence
-about the rule, while these citations are prose about another line and carry its id.
-Whether that is recognisable without a model is the open question, and the honest
-outcome may be a weaker verb in the sentence rather than a narrower match.
-
 ### §RK1516 The fourth door that deletes a design
 
 RK1488 gave `ship`, `retire` and the closure door a row naming the constraint whose
@@ -355,7 +332,7 @@ case, and RK1478's whole finding was that the clause reads as a stray remark abo
 subject.
 
 Cheap either way: the reader is `scoping.answered`, already called by
-`shipping._settling` for exactly this, and the row is `rendering._settled_rows`, already
+`shipping._settling` for exactly this, and the row is `rendering._quoted_rows`, already
 written. The one question is the seam — `drop` takes a `Document` and not a `Config` on
 purpose, so the leads arrive the way `claimed` and `where` do, passed in by the verb
 holding both.
@@ -613,7 +590,7 @@ a decision afterwards. `revise` corrects one that exists, `supersede` replaces o
 both start from a record. So the moment the answer is lost is the moment nothing can be
 done.
 
-That shapes every door around it. RK1488's `settled` row names the constraint whose
+That shapes every door around it. RK1488's `quoted` row names the constraint whose
 answer just went and can offer nothing; RK1501's row has to fire on a read taken
 *before* the work, which means a session that skips `brief` never sees it. Two rows
 about one fact, one of them too early to act on and one too late.

@@ -468,10 +468,10 @@ def _non_goal_list(config: Config, args: argparse.Namespace) -> int:
     """
     try:
         roadmap = config.document("roadmap")
-        # The answers, read from the rule's side (RK1478): `brief` gets this record with the
-        # mapping empty, being about one line and already printing its design.
+        # The designs naming a lead, read from the rule's side (RK1478): `brief` gets this
+        # record with the mapping empty, being about one line and already printing its design.
         gathered = replace(
-            non_goals(config, roadmap), settled=scoping.settling(config, roadmap)
+            non_goals(config, roadmap), quoted=scoping.settling(config, roadmap)
         )
     except (KeyError, OSError) as error:
         return _refused(error)

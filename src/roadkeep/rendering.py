@@ -508,8 +508,8 @@ def _cited_rows(cited: Sequence[str]) -> list[str]:
     ]
 
 
-def _settled_rows(leads: Sequence[str]) -> list[str]:
-    """The constraints whose answer went with the deleted design (RK1488).
+def _quoted_rows(leads: Sequence[str]) -> list[str]:
+    """The constraints the deleted design quoted (RK1488).
 
     Beside the citation line and the emptied one, and for exactly their reason: this is the
     only moment it can be said. RK1457 chose the design to hold an answer to `non-goal.reaches`
@@ -517,6 +517,12 @@ def _settled_rows(leads: Sequence[str]) -> list[str]:
     of that choice is that the write ending it owes a sentence. Shipping RK1465 is where it
     showed: its design carried the clause answering *No supported Python API.*, the drop was
     correct, and nothing said a judgement somebody argued was among the words going.
+
+    **What is reported is the quotation and never a verdict** (RK1515). This row said *settled*
+    until a design that quoted a lead while describing somebody else's case got the same
+    sentence on its own shipment: the match is a substring on the lead, which is what a
+    citation and an answer have in common. Telling them apart is a reading of intent, so what
+    the register states is what was measured — the design named this rule, and it is gone.
 
     A report and never a re-record. The line is gone, so the pair the clause was about no
     longer exists, and re-filing the answer somewhere would be the stale bookkeeping RK1457
@@ -526,7 +532,7 @@ def _settled_rows(leads: Sequence[str]) -> list[str]:
     if not leads:
         return []
     return [
-        f"  settled  {lead!r} — the clause answering it went with the design"
+        f"  quoted   {lead!r} — whatever the design said about it went with the design"
         for lead in leads
     ]
 

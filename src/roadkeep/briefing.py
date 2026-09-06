@@ -156,12 +156,17 @@ class NonGoals:
     leads: tuple[str, ...] = ()
     #: How many bullets the section held beyond the ones carried. 0 means these are all.
     elided: int = 0
-    #: Per lead, the open lines whose design quotes it — the answer `non-goal.reaches` falls
-    #: silent for, read from the rule's side (RK1478). Empty on a `brief`, which is about one
-    #: line and already prints its design: this is the listing's own row, and the mapping is
+    #: Per lead, the open lines whose design quotes it — what `non-goal.reaches` falls silent
+    #: for, read from the rule's side (RK1478). Empty on a `brief`, which is about one line and
+    #: already prints its design: this is the listing's own row, and the mapping is
     #: :func:`~roadkeep.scoping.settling`'s, so the report and the gate cannot disagree about
-    #: what quoting a lead is. A lead nobody answers is **absent** rather than empty.
-    settled: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
+    #: what quoting a lead is. A lead no design names is **absent** rather than empty.
+    #:
+    #: Quoting and never settling (RK1515), which is also what tells this field from
+    #: :class:`Settled` one class down: that one is a dep that shipped, a fact; this is a
+    #: substring, and a design citing somebody else's answer matches it exactly as an answer
+    #: does.
+    quoted: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
 
     def stated(self, config: Config) -> str:
         """The list at the moment a task is proposed (RK69), as a reader is told it.
@@ -180,14 +185,14 @@ class NonGoals:
         rows = [f"{where}  {len(self.leads)} non-goal(s){ungoverned}"]
         for lead in self.leads:
             rows.append(f"  not      {lead}")
-            answered = self.settled.get(lead, ())
-            if answered:
-                # Under the constraint it answers and never as a second list: the whole
-                # finding is that this decision was readable from the line and not from the
-                # rule, so the row a reader arrives at is the one beside the rule.
+            naming = self.quoted.get(lead, ())
+            if naming:
+                # Under the constraint it names and never as a second list: the whole finding
+                # is that this decision was readable from the line and not from the rule, so
+                # the row a reader arrives at is the one beside the rule.
                 rows.append(
-                    f"  settled  {', '.join(answered)} — quoted in a design, so "
-                    f"`non-goal.reaches` is answered for it"
+                    f"  quoted   {', '.join(naming)} — named in a design, so "
+                    f"`non-goal.reaches` is silent for it"
                 )
         if self.elided:
             rows.append(f"  not      … and {self.elided} more under Non-goals")
@@ -202,10 +207,12 @@ class NonGoals:
             "governed": config.non_goals is not None,
             "non_goals": list(self.leads),
             "non_goals_elided": self.elided,
-            # Keyed by lead and carrying only the leads somebody answered, which is the rows'
+            # Keyed by lead and carrying only the leads some design names, which is the rows'
             # own rule: a map with an empty list under every constraint is the same silence
-            # published at length.
-            "non_goals_settled": {lead: list(ids) for lead, ids in self.settled.items()},
+            # published at length. `quoted` and not `settled` for the row's reason (RK1515):
+            # the key is what was measured, and a consumer reading a verdict off it would be
+            # reading one this tool did not make.
+            "non_goals_quoted": {lead: list(ids) for lead, ids in self.quoted.items()},
         }
 
 
@@ -641,7 +648,7 @@ class Brief:
         # And what this line's own design settles, at the one moment the answer can still be
         # carried past the work (RK1501). Under the constraints and above the section it is
         # read off, which is the order a reader meets them in.
-        rows += _settling_rows(config, self.view)
+        rows += _quoting_rows(config, self.view)
         if self.non_goals.elided:
             # Where the list was cut, and not silently: a bounded list that reads as the whole
             # one is a proposal made against a scope it never saw (RK68).
@@ -716,10 +723,12 @@ class Brief:
             },
             "non_goals": list(self.non_goals.leads),
             "non_goals_elided": self.non_goals.elided,
-            # What this line's design settles (RK1501), which is the fact a caller acts on
-            # before the work: the ship deletes the design, `ship --decides` is the only door
-            # that files a decision, and it is a flag on the departure. `[]` and never omitted.
-            "settles": _settles(config, self.view),
+            # The constraints this line's design names (RK1501), which is the fact a caller
+            # acts on before the work: the ship deletes the design, `ship --decides` is the
+            # only door that files a decision, and it is a flag on the departure. `[]` and
+            # never omitted — and `quotes` rather than `settles` (RK1515), the row's own rule:
+            # the key states the measurement, and whether it was an answer is the reader's.
+            "quotes": _quoted_leads(config, self.view),
             "done_when": list(self.done_when.leads),
             "done_when_elided": self.done_when.elided,
             # The task's own, as its own key (RK1268): a caller merging the two would be
@@ -804,7 +813,7 @@ class Brief:
         }
 
 
-def _settles(config: Config, view: View) -> list[str]:
+def _quoted_leads(config: Config, view: View) -> list[str]:
     """The constraint leads this line's design answers, for both registers (RK1501).
 
     One reader, so the row and the payload cannot come to disagree about what a design settles
@@ -817,7 +826,7 @@ def _settles(config: Config, view: View) -> list[str]:
     return list(scoping.answered(config.document("roadmap"), view.section.body))
 
 
-def _settling_rows(config: Config, view: View) -> list[str]:
+def _quoting_rows(config: Config, view: View) -> list[str]:
     """What this line's design settles, said before the work rather than after it (RK1501).
 
     RK1457 put the answer to `non-goal.reaches` in the design because it **ages out with the
@@ -838,21 +847,31 @@ def _settling_rows(config: Config, view: View) -> list[str]:
     synthesising one — which is the non-goal that decides every question here. The row says
     which constraint and which flag, and stops.
 
-    Silent where the design settles nothing, which is nearly every line: the note fires on a
-    shared rare word and most designs never quote a lead.
+    **What it states is the quotation, and the judgement is the reader's** (RK1515). The row
+    said *this design answers it* until a design quoting a lead to describe somebody else's
+    case got that sentence on its own shipment: :func:`~roadkeep.scoping.settles` is a
+    substring on the lead, which is exactly what an answer and a citation of an answer have in
+    common. A shape that told them apart would be a reader of intent (L4), and the corpus that
+    would justify one is two designs. So the register says what was measured — the design names
+    this constraint, and the gate is silent about it — and the offer stands either way: on a
+    citation there is nothing to record, which costs a caller one reading.
+
+    Silent where no design names a lead, which is nearly every line: the note fires on a shared
+    rare word and most designs never quote one.
     """
     from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
 
-    answered = _settles(config, view)
-    if not answered:
+    naming = _quoted_leads(config, view)
+    if not naming:
         return []
     # Through `invocation()`, because this is a door and not a verb being named: the census in
     # `tests/composing.py` finds a command by that prefix, and a row a reader is meant to run
     # that spells the verb bare is one no sweep can execute (RK1209).
     return [
-        f"  settles  {lead!r} — this design answers it, and the ship deletes the design; "
-        f"`{invocation()} ship {view.task.id} --decides \"<what it cost>\"` outlives the line"
-        for lead in answered
+        f"  quotes   {lead!r} — this design names it, so the gate is silent about it; where "
+        f"that is an answer and not a citation, "
+        f"`{invocation()} ship {view.task.id} --decides \"<what it cost>\"` outlives the design"
+        for lead in naming
     ]
 
 
