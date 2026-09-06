@@ -692,6 +692,7 @@
 - ✅ **RK1508** **which engine wrote a project's surfaces is derivable from their bytes and is only ever read out of a record** — install --check dates the committed bridge from its bytes where no record does, over this engine's own history.
 - ✅ **RK1509** **an adopting project is never shown what its briefs cost, so a ceiling is chosen with no reading in front of it** — adopt prices this backlog's widest brief beside what the surface costs, at the moment a ceiling is chosen.
 - ✅ **RK1515** **a design quoting a constraint to describe somebody else's case reads as having settled it** — every register now states the quotation it measured rather than a settlement it cannot see, so a design citing somebody else's answer no longer reads as having made one.
+- ✅ **RK1516** **section drop deletes a design and never says the constraint answer went with it** — section drop now names the constraints the deleted prose quoted, so the fourth door that removes a design reports what the three departure doors already did.
 
 ## Block E — Adoption
 

@@ -1459,15 +1459,28 @@ class Deleted:
     #: The file this was dropped from, as the caller spells it — the same string the refusals
     #: above take, so a report and a refusal can never name two different files.
     where: str = ""
+    #: The non-goal leads the deleted prose quoted (RK1516), as :class:`Departure` carries
+    #: them. The fourth door that deletes a design and the last that was still silent: this
+    #: write is the final reader that has the section, so what a `non-goal.reaches` note was
+    #: falling silent for goes unremarked from here on. Quoting and never settling (RK1515) —
+    #: a substring cannot tell an answer from a citation of one.
+    quoted: tuple[str, ...] = ()
 
     def stated(self, config: Config, wrote: Sequence[Path]) -> str:
         """What went, and who is left pointing at it."""
-        from roadkeep.rendering import _cited_rows, _staging_rows  # noqa: PLC0415 - RK260
+        from roadkeep.rendering import (  # noqa: PLC0415 - RK260
+            _cited_rows,
+            _quoted_rows,
+            _staging_rows,
+        )
 
         rows = [f"dropped {self.section} from {self.where}"]
         if self.nested:
             rows.append(f"  nested   {', '.join(f'§{a}' for a in self.nested)} went with it")
         rows += _cited_rows(self.cited)
+        # In the departures' own order and from their own composer: what the deletion broke,
+        # then what it quoted. One renderer, so the four doors cannot come to word it two ways.
+        rows += _quoted_rows(self.quoted)
         rows += _staging_rows(config.relative(one) for one in wrote)
         return "\n".join(rows)
 
@@ -1479,6 +1492,9 @@ class Deleted:
             **self.section.payload(self.where),
             "nested": list(self.nested),
             "cited": list(self.cited),
+            # Empty and never omitted, as the departures publish it (RK1488): a consumer tells
+            # a drop that quoted no constraint from a build that lacked the field.
+            "quoted": list(self.quoted),
             **_wrote_json(config, wrote),
         }
 
@@ -1589,6 +1605,7 @@ def drop(
     claimed: Mapping[str, Sequence[str]] | None = None,
     where: str = "",
     recorded: bool = False,
+    constraints: Document | None = None,
 ) -> Deleted:
     """Delete the section whole — subsections included — and report what went, and who is
     left citing it.
@@ -1630,6 +1647,16 @@ def drop(
     citation in prose is a sentence, and a sentence that has to be re-worded is an edit and
     not a transaction to abandon. Computed **before** the removal, because afterwards the
     prose is the only end of the reference still in the file.
+
+    ``constraints`` is the roadmap the caller holds, and it is the **fourth** answer for the
+    third one's reason (RK1516). RK1488 taught `ship`, `retire` and the closure door to name
+    the constraint whose answer went with the design they deleted; this verb deletes designs
+    for a living and inherited nothing, so a clause somebody argued left in silence through
+    the one door aimed at it by hand. The document arrives the way ``claimed`` and ``where``
+    do — this function takes a :class:`Document` and cannot reach a :class:`Config` — but the
+    *reading* is taken here rather than by the caller, because taking it there means finding
+    this section a second time, which is the second reader RK1170 removed from this file.
+    Omitted, no leads: a caller with no roadmap to read cannot be told what a rule says.
     """
     span = _span(document, anchor)
     section = find(document, anchor)
@@ -1666,7 +1693,24 @@ def drop(
         # used to read it again with a second reader (RK1170).
         nested=leaving[1:],
         where=where,
+        # `scoping.answered` and never a rule spelled again here (RK1516): the gate falls
+        # silent on this reading, `non-goal list` reports the silence, and these four doors
+        # are what happens when it ends — one reader, so they cannot come to disagree.
+        quoted=() if constraints is None else _quoting(constraints, section),
     )
+
+
+def _quoting(roadmap: Document, section: Section) -> tuple[str, ...]:
+    """The non-goal leads this section's prose quotes (RK1516).
+
+    A function and not a call site, so the import that reaches `scoping` from here is one
+    line and the deletion above stays readable. Its twin is `shipping._settling`, which is
+    the same reading taken at the departure doors — both call
+    :func:`~roadkeep.scoping.answered`, which is the point.
+    """
+    from roadkeep import scoping  # noqa: PLC0415 - RK260
+
+    return scoping.answered(roadmap, section.body)
 
 
 def add(

@@ -419,6 +419,9 @@ def _section_drop(config: Config, args: argparse.Namespace) -> int:
             # The one file whose records claim their own bodies (RK1361), so the refusal
             # names `section amend` rather than a pointer this role never carries.
             recorded=args.role == "decisions",
+            # The roadmap this verb holds and the deletion does not (RK1516): the leads live
+            # under its `## Non-goals`, and this write is the last reader that has both.
+            constraints=config.document("roadmap"),
         )
         wrote = deleted.document.save()
     except REFUSALS as error:

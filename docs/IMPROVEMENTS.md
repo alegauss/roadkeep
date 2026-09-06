@@ -312,31 +312,6 @@ yet, and what turns it into an answerable question is the state. That is a task 
 family rather than one sweep — and the reason to file it as one line is that the six
 that do run were each bought by a defect that had already shipped.
 
-### §RK1516 The fourth door that deletes a design
-
-RK1488 gave `ship`, `retire` and the closure door a row naming the constraint whose
-answer went with the design they deleted, on the ground that the write is the last
-reader that still has the section. `section drop` deletes a design too, and says
-nothing.
-
-The three that were taught share `_drop_section`, which is why they were one change.
-`sections.Deleted` is a different record for a different verb and already carries the
-neighbouring facts — what nested under the heading, who is left citing it — so the field
-it lacks is the one this task added next door. RK206's history repeating: the citation
-line came through the departure path first, and this verb stayed silent for a year.
-
-The argument for doing it is unchanged from the departures. Against it: this verb is
-aimed by hand at a section the author is looking at, so they may already know. That does
-not survive contact — dropping prose somebody else wrote a year ago is the ordinary
-case, and RK1478's whole finding was that the clause reads as a stray remark about its
-subject.
-
-Cheap either way: the reader is `scoping.answered`, already called by
-`shipping._settling` for exactly this, and the row is `rendering._quoted_rows`, already
-written. The one question is the seam — `drop` takes a `Document` and not a `Config` on
-purpose, so the leads arrive the way `claimed` and `where` do, passed in by the verb
-holding both.
-
 ### §RK1517 The flag the transport makes inert
 
 `serving` appends `--json` to every call it makes, so a flag whose whole effect is on
@@ -782,7 +757,7 @@ of.
 
 ### §RK1550 The pointer that runs the other way
 
-RK1515 renamed one helper and two governed sections went stale: §RK1516 named
+RK1515 renamed one helper and two governed sections went stale: RK1516 named
 `rendering._settled_rows` and §RK1536 named RK1488's `settled` row, both of them prose
 about code that had just stopped existing. Both were found by grepping `docs/` — `lint`
 was clean before the amend and clean after it, and a shipped design citing a dead symbol

@@ -869,6 +869,24 @@ UNSETTLED = (
 )
 
 
+def _orphaned(quoting: bool) -> str:
+    """A design file whose second section no open line points at (RK1516).
+
+    The state `section drop` is aimed at, and the ordinary one: prose somebody wrote a year
+    ago, deleted by hand. §RK1 argues its own work here, so the only section naming the lead
+    is the one being deleted — and the pointer refusals above never come into it.
+    """
+    return UNSETTLED + (
+        "\n### §RK9 What the archived spike decided\n\n"
+        + (
+            "**No local patch to the vendored C.** was weighed once before, against a spike\n"
+            "that carried one for three releases and paid at every upgrade.\n"
+            if quoting
+            else "The spike carried a patch for three releases and paid at every upgrade.\n"
+        )
+    )
+
+
 def test_a_design_that_names_the_constraint_clears_the_note(tmp_path):
     """RK1457. The note is an advisory and had no way to be *answered*: its remedy offers
     `non-goal amend` to narrow the rule and `retire` to take the line, and neither is right
@@ -1058,3 +1076,57 @@ def test_the_departure_and_the_listing_read_one_rule(tmp_path):
     design = scoping.answered(roadmap, SETTLED.split("\n\n")[-1])
     assert design == ("No local patch to the vendored C.",)
     assert scoping.answered(roadmap, UNSETTLED.split("\n\n")[-1]) == ()
+
+
+# -- the fourth door that deletes a design (RK1516) ----------------------------
+
+
+def test_section_drop_names_the_constraint_the_deleted_design_quoted(tmp_path, capsys):
+    """RK1516. RK1488 taught the three departure doors that the write deleting a design is the
+    last reader that still has it, and the verb whose whole job is deleting one inherited
+    nothing — so the door aimed by hand at a section took the reading away in silence."""
+    root = _deciding(tmp_path, _orphaned(quoting=True)).root
+    assert main(["-C", str(root), "section", "drop", "RK9"]) == EXIT_OK
+    printed = capsys.readouterr().out
+    assert "quoted   'No local patch to the vendored C.'" in printed
+    assert "went with the design" in printed
+
+
+def test_a_dropped_section_that_quoted_nothing_leaves_the_report_silent(tmp_path, capsys):
+    # Every design argues its own work and names no rule, which is why the note fires at all —
+    # so a row on every drop would be the field a reader stops reading.
+    root = _deciding(tmp_path, _orphaned(quoting=False)).root
+    assert main(["-C", str(root), "section", "drop", "RK9"]) == EXIT_OK
+    assert "quoted" not in capsys.readouterr().out
+
+
+def test_the_dropped_payload_carries_the_leads_that_left_with_the_prose(tmp_path, capsys):
+    root = _deciding(tmp_path, _orphaned(quoting=True)).root
+    assert main(["-C", str(root), "section", "drop", "RK9", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["quoted"] == [
+        "No local patch to the vendored C."
+    ]
+
+
+def test_the_four_doors_that_delete_a_design_read_one_rule_and_word_it_once(tmp_path, capsys):
+    """The whole reason this is a field on the record and a row in `rendering`: `ship`,
+    `retire`, the closure door and this one take the same reading and print the same
+    sentence, and a fourth spelling of it is the drift RK1478 gave the rule one home to
+    prevent."""
+    for name, design, argv in (
+        ("shipped", SETTLED, ["ship", "RK1", "--why", "The decoder no longer crashes."]),
+        ("retired", SETTLED, ["retire", "RK1", "--reason", "The upstream release landed."]),
+        ("dropped", _orphaned(quoting=True), ["section", "drop", "RK9"]),
+    ):
+        (tmp_path / name).mkdir()
+        root = _deciding(tmp_path / name, design).root
+        assert main(["-C", str(root), *argv]) == EXIT_OK
+        (row,) = [
+            line
+            for line in capsys.readouterr().out.splitlines()
+            if line.strip().startswith("quoted")
+        ]
+        assert row == (
+            "  quoted   'No local patch to the vendored C.' — whatever the design said "
+            "about it went with the design"
+        )

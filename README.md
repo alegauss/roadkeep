@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
 | C — Query (consult without reading the file) | 9 | 161 | 4 |
-| D — The gate | 22 | 228 | 2 |
+| D — The gate | 21 | 229 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 148 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 37 | 999 | 14 |
+| **Total** | 36 | 1000 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1516** (deps: —) **section drop deletes a design and never says the constraint answer went with it** — RK1488 taught the three departure doors that a deletion is the last reading, and the verb whose whole job is deleting a section inherited nothing. → §RK1516
+- 💭 **RK1517** (deps: —) **a served flag that only shapes the terminal form is inert, and nothing asks that of the eighteen** — The server appends --json to every call, so origin --why shaped nothing for as long as it was served and was found only when a test fixture grew a git history. → §RK1517
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
