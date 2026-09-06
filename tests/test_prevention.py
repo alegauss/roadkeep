@@ -177,6 +177,10 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("file.missing", "gate", because=FILE),
     Prevented("file.not-text", "gate", because=FILE),
     Prevented("budget.absent", "gate", because=FILE),
+    # The same reading one table over (RK1529): the entry is a declaration and the file it
+    # names is somebody else's — a hook renamed, a manifest a release step stopped writing —
+    # so nothing this tool writes is the moment it stops being true.
+    Prevented("incidental.absent", "gate", because=FILE),
     # `FILE` names this one exactly — *its endings* (RK1105). A checkout's convention is the
     # one property of a governed file no write of this tool has any say in.
     Prevented("budget.translated", "gate", because=FILE),

@@ -2078,6 +2078,39 @@ def test_a_budgeted_file_that_is_absent_is_reported(tmp_path):
     assert absent.file == "gone.md" and absent.lineno is None
 
 
+#: `[history] incidental` declaring one path, for the three readings below (RK1529).
+INCIDENTAL = '\n[history]\nincidental = ["{}"]\n'
+
+
+def test_an_incidental_path_this_tree_does_not_hold_is_said(tmp_path):
+    """RK1529. `[budgets]`' reading one table over, and the silence cost more here: this list
+    only ever *removes* rows from `unclosed`, so an entry matching nothing makes the report
+    louder — and one that stops matching, because a hook was rewritten or a file renamed, makes
+    it louder with nothing having changed in the report's own code."""
+    report = lint(project(tmp_path, config=CONFIG + INCIDENTAL.format("gone.py")))
+    said = next(n for n in report.notes if n.code == "incidental.absent")
+    assert said.file == "gone.py" and said.subject == "gone.py"
+    assert "the entry filters nothing" in said.message
+
+
+def test_an_incidental_path_that_is_there_says_nothing(tmp_path):
+    # The other direction, and the ordinary state: an entry doing its job is an entry nobody
+    # is told about, which is what keeps a note that fires on every run from being one.
+    root = project(tmp_path, config=CONFIG + INCIDENTAL.format("here.py"))
+    (root.root / "here.py").write_text("x = 1", encoding="utf-8")
+    assert not [n for n in lint(root).notes if n.code == "incidental.absent"]
+
+
+def test_an_absent_incidental_path_is_a_note_and_never_a_finding(tmp_path):
+    """The one decision this row had to make. A budget names a file whose size the project
+    committed to and an absence there is a broken promise; this names a file a commit happens
+    to carry, and a path removed on purpose is a legitimate state mid-change — a gate that
+    failed a build over it is a gate turned off in a week."""
+    report = lint(project(tmp_path, config=CONFIG + INCIDENTAL.format("gone.py")))
+    assert report.clean, [str(one) for one in report.findings]
+    assert not [f for f in report.findings if f.code == "incidental.absent"]
+
+
 def test_a_budget_is_read_from_the_configuration_and_not_from_the_file(tmp_path):
     # L6: the number is per project, and the file it governs is not one the tool writes —
     # so nothing here parses `agents.md`, it only measures what a loader pays for it.

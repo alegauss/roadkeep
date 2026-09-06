@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
-| C — Query (consult without reading the file) | 9 | 166 | 4 |
+| C — Query (consult without reading the file) | 8 | 167 | 4 |
 | D — The gate | 23 | 234 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 6 | 152 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 38 | 1014 | 14 |
+| **Total** | 37 | 1015 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1529** (deps: —) **an incidental path naming no file is silent, where a budget naming none is a finding** — RK1496 added the key and the gate reads nothing off the tree for it, so a filter that stops matching makes a report louder with nothing having changed in it. → §RK1529
+- 💭 **RK1530** (deps: —) **the corpus reading a refusal was drawn from lives in a docstring and nothing re-takes it** — RK1497 measured 18 false positives over prose against zero over fields and threw the probe away, so the number that decided the boundary cannot be checked. → §RK1530
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -1434,6 +1434,15 @@ _TABLE: Mapping[str, _Rule] = {
         "a `[budgets]` entry names a file that is not there; read what is budgeted, then "
         "correct the entry in roadkeep.toml",
     ),
+    # The same shape one table over (RK1529), and the read is the one the entry exists to
+    # shape: `[history] incidental` only ever removes rows from `unclosed`, so a path that
+    # names nothing is a filter doing less — the door is that report, where the commits it
+    # was written to hide are now counted as work again.
+    "incidental.absent": _compose(
+        ("unclosed",),
+        "a `[history] incidental` entry names a file this tree does not hold; read what the "
+        "filter now lets through, then correct the entry in roadkeep.toml",
+    ),
     # The read is the door and there is no `--fix` for it (RK1059): what a tool costs is
     # its own `help=` and its exposed arguments, so the shorter description is the author's
     # and the only mechanical part is finding which tool grew.
@@ -1688,6 +1697,7 @@ NOTES: frozenset[str] = frozenset(
         "deps.collective",
         "engine.disagreement",
         "gate.behind",
+        "incidental.absent",
         "install.absent",
         "install.stale",
         "non-goal.reaches",

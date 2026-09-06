@@ -1361,7 +1361,37 @@ def _budgets(config: Config, tree: Tree) -> tuple[list[Finding], list[Note]]:
                 )
             )
     over, said = _reads(config)
-    return out + _served(config) + over, notes + said
+    return out + _served(config) + over, notes + said + _incidental(config, tree)
+
+
+def _incidental(config: Config, tree: Tree) -> list[Note]:
+    """The `[history] incidental` paths this tree does not hold (RK1529).
+
+    `[budgets]`' own reading one table over: a path declared and absent from disk is an entry
+    that holds nothing, which the parser cannot see — a project is free to declare before it
+    scaffolds — and the gate reads off the tree. What was missing here is that this list only
+    ever *removes* rows from `unclosed`, so an entry matching nothing makes the report louder,
+    and one that **stops** matching, because a hook was rewritten or a file renamed, makes it
+    louder with nothing having changed in the report's own code. A filter quietly doing less
+    is the shape RK1496 was filed about from the other side.
+
+    **A note and not a finding**, which is the one thing this row had to decide. A budget names
+    a file whose size the project is committing to and an absence there is a broken promise;
+    this names a file a commit happens to carry, and a path somebody removed on purpose is a
+    legitimate state of a repository mid-change. A gate that failed a build over it is a gate
+    turned off in a week, and the report is advisory about `unclosed` either way.
+    """
+    return [
+        Note(
+            "incidental.absent",
+            config.relative(config.root / one),
+            "declared under `[history] incidental` and not in this tree: the entry filters "
+            "nothing, so a commit it was written for is counted as work again",
+            subject=one,
+        )
+        for one in config.incidental
+        if tree.blob(config.root / one) is None
+    ]
 
 
 def _reads(config: Config) -> tuple[list[Finding], list[Note]]:
