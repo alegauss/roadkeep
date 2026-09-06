@@ -487,6 +487,11 @@ def _budget(config: Config, args: argparse.Namespace) -> int:
             # The fourth (RK1458), and a flag rather than a value: a ship writes no prefix into
             # the field, so there is nothing about the departure to name here.
             ship=args.ship,
+            # The second line that same ship writes (RK1506). RK1483's table exempted it
+            # because `budget` has one subject per verb and a departure writes up to three
+            # lines, so the only read that had the number was `brief` — which answers about
+            # the whole task rather than about the sentence a caller is composing.
+            decides=args.decides,
             # And the fifth (RK1479), the subject RK1458 named and left: a pause's reason is
             # wrapped around prose the store carries forward, which `Budget.carried` is.
             defer=args.defer,
@@ -1847,6 +1852,16 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
             "which is a different number"
         ),
     )
+    # RK1506. The second line that same departure writes, priced beside the first: a ship makes
+    # up to three and this read had one subject per verb, so `--decides` was an exemption in
+    # RK1483's table and `brief` was the only read holding the number.
+    budget_parser.add_argument(
+        "--decides",
+        help=(
+            "with --ship: price the decision line the same ship would file, under the "
+            "decisions role's own limit"
+        ),
+    )
     # RK1479, and the subject RK1458 named and could not price: a pause writes its reason
     # *wrapped*, with the roadmap's own sentence carried whole after it, so the field holds
     # three pieces and only two had a reading. A flag and not a value, like `--ship`.
@@ -1885,6 +1900,7 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         budget_parser,
         family="`add`'s reason read back: the answer is about the id this project would issue next, and a prefix typed here asks about one it would not",
         body_file="this read exists because a refusal over the transport costs the whole payload again, and the three verbs that write a body now take a path (RK1260), which is refused for the corrected field alone — so the draft still worth pricing here is the one that arrived in the call",
+        decides="measured (RK1506): exposing it puts this tool at 2947 characters against the 2850 `[tools] characters` allows, and a ceiling raised to admit a subject is the reviewer's limit RK30 replaced — the caller it serves has `brief`, which prices this line and the other two off one read",
     )
     # Declared although this verb writes nothing (RK1260). `reads_stdin` is not about the
     # write lock: it is what a surface with no pipe reads to refuse `-` by name instead of

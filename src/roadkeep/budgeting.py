@@ -395,6 +395,16 @@ class Budget:
     #:
     #: Empty everywhere else, which is every budget about a line, a ship and a retirement.
     carried: str = ""
+    #: The **decision line the same departure writes** (RK1506), where the caller said it would
+    #: write one. A ship writes up to three lines and this record prices one, so `--decides`
+    #: was an exemption in RK1483's table — the field belongs to a different line than the
+    #: subject, and the only read that had the number was `brief`, which composes all three off
+    #: one read and answers about the whole task rather than about the sentence in hand.
+    #:
+    #: A whole :class:`Budget` and not a share, because it is a line: its own limit, its own
+    #: structure, its own inherited symptom. `None` on every call that named no `--decides`,
+    #: on a project declaring no decisions role, and on every subject that is not a ship.
+    deciding: Budget | None = None
     #: The **file** a departure's line goes into, as its role — `""` for a line as it stands
     #: (RK1479). Beside :attr:`departure` because the two are different facts and the printer
     #: was guessing one from the other: it said *the ledger line* about every departure, which
@@ -537,6 +547,18 @@ class Budget:
             # line's own two figures are still right, and the half nobody can price is the half
             # a caller would otherwise read as "this project keeps no rationale file".
             rows.append(f"  section    none — {self.section_absence}")
+        # The second line the same departure writes (RK1506), under the first and labelled by
+        # the field that asked for it: a ship makes up to three, and a reader given one number
+        # for a call that writes two has the wrong one for whichever line they are composing.
+        if self.deciding is not None:
+            decided = self.deciding.share("why")
+            spent = f", {decided.over} over" if decided.over else f", {decided.left} left"
+            drafted = f", {decided.taken} drafted{spent}" if decided.taken else ""
+            rows.append(
+                f"  deciding   why {decided.allowed} of {decided.limit}{drafted}"
+                f"  {decided.aimed} — the line `--decides` files, under the decisions "
+                f"role's own limit and not the ledger's"
+            )
         return "\n".join(rows)
 
     def payload(self) -> dict[str, object]:
@@ -559,6 +581,11 @@ class Budget:
             # Why it is null, where that is a defect rather than a project shape (RK303). Empty
             # otherwise, so a client can tell the two nulls apart without a second call.
             "section_absence": self.section_absence,
+            # The second line the same departure writes (RK1506), as its own whole budget: it
+            # is a line, with its own limit and its own inherited symptom, so a share here
+            # would be this record answering about a file it is not about. Null on every call
+            # that named no `--decides`, which is every subject that is not a ship.
+            "deciding": None if self.deciding is None else self.deciding.payload(),
             # Which flags the caller's own values came from (RK1221), so a consumer comparing
             # this against the file can tell an answer about the line from an answer about the
             # line an `amend` would write.
@@ -643,6 +670,9 @@ def budget(
     body: str | None = None,
     retire: str | None = None,
     ship: bool = False,
+    #: The decision sentence the same ship would file (RK1506), where the caller says it will.
+    #: Only `--ship` reads it: it is a field of that departure and of no other subject.
+    decides: str | None = None,
     defer: bool = False,
 ) -> Budget:
     """The prose budget of a line, named by id or described by the fields an `add` takes.
@@ -722,7 +752,7 @@ def budget(
     if retire is not None:
         return _retirement(config, task, retire, why=why, body=body)
     if ship:
-        return _shipment(config, task, why=why, body=body)
+        return _shipment(config, task, why=why, body=body, decides=decides)
     if defer:
         return _deferral(config, task, why=why, body=body)
     answer = budget_of(
@@ -753,7 +783,14 @@ def budget(
     )
 
 
-def _shipment(config: Config, task: Task, *, why: str | None, body: str | None) -> Budget:
+def _shipment(
+    config: Config,
+    task: Task,
+    *,
+    why: str | None,
+    body: str | None,
+    decides: str | None = None,
+) -> Budget:
     """What the sentence a `ship` writes has, before it is written (RK1458).
 
     Composed exactly as `brief`'s shipping row is and through the same function the write
@@ -767,6 +804,17 @@ def _shipment(config: Config, task: Task, *, why: str | None, body: str | None) 
     accepted 145 — a number four times under the real one, failing in the direction that looks
     safe. Nothing is `derived` here, unlike a retirement: a ship writes no prefix, and a
     `--part` qualifier is structure this call cannot know will be passed.
+
+    ``decides`` is **the third line this same departure writes** (RK1506). RK1483's table had
+    to exempt it: `budget` has one subject per verb and a ship writes up to three lines, so the
+    field belonged to a line this subject is not about and the only read that could answer was
+    `brief` — which prices all three and answers about the whole task rather than about the
+    sentence a caller is composing. Priced here exactly as `brief` composes it, through
+    `as_recorded` under the decisions role's own schema and with the `why` emptied for the
+    reason the entry's is (RK1365): a `--decides` sentence is written from nothing.
+
+    `None` where the caller named none and where the project declares no decisions role, which
+    is `brief`'s own condition: a number about a file that does not exist is not an allowance.
     """
     from roadkeep.shipping import as_recorded  # noqa: PLC0415 - RK260
 
@@ -782,6 +830,15 @@ def _shipment(config: Config, task: Task, *, why: str | None, body: str | None) 
         ),
         departure="ship",
         role="changelog",
+        deciding=None
+        if decides is None or not config.has("decisions")
+        else budget_of(
+            config,
+            as_recorded(task, config.schema_for("decisions").shipped_marker, ""),
+            open_line=False,
+            schema=config.schema_for("decisions"),
+            why=decides,
+        ),
     )
 
 

@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 230 | 2 |
 | C — Query (consult without reading the file) | 8 | 158 | 4 |
-| D — The gate | 22 | 223 | 2 |
+| D — The gate | 21 | 224 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 5 | 147 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 36 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 36 | 989 | 14 |
+| **Total** | 35 | 990 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1506** (deps: —) **budget prices one line per departure and a ship writes three, so the other two are exemptions rather than answers** — RK1483's table had to exempt four ship fields for belonging to a line this read has no subject for, which brief composes for free. → §RK1506
+- 💭 **RK1507** (deps: —) **a line this tool writes under a ledger entry is composed by one function and recognised by another, matching on a prefix** — RK1484 added the second reader, and a change to the indent or the word makes it stop matching with nothing anywhere going red. → §RK1507
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -3862,8 +3862,9 @@ _PRICING: tuple[Priced, ...] = (
             "docstring says out loud",
             "--remainder": "the *roadmap* line's why, which is `budget <id>` and not this "
             "subject — one call each, because they are two lines",
-            "--decides": "the decision line, a third write with its own limit; `brief` is "
-            "what prices all three off one read",
+            # RK1506 took `--decides` off this list: a departure's subject now prices every
+            # line that departure writes, which is what `brief` already composed off one read
+            # and what a caller mid-ship could not ask for.
             "--decides-ref": "the decision's anchor, which is structure and not prose",
             "--checked": "a criterion's own lead, moved rather than composed",
             "--superseded-design": "an allowance the shipping row already states, and the "
@@ -4012,3 +4013,78 @@ def test_the_row_names_the_graph_only_where_there_is_one(tmp_path, capsys):
         if line.startswith("  RK")
     }
     assert "graph" in rows["RK2"] and "graph" not in rows["RK1"]
+
+
+# -- the second line the same departure writes (RK1506) ------------------------
+
+
+def _deciding(tmp_path):
+    """`_priced` with a decisions role, which is what a `--decides` needs to be priced against:
+    the number is the *role's* limit, so a project without the file has no allowance to state
+    and `brief`'s own condition is the one kept here."""
+    root = _priced(tmp_path)
+    (root / "roadkeep.toml").write_text(
+        (root / "roadkeep.toml").read_text(encoding="utf-8")
+        + 'decisions = "DECISIONS.md"\n',
+        encoding="utf-8",
+    )
+    (root / "DECISIONS.md").write_text("# Decisions\n\n## Block A\n", encoding="utf-8")
+    return root
+
+
+
+def test_the_ship_subject_prices_the_decision_line_beside_the_ledger_one(tmp_path, capsys):
+    """RK1506. RK1483 paired the read against six writes and four of `ship`'s exemptions said
+    one thing: the field belongs to a *different line* than the one this subject prices. A ship
+    writes up to three lines and `budget` had one subject per verb, so the only read holding
+    the decision's allowance was `brief` — which answers about the whole task rather than about
+    the sentence a caller is composing."""
+    _deciding(tmp_path)
+    assert main([
+        "-C", str(tmp_path), "budget", "RK1", "--ship",
+        "--decides", "The store is the repository.",
+    ]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "deciding   why" in said
+    assert "the decisions role's own limit and not the ledger's" in said
+
+
+def test_the_subject_without_the_flag_says_nothing_about_a_decision(tmp_path, capsys):
+    # A caller who is not filing one asks about one line, and a row about a file they are not
+    # writing to is the field a reader stops reading.
+    _deciding(tmp_path)
+    assert main(["-C", str(tmp_path), "budget", "RK1", "--ship"]) == EXIT_OK
+    assert "deciding" not in capsys.readouterr().out
+
+
+def test_the_payload_carries_the_decision_as_a_whole_budget(tmp_path, capsys):
+    # A line and not a share: its own limit, its own structure, its own inherited symptom.
+    _deciding(tmp_path)
+    assert main([
+        "-C", str(tmp_path), "budget", "RK1", "--ship",
+        "--decides", "The store is the repository.", "--json",
+    ]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["deciding"]["id"] == "RK1"
+    assert payload["deciding"]["line_max"]
+    assert [one["field"] for one in payload["deciding"]["fields"]]
+
+
+def test_the_read_and_the_write_agree_about_the_decision_line(tmp_path, capsys):
+    """The pairing RK1483 exists for, on the row it just gained: a number this read publishes
+    and a refusal the write then makes are one arithmetic or the read is worse than none."""
+    _deciding(tmp_path)
+    assert main([
+        "-C", str(tmp_path), "budget", "RK1", "--ship",
+        "--decides", "x", "--json",
+    ]) == EXIT_OK
+    allowed = next(
+        one["allowed"]
+        for one in json.loads(capsys.readouterr().out)["deciding"]["fields"]
+        if one["field"] == "why"
+    )
+    over = "y " * (allowed // 2) + "z" * allowed + "."
+    assert main([
+        "-C", str(tmp_path), "ship", "RK1", "--why", "It works now.", "--decides", over
+    ]) != EXIT_OK
+    assert f"limit is {allowed}" in capsys.readouterr().err
