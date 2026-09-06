@@ -457,6 +457,7 @@
 - ✅ **RK1495** **the near rows an add prints come from the ledger alone, so two sessions filing one defect never see each other** — the near rows rank the block's open lines beside its deliveries, counted apart and marked apart.
 - ✅ **RK1496** **the filter that makes unclosed honest is inert here, where a hook touches three ungoverned files every commit** — [history] incidental names what a hook writes every commit, and the projections join the paths this tool writes.
 - ✅ **RK1510** **no read says how many lines a shipped task filed behind it, so granularity is judged from a feel** — weight reports what each comparable filed behind it and the span it arrived over, bounded by the next ship.
+- ✅ **RK1512** **pick and brief never name the deferred store, so a set-aside line and the reason it cites go unread** — pick counts the deferred store beside ready and blocked, and names the read that opens it.
 
 ## Block D — The gate
 

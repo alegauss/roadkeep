@@ -967,6 +967,30 @@ def _lacking_rows(choice: Choice) -> list[str]:
     ]
 
 
+def _set_aside_rows(choice: Choice, config: Config) -> list[str]:
+    """The store a picker never named, and the read that opens it (RK1512).
+
+    The count is in `counts` because that is the line a caller scans; this is the door, and it
+    is printed only where the store holds something — a declared-and-empty store is a fact the
+    number already states, and a row about it would be the noise this gate refuses everywhere.
+
+    **One command and one verb named**, which is `_waiting_rows`' rule for its reason: the
+    listing is a door this row can compose whole, and `resume` takes an id only the reader can
+    choose — so an argv for it would be a fiction wherever the row is most needed. A pause is
+    a decision, and the answer offering to undo one would be a judgement this tool has no model
+    for (L4). What it owes is that the file is there and can be read, at the one moment the
+    backlog looks fully gated — which is exactly when a session stops looking.
+    """
+    if choice.set_aside <= 0:
+        return []
+    where = config.relative(config.path("deferred"))
+    return [
+        f"  aside    {choice.set_aside} line(s) in {where}, offered by no tier — a pause is "
+        f"a decision; `{invocation()} list --role deferred` reads them, and `resume` is the "
+        f"verb that ends one"
+    ]
+
+
 def _withheld_rows(choice: Choice) -> list[str]:
     """The way to take a line the requirement filter set aside (RK1490).
 

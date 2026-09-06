@@ -192,6 +192,11 @@ SITES: tuple[Site, ...] = (
     Site("markers.py:_naming_the_lines", "unreached", NO_FIXTURE),
     Site("merging.py:Wiring.repairs", "deliberate", FOREIGN),
     Site("merging.py:_spent", "deliberate", FOREIGN),
+    # RK1512. The store no tier offers, and the read that opens it — run by `test_picking`,
+    # which puts a line in the store and executes the listing the row names. `resume` rides in
+    # the same sentence and is not run: ending a pause is a decision, and a sweep that made one
+    # would be this suite taking the judgement the row deliberately leaves to the reader.
+    Site("rendering.py:_set_aside_rows", "run"),
     # RK1490. The two doors under a line the ranking set aside for a requirement — take the
     # whole thing, or take the half that does not need it — run by `test_picking`, which
     # executes the `status <id> 🛠` this composes and reads the marker it moved.

@@ -79,30 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1512 A store the picker does not know is there
-
-`defer` is the door for work that is neither shipped nor abandoned, and the store it
-writes to is read by nothing that picks. `picking.py` and `briefing.py` mention the role
-nowhere: the `paused` counter is lines blocked on a paused dep, RK92's answer, which
-reaches a deferral only where something open still depends on it. A deferral nothing
-depends on is invisible to every tier.
-
-Measured in the port this tool governs: roughly thirty-four loop iterations ran on one
-block without the file being opened once. Six of its seven deferrals were honestly
-waiting on hardware. The seventh was set aside as accepted, citing a premise that twenty
-files under the tree had already falsified, and nothing went red for it because a reason
-is prose and prose does not go red.
-
-So the ask is not that `pick` offer them - a pause is a decision and offering it would
-undo the decision. It is that the answer stop being silent about a store the project
-declared: the count, and the oldest reason, in the sentence that already names ready,
-blocked and paused. A caller then knows there is a file to read, at the one moment the
-backlog looks fully gated.
-
-The audit is the second half and belongs with it: a deferral carries a reason, and a
-reason has a date and no expiry. What `resume` needs is not a prompt but a reading, and
-the reading starts with knowing the lines are there.
-
 ### §RK1513 The absence nothing says before the work
 
 RK1185 settled that a criterion is read before the first edit rather than at the ship,

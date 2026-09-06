@@ -189,6 +189,22 @@ class Choice:
     #: Empty on every other call — a queue the pick came *from* has nothing to be waiting for,
     #: and a project that declares none has no queue to ask about.
     waiting: tuple[Waiting, ...] = ()
+    #: How many lines the **deferred store** holds (RK1512). `defer` is the door for work that
+    #: is neither shipped nor abandoned, and nothing that picks read the file it writes to: the
+    #: `paused` count above is RK92's, lines blocked on a paused dep, which reaches a deferral
+    #: only where something open still depends on it. A deferral nothing depends on is
+    #: invisible to every tier.
+    #:
+    #: Measured in the port this tool governs: roughly thirty-four loop iterations ran on one
+    #: block without the file being opened once, and one of its seven deferrals cited a premise
+    #: twenty files under the tree had already falsified. Nothing went red, because a reason is
+    #: prose and prose does not go red.
+    #:
+    #: Said and never offered: a pause is a decision, and a tier that picked one would undo it.
+    #: `-1` on a project that declares no store, and `0` on one whose store is empty: a door
+    #: nobody opened and a door opened and unused are two facts, and a zero for both would
+    #: spell the ordinary case as a silence somebody should act on.
+    set_aside: int = -1
     #: What became of the block the question was scoped to (RK429). Absent on an unscoped
     #: pick, where there is no label to have a state — and carried even when a line *was*
     #: chosen, so a caller reading the payload never has to ask a second command what the
@@ -206,12 +222,22 @@ class Choice:
 
     @property
     def counts(self) -> str:
-        """All four numbers, always: a zero is the fact a reader is checking for."""
-        return (
+        """All four numbers, always: a zero is the fact a reader is checking for.
+
+        And the store's, where the project declares one (RK1512) — in this sentence and not a
+        row of its own, because the failure it closes is a caller reading *nothing to pick*
+        against a backlog that looks fully gated while a file it declared holds work nobody
+        opened. A fifth number in the line already scanned is where that reader is looking.
+
+        Omitted where no store is declared, which is not a zero: a project without the door
+        has no set-aside lines to be silent about.
+        """
+        every = (
             f"{self.ready} ready, {self.blocked} blocked, "
             f"{self.outside} blocked outside the backlog, "
             f"{self.paused} blocked on paused work"
         )
+        return every if self.set_aside < 0 else f"{every}, {self.set_aside} set aside"
 
 
 def pick(
@@ -320,6 +346,10 @@ def pick(
         # the queue's *blocked* lines are waiting on, and `ordered` is by construction the
         # lines that are waiting on nothing.
         "waiting": _waiting(backlog, config, ordered, considered),
+        # The store nothing that picks read (RK1512). One document read where the project
+        # declares one and nothing at all where it does not, which is `_absence`'s own rule:
+        # a file that is not there is not a zero.
+        "set_aside": _set_aside(config),
     }
     # **Before the absence, and only where there is nothing else** (RK1490). RK1297 stops
     # offering a line whose requirement is not on this desk and RK1467 made the refusal
@@ -435,6 +465,30 @@ def hold(config: Config, task_id: str) -> Claim:
     """
     with exclusive(config.root):
         return Claim(choice=None, change=set_status(config, task_id, IN_PROGRESS))
+
+
+def _set_aside(config: Config) -> int:
+    """How many lines the deferred store holds, or `-1` where there is no store (RK1512).
+
+    `-1` and not `0`, which is the distinction the whole row rests on: a project that declares
+    no store has nothing to be silent about, and one whose store is empty has a door somebody
+    opened and has not used — two different facts, and a zero would spell them the same.
+
+    Unscoped by design. A `--block` question narrows what may be *offered*, and this is not an
+    offer: a pause is a decision and the sentence exists so a caller knows the file is there.
+    Scoping it would answer *this block has nothing set aside* on a backlog whose store holds
+    six, which is the silence being removed wearing a smaller shape.
+
+    `-1` on anything unreadable too, every reader in this module's direction: a store this
+    cannot open is one the caller learns about from `lint`, and a count guessed here would be
+    a number in the line a reader scans.
+    """
+    if not config.has("deferred") or not config.path("deferred").is_file():
+        return -1
+    try:
+        return len(config.document("deferred").entries)
+    except (OSError, ValueError):
+        return -1
 
 
 def _absence(
@@ -684,6 +738,7 @@ class Picked:
             _lacking_rows,
             _stalled_rows,
             _undesigned_rows,
+            _set_aside_rows,
             _waiting_rows,
             _withheld_rows,
         )
@@ -700,6 +755,7 @@ class Picked:
                     # this says what the caller may do about it — the move RK1467 left unbuilt.
                     *_withheld_rows(choice),
                     *_waiting_rows(choice),
+                    *_set_aside_rows(choice, config),
                     *_held_rows(choice),
                     *_stalled_rows(choice),
                 ]
@@ -720,6 +776,8 @@ class Picked:
         # Beside the pick and never instead of it (RK1304): the fall-through is still the right
         # call when the blocker is expensive, and the caller is the one who knows which it is.
         rows += _waiting_rows(choice)
+        # The store no tier offers (RK1512), under the counts that now name it.
+        rows += _set_aside_rows(choice, config)
         rows += _held_rows(choice)
         rows += _stalled_rows(choice)
         taken = _claim_rows(self.claim, config)
@@ -764,6 +822,10 @@ class Picked:
             "blocked": choice.blocked,
             "outside": choice.outside,
             "paused": choice.paused,
+            # The store no tier offers (RK1512). `-1` where the project declares none,
+            # which is a different fact from an empty one: a door nobody opened against
+            # a door opened and unused, and a zero for both spells them the same.
+            "set_aside": choice.set_aside,
             "needs_design": choice.needs_design,
             "undesigned": choice.undesigned,
             # `claimed` on a stalled line and `held` beside it are two facts with two names

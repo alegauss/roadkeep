@@ -950,3 +950,93 @@ def test_the_payload_carries_the_roster_at_zero_too(tmp_path, capsys):
     project(tmp_path, BLOCKS + line("RK1"))
     assert main(["-C", str(tmp_path), "pick", "--json"]) == EXIT_OK
     assert json.loads(capsys.readouterr().out)["against"] == []
+
+
+# -- a store the picker does not know is there (RK1512) ------------------------
+
+#: The store `defer` writes to, with one line already in it.
+STORE = (
+    "# Set aside\n\n## Block A\n\n"
+    "- ⏸ **RK9** (deps: —) **A set-aside symptom** — [paused] waiting on hardware. Because.\n"
+)
+
+
+def _with_store(tmp_path: Path, roadmap: str, held: str = STORE) -> Config:
+    root = project(tmp_path, roadmap, extra=DECLARED)
+    (tmp_path / "roadkeep.toml").write_text(
+        (tmp_path / "roadkeep.toml").read_text(encoding="utf-8")
+        + 'deferred = "DEFERRED.md"\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "DEFERRED.md").write_text(held, encoding="utf-8")
+    return Config.discover(tmp_path)
+
+
+def test_the_counts_name_the_store_the_project_declared(tmp_path, capsys):
+    """RK1512. `defer` is the door for work that is neither shipped nor abandoned, and the file
+    it writes to was read by nothing that picks: the `paused` count is RK92's, lines blocked on
+    a paused dep, which reaches a deferral only where something open still depends on it. A
+    deferral nothing depends on was invisible to every tier.
+
+    Measured in the port this tool governs: roughly thirty-four loop iterations ran on one
+    block without the file being opened once, and one of its seven deferrals cited a premise
+    twenty files under the tree had already falsified."""
+    root = _with_store(tmp_path, BLOCKS + line("RK4")).root
+    assert main(["-C", str(root), "pick"]) == EXIT_OK
+    said = capsys.readouterr().out
+    # In the line a caller scans, which is where that reader is looking.
+    assert "1 set aside" in said
+    assert "offered by no tier" in said
+
+
+def test_the_read_it_names_runs_and_prints_the_set_aside_line(tmp_path, capsys):
+    # The whole value of naming a read is that it runs (RK1209). `resume` is in the same
+    # sentence and is not executed: ending a pause is a decision, and this row leaves it.
+    from composing import runs
+
+    root = _with_store(tmp_path, BLOCKS + line("RK4")).root
+    main(["-C", str(root), "pick"])
+    said = capsys.readouterr().out
+    ran = runs(root, said)
+    assert ["list", "--role", "deferred"] in ran, said
+    assert "RK9" in capsys.readouterr().out
+
+
+def test_a_project_that_declares_no_store_says_nothing_about_one(tmp_path, capsys):
+    # Not a zero: a project without the door has no set-aside lines to be silent about, and a
+    # `0 set aside` on every pick is the field a reader stops reading.
+    project(tmp_path, BLOCKS + line("RK4"), extra=DECLARED)
+    assert main(["-C", str(tmp_path), "pick"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "set aside" not in said
+
+
+def test_a_declared_store_that_is_empty_says_zero_and_offers_no_read(tmp_path, capsys):
+    """Two facts and not one: a door nobody opened, and a door opened and unused. The count
+    states the second and the row is absent, because what the row is for is a file holding
+    work — and a read offered on an empty file is the noise this gate refuses everywhere."""
+    root = _with_store(tmp_path, BLOCKS + line("RK4"), held="# Set aside\n\n## Block A\n").root
+    assert main(["-C", str(root), "pick"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "0 set aside" in said
+    assert "offered by no tier" not in said
+
+
+def test_the_store_is_not_narrowed_by_a_block(tmp_path, capsys):
+    """A `--block` question narrows what may be *offered*, and this is not an offer. Scoping it
+    would answer *this block has nothing set aside* on a backlog whose store holds one, which
+    is the silence being removed wearing a smaller shape."""
+    root = _with_store(tmp_path, BLOCKS + line("RK4") + MORE + line("RK8", block="B")).root
+    assert main(["-C", str(root), "pick", "--block", "B"]) == EXIT_OK
+    assert "1 set aside" in capsys.readouterr().out
+
+
+def test_the_payload_tells_an_undeclared_store_from_an_empty_one(tmp_path, capsys):
+    root = _with_store(tmp_path, BLOCKS + line("RK4"), held="# Set aside\n\n## Block A\n").root
+    assert main(["-C", str(root), "pick", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["set_aside"] == 0
+
+    (tmp_path / "other").mkdir()
+    project(tmp_path / "other", BLOCKS + line("RK4"), extra=DECLARED)
+    assert main(["-C", str(tmp_path / "other"), "pick", "--json"]) == EXIT_OK
+    assert json.loads(capsys.readouterr().out)["set_aside"] == -1
