@@ -193,6 +193,25 @@ RK1467 refuses on the line side and not on the caller's.
 
 Both are one row or one refusal, and which each gets is what this line has to settle.
 
+### §RK1609 The span three functions rebuild
+
+Measured against the property RK1558 had just shipped. A `help=` f-string whose
+backticked command carries a *literal* marker beside an interpolation — the marker
+written out, the id filled in — is read by none of the three scans: `_offered` splits
+the shown string at each `ast.Constant`, so the two backticks land in different nodes
+and the span never re-forms; `_composed_markers` reads only an interpolated marker
+*name*; `_values` exempts the words a caller is shown.
+
+The same gap the other way is the second instance. `_composed_markers` matches
+`MARKER_NAMES` alone, where the literal sweep and the new one both hold markers, ids and
+governed files — so an f-string composing `lint` round the roadmap path constant builds
+a command out of a value `[files]` decides, and nothing flags it.
+
+One root: three functions each rebuild what a caller is offered, and each stops
+somewhere different. `_composed_markers` already joins an f-string's literal parts
+before looking for a backtick, which is the reading the other two want — so the repair
+is one helper the three share, and the third value kind on the scan that reads one.
+
 ## Block D — The gate
 
 ### §RK1559 The twelve sentences nothing has measured

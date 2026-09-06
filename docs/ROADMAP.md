@@ -33,6 +33,7 @@
 - 💭 **RK1568** (deps: —) **an incidental entry that is on disk and filters no commit is silent, which is the half of the reading RK1529 gave** — existence is a blob this gate already reads and matched-anything is a history walk, so the second half was left where nothing asks it. → §RK1568
 - 💭 **RK1573** (deps: —) **declare non_goals opens a table whose verb refuses, nothing writing the heading that declares the list** — init writes it once at scaffold time, so a project past that is opened into a list it can only start with the hand edit the guard denies. → §RK1573
 - 💭 **RK1608** (deps: —) **a narrowing flag whose vocabulary the project declared nothing for filters nothing and says nothing** — RK1556 gave the partial fallback a sentence and left --designed and --have with the same silence, so a caller reads an answer as narrowed that was not. → §RK1608
+- 💭 **RK1609** (deps: —) **three scans of one rule reconstruct a composed command three ways, and a value sits in the gap between them** — RK1558 stated where the exemption ends and left the span split across an f-string's parts, so a literal value inside a help command is read by none of them. → §RK1609
 
 ## Block D — The gate
 
