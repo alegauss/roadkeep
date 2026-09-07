@@ -341,6 +341,19 @@ INVARIANTS: tuple[Invariant, ...] = (
         # command and reading its stderr rather than by anything here going red.
         instances=("RK1419", "RK1420"),
     ),
+    Invariant(
+        stated="RK1585",
+        rule=(
+            "the prose beside a table this suite holds total names what the table holds, "
+            "so an example is checked against the enumeration it was written from"
+        ),
+        over="test_naming.BESIDE",
+        held_by="test_naming::test_the_population_is_declared_and_every_row_says_where_it_is_held",
+        # RK1539 is the instance that produced the rule: a comment naming two collisions
+        # where the enumeration finds one, both examples written from the tool table and
+        # neither checked against the parser.
+        instances=("RK1539",),
+    ),
 )
 
 #: The rules stated here that nothing holds, named so that losing a holder is a decision

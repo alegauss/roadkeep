@@ -3144,7 +3144,12 @@ def test_the_prose_beside_the_guard_names_the_collisions_the_table_finds():
 
     Nothing broke, because the rule they illustrate is right whichever example carries it. What
     it cost is a reader following the wrong one, looking for a verb that is not there — so the
-    prose is held against the table, which is what the table was built to be."""
+    prose is held against the table, which is what the table was built to be.
+
+    **The half that is this comment's stays here** (RK1585): *a word called a command here is a
+    command* is a claim about the forty characters after it, and the phrase is what makes it
+    decidable. The totality half — every collision the table finds is named — generalised, and
+    `test_naming` is where the population of tables with prose beside them is declared."""
     import re
     from pathlib import Path as _Path
 
@@ -3154,7 +3159,3 @@ def test_the_prose_beside_the_guard_names_the_collisions_the_table_finds():
     verbs = _commands()
     for word in re.findall(r"`([a-z][a-z-]*)`(?=[^`]{0,40}?command here)", guard):
         assert word in verbs, f"the prose calls `{word}` a command here and the parser has none"
-    # And every collision the table knows is named, so a second one arriving is a comment
-    # somebody edits rather than an example that quietly describes one of two.
-    for name in COLLIDING:
-        assert f"`{name}`" in guard, name

@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 231 | 2 |
 | C — Query (consult without reading the file) | 10 | 177 | 4 |
-| D — The gate | 19 | 278 | 5 |
+| D — The gate | 18 | 279 | 5 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 159 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 37 | 1081 | 17 |
+| **Total** | 36 | 1082 | 17 |
 
 **Next ready:**
 
-- 💭 **RK1585** (deps: —) **prose beside a total table is taken for the table, and one check reads one phrase in one comment** — RK1539 closed the instance it met and the shape it is an instance of has five tables and no rule. → §RK1585
+- 💭 **RK1588** (deps: —) **a withholding reason quoted a total that was stale within the session that read it, and no sweep says how many are** — RK1541 replaced one frozen figure with a read after RK1530 and RK1540 each did the same, and the population of numbers a decision rests on is uncounted. → §RK1588
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

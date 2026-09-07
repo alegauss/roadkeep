@@ -24,6 +24,7 @@ one that silently reports about the wrong one.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from functools import cached_property, lru_cache
 from pathlib import Path
@@ -148,3 +149,32 @@ def suite() -> tuple[Path, ...]:
     itself. Every other sweep asks here.
     """
     return tuple(sorted(Path(__file__).resolve().parent.glob("test_*.py")))
+
+
+#: A backticked single word — a verb, a flag, a key, a tool name. The span is one word because
+#: that is what a *claim about a table* looks like: `` `init` and `adopt` are deliberately
+#: absent`` names two members, and `` `roadkeep add --block A` `` is a command, which
+#: `composing` already reads under its own rule.
+_WORD = re.compile(r"`([a-z][a-z0-9_-]*)`")
+
+
+def claimed(prose: str) -> tuple[str, ...]:
+    """Every backticked word one span of prose names, in order and once each (RK1585).
+
+    The shared half of *the prose beside a table names what the table holds*. RK1539 found one
+    instance — a comment naming two collisions where the enumeration finds one, both examples
+    written from the tool table and neither checked against the parser — and closed it with a
+    regex at the call site. This is that regex, lifted, because the shape has more than one
+    instance and a rule written per instance is a rule that stops being applied.
+
+    **The extraction and never the assertion**, which is the whole of what generalises: what a
+    span claims about its table differs per table — `TOOLS`' preamble names four verbs it says
+    are *absent*, the guard's comment names collisions it says are *present* — and a helper
+    that decided which would be inventing the claim. `tests/test_naming.py` is where each is
+    stated, and it says which are decidable.
+    """
+    found: list[str] = []
+    for word in _WORD.findall(prose):
+        if word not in found:
+            found.append(word)
+    return tuple(found)
