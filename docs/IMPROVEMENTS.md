@@ -212,6 +212,53 @@ filed and the finding is that there is nothing to file, which is exactly why it 
 nowhere to live — and why the same suspicion is filed from resemblance instead: of four
 such filings in pportal, three needed correction.
 
+### §RK1622 The shape no test asks a corpus for
+
+RK1566's design named Turing for a property — "a long backlog against a ledger that is
+mostly one migration" — and the pin holds the opposite: three open lines against 901
+entries, this repository's own shape. The design was written and filed on that sentence,
+and the measurement it asked for was the first thing to read it.
+
+Nothing here could have disagreed. `corpora.py` says in prose what each corpus supplies
+— block deps, an outline scheme, an unmarked ledger, ranges — and each is a shape some
+test names, so a corpus that stopped carrying one goes red or skips. A **ratio** is not
+that kind of shape: no test asks for it, nothing reads it, and a paragraph is free to
+assert what it likes about the pinned trees.
+
+The advisory in `test_corpora.py` is the near miss. It warns when the pin has fallen
+behind, and the warning during this task said `roadmap 3 → 0` — the whole answer,
+sitting in output nobody reads until something fails.
+
+What is missing is a shape a design can be checked against: how many open lines and how
+many delivered entries each pin holds, and the same per block. Not an assertion about
+somebody else's backlog — those numbers move and should — but a **reading**, so a claim
+about which corpus exhibits which ratio is answered rather than remembered.
+
+### §RK1623 The corpus measured beside the one that is ranked
+
+`add` builds the corpus its volunteered rows are ranked against: the block's delivered
+entries, then the block's other open lines, in that order — and the order is
+load-bearing, because every measurement of the split counts an index past
+`len(delivered)` as the open half taking a row.
+
+Three tests in `test_ranking.py` rebuild that list by hand. RK1527's two did it to
+measure the window, RK1566's `_slots` does it again, and none of them calls the code
+that composes it. So the property being measured is *a* corpus of that shape rather than
+**the** corpus `add` ranks, and a change to what `add` includes — dropping 🗑 entries,
+ranking a second block, ordering the halves the other way — leaves every figure here
+passing about a composition production no longer has.
+
+Not hypothetical in kind: RK1495 is exactly that change, made once already. It doubled
+the corpus, and the reason the window needed re-measuring was that nothing had been
+holding the two halves together.
+
+The fix is a seam and not a fixture. What the tests want is the block's corpus as a
+value — the two lists and the boundary — which `authoring` computes inside the function
+that also ranks and counts. Lifting it is the argument RK1491 made about `disagreements`
+and RK1524 about `composed`: a figure taken off the function the caller uses cannot
+drift from what the caller gets, and one taken off a rebuilt copy drifts silently, the
+day somebody edits the original.
+
 ## Block D — The gate
 
 ### §RK1569 The half that is somebody else's to change
