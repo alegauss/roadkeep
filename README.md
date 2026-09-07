@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 231 | 2 |
 | C — Query (consult without reading the file) | 10 | 177 | 4 |
-| D — The gate | 19 | 281 | 5 |
+| D — The gate | 18 | 282 | 5 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 159 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 37 | 1084 | 17 |
+| **Total** | 36 | 1085 | 17 |
 
 **Next ready:**
 
-- 📋 **RK1591** (deps: —) **a remedy whose first step is an edit outside this tool has no kind, so repair dispatches a door that refuses** — The six kinds say who supplies the prose and who runs the command, and none says the state has to change first. → §RK1591
+- 📋 **RK1600** (deps: —) **a refusal payload publishes rules and never the retry the same refusal composed** — The retry is an argv this tool derived and it reaches a caller inside the sentence, so the one part they would execute is the part they must parse. → §RK1600
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

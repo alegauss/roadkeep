@@ -351,27 +351,6 @@ reachable is a null.
 
 ## Block D — The gate
 
-### §RK1591 The step before the command
-
-`export.unmarked` fires where a file carries a begin marker and no end. Its remedy is
-`export --readme`, which is the command that closes it — after the two lines the message
-names are pasted. Before that it refuses, and `repair` walks `run` doors, so it
-dispatches one it cannot open and reports `0 ran, 1 refused`. That is RK1475's rule met
-from the other side: a finding naming a command that then refuses is worse than one
-naming nothing.
-
-None of the six kinds fits. `decide` is a choice between doors and a test holds it to
-more than one, there being nothing to choose here. `read` says the command writes
-nothing, which is false. `compose` says a field is the author's, and no field is.
-`restore` says another tool owns the command. `fix` is the mechanical pass and `run` is
-what it is.
-
-What is missing is a kind whose door is complete, writes, and is not runnable **yet** —
-the precondition being an edit in a file this tool does not own. That is one field on
-`_Rule` and one branch in `runnable`, and it is the second half of the same question
-RK1475 answered by withdrawing an offer: a door with a precondition can be printed
-honestly or not printed at all, and this tool has only ever had the second.
-
 ### §RK1600 The argv inside the paragraph
 
 RK1584 gave a refused call a payload: the violations, the two clauses above them, and

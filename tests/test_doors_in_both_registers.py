@@ -209,6 +209,9 @@ def test_the_shared_name_is_a_list_at_every_site():
 
     rich = Remedy("line.too-long", "fix", (Door(("lint", "--fix"), "the derived"),)).payload()
     # `sequence` joined them in RK1336: which of the two kinds of several these doors
-    # are, published so a consumer offering them does not read it off the count.
-    assert set(rich) == {"kind", "decision", "sequence", "doors"}
+    # are, published so a consumer offering them does not read it off the count. And `awaits`
+    # in RK1591, for the same reason one register up: a consumer reading the kind and the
+    # completeness would conclude this is runnable, and on one row that is wrong — so what
+    # holds it back is published beside the door rather than left to the exit code.
+    assert set(rich) == {"kind", "decision", "sequence", "awaits", "doors"}
     assert isinstance(rich["doors"], list)

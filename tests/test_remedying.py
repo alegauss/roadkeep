@@ -273,13 +273,49 @@ def test_a_decision_is_stated_exactly_where_there_is_one():
 
 
 def test_a_runnable_remedy_carries_no_blank():
+    """A `fix` or `run` door is complete, and is runnable unless it says what it waits on.
+
+    The second clause is RK1591's. The kind said the caller runs this and `Door.complete` said
+    the argv has every word, and one row was both and still refused: `export.unmarked` closes
+    with a command that declines to write into the state that emitted the finding. `awaits` is
+    the only thing that may hold a complete write back, so the invariant is not *every write
+    runs* but *every write runs or names its precondition* — and the blank stays refused on
+    both, an argv missing a word being a different defect from one waiting on an edit."""
     for code in codes():
         found = remedy(Finding(code, "ROADMAP.md", "", 12, "RK1"))
         assert found is not None
         if found.kind in ("fix", "run"):
-            assert found.runnable, f"{code}: {found.doors}"
+            assert found.runnable or found.awaits, f"{code}: {found.doors}"
             for door in found.doors:
                 assert BLANK not in " ".join(door.argv), code
+
+
+def test_a_precondition_is_named_where_a_complete_door_still_refuses():
+    """RK1591. The field is a claim about **this tool's own command**, so it is bounded on
+    every side the table can state.
+
+    A row carrying one is a write — a `read` closes nothing whether or not the state is ready,
+    a `compose` and a `decide` are already the caller's, and a `restore` names another tool, so
+    on any of those the sentence would be describing something it does not own. It costs the
+    row its runnability, which is the whole point: `repair` prints it instead of dispatching a
+    door it cannot open. And the door stays complete — waiting on an edit is not the same
+    defect as missing a word, and a row that confused them would have `repair` hand the caller
+    a `…` to fill."""
+    carried = []
+    for code in codes():
+        found = remedy(Finding(code, "ROADMAP.md", "", 12, "RK1"))
+        assert found is not None
+        if not found.awaits:
+            continue
+        carried.append(code)
+        assert found.kind == "run", f"{code}: {found.kind} has no command of its own to hold"
+        assert not found.runnable, code
+        assert all(door.complete for door in found.doors), code
+        assert not found.doors[0].foreign, code
+    # Named, because the field earns its place on the rows that have it and the count is what a
+    # reader checks the argument against — one today, and a second would be a claim to make on
+    # purpose rather than a row that quietly stopped being dispatched.
+    assert carried == ["export.unmarked"], carried
 
 
 def test_every_door_names_a_subcommand_this_cli_parses():

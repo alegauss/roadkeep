@@ -57,12 +57,19 @@ def test_no_read_only_remedy_is_ever_selected_as_a_step():
     step, writes no byte and leaves the finding standing, which is a repair loop that repairs
     nothing arriving through the verb written to end one. Over every code, because the defect
     was a *classification* and the fixture that catches one row proves nothing about the rest.
+
+    **A `run` is selected unless it says what it waits on** (RK1591). This read the kind and
+    nothing else, which is how `export.unmarked` was dispatched: the door writes and is
+    complete, and it refuses on the very state that emitted the finding, because the two marker
+    lines it needs are an edit in a file this tool does not own. So the second branch is not
+    *every `run` is a step* — `awaits` names the row that is a step only after the caller acts,
+    and asserting it is not selected is the same claim this test already makes about a read.
     """
     for code in codes():
         found = remedy(Finding(code, "docs/ROADMAP.md", "", 1, "DX1"))
         assert found is not None
         selected = _door(Finding(code, "docs/ROADMAP.md", "", 1, "DX1"), _ANY)
-        if found.kind == "read":
+        if found.kind == "read" or found.awaits:
             assert selected is None, f"{code}: repair would run {found.doors[0].argv}"
         elif found.kind == "run":
             assert selected is not None, code
@@ -362,3 +369,54 @@ def test_the_row_declares_what_it_varies_with():
     from roadkeep.remedying import VARIES
 
     assert VARIES["section.stale"] == "nested"
+
+
+# -- complete in shape, waiting on somebody else (RK1591) ---------------------
+
+#: A begin marker with no end, in the one file this tool does not own. `export` refuses it —
+#: where the block ends is not derivable and inventing it would rewrite somebody's prose — so
+#: the finding's door is complete, writes, and cannot open until two lines are pasted.
+_HALF_MARKED = "# A project\n\n<!-- roadkeep:begin -->\nnothing the governed files render\n"
+
+
+def test_a_door_waiting_on_an_edit_outside_this_tool_is_not_dispatched(tmp_path, capsys):
+    """RK1591. `runnable` read the kind and the argv's completeness, and `export.unmarked` is a
+    `run` whose argv is complete — so `repair` dispatched a command that refuses on the very
+    state that emitted the finding, and closed with `0 ran, 1 refused` however many times it
+    was called. RK472 met the same shape through a decision; this one is a single door.
+
+    What `awaits` buys is the row saying so before the loop reads it, so the caller gets the
+    command *and* the step that comes first instead of an exit code."""
+    config = _project(tmp_path)
+    (tmp_path / "README.md").write_text(_HALF_MARKED, encoding="utf-8", newline="")
+    found = next(f for f in lint(config).findings if f.code == "export.unmarked")
+    answer = remedy(found, config)
+    assert answer.kind == "run" and not answer.runnable
+    assert answer.awaits and answer.doors[0].complete
+    outcome = repair(config, _dispatcher(tmp_path))
+    assert not [step for step in outcome.steps if step.argv[:1] == ("export",)]
+    assert not outcome.failed
+    left = next(one for one in outcome.left if one.finding.code == "export.unmarked")
+    # The precondition is printed above the door, which is where a sentence about how to read
+    # what follows has to be — and the door is printed, because it is still the command.
+    printed = str(left).splitlines()
+    waits = next(i for i, one in enumerate(printed) if "paste the two lines" in one)
+    door = next(i for i, one in enumerate(printed) if "export --readme" in one)
+    assert waits < door, printed
+
+
+def test_the_same_door_runs_the_moment_the_two_lines_are_there(tmp_path):
+    """The precondition narrows nothing that worked: with the block delimited, this is the
+    ordinary stale projection and `repair` closes it in one call. Held beside the refusal,
+    because a field that made a door permanently undispatchable would have answered RK1591 by
+    withdrawing the offer — which is the option RK1475 took and this one deliberately does
+    not."""
+    config = _project(tmp_path)
+    (tmp_path / "README.md").write_text(
+        f"{_HALF_MARKED}<!-- roadkeep:end -->\n", encoding="utf-8", newline=""
+    )
+    found = next(f for f in lint(config).findings if f.code == "export.stale")
+    assert remedy(found, config).runnable
+    outcome = repair(config, _dispatcher(tmp_path))
+    assert outcome.clean
+    assert [step.argv for step in outcome.steps if step.argv[:1] == ("export",)]

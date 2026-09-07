@@ -34,6 +34,17 @@ because four is what a caller actually does next:
   a write only the author can compose — `deps.unknown` and `priority.block-unstarted`
   (RK435). "Both are rendered complete" is what this said, and two rows already refuted it.
 
+**A kind says who acts; it does not say the state is ready** (RK1591). Those six answer *what
+the caller does next*, and one row needed a seventh thing said: `export.unmarked` fires where a
+README carries a begin marker and no end, and its door — `export --<target>` — is complete,
+writes, and refuses, because this tool may not invent where a block belongs in a file it does
+not own. `repair` walks `run` doors, so it dispatched one it could not open and closed with `0
+ran, 1 refused`, which is RK1475's rule met from the other side. :attr:`_Rule.awaits` is that
+sentence as a field: what has to be edited first, printed above the door and read by
+:attr:`Remedy.runnable`. A field and not a kind, because every kind here names *who supplies the
+prose* and this one supplies none — the door stays this tool's, and what changes is that it is
+the second step.
+
 **The table is keyed by code and nothing else.** A remedy computed at the emission site
 would be 70 remedies to keep in step with 70 messages, and the one that fell behind would
 be invisible — the report still prints, the exit is still 1, and only the sentence that
@@ -459,6 +470,11 @@ class Remedy:
     #: the reader most needs — which is the argument the doors table already makes about
     #: naming why a site is not executed instead of writing "no".
     sequence: bool = False
+    #: What has to be true **before** the doors open, where that is not this tool's to do
+    #: (RK1591). One sentence naming the edit the caller makes first, in a file this tool does
+    #: not own; empty on every row whose door opens on the state that emitted the finding —
+    #: which is all but one of them. See :attr:`_Rule.awaits`.
+    awaits: str = ""
 
     @property
     def door(self) -> Door | None:
@@ -480,8 +496,23 @@ class Remedy:
         repair loop running it would read a paragraph off a stdin it does not have. What the
         kind carries and no door field does is *who supplies the prose*, so `compose` is a
         word about the author and not about the command.
+
+        **And :attr:`awaits` is the third question, which neither of those answers** (RK1591).
+        A door can be complete, write, be the only one, and still refuse — because the state
+        that emitted the finding is a state the command declines to write into, and what clears
+        it is an edit in a file this tool does not own. `export.unmarked` is that row: the
+        README carries a begin marker and no end, `export` may not invent where a block
+        belongs, so a loop reading the kind alone dispatched it and reported `0 ran, 1
+        refused`. Held as a field rather than a seventh kind, because a kind says *who supplies
+        the prose* and this changes nobody: the author supplies neither a field nor a choice,
+        only the precondition. `restore` names another tool's command; this names this tool's
+        own and says it is the second step.
         """
-        return self.kind in ("fix", "run") and all(d.complete for d in self.doors)
+        return (
+            self.kind in ("fix", "run")
+            and not self.awaits
+            and all(d.complete for d in self.doors)
+        )
 
     def payload(self, served: str = "") -> dict[str, object]:
         """The `--json` form: argv as a list, because a consumer runs it rather than reads it.
@@ -500,11 +531,27 @@ class Remedy:
             # at two doors and a blank decision would otherwise have to guess whether to offer
             # a choice or a sequence, which is the guess the stated register no longer makes.
             "sequence": self.sequence,
+            # Published beside them (RK1591), because a consumer deciding whether to *run* a
+            # door reads the kind and the completeness and would conclude yes: the one thing
+            # that says otherwise is this sentence, and a payload that carried the door and
+            # withheld the precondition would be the refusal loop with an API in front of it.
+            "awaits": self.awaits,
             "doors": [door.payload(served) for door in self.doors],
         }
 
     def spoken(self, served: str = "") -> str:
-        """The same text :meth:`__str__` renders, in the spelling this session has (RK478)."""
+        """The same text :meth:`__str__` renders, in the spelling this session has (RK478).
+
+        A row carrying :attr:`awaits` puts the precondition **above** the door (RK1591), which
+        is `decide`'s rendering for `decide`'s reason: a sentence saying how to read what
+        follows is worth nothing under it. The door still prints in full, because it is the
+        command — what changes is that the reader learns it is the second step before they
+        paste it, rather than by running it.
+        """
+        if self.awaits:
+            return f"{self.awaits}\n" + "\n".join(
+                f"    {door.spoken(served)}" for door in self.doors
+            )
         if self.kind == "decide":
             return f"{self.decision}\n" + "\n".join(
                 f"    {door.spoken(served)}" for door in self.doors
@@ -547,6 +594,14 @@ class _Rule:
     #: each door, because it is a property of the *kind*: `restore` is the one that leaves
     #: this tool's vocabulary, and a door-by-door flag would let a row be half foreign.
     foreign: bool = False
+    #: What clears the state this finding reports, where the door refuses until it is cleared
+    #: and clearing it is an edit outside this tool (RK1591). A sentence rather than a flag,
+    #: because the whole content is *which* edit: `export.unmarked` wants two marker lines put
+    #: where the block belongs, and a boolean saying "not yet" would send the reader back to
+    #: the refusal to find out what for. Prose and not derived, which is the same division
+    #: every other row keeps — the tool renders and never composes (L4). Non-empty makes
+    #: :attr:`Remedy.runnable` false, so `repair` prints the row instead of dispatching it.
+    awaits: str = ""
 
 
 def _fix(cause: str, what: str) -> _Rule:
@@ -1575,21 +1630,24 @@ _TABLE: Mapping[str, _Rule] = {
     # flag as the finding's subject for **both** codes, so a stale `--site` block was told to
     # re-run the README's projection.
     #
-    # Still a `run`, and the `what` now says what has to be true first. The command refuses on
-    # the state that emits the finding — `export` may not invent where a block belongs in a
-    # file this tool does not own — so `repair` dispatches it and reports it refused. Named
-    # rather than hidden: RK1591 holds the question, there being no kind for a remedy whose
-    # first step is an edit outside this tool.
+    # Still a `run`, and the precondition is a field now (RK1591). The command refuses on the
+    # state that emits the finding — `export` may not invent where a block belongs in a file
+    # this tool does not own — so while that sentence was only prose inside `what`, `repair`
+    # read the kind, dispatched the door and reported `0 ran, 1 refused`. `awaits` is what the
+    # loop reads: the door is this tool's and it is the *second* step, which is the one thing
+    # neither the kind nor `Door.complete` could say.
     "export.unmarked": _Rule(
         "run",
         (
             (
                 ("export", "--readme"),
-                "paste the two lines the message prints where the block belongs, and this "
-                "writes it — until they are there it refuses, the place being yours",
+                "the block between them is rewritten from the governed files, every character "
+                "of it derived",
             ),
         ),
         varies="target",
+        awaits="paste the two lines the message prints where the block belongs — the place is "
+        "yours, in a file this tool does not own, and until they are there this refuses",
     ),
     # A `run` and not a `read`, which is the whole point of putting this at the gate (RK1192):
     # `install --check` reported it and nobody ran that, so the finding names the command that
@@ -1954,7 +2012,7 @@ def remedy(finding: object, config: Config | None = None) -> Remedy | None:
         Door(_scoped(_substitute(argv, values), values, config), what, foreign=rule.foreign)
         for argv, what in rule.doors
     )
-    return Remedy(code, rule.kind, doors, rule.decision, rule.sequence)
+    return Remedy(code, rule.kind, doors, rule.decision, rule.sequence, rule.awaits)
 
 
 def _varied(
@@ -2034,10 +2092,10 @@ def _varied(
         flag = values.get("id", "")
         if flag in DEFAULTS:
             argv, what = rule.doors[0]
-            # The row's **own** kind, carried through (RK1591). Rebuilding it as a `run` was
-            # right while one code varied and wrong the moment a second did: `export.unmarked`
-            # is a decision — where in a file this tool does not own the block belongs is the
-            # author's — and a substitution that renamed the kind handed it to `repair`.
+            # The row's **own** fields, carried through (RK1591). Rebuilding it as a bare `run`
+            # was right while one code varied and wrong the moment a second did: what separates
+            # `export.unmarked` from its sibling is not the kind but the precondition it
+            # carries, and a substitution composing a fresh row would drop exactly that.
             return replace(rule, doors=(((*argv[:-1], f"--{flag}"), what),), varies="")
         return rule
     if rule.varies == "nested":

@@ -1019,16 +1019,18 @@ def test_the_door_a_stale_projection_names_runs(tmp_path):
 
 
 def test_the_door_a_half_marked_projection_names_refuses_until_the_paste(tmp_path):
-    """RK1591, which this family was taken to find. The other branch of the same function
-    emits a finding whose door **refuses on the state that emitted it**: `export` may not
-    invent where a block belongs in a file this tool does not own, so the paste comes first
-    and `repair`, which walks `run` doors, dispatches one it cannot open.
+    """RK1591, which this family was taken to find, and which this shape decided. The other
+    branch of the same function emits a finding whose door **refuses on the state that emitted
+    it**: `export` may not invent where a block belongs in a file this tool does not own, so
+    the paste comes first — and `repair`, which walks `run` doors, dispatched one it could not
+    open.
 
-    Recorded rather than asserted away — RK1591 holds the question, there being no kind for a
-    remedy whose first step is an edit outside this tool, and a `read` or a `decide` here
-    would each say something false about the command. What is held is the shape either answer
-    has to keep: the door names the projection the finding is about, it refuses before the
-    two lines are there, and it lands the moment they are."""
+    Recorded before there was an answer, because the answer had to keep this shape whatever it
+    was: the door names the projection the finding is about, it refuses before the two lines
+    are there, and it lands the moment they are. A `read` or a `decide` would each have said
+    something false about the command, so what changed is `Remedy.awaits` — the precondition as
+    a field, asserted in `tests/test_repairing.py`. Here the claim stays what it always was,
+    which is that both halves of *refuses, then runs* are true of one argv."""
     project = _adopter(tmp_path)
     (project / "README.md").write_text(
         "# A project\n\n<!-- roadkeep:begin -->\nnothing the governed files render\n",
