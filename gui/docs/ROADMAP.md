@@ -11,6 +11,7 @@
 - 📋 **RG67** (deps: RG3 ✅) **a project declaring a read bound answers in a shape nothing here has ever seen, and the reader refuses it** — A listing past the bound comes back as blocks and counts instead of tasks, and this repo declares none so the shape could not be written from a real payload. → §RG67
 - 📋 **RG68** (deps: RG4 ✅) **the contract costs a minute of process starts, because every read rebuilds nothing but pays a fresh engine** — Building the fixture is fifteen write calls and each read is another, so the suite went from four seconds to twenty-eight. → §RG68
 - 📋 **RG69** (deps: RG6 ✅) **a subcommand is a verb with a space in it, and the verb table has no way to spell one** — commands publishes section show, capture filed and capture sweep as single names, and every write this app will need is under section, block or criterion. → §RG69
+- 💭 **RG75** (deps: —) **two live tests still name RG9, so the commit that ships it fails a suite nothing changed to break** — A live test reads this repository's own backlog, and an id written into an assertion is a claim about today that the work itself keeps falsifying. → §RG75
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

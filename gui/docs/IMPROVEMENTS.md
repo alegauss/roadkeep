@@ -149,6 +149,26 @@ spreads them. What it must not become is a string split on spaces, because the p
 argv being an array is that nothing in this app ever splits a command line into
 arguments.
 
+### §RG75 Ids that stop being true
+
+RG23 shipped, and a test asserting RG23 was in progress failed with nothing changed to
+cause it. RG24 fixed that one and found the same shape in three more assertions of its
+own. The subject of a live test is this repository's backlog, and every commit moves it.
+
+Two kinds of id are safe to write down. A shipped id stays shipped — nothing unships one
+— and an id no file carries stays absent, which is what the refusal test rests on.
+Everything else is a claim about today: open, blocked, in progress, carrying a design.
+
+So a live test asks the engine for its subject instead. `brief` with no id picks an open
+line, and an open line in this backlog always has a design; `list --marker` names one in
+a given state; a state nothing here has — a line taken with `--claim` — is built in a
+fixture rather than found. What is left is `RG9`, named twice for a dep pointing outside
+this backlog. Exactly two lines carry one, and the fix is to find them by that rather
+than to write down which.
+
+The value of these tests is that they read the real thing, so the answer is never to
+move them onto fixtures. It is to stop asserting about a line by its number.
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ### §RG13 The cheap no
