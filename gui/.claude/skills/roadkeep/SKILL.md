@@ -63,8 +63,8 @@ repairs only what is **derived** (annotation, pointer, dep order, marker codepoi
 whitespace, the queue entry whose task shipped or was retired, and a criteria heading
 addressed to nothing and holding nothing — each named in the report and never dropped in
 silence). On a project that arrived with drift, an absolute count answers
-nothing: `--baseline <rev>` (`HEAD` after a write) reports **what you added** and forgives
-the standing debt by name.
+nothing: `lint --baseline <rev>` (`HEAD` after a write) reports **what you added** and
+forgives the standing debt by name.
 
 ## Where the rest is
 

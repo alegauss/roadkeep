@@ -104,7 +104,8 @@ engine against the registered plugin — two pairs, so two keys.
 flags. What they guarantee, so it costs you no thought: the id, the `→ §<id>` pointer, the
 status default and every `(deps: … ✅)` annotation are **derived, never typed** — where a
 project declares `prefix` as a list it numbers by track, and then `add --prefix <letter>`
-says which track while the number stays derived, per family. Where it declares `ref_scheme
+says which track while the number stays derived, per family — `next-id --prefix <letter>`
+being the read that says what it will be. Where it declares `ref_scheme
 = "outline"` the anchor is not derivable at all, so `add --ref <x.y>` is the field that
 names it — offered over MCP too, and only there, an `add` without it on such a project
 being refused `ref.missing`; there the id in a section's heading is what binds it to its
@@ -201,7 +202,11 @@ task exists to write. And `retire <id> [--superseded-by <id>] --reason "…"` is
 transaction, two more doors
 — **open on every project, including one that declares `[ledger] marker = false`**: there
 the retirement is the one line in that file to carry a marker, a departure being the one
-status a ledger of shipped work does not state about itself. `ship` is not the way round
+status a ledger of shipped work does not state about itself. **And a line that turned out to
+be part of another is neither**: `retire <id> --folds-into <other>` is the third door, where
+this symptom becomes a criterion on the open line that absorbs it and the line leaves, in one
+write — refused where that id has already left, an absorbed line needing somewhere to go.
+`ship` is not the way round
 it either way: an outcome filed under ✅ is a shipment, and `Backlog.retired` reads the
 marker. **`amend <id> --add-dep <d>` and `amend <id> --drop-dep <d>` are the narrow doors on
 the group**, and
@@ -263,7 +268,9 @@ store invented at the moment one is needed being a format decided by a verb; `in
 when any verb refuses over an undeclared role, `[files]` being written once by the command
 that refuses to run twice, so a role declined at scaffold time was otherwise a hand edit to
 configuration this tool owns. It writes the role's file with the block headings the roadmap
-already carries and inserts the one key, leaving every other byte of `roadkeep.toml` alone;
+already carries and inserts the one key, leaving every other byte of `roadkeep.toml` alone —
+`declare deferred --path docs/PAUSED.md` where that file belongs somewhere other than the
+role's own default;
 refused where the role is declared, and it never repoints one — moving a governed file is not
 this write. Any of the six roles, so a project that wants a strategy document or a
 `decisions` file reaches it too — that last one being the ADR every adopter asks for, and no
@@ -324,11 +331,14 @@ makes. `record drop <id>` is its inverse: refused unless the ledger states that 
 **twice** *and the two say the same thing*, then the later entry goes and the first stays,
 because removing the only record of a decision is deleting history. Two entries that
 differ are two deliveries under one id, not one recorded twice: `record drop <id> --line
-<n>` if you have read both, or `record renumber <id> --line <n>` to give one its own
-address. To *fix* an entry use `record amend <id> --why "…"` (or `--part` on a partial) —
+<n>` if you have read both, or `record renumber <id> --line <n> --to <new>` to give one its
+own address — the new id derived, one past the highest in its family, where you pass none.
+To *fix* an entry use `record amend <id> --why "…"` (or `record amend <id> --part "<which
+half>"` on a partial) —
 never drop-and-re-add, which moves the line to the end of its block and shows a reviewer a
 deletion where a word changed. On a ledger written before the tool, where a bullet
-**wraps**, that correction is refused until `--lines <n>` says how many lines it replaces:
+**wraps**, that correction is refused until `record amend <id> --lines <n>` says how many
+lines it replaces:
 the parse holds only as much of the sentence as fits on the first one, so rewriting that
 line alone leaves the tail of the old sentence under the new one. **The count is two
 permissions, and this is the one worth knowing**: passed with an `n` above one, `--why`

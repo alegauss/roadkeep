@@ -124,7 +124,7 @@ file besides `declare`: the four tables whose
 value is a judgement about a number — `[limits]`, `[budgets]`, `[tools]`, `[claims]` — each
 already had the read that decides it somewhere else, so this takes the reading and writes the
 number in one call. With no number it prints the reading alone;
-`govern limits.why 200 --role improvements` and `govern budgets.lines 125 --file agents.md`
+`govern limits.why <n> --role improvements` and `govern budgets.lines <n> --file <path>`
 name the
 table a project declares per role or per path. A limit this corpus already breaks is
 **refused**, not written, because one whose first act is a finding is one somebody lowers,
@@ -166,7 +166,8 @@ derived from the commits that shipped them, so whether the line being written is
 or two is a question with an answer. An entry whose commit wrote several is named under
 `batched` and left out of the percentiles, so a squashed adoption import skews nothing.
 What comes back is the distribution and what was elided from it, the sample those
-percentiles summarise being `--records` and 95% of the payload. It ranks nothing and lands
+percentiles summarise being `weight --block <x> --records` and 95% of the payload. It ranks
+nothing and lands
 on no line — the size field is a non-goal. **`remaining <id>` is that read's mirror**: what
 a task has *left*, run from a query its own design declares — a fenced `roadkeep-remaining`
 block in the rationale section, one `<pathspec> :: <regex>` per line. **`evidence <id>` is
@@ -189,7 +190,9 @@ the non-goals, bounded to a tool result; with no id, `pick`'s own choice. Narrow
 in prose — a "filed as <id>" a ledger entry promised before the task existed — both it and
 `add` say so, because from the write on nothing records which of the two was a line;
 `list|stats|audit [--block <x>]` counts and lists, naming
-every marker line neither could read — but **`--block <x>` is not where a label comes
+every marker line neither could read — `list --role changelog --marker ✅` being the same
+listing pointed at another governed file and one status — but **`--block <x>` is not where a
+label comes
 from**: `block list` is, with each block's title, what it holds open and what the ledger
 records under it, and it is the first call of a session that has to place something.
 Reach for it before an unscoped `list` over a ledger, which prints the file — measured at
@@ -212,7 +215,9 @@ held, expired or stale, oldest first, where each id went and where the registry 
 sidecar — which governed files a verb wrote and which nothing did, moving no baseline
 where the `Stop` hook states it once and consumes it; `show <id>` joins one line, its
 section and its paths, and on a ledger entry whose bullet **wraps** it prints every line
-that entry owns — which is the count `record amend --lines` asks you to have read; `deps
+that entry owns — which is the count `record amend --lines` asks you to have read;
+`show <id> --no-body` is the same join with the prose left out, keeping the line and where
+the prose is, which is what a caller placing a call wants and not the paragraph; `deps
 <id>` walks the graph both ways; `gaps` resolves an id in neither file against the commit
 that removed it, and `unclosed` is that question pointed the other way — an **open**
 line whose work a commit already names, which is what a session that shipped the code
@@ -227,8 +232,11 @@ is what a typo looks like. `anchors [--family <x>]` is that question about the
 them stayed, and the next child nothing ever used — the read to make before reopening a
 shipped family, since an outline anchor is spent once a heading used it and `section add`
 refuses the reuse by name. The retired half is **counted and withheld** — one per shipped
-task and nothing prunes them — and `anchors --retired` is what prints it. **You know the
-block, not the numeral**: a prose file under an
+task and nothing prunes them — and `anchors --retired` is what prints it. **And the audit
+over every family at once is `anchors --claims`**: only the addresses whose ownership is not
+the ordinary one — a heading binding nobody, and one binding a task no open line claims —
+which is the question to ask of a file somebody hand-edited, rather than family by family.
+**You know the block, not the numeral**: a prose file under an
 outline declares no block heading, so `anchors --block <x>` is the way in — it names the
 family that block's pointers already use and narrows to it, or names both where the block
 spans two and leaves the choice with you. And **never restate a count in prose**: `export
