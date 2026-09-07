@@ -170,6 +170,48 @@ def _named_marker(node: ast.AST) -> str:
     return ""
 
 
+def _literal(node: ast.AST) -> str:
+    """The literal text of a string node — an f-string's constant parts joined (RK1609).
+
+    The reading all three scans here want, written once. `_composed_markers` already did this
+    and the other two did not, and the gap between them is where a value sat: a `help=`
+    f-string whose backticked command carries a **literal** marker beside an interpolation
+    splits into two `ast.Constant` nodes, so a scan reading each on its own never re-forms the
+    span — the two backticks land in different nodes and the command disappears.
+
+    An interpolation contributes nothing to the text, which is right for every caller: what a
+    value *is* cannot be read here, and the question each scan asks is about the shape the
+    literal parts spell. `_composed_markers` asks separately about the names interpolated in.
+    """
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    if isinstance(node, ast.JoinedStr):
+        return "".join(
+            one.value
+            for one in node.values
+            if isinstance(one, ast.Constant) and isinstance(one.value, str)
+        )
+    return ""
+
+
+def _project_value(text: str) -> bool:
+    """Whether a span carries a value this project's own config decides (RK1558, RK1609).
+
+    The three kinds, read together because they leak together: a command shown to a reader
+    whose prefix is `SH` and whose roadmap is `docs/BACKLOG.md` is a command they cannot run,
+    whichever of the three this package spelled.
+
+    One function since RK1609. `_composed_markers` held markers alone while the shown-string
+    sweep held all three, so an f-string composing a command round a governed file's default
+    name was a value in the gap between two readings of one rule.
+    """
+    return bool(
+        any(marker in text for marker in MARKERS)
+        or IS_A_GOVERNED_FILE.search(text)
+        or any(IS_AN_ID.match(word.strip(".,;:")) for word in text.split())
+    )
+
+
 def _composed_markers(source: str) -> list[str]:
     """Every f-string that composes a command and interpolates a marker constant (RK1520).
 
@@ -195,16 +237,18 @@ def _composed_markers(source: str) -> list[str]:
     build a command round one — so the backtick is already the line, and it falls in the same
     place here. `test_no_command_a_help_string_offers_carries_a_project_value` holds the other
     side of it, for the literal this scan does not read.
+
+    **And the other two value kinds, since RK1609.** This matched :data:`MARKER_NAMES` alone
+    while the shown-string sweep held markers, ids *and* governed files — so an f-string
+    composing a command round the roadmap's default path built one out of a value `[files]`
+    decides, and nothing flagged it. :func:`_project_value` is the reading both use now, over
+    the spans the joined literal spells.
     """
     found = []
     for node in ast.walk(ast.parse(source)):
         if not isinstance(node, ast.JoinedStr):
             continue
-        literal = "".join(
-            one.value
-            for one in node.values
-            if isinstance(one, ast.Constant) and isinstance(one.value, str)
-        )
+        literal = _literal(node)
         if SPAN not in literal:
             continue
         named = {
@@ -215,7 +259,12 @@ def _composed_markers(source: str) -> list[str]:
             if _named_marker(inner)
         }
         found += [f"{node.lineno}: {name}" for name in sorted(named)]
-    return found
+        # And what the literal parts themselves spell inside a span (RK1609): the interpolated
+        # name above is one route to a project's value and the written-out one is the other.
+        offered = _offered(literal)
+        if offered and _project_value(offered):
+            found.append(f"{node.lineno}: {offered[:60]}")
+    return sorted(found)
 
 
 def test_no_composed_command_carries_a_marker_this_package_spells():
@@ -280,6 +329,14 @@ def _shown(source: str) -> list[tuple[int, str]]:
 
     The complement of that function's exemption, so the two cannot drift apart: one reads
     every string a module uses and drops these, this one reads these and nothing else.
+
+    **An f-string is one string here, not its parts** (RK1609). This walked to every
+    `ast.Constant`, so a `help=` f-string whose backticked command carries a literal marker
+    beside an interpolation came back as two strings — the opening backtick in one and the
+    closing one in the other — and the span never re-formed for :func:`_offered` to read. The
+    command was invisible to this scan, to `_composed_markers`, which reads interpolated names
+    and not written-out values, and to `_values`, which exempts what a caller is shown.
+    :func:`_literal` is the joining, shared with the scan that already did it.
     """
     out = []
     for node in ast.walk(ast.parse(source)):
@@ -288,11 +345,20 @@ def _shown(source: str) -> list[tuple[int, str]]:
         for keyword in node.keywords:
             if keyword.arg not in SHOWN:
                 continue
-            out += [
-                (inner.lineno, inner.value)
-                for inner in ast.walk(keyword.value)
-                if isinstance(inner, ast.Constant) and isinstance(inner.value, str)
-            ]
+            for inner in ast.walk(keyword.value):
+                if isinstance(inner, ast.JoinedStr):
+                    out.append((inner.lineno, _literal(inner)))
+                elif isinstance(inner, ast.Constant) and isinstance(inner.value, str):
+                    # A constant **inside** an f-string is one of the parts joined above, so
+                    # reading it again would report the same text twice — once whole and once
+                    # in pieces, the second of which is the reading this task removed.
+                    if not any(
+                        inner is part
+                        for one in ast.walk(keyword.value)
+                        if isinstance(one, ast.JoinedStr)
+                        for part in one.values
+                    ):
+                        out.append((inner.lineno, inner.value))
     return out
 
 
@@ -352,6 +418,59 @@ def test_the_illustration_stays_exempt_and_the_command_does_not():
     assert _offered("take it first with `status RK7 🛠`") == "status RK7 🛠"
     # And the shape the code actually writes: the verb, with the values left as placeholders.
     assert _offered("what a commit script feeds to `git add --`") == "git add --"
+
+
+# -- the value in the gap between three readings (RK1609) ---------------------
+
+
+def test_a_span_crossing_an_f_string_s_parts_is_one_command():
+    """RK1609's first instance, and the one that made it measurable. A `help=` f-string whose
+    backticked command carries a **literal** marker beside an interpolation was read by none of
+    the three scans: `_shown` walked to each `ast.Constant`, so the two backticks landed in
+    different nodes and the span never re-formed; `_composed_markers` reads an interpolated
+    marker *name*; `_values` exempts what a caller is shown.
+
+    Held on the shape rather than on an instance, because the package has none — what the
+    property says is that the reading is whole, and a scan that can only see half a command is
+    one the next such string walks past."""
+    said = 'p.add_argument("--x", help=f"take it with `status {one} \U0001F6E0`")'
+    (shown,) = _shown(said)
+    assert shown[1] == "take it with `status  \U0001F6E0`", "the f-string is one string here"
+    assert _offered(shown[1]) == "status  \U0001F6E0"
+    assert _project_value(_offered(shown[1])), "a marker inside a shown command is a leak"
+
+
+def test_the_scan_that_reads_a_name_reads_the_other_two_values_too():
+    """RK1609's second instance, the same gap the other way. `_composed_markers` matched
+    `MARKER_NAMES` alone while the shown-string sweep held markers, ids **and** governed files
+    — so an f-string composing a command round a governed file's default name built one out of
+    a value `[files]` decides, and nothing flagged it.
+
+    One rule and one reading of it: `_project_value` is what both ask now."""
+    assert _composed_markers('x = f"run `lint ROADMAP.md {one}`"') == ["1: lint ROADMAP.md "]
+    assert _composed_markers('x = f"take `status RK1 {one}`"') == ["1: status RK1 "]
+    # And the interpolated name is still the route it always was, undisturbed.
+    assert _composed_markers('x = f"`status {one} {IN_PROGRESS}`"') == ["1: IN_PROGRESS"]
+    # Outside a span nothing is composed, which is the exemption both halves keep.
+    assert _composed_markers('x = f"the file is ROADMAP.md, {one}"') == []
+
+
+def test_the_three_readings_are_one_helper_and_not_three():
+    """The root, which is what makes the two instances one task: three functions each rebuilt
+    what a caller is offered and each stopped somewhere different. `_literal` is the joining
+    `_composed_markers` already did, and `_project_value` the reading the shown sweep already
+    had — so what closed the gaps is the two of them being shared rather than reimplemented."""
+    import ast as _ast
+
+    joined = _ast.parse('x = f"a `b` {one} c"').body[0].value
+    assert _literal(joined) == "a `b`  c"
+    plain = _ast.parse('x = "a `b` c"').body[0].value
+    assert _literal(plain) == "a `b` c"
+    # The three kinds, together, which is the whole of what a leak is here.
+    assert _project_value("status RK1")
+    assert _project_value("lint ROADMAP.md")
+    assert _project_value("status \U0001F6E0")
+    assert not _project_value("add --block <x>")
 
 
 def test_no_module_writes_an_id_in_this_project_s_shape():

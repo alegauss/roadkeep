@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 231 | 2 |
-| C — Query (consult without reading the file) | 10 | 178 | 4 |
+| C — Query (consult without reading the file) | 9 | 179 | 4 |
 | D — The gate | 19 | 289 | 5 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 160 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 37 | 1094 | 17 |
+| **Total** | 36 | 1095 | 17 |
 
 **Next ready:**
 
-- 💭 **RK1609** (deps: —) **three scans of one rule reconstruct a composed command three ways, and a value sits in the gap between them** — RK1558 stated where the exemption ends and left the span split across an f-string's parts, so a literal value inside a help command is read by none of them. → §RK1609
+- 💭 **RK1610** (deps: —) **a config key typed under the wrong table is refused as unknown, where the tool knows exactly which table it belongs to** — RK1064 spells the refusal for a key nothing declares, and a misplaced one is neither a typo nor an upgrade, so both clauses point away from the edit. → §RK1610
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

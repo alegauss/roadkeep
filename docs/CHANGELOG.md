@@ -476,6 +476,7 @@
 - ✅ **RK1568** **an incidental entry that is on disk and filters no commit is silent, which is the half of the reading RK1529 gave** — unclosed counts what the filter set aside on the walk it already pays for and names the entries accounting for none, silent where every one of them worked.
 - ✅ **RK1573** **declare non_goals opens a table whose verb refuses, nothing writing the heading that declares the list** — The first non-goal opens the list, as criterion add and priority add open theirs: the heading lands where init writes it and the answer says it appeared, so the table declare opens is usable.
 - ✅ **RK1608** **a narrowing flag whose vocabulary the project declared nothing for filters nothing and says nothing** — A narrowing flag with nothing to narrow now says so on its own row, and a --have word outside a vocabulary the project did declare is refused as add --requires already refuses it.
+- ✅ **RK1609** **three scans of one rule reconstruct a composed command three ways, and a value sits in the gap between them** — The three scans share one reading of a composed command, so a span crossing an f-string's parts re-forms and the scan that reads a name reads ids and governed files too.
 
 ## Block D — The gate
 
