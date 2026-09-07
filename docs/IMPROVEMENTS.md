@@ -749,6 +749,28 @@ what `lint` holds for two others. Whether a bound helps is open — a reference 
 rule because it is full is the failure `agents.md`'s budget causes on purpose, and a
 page's may not.
 
+### §RK1644 The guard that reads characters
+
+RK1542 refused a second site recovering `superseded by <id>` by hand, as a regex over
+lines matching four string methods. `reverting` did not use one of the four — it
+compiled `\(superseded by ([^)]+)\)` — so the guard read that module as clean for the
+whole of RK1542's life. Widening the pattern to `re` then matched `reverting`'s own
+docstring, which quotes the regex it had just stopped using: a sentence recording why a
+coupling went is not a coupling, and a scan over characters cannot tell them apart.
+RK1602 rewrote it to walk calls, where the question does not arise.
+
+Both failures are properties of the reading, not of that rule. Twenty-two guards over
+this package's source already read the AST — `test_shadowing`, `test_importing`,
+`test_invariants` — and nine read the text. `test_document`'s is the same shape exactly:
+it looks for `.block(` in a module's characters, so a docstring naming the method counts
+as a second caller.
+
+What is undecided is which of the nine are wrong. A guard whose subject really is
+*characters* is right to read them — a marker codepoint appearing anywhere, a project's
+own value in a help string — and converting those would narrow a rule that is
+deliberately wide. So the work is a reading per guard, asking whether its subject is a
+code shape or a byte, and the population is nine.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
