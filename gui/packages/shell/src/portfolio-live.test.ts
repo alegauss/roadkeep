@@ -2,7 +2,9 @@ import path from 'node:path'
 
 import {
   createClient,
+  createGateLedger,
   pendingRow,
+  recordGate,
   readEnginesPayload,
   readLintPayload,
   readPayload,
@@ -17,6 +19,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { buildFixture, type Fixture } from './fixture'
 import { createProcessTransport } from './process-transport'
+import { rootKey } from './root-paths'
 
 /**
  * A portfolio of two real projects: this repository and a fixture built by the engine.
@@ -56,10 +59,15 @@ async function rowFor(projectPath: string): Promise<ProjectRow> {
   expect(statsRead.ok && pickRead.ok && lintRead.ok).toBe(true)
   if (!statsRead.ok || !pickRead.ok || !lintRead.ok) throw new Error('a payload did not read')
 
+  // The gate goes through the ledger rather than straight onto the row: a verdict is
+  // dated against the files it was taken from, which is what lets a row say it is stale.
+  const ledger = createGateLedger(rootKey)
+  ledger.note(projectPath, recordGate(lintRead.value, 'live', new Date().toISOString()))
+
   return readRow(recorded(projectPath), {
     stats: statsRead.value,
     pick: pickRead.value,
-    lint: lintRead.value,
+    gate: ledger.healthOf(projectPath, 'live'),
     engines: readEnginesPayload(engines.stdout),
   })
 }
@@ -100,7 +108,9 @@ describe('RG16: rows over more than one project', () => {
   it('carries the gate and the engine that answered', async () => {
     const row = await rowFor(fixture.root)
 
-    expect(typeof row.gate?.clean).toBe('boolean')
+    expect(['clean', 'drifted']).toContain(row.gate?.verdict)
+    expect(row.gate?.stale).toBe(false)
+    expect(row.gate?.taken).not.toBeNull()
     expect(row.engine?.version).toMatch(/^\d+\.\d+\.\d+/)
     expect(row.engine?.verdict).not.toBe('')
   })

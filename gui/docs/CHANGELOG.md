@@ -23,6 +23,7 @@
 
 - ✅ **RG16** **nothing shows more than one project, which is the single thing this app exists to do** — One row per project holding only numbers a verb printed, pending until read, and nothing added up across them (design recorded in `packages/core/src/portfolio.ts`).
 - ✅ **RG17** **twenty projects are read one after another, so the first screen is a wait with nothing drawn on it** — Every project goes out at once through the pool, rows stream in as they land in recorded order, and the cheap read fills the screen first (design recorded in `packages/core/src/cold-start.ts`).
+- ✅ **RG18** **whether a project's gate passes is unknown until it is opened, so the list cannot say which one needs attention** — A row shows the last verdict with when it was taken, unknown until a run has earned one, and stale the moment the files move (design recorded in `packages/core/src/gate.ts`).
 
 ## Block D — The project surface (one backlog, read)
 

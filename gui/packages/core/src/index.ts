@@ -36,6 +36,14 @@ export type { ColdStartProgress, ColdStartStage } from './cold-start'
 export { createCachingTransport } from './cache'
 export type { CachingOptions, CachingTransport } from './cache'
 export { groupProjects, isFamily } from './families'
+export {
+  createGateLedger,
+  gateHealth,
+  needsGate,
+  recordGate,
+  UNKNOWN_GATE,
+} from './gate'
+export type { GateHealth, GateLedger, GateRecord, GateVerdict } from './gate'
 export type { ProjectFamily, ProjectMember, ProjectSite } from './families'
 export { attemptRead, DEFAULT_LIMITS, withLimits } from './limits'
 export type { ProjectRead, ReadLimits, Unreadable } from './limits'

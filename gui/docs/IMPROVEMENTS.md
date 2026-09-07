@@ -214,15 +214,6 @@ it is cheaper to decide now than to notice from a screenshot.
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG18 Gate health, and what it costs to know it
-
-The lint verb is the most expensive read there is and the only one that answers whether
-a project drifted, so running it across a portfolio on every draw is not affordable. It
-runs once per project per change, driven by the watcher rather than by the screen, and
-the row shows the last verdict with when it was taken. A stale verdict says it is stale.
-What the row must not do is imply clean where nothing has been run: unknown is a third
-state and it is the honest one on first launch.
-
 ### §RG19 Picking across seventeen backlogs
 
 Each project's pick applies three tiers inside its own file, and that ranking is

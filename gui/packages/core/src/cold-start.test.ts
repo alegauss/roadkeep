@@ -15,6 +15,7 @@ const project = (path: string): RecordedProject => ({
 })
 
 const PROJECTS = ['/code/a', '/code/b', '/code/c'].map(project)
+const TUESDAY = '2026-09-01T10:00:00.000Z'
 
 /**
  * Let every settled promise run. Ten microtask turns rather than a timer: everything
@@ -167,17 +168,7 @@ describe('RG17: the cheap read first', () => {
       read: () => {
         order.push('gate')
         return Promise.resolve({
-          lint: {
-            root: '',
-            clean: true,
-            checked: [],
-            lines: 0,
-            sections: 0,
-            problems: 0,
-            codes: {},
-            findings: [],
-            notes: [],
-          },
+          gate: { verdict: 'clean' as const, problems: 0, taken: TUESDAY, stale: false },
         })
       },
     }
@@ -187,7 +178,7 @@ describe('RG17: the cheap read first', () => {
     expect(order).toEqual(['counts', 'gate'])
     // Merged, not replaced: the shape arrives first and the detail joins it.
     expect(rows[0]?.counts?.total).toBe(9)
-    expect(rows[0]?.gate?.clean).toBe(true)
+    expect(rows[0]?.gate?.verdict).toBe('clean')
   })
 
   it('does not start the second stage before the first has finished everywhere', async () => {

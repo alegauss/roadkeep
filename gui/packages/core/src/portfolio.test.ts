@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest'
 import type { RecordedProject } from './catalogue'
 import type { EnginesPayload } from './engines'
 import type { Unreadable } from './limits'
-import type { LintPayload, PickPayload, StatsPayload } from './payloads'
+import { gateHealth, recordGate, UNKNOWN_GATE } from './gate'
+import type { PickPayload, StatsPayload } from './payloads'
 import { folderName, pendingRow, readRow, tally, unreadableRow } from './portfolio'
 
 const project: RecordedProject = {
@@ -34,17 +35,21 @@ const PICK: PickPayload = {
   paused: 0,
 }
 
-const LINT: LintPayload = {
-  root: '/code/viglet/turing/2026.3',
-  clean: false,
-  checked: ['docs/ROADMAP.md'],
-  lines: 60,
-  sections: 55,
-  problems: 3,
-  codes: {},
-  findings: [],
-  notes: [],
-}
+const DRIFTED = recordGate(
+  {
+    root: '/code/viglet/turing/2026.3',
+    clean: false,
+    checked: ['docs/ROADMAP.md'],
+    lines: 60,
+    sections: 55,
+    problems: 3,
+    codes: {},
+    findings: [],
+    notes: [],
+  },
+  'stamp-a',
+  '2026-09-01T10:00:00.000Z',
+)
 
 const ENGINES: EnginesPayload = {
   writing: { version: '0.2.360', home: '/engines/one', revision: 'abc1234', onDisk: '0.2.360' },
@@ -101,10 +106,29 @@ describe('RG16: what a row is made of', () => {
     expect(row.next?.symptom).toBe('')
   })
 
-  it('carries whether the gate passes', () => {
-    const row = readRow(project, { lint: LINT })
+  it('carries the gate verdict on record, dated', () => {
+    const row = readRow(project, { gate: gateHealth(DRIFTED, 'stamp-a') })
 
-    expect(row.gate).toEqual({ clean: false, problems: 3 })
+    expect(row.gate).toEqual({
+      verdict: 'drifted',
+      problems: 3,
+      taken: '2026-09-01T10:00:00.000Z',
+      stale: false,
+    })
+  })
+
+  it('shows a gate nobody has run as unknown rather than as clean', () => {
+    const row = readRow(project, { gate: UNKNOWN_GATE })
+
+    expect(row.gate?.verdict).toBe('unknown')
+    expect(row.gate?.verdict).not.toBe('clean')
+  })
+
+  it('shows a verdict the files have outrun as stale', () => {
+    const row = readRow(project, { gate: gateHealth(DRIFTED, 'stamp-b') })
+
+    expect(row.gate?.stale).toBe(true)
+    expect(row.gate?.verdict).toBe('drifted')
   })
 
   it('carries which copy of roadkeep answered', () => {
@@ -157,6 +181,8 @@ describe('RG16: a project not read yet', () => {
     const row = readRow(project, { stats: STATS })
 
     expect(row.counts).not.toBeNull()
+    // Null and unknown are different: null is "this row has no gate on it yet", unknown
+    // is "the ledger was asked and has never seen a run".
     expect(row.gate).toBeNull()
   })
 })

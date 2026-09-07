@@ -1,7 +1,8 @@
 import type { RecordedProject } from './catalogue'
 import type { EnginesPayload } from './engines'
+import type { GateHealth } from './gate'
 import type { Unreadable } from './limits'
-import type { LintPayload, PickPayload, StatsPayload } from './payloads'
+import type { PickPayload, StatsPayload } from './payloads'
 
 /**
  * One row per project, and what it is allowed to hold.
@@ -50,10 +51,12 @@ export interface RowNext {
   readonly blocked: number
 }
 
-export interface RowGate {
-  readonly clean: boolean
-  readonly problems: number
-}
+/**
+ * The gate is not a read this screen makes. It is the last verdict on record, dated, and
+ * `unknown` until something has actually run — see `gate.ts` for why clean has to be
+ * earned rather than assumed.
+ */
+export type RowGate = GateHealth
 
 export interface RowEngine {
   readonly version: string
@@ -81,7 +84,7 @@ export interface ProjectRow {
 /** The last segment of a path, whichever separator it uses. */
 export function folderName(path: string): string {
   const parts = path.split(/[/\\]/).filter((part) => part !== '')
-  return parts[parts.length - 1] ?? path
+  return parts.at(-1) ?? path
 }
 
 function shell(project: RecordedProject): Omit<ProjectRow, 'state'> {
@@ -111,8 +114,12 @@ export function unreadableRow(project: RecordedProject, unreadable: Unreadable):
 export interface RowReads {
   readonly stats?: StatsPayload | null
   readonly pick?: PickPayload | null
-  readonly lint?: LintPayload | null
   readonly engines?: EnginesPayload | null
+  /**
+   * Not a read. The gate's last verdict comes off the ledger, because running `lint`
+   * seventeen times to draw a list is the cost this whole arrangement avoids.
+   */
+  readonly gate?: GateHealth | null
 }
 
 export function readRow(project: RecordedProject, reads: RowReads): ProjectRow {
@@ -121,7 +128,7 @@ export function readRow(project: RecordedProject, reads: RowReads): ProjectRow {
     state: 'read',
     counts: reads.stats ? countsFrom(reads.stats) : null,
     next: reads.pick ? nextFrom(reads.pick) : null,
-    gate: reads.lint ? { clean: reads.lint.clean, problems: reads.lint.problems } : null,
+    gate: reads.gate ?? null,
     engine: reads.engines ? engineFrom(reads.engines) : null,
   }
 }
