@@ -762,6 +762,7 @@
 - ✅ **RK1582** **the rows an add volunteers are prose on every write and no cadence counts them** — The rows an add volunteers are priced per write off the composer they moved out of Insertion.stated into, bounded by ranking.VOLUNTEERED and withheld from the served surface as its two siblings are.
 - ✅ **RK1583** **a deferral says nothing about the limit its reason was measured against, only govern does** — A pause reports what the rendered line came to against the limit that bound it, closing at the accepting end the sentence govern limits.why opens at the choosing one.
 - ✅ **RK1585** **prose beside a total table is taken for the table, and one check reads one phrase in one comment** — The prose beside a table is a declared population with a holder each, the extraction shared and the claim per table: two are decidable here and two already have closures of their own.
+- ✅ **RK1588** **a withholding reason quoted a total that was stale within the session that read it, and no sweep says how many are** — Two withholding reasons quoted figures that had gone stale and now name the reads that take them, and a sweep over that closed set refuses a measured number where an address belongs.
 
 ## Block E — Adoption
 

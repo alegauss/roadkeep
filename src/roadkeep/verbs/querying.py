@@ -2059,8 +2059,12 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         cost_parser,
         deny=(
             "the caller over this transport is handed the denial itself, so the figure adds "
-            "nothing it could not count from the text in front of it — and exposing it costs "
-            "102 characters against 19 of room under `[tools] session`"
+            "nothing it could not count from the text in front of it — and exposing it "
+            # `19 of room` here until RK1588: right when RK1506 wrote it, wrong within the
+            # session that read it back, because the surface moves whenever a `help=` is
+            # edited. `cost --tools` is the read that takes it, so the reason names that.
+            "spends room `cost --tools` reports under `[tools] session` on a number the "
+            "caller is already holding"
         ),
         # The second subject withheld, on the first one's argument (RK1491): a note is handed
         # to the session that meets it, so the figure adds nothing to a caller already holding
@@ -2407,7 +2411,16 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     anchors_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     withheld(
         anchors_parser,
-        retired="the listing this flag widens is exactly the one the bound exists for: 943 of this repository's 983 addresses are retired, so an answer carrying them is a tool result three times the size of the surface that published the read",
+        # The figures this carried went stale within a later session (RK1588): they were
+        # 943 of 983 when RK1506 measured them and are neither now. What the decision rests
+        # on is the *ratio*, which the read states and which no edit here can freeze — so the
+        # reason names the read, which is what RK1530, RK1540 and RK1541 each did once.
+        retired=(
+            "the listing this flag widens is exactly the one the bound exists for: most of "
+            "this repository's addresses are retired and `anchors --json` counts both, so an "
+            "answer carrying them is a tool result several times the size of the surface "
+            "that published the read"
+        ),
     )
     anchors_parser.set_defaults(handler=_anchors, reads_only=True)
     # Two subjects, as `budget`'s four are (RK466): `--next` returned before the `--claims`

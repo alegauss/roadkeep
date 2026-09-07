@@ -44,7 +44,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1588** (deps: —) **a withholding reason quoted a total that was stale within the session that read it, and no sweep says how many are** — RK1541 replaced one frozen figure with a read after RK1530 and RK1540 each did the same, and the population of numbers a decision rests on is uncounted. → §RK1588
 - 📋 **RK1590** (deps: —) **ninety backticked spans outside a docstring name a verb with no invocation, so nothing can tell a door from prose** — A command a caller pastes and a flag family being named read alike, and the composer sweep counts the second as absent rather than as skipped. → §RK1590
 - 📋 **RK1591** (deps: —) **a remedy whose first step is an edit outside this tool has no kind, so repair dispatches a door that refuses** — The six kinds say who supplies the prose and who runs the command, and none says the state has to change first. → §RK1591
 - 📋 **RK1600** (deps: —) **a refusal payload publishes rules and never the retry the same refusal composed** — The retry is an argv this tool derived and it reaches a caller inside the sentence, so the one part they would execute is the part they must parse. → §RK1600

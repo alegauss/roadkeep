@@ -2977,6 +2977,50 @@ def test_the_read_for_choosing_a_cut_names_the_ceiling_that_sent_you(capsys):
     assert "held," not in sent.stated("u", None, 1)
 
 
+# -- the figures a decision rests on (RK1588) ----------------------------------
+
+#: What a digit-group in a withholding reason is allowed to be. `RK1506` is where a decision
+#: was made and `L5` is a law: both are addresses, and neither moves. A bare `943` is a number
+#: somebody took once, and that is the thing this sweep is about.
+_ADDRESSED = re.compile(r"(?:RK|L)\d+")
+
+
+def test_no_withholding_reason_rests_on_a_figure_nothing_re_takes():
+    """RK1588. RK1541's read found its own subject stale: the reason for `budget --decides`
+    quoted *2947 characters against 2850* and the tool measured 2758 the same session. A
+    surface moves whenever a `help=` is edited, and a number frozen in prose beside it does not.
+
+    Two more were here when this was written and both were wrong. `cost --deny` said *19 of
+    room* where `cost --tools` reports hundreds; `anchors --retired` said *943 of 983* where
+    the repository now holds over a thousand retired addresses. Neither broke anything, which
+    is the point: a decision defended by a stale figure reads exactly like one that is right.
+
+    **The reasons are the closed set the design named** — every one is a decision, each is
+    prose an author writes, and the fix each time is the one RK1530, RK1540 and RK1541 made:
+    name the read that takes the figure instead of the figure. The general sweep over package
+    prose is not this, and is not cheap: most numbers in these docstrings are corpus
+    measurements whose whole point is being historical."""
+    frozen = {
+        f"{verb} --{arg.replace('_', '-')}": found
+        for verb, args in serving.withheld().items()
+        for arg, why in args.items()
+        if (found := re.findall(r"\d[\d,]*", _ADDRESSED.sub("", why)))
+    }
+    assert frozen == {}, (
+        "a withholding reason quotes a measured figure, which goes stale where nothing "
+        f"re-takes it — name the read instead: {frozen}"
+    )
+
+
+def test_the_sweep_reads_the_reasons_and_not_an_empty_set():
+    """The half that makes the assertion above worth having: a reader that found no reason at
+    all would pass while covering nothing, which is `test_composing`'s own finding one file
+    over. Held on the addresses, which every reason may carry and several do."""
+    reasons = [why for args in serving.withheld().values() for why in args.values()]
+    assert len(reasons) >= 8, reasons
+    assert any(_ADDRESSED.search(one) for one in reasons), "no reason names an address"
+
+
 # -- the name that is two acts (RK1504) ----------------------------------------
 
 #: A served tool name that is also a command of this CLI, where the two are **different
