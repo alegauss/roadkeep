@@ -281,8 +281,9 @@ def test_no_composed_command_carries_a_marker_this_package_spells():
         if module.where not in DECLARES and (leaked := _composed_markers(module.text))
     }
     assert found == {}, (
-        "a composed command built round a package marker offers the reader a write their "
-        "own schema refuses: read the marker off the config and pass it in"
+        "a composed command built round a package value offers the reader something their "
+        "own config decides: a marker their schema refuses, an id in another project's "
+        "prefix, or a governed file they do not have — read it off the config and pass it in"
     )
 
 
