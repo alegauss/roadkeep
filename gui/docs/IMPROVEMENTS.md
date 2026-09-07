@@ -403,6 +403,31 @@ later reads as an oversight.
 
 On ship: `--recorded-in packages/core/src/binding.ts`.
 
+### §RG80 The refusal that knows where the line went
+
+`brief FX1` and `show FX1` on a set-aside line both refuse, and the refusal payload
+comes back with `refused`, `beside` and `about` all empty and everything in `said`. RG5
+shipped the reader that turns a refusal into the field it is about; there is no field
+here, so it turns into nothing. A screen calling the detail path on a paused id gets a
+failed read and no reason it can act on.
+
+The sentence itself is complete — it names the store, the line number, the listing that
+prints the reason and the verb that brings the line back. It is also English, and
+reading `is paused in` back out of it is the prose-scraping this client refuses
+everywhere else.
+
+RG28 already shipped the answer and nothing calls it. `filingOf` takes the three
+listings and says open, shipped, paused or nowhere, off facts each listing states. So a
+refused task read asks that question rather than reading the sentence: paused draws the
+store entry and the door back, nowhere draws that nothing in this project carries the
+id, and the two stop looking alike at the one moment they matter.
+
+What that costs is the reads. `filingOf` wants three listings where the detail path made
+one call, so this belongs behind the refusal and not in front of it: the ordinary open
+task pays nothing, and only a read that already failed goes looking for why.
+
+On ship: `--recorded-in packages/core/src/pauses.ts`.
+
 ## Block E — The write path (the app composes an argv; the command writes)
 
 ### §RG29 The write path, and where it stops

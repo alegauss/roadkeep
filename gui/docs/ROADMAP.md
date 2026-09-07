@@ -32,6 +32,7 @@
 - 📋 **RG74** (deps: RG23 ✅) **a marker says in progress and the claim registry says nobody holds it, and nothing tells the two apart** — A line can carry the working marker with no live claim, so a screen reading either one alone shows a task as taken or as free when it is the other. → §RG74
 - 💭 **RG76** (deps: RG25 ✅) **brief already sends the chains and the shape drops them, so opening one task pays for a second call to deps** — Block D's criterion is that a task opens in one read, and the chain a screen draws is in the brief that opened it. → §RG76
 - 💭 **RG77** (deps: roadkeep publishing a non-goal's reason) **a non-goal arrives as a lead alone, so the sentence that argues it stays in the file** — The reason is the half that settles whether a proposal is forbidden, and criterion list publishes its why while non-goal list does not. → §RG77
+- 💭 **RG80** (deps: —) **opening a paused task is a refusal whose typed fields are all empty, leaving the screen only English** — filingOf already answers where an id went, and nothing calls it when a task read refuses, so a set-aside line looks like a broken read. → §RG80
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
