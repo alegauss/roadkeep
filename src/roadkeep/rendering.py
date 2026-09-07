@@ -1071,10 +1071,37 @@ def _undesigned_rows(choice: Choice) -> list[str]:
     Said rather than folded into `backlog`, whose three numbers are facts about the
     file: this one is a fact about the question, and a filter that hides its own effect is
     how "this block is finished" gets read off an answer that never looked at half of it.
+
+    **And what it could not set aside** (RK1608). Zero says two things — every ready line has
+    its design written, and this backlog has no marker meaning one is not — and the flag that
+    can never fire is the one a caller reads as having narrowed something. Its own row, because
+    the two are different facts: one is about the lines and one is about the project.
     """
+    if choice.undesignable:
+        return [
+            "  skipped  nothing: this project declares no undesigned marker, so `--designed` "
+            "has no line to set aside — `[markers] undesigned` is where one is named"
+        ]
     if not choice.undesigned:
         return []
     return [f"  skipped  {choice.undesigned} ready and still needing designing"]
+
+
+def _unknown_rows(choice: Choice) -> list[str]:
+    """The `--have` words this project has no vocabulary for (RK1608).
+
+    `_undesigned_rows`' shape one flag over and for its reason: a filter that fired on nothing
+    reads exactly like one that had nothing to fire on. A word outside a vocabulary the project
+    *did* declare never reaches here — `pick` refuses that, which is `add --requires`' own rule
+    (RK1467) — so this is only the silent case, and it names the table rather than the word.
+    """
+    if not choice.unknown:
+        return []
+    named = ", ".join(sorted(choice.unknown))
+    return [
+        f"  skipped  nothing: this project declares no [requirements], so `--have {named}` "
+        f"names words no line can require yet"
+    ]
 
 
 def _lacking_rows(choice: Choice) -> list[str]:

@@ -175,6 +175,27 @@ class Choice:
     #: How many ready lines ``designed`` set aside. 0 whenever the flag was not passed, so
     #: a non-zero value is always the caller's own filter and never a fact about the file.
     undesigned: int = 0
+    #: Whether ``designed`` was passed on a project declaring no undesigned marker (RK1608).
+    #:
+    #: Zero set aside says two things and this tells them apart: *every ready line has its
+    #: design written*, and *this backlog has no way to say a design is unwritten*. The second
+    #: is a flag with nothing to do — `[markers] undesigned` narrows to what the project
+    #: actually opens with (RK83), so a marker set that never spells 💭 leaves it empty, and
+    #: `pick --designed` then returns exactly what `pick` returns while saying nothing.
+    #:
+    #: Not a refusal, which is the whole of the distinction: the caller asked to execute rather
+    #: than plan, and that is a well-formed question on a backlog that cannot tell the two
+    #: apart. What is wrong is the silence.
+    undesignable: bool = False
+    #: The ``have`` words this project's `[requirements]` has no vocabulary for (RK1608).
+    #:
+    #: The same silence one flag over, and it splits where the fault does. A project declaring
+    #: **no** `[requirements]` at all has nothing for the word to mean, so the flag is
+    #: :attr:`undesignable`'s shape — a row, not a refusal. A project that declared a vocabulary
+    #: and was handed a word outside it is the other case, and `pick` refuses that where L1 says
+    #: to: `add --requires` already refuses the same token on a line (RK1467), and one surface
+    #: refusing while the other quietly ignores is the asymmetry this closes.
+    unknown: tuple[str, ...] = ()
     #: The ready lines a live claim kept out of the ranking (RK119). Named and not counted,
     #: because a claim names nobody: a caller can only tell one of these is its own by
     #: reading the id, and a number it cannot read is a line it will ask about twice.
@@ -268,6 +289,13 @@ def pick(
     hardware work to it was the five identical answers this exists to stop. A person at the
     desk says `--have`, and gets the line the agent could not have.
 
+    A word **outside a vocabulary this project declared** is refused (RK1608), which is the
+    rule `add --requires` already keeps on the other side of the same table (RK1467): a token
+    `[requirements] declared` does not name is one nothing can satisfy, and a filter that
+    silently ignored it would narrow nothing and say nothing. Where the project declares no
+    `[requirements]` at all the word is not the caller's mistake — nothing here has a meaning
+    for it yet — so that is :attr:`Choice.unknown`, a row rather than a refusal.
+
     ``backlog`` answers over files somebody else read — the state a transaction is about to
     write, or a revision (RK104) — and ``claims = False`` asks the question the tiers were
     before RK119: *what do the files alone say*. Both exist for the projection (RK39), which
@@ -277,6 +305,18 @@ def pick(
     """
     if backlog is None:
         backlog = Backlog.load(config)
+    # Before anything is read (RK1608): a word this project's own vocabulary does not name is
+    # one no line can require, so narrowing by it is a filter that cannot fire. Only where a
+    # vocabulary exists — declaring none is the project being silent, not the caller wrong.
+    if config.schema.requirements:
+        outside = [one for one in available if one not in config.schema.requirements]
+        if outside:
+            raise KeyError(
+                f"--have names {', '.join(sorted(outside))}, which "
+                f"[requirements] declared does not: "
+                f"{', '.join(config.schema.requirements)} are the words this project has, and "
+                f"a token outside them is one no line can require"
+            )
     if block is not None and block not in backlog.declared_blocks():
         declared = sorted(backlog.declared_blocks())
         raise KeyError(
@@ -339,6 +379,14 @@ def pick(
         "paused": survey.paused,
         "stalled": survey.stalled,
         "undesigned": set_aside,
+        # A flag with nothing to do, said rather than left to a zero (RK1608): this project
+        # declares no undesigned marker, so `designed` cannot set a line aside and *every
+        # design is written* is not what the empty count means.
+        "undesignable": designed and not config.schema.undesigned,
+        # And the same silence on the other narrowing flag. Only where the project declared no
+        # vocabulary at all — a word outside one it *did* declare is refused above, before any
+        # of this runs, because that is a caller who typed something this project cannot mean.
+        "unknown": () if config.schema.requirements else tuple(available),
         "held": held,
         "lacking": lacking,
         "standing": standing,
@@ -745,6 +793,7 @@ class Picked:
             _lacking_rows,
             _stalled_rows,
             _undesigned_rows,
+            _unknown_rows,
             _set_aside_rows,
             _waiting_rows,
             _withheld_rows,
@@ -757,6 +806,7 @@ class Picked:
                     f"nothing to pick: {choice.reason}",
                     f"  backlog  {choice.counts}",
                     *_undesigned_rows(choice),
+                    *_unknown_rows(choice),
                     *_lacking_rows(choice),
                     # Under the lines it is about (RK1490): those say which and what for, and
                     # this says what the caller may do about it — the move RK1467 left unbuilt.
@@ -779,6 +829,7 @@ class Picked:
             rows.append(f"  or       {', '.join(choice.alternatives)}")
         rows += _against_rows(config, entry.task.id)
         rows += _undesigned_rows(choice)
+        rows += _unknown_rows(choice)
         rows += _lacking_rows(choice)
         # Beside the pick and never instead of it (RK1304): the fall-through is still the right
         # call when the blocker is expensive, and the caller is the one who knows which it is.
@@ -835,6 +886,15 @@ class Picked:
             "set_aside": choice.set_aside,
             "needs_design": choice.needs_design,
             "undesigned": choice.undesigned,
+            # And whether the flag could have narrowed at all (RK1608). Beside the count and
+            # not folded into it, for the reason the row is its own: `0` means *no ready line
+            # needs designing*, and this means *no line here could*. A consumer reading only
+            # the count cannot tell a filter that fired from one with nothing to fire on.
+            "undesignable": choice.undesignable,
+            # The same distinction on the other narrowing flag: the words this project has no
+            # vocabulary for. Empty on every project that declared one, a word outside it
+            # being refused before the pick runs.
+            "unknown": list(choice.unknown),
             # `claimed` on a stalled line and `held` beside it are two facts with two names
             # (RK152): one is a line somebody is on that nothing could offer, the other is a
             # candidate the ranking stepped around.

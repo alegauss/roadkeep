@@ -599,6 +599,62 @@ def test_a_project_that_names_no_undesigned_marker_never_skips(tmp_path):
     )
     choice = pick(config, designed=True)
     assert choice.entry.task.id == "RK4" and not choice.needs_design
+    # And it says so (RK1608): the flag had nothing to set aside, which is a different fact
+    # from every ready line having its design written and reads identically without the row.
+    assert choice.undesignable
+
+
+def test_a_flag_with_nothing_to_narrow_says_so_rather_than_nothing(tmp_path, capsys):
+    """RK1608. Measured on a throwaway project whose open set is `["📋"]`: `pick --designed`
+    exits 0, returns the same line `pick` returns bare, and printed nothing about the flag.
+    `[markers] undesigned` narrows to what the project actually opens with (RK83), so a marker
+    set that never spells 💭 leaves it empty — correct, and silent.
+
+    Not a refusal, which is the distinction this settles: asking to execute rather than plan is
+    a well-formed question on a backlog that cannot tell the two apart. What was wrong is that
+    a caller read an answer as narrowed when nothing had been."""
+    config = project(tmp_path, BLOCKS + line("RK4"), extra='[markers]\nopen = ["📋"]\n\n')
+    assert main(["-C", str(config.root), "pick", "--designed"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "declares no undesigned marker" in said
+    assert "[markers] undesigned" in said, "the row names where one is declared"
+    # And a bare pick stays silent, which is what makes the row about the flag.
+    assert main(["-C", str(config.root), "pick"]) == EXIT_OK
+    assert "skipped" not in capsys.readouterr().out
+
+
+def test_the_same_silence_on_the_other_narrowing_flag(tmp_path, capsys):
+    """RK1608's second instance and looser: `[requirements] declared` is empty by default, so
+    `--have upstream` names a word the project never defined and the answer is again the
+    unnarrowed one.
+
+    A row and not a refusal **here**, because the project is the silent one: nothing has a
+    meaning for the word yet, and a caller saying what it has is not wrong for saying it."""
+    config = project(tmp_path, BLOCKS + line("RK4"))
+    assert main(["-C", str(config.root), "pick", "--have", "upstream"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "declares no [requirements]" in said
+    assert "--have upstream" in said
+
+
+def test_a_word_outside_a_declared_vocabulary_is_refused(tmp_path, capsys):
+    """The other half of the split, and where the fault moves. A project that declared a
+    vocabulary and was handed a word outside it is a caller who typed something this project
+    cannot mean — which `add --requires` already refuses on the line (RK1467), so a filter
+    quietly ignoring it was the two surfaces disagreeing about one table.
+
+    The declared words are named, because a refusal that says only *not that one* leaves the
+    caller guessing at a list the project already wrote down."""
+    config = project(
+        tmp_path, BLOCKS + line("RK4"), extra='[requirements]\ndeclared = ["ps5"]\n\n'
+    )
+    assert main(["-C", str(config.root), "pick", "--have", "upstream"]) != EXIT_OK
+    said = capsys.readouterr().err
+    assert "[requirements] declared does not" in said
+    assert "ps5" in said, "the refusal names the vocabulary the project has"
+    # And a word inside it is the ordinary call, which is what keeps this a refusal about
+    # the token rather than about the flag.
+    assert main(["-C", str(config.root), "pick", "--have", "ps5"]) == EXIT_OK
 
 
 # -- ready and executable-here are two different states (RK1297) --------------
