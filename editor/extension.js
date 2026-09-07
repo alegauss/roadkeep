@@ -323,11 +323,14 @@ class Settings {
   constructor(root) {
     this.root = root;
     this.shape = null;
+    //: Table name to the sentence its source carries, filled beside the keys (RK1603).
+    this.said = {};
   }
 
   /** Forget the shape — for a config write, and for the refresh an upgrade arrives through. */
   reread() {
     this.shape = null;
+    this.said = {};
   }
 
   async keys() {
@@ -336,6 +339,16 @@ class Settings {
       // An empty list and never an invented one: a read that failed knows nothing about
       // which keys exist, and offering a guess is the compiled-in rule this must not be.
       this.shape = answer.error ? [] : answer.value.keys;
+      // The table's own sentence, which the payload sends once per table since RK1603 — it
+      // used to ride on every key row, so this read it off whichever row it had. Kept beside
+      // the keys because a hover joins on `table`, a field every row already carries; `{}`
+      // on a failed read, for the same reason the list above is empty.
+      this.said =
+        answer.error || !answer.value.tables
+          ? {}
+          : Object.fromEntries(
+              answer.value.tables.map((one) => [one.table, one.note])
+            );
     }
     return this.shape;
   }
@@ -435,7 +448,11 @@ class Settings {
       parts.push("declared here");
     }
     const head = `**${row.address}** — ${parts.join(", ")}`;
-    return row.note ? `${head}\n\n${row.note}` : head;
+    // Joined on `table` since RK1603, the sentence being about the table and not the key: the
+    // payload sent it on all six of `[files]`'s rows, which is one paragraph six times over a
+    // surface every session is handed.
+    const note = this.said[row.table];
+    return note ? `${head}\n\n${note}` : head;
   }
 
   item(label, inserted, kind, detail) {

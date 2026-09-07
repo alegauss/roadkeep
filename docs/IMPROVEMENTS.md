@@ -351,27 +351,6 @@ reachable is a null.
 
 ## Block D — The gate
 
-### §RK1603 The note said once per key
-
-`config --json` is 34,172 code units over 75 keys, of which 16,503 are the harvested
-notes and **10,052 are repetition** — the same sentence carried on every key of its
-table. `[files]` sends its note six times for 5,190 units; `[install]` three times for
-2,580.
-
-It is a payload key and not a printed row, so the terminal never shows it twice: the
-listing prints the note once above its table and the JSON attaches it to each key. That
-is the shape RK1526 removed one answer over, where a gate note said the same read on
-every finding and was published once with a marker on the first.
-
-Two ways out and they are not the same. The note could move to a table-level entry
-beside `keys`, which is a payload change a consumer notices; or it could stay per key
-and be sent once, on the first key of each table, which is what RK1526 did and costs a
-consumer nothing but a lookup.
-
-What decides it is who reads this. `config` is served, so the caller is an agent holding
-one key's row and asking what its table means — and a row that answers only sometimes is
-a row that has to be joined.
-
 ### §RK1604 The three questions one name answers
 
 `Config.has(role)` is `role in self.paths` — one line, no docstring, in a package where

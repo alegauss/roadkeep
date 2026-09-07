@@ -28,7 +28,7 @@ from __future__ import annotations
 import re
 import tomllib
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from roadkeep.budgeting import Fixed, conversion
@@ -197,9 +197,6 @@ class Key:
     #: where a placeholder table was written per role or per path; which of them applies is
     #: `budget --file`'s and `govern`'s, both of which take the address.
     at: int = 0
-    #: The sentence the source already carries above the set this key belongs to, harvested
-    #: and never restated. `""` where the source is not readable or carries none.
-    note: str = ""
 
     @property
     def address(self) -> str:
@@ -212,6 +209,21 @@ class Shape:
 
     keys: tuple[Key, ...]
     version: str
+    #: The sentence the source already carries above each table's key set, harvested and never
+    #: restated — one entry per table, absent where the source is unreadable or carries none.
+    #:
+    #: **Per table and not per key** (RK1603). It was a field on :class:`Key`, so `config
+    #: --json` sent `[files]`'s 90-word paragraph six times and `[install]`'s three: 10,052 of
+    #: the payload's 34,172 code units were one sentence repeated, on a surface every session
+    #: is handed. The terminal never showed it twice — the listing prints it once above its
+    #: table — so the cost was paid only by the reader the answer is for.
+    #:
+    #: The other way out was RK1526's: keep it per key and send it on the *first* of each
+    #: table. Refused here on who reads this. `config` is served, so the caller is an agent
+    #: holding one key's row and asking what its table means, and a row that answers only
+    #: sometimes has to be joined against its siblings to find the one that does. This is the
+    #: same join made on a field the row already carries — :attr:`Key.table`.
+    notes: Mapping[str, str] = field(default_factory=dict)
     #: The file read back for :attr:`Key.declared`, or `None` on a project with no config.
     source: str | None = None
     #: What this build fixes from a corpus instead of accepting (RK1381). Empty where the
@@ -455,10 +467,15 @@ def shape(config: Config, table: str | None = None) -> Shape:
     sentences = notes()
     written = _declared(config.source)
     out: list[Key] = []
+    said: dict[str, str] = {}
     for name, keys in TABLES.items():
         if table is not None and name != table:
             continue
         note = sentences.get(_DESCRIBED.get(name, ""), "")
+        if note:
+            # Once, keyed by the table it is about (RK1603) — the row it used to sit on was
+            # every key's, which is the same sentence as many times as the table is wide.
+            said[name] = note
         for key in sorted(keys):
             reader = WHERE[(name, key)]
             value = None if reader is None else reader()
@@ -479,11 +496,11 @@ def shape(config: Config, table: str | None = None) -> Shape:
                     declared=bool(declared),
                     set=None if only is None else _rendered(only),
                     at=len(declared),
-                    note=note,
                 )
             )
     return Shape(
         keys=tuple(out),
+        notes=said,
         version=__version__,
         source=None if config.source is None else config.relative(config.source),
         # Only on the whole listing (RK1381): `--table <name>` narrows to one table, and a
@@ -525,8 +542,14 @@ def stated(found: Shape) -> str:
         # The first sentence and not the run, which is the split between the two answers: a
         # listing is read by somebody deciding what to declare, and the whole paragraph — 90
         # words on `[files]` — is what `--json` carries for the completion list RK1271 hovers.
-        if under and under[0].note:
-            rows.append(f"  {_opening(under[0].note)}")
+        #
+        # Read off the table since RK1603, which is what this line was always asking for: it
+        # took the note from `under[0]`, the first key of the table, because that is where a
+        # per-key field put it — a join to find the sentence about a table on whichever of its
+        # keys happened to sort first.
+        note = found.notes.get(name, "")
+        if note:
+            rows.append(f"  {_opening(note)}")
         for one in under:
             default = "no default" if one.default is None else f"default {one.default}"
             spelled = f"{one.type}, " if one.type else ""
@@ -552,6 +575,21 @@ def payload(found: Shape) -> dict[str, object]:
         # reason every other absence here is published: a consumer reading a missing key cannot
         # tell "nothing is fixed" from "this build is older than the answer".
         "fixed": [one.payload() for one in found.fixed],
+        # One row per table, carrying the sentence its source already holds (RK1603). It was a
+        # `note` on every key row, so this answer sent `[files]`'s paragraph six times and
+        # `[install]`'s three — 10,052 of 34,172 code units being one sentence repeated, on a
+        # surface every session is handed. A consumer holding a key's row joins on `table`,
+        # which that row already carries.
+        #
+        # A list of rows and not an object keyed by name, because `""` is a table here — the
+        # top level — and a JSON object with an empty key is a shape half the readers of one
+        # get wrong. Empty where nothing could be harvested, which is a readable answer and not
+        # a missing one.
+        "tables": [
+            {"table": name, "note": found.notes[name]}
+            for name in found.tables()
+            if name in found.notes
+        ],
         "keys": [
             {
                 "table": one.table,
@@ -566,7 +604,6 @@ def payload(found: Shape) -> dict[str, object]:
                 # And how many addresses wrote one (RK1282), which is the fact where the
                 # value is not: above one, `set` is null and this is why.
                 "addresses": one.at,
-                "note": one.note,
             }
             for one in found.keys
         ],

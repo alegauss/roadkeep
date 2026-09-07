@@ -35,6 +35,10 @@ HERE = Path(__file__).resolve().parent
 #: it — an exemption nobody can see reads exactly like a rule being kept.
 NOT_A_REPORT = {
     "test_blocking.py": "`Removal.notes` is a mapping of role to line count, not a gate report",
+    # RK1603 moved the harvested sentence off every key row of `config --json` and onto a
+    # mapping of table to sentence. `config` reports no findings at all, so nothing in that
+    # module reads a gate report — the name is the whole of the collision.
+    "test_describing.py": "`Shape.notes` is a mapping of table to its source's own sentence",
 }
 
 

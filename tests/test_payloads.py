@@ -55,7 +55,10 @@ PROMISED = {
     "engines": ("writing", "verdict", "agree"),
     # The shape of the config file itself (RK1270), which a completion list reads key by key
     # (RK1271) — and `version`, because what is offered is what *this* build accepts.
-    "config": ("version", "source", "keys"),
+    # `tables` joined when the note moved off the key rows (RK1603): it was on every one of
+    # them, so a hover's sentence now joins on `table`, and both halves are keys a reader
+    # outside this process depends on.
+    "config": ("version", "source", "keys", "tables"),
 }
 
 #: The keys inside the one object each of those carries a list of. Held apart from the top
@@ -70,8 +73,10 @@ INSIDE = {
     # `left`, `limit`, `aim` and `unit` are what a prompt counts down beside the words
     # somebody is typing — the whole of L1 arriving before the sentence exists.
     "budget": ("fields", ("field", "limit", "left", "aim", "unit")),
-    # `address` is what a completion inserts and `note` is what a hover shows, so both are
-    # keys a reader outside this process now depends on (RK1271).
+    # `address` is what a completion inserts, so it is a key a reader outside this process now
+    # depends on (RK1271). `note` was here beside it and is not any more (RK1603): it is a
+    # sentence about the *table*, so it was the same paragraph on every key under one — six
+    # copies for `[files]` — and it now rides `tables` below, joined on `table`.
     # `set` joined when the shape learned what a declared key says (RK1278): a hover shows the
     # number in use, so it is a key a reader outside this process now depends on.
     "config": (
@@ -86,10 +91,14 @@ INSIDE = {
             "set",
             # RK1282. How many addresses wrote one, which is the fact where the value is not.
             "addresses",
-            "note",
         ),
     ),
 }
+
+#: The second list a payload here carries, for the one answer with two (RK1603). `INSIDE` maps
+#: a payload to *the* object it holds a list of, and `config` now holds two — the keys, and the
+#: table each of them joins to for the sentence a hover shows.
+BESIDE = {"config": ("tables", ("table", "note"))}
 
 
 def payload(*argv: str, root: Path | None = None, expected: int = EXIT_OK) -> dict:
@@ -162,6 +171,21 @@ def test_the_keys_inside_a_row_are_there_too(verb, dirty, populated):
     field, keys = INSIDE[verb]
     where, code = (dirty, EXIT_GATE) if verb == "lint" else (populated, EXIT_OK)
     rows = payload(*_argv(verb, where), root=where, expected=code)[field]
+    assert rows, f"{verb}: the fixture produced no {field} to read"
+    missing = [key for key in keys if key not in rows[0]]
+    assert not missing, f"{verb}.{field} no longer carries {missing}"
+
+
+@pytest.mark.parametrize("verb", sorted(BESIDE))
+def test_the_second_list_a_payload_carries_is_promised_the_same_way(verb, populated):
+    """RK1603. `config` grew a list beside its keys when the harvested note moved off them, and
+    a client walks into it exactly as hard: a hover reads a table's sentence there now.
+
+    Its own parametrize rather than a widened `INSIDE`, because that mapping's whole shape is
+    *the* object a payload holds a list of — one per verb — and relaxing it to a list of lists
+    would make every other row read as a special case of a thing it is not."""
+    field, keys = BESIDE[verb]
+    rows = payload(*_argv(verb, populated), root=populated, expected=EXIT_OK)[field]
     assert rows, f"{verb}: the fixture produced no {field} to read"
     missing = [key for key in keys if key not in rows[0]]
     assert not missing, f"{verb}.{field} no longer carries {missing}"

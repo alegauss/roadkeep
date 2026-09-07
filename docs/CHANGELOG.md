@@ -768,6 +768,7 @@
 - ✅ **RK1600** **a refusal payload publishes rules and never the retry the same refusal composed** — A refusal that derived an address now publishes the retry as an argv list with that address beside it, so the one part a caller executes is read rather than parsed out of the sentence.
 - ✅ **RK1601** **fifty-eight served arguments across thirty-three tools are spelled in no call the guidance shows** — Every served argument is now shown in a call the shipped pages spell, and a test holds it: 2,437 code units on the turns that open a page, against 9,939 of schema every session pays at connect.
 - ✅ **RK1602** **the decisions pointer says it is built from the constant that writes it and spells the literal again** — The parenthesised supersession is read by shipping.replacement beside the writer that composes it, and the guard that missed a regex now reads calls rather than lines.
+- ✅ **RK1603** **a table's note is repeated on every key under it, and that repetition is 29 percent of the config payload** — The harvested sentence is sent once per table and joined on a field each key row already carries, taking config --json from 34,172 code units to 23,640.
 
 ## Block E — Adoption
 

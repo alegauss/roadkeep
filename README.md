@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 231 | 2 |
 | C — Query (consult without reading the file) | 10 | 177 | 4 |
-| D — The gate | 19 | 285 | 5 |
+| D — The gate | 18 | 286 | 5 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 159 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 37 | 1088 | 17 |
+| **Total** | 36 | 1089 | 17 |
 
 **Next ready:**
 
-- 📋 **RK1603** (deps: —) **a table's note is repeated on every key under it, and that repetition is 29 percent of the config payload** — One fact about a table is sent once per key it holds, so a caller asking the shape pays ten thousand code units for six copies of a sentence. → §RK1603
+- 📋 **RK1604** (deps: —) **the one reader saying whether a role is available answers a third question and has no docstring** — config.has is role in paths, true for a default pointing at no file, and 109 call sites read it as though it meant the project has one. → §RK1604
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -203,6 +203,56 @@ def test_the_payload_is_what_a_completion_list_reads(tmp_path, capsys):
     assert payload["version"] and payload["source"] == "roadkeep.toml"
 
 
+# -- the note said once per table (RK1603) ------------------------------------
+
+
+def test_the_note_is_sent_once_per_table_and_not_once_per_key():
+    """RK1603. `config --json` carried the harvested sentence on **every key** of its table, so
+    `[files]`'s 90-word paragraph went six times and `[install]`'s three: 10,052 of the answer's
+    34,172 code units were one sentence repeated, on a surface every session is handed.
+
+    The terminal never showed it twice — the listing prints it once above its table — so the
+    repetition was paid for only by the reader the payload is for.
+
+    Asserted as *no key row carries one* and not as a smaller number, because the claim is
+    structural: the sentence is about a table, and where it lives is the whole of the fix."""
+    found = describing.payload(describing.shape(Config.discover(HERE)))
+    assert not [one for one in found["keys"] if "note" in one]
+    said = {one["table"]: one["note"] for one in found["tables"]}
+    assert said["files"] and said["install"]
+    # Once each, which is what the count is: a table appears in this list at most one time.
+    named = [one["table"] for one in found["tables"]]
+    assert len(named) == len(set(named))
+
+
+def test_a_key_row_joins_to_its_table_on_a_field_it_already_carries():
+    """The half that makes it a payload change a consumer can follow, and the reason the other
+    way out was refused. RK1526 sent a repeated note on the *first* row of each group, which
+    costs a consumer a scan of the siblings to find which one answers.
+
+    `config` is served, so the caller is an agent holding one key's row and asking what its
+    table means — and `table` is on that row already, so the join is a lookup rather than a
+    search. Held over a table whose name is `""`, the top level, which is why `tables` is a
+    list of rows and not an object keyed by name."""
+    found = describing.payload(describing.shape(Config.discover(HERE)))
+    said = {one["table"]: one["note"] for one in found["tables"]}
+    row = next(one for one in found["keys"] if one["address"] == "files.changelog")
+    assert row["table"] == "files"
+    assert said[row["table"]].startswith("The governed files.")
+    # The top level is a table here and is spelled the way a key row spells it.
+    assert "" in {one["table"] for one in found["keys"]}
+
+
+def test_the_listing_reads_the_note_off_the_table_and_not_off_a_key():
+    """What the terminal half was doing by hand: `under[0].note` — the sentence about a table,
+    taken from whichever of its keys sorted first. The output is unchanged, which is the claim;
+    where it comes from is no longer a join."""
+    said = describing.stated(describing.shape(Config.discover(HERE)))
+    rows = said.splitlines()
+    at = rows.index("[files]")
+    assert rows[at + 1].strip().startswith("The governed files.")
+
+
 def test_the_read_writes_nothing(tmp_path):
     config = project(tmp_path, extra="[limits]\nwhy = 90\n")
     before = {
@@ -356,7 +406,10 @@ def test_a_table_sharing_a_key_set_does_not_borrow_the_other_s_sentence():
     has no way to tell it from a correct row.
     """
     found = describing.shape(Config.default())
-    said = {one.table: one.note for one in found.keys}
+    # Keyed by table since RK1603, which is what this read was doing by hand: the note was a
+    # field on every key, so telling one table's sentence from another's meant collapsing the
+    # key rows back into the mapping the note is really about.
+    said = found.notes
     assert "[criteria]" in said["criteria"]
     assert "[non_goals]" in said["non_goals"]
     # The shape is still shared, which is the half RK1265 decided and this must not undo.
