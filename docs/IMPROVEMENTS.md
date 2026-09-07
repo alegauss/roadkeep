@@ -766,6 +766,30 @@ costs is deciding what counts as a composed field — a flag whose value is writ
 verbatim, most likely — and that decision is the whole task, the sweep after it being an
 `ast` walk of the same shape as the two already here.
 
+### §RK1635 The reader that is the assumption
+
+RK1498 built an instrument that runs every composed command, and sixteen sittings
+emptied its work-list. It runs them through `shlex.split` and `cli.main`, which is a
+Python reading of a line a **shell** is going to read — and RK1580 is what that costs:
+every door was quoted with `'`, the sweep was green for a year, and in `cmd.exe` the
+symptom arrived as `'A` plus seven stray positionals.
+
+Nothing in the suite could have said so. `shlex` is the reader under test, so a line
+quoted wrongly for a shell round-trips through it perfectly; the only way the defect
+surfaced was a person typing the printed line into three terminals and reading the argv
+back.
+
+What closes it is not running every door in three shells — a subprocess per door per
+shell, on a suite already four minutes long, and two of the three are absent where CI
+runs. It is running **one**: take the door `report` prints, hand it to `cmd`, PowerShell
+and `sh` in turn where each is present, and assert the argv each delivers is the argv
+the composer meant. Skipped where a shell is not there, which is what `tests/corpora`
+already does with its pins.
+
+One door is enough because the quoting is one function now. `provenance.quoted` is what
+every composer reaches, so a shell test on any door is a test of the rule — and the
+check that no composed span carries a `'` is what carries it across the rest.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
