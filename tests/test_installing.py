@@ -2266,6 +2266,74 @@ def test_a_governed_project_is_told_what_its_files_now_are(project, source):
     assert "nothing here is governed yet" not in joined
 
 
+def test_a_project_configured_through_its_pyproject_is_governed(project, source):
+    """RK1581. The reading was `(root / "roadkeep.toml").is_file()`, spelled here rather than
+    asked of `config` — and a whole file's worth of answer short. `find_config` has always
+    taken `[tool.roadkeep]` in a `pyproject.toml`, so this project **is** governed, and what it
+    was told was that nothing here is yet: an offer of `init`, which would have put a second
+    config beside the one already governing it."""
+    (project / "pyproject.toml").write_text(
+        chr(10).join(
+            [
+                "[project]",
+                'name = "demo"',
+                'version = "0.1.0"',
+                "[tool.roadkeep]",
+                'prefix = "DM"',
+                "[tool.roadkeep.files]",
+                'roadmap = "ROADMAP.md"',
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    intent = install(project, source=source)
+    assert intent.governed
+    assert intent.governed_by == "pyproject.toml"
+    joined = " ".join(one for one in intent.stated(checked=False).splitlines() if "from here" in one)
+    # And the sentence names the file that actually declares them, which the literal could not:
+    # it is the same spelling the flag was read from, one register over.
+    assert "the files `pyproject.toml` declares are the tool's now" in joined
+    assert "nothing here is governed yet" not in joined
+
+
+def test_a_subtree_of_a_governed_repository_is_told_what_governs_it(project, source):
+    """RK1581, the third state. `install -C sub/` found no config beside it and offered `init`
+    — which would scaffold a second project inside the first, the failure `verbs/adopting._init`
+    refuses to make from the other direction.
+
+    A subtree is governed, by its parent, so the five reads below do answer; what it needs is
+    to be told whose files they answer from."""
+    (project / "roadkeep.toml").write_text(
+        chr(10).join(['prefix = "RK"', "[files]", 'roadmap = "ROADMAP.md"', ""]),
+        encoding="utf-8",
+    )
+    inside = project / "sub"
+    (inside / ".github" / "workflows").mkdir(parents=True)
+
+    intent = install(inside, source=source)
+    assert not intent.governed
+    assert intent.governed_by == "../roadkeep.toml"
+    joined = " ".join(one for one in intent.stated(checked=False).splitlines() if "from here" in one)
+    assert "`../roadkeep.toml` governs it" in joined
+    # The one thing it must not say, and the whole reason the state is worth telling apart.
+    assert "nothing here is governed yet" not in joined
+    assert "`roadkeep init` scaffolds" not in joined
+
+
+def test_the_payload_publishes_which_of_the_three_states_this_is(project, source):
+    """Both keys, because a consumer branching on `governed` alone reads a governed subtree as
+    an unscaffolded project — which is the defect one register over (RK1581)."""
+    ungoverned = plan(project, source=source).payload(checked=True)
+    assert (ungoverned["governed"], ungoverned["governed_by"]) == (False, "")
+    (project / "roadkeep.toml").write_text(
+        chr(10).join(['prefix = "RK"', "[files]", 'roadmap = "ROADMAP.md"', ""]),
+        encoding="utf-8",
+    )
+    governed = plan(project, source=source).payload(checked=True)
+    assert (governed["governed"], governed["governed_by"]) == (True, "roadkeep.toml")
+
+
 def test_the_check_prints_no_orientation_because_ci_runs_it_every_push(project, source):
     """An adopter runs the write once and reads it. The check runs on every push, and five
     lines of orientation there are five lines nobody reads, every time."""

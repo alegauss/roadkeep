@@ -936,16 +936,35 @@ class Config:
         return tuple(seen)
 
 
+def declares(directory: str | Path) -> Path | None:
+    """The config **this directory itself** declares, or ``None`` (RK1581).
+
+    The half :func:`find_config` walks, named because there are two questions and there was
+    only ever one reading of them: *what governs this tree* is what every verb asks, and *does
+    this tree declare its own* is what `install` asks — and the difference between them is the
+    walk, not the file it looks for.
+
+    `installing` had spelled the second by hand, as `(root / "roadkeep.toml").is_file()`, which
+    is a whole file's worth of answer short: a project configured through `[tool.roadkeep]` in
+    its `pyproject.toml` read as ungoverned **in its own root**, and was offered the `init`
+    that would put a second config beside the one already governing it.
+    """
+    here = Path(directory)
+    candidate = here / CONFIG_NAME
+    if candidate.is_file():
+        return candidate
+    pyproject = here / PYPROJECT
+    if pyproject.is_file() and _declares_roadkeep(pyproject):
+        return pyproject
+    return None
+
+
 def find_config(start: str | Path = ".") -> Path | None:
     """The nearest `roadkeep.toml`, or a `pyproject.toml` that configures roadkeep."""
     here = Path(start).resolve()
     for directory in (here, *here.parents):
-        candidate = directory / CONFIG_NAME
-        if candidate.is_file():
-            return candidate
-        pyproject = directory / PYPROJECT
-        if pyproject.is_file() and _declares_roadkeep(pyproject):
-            return pyproject
+        if (found := declares(directory)) is not None:
+            return found
     return None
 
 

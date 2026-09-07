@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 10 | 177 | 4 |
 | D — The gate | 20 | 276 | 5 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 158 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 159 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 2 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 38 | 1078 | 17 |
+| **Total** | 37 | 1079 | 17 |
 
 **Next ready:**
 
-- 💭 **RK1581** (deps: —) **install reads roadkeep.toml beside the tree where every other verb discovers it, so a governed subtree reads as none** — RK1534 needed to know whether a tree governs anything and asked the filesystem, where Config.source answers a different question. → §RK1581
+- 💭 **RK1582** (deps: —) **the rows an add volunteers are prose on every write and no cadence counts them** — RK1491 priced the gate's notes and RK1524 the transport's, and the third per-write text grew in four tasks against no number. → §RK1582
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

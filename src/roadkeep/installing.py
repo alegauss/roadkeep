@@ -79,7 +79,16 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from roadkeep.adopting import BlockedParent, blocking
-from roadkeep.config import CONFIG_NAME, Config, readable
+# `declares` under a name of its own: this module already has a public `declares`, about a
+# documentation page, and the collision is silent — the import loses to the later `def`, so
+# `plan` read a `(str, str)` where it wanted a path (RK1581).
+from roadkeep.config import (
+    CONFIG_NAME,
+    Config,
+    declares as config_declared_by,
+    find_config,
+    readable,
+)
 from roadkeep.linting import lint
 from roadkeep.merging import ATTRIBUTES, Registration, register
 from roadkeep.provenance import Engine, Installed, engine, home, installed
@@ -437,11 +446,25 @@ class Plan:
     #: Whether the write recorded `[install] wired` — a fifth file this command touches, so it
     #: is answered rather than assumed (RK298). False on every `--check`, which writes nothing.
     recorded: bool = False
-    #: Whether this project declares a `roadkeep.toml` at all (RK1534). Read here so the write
+    #: Whether this project declares a config **of its own** (RK1534). Read here so the write
     #: and `--check` answer from one computation, as every other field is — and used by one
     #: reader: the orientation names five commands, and on a tree that declares nothing every
     #: one of them refuses, so the sentence saying what has to happen first has to be first.
+    #:
+    #: `config.declares` and no longer a literal (RK1581): this was
+    #: `(root / "roadkeep.toml").is_file()`, which answered *no* about a project configured
+    #: through `[tool.roadkeep]` in its own `pyproject.toml`.
     governed: bool = True
+    #: Where the config governing this tree is, relative to the root, or `""` where nothing
+    #: governs it (RK1581). `roadkeep.toml`, `pyproject.toml`, or `../roadkeep.toml`.
+    #:
+    #: Beside :attr:`governed` and never instead of it, because the two answer different
+    #: questions and there are **three** states: this tree's own config, an ancestor's, and
+    #: none. The middle one is what the two-way reading got backwards — `install -C sub/` on a
+    #: governed monorepo found no config beside it and offered `init`, which would scaffold a
+    #: second project inside the first, the failure `verbs/adopting._init` refuses to make from
+    #: the other direction. A subtree wants to be told what governs it, not offered a config.
+    governed_by: str = CONFIG_NAME
     #: The merge driver, where `--register-merge` asked for it (RK148) — the attribute lines
     #: written and the `git config` line to run, exactly as `merge --register` reports them.
     registered: Registration | None = None
@@ -604,6 +627,19 @@ class Plan:
         second grammar for something no caller asked to branch on.
         """
         say = invocation()
+        if self.governed_by and not self.governed:
+            # **Told what governs it, and not offered `init`** (RK1581). A subtree of a governed
+            # repository declares no config of its own and is governed all the same, so the five
+            # reads below answer — from the parent's files, which is the one fact that makes
+            # them make sense here. The sentence it used to get named `init`, which would
+            # scaffold a second project inside the first: the failure `verbs/adopting._init`
+            # refuses to make, arrived at from the other direction.
+            return [
+                f"this tree declares no config of its own and `{self.governed_by}` governs it, "
+                f"so the five reads below answer from that project's files — `{say} init` here "
+                f"would put a second backlog inside it",
+                *_ORIENTED(say),
+            ]
         if not self.governed:
             # **What this tree still owes, before what it can now do** (RK1534). Measured while
             # widening RK1498's sweep: on a project with no `roadkeep.toml` the five lines
@@ -618,8 +654,11 @@ class Plan:
                 *_ORIENTED(say),
             ]
         return [
-            "the files `roadkeep.toml` declares are the tool's now — the guard denies a hand "
-            "edit and answers with the verb that makes it",
+            # The config **this project declares**, named rather than assumed (RK1581): a
+            # sentence spelling `roadkeep.toml` was wrong on every project configured through
+            # `[tool.roadkeep]`, which is the same literal the flag above was read from.
+            f"the files `{self.governed_by}` declares are the tool's now — the guard denies a "
+            f"hand edit and answers with the verb that makes it",
             *_ORIENTED(say),
         ]
 
@@ -695,6 +734,11 @@ class Plan:
             # prose: this one is a fact a consumer branches on — *has this project been
             # scaffolded* — and reading it out of a paragraph would be parsing English.
             "governed": self.governed,
+            # And where it is governed *from*, where that is not here (RK1581). Published for
+            # the reason above it is: a consumer branching on `governed` alone would read a
+            # governed subtree as an unscaffolded project, which is the whole defect one
+            # register over. `""` on both of the other two states, which the flag tells apart.
+            "governed_by": self.governed_by,
             "surfaces": [
                 {
                     "path": surface.path.relative_to(self.root).as_posix(),
@@ -837,6 +881,10 @@ def plan(
     # this repository declares by hand (RK81) — and the two copies do not, both being copies
     # of files already in the tree.
     own = base == origin
+    # RK1581, and it is two questions rather than one flag: whether this tree declares its own
+    # config, and — only where it does not — what governs it from above. Asked here with every
+    # other fact, so `--check` and the write answer from one computation.
+    declared = config_declared_by(base)
     # The one entry the merge rule does not protect (RK1560), and the only surface here whose
     # content an adopter may legitimately have authored. Left alone unless the caller asked,
     # which is a **skip** and never a refusal: `install` writes five surfaces, and stopping the
@@ -945,15 +993,35 @@ def plan(
             if surface.writes and (parent := blocking(surface.path))
         ),
         # Whether this tree declares anything at all (RK1534): the orientation names five
-        # commands and every one of them needs a `roadkeep.toml`, so the answer decides which
-        # sentence comes first rather than whether any of them is printed.
-        governed=(base / "roadkeep.toml").is_file(),
+        # commands and every one of them needs a config, so the answer decides which sentence
+        # comes first rather than whether any of them is printed. Both files, and the walk
+        # beside it, are `config`'s own readings since RK1581.
+        governed=declared is not None,
+        governed_by=_governed_by(base, declared),
         # Always, and not only under `--register-merge` (RK394): the report names the flag on
         # every run, so whether running it could work is part of every run's answer.
         driver=driver,
         committed=committed,
         carried=carried,
     )
+
+
+def _governed_by(base: Path, declared: Path | None) -> str:
+    """Where the config governing ``base`` is, or `""` where nothing does (RK1581).
+
+    One reading for all three states, which is the point: the flag beside it says *whose*, and
+    a second computation for the ancestor's case would be the asymmetry this task is about
+    reintroduced one field along.
+
+    **Relative to the root**, which is `provenance.invocation`'s rule one path over: an
+    absolute path is a message about a machine, and what an adopter standing in `sub/` needs is
+    the direction and not the disk. It may go upward, so `os.path.relpath` and not
+    `relative_to` — the one call here that `Path` has no method for.
+    """
+    found = declared if declared is not None else find_config(base)
+    if found is None:
+        return ""
+    return Path(os.path.relpath(found, base.resolve())).as_posix()
 
 
 def install(

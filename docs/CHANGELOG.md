@@ -1043,6 +1043,7 @@
 - ✅ **RK1560** **install replaces a server declaration an adopter wrote themselves and no row names what was there** — A server declaration this command did not write is left where it is and named in the report, and uninstall keeps it for the same reason.
 - ✅ **RK1561** **engines --invoke prints a command and never that the declaration it fell through was one this tool cannot read** — The declaration --invoke fell through is now said on stderr and as a payload key, so the one-line answer is unchanged and no longer silent.
 - ✅ **RK1564** **the note sweep reads every call inside an answer's text, so a helper beside a note reads as a kind** — The note sweep takes the first call in an answer's f-string, so a clause beside the note is no longer read as a fifth kind.
+- ✅ **RK1581** **install reads roadkeep.toml beside the tree where every other verb discovers it, so a governed subtree reads as none** — install asks config which file governs a tree, so a pyproject-configured root is no longer offered init and a subtree is told what governs it rather than offered a second backlog.
 
 ## Block G — The editor surface (the backlog where the file is open)
 
