@@ -61,7 +61,7 @@ from pathlib import Path
 
 from roadkeep import __version__
 from roadkeep.config import Config, ConfigError, find_config
-from roadkeep.provenance import STARTUP_CODECS, Engine, engine, invocation
+from roadkeep.provenance import STARTUP_CODECS, Engine, engine, invocation, joined, quoted
 from roadkeep.kernel.schema import Schema, Task, Violation
 
 #: How much of the failing command's output is kept. A capture is read by a person, and a
@@ -136,7 +136,7 @@ class Failure:
 
     @property
     def command(self) -> str:
-        return shlex.join(("roadkeep", *self.argv))
+        return joined(("roadkeep", *self.argv))
 
     @property
     def where(self) -> str | None:
@@ -428,8 +428,13 @@ class Capture:
 
     @property
     def filing(self) -> str:
-        """The command that files this in the maintainer's backlog, id left derived."""
-        return shlex.join(
+        """The command that files this in the maintainer's backlog, id left derived.
+
+        Quoted by `provenance.joined` and no longer by `shlex` (RK1580): this is the one
+        command whose whole job is to be pasted, and measured on this platform the POSIX
+        spelling ran in Git Bash and PowerShell and broke in `cmd`.
+        """
+        return joined(
             [
                 *shlex.split(invocation()),
                 "add",
@@ -599,7 +604,7 @@ def offer(argv: Sequence[str]) -> str:
     return "\n".join(
         [
             _OFFER,
-            f'  {invocation()} report --symptom "…" --why "…" -- {shlex.join(argv)}',
+            f'  {invocation()} report --symptom "…" --why "…" -- {joined(argv)}',
         ]
     )
 
@@ -651,7 +656,7 @@ def handoff(found: Capture, upstream: str) -> str:
         [
             "Nothing was sent. To file it, after reading what is above:",
             f"  {invocation()} report … --issue | gh issue create -R {upstream} "
-            f"-t {shlex.quote(found.title)} -F -",
+            f"-t {quoted(found.title)} -F -",
         ]
     )
 
@@ -1091,7 +1096,7 @@ def qualifying(path: str, stamp: str, upstream: str = "") -> str:
     author's — and a command with one obvious blank is a thing to complete, where a sentence
     about a stamp is a thing to work out.
     """
-    return shlex.join(
+    return joined(
         [
             *shlex.split(invocation()),
             "capture",

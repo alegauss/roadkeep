@@ -117,19 +117,19 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 1 | 231 | 2 |
+| B — Authoring (insert, never hand-edit) | 2 | 231 | 2 |
 | C — Query (consult without reading the file) | 10 | 177 | 4 |
-| D — The gate | 20 | 275 | 5 |
+| D — The gate | 19 | 276 | 5 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 158 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 2 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 37 | 1077 | 17 |
+| **Total** | 37 | 1078 | 17 |
 
 **Next ready:**
 
-- 💭 **RK1580** (deps: —) **the capture's filing door is POSIX-quoted on a platform whose shell is not, and nothing has run it there** — RK1579 found the splitter eats a Windows separator, and the joiner that wrote it has the same assumption one layer up. → §RK1580
+- 💭 **RK1581** (deps: —) **install reads roadkeep.toml beside the tree where every other verb discovers it, so a governed subtree reads as none** — RK1534 needed to know whether a tree governs anything and asked the filesystem, where Config.source answers a different question. → §RK1581
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

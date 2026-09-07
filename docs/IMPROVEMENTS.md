@@ -100,6 +100,29 @@ What closes it is the door the sibling verb already has, spelled the same way in
 same place, and a test that asks the parser rather than the help text which arguments
 read a pipe.
 
+### §RK1634 The last look at a section, at the moment it goes
+
+A ship deletes the rationale section in the same transaction that writes the ledger
+entry. Three flags carry what was durable in it — `--superseded-design` for the half the
+code moved under, `--recorded-in` for the half belonging beside the code, and
+`--decides` for the constraint belonging to no file. All three are optional, and the
+call that deletes mentions none of them.
+
+So the only answer arrives after the fact: the section is gone and the entry says
+nothing about having held one. The evidence a caller needed was in a section they were
+not shown, in a session about to end.
+
+What is wanted is not a required flag. Requiring `--decides` compels a sentence where
+there may be no decision, and filler in the one store with no deletion verb is permanent
+— which is the ADR curve this format refuses. `--checked` settled the same class one
+flag over: a criterion nobody names reads as unchecked, and silence was accepted there.
+
+The asymmetry arguing for more here is that a criterion survives a ship and a section
+does not. So the cheap form is a read and not a gate: the call names what it is about to
+delete — the title, the word count — and the three doors, before it writes. Whether a
+project may demand the stronger form, and whether an explicit `nothing survives` is an
+assertion worth having or ceremony, is what this design has to weigh.
+
 ## Block C — Query
 
 ### §RK1608 The narrowing that could not narrow
@@ -327,30 +350,6 @@ somewhere already; none of it is reachable together, and the one signal that is
 reachable is a null.
 
 ## Block D — The gate
-
-### §RK1580 The shell the composer assumes
-
-`capturing.Capture.filing` composes with `shlex.join` and `tests/composing.commands`
-reads with `shlex.split`. Both are POSIX by default, and this project's own platform is
-not: a capture's absolute path goes in as `C:\Users\…\x.json` and comes out as
-`C:UsersalexaTemp…`, because a backslash is an escape to the splitter that reads it.
-
-Two halves of one question, and only one of them is a test's. The splitter is the
-sweep's, and what it costs is a row that stays unreached with an honest state (RK1579).
-The **joiner** is the tool's: a line composed for a reader to paste is quoted for a
-shell they may not be running, on the one command whose whole job is to be pasted by a
-maintainer.
-
-Which shell that is, this package cannot know and should not guess —
-`provenance.invocation` already refuses to describe a machine. What it can do is not add
-quoting that is wrong everywhere but one family of shells: the fields here are a
-symptom, a why and a path, and the only one that needs quoting is a value with a space
-in it, which `shlex.quote` handles and `shlex.join` applies to the whole argv.
-
-The measurement that would decide it is small and this platform is the one that has it:
-take the line this repository's own `report` prints, and see whether `cmd`, PowerShell
-and Git Bash each run it. If all three do, this closes as declined; if one does not, the
-door on a Windows checkout has never been takeable.
 
 ### §RK1582 The third cadence nobody counts
 

@@ -479,6 +479,47 @@ def invocation() -> str:
     return "python -m roadkeep.cli"
 
 
+def quoted(word: str) -> str:
+    """One argv token, spelled so **every shell on this machine** reads it back as one (RK1580).
+
+    `shlex.quote`'s job with `shlex`'s assumption removed. That module is POSIX by default and
+    this project's own platform is not: measured here, the line `report` prints — the one
+    command whose whole job is to be pasted by a maintainer — runs correctly in Git Bash and in
+    PowerShell and is **wrong in `cmd.exe`**, where a single quote is not a quoting character
+    at all. A symptom arrives as `'A` plus seven stray positionals and an absolute path arrives
+    with the quotes in it, naming a file Windows has not got.
+
+    So the quote is `"` and not `'`, which is the one spelling all three read: `cmd` and
+    PowerShell both take it, a POSIX shell keeps a Windows separator literal inside it (there
+    being no `$`, backtick or trailing `\\` in the fields this quotes), and `shlex.split` reads
+    it back to the same argv — which is what keeps `tests/composing` running these lines.
+
+    :func:`invocation`'s own rule, one token wider: this module already refuses to describe a
+    machine, and a quote that is right in one family of shells is that description made
+    silently. What is *not* claimed is a general Windows quoter — an embedded `"` is escaped
+    the way both families accept and a token ending in a backslash is left to the caller,
+    neither being a shape the fields here take.
+    """
+    if word and not any(one in word for one in _NEEDS_QUOTING):
+        return word
+    return '"' + word.replace('"', '\\"') + '"'
+
+
+#: What forces a token to be quoted. Whitespace because it would run as several arguments; the
+#: quote itself because it would end the span; the backslash because a POSIX shell reads it as
+#: an escape and every absolute path on this platform is made of them.
+_NEEDS_QUOTING = (" ", "\t", "\n", "\r", '"', "\\")
+
+
+def joined(argv: Sequence[str]) -> str:
+    """A whole argv as one line every shell reads back as that argv (RK1580).
+
+    `shlex.join` with :func:`quoted` in place of `shlex.quote`, and the only reason it is a
+    function rather than a comprehension at each site is that there were five of them.
+    """
+    return " ".join(quoted(one) for one in argv)
+
+
 #: The MCP server this distribution declares — the same name in both scopes, and the reason
 #: the two spellings below differ only by what wraps it.
 SERVER = "roadkeep"

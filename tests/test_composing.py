@@ -17,6 +17,7 @@ Every one of them runs now, or is a decision that says why (RK1599).
 
 from __future__ import annotations
 
+import shlex
 from pathlib import Path
 
 import pytest
@@ -27,6 +28,7 @@ from composing import (
     SITES,
     STATES,
     census,
+    commanded,
     commands,
     filled,
     loose,
@@ -40,7 +42,7 @@ from conftest import git_commit, git_init
 from roadkeep.cli import EXIT_GATE, EXIT_OK, EXIT_USAGE, build_parser, main
 from roadkeep.config import Config
 from roadkeep.linting import Finding, lint
-from roadkeep.provenance import invocation
+from roadkeep.provenance import invocation, joined, quoted
 from roadkeep.remedying import BLANK, codes, remedy
 
 
@@ -1652,6 +1654,52 @@ def test_a_door_spelled_without_the_invocation_is_still_read():
     ]
     # A word that is not a verb of this CLI is prose, whichever way it is delimited.
     assert not loose("`shuffle the deck --to <a new place>`")
+
+
+# -- the shell the composer assumed (RK1580) -----------------------------------
+
+
+def test_no_composed_command_is_quoted_for_one_family_of_shells():
+    """RK1580. `shlex` is POSIX by default and this project's own platform is not, so every
+    door composed with it was quoted with `'` — which Git Bash and PowerShell both read and
+    **`cmd.exe` does not read at all**.
+
+    Measured before it was fixed, running the line this repository's own `report` prints:
+    Git Bash and PowerShell each gave argparse the right argv, and in a clean `cmd` the
+    symptom arrived as `'A` plus seven stray positionals and the capture path arrived with
+    the quotes inside it — naming a file Windows has not got. So the door on a Windows
+    checkout had never been takeable, which is the one of the design's two outcomes that
+    does not close as declined.
+
+    Held from the strings alone, the way `loose` is and for its reason: a span quoted for
+    one shell is wrong whether or not a test reaches the site that prints it."""
+    found = [
+        f"{module.where}:{lineno}: {said}"
+        for module in modules()
+        for lineno, text in spoken(module)
+        for said in commanded(text)
+        if "'" in said
+    ]
+    assert not found, found
+
+
+def test_the_quote_is_the_one_every_shell_reads():
+    """The composer itself, at the three shapes the doors carry. A double quote is what `cmd`,
+    PowerShell and a POSIX shell all read back as one token; a single quote is a quoting
+    character in only the last of the three."""
+    # A path, which is quoted for the separator alone — unquoted, a POSIX shell reads every
+    # backslash as an escape and `C:\Users\x` arrives as `C:Usersx` (RK1579's finding).
+    assert quoted(r"C:\Users\alexa\x.json") == '"C:\\Users\\alexa\\x.json"'
+    # Prose, which is quoted for the spaces, and an apostrophe in it survives — the shape
+    # `shlex.quote` spells `'It'"'"'s'`, which is unreadable in two of the three shells.
+    assert quoted("It isn't short") == '"It isn\'t short"'
+    # A plain word is left alone: `'--help'` reads as a literal somebody typed.
+    assert quoted("--help") == "--help"
+    # And the whole argv round-trips through the reader this suite runs doors with.
+    line = joined(["roadkeep", "add", "--symptom", "It isn't short", "--capture", r"C:\a\b.json"])
+    assert shlex.split(line) == [
+        "roadkeep", "add", "--symptom", "It isn't short", "--capture", r"C:\a\b.json",
+    ]
 
 
 # -- the vendored copy the un-wiring keeps (RK1549) ----------------------------

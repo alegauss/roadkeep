@@ -27,6 +27,7 @@
 ## Block B — Authoring (insert, never hand-edit)
 
 - 📋 **RK1632** (deps: —) **add --symptom takes no stdin, the one prose field with no pipe being the one every line leads with** — RK1187 gave restate --symptom the pipe and add kept the literal, so a claim carrying a backtick reaches one verb and lands as text in the other. → §RK1632
+- 📋 **RK1634** (deps: —) **a ship deletes the design section and names nothing that was in it, so the last look at it never happens** — Three flags carry a design's durable half and all three are optional, so a section goes to a caller who was never shown it was about to. → §RK1634
 
 ## Block C — Query (consult without reading the file)
 
@@ -43,7 +44,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1580** (deps: —) **the capture's filing door is POSIX-quoted on a platform whose shell is not, and nothing has run it there** — RK1579 found the splitter eats a Windows separator, and the joiner that wrote it has the same assumption one layer up. → §RK1580
 - 💭 **RK1582** (deps: —) **the rows an add volunteers are prose on every write and no cadence counts them** — RK1491 priced the gate's notes and RK1524 the transport's, and the third per-write text grew in four tasks against no number. → §RK1582
 - 💭 **RK1583** (deps: —) **a deferral says nothing about the limit its reason was measured against, only govern does** — RK1537 closed the choosing end and the accepting end still reports a write whose bound the caller has to infer. → §RK1583
 - 💭 **RK1585** (deps: —) **prose beside a total table is taken for the table, and one check reads one phrase in one comment** — RK1539 closed the instance it met and the shape it is an instance of has five tables and no rule. → §RK1585

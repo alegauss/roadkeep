@@ -80,12 +80,12 @@ over the whole table rather than a defect discovered one row at a time.
 
 from __future__ import annotations
 
-import shlex
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from functools import lru_cache
 
 from .config import PROSE_ROLES, ROLES, Config
+from .provenance import joined, quoted
 from roadkeep.kernel.schema import Dep
 
 #: The six kinds, in the order a caller pays for them: nothing, one write, one read then a
@@ -107,10 +107,15 @@ def _spelled_word(word: str) -> str:
     `<command> --help` is one of them, and `'<command>' --help` reads as a literal somebody
     typed. The :data:`BLANK` is never quoted either, for :attr:`Door.quoted`'s reason: it
     marks a field the author fills, and `'…'` reads as a value already chosen.
+
+    The **quote** is `provenance.quoted`'s since RK1580 — `"` rather than `'`, which is the one
+    spelling `cmd`, PowerShell and a POSIX shell all read back as one token. Which tokens get
+    one is still this rule and not that function's: the narrowing above is about doors and the
+    widening there is about a Windows path, and folding them would requote every `--help`.
     """
     if BLANK in word or not word or not any(c.isspace() for c in word):
         return word
-    return shlex.quote(word)
+    return quoted(word)
 
 
 @lru_cache(maxsize=1)
@@ -230,10 +235,10 @@ class Door:
         as a value somebody chose.
         """
         if self.foreign:
-            return shlex.join(self.argv)
+            return joined(self.argv)
         from .provenance import invocation
 
-        return f"{invocation()} {shlex.join(self.argv)}"
+        return f"{invocation()} {joined(self.argv)}"
 
     @property
     def complete(self) -> bool:
@@ -711,8 +716,11 @@ _TABLE: Mapping[str, _Rule] = {
     ),
     "priority.shape": _compose(
         ("priority", "add", BLANK),
-        "the bullet addresses no work: drop it by hand-free re-add — `priority add <id>` "
-        "or `priority add 'Block X'`",
+        # Double-quoted, and typed here rather than composed because it is an example inside a
+        # sentence: `'Block X'` is not a quoted token in `cmd` at all, which is the whole of
+        # RK1580 in the one door that spelled a quote by hand.
+        'the bullet addresses no work: drop it by hand-free re-add — `priority add <id>` '
+        'or `priority add "Block X"`',
     ),
     # ------------------------------------------------------------------ the roadmap's other bullet
     # RK1266, and the rows are RK1265's read across: the two lists are one grammar, so what

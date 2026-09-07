@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import shlex
 import sys
 import tempfile
 
@@ -38,6 +37,7 @@ from roadkeep.adopting import (
     declare,
     init,
 )
+from roadkeep.provenance import joined
 from roadkeep.capturing import (
     Filed,
     REPORTS,
@@ -561,13 +561,14 @@ def _report(config: Config, args: argparse.Namespace) -> int:
     # `keep`, so the capture cannot name itself — and a command a caller has to complete is a
     # second step, which is what RK86 is this block's own record of.
     #
-    # **Quoted like every other word on the line** (RK1599). `filing` is a `shlex.join` and
+    # **Quoted like every other word on the line** (RK1599). `filing` is a joined argv and
     # this was the one token appended outside it, so a capture under a directory with a space
     # split into two arguments — RK1548's class, in the door a maintainer pastes. On Windows
-    # the quoting also makes the line readable back: single quotes keep a separator that an
-    # unquoted backslash is read as escaping.
+    # the quoting also makes the line readable back: the quotes keep a separator that an
+    # unquoted backslash is read as escaping. `provenance.joined` and no longer `shlex`, whose
+    # quote is `'` and is not one in `cmd` (RK1580) — the same composer both halves now use.
     print(
-        f"file  `{found.filing} {shlex.join(['--capture', str(kept.path)])}`",
+        f"file  `{found.filing} {joined(['--capture', str(kept.path)])}`",
         file=sys.stderr,
     )
     if kept.complaint:

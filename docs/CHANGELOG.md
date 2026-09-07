@@ -758,6 +758,7 @@
 - 🗑 **RK1574** **two composer families turned up three doors that cannot be taken, and the rest are unplanned against that rate** — abandoned: RK1599 finished every family this would have ordered, so the rate it measured has no remaining rows to plan and the residue about a row going quiet is RK1578's.
 - ✅ **RK1576** **the config read-back is one writer's, and the decision RK1533 filed binds five** — Every writer of roadkeep.toml renders, parses and refuses before the bytes land, the check being config.readable and the population an AST sweep that named a sixth writer the count had missed.
 - 🗑 **RK1578** **a row's stated fixture is a guess nothing checks, and the first two taken overstated it** — abandoned: No row states a fixture now RK1599 has emptied the work-list, so no guess is left to check and a sentence on all seventy-eight run rows would restate the comments above them.
+- ✅ **RK1580** **the capture's filing door is POSIX-quoted on a platform whose shell is not, and nothing has run it there** — Every composed door is quoted with a double quote, which cmd, PowerShell and a POSIX shell all read as one token: the line report prints was measured broken in cmd and now runs in all three.
 
 ## Block E — Adoption
 
