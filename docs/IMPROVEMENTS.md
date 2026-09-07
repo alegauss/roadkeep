@@ -724,6 +724,52 @@ a claim about the two streams is only worth what a run of it says.
 The first fix having no comment is the finding, not an aside: a rule discovered twice
 with nothing written down is a rule that will be discovered a third time.
 
+### §RK1620 The number the fold does not reach
+
+`Noted.here` sums one `Part` per note and calls that "what a clean run costs now — the
+per-commit and per-turn figure". Since RK1565 a run of notes sharing a sentence prints
+once, so the sum is what the gate *composed* and no longer what it *said*: five stale
+surfaces are 1,149 characters to this reader and 358 on the terminal.
+
+Invisible here, which is why it files as an idea rather than a defect. This repository's
+gate emits `read.priced` alone and a single row folds to itself, so every number `budget
+--notes` prints is still exact. The population it is wrong about is every wired project
+whose surfaces are behind — the one the fold was measured on.
+
+The fix is not a second reading of the report. `_print_notes` already knows the answer:
+the fold is `(code, shared)`, and a group costs one sentence plus its addresses. What
+`note_cost` wants is that grouping over the rows it prices — a call, not a parser.
+Pricing the rendered text would be a second reader of what the gate composes, the drift
+`disagreements` was lifted out of the gate to end.
+
+What to decide first is whether the figure follows at all. `here` claims to be what a
+session pays; a second figure for what was composed is the number nobody reads. The
+honest shape may be one number and a line saying which rows folded, which is a judgement
+about the report rather than about the arithmetic.
+
+### §RK1621 A reason that stopped being true
+
+`_wiring_line` argues for itself in one clause: "Not a second check and not a second
+sentence: the notes carry the paths and the door, and this carries the count." That was
+exact while a note was one row per surface — the count existed nowhere else in the
+report, so the summary was the only place a skimmer could meet it.
+
+RK1565's fold gives the note row a count of its own. A wired project behind on five
+surfaces now reads `5 surface(s)  install.stale …` where the notes are, and `5 wired
+surface(s) behind this engine` on the summary — the same number, twice, four lines
+apart.
+
+Small, and not obviously wrong: the two readers are different, one skimming a line and
+one reading the notes, and the summary still adds what the fold cannot — how many of the
+five are missing entirely rather than behind. So this is a question about the sentence
+and not a bug to be closed by deleting one of them.
+
+What it costs is the argument, which is the part that rots. The clause above is now a
+reason that has stopped being true, and a comment stating a fact the code no longer has
+is worse than no comment — it is the one a later reader trusts. Either the summary earns
+its count on a ground the fold does not take, or the fold's row drops the number the
+summary already carries; whichever way, the sentence beside it says why.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

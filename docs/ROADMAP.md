@@ -60,6 +60,8 @@
 - 📋 **RK1607** (deps: RK1555 ✅) **four two-answer rules are raised inside handlers where the declaration that spells them is one call away** — govern, retire and the two criterion doors declare no subjects at all, so the dispatcher, the pair sweep and the served schema see none of them. → §RK1607
 - 💭 **RK1610** (deps: —) **a config key typed under the wrong table is refused as unknown, where the tool knows exactly which table it belongs to** — RK1064 spells the refusal for a key nothing declares, and a misplaced one is neither a typo nor an upgrade, so both clauses point away from the edit. → §RK1610
 - 💭 **RK1612** (deps: —) **a verb writing an answer and a note in one run has to flush between the streams, and nothing says which verbs those are** — RK1561 met the ordering a second time and the first fix carries a bare flush with no reason, so the rule is rediscovered rather than read. → §RK1612
+- 💭 **RK1620** (deps: —) **the note census prices one row per note, so it reports what the gate composed and not what it printed** — RK1565 folded a run of notes into one sentence, and the figure claiming to be what a session pays never learnt about it. → §RK1620
+- 💭 **RK1621** (deps: —) **the summary and the folded note row now both carry the count of surfaces behind the engine** — The clause arguing the summary is not a second sentence rested on the notes carrying no count, which RK1565 changed. → §RK1621
 
 ## Block E — Adoption
 
