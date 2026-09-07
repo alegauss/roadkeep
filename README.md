@@ -129,7 +129,7 @@ called unbuilt were already in the ledger.
 
 **Next ready:**
 
-- 💭 **RK1618** (deps: —) **delivered and reversals are the reads before an add, and neither holds what was traced and not filed** — pportal keeps twenty-five such findings outside its git; only the premise an entry names can reopen it, and a free-prose reason has no slot for one. → §RK1618
+- 📋 **RK1618** (deps: —) **delivered and reversals are the reads before an add, and neither holds what was traced and not filed** — pportal keeps twenty-five such findings outside its git; only the premise an entry names can reopen it, and a free-prose reason has no slot for one. → §RK1618
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
