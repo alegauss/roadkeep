@@ -1,0 +1,3 @@
+{    // Identify this project in the window title / taskbar
+    "window.title": "Roadkeep GUI ${separator} ${dirty}${activeEditorShort} ${separator} ${appName}",
+}

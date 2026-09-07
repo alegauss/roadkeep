@@ -1,0 +1,34 @@
+# Editor and OS noise
+*~
+*.swp
+.idea
+.vs
+.DS_Store
+Thumbs.db
+
+# Python bytecode, wherever it lands
+__pycache__/
+*.py[cod]
+
+# roadkeep's own working directory: lint reports and run state, regenerated on
+# demand and never read by another clone. Also where `roadkeep install --vendor`
+# puts a pinned engine, which is this checkout's choice and not the repo's.
+.roadkeep/
+
+# Claude Code's project directory is local state except for the files roadkeep
+# needs a clone to carry: settings.json declares the marketplace and enables the
+# plugin, hooks/ holds the launcher that gives Claude Code on the web (which has
+# no `/plugin`) the same guard a local machine gets from the plugin, and skills/
+# is the copy `roadkeep install` keeps in step.
+#
+# settings.local.json is deliberately NOT un-ignored: it carries this machine's
+# permission mode and absolute memory paths, which are true of nobody else's clone.
+/.claude/*
+!/.claude/settings.json
+!/.claude/hooks/
+!/.claude/skills/
+
+# Python's bytecode cache under hooks/. `!/.claude/hooks/` un-ignores that directory,
+# so the generic `__pycache__/` rule above no longer reaches it — a hook the interpreter
+# has imported once would otherwise leave a .pyc beside it that `git add -A` commits.
+/.claude/hooks/__pycache__/
