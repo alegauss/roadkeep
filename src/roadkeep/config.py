@@ -1063,13 +1063,62 @@ def _reject_unknown(
     and nothing in the file separates them — so both are named, and the clause carries the one
     command that decides it (RK14/15's rule, on the refusal that reads a config rather than a
     line). `engines` is that command: it prints the copy that writes beside the plugin's own.
+
+    **And a third reading, where the key is not unknown at all** (RK1610). Measured twice while
+    building RK1559's fixtures, both times by writing valid TOML in the wrong order:
+    `priority = ["RK1"]` after a `[files]` header is `files.priority`, and `roadmap = 10` after
+    `[limits]` is `limits.roadmap`. Both were refused as unknown; both keys exist, one table
+    away. RK1064's sentence is right about the case it was written for and wrong about this
+    one — it points a reader at their spelling and at their version, and the edit is a header
+    three lines up they cannot see from the message.
+
+    The answer was already assembled: `describing.TABLES` is the whole map, for the surface
+    `config` prints. So a key this build knows **somewhere** names where, and RK1064's clause
+    is kept for the key that truly is unknown — told apart by the word the problem opens with,
+    which is what :func:`_unknown_clause` reads.
     """
     for key in data:
-        if key not in allowed:
+        if key in allowed:
+            continue
+        elsewhere = _tables_holding(key, where)
+        if elsewhere:
+            # Several, where a name lives under several tables (RK1610): `why` is a key of
+            # `[limits]`, `[non_goals]` and `[criteria]`, and naming one of the three would be
+            # this reader guessing which table the author meant.
             problems.append(
-                f"unknown key '{where}{key}' (allowed: "
-                f"{', '.join(where + name for name in sorted(allowed))})"
+                f"misplaced key '{where}{key}': this build declares it as "
+                f"{', '.join(elsewhere)} — the header above it is what to move, not the key"
             )
+            continue
+        problems.append(
+            f"unknown key '{where}{key}' (allowed: "
+            f"{', '.join(where + name for name in sorted(allowed))})"
+        )
+
+
+def _tables_holding(key: str, where: str) -> tuple[str, ...]:
+    """Every table this build declares ``key`` under, other than the one it was written in.
+
+    Read from `describing.TABLES`, which is the map `config --json` already prints (RK1610):
+    a second list of the same names here is the drift this package exists to stop, and the
+    two were written a year apart with no route between them.
+
+    Imported inside the call for RK260's reason and the one this path has of its own —
+    `describing` imports this module, so the edge only exists downwards, and a refusal is
+    already the slow branch. Every failure is *no suggestion*: a reader that cannot answer
+    leaves RK1064's sentence standing, which is the answer this rule narrows and never
+    replaces.
+    """
+    try:
+        from roadkeep.describing import TABLES  # noqa: PLC0415 - RK260, the refusal path only
+    except ImportError:  # pragma: no cover - a partial install has nothing to suggest
+        return ()
+    written = where.rstrip(".")
+    return tuple(
+        f"`{name}.{key}`" if name else f"`{key}` at the top level"
+        for name, keys in TABLES.items()
+        if key in keys and name != written
+    )
 
 
 def _string(

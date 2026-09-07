@@ -481,6 +481,67 @@ def test_an_unknown_key_is_refused_and_names_the_allowed_ones(tmp_path):
     assert "prefix" in str(caught.value)  # the allowed set, so the fix is one edit
 
 
+# -- the key that is not unknown, only somewhere else (RK1610) ----------------
+
+
+def test_a_key_under_the_wrong_header_is_told_which_table_holds_it(tmp_path):
+    """RK1610. Measured twice while building RK1559's fixtures, both times by writing valid
+    TOML in the wrong order: `priority` after a `[files]` header is `files.priority`, and
+    `roadmap` after `[limits]` is `limits.roadmap`. Both were refused as unknown, and both
+    keys exist — one table away.
+
+    RK1064's sentence points a reader at their spelling and at their version, and the edit is
+    neither: it is a header three lines up, which the message never named."""
+    path = write(tmp_path, '[files]\nroadmap = "docs/R.md"\npriority = ["RK1"]\n')
+    with pytest.raises(ConfigError) as caught:
+        Config.load(path)
+    said = str(caught.value)
+    assert "misplaced key 'files.priority'" in said
+    assert "at the top level" in said, "the table is named, which is the whole repair"
+    assert "the header above it is what to move" in said
+
+
+def test_a_name_several_tables_declare_names_all_of_them(tmp_path):
+    """Eight key names live under more than one table — `why` under `[limits]`, `[non_goals]`
+    and `[criteria]`, `symptom` under `[ledger]` and `[limits]`. Naming one of them would be
+    this reader guessing which the author meant, which is the guess a refusal may not make."""
+    path = write(tmp_path, '[files]\nroadmap = "docs/R.md"\n\n[criteria]\nsymptom = 5\n')
+    with pytest.raises(ConfigError) as caught:
+        Config.load(path)
+    said = str(caught.value)
+    assert "`ledger.symptom`" in said and "`limits.symptom`" in said
+
+
+def test_a_key_no_table_declares_keeps_the_sentence_it_always_had(tmp_path):
+    """The half RK1610 narrows and never replaces. A key this build knows nowhere is RK1064's
+    case exactly — a typo if nothing declares it, an upgrade if a newer roadkeep does — and a
+    reader sent to a header that does not exist is worse off than one sent to `engines`."""
+    path = write(tmp_path, '[files]\nroadmap = "docs/R.md"\nsymptom_max = 5\n')
+    with pytest.raises(ConfigError) as caught:
+        Config.load(path)
+    said = str(caught.value)
+    assert "unknown key 'files.symptom_max'" in said
+    assert "an upgrade if a newer roadkeep does" in said
+    assert "misplaced" not in said
+
+
+def test_the_suggestion_is_read_from_the_map_config_already_prints():
+    """Not a second list. `describing.TABLES` is what `config --json` answers from, and the two
+    readers were written a year apart with no route between them — which is the only reason
+    this refusal could not answer a question the tool had assembled."""
+    from roadkeep.config import _tables_holding
+    from roadkeep.describing import TABLES
+
+    assert _tables_holding("priority", "files.") == ("`priority` at the top level",)
+    assert _tables_holding("roadmap", "limits.") == ("`files.roadmap`",)
+    # The table it was already written under is never suggested back to the author.
+    assert _tables_holding("roadmap", "files.") == ()
+    # And every suggestion is a key that table really declares.
+    for name, keys in TABLES.items():
+        for key in keys:
+            assert key in TABLES[name]
+
+
 # -- the vocabulary a `(requires: …)` group quotes from (RK1297) --------------
 
 

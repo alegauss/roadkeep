@@ -70,6 +70,12 @@ CYCLES: dict[tuple[str, str], str] = {
         "shape: the kernel names `Config` under `TYPE_CHECKING` alone, so at runtime it imports "
         "nothing above it and the layout's claim about this layer holds as written"
     ),
+    ("config", "describing"): (
+        "shape: a call-time import on the refusal path alone (RK1610) — `describing` holds the "
+        "map of which table declares which key, and the config reader that refuses an unknown "
+        "one had no route to it, so a key written under the wrong header was reported as a "
+        "typo. The edge only exists downwards and a failure to import is no suggestion at all"
+    ),
     ("exporting", "kernel.document"): (
         "shape: a call-time import whose own docstring argues it — a projection refresh planned "
         "anywhere but where the transaction is assembled lands outside the all-or-nothing write"

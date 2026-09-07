@@ -360,26 +360,6 @@ shape, rather than one property pretending all three tile the same set.
 
 ## Block D — The gate
 
-### §RK1610 The key that exists, one table over
-
-Measured twice while building RK1559`s fixtures, both times by writing valid TOML in the
-wrong order. `priority = ["RK1"]` after a `[files]` header is `files.priority`, and
-`roadmap = 10` after `[limits]` is `limits.roadmap`. Both are refused as unknown, and
-both keys exist — one table away.
-
-The sentence RK1064 wrote is right about the case it was written for and wrong about
-this one: "a typo if nothing declares it, an upgrade if a newer roadkeep does" points a
-reader at their spelling and at their version, and the edit is neither. It is a header,
-three lines up, that they cannot see from the message.
-
-What makes this cheap is that the answer is already assembled. `describing.py` holds the
-whole map — `_DESCRIBED` names every table and `_DEFAULTS` every key under it — for the
-surface `config` prints, and the reader that composes this refusal has no route to it
-only because the two were written a year apart.
-
-So the clause is conditional: where the key names one this build knows under another
-table, say which, and keep RK1064`s sentence for the key that truly is unknown.
-
 ### §RK1612 The flush nobody wrote down
 
 Off a terminal Python buffers stdout fully and leaves stderr unbuffered, so a verb

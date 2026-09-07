@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 231 | 2 |
 | C — Query (consult without reading the file) | 10 | 179 | 4 |
-| D — The gate | 19 | 289 | 5 |
+| D — The gate | 18 | 290 | 5 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 160 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 37 | 1095 | 17 |
+| **Total** | 36 | 1096 | 17 |
 
 **Next ready:**
 
-- 💭 **RK1610** (deps: —) **a config key typed under the wrong table is refused as unknown, where the tool knows exactly which table it belongs to** — RK1064 spells the refusal for a key nothing declares, and a misplaced one is neither a typo nor an upgrade, so both clauses point away from the edit. → §RK1610
+- 💭 **RK1611** (deps: —) **uninstall keeps a server declaration it did not write and takes away the approval that made it run** — RK1560 stopped the withdrawal at the declaration, and the approval is a second key in a file the same command deletes. → §RK1611
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

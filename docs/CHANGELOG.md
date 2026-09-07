@@ -774,6 +774,7 @@
 - ✅ **RK1604** **the one reader saying whether a role is available answers a third question and has no docstring** — has says which of three questions it takes, and on_disk is the one forty-one call sites were spelling out with a path lookup and an is_file beside it.
 - ✅ **RK1605** **the composer census counts sites that call the invocation, so a door spelled without it is outside the guarantee** — The census says it covers only the sites composing through the prefix, and beyond() is the 398 spans outside it, asserted non-empty so the sentence cannot go false in silence.
 - ✅ **RK1607** **four two-answer rules are raised inside handlers where the declaration that spells them is one call away** — The four pairs are declared with answers(), so the dispatcher refuses them before a handler runs and the served schema carries the rule instead of only the exit code.
+- ✅ **RK1610** **a config key typed under the wrong table is refused as unknown, where the tool knows exactly which table it belongs to** — A key this build declares under another table is reported as misplaced and names which, read from the map config prints, and RK1064's sentence stays for the key nothing declares.
 
 ## Block E — Adoption
 
