@@ -4129,6 +4129,29 @@ def retiring(reason: str, superseded_by: str | None) -> str:
 _RETIRED_BY = "superseded by "
 
 
+def replacement(why: str) -> str:
+    """The id a **parenthesised** supersession names, or `""` where there is none (RK1602).
+
+    :func:`superseded`'s twin, one clause over. That one reads the head `retiring` writes in
+    front of a reason; this reads the clause `_supersede` and `_revise` put *inside* a
+    decision's own terminator — `(superseded by <id>)` — and both are ids this module
+    composed, so both are ids this module hands back.
+
+    Written on :func:`_clause_on`, which is already :func:`_parenthesised`'s inverse, so the
+    terminator is stepped over once and in one place. What is added here is the last step the
+    caller wanted: the clause without its derived head, which is the id.
+
+    `reverting` had it as a regex — `\\(superseded by ([^)]+)\\)` — under a comment saying it
+    was built from :data:`_SUPERSEDED` rather than spelled again. It was spelled again, and the
+    comment was the argument for the pairing written at the site that did not do it: a reader
+    checking whether the coupling existed found a sentence saying it did. RK1507 paired the
+    carried line and RK1542 the retirement head; this is the third and last of that shape.
+    """
+    head = _SUPERSEDED.format(replacement="")
+    clause = _clause_on(why)
+    return clause[len(head) :].strip() if clause else ""
+
+
 def superseded(why: str) -> str:
     """The id a retirement's sentence names, or `""` where it names none (RK1542).
 

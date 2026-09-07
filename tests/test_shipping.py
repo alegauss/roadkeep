@@ -14,6 +14,7 @@ shipped task is one line long instead of four.
 
 from __future__ import annotations
 
+import ast
 import io
 import json
 import re
@@ -3960,13 +3961,77 @@ def test_a_retirement_names_back_the_id_it_was_composed_with():
     assert superseded(retiring("It moved: the caller changed.", "RK9")) == "RK9"
 
 
-#: Taking the derived head off a retirement's sentence by hand, in any of the four spellings
-#: Python offers. The head itself is spelled in fixtures and asserted on all over this suite —
-#: which is right, those being about the sentence — so what is refused is the *recovery*:
-#: `superseded` is where that is done, and a second site is the coupling RK1542 removed.
-_BY_HAND = re.compile(
-    r"(?:split|rsplit|partition|rpartition|removeprefix)\(\s*[\"']superseded by "
+def test_a_parenthesised_supersession_names_back_the_id_it_was_composed_with():
+    """RK1602, and the third of that shape. `_supersede` and `_revise` put `(superseded by
+    <id>)` inside a decision's own terminator, and `reverting` took the id back out with a
+    regex of its own — under a comment saying it was built from `_SUPERSEDED` rather than
+    spelled again.
+
+    The round trip and not the string, for RK1542's reason: a rewording that moves both is
+    fine and one that moves either is a red here. Built on `_clause_on`, which is already
+    `_parenthesised`'s inverse, so the terminator is stepped over in one place and the two
+    cannot drift about where a clause ends."""
+    from roadkeep.shipping import _SUPERSEDED, _parenthesised, replacement
+
+    composed = _parenthesised(
+        "The store is the repository.", _SUPERSEDED.format(replacement="RK41")
+    )
+    assert replacement(composed) == "RK41"
+    # A sentence carrying no derived clause names nobody, and `""` is that answer.
+    assert replacement("The store is the repository.") == ""
+    # And a parenthetical the author wrote is theirs: only the derived head is read.
+    assert replacement("The store is the repository (for now).") == ""
+
+
+def test_the_two_supersession_readers_answer_about_their_own_clause():
+    """The pair kept apart, which is what makes two functions right rather than one. `retiring`
+    writes a **head** in front of a reason and `_supersede` a clause **inside** a terminator;
+    the ids are both this module's, and the sentences are not the same sentence.
+
+    Asserted crosswise, because the failure this prevents is one reader quietly answering
+    about the other's shape — which is exactly what a single regex over both would do."""
+    from roadkeep.shipping import _SUPERSEDED, _parenthesised, replacement, retiring, superseded
+
+    head = retiring("Because of a reason.", "RK41")
+    clause = _parenthesised("Because of a reason.", _SUPERSEDED.format(replacement="RK9"))
+    assert superseded(head) == "RK41" and replacement(head) == ""
+    assert replacement(clause) == "RK9" and superseded(clause) == ""
+
+
+#: The verbs that take a derived supersession apart: the four string methods RK1542 found, and
+#: the `re` constructors RK1602 did. The phrase itself is spelled in fixtures and asserted on
+#: all over this suite, which is right — those are about the sentence — so what is refused is
+#: the *recovery*. `superseded` and `replacement` are where that is done.
+#:
+#: Every one of them **extracts**. `startswith` is deliberately not here: it answers whether a
+#: sentence is a retirement's and recovers nothing, which is what a fixture asserting on the
+#: composed prose does — and adding it made this rule refuse one.
+_TAKES_APART = frozenset(
+    ("split", "rsplit", "partition", "rpartition", "removeprefix")
+    + ("compile", "search", "match", "findall", "fullmatch")
 )
+
+
+def _by_hand(text: str) -> list[int]:
+    """The lines where a **call** recovers a supersession from the phrase (RK1602).
+
+    Read as calls and not as lines, which is the widening RK1602 needed twice over. The line
+    scan missed `re.compile(r"\\(superseded by ([^)]+)\\)")` because it looked for the four
+    string methods, and widening the pattern to `re` then matched this file's own prose about
+    the regex it had just removed — a docstring naming a recovery is not one, which is the
+    distinction a scan over characters cannot make and the one over calls does not have to.
+    """
+    found: list[int] = []
+    for node in ast.walk(ast.parse(text)):
+        if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+            continue
+        if node.func.attr not in _TAKES_APART:
+            continue
+        for arg in node.args:
+            if isinstance(arg, ast.Constant) and isinstance(arg.value, str):
+                if "superseded by" in arg.value:
+                    found.append(node.lineno)
+    return found
 
 
 def test_no_second_reader_takes_the_head_off_by_hand():
@@ -3977,6 +4042,10 @@ def test_no_second_reader_takes_the_head_off_by_hand():
 
     Total against the source rather than a list kept by hand: a fifth site written tomorrow is
     a red here, which is the only thing that stops the pair drifting back into two.
+
+    **Widened to the `re` spellings by RK1602**, which is how the second one hid: `reverting`
+    did not split the string, it compiled `(superseded by ...)`, so a rule looking for the four
+    string methods read that module as clean for the whole of RK1542's life.
 
     Both surfaces asked rather than globbed — `surface.modules` for the package and
     `surface.suite` for the tests — which is RK496's rule: a survey deriving its own view of
@@ -3990,12 +4059,22 @@ def test_no_second_reader_takes_the_head_off_by_hand():
         if path.name != "test_shipping.py"
     ]
     found = [
-        f"{where}:{number}"
-        for where, text in reading
-        for number, line in enumerate(text.splitlines(), start=1)
-        if _BY_HAND.search(line)
+        f"{where}:{number}" for where, text in reading for number in _by_hand(text)
     ]
     assert not found, found
+
+
+def test_the_guard_reads_a_call_and_not_a_sentence_about_one():
+    """RK1602's own correction, held rather than trusted. Widening the rule to `re` made it
+    match `reverting`'s docstring, which quotes the regex it had just stopped using — so the
+    guard would have refused the sentence recording why the coupling went.
+
+    Both directions, because a rule that stopped matching prose by no longer matching anything
+    is the failure a widening most easily becomes."""
+    assert _by_hand('found = why.split("superseded by ", 1)') == [1]
+    assert _by_hand('_MARK = re.compile(r"\\(superseded by ([^)]+)\\)")') == [1]
+    assert _by_hand('"""It was `re.compile(r\\"superseded by\\")` once."""') == []
+    assert _by_hand('# taking "superseded by " apart here would be refused\nx = 1') == []
 
 
 def test_a_why_that_is_not_a_retirement_names_nobody():

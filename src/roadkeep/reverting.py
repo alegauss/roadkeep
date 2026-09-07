@@ -31,17 +31,12 @@ for them. A tool that judged which would be judging the prose (L4).
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 
 from .backlog import Backlog
 from .config import Config
 from roadkeep.kernel.document import Entry
-
-#: How :data:`~roadkeep.shipping._SUPERSEDED` renders, read back. Built from that constant
-#: rather than spelled again: the writer and the reader of one clause disagreeing is the
-#: defect this package is about, and a second literal here is how it would start.
-_MARK = re.compile(r"\(superseded by ([^)]+)\)")
+from roadkeep.shipping import replacement
 
 
 @dataclass(frozen=True, slots=True)
@@ -123,6 +118,12 @@ def reversals(config: Config) -> tuple[Reversal, ...]:
 
     In ledger order, which is block order: a reader scanning for "was this area already
     settled" is scanning by subject, and the file is already arranged that way.
+
+    The clause is read by `shipping.replacement`, beside the writer that composes it (RK1602).
+    This module had it as a second literal — `re.compile(r"\\(superseded by ([^)]+)\\)")` —
+    under a comment saying it was built from that constant rather than spelled again. It was
+    spelled again, which is worse than silence: a reader checking whether the two were paired
+    found the argument for pairing them at the one site that had not done it.
     """
     backlog = Backlog.load(config)
     ledger = backlog.ledger
@@ -131,10 +132,9 @@ def reversals(config: Config) -> tuple[Reversal, ...]:
     entries = ledger.by_id()
     out: list[Reversal] = []
     for task_id, entry in entries.items():
-        found = _MARK.search(entry.task.why)
-        if found is None:
+        by = replacement(entry.task.why)
+        if not by:
             continue
-        by = found.group(1).strip()
         out.append(Reversal(task_id, by, entry, entries.get(by)))
     return tuple(out)
 

@@ -767,6 +767,7 @@
 - ✅ **RK1591** **a remedy whose first step is an edit outside this tool has no kind, so repair dispatches a door that refuses** — A row may now name what has to be edited first, in a file this tool does not own: the precondition prints above its door and repair leaves it alone instead of dispatching a refusal.
 - ✅ **RK1600** **a refusal payload publishes rules and never the retry the same refusal composed** — A refusal that derived an address now publishes the retry as an argv list with that address beside it, so the one part a caller executes is read rather than parsed out of the sentence.
 - ✅ **RK1601** **fifty-eight served arguments across thirty-three tools are spelled in no call the guidance shows** — Every served argument is now shown in a call the shipped pages spell, and a test holds it: 2,437 code units on the turns that open a page, against 9,939 of schema every session pays at connect.
+- ✅ **RK1602** **the decisions pointer says it is built from the constant that writes it and spells the literal again** — The parenthesised supersession is read by shipping.replacement beside the writer that composes it, and the guard that missed a regex now reads calls rather than lines.
 
 ## Block E — Adoption
 

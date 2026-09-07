@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 231 | 2 |
 | C — Query (consult without reading the file) | 10 | 177 | 4 |
-| D — The gate | 19 | 284 | 5 |
+| D — The gate | 18 | 285 | 5 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 159 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 37 | 1087 | 17 |
+| **Total** | 36 | 1088 | 17 |
 
 **Next ready:**
 
-- 📋 **RK1602** (deps: —) **the decisions pointer says it is built from the constant that writes it and spells the literal again** — One clause, two spellings, and a comment claiming otherwise — the third instance of the shape RK1507 and RK1542 each removed once. → §RK1602
+- 📋 **RK1603** (deps: —) **a table's note is repeated on every key under it, and that repetition is 29 percent of the config payload** — One fact about a table is sent once per key it holds, so a caller asking the shape pays ten thousand code units for six copies of a sentence. → §RK1603
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
