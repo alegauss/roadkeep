@@ -411,14 +411,37 @@ def test_the_mangled_signature_still_fires_nowhere_in_a_field():
 def test_the_prose_it_does_not_read_is_where_the_signature_does_fire():
     """The other direction, and the one nobody would look for: a rule that never fires anywhere
     reads exactly like a rule that is right. The boundary bought something only while the prose
-    count is non-zero — this repository's own §RK1497 quotes the examples, and Shio writes `×–`,
-    a multiplication sign and an en dash that round-trips to a Hebrew letter."""
+    count is non-zero — Shio writes `×–`, a multiplication sign and an en dash that round-trips
+    to a Hebrew letter.
+
+    **Advisory since RK1569**, which is this file's own register (RK105) rather than a
+    weakening. RK1530 asserted the count hard, and it is a count over sentences nobody here
+    writes: eighteen at the measurement and three by the time RK1569 was filed, because the
+    corpora advanced and §RK1497 — which quoted both examples — was deleted by its own ship.
+    Two of the three that remain are one Shio sentence somebody may reword tomorrow, and the
+    red it would produce says *somebody edited a backlog we do not own*, which is nothing
+    about the rule.
+
+    A fixture is the answer that must not be taken. A string invented here exhibiting the
+    signature would pass forever and measure nothing, which is the scratchpad probe RK1530
+    replaced, one step further from the corpus. So the count is per source and the zero is
+    said out loud: worth a reader's attention, and not a broken build."""
     from roadkeep.kernel.schema import mangled_runs
 
     _, prose = _here()
+    counted = {"this repository": sum(len(mangled_runs(one)) for one in prose)}
     for corpus in corpora.BOTH:
-        corpora.require(corpus)
-        prose += _prose(corpus)
+        if not corpora.present(corpus):
+            continue
+        counted[corpus.name] = sum(len(mangled_runs(one)) for one in _prose(corpus))
+    # The one half that **is** about this build: whether the reader reaches a prose file at
+    # all. A survey covering nothing passes exactly like one covering everything, and that
+    # failure is ours to have.
     assert prose, "no prose reached: this comparison is about nothing"
-    fired = sum(len(mangled_runs(one)) for one in prose)
-    assert fired, "the signature fires nowhere in prose either, so the boundary bought nothing"
+    if not any(counted.values()):
+        _advise(
+            "the mangled-run signature now fires in no prose any of these read — "
+            f"{', '.join(f'{name} {n}' for name, n in counted.items())} — so nothing "
+            "exhibits what the field/body boundary was drawn from (RK1497). Re-measure "
+            "before trusting the split, and never fixture a string to make this fire"
+        )

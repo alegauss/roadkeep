@@ -39,7 +39,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1569** (deps: —) **the prose half of the re-taken split reds on somebody else's edit, which says nothing about the rule** — RK1530 asserts a non-zero count over corpora this project does not own, and two of the three hits are one sentence in Shio. → §RK1569
 - 💭 **RK1570** (deps: —) **a block title is written into every governed file and nothing validates it, not even the codec rule** — RK1531 reached the fields whose families already validate them, and blocking has no validator for the rule to be missing from. → §RK1570
 - 💭 **RK1571** (deps: —) **the composer work-list names a state per row and cannot show that fifteen of them want five fixtures between them** — RK1532 made each row sizeable on its own, and a picker still reads thirty-one items where the states cluster into families. → §RK1571
 - 💭 **RK1574** (deps: —) **two composer families turned up three doors that cannot be taken, and the rest are unplanned against that rate** — RK1572 and this family each found a defect per two rows, which is the number the ordering of the rest should be argued from. → §RK1574

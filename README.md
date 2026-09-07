@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
 | C — Query (consult without reading the file) | 8 | 176 | 4 |
-| D — The gate | 24 | 272 | 2 |
+| D — The gate | 23 | 273 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 158 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 36 | 1073 | 14 |
+| **Total** | 35 | 1074 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1569** (deps: —) **the prose half of the re-taken split reds on somebody else's edit, which says nothing about the rule** — RK1530 asserts a non-zero count over corpora this project does not own, and two of the three hits are one sentence in Shio. → §RK1569
+- 💭 **RK1570** (deps: —) **a block title is written into every governed file and nothing validates it, not even the codec rule** — RK1531 reached the fields whose families already validate them, and blocking has no validator for the rule to be missing from. → §RK1570
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
