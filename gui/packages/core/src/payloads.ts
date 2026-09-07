@@ -663,6 +663,43 @@ export const readCriteriaPayload: Reader<CriteriaPayload> = record<CriteriaPaylo
   doors: orMissing(listOf(readDoor), []),
 })
 
+/**
+ * What `add` answers when a line lands.
+ *
+ * `near` is the same ranking `delivered --near` publishes, offered unasked: the entries
+ * closest to the symptom just filed, so a duplicate is seen at the moment it is made
+ * rather than found later. **An order and never a verdict**, exactly as it is there.
+ */
+export interface AddedPayload {
+  readonly id: string
+  readonly ref: string
+  readonly file: string
+  readonly line: number
+  /** The line as the file now spells it, which is what a screen should show back. */
+  readonly rendered: string
+  readonly length: number
+  /** The section written in the same transaction, or null where none was asked for. */
+  readonly section: RationaleSection | null
+  readonly near: readonly DeliveredEntry[]
+  /** How many of the nearest were already delivered rather than open. */
+  readonly nearRecorded: number
+}
+
+export const readAddedPayload: Reader<AddedPayload> = record<AddedPayload>(
+  {
+    id: aString,
+    ref: orMissing(aString, ''),
+    file: orMissing(aString, ''),
+    line: orMissing(aNumber, 0),
+    rendered: orMissing(aString, ''),
+    length: orMissing(aNumber, 0),
+    section: orMissing(orNull(readSection), null),
+    near: orMissing(listOf(readDeliveredEntry), []),
+    nearRecorded: orMissing(aNumber, 0),
+  },
+  { nearRecorded: 'near_recorded' },
+)
+
 export interface LintFinding {
   readonly code: string
   readonly file: string

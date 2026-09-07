@@ -9,6 +9,7 @@ import {
   type Reader,
 } from './reading'
 import { EVERY_INPUT, VERBS, type VerbName } from './verbs'
+import { EVERY_WRITE_INPUT, WRITES, type WriteName } from './writes'
 
 /**
  * What this build of roadkeep can actually do, asked once when a project is opened.
@@ -89,9 +90,31 @@ export const readCommandsPayload: Reader<CommandsPayload> = record<CommandsPaylo
   commands: listOf(readPublishedCommand),
 })
 
+/**
+ * Every verb this app can call, read or write.
+ *
+ * The two tables are separate because a read is offered freely and a write is not, and
+ * this is the one place that wants both: a build too old to `add` has to say so before
+ * somebody types a symptom, which means the write verbs are checked exactly as the reads
+ * are.
+ */
+export type CalledName = VerbName | WriteName
+
+const CALLED: Record<string, (input: never) => readonly string[]> = { ...VERBS, ...WRITES }
+const CALLED_INPUT: Record<string, unknown> = { ...EVERY_INPUT, ...EVERY_WRITE_INPUT }
+
+/**
+ * Every verb name this app can put on a command line, reads and writes together.
+ *
+ * Published because the check and the things checked have to come from one list. A test
+ * or a screen enumerating the reads alone would go on reporting a build complete while
+ * the write it is about to offer is one this engine has never heard of.
+ */
+export const CALLED_NAMES = Object.keys(CALLED) as CalledName[]
+
 /** What this build offers for one verb this app calls. */
 export interface Capability {
-  readonly verb: VerbName
+  readonly verb: CalledName
   /** This build can run it. What a screen needs before offering a door. */
   readonly callable: boolean
   /** It is also on the MCP tool surface — recorded, and not what gates a door here. */
@@ -105,7 +128,7 @@ export type CapabilityReport =
   | {
       readonly kind: 'known'
       readonly version: string
-      readonly byVerb: Readonly<Record<VerbName, Capability>>
+      readonly byVerb: Readonly<Record<CalledName, Capability>>
       /** Every verb this app calls is published and takes every flag it would send. */
       readonly complete: boolean
     }
@@ -125,9 +148,9 @@ export type CapabilityReport =
  * builder over an input with every field filled in cannot drift, because it *is* the
  * builder. `--json` is added because the client appends it to every call.
  */
-export function flagsFor(verb: VerbName): string[] {
-  const build = VERBS[verb] as (input: unknown) => readonly string[]
-  const emitted = build(EVERY_INPUT[verb]).filter((part) => part.startsWith('--'))
+export function flagsFor(verb: CalledName): string[] {
+  const build = CALLED[verb] as (input: unknown) => readonly string[]
+  const emitted = build(CALLED_INPUT[verb]).filter((part) => part.startsWith('--'))
   return [...new Set([...emitted, '--json'])]
 }
 
@@ -162,10 +185,10 @@ export function readCapabilities(
   }
 
   const published = new Map(parsed.value.commands.map((command) => [command.command, command]))
-  const byVerb = {} as Record<VerbName, Capability>
+  const byVerb = {} as Record<CalledName, Capability>
   let complete = true
 
-  for (const verb of Object.keys(VERBS) as VerbName[]) {
+  for (const verb of CALLED_NAMES) {
     const command = published.get(verb)
     if (command === undefined || !command.runs) {
       byVerb[verb] = {

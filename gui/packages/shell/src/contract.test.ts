@@ -2,6 +2,9 @@ import path from 'node:path'
 
 import {
   VERBS,
+  WRITES,
+  applyWrite,
+  composeWrite,
   createClient,
   explainFailure,
   fieldsRefused,
@@ -9,6 +12,7 @@ import {
   narrowingOfBrief,
   narrowingOfList,
   narrowingOfStats,
+  readAddedPayload,
   readAnswer,
   readBriefPayload,
   readCapabilities,
@@ -128,6 +132,12 @@ describe('RG4: every read this client makes, against a live engine', () => {
         'stats',
       ].sort(),
     )
+  })
+
+  it('covers every write this client can build a command line for', () => {
+    // The same guard as above, for the other table. A write verb added without a shape
+    // and without a case here is a door offered against an answer nobody has read.
+    expect(Object.keys(WRITES).sort()).toEqual(['add'])
   })
 
   it('reads a listing, with its standing and its lines', async () => {
@@ -272,6 +282,30 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(all.asked).toBeNull()
     expect(one.asked).toBe('FX1')
     expect(Array.isArray(one.reversed)).toBe(true)
+  })
+
+  it('writes a line, and reads back the shape the write answered with', async () => {
+    // The one case in this file that changes a file, and it changes the fixture's.
+    const outcome = await applyWrite(
+      transport,
+      composeWrite(fixture.root, 'add', {
+        block: 'A',
+        symptom: 'the contract has not written anything yet',
+        why: 'A write answers with a shape too, and nothing here has read it.',
+        section: 'What a write answers with',
+        sectionBody: 'Prose enough to be a rationale and well inside the declared budget.',
+      }),
+      readAddedPayload,
+      { timeoutMs: CEILING },
+    )
+
+    expect(outcome.kind).toBe('applied')
+    if (outcome.kind !== 'applied') throw new Error('unreachable')
+    expect(outcome.value.id).not.toBe('')
+    expect(outcome.value.file).toContain('ROADMAP.md')
+    expect(typeof outcome.value.length).toBe('number')
+    expect(outcome.value.section?.anchor).toBe(outcome.value.id)
+    expect(Array.isArray(outcome.value.near)).toBe(true)
   })
 
   it('reads what to work on next, and which tier answered', async () => {

@@ -430,15 +430,6 @@ On ship: `--recorded-in packages/core/src/pauses.ts`.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-### §RG29 The write path, and where it stops
-
-This app composes an argv and runs it. It never opens a governed file, never renders a
-line, never fills a field. What it adds over a terminal is the schema arriving before
-the prose: the budget for each field, the markers this project declared, the blocks that
-exist, the deps that resolve — all read, none remembered. The verb still decides and its
-refusal is what the person sees. That is the same argument roadkeep's editor surface
-makes, and the reason a write here cannot drift from a write there.
-
 ### §RG30 Moving a marker, and what moves with it
 
 The status verb sets a marker in the roadmap and nowhere else, and the in-progress one

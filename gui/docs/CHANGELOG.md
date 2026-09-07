@@ -40,6 +40,8 @@
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
+- ✅ **RG29** **the app reads and never writes, so a correction is typed in the terminal this app exists to replace** — A write is a composed argv this app never runs against a file: applied, refused with its fields, or unreadable (design recorded in `packages/core/src/writing.ts`).
+
 ## Block F — The agent surface (handing one task to Claude Code)
 
 ## Block G — The shell (an executable now, a service later)

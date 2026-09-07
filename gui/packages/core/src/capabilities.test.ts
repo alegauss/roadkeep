@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { flagsFor, readCapabilities, withheld } from './capabilities'
-import { VERBS, type VerbName } from './verbs'
+import { CALLED_NAMES, flagsFor, readCapabilities, withheld } from './capabilities'
 
 /** Shaped like a real `commands --json` entry, trimmed to the keys this app reads. */
 function command(name: string, flags: string[][], writes = false, runs = true) {
@@ -33,7 +32,7 @@ function completeBuild(version = '0.2.360'): string {
   return JSON.stringify({
     version,
     source: { home: '/engines/one' },
-    commands: (Object.keys(VERBS) as VerbName[]).map((verb) =>
+    commands: CALLED_NAMES.map((verb) =>
       command(
         verb,
         flagsFor(verb).map((flag) => [flag]),
@@ -52,7 +51,7 @@ describe('RG6: the flags this app would send', () => {
   })
 
   it('includes --json, which the client appends to every call', () => {
-    for (const verb of Object.keys(VERBS) as VerbName[]) {
+    for (const verb of CALLED_NAMES) {
       expect(flagsFor(verb)).toContain('--json')
     }
   })
@@ -106,7 +105,7 @@ describe('RG6: what a build can do', () => {
     const build = JSON.stringify({
       version: '0.2.360',
       source: null,
-      commands: (Object.keys(VERBS) as VerbName[]).map((verb) =>
+      commands: CALLED_NAMES.map((verb) =>
         command(
           verb,
           flagsFor(verb).map((flag) => [flag]),
@@ -127,7 +126,7 @@ describe('RG6: what a build can do', () => {
     const build = JSON.stringify({
       version: '0.1.0',
       source: null,
-      commands: (Object.keys(VERBS) as VerbName[]).map((verb) =>
+      commands: CALLED_NAMES.map((verb) =>
         command(
           verb,
           flagsFor(verb)
@@ -151,7 +150,7 @@ describe('RG6: what a build can do', () => {
     const build = JSON.stringify({
       version: '0.2.360',
       source: null,
-      commands: (Object.keys(VERBS) as VerbName[]).map((verb) =>
+      commands: CALLED_NAMES.map((verb) =>
         command(verb, [flagsFor(verb)]),
       ),
     })

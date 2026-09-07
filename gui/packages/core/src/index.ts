@@ -9,6 +9,7 @@ export {
   withheld,
 } from './capabilities'
 export type {
+  CalledName,
   Capability,
   CapabilityReport,
   CommandArgument,
@@ -116,6 +117,7 @@ export type { EngineProvenance, EnginesPayload } from './engines'
 export {
   governedFiles,
   narrowingOfBrief,
+  readAddedPayload,
   narrowingOfList,
   narrowingOfStats,
   readBriefBudget,
@@ -145,6 +147,7 @@ export {
 } from './payloads'
 export type {
   AbsentRequirement,
+  AddedPayload,
   BlockCount,
   BriefBudget,
   BriefPayload,
@@ -202,3 +205,7 @@ export type {
 } from './transport'
 export { EVERY_INPUT, VERBS } from './verbs'
 export type { VerbInputs, VerbName } from './verbs'
+export { EVERY_WRITE_INPUT, WRITES } from './writes'
+export type { WriteInputs, WriteName } from './writes'
+export { applied, applyWrite, composeWrite } from './writing'
+export type { Composed, WriteOutcome } from './writing'
