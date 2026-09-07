@@ -750,6 +750,25 @@ So the shape is that sweep over the next three tables, and a row per table sayin
 whether its prose is a caller's or an author's — which decides whether a figure in it is
 a defect or a date.
 
+### §RK1640 The bare verb with nothing to compare it against
+
+RK1590 made a message's own two spellings the tell, and that is the shape RK1589 had. It
+is not the shape most of the package holds: 331 messages carry 421 verb-leading spans
+with no prefixed door beside them, and the mixed shape the rule fires on now numbers
+zero. So the sweep is red for a regression of RK1589 exactly and silent for a door that
+forgets in a message where nothing else runs.
+
+What is undecided is whether those 421 hold any doors at all. Sampling says mostly not —
+`add --section` is a flag family, `pick` alone is prose, `init` beside `adopt <file>` is
+two verbs being named. But `adopt <file>` carries a placeholder, which is what a caller
+pastes and a flag family never has, and that is a tell nothing has been measured
+against.
+
+The design is that measurement, and its result may be that the population is prose and
+the pair rule is the whole answer. That would be worth writing down: RK1590's section
+argues no scan can decide which spans were meant to be doors, and a count showing the
+undecidable ones are all prose turns that from a limit into a bound.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
