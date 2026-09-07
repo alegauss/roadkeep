@@ -769,6 +769,30 @@ were read, and keep the red for the fields. A corpus that is absent contributes 
 and skips nothing — the same rule `present` already gives every other reader here,
 applied to the one sweep that reached for `require` instead.
 
+### §RK1627 The register the composed fields have not got
+
+RK1570 found the block title by being told where to look. What it could not have found
+is the next one: nothing enumerates the fields a caller composes, so "which of them has
+a validator" is a question answered by remembering.
+
+The population is small and already spelled. A symptom and a why are
+`Schema.validate`'s; a section title and body are `sections`'; a non-goal's lead and why
+and a criterion's are their families'; a block title was nobody's until this task. Every
+one is a string a caller passes as an argument and this tool writes into a governed file
+— a property a sweep can read, the `add_argument` declaring each flag being where every
+one of them enters.
+
+The register for it exists twice over. `test_backstop.py` holds every code a write
+refuses against what the gate says about that state; `tests/composing.py` enumerates
+every site that composes a command. Both are totals over a population read from the
+source, and both caught something the first time they ran. Neither asks the question one
+field over: which composed fields reach a file, and which pass a validator on the way.
+
+A sweep would have named the block title on the day `block add` was written. What it
+costs is deciding what counts as a composed field — a flag whose value is written
+verbatim, most likely — and that decision is the whole task, the sweep after it being an
+`ast` walk of the same shape as the two already here.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
