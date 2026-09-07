@@ -1,0 +1,34 @@
+{
+  "name": "roadkeep-gui",
+  "private": true,
+  "version": "0.0.0",
+  "description": "A desktop reader for roadkeep-governed backlogs. Three packages: core reads what the command prints, ui renders it, shell is the Electron process that owns every path.",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "tsc -b && node packages/shell/dist/dev.js",
+    "build": "tsc -b && npm run build --workspace @roadkeep-gui/ui",
+    "start": "npm run build && node packages/shell/dist/start.js",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "tsc -b --clean"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^26.5.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "electron": "^44.2.0",
+    "jsdom": "^30.0.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vitest": "^5.0.0"
+  }
+}

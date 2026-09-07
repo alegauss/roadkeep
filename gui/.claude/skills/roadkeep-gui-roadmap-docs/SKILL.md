@@ -49,12 +49,29 @@ leaving it in the tree.
 
 Validated means the project's own build and test were run, not that the edit looked right.
 
-**This repo has no build or test entry point yet.** `RG37` is the task that creates the
-three packages and, with them, the typecheck and the test command — and it is the task
-that rewrites this section with those commands and when to run each. Until it lands, the
-gate is `roadkeep lint` (non-zero exit is the whole point of it) plus whatever the task
-itself can be checked against. Do not invent a `compile.cmd` or `test.cmd` here because
-the sibling `pportal` repo has them.
+Four commands, from the repo root, and each answers a different question:
+
+| Command | What it holds | When |
+|---|---|---|
+| `npm run typecheck` | `tsc -b` over all three packages at once, through the project references — a renderer that broke a payload shape fails here and not in a window. | Every task that touches a `.ts` or `.tsx` file. |
+| `npm test` | `vitest run`, headless: `core` in Node, `ui` in jsdom. No display, so it runs the same over SSH and in CI. | Every task that changes behaviour anything asserts. |
+| `roadkeep lint` | The governed files. Non-zero exit is the whole point of it. | Every task, without exception — it is the only gate a docs-only change has. |
+| `npm run build` | `tsc -b` plus the renderer bundle Vite writes to `packages/ui/dist`. | Before shipping anything the packaged app loads, and any task that touches `vite.config.ts` or an asset path. |
+
+`npm run dev` opens the window against Vite with hot reload; `npm start` builds and opens
+it against the bundle on disk, which is what a packaged run does. Neither is a gate — they
+are how you see a change, and a screenshot beats a claim that a screen renders.
+
+Two traps worth knowing before you spend an hour on either. **Everything is TypeScript
+and everything is ESM**: there is no `.mjs` and no `.cjs` in this repo, the launchers are
+`.ts` under `packages/shell/src` so `tsc -b` typechecks them too, and a relative import
+carries the `.js` extension the emit will have. And **`ELECTRON_RUN_AS_NODE=1` is exported
+by VS Code**, so an Electron started from an editor terminal or an agent session runs as
+plain Node and dies on `app` being undefined; `spawnElectron` strips it, which is why
+`npm run dev` and `npm start` go through a launcher instead of calling the binary.
+
+Do not invent a `compile.cmd` or `test.cmd` here because the sibling `pportal` repo has
+them — the four above are this repo's.
 
 When the suite arrives: **name EVERY task id an assertion holds, not just the one you are
 working.** A test written under one id often ends up holding the task that finished the

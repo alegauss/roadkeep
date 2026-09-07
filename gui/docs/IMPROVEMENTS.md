@@ -464,30 +464,6 @@ their own authentication and their own settings.
 
 ## Block G — The shell (an executable now, a service later)
 
-### §RG37 Three packages, and why the split is the design
-
-Three packages, and the split is the whole design. **core** is TypeScript with no
-Electron and no React: the transport interface, the verb table, the payload shapes and
-their parsers. **ui** is React and TypeScript over Tailwind and shadcn, and it receives
-payloads and renders them. **shell** is the Electron main process: it spawns, it watches
-files, it holds settings, and it is the only place a path or a process appears.
-
-Electron rather than a native toolkit because the second life of this project is a web
-service, and in that life **ui** is served to a browser and **core** runs behind an HTTP
-handler with a different transport under the same interface. The cost is honest and
-worth stating: a large runtime, a heavier executable, and a renderer that has to be
-locked down because it is a browser. Tauri would spend less and would leave the same
-seam; it was not chosen because the toolchain here is already the one the site is built
-with.
-
-Vite and React 19, matching roadkeep's own site, so the build conventions already exist
-in a repository beside this one.
-
-What the scaffold has to produce before anything else can be built is a window that
-opens, a renderer that hot-reloads, a typecheck that runs over all three packages at
-once, and a test command that runs without a display. Everything after this is filed
-against it.
-
 ### §RG44 A renderer with a browser's powers, on purpose
 
 Context isolation on, node integration off, remote module off, and one preload exposing
@@ -569,6 +545,46 @@ which rules are not negotiable. Everything longer belongs in a skill that loads 
 is needed — which is the argument roadkeep makes about its own, and the reason its
 budget table exists. That budget is declared here too, in lines and bytes, so the file
 is held by the gate rather than by a sentence at the bottom of itself.
+
+### §RG57 Watching the half that does not hot-reload
+
+`npm run dev` runs `tsc -b` once and hands the Vite URL to Electron. The renderer
+hot-reloads from there, so a change to `ui` is on screen before the file is saved twice;
+a change to `shell` is on screen only after the window is closed, the run killed and
+started again. The asymmetry is the whole defect, and it gets worse exactly as the main
+process gets interesting: settings, the file watcher and the spawn all live there, and
+each is a thing somebody iterates on.
+
+What this needs is a watch over `packages/shell/src` and `packages/core/src` that
+recompiles and restarts the Electron child without touching the Vite server, because
+restarting the server throws away the renderer state that made the change worth looking
+at. The restart has to be debounced — `tsc -b` writes several files per build and a
+watcher that fires per file restarts the app four times — and it has to wait for the
+compile to succeed, since restarting into a broken build replaces a useful error with a
+crash.
+
+Worth stating what this is not: it is not `electron-vite`. Adopting a framework to get a
+file watcher would put the three-package split under a tool that assumes one package,
+and the split is the design.
+
+### §RG58 The gate a typecheck is not
+
+`npm run typecheck` and `npm test` between them say the code compiles and behaves.
+Neither says anything about an import nobody uses, a React hook whose dependency list is
+wrong, a floating promise, or a second spelling of a name that already exists two
+packages over. Those are the defects that accumulate quietly in a repository worked by
+agents, because each one is individually below the threshold anybody would raise it at.
+
+What belongs here is a flat ESLint config at the root with three overlays — `core`
+forbidding any import of `electron` or `react`, `ui` forbidding `node:` and `electron`,
+and `shell` allowed both — so the package split is enforced by the gate rather than by
+the paragraph that describes it. That import boundary is the part worth the setup; the
+stylistic rules are the cheap half that comes with it. Formatting is Prettier's, run as
+a check and not as a commit hook, because a hook that rewrites files under a commit is
+how a diff acquires changes nobody made.
+
+One command, `npm run lint`, added to the table in the roadmap skill and to whatever
+RG55 makes CI run. It fails the build or it is advice.
 
 ## Block H — The look (a design system for governed prose)
 

@@ -10,6 +10,19 @@ Thumbs.db
 __pycache__/
 *.py[cod]
 
+# Node's install tree, and everything the three packages compile or bundle into:
+# `dist` is core's and shell's JavaScript and ui's built renderer, `dist-types` is
+# the declarations ui emits so `tsc -b` can span all three, and the buildinfo files
+# are the incremental state that makes a second typecheck cheap.
+node_modules/
+dist/
+dist-types/
+*.tsbuildinfo
+
+# Electron Builder's output. RG46 is the task that configures it; the directory is
+# named here so a local packaging experiment cannot be committed by accident.
+release/
+
 # roadkeep's own working directory: lint reports and run state, regenerated on
 # demand and never read by another clone. Also where `roadkeep install --vendor`
 # puts a pinned engine, which is this checkout's choice and not the repo's.

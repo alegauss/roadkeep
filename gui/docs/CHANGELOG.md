@@ -14,5 +14,7 @@
 
 ## Block G — The shell (an executable now, a service later)
 
+- ✅ **RG37** **there is no application at all: no window, no build and no way to run any of this** — A window opens over three packages, with one typecheck spanning them and a headless suite over both halves (design recorded in `packages/core/src/packages.ts`).
+
 ## Block H — The look (a design system for governed prose)
 

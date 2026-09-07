@@ -1,0 +1,17 @@
+@import 'tailwindcss';
+
+/*
+ * The design system is Block H's work. What belongs here now is only what a window
+ * needs to not look broken: the app fills the viewport and never scrolls the frame
+ * itself, because the chrome is the window's and the scrolling is a panel's.
+ */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
