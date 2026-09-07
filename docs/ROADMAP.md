@@ -41,6 +41,7 @@
 - 📋 **RK1631** (deps: —) **no one call says whether a path is governed and where its root is, so a client reads it off a null** — config answers source = null, engines answers happily about an ungoverned directory, and lint does a whole file's work to report the root a probe needs. → §RK1631
 - 💭 **RK1650** (deps: —) **one of forty read-only verbs now refuses, and the rule that reading is never refused is prose in three places** — RK1608 refuses a --have word outside a declared vocabulary, and the sentence the guard prints an agent still says reading is never refused. → §RK1650
 - 💭 **RK1651** (deps: —) **three readings of one source claim to be complements of each other and no test holds any of the three claims** — RK1609 changed what two of them read and the claim survived by luck, the measurement that says so having been taken by hand once. → §RK1651
+- 💭 **RK1653** (deps: —) **five classes answer to notes and one is a gate report, so a sweep over the name is off for three whole test modules** — RK1603 and RK1611 each added a class and an exemption, and each turns the rule off for every assertion in that module rather than for the name. → §RK1653
 
 ## Block D — The gate
 

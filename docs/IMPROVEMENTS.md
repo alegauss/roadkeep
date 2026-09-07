@@ -358,6 +358,32 @@ answers a different question — *does this f-string build a command* rather tha
 string a value* — so a partition over two and a claim about the third may be the honest
 shape, rather than one property pretending all three tile the same set.
 
+### §RK1653 The exemption wider than the collision
+
+`test_advisories` sweeps the suite for a test asserting over **every** note the gate
+reports rather than the one it is about — unpacking `(note,) = report.notes`, comparing
+it to `()`, indexing it. The sweep matches an attribute called `notes`, and duck typing
+means several objects answer to it: `NOT_A_REPORT` is the declared exemption list, on
+the stated argument that an exemption nobody can see reads exactly like a rule being
+kept.
+
+It is now three rows and each is a whole **module**. `blocking.Merged` and
+`blocking.Closed` carry a role-to-line-count mapping, `describing.Shape` a
+table-to-sentence one (RK1603), `installing.Removal` what an un-wiring changed but kept
+(RK1611). Five classes, one of which is a gate report — and the price of saying so is
+that no assertion anywhere in `test_blocking`, `test_describing` or `test_installing` is
+swept any more.
+
+That is wider than the collision by a lot. The rule is about a *name reached from a
+Report*, and the exemption is about a file.
+
+Two ways in. The sweep already follows one step of dataflow — `_bound` finds names
+assigned from a bare `.notes` — so it could ask what the receiver is:
+`lint(config).notes` and `report.notes` are the shapes it is really about, and
+`removal(project).notes` is not. Or the exemption stays a declaration and narrows to a
+symbol rather than a module. Which is cheaper depends on how many receivers the suite
+actually spells, and that is one grep.
+
 ## Block D — The gate
 
 ### §RK1612 The flush nobody wrote down
