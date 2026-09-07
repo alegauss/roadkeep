@@ -12,6 +12,7 @@ import {
   readAnswer,
   readBriefPayload,
   readCapabilities,
+  readDepsPayload,
   readEnginesPayload,
   readExplanation,
   readListPayload,
@@ -109,6 +110,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
         'brief',
         'commands',
         'config',
+        'deps',
         'engines',
         'explain',
         'lint',
@@ -192,6 +194,21 @@ describe('RG4: every read this client makes, against a live engine', () => {
     // The elision counts are read whether or not this fixture elides anything: a client
     // that never looked would draw a sample as though it were the set.
     expect(narrowingOfBrief(payload)).toHaveProperty('complete')
+  })
+
+  it('reads one line edges, resolved', async () => {
+    const payload = await readVerb('deps', { id: 'FX3' }, readDepsPayload)
+
+    expect(payload.id).toBe('FX3')
+    expect(payload.readiness).not.toBe('')
+    // Shape over values. The fixture has no chain and no cycle, and a reader that only
+    // worked on the populated case is the one that breaks on an ordinary line.
+    expect(Array.isArray(payload.deps)).toBe(true)
+    expect(Array.isArray(payload.blockers)).toBe(true)
+    expect(Array.isArray(payload.chains)).toBe(true)
+    expect(Array.isArray(payload.cycle)).toBe(true)
+    expect(typeof payload.unblocks?.of).toBe('number')
+    expect(Array.isArray(payload.unblocks?.direct)).toBe(true)
   })
 
   it('reads what to work on next, and which tier answered', async () => {

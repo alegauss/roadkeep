@@ -33,6 +33,7 @@
 - ✅ **RG22** **a list of eight hundred lines has no filter, so a block or a marker is found by scrolling to it** — Every filter is an argument the read already takes, so a narrowed list is the command's own answer and the choices are read from the project (design recorded in `packages/core/src/filters.ts`).
 - ✅ **RG23** **a task has no detail, so the why, the deps and the design are read in the file this app exists to replace** — One brief read carries the line, its resolved deps, the design whole, what a ship unblocks and the lists that bind it, composed by nothing here (design recorded in `packages/core/src/detail.ts`).
 - ✅ **RG24** **the rationale section is not shown, so the half of a task that explains it stays invisible** — A task's rationale opens with it: the prose byte for byte, where it lives, and what it has left of the word budget the gate will use (design recorded in `packages/core/src/design.ts`).
+- ✅ **RG25** **deps and what a ship unblocks are a list of ids, so following a chain means reading ids one at a time** — A line's deps open as the graph the engine resolved: blockers, chains drawn whole, the cascade a ship frees, and a dep outside told apart (design recorded in `packages/core/src/graph.ts`).
 
 ## Block E — The write path (the app composes an argv; the command writes)
 

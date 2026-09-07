@@ -53,6 +53,8 @@ export { designFrom, whereDesignLives, wordsAgainstLimit } from './design'
 export type { Design, DesignState } from './design'
 export { designOf, detailFrom, whyNotStartable } from './detail'
 export type { TaskDetail } from './detail'
+export { expandedFrom, graphFrom, routeOf, standingOf } from './graph'
+export type { Chain, DepStanding, Edge, Graph } from './graph'
 export { groupProjects, isFamily } from './families'
 export {
   createGateLedger,
@@ -113,6 +115,8 @@ export {
   readBriefBudget,
   readBriefPayload,
   readConfigPayload,
+  readDepChain,
+  readDepsPayload,
   readListPayload,
   readLintPayload,
   readHeldClaim,
@@ -133,6 +137,8 @@ export type {
   BriefPayload,
   ConfigKey,
   ConfigPayload,
+  DepChain,
+  DepsPayload,
   HeldClaim,
   ResolvedDep,
   ListPayload,

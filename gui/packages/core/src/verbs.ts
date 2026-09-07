@@ -44,6 +44,11 @@ export interface VerbInputs {
     designed?: boolean
     have?: readonly string[]
   }
+  /**
+   * One task's edges, resolved: the blockers, the chains from it outward, what shipping
+   * it would free, and any cycle it is caught in.
+   */
+  deps: { id: string }
   lint: {
     /** Report only what this tree added since a revision. */
     baseline?: string
@@ -96,6 +101,7 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
     ...(input.designed === true ? ['--designed'] : []),
     ...repeated('--have', input.have),
   ],
+  deps: (input) => [input.id],
   lint: (input) => [...optional('--baseline', input.baseline)],
   engines: () => [],
   explain: (input) => [input.code],
@@ -122,6 +128,7 @@ export const EVERY_INPUT: { [K in VerbName]: VerbInputs[K] } = {
   show: { id: 'RG1', noBody: true },
   stats: { block: 'A', role: 'roadmap', have: ['signing-cert'] },
   brief: { id: 'RG1', block: 'A', designed: true, have: ['signing-cert'] },
+  deps: { id: 'RG1' },
   lint: { baseline: 'HEAD' },
   engines: {},
   explain: { code: 'symptom.too-long' },

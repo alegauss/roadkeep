@@ -257,15 +257,6 @@ sixty-eight calls is the number that makes the case, and nobody will have it lat
 
 ## Block D — The project surface (one backlog, read)
 
-### §RG25 A chain, drawn once
-
-The deps read resolves blockers, chains, the transitive set and any cycle, and names the
-deps nothing can resolve — work outside the backlog, which never becomes ready. That is
-a graph the tool computed, so the screen draws it and derives nothing: no readiness
-recomputed, no edge inferred from an id appearing in prose. What earns its place
-visually is the distinction between a blocker inside the backlog, which shipping clears,
-and one outside it, which shipping never will.
-
 ### §RG26 The two lists that decide what may be proposed
 
 A non-goal says what is not built and a criterion says what would finish a block, and

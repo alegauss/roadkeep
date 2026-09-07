@@ -310,11 +310,20 @@ export const readShowPayload: Reader<ShowPayload> = record<ShowPayload>(
   { sectionAbsence: 'section_absence' },
 )
 
-/** What shipping this line would unblock, and how much of that the answer left out. */
+/**
+ * What shipping this line would unblock, and how much of that the answer left out.
+ *
+ * One shape over two verbs, because here the keys agree: `brief` samples and reports what
+ * it left out, `deps` names the one-hop set as well and elides nothing. Each verb's own
+ * half defaults to empty rather than being demanded, so neither reader fails on the other.
+ */
 export interface Unblocks {
   readonly count: number
   /** Out of how many lines in the backlog. */
   readonly of: number
+  /** Freed by shipping this line itself. `deps` only — a brief does not separate them. */
+  readonly direct: readonly string[]
+  /** Everything freed downstream, the direct ones included. */
   readonly transitive: readonly string[]
   /** Ids the answer did not list. Above zero, `transitive` is a sample and not the set. */
   readonly transitiveElided: number
@@ -324,6 +333,7 @@ export const readUnblocks: Reader<Unblocks> = record<Unblocks>(
   {
     count: aNumber,
     of: aNumber,
+    direct: orMissing(listOf(aString), []),
     transitive: orMissing(listOf(aString), []),
     transitiveElided: orMissing(aNumber, 0),
   },
@@ -346,6 +356,58 @@ export const readResolvedDep: Reader<ResolvedDep> = record<ResolvedDep>({
   kind: orMissing(aString, ''),
   status: orMissing(aString, ''),
   detail: orMissing(aString, ''),
+})
+
+/**
+ * One route from a line to something it is waiting on, spelled from that line outward.
+ *
+ * `path` is the ids in order with this task at its head; `via` is the dep that made each
+ * hop, which is not the same list — a dep naming a block or a range expands to the
+ * members behind it, and `via` is what the file actually says.
+ */
+export interface DepChain {
+  readonly path: readonly string[]
+  readonly via: readonly string[]
+  /** What the far end turned out to be, in the engine's word. */
+  readonly end: string
+  readonly detail: string
+}
+
+export const readDepChain: Reader<DepChain> = record<DepChain>({
+  path: orMissing(listOf(aString), []),
+  via: orMissing(listOf(aString), []),
+  end: orMissing(aString, ''),
+  detail: orMissing(aString, ''),
+})
+
+/**
+ * One task's edges, resolved by the engine that owns the graph.
+ *
+ * The whole payload is a graph already computed — the chains are spelled out, the
+ * blockers are named, and a cycle arrives as the ids caught in it. Nothing that reads
+ * this walks it again.
+ */
+export interface DepsPayload {
+  readonly id: string
+  /** Ready, blocked, blocked-outside — the engine's word, and never one derived here. */
+  readonly readiness: string
+  readonly deps: readonly ResolvedDep[]
+  /** The deps inside this backlog that are holding it, which shipping clears. */
+  readonly blockers: readonly string[]
+  readonly chains: readonly DepChain[]
+  readonly unblocks: Unblocks | null
+  /** Ids in a cycle with this one. Non-empty means nothing in the group can start. */
+  readonly cycle: readonly string[]
+}
+
+export const readDepsPayload: Reader<DepsPayload> = record<DepsPayload>({
+  id: aString,
+  readiness: orMissing(aString, ''),
+  deps: orMissing(listOf(readResolvedDep), []),
+  blockers: orMissing(listOf(aString), []),
+  chains: orMissing(listOf(readDepChain), []),
+  unblocks: orMissing(orNull(readUnblocks), null),
+  cycle: orMissing(listOf(aString), []),
 })
 
 /** A worker holding this line, so two sessions do not start on one id. */
