@@ -251,6 +251,31 @@ believing it.
 
 On ship: `--recorded-in packages/shell/src/contract.test.ts`.
 
+### §RG83 The second shape a verb answers with
+
+RG66 is about a verb with no shape. This is about a verb with two, which its fix does
+not reach: one reader per verb still has to handle both answers, and nothing makes
+anybody notice there are two.
+
+Five are already known, every one found by hand at the moment it broke something. `ship`
+answers `roadmap` as `{removed}` when it closes a line and as `{line, status, open}`
+under `--part`, and a reader taking only the first draws a partial ship as a closure —
+this cost a red live test and a shape rewrite. `show --no-body` sends `body` null where
+the ordinary call sends a string. `delivered --near` adds `rank` and turns `near` from
+null into a sentence. `criterion list --task` answers `empty` and `doors` where the
+block form answers neither. `brief` sends `budget` null for a shipped line and an object
+for an open one.
+
+The pattern is exact: the flag that narrows or changes the write is the flag that
+changes the answer, and it is never the call anybody writes the first test for.
+
+So the contract test declares, per verb, the flag combinations whose answers differ, and
+covers each — the way `EVERY_INPUT` already forces every *flag* to be exercised. A verb
+whose second shape nobody named is then a gap in a list somebody has to fill in rather
+than a reader that works until the day a person clicks the other button.
+
+On ship: `--recorded-in packages/shell/src/contract.test.ts`.
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ### §RG13 The cheap no

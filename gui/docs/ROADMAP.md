@@ -15,6 +15,7 @@
 - 💭 **RG79** (deps: —) **an unreadable answer reports not JSON and drops stderr, where the engine explained itself in full** — An engine refusing the config exits zero with its sentence on stderr, and that sentence is the only thing naming which copy answered and why. → §RG79
 - 💭 **RG81** (deps: —) **the read and write paths each spell the same argv wrapper, and the two have already drifted apart** — Three rules about -C, --json and a two-word verb now live in two composers, and only one of them says why any of it is so. → §RG81
 - 💭 **RG82** (deps: RG75) **the contract test asserts one engine version across three reads, so a rebuilt engine reds a suite nothing touched** — A red contract test is meant to mean roadkeep renamed a key, and a reader who learns it also means the version moved stops believing it. → §RG82
+- 💭 **RG83** (deps: —) **one verb answers in two shapes under a flag, and nothing names the second until it breaks** — The flag that narrows a read is the flag that changes its answer, and it is never the call anybody writes the first test for. → §RG83
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
