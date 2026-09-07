@@ -4,7 +4,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-- 📋 **RG4** (deps: RG3 ✅) **the client's reading of a payload is asserted by nothing, so a rename upstream breaks a user and not a build** — roadkeep holds its own editor client from Python for exactly this reason, and no such test covers a second client living outside that tree. → §RG4
 - 💭 **RG5** (deps: RG1 ✅, RG3 ✅) **a refusal is prose on stderr, so the field it is about has to be read back out of English** — add returns a code and a field under --json, and a client discarding that shows a paragraph in a toast instead of marking the box that was refused. → §RG5
 - 💭 **RG6** (deps: RG2 ✅, RG3 ✅) **nothing checks which build answered, so a project on an older roadkeep fails at the first flag it lacks** — commands --json names the version and every argument this copy takes, and it is the only read that can tell a missing flag from a broken one. → §RG6
 - 💭 **RG7** (deps: RG1 ✅) **every read costs an interpreter start, so a screen over twenty projects pays twenty of them to redraw** — One call measures around 360 ms, and nothing keys an answer to the files it came off so that an unchanged project is not read again. → §RG7
@@ -14,6 +13,7 @@
 - 📋 **RG65** (deps: RG2 ✅) **resolving an engine costs two interpreter starts on Windows, where the same file is spelled two ways** — invoke reports a posix path and the candidate holds a native one, so the verification call fires every time rather than only on a real difference. → §RG65
 - 📋 **RG66** (deps: RG3 ✅) **a verb can be called with no shape declared for its answer, so the boundary has a hole per verb** — The verb table and the shape table are two lists nothing holds together, and brief is already in one and absent from the other. → §RG66
 - 📋 **RG67** (deps: RG3 ✅) **a project declaring a read bound answers in a shape nothing here has ever seen, and the reader refuses it** — A listing past the bound comes back as blocks and counts instead of tasks, and this repo declares none so the shape could not be written from a real payload. → §RG67
+- 📋 **RG68** (deps: RG4 ✅) **the contract costs a minute of process starts, because every read rebuilds nothing but pays a fresh engine** — Building the fixture is fifteen write calls and each read is another, so the suite went from four seconds to twenty-eight. → §RG68
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
@@ -67,10 +67,10 @@
 - 💭 **RG45** (deps: RG37 ✅, RG7) **nothing watches the governed files, so a write by an agent or a terminal leaves the screen stale** — roadkeep.toml names every governed role, so what to watch is declared and the cache has nothing telling it to expire. → §RG45
 - 💭 **RG46** (deps: RG37 ✅, RG44 ✅) **there is no executable, so the app runs only where its source tree and toolchain already are** — An .exe is the delivery this project was asked for, and packaging is what decides the security posture is real rather than configured. → §RG46
 - 💭 **RG47** (deps: RG37 ✅) **settings have nowhere to live, so roots and preferences are gone when the window closes** — The scan roots are the one fact this app owns rather than reads, and there is no file for them and no schema over it. → §RG47
-- 💭 **RG48** (deps: RG1 ✅, RG4, RG44 ✅) **the claim that a service is a transport swap is asserted by nothing, so it is an intention** — Every criterion in this block rests on one seam, and a seam nothing exercises is one that has already been crossed somewhere. → §RG48
+- 💭 **RG48** (deps: RG1 ✅, RG4 ✅, RG44 ✅) **the claim that a service is a transport swap is asserted by nothing, so it is an intention** — Every criterion in this block rests on one seam, and a seam nothing exercises is one that has already been crossed somewhere. → §RG48
 - 💭 **RG49** (deps: RG46) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — An unsigned build is one most people will not run, and no amount of code in this repository substitutes for the certificate. → §RG49
 - 💭 **RG50** (deps: RG46) (requires: published-artifact) **nothing updates, so a fix reaches a person only if they go and look for one** — A desktop build that cannot update is one whose defects live on every machine that installed it until somebody notices. → §RG50
-- 💭 **RG55** (deps: RG37 ✅, RG4) **there is no CI, so every assertion this plan rests on runs only where somebody remembers to run it** — The contract test, the contrast check and the gate are each a promise made by a suite, and a suite nothing runs is a promise nobody keeps. → §RG55
+- 💭 **RG55** (deps: RG37 ✅, RG4 ✅) **there is no CI, so every assertion this plan rests on runs only where somebody remembers to run it** — The contract test, the contrast check and the gate are each a promise made by a suite, and a suite nothing runs is a promise nobody keeps. → §RG55
 - 💭 **RG56** (deps: RG37 ✅) **an agent working this backlog has no instruction file, so every session rediscovers the rules by reading code** — This project is executed by agents against a governed backlog, and roadkeep measured an instruction file reaching 186 KB where nothing held one. → §RG56
 - 📋 **RG57** (deps: RG37 ✅) **a main-process change is invisible until the dev run is killed, because only the renderer is watched** — The dev script compiles once and starts Electron, so every edit under shell/src costs a restart the renderer never costs. → §RG57
 - 📋 **RG58** (deps: RG37 ✅) **nothing checks style or dead code, so three packages drift apart file by file with the gate silent** — A typecheck accepts an unused import, a stale rule and two spellings of the same thing, and none of that is what tsc is for. → §RG58

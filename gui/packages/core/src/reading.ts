@@ -109,8 +109,16 @@ export function dictionaryOf<T>(reader: Reader<T>): Reader<Record<string, T>> {
 
 type Shape<T> = { [K in keyof T]-?: Reader<T[K]> }
 
-/** Read the declared fields of an object and ignore every other key it carries. */
-export function record<T>(shape: Shape<T>): Reader<T> {
+/**
+ * Read the declared fields of an object and ignore every other key it carries.
+ *
+ * `sourceKeys` renames: the payloads are snake_case and this app is not, and the failure
+ * path stays the payload's spelling so a message names the key somebody can go and find.
+ */
+export function record<T>(
+  shape: Shape<T>,
+  sourceKeys: Partial<Record<keyof T & string, string>> = {},
+): Reader<T> {
   return (value, path) => {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) {
       return fail(path, 'an object', value)
@@ -118,7 +126,8 @@ export function record<T>(shape: Shape<T>): Reader<T> {
     const source = value as Record<string, unknown>
     const built: Partial<T> = {}
     for (const key of Object.keys(shape) as (keyof T & string)[]) {
-      const parsed = shape[key](source[key], path === '' ? key : `${path}.${key}`)
+      const from = sourceKeys[key] ?? key
+      const parsed = shape[key](source[from], path === '' ? from : `${path}.${from}`)
       if (!parsed.ok) return parsed
       built[key] = parsed.value
     }

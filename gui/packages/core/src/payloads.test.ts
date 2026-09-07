@@ -146,6 +146,30 @@ describe('RG3: the shapes this app reads', () => {
     expect(parsed.value.sectionAbsence).toBe('')
   })
 
+  it('reads a section whose prose was not asked for', () => {
+    // `show --no-body` keeps the section and drops what it says. Null, not empty: a
+    // section that exists and says nothing is a defect and this is not.
+    const parsed = readShowPayload({ ...SHOW, section: { ...SHOW.section, body: null } }, '')
+
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.value.section?.body).toBeNull()
+    expect(parsed.value.section?.file).toContain('IMPROVEMENTS.md')
+  })
+
+  it('reads a ledger line, which points at no rationale', () => {
+    // Shipping deletes the design, so `ref` comes back null. A shape written as `string`
+    // read the roadmap fine and failed on the changelog.
+    const parsed = readListPayload(
+      { ...LIST, tasks: [{ ...LIST.tasks[0], status: '✅', ref: null }] },
+      '',
+    )
+
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.value.tasks[0]?.ref).toBeNull()
+  })
+
   it('reads a pointer that resolves to nothing as a state, not a failure', () => {
     const parsed = readShowPayload(
       { ...SHOW, section: null, section_absence: 'no section under RG3' },

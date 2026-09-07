@@ -2,30 +2,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG4 Where a rename is allowed to go red
-
-roadkeep's editor surface is held by `tests/test_editor.py` in roadkeep's own tree: the
-JavaScript client is stubbed, the tool is real, and the keys that client walks are
-asserted from Python, so a rename goes red before it reaches a reader in another
-language. This app is a second client in another language and no such test covers it, so
-the same rename reaches a user instead.
-
-The half that can live here is the whole of it. A fixture repository is scaffolded by
-`init`, populated by `add`, `ship`, `defer` and `non-goal add`, and every read this
-client makes is run against it with the real engine. What is asserted is not the values
-— those are the fixture's — but the *shape*: which keys exist, which are optional, which
-carry a marker the config declared, and which paths are relative to which root.
-
-Three findings this catches and nothing else does. A key renamed upstream. A payload
-that began coming back narrowed because the fixture crossed a `[reads]` bound. And a
-flag removed from a verb, which a version check alone reports as *newer* rather than as
-*broken here*.
-
-It runs against whichever engine the fixture resolves, which makes it honest about the
-same thing `engines` is: this CI proves the reading against one build, and which build
-is recorded with the run. A green suite is a claim about a version and never about
-roadkeep in general.
-
 ### §RG5 A refusal that lands on the box it is about
 
 Every write refused under --json returns a refused list, each entry carrying a code, the
@@ -167,6 +143,27 @@ cannot name" is not reached: the reader here reads a payload, and which roadkeep
 is not in question.
 
 Until then the failure is loud, which is the right way round for a hole this size.
+
+### §RG68 One fixture, many reads, one interpreter start each
+
+The contract test builds a governed project with the real write verbs — `init`, a
+non-goal, a criterion, five `add`s, a `ship`, a `defer` — and then reads it with every
+verb this client calls. Every one of those is a Python interpreter start of roughly two
+seconds, and the file now accounts for most of the suite's wall clock.
+
+Two things would help and they differ in kind. The fixture is built once per file
+already, so what is left is the reads: several ask for a listing purely to find an id to
+show, which could be one call. That is ordinary tidying and worth doing first.
+
+The larger one is that the fixture is rebuilt every run even though nothing about it
+changes between runs. It could be built once into a directory keyed by the engine
+version and reused until that moves — the key `engines` already answers. What makes that
+worth care is that a stale fixture is a contract passing against a project the current
+engine did not build, which is worse than a slow suite.
+
+RG64 splits this file out of the fast suite, which stops the cost being paid on every
+edit. This line is about the cost itself, and the two are worth doing in that order:
+moving something slow is cheaper than making it fast, and it may turn out to be enough.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

@@ -37,7 +37,13 @@ export interface TaskLine {
   readonly symptom: string
   readonly why: string
   readonly deps: readonly string[]
-  readonly ref: string
+  /**
+   * The pointer to this line's rationale. **Null in the ledger**, where a shipped line's
+   * section has been deleted and there is nothing left to point at — found by RG4's
+   * contract test against a real changelog, which is where a shape written as `string`
+   * would otherwise have failed on somebody's screen.
+   */
+  readonly ref: string | null
   readonly line: number
   /** The rendered length, against the project's own line limit. */
   readonly length: number
@@ -50,7 +56,7 @@ export const readTaskLine: Reader<TaskLine> = record<TaskLine>({
   symptom: aString,
   why: aString,
   deps: listOf(aString),
-  ref: aString,
+  ref: orMissing(orNull(aString), null),
   line: aNumber,
   length: aNumber,
 })
@@ -162,7 +168,13 @@ export interface RationaleSection {
   readonly first: number
   readonly last: number
   readonly words: number
-  readonly body: string
+  /**
+   * The prose, or **null where it was not asked for**: `show --no-body` keeps the section
+   * and where it lives and drops what it says. Null and empty are different answers, so
+   * this is not flattened to a string — a section that exists and is empty is a defect,
+   * and one that was not requested is not.
+   */
+  readonly body: string | null
 }
 
 export const readSection: Reader<RationaleSection> = record<RationaleSection>({
@@ -173,7 +185,7 @@ export const readSection: Reader<RationaleSection> = record<RationaleSection>({
   first: aNumber,
   last: aNumber,
   words: aNumber,
-  body: orMissing(aString, ''),
+  body: orMissing(orNull(aString), null),
 })
 
 export interface ShowPayload {
@@ -195,10 +207,8 @@ export interface ShowPayload {
   readonly sectionAbsence: string
 }
 
-export const readShowPayload: Reader<ShowPayload> = (value, path) => {
-  // `section_absence` is the one key whose name this app does not share, so the shape is
-  // built around the payload's spelling and renamed once, here.
-  const inner = record<Omit<ShowPayload, 'sectionAbsence'> & { section_absence: string }>({
+export const readShowPayload: Reader<ShowPayload> = record<ShowPayload>(
+  {
     id: aString,
     status: aString,
     block: aString,
@@ -212,13 +222,76 @@ export const readShowPayload: Reader<ShowPayload> = (value, path) => {
     requires: orMissing(listOf(aString), []),
     ref: aString,
     section: orMissing(orNull(readSection), null),
-    section_absence: orMissing(aString, ''),
-  })(value, path)
+    sectionAbsence: orMissing(aString, ''),
+  },
+  { sectionAbsence: 'section_absence' },
+)
 
-  if (!inner.ok) return inner
-  const { section_absence: absence, ...rest } = inner.value
-  return { ok: true, value: { ...rest, sectionAbsence: absence } }
+/** What shipping this line would unblock, and how much of that the answer left out. */
+export interface Unblocks {
+  readonly count: number
+  /** Out of how many lines in the backlog. */
+  readonly of: number
+  readonly transitive: readonly string[]
+  /** Ids the answer did not list. Above zero, `transitive` is a sample and not the set. */
+  readonly transitiveElided: number
 }
+
+export const readUnblocks: Reader<Unblocks> = record<Unblocks>(
+  {
+    count: aNumber,
+    of: aNumber,
+    transitive: orMissing(listOf(aString), []),
+    transitiveElided: orMissing(aNumber, 0),
+  },
+  { transitiveElided: 'transitive_elided' },
+)
+
+export interface BriefPayload {
+  readonly id: string
+  readonly status: string
+  readonly block: string
+  readonly symptom: string
+  readonly why: string
+  readonly deps: readonly string[]
+  readonly ref: string
+  readonly section: RationaleSection | null
+  /** Whether the line is ready, waiting or blocked, in the engine's own word. */
+  readonly readiness: string
+  /** Why this line was chosen. Empty when the caller named an id. */
+  readonly picked: string
+  readonly unblocks: Unblocks | null
+  readonly nonGoals: readonly string[]
+  readonly nonGoalsElided: number
+  readonly doneWhen: readonly string[]
+  readonly doneWhenElided: number
+}
+
+export const readBriefPayload: Reader<BriefPayload> = record<BriefPayload>(
+  {
+    id: aString,
+    status: aString,
+    block: aString,
+    symptom: aString,
+    why: aString,
+    deps: listOf(aString),
+    ref: aString,
+    section: orMissing(orNull(readSection), null),
+    readiness: orMissing(aString, ''),
+    picked: orMissing(aString, ''),
+    unblocks: orMissing(orNull(readUnblocks), null),
+    nonGoals: orMissing(listOf(aString), []),
+    nonGoalsElided: orMissing(aNumber, 0),
+    doneWhen: orMissing(listOf(aString), []),
+    doneWhenElided: orMissing(aNumber, 0),
+  },
+  {
+    nonGoals: 'non_goals',
+    nonGoalsElided: 'non_goals_elided',
+    doneWhen: 'done_when',
+    doneWhenElided: 'done_when_elided',
+  },
+)
 
 export interface LintFinding {
   readonly code: string
@@ -291,5 +364,25 @@ export function narrowingOfStats(payload: StatsPayload): Narrowing {
     payload.uncounted > 0
       ? [`${String(payload.uncounted)} marker-bearing line(s) this count could not read`]
       : []
+  return { complete: reasons.length === 0, reasons }
+}
+
+/**
+ * A brief elides rather than truncating silently, and the counts are how it says so. A
+ * screen that drew the listed non-goals as the whole list would be showing a constraint
+ * set that is missing exactly the entries nobody thought to look for.
+ */
+export function narrowingOfBrief(payload: BriefPayload): Narrowing {
+  const reasons: string[] = []
+  if (payload.nonGoalsElided > 0) {
+    reasons.push(`${String(payload.nonGoalsElided)} non-goal(s) this brief did not list`)
+  }
+  if (payload.doneWhenElided > 0) {
+    reasons.push(`${String(payload.doneWhenElided)} criterion or criteria this brief did not list`)
+  }
+  const elidedUnblocks = payload.unblocks?.transitiveElided ?? 0
+  if (elidedUnblocks > 0) {
+    reasons.push(`${String(elidedUnblocks)} id(s) this line unblocks that were not listed`)
+  }
   return { complete: reasons.length === 0, reasons }
 }

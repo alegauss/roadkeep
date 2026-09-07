@@ -12,18 +12,22 @@ export type {
 export { readEnginesPayload, splitCommandLine } from './engines'
 export type { EngineProvenance, EnginesPayload } from './engines'
 export {
+  narrowingOfBrief,
   narrowingOfList,
   narrowingOfStats,
+  readBriefPayload,
   readListPayload,
   readLintPayload,
   readSection,
   readShowPayload,
   readStatsPayload,
   readTaskLine,
+  readUnblocks,
 } from './payloads'
 export type {
   AbsentRequirement,
   BlockCount,
+  BriefPayload,
   ListPayload,
   LintFinding,
   LintPayload,
@@ -34,6 +38,7 @@ export type {
   Startable,
   StatsPayload,
   TaskLine,
+  Unblocks,
 } from './payloads'
 export { explainFailure, readPayload } from './reading'
 export type { Parsed, PayloadFailure, Reader } from './reading'
