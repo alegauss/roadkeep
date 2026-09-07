@@ -2,7 +2,8 @@ import { EngineCallFailed, type EngineResult, type Transport } from './transport
 import { readAnswer, type Refusal } from './refusals'
 import type { Reader } from './reading'
 import type { Unreadable } from './limits'
-import { WRITES, type WriteInputs, type WriteName } from './writes'
+import { WRITES, WRITE_WORDS, type WriteInputs, type WriteName } from './writes'
+import { spell } from './verbs'
 
 /**
  * A write, composed here and performed by the command.
@@ -36,9 +37,10 @@ export interface Composed {
 /**
  * Build the command line for one write.
  *
- * `-C <root>` leads and `--json` closes, for the reasons `buildArgv` gives for a read.
- * The verb name is split on spaces so a two-word write verb spells itself the way the
- * engine takes it, and stays whole in the table because that is what `commands` publishes.
+ * `-C <root>` leads and `--json` closes, for the reasons `buildArgv` gives for a read, and
+ * the verb's words are spread from `WRITE_WORDS` rather than split out of its key — which
+ * matters most here, since almost every write to come is `section add`, `criterion add`,
+ * `block add`.
  */
 export function composeWrite<K extends WriteName>(
   root: string,
@@ -46,7 +48,11 @@ export function composeWrite<K extends WriteName>(
   input: WriteInputs[K],
 ): Composed {
   const argvFor = WRITES[verb] as (value: WriteInputs[K]) => readonly string[]
-  return { verb, root, argv: ['-C', root, ...verb.split(' '), ...argvFor(input), '--json'] }
+  return {
+    verb,
+    root,
+    argv: ['-C', root, ...spell(verb, WRITE_WORDS), ...argvFor(input), '--json'],
+  }
 }
 
 export type WriteOutcome<T> =

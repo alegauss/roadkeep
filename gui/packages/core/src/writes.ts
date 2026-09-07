@@ -1,3 +1,5 @@
+import type { Spelling } from './verbs'
+
 /**
  * A write is data too.
  *
@@ -40,6 +42,16 @@ export interface WriteInputs {
 export type WriteName = keyof WriteInputs
 
 type ArgvFor<K extends WriteName> = (input: WriteInputs[K]) => readonly string[]
+
+/**
+ * How each write is spelled on the command line, where that is more than one word.
+ *
+ * Empty today because `add` is one word, and declared anyway because everything coming
+ * next is not: `section add`, `criterion add`, `block add`, `non-goal add`. The rule is
+ * `verbs.ts`'s — the key is an identifier, the spelling is an array, and nothing splits a
+ * string into arguments.
+ */
+export const WRITE_WORDS: Spelling = {}
 
 function optional(flag: string, value: string | undefined): string[] {
   return value === undefined || value === '' ? [] : [flag, value]

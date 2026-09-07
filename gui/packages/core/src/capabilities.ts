@@ -8,8 +8,8 @@ import {
   type Parsed,
   type Reader,
 } from './reading'
-import { EVERY_INPUT, VERBS, type VerbName } from './verbs'
-import { EVERY_WRITE_INPUT, WRITES, type WriteName } from './writes'
+import { EVERY_INPUT, publishedAs, VERBS, VERB_WORDS, type VerbName } from './verbs'
+import { EVERY_WRITE_INPUT, WRITES, WRITE_WORDS, type WriteName } from './writes'
 
 /**
  * What this build of roadkeep can actually do, asked once when a project is opened.
@@ -102,6 +102,19 @@ export type CalledName = VerbName | WriteName
 
 const CALLED: Record<string, (input: never) => readonly string[]> = { ...VERBS, ...WRITES }
 const CALLED_INPUT: Record<string, unknown> = { ...EVERY_INPUT, ...EVERY_WRITE_INPUT }
+const CALLED_WORDS = { ...VERB_WORDS, ...WRITE_WORDS }
+
+/**
+ * The name this build publishes for a verb this app calls.
+ *
+ * The lookup RG69 is about. A two-word verb whose key was used as its published name is
+ * looked up under a name `commands` never printed, reported as one this build cannot run,
+ * and its door withheld — the exact failure this read exists to prevent, arriving through
+ * the read itself.
+ */
+export function publishedName(verb: CalledName): string {
+  return publishedAs(verb, CALLED_WORDS)
+}
 
 /**
  * Every verb name this app can put on a command line, reads and writes together.
@@ -189,7 +202,7 @@ export function readCapabilities(
   let complete = true
 
   for (const verb of CALLED_NAMES) {
-    const command = published.get(verb)
+    const command = published.get(publishedName(verb))
     if (command === undefined || !command.runs) {
       byVerb[verb] = {
         verb,

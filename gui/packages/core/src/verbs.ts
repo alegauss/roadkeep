@@ -66,9 +66,9 @@ export interface VerbInputs {
   /** Every id the ledger undid, and the entry that undid it. `id` asks about one. */
   reversals: { id?: string }
   /** What this project says it is not building. Takes nothing: the list is the project's. */
-  'non-goal list': Record<string, never>
+  nonGoalList: Record<string, never>
   /** What would finish a block, or what one line carries of its own. */
-  'criterion list': {
+  criterionList: {
     block?: string
     /** One task's own criteria, by id. Mutually exclusive with `block` at the engine. */
     task?: string
@@ -96,6 +96,42 @@ export interface VerbInputs {
 export type VerbName = keyof VerbInputs
 
 type ArgvFor<K extends VerbName> = (input: VerbInputs[K]) => readonly string[]
+
+/**
+ * What a verb is called on the command line, where that is more than one word.
+ *
+ * Twenty-three of the eighty-nine entries `commands` publishes are not top-level verbs:
+ * `section show`, `capture filed`, `non-goal list` arrive as single names with a space in
+ * them, and the families behind them — `section`, `block`, `criterion`, `record` — are
+ * exactly where the write path goes.
+ *
+ * So a verb's **key is a single identifier this app uses** and its **spelling is an
+ * array**. Not a key with a space in it split back apart: argv is an array precisely so
+ * that nothing here ever turns a command line into arguments, and a table that stored the
+ * words joined would be one split away from undoing that. A verb absent from this map is
+ * spelled by its own key, which is the ordinary case.
+ */
+export type Spelling = Readonly<Record<string, readonly string[]>>
+
+export const VERB_WORDS: Spelling = {
+  nonGoalList: ['non-goal', 'list'],
+  criterionList: ['criterion', 'list'],
+}
+
+/**
+ * The words one verb puts on the command line.
+ *
+ * Takes the map rather than closing over one, because reads and writes keep separate
+ * tables on purpose and this is the single implementation both of them use.
+ */
+export function spell(verb: string, spelled: Spelling): readonly string[] {
+  return spelled[verb] ?? [verb]
+}
+
+/** The name `commands` publishes for a verb, which is its words joined. */
+export function publishedAs(verb: string, spelled: Spelling): string {
+  return spell(verb, spelled).join(' ')
+}
 
 /** Repeat a flag once per value, which is how the engine spells a repeatable option. */
 function repeated(flag: string, values: readonly string[] | undefined): string[] {
@@ -129,8 +165,8 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
   deps: (input) => [input.id],
   delivered: (input) => [input.block, ...optional('--near', input.near)],
   reversals: (input) => [...optional('--id', input.id)],
-  'non-goal list': () => [],
-  'criterion list': (input) => [
+  nonGoalList: () => [],
+  criterionList: (input) => [
     ...optional('--block', input.block),
     ...optional('--task', input.task),
   ],
@@ -163,8 +199,8 @@ export const EVERY_INPUT: { [K in VerbName]: VerbInputs[K] } = {
   deps: { id: 'RG1' },
   delivered: { block: 'A', near: 'a symptom about to be proposed' },
   reversals: { id: 'RG1' },
-  'non-goal list': {},
-  'criterion list': { block: 'A', task: 'RG1' },
+  nonGoalList: {},
+  criterionList: { block: 'A', task: 'RG1' },
   lint: { baseline: 'HEAD' },
   engines: {},
   explain: { code: 'symptom.too-long' },

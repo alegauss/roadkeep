@@ -11,6 +11,7 @@
 - ✅ **RG7** **every read costs an interpreter start, so a screen over twenty projects pays twenty of them to redraw** — A read is keyed by the project, the argv and a stamp of the files it declares, so an unchanged project is not read twice (design recorded in `packages/core/src/cache.ts`).
 - ✅ **RG8** **a read has no ceiling, so one project whose engine hangs stops the screen that was drawing it** — Calls run through a pool of settable width under a settable deadline, and one that runs out becomes a state on that project (design recorded in `packages/core/src/limits.ts`).
 - 🗑 **RG70** **twenty projects stamped and read in turn wait on each other, because nothing runs two calls at once** — superseded by RG8: Filed before RG8 was read: its design already names the pool, and one pool both introduces concurrency and bounds it.
+- ✅ **RG69** **a subcommand is a verb with a space in it, and the verb table has no way to spell one** — A verb's key is an identifier and its spelling is an array, so a two-word verb is looked up and sent under the name commands publishes (design recorded in `packages/core/src/verbs.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

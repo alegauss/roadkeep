@@ -118,14 +118,14 @@ describe('RG4: every read this client makes, against a live engine', () => {
         'brief',
         'commands',
         'config',
-        'criterion list',
+        'criterionList',
         'delivered',
         'deps',
         'engines',
         'explain',
         'lint',
         'list',
-        'non-goal list',
+        'nonGoalList',
         'pick',
         'reversals',
         'show',
@@ -232,8 +232,8 @@ describe('RG4: every read this client makes, against a live engine', () => {
   it('reads the two lists that bind a proposal, both two-word verbs', async () => {
     // The only verbs whose name is two words. The name is kept whole because that is the
     // string `commands` publishes, and `buildArgv` is what splits it.
-    const bounds = await readVerb('non-goal list', {}, readNonGoalsPayload)
-    const finishing = await readVerb('criterion list', {}, readCriteriaPayload)
+    const bounds = await readVerb('nonGoalList', {}, readNonGoalsPayload)
+    const finishing = await readVerb('criterionList', {}, readCriteriaPayload)
 
     expect(bounds.governed).toBe(true)
     expect(bounds.nonGoals.length).toBeGreaterThan(0)
@@ -248,7 +248,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
   it('reads an address with no list, and the door that opens one', async () => {
     // `empty` is the engine's word for which nothing this is, and it is null on an answer
     // that is not empty — a shape demanding a string fails on every ordinary read.
-    const finishing = await readVerb('criterion list', { task: 'FX1' }, readCriteriaPayload)
+    const finishing = await readVerb('criterionList', { task: 'FX1' }, readCriteriaPayload)
 
     expect(finishing.criteria).toEqual([])
     expect(finishing.empty).not.toBeNull()

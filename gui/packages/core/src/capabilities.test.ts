@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { CALLED_NAMES, flagsFor, readCapabilities, withheld } from './capabilities'
+import { CALLED_NAMES, flagsFor, publishedName, readCapabilities, withheld } from './capabilities'
 
 /** Shaped like a real `commands --json` entry, trimmed to the keys this app reads. */
 function command(name: string, flags: string[][], writes = false, runs = true) {
@@ -34,12 +34,53 @@ function completeBuild(version = '0.2.360'): string {
     source: { home: '/engines/one' },
     commands: CALLED_NAMES.map((verb) =>
       command(
-        verb,
+        // The name a real build publishes, which for a two-word verb is not its key.
+        publishedName(verb),
         flagsFor(verb).map((flag) => [flag]),
       ),
     ),
   })
 }
+
+describe('RG69: a verb that is two words', () => {
+  it('is looked up under the name commands publishes, not under its key', () => {
+    // The failure this read exists to prevent, arriving through the read itself: looked
+    // up by key, `nonGoalList` is a name no build ever printed, so it reports as one this
+    // engine cannot run and its door is withheld.
+    expect(publishedName('nonGoalList')).toBe('non-goal list')
+    expect(publishedName('criterionList')).toBe('criterion list')
+
+    const report = readCapabilities(completeBuild(), '0.2.360')
+
+    expect(report.kind === 'known' && report.complete).toBe(true)
+    if (report.kind !== 'known') throw new Error('unreachable')
+    expect(report.byVerb.nonGoalList.callable).toBe(true)
+    expect(report.byVerb.criterionList.callable).toBe(true)
+  })
+
+  it('is spelled by its own key where the key is the whole name', () => {
+    expect(publishedName('list')).toBe('list')
+    expect(publishedName('add')).toBe('add')
+  })
+
+  it('withholds a two-word verb this build does not publish, by that name', () => {
+    const build = JSON.stringify({
+      version: '0.2.360',
+      source: {},
+      commands: CALLED_NAMES.filter((verb) => verb !== 'nonGoalList').map((verb) =>
+        command(
+          publishedName(verb),
+          flagsFor(verb).map((flag) => [flag]),
+        ),
+      ),
+    })
+
+    const report = readCapabilities(build, '0.2.360')
+
+    expect(report.kind === 'known' && report.complete).toBe(false)
+    expect(withheld(report).join(' ')).toContain('nonGoalList')
+  })
+})
 
 describe('RG6: the flags this app would send', () => {
   it('derives them by running the builder, so they cannot drift from it', () => {
@@ -151,7 +192,7 @@ describe('RG6: what a build can do', () => {
       version: '0.2.360',
       source: null,
       commands: CALLED_NAMES.map((verb) =>
-        command(verb, [flagsFor(verb)]),
+        command(publishedName(verb), [flagsFor(verb)]),
       ),
     })
 

@@ -45,16 +45,16 @@ function must<T>(verb: string, stdout: string, reader: Reader<T>): T {
 }
 
 async function boundsOf(root: string): Promise<Bounds> {
-  const result = await client.call(root, 'non-goal list', {}, { timeoutMs: CEILING })
-  return boundsFrom(must('non-goal list', result.stdout, readNonGoalsPayload))
+  const result = await client.call(root, 'nonGoalList', {}, { timeoutMs: CEILING })
+  return boundsFrom(must('nonGoalList', result.stdout, readNonGoalsPayload))
 }
 
 async function finishingOf(
   root: string,
   input: { block?: string; task?: string } = {},
 ): Promise<Finishing> {
-  const result = await client.call(root, 'criterion list', input, { timeoutMs: CEILING })
-  return finishingFrom(must('criterion list', result.stdout, readCriteriaPayload))
+  const result = await client.call(root, 'criterionList', input, { timeoutMs: CEILING })
+  return finishingFrom(must('criterionList', result.stdout, readCriteriaPayload))
 }
 
 beforeAll(async () => {

@@ -1,7 +1,9 @@
 export { BRIDGE_CHANNELS, BRIDGE_KEY } from './bridge'
 export type { BridgeIdentity, RendererBridge, TransportName } from './bridge'
 export {
+  CALLED_NAMES,
   flagsFor,
+  publishedName,
   readCapabilities,
   readCommandArgument,
   readCommandsPayload,
@@ -203,9 +205,9 @@ export type {
   EngineResult,
   Transport,
 } from './transport'
-export { EVERY_INPUT, VERBS } from './verbs'
-export type { VerbInputs, VerbName } from './verbs'
-export { EVERY_WRITE_INPUT, WRITES } from './writes'
+export { EVERY_INPUT, publishedAs, spell, VERBS, VERB_WORDS } from './verbs'
+export type { Spelling, VerbInputs, VerbName } from './verbs'
+export { EVERY_WRITE_INPUT, WRITES, WRITE_WORDS } from './writes'
 export type { WriteInputs, WriteName } from './writes'
 export { applied, applyWrite, composeWrite } from './writing'
 export type { Composed, WriteOutcome } from './writing'

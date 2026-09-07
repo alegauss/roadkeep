@@ -1,5 +1,5 @@
 import type { CancelSignal, EngineResult, Transport } from './transport'
-import { VERBS, type VerbInputs, type VerbName } from './verbs'
+import { spell, VERBS, VERB_WORDS, type VerbInputs, type VerbName } from './verbs'
 
 /**
  * The client: a verb, a project, and the transport it goes out over.
@@ -35,9 +35,10 @@ export interface Client {
  * `--json` closes every call for the same reason no verb declares it: a client that read
  * human output would be reading a format nobody promised it.
  *
- * A verb name is split on spaces because some of the engine's verbs are two words —
- * `non-goal list`, `criterion list` — and the name is kept whole in the table because
- * that is the string `commands` publishes, which is what the capability check matches on.
+ * A verb's words are spread rather than its key split: some of the engine's verbs are two
+ * words — `non-goal list`, `criterion list` — and `VERB_WORDS` carries the spelling as an
+ * array. Nothing here ever turns a string into arguments, which is the whole point of an
+ * argv being an array in the first place.
  */
 export function buildArgv<K extends VerbName>(
   root: string,
@@ -45,7 +46,7 @@ export function buildArgv<K extends VerbName>(
   input: VerbInputs[K],
 ): string[] {
   const argvFor = VERBS[verb] as (value: VerbInputs[K]) => readonly string[]
-  return ['-C', root, ...verb.split(' '), ...argvFor(input), '--json']
+  return ['-C', root, ...spell(verb, VERB_WORDS), ...argvFor(input), '--json']
 }
 
 export function createClient(transport: Transport): Client {

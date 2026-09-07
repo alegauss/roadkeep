@@ -128,27 +128,6 @@ RG64 splits this file out of the fast suite, which stops the cost being paid on 
 edit. This line is about the cost itself, and the two are worth doing in that order:
 moving something slow is cheaper than making it fast, and it may turn out to be enough.
 
-### §RG69 The verbs that are two words
-
-Reading `commands --json` turned up something the verb table cannot currently express.
-Twenty-three of the eighty-nine entries are not top-level verbs at all: `section show`,
-`capture filed` and `capture sweep` arrive as single names with a space, and the
-families behind them — `section`, `block`, `non-goal`, `criterion`, `priority`,
-`record`, `refs` — are exactly where the write path is going. Every rationale section
-this app will file goes through `section add`.
-
-Today a verb is one key in `VERBS` and one word on the command line, and the capability
-check looks a verb up by that word. A two-word verb would be looked up under the wrong
-key, reported as one this build cannot run, and its door withheld — which is the failure
-mode this read exists to prevent, arriving through the read itself.
-
-The fix is small and worth doing before block E rather than during it: a verb's key
-stays a single identifier this app uses, and the table carries the words that go on the
-command line as an array. `commands` is then looked up by joining them, and `buildArgv`
-spreads them. What it must not become is a string split on spaces, because the point of
-argv being an array is that nothing in this app ever splits a command line into
-arguments.
-
 ### §RG75 Ids that stop being true
 
 RG23 shipped, and a test asserting RG23 was in progress failed with nothing changed to

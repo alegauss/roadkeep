@@ -34,18 +34,18 @@ describe('RG1: the command line one call builds', () => {
     }
   })
 
-  it('splits a two-word verb into the two arguments the engine takes', () => {
-    // RG26: `non-goal list` and `criterion list` are subcommand pairs. The name is kept
-    // whole in the table because that is the string `commands` publishes, and a single
-    // argument spelled `"non-goal list"` is not a verb the engine has.
-    expect(buildArgv('/w', 'non-goal list', {})).toEqual([
+  it('RG69: spreads a two-word verb words, rather than splitting its key', () => {
+    // The key is an identifier this app uses and the spelling is an array in
+    // `VERB_WORDS`. Never a key with a space in it split back apart: argv is an array so
+    // that nothing here ever turns a command line into arguments.
+    expect(buildArgv('/w', 'nonGoalList', {})).toEqual([
       '-C',
       '/w',
       'non-goal',
       'list',
       '--json',
     ])
-    expect(buildArgv('/w', 'criterion list', { block: 'D' })).toEqual([
+    expect(buildArgv('/w', 'criterionList', { block: 'D' })).toEqual([
       '-C',
       '/w',
       'criterion',
@@ -54,6 +54,12 @@ describe('RG1: the command line one call builds', () => {
       'D',
       '--json',
     ])
+  })
+
+  it('RG69: keeps a one-word verb spelled by its own key, with no map entry', () => {
+    // The ordinary case, and the reason the map is sparse: a verb absent from it is
+    // spelled by its key, so eleven of thirteen rows do not exist.
+    expect(buildArgv('/w', 'lint', {})).toEqual(['-C', '/w', 'lint', '--json'])
   })
 
   it('leaves out a flag whose input is absent rather than passing an empty one', () => {
