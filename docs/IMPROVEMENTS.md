@@ -823,6 +823,29 @@ differently reports no kind at all — a silent miss where today's reading gives
 name. Which failure is preferable is the question, and it turns on whether the four
 sites are the population or a sample.
 
+### §RK1648 The bytecode the check leaves behind
+
+`vendor` verifies by running `<copy>/scripts/roadkeep.py --version`, which is RK1193's
+fourth rule and the one that makes picking by version mean anything: the evidence is the
+copy answering. Running it imports the package out of the copy, and Python writes
+`__pycache__` beside every module it loads.
+
+Measured while building RK1606: the copy as written is **3.89 MiB across 90 files**;
+after the verification it is **7.24 MiB across 147**, of which 60 files and 3.35 MiB are
+bytecode nothing asked for. The proportion is what makes it worth a line — the check
+costs almost as much as the artefact.
+
+It predates RK1606 and was invisible beside 22.46 MiB. It is also not a bug: the
+bytecode is valid, it is what the launcher would generate on first use anyway, and an
+adopter who git-ignores `.roadkeep/` never sees it. What it is is an artefact that
+stopped being the size its own rule says.
+
+Three ways out and they differ in what they give up. `-B` or `PYTHONDONTWRITEBYTECODE`
+on the verification subprocess leaves the copy as written and makes the first real run
+pay instead. Deleting `__pycache__` after the check is a second sweep over a tree just
+walked. Or the figure is simply stated — `install --vendor` reports what landed, and a
+report saying 7.24 when the rule says 3.89 is the part that misleads.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)
