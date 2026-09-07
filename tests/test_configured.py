@@ -173,7 +173,7 @@ def _named_marker(node: ast.AST) -> str:
 def _literal(node: ast.AST) -> str:
     """The literal text of a string node — an f-string's constant parts joined (RK1609).
 
-    The reading all three scans here want, written once. `_composed_markers` already did this
+    The reading all three scans here want, written once. `_composed_values` already did this
     and the other two did not, and the gap between them is where a value sat: a `help=`
     f-string whose backticked command carries a **literal** marker beside an interpolation
     splits into two `ast.Constant` nodes, so a scan reading each on its own never re-forms the
@@ -181,7 +181,7 @@ def _literal(node: ast.AST) -> str:
 
     An interpolation contributes nothing to the text, which is right for every caller: what a
     value *is* cannot be read here, and the question each scan asks is about the shape the
-    literal parts spell. `_composed_markers` asks separately about the names interpolated in.
+    literal parts spell. `_composed_values` asks separately about the names interpolated in.
     """
     if isinstance(node, ast.Constant) and isinstance(node.value, str):
         return node.value
@@ -201,7 +201,7 @@ def _project_value(text: str) -> bool:
     whose prefix is `SH` and whose roadmap is `docs/BACKLOG.md` is a command they cannot run,
     whichever of the three this package spelled.
 
-    One function since RK1609. `_composed_markers` held markers alone while the shown-string
+    One function since RK1609. `_composed_values` held markers alone while the shown-string
     sweep held all three, so an f-string composing a command round a governed file's default
     name was a value in the gap between two readings of one rule.
     """
@@ -212,7 +212,7 @@ def _project_value(text: str) -> bool:
     )
 
 
-def _composed_markers(source: str) -> list[str]:
+def _composed_values(source: str) -> list[str]:
     """Every f-string that composes a command and interpolates a marker constant (RK1520).
 
     **A stated shape and never a rule about interpolation**, which is the distinction the
@@ -267,7 +267,7 @@ def _composed_markers(source: str) -> list[str]:
     return sorted(found)
 
 
-def test_no_composed_command_carries_a_marker_this_package_spells():
+def test_no_composed_command_carries_a_value_this_project_decides():
     """RK1520. The gate above scans for the codepoint, and interpolating the constant renders
     the same bytes and walks past it — both of this package's remaining sites were that shape,
     and one was a refusal telling a caller how to take a line.
@@ -278,7 +278,7 @@ def test_no_composed_command_carries_a_marker_this_package_spells():
     found = {
         module.where: leaked
         for module in modules()
-        if module.where not in DECLARES and (leaked := _composed_markers(module.text))
+        if module.where not in DECLARES and (leaked := _composed_values(module.text))
     }
     assert found == {}, (
         "a composed command built round a package value offers the reader something their "
@@ -295,10 +295,10 @@ def test_the_two_routes_to_one_message_are_both_shut():
     # One message, two sources. The first scan reads the codepoint and sees only the first.
     assert any(one in spelled for one in MARKERS)
     assert not any(one in composed for one in MARKERS)
-    assert _composed_markers(composed) == ["1: IN_PROGRESS"]
+    assert _composed_values(composed) == ["1: IN_PROGRESS"]
     # And the reading that stays legitimate: a report of what a write did is not a command,
     # so it carries no backtick and this says nothing about it.
-    assert _composed_markers('x = f"moved to {IN_PROGRESS}"') == []
+    assert _composed_values('x = f"moved to {IN_PROGRESS}"') == []
 
 
 def test_both_spellings_of_a_constant_are_one_defect(tmp_path):
@@ -311,10 +311,10 @@ def test_both_spellings_of_a_constant_are_one_defect(tmp_path):
     assert set(SPELLINGS) == {"Name.id", "Attribute.attr"}
     imported = 'x = f"`status {one} {IN_PROGRESS}`"'
     dereferenced = 'x = f"`status {one} {schema.IN_PROGRESS}`"'
-    assert _composed_markers(imported) == ["1: IN_PROGRESS"]
-    assert _composed_markers(dereferenced) == ["1: IN_PROGRESS"]
+    assert _composed_values(imported) == ["1: IN_PROGRESS"]
+    assert _composed_values(dereferenced) == ["1: IN_PROGRESS"]
     # And the exemption survives the widening: an attribute is not a command either.
-    assert _composed_markers('x = f"moved to {schema.IN_PROGRESS}"') == []
+    assert _composed_values('x = f"moved to {schema.IN_PROGRESS}"') == []
 
 
 # -- where the exemption for a shown word ends (RK1558) -----------------------
@@ -335,7 +335,7 @@ def _shown(source: str) -> list[tuple[int, str]]:
     `ast.Constant`, so a `help=` f-string whose backticked command carries a literal marker
     beside an interpolation came back as two strings — the opening backtick in one and the
     closing one in the other — and the span never re-formed for :func:`_offered` to read. The
-    command was invisible to this scan, to `_composed_markers`, which reads interpolated names
+    command was invisible to this scan, to `_composed_values`, which reads interpolated names
     and not written-out values, and to `_values`, which exempts what a caller is shown.
     :func:`_literal` is the joining, shared with the scan that already did it.
     """
@@ -375,7 +375,7 @@ def _offered(text: str) -> str:
 
 def test_no_command_a_help_string_offers_carries_a_project_value():
     """RK1558. Two scans read this package for the same rule and disagreed about the words a
-    caller is shown — :func:`_values` exempts them and :func:`_composed_markers` does not —
+    caller is shown — :func:`_values` exempts them and :func:`_composed_values` does not —
     and nothing said which reading was the rule. Neither flagged anything, so the difference
     was invisible in both directions.
 
@@ -428,7 +428,7 @@ def test_a_span_crossing_an_f_string_s_parts_is_one_command():
     """RK1609's first instance, and the one that made it measurable. A `help=` f-string whose
     backticked command carries a **literal** marker beside an interpolation was read by none of
     the three scans: `_shown` walked to each `ast.Constant`, so the two backticks landed in
-    different nodes and the span never re-formed; `_composed_markers` reads an interpolated
+    different nodes and the span never re-formed; `_composed_values` reads an interpolated
     marker *name*; `_values` exempts what a caller is shown.
 
     Held on the shape rather than on an instance, because the package has none — what the
@@ -442,24 +442,24 @@ def test_a_span_crossing_an_f_string_s_parts_is_one_command():
 
 
 def test_the_scan_that_reads_a_name_reads_the_other_two_values_too():
-    """RK1609's second instance, the same gap the other way. `_composed_markers` matched
+    """RK1609's second instance, the same gap the other way. `_composed_values` matched
     `MARKER_NAMES` alone while the shown-string sweep held markers, ids **and** governed files
     — so an f-string composing a command round a governed file's default name built one out of
     a value `[files]` decides, and nothing flagged it.
 
     One rule and one reading of it: `_project_value` is what both ask now."""
-    assert _composed_markers('x = f"run `lint ROADMAP.md {one}`"') == ["1: lint ROADMAP.md "]
-    assert _composed_markers('x = f"take `status RK1 {one}`"') == ["1: status RK1 "]
+    assert _composed_values('x = f"run `lint ROADMAP.md {one}`"') == ["1: lint ROADMAP.md "]
+    assert _composed_values('x = f"take `status RK1 {one}`"') == ["1: status RK1 "]
     # And the interpolated name is still the route it always was, undisturbed.
-    assert _composed_markers('x = f"`status {one} {IN_PROGRESS}`"') == ["1: IN_PROGRESS"]
+    assert _composed_values('x = f"`status {one} {IN_PROGRESS}`"') == ["1: IN_PROGRESS"]
     # Outside a span nothing is composed, which is the exemption both halves keep.
-    assert _composed_markers('x = f"the file is ROADMAP.md, {one}"') == []
+    assert _composed_values('x = f"the file is ROADMAP.md, {one}"') == []
 
 
 def test_the_three_readings_are_one_helper_and_not_three():
     """The root, which is what makes the two instances one task: three functions each rebuilt
     what a caller is offered and each stopped somewhere different. `_literal` is the joining
-    `_composed_markers` already did, and `_project_value` the reading the shown sweep already
+    `_composed_values` already did, and `_project_value` the reading the shown sweep already
     had — so what closed the gaps is the two of them being shared rather than reimplemented."""
     import ast as _ast
 

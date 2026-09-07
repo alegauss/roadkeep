@@ -152,7 +152,7 @@ INVARIANTS: tuple[Invariant, ...] = (
         # L6's row one route along, and a row of its own because it is a different surface
         # reading: that one asks what a module *spells* and this asks what a module *builds*.
         over="surface.modules",
-        held_by="test_configured::test_no_composed_command_carries_a_marker_this_package_spells",
+        held_by="test_configured::test_no_composed_command_carries_a_value_this_project_decides",
     ),
     Invariant(
         stated="RK1558",
