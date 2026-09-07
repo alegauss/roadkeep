@@ -24,7 +24,8 @@ is a **UTF-16 code unit**, which every payload declares and every refusal names 
 differs from what an editor shows — the stricter of the two counts, so a line this accepts
 is one a gate written in Java, C# or JavaScript accepts too, and a status marker costs two
 of them where `✅` costs one. `budget --block
-<x> --dep <id> [--requires <word>] [--symptom "…"]` is the line an `add` is about to write,
+<x> --dep <id> [--requires <word>] [--symptom "…"] [--status 💭]` is the line an `add` is
+about to write — the same flags you will pass `add --block <x> --dep <id> --status 💭` —
 and `budget <id>`
 the one an `amend` is about to rewrite; the field's own `maxLength` is the ceiling, and
 what comes back is the lower number that actually binds. **Pass every flag the write will
@@ -38,7 +39,10 @@ line alone**: `add --section` writes a body too, so every `budget` carries a `se
 the limit, because composing to exactly the declared number is what refuses. `budget
 --anchor <a>` asks the same thing on its own, which is the read a `section amend` wants —
 **refused where two prose files declare that anchor**, as every other reader of one
-refuses, `--role` naming which of them you mean; on a line's own budget that half comes
+refuses, `budget --anchor <a> --role improvements` naming which of them you mean — the same
+flag `section find "<text>" --role decisions`, `section amend <a> --role decisions`,
+`section move <a> --to <b> --role decisions` and `section drop <a> --role decisions` each
+take, for the one reason; on a line's own budget that half comes
 back empty and states the same reason; `section show <a>` is the other half of that read —
 the prose whole, with the count the budget is measured in, so an `amend` is composed
 against what is there rather than against a remembered version of it — and it prints the
@@ -68,7 +72,8 @@ after a refusal is a guess, and this is the same arithmetic answered before the 
 limits are the list's own and not the task line's. **And `budget <id> --ship` prices the
 sentence a *ship* writes**, which is a different number from the line's — the ledger drops
 the deps and the pointer, so there is more room and a draft written to the line's figure
-throws characters away; `--retire` is the same question for the other departure, where a
+throws characters away; `budget <id> --retire --superseded-by <id>` is the same question for
+the other departure, where a
 derived `abandoned:` or `superseded by <id>:` prefix is inside the field and counted; and
 `--defer` is the third, where the reason is *wrapped* around the design the store carries
 forward — so the row that matters is `carried`, naming what the line leaves your sentence,
@@ -108,8 +113,8 @@ only — over this transport you are handed the denial itself.
 A bare `cost` is refused naming the five: they are five cadences, and privileging one would
 make the others read as narrowings of it. **And `config` is the read about `roadkeep.toml` itself**:
 every table, key, TOML type and default this build accepts, with the sentence its source
-already carries and whether *this* project declared it — `--table <name>` for one,
-`--table ""` for the top level. **And the boundary of that same question**: what this
+already carries and whether *this* project declared it — `config --table limits` for one,
+`config --table ""` for the top level. **And the boundary of that same question**: what this
 build *fixes* from its own corpus and no project may declare, with the reading it
 follows — so *is this mine to set?* is answered rather than guessed. Reach for it before
 writing a key rather than after the refusal, and read the build it names: a key nothing
@@ -118,14 +123,18 @@ them apart. **`govern <address> [<n>]` is the write beside it**, and the only on
 file besides `declare`: the four tables whose
 value is a judgement about a number — `[limits]`, `[budgets]`, `[tools]`, `[claims]` — each
 already had the read that decides it somewhere else, so this takes the reading and writes the
-number in one call. With no number it prints the reading alone; `--role` and `--file` name the
+number in one call. With no number it prints the reading alone;
+`govern limits.why 200 --role improvements` and `govern budgets.lines 125 --file agents.md`
+name the
 table a project declares per role or per path. A limit this corpus already breaks is
 **refused**, not written, because one whose first act is a finding is one somebody lowers,
-reads the report and raises again. **`--because "…"` is where why this number and not the
+reads the report and raises again. **`govern <address> <n> --because "…"` is where why this
+number and not the
 next goes**: your sentence, wrapped into comments above the key and stacked on whatever
 argued it before, the same one twice being written once. The verb places the argument and
 never writes it (L4); the read hands back what stands above the key, so why a number is
-what it is costs a command and not a file to open. **`--instead "…"` is that same sentence
+what it is costs a command and not a file to open. **`govern <address> <n> --instead "…"` is
+that same sentence
 placed the other way**: stacking is right while each paragraph argues about the same
 question, and this one **replaces** the run where the reading it argued from has moved —
 reach for it when the argument above a key is for a premise something else falsified, which
