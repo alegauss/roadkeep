@@ -21,15 +21,15 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 💭 **RG16** (deps: RG3 ✅, RG14 ✅) **nothing shows more than one project, which is the single thing this app exists to do** — Seventeen governed checkouts on this machine are seventeen terminals today, and the count each one holds is unreachable from any one place. → §RG16
-- 💭 **RG17** (deps: RG7 ✅, RG8 ✅, RG16) **twenty projects are read one after another, so the first screen is a wait with nothing drawn on it** — A cold start is the only moment every project is read at once, and it is the moment with no cache to answer from. → §RG17
-- 💭 **RG18** (deps: RG16) **whether a project's gate passes is unknown until it is opened, so the list cannot say which one needs attention** — lint exits 1 on a file that drifted and that is the whole contract, but it is also the most expensive read to run seventeen times. → §RG18
-- 💭 **RG19** (deps: RG16) **what to work on is asked one repository at a time, so there is no answer that ranges over all of them** — pick applies three tiers inside one backlog and nothing composes those answers, so a person with seventeen chooses by memory. → §RG19
-- 💭 **RG20** (deps: RG16) **finding a line by its words means opening each project and reading its list in turn** — A symptom is the field a person remembers a task by, and it is searchable only inside the one backlog already on screen. → §RG20
+- 💭 **RG17** (deps: RG7 ✅, RG8 ✅, RG16 ✅) **twenty projects are read one after another, so the first screen is a wait with nothing drawn on it** — A cold start is the only moment every project is read at once, and it is the moment with no cache to answer from. → §RG17
+- 💭 **RG18** (deps: RG16 ✅) **whether a project's gate passes is unknown until it is opened, so the list cannot say which one needs attention** — lint exits 1 on a file that drifted and that is the whole contract, but it is also the most expensive read to run seventeen times. → §RG18
+- 💭 **RG19** (deps: RG16 ✅) **what to work on is asked one repository at a time, so there is no answer that ranges over all of them** — pick applies three tiers inside one backlog and nothing composes those answers, so a person with seventeen chooses by memory. → §RG19
+- 💭 **RG20** (deps: RG16 ✅) **finding a line by its words means opening each project and reading its list in turn** — A symptom is the field a person remembers a task by, and it is searchable only inside the one backlog already on screen. → §RG20
+- 📋 **RG73** (deps: RG16 ✅) **a row is built by four separate reads, so a project costs four interpreter starts to show once** — stats, pick, lint and engines are four calls per project, which is sixty-eight over seventeen and most of a cold start. → §RG73
 
 ## Block D — The project surface (one backlog, read)
 
-- 💭 **RG21** (deps: RG16) **opening a project shows counts and no lines, so the backlog it governs is still only in the file** — stats answers per block and per marker, which is a shape and not the work: the eight hundred lines under it are unreachable. → §RG21
+- 💭 **RG21** (deps: RG16 ✅) **opening a project shows counts and no lines, so the backlog it governs is still only in the file** — stats answers per block and per marker, which is a shape and not the work: the eight hundred lines under it are unreachable. → §RG21
 - 💭 **RG22** (deps: RG21) **a list of eight hundred lines has no filter, so a block or a marker is found by scrolling to it** — list takes block, marker, role and have as arguments already, and none of them is reachable from the surface showing the result. → §RG22
 - 💭 **RG23** (deps: RG21) **a task has no detail, so the why, the deps and the design are read in the file this app exists to replace** — brief joins the tier, the deps, the section, what a ship unblocks and the lists that bind it into one read, and nothing calls it. → §RG23
 - 💭 **RG24** (deps: RG23) **the rationale section is not shown, so the half of a task that explains it stays invisible** — The section is where a design lives until it ships and is deleted, and it is the half a reviewer needs before agreeing the line is right. → §RG24

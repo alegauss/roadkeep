@@ -214,15 +214,6 @@ it is cheaper to decide now than to notice from a screenshot.
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG16 The row, and what it is allowed to hold
-
-One row per project: its name, its path, the block and marker counts stats printed, the
-next ready line pick chose, whether the gate passes, and the engine that answered. Every
-one of those comes off a payload — nothing is computed across projects, since a total no
-single repository could reproduce is a number nobody can audit. Sorting and grouping are
-the view's, and are the only things here derived rather than read. A project still being
-read is a row in a pending state, never a row of zeroes.
-
 ### §RG17 The first screen, and what it costs
 
 A cold start is the only moment every project is read at once and the one with no cache
@@ -257,6 +248,26 @@ warm list and never re-reads a repository to answer. What it matches is the symp
 why and the id, which are the three things a person remembers a task by. A project not
 yet read is named as unsearched rather than silently excluded, since a search that
 quietly covers eleven of seventeen backlogs is one whose empty answer means nothing.
+
+### §RG73 Four reads to draw one row
+
+A filled row wants counts, the next line, the gate and the engine, and each is its own
+verb. Four interpreter starts per project is sixty-eight over seventeen, and at roughly
+360 ms each that is most of what a cold start costs — before RG17 has run any of them
+concurrently or RG18 has decided how often the gate is worth paying for.
+
+Three ways out, and they are not alternatives so much as an order. **Not every read is
+needed to draw a row**: counts and the engine are what a list is scanned for, and the
+gate and the next line can arrive after, which turns a cold start into one call per
+project and three later. **The reads are independent**, so within one project they can
+go out together, which is RG17's pool doing what it already does. And **the engine read
+is already done** by resolution, so asking again per row is a call this app makes twice
+for one answer.
+
+What would remove the problem rather than manage it is a verb that answers all four, and
+this app does not get to invent one — that is roadkeep's decision and a request rather
+than a task here. Worth writing down because the measurement belongs with it:
+sixty-eight calls is the number that makes the case, and nobody will have it later.
 
 ## Block D — The project surface (one backlog, read)
 

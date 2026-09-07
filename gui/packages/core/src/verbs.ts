@@ -56,6 +56,12 @@ export interface VerbInputs {
   commands: Record<string, never>
   /** What the project declares, including which files are governed. */
   config: Record<string, never>
+  /** What to work on next, and which of the three tiers answered. */
+  pick: {
+    block?: string
+    designed?: boolean
+    have?: readonly string[]
+  }
 }
 
 export type VerbName = keyof VerbInputs
@@ -95,6 +101,11 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
   explain: (input) => [input.code],
   commands: () => [],
   config: () => [],
+  pick: (input) => [
+    ...optional('--block', input.block),
+    ...(input.designed === true ? ['--designed'] : []),
+    ...repeated('--have', input.have),
+  ],
 }
 
 /**
@@ -116,4 +127,5 @@ export const EVERY_INPUT: { [K in VerbName]: VerbInputs[K] } = {
   explain: { code: 'symptom.too-long' },
   commands: {},
   config: {},
+  pick: { block: 'A', designed: true, have: ['signing-cert'] },
 }

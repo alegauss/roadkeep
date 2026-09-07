@@ -1,0 +1,120 @@
+import path from 'node:path'
+
+import {
+  createClient,
+  pendingRow,
+  readEnginesPayload,
+  readLintPayload,
+  readPayload,
+  readPickPayload,
+  readRow,
+  readStatsPayload,
+  tally,
+  type ProjectRow,
+  type RecordedProject,
+} from '@rk/core'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+
+import { buildFixture, type Fixture } from './fixture'
+import { createProcessTransport } from './process-transport'
+
+/**
+ * A portfolio of two real projects: this repository and a fixture built by the engine.
+ * Two is enough to make the point the whole block rests on — a screen over more than one
+ * backlog — and every number on both rows has to have come off a payload.
+ */
+const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
+const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
+const CEILING = 60000
+
+const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
+const client = createClient(engine)
+
+const recorded = (projectPath: string): RecordedProject => ({
+  path: projectPath,
+  aliases: [],
+  commonDir: null,
+  root: path.dirname(projectPath),
+  confirmed: '2026-09-01T10:00:00.000Z',
+  presence: 'present',
+})
+
+/** Read one project the way the portfolio would, and build its row. */
+async function rowFor(projectPath: string): Promise<ProjectRow> {
+  const [stats, pick, lint, engines] = await Promise.all([
+    client.call(projectPath, 'stats', {}, { timeoutMs: CEILING }),
+    client.call(projectPath, 'pick', {}, { timeoutMs: CEILING }),
+    client.call(projectPath, 'lint', {}, { timeoutMs: CEILING }),
+    client.call(projectPath, 'engines', {}, { timeoutMs: CEILING }),
+  ])
+
+  const where = { verb: 'portfolio', engineVersion: '' }
+  const statsRead = readPayload(readStatsPayload, stats.stdout, where)
+  const pickRead = readPayload(readPickPayload, pick.stdout, where)
+  const lintRead = readPayload(readLintPayload, lint.stdout, where)
+
+  expect(statsRead.ok && pickRead.ok && lintRead.ok).toBe(true)
+  if (!statsRead.ok || !pickRead.ok || !lintRead.ok) throw new Error('a payload did not read')
+
+  return readRow(recorded(projectPath), {
+    stats: statsRead.value,
+    pick: pickRead.value,
+    lint: lintRead.value,
+    engines: readEnginesPayload(engines.stdout),
+  })
+}
+
+let fixture: Fixture
+
+beforeAll(async () => {
+  fixture = await buildFixture(engine, { open: 3, shipped: 1, deferred: 1 })
+}, 180000)
+
+afterAll(() => {
+  fixture.dispose()
+})
+
+describe('RG16: rows over more than one project', () => {
+  it('builds a row per project, each from its own payloads', async () => {
+    const rows = [await rowFor(REPO), await rowFor(fixture.root)]
+
+    expect(rows.map((row) => row.state)).toEqual(['read', 'read'])
+    expect(rows[0]?.name).toBe(path.basename(REPO))
+
+    // Two projects, two counts, and they are different numbers off two backlogs.
+    expect(rows[0]?.counts?.total).toBeGreaterThan(0)
+    expect(rows[1]?.counts?.total).toBeGreaterThan(0)
+    expect(rows[0]?.counts?.total).not.toBe(rows[1]?.counts?.total)
+  })
+
+  it('carries a number no screen computed', async () => {
+    const row = await rowFor(fixture.root)
+    const stats = await client.call(fixture.root, 'stats', {}, { timeoutMs: CEILING })
+    const printed = JSON.parse(stats.stdout) as { total: number }
+
+    // The criterion, checked rather than asserted: the number on the row is the number
+    // the verb printed, not one derived from it.
+    expect(row.counts?.total).toBe(printed.total)
+  })
+
+  it('carries the gate and the engine that answered', async () => {
+    const row = await rowFor(fixture.root)
+
+    expect(typeof row.gate?.clean).toBe('boolean')
+    expect(row.engine?.version).toMatch(/^\d+\.\d+\.\d+/)
+    expect(row.engine?.verdict).not.toBe('')
+  })
+
+  it('carries the next line for a fixture that has one', async () => {
+    const row = await rowFor(fixture.root)
+
+    expect(row.next?.id).toMatch(/^FX\d+$/)
+    expect(row.next?.tier).not.toBe('')
+  })
+
+  it('counts rows and nothing else', async () => {
+    const rows = [await rowFor(REPO), pendingRow(recorded('/not/read/yet'))]
+
+    expect(tally(rows)).toEqual({ projects: 2, read: 1, pending: 1, unreadable: 0 })
+  })
+})

@@ -342,6 +342,49 @@ export const readLintPayload: Reader<LintPayload> = record<LintPayload>({
   notes: orMissing(listOf(readFinding), []),
 })
 
+/** The line `pick` chose, or null where the backlog has nothing to offer. */
+export interface PickedLine {
+  readonly id: string
+  readonly block: string
+  readonly status: string
+  readonly symptom: string
+  readonly ref: string | null
+}
+
+export interface PickPayload {
+  readonly pick: PickedLine | null
+  /** Which of the three tiers answered: in progress, the priority queue, or lowest ready id. */
+  readonly tier: string
+  /** Why this line and not another, in the engine's own words. */
+  readonly reason: string
+  readonly ready: number
+  readonly blocked: number
+  /** Blocked on something outside this backlog, which shipping here can never unblock. */
+  readonly outside: number
+  readonly paused: number
+}
+
+export const readPickPayload: Reader<PickPayload> = record<PickPayload>({
+  pick: orMissing(
+    orNull(
+      record<PickedLine>({
+        id: aString,
+        block: orMissing(aString, ''),
+        status: orMissing(aString, ''),
+        symptom: orMissing(aString, ''),
+        ref: orMissing(orNull(aString), null),
+      }),
+    ),
+    null,
+  ),
+  tier: orMissing(aString, ''),
+  reason: orMissing(aString, ''),
+  ready: orMissing(aNumber, 0),
+  blocked: orMissing(aNumber, 0),
+  outside: orMissing(aNumber, 0),
+  paused: orMissing(aNumber, 0),
+})
+
 export interface ConfigKey {
   /** The table it sits under, empty for a top-level key. `files` is the one this app reads. */
   readonly table: string

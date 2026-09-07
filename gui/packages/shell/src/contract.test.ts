@@ -17,6 +17,7 @@ import {
   readListPayload,
   readLintPayload,
   readPayload,
+  readPickPayload,
   readShowPayload,
   readStatsPayload,
   resolveEngine,
@@ -104,7 +105,18 @@ describe('RG4: every read this client makes, against a live engine', () => {
     // without a case here is the hole RG66 exists to close structurally; until then this
     // is what notices.
     expect(Object.keys(VERBS).sort()).toEqual(
-      ['brief', 'commands', 'config', 'engines', 'explain', 'lint', 'list', 'show', 'stats'].sort(),
+      [
+        'brief',
+        'commands',
+        'config',
+        'engines',
+        'explain',
+        'lint',
+        'list',
+        'pick',
+        'show',
+        'stats',
+      ].sort(),
     )
   })
 
@@ -180,6 +192,24 @@ describe('RG4: every read this client makes, against a live engine', () => {
     // The elision counts are read whether or not this fixture elides anything: a client
     // that never looked would draw a sample as though it were the set.
     expect(narrowingOfBrief(payload)).toHaveProperty('complete')
+  })
+
+  it('reads what to work on next, and which tier answered', async () => {
+    const payload = await readVerb('pick', {}, readPickPayload)
+
+    expect(payload.tier).not.toBe('')
+    expect(payload.reason).not.toBe('')
+    expect(typeof payload.ready).toBe('number')
+    // The fixture has open lines, so there is something to pick.
+    expect(payload.pick?.id).toMatch(/^FX\d+$/)
+  })
+
+  it('reads a backlog with nothing to pick as a null rather than a refusal', async () => {
+    // Scoped to a block the fixture declares and has no open line in. `pick` answering
+    // "nothing" is an answer, and a row drawing it as an error would be wrong.
+    const payload = await readVerb('pick', { block: 'B', designed: true }, readPickPayload)
+
+    expect(payload).toHaveProperty('pick')
   })
 
   it('reads the gate, whose non-zero exit is an answer', async () => {

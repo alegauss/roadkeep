@@ -39,6 +39,17 @@ export { attemptRead, DEFAULT_LIMITS, withLimits } from './limits'
 export type { ProjectRead, ReadLimits, Unreadable } from './limits'
 export { createPooledTransport } from './pool'
 export type { PoolOptions } from './pool'
+export { folderName, pendingRow, readRow, tally, unreadableRow } from './portfolio'
+export type {
+  PortfolioTally,
+  ProjectRow,
+  RowCounts,
+  RowEngine,
+  RowGate,
+  RowNext,
+  RowReads,
+  RowState,
+} from './portfolio'
 export {
   addRoot,
   checkRoot,
@@ -73,6 +84,7 @@ export {
   readConfigPayload,
   readListPayload,
   readLintPayload,
+  readPickPayload,
   readSection,
   readShowPayload,
   readStatsPayload,
@@ -89,6 +101,8 @@ export type {
   LintFinding,
   LintPayload,
   Narrowing,
+  PickedLine,
+  PickPayload,
   RationaleSection,
   ShowPayload,
   Standing,

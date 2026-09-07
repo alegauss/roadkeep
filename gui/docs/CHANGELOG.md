@@ -21,6 +21,8 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
+- ✅ **RG16** **nothing shows more than one project, which is the single thing this app exists to do** — One row per project holding only numbers a verb printed, pending until read, and nothing added up across them (design recorded in `packages/core/src/portfolio.ts`).
+
 ## Block D — The project surface (one backlog, read)
 
 ## Block E — The write path (the app composes an argv; the command writes)
