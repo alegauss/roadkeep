@@ -351,26 +351,6 @@ reachable is a null.
 
 ## Block D — The gate
 
-### §RK1590 The prefix that says a span is a door
-
-Measured while running the merge row (RK1589): `install --register-merge` was backticked
-with no invocation in front of it, in a sentence whose sibling door carried one.
-`commands` skips a span that does not begin with the invocation, so the door was not
-counted as unreached — it was not counted at all.
-
-An AST walk over the package, docstrings excluded, finds ninety such spans across
-nineteen files. Most are prose — `install --vendor` being named as a flag, `ship
---decides` as a family — and some are doors. Nothing distinguishes them, which is the
-whole finding: the sweep's population is whatever authors happened to prefix, and a door
-that forgets is invisible rather than red.
-
-Two ways out, and the choice is the work. A gate rule that every backticked span leading
-with a verb carries the invocation would make the ninety a list to walk and would refuse
-prose that legitimately names a flag. A narrower one — only spans in a string that
-reaches a printed message — needs a way to tell those from the rest, which is the same
-static question one layer in. What is not open to question is that a scan reading the
-prefix cannot decide which spans it was meant to read.
-
 ### §RK1591 The step before the command
 
 `export.unmarked` fires where a file carries a begin marker and no end. Its remedy is

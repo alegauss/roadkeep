@@ -763,6 +763,7 @@
 - ✅ **RK1583** **a deferral says nothing about the limit its reason was measured against, only govern does** — A pause reports what the rendered line came to against the limit that bound it, closing at the accepting end the sentence govern limits.why opens at the choosing one.
 - ✅ **RK1585** **prose beside a total table is taken for the table, and one check reads one phrase in one comment** — The prose beside a table is a declared population with a holder each, the extraction shared and the claim per table: two are decidable here and two already have closures of their own.
 - ✅ **RK1588** **a withholding reason quoted a total that was stale within the session that read it, and no sweep says how many are** — Two withholding reasons quoted figures that had gone stale and now name the reads that take them, and a sweep over that closed set refuses a measured number where an address belongs.
+- ✅ **RK1590** **ninety backticked spans outside a docstring name a verb with no invocation, so nothing can tell a door from prose** — A message that spells one door with the invocation and another verb without it is now red: the pair is the tell, so prose naming a flag family stays legal.
 
 ## Block E — Adoption
 

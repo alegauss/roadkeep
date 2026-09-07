@@ -785,3 +785,35 @@ def loose(said: str) -> list[str]:
                 found.append(flat)
                 break
     return found
+
+
+def inconsistent(said: str) -> list[str]:
+    """The verb-leading spans of one message that a **sibling door** says should be doors.
+
+    RK1590's answer, and the one the design's two options each ruled out. A gate rule that
+    every backticked verb carries the invocation refuses prose that legitimately names a flag —
+    421 spans in this package do; a rule over "spans that reach a printed message" needs a
+    static reading of which strings those are, and 126 of them are inside a composer already.
+    Neither decides which spans were *meant* to be doors, which is what a scan cannot know.
+
+    This does not try. It reads the one tell RK1589 actually had: `install --register-merge`
+    was bare **in a sentence whose sibling door carried the invocation**. Within one message,
+    a span that runs and a span that names a verb are told apart by the author already — so
+    what is checkable is that they agree, and a message naming verbs throughout is left alone.
+
+    A door is the invocation **plus a verb**, which is `commands`' own boundary: a bare
+    `` `roadkeep` `` is the tool's name being discussed, and three messages in `installing`
+    pair one with the word `install` in prose. Counting those would make the rule fire on the
+    sentences it exists to permit.
+    """
+    verbs = _verbs()
+    prefix = invocation()
+    spans = [" ".join(one.split()) for one in _SPAN.findall(said)]
+    doors = [
+        one
+        for one in spans
+        if one.split()[:1] == [prefix] and one.split()[1:2] and one.split()[1] in verbs
+    ]
+    if not doors:
+        return []
+    return [one for one in spans if one.split()[:1] and one.split()[0] in verbs]

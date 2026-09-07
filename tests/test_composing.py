@@ -31,6 +31,7 @@ from composing import (
     commanded,
     commands,
     filled,
+    inconsistent,
     loose,
     runs,
     spoken,
@@ -1654,6 +1655,53 @@ def test_a_door_spelled_without_the_invocation_is_still_read():
     ]
     # A word that is not a verb of this CLI is prose, whichever way it is delimited.
     assert not loose("`shuffle the deck --to <a new place>`")
+
+
+# -- the prefix that says a span is a door (RK1590) ----------------------------
+
+
+def test_no_message_pairs_a_door_with_a_verb_spelled_bare():
+    """RK1590. `commands` skips a span that does not open with the invocation, so a door
+    spelled without one is not counted as unreached — it is not counted at all. RK1589 met
+    that: `install --register-merge` bare, in a sentence whose sibling door carried the prefix.
+
+    **The population cannot be read off the prefix**, which is the finding. 421 backticked
+    spans in this package lead with a verb and carry none, and most are prose — `install
+    --vendor` named as a flag, `ship --decides` as a family. Narrowing to spans inside a
+    function that calls `invocation()` leaves 126, which is no better: a composer's message
+    names verbs in prose too.
+
+    So this reads the one tell the defect actually had. Within **one message**, a span that
+    runs and a span that names a verb are already told apart by whoever wrote it — what is
+    checkable is that they agree. A message naming verbs throughout is left alone, which is
+    the prose the two rules the design weighed would each have refused.
+
+    Empty today, and that is the answer rather than the absence of one: RK1589 fixed the
+    instance, and what this buys is that the next one is red instead of invisible."""
+    found = [
+        f"{module.where}:{lineno}: {said}"
+        for module in modules()
+        for lineno, text in spoken(module)
+        for said in inconsistent(text)
+    ]
+    assert not found, (
+        "a message spells one door with the invocation and another verb without it — the "
+        f"second is a door nothing runs, or prose the first makes ambiguous: {found}"
+    )
+
+
+def test_the_reading_is_of_a_pair_and_not_of_a_prefix():
+    """The line RK1590 draws, at the three shapes this package actually holds."""
+    # A door beside a bare verb: the defect, and the only thing that fires.
+    assert inconsistent("take `roadkeep add --block A` then `install --register-merge`") == [
+        "install --register-merge"
+    ]
+    # Prose naming a flag family, with no door beside it — 421 spans of this and none wrong.
+    assert not inconsistent("`install --vendor` moves the engine forward")
+    # And the bare invocation is the tool's **name**, not a door: three messages in
+    # `installing` pair one with the word `install`, and counting them would fire on the
+    # sentences the rule exists to permit.
+    assert not inconsistent("a copy carrying `roadkeep` where `install` wired a checkout")
 
 
 # -- the shell the composer assumed (RK1580) -----------------------------------
