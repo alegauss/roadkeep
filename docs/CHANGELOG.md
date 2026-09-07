@@ -760,6 +760,7 @@
 - 🗑 **RK1578** **a row's stated fixture is a guess nothing checks, and the first two taken overstated it** — abandoned: No row states a fixture now RK1599 has emptied the work-list, so no guess is left to check and a sentence on all seventy-eight run rows would restate the comments above them.
 - ✅ **RK1580** **the capture's filing door is POSIX-quoted on a platform whose shell is not, and nothing has run it there** — Every composed door is quoted with a double quote, which cmd, PowerShell and a POSIX shell all read as one token: the line report prints was measured broken in cmd and now runs in all three.
 - ✅ **RK1582** **the rows an add volunteers are prose on every write and no cadence counts them** — The rows an add volunteers are priced per write off the composer they moved out of Insertion.stated into, bounded by ranking.VOLUNTEERED and withheld from the served surface as its two siblings are.
+- ✅ **RK1583** **a deferral says nothing about the limit its reason was measured against, only govern does** — A pause reports what the rendered line came to against the limit that bound it, closing at the accepting end the sentence govern limits.why opens at the choosing one.
 
 ## Block E — Adoption
 

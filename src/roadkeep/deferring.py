@@ -291,11 +291,27 @@ class Pause:
             _staging_rows,
         )
 
+        from roadkeep.kernel.schema import width  # noqa: PLC0415 - RK260
+
         roadmap = config.relative(config.path("roadmap"))
         store = config.relative(config.path("deferred"))
+        schema = config.schema_for("deferred")
         rows = [
             f"{self.task_id} {self.marker} {store}:{self.store.lineno} under Block {self.block}",
             f"  removed  {roadmap}:{self.removed_from}",
+            # The other end of RK1537's sentence (RK1583). `govern limits.why` says a pause is
+            # not held to that key; the write that accepts the reason said nothing about what
+            # *did* bound it, so a caller who declared the number and then paused a line
+            # learned the answer by inference.
+            #
+            # The figure and never the rule. A clause explaining the arrangement on every
+            # pause is the note a reader stops seeing (RK1443), and the explanation is already
+            # at `govern`, where the number is chosen — this is the measurement, which is the
+            # half that was missing. `add`'s `weighs` row one door over, in its own shape.
+            # `line` is the label `budget --defer` prices this under, so the prediction and the
+            # measurement are one word: a reader who ran that read meets the same subject here.
+            f"  line     {width(schema.render(self.store.entry.task))} of {schema.line_max}"
+            f"  the rendered line, which is what bounds a pause's reason",
         ]
         if self.carried is not None:
             # Named, because every other door that moves a line deletes this section: silence
@@ -314,11 +330,13 @@ class Pause:
 
     def payload(self, config: Config, wrote: Sequence[Path]) -> dict[str, object]:
         """The same answer as data, with the design this did not delete (RK229)."""
+        from roadkeep.kernel.schema import width  # noqa: PLC0415 - RK260
         from roadkeep.rendering import (  # noqa: PLC0415 - RK260
             _carried_json,
             _wrote_json,
         )
 
+        schema = config.schema_for("deferred")
         return {
             "id": self.task_id,
             "marker": self.marker,
@@ -326,6 +344,12 @@ class Pause:
                 "file": config.relative(config.path("deferred")),
                 "line": self.store.lineno,
                 "rendered": self.store.rendered,
+                # What the reason was measured against, beside the line it was written into
+                # (RK1583). A consumer holding the rendered text can count it; what it cannot
+                # derive is *which* ceiling applied, `[limits] why` being the one a pause is
+                # not held to — so the number that did bind is published rather than implied.
+                "characters": width(schema.render(self.store.entry.task)),
+                "limit": schema.line_max,
             },
             "roadmap": {
                 "file": config.relative(config.path("roadmap")),

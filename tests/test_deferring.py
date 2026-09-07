@@ -53,6 +53,7 @@ from roadkeep.kernel.schema import (
     Schema,
     SchemaError,
     Task,
+    width,
 )
 from roadkeep.shipping import AlreadyRecorded
 
@@ -546,6 +547,42 @@ def test_defer_reports_every_edit_and_resume_reports_the_reason(tmp_path, capsys
     assert "carried  §RK1 kept in IMPROVEMENTS.md" in out
     assert main(["-C", tmp, "resume", "RK1"]) == EXIT_OK
     assert "was      set aside: it waits on a decision" in capsys.readouterr().out
+
+
+def test_the_pause_says_what_bound_the_reason_it_accepted(tmp_path, capsys):
+    """RK1583, the other end of RK1537's sentence. `govern limits.why` says a pause is **not**
+    held to that key; the write that accepts the reason said nothing about what did bound it,
+    so a caller who declared the number and then paused a line learned the answer by inference.
+
+    The figure and never the rule: the explanation is at `govern`, where the number is chosen,
+    and a clause repeating it on every pause is the note a reader stops seeing (RK1443)."""
+    tmp = str(tmp_path)
+    config = project(tmp_path)
+    assert main(["-C", tmp, "defer", "RK1", "--reason", "it waits on a decision"]) == EXIT_OK
+    said = capsys.readouterr().out
+
+    schema = config.schema_for("deferred")
+    ((row,)) = [one for one in said.splitlines() if one.strip().startswith("line ")]
+    # The limit that actually applied, which is the line's and not `[limits] why`.
+    assert f"of {schema.line_max}" in row, row
+    assert "what bounds a pause's reason" in row
+    # At the one indent every other row of this answer uses (RK1372, RK1376).
+    assert row.startswith("  line     "), row
+
+
+def test_the_payload_publishes_the_ceiling_the_text_cannot_imply(tmp_path, capsys):
+    """A consumer holding `rendered` can count it; what it cannot derive is **which** ceiling
+    applied, `[limits] why` being the one a pause is not held to (RK1583)."""
+    tmp = str(tmp_path)
+    config = project(tmp_path)
+    assert main(["-C", tmp, "defer", "RK1", "--reason", "it waits", "--json"]) == EXIT_OK
+    found = json.loads(capsys.readouterr().out)["deferred"]
+
+    schema = config.schema_for("deferred")
+    assert found["limit"] == schema.line_max
+    # And the figure is of the line the store now holds, not of the reason inside it.
+    assert found["characters"] == width(found["rendered"])
+    assert found["characters"] < found["limit"]
 
 
 def test_a_refused_pause_exits_two_and_writes_nothing(tmp_path, capsys):
