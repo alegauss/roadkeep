@@ -237,15 +237,6 @@ sixty-eight calls is the number that makes the case, and nobody will have it lat
 
 ## Block D — The project surface (one backlog, read)
 
-### §RG22 Filters that are arguments, not predicates
-
-Every filter on this screen is an argument the list verb already takes: the block, the
-marker, the role, and the requirement a caller says it has. Choosing one re-runs the
-read rather than filtering an array, so the answer is the tool's answer and a narrowing
-this app invented can never disagree with one it did not. The cost is a call per change,
-which is what the cache is for. What stays in the client is only text search, which no
-argument covers.
-
 ### §RG23 One read, and the whole cost of starting
 
 The detail is the brief payload and nothing beside it. That one read carries the line,

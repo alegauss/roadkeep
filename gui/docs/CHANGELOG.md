@@ -30,6 +30,7 @@
 ## Block D — The project surface (one backlog, read)
 
 - ✅ **RG21** **opening a project shows counts and no lines, so the backlog it governs is still only in the file** — A project opens into its blocks in heading order, with the lines the grammar refused drawn beside the ones it accepted (design recorded in `packages/core/src/backlog.ts`).
+- ✅ **RG22** **a list of eight hundred lines has no filter, so a block or a marker is found by scrolling to it** — Every filter is an argument the read already takes, so a narrowed list is the command's own answer and the choices are read from the project (design recorded in `packages/core/src/filters.ts`).
 
 ## Block E — The write path (the app composes an argv; the command writes)
 

@@ -39,6 +39,16 @@ export { candidateBoard, inTier } from './candidates'
 export type { Candidate, CandidateBoard } from './candidates'
 export { createCachingTransport } from './cache'
 export type { CachingOptions, CachingTransport } from './cache'
+export {
+  describeFilter,
+  filterAsInput,
+  filterChoices,
+  FILTER_FIELDS,
+  isNarrowed,
+  NO_FILTER,
+  withField,
+} from './filters'
+export type { BacklogFilter, FilterChoices } from './filters'
 export { groupProjects, isFamily } from './families'
 export {
   createGateLedger,

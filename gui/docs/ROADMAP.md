@@ -25,7 +25,6 @@
 
 ## Block D — The project surface (one backlog, read)
 
-- 💭 **RG22** (deps: RG21 ✅) **a list of eight hundred lines has no filter, so a block or a marker is found by scrolling to it** — list takes block, marker, role and have as arguments already, and none of them is reachable from the surface showing the result. → §RG22
 - 💭 **RG23** (deps: RG21 ✅) **a task has no detail, so the why, the deps and the design are read in the file this app exists to replace** — brief joins the tier, the deps, the section, what a ship unblocks and the lists that bind it into one read, and nothing calls it. → §RG23
 - 💭 **RG24** (deps: RG23) **the rationale section is not shown, so the half of a task that explains it stays invisible** — The section is where a design lives until it ships and is deleted, and it is the half a reviewer needs before agreeing the line is right. → §RG24
 - 💭 **RG25** (deps: RG23) **deps and what a ship unblocks are a list of ids, so following a chain means reading ids one at a time** — deps resolves blockers, chains and the transitive set already, and a list of bare ids throws away every relation it computed. → §RG25
