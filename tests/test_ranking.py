@@ -618,6 +618,59 @@ def test_the_open_half_takes_a_share_and_never_the_window(corpus):
     }
 
 
+def test_the_rows_an_add_shows_are_not_the_rows_the_named_read_would(tmp_path):
+    """RK1567. The `near` rows were described in two places as `delivered --near`
+    volunteered, and RK1495 widened the corpus under that sentence: `add` ranks the block's
+    deliveries **and** its open lines, `delivered` ranks the ledger by its own subject. So a
+    caller running the read the description named got a different answer from the one shown.
+
+    Measured over every open line here, standing in for the `add` that filed it: the two
+    reads differ on **half** the queries, and on 15 of those 18 a shown row is one
+    `delivered --near` cannot reach at its own wider window — because it is an open line, and
+    no width reaches a corpus a verb does not rank. Shio measures the same, 10 of 20 and 8.
+
+    Which is what settles the three ways §RK1567 named: this is not a wording that agrees
+    with the read nearly always, so the row keeps `delivered`'s two **phrases** (RK1375) and
+    stops claiming to be its rows. The door for each half is already printed (RK1528)."""
+    config = Config.discover(HERE)
+    ledger, roadmap = config.document("changelog"), config.document("roadmap")
+    differ = unreachable = total = 0
+    for asking in roadmap.entries:
+        block = asking.task.block
+        delivered = [one for one in ledger.entries if one.task.block == block]
+        others = [
+            one
+            for one in roadmap.entries
+            if one.task.block == block and one.task.id != asking.task.id
+        ]
+        both = [*delivered, *others]
+        if not (both and delivered):
+            continue
+        query = claim(asking.task.symptom, asking.task.why)
+
+        def ranked(corpus, count, query=query):
+            return [
+                corpus[index].task.id
+                for index in nearest(
+                    query, [claim(one.task.symptom, one.task.why) for one in corpus], count
+                )
+            ]
+
+        total += 1
+        shown = ranked(both, VOLUNTEERED)
+        if shown == ranked(delivered, VOLUNTEERED):
+            continue
+        differ += 1
+        # The half that makes this a description defect rather than a difference of window:
+        # a row the named read cannot produce however wide it is asked to be.
+        unreachable += any(one not in ranked(delivered, NEAREST) for one in shown)
+    assert total >= 20, "the backlog this is measured over lost its open lines"
+    # A floor and not the figure: what may not happen is this becoming a claim that the two
+    # reads agree, which is the sentence RK1567 removed.
+    assert differ * 4 >= total, {"differ": differ, "of": total}
+    assert unreachable * 2 >= differ, {"unreachable at any width": unreachable, "differ": differ}
+
+
 @pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda one: one.name)
 def test_widening_the_window_gives_the_open_half_more_and_not_less(corpus):
     """The other direction, and the one that decides whether three is too narrow *for the

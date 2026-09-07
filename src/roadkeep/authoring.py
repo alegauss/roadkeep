@@ -368,15 +368,21 @@ class Insertion:
     #: the save's own return, and empty on an insertion nothing has written yet. This is the
     #: list a `git add --` takes, which is the one thing the report could not say.
     wrote: tuple[Path, ...] = ()
-    #: The delivered entries of this block that share a word with the symptom just filed,
-    #: nearest first (RK1370). `delivered --near` is the read the skill puts before every
-    #: proposal and it has to be *remembered*: this session filed a task whose remedy the code
+    #: The entries of this block nearest the symptom just filed, nearest first (RK1370). The
+    #: pre-proposal read has to be *remembered*: this session filed a task whose remedy the code
     #: already had, and the ranking that would have named it was one call away inside this same
     #: transaction. Volunteered here because this is the moment nothing is spent but an id —
     #: `restate` and `retire` are one call away, and the design is not written yet.
     #:
-    #: An order and never a verdict (RK441), and the same rows `delivered --near` prints:
-    #: filtering the far ones out would be that impossible gate rebuilt as a silence, which
+    #: **Not `delivered --near` volunteered, which is what this said until RK1567.** RK1495
+    #: widened this corpus to the block's open lines and left the description behind, and the
+    #: two reads are not close: half the insertions measured here and on Shio show a row
+    #: `delivered` cannot reach at any window, that verb ranking the ledger by its own subject.
+    #: What the row prints is a door for each half (RK1528), which is the honest version of
+    #: RK442's guarantee once there are two.
+    #:
+    #: An order and never a verdict (RK441): filtering the far ones out would be that
+    #: impossible gate rebuilt as a silence, which
     #: :data:`~roadkeep.ranking.VOLUNTEERED` carries the measurement for.
     near: tuple[Entry, ...] = ()
     #: What that block holds, beside what the rows above show (RK1374). `Delivered.recorded`'s
@@ -556,9 +562,11 @@ class Insertion:
             # because a reader taking #1 for a verdict is RK441's own finding.
             # The count of what is shown against the count of what is there, and the command
             # that shows the rest (RK442, RK1374) — in `delivered --near`'s own two phrases,
-            # because this is that read volunteered and a second wording for one fact is what
-            # RK1375 is about. The block's own listing and never a `--near` rendered with the
-            # symptom in it, which is the second grammar RK313 declined.
+            # a second wording for one fact being what RK1375 is about. The **phrases** and
+            # not the read (RK1567): that verb ranks the ledger alone, so borrowing its
+            # sentence is right and calling these its rows was not. The block's own listing
+            # and never a `--near` rendered with the symptom in it, which is the second
+            # grammar RK313 declined.
             # The **open** lines beside the delivered since RK1495, counted apart and named
             # apart: two callers filing one defect within the hour could not see each other,
             # which is precisely when a duplicate is cheapest to catch. Each row already

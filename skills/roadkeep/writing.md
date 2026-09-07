@@ -297,13 +297,15 @@ discovering the collision after a claim, a brief and a retirement. **`delivered 
 (103 lines and 9,773 bytes here). Reach for it by default: measured on the eleven pairs
 this ledger knows the answer to, the true partner is inside those five for nine, worst
 rank three — the entries are ranked on **both** their prose fields, the `why` being where
-two authors of one defect agree. The order is the answer and no score is printed. **And the `add` hands
-that read back whether or not you made it**: every insertion names the three entries of its
-block nearest the symptom it just filed, because that is the moment nothing is spent but an
-id and `restate` and `retire` are one call away. Same order, same silence about scores, and
-never a refusal — it is the read volunteered, not the gate the measurement rules out. Three
-of however many the block holds, and the row says which of how many and names this command
-for the rest, so the volunteered half is bounded out loud rather than read as the whole. A letter nothing
+two authors of one defect agree. The order is the answer and no score is printed. **And the `add` volunteers a
+wider read whether or not you made this one**: every insertion names the three lines of its
+block nearest the symptom it just filed — its deliveries **and** its open lines, which is
+where the other session filing your defect this morning is, and which `delivered` never
+ranks, that verb's subject being the ledger. Half the insertions measured here and on a
+second backlog show a row `--near` cannot reach at any width. Same order, same silence about
+scores, and never a refusal — a read volunteered, not the gate the measurement rules out.
+Three of however many the block holds, and the row says which of how many and names a
+command per half, so the volunteered rows are bounded out loud rather than read as the whole. A letter nothing
 declares is **refused** rather than answered `nothing`, that answer being read as
 evidence, and where the block exists
 the reply says which of live, paused, finished or empty it is. **`reversals` is how you
