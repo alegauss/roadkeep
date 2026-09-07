@@ -221,6 +221,31 @@ what there is.
 
 On ship: `--recorded-in packages/core/src/limits.ts`.
 
+### §RG81 One way to spell a command line
+
+`buildArgv` and `composeWrite` both build `['-C', root, ...verb.split(' '), ...args,
+'--json']`, and three non-obvious rules now live in two places. `-C` is passed even
+though the transport also sets the working directory, deliberately and for a reason
+written down at one of the two sites. `--json` is appended by the composer rather than
+declared per verb. A verb name is split on spaces because `non-goal list` is two words
+while the table key stays whole, which is what `commands` publishes and what the
+capability check matches.
+
+They have already diverged. A read carries a `signal` through `CallOptions` and a write
+takes only `timeoutMs` — that one is deliberate, since a write aborted mid-call leaves
+the caller unable to say whether it landed, which is exactly the state `unreadable`
+exists to name. But it is deliberate nowhere in writing: the asymmetry reads as an
+oversight, and the next person to notice it will either document it again or remove it.
+
+The fix is small and worth doing before the write table grows. One composer takes a
+root, a verb name and the arguments a builder produced, and both paths call it; the read
+and write tables stay separate, because that separation is about which doors may be
+offered and not about how a command line is spelled. The signal's absence becomes a
+sentence in the write path saying why, rather than a difference a reader has to
+interpret.
+
+On ship: `--recorded-in packages/core/src/client.ts`.
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ### §RG13 The cheap no
