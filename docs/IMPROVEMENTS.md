@@ -261,29 +261,6 @@ still say how many lines it cannot speak for.
 
 ## Block D — The gate
 
-### §RK1571 The five fixtures behind fifteen rows
-
-Writing thirty-one states in one sitting made the next fact visible: they cluster. Three
-rows want a checkout of this tool beside the project, four want a `ship --part` against
-an id the ledger already holds, three want `declare` on a project missing a role, three
-want a git history with a retired address in it, and two want a stored capture. Fifteen
-of the thirty-one, five fixtures.
-
-The table cannot say so. Each row names its own state, which is what RK1532 bought, and
-a picker still reads thirty-one items rather than five families and a tail — the
-difference between *this costs two lines* and *these four cost two lines between them*,
-and the second decides where somebody starts.
-
-A field would do it, on `Site` beside `state`: the fixture a row waits on, empty where
-it waits on nothing anybody else does. Derived is unavailable — two rows wanting "a git
-history" is a judgement about what a fixture would be, not a fact the source states — so
-it is a declaration, held the way the states now are.
-
-What it must not become is a taxonomy. Five names invented for five families is a second
-vocabulary to keep true, and the honest form is the name of the **fixture that would
-build it**: `test_installing`'s `source`, `test_pairs`' `_origin`. A row pointing at a
-fixture that exists says how far the work is in the one unit that is not a guess.
-
 ### §RK1574 The rate two families measured
 
 RK1572's family and this one are two of five, and both went the same way: the fixture
