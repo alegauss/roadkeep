@@ -2,15 +2,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG8 The ceiling on a read
-
-Every call carries a deadline and an abort signal, and a portfolio read runs through a
-pool of fixed width so a hundred candidates never become a hundred processes. A read
-that times out becomes a state on that project — unreadable, with the elapsed time and
-the argv — never a spinner that resolves for nobody. The width and the deadline are
-settings, because a slow disk and a fast one are different machines and this is the one
-number a person may have to raise.
-
 ### §RG9 Getting a person's words in unchanged
 
 Prose fields go in on stdin wherever the verb offers it: the why, a section body and
@@ -156,29 +147,6 @@ command line as an array. `commands` is then looked up by joining them, and `bui
 spreads them. What it must not become is a string split on spaces, because the point of
 argv being an array is that nothing in this app ever splits a command line into
 arguments.
-
-### §RG70 The reads that are not repeats
-
-The cache answers the second read of a project and does nothing for the first. Opening a
-portfolio is twenty first reads, and today they would run one after another because
-nothing in the call path starts a second before the first returns: twenty interpreter
-starts at roughly 360 ms is seven seconds of blank screen, and it grows with the number
-of projects rather than with anything a person did.
-
-They are independent, so the answer is to run several at once with a ceiling on how many
-— enough to use the machine, few enough that a laptop with four cores is not running
-twenty Pythons. The ceiling belongs beside the transport rather than at each call site,
-so a screen asking for twenty reads gets a queue rather than twenty processes.
-
-Two things it must not lose. Cancellation already exists per call and has to survive the
-queue, because a screen that redraws while a fan-out is in flight should abandon what it
-no longer needs rather than wait for it. And a project whose engine hangs must not hold
-the slot for the rest — which is RG8's ceiling, and the reason these two are worth doing
-near each other.
-
-What this is not is a worker pool for the engine. Each call is still one process, still
-spawned with no shell, still bounded. The only thing that changes is how many are
-allowed to be in flight.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

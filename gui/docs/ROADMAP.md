@@ -4,7 +4,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-- 💭 **RG8** (deps: RG1 ✅) **a read has no ceiling, so one project whose engine hangs stops the screen that was drawing it** — A subprocess that never exits holds a slot forever, and a portfolio read fans out far enough that one of them eventually will. → §RG8
 - 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
 - 📋 **RG64** (deps: RG1 ✅) **the fast suite and the one that spawns a real engine are one command, so every run pays for both** — Four live calls took the suite from one second to six, and RG4 adds a payload assertion per verb against the same engine. → §RG64
 - 📋 **RG65** (deps: RG2 ✅) **resolving an engine costs two interpreter starts on Windows, where the same file is spelled two ways** — invoke reports a posix path and the candidate holds a native one, so the verification call fires every time rather than only on a real difference. → §RG65
@@ -12,7 +11,6 @@
 - 📋 **RG67** (deps: RG3 ✅) **a project declaring a read bound answers in a shape nothing here has ever seen, and the reader refuses it** — A listing past the bound comes back as blocks and counts instead of tasks, and this repo declares none so the shape could not be written from a real payload. → §RG67
 - 📋 **RG68** (deps: RG4 ✅) **the contract costs a minute of process starts, because every read rebuilds nothing but pays a fresh engine** — Building the fixture is fifteen write calls and each read is another, so the suite went from four seconds to twenty-eight. → §RG68
 - 📋 **RG69** (deps: RG6 ✅) **a subcommand is a verb with a space in it, and the verb table has no way to spell one** — commands publishes section show, capture filed and capture sweep as single names, and every write this app will need is under section, block or criterion. → §RG69
-- 📋 **RG70** (deps: RG7 ✅) **twenty projects stamped and read in turn wait on each other, because nothing runs two calls at once** — The cache removes repeats and not the first read of each project, and a portfolio opens by paying every one of them in sequence. → §RG70
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
@@ -26,7 +24,7 @@
 ## Block C — The portfolio (many backlogs in one view)
 
 - 💭 **RG16** (deps: RG3 ✅, RG14) **nothing shows more than one project, which is the single thing this app exists to do** — Seventeen governed checkouts on this machine are seventeen terminals today, and the count each one holds is unreachable from any one place. → §RG16
-- 💭 **RG17** (deps: RG7 ✅, RG8, RG16) **twenty projects are read one after another, so the first screen is a wait with nothing drawn on it** — A cold start is the only moment every project is read at once, and it is the moment with no cache to answer from. → §RG17
+- 💭 **RG17** (deps: RG7 ✅, RG8 ✅, RG16) **twenty projects are read one after another, so the first screen is a wait with nothing drawn on it** — A cold start is the only moment every project is read at once, and it is the moment with no cache to answer from. → §RG17
 - 💭 **RG18** (deps: RG16) **whether a project's gate passes is unknown until it is opened, so the list cannot say which one needs attention** — lint exits 1 on a file that drifted and that is the whole contract, but it is also the most expensive read to run seventeen times. → §RG18
 - 💭 **RG19** (deps: RG16) **what to work on is asked one repository at a time, so there is no answer that ranges over all of them** — pick applies three tiers inside one backlog and nothing composes those answers, so a person with seventeen chooses by memory. → §RG19
 - 💭 **RG20** (deps: RG16) **finding a line by its words means opening each project and reading its list in turn** — A symptom is the field a person remembers a task by, and it is searchable only inside the one backlog already on screen. → §RG20
