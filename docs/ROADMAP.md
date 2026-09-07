@@ -62,6 +62,7 @@
 - 💭 **RK1642** (deps: —) **the preventive read a refusal names for seven codes is in the sentence and in no field of the payload** — RK1600 published the retry and left the other runnable row of the same refusal as prose, so a caller reading fields gets the rule and never the read that prevents it. → §RK1642
 - 💭 **RK1643** (deps: —) **the orientation is held at a ceiling and the two pages it points at, six times its size, are held by nothing** — RK1437 split them off on a cadence argument and gave the ceiling to the half that shrank, so RK1601 added 2,437 code units to the unbounded half and nothing asked. → §RK1643
 - 💭 **RK1644** (deps: —) **nine guards over this package's source read its characters where twenty-two read its syntax** — RK1602's read lines and missed a compiled pattern, then matched the docstring recording that removal, which is the failure a scan over characters has and one over calls has not. → §RK1644
+- 💭 **RK1645** (deps: —) **config publishes three lists of objects and the promise table holds one slot per verb, so one list's rows are unpromised** — RK1603 added a second list and a second table beside it, and the third — fixed, published since RK1381 — has never been named at all. → §RK1645
 
 ## Block E — Adoption
 
