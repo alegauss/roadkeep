@@ -195,6 +195,32 @@ implementation is one place for that sentence to be right.
 
 On ship: `--recorded-in packages/shell/src/live.ts`.
 
+### §RG79 The half of an answer nobody reads
+
+This happened while RG27 was being built. The sibling roadkeep checkout was mid-edit and
+briefly unimportable, so the launcher fell back to a cached older build, which refused
+this project's `roadkeep.toml` on stderr and exited 0. Every live read then reported
+`expected JSON, found ""` — while the engine's own sentence, naming the unknown key and
+the copy that read it, sat in a field nobody looked at.
+
+`attemptRead` builds its message from the argv alone and never touches `result.stderr`.
+`readPayload` never sees it either. So the one case where the engine explained itself in
+full is the one case this app throws the explanation away, and the reader is left with a
+sentence that describes the symptom and names no cause.
+
+Exit 0 with a refusal on stderr is not a hypothetical: a launcher that resolves a
+different engine than the one it resolved last time is the ordinary way it happens, and
+the two candidates disagree about the config before they disagree about anything else.
+`resolveEngine` already knows which copy answered — that is what `No engine the reader
+cannot name` asks for — and it is not in this message.
+
+What lands: `Unreadable` carries the stderr the call produced, trimmed and bounded, and
+the sentence names it. RG5 read a *write* refusal into its fields; this is the read
+side, where the answer is not a refusal payload at all and the prose is the whole of
+what there is.
+
+On ship: `--recorded-in packages/core/src/limits.ts`.
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ### §RG13 The cheap no
