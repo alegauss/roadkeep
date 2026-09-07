@@ -104,7 +104,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
     // without a case here is the hole RG66 exists to close structurally; until then this
     // is what notices.
     expect(Object.keys(VERBS).sort()).toEqual(
-      ['brief', 'commands', 'engines', 'explain', 'lint', 'list', 'show', 'stats'].sort(),
+      ['brief', 'commands', 'config', 'engines', 'explain', 'lint', 'list', 'show', 'stats'].sort(),
     )
   })
 

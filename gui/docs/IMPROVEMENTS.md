@@ -2,15 +2,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG7 What invalidates an answer
-
-A read is keyed by the project root, the argv and the modification times of the governed
-files roadkeep.toml declares. Anything else is a guess. The watcher is what expires an
-entry, so a write by this app, by a terminal or by an agent all invalidate the same way
-and no answer outlives the file it came off. Nothing persists across launches: the
-non-goals refuse a store, and a cache surviving a restart is one that can be wrong about
-a repository somebody edited while the app was closed.
-
 ### §RG8 The ceiling on a read
 
 Every call carries a deadline and an abort signal, and a portfolio read runs through a
@@ -165,6 +156,29 @@ command line as an array. `commands` is then looked up by joining them, and `bui
 spreads them. What it must not become is a string split on spaces, because the point of
 argv being an array is that nothing in this app ever splits a command line into
 arguments.
+
+### §RG70 The reads that are not repeats
+
+The cache answers the second read of a project and does nothing for the first. Opening a
+portfolio is twenty first reads, and today they would run one after another because
+nothing in the call path starts a second before the first returns: twenty interpreter
+starts at roughly 360 ms is seven seconds of blank screen, and it grows with the number
+of projects rather than with anything a person did.
+
+They are independent, so the answer is to run several at once with a ceiling on how many
+— enough to use the machine, few enough that a laptop with four cores is not running
+twenty Pythons. The ceiling belongs beside the transport rather than at each call site,
+so a screen asking for twenty reads gets a queue rather than twenty processes.
+
+Two things it must not lose. Cancellation already exists per call and has to survive the
+queue, because a screen that redraws while a fan-out is in flight should abandon what it
+no longer needs rather than wait for it. And a project whose engine hangs must not hold
+the slot for the rest — which is RG8's ceiling, and the reason these two are worth doing
+near each other.
+
+What this is not is a worker pool for the engine. Each call is still one process, still
+spawned with no shell, still bounded. The only thing that changes is how many are
+allowed to be in flight.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

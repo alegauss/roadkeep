@@ -342,6 +342,54 @@ export const readLintPayload: Reader<LintPayload> = record<LintPayload>({
   notes: orMissing(listOf(readFinding), []),
 })
 
+export interface ConfigKey {
+  /** The table it sits under, empty for a top-level key. `files` is the one this app reads. */
+  readonly table: string
+  readonly key: string
+  readonly address: string
+  readonly declared: boolean
+  /** The value as the file spells it, quotes included, or null where nothing declares it. */
+  readonly set: string | null
+}
+
+export interface ConfigPayload {
+  readonly version: string
+  readonly source: string
+  readonly keys: readonly ConfigKey[]
+}
+
+export const readConfigPayload: Reader<ConfigPayload> = record<ConfigPayload>({
+  version: aString,
+  source: orMissing(aString, ''),
+  keys: listOf(
+    record<ConfigKey>({
+      table: orMissing(aString, ''),
+      key: aString,
+      address: orMissing(aString, ''),
+      declared: orMissing(aBoolean, false),
+      set: orMissing(orNull(aString), null),
+    }),
+  ),
+})
+
+/**
+ * The governed files this project declares, by role.
+ *
+ * Asked of the engine rather than read out of `roadkeep.toml`, because which files are
+ * governed is a rule the tool owns — a TOML parser here would be a second reading of a
+ * format this app has no business knowing. `set` arrives with the quotes the file spells,
+ * so they come off here and nowhere else.
+ */
+export function governedFiles(payload: ConfigPayload): Record<string, string> {
+  const files: Record<string, string> = {}
+  for (const entry of payload.keys) {
+    if (entry.table !== 'files' || !entry.declared || entry.set === null) continue
+    const path = entry.set.replace(/^["']|["']$/g, '')
+    if (path !== '') files[entry.key] = path
+  }
+  return files
+}
+
 /**
  * What a payload says about its own completeness.
  *

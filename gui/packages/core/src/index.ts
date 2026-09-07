@@ -15,6 +15,8 @@ export type {
   CommandsPayload,
   PublishedCommand,
 } from './capabilities'
+export { createCachingTransport } from './cache'
+export type { CachingOptions, CachingTransport } from './cache'
 export { buildArgv, createClient } from './client'
 export type { CallOptions, Client } from './client'
 export { disagrees, isModified, resolveEngine } from './engine-resolution'
@@ -27,10 +29,12 @@ export type {
 export { readEnginesPayload, splitCommandLine } from './engines'
 export type { EngineProvenance, EnginesPayload } from './engines'
 export {
+  governedFiles,
   narrowingOfBrief,
   narrowingOfList,
   narrowingOfStats,
   readBriefPayload,
+  readConfigPayload,
   readListPayload,
   readLintPayload,
   readSection,
@@ -43,6 +47,8 @@ export type {
   AbsentRequirement,
   BlockCount,
   BriefPayload,
+  ConfigKey,
+  ConfigPayload,
   ListPayload,
   LintFinding,
   LintPayload,

@@ -8,6 +8,7 @@
 - ✅ **RG4** **the client's reading of a payload is asserted by nothing, so a rename upstream breaks a user and not a build** — A fixture built by the write verbs is read by every verb this client calls, and two over-strict shapes failed here first (design recorded in `packages/shell/src/contract.test.ts`).
 - ✅ **RG5** **a refusal is prose on stderr, so the field it is about has to be read back out of English** — A refused write comes back as its code and field, and the doors that close it read through one shape shared with the gate (design recorded in `packages/core/src/refusals.ts`).
 - ✅ **RG6** **nothing checks which build answered, so a project on an older roadkeep fails at the first flag it lacks** — A project is asked once what its build runs and which flags it takes, so a door is withheld rather than refused later (design recorded in `packages/core/src/capabilities.ts`).
+- ✅ **RG7** **every read costs an interpreter start, so a screen over twenty projects pays twenty of them to redraw** — A read is keyed by the project, the argv and a stamp of the files it declares, so an unchanged project is not read twice (design recorded in `packages/core/src/cache.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

@@ -54,6 +54,8 @@ export interface VerbInputs {
   explain: { code: string }
   /** Every verb this build publishes and every argument each takes. Asked once per project. */
   commands: Record<string, never>
+  /** What the project declares, including which files are governed. */
+  config: Record<string, never>
 }
 
 export type VerbName = keyof VerbInputs
@@ -92,6 +94,7 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
   engines: () => [],
   explain: (input) => [input.code],
   commands: () => [],
+  config: () => [],
 }
 
 /**
@@ -112,4 +115,5 @@ export const EVERY_INPUT: { [K in VerbName]: VerbInputs[K] } = {
   engines: {},
   explain: { code: 'symptom.too-long' },
   commands: {},
+  config: {},
 }
