@@ -62,6 +62,7 @@
 - 💭 **RK1644** (deps: —) **nine guards over this package's source read its characters where twenty-two read its syntax** — RK1602's read lines and missed a compiled pattern, then matched the docstring recording that removal, which is the failure a scan over characters has and one over calls has not. → §RK1644
 - 💭 **RK1645** (deps: —) **config publishes three lists of objects and the promise table holds one slot per verb, so one list's rows are unpromised** — RK1603 added a second list and a second table beside it, and the third — fixed, published since RK1381 — has never been named at all. → §RK1645
 - 💭 **RK1646** (deps: —) **the guard against the folded idiom sweeps the package and not the suite, where two sites still spell it out** — RK1542's equivalent sweeps both and this one copies half of it, so the shape RK1604 took out of forty-one call sites can grow back in a test. → §RK1646
+- 💭 **RK1647** (deps: —) **three walkers in the suite each rebuild which function a node sits in, and one of them spells the address differently** — RK1605 added the third, and surface.py is where a shared reading of the layout belongs. → §RK1647
 
 ## Block E — Adoption
 
