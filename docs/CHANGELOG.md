@@ -765,6 +765,7 @@
 - ✅ **RK1588** **a withholding reason quoted a total that was stale within the session that read it, and no sweep says how many are** — Two withholding reasons quoted figures that had gone stale and now name the reads that take them, and a sweep over that closed set refuses a measured number where an address belongs.
 - ✅ **RK1590** **ninety backticked spans outside a docstring name a verb with no invocation, so nothing can tell a door from prose** — A message that spells one door with the invocation and another verb without it is now red: the pair is the tell, so prose naming a flag family stays legal.
 - ✅ **RK1591** **a remedy whose first step is an edit outside this tool has no kind, so repair dispatches a door that refuses** — A row may now name what has to be edited first, in a file this tool does not own: the precondition prints above its door and repair leaves it alone instead of dispatching a refusal.
+- ✅ **RK1600** **a refusal payload publishes rules and never the retry the same refusal composed** — A refusal that derived an address now publishes the retry as an argv list with that address beside it, so the one part a caller executes is read rather than parsed out of the sentence.
 
 ## Block E — Adoption
 

@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 231 | 2 |
 | C — Query (consult without reading the file) | 10 | 177 | 4 |
-| D — The gate | 19 | 282 | 5 |
+| D — The gate | 18 | 283 | 5 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 159 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 37 | 1085 | 17 |
+| **Total** | 36 | 1086 | 17 |
 
 **Next ready:**
 
-- 📋 **RK1600** (deps: —) **a refusal payload publishes rules and never the retry the same refusal composed** — The retry is an argv this tool derived and it reaches a caller inside the sentence, so the one part they would execute is the part they must parse. → §RK1600
+- 📋 **RK1601** (deps: —) **fifty-eight served arguments across thirty-three tools are spelled in no call the guidance shows** — Nine thousand code units of schema are sent to every session for arguments its orientation never shows being passed. → §RK1601
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -400,6 +400,82 @@ def test_a_refusal_carrying_no_rules_publishes_an_empty_list(project):
     assert "RK9999" in payload["said"]
 
 
+# -- the argv inside the paragraph (RK1600) -----------------------------------
+
+
+def _unanchored(root: Path) -> tuple[str, ...]:
+    """An `add` on an outline project with no `--ref`: refused, with the free anchor derived.
+
+    The one refusal shape that does the work and then hands it over as prose — which is the
+    whole of RK1149, and the reason its retry is what RK1600 publishes.
+    """
+    return (
+        "add", "--block", "A", "--symptom", "A symptom plainly long enough to read",
+        "--why", "Because of a stated reason.", "--json",
+    )
+
+
+def test_a_refusal_that_derived_an_address_publishes_the_call_that_uses_it(outlined):
+    """RK1600. RK1149 composes the caller's own call with the address this run worked out
+    substituted in, and RK1584's payload published the rules, the clauses and the sentence —
+    so the one part of a refusal a reader *executes* was in there as a line of a paragraph.
+
+    An argv and not a string, because every argv this package publishes goes on the wire as a
+    list: a consumer runs it. The address beside it because that is what this tool derived and
+    the caller did not have — without it they would diff the retry against their own call to
+    learn what changed."""
+    payload, _ = _refusal(outlined, _unanchored(outlined))
+    assert set(payload) == {"refused", "beside", "about", "retry", "said"}
+    retry = payload["retry"]
+    assert set(retry) == {"argv", "address"}
+    assert retry["address"] == "I.4"
+    assert retry["argv"][-2:] == ["--ref", "I.4"]
+    # The caller's own call and not a command this tool composed: every token they typed is
+    # still there, in order, which is what makes it a retry rather than an offer.
+    typed = ["-C", str(outlined), *_unanchored(outlined)]
+    assert retry["argv"][: len(typed)] == typed
+
+
+def test_the_published_retry_is_the_call_the_sentence_spells(outlined):
+    """Two channels over one composition, which is RK1584's founding rule and the thing a
+    second rendering would quietly break. The row is quoted for a shell and the payload is a
+    list, so they cannot be compared byte for byte — what is held is that every token of the
+    argv is in the sentence, and that the sentence carries no address the payload lacks."""
+    payload, said = _refusal(outlined, _unanchored(outlined))
+    row = next(one for one in said.splitlines() if one.strip().startswith("retry"))
+    for token in payload["retry"]["argv"]:
+        assert token in row, (token, row)
+    assert payload["retry"]["address"] in row
+
+
+def test_the_retry_runs_and_the_refused_call_lands(outlined):
+    """The claim the payload makes, checked by making it. A published argv a consumer cannot
+    run is worse than none, because they spend the turn finding out — which is RK16's rule and
+    the reason RK1149 exists at all.
+
+    The `-C` the caller typed is inside the argv, so this is dispatched exactly as published
+    and nothing about the path is reconstructed here."""
+    payload, _ = _refusal(outlined, _unanchored(outlined))
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        code = main(list(payload["retry"]["argv"]))
+    assert code == EXIT_OK, err.getvalue()
+    assert json.loads(out.getvalue())["ref"] == payload["retry"]["address"]
+
+
+def test_a_refusal_that_derived_no_address_publishes_no_retry_key(project):
+    """Absent and never `"retry": null`, which is `rendering._reading_door`'s rule for a door:
+    a consumer reading the key at all is one that acts on it, and a null is a row it has to
+    test before it can use.
+
+    The other direction from `refused`, whose `[]` this file already holds — and the two are
+    not in tension. `[]` answers *which rules decided this*, and no rule deciding it is an
+    answer; there is no comparable question a null retry would be the answer to."""
+    payload, said = _refusal(project, ("show", "RK9999", "--json"))
+    assert "retry" not in payload
+    assert "retry" not in said
+
+
 def test_nothing_is_published_where_the_caller_asked_for_prose(project):
     """The flag is the whole condition, read off the argv this run recorded (RK1149's slot).
     A terminal caller who did not ask for JSON gets what they always got, and stdout on a

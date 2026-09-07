@@ -351,27 +351,6 @@ reachable is a null.
 
 ## Block D — The gate
 
-### §RK1600 The argv inside the paragraph
-
-RK1584 gave a refused call a payload: the violations, the two clauses above them, and
-the sentence. What it did not give is the **retry** — the caller's own argv with the
-address this tool derived substituted into it (RK1149), which is the one thing in a
-refusal a reader executes rather than reads.
-
-It is in there. `said` carries the whole rendering, retry row included, so an agent that
-wants the command parses a paragraph to find it — which is the arrangement the payload
-was added to end, one row further down.
-
-Two things make it not a copy of the sentence. The retry is an **argv**, and every other
-argv this package publishes goes on the wire as a list: `lint --json` publishes a
-finding's door that way, and `explain` publishes a remedy's. And it is derived rather
-than quoted — the address came from a read this refusal made, so a caller holding it can
-retry without a second call.
-
-What is not settled is the shape. A door elsewhere is `{argv, what}`; a retry has no
-`what`, being the caller's own call. Whether it publishes as a bare list, or beside the
-address that was substituted into it, is the decision this line is for.
-
 ### §RK1601 The flag named and the call unspelled
 
 RK1541 gave `cost --tools <name>` the reading, and pointing it at the whole surface

@@ -13,10 +13,15 @@ from __future__ import annotations
 
 import json
 import sys
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from roadkeep import provenance
 from roadkeep.kernel.document import RoundTripError, StaleFile
 from roadkeep.kernel.schema import SchemaError
+
+if TYPE_CHECKING:  # RK260 — the runtime import stays inside `_retrying`, where it always was
+    from roadkeep.remedying import Door
 
 
 EXIT_OK = 0
@@ -39,7 +44,40 @@ REFUSALS = (RoundTripError, StaleFile, KeyError, ValueError, OSError)
 _OFFERS = ("offered", "free")
 
 
-def _retrying(error: Exception) -> str | None:
+@dataclass(frozen=True, slots=True)
+class _Retry:
+    """The caller's own call, and the one token in it this tool derived (RK1600).
+
+    A pair because the payload needs both halves and the sentence needs one. RK1149 composed
+    the call and rendered it into a row; the row is prose, and the argv inside it is the one
+    part of a refusal a reader executes rather than reads — so an agent wanting the command
+    parsed a paragraph to find it, which is the arrangement RK1584's payload was added to end
+    one row further down.
+    """
+
+    door: Door
+    #: The address this tool derived while explaining the refusal — the one token that differs
+    #: from what the caller typed. Published beside the argv rather than left to be diffed:
+    #: it is the whole content of the retry, and a consumer holding only the call would have
+    #: to compare it against its own to learn what this run worked out.
+    address: str
+
+    def payload(self) -> dict[str, object]:
+        """``argv`` as a list, because every argv this package publishes goes on the wire as
+        one — a consumer runs it (RK1324).
+
+        Its **own** key and not `doors`, which is that rule's own permitted exception: a door
+        is a command this tool composed for a caller to choose, and this is the caller's
+        command with one token replaced — they already chose it. The distinction is not
+        academic, because the same refusal can carry the `foresee` read as well, and a flat
+        list would leave a consumer unable to tell *run this instead* from *run this first
+        next time*. `what` is dropped for the same reason: a remedy door's sentence says what
+        choosing it means, and here there is nothing to choose.
+        """
+        return {"argv": list(self.door.argv), "address": self.address}
+
+
+def _retrying(error: Exception) -> _Retry | None:
     """The caller's own call with the address it was refused for, or ``None`` (RK1149).
 
     `lint` findings have carried a door since RK15 — the command, pre-filled — and a write
@@ -66,6 +104,10 @@ def _retrying(error: Exception) -> str | None:
     as this machine can reach it, and never a console script no `pip install` put on PATH. Quoted,
     this being the first door whose argv carries the caller's own prose: a symptom and a why with
     spaces and apostrophes in them, and an unquoted line is one that runs as eight arguments.
+
+    Returned **with the address that was substituted** since RK1600, and no longer as the shell
+    line: the row wants the quoting and the payload wants the list, and a function answering in
+    the rendered string left the second to re-derive what this one had. See :class:`_Retry`.
     """
     from roadkeep.provenance import invocation_argv  # noqa: PLC0415 - RK260
     from roadkeep.remedying import Door  # noqa: PLC0415 - RK260
@@ -93,9 +135,10 @@ def _retrying(error: Exception) -> str | None:
         argv[at + 1 : at + 2] = [offered]
     else:
         argv += ["--ref", offered]
-    return Door(
-        argv=tuple(argv), what="the same call, with the address it was refused for"
-    ).quoted
+    return _Retry(
+        Door(argv=tuple(argv), what="the same call, with the address it was refused for"),
+        offered,
+    )
 
 
 def _foreseeing(error: SchemaError) -> list[str]:
@@ -128,7 +171,7 @@ def _foreseeing(error: SchemaError) -> list[str]:
     return []
 
 
-def _payload(error: Exception, said: str) -> None:
+def _payload(error: Exception, said: str, retry: _Retry | None = None) -> None:
     """The refusal as data on stdout, where the caller asked for data (RK1584).
 
     **The one answer this package published as prose alone.** `add --json`, `lint --json` and
@@ -153,6 +196,14 @@ def _payload(error: Exception, said: str) -> None:
     a channel rather than replacing one — `said` is the whole sentence, published so a caller
     that has the payload has not lost the prose it came from. The exit code stays the contract:
     this is what a caller reads *after* it has decided.
+
+    **And the retry, which was in `said` and nowhere else** (RK1600). That is the one part of a
+    refusal a reader executes rather than reads, so a payload carrying the rules and the
+    sentence and not the command left an agent parsing a paragraph for the row RK1149 had
+    already composed. `absent` and never `"retry": null` — the rule `rendering._reading_door`
+    states for a door: a consumer reading the key at all is one that acts on it, and a null is
+    a row it has to test first. Most refusals have none, which is a fact about them and not a
+    field they are missing.
     """
     if not provenance.asked_fields():
         return
@@ -161,7 +212,8 @@ def _payload(error: Exception, said: str) -> None:
     payload: dict[str, object] = (
         error.payload() if isinstance(error, _SchemaError) else {"refused": [], "beside": "", "about": ""}
     )
-    print(json.dumps({**payload, "said": said}, indent=2))
+    offer = {"retry": retry.payload()} if retry is not None else {}
+    print(json.dumps({**payload, **offer, "said": said}, indent=2))
 
 
 def _refused(error: Exception) -> int:
@@ -199,10 +251,10 @@ def _refused(error: Exception) -> int:
         rows += [f"  {row}" for row in _foreseeing(error)]
         retry = _retrying(error)
         if retry is not None:
-            rows.append(f"  retry    {retry}")
+            rows.append(f"  retry    {retry.door.quoted}")
         said = "\n".join(rows)
         print(said, file=sys.stderr)
-        _payload(error, said)
+        _payload(error, said, retry)
         return EXIT_USAGE
     if isinstance(error, (RoundTripError, StaleFile)):
         # The file drifted before this command ran, so the gate says no: normalizing a
@@ -219,11 +271,13 @@ def _refused(error: Exception) -> int:
     # the SchemaError branch, because that is where `SectionExists` arrives — a ValueError.
     retry = _retrying(error)
     if retry is not None:
-        rows.append(f"  retry    {retry}")
+        rows.append(f"  retry    {retry.door.quoted}")
     said = "\n".join(rows)
     print(said, file=sys.stderr)
     # With an empty `refused` and not with a key omitted (RK1584): a refusal this class raises
     # carries a sentence and no rules, and `[]` says *no violation decided this* where a
-    # missing key says only that somebody did not write one.
-    _payload(error, said)
+    # missing key says only that somebody did not write one. The retry goes the other way
+    # (RK1600) and for the reason that distinction states: `[]` is an answer to *which rules
+    # decided this*, and there is no comparable question a null retry would be answering.
+    _payload(error, said, retry)
     return EXIT_USAGE
