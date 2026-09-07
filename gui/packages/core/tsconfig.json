@@ -5,7 +5,9 @@
     // No Node and no DOM. `core` is the half a web service keeps, so it must not be able
     // to reach a filesystem or a document even by accident, and the way to guarantee that
     // is to leave those types out of scope rather than to remember not to use them.
-    "types": [],
+    // `vite/client` is the build tool's own types, for `import.meta.glob` in the boundary
+    // test; DOM globals come from `lib`, which is why adding it costs nothing here.
+    "types": ["vite/client"],
     "rootDir": "src",
     "outDir": "dist-types",
     // Inside the output, so that deleting the output really does force a rebuild. Left to

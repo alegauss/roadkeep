@@ -2,30 +2,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG1 One way in, and where the process rules live
-
-Everything this app knows arrives out of a subprocess, so that one call's shape is what
-the whole client rests on: a project root, an argv array, and back an exit code, stdout,
-stderr and a duration.
-
-Four properties are not preferences. **No shell** — spawn with `shell: false` and argv
-as an array, because a shell is where quoting defects live and this app composes text a
-person wrote. **The root is the working directory**, and `-C` is passed too, so an
-answer is about the project on screen and never about the directory the app started in.
-**Every call is cancellable and bounded**, a screen redrawing while reads are still in
-flight. **The two streams stay apart**: `list` prints a marker-bearing line it could not
-accept on stderr with the count, so a client merging them cannot tell an answer from a
-warning about that answer.
-
-What this is not is a function per verb. A verb is data — the argv it builds and the
-shape it returns — so adding one is a table entry and never a new call path. That is the
-MCP server's own argument about dispatching through one parser: two code paths that both
-add a task is the drift being removed.
-
-The transport is one interface with one method. Nothing above this layer knows a process
-was involved, which is what the later service rests on and what a test has to hold
-rather than a comment.
-
 ### §RG2 Whose roadkeep answered
 
 `roadkeep` on PATH is the one thing `engines` exists to say a project may not be
@@ -144,6 +120,28 @@ upstream, and until that lands this app composes that one field as argv and says
 rather than pretending it is safe. Spawning without a shell removes the quoting layer
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
+
+### §RG64 Two suites, because they answer different questions
+
+`npm test` now runs two kinds of test through one command. Most of it is pure: a verb
+table, a client over a fake transport, a boundary check over source text, a renderer in
+jsdom — all of it finishing in about a second. Four tests spawn a real Python roadkeep
+against this repository, and those alone take five.
+
+The ratio is about to get worse rather than better. RG4 exists to assert every payload
+this app reads against a live engine, which is one process start per verb, and RG6 adds
+another. A gate that takes a minute is one people stop running between edits, and the
+tests they stop running are the fast ones that would have caught the mistake.
+
+So this wants two commands over one suite: `npm test` staying the fast one, and a second
+— `npm run test:live` — carrying everything that spawns. Vitest's project mechanism
+already splits them; what has to be decided is which project a new test lands in and
+what makes that obvious, because a live test filed in the fast project is how the split
+quietly stops holding.
+
+The live suite also has a dependency the fast one does not: `python` on PATH, plus the
+launcher this repository commits. That is worth stating where CI is configured, since a
+machine without it fails four tests for a reason that has nothing to do with the code.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
@@ -527,6 +525,12 @@ The gate is the one worth naming twice — this repository is governed, so a cha
 drifts its own backlog has to fail here for the same reason it fails anywhere else. What
 CI must not become is the only place any of them runs: each is a command a person can
 run locally, and CI is what refuses to forget.
+
+Two things the runner has to have, learned by shipping RG1. **Python, plus the launcher
+this repository commits**, because the tests that fetch a real payload spawn `python
+.claude/hooks/roadkeep-launch.py`; without it four tests fail for a reason that is not
+the code. And **a display for whatever RG60 launches**, which on a Linux runner means a
+virtual framebuffer and on Windows or macOS means nothing at all.
 
 ### §RG56 What a session is told, and what it costs
 

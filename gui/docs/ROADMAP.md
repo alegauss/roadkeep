@@ -4,15 +4,15 @@
 
 ## Block A — The client (payloads in, types out)
 
-- 📋 **RG1** (deps: —) **nothing here invokes roadkeep, so every payload this design rests on is one no code can fetch** — A screen, a write and an agent handoff are each a payload some verb printed, and there is no call path to any of them. → §RG1
-- 📋 **RG2** (deps: RG1) **the engine is assumed to be a roadkeep on PATH, which is the one thing engines says it may not be** — A project may be governed by the plugin, a sibling checkout or a pip install, and those may differ in version and disagree. → §RG2
-- 📋 **RG3** (deps: RG1) **a payload arrives as any, so a key renamed upstream is an undefined at run time and never a red build** — The shape comes off a build this app did not choose, and nothing between the process and the screen refuses one it does not recognise. → §RG3
+- 📋 **RG2** (deps: RG1 ✅) **the engine is assumed to be a roadkeep on PATH, which is the one thing engines says it may not be** — A project may be governed by the plugin, a sibling checkout or a pip install, and those may differ in version and disagree. → §RG2
+- 📋 **RG3** (deps: RG1 ✅) **a payload arrives as any, so a key renamed upstream is an undefined at run time and never a red build** — The shape comes off a build this app did not choose, and nothing between the process and the screen refuses one it does not recognise. → §RG3
 - 📋 **RG4** (deps: RG3) **the client's reading of a payload is asserted by nothing, so a rename upstream breaks a user and not a build** — roadkeep holds its own editor client from Python for exactly this reason, and no such test covers a second client living outside that tree. → §RG4
-- 💭 **RG5** (deps: RG1, RG3) **a refusal is prose on stderr, so the field it is about has to be read back out of English** — add returns a code and a field under --json, and a client discarding that shows a paragraph in a toast instead of marking the box that was refused. → §RG5
+- 💭 **RG5** (deps: RG1 ✅, RG3) **a refusal is prose on stderr, so the field it is about has to be read back out of English** — add returns a code and a field under --json, and a client discarding that shows a paragraph in a toast instead of marking the box that was refused. → §RG5
 - 💭 **RG6** (deps: RG2, RG3) **nothing checks which build answered, so a project on an older roadkeep fails at the first flag it lacks** — commands --json names the version and every argument this copy takes, and it is the only read that can tell a missing flag from a broken one. → §RG6
-- 💭 **RG7** (deps: RG1) **every read costs an interpreter start, so a screen over twenty projects pays twenty of them to redraw** — One call measures around 360 ms, and nothing keys an answer to the files it came off so that an unchanged project is not read again. → §RG7
-- 💭 **RG8** (deps: RG1) **a read has no ceiling, so one project whose engine hangs stops the screen that was drawing it** — A subprocess that never exits holds a slot forever, and a portfolio read fans out far enough that one of them eventually will. → §RG8
-- 💭 **RG9** (deps: RG1, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
+- 💭 **RG7** (deps: RG1 ✅) **every read costs an interpreter start, so a screen over twenty projects pays twenty of them to redraw** — One call measures around 360 ms, and nothing keys an answer to the files it came off so that an unchanged project is not read again. → §RG7
+- 💭 **RG8** (deps: RG1 ✅) **a read has no ceiling, so one project whose engine hangs stops the screen that was drawing it** — A subprocess that never exits holds a slot forever, and a portfolio read fans out far enough that one of them eventually will. → §RG8
+- 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
+- 📋 **RG64** (deps: RG1 ✅) **the fast suite and the one that spawns a real engine are one command, so every run pays for both** — Four live calls took the suite from one second to six, and RG4 adds a payload assertion per verb against the same engine. → §RG64
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
@@ -55,7 +55,7 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG38** (deps: RG1, RG23) **nothing starts Claude Code, so a task and the session that does it are two windows and a copied prompt** — The loop this app is for ends in an agent working the line, and today the handoff is a person retyping what the screen already holds. → §RG38
+- 📋 **RG38** (deps: RG1 ✅, RG23) **nothing starts Claude Code, so a task and the session that does it are two windows and a copied prompt** — The loop this app is for ends in an agent working the line, and today the handoff is a person retyping what the screen already holds. → §RG38
 - 💭 **RG40** (deps: RG38) **a session's output is a stream nothing renders, so what the agent is doing is invisible while it does it** — stream-json is one object per line and a window that shows only the exit has thrown away every turn that led to it. → §RG40
 - 💭 **RG41** (deps: RG30, RG38) **a line is handed over without being taken, so two sessions can be started on the same task** — brief --claim answers and moves the marker in one transaction, and an app that skips it hands one id to two authors. → §RG41
 - 💭 **RG42** (deps: RG38, RG45) **what a session wrote to the governed files is not watched, so the screen shows the backlog from before it ran** — An agent ships through the same verbs a person does, and the only evidence in this app is the files it changed. → §RG42
@@ -66,7 +66,7 @@
 - 💭 **RG45** (deps: RG37 ✅, RG7) **nothing watches the governed files, so a write by an agent or a terminal leaves the screen stale** — roadkeep.toml names every governed role, so what to watch is declared and the cache has nothing telling it to expire. → §RG45
 - 💭 **RG46** (deps: RG37 ✅, RG44 ✅) **there is no executable, so the app runs only where its source tree and toolchain already are** — An .exe is the delivery this project was asked for, and packaging is what decides the security posture is real rather than configured. → §RG46
 - 💭 **RG47** (deps: RG37 ✅) **settings have nowhere to live, so roots and preferences are gone when the window closes** — The scan roots are the one fact this app owns rather than reads, and there is no file for them and no schema over it. → §RG47
-- 💭 **RG48** (deps: RG1, RG4, RG44 ✅) **the claim that a service is a transport swap is asserted by nothing, so it is an intention** — Every criterion in this block rests on one seam, and a seam nothing exercises is one that has already been crossed somewhere. → §RG48
+- 💭 **RG48** (deps: RG1 ✅, RG4, RG44 ✅) **the claim that a service is a transport swap is asserted by nothing, so it is an intention** — Every criterion in this block rests on one seam, and a seam nothing exercises is one that has already been crossed somewhere. → §RG48
 - 💭 **RG49** (deps: RG46) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — An unsigned build is one most people will not run, and no amount of code in this repository substitutes for the certificate. → §RG49
 - 💭 **RG50** (deps: RG46) (requires: published-artifact) **nothing updates, so a fix reaches a person only if they go and look for one** — A desktop build that cannot update is one whose defects live on every machine that installed it until somebody notices. → §RG50
 - 💭 **RG55** (deps: RG37 ✅, RG4) **there is no CI, so every assertion this plan rests on runs only where somebody remembers to run it** — The contract test, the contrast check and the gate are each a promise made by a suite, and a suite nothing runs is a promise nobody keeps. → §RG55
@@ -97,6 +97,9 @@
 - **A refusal arrives as the field it is about** Every write returns a code and a field,
   so an over-length symptom is shown on the symptom box and never reaches the person as
   a paragraph of English in a toast.
+- **No argv this app builds is ever handed to a shell** Every call spawns with shell
+  false and argv as an array, and a test passes a string of metacharacters through the
+  transport and asserts it arrives as one argument with nothing executed.
 
 ## Done when — Block B
 
