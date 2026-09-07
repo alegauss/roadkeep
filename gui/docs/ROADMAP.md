@@ -25,7 +25,6 @@
 
 ## Block D — The project surface (one backlog, read)
 
-- 💭 **RG24** (deps: RG23 ✅) **the rationale section is not shown, so the half of a task that explains it stays invisible** — The section is where a design lives until it ships and is deleted, and it is the half a reviewer needs before agreeing the line is right. → §RG24
 - 💭 **RG25** (deps: RG23 ✅) **deps and what a ship unblocks are a list of ids, so following a chain means reading ids one at a time** — deps resolves blockers, chains and the transitive set already, and a list of bare ids throws away every relation it computed. → §RG25
 - 💭 **RG26** (deps: RG21 ✅) **the non-goals and the criteria are off screen, so the two lists that bind a proposal are the two nobody reads** — A non-goal is what a proposal is checked against and a criterion is what would finish a block, and both are one call away and shown nowhere. → §RG26
 - 💭 **RG27** (deps: RG21 ✅) **the ledger and the decisions file are unreachable, so what shipped and what was weighed live outside this app** — delivered is the read before an add and reversals is the argument a decision already lost, and neither has a surface here. → §RG27

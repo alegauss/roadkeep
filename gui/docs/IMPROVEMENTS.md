@@ -237,14 +237,6 @@ sixty-eight calls is the number that makes the case, and nobody will have it lat
 
 ## Block D — The project surface (one backlog, read)
 
-### §RG24 Prose shown as the file keeps it
-
-The section arrives as a body string, wrapped at the width the project declared, with
-its own paragraphs, lists and tables. It is rendered as Markdown and never reflowed, so
-what a reviewer reads is what the gate measured and what a commit will diff. The word
-count and the limit are shown beside it, because a section near its budget is a design
-about to need splitting and that is worth knowing before somebody adds to it.
-
 ### §RG25 A chain, drawn once
 
 The deps read resolves blockers, chains, the transitive set and any cycle, and names the

@@ -49,6 +49,8 @@ export {
   withField,
 } from './filters'
 export type { BacklogFilter, FilterChoices } from './filters'
+export { designFrom, whereDesignLives, wordsAgainstLimit } from './design'
+export type { Design, DesignState } from './design'
 export { designOf, detailFrom, whyNotStartable } from './detail'
 export type { TaskDetail } from './detail'
 export { groupProjects, isFamily } from './families'
@@ -108,6 +110,7 @@ export {
   narrowingOfBrief,
   narrowingOfList,
   narrowingOfStats,
+  readBriefBudget,
   readBriefPayload,
   readConfigPayload,
   readListPayload,
@@ -117,6 +120,7 @@ export {
   readRefusedLine,
   readResolvedDep,
   readSection,
+  readSectionBudget,
   readShowPayload,
   readStatsPayload,
   readTaskLine,
@@ -125,6 +129,7 @@ export {
 export type {
   AbsentRequirement,
   BlockCount,
+  BriefBudget,
   BriefPayload,
   ConfigKey,
   ConfigPayload,
@@ -138,6 +143,7 @@ export type {
   PickPayload,
   RationaleSection,
   RefusedLine,
+  SectionBudget,
   ShowPayload,
   Standing,
   Startable,

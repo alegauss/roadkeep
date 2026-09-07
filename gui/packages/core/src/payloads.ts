@@ -195,6 +195,12 @@ export interface RationaleSection {
   readonly last: number
   readonly words: number
   /**
+   * What this heading says on its own, where `words` counts the subtree under it. Equal
+   * for a section with no subsections, which is every rationale in this project today —
+   * and reading both is what keeps a screen honest on the first one that has children.
+   */
+  readonly ownWords: number
+  /**
    * The prose, or **null where it was not asked for**: `show --no-body` keeps the section
    * and where it lives and drops what it says. Null and empty are different answers, so
    * this is not flattened to a string — a section that exists and is empty is a defect,
@@ -203,15 +209,66 @@ export interface RationaleSection {
   readonly body: string | null
 }
 
-export const readSection: Reader<RationaleSection> = record<RationaleSection>({
-  anchor: aString,
-  title: aString,
-  level: aNumber,
-  file: aString,
-  first: aNumber,
-  last: aNumber,
-  words: aNumber,
-  body: orMissing(orNull(aString), null),
+export const readSection: Reader<RationaleSection> = record<RationaleSection>(
+  {
+    anchor: aString,
+    title: aString,
+    level: aNumber,
+    file: aString,
+    first: aNumber,
+    last: aNumber,
+    words: aNumber,
+    ownWords: orMissing(aNumber, 0),
+    body: orMissing(orNull(aString), null),
+  },
+  { ownWords: 'own_words' },
+)
+
+/**
+ * What a section's prose may still say, in the engine's own numbers.
+ *
+ * Every one of these is carried and none is worked out here. `limit` is the project's
+ * `[limits] section` and writing 250 into this app would be exactly the literal the
+ * non-goals refuse; `unit` is the engine saying it counts words rather than characters,
+ * which is not the same answer for every field it prices.
+ */
+export interface SectionBudget {
+  readonly anchor: string
+  /** Which prose file it is priced against — improvements and decisions differ. */
+  readonly role: string
+  /** False where the pointer has no section yet, which is a state and not an error. */
+  readonly written: boolean
+  readonly unit: string
+  readonly limit: number
+  readonly taken: number
+  readonly left: number
+  /** How far past the limit it already is. Above zero, the gate is what says so. */
+  readonly over: number
+}
+
+export const readSectionBudget: Reader<SectionBudget> = record<SectionBudget>({
+  anchor: orMissing(aString, ''),
+  role: orMissing(aString, ''),
+  written: orMissing(aBoolean, false),
+  unit: orMissing(aString, ''),
+  limit: orMissing(aNumber, 0),
+  taken: orMissing(aNumber, 0),
+  left: orMissing(aNumber, 0),
+  over: orMissing(aNumber, 0),
+})
+
+/**
+ * The pricing a brief carries, of which this app reads the section's half.
+ *
+ * **Null for a shipped line**: there is nothing left to price once the design has been
+ * deleted, and a shape demanding the object fails on every id in the ledger.
+ */
+export interface BriefBudget {
+  readonly section: SectionBudget | null
+}
+
+export const readBriefBudget: Reader<BriefBudget> = record<BriefBudget>({
+  section: orMissing(orNull(readSectionBudget), null),
 })
 
 export interface ShowPayload {
@@ -342,6 +399,8 @@ export interface BriefPayload {
   readonly held: readonly HeldClaim[]
   /** Ledger entries citing this id — what already shipped against it. */
   readonly landed: readonly string[]
+  /** What the line's fields and its section have left. Null once the design is gone. */
+  readonly budget: BriefBudget | null
 }
 
 export const readBriefPayload: Reader<BriefPayload> = record<BriefPayload>(
@@ -366,6 +425,7 @@ export const readBriefPayload: Reader<BriefPayload> = record<BriefPayload>(
     doneWhenElided: orMissing(aNumber, 0),
     held: orMissing(listOf(readHeldClaim), []),
     landed: orMissing(listOf(aString), []),
+    budget: orMissing(orNull(readBriefBudget), null),
   },
   {
     sectionAbsence: 'section_absence',
