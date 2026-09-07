@@ -38,7 +38,6 @@
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-- 💭 **RG32** (deps: RG29 ✅) **a rationale section cannot be written, so a line filed here points at nothing until a terminal is opened** — add names the follow-up its pointer needs and section add is that follow-up, so filing without it leaves every new line incomplete. → §RG32
 - 💭 **RG33** (deps: RG29 ✅) **a lint finding is a line of text, so a report naming its own doors arrives as something to read and not to run** — Every finding carries a code, a file and line and a complete argv, and explain answers what a code means: none of it is reachable here. → §RG33
 - 💭 **RG34** (deps: RG29 ✅) **the argv the app composed is never shown, so a write cannot be read before it runs or repeated after it** — A person approving a write has only the app's word for what it will do, and reproducing it in a terminal means guessing the flags. → §RG34
 - 💭 **RG35** (deps: RG29 ✅) **amend, restate and renumber have no door, so the corrections that keep an id are terminal-only** — restate exists because retire plus add spends an id and deletes a design that was right, and this app offers neither half. → §RG35

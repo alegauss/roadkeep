@@ -30,6 +30,7 @@ import {
   readResumePayload,
   readRetirePayload,
   readReversalsPayload,
+  readSectionWritten,
   readShipPayload,
   readShowPayload,
   readStatsPayload,
@@ -143,7 +144,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
     // The same guard as above, for the other table. A write verb added without a shape
     // and without a case here is a door offered against an answer nobody has read.
     expect(Object.keys(WRITES).sort()).toEqual(
-      ['add', 'defer', 'resume', 'retire', 'ship', 'status'].sort(),
+      ['add', 'defer', 'resume', 'retire', 'sectionAdd', 'sectionAmend', 'ship', 'status'].sort(),
     )
   })
 
@@ -388,6 +389,54 @@ describe('RG4: every read this client makes, against a live engine', () => {
     if (resume.kind !== 'applied') throw new Error('unreachable')
     expect(resume.value.was).toBe('Waiting on a decision.')
     expect(resume.value.marker).not.toBe('')
+  })
+
+  it('writes a rationale under an anchor, and corrects it as a fragment', async () => {
+    const filed = await applyWrite(
+      transport,
+      composeWrite(fixture.root, 'add', {
+        block: 'A',
+        symptom: 'the contract has written no rationale yet',
+        why: 'A section write answers with a shape too, and nothing here has read it.',
+      }),
+      readAddedPayload,
+      { timeoutMs: CEILING },
+    )
+    expect(filed.kind).toBe('applied')
+    if (filed.kind !== 'applied') throw new Error('unreachable')
+
+    const added = await applyWrite(
+      transport,
+      composeWrite(fixture.root, 'sectionAdd', {
+        anchor: filed.value.id,
+        title: 'What a section write answers with',
+        body: 'A rationale long enough to be prose and well inside the declared budget.',
+      }),
+      readSectionWritten,
+      { timeoutMs: CEILING },
+    )
+    expect(added.kind).toBe('applied')
+    if (added.kind !== 'applied') throw new Error('unreachable')
+    expect(added.value.anchor).toBe(filed.value.id)
+    expect(added.value.file).toContain('IMPROVEMENTS.md')
+    expect(added.value.words).toBeGreaterThan(0)
+    // An add reports nothing changed; the key exists all the same.
+    expect(added.value.changed).toEqual([])
+
+    const amended = await applyWrite(
+      transport,
+      composeWrite(fixture.root, 'sectionAmend', {
+        anchor: filed.value.id,
+        fragment: { replace: 'long enough to be prose', replacement: 'written to be read' },
+      }),
+      readSectionWritten,
+      { timeoutMs: CEILING },
+    )
+    expect(amended.kind).toBe('applied')
+    if (amended.kind !== 'applied') throw new Error('unreachable')
+    // The key that tells an amend from an add, and the one a shape without it would miss.
+    expect(amended.value.changed).toContain('body')
+    expect(typeof amended.value.readBody).toBe('boolean')
   })
 
   it('reads what to work on next, and which tier answered', async () => {

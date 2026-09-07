@@ -957,6 +957,46 @@ export const readResumePayload: Reader<ResumePayload> = record<ResumePayload>({
   wrote: orMissing(listOf(aString), []),
 })
 
+/**
+ * What a section write answered with: the section as it now stands.
+ *
+ * The same shape both verbs answer in, plus what the amend changed. The counts are the
+ * file's own — the number deciding whether a design needs splitting has to be the one the
+ * gate will read, not one measured on a draft in memory.
+ */
+export interface SectionWritten {
+  readonly anchor: string
+  readonly title: string
+  readonly level: number
+  readonly file: string
+  readonly first: number
+  readonly last: number
+  readonly words: number
+  readonly ownWords: number
+  /** Which parts an amend touched — `body`, `title`. Empty for an add. */
+  readonly changed: readonly string[]
+  /** Whether the prose came from stdin rather than an argument. */
+  readonly readBody: boolean
+  readonly wrote: readonly string[]
+}
+
+export const readSectionWritten: Reader<SectionWritten> = record<SectionWritten>(
+  {
+    anchor: aString,
+    title: orMissing(aString, ''),
+    level: orMissing(aNumber, 0),
+    file: orMissing(aString, ''),
+    first: orMissing(aNumber, 0),
+    last: orMissing(aNumber, 0),
+    words: orMissing(aNumber, 0),
+    ownWords: orMissing(aNumber, 0),
+    changed: orMissing(listOf(aString), []),
+    readBody: orMissing(aBoolean, false),
+    wrote: orMissing(listOf(aString), []),
+  },
+  { ownWords: 'own_words', readBody: 'read_body' },
+)
+
 export interface LintFinding {
   readonly code: string
   readonly file: string

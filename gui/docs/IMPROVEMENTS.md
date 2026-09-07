@@ -485,15 +485,6 @@ On ship: `--recorded-in packages/core/src/pauses.ts`.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-### §RG32 Writing the design where the pointer points
-
-Every line carries a pointer that resolves to nothing until a section exists, and the
-add verb says so in its own answer. So the section is offered in the same flow as the
-line, with its word budget shown before the first paragraph — which is what the add
-verb's own section flag does in one transaction. Amending is the other half: a section
-is read back and corrected as a fragment, since the stored copy is wrapped and matching
-it by hand is the caller's problem the verb already solved.
-
 ### §RG33 A finding that can be run
 
 Every gate finding carries a code, a file, a line and column, and the complete argv that

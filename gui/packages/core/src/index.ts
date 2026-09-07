@@ -105,6 +105,8 @@ export {
   withPresence,
 } from './roots'
 export type { KeyOf, KnownRoot, RootCheck, RootPresence, RootProblem, ScanRoot } from './roots'
+export { saidOfWrite, wasCreated, whereWritten, writtenFrom } from './sections'
+export type { Written } from './sections'
 export { coversEverything, search } from './search'
 export type { Hit, SearchableProject, SearchAnswer, SearchField } from './search'
 export { DEFAULT_POLICY, mayEnter, scan } from './scanning'
@@ -150,6 +152,7 @@ export {
   readSection,
   readShipPayload,
   readSectionBudget,
+  readSectionWritten,
   readShowPayload,
   readStatsPayload,
   readStatusPayload,
@@ -188,6 +191,7 @@ export type {
   ReversalEntry,
   ReversalsPayload,
   SectionBudget,
+  SectionWritten,
   ShipPayload,
   ShowPayload,
   WroteLine,
@@ -224,6 +228,6 @@ export type {
 export { EVERY_INPUT, publishedAs, spell, VERBS, VERB_WORDS } from './verbs'
 export type { Spelling, VerbInputs, VerbName } from './verbs'
 export { EVERY_WRITE_INPUT, WRITES, WRITE_WORDS } from './writes'
-export type { WriteInputs, WriteName } from './writes'
+export type { FragmentEdit, WriteInputs, WriteName } from './writes'
 export { applied, applyWrite, composeWrite } from './writing'
 export type { Composed, WriteOutcome } from './writing'

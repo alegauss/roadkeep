@@ -93,6 +93,51 @@ export interface WriteInputs {
     /** The open marker it returns with; omitted, the first the project declares. */
     marker?: string
   }
+  /**
+   * Write the rationale a line's pointer points at.
+   *
+   * The follow-up for a line filed without one — `add --section` does both in a single
+   * transaction and is the ordinary path — and the only door to the decisions role.
+   */
+  sectionAdd: {
+    anchor: string
+    title: string
+    body?: string
+    /** Read the prose from a file instead, so a refusal costs the short field alone. */
+    bodyFile?: string
+    /** Which prose file. Default improvements; decisions has its own, smaller budget. */
+    role?: string
+    level?: string
+  }
+  /**
+   * Correct a section without deleting it.
+   *
+   * `fragment` is one field on purpose: `--replace` with nothing to put in its place is a
+   * malformed command rather than a refused one, so the type makes the half-call
+   * unspellable instead of checking for it.
+   */
+  sectionAmend: {
+    anchor: string
+    title?: string
+    body?: string
+    bodyFile?: string
+    role?: string
+    fragment?: FragmentEdit
+  }
+}
+
+/**
+ * A correction to part of a section's prose.
+ *
+ * A stored section is wrapped at the column the project declared, so a caller holding the
+ * prose it meant to change would have to match bytes it never chose. This is the verb's
+ * answer to that: the fragment is refused unless it occurs exactly once, so the edit's
+ * reach is visible in the call rather than discovered in the diff.
+ */
+export interface FragmentEdit {
+  readonly replace: string
+  /** What it becomes. The empty string deletes it, which is why this is never optional. */
+  readonly replacement: string
 }
 
 export type WriteName = keyof WriteInputs
@@ -102,12 +147,14 @@ type ArgvFor<K extends WriteName> = (input: WriteInputs[K]) => readonly string[]
 /**
  * How each write is spelled on the command line, where that is more than one word.
  *
- * Empty today because `add` is one word, and declared anyway because everything coming
- * next is not: `section add`, `criterion add`, `block add`, `non-goal add`. The rule is
- * `verbs.ts`'s — the key is an identifier, the spelling is an array, and nothing splits a
- * string into arguments.
+ * The rule is `verbs.ts`'s — the key is an identifier, the spelling is an array, and
+ * nothing splits a string into arguments. Most of the write path lives under a family
+ * like this: `criterion add`, `block add` and `non-goal add` all arrive the same way.
  */
-export const WRITE_WORDS: Spelling = {}
+export const WRITE_WORDS: Spelling = {
+  sectionAdd: ['section', 'add'],
+  sectionAmend: ['section', 'amend'],
+}
 
 function optional(flag: string, value: string | undefined): string[] {
   return value === undefined || value === '' ? [] : [flag, value]
@@ -158,6 +205,27 @@ export const WRITES: { [K in WriteName]: ArgvFor<K> } = {
   ],
   defer: (input) => [input.id, ...optional('--reason', input.reason)],
   resume: (input) => [input.id, ...optional('--marker', input.marker)],
+  sectionAdd: (input) => [
+    input.anchor,
+    '--title',
+    input.title,
+    ...optional('--body', input.body),
+    ...optional('--body-file', input.bodyFile),
+    ...optional('--role', input.role),
+    ...optional('--level', input.level),
+  ],
+  sectionAmend: (input) => [
+    input.anchor,
+    ...optional('--title', input.title),
+    ...optional('--body', input.body),
+    ...optional('--body-file', input.bodyFile),
+    ...optional('--role', input.role),
+    // Both halves or neither, which is what the single field buys. `--with` takes the
+    // empty string, so it is spread rather than passed through `optional`.
+    ...(input.fragment === undefined
+      ? []
+      : ['--replace', input.fragment.replace, '--with', input.fragment.replacement]),
+  ],
 }
 
 /**
@@ -195,4 +263,20 @@ export const EVERY_WRITE_INPUT: { [K in WriteName]: WriteInputs[K] } = {
   retire: { id: 'RG1', supersededBy: 'RG2', foldsInto: 'RG3', reason: 'A sentence.' },
   defer: { id: 'RG1', reason: 'A sentence.' },
   resume: { id: 'RG1', marker: '📋' },
+  sectionAdd: {
+    anchor: 'RG1',
+    title: 'A heading',
+    body: 'Prose.',
+    bodyFile: 'a.md',
+    role: 'improvements',
+    level: '3',
+  },
+  sectionAmend: {
+    anchor: 'RG1',
+    title: 'A heading',
+    body: 'Prose.',
+    bodyFile: 'a.md',
+    role: 'improvements',
+    fragment: { replace: 'one', replacement: 'two' },
+  },
 }
