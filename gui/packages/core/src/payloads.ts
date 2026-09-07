@@ -10,6 +10,7 @@ import {
   record,
   type Reader,
 } from './reading'
+import { readRemedy, type Remedy } from './refusals'
 
 /**
  * The shapes this app reads, written by hand from the payloads themselves.
@@ -299,8 +300,12 @@ export interface LintFinding {
   readonly line: number | null
   readonly id: string | null
   readonly message: string
-  /** Every finding names the command that closes it. Carried, not modelled. */
-  readonly remedy: unknown
+  /**
+   * Every finding names the command that closes it, in the same shape `explain` publishes
+   * for a refusal's code. One reader for both: a refusal and a gate finding are the same
+   * thing at two moments, and offering the door in one place only is how they drift.
+   */
+  readonly remedy: Remedy | null
 }
 
 const readFinding: Reader<LintFinding> = record<LintFinding>({
@@ -309,7 +314,7 @@ const readFinding: Reader<LintFinding> = record<LintFinding>({
   line: orMissing(orNull(aNumber), null),
   id: orMissing(orNull(aString), null),
   message: aString,
-  remedy: orMissing(anything, null),
+  remedy: orMissing(orNull(readRemedy), null),
 })
 
 export interface LintPayload {

@@ -50,6 +50,8 @@ export interface VerbInputs {
   }
   /** Which copy of roadkeep writes for this project. Takes nothing; asked before anything else. */
   engines: Record<string, never>
+  /** What one gate code means and which doors close it. Takes the code a refusal named. */
+  explain: { code: string }
 }
 
 export type VerbName = keyof VerbInputs
@@ -86,4 +88,5 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
   ],
   lint: (input) => [...optional('--baseline', input.baseline)],
   engines: () => [],
+  explain: (input) => [input.code],
 }

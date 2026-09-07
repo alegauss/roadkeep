@@ -4,11 +4,14 @@ import {
   VERBS,
   createClient,
   explainFailure,
+  fieldsRefused,
   narrowingOfBrief,
   narrowingOfList,
   narrowingOfStats,
+  readAnswer,
   readBriefPayload,
   readEnginesPayload,
+  readExplanation,
   readListPayload,
   readLintPayload,
   readPayload,
@@ -98,7 +101,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
     // without a case here is the hole RG66 exists to close structurally; until then this
     // is what notices.
     expect(Object.keys(VERBS).sort()).toEqual(
-      ['brief', 'engines', 'lint', 'list', 'show', 'stats'].sort(),
+      ['brief', 'engines', 'explain', 'lint', 'list', 'show', 'stats'].sort(),
     )
   })
 
@@ -194,6 +197,65 @@ describe('RG4: every read this client makes, against a live engine', () => {
 
     expect(payload).not.toBeNull()
     expect(payload?.writing.version).toBe(engineVersion)
+  })
+})
+
+describe('RG5: a refusal, against a live engine', () => {
+  it('names the field a real over-long symptom was refused on', async () => {
+    // A write the engine refuses writes nothing, which is what makes this safe to run
+    // against the fixture and what makes the refusal worth reading rather than avoiding.
+    const result = await transport.run({
+      root: fixture.root,
+      argv: ['-C', fixture.root, 'add', '--block', 'A', '--symptom', 'x'.repeat(200), '--why', 'A reason that is fine.', '--json'],
+      timeoutMs: CEILING,
+    })
+    const parsed = readAnswer(readListPayload, result)
+
+    expect(result.code).not.toBe(0)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok || parsed.value.kind !== 'refused') {
+      throw new Error(`expected a refusal, got ${result.stdout.slice(0, 120)}`)
+    }
+
+    expect(fieldsRefused(parsed.value.refusal)).toEqual(['symptom'])
+    expect(parsed.value.refusal.refused[0]?.code).toBe('symptom.too-long')
+  })
+
+  it('marks nothing for a refusal the engine did not attach to a field', async () => {
+    const result = await client.call(fixture.root, 'show', { id: 'FX999' }, { timeoutMs: CEILING })
+    const parsed = readAnswer(readShowPayload, result)
+
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok || parsed.value.kind !== 'refused') {
+      throw new Error(`expected a refusal, got ${result.stdout.slice(0, 120)}`)
+    }
+    expect(fieldsRefused(parsed.value.refusal)).toEqual([])
+    expect(parsed.value.refusal.said).not.toBe('')
+  })
+
+  it('reads the doors that close the code a refusal named', async () => {
+    const payload = await readVerb('explain', { code: 'symptom.too-long' }, readExplanation)
+
+    expect(payload.code).toBe('symptom.too-long')
+    expect(payload.cause).not.toBe('')
+    expect(payload.doors.length).toBeGreaterThan(0)
+    expect(payload.doors[0]?.argv.length).toBeGreaterThan(0)
+  })
+
+  it('reads a gate finding through the same door shape', async () => {
+    // The claim the design makes: `explain`'s table and a lint finding's `remedy` are one
+    // map at two moments, so one reader covers both. This repository's own gate carries
+    // notes with remedies, which is where that gets exercised against real output.
+    const result = await client.call(REPO, 'lint', {}, { timeoutMs: CEILING })
+    const parsed = readPayload(readLintPayload, result.stdout, { verb: 'lint', engineVersion })
+
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    const withRemedy = [...parsed.value.findings, ...parsed.value.notes].find(
+      (entry) => entry.remedy !== null,
+    )
+    expect(withRemedy?.remedy?.doors.length).toBeGreaterThan(0)
+    expect(typeof withRemedy?.remedy?.doors[0]?.what).toBe('string')
   })
 })
 

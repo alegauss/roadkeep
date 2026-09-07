@@ -42,6 +42,17 @@ export type {
 } from './payloads'
 export { explainFailure, readPayload } from './reading'
 export type { Parsed, PayloadFailure, Reader } from './reading'
+export {
+  fieldsRefused,
+  offerable,
+  readAnswer,
+  readDoor,
+  readExplanation,
+  readRefusal,
+  readRefusedField,
+  readRemedy,
+} from './refusals'
+export type { Answer, Door, Explanation, Refusal, RefusedField, Remedy } from './refusals'
 export { PACKAGES, RESPONSIBILITY } from './packages'
 export type { PackageName } from './packages'
 export { EngineCallFailed } from './transport'

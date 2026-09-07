@@ -4,7 +4,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-- 💭 **RG5** (deps: RG1 ✅, RG3 ✅) **a refusal is prose on stderr, so the field it is about has to be read back out of English** — add returns a code and a field under --json, and a client discarding that shows a paragraph in a toast instead of marking the box that was refused. → §RG5
 - 💭 **RG6** (deps: RG2 ✅, RG3 ✅) **nothing checks which build answered, so a project on an older roadkeep fails at the first flag it lacks** — commands --json names the version and every argument this copy takes, and it is the only read that can tell a missing flag from a broken one. → §RG6
 - 💭 **RG7** (deps: RG1 ✅) **every read costs an interpreter start, so a screen over twenty projects pays twenty of them to redraw** — One call measures around 360 ms, and nothing keys an answer to the files it came off so that an unchanged project is not read again. → §RG7
 - 💭 **RG8** (deps: RG1 ✅) **a read has no ceiling, so one project whose engine hangs stops the screen that was drawing it** — A subprocess that never exits holds a slot forever, and a portfolio read fans out far enough that one of them eventually will. → §RG8
@@ -45,7 +44,7 @@
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-- 💭 **RG29** (deps: RG5, RG23) **the app reads and never writes, so a correction is typed in the terminal this app exists to replace** — A window showing the backlog beside a shell writing it is the drift roadkeep exists to stop, moved one application across. → §RG29
+- 💭 **RG29** (deps: RG5 ✅, RG23) **the app reads and never writes, so a correction is typed in the terminal this app exists to replace** — A window showing the backlog beside a shell writing it is the drift roadkeep exists to stop, moved one application across. → §RG29
 - 💭 **RG30** (deps: RG29) **a marker cannot be moved, so starting work is a shell command run beside the window that shows it** — status is the third way to start a task and takes the claim with it, and the surface that would use it has no door to the verb. → §RG30
 - 💭 **RG31** (deps: RG29) **there is no door for ship, retire, defer or resume, so a task is read here and closed elsewhere** — ship writes three files in one transaction or none of them, and a client that shows a task and cannot close it has moved half the loop. → §RG31
 - 💭 **RG32** (deps: RG29) **a rationale section cannot be written, so a line filed here points at nothing until a terminal is opened** — add names the follow-up its pointer needs and section add is that follow-up, so filing without it leaves every new line incomplete. → §RG32

@@ -2,16 +2,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG5 A refusal that lands on the box it is about
-
-Every write refused under --json returns a refused list, each entry carrying a code, the
-field and the message the terminal printed, plus the whole refusal as prose. The app
-reads the pair: the field decides which input is marked, the code decides whether there
-is a door, and the prose is what a person sees when neither resolves. What it must not
-do is parse that prose — the message is written for a reader and the code is the
-contract. The doors table explain publishes is the same map one layer over, so a refusal
-and a gate finding are handled by one reader.
-
 ### §RG6 Telling an old build from a broken one
 
 The commands read is the only one that names this build and every argument each verb
@@ -115,10 +105,10 @@ and calling one returns the parsed value or the failure. Then a verb with no sha
 compile error rather than a hole, and `client.call` stops handing back raw stdout for
 anybody to interpret.
 
-The cost worth naming is that a verb this app calls only to run something — a future
-write, where the answer is an exit code and a refusal — still needs a shape, even if
-that shape is small. That is not a reason to keep two tables; it is a reason for one of
-the readers to be deliberately thin.
+RG5 added the last piece and left it disconnected. `readAnswer` turns a result into a
+payload or a refusal, and every call should go through it — but `client.call` still
+hands back raw stdout, so using it is something each caller remembers. One call is what
+makes it unavoidable rather than advisable.
 
 ### §RG67 The answer shape nobody here has produced
 

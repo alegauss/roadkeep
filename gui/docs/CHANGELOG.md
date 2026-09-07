@@ -6,6 +6,7 @@
 - ✅ **RG2** **the engine is assumed to be a roadkeep on PATH, which is the one thing engines says it may not be** — Each project is asked which copy writes for it, and a modified tree, a disagreement and a machine resolving nothing are answers (design recorded in `packages/core/src/engine-resolution.ts`).
 - ✅ **RG3** **a payload arrives as any, so a key renamed upstream is an undefined at run time and never a red build** — Each read declares a shape that yields the typed value or names the field that drifted, blaming the version gap rather than the project (design recorded in `packages/core/src/payloads.ts`).
 - ✅ **RG4** **the client's reading of a payload is asserted by nothing, so a rename upstream breaks a user and not a build** — A fixture built by the write verbs is read by every verb this client calls, and two over-strict shapes failed here first (design recorded in `packages/shell/src/contract.test.ts`).
+- ✅ **RG5** **a refusal is prose on stderr, so the field it is about has to be read back out of English** — A refused write comes back as its code and field, and the doors that close it read through one shape shared with the gate (design recorded in `packages/core/src/refusals.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
