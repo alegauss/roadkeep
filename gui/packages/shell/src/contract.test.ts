@@ -5,11 +5,13 @@ import {
   createClient,
   explainFailure,
   fieldsRefused,
+  flagsFor,
   narrowingOfBrief,
   narrowingOfList,
   narrowingOfStats,
   readAnswer,
   readBriefPayload,
+  readCapabilities,
   readEnginesPayload,
   readExplanation,
   readListPayload,
@@ -18,6 +20,7 @@ import {
   readShowPayload,
   readStatsPayload,
   resolveEngine,
+  withheld,
   type Parsed,
   type Reader,
   type VerbName,
@@ -101,7 +104,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
     // without a case here is the hole RG66 exists to close structurally; until then this
     // is what notices.
     expect(Object.keys(VERBS).sort()).toEqual(
-      ['brief', 'engines', 'explain', 'lint', 'list', 'show', 'stats'].sort(),
+      ['brief', 'commands', 'engines', 'explain', 'lint', 'list', 'show', 'stats'].sort(),
     )
   })
 
@@ -197,6 +200,38 @@ describe('RG4: every read this client makes, against a live engine', () => {
 
     expect(payload).not.toBeNull()
     expect(payload?.writing.version).toBe(engineVersion)
+  })
+})
+
+describe('RG6: what the live build says it can do', () => {
+  it('publishes every verb this app calls, with every flag it would send', async () => {
+    const result = await client.call(fixture.root, 'commands', {}, { timeoutMs: CEILING })
+    const report = readCapabilities(result.stdout, engineVersion)
+
+    expect(report.kind).toBe('known')
+    if (report.kind !== 'known') return
+
+    // The assertion that earns this read: not "commands parsed", but that the flags this
+    // app composes are flags this build actually takes. A failure here names them.
+    expect(withheld(report), withheld(report).join('\n')).toEqual([])
+    expect(report.complete).toBe(true)
+    expect(report.version).toBe(engineVersion)
+  })
+
+  it('agrees with the flags derived from this project’s own builders', async () => {
+    const result = await client.call(fixture.root, 'commands', {}, { timeoutMs: CEILING })
+    const report = readCapabilities(result.stdout, engineVersion)
+    if (report.kind !== 'known') return
+
+    expect(report.byVerb.list.callable).toBe(true)
+    expect(report.byVerb.list.writes).toBe(false)
+    expect(flagsFor('list')).toContain('--marker')
+
+    // The distinction this test exists to pin down: `stats` runs and is not on the MCP
+    // tool surface. Reading `published` as "can I call it" withheld it, which is how the
+    // live contract caught the wrong field being read.
+    expect(report.byVerb.stats.callable).toBe(true)
+    expect(report.byVerb.stats.onToolSurface).toBe(false)
   })
 })
 

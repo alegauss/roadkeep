@@ -4,7 +4,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-- 💭 **RG6** (deps: RG2 ✅, RG3 ✅) **nothing checks which build answered, so a project on an older roadkeep fails at the first flag it lacks** — commands --json names the version and every argument this copy takes, and it is the only read that can tell a missing flag from a broken one. → §RG6
 - 💭 **RG7** (deps: RG1 ✅) **every read costs an interpreter start, so a screen over twenty projects pays twenty of them to redraw** — One call measures around 360 ms, and nothing keys an answer to the files it came off so that an unchanged project is not read again. → §RG7
 - 💭 **RG8** (deps: RG1 ✅) **a read has no ceiling, so one project whose engine hangs stops the screen that was drawing it** — A subprocess that never exits holds a slot forever, and a portfolio read fans out far enough that one of them eventually will. → §RG8
 - 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
@@ -13,6 +12,7 @@
 - 📋 **RG66** (deps: RG3 ✅) **a verb can be called with no shape declared for its answer, so the boundary has a hole per verb** — The verb table and the shape table are two lists nothing holds together, and brief is already in one and absent from the other. → §RG66
 - 📋 **RG67** (deps: RG3 ✅) **a project declaring a read bound answers in a shape nothing here has ever seen, and the reader refuses it** — A listing past the bound comes back as blocks and counts instead of tasks, and this repo declares none so the shape could not be written from a real payload. → §RG67
 - 📋 **RG68** (deps: RG4 ✅) **the contract costs a minute of process starts, because every read rebuilds nothing but pays a fresh engine** — Building the fixture is fifteen write calls and each read is another, so the suite went from four seconds to twenty-eight. → §RG68
+- 📋 **RG69** (deps: RG6 ✅) **a subcommand is a verb with a space in it, and the verb table has no way to spell one** — commands publishes section show, capture filed and capture sweep as single names, and every write this app will need is under section, block or criterion. → §RG69
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

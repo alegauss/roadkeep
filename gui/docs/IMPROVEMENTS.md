@@ -2,16 +2,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG6 Telling an old build from a broken one
-
-The commands read is the only one that names this build and every argument each verb
-takes on this project. Called once when a project is first opened, it answers three
-questions no other read can: which version answered, whether a flag this app composes
-exists here, and which verbs are published at all. What it produces is a capability
-record kept beside the engine record, so a screen can withhold a door rather than offer
-one that will be refused. A project too old to answer is drawn as unsupported with its
-version, which is a state and not a failure.
-
 ### §RG7 What invalidates an answer
 
 A read is keyed by the project root, the argv and the modification times of the governed
@@ -154,6 +144,27 @@ engine did not build, which is worse than a slow suite.
 RG64 splits this file out of the fast suite, which stops the cost being paid on every
 edit. This line is about the cost itself, and the two are worth doing in that order:
 moving something slow is cheaper than making it fast, and it may turn out to be enough.
+
+### §RG69 The verbs that are two words
+
+Reading `commands --json` turned up something the verb table cannot currently express.
+Twenty-three of the eighty-nine entries are not top-level verbs at all: `section show`,
+`capture filed` and `capture sweep` arrive as single names with a space, and the
+families behind them — `section`, `block`, `non-goal`, `criterion`, `priority`,
+`record`, `refs` — are exactly where the write path is going. Every rationale section
+this app will file goes through `section add`.
+
+Today a verb is one key in `VERBS` and one word on the command line, and the capability
+check looks a verb up by that word. A two-word verb would be looked up under the wrong
+key, reported as one this build cannot run, and its door withheld — which is the failure
+mode this read exists to prevent, arriving through the read itself.
+
+The fix is small and worth doing before block E rather than during it: a verb's key
+stays a single identifier this app uses, and the table carries the words that go on the
+command line as an array. `commands` is then looked up by joining them, and `buildArgv`
+spreads them. What it must not become is a string split on spaces, because the point of
+argv being an array is that nothing in this app ever splits a command line into
+arguments.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

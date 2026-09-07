@@ -52,6 +52,8 @@ export interface VerbInputs {
   engines: Record<string, never>
   /** What one gate code means and which doors close it. Takes the code a refusal named. */
   explain: { code: string }
+  /** Every verb this build publishes and every argument each takes. Asked once per project. */
+  commands: Record<string, never>
 }
 
 export type VerbName = keyof VerbInputs
@@ -89,4 +91,25 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
   lint: (input) => [...optional('--baseline', input.baseline)],
   engines: () => [],
   explain: (input) => [input.code],
+  commands: () => [],
+}
+
+/**
+ * One input per verb with every field filled in, so the flags a builder can emit can be
+ * derived by running it rather than listed beside it.
+ *
+ * A list beside the builders would drift the moment somebody adds a flag to one and not
+ * the other, and it would drift in the direction that matters: the capability check would
+ * go on approving a flag nothing ever verifies this build accepts. These values are never
+ * sent to an engine — they exist to be handed to `VERBS[verb]` and have their output read.
+ */
+export const EVERY_INPUT: { [K in VerbName]: VerbInputs[K] } = {
+  list: { block: 'A', role: 'roadmap', marker: '📋', have: ['signing-cert'] },
+  show: { id: 'RG1', noBody: true },
+  stats: { block: 'A', role: 'roadmap', have: ['signing-cert'] },
+  brief: { id: 'RG1', block: 'A', designed: true, have: ['signing-cert'] },
+  lint: { baseline: 'HEAD' },
+  engines: {},
+  explain: { code: 'symptom.too-long' },
+  commands: {},
 }

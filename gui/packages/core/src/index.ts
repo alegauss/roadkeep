@@ -1,5 +1,20 @@
 export { BRIDGE_CHANNELS, BRIDGE_KEY } from './bridge'
 export type { BridgeIdentity, RendererBridge, TransportName } from './bridge'
+export {
+  flagsFor,
+  readCapabilities,
+  readCommandArgument,
+  readCommandsPayload,
+  readPublishedCommand,
+  withheld,
+} from './capabilities'
+export type {
+  Capability,
+  CapabilityReport,
+  CommandArgument,
+  CommandsPayload,
+  PublishedCommand,
+} from './capabilities'
 export { buildArgv, createClient } from './client'
 export type { CallOptions, Client } from './client'
 export { disagrees, isModified, resolveEngine } from './engine-resolution'
@@ -63,5 +78,5 @@ export type {
   EngineResult,
   Transport,
 } from './transport'
-export { VERBS } from './verbs'
+export { EVERY_INPUT, VERBS } from './verbs'
 export type { VerbInputs, VerbName } from './verbs'
