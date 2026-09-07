@@ -48,6 +48,8 @@ export interface VerbInputs {
     /** Report only what this tree added since a revision. */
     baseline?: string
   }
+  /** Which copy of roadkeep writes for this project. Takes nothing; asked before anything else. */
+  engines: Record<string, never>
 }
 
 export type VerbName = keyof VerbInputs
@@ -83,4 +85,5 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
     ...repeated('--have', input.have),
   ],
   lint: (input) => [...optional('--baseline', input.baseline)],
+  engines: () => [],
 }

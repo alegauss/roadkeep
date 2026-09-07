@@ -4,15 +4,15 @@
 
 ## Block A — The client (payloads in, types out)
 
-- 📋 **RG2** (deps: RG1 ✅) **the engine is assumed to be a roadkeep on PATH, which is the one thing engines says it may not be** — A project may be governed by the plugin, a sibling checkout or a pip install, and those may differ in version and disagree. → §RG2
 - 📋 **RG3** (deps: RG1 ✅) **a payload arrives as any, so a key renamed upstream is an undefined at run time and never a red build** — The shape comes off a build this app did not choose, and nothing between the process and the screen refuses one it does not recognise. → §RG3
 - 📋 **RG4** (deps: RG3) **the client's reading of a payload is asserted by nothing, so a rename upstream breaks a user and not a build** — roadkeep holds its own editor client from Python for exactly this reason, and no such test covers a second client living outside that tree. → §RG4
 - 💭 **RG5** (deps: RG1 ✅, RG3) **a refusal is prose on stderr, so the field it is about has to be read back out of English** — add returns a code and a field under --json, and a client discarding that shows a paragraph in a toast instead of marking the box that was refused. → §RG5
-- 💭 **RG6** (deps: RG2, RG3) **nothing checks which build answered, so a project on an older roadkeep fails at the first flag it lacks** — commands --json names the version and every argument this copy takes, and it is the only read that can tell a missing flag from a broken one. → §RG6
+- 💭 **RG6** (deps: RG2 ✅, RG3) **nothing checks which build answered, so a project on an older roadkeep fails at the first flag it lacks** — commands --json names the version and every argument this copy takes, and it is the only read that can tell a missing flag from a broken one. → §RG6
 - 💭 **RG7** (deps: RG1 ✅) **every read costs an interpreter start, so a screen over twenty projects pays twenty of them to redraw** — One call measures around 360 ms, and nothing keys an answer to the files it came off so that an unchanged project is not read again. → §RG7
 - 💭 **RG8** (deps: RG1 ✅) **a read has no ceiling, so one project whose engine hangs stops the screen that was drawing it** — A subprocess that never exits holds a slot forever, and a portfolio read fans out far enough that one of them eventually will. → §RG8
 - 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
 - 📋 **RG64** (deps: RG1 ✅) **the fast suite and the one that spawns a real engine are one command, so every run pays for both** — Four live calls took the suite from one second to six, and RG4 adds a payload assertion per verb against the same engine. → §RG64
+- 📋 **RG65** (deps: RG2 ✅) **resolving an engine costs two interpreter starts on Windows, where the same file is spelled two ways** — invoke reports a posix path and the candidate holds a native one, so the verification call fires every time rather than only on a real difference. → §RG65
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
@@ -21,7 +21,7 @@
 - 💭 **RG12** (deps: RG11) **a git worktree family reads as unrelated projects, so one backlog appears once per version folder** — turing and shio are kept as a worktree per version under a stable junction, so the same governed files answer from several paths. → §RG12
 - 💭 **RG13** (deps: RG11, roadkeep RK1631) **a candidate is judged governed by a read that fails, so rejecting a folder costs the work of a whole lint** — config answers with a null and engines answers happily about an ungoverned directory, so the cheap probe a scan wants does not exist yet. → §RG13
 - 💭 **RG14** (deps: RG11) **the whole tree is walked again on every launch, so a list the person already approved is rediscovered** — A scan is a statement about this machine and changes rarely, and a project that vanished for a moment is worse than one shown from a record. → §RG14
-- 💭 **RG15** (deps: RG2, RG13) **which copy of roadkeep each project runs is never read, so a disagreement engines can name is averaged away** — This block will not be finished until the version, the home and the verdict sit beside a project's counts, and nothing reads them yet. → §RG15
+- 💭 **RG15** (deps: RG2 ✅, RG13) **which copy of roadkeep each project runs is never read, so a disagreement engines can name is averaged away** — This block will not be finished until the version, the home and the verdict sit beside a project's counts, and nothing reads them yet. → §RG15
 
 ## Block C — The portfolio (many backlogs in one view)
 

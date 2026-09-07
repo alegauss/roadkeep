@@ -2,29 +2,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG2 Whose roadkeep answered
-
-`roadkeep` on PATH is the one thing `engines` exists to say a project may not be
-running. A checkout may be governed by the plugin, a sibling checkout, a pip install or
-a committed launcher, and those may sit at different versions and disagree.
-
-So the engine is resolved per project, never per machine. `engines --json` is the first
-call made against a candidate and its `invoke` key is the command line every later call
-for that project is built from; `version`, `home`, `revision` and `verdict` are kept
-beside it, because this block's criterion is that the copy which answered is on screen
-and not merely that one was found.
-
-Three states have to be told apart and none is a crash. A project whose engine is a
-modified working tree gets an answer that is that tree's, which `lint` says out loud and
-this app repeats rather than hides. A project whose copies disagree is drawn as
-disagreeing, not as whichever answered first. A machine with no Python resolves nothing,
-and that project is shown as unreadable with the reason — the alternative being an app
-that quietly substitutes a build of its own for the one the project chose.
-
-Nothing is bundled, which is a non-goal here and the same argument backwards: an engine
-shipped inside this app would judge seventeen projects by a version none of them
-declared, and the disagreement `engines` surfaces is what the screen would stop seeing.
-
 ### §RG3 Types that come off the tool, not off a guess
 
 A payload is JSON with no published schema, produced by a build this app did not choose.
@@ -142,6 +119,32 @@ quietly stops holding.
 The live suite also has a dependency the fast one does not: `python` on PATH, plus the
 launcher this repository commits. That is worth stating where CI is configured, since a
 machine without it fails four tests for a reason that has nothing to do with the code.
+
+### §RG65 One file, two spellings, two process starts
+
+Resolution asks a candidate for `engines --json`, reads the `invoke` it reports, and
+where that names a different command line reaches it once to check it is the same copy.
+The check is right and should stay: adopting a command line without running it is how an
+app answers from an install nobody chose.
+
+What is wrong is how often it fires. `invoke` is built with posix separators, and a
+candidate assembled from a filesystem path on Windows holds native ones, so `python
+D:/proj/.claude/hooks/roadkeep-launch.py` and `python
+D:\proj\.claude\hooks\roadkeep-launch.py` compare as different while naming one file.
+Every Windows resolution therefore pays a second interpreter start it did not need —
+measured at roughly 2.3 seconds, which is what pushed this repository's own test past
+Vitest's default ceiling.
+
+The fix is a comparison that knows two spellings of a path are one, and the awkward part
+is where it lives: `core` has no `path` module and must not grow one, since it is the
+half a web service keeps. So the comparison is either passed in by whoever has a
+filesystem, or done on a normalised copy of both strings with the separator as the only
+thing normalised. The second is smaller and is probably right, but it is a rule about
+paths sitting in a package that is meant not to know about them, which is worth deciding
+rather than assuming.
+
+RG7's cache reduces how often this is paid; it does not make the first read of each
+project cheaper.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
