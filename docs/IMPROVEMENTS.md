@@ -757,6 +757,31 @@ serves `_owners`; a visitor hook serves the two looking for a particular call. O
 reader answering both is the question, and three call sites is a small enough population
 to design against rather than guess.
 
+### §RK1649 The choice that has to be made
+
+`answers(...)` declares that two flags are two answers, and `_one_answer` refuses both
+together before a handler runs — on the CLI and over MCP, from one declaration. What it
+cannot say is that one of them is **required**.
+
+`criterion add` needs that: it writes the bullet, so there is no lead on file to resolve
+an address from, and a call naming neither `--block` nor `--task` has nowhere to put the
+line. `_required_address` raises it inside the handler, which is the shape RK1607 took
+out of four other verbs for three reasons that all still apply here — `_one_answer`
+never sees it, the pair sweep reads a correct exit as unaccounted for, and an agent
+meets the rule by making the call.
+
+Argparse spells this and cannot help. A `required` mutually-exclusive group refuses on a
+command line and says nothing over a transport where both fields exist and neither is
+marked required, which is why no verb here uses one: measured across 82 leaf verbs, zero
+required groups and sixteen `answers(...)` declarations.
+
+So the shape is a flag on the declaration — `answers(parser, ..., required=True)` —
+enforced beside the pair it already checks, and published into the served schema so the
+transport carries it too. The population is one verb today. Whether that is enough to
+declare against, or whether one raise with a good sentence is the right amount of
+machinery, is the same question RK1555 answered the other way for `--prefix` beside
+`--sections`.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
