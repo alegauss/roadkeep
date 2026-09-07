@@ -169,6 +169,32 @@ than to write down which.
 The value of these tests is that they read the real thing, so the answer is never to
 move them onto fixtures. It is to stop asserting about a line by its number.
 
+### §RG78 One seam for a live read
+
+Five live test files now open with the same twelve lines: resolve the repository root,
+build a process transport on the launcher, wrap it in a client, then a helper that calls
+one verb, hands the stdout to `readPayload`, and throws a sentence naming the expected
+type, the path and what was found. `contract.test.ts` calls its copy `readVerb`;
+`detail-live` calls it `detailOf`; `design-live`, `graph-live` and `binding-live` each
+carry their own.
+
+The copies have already drifted. Two report `(the answer)` for an empty path and one
+reports nothing; the timeout constant is redeclared five times; `binding-live` needed a
+second spelling because its verb name is two words. None of that is load-bearing, and
+each new Block D task adds another copy.
+
+What belongs in one place is the seam, not the assertions: a module beside `fixture.ts`
+that hands back a client already pointed at the launcher and a `read(root, verb, input,
+reader)` that fails with the message a person would need. The test files keep what makes
+them different — which root, which verb, and what is asserted about the answer.
+
+The failure message is the part worth centralising. It is the reason these helpers exist
+at all: a shape that moved upstream has to name the key and the build that moved it, and
+a copy that quietly says `undefined` is the one that wastes an afternoon. One
+implementation is one place for that sentence to be right.
+
+On ship: `--recorded-in packages/shell/src/live.ts`.
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ### §RG13 The cheap no
@@ -326,6 +352,31 @@ key on `BriefPayload` and a `graphFrom` that takes what a brief has — which is
 lay-out over a payload with two of its lists absent, not a second module.
 
 On ship: `--recorded-in packages/core/src/graph.ts`.
+
+### §RG77 The reason a non-goal keeps to itself
+
+`non-goal list --json` answers with the leads, the file, what was elided and which
+designs quote each. It does not answer with the reasons, and neither does `brief`, which
+prints the same leads. A criterion arrives with its `why`; a non-goal does not.
+
+The reason is the half that decides anything. `No store of its own` is a phrase whose
+argument the file spells out in a sentence, and that sentence is what a person about to
+file a proposal needs. RG26 shipped the list with `answeredBy` and no `why`, faithful to
+the payload rather than half-written.
+
+There are two ways to get it and only one is allowed here. Reading `docs/ROADMAP.md` and
+lifting the bullet is what `No Markdown parsed in this app` refuses, and it is the
+second implementation of a grammar this app exists not to hold. The other is for
+roadkeep to publish the field, the way `criterion list` already does — a key on the
+payload, filed upstream in `d:/Git/alegauss/roadkeep`.
+
+So this line waits on that, and its dep says so: nothing shipped here can ever satisfy
+it, and `pick` will not offer it. What lands when the field arrives is small — the key
+on `NonGoalsPayload`, the `why` on `NonGoal`, and the tests that assert a reason that is
+absent today. The line exists so the gap is a filed state rather than a shape somebody
+later reads as an oversight.
+
+On ship: `--recorded-in packages/core/src/binding.ts`.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 

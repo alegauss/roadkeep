@@ -12,6 +12,7 @@
 - 📋 **RG68** (deps: RG4 ✅) **the contract costs a minute of process starts, because every read rebuilds nothing but pays a fresh engine** — Building the fixture is fifteen write calls and each read is another, so the suite went from four seconds to twenty-eight. → §RG68
 - 📋 **RG69** (deps: RG6 ✅) **a subcommand is a verb with a space in it, and the verb table has no way to spell one** — commands publishes section show, capture filed and capture sweep as single names, and every write this app will need is under section, block or criterion. → §RG69
 - 💭 **RG75** (deps: —) **two live tests still name RG9, so the commit that ships it fails a suite nothing changed to break** — A live test reads this repository's own backlog, and an id written into an assertion is a claim about today that the work itself keeps falsifying. → §RG75
+- 💭 **RG78** (deps: —) **five live test files each carry their own copy of the same call-parse-or-throw helper, already drifted** — The message a shape mismatch prints is the reason these helpers exist, and it is now written five times and the same in none of them. → §RG78
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
@@ -30,6 +31,7 @@
 - 💭 **RG28** (deps: RG21 ✅) **the deferred store is invisible, so a paused line cannot be told from one that was never filed** — list --stale prints the pause with how long it has stood in commits over the governed files, which is an order nothing here draws. → §RG28
 - 📋 **RG74** (deps: RG23 ✅) **a marker says in progress and the claim registry says nobody holds it, and nothing tells the two apart** — A line can carry the working marker with no live claim, so a screen reading either one alone shows a task as taken or as free when it is the other. → §RG74
 - 💭 **RG76** (deps: RG25 ✅) **brief already sends the chains and the shape drops them, so opening one task pays for a second call to deps** — Block D's criterion is that a task opens in one read, and the chain a screen draws is in the brief that opened it. → §RG76
+- 💭 **RG77** (deps: roadkeep publishing a non-goal's reason) **a non-goal arrives as a lead alone, so the sentence that argues it stays in the file** — The reason is the half that settles whether a proposal is forbidden, and criterion list publishes its why while non-goal list does not. → §RG77
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
