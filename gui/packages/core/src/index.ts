@@ -69,6 +69,8 @@ export type { GateHealth, GateLedger, GateRecord, GateVerdict } from './gate'
 export type { ProjectFamily, ProjectMember, ProjectSite } from './families'
 export { attemptRead, DEFAULT_LIMITS, withLimits } from './limits'
 export type { ProjectRead, ReadLimits, Unreadable } from './limits'
+export { howListed, ledgerFrom, reversedFrom, undoneBy } from './memory'
+export type { Delivery, Ledger, Reversed } from './memory'
 export { createPooledTransport } from './pool'
 export type { PoolOptions } from './pool'
 export { folderName, pendingRow, readRow, tally, unreadableRow } from './portfolio'
@@ -119,6 +121,8 @@ export {
   readConfigPayload,
   readCriteriaPayload,
   readCriterion,
+  readDeliveredEntry,
+  readDeliveredPayload,
   readDepChain,
   readDepsPayload,
   readListPayload,
@@ -128,6 +132,8 @@ export {
   readPickPayload,
   readRefusedLine,
   readResolvedDep,
+  readReversalEntry,
+  readReversalsPayload,
   readSection,
   readSectionBudget,
   readShowPayload,
@@ -144,6 +150,8 @@ export type {
   ConfigPayload,
   CriteriaPayload,
   Criterion,
+  DeliveredEntry,
+  DeliveredPayload,
   DepChain,
   DepsPayload,
   HeldClaim,
@@ -157,6 +165,8 @@ export type {
   PickPayload,
   RationaleSection,
   RefusedLine,
+  ReversalEntry,
+  ReversalsPayload,
   SectionBudget,
   ShowPayload,
   Standing,

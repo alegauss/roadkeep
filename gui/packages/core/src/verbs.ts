@@ -49,6 +49,16 @@ export interface VerbInputs {
    * it would free, and any cycle it is caught in.
    */
   deps: { id: string }
+  /**
+   * What one block already delivered — the read before an `add`. `near` bounds it to the
+   * five entries nearest a sentence about to be proposed, in order and with no score.
+   */
+  delivered: {
+    block: string
+    near?: string
+  }
+  /** Every id the ledger undid, and the entry that undid it. `id` asks about one. */
+  reversals: { id?: string }
   /** What this project says it is not building. Takes nothing: the list is the project's. */
   'non-goal list': Record<string, never>
   /** What would finish a block, or what one line carries of its own. */
@@ -110,6 +120,8 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
     ...repeated('--have', input.have),
   ],
   deps: (input) => [input.id],
+  delivered: (input) => [input.block, ...optional('--near', input.near)],
+  reversals: (input) => [...optional('--id', input.id)],
   'non-goal list': () => [],
   'criterion list': (input) => [
     ...optional('--block', input.block),
@@ -142,6 +154,8 @@ export const EVERY_INPUT: { [K in VerbName]: VerbInputs[K] } = {
   stats: { block: 'A', role: 'roadmap', have: ['signing-cert'] },
   brief: { id: 'RG1', block: 'A', designed: true, have: ['signing-cert'] },
   deps: { id: 'RG1' },
+  delivered: { block: 'A', near: 'a symptom about to be proposed' },
+  reversals: { id: 'RG1' },
   'non-goal list': {},
   'criterion list': { block: 'A', task: 'RG1' },
   lint: { baseline: 'HEAD' },

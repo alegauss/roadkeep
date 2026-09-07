@@ -499,6 +499,89 @@ export const readBriefPayload: Reader<BriefPayload> = record<BriefPayload>(
   },
 )
 
+/** One entry in the ledger: what a block delivered, and whether it held. */
+export interface DeliveredEntry {
+  readonly id: string
+  readonly marker: string
+  /** The claim the entry made, which is what a duplicate collides with. */
+  readonly symptom: string
+  readonly line: number
+  /**
+   * The entry that superseded this one, or null. **A revert is filed as a delivery**, so
+   * an entry can say shipped and mean the work did not hold.
+   */
+  readonly undoneBy: string | null
+  /**
+   * Where it placed against the sentence `--near` asked about. Absent without it, and it
+   * is a **position and never a score** — no threshold is published, because none exists.
+   */
+  readonly rank: number
+}
+
+export const readDeliveredEntry: Reader<DeliveredEntry> = record<DeliveredEntry>(
+  {
+    id: aString,
+    marker: orMissing(aString, ''),
+    symptom: orMissing(aString, ''),
+    line: orMissing(aNumber, 0),
+    undoneBy: orMissing(orNull(aString), null),
+    rank: orMissing(aNumber, 0),
+  },
+  { undoneBy: 'undone_by' },
+)
+
+export interface DeliveredPayload {
+  readonly file: string
+  readonly block: string
+  readonly standing: Standing | null
+  readonly recorded: number
+  /** The sentence the ranking answered, or null where the whole block was asked for. */
+  readonly near: string | null
+  readonly delivered: readonly DeliveredEntry[]
+}
+
+export const readDeliveredPayload: Reader<DeliveredPayload> = record<DeliveredPayload>({
+  file: orMissing(aString, ''),
+  block: orMissing(aString, ''),
+  standing: orMissing(orNull(readStanding), null),
+  recorded: orMissing(aNumber, 0),
+  near: orMissing(orNull(aString), null),
+  delivered: orMissing(listOf(readDeliveredEntry), []),
+})
+
+/** One decision the ledger already undid, and the entry that undid it. */
+export interface ReversalEntry {
+  readonly undone: string
+  readonly by: string
+  readonly line: number
+  /** The superseding entry's own sentence — the argument a fresh proposal is against. */
+  readonly why: string
+}
+
+export const readReversalEntry: Reader<ReversalEntry> = record<ReversalEntry>({
+  undone: aString,
+  by: orMissing(aString, ''),
+  line: orMissing(aNumber, 0),
+  why: orMissing(aString, ''),
+})
+
+export interface ReversalsPayload {
+  readonly root: string
+  /**
+   * The id the caller asked about, **null where the question was the whole ledger**. It
+   * is the question and not a fact of the file: a listing of one otherwise reads as a
+   * ledger with one reversal in it.
+   */
+  readonly asked: string | null
+  readonly reversed: readonly ReversalEntry[]
+}
+
+export const readReversalsPayload: Reader<ReversalsPayload> = record<ReversalsPayload>({
+  root: orMissing(aString, ''),
+  asked: orMissing(orNull(aString), null),
+  reversed: orMissing(listOf(readReversalEntry), []),
+})
+
 /**
  * What this project says it is not building.
  *

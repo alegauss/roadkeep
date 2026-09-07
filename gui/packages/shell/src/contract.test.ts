@@ -13,6 +13,7 @@ import {
   readBriefPayload,
   readCapabilities,
   readCriteriaPayload,
+  readDeliveredPayload,
   readDepsPayload,
   readEnginesPayload,
   readExplanation,
@@ -21,6 +22,7 @@ import {
   readNonGoalsPayload,
   readPayload,
   readPickPayload,
+  readReversalsPayload,
   readShowPayload,
   readStatsPayload,
   resolveEngine,
@@ -113,6 +115,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
         'commands',
         'config',
         'criterion list',
+        'delivered',
         'deps',
         'engines',
         'explain',
@@ -120,6 +123,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
         'list',
         'non-goal list',
         'pick',
+        'reversals',
         'show',
         'stats',
       ].sort(),
@@ -240,6 +244,34 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(finishing.empty).not.toBeNull()
     expect(finishing.doors.length).toBeGreaterThan(0)
     expect(finishing.doors[0]?.argv.length).toBeGreaterThan(0)
+  })
+
+  it('reads what a block already delivered, ranked and unranked', async () => {
+    const whole = await readVerb('delivered', { block: 'A' }, readDeliveredPayload)
+    const near = await readVerb(
+      'delivered',
+      { block: 'A', near: 'nothing answers a question yet' },
+      readDeliveredPayload,
+    )
+
+    expect(whole.block).toBe('A')
+    expect(whole.file).toContain('CHANGELOG.md')
+    // `near` is null on the unranked read and the sentence on the ranked one — a shape
+    // demanding a string fails on the ordinary call.
+    expect(whole.near).toBeNull()
+    expect(near.near).not.toBeNull()
+    expect(whole.delivered[0]?.symptom).not.toBe('')
+    expect(whole.delivered[0]?.undoneBy).toBeNull()
+  })
+
+  it('reads what the ledger undid, and the id a caller asked about', async () => {
+    const all = await readVerb('reversals', {}, readReversalsPayload)
+    const one = await readVerb('reversals', { id: 'FX1' }, readReversalsPayload)
+
+    expect(all.root).not.toBe('')
+    expect(all.asked).toBeNull()
+    expect(one.asked).toBe('FX1')
+    expect(Array.isArray(one.reversed)).toBe(true)
   })
 
   it('reads what to work on next, and which tier answered', async () => {

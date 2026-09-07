@@ -283,15 +283,6 @@ sixty-eight calls is the number that makes the case, and nobody will have it lat
 
 ## Block D — The project surface (one backlog, read)
 
-### §RG27 What shipped, and what was weighed
-
-Three files this app shows and never writes prose into: the ledger, which the delivered
-read answers per block and is the read before an add; the decisions file, where the
-reversals read names what was already decided and undone, with the argument; and
-whichever prose file holds the sections. Together they are the memory a proposal is
-tested against. They are reads and not screens of their own — reached from a block and
-from a task, because that is where the question comes up.
-
 ### §RG28 The pause, and how long it has stood
 
 A deferred line kept its id, its deps, its symptom and its section, and only left the
