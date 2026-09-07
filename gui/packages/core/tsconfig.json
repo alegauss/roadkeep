@@ -1,12 +1,17 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "module": "Node16",
-    "moduleResolution": "Node16",
     "lib": ["ES2023"],
-    "types": ["node"],
+    // No Node and no DOM. `core` is the half a web service keeps, so it must not be able
+    // to reach a filesystem or a document even by accident, and the way to guarantee that
+    // is to leave those types out of scope rather than to remember not to use them.
+    "types": [],
     "rootDir": "src",
-    "outDir": "dist"
+    "outDir": "dist-types",
+    // Inside the output, so that deleting the output really does force a rebuild. Left to
+    // default it lands beside this file, where a cleaned `dist-types` leaves `tsc -b`
+    // convinced the package is still built and emitting nothing.
+    "tsBuildInfoFile": "dist-types/.tsbuildinfo"
   },
   "include": ["src/**/*.ts"]
 }

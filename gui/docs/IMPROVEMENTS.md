@@ -464,15 +464,6 @@ their own authentication and their own settings.
 
 ## Block G — The shell (an executable now, a service later)
 
-### §RG44 A renderer with a browser's powers, on purpose
-
-Context isolation on, node integration off, remote module off, and one preload exposing
-a narrow typed channel. That is a security posture and it is also the whole web port:
-the renderer already runs with exactly what a browser would give it, so serving it later
-changes the transport behind the channel and nothing in front of it. Navigation is
-refused to anything but the app's own origin, and external links open in the system
-browser — a renderer that can navigate is a renderer that can be navigated.
-
 ### §RG45 What to watch, and who is told
 
 The config declares every governed role, so what to watch is read and never guessed:
@@ -585,6 +576,48 @@ how a diff acquires changes nobody made.
 
 One command, `npm run lint`, added to the table in the roadmap skill and to whatever
 RG55 makes CI run. It fails the build or it is advice.
+
+### §RG59 The half of the posture that is about loading, not calling
+
+Context isolation, the sandbox and the navigation guard together settle what the
+renderer can *do*. None of them settles what it can *fetch*. A page that ends up with a
+remote `<script>` — an injected tag, a dependency that grew a CDN call, a payload
+rendered as HTML — runs that script with the bridge sitting on `window`, and the guard
+never fires because nothing navigated.
+
+A Content-Security-Policy is the missing half: `default-src 'self'`, no remote script,
+no inline script, images limited to `self` and `data:`. The reason it is a task rather
+than a line in `index.html` is that the dev server needs its own policy — Vite injects
+an inline preamble for React Refresh and talks to itself over a websocket, so one policy
+strict enough to be worth having in a packaged build breaks `npm run dev`. Two policies,
+chosen by whether `ROADKEEP_GUI_RENDERER_URL` is set, is the shape; the packaged one is
+the one that matters and the dev one exists so nobody turns the mechanism off to get
+work done.
+
+What proves it is a test, not a header: a run that loads the bundle and asserts that a
+remote script is refused. Reading a policy string tells you it was written, not that it
+applies.
+
+### §RG60 Asking the running window instead of reading its configuration
+
+The suite asserts the navigation policy as pure functions and the renderer against a
+stubbed bridge. Both are worth having and neither starts Electron, so nothing catches
+the failures that live in the wiring: a preload path that stopped resolving, `sandbox`
+dropped from `webPreferences`, a handler registered on a channel the preload no longer
+invokes. Each of those leaves every existing test green.
+
+What answers it is a test that launches the built app with `--remote-debugging-port`,
+attaches over the DevTools protocol and asks the page four questions: that
+`window.roadkeep` holds exactly the methods the interface declares and no others, that
+`identify()` round-trips, that `require`, `process`, `module` and `ipcRenderer` are all
+undefined, and that assigning `location.href` to a path outside the bundle leaves the
+page where it was. Those are the checks that were run by hand when RG44 shipped, which
+is the argument for automating them: they were run once, against one build, by somebody
+who happened to think of it.
+
+It needs a display-less run to be worth putting in CI, so the Linux job wants a virtual
+framebuffer; Windows and macOS runners have a desktop session already. That is the cost,
+and it is why this is its own line rather than a paragraph inside RG55.
 
 ## Block H — The look (a design system for governed prose)
 

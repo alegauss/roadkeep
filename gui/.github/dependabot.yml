@@ -54,19 +54,6 @@ updates:
           - minor
           - patch
 
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-      time: "06:00"
-      timezone: America/Sao_Paulo
-    labels:
-      - dependencies
-    commit-message:
-      prefix: chore
-      include: scope
-    groups:
-      actions:
-        patterns:
-          - "*"
+  # A github-actions entry goes here once .github/workflows/ has its first
+  # workflow. Declared before that, the job aborts with
+  # dependency_file_not_found: /action.yml or /.github/workflows/<anything>.yml.

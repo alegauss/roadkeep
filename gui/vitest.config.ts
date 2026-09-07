@@ -1,12 +1,12 @@
 import { defineConfig } from 'vitest/config'
 
 // One command for the whole repository, and each package brings its own environment:
-// `core` runs in Node because it may never touch a DOM, and `ui` runs in jsdom because
-// it may never touch anything else. Both are headless, which is what lets the suite run
-// in CI and over SSH. `shell` has no project yet — it is Electron's main process, and
-// what is worth asserting about it needs the transport that RG48 puts under a test.
+// `core` and `shell` run in Node, `ui` runs in jsdom because it may never touch anything
+// else. All three are headless, which is what lets the suite run in CI and over SSH —
+// nothing here starts Electron, and what `shell` asserts is the policy its main process
+// applies rather than the process itself.
 export default defineConfig({
   test: {
-    projects: ['packages/core', 'packages/ui'],
+    projects: ['packages/core', 'packages/shell', 'packages/ui'],
   },
 })

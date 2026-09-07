@@ -1,5 +1,5 @@
 {
-  "name": "@roadkeep-gui/ui",
+  "name": "@rk/ui",
   "private": true,
   "version": "0.0.0",
   "description": "The half a web service would serve to a browser: React over Tailwind, rendering payloads it is handed.",
@@ -11,7 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@roadkeep-gui/core": "*",
+    "@rk/core": "*",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   }

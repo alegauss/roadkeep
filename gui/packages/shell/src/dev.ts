@@ -7,7 +7,7 @@ import path from 'node:path'
 
 import { createServer } from 'vite'
 
-import { shellRoot, spawnElectron } from './launch.js'
+import { shellRoot, spawnElectron } from './launch'
 
 const uiRoot = path.resolve(shellRoot, '..', 'ui')
 

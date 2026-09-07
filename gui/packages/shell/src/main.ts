@@ -1,13 +1,21 @@
 import { app, BrowserWindow } from 'electron'
 
-import { createWindow } from './window.js'
+import { registerBridge } from './bridge'
+import { guardNavigation } from './guard'
+import { appUrl, createWindow } from './window'
 
 /**
- * The Electron entry point. It owns the window's lifetime and nothing else: no read
- * of a governed file, no spawn and no IPC channel, because each of those is a task
- * of its own and the scaffold's whole claim is that a window opens.
+ * The Electron entry point. It owns the window's lifetime, the one channel the renderer
+ * is given and the policy every renderer is held to — and nothing else. No governed file
+ * is read here and no process is spawned: that call path is its own task.
+ *
+ * The guard is installed before the first window exists, because it works by watching for
+ * renderers being created and cannot retroactively cover one that already is.
  */
+guardNavigation(appUrl())
+
 void app.whenReady().then(() => {
+  registerBridge()
   createWindow()
 
   // macOS keeps the process alive with no windows, so the dock icon has to be able

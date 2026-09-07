@@ -1,14 +1,15 @@
 {
-  "name": "@roadkeep-gui/shell",
+  "name": "@rk/shell",
   "private": true,
   "version": "0.0.0",
   "description": "The half a web service would throw away: the Electron main process, and the only place a path or a process appears.",
   "type": "module",
   "main": "./dist/main.js",
   "scripts": {
-    "build": "tsc -b"
+    "build": "vite build --config vite.main.config.ts && vite build --config vite.preload.config.ts",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@roadkeep-gui/core": "*"
+    "@rk/core": "*"
   }
 }

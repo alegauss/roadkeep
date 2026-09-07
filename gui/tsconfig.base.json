@@ -12,6 +12,14 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "isolatedModules": true,
+    // Vite builds every runtime artefact in this repository, so imports are resolved the
+    // way a bundler resolves them: no extension on a relative path, which is what a
+    // TypeScript file is normally written with. `tsc` never emits JavaScript here — each
+    // package sets `emitDeclarationOnly`, so `tsc -b` is a typecheck that happens to leave
+    // declarations behind, and `npm run build` is what produces something that runs.
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "emitDeclarationOnly": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   }

@@ -2,7 +2,6 @@
 
 ## Priority
 
-- RG44
 - RG39
 
 ## Block A — The client (payloads in, types out)
@@ -66,17 +65,18 @@
 
 ## Block G — The shell (an executable now, a service later)
 
-- 🛠 **RG44** (deps: RG37 ✅) **the renderer holds node powers, so the half a service would serve to a browser can delete a file** — Context isolation off and one broad channel is the arrangement that makes the web port a rewrite instead of a transport swap. → §RG44
 - 💭 **RG45** (deps: RG37 ✅, RG7) **nothing watches the governed files, so a write by an agent or a terminal leaves the screen stale** — roadkeep.toml names every governed role, so what to watch is declared and the cache has nothing telling it to expire. → §RG45
-- 💭 **RG46** (deps: RG37 ✅, RG44) **there is no executable, so the app runs only where its source tree and toolchain already are** — An .exe is the delivery this project was asked for, and packaging is what decides the security posture is real rather than configured. → §RG46
+- 💭 **RG46** (deps: RG37 ✅, RG44 ✅) **there is no executable, so the app runs only where its source tree and toolchain already are** — An .exe is the delivery this project was asked for, and packaging is what decides the security posture is real rather than configured. → §RG46
 - 💭 **RG47** (deps: RG37 ✅) **settings have nowhere to live, so roots and preferences are gone when the window closes** — The scan roots are the one fact this app owns rather than reads, and there is no file for them and no schema over it. → §RG47
-- 💭 **RG48** (deps: RG1, RG4, RG44) **the claim that a service is a transport swap is asserted by nothing, so it is an intention** — Every criterion in this block rests on one seam, and a seam nothing exercises is one that has already been crossed somewhere. → §RG48
+- 💭 **RG48** (deps: RG1, RG4, RG44 ✅) **the claim that a service is a transport swap is asserted by nothing, so it is an intention** — Every criterion in this block rests on one seam, and a seam nothing exercises is one that has already been crossed somewhere. → §RG48
 - 💭 **RG49** (deps: RG46) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — An unsigned build is one most people will not run, and no amount of code in this repository substitutes for the certificate. → §RG49
 - 💭 **RG50** (deps: RG46) (requires: published-artifact) **nothing updates, so a fix reaches a person only if they go and look for one** — A desktop build that cannot update is one whose defects live on every machine that installed it until somebody notices. → §RG50
 - 💭 **RG55** (deps: RG37 ✅, RG4) **there is no CI, so every assertion this plan rests on runs only where somebody remembers to run it** — The contract test, the contrast check and the gate are each a promise made by a suite, and a suite nothing runs is a promise nobody keeps. → §RG55
 - 💭 **RG56** (deps: RG37 ✅) **an agent working this backlog has no instruction file, so every session rediscovers the rules by reading code** — This project is executed by agents against a governed backlog, and roadkeep measured an instruction file reaching 186 KB where nothing held one. → §RG56
 - 📋 **RG57** (deps: RG37 ✅) **a main-process change is invisible until the dev run is killed, because only the renderer is watched** — The dev script compiles once and starts Electron, so every edit under shell/src costs a restart the renderer never costs. → §RG57
 - 📋 **RG58** (deps: RG37 ✅) **nothing checks style or dead code, so three packages drift apart file by file with the gate silent** — A typecheck accepts an unused import, a stale rule and two spellings of the same thing, and none of that is what tsc is for. → §RG58
+- 📋 **RG59** (deps: RG44 ✅) **the renderer has no content policy, so a script tag that reaches the page runs beside the bridge** — Isolation decides what the page may call; nothing yet decides what the page may load, and the bridge is what a loaded script would find. → §RG59
+- 📋 **RG60** (deps: RG44 ✅) **no test ever starts the app, so the isolation the window configures is checked by reading it** — Every webPreferences flag is a default a later edit can drop silently, and a suite that never opens a window cannot notice. → §RG60
 
 ## Block H — The look (a design system for governed prose)
 

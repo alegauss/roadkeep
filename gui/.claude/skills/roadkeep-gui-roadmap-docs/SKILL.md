@@ -53,22 +53,34 @@ Four commands, from the repo root, and each answers a different question:
 
 | Command | What it holds | When |
 |---|---|---|
-| `npm run typecheck` | `tsc -b` over all three packages at once, through the project references — a renderer that broke a payload shape fails here and not in a window. | Every task that touches a `.ts` or `.tsx` file. |
+| `npm run typecheck` | `tsc -b` over all three packages at once, through the project references — a renderer that broke a payload shape fails here and not in a window. It emits declarations only: `tsc` compiles nothing that runs. | Every task that touches a `.ts` or `.tsx` file. |
 | `npm test` | `vitest run`, headless: `core` in Node, `ui` in jsdom. No display, so it runs the same over SSH and in CI. | Every task that changes behaviour anything asserts. |
 | `roadkeep lint` | The governed files. Non-zero exit is the whole point of it. | Every task, without exception — it is the only gate a docs-only change has. |
-| `npm run build` | `tsc -b` plus the renderer bundle Vite writes to `packages/ui/dist`. | Before shipping anything the packaged app loads, and any task that touches `vite.config.ts` or an asset path. |
+| `npm run build` | Everything Vite produces: the main process and the two launchers into `packages/shell/dist`, the sandboxed preload as `preload.cjs` beside them, and the renderer into `packages/ui/dist`. | Before shipping anything the packaged app loads, and any task that touches a Vite config or an asset path. |
 
 `npm run dev` opens the window against Vite with hot reload; `npm start` builds and opens
 it against the bundle on disk, which is what a packaged run does. Neither is a gate — they
 are how you see a change, and a screenshot beats a claim that a screen renders.
 
-Two traps worth knowing before you spend an hour on either. **Everything is TypeScript
-and everything is ESM**: there is no `.mjs` and no `.cjs` in this repo, the launchers are
-`.ts` under `packages/shell/src` so `tsc -b` typechecks them too, and a relative import
-carries the `.js` extension the emit will have. And **`ELECTRON_RUN_AS_NODE=1` is exported
-by VS Code**, so an Electron started from an editor terminal or an agent session runs as
-plain Node and dies on `app` being undefined; `spawnElectron` strips it, which is why
-`npm run dev` and `npm start` go through a launcher instead of calling the binary.
+Three things worth knowing before you spend an hour on any of them.
+
+**Every source file is TypeScript and every relative import is extensionless.** There is
+no `.js`, `.mjs` or `.cjs` source in this repo — the launchers behind `npm run dev` and
+`npm start` are `.ts` under `packages/shell/src` like everything else. That is what Vite
+buys: it builds the main process as well as the renderer, so an import is resolved the way
+a bundler resolves it and never has to name the file the compiler is about to write. The
+one `.cjs` in the tree is `dist/preload.cjs`, which is build output.
+
+**Cross-package imports go through the workspace name**, `@rk/core` and not a relative
+path out of the package. The three packages are separate `tsc` projects on purpose — `core`
+has neither Node nor DOM types in scope, `ui` has DOM and not Node, `shell` has Node and
+not DOM — and reaching across with a `paths` alias would compile one package's source under
+another's options and quietly hand it back what its own config denies it.
+
+**`ELECTRON_RUN_AS_NODE=1` is exported by VS Code**, so an Electron started from an editor
+terminal or an agent session runs as plain Node and dies on `app` being undefined;
+`spawnElectron` strips it, which is why `npm run dev` and `npm start` go through a launcher
+instead of calling the binary.
 
 Do not invent a `compile.cmd` or `test.cmd` here because the sibling `pportal` repo has
 them — the four above are this repo's.

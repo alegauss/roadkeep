@@ -1,4 +1,4 @@
-export { BRIDGE_CHANNELS, BRIDGE_KEY } from './bridge.js'
-export type { BridgeIdentity, RendererBridge, TransportName } from './bridge.js'
-export { PACKAGES, RESPONSIBILITY } from './packages.js'
-export type { PackageName } from './packages.js'
+export { BRIDGE_CHANNELS, BRIDGE_KEY } from './bridge'
+export type { BridgeIdentity, RendererBridge, TransportName } from './bridge'
+export { PACKAGES, RESPONSIBILITY } from './packages'
+export type { PackageName } from './packages'

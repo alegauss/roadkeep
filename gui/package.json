@@ -9,8 +9,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "tsc -b && node packages/shell/dist/dev.js",
-    "build": "tsc -b && npm run build --workspace @roadkeep-gui/ui",
+    "dev": "npm run build:app && node packages/shell/dist/dev.js",
+    "build": "npm run build:app && npm run build --workspace @rk/ui",
+    "build:app": "tsc -b && npm run build --workspace @rk/shell",
     "start": "npm run build && node packages/shell/dist/start.js",
     "typecheck": "tsc -b",
     "test": "vitest run",

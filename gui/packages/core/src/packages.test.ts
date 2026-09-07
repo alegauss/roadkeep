@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { PACKAGES, RESPONSIBILITY } from './packages.js'
+import { PACKAGES, RESPONSIBILITY } from './packages'
 
 describe('RG37: the package split', () => {
   it('says what every package it names is responsible for', () => {
