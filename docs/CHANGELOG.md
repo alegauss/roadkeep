@@ -766,6 +766,7 @@
 - ✅ **RK1590** **ninety backticked spans outside a docstring name a verb with no invocation, so nothing can tell a door from prose** — A message that spells one door with the invocation and another verb without it is now red: the pair is the tell, so prose naming a flag family stays legal.
 - ✅ **RK1591** **a remedy whose first step is an edit outside this tool has no kind, so repair dispatches a door that refuses** — A row may now name what has to be edited first, in a file this tool does not own: the precondition prints above its door and repair leaves it alone instead of dispatching a refusal.
 - ✅ **RK1600** **a refusal payload publishes rules and never the retry the same refusal composed** — A refusal that derived an address now publishes the retry as an argv list with that address beside it, so the one part a caller executes is read rather than parsed out of the sentence.
+- ✅ **RK1601** **fifty-eight served arguments across thirty-three tools are spelled in no call the guidance shows** — Every served argument is now shown in a call the shipped pages spell, and a test holds it: 2,437 code units on the turns that open a page, against 9,939 of schema every session pays at connect.
 
 ## Block E — Adoption
 

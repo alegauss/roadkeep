@@ -104,7 +104,8 @@ engine against the registered plugin — two pairs, so two keys.
 flags. What they guarantee, so it costs you no thought: the id, the `→ §<id>` pointer, the
 status default and every `(deps: … ✅)` annotation are **derived, never typed** — where a
 project declares `prefix` as a list it numbers by track, and then `add --prefix <letter>`
-says which track while the number stays derived, per family. Where it declares `ref_scheme
+says which track while the number stays derived, per family — `next-id --prefix <letter>`
+being the read that says what it will be. Where it declares `ref_scheme
 = "outline"` the anchor is not derivable at all, so `add --ref <x.y>` is the field that
 names it — offered over MCP too, and only there, an `add` without it on such a project
 being refused `ref.missing`; there the id in a section's heading is what binds it to its
@@ -121,9 +122,11 @@ free address in each namespace. A refusal exits 2 naming the length and the limi
 writes nothing — **every field it looked at, in one message**, so a call whose `why` and
 whose body are both over is corrected once rather than twice (a body arriving off a *pipe*
 is the one exception: it stays unread until the line passes, since a pipe does not rewind,
-which is what `--section-body-file` is for); the shipped marker never reaches the roadmap.
+which is what `add --section "<t>" --section-body-file <path>` is for); the shipped marker
+never reaches the roadmap.
 **A line renders a pointer, and the pointer has to resolve**: `add --section "<title>"`
-writes the rationale in the same transaction — the prose on stdin or `--section-body`,
+writes the rationale in the same transaction — the prose on stdin or
+`add --section "<title>" --section-body "<the reasoning>"`,
 both files validated before either is written — and an `add` without it answers with the
 `section add` that closes the pointer it just created, rather than leaving the gate to say
 so. Under an outline it opens a block's **first** family too: `add --ref XXXI.1 --section`
@@ -146,17 +149,18 @@ command on the reference reads exactly like a typo. Under an outline it names on
 more: the **parent** left with no subsections, whose prose was written as an introduction
 to children that have now all shipped — `section amend <parent> --body -` is that edit,
 and what it should say instead is yours. **You read that design and the code may have
-moved under it**: `--superseded-design "<what it was wrong about>"` is the trace,
+moved under it**: `ship <id> --why "…" --superseded-design "<what it was wrong about>"` is the trace,
 parenthesised into the ledger's own sentence with the anchor, because the deletion
 otherwise leaves the one reader who could ever know it was stale — you — with nowhere to
 say so; refused on a line that pointed at no design and on a `--part`, whose section
-stays. **And the half of it that was right went somewhere**: `--recorded-in <path>` names
+stays. **And the half of it that was right went somewhere**:
+`ship <id> --why "…" --recorded-in <path>` names
 the file it moved to — the docstring above the code, the test a criterion became —
 appended to the same sentence beside that clause and derived whole, so a decision that
 outlives the work explaining it keeps an address; refused at those same two doors and on
 a path this repository does not have. Never a section copied into a second file, which is
 the accreting rationale this tool exists to refuse. **And the third of its three contents
-is the decision**: `--decides "<the constraint>"` files one line into the `decisions` role
+is the decision**: `ship <id> --why "…" --decides "<the constraint>"` files one line into the `decisions` role
 — an id, a marker, the task's own claim and your sentence, which is what an ADR is read as
 this format. It writes a fourth file, so it lands before the deletion and refuses the whole
 transaction where the role is undeclared, naming `declare decisions`; it reaches the
@@ -198,10 +202,16 @@ task exists to write. And `retire <id> [--superseded-by <id>] --reason "…"` is
 transaction, two more doors
 — **open on every project, including one that declares `[ledger] marker = false`**: there
 the retirement is the one line in that file to carry a marker, a departure being the one
-status a ledger of shipped work does not state about itself. `ship` is not the way round
+status a ledger of shipped work does not state about itself. **And a line that turned out to
+be part of another is neither**: `retire <id> --folds-into <other>` is the third door, where
+this symptom becomes a criterion on the open line that absorbs it and the line leaves, in one
+write — refused where that id has already left, an absorbed line needing somewhere to go.
+`ship` is not the way round
 it either way: an outcome filed under ✅ is a shipment, and `Backlog.retired` reads the
-marker. **`amend <id> --add-dep <d>` and `--drop-dep <d>` are the narrow doors on the group**, and
-what to reach for whenever one dep changes: `--dep` given at all replaces the whole group,
+marker. **`amend <id> --add-dep <d>` and `amend <id> --drop-dep <d>` are the narrow doors on
+the group**, and
+what to reach for whenever one dep changes: `amend <id> --dep <d>` given at all replaces the
+whole group,
 so a seventh dep means naming all seven, six of them to say nothing changed. Drop by the
 spelling the file shows or the bare id — the `✅` is derived and is not yours to reproduce
 — and one of the two forms per call, never both. A dep renders *into* the line and the
@@ -230,7 +240,7 @@ and the entry describe different work, which is two tasks sharing an id and `ren
 to fix. **Half of it landing is a third answer, not a full ship with a hedge in the
 sentence**: `ship <id> --part "<which half>"` records the entry as `✅ **<id> (which
 half)**` and *leaves the line open* at ⏳ with its section intact, and the later `ship
-<id>` completes it. **Pass `--remainder "<what is left>"` beside it**, because the entry
+<id>` completes it. **Pass `ship <id> --part "<which half>" --remainder "<what is left>"`**, because the entry
 records the half that landed and nothing else records the other one: without it the next
 reader recovers the rest by subtracting the ledger from the line, several sessions later,
 from prose written for another purpose. It becomes the open line's `why`, so `brief`
@@ -239,7 +249,7 @@ owed. The symptom is untouched: a task half-delivered is still that symptom's ta
 later `ship <id>` completes it — replacing that entry in place and dropping the qualifier, which is
 the only thing that keeps "local half" from outliving the local half. That replacement
 states a *different* sentence, so on a ledger written before the tool, where the partial's
-bullet **wraps**, it takes `--lines <n>` for the same reason `record amend` does, carries
+bullet **wraps**, it takes `ship <id> --lines <n>` for the same reason `record amend` does, carries
 the same two permissions, and is refused without it; the count is a flag on this verb
 rather than a detour through that one because you asked to finish work, and it is refused
 on every path that replaces no entry.
@@ -258,7 +268,9 @@ store invented at the moment one is needed being a format decided by a verb; `in
 when any verb refuses over an undeclared role, `[files]` being written once by the command
 that refuses to run twice, so a role declined at scaffold time was otherwise a hand edit to
 configuration this tool owns. It writes the role's file with the block headings the roadmap
-already carries and inserts the one key, leaving every other byte of `roadkeep.toml` alone;
+already carries and inserts the one key, leaving every other byte of `roadkeep.toml` alone —
+`declare deferred --path docs/PAUSED.md` where that file belongs somewhere other than the
+role's own default;
 refused where the role is declared, and it never repoints one — moving a governed file is not
 this write. Any of the six roles, so a project that wants a strategy document or a
 `decisions` file reaches it too — that last one being the ADR every adopter asks for, and no
@@ -278,7 +290,8 @@ only when the work is not coming back. `record add --block <x> --symptom "…" -
 the fourth — the entry alone, roadmap untouched, for **any** shipped work with no open line
 to carry it: never planned is one case, and so is a task that shipped inside another's
 sentence and needs an entry of its own. It is
-also **the revert**: `--supersedes <id>` writes the entry saying the work did not hold
+also **the revert**: `record add --block <x> --symptom "…" --why "…" --supersedes <id>`
+writes the entry saying the work did not hold
 *and* appends the forward pointer to the entry saying it shipped, in one write — reach for
 it there, because `retire` needs a roadmap line the ship already removed and `record drop`
 refuses a non-duplicate, so without it the ledger holds two records of one decision that
@@ -318,11 +331,14 @@ makes. `record drop <id>` is its inverse: refused unless the ledger states that 
 **twice** *and the two say the same thing*, then the later entry goes and the first stays,
 because removing the only record of a decision is deleting history. Two entries that
 differ are two deliveries under one id, not one recorded twice: `record drop <id> --line
-<n>` if you have read both, or `record renumber <id> --line <n>` to give one its own
-address. To *fix* an entry use `record amend <id> --why "…"` (or `--part` on a partial) —
+<n>` if you have read both, or `record renumber <id> --line <n> --to <new>` to give one its
+own address — the new id derived, one past the highest in its family, where you pass none.
+To *fix* an entry use `record amend <id> --why "…"` (or `record amend <id> --part "<which
+half>"` on a partial) —
 never drop-and-re-add, which moves the line to the end of its block and shows a reviewer a
 deletion where a word changed. On a ledger written before the tool, where a bullet
-**wraps**, that correction is refused until `--lines <n>` says how many lines it replaces:
+**wraps**, that correction is refused until `record amend <id> --lines <n>` says how many
+lines it replaces:
 the parse holds only as much of the sentence as fits on the first one, so rewriting that
 line alone leaves the tail of the old sentence under the new one. **The count is two
 permissions, and this is the one worth knowing**: passed with an `n` above one, `--why`
@@ -347,8 +363,9 @@ refused, that being a typo in an address. A table or list is inserted exactly as
 task rather than promising one, so an unclaimed id in this project's own prefix is read as
 spent and the next `add` derives past it — spell an example outside the prefix, or name the
 id you meant.
-**At a terminal, `-` reads stdin on every prose argument** — `--section-body` and
-`--body`, and `--why`, `--reason` and `restate --symptom` on every verb that takes one.
+**At a terminal, `-` reads stdin on every prose argument** — `add --section-body -` and
+`section add <a> --title "…" --body -`, and `--why`, `--reason` and `restate --symptom` on
+every verb that takes one.
 Reach for it on the sentence, not only the paragraph: a `why` or a symptom names types,
 files and prior ids, so it carries the apostrophe, the backtick and the `§` a shell reads
 first, and a shell that eats a backtick does not refuse — it hands over prose subtly
@@ -360,13 +377,15 @@ expensive argument**: an `add`
 refused for a `why` three words over used to cost the whole rationale a second time, so
 the body is now fetched *below* every refusal the line itself can raise — and where that
 is not enough, because `section add` reports the anchor, the title and the body together,
-`--section-body-file` and `--body-file` name the paragraph by **path** and the retry
+`add --section-body-file <path>` and `section add <a> --title "…" --body-file <path>` name
+the paragraph by **path** and the retry
 re-reads it, costing the corrected field alone. Prefer the path over the heredoc for prose
 you drafted before filing it; naming both the prose and its path is refused. **`section
-amend <id>` is how a live design is corrected**: `--body -` or `--body-file` replaces its
+amend <id>` is how a live design is corrected**: `section amend <id> --body -` or
+`section amend <id> --body-file <path>` replaces its
 own prose, `--title` its heading, the subtree and the anchor are untouched, and it is the
-only door for prose. **Reach for `--replace "<old>" --with "<new>"` on a one-clause
-correction** and never re-emit the body for one: it edits the prose already on disk, so a
+only door for prose. **Reach for `section amend <id> --replace "<old>" --with "<new>"` on a
+one-clause correction** and never re-emit the body for one: it edits the prose already on disk, so a
 table, a fence or a block quote the call does not name is prose that cannot be lost retyping
 it — refused unless the old string occurs exactly once, which is what keeps the edit's reach
 visible in the call. It is also the one form that **inherits** an overrun: a legacy section
@@ -403,9 +422,11 @@ last block's subtree and spelled at that file's own level and separator. Reach f
 moment any write refuses with "no heading declares". A file organised by *nothing* is
 skipped, because the level, the separator and the placement are all read off a heading it
 does not have — so a ledger that is plain prose is a project every `ship` refuses;
-`--organise <role>` is you saying that file is to be organised by blocks, and the refusal
+`block add <x> --title "…" --organise <role>` is you saying that file is to be organised by
+blocks, and the refusal
 names it where that is the state. Block order is what `list` reports and what a reader
-takes for the shape of the plan, so `--after <label>` opens one **between** two existing
+takes for the shape of the plan, so `block add <x> --title "…" --after <label>` opens one
+**between** two existing
 blocks: it names a neighbour rather than an index, each file placing the heading after its
 own copy of that heading, and a file that wants the heading and declares no such neighbour
 is refused rather than appended. `block drop <x>` withdraws a label opened by mistake: the
@@ -424,7 +445,9 @@ the gate reports `block.repeated` and every write refuses with "merge the two re
 hand". It keeps the first heading and folds every later duplicate's entries into it, all
 files or none; the ledger is included, not skipped, because history stays under a heading
 of the same label. A nested section is `section move`'s to place and refused here, and
-loose prose is dropped only under `--prose`. Reach for it the moment `lint` reports
+loose prose is dropped only under `block merge <x> --prose`, and `block drop <x> --prose`
+takes an emptied heading's note the same way — loose prose only, never work. Reach for it
+the moment `lint` reports
 `block.repeated` or a write refuses with `RepeatedHeading`. **A sub-heading grouping
 entries inside its own block is not that state** and needs no repair: one label is one
 *region*, a heading inside another's subtree is already owned by it, and the write appends
@@ -458,7 +481,9 @@ never the block, a label the roadmap does not declare being refused. The address
 <lead> [--block <x>] --why "…"` and `criterion drop <lead> [--block <x>]` are the other two,
 with the address needed only where two lists carry the lead, and the heading survives the last
 bullet — a block whose criteria all went is one somebody asked the question about. **And the
-other unit is the line**: `--task <id>` addresses the same four verbs to a task, which is what
+other unit is the line**: `criterion add --task <id> --lead "…" --why "…"`, `criterion amend
+--task <id> <lead> --why "…"` and `criterion drop --task <id> <lead>` address the same four
+verbs to a task, which is what
 an agent about to execute one wants — the spec is the symptom, the non-goals, the design and
 this, and only this was written one altitude up. The id has to be a line the roadmap still
 carries, naming both addresses is refused, and the list **leaves with the line**: a ship or a
@@ -512,11 +537,13 @@ work nobody cancelled.
 
 That leaves the two rules a schema cannot check:
 
-`amend <id>` corrects an existing line's `why`, `--dep` group or `--ref` — the fields that
+`amend <id> --why "…" --dep <d> --ref <x.y>` corrects an existing line's `why`, dep group or
+pointer — the fields that
 are a fact or a compression — and never its `symptom`, which is the claim the line is, or
 its `id`, which is what `renumber` is for. That is the door a project adopting the tool
 needs; a greenfield one rarely calls it. Which is also where a roadmap line **wraps**:
-`add` refuses to write one, so the count `--lines <n>` asks for is a thing only an
+`add` refuses to write one, so the count `restate <id> --symptom "…" --lines <n>` asks for
+is a thing only an
 imported backlog carries — and `amend` and `restate` both refuse without it there, for the
 reason `record amend` does, a rewritten line otherwise leaving the note under it stranded
 beneath a sentence that no longer says what it answered.

@@ -4566,33 +4566,102 @@ def test_an_argument_no_call_in_the_guidance_passes_is_named(tmp_path):
     The corpus for *what callers pass* does not exist here: nothing records a tool call, and a
     tool that logged its callers' calls to find out would be answering the question by becoming
     something this one is not. The skill and its pages do exist, and they are the calls this
-    tool tells a session to make."""
+    tool tells a session to make.
+
+    **Over a corpus this test writes, since RK1601.** It read this repository's own pages,
+    whose 58 silent arguments were the finding — and RK1601 closed them, which left the
+    assertion proving a reading exists by pointing at a gap that no longer does. The claim was
+    never about this project: it is that a silent entry is a real priced field of the tool, and
+    that is checkable wherever the corpus comes from."""
+    from roadkeep.installing import PROJECT_PAGES, PROJECT_SKILL
     from roadkeep.serving import detail
 
-    config = Config.discover(Path(__file__).resolve().parents[1])
-    found = detail(config, "budget")
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "TT"\n[files]\nroadmap = "ROADMAP.md"\n', encoding="utf-8"
+    )
+    (tmp_path / "ROADMAP.md").write_text("# Roadmap\n\n## Block A\n", encoding="utf-8")
+    home = tmp_path / PROJECT_SKILL
+    home.parent.mkdir(parents=True)
+    # One call, so `id` and `--ship` are spelled and every other argument is not.
+    home.write_text(
+        "# The skill\n\n`roadkeep budget <id> --ship` prices what a ship writes.\n",
+        encoding="utf-8",
+    )
+    for page in PROJECT_PAGES:
+        (tmp_path / page).write_text("# A page\n\nNothing is spelled here.\n", encoding="utf-8")
+    found = detail(Config.discover(tmp_path), "budget")
     silent = dict(found.silent)
-    assert silent, "the guidance stopped leaving anything out, so this asserts nothing"
-    # Each is a field of the tool with a real price, and none is one the guidance does spell.
+    assert silent, "the corpus stopped leaving anything out, so this asserts nothing"
+    # Each is a field of the tool with a real price, and none is one the corpus does spell.
     priced = dict(found.parts)
     for dest, size in found.silent:
         assert priced[dest] == size, dest
-    assert "block" not in silent, "`budget --block <x>` is spelled in asking.md"
-    assert "id" not in silent, "`budget <id> --ship` is spelled there too"
+    assert "id" not in silent, "`budget <id> --ship` is the one call this corpus has"
+    assert "ship" not in silent
+
+
+def test_this_projects_own_guidance_leaves_no_served_argument_unspelled():
+    """RK1601, and the reason the reading above moved to a corpus of its own. These pages ship
+    in the plugin, so what they spell is what every adopting session is told — and this
+    repository is the conformance fixture for its own format, which is the argument `lint`
+    already makes about `docs/`.
+
+    58 arguments across 33 tools were named and shown in no call: `ship --decides` had a
+    paragraph and no `ship …` span, `section amend --replace` a paragraph and none. Every
+    session pays the schema at connect, so that was 9,939 code units bought for arguments the
+    orientation never showed being passed. Held here rather than left to a later reading,
+    because the gap was closed one flag at a time and reopens the same way — a new argument
+    lands with no call spelling it unless something says so."""
+    from roadkeep.serving import TOOLS, Withheld, detail
+
+    config = Config.discover(Path(__file__).resolve().parents[1])
+    unspelled: list[str] = []
+    for tool in TOOLS:
+        try:
+            found = detail(config, tool.name)
+        except Withheld:
+            # A tool this project is not sent has no guidance to owe (RK1360).
+            continue
+        unspelled += [f"{tool.name} {dest}" for dest, _ in found.silent]
+    assert not unspelled, (
+        "the guidance names these arguments and spells no call passing one — either fold the "
+        f"verb into the span that names the flag, or withhold the argument: {unspelled}"
+    )
 
 
 def test_the_reading_is_about_a_call_and_never_about_the_prose(tmp_path):
     """`tests/composing`'s own distinction, made here: a flag named in a sentence is not a call
-    somebody pastes. `ship --decides` is written about at length in `writing.md` and appears in
-    no `ship …` span there, so it is named — which is the finding rather than the noise, an
+    somebody pastes. That was measured on `ship --decides`, which had a paragraph in
+    `writing.md` and appeared in no `ship …` span — the finding rather than the noise, an
     orientation that says a flag exists and never spells the call being a different gap from
-    one that says nothing at all."""
+    one that says nothing at all.
+
+    Read against a written corpus since RK1601, for the reason above: the instance it named is
+    fixed, and the distinction was never about that instance. Both halves are here now, so what
+    is held is the *difference* — one sentence, the same flag, named and then spelled, with only
+    the verb moving."""
+    from roadkeep.installing import PROJECT_PAGES, PROJECT_SKILL
     from roadkeep.serving import detail
 
-    config = Config.discover(Path(__file__).resolve().parents[1])
-    assert "decides" in dict(detail(config, "ship").silent)
-    pages = Path(__file__).resolve().parents[1] / "skills" / "roadkeep"
-    assert "--decides" in (pages / "writing.md").read_text(encoding="utf-8")
+    (tmp_path / "roadkeep.toml").write_text(
+        'prefix = "TT"\n[files]\nroadmap = "ROADMAP.md"\n', encoding="utf-8"
+    )
+    (tmp_path / "ROADMAP.md").write_text("# Roadmap\n\n## Block A\n", encoding="utf-8")
+    home = tmp_path / PROJECT_SKILL
+    home.parent.mkdir(parents=True)
+    for page in PROJECT_PAGES:
+        (tmp_path / page).write_text("# A page\n\nNothing is spelled here.\n", encoding="utf-8")
+    named = (
+        "# The skill\n\n`roadkeep ship <id> --why \"...\"` closes a line, and "
+        '`--superseded-design "<what it was wrong about>"` traces a design the code moved '
+        "under.\n"
+    )
+    home.write_text(named, encoding="utf-8")
+    assert "superseded_design" in dict(detail(Config.discover(tmp_path), "ship").silent)
+    # The same sentence with the verb folded into the span, and nothing else changed.
+    home.write_text(named.replace('`--superseded-design', '`ship <id> --superseded-design'),
+                    encoding="utf-8")
+    assert "superseded_design" not in dict(detail(Config.discover(tmp_path), "ship").silent)
 
 
 def test_the_answer_is_a_read_of_the_pages_beside_the_project(tmp_path):
