@@ -749,6 +749,27 @@ an offer. A `foresee` read is an offer, which puts it on the other side of that 
 and makes `doors` the answer unless the incompleteness is reason enough to keep it
 apart.
 
+### §RK1643 The page that has no number
+
+`SKILL.md` is 11,671 code units against `ORIENTATION_MAX = 13_000` in
+`tests/test_skill.py`. `writing.md` is 47,404 and `asking.md` 20,500, and no test, no
+`[budgets]` key and no reading bounds either. Together they are the guidance six times
+over, and the ceiling is on the third of it that shrank.
+
+RK1601 is how that reads in practice: it added 1,361 units to one page and 1,076 to the
+other, both correctly — the argument being that a page's cost falls on the turn that
+opens it — and nothing anywhere could say whether the page could afford them.
+`roadkeep.toml`'s own comment already anticipates the shape, saying `SKILL.md` is
+deliberately absent from `[budgets]` because trigger-loaded and that its ceiling lives
+in a test instead. The pages are trigger-loaded one cadence further out and got neither.
+
+What is undecided is the number and who holds it. A test is where the orientation's
+lives, and it is one figure per file, which is what a page-cadence ceiling wants;
+`[budgets]` is where a project's own belong, and these ship in the plugin, so a project
+cannot be the one to set them. There is also a real question whether a bound helps: this
+is the reference, and a reference refusing a rule because it is full is the failure
+`agents.md`'s budget exists to cause deliberately and a page's might not.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
