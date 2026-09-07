@@ -21,7 +21,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 💭 **RG17** (deps: RG7 ✅, RG8 ✅, RG16 ✅) **twenty projects are read one after another, so the first screen is a wait with nothing drawn on it** — A cold start is the only moment every project is read at once, and it is the moment with no cache to answer from. → §RG17
 - 💭 **RG18** (deps: RG16 ✅) **whether a project's gate passes is unknown until it is opened, so the list cannot say which one needs attention** — lint exits 1 on a file that drifted and that is the whole contract, but it is also the most expensive read to run seventeen times. → §RG18
 - 💭 **RG19** (deps: RG16 ✅) **what to work on is asked one repository at a time, so there is no answer that ranges over all of them** — pick applies three tiers inside one backlog and nothing composes those answers, so a person with seventeen chooses by memory. → §RG19
 - 💭 **RG20** (deps: RG16 ✅) **finding a line by its words means opening each project and reading its list in turn** — A symptom is the field a person remembers a task by, and it is searchable only inside the one backlog already on screen. → §RG20

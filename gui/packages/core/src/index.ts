@@ -31,6 +31,8 @@ export type {
   Reconciled,
   RecordedProject,
 } from './catalogue'
+export { coldStart } from './cold-start'
+export type { ColdStartProgress, ColdStartStage } from './cold-start'
 export { createCachingTransport } from './cache'
 export type { CachingOptions, CachingTransport } from './cache'
 export { groupProjects, isFamily } from './families'

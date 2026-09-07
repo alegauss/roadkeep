@@ -214,15 +214,6 @@ it is cheaper to decide now than to notice from a screenshot.
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG17 The first screen, and what it costs
-
-A cold start is the only moment every project is read at once and the one with no cache
-to answer from. So the fan-out is bounded, results stream in as they arrive, and the
-order is the recorded list rather than whichever process finished first — a list that
-reorders while a person reads it is worse than one that fills in slowly. The cheapest
-read that fills a row comes first and the expensive ones follow, so the shape of the
-screen exists before its detail does.
-
 ### §RG18 Gate health, and what it costs to know it
 
 The lint verb is the most expensive read there is and the only one that answers whether
