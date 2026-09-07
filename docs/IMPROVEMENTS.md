@@ -235,6 +235,30 @@ subject; `list --near` is the same read under the name of the verb that orders b
 Which spelling is right is a question about the surface and not about the ranking,
 `authoring` already holding the arithmetic behind one call.
 
+### §RK1625 The silence the flag was declared to prevent
+
+`Unclosed.searched` says what it is for: *`()` means two different things otherwise, and
+a checkout with no history reading as a clean backlog is the silence RK10 is about.*
+Nothing in the package ever sets it False. The walk returns its empty answer on
+`HistoryUnavailable` exactly as it does on a backlog with nothing open, and the caller
+constructs the record with the field at its default.
+
+So the sentence a reader gets on a tree with no git is `0 of 0 open line(s) already have
+commits naming them`, and `--json` says `"searched": true`. Measured on a scaffolded
+project holding one open line: both halves are wrong — the count because the rows never
+came back, and the flag because the one state it exists to report is the one that
+produced it.
+
+`Cited` and `Gap` get it right, which makes this a slip rather than a shape: both are
+built by a producer that knows whether the history answered. This record's producer
+knows too — it is the branch catching the failure — and drops it.
+
+The fix follows RK1568's split. `Sweep` is what the walk returns and `Unclosed` what the
+verb prints, so the flag belongs on the first and passes to the second, as the
+incidental reading now does. The count wants the same: how many lines are open is a fact
+about the roadmap, knowable with no history, so a report that could not walk should
+still say how many lines it cannot speak for.
+
 ## Block D — The gate
 
 ### §RK1569 The half that is somebody else's to change

@@ -35,6 +35,7 @@
 - 💭 **RK1622** (deps: —) **a design can cite a corpus for a ratio it does not have, nothing here reading what shape the pins hold** — RK1566 was designed around a Turing backlog that is three open lines against 901 entries, and the measurement was the first reader to notice. → §RK1622
 - 💭 **RK1623** (deps: —) **three tests rebuild the corpus add ranks against, so a change to what add includes leaves every figure passing** — RK1566 added the third hand-built copy of the delivered-then-open list, and the boundary between the halves is what every split figure counts from. → §RK1623
 - 💭 **RK1624** (deps: —) **the ranking an add volunteers exists only inside that write, no read answering over a block's whole corpus** — RK1567 left the third way out it named, and the two doors the row prints order by the ledger and by id rather than by the query. → §RK1624
+- 📋 **RK1625** (deps: —) **unclosed answers a tree with no git as a backlog with nothing open, the flag that tells those apart never being set** — Nothing in the package makes Unclosed.searched false, so the one state the field was declared for is the one it reports as a clean sweep. → §RK1625
 
 ## Block D — The gate
 
