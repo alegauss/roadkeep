@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { createClient } from '@rk/core'
+import { createClient, explainFailure, readListPayload, readPayload } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
 import { createProcessTransport } from './process-transport'
@@ -38,6 +38,25 @@ describe('RG1: a payload this app can actually fetch', () => {
     const payload = JSON.parse(result.stdout) as { file: string; tasks: unknown[] }
     expect(payload.file).toContain('ROADMAP.md')
     expect(Array.isArray(payload.tasks)).toBe(true)
+  })
+
+  it("accepts the real answer through RG3's shape, so the shape is not fiction", async () => {
+    // One shape against one live payload. Holding *every* shape against every verb is
+    // RG4's contract test; this is the smaller claim that these were written from real
+    // output rather than from memory, which is the way a hand-written shape goes wrong.
+    const result = await client.call(REPO, 'list', { block: 'A' }, { timeoutMs: CEILING })
+    const parsed = readPayload(readListPayload, result.stdout, {
+      verb: 'list',
+      engineVersion: 'live',
+    })
+
+    expect(parsed.ok, parsed.ok ? '' : explainFailure(parsed.failure, {
+      verb: 'list',
+      engineVersion: 'live',
+    })).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.value.tasks.length).toBeGreaterThan(0)
+    expect(parsed.value.standing?.block).toBe('A')
   })
 
   it('answers about the project it was given, not the directory the test runs in', async () => {

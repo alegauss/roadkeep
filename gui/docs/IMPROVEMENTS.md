@@ -2,31 +2,6 @@
 
 ## Block A — The client (payloads in, types out)
 
-### §RG3 Types that come off the tool, not off a guess
-
-A payload is JSON with no published schema, produced by a build this app did not choose.
-Read as `any` it becomes a runtime `undefined` on the day a key is renamed, on a user's
-machine, in the one place nobody is watching.
-
-So the boundary validates. Each read declares a shape and a parser that returns either
-the typed value or a named failure, and nothing past the boundary sees an unvalidated
-object. What a validator refuses is the payload and never the project: a shape this
-build does not recognise is reported as *this app is behind the roadkeep answering
-here*, naming the version `engines` gave, which a person can act on. A stack trace is
-not.
-
-The shapes are written by hand from the payloads, deliberately. There is no schema to
-generate from, and inventing one would be a second declaration of roadkeep's format,
-which the non-goals refuse. The safety comes from the other end: the contract test runs
-the real command and asserts these shapes against what it prints, so a type that drifts
-fails in this project's CI rather than in a window.
-
-Optional is the default reading, not the exception. `standing`, `over`, `picked` and
-`section` come back null in ordinary answers, and elision is a real state — the elided
-counts and the `[reads]` bounds mean a payload can be a *narrowed* answer. A client
-rendering a narrowed answer as complete shows less than there is and says nothing about
-it.
-
 ### §RG4 Where a rename is allowed to go red
 
 roadkeep's editor surface is held by `tests/test_editor.py` in roadkeep's own tree: the
@@ -145,6 +120,53 @@ rather than assuming.
 
 RG7's cache reduces how often this is paid; it does not make the first read of each
 project cheaper.
+
+### §RG66 Two tables that have to stay the same length
+
+A verb is an entry in `VERBS`, which builds its argv. A payload is a shape in
+`payloads.ts`, which reads its answer. Nothing connects the two, and they are already
+out of step: `brief` builds a perfectly good command line and has no shape, so its
+answer would come back as a string somebody parses at the call site — which is the `any`
+this block just spent a task removing, arriving one layer up instead.
+
+`engines` is the same gap from the other side. It has a reader, written before the
+toolkit existed, that answers `null` rather than a named failure. The information a
+refusal is supposed to carry — which field, what was there, which engine version — is
+discarded exactly where the first call of every project is made.
+
+What closes it is making the two tables one: a verb declares its argv *and* its reader,
+and calling one returns the parsed value or the failure. Then a verb with no shape is a
+compile error rather than a hole, and `client.call` stops handing back raw stdout for
+anybody to interpret.
+
+The cost worth naming is that a verb this app calls only to run something — a future
+write, where the answer is an exit code and a refusal — still needs a shape, even if
+that shape is small. That is not a reason to keep two tables; it is a reason for one of
+the readers to be deliberately thin.
+
+### §RG67 The answer shape nobody here has produced
+
+`list --json` was read from real output and its shape demands a `tasks` array. The
+engine's own documentation says something else can arrive: where a project declares
+`[reads] list`, a listing past that bound comes back as its blocks and counts with the
+narrowing that fits, rather than as the lines. That is a different shape, and the reader
+written here would refuse it — reporting *this app is behind the engine* for a project
+that is simply large and has said so.
+
+It could not be modelled when the shape was written, and that is worth stating plainly
+rather than guessing around: this repository declares no `[reads]`, so no payload of
+that shape exists to read one off. Inventing it from the sentence that describes it is
+exactly the second declaration of roadkeep's format the non-goals refuse, and a shape
+invented that way fails silently in the direction nobody tests.
+
+So the work is: declare a read bound in a scratch project, capture the answer, write the
+shape from it, and make `list` return one of two readings. The narrowing helper already
+means "smaller than the file", and a blocks-and-counts answer is the strongest case of
+that, so it should arrive through that door and not as a refusal. "No engine the reader
+cannot name" is not reached: the reader here reads a payload, and which roadkeep answers
+is not in question.
+
+Until then the failure is loud, which is the right way round for a hole this size.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

@@ -11,6 +11,32 @@ export type {
 } from './engine-resolution'
 export { readEnginesPayload, splitCommandLine } from './engines'
 export type { EngineProvenance, EnginesPayload } from './engines'
+export {
+  narrowingOfList,
+  narrowingOfStats,
+  readListPayload,
+  readLintPayload,
+  readSection,
+  readShowPayload,
+  readStatsPayload,
+  readTaskLine,
+} from './payloads'
+export type {
+  AbsentRequirement,
+  BlockCount,
+  ListPayload,
+  LintFinding,
+  LintPayload,
+  Narrowing,
+  RationaleSection,
+  ShowPayload,
+  Standing,
+  Startable,
+  StatsPayload,
+  TaskLine,
+} from './payloads'
+export { explainFailure, readPayload } from './reading'
+export type { Parsed, PayloadFailure, Reader } from './reading'
 export { PACKAGES, RESPONSIBILITY } from './packages'
 export type { PackageName } from './packages'
 export { EngineCallFailed } from './transport'

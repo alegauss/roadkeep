@@ -4,6 +4,7 @@
 
 - ✅ **RG1** **nothing here invokes roadkeep, so every payload this design rests on is one no code can fetch** — A verb table builds one argv, one transport spawns it with no shell, and four tests fetch real payloads from a live roadkeep (design recorded in `packages/core/src/transport.ts`).
 - ✅ **RG2** **the engine is assumed to be a roadkeep on PATH, which is the one thing engines says it may not be** — Each project is asked which copy writes for it, and a modified tree, a disagreement and a machine resolving nothing are answers (design recorded in `packages/core/src/engine-resolution.ts`).
+- ✅ **RG3** **a payload arrives as any, so a key renamed upstream is an undefined at run time and never a red build** — Each read declares a shape that yields the typed value or names the field that drifted, blaming the version gap rather than the project (design recorded in `packages/core/src/payloads.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

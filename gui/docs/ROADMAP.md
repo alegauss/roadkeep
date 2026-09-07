@@ -4,15 +4,16 @@
 
 ## Block A — The client (payloads in, types out)
 
-- 📋 **RG3** (deps: RG1 ✅) **a payload arrives as any, so a key renamed upstream is an undefined at run time and never a red build** — The shape comes off a build this app did not choose, and nothing between the process and the screen refuses one it does not recognise. → §RG3
-- 📋 **RG4** (deps: RG3) **the client's reading of a payload is asserted by nothing, so a rename upstream breaks a user and not a build** — roadkeep holds its own editor client from Python for exactly this reason, and no such test covers a second client living outside that tree. → §RG4
-- 💭 **RG5** (deps: RG1 ✅, RG3) **a refusal is prose on stderr, so the field it is about has to be read back out of English** — add returns a code and a field under --json, and a client discarding that shows a paragraph in a toast instead of marking the box that was refused. → §RG5
-- 💭 **RG6** (deps: RG2 ✅, RG3) **nothing checks which build answered, so a project on an older roadkeep fails at the first flag it lacks** — commands --json names the version and every argument this copy takes, and it is the only read that can tell a missing flag from a broken one. → §RG6
+- 📋 **RG4** (deps: RG3 ✅) **the client's reading of a payload is asserted by nothing, so a rename upstream breaks a user and not a build** — roadkeep holds its own editor client from Python for exactly this reason, and no such test covers a second client living outside that tree. → §RG4
+- 💭 **RG5** (deps: RG1 ✅, RG3 ✅) **a refusal is prose on stderr, so the field it is about has to be read back out of English** — add returns a code and a field under --json, and a client discarding that shows a paragraph in a toast instead of marking the box that was refused. → §RG5
+- 💭 **RG6** (deps: RG2 ✅, RG3 ✅) **nothing checks which build answered, so a project on an older roadkeep fails at the first flag it lacks** — commands --json names the version and every argument this copy takes, and it is the only read that can tell a missing flag from a broken one. → §RG6
 - 💭 **RG7** (deps: RG1 ✅) **every read costs an interpreter start, so a screen over twenty projects pays twenty of them to redraw** — One call measures around 360 ms, and nothing keys an answer to the files it came off so that an unchanged project is not read again. → §RG7
 - 💭 **RG8** (deps: RG1 ✅) **a read has no ceiling, so one project whose engine hangs stops the screen that was drawing it** — A subprocess that never exits holds a slot forever, and a portfolio read fans out far enough that one of them eventually will. → §RG8
 - 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
 - 📋 **RG64** (deps: RG1 ✅) **the fast suite and the one that spawns a real engine are one command, so every run pays for both** — Four live calls took the suite from one second to six, and RG4 adds a payload assertion per verb against the same engine. → §RG64
 - 📋 **RG65** (deps: RG2 ✅) **resolving an engine costs two interpreter starts on Windows, where the same file is spelled two ways** — invoke reports a posix path and the candidate holds a native one, so the verification call fires every time rather than only on a real difference. → §RG65
+- 📋 **RG66** (deps: RG3 ✅) **a verb can be called with no shape declared for its answer, so the boundary has a hole per verb** — The verb table and the shape table are two lists nothing holds together, and brief is already in one and absent from the other. → §RG66
+- 📋 **RG67** (deps: RG3 ✅) **a project declaring a read bound answers in a shape nothing here has ever seen, and the reader refuses it** — A listing past the bound comes back as blocks and counts instead of tasks, and this repo declares none so the shape could not be written from a real payload. → §RG67
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
@@ -25,7 +26,7 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 💭 **RG16** (deps: RG3, RG14) **nothing shows more than one project, which is the single thing this app exists to do** — Seventeen governed checkouts on this machine are seventeen terminals today, and the count each one holds is unreachable from any one place. → §RG16
+- 💭 **RG16** (deps: RG3 ✅, RG14) **nothing shows more than one project, which is the single thing this app exists to do** — Seventeen governed checkouts on this machine are seventeen terminals today, and the count each one holds is unreachable from any one place. → §RG16
 - 💭 **RG17** (deps: RG7, RG8, RG16) **twenty projects are read one after another, so the first screen is a wait with nothing drawn on it** — A cold start is the only moment every project is read at once, and it is the moment with no cache to answer from. → §RG17
 - 💭 **RG18** (deps: RG16) **whether a project's gate passes is unknown until it is opened, so the list cannot say which one needs attention** — lint exits 1 on a file that drifted and that is the whole contract, but it is also the most expensive read to run seventeen times. → §RG18
 - 💭 **RG19** (deps: RG16) **what to work on is asked one repository at a time, so there is no answer that ranges over all of them** — pick applies three tiers inside one backlog and nothing composes those answers, so a person with seventeen chooses by memory. → §RG19
