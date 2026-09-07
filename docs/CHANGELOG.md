@@ -471,6 +471,7 @@
 - ✅ **RK1548** **a composed door whose placeholder holds a space is printed unquoted, so the command as printed cannot be run** — A backticked command holding an unquoted placeholder with a space is a red, read off what the package composes rather than off its prose.
 - ✅ **RK1556** **a project whose open set spells no partial marker ships a partial in silence, and the line keeps the marker it had** — The seventh key narrows the open set, so the half-shipped state is a marker a project can name and a shipment that cannot says so.
 - ✅ **RK1558** **one marker scan skips what a caller is shown and the one beside it does not, with nothing saying they differ** — The exemption for a shown word ends at a backtick, so a help string may illustrate a project value and may not build a command round one.
+- ✅ **RK1566** **the near window is measured on a ledger far larger than its backlog, the ratio it is least about** — Read per block across three backlogs, the open half takes 9.5% to 20.8% of the rows as its share of a block goes 3.8% to 38.1%, so three holds; Turing is not the inverted corpus.
 
 ## Block D — The gate
 

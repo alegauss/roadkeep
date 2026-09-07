@@ -88,10 +88,28 @@ NEAREST = 5
 #: the two outside are the two RK1183 recorded as correctly out of reach. So the window is
 #: unchanged and the reason is now a number rather than an argument made about one corpus.
 #:
-#: What that figure is a property of is the **ratio**, not the window: this ledger is 167
-#: entries against a block's nine open lines, and a project whose backlog outnumbers its
-#: deliveries would measure the other way. The reading is this repository's, and it is the one
-#: available — a bound argued from a corpus nobody has is the template L6 refuses.
+#: What that figure is a property of is the **ratio**, and the ratio's unit is the **block**
+#: (RK1566): this ranking never sees a project. Read across the three backlogs available, per
+#: block, with every open line standing in for the `add` that would have written it —
+#:
+#: ==========================  ===========  =========  ==============
+#: block                       delivered    open       to the open half
+#: ==========================  ===========  =========  ==============
+#: this repository's Block C   177          7 (3.8%)   2 of 21  (9.5%)
+#: this repository's Block D   274          24 (8.1%)  11 of 72 (15.3%)
+#: Shio's block L              13           8 (38.1%)  5 of 24  (20.8%)
+#: ==========================  ===========  =========  ==============
+#:
+#: So the share tracks the ratio and never swamps the window: at ten times the open share it
+#: is a fifth of the rows, and no delivered neighbour is crowded out of three. Widening buys
+#: the open half more and the deliveries nothing — 13.3% → 15.0% → 17.0% across three, four
+#: and five on Shio — which is `test_widening_the_window_reaches_no_pair_three_does_not`'s
+#: verdict reached from the other side.
+#:
+#: The corpus whose backlog **outnumbers** its deliveries is still not one anybody has: Turing
+#: at its pin is three open lines against 901 entries, so that sentence stays an extrapolation
+#: rather than a reading — and it is now an extrapolation from a measured trend over a tenfold
+#: spread of ratios instead of from one.
 VOLUNTEERED = 3
 
 #: Saturation and length normalisation, at the figures BM25 is published with. Not

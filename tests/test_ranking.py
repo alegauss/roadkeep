@@ -22,6 +22,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
+import corpora
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.ranking import NEAREST, VOLUNTEERED, claim, nearest, words
@@ -542,6 +545,101 @@ def test_the_two_corpora_do_not_compete_for_the_volunteered_rows():
     # A ceiling and not an equality: a delivery filed tomorrow moves the order, and what may
     # not happen is the open half taking the rows the measurement says it does not need.
     assert taken <= VOLUNTEERED, {"slots the open half took": taken}
+
+
+def _slots(ledger, roadmap, width: int) -> dict[str, tuple[int, int, int, int]]:
+    """Per block, how many of the volunteered rows an open line's own siblings take.
+
+    The **block** is the unit, which is RK1566's correction to itself: the ratio §RK1566 was
+    filed about is per project, and `nearest` never sees a project — it ranks a block. Shio is
+    668 deliveries against 20 open lines and its block L is 13 against 8, which is the spread
+    the reading needed and the reason it did not have to be looked for in another repository.
+
+    Each open line is a query, standing in for the `add` that would have written it: the
+    caller these rows arrive at is composing a line, and the eleven retirements RK1527 used
+    are delivered entries — the right ground truth for recall and the wrong population for
+    a share, there being no `add` on this side of them.
+    """
+    blocks: dict[str, list] = {}
+    for one in roadmap.entries:
+        blocks.setdefault(one.task.block, []).append(one)
+    found = {}
+    for block, asking_all in blocks.items():
+        delivered = [one for one in ledger.entries if one.task.block == block]
+        took = slots = 0
+        for asking in asking_all:
+            entries = [
+                *delivered,
+                *(one for one in asking_all if one.task.id != asking.task.id),
+            ]
+            if not entries:
+                continue
+            order = nearest(
+                claim(asking.task.symptom, asking.task.why),
+                [claim(one.task.symptom, one.task.why) for one in entries],
+                width,
+            )
+            slots += len(order)
+            took += sum(1 for index in order if index >= len(delivered))
+        if slots:
+            found[block] = (len(delivered), len(asking_all), took, slots)
+    return found
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda one: one.name)
+def test_the_open_half_takes_a_share_and_never_the_window(corpus):
+    """RK1566. RK1527 set the window from one ledger's ratio and said so: 167 entries against
+    a block's nine open lines, and *a project whose backlog outnumbers its deliveries would
+    measure the other way*. This is the second reading, and the first thing it found is that
+    §RK1566 was wrong about where to take it — Turing at its pin holds **three** open lines
+    against 901 deliveries, which is this repository's shape and not its inverse.
+
+    Shio is where the ratio moves, per block, which is the unit that matters: block L is 13
+    delivered against 8 open — a 38% open share, against 3.8% in this repository's Block C —
+    and the open half takes 5 of 24 slots there against 2 of 21 here. So the share tracks the
+    ratio and does not swamp the window: at ten times the open share it is a fifth of the
+    rows, and a delivered neighbour is never crowded out of three.
+
+    The bound is a **ceiling and not the figure**, because a corpus moves: what may not happen
+    is the open half taking a window it was measured not to need."""
+    corpora.require(corpus)
+    ledger = corpora.document(corpus, "changelog")
+    roadmap = corpora.document(corpus, "roadmap")
+    found = _slots(ledger, roadmap, VOLUNTEERED)
+    if not found:
+        pytest.skip(f"{corpus} carries no open line to rank against its own block")
+    took = sum(one[2] for one in found.values())
+    slots = sum(one[3] for one in found.values())
+    assert took * 2 <= slots, {
+        "block": {
+            name: f"{one[0]} delivered, {one[1]} open, {one[2]} of {one[3]} slots"
+            for name, one in found.items()
+        }
+    }
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda one: one.name)
+def test_widening_the_window_gives_the_open_half_more_and_not_less(corpus):
+    """The other direction, and the one that decides whether three is too narrow *for the
+    half RK1495 added*. It is not: on Shio the open share rises 13.3% → 15.0% → 17.0% across
+    three, four and five, so a wider window buys the open lines rows and buys the deliveries
+    nothing. Which is the same verdict `test_widening_the_window_reaches_no_pair_three_does_not`
+    reaches from the recall side, arrived at from the other corpus and the other half."""
+    corpora.require(corpus)
+    ledger = corpora.document(corpus, "changelog")
+    roadmap = corpora.document(corpus, "roadmap")
+    shares = []
+    for width in (VOLUNTEERED, VOLUNTEERED + 1, VOLUNTEERED + 2):
+        found = _slots(ledger, roadmap, width)
+        if not found:
+            pytest.skip(f"{corpus} carries no open line to rank against its own block")
+        shares.append(
+            (sum(one[2] for one in found.values()), sum(one[3] for one in found.values()))
+        )
+    assert all(slots for _, slots in shares)
+    # Monotone and never a drop: a widening that took rows *off* the open half would mean the
+    # order is not a ranking, which is the one reading this figure could carry that is a defect.
+    assert [took for took, _ in shares] == sorted(took for took, _ in shares), shares
 
 
 def test_widening_the_window_reaches_no_pair_three_does_not():

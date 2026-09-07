@@ -79,30 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1566 The corpus this measurement cannot exhibit
-
-RK1527 measured the near window over both corpora and kept three, on a figure that is a
-property of this repository's ratio rather than of the read: 167 delivered entries
-against a block's nine open lines, so the open half takes one slot of thirty-three. On a
-project whose backlog outnumbers its deliveries the same read measures the other way,
-and nothing anywhere would say so.
-
-That is the population the volunteered rows are *for*. An `add` on a mature ledger is
-proposing work beside a long history; an `add` on a young one is proposing work beside a
-backlog somebody filed last week, which is exactly the collision RK1495 added the second
-corpus to catch — and it is the case this repository cannot exhibit.
-
-The corpora are already pinned. `tests/corpora.py` holds Shio and Turing at a revision,
-and Turing's roadmap is the shape wanted: a long backlog against a ledger that is mostly
-one migration. So the measurement is available without inventing a project, which is the
-condition every other bound here was set under.
-
-What it would decide is not necessarily the number. Three may still be right for both,
-or the honest answer may be that the window is a ratio — so many of each — which is a
-shape `nearest` does not have and would need arguing for. Either way what is missing is
-the second reading, and a bound set from one corpus is the thing RK1477 already had to
-reopen once.
-
 ### §RK1567 The read the row says it is
 
 The near rows an `add` prints are `delivered --near` volunteered — the code says so, and

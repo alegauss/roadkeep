@@ -28,7 +28,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 💭 **RK1566** (deps: —) **the near window is measured on a ledger far larger than its backlog, the ratio it is least about** — RK1527 found the open half takes one slot of thirty-three here, a figure that inverts on a project whose backlog outnumbers its deliveries. → §RK1566
 - 💭 **RK1567** (deps: —) **the near rows are described as delivered --near volunteered, and that read has ranked a different corpus since RK1495** — add ranks a block's deliveries and its open lines while the verb the row names reads the ledger alone, so running it answers differently. → §RK1567
 - 💭 **RK1568** (deps: —) **an incidental entry that is on disk and filters no commit is silent, which is the half of the reading RK1529 gave** — existence is a blob this gate already reads and matched-anything is a history walk, so the second half was left where nothing asks it. → §RK1568
 - 💭 **RK1573** (deps: —) **declare non_goals opens a table whose verb refuses, nothing writing the heading that declares the list** — init writes it once at scaffold time, so a project past that is opened into a list it can only start with the hand edit the guard denies. → §RK1573

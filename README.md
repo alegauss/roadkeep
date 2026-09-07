@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
-| C — Query (consult without reading the file) | 7 | 173 | 4 |
+| C — Query (consult without reading the file) | 6 | 174 | 4 |
 | D — The gate | 24 | 272 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 158 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 35 | 1070 | 14 |
+| **Total** | 34 | 1071 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1566** (deps: —) **the near window is measured on a ledger far larger than its backlog, the ratio it is least about** — RK1527 found the open half takes one slot of thirty-three here, a figure that inverts on a project whose backlog outnumbers its deliveries. → §RK1566
+- 💭 **RK1567** (deps: —) **the near rows are described as delivered --near volunteered, and that read has ranked a different corpus since RK1495** — add ranks a block's deliveries and its open lines while the verb the row names reads the ledger alone, so running it answers differently. → §RK1567
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
