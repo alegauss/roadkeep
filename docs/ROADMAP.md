@@ -79,6 +79,7 @@
 
 - 📋 **RK1629** (deps: —) **two modules walk back from a file's last blank line under two names, and the kernel that owns blank has no name for it** — RK1573 gave scoping a heading to open and the answer criteria had already written, so the copy was made by reading it. → §RK1629
 - 📋 **RK1633** (deps: —) **one verb handler writes a governed file itself, and it is the writer every enumeration of the config's has missed** — RK1576 counted five and the sweep found six: the extra one is the single write in verbs that is not a save the domain module owns. → §RK1633
+- 📋 **RK1636** (deps: —) **a name a module imports and then defines is bound by the later one, and nothing here reports the dead import** — RK1581 imported config.declares into a module that already declared its own, and the wrong function was called until a TypeError three frames away. → §RK1636
 
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 

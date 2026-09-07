@@ -912,4 +912,29 @@ What it must not become is a `Document` for the config: that file is TOML, its
 round-trip is `readable`, and a parse-render pair would drop the comments a scaffold is
 made of.
 
+### §RK1636 The import a def silently ate
+
+RK1581 added `from roadkeep.config import declares` to `installing`, which already has a
+public `declares` of its own — about a documentation page, returning `(str, str)`.
+Python resolves that silently: the later `def` wins, the import is dead, and `plan`
+called the wrong function. What surfaced it was a `TypeError` inside `os.path.relpath`,
+three frames from the name that was wrong.
+
+It cost ten minutes and it was luck: the two return types are incompatible, so it
+raised. A collision between two functions that both return a string is a wrong answer
+with a green suite, which is the shape this package spends its docstrings refusing.
+
+The scan to host it already exists. RK1194 reads every module for a dead import — AST
+for annotations, symtable for the rest — and reads *this* one as used, because the name
+is called; just not the imported one. A module-level rebinding is the case that reading
+has no branch for, off the reader it already uses.
+
+What it must not become is a style rule about shadowing. A local named `found` over a
+builtin is not this; the finding is narrow, which is what makes it checkable: **a name
+this module imported and then defined**. That is never intentional — an import nothing
+can reach is a dead line or a bug, and both want removing.
+
+`installing` keeps the alias RK1581 gave it: renaming either public function is a change
+to a surface, for a reason no reader could see from the name.
+
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
