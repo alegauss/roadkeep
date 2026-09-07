@@ -764,7 +764,7 @@ def _refuse_recorded(config: Config, task_id: str) -> None:
     :func:`~roadkeep.linting._carried` already read for this pair — so the door, the gate and
     the pause cannot disagree about a state one of them creates (RK1080, RK1114).
     """
-    if not config.has("changelog") or not config.path("changelog").is_file():
+    if not config.on_disk("changelog"):
         return
     recorded = config.document("changelog").by_id().get(task_id)
     if recorded is None or recorded.task.in_halves:
@@ -828,7 +828,7 @@ def standing(config: Config) -> tuple[Standing, ...]:
     """
     from roadkeep.history import HistoryUnavailable, added_ids, ordering
 
-    if not config.has("deferred") or not config.path("deferred").is_file():
+    if not config.on_disk("deferred"):
         return ()
     entries = config.document("deferred").entries
     try:

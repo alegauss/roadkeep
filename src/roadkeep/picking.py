@@ -483,7 +483,7 @@ def _set_aside(config: Config) -> int:
     cannot open is one the caller learns about from `lint`, and a count guessed here would be
     a number in the line a reader scans.
     """
-    if not config.has("deferred") or not config.path("deferred").is_file():
+    if not config.on_disk("deferred"):
         return -1
     try:
         return len(config.document("deferred").entries)

@@ -625,7 +625,7 @@ def _from_disk(config: Config) -> dict[str, Document]:
     return {
         role: config.document(role)
         for role in (*COUNTED_ROLES, LISTED_ROLE)
-        if config.has(role) and config.path(role).is_file()
+        if config.on_disk(role)
     }
 
 

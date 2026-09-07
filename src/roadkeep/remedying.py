@@ -2205,7 +2205,7 @@ def _empty_region(finding: object, config: Config) -> bool:
     files = {
         role: config.document(role)
         for role in ROLES
-        if config.has(role) and config.path(role).is_file()
+        if config.on_disk(role)
     }
     document = next(
         (one for role, one in files.items() if config.relative(config.path(role)) == where),

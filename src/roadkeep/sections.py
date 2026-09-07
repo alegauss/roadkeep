@@ -1192,7 +1192,7 @@ def pointers(config: Config, *, leaving: str = "") -> dict[str, tuple[str, ...]]
     for entry in config.document("roadmap").entries:
         if entry.task.ref and entry.task.id != leaving:
             out.setdefault(entry.task.ref, []).append(entry.task.id)
-    if config.has("decisions") and config.path("decisions").is_file():
+    if config.on_disk("decisions"):
         for entry in config.document("decisions").entries:
             anchor = entry.task.ref or entry.task.id
             if entry.task.id not in out.setdefault(anchor, []):
@@ -2469,7 +2469,7 @@ def _repoint(
     moved: list[tuple[str, str]] = []
     stayed: list[tuple[str, str]] = []
     for name in POINTING_ROLES:
-        if not config.has(name) or not config.path(name).is_file():
+        if not config.on_disk(name):
             continue
         lines = config.document(name)
         pointing = _following(lines, carried, stayed)
@@ -3019,7 +3019,7 @@ def _the_path_into(config: Config, block: str) -> tuple[str, str]:
     if any(
         not config.document(one).declaring(block)
         for one in BLOCK_ROLES
-        if config.has(one) and config.path(one).is_file()
+        if config.on_disk(one)
     ):
         # Ahead of them all, because it is the refusal the retry walks into next: a label no
         # heading declares is `add`'s own second door, one call further down the stairs.
@@ -3353,7 +3353,7 @@ def resolvable(config: Config, anchor: str) -> frozenset[str]:
     """
     out = {anchor}
     for role in PROSE_ROLES:
-        if not config.has(role) or not config.path(role).is_file():
+        if not config.on_disk(role):
             continue
         out.update(one.anchor for one in anchored(config.document(role)))
     return frozenset(out)
@@ -3661,7 +3661,7 @@ def _owning(config: Config, role: str = "") -> list[Document]:
     lives in the decisions file, and the design a `ship` deleted stays deleted.
     """
     if role == "decisions":
-        if config.has(role) and config.path(role).is_file():
+        if config.on_disk(role):
             return [config.document(role)]
         return []
     return list(_live(config))
@@ -3675,7 +3675,7 @@ def _live(config: Config) -> Iterator[Document]:
     carries (RK96). The changelog is deliberately absent from both.
     """
     for role in ("roadmap", "deferred"):
-        if config.has(role) and config.path(role).is_file():
+        if config.on_disk(role):
             yield config.document(role)
 
 

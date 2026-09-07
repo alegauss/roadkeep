@@ -351,28 +351,6 @@ reachable is a null.
 
 ## Block D — The gate
 
-### §RK1604 The three questions one name answers
-
-`Config.has(role)` is `role in self.paths` — one line, no docstring, in a package where
-the module docstring is the authority and every function carries an argument. It is
-called 109 times.
-
-Three questions it could be answering, and it answers none of them cleanly. *Does the
-project declare this role* — no: on a tree with no `roadkeep.toml` it says true for
-`roadmap`, `changelog` and `improvements`, whose paths are this build's defaults. *Is
-there a file* — no: none of those three exists. What it answers is *does this build have
-a path it would use*, which is the question nobody asks by name.
-
-Measured by getting it wrong. RK1544's first reading asked `has` for the roles a brief
-consults and produced a clause that named `deferred` and `strategy` on this repository —
-roles it has chosen not to declare, where the figure is whole — while staying silent
-about the ledger and improvements file that were genuinely absent on the tree the read
-is for. Two wrong answers from one call, and the correction was `paths.get(role)` and
-`is_file()`.
-
-What is worth deciding is whether the other 108 want the same correction, or whether the
-name should say which question it takes.
-
 ### §RK1605 The population the guarantee is over
 
 RK1498 ends with a sentence worth being exact about: *every site is run or deliberate*.

@@ -116,7 +116,7 @@ def _census(config: Config, args: argparse.Namespace) -> tuple[Census, Standing 
     census = Census.read(config, _role(args))
     if args.block is None:
         return census.select(marker=marker), None
-    if not config.has("roadmap") or not config.path("roadmap").is_file():
+    if not config.on_disk("roadmap"):
         # Nothing to join against: the reader below needs the roadmap, and a project
         # counting a ledger before `init` wrote one still gets the count it asked for.
         return census.select(block=args.block, marker=marker), None

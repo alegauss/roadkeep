@@ -3703,7 +3703,7 @@ def _depart(
     # Before the ledger is consulted (RK1081): a departure that lands while the store still
     # carries the id writes a contradiction rather than resolving one, and the file that can
     # hold a third line for it is the one RK96 added and no pairwise check reached.
-    if config.has("deferred") and config.path("deferred").is_file():
+    if config.on_disk("deferred"):
         paused = config.document("deferred").by_id().get(task_id)
         if paused is not None:
             raise AlsoPaused(
@@ -4277,7 +4277,7 @@ def _already_recorded(config: Config, task_id: str) -> Entry | None:
     slot holds no fact to tell them apart, and the marker and the qualifier are then the whole
     of what the files say.
     """
-    if not config.has("changelog") or not config.path("changelog").is_file():
+    if not config.on_disk("changelog"):
         return None
     open_line = config.document("roadmap").by_id().get(task_id)
     if open_line is None:

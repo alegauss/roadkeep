@@ -2524,7 +2524,7 @@ def near_cost(config: Config) -> Volunteered:
     for block in [one.label for one in roadmap.headings if one.label]:
         delivered = (
             list(config.document("changelog").block(block))
-            if config.has("changelog") and config.path("changelog").is_file()
+            if config.on_disk("changelog")
             else []
         )
         entries = [*delivered, *roadmap.block(block)]
@@ -3103,7 +3103,7 @@ def conversion(config: Config) -> Fixed:
     ratios = sorted(
         len(text) / len(text.split())
         for role in ("roadmap", "changelog")
-        if config.has(role) and config.path(role).is_file()
+        if config.on_disk(role)
         for entry in config.document(role).entries
         for text in (entry.task.symptom or "", entry.task.why or "")
         if text.split()

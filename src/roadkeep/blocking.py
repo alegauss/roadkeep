@@ -959,7 +959,7 @@ def _readable(config: Config) -> dict[str, tuple[str, Document, tuple[Heading, .
     """
     found: dict[str, tuple[str, Document, tuple[Heading, ...]]] = {}
     for role in BLOCK_ROLES:
-        if not config.has(role) or not config.path(role).is_file():
+        if not config.on_disk(role):
             continue
         document = config.document(role)
         found[role] = (
@@ -997,7 +997,7 @@ def _declaring(
     """Every governed file that declares this label, with the heading that does it."""
     found: list[tuple[str, str, Document, Heading]] = []
     for role in BLOCK_ROLES:
-        if not config.has(role) or not config.path(role).is_file():
+        if not config.on_disk(role):
             continue
         document = config.document(role)
         declared = document.declaring(label)
@@ -1074,7 +1074,7 @@ def _labels(config: Config) -> tuple[str, ...]:
     """Every label any governed file declares, in file order and without repeats."""
     found: list[str] = []
     for role in BLOCK_ROLES:
-        if not config.has(role) or not config.path(role).is_file():
+        if not config.on_disk(role):
             continue
         for heading in config.document(role).headings:
             if heading.label and heading.label not in found:

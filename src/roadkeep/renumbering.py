@@ -385,7 +385,7 @@ def _line_documents(config: Config) -> dict[str, Document]:
     return {
         role: config.document(role)
         for role in LINE_ROLES
-        if config.has(role) and config.path(role).is_file()
+        if config.on_disk(role)
     }
 
 
@@ -430,7 +430,7 @@ def _rebound(
     """
     from roadkeep.sections import _bound, owners  # noqa: PLC0415 - RK260
 
-    if not config.has("improvements") or not config.path("improvements").is_file():
+    if not config.on_disk("improvements"):
         return None
     document = config.document("improvements")
     section = find(document, anchor)
@@ -466,7 +466,7 @@ def _section_document(
     already carry one of these: `refuse_reuse` refused `to` if anything in any configured
     source so much as mentions it, and `§RK9.1` mentions RK9.
     """
-    if not config.has("improvements") or not config.path("improvements").is_file():
+    if not config.on_disk("improvements"):
         return None
     document = config.document("improvements")
     section = find(document, anchor)

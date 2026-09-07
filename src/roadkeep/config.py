@@ -818,7 +818,43 @@ class Config:
     # -- using it ----------------------------------------------------------
 
     def has(self, role: str) -> bool:
+        """Whether this build has a path it **would use** for ``role`` (RK1604).
+
+        One of three questions the name could be read as, and it was carrying all three: 109
+        callers, one line, no docstring. The other two have different answers on the same tree
+        and are asked here by different names:
+
+        * *Did the project declare it?* — not this. On a tree with no `roadkeep.toml` this says
+          true for `roadmap`, `changelog` and `improvements`, whose paths are :data:`DEFAULTS`.
+          `config --json` answers that one, per key, off the file the project wrote.
+        * *Is there a file?* — :meth:`on_disk`, which is this question and then `is_file()`.
+
+        RK1544 is what the ambiguity cost. Its first reading asked this for the roles a brief
+        consults and produced a clause naming `deferred` and `strategy` on this repository —
+        roles it has chosen not to declare, where the figure is whole — while staying silent
+        about the ledger and improvements file genuinely absent on the tree the read is for.
+        Two wrong answers from one call.
+
+        This is still the right question for most callers, and for a role with no default it is
+        all three at once: nothing has a path for `deferred` until a project declares one. The
+        ambiguity is exactly the three roles :data:`DEFAULTS` covers.
+        """
         return role in self.paths
+
+    def on_disk(self, role: str) -> bool:
+        """Whether ``role`` has a path here **and a file at it** (RK1604).
+
+        :meth:`has` and then `is_file()`, which forty-one call sites spelled out — `config.has(
+        role) and config.path(role).is_file()`, or its negation — because the question they
+        were asking had no name. That is the shape this package removes wherever it finds it
+        (RK1507, RK1542, RK1602): two spellings of one fact, kept in step by nobody.
+
+        A path with nothing at it is the ordinary state and not an error: `init` writes three
+        files and a project declares roles it has not created yet, so *declared and absent* is
+        what an adoption looks like from here.
+        """
+        found = self.paths.get(role)
+        return found is not None and found.is_file()
 
     def path(self, role: str) -> Path:
         try:

@@ -1146,7 +1146,7 @@ def _near(config: Config, insertion: Insertion) -> tuple[tuple[Entry, ...], int,
     """
     task = insertion.entry.task
     delivered: list[Entry] = []
-    if config.has("changelog") and config.path("changelog").is_file():
+    if config.on_disk("changelog"):
         delivered = list(config.document("changelog").block(task.block))
     open_lines = [
         one
@@ -2182,7 +2182,7 @@ def _refuse_sibling_status(config: Config, task_id: str) -> None:
     state the gate calls clean.
     """
     for role in ROLES:
-        if role == "roadmap" or not config.has(role) or not config.path(role).is_file():
+        if role == "roadmap" or not config.on_disk(role):
             continue
         found = config.document(role).by_id().get(task_id)
         if found is not None and not found.task.in_halves:
@@ -2246,7 +2246,7 @@ def refuse_occupied(config: Config, task_id: str) -> IdRef | None:
     holders = {
         config.path(role)
         for role in CARRIERS
-        if config.has(role) and config.path(role).is_file()
+        if config.on_disk(role)
     }
     clash = next(
         (ref for ref in occurrences if ref.path in holders),
@@ -2295,7 +2295,7 @@ def declaring(config: Config, block: str) -> None:
     reversed. The refusal names the argument, so the author is never sent to the refusing
     command: see :class:`~roadkeep.kernel.document.UnknownBlock`.
     """
-    if not config.has("changelog") or not config.path("changelog").is_file():
+    if not config.on_disk("changelog"):
         return
     ledger = config.document("changelog")
     if ledger.heading(block) is not None:

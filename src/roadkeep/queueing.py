@@ -401,7 +401,7 @@ def declared(config: Config) -> Queue:
     project turns the tier off, and falling back there would make the last `priority drop`
     silently restore an order the author had just finished dismantling.
     """
-    if config.has("roadmap") and config.path("roadmap").is_file():
+    if config.on_disk("roadmap"):
         found = read(config.document("roadmap"), config)
         if found.declared_in:
             return found

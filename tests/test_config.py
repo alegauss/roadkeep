@@ -96,6 +96,58 @@ def test_a_project_without_a_strategy_file_declares_none_rather_than_an_empty_on
         config.path("strategy")
 
 
+# -- the three questions one name answered (RK1604) ---------------------------
+
+
+def test_a_path_this_build_would_use_is_not_a_file_that_is_there(tmp_path):
+    """RK1604. `has` was one line with no docstring and 109 callers, and the name reads as any
+    of three questions. On a tree with no `roadkeep.toml` it says **true** for the three roles
+    :data:`DEFAULTS` covers — so *does this project declare it* and *is there a file* are both
+    wrong readings, and the second is the one RK1544 shipped by mistake.
+
+    Held on a bare directory, which is where all three answers differ at once."""
+    config = Config.default(tmp_path)
+    # A path this build would use, for a file nobody has written.
+    assert config.has("roadmap")
+    assert not config.on_disk("roadmap")
+    (tmp_path / config.path("roadmap")).parent.mkdir(parents=True, exist_ok=True)
+    config.path("roadmap").write_text("# Roadmap\n", encoding="utf-8")
+    assert config.on_disk("roadmap")
+
+
+def test_a_role_with_no_default_answers_the_same_to_both(tmp_path):
+    """The half that says the ambiguity is bounded. `deferred` has no entry in `DEFAULTS`, so
+    nothing has a path for it until a project declares one — and there the two readings agree,
+    which is why 68 of the callers were never wrong."""
+    config = Config.default(tmp_path)
+    assert not config.has("deferred")
+    assert not config.on_disk("deferred")
+
+
+def test_no_caller_spells_the_file_question_by_hand():
+    """The pair's guard, and `carrying`'s shape again (RK1507, RK1542, RK1602). Forty-one sites
+    wrote `config.has(role) and config.path(role).is_file()` or its negation, because the
+    question they were asking had no name — two spellings of one fact, kept in step by nobody.
+
+    Total against the source, so a forty-second written tomorrow is a red here rather than the
+    idiom growing back one call at a time."""
+    import re
+
+    from surface import modules
+
+    spelled = re.compile(
+        r"has\((?P<r>[^()]+)\) and \S*path\((?P=r)\)\.is_file\(\)"
+        r"|not \S*has\((?P<n>[^()]+)\) or not \S*path\((?P=n)\)\.is_file\(\)"
+    )
+    found = [
+        f"{one.where}:{number}"
+        for one in modules()
+        for number, line in enumerate(one.text.splitlines(), start=1)
+        if spelled.search(line)
+    ]
+    assert not found, f"`on_disk` is what these are asking: {found}"
+
+
 # -- finding it --------------------------------------------------------------
 
 

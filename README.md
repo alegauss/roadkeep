@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 231 | 2 |
 | C — Query (consult without reading the file) | 10 | 177 | 4 |
-| D — The gate | 19 | 286 | 5 |
+| D — The gate | 18 | 287 | 5 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 159 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 37 | 1089 | 17 |
+| **Total** | 36 | 1090 | 17 |
 
 **Next ready:**
 
-- 📋 **RK1604** (deps: —) **the one reader saying whether a role is available answers a third question and has no docstring** — config.has is role in paths, true for a default pointing at no file, and 109 call sites read it as though it meant the project has one. → §RK1604
+- 📋 **RK1605** (deps: RK1590 ✅) **the composer census counts sites that call the invocation, so a door spelled without it is outside the guarantee** — Every site is run or deliberate is a claim about functions calling invocation(), and a bare door composes a command none of them see. → §RK1605
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

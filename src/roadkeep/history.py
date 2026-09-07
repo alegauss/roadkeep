@@ -363,7 +363,7 @@ def touched_since(config: Config, rev: str, role: str) -> Touched:
     `-U0`, because context lines would put a neighbouring section inside the span and the
     whole value of this check is that it names the section somebody actually opened.
     """
-    if not config.has(role) or not config.path(role).is_file():
+    if not config.on_disk(role):
         return Touched()
     try:
         relative = config.path(role).relative_to(config.root)
@@ -1631,7 +1631,7 @@ def families_of_block(config: Config, block: str) -> tuple[str, ...]:
     """
     found: list[str] = []
     for role in ("roadmap", "deferred"):
-        if not config.has(role) or not config.path(role).is_file():
+        if not config.on_disk(role):
             continue
         for entry in config.document(role).entries:
             if entry.task.block == block and entry.task.ref:
@@ -2607,7 +2607,7 @@ def _gaps_in(config: Config, family: str, searched: bool) -> tuple[Gap, ...]:
         return ()
     recorded: set[int] = set()
     for role in ("roadmap", "changelog"):
-        if not config.has(role) or not config.path(role).is_file():
+        if not config.on_disk(role):
             continue
         for task_id in config.document(role).by_id():
             number = _number(task_id, family)

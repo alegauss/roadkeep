@@ -248,7 +248,7 @@ def show(config: Config, task_id: str) -> View:
 def _locate(config: Config, task_id: str) -> tuple[Entry, str, Document]:
     asked: list[str] = []
     for role in ("roadmap", "changelog"):
-        if not config.has(role) or not config.path(role).is_file():
+        if not config.on_disk(role):
             continue
         asked.append(config.relative(config.path(role)))
         document = config.document(role)
@@ -317,7 +317,7 @@ def _paused(config: Config, task_id: str) -> str:
 
     Silent where no `deferred` role is declared, that project having no such state to be in.
     """
-    if not config.has("deferred") or not config.path("deferred").is_file():
+    if not config.on_disk("deferred"):
         return ""
     entry = config.document("deferred").by_id().get(task_id)
     if entry is None:
@@ -436,7 +436,7 @@ def _decided_anchor(config: Config, entry: Entry) -> str:
     departs, so no id is both an open line and a record here. Empty where the project
     declares no decisions file, which is most of them.
     """
-    if not config.has("decisions") or not config.path("decisions").is_file():
+    if not config.on_disk("decisions"):
         return ""
     recorded = config.document("decisions").by_id().get(entry.task.id)
     return "" if recorded is None else (recorded.task.ref or "")

@@ -203,7 +203,7 @@ def fix(config: Config) -> Fix:
     # line derives — a pass whose result depended on its own order.
     backlog = Backlog.load(config)
     for role in LINE_ROLES:
-        if not config.has(role) or not config.path(role).is_file():
+        if not config.on_disk(role):
             continue
         outcome = _fix_file(config, role, backlog)
         repairs.extend(outcome.repairs)
@@ -211,7 +211,7 @@ def fix(config: Config) -> Fix:
         written.extend(outcome.files)
         refused.extend(outcome.refused)
     for role in PROSE_ROLES:
-        if not config.has(role) or not config.path(role).is_file():
+        if not config.on_disk(role):
             continue
         outcome = _unmark_file(config, role)
         repairs.extend(outcome.repairs)
@@ -552,7 +552,7 @@ def _anchors(config: Config) -> frozenset[str]:
     return frozenset(
         section.anchor
         for role in PROSE_ROLES
-        if config.has(role) and config.path(role).is_file()
+        if config.on_disk(role)
         for section in anchored(config.document(role))
     )
 

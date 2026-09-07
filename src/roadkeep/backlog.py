@@ -96,10 +96,10 @@ class Whereabouts:
         """
         if config.document("roadmap").by_id().get(task_id) is not None:
             return cls(Where.OPEN)
-        if config.has("deferred") and config.path("deferred").is_file():
+        if config.on_disk("deferred"):
             if config.document("deferred").by_id().get(task_id) is not None:
                 return cls(Where.PAUSED)
-        if config.has("changelog") and config.path("changelog").is_file():
+        if config.on_disk("changelog"):
             recorded = config.document("changelog").by_id().get(task_id)
             if recorded is not None:
                 return cls(Where.RECORDED, recorded.task.status)
@@ -789,7 +789,7 @@ def _present(config: Config, role: str) -> Document | None:
     A declared file that is not on disk yet is absent, not empty — `init` (RK18) creates
     it, and refusing every question until then would be an obstacle.
     """
-    if not config.has(role) or not config.path(role).is_file():
+    if not config.on_disk(role):
         return None
     return config.document(role)
 

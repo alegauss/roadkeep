@@ -2347,7 +2347,7 @@ def _ambiguous(
     if not _declared(config, target):
         return Doubling()
 
-    kept = [role for role in PROSE_ROLES if config.has(role) and config.path(role).is_file()]
+    kept = [role for role in PROSE_ROLES if config.on_disk(role)]
     taken = [
         Anchor(anchor=section.anchor, role=role, live=True)
         for role in kept

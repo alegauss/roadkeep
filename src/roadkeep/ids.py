@@ -158,7 +158,7 @@ def carried(config: Config) -> frozenset[str]:
     # not is a line, which is why `lint` still reports one that becomes a line.
     out: set[str] = set(config.reserved)
     for role in CARRIERS:
-        if not config.has(role) or not config.path(role).is_file():
+        if not config.on_disk(role):
             continue
         out.update(config.document(role).by_id())
     return frozenset(out)
