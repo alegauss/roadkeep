@@ -29,6 +29,7 @@ import {
   readReversalsPayload,
   readShowPayload,
   readStatsPayload,
+  readStatusPayload,
   resolveEngine,
   withheld,
   type Parsed,
@@ -137,7 +138,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
   it('covers every write this client can build a command line for', () => {
     // The same guard as above, for the other table. A write verb added without a shape
     // and without a case here is a door offered against an answer nobody has read.
-    expect(Object.keys(WRITES).sort()).toEqual(['add'])
+    expect(Object.keys(WRITES).sort()).toEqual(['add', 'status'].sort())
   })
 
   it('reads a listing, with its standing and its lines', async () => {
@@ -306,6 +307,29 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(typeof outcome.value.length).toBe('number')
     expect(outcome.value.section?.anchor).toBe(outcome.value.id)
     expect(Array.isArray(outcome.value.near)).toBe(true)
+  })
+
+  it('moves a marker, and says what the claim did', async () => {
+    const listed = await readVerb('list', {}, readListPayload)
+    const first = listed.tasks[0]
+    if (!first) return
+
+    const outcome = await applyWrite(
+      transport,
+      composeWrite(fixture.root, 'status', { id: first.id, marker: first.status }),
+      readStatusPayload,
+      { timeoutMs: CEILING },
+    )
+
+    expect(outcome.kind).toBe('applied')
+    if (outcome.kind !== 'applied') throw new Error('unreachable')
+    // Its own marker, so `changed` is false — the shape of a no-op, which is the answer a
+    // shape demanding `changed` true would never see.
+    expect(outcome.value.id).toBe(first.id)
+    expect(outcome.value.changed).toBe(false)
+    expect(outcome.value.to).toBe(first.status)
+    expect(Array.isArray(outcome.value.refreshed)).toBe(true)
+    expect(Array.isArray(outcome.value.wrote)).toBe(true)
   })
 
   it('reads what to work on next, and which tier answered', async () => {

@@ -700,6 +700,45 @@ export const readAddedPayload: Reader<AddedPayload> = record<AddedPayload>(
   { nearRecorded: 'near_recorded' },
 )
 
+/**
+ * What a marker write did, and what went with it.
+ *
+ * `changed` false is an answer and not a failure: a line already carrying the marker asked
+ * for still followed its claim and still has a standing to report.
+ */
+export interface StatusPayload {
+  readonly id: string
+  readonly from: string
+  readonly to: string
+  readonly changed: boolean
+  readonly file: string
+  readonly line: number
+  readonly rendered: string
+  /** Ids whose dep annotations were re-derived because this marker moved. */
+  readonly refreshed: readonly string[]
+  /**
+   * What the write did to the claim on this line: `claimed`, `released`, or **null** where
+   * it did neither. The engine's own word, and the reason a claim never has to be inferred
+   * from the marker somebody just wrote.
+   */
+  readonly claim: string | null
+  /** The governed files this write touched. */
+  readonly wrote: readonly string[]
+}
+
+export const readStatusPayload: Reader<StatusPayload> = record<StatusPayload>({
+  id: aString,
+  from: orMissing(aString, ''),
+  to: orMissing(aString, ''),
+  changed: orMissing(aBoolean, false),
+  file: orMissing(aString, ''),
+  line: orMissing(aNumber, 0),
+  rendered: orMissing(aString, ''),
+  refreshed: orMissing(listOf(aString), []),
+  claim: orMissing(orNull(aString), null),
+  wrote: orMissing(listOf(aString), []),
+})
+
 export interface LintFinding {
   readonly code: string
   readonly file: string

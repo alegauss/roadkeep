@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { readAddedPayload } from './payloads'
 import { EngineCallFailed, type EngineRequest, type EngineResult, type Transport } from './transport'
 import { applied, applyWrite, composeWrite } from './writing'
-import { WRITES } from './writes'
+import { EVERY_WRITE_INPUT, WRITES } from './writes'
 
 /** Captured from a real `add --json` that landed. */
 const ADDED = JSON.stringify({
@@ -139,14 +139,16 @@ describe('RG29: the app composes an argv and the command writes', () => {
   })
 
   it('asks for the machine-readable form on every write', () => {
-    // A refusal read as prose is a refusal whose field nobody can mark.
+    // A refusal read as prose is a refusal whose field nobody can mark. Driven off
+    // `EVERY_WRITE_INPUT` so a write added to the table cannot skip this.
     for (const verb of Object.keys(WRITES) as (keyof typeof WRITES)[]) {
-      expect(composeWrite('/w', verb, WRITE_INPUT[verb]).argv).toContain('--json')
+      const composed = composeWrite('/w', verb, EVERY_WRITE_INPUT[verb])
+
+      expect(composed.argv).toContain('--json')
+      expect(composed.argv.slice(0, 2)).toEqual(['-C', '/w'])
     }
   })
 })
-
-const WRITE_INPUT = { add: { block: 'A', symptom: 's', why: 'W.' } } as const
 
 describe('RG29: a write ends in three states and no more', () => {
   it('is applied, with the verb own payload', async () => {

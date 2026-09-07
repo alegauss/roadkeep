@@ -460,15 +460,6 @@ On ship: `--recorded-in packages/core/src/pauses.ts`.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-### §RG30 Moving a marker, and what moves with it
-
-The status verb sets a marker in the roadmap and nowhere else, and the in-progress one
-takes a claim with it — refused where somebody already holds that line, and given back
-by any other marker. So this is not a dropdown over an enum. The markers offered are the
-ones the project declared, a move to the working one is a claim and is drawn as one, and
-a refusal because another caller holds the line is a sentence about a person and not a
-validation error.
-
 ### §RG31 The four ways a line leaves
 
 A ship writes the ledger entry, clears the roadmap line and drops the section, in one

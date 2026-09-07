@@ -37,6 +37,17 @@ export interface WriteInputs {
     section?: string
     sectionBody?: string
   }
+  /**
+   * Move one task's marker in the roadmap.
+   *
+   * Both arguments are positional and the marker is not an enum here: it comes from the
+   * open set `config` publishes, which is four emoji in this repository and something
+   * else in the next one.
+   */
+  status: {
+    id: string
+    marker: string
+  }
 }
 
 export type WriteName = keyof WriteInputs
@@ -81,6 +92,7 @@ export const WRITES: { [K in WriteName]: ArgvFor<K> } = {
     ...optional('--section', input.section),
     ...optional('--section-body', input.sectionBody),
   ],
+  status: (input) => [input.id, input.marker],
 }
 
 /**
@@ -102,4 +114,5 @@ export const EVERY_WRITE_INPUT: { [K in WriteName]: WriteInputs[K] } = {
     section: 'A heading',
     sectionBody: 'Prose.',
   },
+  status: { id: 'RG1', marker: '🛠' },
 }

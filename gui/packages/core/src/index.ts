@@ -70,6 +70,8 @@ export {
 } from './gate'
 export type { GateHealth, GateLedger, GateRecord, GateVerdict } from './gate'
 export type { ProjectFamily, ProjectMember, ProjectSite } from './families'
+export { aboutNoInput, movedFrom, openMarkers, saidOfMove } from './marking'
+export type { ClaimEffect, Moved } from './marking'
 export { attemptRead, DEFAULT_LIMITS, withLimits } from './limits'
 export type { ProjectRead, ReadLimits, Unreadable } from './limits'
 export { howListed, ledgerFrom, reversedFrom, undoneBy } from './memory'
@@ -144,6 +146,7 @@ export {
   readSectionBudget,
   readShowPayload,
   readStatsPayload,
+  readStatusPayload,
   readTaskLine,
   readUnblocks,
 } from './payloads'
@@ -179,6 +182,7 @@ export type {
   Standing,
   Startable,
   StatsPayload,
+  StatusPayload,
   TaskLine,
   Unblocks,
 } from './payloads'
