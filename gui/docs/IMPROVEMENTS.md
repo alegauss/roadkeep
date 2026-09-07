@@ -150,15 +150,6 @@ arguments.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
-### §RG10 Where the app is allowed to look
-
-A root is a folder a person named, with a depth. Nothing is found outside one and no
-default is invented from a home directory: an app that scans a drive on first launch is
-an app that reads somebody's whole disk to draw a list. Roots and their depths are the
-settings this app owns rather than reads, and the first run asks instead of assuming. A
-root that has stopped existing is kept and marked, because a disconnected drive is not a
-project somebody deleted.
-
 ### §RG11 The walk, and what it refuses to enter
 
 The scan looks for one filename and nothing else. It never descends into .git,

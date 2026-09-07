@@ -14,6 +14,8 @@
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
+- ✅ **RG10** **no root is named, so there is nowhere to look and the project list can only come back empty** — A root is a folder somebody named with a bounded depth, there is no default, and one that stopped existing is kept and marked (design recorded in `packages/core/src/roots.ts`).
+
 ## Block C — The portfolio (many backlogs in one view)
 
 ## Block D — The project surface (one backlog, read)

@@ -21,6 +21,18 @@ export { attemptRead, DEFAULT_LIMITS, withLimits } from './limits'
 export type { ProjectRead, ReadLimits, Unreadable } from './limits'
 export { createPooledTransport } from './pool'
 export type { PoolOptions } from './pool'
+export {
+  addRoot,
+  checkRoot,
+  coveredBy,
+  DEFAULT_DEPTH,
+  DEPTH_CEILING,
+  NO_DEFAULT_ROOTS,
+  removeRoot,
+  walkable,
+  withPresence,
+} from './roots'
+export type { KeyOf, KnownRoot, RootCheck, RootPresence, RootProblem, ScanRoot } from './roots'
 export { buildArgv, createClient } from './client'
 export type { CallOptions, Client } from './client'
 export { disagrees, isModified, resolveEngine } from './engine-resolution'
