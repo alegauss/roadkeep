@@ -473,6 +473,7 @@
 - ✅ **RK1558** **one marker scan skips what a caller is shown and the one beside it does not, with nothing saying they differ** — The exemption for a shown word ends at a backtick, so a help string may illustrate a project value and may not build a command round one.
 - ✅ **RK1566** **the near window is measured on a ledger far larger than its backlog, the ratio it is least about** — Read per block across three backlogs, the open half takes 9.5% to 20.8% of the rows as its share of a block goes 3.8% to 38.1%, so three holds; Turing is not the inverted corpus.
 - ✅ **RK1567** **the near rows are described as delivered --near volunteered, and that read has ranked a different corpus since RK1495** — The two reads differ on half the insertions and 15 of 18 show a row no width of --near reaches, so the row keeps that verb's phrases and stops claiming to be its rows.
+- ✅ **RK1568** **an incidental entry that is on disk and filters no commit is silent, which is the half of the reading RK1529 gave** — unclosed counts what the filter set aside on the walk it already pays for and names the entries accounting for none, silent where every one of them worked.
 
 ## Block D — The gate
 

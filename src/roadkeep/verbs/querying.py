@@ -37,7 +37,7 @@ from roadkeep.exporting import DEFAULTS, project, spec, splice_into
 from roadkeep.graph import Dependencies
 from roadkeep.history import (
     Unclosed,
-    pending,
+    swept,
     Addresses,
     HistoryUnavailable,
     cited_origin,
@@ -1398,7 +1398,10 @@ def _unclosed(config: Config, args: argparse.Namespace) -> Result | int:
     session that is mid-task — which is the shape a report must not take.
     """
     try:
-        answer = Unclosed(rows=pending(config))
+        # The whole walk and not `pending` alone (RK1568): what the incidental filter did is
+        # the same `git log`, and a second call would be a second history read for a row.
+        sweep = swept(config)
+        answer = Unclosed(rows=sweep.rows, sifted=sweep.sifted)
     except (KeyError, OSError) as error:
         return _refused(error)
 

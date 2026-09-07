@@ -79,29 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1568 The entry that is there and filters nothing
-
-RK1529 says when an `[history] incidental` entry names a file this tree does not hold.
-The reason it gave was wider: a filter that stops matching makes `unclosed` louder with
-nothing having changed in the report. An absent path is one way to stop matching. The
-other is a path that is there and that no commit touches on its own, and that one is
-still silent.
-
-Same defect, same cost. `incidental` removes a commit only when every path it touched is
-declared, so an entry naming a file always committed alongside real work filters nothing
-— and reads, in `roadkeep.toml`, as a project that has accounted for its hooks. A
-version bump that moved from one file to two is that state, and the tree holds both.
-
-What makes the second half a different job is the cost. Existence is a `blob` this gate
-already asks for; *matched anything* is a walk of the history, which `lint` does not pay
-for and should not start paying for on every commit. The place where the walk is already
-bought is `unclosed` itself — the report the entry shapes — and RK1512 settled that
-shape of argument once: a reading belongs where a git call is paid, not on the loop's
-path.
-
-So the row belongs on `unclosed` rather than in the gate: *this many commits were set
-aside, and these entries set aside none*. The report knows both halves already.
-
 ### §RK1573 The heading only the scaffold writes
 
 `declare non_goals` opens the table that governs the list and names the write it gates:

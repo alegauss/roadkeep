@@ -2463,6 +2463,97 @@ def test_a_file_that_restates_nothing_is_not_a_projection(tmp_path):
     assert len(row.commits) == 1
 
 
+# -- the entry that is there and filters nothing (RK1568) ----------------------
+
+
+def test_an_entry_that_set_nothing_aside_is_named_with_what_the_filter_did(tmp_path):
+    """RK1568. RK1529 reports the `[history] incidental` entry naming a file this tree does
+    not hold, and the reason it gave was wider: a filter that stops matching makes `unclosed`
+    louder with nothing having changed. Absence is one way to stop matching; a path that is
+    **there** and that no commit touches on its own is the other, and it was silent — it
+    reads in `roadkeep.toml` as a project that has accounted for its hooks.
+
+    On this walk and not in the gate: existence is a blob `lint` already asks for, and
+    *matched anything* is a history walk this report has already bought (RK1512)."""
+    from roadkeep.history import Unclosed, swept
+
+    config = repo(tmp_path)
+    append(
+        config.root / "roadkeep.toml",
+        '\n[history]\nincidental = ["version.json", "unused.json"]\n',
+    )
+    (tmp_path / "unused.json").write_text("{}\n", encoding="utf-8")
+    git_commit(config.root, "chore: a file nothing stamps")
+    propose(config, "RK1", "docs: file RK1")
+    append(config.path("roadmap"), "\n")
+    (tmp_path / "version.json").write_text('{"version": "0.0.2"}\n', encoding="utf-8")
+    git_commit(config.root, "docs(RK1): correct the why")
+
+    sweep = swept(Config.discover(tmp_path))
+    assert sweep.sifted.filtered == 1
+    assert sweep.sifted.aside.get("version.json") == 1
+    # On disk, declared, and the reason for nothing — the state RK1529 could not see.
+    assert sweep.sifted.idle == ("unused.json",)
+
+    said = Unclosed(rows=sweep.rows, sifted=sweep.sifted).stated()
+    assert "1 commit(s) set aside" in said
+    assert "1 of 2 `[history] incidental` entr(ies)" in said
+    assert "unused.json" in said
+    assert "version.json" not in said, "the entry that worked is not named as one that did not"
+
+
+def test_an_entry_naming_a_file_this_tool_writes_accounts_for_nothing(tmp_path):
+    """The redundant entry, which the counting has to tell from the working one: a commit it
+    rides on was set aside by the governed path anyway, so calling it the reason would report
+    the entry doing nothing as the entry doing the work."""
+    from roadkeep.history import swept
+
+    config = repo(tmp_path)
+    roadmap = config.relative(config.path("roadmap"))
+    append(config.root / "roadkeep.toml", f'\n[history]\nincidental = ["{roadmap}"]\n')
+    propose(config, "RK1", "docs: file RK1")
+    append(config.path("roadmap"), "\n")
+    git_commit(config.root, "docs(RK1): correct the why")
+
+    sweep = swept(Config.discover(tmp_path))
+    # The commit is still set aside — it touched the roadmap and nothing else — and the entry
+    # is not what did it.
+    assert sweep.sifted.filtered == 1
+    assert sweep.sifted.idle == (roadmap,)
+
+
+def test_the_row_is_absent_where_every_entry_did_something(tmp_path):
+    # `_wiring_line`'s rule one report over: a clause a reader meets whenever the filter is
+    # working is one they stop seeing, and this row exists to be noticed.
+    from roadkeep.history import Unclosed, swept
+
+    config = repo(tmp_path)
+    append(config.root / "roadkeep.toml", '\n[history]\nincidental = ["version.json"]\n')
+    propose(config, "RK1", "docs: file RK1")
+    append(config.path("roadmap"), "\n")
+    (tmp_path / "version.json").write_text('{"version": "0.0.2"}\n', encoding="utf-8")
+    git_commit(config.root, "docs(RK1): correct the why")
+
+    sweep = swept(Config.discover(tmp_path))
+    assert sweep.sifted.idle == ()
+    assert "set aside" not in Unclosed(rows=sweep.rows, sifted=sweep.sifted).stated()
+
+
+def test_a_walk_that_did_not_happen_reports_no_entry_as_idle(tmp_path):
+    """Nothing was read, so every entry is unmeasured rather than idle — the difference
+    between a filter that did nothing and a report that asked nothing, which is the same
+    distinction `searched` draws for the rows above."""
+    from roadkeep.history import Unclosed, swept
+
+    config = repo(tmp_path)
+    append(config.root / "roadkeep.toml", '\n[history]\nincidental = ["version.json"]\n')
+    sweep = swept(Config.discover(tmp_path))
+    assert sweep.sifted.declared == ("version.json",)
+    assert sweep.sifted.filtered == 0
+    said = Unclosed(rows=sweep.rows, sifted=sweep.sifted, searched=False).stated()
+    assert "set aside" not in said
+
+
 def test_this_repository_can_now_exercise_the_rule_it_proves(tmp_path):
     """The finding's own success criterion. `docs/` is this format's conformance fixture, and
     a filter inert on it is one whose next regression nothing here will catch — so what is

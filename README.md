@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
-| C — Query (consult without reading the file) | 8 | 175 | 4 |
+| C — Query (consult without reading the file) | 7 | 176 | 4 |
 | D — The gate | 24 | 272 | 2 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 158 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 36 | 1072 | 14 |
+| **Total** | 35 | 1073 | 14 |
 
 **Next ready:**
 
-- 💭 **RK1568** (deps: —) **an incidental entry that is on disk and filters no commit is silent, which is the half of the reading RK1529 gave** — existence is a blob this gate already reads and matched-anything is a history walk, so the second half was left where nothing asks it. → §RK1568
+- 💭 **RK1569** (deps: —) **the prose half of the re-taken split reds on somebody else's edit, which says nothing about the rule** — RK1530 asserts a non-zero count over corpora this project does not own, and two of the three hits are one sentence in Shio. → §RK1569
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

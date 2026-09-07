@@ -25,8 +25,8 @@ import contextlib
 import re
 import shutil
 import subprocess
-from collections.abc import Sequence
-from dataclasses import dataclass, replace
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from roadkeep.config import PROSE_ROLES, ROLES, Config
@@ -992,8 +992,58 @@ class Pending:
         return bool(self.commits) and not self.recorded
 
 
+@dataclass(frozen=True, slots=True)
+class Sifted:
+    """What `[history] incidental` actually did on this walk (RK1568).
+
+    RK1529 reports the entry naming a file this tree does not hold, and gave the wider
+    reason: a filter that stops matching makes `unclosed` louder with nothing having
+    changed. Absence is one way to stop matching; the other is a path that is **there** and
+    that no commit touches on its own, and that one was silent — it reads in `roadkeep.toml`
+    as a project that has accounted for its hooks.
+
+    Here and not in the gate because of what it costs. Existence is a blob `lint` already
+    reads; *matched anything* is a walk of the history, which the gate does not pay for and
+    should not start paying for on every commit. This walk is already bought, and the report
+    the entry shapes is this one — RK1512's rule, one reader over.
+    """
+
+    #: The entries the project declared, in the order `roadkeep.toml` states them.
+    declared: tuple[str, ...] = ()
+    #: Per declared path, how many commits it was the **reason** for setting aside — the
+    #: commit touched it and nothing this tool writes accounts for it. Absent from the map is
+    #: the same as zero, and zero is the whole finding.
+    aside: Mapping[str, int] = field(default_factory=dict)
+    #: Every commit the filter removed, however it was accounted for. The denominator that
+    #: makes a zero readable: none set aside out of none is a quiet history, and none out of
+    #: forty is an entry doing nothing while the filter works.
+    filtered: int = 0
+
+    @property
+    def idle(self) -> tuple[str, ...]:
+        """The declared entries that set nothing aside — derived, never stored."""
+        return tuple(one for one in self.declared if not self.aside.get(one))
+
+
+@dataclass(frozen=True, slots=True)
+class Sweep:
+    """One walk of the history, and both things it can say (RK1568).
+
+    :func:`pending` is this record's `rows` and stays the call every existing reader makes:
+    what the second half needs is not a second `git log` but the one already run.
+    """
+
+    rows: tuple[Pending, ...] = ()
+    sifted: Sifted = field(default_factory=Sifted)
+
+
 def pending(config: Config) -> tuple[Pending, ...]:
-    """Every open line with commits naming it and no ledger entry (RK1201).
+    """Every open line with commits naming it and no ledger entry (RK1201)."""
+    return swept(config).rows
+
+
+def swept(config: Config) -> Sweep:
+    """Every open line with commits naming it, and what the incidental filter did.
 
     One `git log` for the whole backlog rather than one per id: the ids are matched against the
     subjects that come back, so a backlog of forty costs the same read as a backlog of one.
@@ -1005,8 +1055,12 @@ def pending(config: Config) -> tuple[Pending, ...]:
 
     backlog = Backlog.load(config)
     open_lines = list(backlog.roadmap.entries)
+    # Both early answers carry the declaration and no reading (RK1568): nothing was walked,
+    # so every entry is unmeasured rather than idle — which is the difference between a
+    # filter that did nothing and a report that asked nothing.
+    blank = Sweep(sifted=Sifted(declared=tuple(config.incidental)))
     if not open_lines:
-        return ()
+        return blank
     recorded = (
         {entry.task.id for entry in backlog.ledger.entries}
         if backlog.ledger is not None
@@ -1018,7 +1072,7 @@ def pending(config: Config) -> tuple[Pending, ...]:
         # field this needs.
         listed = _parse(_run(config.root, "log", "--no-merges", f"--format={_FORMAT}"))
     except HistoryUnavailable:
-        return ()
+        return blank
     from roadkeep.ids import id_scanner  # noqa: PLC0415 - RK260
 
     naming: dict[str, list[Commit]] = {}
@@ -1055,26 +1109,44 @@ def pending(config: Config) -> tuple[Pending, ...]:
     # What separates them is on disk, so it is read and not recorded: a commit touching only
     # governed files is about the backlog, and one touching anything else and naming an id is
     # what this verb was written for. A commit doing both at once is real and still reported.
-    ours = _governed_paths(config)
+    written = _governed_paths(config, declared=False)
+    declared = tuple(config.incidental)
+    ours = written | set(declared)
     touched = _touched(config.root, {one.sha for rows in naming.values() for one in rows})
+    # **What each declared entry was the reason for** (RK1568), counted on the walk that is
+    # already paid for. Per commit and not per row: one sha may name two ids and is one
+    # commit set aside, so the shas are collected and the arithmetic done over the set.
+    removed: set[str] = set()
+    for rows in naming.values():
+        removed |= {one.sha for one in rows if _only_ours(touched.get(one.sha), ours)}
+    aside: dict[str, int] = {}
+    for sha in removed:
+        # Only where nothing this tool writes already accounts for the path: an entry naming
+        # a governed file rides along on a commit it did not filter, and calling that a use
+        # would report the redundant entry as the working one.
+        for path in (set(touched.get(sha, ())) & set(declared)) - written:
+            aside[path] = aside.get(path, 0) + 1
     naming = {
         token: [one for one in rows if not _only_ours(touched.get(one.sha), ours)]
         for token, rows in naming.items()
     }
 
-    return tuple(
-        Pending(
-            id=entry.task.id,
-            marker=entry.task.status,
-            block=entry.task.block,
-            commits=tuple(naming.get(entry.task.id, ())),
-            recorded=entry.task.id in recorded,
-        )
-        for entry in open_lines
+    return Sweep(
+        rows=tuple(
+            Pending(
+                id=entry.task.id,
+                marker=entry.task.status,
+                block=entry.task.block,
+                commits=tuple(naming.get(entry.task.id, ())),
+                recorded=entry.task.id in recorded,
+            )
+            for entry in open_lines
+        ),
+        sifted=Sifted(declared=declared, aside=aside, filtered=len(removed)),
     )
 
 
-def _governed_paths(config: Config) -> frozenset[str]:
+def _governed_paths(config: Config, *, declared: bool = True) -> frozenset[str]:
     """Every path this tool writes in a project, as git spells one (RK1473).
 
     The declared roles and `roadkeep.toml`, which is the file `govern` and `declare` write and
@@ -1118,7 +1190,11 @@ def _governed_paths(config: Config) -> frozenset[str]:
         with contextlib.suppress(OSError, ValueError):
             if BEGIN in path.read_text(encoding="utf-8", errors="replace"):
                 out.add(path.relative_to(config.root).as_posix())
-    return frozenset(out | set(config.incidental))
+    # ``declared`` False leaves the project's own entries out, which is the set that answers
+    # *would this commit have been set aside anyway* (RK1568): an entry naming a file this
+    # tool already writes filters nothing, and counting it as the reason would hide exactly
+    # the state the reading is for.
+    return frozenset(out | (set(config.incidental) if declared else set()))
 
 
 def _touched(root: Path, shas: set[str]) -> dict[str, tuple[str, ...]]:
@@ -1172,6 +1248,10 @@ class Unclosed:
     #: True where git answered at all. `()` means two different things otherwise, and a
     #: checkout with no history reading as a clean backlog is the silence RK10 is about.
     searched: bool = True
+    #: What `[history] incidental` did on the same walk (RK1568). Here rather than in the
+    #: gate because the walk is here: `lint` reads a blob to say a declared path is absent
+    #: and would have to start walking the history to say one matched nothing.
+    sifted: Sifted = field(default_factory=Sifted)
 
     @property
     def stale(self) -> tuple[Pending, ...]:
@@ -1197,12 +1277,41 @@ class Unclosed:
                 "  close    `ship <id> --why …` records the outcome, or `--part` where only "
                 "half of it landed"
             )
+        rows += self._idle_rows()
         return chr(10).join(rows)
+
+    def _idle_rows(self) -> list[str]:
+        """The entries that set nothing aside, and only where there are some (RK1568).
+
+        Said on the state that is wrong and not on every run, which is `_wiring_line`'s rule
+        one report over: a clause a reader meets whenever the filter is *working* is one
+        they stop seeing, and this row exists to be noticed. The total rides on it because a
+        zero is unreadable alone — none of none is a quiet history, none of forty is an entry
+        doing nothing beside a filter that works.
+        """
+        idle = self.sifted.idle
+        if not (self.searched and idle):
+            return []
+        return [
+            f"  aside    {self.sifted.filtered} commit(s) set aside as this tool's own "
+            f"writes, {len(idle)} of {len(self.sifted.declared)} `[history] incidental` "
+            f"entr(ies) accounting for none of them — an entry that filters nothing reads "
+            f"in roadkeep.toml as a hook that has been accounted for",
+            f"           {'  '.join(idle)}",
+        ]
 
     def payload(self) -> dict[str, object]:
         return {
             "searched": self.searched,
             "open": len(self.rows),
+            # The second half of the same walk (RK1568), as its own key: a consumer acting on
+            # a stale line and one correcting a declaration are different readers.
+            "incidental": {
+                "declared": list(self.sifted.declared),
+                "filtered": self.sifted.filtered,
+                "aside": {one: self.sifted.aside.get(one, 0) for one in self.sifted.declared},
+                "idle": list(self.sifted.idle),
+            },
             "unclosed": [
                 {
                     "id": one.id,
