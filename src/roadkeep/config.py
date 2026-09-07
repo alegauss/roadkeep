@@ -366,13 +366,31 @@ class ConfigError(ValueError):
     cannot tell them apart, so both are named and the command that decides it is carried the way
     every `lint` finding carries one (RK14/15). Once per refusal and not once per key: three
     unknown keys are one skew, and the same sentence three times reads as three problems.
+
+    **Which is why the keys it is about are printed last** (RK1610). The clause is appended to
+    the whole message, so it reads as being about whatever the message ends on — true while
+    every problem about a key was an unknown one, and false the moment a *misplaced* key could
+    be reported beside it: a reader met `the header above it is what to move — unknown to this
+    build: a typo…`, where the second half is about the other key entirely. Ordered rather than
+    attached per problem, because attaching it per problem is exactly the three-times repetition
+    the paragraph above rejects.
+
+    :attr:`problems` keeps file order. Only the rendering moves, and only for the skew's own
+    subject — a reader looking at the tuple sees the file, and a reader looking at the sentence
+    sees the clause beside what it explains.
     """
 
     def __init__(self, problems: tuple[str, ...], path: Path | None = None) -> None:
         self.problems = tuple(problems)
         self.path = path
         where = f"{path}: " if path else ""
-        super().__init__(where + "; ".join(self.problems) + _skew(self.problems))
+        skew = _skew(self.problems)
+        said = self.problems
+        if skew:
+            said = tuple(
+                sorted(said, key=lambda one: one.startswith("unknown key"))
+            )
+        super().__init__(where + "; ".join(said) + skew)
 
 
 class Unwritable(ConfigError):

@@ -525,6 +525,40 @@ def test_a_key_no_table_declares_keeps_the_sentence_it_always_had(tmp_path):
     assert "misplaced" not in said
 
 
+def test_the_skew_clause_ends_the_sentence_beside_the_key_it_is_about(tmp_path):
+    """RK1610's own second half. The clause is appended once to the whole message (RK1150), so
+    it reads as being about whatever the message ends on — true while every problem about a key
+    was an unknown one, and false as soon as a *misplaced* key could sit beside it.
+
+    Written in the order that breaks it: the unknown key first, the misplaced one second. The
+    tuple keeps file order and only the rendering moves, which is what keeps this a fix to the
+    sentence rather than to the record."""
+    path = write(
+        tmp_path,
+        '[files]\nroadmap = "docs/R.md"\nsymptom_max = 5\npriority = ["RK1"]\n',
+    )
+    with pytest.raises(ConfigError) as caught:
+        Config.load(path)
+    said = str(caught.value)
+    assert said.index("misplaced key") < said.index("unknown key"), said
+    # The clause explains the key immediately before it, which is the whole claim.
+    tail = said[said.index("unknown to this build") :]
+    assert "misplaced" not in tail
+    # And the record is the file's own order, untouched.
+    assert [one.split()[0] for one in caught.value.problems] == ["unknown", "misplaced"]
+
+
+def test_a_refusal_with_nothing_to_skew_is_left_in_file_order(tmp_path):
+    """The narrowing: only the clause's own subject moves, and only when there is a clause. A
+    file whose problems are all of one kind reads in the order somebody wrote them."""
+    path = write(tmp_path, '[files]\nroadmap = "docs/R.md"\npriority = ["RK1"]\n')
+    with pytest.raises(ConfigError) as caught:
+        Config.load(path)
+    said = str(caught.value)
+    assert "unknown to this build" not in said, "nothing here is unknown"
+    assert "misplaced key 'files.priority'" in said
+
+
 def test_the_suggestion_is_read_from_the_map_config_already_prints():
     """Not a second list. `describing.TABLES` is what `config --json` answers from, and the two
     readers were written a year apart with no route between them — which is the only reason
