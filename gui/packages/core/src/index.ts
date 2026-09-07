@@ -17,6 +17,8 @@ export type {
 } from './capabilities'
 export { createCachingTransport } from './cache'
 export type { CachingOptions, CachingTransport } from './cache'
+export { groupProjects, isFamily } from './families'
+export type { ProjectFamily, ProjectMember, ProjectSite } from './families'
 export { attemptRead, DEFAULT_LIMITS, withLimits } from './limits'
 export type { ProjectRead, ReadLimits, Unreadable } from './limits'
 export { createPooledTransport } from './pool'
