@@ -44,6 +44,33 @@ REFUSALS = (RoundTripError, StaleFile, KeyError, ValueError, OSError)
 _OFFERS = ("offered", "free")
 
 
+def beneath(said: str) -> None:
+    """Write one line to **stderr** that has to land under what stdout already holds (RK1612).
+
+    Off a terminal, Python buffers stdout fully and leaves stderr unbuffered, so a verb that
+    prints an answer and then a note into one pipe emits them in the wrong order: the note
+    arrives above the report it is about, and a line out of order is a line misread.
+
+    A function and not a discipline, which is the whole of this task. Two callers had worked it
+    out separately — `cli._may_offer`, whose comment says why, and `verbs.adopting._report`,
+    which carried a bare `sys.stdout.flush()` with nothing saying why at all. A rule discovered
+    twice and written down neither time is a rule that gets discovered a third time.
+
+    Swept before the repair: 34 functions in this package print to both streams and 2 flushed
+    between them. That number is loose on purpose — most of the 34 write an answer *or* a
+    refusal, which are mutually exclusive and need nothing — and no scan separates the set that
+    writes both in one run, which is exactly the set this is for. So the deliverable is the
+    seam, and a caller that goes through it cannot get the order wrong.
+
+    Only where stdout is a **pipe** is the flush load-bearing; at a terminal it is line
+    buffered and the order is already right. Done unconditionally anyway: a flush on an empty
+    buffer costs nothing, and a rule that fires only in the case nobody tests by hand is the
+    rule this exists to take out of two heads.
+    """
+    sys.stdout.flush()
+    print(said, file=sys.stderr)
+
+
 @dataclass(frozen=True, slots=True)
 class _Retry:
     """The caller's own call, and the one token in it this tool derived (RK1600).

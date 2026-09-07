@@ -45,7 +45,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1612** (deps: —) **a verb writing an answer and a note in one run has to flush between the streams, and nothing says which verbs those are** — RK1561 met the ordering a second time and the first fix carries a bare flush with no reason, so the rule is rediscovered rather than read. → §RK1612
 - 💭 **RK1620** (deps: —) **the note census prices one row per note, so it reports what the gate composed and not what it printed** — RK1565 folded a run of notes into one sentence, and the figure claiming to be what a session pays never learnt about it. → §RK1620
 - 💭 **RK1621** (deps: —) **the summary and the folded note row now both carry the count of surfaces behind the engine** — The clause arguing the summary is not a second sentence rested on the notes carrying no count, which RK1565 changed. → §RK1621
 - 📋 **RK1626** (deps: —) **the field sweep skips its whole assertion where a corpus is absent, including this repository's own 2,246 fields** — RK1569 split ours from theirs in the prose half, and the field half still requires both corpora to say anything about the files in this tree. → §RK1626

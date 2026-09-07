@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 231 | 2 |
 | C — Query (consult without reading the file) | 11 | 179 | 4 |
-| D — The gate | 19 | 290 | 5 |
+| D — The gate | 18 | 291 | 5 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 161 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 37 | 1097 | 17 |
+| **Total** | 36 | 1098 | 17 |
 
 **Next ready:**
 
-- 💭 **RK1612** (deps: —) **a verb writing an answer and a note in one run has to flush between the streams, and nothing says which verbs those are** — RK1561 met the ordering a second time and the first fix carries a bare flush with no reason, so the rule is rediscovered rather than read. → §RK1612
+- 💭 **RK1618** (deps: —) **delivered and reversals are the reads before an add, and neither holds what was traced and not filed** — pportal keeps twenty-five such findings outside its git; only the premise an entry names can reopen it, and a free-prose reason has no slot for one. → §RK1618
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

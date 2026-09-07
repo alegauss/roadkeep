@@ -775,6 +775,7 @@
 - ✅ **RK1605** **the composer census counts sites that call the invocation, so a door spelled without it is outside the guarantee** — The census says it covers only the sites composing through the prefix, and beyond() is the 398 spans outside it, asserted non-empty so the sentence cannot go false in silence.
 - ✅ **RK1607** **four two-answer rules are raised inside handlers where the declaration that spells them is one call away** — The four pairs are declared with answers(), so the dispatcher refuses them before a handler runs and the served schema carries the rule instead of only the exit code.
 - ✅ **RK1610** **a config key typed under the wrong table is refused as unknown, where the tool knows exactly which table it belongs to** — A key this build declares under another table is reported as misplaced and names which, read from the map config prints, and RK1064's sentence stays for the key nothing declares.
+- ✅ **RK1612** **a verb writing an answer and a note in one run has to flush between the streams, and nothing says which verbs those are** — The two streams are ordered by one function both callers go through, with the reason written down and a run that reproduces the reversal without it.
 
 ## Block E — Adoption
 

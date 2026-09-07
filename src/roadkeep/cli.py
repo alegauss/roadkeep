@@ -63,7 +63,7 @@ from roadkeep.verbs.declaring import (
     writes_when,
 )
 from roadkeep.verbs.reading import _one_pipe, _piped, harden
-from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE
+from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, beneath
 from roadkeep.verbs.sections import declare_places
 from roadkeep.verbs.shipping import declare_departures
 
@@ -870,10 +870,10 @@ def _may_offer(
         return
     if not faulted and code == EXIT_GATE and (_only_reads(args) or _is_verdict(args)):
         return
-    # The report this closes went to stdout and this goes to stderr: unflushed, the offer
-    # lands above the findings it is about, and a line out of order is a line misread.
-    sys.stdout.flush()
-    print(offer(argv), file=sys.stderr)
+    # The report this closes went to stdout and this goes to stderr, so the two streams have to
+    # be ordered: `beneath` is that rule, in one function since RK1612 rather than in the two
+    # heads that had each worked it out.
+    beneath(offer(argv))
 
 
 if __name__ == "__main__":  # pragma: no cover - exercised via the console script

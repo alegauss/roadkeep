@@ -69,7 +69,7 @@ from roadkeep.rendering import Result, _estimate_json, _print_estimate, answered
 from roadkeep.serving import serve
 from roadkeep.capturing import PARTS
 from roadkeep.verbs.declaring import _JSON_HELP, answers, narrows
-from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, _refused
+from roadkeep.verbs.refusing import EXIT_GATE, EXIT_OK, EXIT_USAGE, _refused, beneath
 
 #: The subcommands here whose subject is a defect in **this tool** rather than a backlog
 #: (RK85-89, RK1142, RK1394). Spelled by the full path a caller types, because `capture` is a
@@ -606,8 +606,9 @@ def _report(config: Config, args: argparse.Namespace) -> int:
         )
         return EXIT_USAGE
     print(body(found))
-    sys.stdout.flush()
-    print(handoff(found, aimed), file=sys.stderr)
+    # The handoff goes under the body it is about (RK1561), through the one function
+    # that owns the ordering since RK1612 — this site carried the flush and no reason.
+    beneath(handoff(found, aimed))
     return EXIT_OK
 
 

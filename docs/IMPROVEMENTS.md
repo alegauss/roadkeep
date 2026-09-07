@@ -386,26 +386,6 @@ actually spells, and that is one grep.
 
 ## Block D — The gate
 
-### §RK1612 The flush nobody wrote down
-
-Off a terminal Python buffers stdout fully and leaves stderr unbuffered, so a verb
-printing an answer and then a note into one pipe emits them in the wrong order. RK1561
-met it and put the note above the answer it is about; `_report` met it earlier and
-carries a bare `sys.stdout.flush()` with no sentence saying why.
-
-Swept: 34 functions in the package print to both streams and 2 flush between them. The
-number is loose on purpose — most of the 34 are an answer *or* a refusal, mutually
-exclusive, and need nothing. What no scan here separates is the ones that write both in
-one run, which is exactly the set that needs it.
-
-So the deliverable is the separation and not a flush everywhere. Either a helper both
-callers go through, so the rule lives in one function rather than in two disciplines, or
-a census naming the verbs whose success path reaches both streams — with a probe, since
-a claim about the two streams is only worth what a run of it says.
-
-The first fix having no comment is the finding, not an aside: a rule discovered twice
-with nothing written down is a rule that will be discovered a third time.
-
 ### §RK1620 The number the fold does not reach
 
 `Noted.here` sums one `Part` per note and calls that "what a clean run costs now — the

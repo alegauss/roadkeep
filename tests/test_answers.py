@@ -37,6 +37,7 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -398,6 +399,81 @@ def test_a_refusal_carrying_no_rules_publishes_an_empty_list(project):
     payload, _ = _refusal(project, ("show", "RK9999", "--json"))
     assert payload["refused"] == []
     assert "RK9999" in payload["said"]
+
+
+# -- the two streams, in the order they are read (RK1612) ---------------------
+
+
+def test_a_note_lands_under_the_answer_it_is_about_off_a_terminal(tmp_path):
+    """RK1612. Off a terminal Python buffers stdout fully and leaves stderr unbuffered, so a
+    verb printing an answer and then a note into one pipe emits them in the wrong order — the
+    note above the report it is about, and a line out of order is a line misread.
+
+    Run as a **subprocess with both streams merged into one pipe**, because that is the only
+    arrangement where the defect exists: `capsys` records two separate buffers and would pass
+    whatever the flush did. RK1561 found this by hand and `_report` had found it earlier, and
+    what neither left behind was a run that says so.
+
+    Both directions, since a fix that cannot fail proves nothing: the same two writes without
+    the helper come back reversed, which is the defect, and through it they do not."""
+    import subprocess
+    import sys as _sys
+
+    def ran(body: str) -> str:
+        out = subprocess.run(
+            [_sys.executable, "-c", body],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")},
+        )
+        return out.stdout
+
+    said = ran(
+        "\n".join(
+            (
+                "from roadkeep.verbs.refusing import beneath",
+                "print('the answer')",
+                "beneath('the note about it')",
+            )
+        )
+    )
+    assert said.index("the answer") < said.index("the note about it"), said
+    # And the defect, so the assertion above is known to be able to fail.
+    reversed_ = ran(
+        "\n".join(
+            (
+                "import sys",
+                "print('the answer')",
+                "print('the note about it', file=sys.stderr)",
+            )
+        )
+    )
+    assert reversed_.index("the note about it") < reversed_.index("the answer"), reversed_
+
+
+def test_the_ordering_lives_in_one_function_and_not_in_two_disciplines():
+    """The deliverable, and why it is not a flush at 34 sites. Most functions printing to both
+    streams write an answer *or* a refusal — mutually exclusive, needing nothing — and no scan
+    separates the ones that write both in one run. So the repair is the seam: two callers had
+    each worked the rule out, and one of them carried the flush with no sentence saying why.
+
+    Asserted as *nobody else flushes*, which is the claim a helper makes."""
+    from surface import modules
+
+    from roadkeep.verbs.refusing import beneath
+
+    assert beneath.__doc__ and "stderr" in beneath.__doc__
+    found = [
+        f"{one.where}:{number}"
+        for one in modules()
+        if one.where != "verbs/refusing.py"
+        for number, line in enumerate(one.text.splitlines(), start=1)
+        if "stdout.flush()" in line and not line.lstrip().startswith(("#", "*"))
+    ]
+    assert not found, f"`beneath` is where the two streams are ordered: {found}"
 
 
 # -- the argv inside the paragraph (RK1600) -----------------------------------
