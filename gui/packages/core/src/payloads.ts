@@ -10,7 +10,7 @@ import {
   record,
   type Reader,
 } from './reading'
-import { readRemedy, type Remedy } from './refusals'
+import { readDoor, readRemedy, type Door, type Remedy } from './refusals'
 
 /**
  * The shapes this app reads, written by hand from the payloads themselves.
@@ -498,6 +498,87 @@ export const readBriefPayload: Reader<BriefPayload> = record<BriefPayload>(
     doneWhenElided: 'done_when_elided',
   },
 )
+
+/**
+ * What this project says it is not building.
+ *
+ * Leads only. A non-goal's reason lives in the file and no read publishes it, so the
+ * shape declares what arrives and never a key that would have to be filled in from
+ * somewhere.
+ */
+export interface NonGoalsPayload {
+  readonly file: string
+  /**
+   * Whether the project declares the list at all. **False is a state, not a failure**:
+   * reading is never refused, so an ungoverned list arrives empty and says so.
+   */
+  readonly governed: boolean
+  readonly nonGoals: readonly string[]
+  readonly nonGoalsElided: number
+  /**
+   * Lead → the ids whose design quotes it. `non-goal.reaches` goes silent for those, so a
+   * quoted lead is one somebody has answered in writing and a bare one is not.
+   */
+  readonly nonGoalsQuoted: Record<string, readonly string[]>
+}
+
+export const readNonGoalsPayload: Reader<NonGoalsPayload> = record<NonGoalsPayload>(
+  {
+    file: orMissing(aString, ''),
+    governed: orMissing(aBoolean, false),
+    nonGoals: orMissing(listOf(aString), []),
+    nonGoalsElided: orMissing(aNumber, 0),
+    nonGoalsQuoted: orMissing(dictionaryOf(listOf(aString)), {}),
+  },
+  {
+    nonGoals: 'non_goals',
+    nonGoalsElided: 'non_goals_elided',
+    nonGoalsQuoted: 'non_goals_quoted',
+  },
+)
+
+/** One thing that has to be true, and the address it is written at. */
+export interface Criterion {
+  /** What it is about: a block label, or a task id where a line carries its own. */
+  readonly about: string
+  readonly lead: string
+  readonly why: string
+  readonly line: number
+  /** Whether the entry parsed as the two-part shape the format declares. */
+  readonly shaped: boolean
+}
+
+export const readCriterion: Reader<Criterion> = record<Criterion>({
+  about: orMissing(aString, ''),
+  lead: aString,
+  why: orMissing(aString, ''),
+  line: orMissing(aNumber, 0),
+  shaped: orMissing(aBoolean, false),
+})
+
+export interface CriteriaPayload {
+  readonly file: string
+  readonly governed: boolean
+  /** Every block label the roadmap declares, which is what `--block` can narrow to. */
+  readonly blocks: readonly string[]
+  /**
+   * Which kind of nothing this is, in the engine's word — ungoverned, unasked, all
+   * dropped. **Null when the answer is not empty**, which is the ordinary case.
+   */
+  readonly empty: string | null
+  readonly criteria: readonly Criterion[]
+  /** What would open a list that is not there. The engine's own argv, offered not composed. */
+  readonly doors: readonly Door[]
+}
+
+export const readCriteriaPayload: Reader<CriteriaPayload> = record<CriteriaPayload>({
+  file: orMissing(aString, ''),
+  governed: orMissing(aBoolean, false),
+  blocks: orMissing(listOf(aString), []),
+  empty: orMissing(orNull(aString), null),
+  criteria: orMissing(listOf(readCriterion), []),
+  doors: orMissing(listOf(readDoor), []),
+})
 
 export interface LintFinding {
   readonly code: string

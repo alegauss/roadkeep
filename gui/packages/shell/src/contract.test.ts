@@ -12,11 +12,13 @@ import {
   readAnswer,
   readBriefPayload,
   readCapabilities,
+  readCriteriaPayload,
   readDepsPayload,
   readEnginesPayload,
   readExplanation,
   readListPayload,
   readLintPayload,
+  readNonGoalsPayload,
   readPayload,
   readPickPayload,
   readShowPayload,
@@ -110,11 +112,13 @@ describe('RG4: every read this client makes, against a live engine', () => {
         'brief',
         'commands',
         'config',
+        'criterion list',
         'deps',
         'engines',
         'explain',
         'lint',
         'list',
+        'non-goal list',
         'pick',
         'show',
         'stats',
@@ -209,6 +213,33 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(Array.isArray(payload.cycle)).toBe(true)
     expect(typeof payload.unblocks?.of).toBe('number')
     expect(Array.isArray(payload.unblocks?.direct)).toBe(true)
+  })
+
+  it('reads the two lists that bind a proposal, both two-word verbs', async () => {
+    // The only verbs whose name is two words. The name is kept whole because that is the
+    // string `commands` publishes, and `buildArgv` is what splits it.
+    const bounds = await readVerb('non-goal list', {}, readNonGoalsPayload)
+    const finishing = await readVerb('criterion list', {}, readCriteriaPayload)
+
+    expect(bounds.governed).toBe(true)
+    expect(bounds.nonGoals.length).toBeGreaterThan(0)
+    expect(typeof bounds.nonGoalsQuoted).toBe('object')
+
+    expect(finishing.governed).toBe(true)
+    expect(finishing.blocks.length).toBeGreaterThan(0)
+    expect(finishing.criteria[0]?.lead).not.toBe('')
+    expect(typeof finishing.criteria[0]?.shaped).toBe('boolean')
+  })
+
+  it('reads an address with no list, and the door that opens one', async () => {
+    // `empty` is the engine's word for which nothing this is, and it is null on an answer
+    // that is not empty — a shape demanding a string fails on every ordinary read.
+    const finishing = await readVerb('criterion list', { task: 'FX1' }, readCriteriaPayload)
+
+    expect(finishing.criteria).toEqual([])
+    expect(finishing.empty).not.toBeNull()
+    expect(finishing.doors.length).toBeGreaterThan(0)
+    expect(finishing.doors[0]?.argv.length).toBeGreaterThan(0)
   })
 
   it('reads what to work on next, and which tier answered', async () => {

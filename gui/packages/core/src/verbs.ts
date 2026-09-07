@@ -49,6 +49,14 @@ export interface VerbInputs {
    * it would free, and any cycle it is caught in.
    */
   deps: { id: string }
+  /** What this project says it is not building. Takes nothing: the list is the project's. */
+  'non-goal list': Record<string, never>
+  /** What would finish a block, or what one line carries of its own. */
+  'criterion list': {
+    block?: string
+    /** One task's own criteria, by id. Mutually exclusive with `block` at the engine. */
+    task?: string
+  }
   lint: {
     /** Report only what this tree added since a revision. */
     baseline?: string
@@ -102,6 +110,11 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
     ...repeated('--have', input.have),
   ],
   deps: (input) => [input.id],
+  'non-goal list': () => [],
+  'criterion list': (input) => [
+    ...optional('--block', input.block),
+    ...optional('--task', input.task),
+  ],
   lint: (input) => [...optional('--baseline', input.baseline)],
   engines: () => [],
   explain: (input) => [input.code],
@@ -129,6 +142,8 @@ export const EVERY_INPUT: { [K in VerbName]: VerbInputs[K] } = {
   stats: { block: 'A', role: 'roadmap', have: ['signing-cert'] },
   brief: { id: 'RG1', block: 'A', designed: true, have: ['signing-cert'] },
   deps: { id: 'RG1' },
+  'non-goal list': {},
+  'criterion list': { block: 'A', task: 'RG1' },
   lint: { baseline: 'HEAD' },
   engines: {},
   explain: { code: 'symptom.too-long' },

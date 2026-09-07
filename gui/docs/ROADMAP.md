@@ -26,7 +26,6 @@
 
 ## Block D — The project surface (one backlog, read)
 
-- 💭 **RG26** (deps: RG21 ✅) **the non-goals and the criteria are off screen, so the two lists that bind a proposal are the two nobody reads** — A non-goal is what a proposal is checked against and a criterion is what would finish a block, and both are one call away and shown nowhere. → §RG26
 - 💭 **RG27** (deps: RG21 ✅) **the ledger and the decisions file are unreachable, so what shipped and what was weighed live outside this app** — delivered is the read before an add and reversals is the argument a decision already lost, and neither has a surface here. → §RG27
 - 💭 **RG28** (deps: RG21 ✅) **the deferred store is invisible, so a paused line cannot be told from one that was never filed** — list --stale prints the pause with how long it has stood in commits over the governed files, which is an order nothing here draws. → §RG28
 - 📋 **RG74** (deps: RG23 ✅) **a marker says in progress and the claim registry says nobody holds it, and nothing tells the two apart** — A line can carry the working marker with no live claim, so a screen reading either one alone shows a task as taken or as free when it is the other. → §RG74

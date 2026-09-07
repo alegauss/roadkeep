@@ -35,6 +35,8 @@ export { coldStart } from './cold-start'
 export type { ColdStartProgress, ColdStartStage } from './cold-start'
 export { allLines, backlogFrom, refusedSummary } from './backlog'
 export type { Backlog, BacklogBlock } from './backlog'
+export { boundsFrom, criteriaAbout, finishingFrom, whyNothing } from './binding'
+export type { Bounds, CriterionGroup, Finishing, NonGoal } from './binding'
 export { candidateBoard, inTier } from './candidates'
 export type { Candidate, CandidateBoard } from './candidates'
 export { createCachingTransport } from './cache'
@@ -115,11 +117,14 @@ export {
   readBriefBudget,
   readBriefPayload,
   readConfigPayload,
+  readCriteriaPayload,
+  readCriterion,
   readDepChain,
   readDepsPayload,
   readListPayload,
   readLintPayload,
   readHeldClaim,
+  readNonGoalsPayload,
   readPickPayload,
   readRefusedLine,
   readResolvedDep,
@@ -137,6 +142,8 @@ export type {
   BriefPayload,
   ConfigKey,
   ConfigPayload,
+  CriteriaPayload,
+  Criterion,
   DepChain,
   DepsPayload,
   HeldClaim,
@@ -145,6 +152,7 @@ export type {
   LintFinding,
   LintPayload,
   Narrowing,
+  NonGoalsPayload,
   PickedLine,
   PickPayload,
   RationaleSection,

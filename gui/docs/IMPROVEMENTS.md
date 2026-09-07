@@ -257,15 +257,6 @@ sixty-eight calls is the number that makes the case, and nobody will have it lat
 
 ## Block D — The project surface (one backlog, read)
 
-### §RG26 The two lists that decide what may be proposed
-
-A non-goal says what is not built and a criterion says what would finish a block, and
-between them they are what a proposal is checked against before it becomes a line. Both
-are one read each. They belong where a person is about to write, not on a page somebody
-would have to remember to open: the non-goals sit beside the add form and the block's
-criteria sit at the head of its list, where the question of whether the block is
-finished is actually asked.
-
 ### §RG27 What shipped, and what was weighed
 
 Three files this app shows and never writes prose into: the ledger, which the delivered

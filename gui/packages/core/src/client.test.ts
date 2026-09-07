@@ -34,6 +34,28 @@ describe('RG1: the command line one call builds', () => {
     }
   })
 
+  it('splits a two-word verb into the two arguments the engine takes', () => {
+    // RG26: `non-goal list` and `criterion list` are subcommand pairs. The name is kept
+    // whole in the table because that is the string `commands` publishes, and a single
+    // argument spelled `"non-goal list"` is not a verb the engine has.
+    expect(buildArgv('/w', 'non-goal list', {})).toEqual([
+      '-C',
+      '/w',
+      'non-goal',
+      'list',
+      '--json',
+    ])
+    expect(buildArgv('/w', 'criterion list', { block: 'D' })).toEqual([
+      '-C',
+      '/w',
+      'criterion',
+      'list',
+      '--block',
+      'D',
+      '--json',
+    ])
+  })
+
   it('leaves out a flag whose input is absent rather than passing an empty one', () => {
     expect(buildArgv('/w', 'list', {})).not.toContain('--block')
     expect(buildArgv('/w', 'brief', {})).toEqual(['-C', '/w', 'brief', '--json'])
