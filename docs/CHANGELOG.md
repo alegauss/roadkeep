@@ -756,6 +756,7 @@
 - ✅ **RK1570** **a block title is written into every governed file and nothing validates it, not even the codec rule** — A block title takes the section title's three rules at both doors; 136 titles across the three corpora refused the fourth the design asked for, Turing writing bold and backticks in real ones.
 - 🗑 **RK1571** **the composer work-list names a state per row and cannot show that fifteen of them want five fixtures between them** — abandoned: RK1599 emptied the composer work-list and a test now holds it empty, so the fixture field this proposed would name a family on no row.
 - 🗑 **RK1574** **two composer families turned up three doors that cannot be taken, and the rest are unplanned against that rate** — abandoned: RK1599 finished every family this would have ordered, so the rate it measured has no remaining rows to plan and the residue about a row going quiet is RK1578's.
+- ✅ **RK1576** **the config read-back is one writer's, and the decision RK1533 filed binds five** — Every writer of roadkeep.toml renders, parses and refuses before the bytes land, the check being config.readable and the population an AST sweep that named a sixth writer the count had missed.
 
 ## Block E — Adoption
 

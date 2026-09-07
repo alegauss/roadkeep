@@ -10,14 +10,17 @@ arguments for its own numbers.
 
 from __future__ import annotations
 
+import ast
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
-from roadkeep import governing
+from roadkeep import adopting, governing
 from roadkeep.cli import EXIT_OK, main
 from roadkeep.config import Config
+from surface import modules
 
 ROADMAP = "docs/ROADMAP.md"
 CHANGELOG = "docs/CHANGELOG.md"
@@ -915,6 +918,101 @@ def test_the_verb_that_moved_it_can_still_move_it_back(tmp_path):
     # file is still readable, so the verb that refused is the verb that answers next.
     assert main(["-C", str(tmp_path), "govern", "tools.characters", "9000"]) == EXIT_OK
     assert "characters = 9000" in written(Config.discover(tmp_path))
+
+
+# -- the rule at every writer it binds (RK1576) --------------------------------
+
+
+def _receiver(node: ast.expr) -> str:
+    """How the source spells what a method was called on — `config.source`, `config_source`."""
+    if isinstance(node, ast.Attribute):
+        return f"{_receiver(node.value)}.{node.attr}"
+    return node.id if isinstance(node, ast.Name) else ""
+
+
+def _writes_the_config(node: ast.FunctionDef) -> bool:
+    """Whether this function calls `write_text` on something spelled like the config.
+
+    A scan for a spelling, and it is stated as one: all five sites name the file `config.source`
+    or `config_source`, and a writer that called its path `target` would be invisible here —
+    exactly the limit `config.PATH_ARGUMENTS` states about its own guard rather than papering
+    over. What the sweep buys is not omniscience, it is that the *known* population cannot
+    quietly grow a sixth member.
+    """
+    return any(
+        isinstance(call.func, ast.Attribute)
+        and call.func.attr == "write_text"
+        and _receiver(call.func.value).endswith("source")
+        for call in ast.walk(node)
+        if isinstance(call, ast.Call)
+    )
+
+
+def _config_writers() -> dict[str, tuple[str, ...]]:
+    """Every function in the package that writes the config, and the names it calls (RK1576).
+
+    Derived and never listed, for `tests/composing.census`' reason one file over: a second view
+    of the population agrees with the first right up to the moment somebody adds a writer,
+    which is the single moment either of them matters.
+    """
+    found: dict[str, tuple[str, ...]] = {}
+    for module in modules():
+        for node in ast.walk(ast.parse(module.text)):
+            if not isinstance(node, ast.FunctionDef) or not _writes_the_config(node):
+                continue
+            found[f"{module.where}:{node.name}"] = tuple(
+                call.func.id
+                for call in ast.walk(node)
+                if isinstance(call, ast.Call) and isinstance(call.func, ast.Name)
+            )
+    return found
+
+
+#: What every config writer has to reach, directly or through the one wrapper that re-raises.
+#: `_readable` is `govern`'s own, and it is `readable` plus this verb's address and number.
+_CHECKS = ("readable", "_readable")
+
+
+def test_every_writer_of_the_config_reads_it_back():
+    """RK1576. RK1533 filed the rule as a decision — *a write to the config is refused unless
+    the file it would leave parses* — and implemented it at the one writer that found it.
+
+    Others were bound by it and none read back: `declare <role>` adds a `[files]` row, `declare
+    <table>` opens an opt-in table, `declare refs` rewrites `[refs]`, and `record_wired` writes
+    `[install] wired` down two branches. None was obviously unsafe, which is the point rather
+    than a defence: today's cross-key rules sit in `[tools]` and `[markers]`, and the next lands
+    wherever a table grows a second key constraining the first.
+
+    **And the sweep is what found the sixth.** RK1576's own reading counted five writers, and
+    `declare refs` is not in that count — it lives in `verbs/` rather than beside the other
+    four, which is exactly the reason a hand-written list would have missed it twice. Held as a
+    sweep and not as five tests for that: what has to stay true is that the population and the
+    rule do not drift apart, so a writer added tomorrow is a red here until it reads back."""
+    writers = _config_writers()
+    assert writers, "the scan found no config writer at all, which is the scan being broken"
+    unchecked = sorted(
+        where for where, calls in writers.items() if not any(one in calls for one in _CHECKS)
+    )
+    assert unchecked == [], f"config writers with no read-back: {unchecked}"
+
+
+def test_a_role_a_declare_cannot_leave_readable_writes_neither_file(tmp_path):
+    """The property that makes it a refusal and not a partial write: `declare` scaffolds a
+    Markdown file *and* rewrites the config, and a run that left the first beside an unreadable
+    second is the half-landed state the check exists to make impossible."""
+    config = project(tmp_path)
+    # A file the parser refuses for a reason that has nothing to do with the row being added:
+    # `[tools]`' own pair, which is the one cross-key rule this build has. Written under the
+    # loaded `Config`, so the row is legal and what is not is the file it would leave — which
+    # is why the check has to be on the composed result and never on the argument.
+    broken = CONFIG + "\n[tools]\ncharacters = 80000\nsession = 70000\n"
+    (tmp_path / "roadkeep.toml").write_text(broken, encoding="utf-8", newline="")
+    with pytest.raises(ValueError, match="nothing was written"):
+        adopting.declare(config, "deferred")
+
+    assert not (tmp_path / "docs" / "DEFERRED.md").exists()
+    with (tmp_path / "roadkeep.toml").open("r", encoding="utf-8", newline="") as handle:
+        assert handle.read() == broken
 
 
 # -- the limit one door does not read (RK1537) ---------------------------------

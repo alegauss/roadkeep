@@ -79,7 +79,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from roadkeep.adopting import BlockedParent, blocking
-from roadkeep.config import CONFIG_NAME, Config
+from roadkeep.config import CONFIG_NAME, Config, readable
 from roadkeep.linting import lint
 from roadkeep.merging import ATTRIBUTES, Registration, register
 from roadkeep.provenance import Engine, Installed, engine, home, installed
@@ -1262,6 +1262,12 @@ def record_wired(config_source: Path, version: str) -> bool:
 
     Answers whether it wrote, so the report can say so: a fifth file touched by a command whose
     contract is *every surface or none* is not a write to leave unmentioned (RK298).
+
+    **Read back before it lands** (RK1576), which is RK1533's decision at the last two of the
+    five writers it binds — the two branches below being two writes and one rule. `wired` is a
+    version string the parser has its own reading of, and this is the write that runs *after*
+    every surface is on disk: a config left unreadable here is a project whose install landed
+    and whose next command cannot see it, which `install` has no verb to undo.
     """
     text = config_source.read_text(encoding="utf-8")
     line, row = chr(10), f'wired = "{version}"'
@@ -1270,10 +1276,7 @@ def record_wired(config_source: Path, version: str) -> bool:
     if at is None:
         blank = line * 2
         tail = "" if text.endswith(blank) else (line if text.endswith(line) else blank)
-        config_source.write_text(
-            f"{text}{tail}[install]{line}{row}{line}", encoding="utf-8", newline=""
-        )
-        return True
+        return _wired(config_source, f"{text}{tail}[install]{line}{row}{line}", version)
     end = next(
         (n for n in range(at + 1, len(lines)) if lines[n].lstrip().startswith("[")),
         len(lines),
@@ -1287,7 +1290,20 @@ def record_wired(config_source: Path, version: str) -> bool:
         lines[held] = row
     else:
         lines.insert(at + 1, row)
-    config_source.write_text(line.join(lines), encoding="utf-8", newline="")
+    return _wired(config_source, line.join(lines), version)
+
+
+def _wired(config_source: Path, text: str, version: str) -> bool:
+    """Check what the two branches above composed, then write it (RK1576).
+
+    One function because they are one rule and the check reads the same way for both — the
+    parser's own sentence, against the composed string and never against the file, which is
+    `config.readable`'s whole contract. The root is the config's own directory: `install` is
+    wiring the tree it was pointed at, which is not always the one this process was discovered
+    in, so a root taken from anywhere else would parse this file against somebody else's paths.
+    """
+    readable(text, config_source.parent, config_source, f"recording wired = {version!r}")
+    config_source.write_text(text, encoding="utf-8", newline="")
     return True
 
 

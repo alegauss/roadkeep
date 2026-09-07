@@ -35,7 +35,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from roadkeep.config import Config
+from roadkeep.config import Config, Unwritable, readable
 from roadkeep.kernel.schema import width
 from roadkeep.provenance import invocation
 
@@ -90,7 +90,7 @@ class Violated(ValueError):
         )
 
 
-class Unreadable(ValueError):
+class Unreadable(Unwritable):
     """A number this file's own parser refuses, caught before the write lands (RK1533).
 
     :class:`Violated`'s other half, and the one that had no guard. That one refuses a number
@@ -110,17 +110,17 @@ class Unreadable(ValueError):
     read says no. What the caller is handed is the parser's own sentence — it names the rule,
     it is the sentence they would have met on the next command, and composing a second one
     here would be this module holding an opinion about a rule `config.py` owns.
+
+    **This verb's name for** :class:`~roadkeep.config.Unwritable` since RK1576, which is where
+    the sentence and the check now live: the rule bound five writers and one kept it, so what
+    moved is the shared half and what stayed is the only half that is `govern`'s — the address
+    and the number, which its report and its tests read off this class.
     """
 
     def __init__(self, address: str, at: int, said: str) -> None:
         self.address = address
         self.at = at
-        self.said = said
-        super().__init__(
-            f"{address} = {at} would leave roadkeep.toml unreadable: {said} — nothing was "
-            f"written, because every verb reads this file and one that lands here cannot be "
-            f"undone by a command"
-        )
+        super().__init__(f"{address} = {at}", said)
 
 
 @dataclass(frozen=True, slots=True)
@@ -856,32 +856,15 @@ def govern(
 def _readable(config: Config, address: str, at: int, text: str) -> None:
     """Refuse a write whose result this file's own parser would not read (RK1533).
 
-    Against the composed string and never against the file: the point is to know before the
-    bytes land, and a check that read the disk afterwards would be reporting a state it had
-    just created. One `Config.parse` of what `_inserted` returned, which costs a TOML parse of
-    a file every command already parses once.
-
-    Its message is the parser's, quoted. `config.py` owns the cross-key rules — three in
-    `[markers]`, one in `[tools]` — and it states each of them in a sentence written for the
-    author; a second wording composed here would be two spellings of one rule, which is the
-    drift this package spends most of its docstrings refusing.
+    The check is `config.readable` since RK1576, this having been the one writer of five that
+    kept the rule. What is left here is the re-raise: :class:`Unreadable` carries the address
+    and the number, which this verb's report and its tests read off it, and the sentence under
+    that is the parser's own either way.
     """
-    import tomllib  # noqa: PLC0415 - RK260, this refusal's path only
-
-    from roadkeep.config import ConfigError  # noqa: PLC0415 - RK260
-
     try:
-        Config.parse(tomllib.loads(text), config.root, config.source)
-    except ConfigError as refused:
-        # Without the source path it prefixes: the caller knows which file they are governing,
-        # and an absolute path in a message is about a machine rather than about a project —
-        # which is the rule `provenance.invocation` states and every report here keeps.
-        said = str(refused).removeprefix(f"{config.source}: ")
-        raise Unreadable(address, at, said) from refused
-    except tomllib.TOMLDecodeError as broken:
-        # A composed line that will not lex at all, which no argument this verb takes should
-        # produce — and if one ever does, this is the moment it costs nothing.
-        raise Unreadable(address, at, f"the file would not parse as TOML: {broken}") from broken
+        readable(text, config.root, config.source, f"{address} = {at}")
+    except Unwritable as refused:
+        raise Unreadable(address, at, refused.said) from refused
 
 
 def _spelled(table: str, key: str, *, file: str, role: str) -> tuple[str, str, str]:

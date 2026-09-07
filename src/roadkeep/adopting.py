@@ -75,6 +75,7 @@ from roadkeep.config import (
     ROLES,
     Config,
     Scope,
+    readable,
 )
 from roadkeep.kernel.document import LEDGER_SHAPES, Document, Heading, checkbox
 from roadkeep.kernel.schema import (
@@ -1284,9 +1285,17 @@ def declare(
     body = "\n".join(
         [f"# {_TITLES[role]}", "", *(f"{'#' * one.level} {one.text}\n" for one in declaring)]
     )
+    # Read back before either file lands (RK1576, RK1533's rule at the second of five writers):
+    # `[files]` is a table the parser has rules about, and a row it refuses would close the
+    # config behind every verb — this one among them, so the role could not be withdrawn by a
+    # command. Ahead of the *role file* too, which is what makes it a refusal and not a partial
+    # write: a `declare` that left a scaffolded Markdown file beside an unreadable config is
+    # the half-landed state the whole check exists to make impossible.
+    text = _with_role(config.source, row)
+    readable(text, config.root, config.source, f"declaring {role}")
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(body, encoding="utf-8", newline="")
-    config.source.write_text(_with_role(config.source, row), encoding="utf-8", newline="")
+    config.source.write_text(text, encoding="utf-8", newline="")
     return Retrofitted(
         role=role,
         path=target,
@@ -1362,9 +1371,13 @@ def declare_table(config: Config, table: str) -> Opened:
     # sibling to sit beside — every other insertion here belongs *to* a table that exists.
     blank, line = chr(10) * 2, chr(10)
     separator = "" if text.endswith(blank) else (line if text.endswith(line) else blank)
-    config.source.write_text(
-        f"{text}{separator}[{table}]{line}", encoding="utf-8", newline=""
-    )
+    opened = f"{text}{separator}[{table}]{line}"
+    # RK1576, the third of the five writers RK1533's decision binds. An empty table declares
+    # only *that* the list is a schema, so nothing here is a number the parser can refuse
+    # today — which is the reason to check rather than a reason not to: the rules that make
+    # this possible are cross-key, and the next one lands wherever a table grows a second key.
+    readable(opened, config.root, config.source, f"opening [{table}]")
+    config.source.write_text(opened, encoding="utf-8", newline="")
     return Opened(table=table, config=config.source)
 
 

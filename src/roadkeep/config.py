@@ -375,6 +375,65 @@ class ConfigError(ValueError):
         super().__init__(where + "; ".join(self.problems) + _skew(self.problems))
 
 
+class Unwritable(ConfigError):
+    """A write to this file the file's own parser would refuse, caught before it lands.
+
+    RK1533 gave `govern` the rule and RK1576 gave it to the other four writers: **render what
+    would be written, read it back, and refuse the whole write when the read says no.** It is
+    :class:`~roadkeep.kernel.document.Document`'s round-trip (L3) for the one governed file
+    that is not Markdown, and it is not optional here for a reason the other files do not have
+    — *every verb reads this one*, `govern` among them, so a write that lands unreadable
+    cannot be undone by a command and the repair is the hand edit the guard denies.
+
+    What the caller is handed is the parser's own sentence. `config.py` owns the cross-key
+    rules — three in `[markers]`, one in `[tools]` — and states each in words written for the
+    author; a second wording composed at a write site would be two spellings of one rule.
+
+    :attr:`what` is the caller's half and the only half that differs: `tools.characters =
+    80000`, `declaring deferred`, `opening [non_goals]`. It leads the sentence because it is
+    what the author typed, and it is a string rather than a pair of fields because the four
+    writers have four shapes and none of them is an assignment twice over.
+    """
+
+    def __init__(self, what: str, said: str) -> None:
+        self.what = what
+        self.said = said
+        super().__init__(
+            (
+                f"{what} would leave roadkeep.toml unreadable: {said} — nothing was "
+                f"written, because every verb reads this file and one that lands here "
+                f"cannot be undone by a command",
+            )
+        )
+
+
+def readable(text: str, root: Path, source: Path | None, what: str) -> None:
+    """Raise :class:`Unwritable` unless ``text`` is a config this parser would read (RK1576).
+
+    Against the **composed string** and never against the file: the point is to know before
+    the bytes land, and a check that read the disk afterwards would be reporting a state it
+    had just created. One `Config.parse` of what the writer built, which costs a TOML parse of
+    a file every command already parses once.
+
+    Primitives and not a `Config`, because one of the four callers has not got one:
+    `installing.record_wired` is handed the config's path and a version, the project it is
+    recording into being the tree `install` just wired rather than the one this process was
+    discovered in.
+    """
+    try:
+        Config.parse(tomllib.loads(text), root, source)
+    except ConfigError as refused:
+        # Without the source path it prefixes: the caller knows which file they are governing,
+        # and an absolute path in a message is about a machine rather than about a project —
+        # which is the rule `provenance.invocation` states and every report here keeps.
+        said = str(refused).removeprefix(f"{source}: ") if source else str(refused)
+        raise Unwritable(what, said) from refused
+    except tomllib.TOMLDecodeError as broken:
+        # A composed line that will not lex at all, which no argument these verbs take should
+        # produce — and if one ever does, this is the moment it costs nothing.
+        raise Unwritable(what, f"the file would not parse as TOML: {broken}") from broken
+
+
 #: The three bytes a Windows editor writes ahead of a UTF-8 file, which `tomllib` refuses by
 #: specification — and refuses at line 1, column 1, where the statement is correct.
 _BOM = b"\xef\xbb\xbf"
