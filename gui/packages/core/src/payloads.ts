@@ -273,6 +273,39 @@ export const readUnblocks: Reader<Unblocks> = record<Unblocks>(
   { transitiveElided: 'transitive_elided' },
 )
 
+/** One dep, and what the engine found when it went looking. */
+export interface ResolvedDep {
+  readonly dep: string
+  /** What kind of thing it is: a task here, a block, work outside this backlog. */
+  readonly kind: string
+  /** Shipped, open, retired — the engine's word, never one worked out here. */
+  readonly status: string
+  /** Where it was found, in the engine's words. */
+  readonly detail: string
+}
+
+export const readResolvedDep: Reader<ResolvedDep> = record<ResolvedDep>({
+  dep: aString,
+  kind: orMissing(aString, ''),
+  status: orMissing(aString, ''),
+  detail: orMissing(aString, ''),
+})
+
+/** A worker holding this line, so two sessions do not start on one id. */
+export interface HeldClaim {
+  readonly by: string
+  readonly since: string
+  readonly state: string
+  readonly paths: readonly string[]
+}
+
+export const readHeldClaim: Reader<HeldClaim> = record<HeldClaim>({
+  by: orMissing(aString, ''),
+  since: orMissing(aString, ''),
+  state: orMissing(aString, ''),
+  paths: orMissing(listOf(aString), []),
+})
+
 export interface BriefPayload {
   readonly id: string
   readonly status: string
@@ -280,17 +313,35 @@ export interface BriefPayload {
   readonly symptom: string
   readonly why: string
   readonly deps: readonly string[]
-  readonly ref: string
+  /** What has to be present to finish this. Not a dep: hardware, an account, somebody's time. */
+  readonly requires: readonly string[]
+  readonly ref: string | null
   readonly section: RationaleSection | null
-  /** Whether the line is ready, waiting or blocked, in the engine's own word. */
+  /** What the engine says about a pointer that resolves to nothing. */
+  readonly sectionAbsence: string
+  /**
+   * Ready, waiting or blocked — **in the engine's own word**. Block D's criterion is that
+   * readiness is never derived in this app, and carrying the string is how that holds:
+   * there is no rule here that could disagree with the resolver.
+   */
   readonly readiness: string
-  /** Why this line was chosen. Empty when the caller named an id. */
-  readonly picked: string
+  /**
+   * Why this line was chosen, and **null when the caller named an id** — there was no
+   * choosing to explain. Found by RG4's contract test against a real brief, where a shape
+   * expecting an empty string failed on every id this app looks up by name.
+   */
+  readonly picked: string | null
+  /** Each dep with what resolves it, so a blocker is a state and not an id to go and look up. */
+  readonly depsResolved: readonly ResolvedDep[]
   readonly unblocks: Unblocks | null
   readonly nonGoals: readonly string[]
   readonly nonGoalsElided: number
   readonly doneWhen: readonly string[]
   readonly doneWhenElided: number
+  /** Workers holding this line right now. Empty is the ordinary case. */
+  readonly held: readonly HeldClaim[]
+  /** Ledger entries citing this id — what already shipped against it. */
+  readonly landed: readonly string[]
 }
 
 export const readBriefPayload: Reader<BriefPayload> = record<BriefPayload>(
@@ -301,17 +352,24 @@ export const readBriefPayload: Reader<BriefPayload> = record<BriefPayload>(
     symptom: aString,
     why: aString,
     deps: listOf(aString),
-    ref: aString,
+    requires: orMissing(listOf(aString), []),
+    ref: orMissing(orNull(aString), null),
     section: orMissing(orNull(readSection), null),
+    sectionAbsence: orMissing(aString, ''),
     readiness: orMissing(aString, ''),
-    picked: orMissing(aString, ''),
+    picked: orMissing(orNull(aString), null),
+    depsResolved: orMissing(listOf(readResolvedDep), []),
     unblocks: orMissing(orNull(readUnblocks), null),
     nonGoals: orMissing(listOf(aString), []),
     nonGoalsElided: orMissing(aNumber, 0),
     doneWhen: orMissing(listOf(aString), []),
     doneWhenElided: orMissing(aNumber, 0),
+    held: orMissing(listOf(readHeldClaim), []),
+    landed: orMissing(listOf(aString), []),
   },
   {
+    sectionAbsence: 'section_absence',
+    depsResolved: 'deps_resolved',
     nonGoals: 'non_goals',
     nonGoalsElided: 'non_goals_elided',
     doneWhen: 'done_when',

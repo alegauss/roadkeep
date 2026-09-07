@@ -49,6 +49,8 @@ export {
   withField,
 } from './filters'
 export type { BacklogFilter, FilterChoices } from './filters'
+export { designOf, detailFrom, whyNotStartable } from './detail'
+export type { TaskDetail } from './detail'
 export { groupProjects, isFamily } from './families'
 export {
   createGateLedger,
@@ -110,8 +112,10 @@ export {
   readConfigPayload,
   readListPayload,
   readLintPayload,
+  readHeldClaim,
   readPickPayload,
   readRefusedLine,
+  readResolvedDep,
   readSection,
   readShowPayload,
   readStatsPayload,
@@ -124,6 +128,8 @@ export type {
   BriefPayload,
   ConfigKey,
   ConfigPayload,
+  HeldClaim,
+  ResolvedDep,
   ListPayload,
   LintFinding,
   LintPayload,

@@ -25,16 +25,16 @@
 
 ## Block D — The project surface (one backlog, read)
 
-- 🛠 **RG23** (deps: RG21 ✅) **a task has no detail, so the why, the deps and the design are read in the file this app exists to replace** — brief joins the tier, the deps, the section, what a ship unblocks and the lists that bind it into one read, and nothing calls it. → §RG23
-- 💭 **RG24** (deps: RG23) **the rationale section is not shown, so the half of a task that explains it stays invisible** — The section is where a design lives until it ships and is deleted, and it is the half a reviewer needs before agreeing the line is right. → §RG24
-- 💭 **RG25** (deps: RG23) **deps and what a ship unblocks are a list of ids, so following a chain means reading ids one at a time** — deps resolves blockers, chains and the transitive set already, and a list of bare ids throws away every relation it computed. → §RG25
+- 💭 **RG24** (deps: RG23 ✅) **the rationale section is not shown, so the half of a task that explains it stays invisible** — The section is where a design lives until it ships and is deleted, and it is the half a reviewer needs before agreeing the line is right. → §RG24
+- 💭 **RG25** (deps: RG23 ✅) **deps and what a ship unblocks are a list of ids, so following a chain means reading ids one at a time** — deps resolves blockers, chains and the transitive set already, and a list of bare ids throws away every relation it computed. → §RG25
 - 💭 **RG26** (deps: RG21 ✅) **the non-goals and the criteria are off screen, so the two lists that bind a proposal are the two nobody reads** — A non-goal is what a proposal is checked against and a criterion is what would finish a block, and both are one call away and shown nowhere. → §RG26
 - 💭 **RG27** (deps: RG21 ✅) **the ledger and the decisions file are unreachable, so what shipped and what was weighed live outside this app** — delivered is the read before an add and reversals is the argument a decision already lost, and neither has a surface here. → §RG27
 - 💭 **RG28** (deps: RG21 ✅) **the deferred store is invisible, so a paused line cannot be told from one that was never filed** — list --stale prints the pause with how long it has stood in commits over the governed files, which is an order nothing here draws. → §RG28
+- 📋 **RG74** (deps: RG23 ✅) **a marker says in progress and the claim registry says nobody holds it, and nothing tells the two apart** — A line can carry the working marker with no live claim, so a screen reading either one alone shows a task as taken or as free when it is the other. → §RG74
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-- 💭 **RG29** (deps: RG5 ✅, RG23) **the app reads and never writes, so a correction is typed in the terminal this app exists to replace** — A window showing the backlog beside a shell writing it is the drift roadkeep exists to stop, moved one application across. → §RG29
+- 💭 **RG29** (deps: RG5 ✅, RG23 ✅) **the app reads and never writes, so a correction is typed in the terminal this app exists to replace** — A window showing the backlog beside a shell writing it is the drift roadkeep exists to stop, moved one application across. → §RG29
 - 💭 **RG30** (deps: RG29) **a marker cannot be moved, so starting work is a shell command run beside the window that shows it** — status is the third way to start a task and takes the claim with it, and the surface that would use it has no door to the verb. → §RG30
 - 💭 **RG31** (deps: RG29) **there is no door for ship, retire, defer or resume, so a task is read here and closed elsewhere** — ship writes three files in one transaction or none of them, and a client that shows a task and cannot close it has moved half the loop. → §RG31
 - 💭 **RG32** (deps: RG29) **a rationale section cannot be written, so a line filed here points at nothing until a terminal is opened** — add names the follow-up its pointer needs and section add is that follow-up, so filing without it leaves every new line incomplete. → §RG32
@@ -45,7 +45,7 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG38** (deps: RG1 ✅, RG23) **nothing starts Claude Code, so a task and the session that does it are two windows and a copied prompt** — The loop this app is for ends in an agent working the line, and today the handoff is a person retyping what the screen already holds. → §RG38
+- 📋 **RG38** (deps: RG1 ✅, RG23 ✅) **nothing starts Claude Code, so a task and the session that does it are two windows and a copied prompt** — The loop this app is for ends in an agent working the line, and today the handoff is a person retyping what the screen already holds. → §RG38
 - 💭 **RG40** (deps: RG38) **a session's output is a stream nothing renders, so what the agent is doing is invisible while it does it** — stream-json is one object per line and a window that shows only the exit has thrown away every turn that led to it. → §RG40
 - 💭 **RG41** (deps: RG30, RG38) **a line is handed over without being taken, so two sessions can be started on the same task** — brief --claim answers and moves the marker in one transaction, and an app that skips it hands one id to two authors. → §RG41
 - 💭 **RG42** (deps: RG38, RG45) **what a session wrote to the governed files is not watched, so the screen shows the backlog from before it ran** — An agent ships through the same verbs a person does, and the only evidence in this app is the files it changed. → §RG42

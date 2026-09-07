@@ -237,15 +237,6 @@ sixty-eight calls is the number that makes the case, and nobody will have it lat
 
 ## Block D — The project surface (one backlog, read)
 
-### §RG23 One read, and the whole cost of starting
-
-The detail is the brief payload and nothing beside it. That one read carries the line,
-its deps and what resolves them, the design section whole, what shipping it unblocks,
-the criteria and non-goals that bind it, whether it is held by a claim, and what the
-ledger already shipped citing this id. Six reads composed here would be six chances to
-compose them differently from the way the tool does. The screen's job is to lay that
-payload out, and where it comes back narrowed, to say so.
-
 ### §RG24 Prose shown as the file keeps it
 
 The section arrives as a body string, wrapped at the width the project declared, with
@@ -294,6 +285,29 @@ none of.
 account, no auth and no remote store in the desktop build**: the deferred store is
 roadkeep's, one of the roles the config declares, and this app reads it exactly as it
 reads the roadmap. A second copy of it here would be the thing those two refuse.
+
+### §RG74 The marker and the claim are two different facts
+
+Writing RG23's tests turned up something worth stating before a screen draws it. The
+working marker on a line and an entry in the claim registry are separate: this session
+moved RG23 to 🛠 and `held` stayed empty, because a claim is dated and released on a
+window and a marker is not. A line can therefore be in progress with nobody holding it,
+held by somebody with the marker not yet moved, or both.
+
+The detail carries both already. What it does not do is say what the pair means, and the
+two obvious readings are both wrong. Treating the marker as the claim makes every line
+somebody started look taken forever, which is what the sixty-minute window exists to
+avoid. Treating the claim as the only truth makes a line whose claim expired look free
+while a session is still working it.
+
+The honest reading is that they answer different questions — the marker says what state
+the *work* is in, and the claim says whether a *worker* is on it right now — so a screen
+shows both and never one as a proxy for the other. Where they disagree is exactly where
+somebody needs to look, which makes the disagreement worth drawing rather than
+resolving.
+
+This becomes urgent at RG41, where an agent is handed a line: starting one that somebody
+else is on is the failure that costs two people an afternoon.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
