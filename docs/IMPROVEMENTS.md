@@ -766,9 +766,11 @@ in a test instead. The pages are trigger-loaded one cadence further out and got 
 What is undecided is the number and who holds it. A test is where the orientation's
 lives, and it is one figure per file, which is what a page-cadence ceiling wants;
 `[budgets]` is where a project's own belong, and these ship in the plugin, so a project
-cannot be the one to set them. There is also a real question whether a bound helps: this
-is the reference, and a reference refusing a rule because it is full is the failure
-`agents.md`'s budget exists to cause deliberately and a page's might not.
+cannot be the one to set them. **No effort or size field.** does not reach this: that
+non-goal is about a field on a task line, and a ceiling on a file this tool ships is
+what `lint` holds for two others. Whether a bound helps is open — a reference refusing a
+rule because it is full is the failure `agents.md`'s budget causes on purpose, and a
+page's may not.
 
 ## Block E — Adoption
 
