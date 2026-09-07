@@ -70,6 +70,7 @@ being a write outside the files this tool was given (L2).
 
 from __future__ import annotations
 
+import fnmatch
 import json
 import os
 import re
@@ -2640,11 +2641,62 @@ class Vendored:
         }
 
 
-#: What is never copied into the vendored tree (RK1193). `.git` above all: with it the copy is
-#: a second repository inside the project — `git status` walks it, tooling finds two roots, and
-#: an artefact stops being one. The rest is build litter that costs megabytes and answers
-#: nothing.
+#: What is never copied at any depth (RK1193). `.git` above all: with it the copy is a second
+#: repository inside the project — `git status` walks it, tooling finds two roots, and an
+#: artefact stops being one. The rest is build litter that costs megabytes and answers nothing.
 _UNVENDORED = (".git", "__pycache__", ".pytest_cache", ".venv", "node_modules")
+
+#: The top-level directories a vendored engine is made of, **derived** (RK1606). `src` is the
+#: package a launcher imports; the rest is the directory each declared surface lives in, read
+#: off :data:`CARRIED` and :data:`PLUGIN_BRIDGE` rather than listed — so a surface added there
+#: brings its directory with it and this cannot fall behind by one.
+#:
+#: An allow-list, and the deny-list it replaced is why. `_UNVENDORED` named history and caches
+#: and stopped, so everything else shipped: measured on this repository, **22.46 MiB across 973
+#: files**, of which `site/` was 11.78, `tests/` 3.97 and `build/` 2.28. A built website went to
+#: every adopter who pinned an engine, and one who committed the tree committed it too. The
+#: same rule derived here ships **3.88 MiB**.
+#:
+#: The failure a deny-list has is that a new directory ships in silence; the one an allow-list
+#: has is that a needed directory does not, which breaks the copy — the worse of the two, and
+#: why this is derived rather than typed: a surface added to `CARRIED` brings its directory
+#: with it, so the two cannot disagree about what the plugin is made of.
+#:
+#: What derivation cannot cover is a directory the engine reads at *runtime* and no surface
+#: declares. Nothing here can know about one, so `tests/test_installing.py` vendors this
+#: repository and runs a real command through the copy — which is the only thing that answers
+#: it, and the same argument `docs/` makes about the gate.
+_VENDORED = ("src", *sorted({Path(one).parts[0] for one in (*CARRIED, PLUGIN_BRIDGE)}))
+
+
+def _outside(home: Path):
+    """`copytree`'s ignore for one source: caches at every depth, and at the **root** every
+    directory the engine is not made of (RK1606).
+
+    A closure because `shutil` calls this with `(directory, names)` and the root is the one
+    fact it does not pass — and the root is the whole rule, `src/roadkeep/` being kept by its
+    parent rather than by a second entry.
+
+    Root **files** are kept whole. `pyproject.toml` is what makes the package importable and
+    the ten of them together are 86 KiB, so deciding them one by one would be a rule with
+    nothing to gain: the megabytes were all in directories.
+    """
+    top = home.resolve()
+
+    def ignore(directory: str, names: list[str]) -> set[str]:
+        here = Path(directory)
+        out = {
+            name for name in names if any(fnmatch.fnmatch(name, one) for one in _UNVENDORED)
+        }
+        if here.resolve() == top:
+            out |= {
+                name
+                for name in names
+                if name not in _VENDORED and (here / name).is_dir()
+            }
+        return out
+
+    return ignore
 
 
 def candidates(root: Path) -> tuple[Candidate, ...]:
@@ -2833,7 +2885,10 @@ def vendor(root: str | Path = ".", *, checked: bool = False) -> Vendored:
         # Replaced whole rather than merged: a half-old tree is the state every rule above is
         # about, and `shutil.copytree` onto a populated directory is how one is made.
         shutil.rmtree(into)
-    shutil.copytree(chosen.home, into, ignore=shutil.ignore_patterns(*_UNVENDORED))
+    # The engine and not the repository it lives in (RK1606): `_outside` keeps the directories
+    # `_VENDORED` derives from the declared surfaces, so a built site and a test suite stay
+    # where they were written.
+    shutil.copytree(chosen.home, into, ignore=_outside(chosen.home))
     answered = _asked(into)
     if answered != chosen.version:
         raise NotVerified(chosen.version, answered, into)

@@ -779,26 +779,6 @@ to design against rather than guess.
 
 ## Block F — The plugin
 
-### §RK1606 The copy that is mostly not the tool
-
-Measured while building RK1549's removal, on this repository's own checkout vendored
-exactly as `install --vendor` writes it: **22.18 MiB across 970 files**. What a launcher
-runs — `src/`, `skills/`, `scripts/`, `hooks/` and the root files — is **3.79 MiB**.
-
-The rest is `site/` at 11.78, `tests/` at 3.81, `build/` at 2.28 and `docs/` at 0.39.
-`_UNVENDORED` names `.git`, `__pycache__`, `.pytest_cache`, `.venv` and `node_modules` —
-history and caches — and stops there, so a built website ships to every adopter who pins
-an engine.
-
-It is not free. RK1193 put the copy inside the project so the path a declaration names
-is stable, and RK1549 has just measured what removing it costs. Six times the bytes is
-six times that cost, and an adopter who did commit the tree commits a website with it.
-
-What is undecided is the rule. Naming the four directories a launcher needs is an
-allow-list that goes stale when a fifth arrives; widening `_UNVENDORED` by name is a
-deny-list that goes stale the same way one directory later. Which failure is cheaper is
-the question, and the engine's own `__init__` is the only thing that must be right.
-
 ### §RK1611 Half of somebody else's wiring
 
 Measured immediately after RK1560, on a project declaring `uv run serve-roadkeep mcp`:

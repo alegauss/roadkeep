@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 10 | 177 | 4 |
 | D — The gate | 19 | 288 | 5 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 159 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 160 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 37 | 1091 | 17 |
+| **Total** | 36 | 1092 | 17 |
 
 **Next ready:**
 
-- 📋 **RK1606** (deps: —) **a vendored engine is twenty-two megabytes of which under four are the engine, the rest a built site and a test suite** — _UNVENDORED excludes caches and history and nothing else, so an adopter's copy carries site, build and tests it never runs. → §RK1606
+- 📋 **RK1607** (deps: RK1555 ✅) **four two-answer rules are raised inside handlers where the declaration that spells them is one call away** — govern, retire and the two criterion doors declare no subjects at all, so the dispatcher, the pair sweep and the served schema see none of them. → §RK1607
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

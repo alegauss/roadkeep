@@ -1701,6 +1701,96 @@ def test_the_ignore_line_is_printed_and_never_written(tmp_path, monkeypatch):
     assert not vendor(project).ignore
 
 
+# -- the copy is the engine and not the repository (RK1606) -------------------
+
+
+def test_the_allow_list_is_derived_from_the_surfaces_and_never_typed():
+    """RK1606. The rule was a deny-list — `.git`, caches — so everything else shipped: measured
+    on this repository, **22.46 MiB across 973 files**, of which `site/` was 11.78, `tests/`
+    3.97 and `build/` 2.28. A built website went to every adopter who pinned an engine.
+
+    An allow-list's failure is the worse one — a directory left out breaks the copy — so it is
+    read off `CARRIED` rather than written down. A surface declared in a new directory brings
+    that directory with it, which is what makes the list unable to fall behind by one."""
+    from roadkeep.installing import CARRIED, PLUGIN_BRIDGE, _VENDORED
+
+    wanted = {"src"} | {Path(one).parts[0] for one in (*CARRIED, PLUGIN_BRIDGE)}
+    assert set(_VENDORED) == wanted, sorted(set(_VENDORED) ^ wanted)
+    # Every declared surface is under a directory the copy takes, which is the join that makes
+    # the derivation the claim rather than a coincidence of how the tree is laid out today.
+    for one in (*CARRIED, PLUGIN_BRIDGE):
+        assert Path(one).parts[0] in _VENDORED, one
+
+
+def test_vendoring_this_repository_copies_the_engine_and_leaves_the_rest():
+    """The conformance fixture, which is the only thing that answers an allow-list. Nothing here
+    can know about a directory the engine reads at runtime and no surface declares — so this
+    copies the real tree, and the test below runs it.
+
+    `copytree` is called directly rather than through `vendor`, because `vendor` verifies by
+    *running* the copy and Python writes 3.3 MiB of bytecode into it doing so. What is measured
+    here is the rule, and the rule is what `_outside` decides."""
+    import shutil
+    import tempfile
+
+    from roadkeep.installing import CARRIED, PLUGIN_BRIDGE, _outside
+
+    home = Path(__file__).resolve().parents[1]
+    into = Path(tempfile.mkdtemp()) / "copy"
+    shutil.copytree(home, into, ignore=_outside(home))
+    try:
+        for one in (*CARRIED, PLUGIN_BRIDGE):
+            assert (into / one).is_file(), f"{one} did not land"
+        assert (into / "src" / "roadkeep" / "__init__.py").is_file()
+        # And the four that were the megabytes are gone. Named, because the point of the task
+        # is these and not the rule in the abstract.
+        for one in ("site", "tests", "build", "docs"):
+            assert not (into / one).exists(), f"{one} is still being copied"
+        assert not (into / ".git").exists()
+        # Root files are kept whole — `pyproject.toml` is what makes the package importable.
+        assert (into / "pyproject.toml").is_file()
+        written = sum(p.stat().st_size for p in into.rglob("*") if p.is_file())
+        # Measured at 3.89 MiB against 22.46 before; the bound is loose because the source
+        # grows, and it is here to catch a directory coming back rather than to price one.
+        assert written < 8 * 1024 * 1024, f"{written / 1048576:.2f} MiB"
+    finally:
+        shutil.rmtree(into.parent, ignore_errors=True)
+
+
+def test_the_vendored_copy_of_this_repository_runs(tmp_path):
+    """What no list can be checked against: the copy answering. A directory the engine reads at
+    runtime and no surface declares is invisible to the derivation and to every assertion about
+    it, and shows up here as a command that does not run.
+
+    `lint` and not `--version`, which `vendor` already asks: the version proves the package
+    imports, and this walks the config, the schema, the document and the gate."""
+    import shutil
+    import subprocess
+    import sys
+
+    from roadkeep.installing import _outside
+
+    home = Path(__file__).resolve().parents[1]
+    into = tmp_path / "copy"
+    shutil.copytree(home, into, ignore=_outside(home))
+    project = tmp_path / "adopter"
+    project.mkdir()
+    (project / "roadkeep.toml").write_text(
+        'prefix = "TT"\n[files]\nroadmap = "ROADMAP.md"\n', encoding="utf-8"
+    )
+    (project / "ROADMAP.md").write_text(
+        "# Roadmap\n\n## Block A — The first block\n", encoding="utf-8"
+    )
+    ran = subprocess.run(
+        [sys.executable, str(into / "scripts" / "roadkeep.py"), "-C", str(project), "lint"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    assert ran.returncode == 0, f"{ran.stdout}\n{ran.stderr}"
+
+
 def test_the_version_is_read_out_of_the_line_and_not_off_its_end():
     """Measured end to end, and it is why this function exists: `--version` prints the number
     followed by the provenance RK79 added — the commit, whether the tree is modified, and where

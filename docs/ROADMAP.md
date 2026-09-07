@@ -68,7 +68,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 📋 **RK1606** (deps: —) **a vendored engine is twenty-two megabytes of which under four are the engine, the rest a built site and a test suite** — _UNVENDORED excludes caches and history and nothing else, so an adopter's copy carries site, build and tests it never runs. → §RK1606
 - 💭 **RK1611** (deps: —) **uninstall keeps a server declaration it did not write and takes away the approval that made it run** — RK1560 stopped the withdrawal at the declaration, and the approval is a second key in a file the same command deletes. → §RK1611
 - 💭 **RK1619** (deps: —) **the note sweep names the first call in an answer, so a helper before the note would take its kind** — RK1564 fixed the clause after a note and left the mirror case, where the exact reading is the separator the site already spells. → §RK1619
 
