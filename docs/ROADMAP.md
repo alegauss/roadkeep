@@ -36,6 +36,7 @@
 - 💭 **RK1623** (deps: —) **three tests rebuild the corpus add ranks against, so a change to what add includes leaves every figure passing** — RK1566 added the third hand-built copy of the delivered-then-open list, and the boundary between the halves is what every split figure counts from. → §RK1623
 - 💭 **RK1624** (deps: —) **the ranking an add volunteers exists only inside that write, no read answering over a block's whole corpus** — RK1567 left the third way out it named, and the two doors the row prints order by the ledger and by id rather than by the query. → §RK1624
 - 📋 **RK1625** (deps: —) **unclosed answers a tree with no git as a backlog with nothing open, the flag that tells those apart never being set** — Nothing in the package makes Unclosed.searched false, so the one state the field was declared for is the one it reports as a clean sweep. → §RK1625
+- 📋 **RK1628** (deps: —) **pick offers an idea whose premise a later ship deleted, no answer saying what landed under the line since it was filed** — RK1571 and RK1574 were both designed against a work-list RK1599 emptied, and reading the section was the only way to learn it. → §RK1628
 
 ## Block D — The gate
 
