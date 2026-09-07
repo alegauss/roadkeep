@@ -1,6 +1,7 @@
 import path from 'node:path'
 
 import {
+  candidateBoard,
   createClient,
   createGateLedger,
   pendingRow,
@@ -120,6 +121,20 @@ describe('RG16: rows over more than one project', () => {
 
     expect(row.next?.id).toMatch(/^FX\d+$/)
     expect(row.next?.tier).not.toBe('')
+  })
+
+  it('lays two real candidates side by side with the tier each came from', async () => {
+    const rows = [await rowFor(REPO), await rowFor(fixture.root)]
+    const board = candidateBoard(rows)
+
+    expect(board.candidates).toHaveLength(2)
+    // Two different backlogs, two ids from two prefixes, each with roadkeep's own tier.
+    expect(board.candidates[0]?.id).toMatch(/^RG\d+$/)
+    expect(board.candidates[1]?.id).toMatch(/^FX\d+$/)
+    expect(board.candidates.every((entry) => entry.tier !== '')).toBe(true)
+
+    // And the order is the one they were given in, not one this app worked out.
+    expect(board.candidates.map((entry) => entry.project)).toEqual([REPO, fixture.root])
   })
 
   it('counts rows and nothing else', async () => {

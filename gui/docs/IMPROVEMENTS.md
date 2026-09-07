@@ -214,15 +214,6 @@ it is cheaper to decide now than to notice from a screenshot.
 
 ## Block C — The portfolio (many backlogs in one view)
 
-### §RG19 Picking across seventeen backlogs
-
-Each project's pick applies three tiers inside its own file, and that ranking is
-roadkeep's and stays roadkeep's. What this app may do is show those answers side by side
-with the tier each was chosen by, so a person compares seventeen candidates rather than
-remembering them. What it may not do is rank the projects against each other by any rule
-of its own: an ordering nothing printed is exactly the fiction the non-goals refuse, and
-there is no field in the format that would justify one.
-
 ### §RG20 Finding a line by the words on it
 
 Search runs over the payloads already held, not over the files, so it costs nothing on a

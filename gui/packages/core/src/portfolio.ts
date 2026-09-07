@@ -46,6 +46,9 @@ export interface RowCounts {
 export interface RowNext {
   readonly id: string | null
   readonly symptom: string
+  readonly block: string
+  readonly status: string
+  /** Which of roadkeep's three tiers answered. Its word, carried and never interpreted. */
   readonly tier: string
   readonly ready: number
   readonly blocked: number
@@ -147,6 +150,8 @@ function nextFrom(pick: PickPayload): RowNext {
   return {
     id: pick.pick?.id ?? null,
     symptom: pick.pick?.symptom ?? '',
+    block: pick.pick?.block ?? '',
+    status: pick.pick?.status ?? '',
     tier: pick.tier,
     ready: pick.ready,
     blocked: pick.blocked,
