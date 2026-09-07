@@ -29,6 +29,8 @@
 
 ## Block D — The project surface (one backlog, read)
 
+- ✅ **RG21** **opening a project shows counts and no lines, so the backlog it governs is still only in the file** — A project opens into its blocks in heading order, with the lines the grammar refused drawn beside the ones it accepted (design recorded in `packages/core/src/backlog.ts`).
+
 ## Block E — The write path (the app composes an argv; the command writes)
 
 ## Block F — The agent surface (handing one task to Claude Code)

@@ -100,6 +100,31 @@ export const readStartable: Reader<Startable> = record<Startable>({
   absent: listOf(record<AbsentRequirement>({ requirement: aString, lines: aNumber })),
 })
 
+/**
+ * A marker-bearing line the grammar did not accept.
+ *
+ * Typed rather than carried as `unknown`, because these are the half of a listing a
+ * person most needs to see: a line with a marker on it that no verb can read is a line
+ * that is invisible to every count and every pick, and it is sitting in the file looking
+ * exactly like the ones that work.
+ */
+export interface RefusedLine {
+  readonly line: number
+  /** The block it appeared under, empty where the grammar could not tell. */
+  readonly block: string
+  /** Why it was not accepted, in the engine's words. */
+  readonly reason: string
+  /** The line exactly as the file spells it. */
+  readonly raw: string
+}
+
+export const readRefusedLine: Reader<RefusedLine> = record<RefusedLine>({
+  line: orMissing(aNumber, 0),
+  block: orMissing(aString, ''),
+  reason: orMissing(aString, ''),
+  raw: orMissing(aString, ''),
+})
+
 export interface ListPayload {
   readonly file: string
   readonly total: number
@@ -107,7 +132,7 @@ export interface ListPayload {
    * Marker-bearing lines the grammar did not accept. A list, not a count — and non-empty
    * means this answer is narrower than the file, which a screen has to say out loud.
    */
-  readonly uncounted: readonly unknown[]
+  readonly uncounted: readonly RefusedLine[]
   readonly standing: Standing | null
   readonly startable: Startable | null
   readonly over: unknown
@@ -117,7 +142,7 @@ export interface ListPayload {
 export const readListPayload: Reader<ListPayload> = record<ListPayload>({
   file: aString,
   total: aNumber,
-  uncounted: listOf(anything),
+  uncounted: listOf(readRefusedLine),
   standing: orMissing(orNull(readStanding), null),
   startable: orMissing(orNull(readStartable), null),
   over: orMissing(anything, null),

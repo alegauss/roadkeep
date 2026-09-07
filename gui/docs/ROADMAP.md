@@ -25,14 +25,13 @@
 
 ## Block D — The project surface (one backlog, read)
 
-- 💭 **RG21** (deps: RG16 ✅) **opening a project shows counts and no lines, so the backlog it governs is still only in the file** — stats answers per block and per marker, which is a shape and not the work: the eight hundred lines under it are unreachable. → §RG21
-- 💭 **RG22** (deps: RG21) **a list of eight hundred lines has no filter, so a block or a marker is found by scrolling to it** — list takes block, marker, role and have as arguments already, and none of them is reachable from the surface showing the result. → §RG22
-- 💭 **RG23** (deps: RG21) **a task has no detail, so the why, the deps and the design are read in the file this app exists to replace** — brief joins the tier, the deps, the section, what a ship unblocks and the lists that bind it into one read, and nothing calls it. → §RG23
+- 💭 **RG22** (deps: RG21 ✅) **a list of eight hundred lines has no filter, so a block or a marker is found by scrolling to it** — list takes block, marker, role and have as arguments already, and none of them is reachable from the surface showing the result. → §RG22
+- 💭 **RG23** (deps: RG21 ✅) **a task has no detail, so the why, the deps and the design are read in the file this app exists to replace** — brief joins the tier, the deps, the section, what a ship unblocks and the lists that bind it into one read, and nothing calls it. → §RG23
 - 💭 **RG24** (deps: RG23) **the rationale section is not shown, so the half of a task that explains it stays invisible** — The section is where a design lives until it ships and is deleted, and it is the half a reviewer needs before agreeing the line is right. → §RG24
 - 💭 **RG25** (deps: RG23) **deps and what a ship unblocks are a list of ids, so following a chain means reading ids one at a time** — deps resolves blockers, chains and the transitive set already, and a list of bare ids throws away every relation it computed. → §RG25
-- 💭 **RG26** (deps: RG21) **the non-goals and the criteria are off screen, so the two lists that bind a proposal are the two nobody reads** — A non-goal is what a proposal is checked against and a criterion is what would finish a block, and both are one call away and shown nowhere. → §RG26
-- 💭 **RG27** (deps: RG21) **the ledger and the decisions file are unreachable, so what shipped and what was weighed live outside this app** — delivered is the read before an add and reversals is the argument a decision already lost, and neither has a surface here. → §RG27
-- 💭 **RG28** (deps: RG21) **the deferred store is invisible, so a paused line cannot be told from one that was never filed** — list --stale prints the pause with how long it has stood in commits over the governed files, which is an order nothing here draws. → §RG28
+- 💭 **RG26** (deps: RG21 ✅) **the non-goals and the criteria are off screen, so the two lists that bind a proposal are the two nobody reads** — A non-goal is what a proposal is checked against and a criterion is what would finish a block, and both are one call away and shown nowhere. → §RG26
+- 💭 **RG27** (deps: RG21 ✅) **the ledger and the decisions file are unreachable, so what shipped and what was weighed live outside this app** — delivered is the read before an add and reversals is the argument a decision already lost, and neither has a surface here. → §RG27
+- 💭 **RG28** (deps: RG21 ✅) **the deferred store is invisible, so a paused line cannot be told from one that was never filed** — list --stale prints the pause with how long it has stood in commits over the governed files, which is an order nothing here draws. → §RG28
 
 ## Block E — The write path (the app composes an argv; the command writes)
 

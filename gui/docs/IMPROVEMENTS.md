@@ -237,15 +237,6 @@ sixty-eight calls is the number that makes the case, and nobody will have it lat
 
 ## Block D — The project surface (one backlog, read)
 
-### §RG21 The lines, and the order they arrive in
-
-The list read prints the lines a filter selects, verbatim, and reports on stderr any
-marker-bearing line the grammar refused, with a count. Both halves are drawn: the
-rejected ones are what a person has to see, and a listing that looks complete when it is
-not is the failure that read was built to avoid. Order is the file's own order — the
-blocks as the headings run and the ids under them — because that is the order every
-other roadkeep answer speaks in.
-
 ### §RG22 Filters that are arguments, not predicates
 
 Every filter on this screen is an argument the list verb already takes: the block, the

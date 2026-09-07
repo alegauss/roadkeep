@@ -213,7 +213,20 @@ describe('RG3: an answer that is narrower than the file', () => {
   it('says a listing is narrowed when lines were not accepted, and why', () => {
     // Rendering this as a complete answer shows less than there is and says nothing about
     // it, which leaves the reader no way to know.
-    const parsed = readListPayload({ ...LIST, uncounted: ['- ?? **RG99** …'] }, '')
+    const parsed = readListPayload(
+      {
+        ...LIST,
+        uncounted: [
+          {
+            line: 8,
+            block: 'A',
+            reason: 'no bold **<id>** after the marker',
+            raw: '- 📋 a line the grammar refused',
+          },
+        ],
+      },
+      '',
+    )
 
     expect(parsed.ok).toBe(true)
     if (!parsed.ok) return

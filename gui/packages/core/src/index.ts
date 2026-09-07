@@ -33,6 +33,8 @@ export type {
 } from './catalogue'
 export { coldStart } from './cold-start'
 export type { ColdStartProgress, ColdStartStage } from './cold-start'
+export { allLines, backlogFrom, refusedSummary } from './backlog'
+export type { Backlog, BacklogBlock } from './backlog'
 export { candidateBoard, inTier } from './candidates'
 export type { Candidate, CandidateBoard } from './candidates'
 export { createCachingTransport } from './cache'
@@ -99,6 +101,7 @@ export {
   readListPayload,
   readLintPayload,
   readPickPayload,
+  readRefusedLine,
   readSection,
   readShowPayload,
   readStatsPayload,
@@ -118,6 +121,7 @@ export type {
   PickedLine,
   PickPayload,
   RationaleSection,
+  RefusedLine,
   ShowPayload,
   Standing,
   Startable,
