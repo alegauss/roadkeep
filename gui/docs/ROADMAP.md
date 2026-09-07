@@ -14,11 +14,11 @@
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
-- 💭 **RG11** (deps: RG10 ✅) **a scan descends into node_modules and .git, so finding seventeen projects reads a hundred thousand folders** — A walk with no depth bound and no ignore list is the difference between a scan measured in milliseconds and one measured in minutes. → §RG11
-- 💭 **RG12** (deps: RG11) **a git worktree family reads as unrelated projects, so one backlog appears once per version folder** — turing and shio are kept as a worktree per version under a stable junction, so the same governed files answer from several paths. → §RG12
-- 💭 **RG13** (deps: RG11, roadkeep RK1631) **a candidate is judged governed by a read that fails, so rejecting a folder costs the work of a whole lint** — config answers with a null and engines answers happily about an ungoverned directory, so the cheap probe a scan wants does not exist yet. → §RG13
-- 💭 **RG14** (deps: RG11) **the whole tree is walked again on every launch, so a list the person already approved is rediscovered** — A scan is a statement about this machine and changes rarely, and a project that vanished for a moment is worse than one shown from a record. → §RG14
+- 💭 **RG12** (deps: RG11 ✅) **a git worktree family reads as unrelated projects, so one backlog appears once per version folder** — turing and shio are kept as a worktree per version under a stable junction, so the same governed files answer from several paths. → §RG12
+- 💭 **RG13** (deps: RG11 ✅, roadkeep RK1631) **a candidate is judged governed by a read that fails, so rejecting a folder costs the work of a whole lint** — config answers with a null and engines answers happily about an ungoverned directory, so the cheap probe a scan wants does not exist yet. → §RG13
+- 💭 **RG14** (deps: RG11 ✅) **the whole tree is walked again on every launch, so a list the person already approved is rediscovered** — A scan is a statement about this machine and changes rarely, and a project that vanished for a moment is worse than one shown from a record. → §RG14
 - 💭 **RG15** (deps: RG2 ✅, RG13) **which copy of roadkeep each project runs is never read, so a disagreement engines can name is averaged away** — This block will not be finished until the version, the home and the verdict sit beside a project's counts, and nothing reads them yet. → §RG15
+- 📋 **RG71** (deps: RG11 ✅) **a walk of every root blocks the thread it runs on, so a slow drive freezes the window** — Every directory is read with a synchronous call, and a network share or a spinning disk turns a scan into a window that stops repainting. → §RG71
 
 ## Block C — The portfolio (many backlogs in one view)
 

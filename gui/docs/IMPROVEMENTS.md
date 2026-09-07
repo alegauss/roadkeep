@@ -150,15 +150,6 @@ arguments.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
-### §RG11 The walk, and what it refuses to enter
-
-The scan looks for one filename and nothing else. It never descends into .git,
-node_modules, dist, build, target, a virtualenv or any hidden directory, and it stops at
-the declared depth. A directory holding a config is a project and is not descended into
-further, a governed repository not containing another. Those rules are configuration and
-not constants, because a machine laid out differently needs a different list — and the
-ignore set is the one part of a scan a person can be wrong about cheaply.
-
 ### §RG12 One backlog, several paths
 
 Turing and Shio are kept as a git worktree per version under a stable junction, so two
@@ -194,6 +185,28 @@ on the row: agreed, split, or swapped. A row that is split is not an error and m
 be drawn as one; it is a repository where two copies could write and the person needs to
 know which did. What is refused is showing a count with no engine beside it, because
 that count is an answer whose author has been dropped.
+
+### §RG71 A scan that does not hold the process still
+
+The walk reads each directory with `readdirSync`. On the machine it was written for that
+is a few milliseconds for the whole tree, which is why it was the right first version —
+the bounds are what make a scan cheap, and proving those was the task.
+
+What it does not survive is a slow root. A network share, a sleeping external drive or a
+directory behind a virus scanner turns one read into hundreds of milliseconds, and every
+one of them is time the main process spends doing nothing else. The window is drawn by
+another process so it keeps painting, but every IPC call behind it queues, so the app
+stops answering while a drive spins up.
+
+The change is small and the shape is already there: `Look` is the only thing that
+touches a disk, so an asynchronous one is a second implementation of one function. What
+has to change with it is `scan`, which becomes async, and the bound on how many
+directories are open at once — the same argument as RG8's pool, for the same reason, and
+probably the same mechanism.
+
+Worth keeping while doing it: the walk stays breadth first and still reports `looked`,
+because that count is what makes the bounds checkable and it is the first thing that
+would quietly stop being true.
 
 ## Block C — The portfolio (many backlogs in one view)
 

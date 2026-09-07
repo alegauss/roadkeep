@@ -33,6 +33,8 @@ export {
   withPresence,
 } from './roots'
 export type { KeyOf, KnownRoot, RootCheck, RootPresence, RootProblem, ScanRoot } from './roots'
+export { DEFAULT_POLICY, mayEnter, scan } from './scanning'
+export type { Found, Listing, Look, ScanPolicy, ScanResult } from './scanning'
 export { buildArgv, createClient } from './client'
 export type { CallOptions, Client } from './client'
 export { disagrees, isModified, resolveEngine } from './engine-resolution'
