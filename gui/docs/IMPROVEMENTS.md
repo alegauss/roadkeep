@@ -460,15 +460,6 @@ On ship: `--recorded-in packages/core/src/pauses.ts`.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-### §RG31 The four ways a line leaves
-
-A ship writes the ledger entry, clears the roadmap line and drops the section, in one
-transaction or none. A retire records a departure without a ship. A defer moves the line
-to the deferred store keeping every slot. A resume brings it back. Each takes a sentence
-the person writes and this app never drafts. Each is irreversible in the direction that
-matters, so each is confirmed against what it will do — which the verb itself already
-prints, including the paths a live claim declared.
-
 ### §RG32 Writing the design where the pointer points
 
 Every line carries a pointer that resolves to nothing until a section exists, and the

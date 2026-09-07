@@ -70,6 +70,8 @@ export {
 } from './gate'
 export type { GateHealth, GateLedger, GateRecord, GateVerdict } from './gate'
 export type { ProjectFamily, ProjectMember, ProjectSite } from './families'
+export { accountOf, deferred, leftPointing, resumed, retired, shipped } from './leaving'
+export type { Departure, Edit, Leaving } from './leaving'
 export { aboutNoInput, movedFrom, openMarkers, saidOfMove } from './marking'
 export type { ClaimEffect, Moved } from './marking'
 export { attemptRead, DEFAULT_LIMITS, withLimits } from './limits'
@@ -129,6 +131,7 @@ export {
   readConfigPayload,
   readCriteriaPayload,
   readCriterion,
+  readDeferPayload,
   readDeliveredEntry,
   readDeliveredPayload,
   readDepChain,
@@ -140,9 +143,12 @@ export {
   readPickPayload,
   readRefusedLine,
   readResolvedDep,
+  readResumePayload,
+  readRetirePayload,
   readReversalEntry,
   readReversalsPayload,
   readSection,
+  readShipPayload,
   readSectionBudget,
   readShowPayload,
   readStatsPayload,
@@ -160,6 +166,7 @@ export type {
   ConfigPayload,
   CriteriaPayload,
   Criterion,
+  DeferPayload,
   DeliveredEntry,
   DeliveredPayload,
   DepChain,
@@ -175,10 +182,15 @@ export type {
   PickPayload,
   RationaleSection,
   RefusedLine,
+  RemovedLine,
+  ResumePayload,
+  RetirePayload,
   ReversalEntry,
   ReversalsPayload,
   SectionBudget,
+  ShipPayload,
   ShowPayload,
+  WroteLine,
   Standing,
   Startable,
   StatsPayload,

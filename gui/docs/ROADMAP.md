@@ -37,7 +37,6 @@
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-- 💭 **RG31** (deps: RG29 ✅) **there is no door for ship, retire, defer or resume, so a task is read here and closed elsewhere** — ship writes three files in one transaction or none of them, and a client that shows a task and cannot close it has moved half the loop. → §RG31
 - 💭 **RG32** (deps: RG29 ✅) **a rationale section cannot be written, so a line filed here points at nothing until a terminal is opened** — add names the follow-up its pointer needs and section add is that follow-up, so filing without it leaves every new line incomplete. → §RG32
 - 💭 **RG33** (deps: RG29 ✅) **a lint finding is a line of text, so a report naming its own doors arrives as something to read and not to run** — Every finding carries a code, a file and line and a complete argv, and explain answers what a code means: none of it is reachable here. → §RG33
 - 💭 **RG34** (deps: RG29 ✅) **the argv the app composed is never shown, so a write cannot be read before it runs or repeated after it** — A person approving a write has only the app's word for what it will do, and reproducing it in a terminal means guessing the flags. → §RG34

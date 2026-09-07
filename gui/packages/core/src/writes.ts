@@ -48,6 +48,51 @@ export interface WriteInputs {
     id: string
     marker: string
   }
+  /**
+   * Close a line: the ledger entry, the roadmap line cleared and the section dropped, in
+   * one transaction or none.
+   *
+   * `why` is the outcome and the person's — the roadmap's sentence states a problem, and
+   * inheriting it would file a defect report under a heading that means done.
+   */
+  ship: {
+    id: string
+    why?: string
+    /** Record only the half that landed and leave the line open. */
+    part?: string
+    /** What is still left, with `part`: it becomes the open line's why. */
+    remainder?: string
+    lines?: string
+    /** What the deleted design turned out to be wrong about. */
+    supersededDesign?: string
+    /** Where the deleted design's durable half moved to. Must resolve. */
+    recordedIn?: string
+    /** The constraint the deleted design leaves behind, filed in the decisions role. */
+    decides?: string
+    decidesRef?: string
+    /** A criterion of this task that was verified, repeatable. */
+    checked?: readonly string[]
+  }
+  /** End a line without a ship. Terminal: the id never comes back. */
+  retire: {
+    id: string
+    /** The id taking the work over — a replacement rather than an abandonment. */
+    supersededBy?: string
+    /** The open line that absorbs this one, its symptom becoming a criterion there. */
+    foldsInto?: string
+    reason?: string
+  }
+  /** Set a line aside, keeping its id, deps, symptom and section. */
+  defer: {
+    id: string
+    reason?: string
+  }
+  /** Bring a set-aside line back to its block. */
+  resume: {
+    id: string
+    /** The open marker it returns with; omitted, the first the project declares. */
+    marker?: string
+  }
 }
 
 export type WriteName = keyof WriteInputs
@@ -93,6 +138,26 @@ export const WRITES: { [K in WriteName]: ArgvFor<K> } = {
     ...optional('--section-body', input.sectionBody),
   ],
   status: (input) => [input.id, input.marker],
+  ship: (input) => [
+    input.id,
+    ...optional('--why', input.why),
+    ...optional('--part', input.part),
+    ...optional('--remainder', input.remainder),
+    ...optional('--lines', input.lines),
+    ...optional('--superseded-design', input.supersededDesign),
+    ...optional('--recorded-in', input.recordedIn),
+    ...optional('--decides', input.decides),
+    ...optional('--decides-ref', input.decidesRef),
+    ...repeated('--checked', input.checked),
+  ],
+  retire: (input) => [
+    input.id,
+    ...optional('--superseded-by', input.supersededBy),
+    ...optional('--folds-into', input.foldsInto),
+    ...optional('--reason', input.reason),
+  ],
+  defer: (input) => [input.id, ...optional('--reason', input.reason)],
+  resume: (input) => [input.id, ...optional('--marker', input.marker)],
 }
 
 /**
@@ -115,4 +180,19 @@ export const EVERY_WRITE_INPUT: { [K in WriteName]: WriteInputs[K] } = {
     sectionBody: 'Prose.',
   },
   status: { id: 'RG1', marker: '🛠' },
+  ship: {
+    id: 'RG1',
+    why: 'An outcome.',
+    part: 'the local half',
+    remainder: 'The rest.',
+    lines: '2',
+    supersededDesign: 'A note.',
+    recordedIn: 'packages/core/src/index.ts',
+    decides: 'A constraint.',
+    decidesRef: '1.2',
+    checked: ['A criterion'],
+  },
+  retire: { id: 'RG1', supersededBy: 'RG2', foldsInto: 'RG3', reason: 'A sentence.' },
+  defer: { id: 'RG1', reason: 'A sentence.' },
+  resume: { id: 'RG1', marker: '📋' },
 }

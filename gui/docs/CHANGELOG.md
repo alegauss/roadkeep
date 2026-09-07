@@ -43,6 +43,7 @@
 
 - ✅ **RG29** **the app reads and never writes, so a correction is typed in the terminal this app exists to replace** — A write is a composed argv this app never runs against a file: applied, refused with its fields, or unreadable (design recorded in `packages/core/src/writing.ts`).
 - ✅ **RG30** **a marker cannot be moved, so starting work is a shell command run beside the window that shows it** — A marker moves through the verb: the open set comes from config, and the answer says whether the claim was taken or given back (design recorded in `packages/core/src/marking.ts`).
+- ✅ **RG31** **there is no door for ship, retire, defer or resume, so a task is read here and closed elsewhere** — Ship, retire, defer and resume are doors, each answering with the edits it made across the files it touched (design recorded in `packages/core/src/leaving.ts`).
 
 ## Block F — The agent surface (handing one task to Claude Code)
 

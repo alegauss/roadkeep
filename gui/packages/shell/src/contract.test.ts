@@ -17,6 +17,7 @@ import {
   readBriefPayload,
   readCapabilities,
   readCriteriaPayload,
+  readDeferPayload,
   readDeliveredPayload,
   readDepsPayload,
   readEnginesPayload,
@@ -26,7 +27,10 @@ import {
   readNonGoalsPayload,
   readPayload,
   readPickPayload,
+  readResumePayload,
+  readRetirePayload,
   readReversalsPayload,
+  readShipPayload,
   readShowPayload,
   readStatsPayload,
   readStatusPayload,
@@ -138,7 +142,9 @@ describe('RG4: every read this client makes, against a live engine', () => {
   it('covers every write this client can build a command line for', () => {
     // The same guard as above, for the other table. A write verb added without a shape
     // and without a case here is a door offered against an answer nobody has read.
-    expect(Object.keys(WRITES).sort()).toEqual(['add', 'status'].sort())
+    expect(Object.keys(WRITES).sort()).toEqual(
+      ['add', 'defer', 'resume', 'retire', 'ship', 'status'].sort(),
+    )
   })
 
   it('reads a listing, with its standing and its lines', async () => {
@@ -330,6 +336,58 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(outcome.value.to).toBe(first.status)
     expect(Array.isArray(outcome.value.refreshed)).toBe(true)
     expect(Array.isArray(outcome.value.wrote)).toBe(true)
+  })
+
+  it('closes a line four ways, and reads the shape each answers with', async () => {
+    // One fixture line per departure. Every one is irreversible in the direction that
+    // matters, which is why this runs nowhere but here.
+    const open = (await readVerb('list', {}, readListPayload)).tasks.map((task) => task.id)
+    const [first, second, third] = open.slice(-3)
+    if (first === undefined || second === undefined || third === undefined) return
+
+    const ship = await applyWrite(
+      transport,
+      composeWrite(fixture.root, 'ship', { id: first, why: 'It answers now.' }),
+      readShipPayload,
+      { timeoutMs: CEILING },
+    )
+    expect(ship.kind).toBe('applied')
+    if (ship.kind !== 'applied') throw new Error('unreachable')
+    expect(ship.value.roadmap?.file).toContain('ROADMAP.md')
+    expect(typeof ship.value.roadmap?.open).toBe('boolean')
+    expect(Array.isArray(ship.value.checked)).toBe(true)
+
+    const retire = await applyWrite(
+      transport,
+      composeWrite(fixture.root, 'retire', { id: second, reason: 'The premise went.' }),
+      readRetirePayload,
+      { timeoutMs: CEILING },
+    )
+    expect(retire.kind).toBe('applied')
+    if (retire.kind !== 'applied') throw new Error('unreachable')
+    expect(retire.value.marker).not.toBe('')
+    expect(retire.value.supersededBy).toBeNull()
+
+    const defer = await applyWrite(
+      transport,
+      composeWrite(fixture.root, 'defer', { id: third, reason: 'Waiting on a decision.' }),
+      readDeferPayload,
+      { timeoutMs: CEILING },
+    )
+    expect(defer.kind).toBe('applied')
+    if (defer.kind !== 'applied') throw new Error('unreachable')
+    expect(defer.value.deferred?.file).toContain('DEFERRED.md')
+
+    const resume = await applyWrite(
+      transport,
+      composeWrite(fixture.root, 'resume', { id: third }),
+      readResumePayload,
+      { timeoutMs: CEILING },
+    )
+    expect(resume.kind).toBe('applied')
+    if (resume.kind !== 'applied') throw new Error('unreachable')
+    expect(resume.value.was).toBe('Waiting on a decision.')
+    expect(resume.value.marker).not.toBe('')
   })
 
   it('reads what to work on next, and which tier answered', async () => {

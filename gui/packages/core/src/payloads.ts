@@ -739,6 +739,224 @@ export const readStatusPayload: Reader<StatusPayload> = record<StatusPayload>({
   wrote: orMissing(listOf(aString), []),
 })
 
+/** A line written into a file, with where it landed. */
+export interface WroteLine {
+  readonly file: string
+  readonly line: number
+  readonly rendered: string
+}
+
+const readWroteLine: Reader<WroteLine> = record<WroteLine>({
+  file: orMissing(aString, ''),
+  line: orMissing(aNumber, 0),
+  rendered: orMissing(aString, ''),
+})
+
+/** A line taken out of a file, with the line number it was on. */
+export interface RemovedLine {
+  readonly file: string
+  readonly removed: number
+}
+
+const readRemovedLine: Reader<RemovedLine> = record<RemovedLine>({
+  file: orMissing(aString, ''),
+  removed: orMissing(aNumber, 0),
+})
+
+/** The section a ship deleted, and where it had been. */
+export interface DroppedSection {
+  readonly anchor: string
+  readonly title: string
+  readonly first: number
+  readonly last: number
+}
+
+/**
+ * What a ship did to the roadmap, which is **two different things under one key**.
+ *
+ * A ship that closes the line reports the line it removed. A `--part` ship records the
+ * half that landed and *leaves the line there*, reporting where it still is and the marker
+ * it now carries — so a shape reading only `removed` sees a partial ship as a closure.
+ */
+export interface ShipRoadmap {
+  readonly file: string
+  /** The line taken out. Zero on a partial, which removed nothing. */
+  readonly removed: number
+  /** Where the line still is, on a ship that left it open. */
+  readonly line: number
+  /** The marker it now carries, where it stayed. */
+  readonly status: string
+  /** True where the line is still a task. The engine's word for it, not a comparison. */
+  readonly open: boolean
+}
+
+const readShipRoadmap: Reader<ShipRoadmap> = record<ShipRoadmap>({
+  file: orMissing(aString, ''),
+  removed: orMissing(aNumber, 0),
+  line: orMissing(aNumber, 0),
+  status: orMissing(aString, ''),
+  open: orMissing(aBoolean, false),
+})
+
+export interface ShipPayload {
+  readonly id: string
+  /** The half that landed, where this was a partial. Empty on an ordinary ship. */
+  readonly part: string
+  /** What is still left, which becomes the open line's why. */
+  readonly remainder: string
+  /** The ledger entry written. Null where this call only closed an already-recorded line. */
+  readonly changelog: WroteLine | null
+  readonly roadmap: ShipRoadmap | null
+  /** What became of the prose file: the section dropped, and where its durable half went. */
+  readonly improvements: {
+    readonly file: string
+    readonly dropped: DroppedSection | null
+    readonly recordedIn: string | null
+    readonly superseded: string | null
+  } | null
+  /** Ids whose dep annotations were re-derived because this one closed. */
+  readonly refreshed: readonly string[]
+  /** Criteria of this task that were named as verified. */
+  readonly checked: readonly string[]
+  /** Criteria nobody named, which read as unchecked. */
+  readonly unmet: readonly string[]
+  /** The decision this ship filed, where `--decides` named one. */
+  readonly decisions: WroteLine | null
+}
+
+export const readShipPayload: Reader<ShipPayload> = record<ShipPayload>({
+  id: aString,
+  part: orMissing(aString, ''),
+  remainder: orMissing(aString, ''),
+  changelog: orMissing(orNull(readWroteLine), null),
+  roadmap: orMissing(orNull(readShipRoadmap), null),
+  improvements: orMissing(
+    orNull(
+      record<NonNullable<ShipPayload['improvements']>>(
+        {
+          file: orMissing(aString, ''),
+          dropped: orMissing(
+            orNull(
+              record<DroppedSection>({
+                anchor: orMissing(aString, ''),
+                title: orMissing(aString, ''),
+                first: orMissing(aNumber, 0),
+                last: orMissing(aNumber, 0),
+              }),
+            ),
+            null,
+          ),
+          recordedIn: orMissing(orNull(aString), null),
+          superseded: orMissing(orNull(aString), null),
+        },
+        { recordedIn: 'recorded_in' },
+      ),
+    ),
+    null,
+  ),
+  refreshed: orMissing(listOf(aString), []),
+  checked: orMissing(listOf(aString), []),
+  unmet: orMissing(listOf(aString), []),
+  decisions: orMissing(orNull(readWroteLine), null),
+})
+
+export interface RetirePayload {
+  readonly id: string
+  readonly marker: string
+  /** The id taking the work over, or null where the line was simply abandoned. */
+  readonly supersededBy: string | null
+  /** The open line that absorbed it, where one did. Empty is the ordinary case. */
+  readonly folded: string
+  readonly changelog: WroteLine | null
+  readonly roadmap: RemovedLine | null
+  /** The section anchor dropped with it, or the empty string. */
+  readonly dropped: string
+  /** Lines still naming this id, which a retirement leaves pointing at nothing. */
+  readonly dependents: readonly string[]
+  readonly refreshed: readonly string[]
+}
+
+export const readRetirePayload: Reader<RetirePayload> = record<RetirePayload>(
+  {
+    id: aString,
+    marker: orMissing(aString, ''),
+    supersededBy: orMissing(orNull(aString), null),
+    folded: orMissing(aString, ''),
+    changelog: orMissing(orNull(readWroteLine), null),
+    roadmap: orMissing(orNull(readRemovedLine), null),
+    dropped: orMissing(aString, ''),
+    dependents: orMissing(listOf(aString), []),
+    refreshed: orMissing(listOf(aString), []),
+  },
+  { supersededBy: 'superseded_by' },
+)
+
+export interface DeferPayload {
+  readonly id: string
+  readonly marker: string
+  readonly deferred: WroteLine | null
+  readonly roadmap: RemovedLine | null
+  /** The section carried across with the line, rather than dropped. */
+  readonly carried: {
+    readonly anchor: string
+    readonly role: string
+    readonly file: string
+    readonly absence: string | null
+  } | null
+  readonly dependents: readonly string[]
+  readonly refreshed: readonly string[]
+  readonly wrote: readonly string[]
+}
+
+export const readDeferPayload: Reader<DeferPayload> = record<DeferPayload>({
+  id: aString,
+  marker: orMissing(aString, ''),
+  deferred: orMissing(orNull(readWroteLine), null),
+  roadmap: orMissing(orNull(readRemovedLine), null),
+  carried: orMissing(
+    orNull(
+      record<NonNullable<DeferPayload['carried']>>({
+        anchor: orMissing(aString, ''),
+        role: orMissing(aString, ''),
+        file: orMissing(aString, ''),
+        absence: orMissing(orNull(aString), null),
+      }),
+    ),
+    null,
+  ),
+  dependents: orMissing(listOf(aString), []),
+  refreshed: orMissing(listOf(aString), []),
+  wrote: orMissing(listOf(aString), []),
+})
+
+export interface ResumePayload {
+  readonly id: string
+  /** The open marker it came back with. */
+  readonly marker: string
+  readonly roadmap: WroteLine | null
+  readonly deferred: RemovedLine | null
+  /**
+   * The reason it stood on, **unwrapped**. The one place a pause's own sentence is
+   * published apart from the design's why it was wrapped around.
+   */
+  readonly was: string
+  /** Whether the line coming back had to be reconciled with something that moved. */
+  readonly reconciled: boolean
+  readonly refreshed: readonly string[]
+  readonly wrote: readonly string[]
+}
+
+export const readResumePayload: Reader<ResumePayload> = record<ResumePayload>({
+  id: aString,
+  marker: orMissing(aString, ''),
+  roadmap: orMissing(orNull(readWroteLine), null),
+  deferred: orMissing(orNull(readRemovedLine), null),
+  was: orMissing(aString, ''),
+  reconciled: orMissing(aBoolean, false),
+  refreshed: orMissing(listOf(aString), []),
+  wrote: orMissing(listOf(aString), []),
+})
+
 export interface LintFinding {
   readonly code: string
   readonly file: string
