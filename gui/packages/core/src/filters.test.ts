@@ -75,6 +75,15 @@ describe('RG22: a filter is a call, not a predicate', () => {
     expect(isNarrowed({ have: [] })).toBe(false)
     expect(isNarrowed({ block: 'C' })).toBe(true)
   })
+
+  it('RG28: sends the deferred store as the flag that names it, and false as nothing', () => {
+    // `--stale` names the store without a `--role`. False is not a narrowing, so it is
+    // left off rather than sent as a flag the engine would read as "not the store".
+    expect(filterAsInput({ stale: true })).toEqual({ stale: true })
+    expect(filterAsInput({ stale: false })).toEqual({})
+    expect(isNarrowed({ stale: true })).toBe(true)
+    expect(isNarrowed({ stale: false })).toBe(false)
+  })
 })
 
 describe('RG22: changing one field', () => {
@@ -165,6 +174,12 @@ describe('RG22: saying what is narrowed', () => {
     })
 
     expect(described).toBe('the changelog, block C, marker 📋, with signing-cert')
+  })
+
+  it('RG28: names the deferred store first, because it is which file is being read', () => {
+    expect(describeFilter({ stale: true })).toBe('the deferred store')
+    expect(describeFilter({ stale: true, block: 'A' })).toBe('the deferred store, block A')
+    expect(describeFilter({ stale: false })).toBe('')
   })
 
   it('joins two requirements readably', () => {

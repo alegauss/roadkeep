@@ -36,9 +36,14 @@ export interface BacklogFilter {
   readonly role?: string
   readonly marker?: string
   readonly have?: readonly string[]
+  /**
+   * The deferred store, which `--stale` names without a `--role`. A narrowing like the
+   * rest: the store is a governed role and reading it is one call, not a predicate.
+   */
+  readonly stale?: boolean
 }
 
-export const FILTER_FIELDS = ['block', 'role', 'marker', 'have'] as const
+export const FILTER_FIELDS = ['block', 'role', 'marker', 'have', 'stale'] as const
 
 export const NO_FILTER: BacklogFilter = {}
 
@@ -49,6 +54,9 @@ export function filterAsInput(filter: BacklogFilter): VerbInputs['list'] {
     ...(filter.role === undefined ? {} : { role: filter.role }),
     ...(filter.marker === undefined ? {} : { marker: filter.marker }),
     ...(filter.have === undefined || filter.have.length === 0 ? {} : { have: filter.have }),
+    // False is not a narrowing, so it is left off rather than sent as a flag the engine
+    // would then have to read as "not the store".
+    ...(filter.stale === true ? { stale: true } : {}),
   }
 }
 
@@ -120,6 +128,7 @@ export function filterChoices(
 /** What is currently narrowed, as something a screen can put next to a result. */
 export function describeFilter(filter: BacklogFilter): string {
   const parts: string[] = []
+  if (filter.stale === true) parts.push('the deferred store')
   if (filter.role !== undefined) parts.push(`the ${filter.role}`)
   if (filter.block !== undefined) parts.push(`block ${filter.block}`)
   if (filter.marker !== undefined) parts.push(`marker ${filter.marker}`)

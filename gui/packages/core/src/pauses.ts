@@ -1,0 +1,125 @@
+import type { ListPayload, TaskLine } from './payloads'
+
+/**
+ * The deferred store, and telling a paused line from one nothing ever filed.
+ *
+ * A deferred line kept its id, its deps, its symptom and its section, and only left the
+ * block. So the store is a listing like any other — `--stale` names the deferred role
+ * without a `--role` — and the lines come back with the pause marker and the sentence the
+ * store spells.
+ *
+ * **The sentence is shown as the store spells it.** `defer` writes the pause's reason
+ * wrapped around the design's own why, and splitting the wrapper back out here would be a
+ * rule about a format that is roadkeep's. `No store of its own` and `No account, no auth
+ * and no remote store in the desktop build` both bound this without forbidding it: the
+ * deferred store is one of the roles the config declares, and this app reads it exactly as
+ * it reads the roadmap.
+ *
+ * **The age is not in the payload.** `--stale` orders the store by how long each pause has
+ * stood — in commits over the governed files — and prints that for a terminal, on stderr
+ * and never in the listing, so a `--json` caller gets the store and no ordering. Nothing
+ * here invents one: the lines are in the order the file has them.
+ */
+
+export interface Pause {
+  readonly id: string
+  readonly block: string
+  /** The pause marker the project declares, carried rather than compared to a literal. */
+  readonly marker: string
+  readonly symptom: string
+  /** The store's own sentence: the reason `defer` wrote, around the design's why. */
+  readonly why: string
+  readonly ref: string | null
+  readonly line: number
+}
+
+export interface Store {
+  readonly file: string
+  readonly total: number
+  /** In the order the file has them, which is by block. Never by age: none is carried. */
+  readonly pauses: readonly Pause[]
+  /** False when a marker-bearing line in the store was refused, as anywhere else. */
+  readonly complete: boolean
+}
+
+export function storeFrom(payload: ListPayload): Store {
+  return {
+    file: payload.file,
+    total: payload.total,
+    pauses: payload.tasks.map(pauseOfLine),
+    complete: payload.uncounted.length === 0,
+  }
+}
+
+function pauseOfLine(task: TaskLine): Pause {
+  return {
+    id: task.id,
+    block: task.block,
+    marker: task.status,
+    symptom: task.symptom,
+    why: task.why,
+    ref: task.ref,
+    line: task.line,
+  }
+}
+
+/** One paused line by id, or null. The lookup a task screen makes before it despairs. */
+export function pauseOf(store: Store, id: string): Pause | null {
+  return store.pauses.find((pause) => pause.id === id) ?? null
+}
+
+/**
+ * Where the backlog has an id.
+ *
+ * `unfiled` is the answer that used to be given for a paused line too, which is the whole
+ * symptom: until the store is read, set aside and never written look identical.
+ */
+export type Filing = 'open' | 'shipped' | 'paused' | 'unfiled'
+
+/** The three listings an id could be in, each as the engine answered it. */
+export interface Filings {
+  readonly roadmap?: ListPayload
+  readonly ledger?: ListPayload
+  readonly store?: ListPayload
+}
+
+/**
+ * Which file holds an id.
+ *
+ * A fact each listing states, not a rule worked out here — the question asked of every
+ * answer is only whether the id is in it. The order is the order a person means: an id in
+ * the roadmap is open whatever else also mentions it, since an id can be cited by a
+ * ledger entry that shipped part of it while the line stays open.
+ */
+export function filingOf(id: string, filings: Filings): Filing {
+  if (holds(filings.roadmap, id)) return 'open'
+  if (holds(filings.ledger, id)) return 'shipped'
+  if (holds(filings.store, id)) return 'paused'
+  return 'unfiled'
+}
+
+function holds(payload: ListPayload | undefined, id: string): boolean {
+  return payload !== undefined && payload.tasks.some((task) => task.id === id)
+}
+
+/**
+ * What to say about an id that is not open, in a sentence rather than a word.
+ *
+ * `unfiled` gets the shortest answer and the most important one: nothing in this project
+ * has ever carried that id, which is different from a line somebody paused.
+ */
+export function whereFiled(filing: Filing, store: Store | null = null, id = ''): string {
+  switch (filing) {
+    case 'open':
+      return 'open in the roadmap'
+    case 'shipped':
+      return 'shipped, and in the ledger'
+    case 'paused': {
+      const pause = store === null ? null : pauseOf(store, id)
+      const where = store?.file ?? 'the deferred store'
+      return pause === null ? `set aside in ${where}` : `set aside in ${where}: ${pause.why}`
+    }
+    default:
+      return 'nothing in this project carries that id'
+  }
+}

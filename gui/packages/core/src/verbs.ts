@@ -26,6 +26,12 @@ export interface VerbInputs {
     marker?: string
     /** Requirements this caller has; an open line naming an undeclared one counts as waiting. */
     have?: readonly string[]
+    /**
+     * The deferred store, which this names without a `--role`. The ordering it adds —
+     * how long each pause has stood — is printed for a terminal and is not in the
+     * payload, so with `--json` this asks for the store and nothing more.
+     */
+    stale?: boolean
   }
   show: {
     id: string
@@ -106,6 +112,7 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
     ...optional('--role', input.role),
     ...optional('--marker', input.marker),
     ...repeated('--have', input.have),
+    ...(input.stale === true ? ['--stale'] : []),
   ],
   show: (input) => [input.id, ...(input.noBody === true ? ['--no-body'] : [])],
   stats: (input) => [
@@ -149,7 +156,7 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
  * sent to an engine — they exist to be handed to `VERBS[verb]` and have their output read.
  */
 export const EVERY_INPUT: { [K in VerbName]: VerbInputs[K] } = {
-  list: { block: 'A', role: 'roadmap', marker: '📋', have: ['signing-cert'] },
+  list: { block: 'A', role: 'roadmap', marker: '📋', have: ['signing-cert'], stale: true },
   show: { id: 'RG1', noBody: true },
   stats: { block: 'A', role: 'roadmap', have: ['signing-cert'] },
   brief: { id: 'RG1', block: 'A', designed: true, have: ['signing-cert'] },

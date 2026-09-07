@@ -36,6 +36,7 @@
 - ✅ **RG25** **deps and what a ship unblocks are a list of ids, so following a chain means reading ids one at a time** — A line's deps open as the graph the engine resolved: blockers, chains drawn whole, the cascade a ship frees, and a dep outside told apart (design recorded in `packages/core/src/graph.ts`).
 - ✅ **RG26** **the non-goals and the criteria are off screen, so the two lists that bind a proposal are the two nobody reads** — Both binding lists are reads: the non-goals with the designs answering each, and criteria grouped whole, three empties apart (design recorded in `packages/core/src/binding.ts`).
 - ✅ **RG27** **the ledger and the decisions file are unreachable, so what shipped and what was weighed live outside this app** — The ledger and the reversals are reads: what a block delivered, the five nearest a sentence, and what the ledger undid (design recorded in `packages/core/src/memory.ts`).
+- ✅ **RG28 (the store, read)** **the deferred store is invisible, so a paused line cannot be told from one that was never filed** — The deferred store is a listing like any other, and an id now answers open, shipped, paused or nowhere.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 

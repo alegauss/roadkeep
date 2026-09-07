@@ -309,19 +309,27 @@ sixty-eight calls is the number that makes the case, and nobody will have it lat
 
 ## Block D — The project surface (one backlog, read)
 
-### §RG28 The pause, and how long it has stood
+### §RG28 The order a pause has no way to state
 
-A deferred line kept its id, its deps, its symptom and its section, and only left the
-block. The stale listing prints those with how long each pause has stood, measured in
-commits over the governed files, oldest first, with the reason beside it. That order is
-not a verdict and must not be drawn as one — how long a pause may stand is a judgement
-about work. What the screen adds is the door back, which is the direction the ledger has
-none of.
+The store itself landed: `--stale` names the deferred role without a `--role`, the
+pauses come back with their marker and the sentence the store spells, and an id now
+answers open, shipped, paused or nowhere. What that half is and why it reads the
+sentence whole is recorded in `packages/core/src/pauses.ts`.
 
-**No store of its own** bounds this line without forbidding it, and so does **No
-account, no auth and no remote store in the desktop build**: the deferred store is
-roadkeep's, one of the roles the config declares, and this app reads it exactly as it
-reads the roadmap. A second copy of it here would be the thing those two refuse.
+What is left is the order. `--stale` computes it — how long each pause has stood, in
+commits over the governed files, oldest first, with the reason beside it — and prints it
+for a terminal, on stderr and never in the listing. A `--json` caller gets the store in
+file order and nothing else, so this app has no age to draw and does not pretend to one.
+
+There are two ways to reach it and only one is allowed. Reading `set aside 3 commit(s)
+ago:` back out of English is the prose-scraping this client refuses on every other verb,
+and a second implementation of a sentence roadkeep is free to reword. The other is for
+roadkeep to put `since` and the reason in the payload as it already holds them in
+`Standing` — filed as this line's dep, which nothing shipped here satisfies.
+
+The order is not a verdict, and drawing it must not make it one. How long a pause may
+stand is a judgement about work — the same one `[claims] held` refuses to make — so the
+oldest is first and what that means is the reader's.
 
 ### §RG74 The marker and the claim are two different facts
 
