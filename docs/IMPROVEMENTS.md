@@ -766,6 +766,30 @@ One door is enough because the quoting is one function now. `provenance.quoted` 
 every composer reaches, so a shell test on any door is a test of the rule — and the
 check that no composed span carries a `'` is what carries it across the rest.
 
+### §RK1637 The cadence the tables do not count
+
+`cost` has seven subjects and each was filed as *the Nth cadence, and the one nothing
+counted*. RK1424, RK1428, RK1491, RK1524 and RK1582 each made that argument from
+scratch, each correctly, and none could say how many were left: the sentence is prose in
+five docstrings and the count a number a reader increments by hand.
+
+What is missing is the population. `USES` says what every caller of `Part` holds,
+`SITES` what every composed command is, `CARRIED` what every off-shape register is —
+this package answers *how many are there* with a table everywhere except about the thing
+the tables are for. The seventh was found by reading a docstring and noticing prose, the
+discovery method RK1498 exists to replace.
+
+A cadence is enumerable: a text composed on a stated trigger — per connect, per turn,
+per read, per refused write, per gate run, per `add` — and `cost`'s `answers` already
+names all seven. What it does not carry is the **trigger**, the field that makes the set
+a set: two subjects sharing one are one cadence counted twice, and a text whose trigger
+nothing prices is the eighth.
+
+So the shape is a trigger per subject beside the flag that reads it, and a sweep asking
+whether every per-write composer has one. What it must not become is a limit on the
+total: different surfaces are paid by different callers, and a sum charges one session
+for all — the mistake `Noted` keeps `emitted` and `appended` apart to avoid.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
