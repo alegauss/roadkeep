@@ -748,6 +748,28 @@ the work, and is why the existing test settled for the findings it had.
 door executed, and an empty cell that has to say why there is none. Whether that shape
 ports here is the design, and the number to weigh it against is one, not eighty-four.
 
+### §RK1642 The other command in the same refusal
+
+A refused write can print two commands. RK1149's retry is the caller's own call with a
+derived address in it, and RK1435's `foresee` row is the read that would have refused
+the same draft without writing — `budget --why <draft>` for a `why` over its limit,
+seven codes carrying one. RK1600 published the first as an argv. The second is still a
+line of `said`, which leaves the payload naming the rule that refused and not the read
+that would have made the refusal unnecessary.
+
+It is one key, and the shape is where the thinking is. A `foresee` door is
+**incomplete**: `<draft>` is the caller's own prose, so the argv is a template rather
+than a command, which is the difference `Door.complete` already publishes and the retry
+never had to say. Publishing it as `Door.payload()` says all of it — argv, what,
+complete, writes — at the cost of a fourth vocabulary in one payload.
+
+What is not settled is whether it goes beside `retry` under its own name or under the
+shared `doors` list. RK1324 says one name and one shape wherever a payload publishes a
+runnable command; RK1600 argued the exception, that a retry is the caller's call and not
+an offer. A `foresee` read is an offer, which puts it on the other side of that line —
+and makes `doors` the answer unless the incompleteness is reason enough to keep it
+apart.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
