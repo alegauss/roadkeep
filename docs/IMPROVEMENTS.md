@@ -800,6 +800,31 @@ is a decision and not a measurement; moving one is neither — it is a correctio
 placement the tool can derive whole. Whether that makes it `govern`'s, `declare`'s, or a
 door of its own is the design.
 
+### §RK1654 The eight nobody separated
+
+RK1612 put the stream ordering in `refusing.beneath` and pointed its two known callers
+at it — `cli._may_offer` and `adopting._report`. What it did not build is the other half
+its own design named: the separation between a function that writes an answer *or* a
+refusal, which are mutually exclusive and need nothing, and one that writes both in a
+single run, which is the set that needs the flush.
+
+Measured after the repair: **10 functions print to both streams in one body and 2 go
+through `beneath`**. The eight are `cli._rendered`, `linting._report_rows`, four in
+`verbs/adopting`, and three reads in `verbs/querying`. Most are almost certainly the
+exclusive shape. Nothing says which, and reading them one at a time is what the census
+exists to replace.
+
+The guard shipped with it does not close this. It refuses a `sys.stdout.flush()` written
+anywhere but the helper — so the *repair* cannot be re-implemented — and says nothing
+about a plain `print(..., file=sys.stderr)` following a `print(...)`, which is the
+defect itself. A rule that catches the fix and not the fault is the shape RK1602's guard
+had.
+
+What the reading needs is a run, not a scan: whether a body reaches both streams on one
+path is a question about execution, and the eight are few enough to drive.
+`tests/test_answers` now has the subprocess that merges the two pipes, which is the
+instrument that was missing when the rule was found the first two times.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
