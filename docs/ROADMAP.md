@@ -76,6 +76,8 @@
 
 ## Block H — The tool's own shape (what one verb costs to change)
 
+- 📋 **RK1629** (deps: —) **two modules walk back from a file's last blank line under two names, and the kernel that owns blank has no name for it** — RK1573 gave scoping a heading to open and the answer criteria had already written, so the copy was made by reading it. → §RK1629
+
 ## Block I — The documentation area (what an adopter reads before there is a session to ask)
 
 ## Done when — Block D
