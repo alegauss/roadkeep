@@ -43,7 +43,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1578** (deps: —) **a row's stated fixture is a guess nothing checks, and the first two taken overstated it** — RK1532 wrote thirty-one states from docstrings and RK1577 found two describing a repository where two headings would do. → §RK1578
 - 💭 **RK1580** (deps: —) **the capture's filing door is POSIX-quoted on a platform whose shell is not, and nothing has run it there** — RK1579 found the splitter eats a Windows separator, and the joiner that wrote it has the same assumption one layer up. → §RK1580
 - 💭 **RK1582** (deps: —) **the rows an add volunteers are prose on every write and no cadence counts them** — RK1491 priced the gate's notes and RK1524 the transport's, and the third per-write text grew in four tasks against no number. → §RK1582
 - 💭 **RK1583** (deps: —) **a deferral says nothing about the limit its reason was measured against, only govern does** — RK1537 closed the choosing end and the accepting end still reports a write whose bound the caller has to infer. → §RK1583

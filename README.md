@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 231 | 2 |
 | C — Query (consult without reading the file) | 10 | 177 | 4 |
-| D — The gate | 21 | 275 | 4 |
+| D — The gate | 20 | 275 | 5 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 158 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 2 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 38 | 1077 | 16 |
+| **Total** | 37 | 1077 | 17 |
 
 **Next ready:**
 
-- 💭 **RK1578** (deps: —) **a row's stated fixture is a guess nothing checks, and the first two taken overstated it** — RK1532 wrote thirty-one states from docstrings and RK1577 found two describing a repository where two headings would do. → §RK1578
+- 💭 **RK1580** (deps: —) **the capture's filing door is POSIX-quoted on a platform whose shell is not, and nothing has run it there** — RK1579 found the splitter eats a Windows separator, and the joiner that wrote it has the same assumption one layer up. → §RK1580
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
