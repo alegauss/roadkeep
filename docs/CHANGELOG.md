@@ -752,6 +752,7 @@
 - ✅ **RK1563** **a field that shares a name with the served prefix is reported as a carrier of it, which it is not** — The census names both acts a mismatch can take instead of asserting one, and the sentence is a function this suite reads back.
 - ✅ **RK1565** **the per-surface staleness rows may repeat one door six times, and nothing has measured what that costs** — Five stale surfaces printed 1,149 characters of which 791 was one sentence repeated; the run folds to that sentence once and its addresses, and an absent page naming a verb keeps its row.
 - ✅ **RK1569** **the prose half of the re-taken split reds on somebody else's edit, which says nothing about the rule** — The prose half warns with the count per source instead of failing, this file's own advisory register, so a reworded Shio sentence no longer reds a build about a rule it says nothing about.
+- ✅ **RK1570** **a block title is written into every governed file and nothing validates it, not even the codec rule** — A block title takes the section title's three rules at both doors; 136 titles across the three corpora refused the fourth the design asked for, Turing writing bold and backticks in real ones.
 
 ## Block E — Adoption
 

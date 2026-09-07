@@ -261,29 +261,6 @@ still say how many lines it cannot speak for.
 
 ## Block D — The gate
 
-### §RK1570 The composed field with no validator
-
-RK1531 put the mangled rule on the fields the measurement argued for and left one out: a
-block's title. `block add J --title "…"` writes a heading into every governed file at
-once, and `blocking` validates nothing — no length, no shape, no codec. It is the only
-composed field in this format with no validator at all.
-
-That is a gap in a different direction from the one RK1531 closed. A section title had a
-validator and the rule was missing from it; a block title has nowhere for the rule to
-go, so adding this one check means deciding whether block titles are governed at all —
-which is a question about the format and not about codecs.
-
-The evidence that they should be is what the field does. A block heading is written into
-the roadmap, the ledger and every prose role in one transaction, it is what `stats`
-groups by and what `delivered` names, and `block merge` exists because two headings
-under one label is a state worth a verb. A field with that reach and no rule is unusual
-here.
-
-What it must not become is `[limits] title`. A heading has no measured corpus behind it,
-and RK1381 is the standing rule that a number this build fixes carries the reading it
-came from — so the honest first move is the checks that need no number: not empty, one
-line, no markup, and the bytes not arrived through the wrong codec.
-
 ### §RK1571 The five fixtures behind fifteen rows
 
 Writing thirty-one states in one sitting made the next fact visible: they cluster. Three

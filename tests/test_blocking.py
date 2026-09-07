@@ -428,6 +428,49 @@ def test_an_empty_title_is_refused_rather_than_written(tmp_path):
     assert read(config, ROADMAP) == BACKLOG
 
 
+# -- the composed field that had no validator (RK1570) -------------------------
+
+
+def test_a_block_title_is_held_to_the_rules_a_section_title_is(tmp_path):
+    """RK1570. `block add` writes a heading into every governed file at once and validated
+    nothing but blankness — the only composed field in this format with no validator, which
+    is why RK1531 could not have left the mangled rule out of it.
+
+    The section title's own three, reused rather than restated: one line, the level is a
+    field, and the bytes did not arrive through the wrong codec. Both doors, because a rule
+    held at one of two is one a caller steps around by using the other."""
+    from roadkeep.blocking import validate_title
+    from roadkeep.kernel.schema import SchemaError
+
+    config = project(tmp_path)
+    for title, code in (
+        ("Query\nand more", "title.newline"),
+        ("# Query", "title.markup"),
+        ("O menu Ã© semeado", "char.mangled"),
+    ):
+        assert [one.code for one in validate_title(title)] == [code], title
+        with pytest.raises(SchemaError):
+            open_block(config, "C", title)
+        with pytest.raises(SchemaError):
+            amend_block(config, "B", title)
+    assert read(config, ROADMAP) == BACKLOG
+
+
+def test_the_markup_a_real_backlog_writes_in_a_title_is_left_alone(tmp_path):
+    """The rule the corpora refused. The design asked for "no markup", and 136 block titles
+    across this repository, Shio and Turing say that is the wrong rule: Turing writes
+    `**block CLOSED (T735–T738)**` and nine titles carry backticks. A limit these lines
+    cannot express is the wrong limit rather than a set of wrong lines."""
+    from roadkeep.blocking import validate_title
+
+    for title in (
+        "Bento header consistency — **block CLOSED (T735-T738)**",
+        "`viglet-core` shared backend platform (cross-product)",
+        "Headless admin bootstrap (`TURING_ADMIN_PASSWORD`)",
+    ):
+        assert validate_title(title) == (), title
+
+
 def test_a_label_every_file_already_declares_is_refused(tmp_path):
     # A command that exits 0 having written nothing teaches that it wrote something.
     config = project(tmp_path)

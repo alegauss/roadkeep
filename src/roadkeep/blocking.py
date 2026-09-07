@@ -85,7 +85,7 @@ from roadkeep.kernel.document import (
     blank,
     save_all,
 )
-from roadkeep.kernel.schema import Schema
+from roadkeep.kernel.schema import Schema, SchemaError, Violation, mangled
 from roadkeep.provenance import invocation
 
 __all__ = [
@@ -105,9 +105,11 @@ __all__ = [
     "Opened",
     "RegionOccupied",
     "catalogue",
+    "check_title",
     "drop_block",
     "merge_block",
     "open_block",
+    "validate_title",
 ]
 
 #: The governed files a block heading can belong in, in the order the answer reports them.
@@ -140,6 +142,54 @@ class NotALabel(ValueError):
             f"{label!r} is not a label this project can read ({pattern}): a heading "
             f"declares exactly one, and a dep resolves against that same list"
         )
+
+
+def validate_title(title: str) -> tuple[Violation, ...]:
+    """What a block's title may not be, checked where it is composed (RK1570, L1).
+
+    `block add J --title "…"` writes a heading into the roadmap, the ledger and every prose
+    role in one transaction; it is what `stats` groups by, what `delivered` names, and what
+    `block merge` exists because two of them under one label is a state worth a verb. Until
+    this it was the only composed field in the format with **no validator at all** — so
+    RK1531 could not have left the mangled rule out of it, there being nothing to leave it
+    out of.
+
+    **The section title's own three rules, not a second set.** A block heading and a section
+    heading are one line each, composed as an argument, and bounded by nothing — so a second
+    vocabulary for the same defects would be two spellings of one fact, and the codes here
+    are `sections`' (`title.newline`, `title.markup`, `char.mangled`), backstopped already.
+
+    **And no more than three, which the corpora decided.** The design asked for "no markup",
+    and 136 block titles across this repository, Shio and Turing say that is the wrong rule:
+    Turing writes ``**block CLOSED (T735–T738)**`` and nine titles carry backticks, all of
+    them legitimate. What no corpus writes is a leading `#` — the level being a field and not
+    text — which is exactly what `title.markup` already means. A rule these lines cannot
+    express would be the wrong rule rather than a set of wrong lines.
+
+    **And no `[limits] title`.** A heading has no measured corpus behind it, and RK1381 is
+    standing: a number this build fixes carries the reading it came from. The longest title
+    the three corpora hold is 102 characters and nothing argues for a ceiling.
+
+    Blank stays :class:`NotALabel`'s, which is the door it has had: *a block is named by its
+    title* is that refusal's own sentence, and moving it here to gain a fourth code would
+    reword a refusal nobody has complained about.
+    """
+    out: list[Violation] = []
+    if "\n" in title or "\r" in title:
+        out.append(Violation("title.newline", "title", "a heading is one line"))
+    elif title.lstrip().startswith("#"):
+        out.append(
+            Violation("title.markup", "title", "the level is a field, not part of the text")
+        )
+    out += mangled("title", title)
+    return tuple(out)
+
+
+def check_title(title: str) -> None:
+    """Validate or raise, so a refusal reports every problem at once (as `Schema.check`)."""
+    violations = validate_title(title)
+    if violations:
+        raise SchemaError(violations)
 
 
 class NoSuchNeighbour(KeyError):
@@ -537,6 +587,10 @@ def amend_block(config: Config, label: str, title: str) -> Retitled:
         raise NotALabel(label, schema.block_dep_pattern().pattern)
     if not title.strip():
         raise NotALabel(label, "a block is named by its title, and this one is blank")
+    # The same door as the one that opens a block (RK1570): a retitle composes the same
+    # field into the same heading, and a rule held at one of the two is a rule a caller
+    # steps around by using the other.
+    check_title(title)
 
     wanted = title.strip()
     changed: dict[str, Document] = {}
@@ -1345,6 +1399,7 @@ def open_block(
         raise NotALabel(label, schema.block_dep_pattern().pattern)
     if not title.strip():
         raise NotALabel(label, "a block is named by its title, and this one is blank")
+    check_title(title)
     if after is not None and after == label:
         raise NotALabel(label, "a block cannot be opened after itself")
 
