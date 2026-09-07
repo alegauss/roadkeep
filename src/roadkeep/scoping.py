@@ -44,6 +44,7 @@ from roadkeep.kernel.schema import SchemaError, Violation, mangled, over_by, wid
 __all__ = [
     "HEADING",
     "LEAD",
+    "OPENED",
     "SHAPE",
     "WHY",
     "Amended",
@@ -72,6 +73,13 @@ __all__ = [
 #: config key, because both live corpora already write it and neither writes it exactly: this
 #: repository has "## Non-goals", Shio has "## Non-goals (do NOT add as tasks)".
 HEADING = re.compile(r"^non-goals?\b", re.IGNORECASE)
+
+#: The heading this format *writes* when :func:`add` opens the list, and the one `init`
+#: scaffolds — one constant, because a heading spelled in two places drifts the first time
+#: either is edited. The asymmetry with :data:`HEADING` is deliberate and is the whole reason
+#: both exist: what is **read** is a prefix, so Shio's parenthetical still answers, and what is
+#: **written** is exactly this, so nothing here invents a variant no corpus carries.
+OPENED = "## Non-goals"
 
 #: `- **<lead>** <why>`, at column zero. The lead is bold and the why is everything after it,
 #: which is what lets a parenthetical or a second sentence stay exactly as it was written.
@@ -108,7 +116,12 @@ class NotGoverned(KeyError):
 
 
 class NoNonGoals(KeyError):
-    """No heading holds a list to write to. A heading is the only thing that declares one."""
+    """No heading holds a list to correct. A heading is the only thing that declares one.
+
+    The two verbs that reach *into* a list, and no longer `add` (RK1573): opening one is what
+    writing the first entry means, and there is nothing for an `amend` or a `drop` to be about
+    on a roadmap that carries none.
+    """
 
     def __init__(self, where: str) -> None:
         super().__init__(
@@ -194,6 +207,10 @@ class Written:
 
     document: Document
     non_goal: NonGoal
+    #: Whether this write **opened the list**, which the answer says out loud (RK1573): a
+    #: heading appearing in a governed file is the one edit a reader should never discover,
+    #: which is `criterion add`'s rule (RK427) on the third bullet grammar.
+    opened: bool = False
 
     @property
     def lineno(self) -> int:
@@ -216,10 +233,15 @@ class Written:
         from roadkeep.rendering import _staging_rows  # noqa: PLC0415 - RK260
 
         where = config.relative(config.path("roadmap"))
-        rows = [
-            f"{where}:{self.lineno}  {len(self.rendered)} line(s)",
-            *(f"  {line}" for line in self.rendered),
-        ]
+        rows = [f"{where}:{self.lineno}  {len(self.rendered)} line(s)"]
+        if self.opened:
+            # The header first and the row under it at the one column every write uses, which
+            # is where `criteria.Written.stated` had to move its own (RK1372, RK1376).
+            rows.append(
+                f"  opened   {OPENED} — this roadmap had no list, and writing the first "
+                f"non-goal is what opens one"
+            )
+        rows += [f"  {line}" for line in self.rendered]
         rows += _staging_rows(config.relative(one) for one in wrote)
         return "\n".join(rows)
 
@@ -229,6 +251,7 @@ class Written:
         return {
             "lead": self.non_goal.lead,
             "why": self.non_goal.why,
+            "opened": self.opened,
             "file": config.relative(config.path("roadmap")),
             "line": self.lineno,
             "rendered": list(self.rendered),
@@ -566,17 +589,22 @@ def check(config: Config, lead: str, why: str) -> None:
 def add(config: Config, lead: str, why: str) -> Written:
     """Insert one non-goal under the heading, after the last one there. Validated first.
 
-    Refused, and nothing written, when the project has not opted in, when no heading declares
-    the list, when a field is over its limit, or when the lead is already taken — the four
-    refusals being what makes this a door rather than an `Edit` with extra steps.
+    Refused, and nothing written, when the project has not opted in, when a field is over its
+    limit, or when the lead is already taken — the three refusals being what makes this a door
+    rather than an `Edit` with extra steps.
+
+    **It writes the heading where the roadmap has none** (RK1573), which is `criterion add`'s
+    rule (RK427) and `priority add`'s: a list is opened by the act of writing its first entry,
+    there being nothing else the heading could mean. It was the fourth refusal here until
+    nothing could lift it — `declare non_goals` opens the table on a project past scaffolding
+    and names this verb, `init` writes the heading once and never again, and `Edit` is denied
+    (RK22), so the door that governs the list was unopenable on exactly the population the
+    table was opened for.
     """
     if config.non_goals is None:
         raise NotGoverned(config.relative(config.source or config.root))
     document = config.document("roadmap")
     where = config.relative(config.path("roadmap"))
-    heading = _heading_index(document)
-    if heading is None:
-        raise NoNonGoals(where)
     check(config, lead, why)
 
     head = lead.strip()
@@ -585,6 +613,13 @@ def add(config: Config, lead: str, why: str) -> Written:
     if twin is not None:
         raise DuplicateLead(head, where, twin.first)
 
+    # After the two refusals and never before them: a heading is a write, and one left behind
+    # by a call that then refused the field is the edit a reader finds and no commit is about.
+    opened = _heading_index(document) is None
+    if opened:
+        document = _open(document)
+    heading = _heading_index(document)
+    assert heading is not None  # the heading this call just wrote, or the one that was there
     lines = render(config, head, why)
     at, separate = _placement(document, heading, existing)
     updated = document
@@ -604,6 +639,7 @@ def add(config: Config, lead: str, why: str) -> Written:
             last=at + len(lines),
             lines=lines,
         ),
+        opened=opened,
     )
 
 
@@ -720,6 +756,39 @@ def _heading_index(document: Document) -> int | None:
     """The 0-based index of the non-goals heading line, or None when there is no list."""
     heading = next((h for h in document.headings if HEADING.match(h.text)), None)
     return None if heading is None else heading.lineno - 1
+
+
+def _open(document: Document) -> Document:
+    """Write the heading, and the blank lines that make it a section (RK1573).
+
+    `criteria._open`'s shape, and the placement is the half that had to be argued rather than
+    copied: this heading has no address, so nothing in the file says where it belongs. What
+    decides it is that **both readings of the roadmap already agree the non-goals close it** —
+    `init` writes them last, after the blocks, and `criteria._regions_end` places a `Done when`
+    list *before* them for that reason. Opened at the end, this write agrees with the scaffold
+    on a file carrying only blocks and with the criteria lists on one carrying those too, so
+    there is no third answer for it to pick between and no section it moves.
+    """
+    at = _end(document)
+    updated = document
+    if at > 0 and not blank(document.lines[at - 1]):
+        updated = updated.insert_line(at, "")
+        at += 1
+    updated = updated.insert_line(at, OPENED)
+    return updated.insert_line(at + 1, "")
+
+
+def _end(document: Document) -> int:
+    """The index one past the file's last non-blank line — where a section appended goes.
+
+    `criteria._trimmed`, which is the same question about the same file: trailing blanks are
+    the author's and a heading written after them would leave a run inside the document rather
+    than at its end, which round-trips and reads as a gap nobody made (L3's own care).
+    """
+    end = len(document.lines)
+    while end > 0 and blank(document.lines[end - 1]):
+        end -= 1
+    return end
 
 
 def _bullets(document: Document) -> tuple[NonGoal, ...]:

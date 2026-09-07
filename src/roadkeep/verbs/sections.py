@@ -1063,7 +1063,8 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
             "Compose, validate and insert one non-goal. Addressed by its lead — unique and "
             "checked — because an id would buy a lifecycle for a list of eight lines that "
             "changes once a year. No marker, no dep and no pointer: a constraint has no "
-            "status to state."
+            "status to state. It **opens the list** where the roadmap has no heading, as "
+            "`criterion add` and `priority add` open theirs, and says so in the answer."
         ),
     )
     scope_add.add_argument(

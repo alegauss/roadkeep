@@ -79,29 +79,6 @@ already written, not authorship.
 
 ## Block C — Query
 
-### §RK1573 The heading only the scaffold writes
-
-`declare non_goals` opens the table that governs the list and names the write it gates:
-`non-goal add --lead … --why …`. On a project past `init` that command refuses — *no
-non-goals heading in ROADMAP.md: the heading declares the list, exactly as a block
-heading declares a block* — and no verb writes that heading. `init` does, once, at
-scaffold time.
-
-So the door is unopenable on exactly the population RK1328 was filed for. That task
-opened the table for projects past scaffolding, because it went in by hand and no verb
-opened one; the same sentence is now true one level down, about the heading.
-
-The symmetric fix is one this format made twice. `criterion add` writes its `## Done
-when — Block X` heading where the block has none (RK427, RK1265), the list being opened
-by the act of writing the first entry, and `priority add` does the same. Either
-`declare` writes the heading with the table, or `non-goal add` opens it as its two
-siblings do — the second being more consistent, since a project may have the table and
-still be one write from the list.
-
-What it must not do is guess where. A block heading has a place in the file and this one
-does not: `init` writes it after the blocks, which is a convention and not a rule, and a
-verb placing it anywhere else would move a section a reader knows the position of.
-
 ### §RK1608 The narrowing that could not narrow
 
 Measured on a throwaway project whose open set is `["📋"]` and declares no undesigned

@@ -432,11 +432,13 @@ after everything the region holds. Two headings neither of which is inside the o
 two addresses, wherever they sit and at whatever level. `non-goal add --lead "…" --why
 "…"` writes the one bullet that is not a task line, where `[non_goals]` declares the list
 governed: addressed by its lead, which is unique and checked, and carrying no marker, dep
-or pointer, because a constraint has no status to state. `non-goal amend <lead> --why "…"`
-corrects the reason **where the bullet already sits**, for `record amend`'s reason: `add`
-appends, so drop-and-re-add moves a constraint to the end of a list a reader takes for the
-plan's shape. The lead is not one of its fields — it is the address — and a bullet
-carrying no bold head is refused by name, that shape's repair being the pair below.
+or pointer, because a constraint has no status to state. It opens the list where the
+roadmap carries no heading, as `criterion add` opens its block's, and says so. `non-goal
+amend <lead> --why "…"` corrects the reason **where the bullet already sits**, for `record
+amend`'s reason: `add` appends, so drop-and-re-add moves a constraint to the end of a list
+a reader takes for the plan's shape. The lead is not one of its fields — it is the
+address — and a bullet carrying no bold head is refused by name, that shape's repair being
+the pair below.
 `non-goal drop <lead>` is the other half, and what a changed *lead* takes: the lead is the
 address, so a constraint whose lead changes is one dropped and one written. **Call
 `non-goal list` before an `add`** — the list binds what may be proposed, so reading it

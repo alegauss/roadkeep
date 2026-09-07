@@ -637,10 +637,6 @@ def test_the_door_a_retirement_over_a_recorded_half_names_runs(tmp_path, capsys)
 #: filed for is every project already past that.
 UNGOVERNED = WHOLE.replace('deferred = "DEFERRED.md"\n', "")
 
-#: The heading that declares the list. `init` writes it and no other verb does, which is why
-#: the fixture below has to (RK1573).
-NON_GOALS = "\n## Non-goals\n"
-
 
 def test_the_door_a_scaffold_names_runs(tmp_path, capsys):
     """RK1498. `init` says what the backlog now takes and names the write that puts the first
@@ -682,12 +678,12 @@ def test_the_door_an_opened_table_names_runs(tmp_path, capsys):
     # is every project already past it.
     departing(tmp_path)
     (tmp_path / "roadkeep.toml").write_text(UNGOVERNED, encoding="utf-8")
-    # **With the heading already there**, which is the state the door it names can be taken in
-    # (RK1573): `non-goal add` refuses where the roadmap declares no list, exactly as a task
-    # line refuses under a block nothing declares (RK37) — and nothing writes that heading into
-    # a project past `init`, so a project without it is opened into a table it cannot use.
-    with (tmp_path / "ROADMAP.md").open("a", encoding="utf-8", newline="") as handle:
-        handle.write(NON_GOALS)
+    # **And with no heading either**, which is the state this row was a defect about until
+    # RK1573: the door refused where the roadmap declared no list, `init` writes that heading
+    # once and no verb since, and `Edit` is denied — so the write a table gates was unopenable
+    # on exactly the population the table is opened for. Writing the first non-goal opens the
+    # list now, so the fixture is the bare project and the door is the whole path.
+    assert "Non-goals" not in (tmp_path / "ROADMAP.md").read_text(encoding="utf-8")
     assert main(["-C", str(tmp_path), "declare", "non_goals"]) == EXIT_OK
     said = capsys.readouterr().out
     ran = runs(tmp_path, said)

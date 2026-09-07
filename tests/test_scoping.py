@@ -267,10 +267,67 @@ def test_a_lead_carrying_its_own_bold_is_refused(tmp_path):
         add(config, lead="No **web** UI", why="Because.")
 
 
-def test_a_roadmap_with_no_heading_has_no_list_to_write_to(tmp_path):
+def test_the_first_non_goal_opens_the_list(tmp_path):
+    """`criterion add`'s rule (RK427) on the third bullet grammar, and RK1573's finding: the
+    heading is what declares the list, `init` wrote it once at scaffold time and no verb since,
+    so `declare non_goals` opened a table whose one write refused on every project past that."""
+    config = project(tmp_path, roadmap=ROADMAP.split("## Non-goals")[0])
+    out = add(config, lead="No dates", why="A marker is maturity.")
+    out.save()
+
+    assert out.opened
+    body = text(tmp_path)
+    assert "## Non-goals" in body
+    assert "- **No dates** A marker is maturity." in body
+    # And the second one opens nothing: it lands under the heading the first one wrote.
+    again = add(Config.discover(tmp_path), lead="No quarters", why="A marker is maturity.")
+    assert not again.opened
+    assert [n.lead for n in read(again.document)] == ["No dates", "No quarters"]
+
+
+def test_the_opened_list_closes_the_roadmap(tmp_path):
+    """The placement is the half that had to be argued: this heading has no address, so what
+    decides it is that both readings already agree the non-goals close the file — `init` writes
+    them last and `criteria` places a `Done when` list before them for that reason."""
+    roadmap = ROADMAP.split("## Non-goals")[0] + "## Done when — Block A\n\n- **It ships** Yes.\n"
+    config = project(tmp_path, roadmap=roadmap)
+    add(config, lead="No dates", why="A marker is maturity.").save()
+
+    body = text(tmp_path)
+    assert body.index("## Block A") < body.index("## Done when") < body.index("## Non-goals")
+    # And the file round-trips, which is what a heading inserted into somebody else's blanks
+    # would break silently: the write is refused whole rather than rendering a line differently.
+    assert not lint(Config.discover(tmp_path)).findings
+
+
+def test_opening_the_list_is_said_out_loud(tmp_path, capsys):
+    """A heading appearing in a governed file is the one edit a reader should never discover,
+    which is why `criteria.Written` says so too (RK427)."""
+    project(tmp_path, roadmap=ROADMAP.split("## Non-goals")[0])
+    assert main(["-C", str(tmp_path), "non-goal", "add", "--lead", "No dates", "--why",
+                 "A marker is maturity."]) == EXIT_OK
+    out = capsys.readouterr().out
+    assert "opened   ## Non-goals" in out
+    assert "writing the first non-goal is what opens one" in out
+
+
+def test_a_correction_to_a_list_that_was_never_opened_is_refused(tmp_path):
+    """The two verbs that reach *into* a list, and no longer `add` (RK1573): there is nothing
+    for an amend or a drop to be about on a roadmap carrying no heading."""
     config = project(tmp_path, roadmap=ROADMAP.split("## Non-goals")[0])
     with pytest.raises(NoNonGoals):
+        amend(config, "No dates", "A marker is maturity.")
+    with pytest.raises(NoNonGoals):
+        drop(config, "No dates")
+
+
+def test_an_ungoverned_project_opens_no_list(tmp_path):
+    """The opt-in is still ahead of the write (RK66), and ahead of the heading: a project that
+    never declared `[non_goals]` is not given one by a call that refuses."""
+    config = project(tmp_path, roadmap=ROADMAP.split("## Non-goals")[0], config=PROSE)
+    with pytest.raises(NotGoverned):
         add(config, lead="No dates", why="A marker is maturity.")
+    assert "Non-goals" not in text(tmp_path)
 
 
 def test_a_non_goals_table_that_is_not_one_is_a_config_problem(tmp_path):

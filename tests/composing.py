@@ -142,8 +142,10 @@ SITES: tuple[Site, ...] = (
     # for the other — with the lead and the reason left as placeholders, which is the same
     # reason the role's row is unreached.
     # And the table (RK1328), which is the one of the three that found something: the door it
-    # names refuses on a project whose roadmap has no `## Non-goals` heading, and no verb past
-    # `init` writes one (RK1573). Run against a project that has it.
+    # names refused on a project whose roadmap has no `## Non-goals` heading, and no verb past
+    # `init` wrote one. RK1573 closed it at the door rather than in the fixture — writing the
+    # first non-goal opens the list, as `criterion add` and `priority add` already did — so
+    # this now runs against the bare project, which is the population the table is opened for.
     Site("adopting.py:Opened.stated", "run"),
     # RK1223. Run by `test_blocking`, which executes the `--organise` call this refusal names
     # rather than matching it — the reading this whole file is about.

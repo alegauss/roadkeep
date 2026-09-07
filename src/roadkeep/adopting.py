@@ -1649,7 +1649,9 @@ def _scaffold(role: str, blocks: Sequence[str], schema: Schema) -> str:
     if role == "roadmap":
         # `brief` prints these with every task (RK29), so the heading exists from the
         # start: an author who has to create it first is an author who writes none.
-        lines += ["## Non-goals", ""]
+        # The spelling is `scoping`'s, which is also what `non-goal add` opens a list with
+        # (RK1573) — one heading written by two verbs is one constant or a future drift.
+        lines += [scoping.OPENED, ""]
     return "\n".join(lines)
 
 

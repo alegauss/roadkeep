@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
-| C — Query (consult without reading the file) | 9 | 176 | 4 |
+| C — Query (consult without reading the file) | 8 | 177 | 4 |
 | D — The gate | 23 | 274 | 3 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 158 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 36 | 1075 | 15 |
+| **Total** | 35 | 1076 | 15 |
 
 **Next ready:**
 
-- 💭 **RK1573** (deps: —) **declare non_goals opens a table whose verb refuses, nothing writing the heading that declares the list** — init writes it once at scaffold time, so a project past that is opened into a list it can only start with the hand edit the guard denies. → §RK1573
+- 💭 **RK1574** (deps: —) **two composer families turned up three doors that cannot be taken, and the rest are unplanned against that rate** — RK1572 and this family each found a defect per two rows, which is the number the ordering of the rest should be argued from. → §RK1574
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

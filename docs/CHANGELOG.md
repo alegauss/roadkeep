@@ -474,6 +474,7 @@
 - ✅ **RK1566** **the near window is measured on a ledger far larger than its backlog, the ratio it is least about** — Read per block across three backlogs, the open half takes 9.5% to 20.8% of the rows as its share of a block goes 3.8% to 38.1%, so three holds; Turing is not the inverted corpus.
 - ✅ **RK1567** **the near rows are described as delivered --near volunteered, and that read has ranked a different corpus since RK1495** — The two reads differ on half the insertions and 15 of 18 show a row no width of --near reaches, so the row keeps that verb's phrases and stops claiming to be its rows.
 - ✅ **RK1568** **an incidental entry that is on disk and filters no commit is silent, which is the half of the reading RK1529 gave** — unclosed counts what the filter set aside on the walk it already pays for and names the entries accounting for none, silent where every one of them worked.
+- ✅ **RK1573** **declare non_goals opens a table whose verb refuses, nothing writing the heading that declares the list** — The first non-goal opens the list, as criterion add and priority add open theirs: the heading lands where init writes it and the answer says it appeared, so the table declare opens is usable.
 
 ## Block D — The gate
 
