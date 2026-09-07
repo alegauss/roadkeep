@@ -27,6 +27,7 @@ from composing import (
     FOREIGN,
     SITES,
     STATES,
+    beyond,
     census,
     commanded,
     commands,
@@ -83,13 +84,60 @@ def test_every_site_is_run_or_deliberate_and_the_work_list_is_empty():
 
     `unreached` stays a state a row may take. A site added tomorrow is a red here until
     somebody says which of the three it is, and *not run and here is the state it wants* has
-    to remain sayable — what is asserted is that no row is standing on it today."""
+    to remain sayable — what is asserted is that no row is standing on it today.
+
+    **A site is a function calling `invocation()`, and that is the whole population** (RK1605).
+    The claim reads as being about every composed command and is about the ones composed
+    through the prefix; the test below states what that leaves out, so the two sentences are
+    read together rather than one of them alone."""
     working = [one.where for one in SITES if one.state == "unreached"]
     assert not working, working
     assert [one.where for one in SITES if one.state not in ("run", "deliberate")] == []
     # And coverage is the majority of it, which the shape alone would not say: a table where
     # every row is `deliberate` passes the line above and executes nothing.
     assert len([one for one in SITES if one.state == "run"]) > len(SITES) / 2
+
+
+def test_the_guarantee_says_which_population_it_is_over():
+    """RK1605. *Every site is run or deliberate* reads as a claim about every composed command,
+    and a site is a function that calls `invocation()` — so a door spelled without the prefix is
+    not counted, not a row, and covered by nothing.
+
+    `sections._WAYS_OUT["amend"]` is what that cost. It printed `section move {anchor} --to
+    <free anchor>` at every over-long amend from RK1034 on and appeared in no census: bare, so
+    nothing found it; a placeholder holding a space, so nothing could have run it; and offering
+    the one act `section move` refuses by name (RK377). It surfaced when RK1548 added the
+    invocation, which made it a site, which made the census red — three defects reachable only
+    by accident from the sweep built to find exactly them.
+
+    So the boundary is asserted rather than implied. `beyond()` is what the guarantee does not
+    reach, and it is **not empty** — that is the point, and a day it goes empty is a day this
+    sentence needs rewriting rather than a day the assertion quietly stops saying anything."""
+    outside = beyond()
+    assert outside, "the census now reaches every verb-leading span, so the sentence is wrong"
+    # Larger than the guaranteed population, which is the proportion worth being exact about:
+    # a boundary the same size as the claim would be a rounding error and this is not one.
+    assert len(outside) > len(SITES)
+
+
+def test_what_lies_outside_the_census_is_checked_by_the_rule_that_can_decide_it():
+    """The other half, and the reason `beyond()` is not a work-list. RK1590 measured this
+    population: most of it is prose — `add --section` naming a flag family, `pick` a verb under
+    discussion — so a rule refusing all of it refuses the sentences this tool has to write.
+
+    What is decidable there is `inconsistent`'s narrower claim, held in its own test above, and
+    RK1640 carries what is not. Asserted here as the *join*: the spans outside the census are
+    the ones that rule is about, so neither reads as covering the other's ground."""
+    outside = {one.split(": ", 1)[1] for one in beyond()}
+    named = {
+        said
+        for module in modules()
+        for _, text in spoken(module)
+        for said in inconsistent(text)
+    }
+    # Empty today, because RK1589 was the instance and it is fixed — the claim is the
+    # containment, which holds whether or not the rule is currently finding anything.
+    assert named <= outside or not named, sorted(named - outside)
 
 
 # -- the instrument -----------------------------------------------------------

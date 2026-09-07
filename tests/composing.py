@@ -465,6 +465,23 @@ def census() -> tuple[str, ...]:
     Derived and never listed, for the reason `surface.py` exists: a second view of the
     population agrees with the first right up to the moment somebody adds a site, which is the
     single moment either of them matters.
+
+    **And this is the whole of what `SITES` is total over** (RK1605). A door composed *without*
+    the prefix is not a function calling `invocation()`, so it is not a site, is not a row, and
+    is covered by nothing here — which RK1498's closing sentence, *every site is run or
+    deliberate*, does not say on its own.
+
+    Met rather than theorised. `sections._WAYS_OUT["amend"]` printed `section move {anchor}
+    --to <free anchor>` at every over-long amend from RK1034 on, and appeared in no census. It
+    was bare, so nothing found it; its placeholder held a space, so nothing could have run it;
+    and it offered the one act `section move` refuses by name (RK377). Three defects in one
+    clause, none reachable by the sweep built to find exactly this — and it surfaced only when
+    RK1548 added the invocation, which made it a site, which made the census red.
+
+    Widening this to every backticked verb is the wrong repair and RK1590 measured why: 421
+    such spans lead with a verb and carry no prefix, and most are prose — `add --section` named
+    as a flag family, `pick` as a verb being discussed. :func:`beyond` is that population, and
+    :func:`inconsistent` is the part of it a rule can decide.
     """
     found: list[str] = []
     for module in modules():
@@ -817,3 +834,61 @@ def inconsistent(said: str) -> list[str]:
     if not doors:
         return []
     return [one for one in spans if one.split()[:1] and one.split()[0] in verbs]
+
+
+def _owners(module) -> dict[int, str]:
+    """Line number to the address of the function holding it, for one module.
+
+    :func:`census` walks the same tree for the same names; this keeps every line rather than
+    the call, because the question here is which function a *message* was composed in.
+    """
+    found: dict[int, str] = {}
+    stack: list[str] = []
+
+    class Walk(ast.NodeVisitor):
+        def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+            stack.append(node.name)
+            where = f"{module.where}:{'.'.join(stack)}"
+            for inner in ast.walk(node):
+                if hasattr(inner, "lineno"):
+                    found.setdefault(inner.lineno, where)
+            self.generic_visit(node)
+            stack.pop()
+
+        visit_AsyncFunctionDef = visit_FunctionDef  # type: ignore[assignment]
+
+        def visit_ClassDef(self, node: ast.ClassDef) -> None:
+            stack.append(node.name)
+            self.generic_visit(node)
+            stack.pop()
+
+    Walk().visit(ast.parse(module.text))
+    return found
+
+
+def beyond() -> list[str]:
+    """Every verb-leading span in a message **outside** the census, addressed (RK1605).
+
+    The boundary of RK1498's guarantee, as a value rather than as something a reader has to
+    infer from how :func:`census` is built. `SITES` is total over the functions that call
+    `invocation()`; this is what that leaves — a message composed somewhere that never calls it,
+    carrying a span that opens with one of this CLI's verbs.
+
+    Non-empty on purpose and not a work-list. RK1590 measured the population: most of it is
+    prose naming a flag family or a verb under discussion, and a rule refusing all of it would
+    refuse the sentences this tool needs to write. What is checkable inside it is
+    :func:`inconsistent`'s narrower claim, and RK1640 holds what is not.
+    """
+    sites = set(census())
+    verbs = _verbs()
+    found: list[str] = []
+    for module in modules():
+        owner = _owners(module)
+        for lineno, said in spoken(module):
+            where = owner.get(lineno, module.where)
+            if where in sites:
+                continue
+            for one in (" ".join(span.split()) for span in _SPAN.findall(said)):
+                if one.split()[:1] and one.split()[0] in verbs:
+                    found.append(f"{where}: {one}")
+    return found
