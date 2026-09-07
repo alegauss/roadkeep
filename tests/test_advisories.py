@@ -39,6 +39,10 @@ NOT_A_REPORT = {
     # mapping of table to sentence. `config` reports no findings at all, so nothing in that
     # module reads a gate report — the name is the whole of the collision.
     "test_describing.py": "`Shape.notes` is a mapping of table to its source's own sentence",
+    # RK1611's, and the third object to answer to this name — `installing.Removal.notes` says
+    # what a withdrawal does to something the un-wiring keeps. `install` and `uninstall` report
+    # surfaces and never gate findings, so this module reads no `Report` either.
+    "test_installing.py": "`installing.Removal.notes` is what un-wiring changed but kept",
 }
 
 

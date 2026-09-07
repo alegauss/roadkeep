@@ -355,6 +355,59 @@ def test_un_wiring_keeps_a_declaration_it_did_not_write(project, source):
     assert loaded(project / PROJECT_MCP) == DECLARED
 
 
+def test_the_kept_row_says_the_approval_goes_with_the_un_wiring(project, source, capsys):
+    """RK1611. Measured straight after RK1560: the entry stays, as it now should, and
+    `.claude/settings.json` goes — it held only this command's own keys — taking
+    `enabledMcpjsonServers` with it. Their server is left declared and unapproved, which
+    `_merged_settings`' own reasoning calls indistinguishable from one never declared.
+
+    The kept row told half the truth. It says the declaration stays; what it did not say is
+    that the thing which made it run does not.
+
+    Taken and **said**, of the three answers. The approval is ours — `install` wrote it — and
+    keeping it means keeping a settings file for one key on a project that has otherwise
+    finished un-wiring; what un-wiring restores is the state before `install` ran. The reflex
+    RK1514 refused was the *unasked* act, not the unannounced one."""
+    install(project, source=source)
+    _declaring(project, THEIRS)
+    assert loaded(project / PROJECT_SETTINGS)["enabledMcpjsonServers"] == ["roadkeep"]
+    intent = removal(project)
+    (note,) = intent.notes
+    assert "the approval `install` wrote" in note
+    assert "enabledMcpjsonServers" in note, "the key to put it back in is named"
+    # Under the rows it is about, so a reader meets both halves before the sentence joining them.
+    said = intent.stated(checked=False).splitlines()
+    assert said.index(next(one for one in said if one.strip().startswith("kept"))) < said.index(
+        next(one for one in said if one.strip().startswith("note"))
+    )
+    # And it is true: the declaration survives, the approval does not.
+    uninstall(project)
+    assert loaded(project / PROJECT_MCP) == DECLARED
+    assert not (project / PROJECT_SETTINGS).exists()
+
+
+def test_an_un_wiring_with_no_foreign_server_has_nothing_to_note(project, source):
+    """The narrowing. On a project whose entry `install` wrote, the approval leaving is what
+    un-wiring *is* — there is no declaration left behind for it to be a consequence to, so a
+    note there would be the report explaining its own ordinary case."""
+    install(project, source=source)
+    assert removal(project).notes == ()
+
+
+def test_a_project_that_was_never_approved_is_told_nothing_is_taken(project, source):
+    """The other absence, and why the note asks the file rather than assuming. A settings file
+    a hand edit already emptied of the approval has none to withdraw, and a sentence saying one
+    goes would be this report describing a write it is not making."""
+    install(project, source=source)
+    _declaring(project, THEIRS)
+    settings = loaded(project / PROJECT_SETTINGS)
+    del settings["enabledMcpjsonServers"]
+    (project / PROJECT_SETTINGS).write_text(json.dumps(settings), encoding="utf-8")
+    assert removal(project).notes == ()
+    # The kept row is untouched: what stays is still stated.
+    assert PROJECT_MCP in [name for name, _ in removal(project).kept]
+
+
 def test_un_wiring_still_takes_out_the_entry_it_wrote(project, source):
     install(project, source=source)
     assert PROJECT_MCP not in [name for name, _ in removal(project).kept]

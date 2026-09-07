@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 10 | 179 | 4 |
 | D — The gate | 19 | 290 | 5 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 160 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 161 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 37 | 1096 | 17 |
+| **Total** | 36 | 1097 | 17 |
 
 **Next ready:**
 
-- 💭 **RK1611** (deps: —) **uninstall keeps a server declaration it did not write and takes away the approval that made it run** — RK1560 stopped the withdrawal at the declaration, and the approval is a second key in a file the same command deletes. → §RK1611
+- 💭 **RK1612** (deps: —) **a verb writing an answer and a note in one run has to flush between the streams, and nothing says which verbs those are** — RK1561 met the ordering a second time and the first fix carries a bare flush with no reason, so the rule is rediscovered rather than read. → §RK1612
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

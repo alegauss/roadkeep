@@ -798,27 +798,6 @@ door of its own is the design.
 
 ## Block F — The plugin
 
-### §RK1611 Half of somebody else's wiring
-
-Measured immediately after RK1560, on a project declaring `uv run serve-roadkeep mcp`:
-`install`, then `uninstall`. The entry stays, as it now should, and
-`.claude/settings.json` goes — it held only this command own keys — taking
-`enabledMcpjsonServers` with it. Their server is declared and unapproved, which
-`_merged_settings` own reasoning already calls indistinguishable from one never
-declared.
-
-So the kept row tells half the truth. It says the declaration stays; what it does not
-say is that the thing which made it run does not.
-
-Three answers and the choice is the argument. Keep the approval, which means keeping a
-settings file for one key on a project that has otherwise finished un-wiring. Take it
-and say so in the same row, which is honest and leaves work. Or ask whether un-wiring
-should reach a declaration this command left alone at all — the reading RK1560 settled
-for the file may settle this one too, one key over.
-
-What decides it is whether the approval is ours or theirs. We wrote it; it approves
-their server.
-
 ### §RK1619 The other end of the same f-string
 
 RK1564 narrowed the sweep to the **first** call in an `Answer` f-string, on the ground

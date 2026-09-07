@@ -287,6 +287,23 @@ KEPT_SERVER = (
     "stays, because taking out somebody else's declaration is not un-wiring ours"
 )
 
+#: What that row did not say (RK1611). `install` approves the server *name* in
+#: `.claude/settings.json`, and un-wiring takes the approval back — so on a project whose entry
+#: under that name is somebody else's, the declaration stays and the thing that made it run
+#: does not. The row told half the truth, and the missing half lands on their server.
+#:
+#: **Taken and said, rather than kept.** The approval is ours: `install` wrote it, and leaving
+#: it behind means keeping a settings file for one key on a project that has otherwise finished
+#: un-wiring. What un-wiring restores is the state before `install` ran, where that server was
+#: declared and unapproved — which is the right end state and the wrong thing to leave silent,
+#: because the consequence is theirs and the reflex RK1514 refused was the *unasked* act, not
+#: the unannounced one.
+WITHDRAWN_APPROVAL = (
+    "{settings}: the approval `install` wrote for that entry goes with this — their server is "
+    "declared and unapproved, which is the state before it ran; approve it again in "
+    "`enabledMcpjsonServers` where you want it back"
+)
+
 #: The surface this command names and does not write (L4), and why. Printed by `install`.
 CONTRIBUTING = (
     "CONTRIBUTING.md: one line telling a contributor the governed files are written by "
@@ -2968,6 +2985,16 @@ class Removal:
     #: Paths deliberately left, each with the reason — the other half of the report, for the
     #: reason `install` names what it does not write: a surface silently kept reads as missed.
     kept: tuple[tuple[str, str], ...] = ()
+    #: What a withdrawal does to something this command is *not* taking out (RK1611).
+    #:
+    #: Its own slot because it is neither of the two the report already has. A `kept` row says a
+    #: path stays and why; a withdrawal says a path goes. This says a path stays and is changed
+    #: by a path that goes — the shape the foreign-server row had no way to spell, so it said
+    #: the declaration stays and nothing about the approval leaving with `.claude/settings.json`.
+    #:
+    #: Rendered under the rows it is about and never counted in :meth:`verdict`, for `kept`'s
+    #: reason: nothing here is a surface still wiring this project to a checkout.
+    notes: tuple[str, ...] = ()
 
     @property
     def changing(self) -> tuple[Withdrawal, ...]:
@@ -2984,6 +3011,10 @@ class Removal:
             state = _WOULD_REMOVE[withdrawal.state] if checked else withdrawal.state
             rows.append(f"  {state:<14} {withdrawal.path.relative_to(self.root).as_posix()}")
         rows += [f"  kept           {why}" for _, why in self.kept]
+        # Last, under the rows it qualifies (RK1611): it is about what a withdrawal above did
+        # to what a `kept` row above says stays, so a reader meets both halves before the
+        # sentence joining them.
+        rows += [f"  note           {one}" for one in self.notes]
         return "\n".join(rows)
 
     def verdict(self) -> list[str]:
@@ -3015,6 +3046,11 @@ class Removal:
                 for withdrawal in self.withdrawals
             ],
             "kept": [{"path": path, "why": why} for path, why in self.kept],
+            # What a withdrawal does to something kept (RK1611). `[]` and never omitted, for
+            # the reason every other absence here is published: a consumer reading a missing
+            # key cannot tell *nothing follows from this un-wiring* from *this build predates
+            # the question*.
+            "notes": list(self.notes),
             "changing": len(self.changing),
         }
 
@@ -3167,12 +3203,20 @@ def removal(root: str | Path = ".") -> Removal:
     # write is not this command's to withdraw, and taking it out was the install defect with
     # the sign flipped — the entry gone and no row saying what had been there.
     theirs = foreign_server(base)
+    notes: list[str] = []
     if theirs:
         kept.append(
             (PROJECT_MCP, KEPT_SERVER.format(path=PROJECT_MCP, command=theirs))
         )
+        # And what that row leaves out (RK1611). The entry keeps this server's *name*, so the
+        # approval `install` wrote is taken back by the settings withdrawal below and their
+        # declaration is left unapproved — the state before `install` ran, which is right, and
+        # silent, which is not: the consequence lands on a server this command did not write.
+        if _approved(base):
+            notes.append(WITHDRAWN_APPROVAL.format(settings=PROJECT_SETTINGS))
     return Removal(
         root=base,
+        notes=tuple(notes),
         withdrawals=(
             *(
                 ()
@@ -3252,6 +3296,26 @@ def _without_server(current: dict) -> dict:
         elif servers:
             left[key] = servers
     return left
+
+
+def _approved(base: Path) -> bool:
+    """Whether `.claude/settings.json` approves this server's name right now (RK1611).
+
+    Asked before the note is composed, so a project that never had the approval — or whose
+    settings a hand edit already emptied — is not told something is being taken that is not
+    there. The same reading `_without_guard` acts on, which is what keeps the sentence and the
+    write agreeing about one key.
+
+    Every failure is `False`: a file that is not there approves nothing, and one this reader
+    cannot parse is `uninstall`'s own refusal to make one line further down, not this note's.
+    """
+    try:
+        settings = json.loads((base / PROJECT_SETTINGS).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    return isinstance(settings, dict) and SERVER in settings.get(
+        "enabledMcpjsonServers", []
+    )
 
 
 def _without_guard(current: dict) -> dict:
