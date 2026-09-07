@@ -21,7 +21,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 💭 **RG20** (deps: RG16 ✅) **finding a line by its words means opening each project and reading its list in turn** — A symptom is the field a person remembers a task by, and it is searchable only inside the one backlog already on screen. → §RG20
 - 📋 **RG73** (deps: RG16 ✅) **a row is built by four separate reads, so a project costs four interpreter starts to show once** — stats, pick, lint and engines are four calls per project, which is sixty-eight over seventeen and most of a cold start. → §RG73
 
 ## Block D — The project surface (one backlog, read)

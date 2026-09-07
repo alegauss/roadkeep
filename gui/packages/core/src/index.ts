@@ -74,6 +74,8 @@ export {
   withPresence,
 } from './roots'
 export type { KeyOf, KnownRoot, RootCheck, RootPresence, RootProblem, ScanRoot } from './roots'
+export { coversEverything, search } from './search'
+export type { Hit, SearchableProject, SearchAnswer, SearchField } from './search'
 export { DEFAULT_POLICY, mayEnter, scan } from './scanning'
 export type { Found, Listing, Look, ScanPolicy, ScanResult } from './scanning'
 export { buildArgv, createClient } from './client'

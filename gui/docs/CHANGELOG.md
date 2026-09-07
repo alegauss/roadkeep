@@ -25,6 +25,7 @@
 - ✅ **RG17** **twenty projects are read one after another, so the first screen is a wait with nothing drawn on it** — Every project goes out at once through the pool, rows stream in as they land in recorded order, and the cheap read fills the screen first (design recorded in `packages/core/src/cold-start.ts`).
 - ✅ **RG18** **whether a project's gate passes is unknown until it is opened, so the list cannot say which one needs attention** — A row shows the last verdict with when it was taken, unknown until a run has earned one, and stale the moment the files move (design recorded in `packages/core/src/gate.ts`).
 - ✅ **RG19** **what to work on is asked one repository at a time, so there is no answer that ranges over all of them** — Every project's candidate is laid out together with the tier that chose it, in the person's own project order and ranked by nothing here (design recorded in `packages/core/src/candidates.ts`).
+- ✅ **RG20** **finding a line by its words means opening each project and reading its list in turn** — Search runs over held payloads across every backlog, matches id, symptom and why, and names any project it could not cover (design recorded in `packages/core/src/search.ts`).
 
 ## Block D — The project surface (one backlog, read)
 

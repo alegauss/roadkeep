@@ -57,8 +57,22 @@ async function rowFor(projectPath: string): Promise<ProjectRow> {
   const pickRead = readPayload(readPickPayload, pick.stdout, where)
   const lintRead = readPayload(readLintPayload, lint.stdout, where)
 
-  expect(statsRead.ok && pickRead.ok && lintRead.ok).toBe(true)
-  if (!statsRead.ok || !pickRead.ok || !lintRead.ok) throw new Error('a payload did not read')
+  // Named individually: "false" tells whoever reads a red suite nothing, and the three
+  // reads fail for entirely different reasons.
+  for (const [verb, result, parsed] of [
+    ['stats', stats, statsRead],
+    ['pick', pick, pickRead],
+    ['lint', lint, lintRead],
+  ] as const) {
+    if (!parsed.ok) {
+      throw new Error(
+        `${verb} on ${projectPath} did not read: expected ${parsed.failure.expected} at ` +
+          `${parsed.failure.path || '(the answer)'}, found ${parsed.failure.got}. ` +
+          `exit ${String(result.code)}, stderr: ${result.stderr.slice(0, 200)}`,
+      )
+    }
+  }
+  if (!statsRead.ok || !pickRead.ok || !lintRead.ok) throw new Error('unreachable')
 
   // The gate goes through the ledger rather than straight onto the row: a verdict is
   // dated against the files it was taken from, which is what lets a row say it is stale.

@@ -18,10 +18,11 @@ table, a client over a fake transport, a boundary check over source text, a rend
 jsdom — all of it finishing in about a second. Four tests spawn a real Python roadkeep
 against this repository, and those alone take five.
 
-The ratio is about to get worse rather than better. RG4 exists to assert every payload
-this app reads against a live engine, which is one process start per verb, and RG6 adds
-another. A gate that takes a minute is one people stop running between edits, and the
-tests they stop running are the fast ones that would have caught the mistake.
+Measured while shipping RG20, which is what makes this urgent rather than tidy. Six live
+files in parallel put twenty-odd interpreters on eight cores, and the reads that lost
+that race failed for being starved — one test passed alone and failed in a full run,
+twice. `fileParallelism: false` fixed it and took the suite from forty seconds to two
+minutes. Right for a gate, wrong for something run between edits, which is the split.
 
 So this wants two commands over one suite: `npm test` staying the fast one, and a second
 — `npm run test:live` — carrying everything that spawns. Vitest's project mechanism
@@ -213,14 +214,6 @@ Not urgent while the app draws no list. It becomes visible the moment block C do
 it is cheaper to decide now than to notice from a screenshot.
 
 ## Block C — The portfolio (many backlogs in one view)
-
-### §RG20 Finding a line by the words on it
-
-Search runs over the payloads already held, not over the files, so it costs nothing on a
-warm list and never re-reads a repository to answer. What it matches is the symptom, the
-why and the id, which are the three things a person remembers a task by. A project not
-yet read is named as unsearched rather than silently excluded, since a search that
-quietly covers eleven of seventeen backlogs is one whose empty answer means nothing.
 
 ### §RG73 Four reads to draw one row
 
