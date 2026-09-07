@@ -745,6 +745,31 @@ it, and every caller in `BESIDE` moving onto it. A phrase-split stays where a sp
 genuinely is one clause inside a longer docstring, and is then a stated exception rather
 than the default.
 
+### §RK1639 The prose a caller is handed
+
+RK1588 swept one closed set and found two of nine reasons resting on stale figures — a
+third of those carrying a number at all. That set was the honest first step, and the
+general form is not cheap: most numbers in package prose are corpus measurements whose
+point is being historical.
+
+The next sets are closed too and unswept. `remedying`'s remedies, `serving`'s notes and
+`guarding`'s refusals are each an enumeration this suite holds total, and each reaches a
+**caller** rather than a maintainer — which makes a stale figure worse there. A
+withholding reason is read by whoever edits the surface; a refusal by whoever met it.
+
+What made the sweep cheap was the distinction and not the regex: `RK1506` is an address
+and `943` is a measurement, and one line of pattern separates them. That holds wherever
+the prose is reached through a declared table, which is exactly these three.
+
+What it must not become is a rule about digits in this package. `test_corpora` quotes
+pinned counts on purpose, `budgeting` quotes what a surface measured the day a limit was
+chosen, and RK1530's docstring names two figures it is about. The line is *prose a
+caller is handed*; outside it a number is a record, not a claim.
+
+So the shape is that sweep over the next three tables, and a row per table saying
+whether its prose is a caller's or an author's — which decides whether a figure in it is
+a defect or a date.
+
 ## Block E — Adoption
 
 ## Block F — The plugin
