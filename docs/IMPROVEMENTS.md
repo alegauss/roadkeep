@@ -836,9 +836,10 @@ bytecode nothing asked for. The proportion is what makes it worth a line — the
 costs almost as much as the artefact.
 
 It predates RK1606 and was invisible beside 22.46 MiB. It is also not a bug: the
-bytecode is valid, it is what the launcher would generate on first use anyway, and an
-adopter who git-ignores `.roadkeep/` never sees it. What it is is an artefact that
-stopped being the size its own rule says.
+bytecode is valid and is what the launcher would write on first use anyway. What it is
+is an artefact that stopped being the size its own rule says. **No supported Python
+API.** does not reach it — that non-goal is about what this tool offers a caller to
+import, and this is what CPython writes for its own loader.
 
 Three ways out and they differ in what they give up. `-B` or `PYTHONDONTWRITEBYTECODE`
 on the verification subprocess leaves the copy as written and makes the first real run
