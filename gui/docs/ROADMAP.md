@@ -66,7 +66,7 @@
 
 ## Block G — The shell (an executable now, a service later)
 
-- 💭 **RG44** (deps: RG37 ✅) **the renderer holds node powers, so the half a service would serve to a browser can delete a file** — Context isolation off and one broad channel is the arrangement that makes the web port a rewrite instead of a transport swap. → §RG44
+- 🛠 **RG44** (deps: RG37 ✅) **the renderer holds node powers, so the half a service would serve to a browser can delete a file** — Context isolation off and one broad channel is the arrangement that makes the web port a rewrite instead of a transport swap. → §RG44
 - 💭 **RG45** (deps: RG37 ✅, RG7) **nothing watches the governed files, so a write by an agent or a terminal leaves the screen stale** — roadkeep.toml names every governed role, so what to watch is declared and the cache has nothing telling it to expire. → §RG45
 - 💭 **RG46** (deps: RG37 ✅, RG44) **there is no executable, so the app runs only where its source tree and toolchain already are** — An .exe is the delivery this project was asked for, and packaging is what decides the security posture is real rather than configured. → §RG46
 - 💭 **RG47** (deps: RG37 ✅) **settings have nowhere to live, so roots and preferences are gone when the window closes** — The scan roots are the one fact this app owns rather than reads, and there is no file for them and no schema over it. → §RG47
