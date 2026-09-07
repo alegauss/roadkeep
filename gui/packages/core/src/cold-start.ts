@@ -59,6 +59,7 @@ function asUnreadable(cause: unknown, stage: string): Unreadable {
       message: cause.message,
       elapsedMs: cause.durationMs,
       argv: [],
+      said: '',
     }
   }
 
@@ -69,6 +70,7 @@ function asUnreadable(cause: unknown, stage: string): Unreadable {
       message: thrown.message,
       elapsedMs: thrown.elapsedMs ?? 0,
       argv: thrown.argv ?? [],
+      said: thrown.said ?? '',
     }
   }
 
@@ -77,6 +79,7 @@ function asUnreadable(cause: unknown, stage: string): Unreadable {
     message: `${stage} failed: ${cause instanceof Error ? cause.message : String(cause)}`,
     elapsedMs: 0,
     argv: [],
+    said: '',
   }
 }
 

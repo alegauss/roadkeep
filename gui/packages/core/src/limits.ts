@@ -50,12 +50,39 @@ function clamp(value: number, low: number, high: number): number {
  * The elapsed time and the argv are both here because "unreadable" on its own is not
  * something anybody can act on: knowing it waited fifteen seconds on a command you can
  * see is the difference between a bug report and a shrug.
+ *
+ * **`said` is the engine's own prose**, and it is here because the one case where the
+ * engine explained itself in full was the one case this app threw the explanation away.
+ * Two of them, measured: a cached older build refusing this project's config exits 0 with
+ * the unknown key named on stderr and nothing on stdout, and `section amend --replace`
+ * with a fragment that does not match does the same, naming the fragment and the verb that
+ * prints the prose. Both arrived as `expected JSON, found ""`.
  */
 export interface Unreadable {
   readonly reason: EngineFailure | 'unreadable-payload'
   readonly message: string
   readonly elapsedMs: number
   readonly argv: readonly string[]
+  /**
+   * What the engine wrote on stderr, trimmed and bounded. Empty where there was none —
+   * a call that never launched has no output to have written.
+   */
+  readonly said: string
+}
+
+/**
+ * How much of stderr to keep.
+ *
+ * Generous enough for a refusal with its remedy — the longest measured here is under four
+ * hundred characters — and bounded because stderr is not a field anybody promised a size
+ * for, and a screen is not the place to discover that.
+ */
+const SAID_CEILING = 2000
+
+/** The engine's prose, ready to put in front of a person. */
+export function saidBy(stderr: string): string {
+  const said = stderr.trim()
+  return said.length <= SAID_CEILING ? said : `${said.slice(0, SAID_CEILING)}…`
 }
 
 export type ProjectRead<T> =
@@ -86,11 +113,15 @@ export async function attemptRead<T>(
           message: cause.message,
           elapsedMs: cause.durationMs,
           argv: request.argv,
+          // A call that never launched, or was killed, wrote nothing to carry.
+          said: '',
         },
       }
     }
     throw cause
   }
+
+  const said = saidBy(result.stderr)
 
   let source: unknown
   try {
@@ -100,9 +131,15 @@ export async function attemptRead<T>(
       ok: false,
       unreadable: {
         reason: 'unreadable-payload',
-        message: `\`${request.argv.join(' ')}\` answered with something that is not JSON`,
+        // The engine's sentence leads where there is one: it names the cause, and the
+        // argv only names the symptom.
+        message:
+          said === ''
+            ? `\`${request.argv.join(' ')}\` answered with something that is not JSON`
+            : said,
         elapsedMs: result.durationMs,
         argv: request.argv,
+        said,
       },
     }
   }
@@ -116,6 +153,7 @@ export async function attemptRead<T>(
         message: `${parsed.failure.path || 'the answer'}: expected ${parsed.failure.expected}, found ${parsed.failure.got}`,
         elapsedMs: result.durationMs,
         argv: request.argv,
+        said,
       },
     }
   }

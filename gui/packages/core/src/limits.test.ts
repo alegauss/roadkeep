@@ -101,6 +101,79 @@ describe('RG8: a project that could not be read', () => {
   })
 })
 
+describe('RG79: the half of an answer nobody was reading', () => {
+  /** Captured from a cached older build refusing this project's config: exit 0, no stdout. */
+  const REFUSED_CONFIG =
+    "roadkeep: roadkeep.toml: unknown key 'install.wired' (allowed: install.enforced, " +
+    'install.pinned) — read by roadkeep 0.2.4 (35f315b, ~/.cache/roadkeep-src)'
+
+  it('carries what the engine wrote, where the answer was not a payload', async () => {
+    // Exit 0, nothing on stdout, and the whole explanation on stderr. Before this, the
+    // reader was told `expected JSON, found ""` and the cause went in the bin.
+    const read = await attemptRead(
+      answering({ code: 0, stdout: '', stderr: `${REFUSED_CONFIG}\n` }),
+      request,
+      readListPayload,
+    )
+
+    expect(read.ok).toBe(false)
+    if (read.ok) return
+    expect(read.unreadable.said).toBe(REFUSED_CONFIG)
+    // And it leads the message, because the argv names the symptom and this names the cause.
+    expect(read.unreadable.message).toBe(REFUSED_CONFIG)
+  })
+
+  it('falls back to the argv where the engine said nothing at all', async () => {
+    const read = await attemptRead(answering({ stdout: 'not json' }), request, readListPayload)
+
+    expect(read.ok).toBe(false)
+    if (read.ok) return
+    expect(read.unreadable.said).toBe('')
+    expect(read.unreadable.message).toContain('list')
+    expect(read.unreadable.message).toContain('not JSON')
+  })
+
+  it('carries it beside a shape that did not match, without replacing that message', async () => {
+    // Here the answer *was* JSON and the shape was wrong, so the reader's own sentence is
+    // the useful one — but a warning on stderr is still worth having.
+    const read = await attemptRead(
+      answering({ stdout: '{"file": 7}', stderr: 'roadkeep: a deprecation notice' }),
+      request,
+      readListPayload,
+    )
+
+    expect(read.ok).toBe(false)
+    if (read.ok) return
+    expect(read.unreadable.said).toBe('roadkeep: a deprecation notice')
+    expect(read.unreadable.message).toContain('expected')
+  })
+
+  it('has nothing to carry when the call never ran', async () => {
+    const read = await attemptRead(
+      failing(new EngineCallFailed('unspawnable', 'python is not on PATH', 4)),
+      request,
+      readListPayload,
+    )
+
+    expect(read.ok).toBe(false)
+    if (read.ok) return
+    expect(read.unreadable.said).toBe('')
+  })
+
+  it('bounds it, because stderr is not a field anybody promised a size for', async () => {
+    const read = await attemptRead(
+      answering({ stdout: '', stderr: 'x'.repeat(5000) }),
+      request,
+      readListPayload,
+    )
+
+    expect(read.ok).toBe(false)
+    if (read.ok) return
+    expect(read.unreadable.said).toHaveLength(2001)
+    expect(read.unreadable.said.endsWith('…')).toBe(true)
+  })
+})
+
 describe('RG8: a project that was read', () => {
   it('comes back with its value and how long it took', async () => {
     const read = await attemptRead(

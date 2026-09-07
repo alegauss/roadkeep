@@ -74,7 +74,7 @@ export { accountOf, deferred, leftPointing, resumed, retired, shipped } from './
 export type { Departure, Edit, Leaving } from './leaving'
 export { aboutNoInput, movedFrom, openMarkers, saidOfMove } from './marking'
 export type { ClaimEffect, Moved } from './marking'
-export { attemptRead, DEFAULT_LIMITS, withLimits } from './limits'
+export { attemptRead, DEFAULT_LIMITS, saidBy, withLimits } from './limits'
 export type { ProjectRead, ReadLimits, Unreadable } from './limits'
 export { howListed, ledgerFrom, reversedFrom, undoneBy } from './memory'
 export type { Delivery, Ledger, Reversed } from './memory'

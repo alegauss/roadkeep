@@ -1,7 +1,7 @@
 import { EngineCallFailed, type EngineResult, type Transport } from './transport'
 import { readAnswer, type Refusal } from './refusals'
 import type { Reader } from './reading'
-import type { Unreadable } from './limits'
+import { saidBy, type Unreadable } from './limits'
 import { WRITES, WRITE_WORDS, type WriteInputs, type WriteName } from './writes'
 import { spell } from './verbs'
 
@@ -95,6 +95,7 @@ export async function applyWrite<T>(
           message: cause.message,
           elapsedMs: cause.durationMs,
           argv: composed.argv,
+          said: '',
         },
       }
     }
@@ -103,15 +104,23 @@ export async function applyWrite<T>(
 
   const answer = readAnswer(reader, result)
   if (!answer.ok) {
+    // Not every refusal arrives as a payload. `section amend --replace` with a fragment
+    // that does not match writes its sentence to stderr and leaves stdout empty, so
+    // without this the person reads "answered with nothing on stdout" where the engine
+    // had named the fragment and pointed at the verb that prints the prose.
+    const said = saidBy(result.stderr)
     return {
       kind: 'unreadable',
       unreadable: {
         reason: 'unreadable-payload',
         message:
-          `\`${composed.verb}\` answered with ${answer.failure.got} where ` +
-          `${answer.failure.path || 'the answer'} should have been ${answer.failure.expected}`,
+          said === ''
+            ? `\`${composed.verb}\` answered with ${answer.failure.got} where ` +
+              `${answer.failure.path || 'the answer'} should have been ${answer.failure.expected}`
+            : said,
         elapsedMs: result.durationMs,
         argv: composed.argv,
+        said,
       },
     }
   }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { readAddedPayload } from './payloads'
+import { readAddedPayload, readSectionWritten } from './payloads'
 import { EngineCallFailed, type EngineRequest, type EngineResult, type Transport } from './transport'
 import { applied, applyWrite, composeWrite } from './writing'
 import { EVERY_WRITE_INPUT, WRITES } from './writes'
@@ -234,5 +234,35 @@ describe('RG29: a write ends in three states and no more', () => {
     if (outcome.kind !== 'unreadable') throw new Error('unreachable')
     expect(outcome.unreadable.reason).toBe('unreadable-payload')
     expect(outcome.unreadable.message).toContain('add')
+  })
+
+  it('RG79: shows what the engine said where the refusal never became a payload', async () => {
+    // `section amend --replace` with a fragment that does not match writes this and
+    // leaves stdout empty. Without it the person reads "answered with nothing on stdout"
+    // where the engine had named the fragment and pointed at the verb printing the prose.
+    const said =
+      'roadkeep: --replace names one occurrence and §FX1 does not carry ' +
+      "'a phrase this prose never contained': check the spelling against `section show`"
+    const calls: EngineRequest[] = []
+    const transport: Transport = {
+      run(request) {
+        calls.push(request)
+        return Promise.resolve({ code: 1, stdout: '', stderr: said, durationMs: 4 })
+      },
+    }
+
+    const outcome = await applyWrite(
+      transport,
+      composeWrite('/w', 'sectionAmend', {
+        anchor: 'FX1',
+        fragment: { replace: 'a phrase this prose never contained', replacement: 'x' },
+      }),
+      readSectionWritten,
+    )
+
+    expect(outcome.kind).toBe('unreadable')
+    if (outcome.kind !== 'unreadable') throw new Error('unreachable')
+    expect(outcome.unreadable.said).toBe(said)
+    expect(outcome.unreadable.message).toBe(said)
   })
 })

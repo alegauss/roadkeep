@@ -149,7 +149,7 @@ describe('RG32: correcting a section as a fragment', () => {
     expect(await proseOf(id)).not.toContain('nobody needed')
   })
 
-  it('writes nothing for a fragment that is not there, and RG79 is why it reads badly', async () => {
+  it('writes nothing for a fragment that is not there, and says why', async () => {
     const id = await lineWithoutSection('a fragment that matches nothing must not be guessed at')
     await sectionWrite('sectionAdd', {
       anchor: id,
@@ -168,17 +168,18 @@ describe('RG32: correcting a section as a fragment', () => {
       { timeoutMs: CEILING },
     )
 
-    // What matters, and what holds: the prose is untouched.
     expect(await proseOf(id)).toBe(before)
 
-    // What does not hold yet. This refusal goes to stderr with **nothing on stdout**, so
-    // there is no payload to read and the outcome is `unreadable` rather than `refused` —
-    // and the engine's own sentence, which names the fragment and points at `section
-    // show`, is in a field `attemptRead` and `applyWrite` both discard. RG79 is that gap,
-    // and this asserts the state as it is rather than the state it should be.
+    // This refusal goes to stderr with nothing on stdout, so there is no payload and the
+    // outcome is `unreadable` rather than `refused`. RG79 is why the engine's own sentence
+    // survives that: it names the fragment and points at the verb that prints the prose,
+    // which is the whole of what there is to tell somebody who mistyped it.
     expect(outcome.kind).toBe('unreadable')
     if (outcome.kind !== 'unreadable') throw new Error('unreachable')
     expect(outcome.unreadable.reason).toBe('unreadable-payload')
+    expect(outcome.unreadable.said).toContain('a phrase this prose never contained')
+    expect(outcome.unreadable.said).toContain('section show')
+    expect(outcome.unreadable.message).toBe(outcome.unreadable.said)
   })
 
   it('amends the heading without touching the prose bytes', async () => {

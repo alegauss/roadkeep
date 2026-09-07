@@ -194,6 +194,7 @@ describe('RG16: a project that could not be read', () => {
       message: 'the engine ran past 15000ms',
       elapsedMs: 15002,
       argv: ['-C', project.path, 'stats', '--json'],
+      said: '',
     }
 
     const row = unreadableRow(project, unreadable)
@@ -211,6 +212,7 @@ describe('RG16: how the screen stands', () => {
     unreadableRow({ ...project, path: '/code/c' }, {
       reason: 'unspawnable',
       message: 'no python',
+      said: '',
       elapsedMs: 3,
       argv: [],
     }),

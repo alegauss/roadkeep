@@ -124,6 +124,7 @@ describe('RG19: the projects with no candidate', () => {
       unreadableRow(project('/code/broken'), {
         reason: 'timeout',
         message: 'ran past 15000ms',
+        said: '',
         elapsedMs: 15001,
         argv: [],
       }),
