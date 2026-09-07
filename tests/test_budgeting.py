@@ -1769,6 +1769,116 @@ def test_the_bare_verb_names_the_sixth_subject(tmp_path, capsys):
     assert "--notes" in capsys.readouterr().err
 
 
+# -- the third per-write cadence (RK1582) --------------------------------------
+
+
+def test_the_rows_an_add_volunteers_are_priced(tmp_path):
+    """RK1582. RK1491 priced the gate's notes and RK1524 the transport's; these are the third
+    per-write prose and the one nothing counted — they fire on **every** `add` rather than on
+    a state, on the command an agent runs most, and they grew in four tasks against no number.
+
+    Measured on this repository, which is the corpus the design was argued from."""
+    from roadkeep.budgeting import near_cost
+    from roadkeep.ranking import VOLUNTEERED
+
+    found = near_cost(Config.discover(Path(__file__).resolve().parents[1]))
+    assert found.block, "this project's blocks hold entries, so a block is dearest"
+    assert found.here == found.header + sum(one.characters or 0 for one in found.rows)
+    # Bounded by construction, which is more than the notes had — and read off `ranking` so
+    # the guard that bounds the answer and the figure that prices it cannot come apart.
+    assert found.bounded == VOLUNTEERED
+    assert len(found.rows) <= VOLUNTEERED
+    # Widest first, which is what makes the ranking a place to look rather than a list.
+    assert [one.characters for one in found.rows] == sorted(
+        [one.characters for one in found.rows], reverse=True
+    )
+    # Every row is labelled by the id it names (RK1522's rule for the fourth caller of `Part`).
+    assert all(one.heading.startswith("RK") for one in found.rows)
+
+
+def test_the_rows_are_priced_off_the_composer_and_not_a_fixture(tmp_path):
+    """`note_cost`'s rule, and the reason `volunteered_rows` came out of `Insertion.stated`:
+    a figure measured against a second spelling agrees until somebody edits one of them."""
+    from roadkeep.authoring import volunteered_rows
+    from roadkeep.budgeting import near_cost
+    from roadkeep.kernel.schema import width
+
+    here = Config.discover(Path(__file__).resolve().parents[1])
+    found = near_cost(here)
+    delivered = list(here.document("changelog").block(found.block))
+    entries = [*delivered, *here.document("roadmap").block(found.block)]
+    # The header the composer writes for that block, at its real counts — the one row of this
+    # answer that fires on every `add` whether or not any neighbour is shown.
+    ((header,)) = volunteered_rows(found.block, (), len(delivered), len(entries) - len(delivered))[:1]
+    assert found.header == width(header)
+    assert found.corpus == len(entries)
+
+
+def test_the_dearest_block_is_the_figure_and_not_a_mean(tmp_path):
+    """What a caller pays is a property of the **neighbours' own symptoms**, so a mean over
+    blocks would be a number no single write ever pays. The dearest is what an author deciding
+    whether the rows may grow again has to look at.
+
+    Held by re-measuring every block through the same composer: the answer names one block and
+    the claim it makes about it is that no other costs more."""
+    from roadkeep.authoring import volunteered_rows
+    from roadkeep.budgeting import near_cost
+    from roadkeep.kernel.schema import width
+    from roadkeep.ranking import VOLUNTEERED, claim, nearest
+
+    here = Config.discover(Path(__file__).resolve().parents[1])
+    found = near_cost(here)
+    roadmap = here.document("roadmap")
+    for block in [one.label for one in roadmap.headings if one.label]:
+        delivered = list(here.document("changelog").block(block))
+        entries = [*delivered, *roadmap.block(block)]
+        if not entries:
+            continue
+        query = max((one.task.symptom for one in entries), key=width)
+        near = tuple(
+            entries[index]
+            for index in nearest(
+                query,
+                [claim(one.task.symptom, one.task.why) for one in entries],
+                VOLUNTEERED,
+            )
+        )
+        lines = volunteered_rows(block, near, len(delivered), len(entries) - len(delivered))
+        assert sum(width(one) for one in lines) <= found.here, block
+
+
+def test_a_project_with_nothing_to_rank_is_priced_at_nothing(tmp_path):
+    """The two states with nothing to rank are one answer: an `add` there volunteers no rows,
+    so there is no prose to count and the reading says so rather than reporting a zero a
+    reader would take for a measured one."""
+    from roadkeep.adopting import init
+    from roadkeep.budgeting import near_cost
+
+    init(tmp_path)
+    found = near_cost(Config.discover(tmp_path))
+    assert found.here == 0
+    assert "nothing to price" in found.stated()
+
+
+def test_the_near_read_is_the_third_subject_the_surface_withholds(tmp_path, capsys):
+    """`--deny`'s argument at its clearest: every caller of `add` is handed these rows by the
+    write that composed them, so the figure adds nothing they could not count from the answer
+    already in front of them — and whether the rows may grow is decided at a terminal."""
+    from roadkeep import serving
+
+    assert "near" in serving.withheld()["cost"]
+    _priced(tmp_path)
+    assert main(["-C", str(tmp_path), "cost", "--near", "--notes"]) == EXIT_USAGE
+    assert "one answer per call" in capsys.readouterr().err
+
+
+def test_the_bare_verb_names_the_seventh_subject(tmp_path, capsys):
+    # Seven cadences and still no default, for the reason there were six.
+    _priced(tmp_path)
+    assert main(["-C", str(tmp_path), "cost"]) == EXIT_USAGE
+    assert "--near" in capsys.readouterr().err
+
+
 def test_the_two_surface_reads_share_one_measurement(tmp_path, capsys):
     """RK1096. `--tools` summed the descriptors and the handshake, `--session` summed the
     same two, and neither called the other — one arithmetic written twice, which agrees right

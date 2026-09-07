@@ -1446,6 +1446,11 @@ USES: Mapping[str, str] = {
     "_parts": "a `##` section of an every-turn file, labelled by its heading",
     "_pages": "a reference page the skill points at, labelled by its filename",
     "note_cost": "a note the gate says beside its verdict, labelled by its code",
+    # The fourth, and this census is what made it arrive as a red rather than as a silence
+    # (RK1582). Its label is a **task id**, which is the first one that addresses a line
+    # rather than naming a text: the row prices somebody else's symptom, so what a reader
+    # needs to find it again is the id it belongs to.
+    "near_cost": "a neighbour an `add` volunteered, labelled by the id it names",
 }
 
 
@@ -2411,6 +2416,156 @@ def note_cost(config: Config) -> Noted:
             )
         ),
     )
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class Volunteered:
+    """What every `add` hands back beside the line it wrote (RK1582).
+
+    The **third per-write cadence**, and the one nothing counted. RK1491 priced the gate's
+    notes and RK1524 the transport's; these rows are neither — they ride on the one command an
+    agent runs most, they fire on *every* call rather than on a state, and they grew in four
+    tasks. RK1370 wrote them, RK1374 added the counts, RK1495 added the open corpus and RK1528
+    the second door. Each was argued and none was counted, which is RK30's own sentence.
+
+    **Measured off the composer** (:func:`~roadkeep.authoring.volunteered_rows`), never off a
+    second spelling: `note_cost` refuses a fixture for that reason, and this text moved out of
+    `Insertion.stated` so that the figure and the lines cannot come apart.
+
+    **No limit**, for :class:`Skilled`'s reason and one sharper than it: the rows *are* the
+    duplicate read, so a project that shortened them to fit a number would be trading away the
+    thing the answer is for. :data:`~roadkeep.ranking.VOLUNTEERED` bounds them at three, which
+    is a ceiling by construction — more than the notes had — and what is missing is the figure.
+    """
+
+    #: The block these rows were ranked in, and the widest one: what a caller pays here is a
+    #: property of the neighbours' own symptoms, so the honest figure is the dearest block
+    #: rather than an average over blocks a project may never file into again.
+    block: str = ""
+    #: The header, which fires on every `add` that ranks anything — the counts, and the door
+    #: for each half of the corpus.
+    header: int = 0
+    #: One row per neighbour shown, widest first: a neighbour's own symptom, at this project's
+    #: own widths and never at a limit's.
+    rows: tuple[Part, ...] = ()
+    #: How many entries that block holds, delivered and open — what the header is a bounded
+    #: answer *about*, and the reason three rows are three and not thirty.
+    corpus: int = 0
+    #: The ceiling the rows have by construction, from `ranking.VOLUNTEERED` and never a
+    #: literal here: the guard that bounds the answer and the figure that prices it may not
+    #: come apart, which is `Noted.per_call`'s rule one field over.
+    bounded: int = 0
+    #: What the figures are counted in. A **field** and not a register's parameter, which is
+    #: what keeps this out of `test_registers.CARRIED`: every sibling here takes it as an
+    #: argument and is carried for exactly that, and the fact is a property of the reading
+    #: rather than of the caller asking for it.
+    unit: str = ""
+
+    @property
+    def here(self) -> int:
+        """What one `add` into this block costs — the sum, which is the per-write figure."""
+        return self.header + sum(one.characters or 0 for one in self.rows)
+
+    def stated(self) -> str:
+        if not self.block:
+            return (
+                "near          0 no block here holds an entry to rank, so an `add` "
+                "volunteers nothing and there is nothing to price"
+            )
+        rows = [
+            f"near       {self.here} {self.unit} on every `add` into {self.block}, this "
+            f"project's dearest block — and no ceiling is declared for it",
+            f"  of       {len(self.rows):>6}  row(s) of {self.corpus} entr(ies) that block "
+            f"holds, bounded at {self.bounded} by `ranking.VOLUNTEERED`",
+            f"  header   {self.header:>6}  the counts and the door for each half, on every "
+            f"`add` that ranks anything",
+        ]
+        rows += [f"  row      {one.characters or 0:>6}  {one.heading}" for one in self.rows]
+        return chr(10).join(rows)
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "characters": self.here,
+            "unit": self.unit,
+            "of": "the neighbours every add volunteers, per write",
+            "block": self.block,
+            "header": self.header,
+            # The population the bound is over, so a consumer can take the ratio the rows
+            # print without re-deriving it (RK1521, `Noted.population`'s rule).
+            "corpus": self.corpus,
+            "bounded": self.bounded,
+            "rows": [
+                {"id": one.heading, "characters": one.characters or 0} for one in self.rows
+            ],
+            # No `limit` key, for `Skilled`'s reason: a `null` there reads as a ceiling this
+            # build failed to find rather than as one nobody has argued for.
+        }
+
+
+def near_cost(config: Config) -> Volunteered:
+    """Price the rows an `add` volunteers, off the function that composes them (RK1582).
+
+    :func:`note_cost`'s rule and its shape. What a caller pays is a property of the
+    **neighbours' own symptoms**, so this ranks a real block of this project's own corpus and
+    prices the real lines — a fixture would agree until somebody edited a row.
+
+    The **dearest** block and not every one: the figure a reader needs is what an `add` costs
+    where it costs most, and a mean over blocks would be a number no single write ever pays.
+
+    Nothing is written and no id is minted. The query is the widest symptom the block already
+    holds, which is this corpus asked about itself: what is being priced is the *rows*, and
+    which entries come back changes their widths and not the shape of the answer.
+    """
+    from roadkeep.authoring import volunteered_rows  # noqa: PLC0415 - RK260
+    from roadkeep.ranking import VOLUNTEERED, claim, nearest  # noqa: PLC0415 - RK260
+
+    roadmap = config.document("roadmap")
+    dearest = Volunteered()
+    for block in [one.label for one in roadmap.headings if one.label]:
+        delivered = (
+            list(config.document("changelog").block(block))
+            if config.has("changelog") and config.path("changelog").is_file()
+            else []
+        )
+        entries = [*delivered, *roadmap.block(block)]
+        if not entries:
+            continue
+        query = max((one.task.symptom for one in entries), key=width)
+        near = tuple(
+            entries[index]
+            for index in nearest(
+                query,
+                [claim(one.task.symptom, one.task.why) for one in entries],
+                VOLUNTEERED,
+            )
+        )
+        lines = volunteered_rows(
+            block, near, len(delivered), len(entries) - len(delivered)
+        )
+        found = Volunteered(
+            block=block,
+            header=width(lines[0]),
+            rows=tuple(
+                sorted(
+                    (
+                        Part(
+                            heading=one.task.id,
+                            lines=1,
+                            bytes=len(line.encode()),
+                            characters=width(line),
+                        )
+                        for one, line in zip(near, lines[1:], strict=True)
+                    ),
+                    key=lambda one: -(one.characters or 0),
+                )
+            ),
+            corpus=len(entries),
+            bounded=VOLUNTEERED,
+            unit=UTF16_UNITS,
+        )
+        if found.here > dearest.here:
+            dearest = found
+    return dearest
 
 
 def notice_budget(config: Config) -> tuple[int, int | None]:

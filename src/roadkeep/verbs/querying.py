@@ -458,16 +458,18 @@ def _cost(config: Config, args: argparse.Namespace) -> Result | int:
         return _deny_budget(config, args)
     if args.notes:
         return _notes_budget(config, args)
+    if args.near:
+        return _near_budget(config, args)
     # No subject is the default here, unlike `budget`, whose bare form is about the line `add`
-    # would write next. These are six cadences — once at connect, once per turn, once per
-    # read, once per turn that loads the write path (RK1424), once per refused write (RK1428)
-    # and once per run of the gate (RK1491) — and privileging one would make the others look
-    # like narrowings of it.
+    # would write next. These are seven cadences — once at connect, once per turn, once per
+    # read, once per turn that loads the write path (RK1424), once per refused write (RK1428),
+    # once per run of the gate (RK1491) and once per `add` (RK1582) — and privileging one
+    # would make the others look like narrowings of it.
     print(
         "roadkeep: cost takes a subject: --tools for the served surface, --brief for what "
         "that read costs a tool result, --session for both against their cadences, --skill "
         "for the write path on the turns that load it, --deny for one refused write, --notes "
-        "for what a clean run says beside its verdict",
+        "for what a clean run says beside its verdict, --near for what an `add` volunteers",
         file=sys.stderr,
     )
     return EXIT_USAGE
@@ -845,6 +847,29 @@ def _notes_budget(config: Config, args: argparse.Namespace) -> Result | int:
 
     found = note_cost(config)
     return Result(found.payload(CHARACTER_UNIT), found.stated(CHARACTER_UNIT))
+
+
+def _near_budget(config: Config, args: argparse.Namespace) -> Result | int:
+    """What the neighbours an `add` volunteers cost, per write (RK1582).
+
+    The seventh cadence and the third that is **prose composed per write**. RK1491 priced the
+    gate's notes and RK1524 the transport's; these are neither — they fire on every `add`
+    rather than on a state, on the one command an agent runs most, and they grew in four tasks
+    against no number at all.
+
+    This project's **dearest** block, because what a caller pays is a property of the
+    neighbours' own symptoms and a mean over blocks is a figure no single write ever pays.
+
+    **And no ceiling**, for `--notes`' reason and one sharper than it: the rows are the
+    duplicate read, so shortening them to fit a number would trade away what the answer is
+    for. `ranking.VOLUNTEERED` already bounds them at three; the figure is what was missing.
+    """
+    del args
+    from roadkeep.budgeting import near_cost  # noqa: PLC0415 - RK260
+
+    # Both registers with no argument, which is `SHAPES`' `answer` (RK1617): the unit is a
+    # field on the reading rather than a parameter here, so this result is not a `CARRIED` row.
+    return answered(near_cost(config))
 
 
 def _brief_budget(config: Config, args: argparse.Namespace) -> Result | int:
@@ -2000,6 +2025,11 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         action="store_true",
         help="what a clean run of the gate says beside its verdict",
     )
+    cost_parser.add_argument(
+        "--near",
+        action="store_true",
+        help="what the neighbours an `add` volunteers cost, per write",
+    )
     cost_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     cost_parser.set_defaults(handler=_cost, reads_only=True)
     answers(
@@ -2015,6 +2045,9 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         # The sixth (RK1491), paid on every run of the gate by a project that wired it: what a
         # clean report says beside its verdict, which no other cadence here counts.
         ("notes", "what a clean run of the gate says beside its verdict"),
+        # And the seventh (RK1582), paid on every `add` — the third per-write prose here, on
+        # the one command an agent runs most, and the only one bounded by construction.
+        ("near", "what the neighbours an `add` volunteers cost, per write"),
     )
     # The one subject of this verb the surface does not offer (RK1428), and `list --ids`'
     # reason exactly: a caller over that transport is *handed the denial itself*, so the
@@ -2036,6 +2069,15 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
             "the session that meets a note is handed the note, so the figure adds nothing it "
             "could not count from the text in front of it — and the author who can shorten a "
             "clause is at a terminal, where `[tools] session` is not what they are spending"
+        ),
+        # The third withheld on the first one's argument (RK1582), and the clearest case of
+        # it: the caller who pays for these rows is handed them by the `add` that composed
+        # them, in the same answer. What the figure is for is the author deciding whether a
+        # fifth task may add a clause, and that reading happens at a terminal.
+        near=(
+            "every caller of `add` is handed these rows by the write itself, so the figure "
+            "adds nothing it could not count from the answer in front of it — and the "
+            "question it settles, whether the rows may grow again, is asked at a terminal"
         ),
     )
     narrows(budget_parser, "role", "anchor")

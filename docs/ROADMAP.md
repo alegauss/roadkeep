@@ -44,7 +44,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1582** (deps: —) **the rows an add volunteers are prose on every write and no cadence counts them** — RK1491 priced the gate's notes and RK1524 the transport's, and the third per-write text grew in four tasks against no number. → §RK1582
 - 💭 **RK1583** (deps: —) **a deferral says nothing about the limit its reason was measured against, only govern does** — RK1537 closed the choosing end and the accepting end still reports a write whose bound the caller has to infer. → §RK1583
 - 💭 **RK1585** (deps: —) **prose beside a total table is taken for the table, and one check reads one phrase in one comment** — RK1539 closed the instance it met and the shape it is an instance of has five tables and no rule. → §RK1585
 - 💭 **RK1588** (deps: —) **a withholding reason quoted a total that was stale within the session that read it, and no sweep says how many are** — RK1541 replaced one frozen figure with a read after RK1530 and RK1540 each did the same, and the population of numbers a decision rests on is uncounted. → §RK1588

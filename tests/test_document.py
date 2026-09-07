@@ -852,10 +852,19 @@ def test_the_two_readers_of_it_are_the_only_two():
     # Every remaining caller wants the entries themselves: `backlog.py` expands a `Block X`
     # dep into member ids, `authoring.py` finds where to insert, `linting.py` counts how
     # many lines a block *held* for the note's own sentence — which the event line never
-    # computes, so it is a second fact rather than a second answer to the first one — and
+    # computes, so it is a second fact rather than a second answer to the first one —
     # `verbs/shipping.py` lists what a block delivered (RK433), which is the same call
-    # `Standing.of` makes and is why that listing and `standing.recorded` are one number.
-    assert spellings == {"backlog.py", "authoring.py", "linting.py", "verbs/shipping.py"}
+    # `Standing.of` makes and is why that listing and `standing.recorded` are one number, and
+    # `budgeting.py` re-ranks a block to price the rows an `add` volunteers (RK1582): it is
+    # `authoring.py`'s own corpus asked about again, which is what makes the figure a reading
+    # of the real lines rather than of a fixture that agrees until somebody edits one.
+    assert spellings == {
+        "backlog.py",
+        "authoring.py",
+        "budgeting.py",
+        "linting.py",
+        "verbs/shipping.py",
+    }
     # `rendering.py` is the third name and not a third spelling (RK493): the event line moved
     # there with every other printer, and what it carries is the *word* — `Backlog.during`,
     # not this call. Its `.holds(` is the docstring saying which one it stopped being.

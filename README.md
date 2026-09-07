@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 231 | 2 |
 | C — Query (consult without reading the file) | 10 | 177 | 4 |
-| D — The gate | 20 | 276 | 5 |
+| D — The gate | 19 | 277 | 5 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 159 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 38 | 1079 | 17 |
+| **Total** | 37 | 1080 | 17 |
 
 **Next ready:**
 
-- 💭 **RK1582** (deps: —) **the rows an add volunteers are prose on every write and no cadence counts them** — RK1491 priced the gate's notes and RK1524 the transport's, and the third per-write text grew in four tasks against no number. → §RK1582
+- 💭 **RK1583** (deps: —) **a deferral says nothing about the limit its reason was measured against, only govern does** — RK1537 closed the choosing end and the accepting end still reports a write whose bound the caller has to infer. → §RK1583
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

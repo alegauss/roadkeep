@@ -152,6 +152,12 @@ SITES: tuple[Site, ...] = (
     Site("blocking.py:BlockExists.__init__", "run"),
     # The `add` that files a task prints the `section add` closing the pointer it just made.
     Site("authoring.py:Insertion.added", "run"),
+    # The two doors under the neighbours an `add` volunteers — `delivered <block>` for the
+    # shipped half and `list --block <block>` for the open one (RK1528). Its own site since
+    # RK1582 lifted the rows out of `Insertion.added` so `cost --near` could price them
+    # without a second spelling, and run by the same tests: every `add` in this suite that
+    # ranks anything prints these lines, and `runs()` executes them where it reads that answer.
+    Site("authoring.py:volunteered_rows", "run"),
     # RK1498. The `add` that files a capture, run by `test_composing` — and RK1599 is what
     # made it runnable: the path was the one token appended outside `filing`'s `shlex.join`,
     # so a directory with a space split it in two and a Windows separator did not survive

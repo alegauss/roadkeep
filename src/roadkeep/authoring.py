@@ -578,26 +578,9 @@ class Insertion:
             # deliveries and not the lines this task was filed for. The second clause is a
             # block's own listing and costs nothing on the projects that have no open half,
             # which is the state the row keeps its present size in.
-            held = (
-                f"{self.near_recorded} delivered and {self.near_open} open"
-                if self.near_open
-                else f"{self.near_recorded} delivered"
+            rows += volunteered_rows(
+                self.entry.task.block, self.near, self.near_recorded, self.near_open
             )
-            rest = f"`{invocation()} delivered {self.entry.task.block}` is all "
-            rest += (
-                f"{self.near_recorded}, `{invocation()} list --block "
-                f"{self.entry.task.block}` the {self.near_open} open"
-                if self.near_open
-                else f"{self.near_recorded}"
-            )
-            rows.append(
-                f"  near     {len(self.near)} nearest of {held} under "
-                f"this block — an order and not a verdict; {rest}"
-            )
-            rows += [
-                f"           {one.task.status} {one.task.id:<8} {one.task.symptom}"
-                for one in self.near
-            ]
         if capture:
             # Said either way: a stamp that did not land is the row `stats` will still count,
             # and silence about it is how a second step comes to be forgotten (RK86).
@@ -1081,6 +1064,40 @@ def add(
         near_recorded=recorded,
         near_open=open_lines,
     )
+
+
+def volunteered_rows(
+    block: str, near: Sequence[Entry], recorded: int, open_lines: int
+) -> list[str]:
+    """The neighbours an `add` volunteers, as the lines a caller is handed (RK1582).
+
+    Lifted out of :meth:`Insertion.stated` for `linting.disagreement`'s reason one surface over
+    (RK1491): this text is the **third per-write cadence** and nothing counted it, so
+    `budgeting.near_cost` prices it — and a figure measured against a second spelling of the
+    rows is a figure that agrees until somebody edits one of them. Four facts and no record,
+    because those four are all it reads and a pricing caller has them without an `Insertion`.
+
+    Everything the sentence argues is unchanged and is argued where it always was: the label
+    once with the rows under it, the count shown against the count held (RK442, RK1374), the
+    door for each half where there are two (RK1528), and *an order and not a verdict* (RK441).
+    """
+    from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260
+
+    held = f"{recorded} delivered and {open_lines} open" if open_lines else f"{recorded} delivered"
+    rest = f"`{invocation()} delivered {block}` is all "
+    rest += (
+        f"{recorded}, `{invocation()} list --block {block}` the {open_lines} open"
+        if open_lines
+        else f"{recorded}"
+    )
+    return [
+        f"  near     {len(near)} nearest of {held} under "
+        f"this block — an order and not a verdict; {rest}",
+        *(
+            f"           {one.task.status} {one.task.id:<8} {one.task.symptom}"
+            for one in near
+        ),
+    ]
 
 
 def _near(config: Config, insertion: Insertion) -> tuple[tuple[Entry, ...], int, int]:
