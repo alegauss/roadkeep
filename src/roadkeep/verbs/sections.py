@@ -73,6 +73,7 @@ from roadkeep.verbs.declaring import (
     _BODY_FILE,
     _JSON_HELP,
     _PIPE,
+    answers,
     withheld,
 )
 from roadkeep.verbs.reading import _body_reader, _one_body, _piped
@@ -451,21 +452,35 @@ def _non_goal_drop(config: Config, args: argparse.Namespace) -> Result | int:
     return answered(dropped, config=config, wrote=wrote)
 
 
+def _one_list(parser: argparse.ArgumentParser) -> None:
+    """Declare `--block` and `--task` as this verb's two answers (RK1607).
+
+    A criterion belongs to a body of work or to a line, so a call naming both says which one
+    twice. That was raised in :func:`_addressed` — inside the handler, where `_one_answer` has
+    already let the pair through, the pair sweep reads a correct exit as something it cannot
+    account for, and over MCP the rule is discoverable only by making the call.
+
+    On all four verbs and not the three that write: `criterion list` takes the same two flags
+    and had the same refusal, reached through the same resolver.
+    """
+    answers(
+        parser,
+        ("block", "addresses a block's list"),
+        ("task", "addresses one line's own"),
+    )
+
+
 def _addressed(args: argparse.Namespace) -> str:
     """Which list this call is about: `--block <x>`, `--task <id>`, or neither (RK1268).
 
-    One resolver for all three write verbs, so the refusal for naming both is written once and
-    the empty answer — meaning *look the lead up* — reaches `criteria._resolved` unchanged.
-    Refused rather than resolved to one of them: two addresses on one call is a caller who
-    believes both took effect, and the wrong one is a claim about somebody else's finish line.
+    One resolver for all four criterion verbs, so the empty answer — meaning *look the lead
+    up* — reaches `criteria._resolved` unchanged from every one of them.
+
+    Naming **both** is refused by the parser since RK1607, where :func:`_one_list` declares
+    them as two answers: what is left here is the resolution, which was always the job.
     """
     block = getattr(args, "block", None) or ""
     task = getattr(args, "task", None) or ""
-    if block and task:
-        raise ValueError(
-            "--block and --task are the two addresses a criteria list has, so a call naming "
-            "both says which one twice: a criterion belongs to a body of work or to a line"
-        )
     return task or block
 
 
@@ -1195,6 +1210,7 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
         action="store_true",
         help="the bullet, with the file and line it landed on",
     )
+    _one_list(criterion_add)
     criterion_add.set_defaults(
         handler=_criterion_add, reads_stdin=(Prose(dest="why", omitted=False),)
     )
@@ -1220,6 +1236,7 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
         "--why", required=True, help="the corrected reason, in this file's own limit" + _PIPE
     )
     criterion_amend.add_argument("--json", action="store_true", help=_JSON_HELP)
+    _one_list(criterion_amend)
     criterion_amend.set_defaults(
         handler=_criterion_amend, reads_stdin=(Prose(dest="why", omitted=False),)
     )
@@ -1240,6 +1257,7 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
     criterion_list.add_argument(
         "--json", action="store_true", help="the criteria, with the file and their lines"
     )
+    _one_list(criterion_list)
     criterion_list.set_defaults(handler=_criterion_list, reads_only=True)
 
     criterion_drop = criteria_actions.add_parser(
@@ -1260,6 +1278,7 @@ def declare_places(subcommands: argparse._SubParsersAction) -> None:
     )
     criterion_drop.add_argument("--task", help="which task's list it is in, by id")
     criterion_drop.add_argument("--json", action="store_true", help=_JSON_HELP)
+    _one_list(criterion_drop)
     criterion_drop.set_defaults(handler=_criterion_drop)
 
     queue_parser = subcommands.add_parser(

@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 2 | 231 | 2 |
 | C — Query (consult without reading the file) | 10 | 177 | 4 |
-| D — The gate | 19 | 288 | 5 |
+| D — The gate | 18 | 289 | 5 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 160 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 37 | 1092 | 17 |
+| **Total** | 36 | 1093 | 17 |
 
 **Next ready:**
 
-- 📋 **RK1607** (deps: RK1555 ✅) **four two-answer rules are raised inside handlers where the declaration that spells them is one call away** — govern, retire and the two criterion doors declare no subjects at all, so the dispatcher, the pair sweep and the served schema see none of them. → §RK1607
+- 💭 **RK1608** (deps: —) **a narrowing flag whose vocabulary the project declared nothing for filters nothing and says nothing** — RK1556 gave the partial fallback a sentence and left --designed and --have with the same silence, so a caller reads an answer as narrowed that was not. → §RK1608
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

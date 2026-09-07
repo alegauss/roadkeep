@@ -40,6 +40,7 @@ from roadkeep.verbs.declaring import (
     _JSON_HELP,
     _PIPE,
     _reason_flag,
+    answers,
     withheld,
 )
 from roadkeep.verbs.reading import _piped
@@ -899,6 +900,14 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
         retire_parser, "one sentence, the author's own: the tool never writes it" + _PIPE
     )
     retire_parser.add_argument("--json", action="store_true", help="every edit, as data")
+    # The pair, declared rather than raised (RK1607): where the work went is one question and
+    # these are its two answers, so `_one_answer` refuses them together before the handler runs
+    # and the schema an agent is sent carries the rule instead of only the refusal.
+    answers(
+        retire_parser,
+        ("superseded_by", "says the work moved to another line"),
+        ("folds_into", "says it was never separate from one"),
+    )
     retire_parser.set_defaults(
         handler=_retire, reads_stdin=(Prose(dest="reason", omitted=False),)
     )

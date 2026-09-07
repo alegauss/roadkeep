@@ -804,13 +804,10 @@ def govern(
     Neither writes prose (L4). The verb wraps a sentence and places it, and — here — says
     which lines it took to do so.
     """
-    if because and instead:
-        raise ValueError(
-            "`--because` stacks an argument onto the one above the key and `--instead` "
-            "replaces it, so naming both is asking for two placements of one sentence: pass "
-            "`--because` where this number is a decision about the last one, and `--instead` "
-            "where the reading that decided it has moved"
-        )
+    # `--because` beside `--instead` is refused by the **parser** since RK1607: two placements
+    # of one sentence is two answers, `answers(...)` is how a verb spells that, and
+    # `_one_answer` enforces it before any handler runs — on both surfaces, and in the schema an
+    # agent is sent rather than only in the exit code it gets back.
     if config.source is None:
         raise ValueError(
             "this project declares no roadkeep.toml, so there is no table to write a number "

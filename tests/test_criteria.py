@@ -552,6 +552,10 @@ def test_the_register_prints_the_two_kinds_apart(tmp_path, capsys):
 def test_naming_both_addresses_is_refused_before_anything_is_read(tmp_path, capsys):
     # Two addresses on one call is a caller who believes both took effect, and the wrong one
     # is a claim about somebody else's finish line.
+    #
+    # Declared on the parser since RK1607, where it was a raise inside the shared resolver: the
+    # dispatcher's `_one_answer` refuses every declared pair before a handler runs, on both
+    # surfaces, and the served schema carries the rule instead of only the exit code.
     project(tmp_path)
     assert main(
         [
@@ -560,7 +564,27 @@ def test_naming_both_addresses_is_refused_before_anything_is_read(tmp_path, caps
             "--lead", "Ambiguous", "--why", "Nothing decides it.",
         ]
     ) != EXIT_OK
-    assert "--block and --task" in capsys.readouterr().err
+    said = capsys.readouterr().err
+    assert "one answer per call" in said
+    assert "--block" in said and "--task" in said
+
+
+def test_all_four_criterion_verbs_declare_the_pair_and_not_only_the_writes():
+    """RK1607. The refusal lived in the resolver all four reach, so moving it to a declaration
+    means declaring it four times — and `criterion list` is one of them, taking the same two
+    flags through the same function. A pair declared on three of four is a rule an agent meets
+    on the fourth by making the call."""
+    from roadkeep.cli import build_parser
+
+    subcommands = [
+        one for one in build_parser()._actions if getattr(one, "choices", None)
+    ][0].choices
+    inner = [
+        one for one in subcommands["criterion"]._actions if getattr(one, "choices", None)
+    ][0].choices
+    for name in ("add", "amend", "drop", "list"):
+        declared = inner[name].get_default("subjects") or ()
+        assert {dest for one in declared for dest, _, _ in one.flags} == {"block", "task"}, name
 
 
 def test_add_with_no_address_names_both_doors(tmp_path, capsys):

@@ -2292,6 +2292,15 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
         ),
     )
     govern_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
+    # The pair, declared rather than raised (RK1607). The handler refused both together, so
+    # `_one_answer` let it through, the pair sweep read a correct exit as unaccounted for, and
+    # over MCP the rule was discoverable only by making the call — which is what RK1518 closed
+    # once and RK1555 twice. The sentence is the two `what` phrases the dispatcher reads.
+    answers(
+        govern_parser,
+        ("because", "stacks your argument onto the one above the key"),
+        ("instead", "replaces the run standing there, for a reading that has moved"),
+    )
     govern_parser.set_defaults(handler=_govern)
 
     config_parser = subcommands.add_parser(

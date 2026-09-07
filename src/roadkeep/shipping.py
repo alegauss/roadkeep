@@ -3004,11 +3004,9 @@ def retire(
     the two halves land together or neither does.
     """
     _refuse_absent(config, **{"--reason": reason})
-    if folds_into is not None and superseded_by is not None:
-        raise ValueError(
-            "--folds-into and --superseded-by are two answers about where the work went: "
-            "a fold says it was never separate, and a supersession says it moved"
-        )
+    # The pair is refused by the **parser** since RK1607 — where the work went is one question,
+    # `answers(...)` is how a verb says these are its two answers, and `_one_answer` enforces it
+    # on both surfaces before this runs. What stays here is everything about the id itself.
     into = folds_into or superseded_by
     holder: str | None = None
     if into is not None:

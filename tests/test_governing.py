@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 
 from roadkeep import adopting, governing
-from roadkeep.cli import EXIT_OK, main
+from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from surface import modules
 
@@ -592,15 +592,37 @@ def test_a_replacement_that_wrapped_to_nothing_withdraws_nothing(tmp_path):
     assert "--because" in declared.stated(Config.discover(tmp_path))
 
 
-def test_naming_both_placements_of_one_sentence_is_refused(tmp_path):
+def test_naming_both_placements_of_one_sentence_is_refused(tmp_path, capsys):
     """Two acts and not two spellings of one: `--because` says this number is a decision about
-    the last, and `--instead` says the reading that decided it has moved. Nothing is written."""
-    config = project(tmp_path)
-    with pytest.raises(ValueError) as refused:
-        governing.govern(config, "limits.why", 150, because="One.", instead="The other.")
+    the last, and `--instead` says the reading that decided it has moved. Nothing is written.
 
-    assert "--because" in str(refused.value) and "--instead" in str(refused.value)
+    Refused by the **parser** since RK1607. It was a raise inside the handler, so `_one_answer`
+    let the pair through, the pair sweep read a correct exit as something it could not account
+    for, and over MCP the rule was discoverable only by making the call. Driven through `main`
+    now, because that is where the rule lives — a handler call would walk past a declaration
+    the dispatcher is what reads."""
+    config = project(tmp_path)
+    assert main([
+        "-C", str(config.root), "govern", "limits.why", "150",
+        "--because", "One.", "--instead", "The other.",
+    ]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    assert "one answer per call" in said
+    assert "--because" in said and "--instead" in said
     assert "One." not in written(Config.discover(tmp_path))
+
+
+def test_the_two_placements_are_declared_and_not_raised():
+    """RK1607's shape, asserted where it now lives: the verb says these two flags are two
+    answers, and `_one_answer` enforces every such pair on both surfaces before a handler
+    runs. A rule the parser carries is one the served schema carries too."""
+    from roadkeep.cli import build_parser
+
+    subcommands = [
+        one for one in build_parser()._actions if getattr(one, "choices", None)
+    ][0].choices
+    declared = subcommands["govern"].get_default("subjects")
+    assert {dest for one in declared for dest, _, _ in one.flags} == {"because", "instead"}
 
 
 def test_the_payload_publishes_what_was_withdrawn(tmp_path, capsys):

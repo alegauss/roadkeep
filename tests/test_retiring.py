@@ -511,12 +511,18 @@ def test_a_fold_into_a_line_that_has_left_is_refused(tmp_path, capsys):
 def test_the_two_answers_about_where_the_work_went_are_refused_together(tmp_path, capsys):
     # A fold says it was never separate and a supersession says it moved: two subjects, and a
     # call carrying both is a caller who has not decided which happened.
+    #
+    # Declared on the parser since RK1607. It was raised inside the handler, so `_one_answer`
+    # let the pair through, the pair sweep read a correct exit as unaccounted for, and over MCP
+    # the rule was reachable only by making the call.
     root = project(tmp_path, declare=GOVERNED_CRITERIA).root
     assert main([
         "-C", str(root), "retire", "RK1", "--folds-into", "RK7",
         "--superseded-by", "RK7", "--reason", "A reason.",
     ]) == EXIT_USAGE
-    assert "two answers about where the work went" in capsys.readouterr().err
+    said = capsys.readouterr().err
+    assert "one answer per call" in said
+    assert "--folds-into" in said and "--superseded-by" in said
 
 
 def test_the_payload_says_a_fold_happened_by_a_field(tmp_path, capsys):
