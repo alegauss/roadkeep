@@ -1,4 +1,4 @@
-# Shipped Ledger
+# Set aside
 
 ## Block A — The client (payloads in, types out)
 

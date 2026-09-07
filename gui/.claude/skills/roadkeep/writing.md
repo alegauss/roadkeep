@@ -1,3 +1,8 @@
+---
+saves: add
+because: writes the line and its rationale in one transaction, under the same limits
+---
+
 # roadkeep — the write path
 
 The reference half of the `roadkeep` skill, read when a turn is about to write. `SKILL.md`
@@ -292,13 +297,15 @@ discovering the collision after a claim, a brief and a retirement. **`delivered 
 (103 lines and 9,773 bytes here). Reach for it by default: measured on the eleven pairs
 this ledger knows the answer to, the true partner is inside those five for nine, worst
 rank three — the entries are ranked on **both** their prose fields, the `why` being where
-two authors of one defect agree. The order is the answer and no score is printed. **And the `add` hands
-that read back whether or not you made it**: every insertion names the three entries of its
-block nearest the symptom it just filed, because that is the moment nothing is spent but an
-id and `restate` and `retire` are one call away. Same order, same silence about scores, and
-never a refusal — it is the read volunteered, not the gate the measurement rules out. Three
-of however many the block holds, and the row says which of how many and names this command
-for the rest, so the volunteered half is bounded out loud rather than read as the whole. A letter nothing
+two authors of one defect agree. The order is the answer and no score is printed. **And the `add` volunteers a
+wider read whether or not you made this one**: every insertion names the three lines of its
+block nearest the symptom it just filed — its deliveries **and** its open lines, which is
+where the other session filing your defect this morning is, and which `delivered` never
+ranks, that verb's subject being the ledger. Half the insertions measured here and on a
+second backlog show a row `--near` cannot reach at any width. Same order, same silence about
+scores, and never a refusal — a read volunteered, not the gate the measurement rules out.
+Three of however many the block holds, and the row says which of how many and names a
+command per half, so the volunteered rows are bounded out loud rather than read as the whole. A letter nothing
 declares is **refused** rather than answered `nothing`, that answer being read as
 evidence, and where the block exists
 the reply says which of live, paused, finished or empty it is. **`reversals` is how you
@@ -425,19 +432,21 @@ after everything the region holds. Two headings neither of which is inside the o
 two addresses, wherever they sit and at whatever level. `non-goal add --lead "…" --why
 "…"` writes the one bullet that is not a task line, where `[non_goals]` declares the list
 governed: addressed by its lead, which is unique and checked, and carrying no marker, dep
-or pointer, because a constraint has no status to state. `non-goal amend <lead> --why "…"`
-corrects the reason **where the bullet already sits**, for `record amend`'s reason: `add`
-appends, so drop-and-re-add moves a constraint to the end of a list a reader takes for the
-plan's shape. The lead is not one of its fields — it is the address — and a bullet
-carrying no bold head is refused by name, that shape's repair being the pair below.
+or pointer, because a constraint has no status to state. It opens the list where the
+roadmap carries no heading, as `criterion add` opens its block's, and says so. `non-goal
+amend <lead> --why "…"` corrects the reason **where the bullet already sits**, for `record
+amend`'s reason: `add` appends, so drop-and-re-add moves a constraint to the end of a list
+a reader takes for the plan's shape. The lead is not one of its fields — it is the
+address — and a bullet carrying no bold head is refused by name, that shape's repair being
+the pair below.
 `non-goal drop <lead>` is the other half, and what a changed *lead* takes: the lead is the
 address, so a constraint whose lead changes is one dropped and one written. **Call
 `non-goal list` before an `add`** — the list binds what may be proposed, so reading it
 after the line exists is reading it too late; it prints on a project that never opted in,
 and nothing checks a proposal against it for you, that being a judgement about meaning and
-this tool having no model (L4). A `settled` row under a constraint names the open lines
-whose design quotes its lead — the `non-goal.reaches` note answered, read from the rule's
-side, so a clause somebody is about to tidy away is one a command already named. **That
+this tool having no model (L4). A `quoted` row under a constraint names the open lines
+whose design cites its lead — what the `non-goal.reaches` note falls silent for, read from
+the rule's side; whether that is an answer or a citation of one is yours to read. **That
 list's positive twin is `criterion`**, where `[criteria]` declares it governed: a non-goal
 says what is not built and this says what must
 be **true** for a block to be finished, which nothing else states — a definition of done

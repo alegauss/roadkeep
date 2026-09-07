@@ -11,6 +11,8 @@ priority = []
 roadmap = "docs/ROADMAP.md"
 changelog = "docs/CHANGELOG.md"
 improvements = "docs/IMPROVEMENTS.md"
+decisions = "docs/DECISIONS.md"
+deferred = "docs/DEFERRED.md"
 
 [limits]
 # characters, counted in UTF-16 code units — the stricter of the two counts, so a
@@ -24,8 +26,17 @@ line = 320
 section = 250
 prose = 88
 
+[limits.decisions]
+# a decision's body says what was weighed and what was accepted, which is narrower
+# than a design: the design of how a screen was built stays in improvements
+section = 150
+
 [markers]
 open = ["📋", "💭", "⏳", "🛠"]
+# which of those still have their design to write. Declared because this backlog is
+# executed by agents: `pick --designed` sets these aside for a caller that asked to
+# build rather than to plan, and every answer says when the line it chose is one
+undesigned = ["💭"]
 shipped = "✅"
 retired = "🗑"
 
@@ -44,6 +55,14 @@ held = 60
 
 # what has to be *present* to finish a line — hardware, an account, somebody's time.
 # Not a dep: `pick` offers a line needing one only to a caller that says it has it,
-# with `--have`. Uncomment and name your own; an undeclared word is refused.
-# [requirements]
-# declared = ["hardware"]
+# with `--have`. An undeclared word is refused.
+#
+# Three, and each is a thing an agent on this machine does not have. `signing-cert`
+# is a certificate somebody buys; `macos-machine` is hardware no CI minute
+# substitutes for, notarisation running only there; `published-artifact` is a
+# release that exists on the internet, which is what an update check reads.
+[requirements]
+declared = ["signing-cert", "macos-machine", "published-artifact"]
+
+[install]
+wired = "0.2.346"

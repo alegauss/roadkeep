@@ -1,4 +1,4 @@
-# Shipped Ledger
+# Decisions
 
 ## Block A — The client (payloads in, types out)
 
