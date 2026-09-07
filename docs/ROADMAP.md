@@ -62,6 +62,7 @@
 - 💭 **RK1627** (deps: —) **nothing enumerates the fields a caller composes, so which of them has a validator is answered by remembering** — RK1570 found the block title because a design named it, and the same gap in any other composed field would be as invisible as that one was. → §RK1627
 - 📋 **RK1635** (deps: —) **the composer sweep runs every door through shlex, which is the assumption the door was wrong about** — RK1580 was invisible for a year because the instrument reads a line with the parser whose POSIX default put the bad quote there. → §RK1635
 - 📋 **RK1637** (deps: —) **seven cost subjects each argued they were the Nth cadence nobody counted, and nothing enumerates the cadences** — RK1424, RK1428, RK1491, RK1524 and RK1582 each made that case from scratch and none could say how many were left. → §RK1637
+- 📋 **RK1638** (deps: —) **a prose check finds its span by splitting on a sentence, so a reworded clause empties the test instead of failing it** — RK1585's two readers both address the comment by a phrase somebody wrote, which is the drift they were built to catch one level up. → §RK1638
 
 ## Block E — Adoption
 
