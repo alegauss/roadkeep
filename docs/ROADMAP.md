@@ -26,6 +26,8 @@
 
 ## Block B — Authoring (insert, never hand-edit)
 
+- 📋 **RK1632** (deps: —) **add --symptom takes no stdin, the one prose field with no pipe being the one every line leads with** — RK1187 gave restate --symptom the pipe and add kept the literal, so a claim carrying a backtick reaches one verb and lands as text in the other. → §RK1632
+
 ## Block C — Query (consult without reading the file)
 
 - 💭 **RK1608** (deps: —) **a narrowing flag whose vocabulary the project declared nothing for filters nothing and says nothing** — RK1556 gave the partial fallback a sentence and left --designed and --have with the same silence, so a caller reads an answer as narrowed that was not. → §RK1608
@@ -36,10 +38,11 @@
 - 💭 **RK1624** (deps: —) **the ranking an add volunteers exists only inside that write, no read answering over a block's whole corpus** — RK1567 left the third way out it named, and the two doors the row prints order by the ledger and by id rather than by the query. → §RK1624
 - 📋 **RK1625** (deps: —) **unclosed answers a tree with no git as a backlog with nothing open, the flag that tells those apart never being set** — Nothing in the package makes Unclosed.searched false, so the one state the field was declared for is the one it reports as a clean sweep. → §RK1625
 - 📋 **RK1628** (deps: —) **pick offers an idea whose premise a later ship deleted, no answer saying what landed under the line since it was filed** — RK1571 and RK1574 were both designed against a work-list RK1599 emptied, and reading the section was the only way to learn it. → §RK1628
+- 📋 **RK1630** (deps: —) **a read payload names neither the root it answered about nor the build that answered** — lint carries root and config carries version; list, show, brief, stats, export and pick carry neither, so a client holding several projects' answers cannot tell whose it holds. → §RK1630
+- 📋 **RK1631** (deps: —) **no one call says whether a path is governed and where its root is, so a client reads it off a null** — config answers source = null, engines answers happily about an ungoverned directory, and lint does a whole file's work to report the root a probe needs. → §RK1631
 
 ## Block D — The gate
 
-- 💭 **RK1574** (deps: —) **two composer families turned up three doors that cannot be taken, and the rest are unplanned against that rate** — RK1572 and this family each found a defect per two rows, which is the number the ordering of the rest should be argued from. → §RK1574
 - 💭 **RK1576** (deps: —) **the config read-back is one writer's, and the decision RK1533 filed binds five** — declare and the two installing writes compose a file and write it unread, so the rule that a config write must leave a readable file holds where it was implemented. → §RK1576
 - 💭 **RK1578** (deps: —) **a row's stated fixture is a guess nothing checks, and the first two taken overstated it** — RK1532 wrote thirty-one states from docstrings and RK1577 found two describing a repository where two headings would do. → §RK1578
 - 💭 **RK1580** (deps: —) **the capture's filing door is POSIX-quoted on a platform whose shell is not, and nothing has run it there** — RK1579 found the splitter eats a Windows separator, and the joiner that wrote it has the same assumption one layer up. → §RK1580

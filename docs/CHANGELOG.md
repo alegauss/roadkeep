@@ -755,6 +755,7 @@
 - ✅ **RK1569** **the prose half of the re-taken split reds on somebody else's edit, which says nothing about the rule** — The prose half warns with the count per source instead of failing, this file's own advisory register, so a reworded Shio sentence no longer reds a build about a rule it says nothing about.
 - ✅ **RK1570** **a block title is written into every governed file and nothing validates it, not even the codec rule** — A block title takes the section title's three rules at both doors; 136 titles across the three corpora refused the fourth the design asked for, Turing writing bold and backticks in real ones.
 - 🗑 **RK1571** **the composer work-list names a state per row and cannot show that fifteen of them want five fixtures between them** — abandoned: RK1599 emptied the composer work-list and a test now holds it empty, so the fixture field this proposed would name a family on no row.
+- 🗑 **RK1574** **two composer families turned up three doors that cannot be taken, and the rest are unplanned against that rate** — abandoned: RK1599 finished every family this would have ordered, so the rate it measured has no remaining rows to plan and the residue about a row going quiet is RK1578's.
 
 ## Block E — Adoption
 

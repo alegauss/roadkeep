@@ -77,6 +77,29 @@ already written, not authorship.
 
 ## Block B — Authoring
 
+### §RK1632 The field every line leads with, and the pipe it has not got
+
+RK329 established that every prose argument reads stdin on `-`, so a sentence carrying a
+backtick or an apostrophe never meets a shell. RK1187 applied it to `restate --symptom`,
+whose help says so today. `add --symptom` was not moved and its help does not: the value
+arrives as argv or not at all.
+
+So the field every task line leads with is the one field with no pipe, on the verb that
+writes it first. `add --why` takes `-`, `add --section-body` takes `-` and a path, and
+between them sits a symptom that has to survive whatever quoted it. The failure is
+silent in the direction that matters: a `-` handed to it is not read as a pipe, it is
+measured and stored as a one-character claim, which is the exact landing RK1187 was
+filed about one verb over.
+
+RK1474 recorded the same class from the other end — a value passed ASCII-only to survive
+a shell is bytes that never arrived, and permanent in two files at once. A caller
+writing in a language with accents meets this on the first line it files, and a client
+composing argv from a text box has no shell to blame.
+
+What closes it is the door the sibling verb already has, spelled the same way in the
+same place, and a test that asks the parser rather than the help text which arguments
+read a pipe.
+
 ## Block C — Query
 
 ### §RK1608 The narrowing that could not narrow
@@ -259,31 +282,51 @@ with that many entries recorded in the block since. A count and not a date, whic
 non-goal one field over — the question is how much has happened under this line, and an
 ordinal answers it where a calendar would not.
 
+### §RK1630 Which project, and which build, an answer is about
+
+`lint --json` leads with `root`, and `config`, `commands` and `engines` each lead with
+`version`. The reads a client actually loops over — `list`, `show`, `brief`, `stats`,
+`export`, `pick`, `deps`, `budget` — carry neither, and every path on them is relative
+to a root the payload never states. Run from a subdirectory the answer is identical, so
+a caller that passed `-C` cannot join what it got back to what it asked about.
+
+That is survivable for one project in one terminal, where the caller is standing in the
+answer. It is not survivable for a client holding many at once: three checkouts may
+answer for three projects, `engines` says outright that they are allowed to differ, and
+what the client then holds is eight payloads with nothing on them saying which
+repository or which parser produced each. A key renamed between builds reads as a value
+that changed.
+
+Block G's own criterion is that a payload is asserted here as an outside client reads
+it. An outside client reads it out of a subprocess whose directory it chose, and the two
+facts it needs before it can trust a single field are the two `lint` and `config`
+already print separately.
+
+What this does not ask for is a new verb. Both keys exist and are spelled; the question
+is whether every `--json` read leads with them, and whether `root` is absolute where the
+`file` beside it is relative to that root.
+
+### §RK1631 The probe, and the null that stands in for it
+
+Asking whether a path is governed has no door. `config --json` answers `source: null`,
+which is a fact stated by an absence — a client branches on a null and is given no root,
+no roles and no reason. `engines --json` exits 0 on a directory with no `roadkeep.toml`
+anywhere above it and reports `invoke: roadkeep`, so it answers confidently about
+nothing. `lint --json` is the only read carrying `root`, and it gets there by parsing
+every governed file, which is a file's work to answer a directory's question.
+
+The caller this is missing for is any client that meets a path before it meets a
+project: an editor opening a folder, a gate deciding whether to run, a surface over a
+machine's checkouts. Each one reconstructs the discovery rule — walk up looking for
+`roadkeep.toml` — in its own language, which is the second implementation this project
+exists to remove, and it is wrong the first time discovery changes.
+
+The answer wanted is one call, cheap, that says: governed or not, the absolute root, the
+roles `[files]` declares and the engine that would write. Every part of it is computed
+somewhere already; none of it is reachable together, and the one signal that is
+reachable is a null.
+
 ## Block D — The gate
-
-### §RK1574 The rate two families measured
-
-RK1572's family and this one are two of five, and both went the same way: the fixture
-was cheap, and taking it found a door that could not be taken. The partial-ship family
-turned up a `finish` spelled without backticks and a `ship <id>` that refused for want
-of a `--why`; the `declare` family turned up `non-goal add` named on a project with no
-heading for it (RK1573). Three defects, six rows, two sittings.
-
-That is the rate the remaining twenty-five should be planned against. RK1498's own
-sentence is that a composed command nobody runs is a command nobody has checked, and the
-evidence is now that roughly one row in two hides something — not a stale reason, an
-actual door that refuses, is invisible to the scan, or names a state the project cannot
-be in.
-
-What follows is ordering, not effort. The families left are a checkout beside the
-project, a git history with a retired address, and a stored capture; the first is the
-dearest fixture and the largest family. If the rate holds, the cheap ones are worth
-finishing first for RK1532's own reason: each that comes out argues the next from
-evidence.
-
-What must not happen is the rows going quiet again. Each one now names its state, and a
-row flipped to `run` on a test that asserts a sentence was printed would be the exact
-failure this list exists to have ended.
 
 ### §RK1576 The rule one writer of five keeps
 

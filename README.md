@@ -117,19 +117,19 @@ called unbuilt were already in the ledger.
 | Block | Open | Shipped | Retired |
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
-| B — Authoring (insert, never hand-edit) | 0 | 231 | 2 |
-| C — Query (consult without reading the file) | 8 | 177 | 4 |
-| D — The gate | 23 | 274 | 3 |
+| B — Authoring (insert, never hand-edit) | 1 | 231 | 2 |
+| C — Query (consult without reading the file) | 10 | 177 | 4 |
+| D — The gate | 22 | 274 | 4 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 4 | 158 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 1 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 36 | 1076 | 15 |
+| **Total** | 38 | 1076 | 16 |
 
 **Next ready:**
 
-- 💭 **RK1574** (deps: —) **two composer families turned up three doors that cannot be taken, and the rest are unplanned against that rate** — RK1572 and this family each found a defect per two rows, which is the number the ordering of the rest should be argued from. → §RK1574
+- 💭 **RK1576** (deps: —) **the config read-back is one writer's, and the decision RK1533 filed binds five** — declare and the two installing writes compose a file and write it unread, so the rule that a config write must leave a readable file holds where it was implemented. → §RK1576
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer
