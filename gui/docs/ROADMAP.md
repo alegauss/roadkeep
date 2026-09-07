@@ -14,6 +14,7 @@
 - 💭 **RG78** (deps: —) **five live test files each carry their own copy of the same call-parse-or-throw helper, already drifted** — The message a shape mismatch prints is the reason these helpers exist, and it is now written five times and the same in none of them. → §RG78
 - 💭 **RG79** (deps: —) **an unreadable answer reports not JSON and drops stderr, where the engine explained itself in full** — An engine refusing the config exits zero with its sentence on stderr, and that sentence is the only thing naming which copy answered and why. → §RG79
 - 💭 **RG81** (deps: —) **the read and write paths each spell the same argv wrapper, and the two have already drifted apart** — Three rules about -C, --json and a two-word verb now live in two composers, and only one of them says why any of it is so. → §RG81
+- 💭 **RG82** (deps: RG75) **the contract test asserts one engine version across three reads, so a rebuilt engine reds a suite nothing touched** — A red contract test is meant to mean roadkeep renamed a key, and a reader who learns it also means the version moved stops believing it. → §RG82
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
