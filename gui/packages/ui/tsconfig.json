@@ -5,7 +5,14 @@
     // the other set of types in scope.
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
-    "types": ["vite/client"],
+    // Node is here for `vite.config.ts` and for the tests that read the installed package,
+    // not for the renderer. What keeps it out of the renderer is `boundaries.test.ts`,
+    // which fails on a `node:` import in any source file — a check, rather than a config
+    // that happened to omit the types.
+    "types": ["vite/client", "node"],
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     "rootDir": ".",
     "outDir": "dist-types",
     "tsBuildInfoFile": "dist-types/.tsbuildinfo"

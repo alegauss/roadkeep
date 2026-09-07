@@ -2,8 +2,6 @@
 
 ## Priority
 
-- RG39
-
 ## Block A — The client (payloads in, types out)
 
 - 📋 **RG1** (deps: —) **nothing here invokes roadkeep, so every payload this design rests on is one no code can fetch** — A screen, a write and an agent handoff are each a payload some verb printed, and there is no call path to any of them. → §RG1
@@ -80,11 +78,13 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 📋 **RG39** (deps: RG37 ✅) **there is no design system, so every screen decides its own type, spacing and colour on the spot** — What this renders is 320-character lines and 250-word sections, and nothing has been chosen against those shapes. → §RG39
-- 💭 **RG51** (deps: RG39) **strings are written into the components, so a second locale means reopening every screen** — This app was asked for English with a second locale planned, and retrofitting a catalogue costs every screen a second time. → §RG51
-- 💭 **RG52** (deps: RG39) **there is one ground, so somebody who works in dark reads this app in light** — A tool that sits open beside an editor is one that follows the editor's ground, and a single-ground app is one that is squinted at. → §RG52
-- 💭 **RG53** (deps: RG39) **a marker is an emoji drawn by whatever font the platform picked, so one status looks like three** — The marker set is per project and arrives as codepoints, and nothing here decides how they render or what happens when one has no glyph. → §RG53
-- 💭 **RG54** (deps: RG39) **contrast and keyboard reach are asserted by nobody, so an accessibility defect ships looking like a style** — A status told by colour alone and a dialog that cannot be closed from a keyboard both look correct in a screenshot. → §RG54
+- 💭 **RG51** (deps: RG39 ✅) **strings are written into the components, so a second locale means reopening every screen** — This app was asked for English with a second locale planned, and retrofitting a catalogue costs every screen a second time. → §RG51
+- 💭 **RG52** (deps: RG39 ✅) **there is one ground, so somebody who works in dark reads this app in light** — A tool that sits open beside an editor is one that follows the editor's ground, and a single-ground app is one that is squinted at. → §RG52
+- 💭 **RG53** (deps: RG39 ✅) **a marker is an emoji drawn by whatever font the platform picked, so one status looks like three** — The marker set is per project and arrives as codepoints, and nothing here decides how they render or what happens when one has no glyph. → §RG53
+- 💭 **RG54** (deps: RG39 ✅) **contrast and keyboard reach are asserted by nobody, so an accessibility defect ships looking like a style** — A status told by colour alone and a dialog that cannot be closed from a keyboard both look correct in a screenshot. → §RG54
+- 📋 **RG61** (deps: RG39 ✅) **the app ships a high-severity advisory it did not choose, reached through the design system** — npm audit reports xlsx as high through @viglet/viglet-design-system, and an executable carries whatever its renderer bundle carries. → §RG61
+- 📋 **RG62** (deps: RG39 ✅) **nothing stops a screen re-declaring a component the design system already exports** — The sibling consoles run a duplicates gate and register in consumers.json; this app does neither, so it is outside every check they answer to. → §RG62
+- 📋 **RG63** (deps: RG39 ✅) **there is no page chrome, so the first real screen will invent a shape the design system already has** — The bento layer is the shared page vocabulary and its own guidance is to adopt the shell before the pages, which is a thing to do once and early. → §RG63
 
 ## Done when — Block A
 

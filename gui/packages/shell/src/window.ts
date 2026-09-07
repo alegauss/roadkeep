@@ -31,7 +31,12 @@ export function createWindow(): BrowserWindow {
     height: 820,
     minWidth: 900,
     minHeight: 600,
-    backgroundColor: '#0a0a0a',
+    // The only colour this repository spells, and it is not a design decision: Electron
+    // paints it before the renderer exists and during a resize, so it has to be a literal
+    // and cannot read a CSS token. It matches the design system's light ground because
+    // that is the only ground the app currently has - RG52, which wires the switch, is
+    // what makes this follow the theme instead of guessing it.
+    backgroundColor: '#ffffff',
     // The window is shown by the `ready-to-show` handler below rather than at
     // construction, so the first frame a person sees is painted and not white.
     show: false,

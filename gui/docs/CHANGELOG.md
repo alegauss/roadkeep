@@ -19,3 +19,4 @@
 
 ## Block H — The look (a design system for governed prose)
 
+- ✅ **RG39** **there is no design system, so every screen decides its own type, spacing and colour on the spot** — Every colour, radius and face comes from the design system Turing, Shio and Dumont render with, and a test fails any component that names one.

@@ -621,30 +621,6 @@ and it is why this is its own line rather than a paragraph inside RG55.
 
 ## Block H — The look (a design system for governed prose)
 
-### §RG39 Editorial, light-first, and sized to the format
-
-What this app renders is governed prose, and the format already decided its shapes. A
-task line is up to 320 characters. A section is up to 250 words, wrapped at 88 columns
-in the file. A non-goal is a bold lead and a reason. Those are what the type must serve,
-and none is a card with four words in it.
-
-So the direction is editorial and light-first: a generous measure, one clear reading
-size, and space used to separate a claim from its reason rather than to decorate.
-Density belongs to the two list surfaces — the portfolio and the backlog — and reading
-belongs to the detail. One theme, two densities, and no third mode invented per screen.
-
-The tokens are the contract: a colour ramp, a type scale, spacing, radius and a
-monospace face for ids, markers and argv. Every component takes them and no component
-names a hex value. Dark is the same tokens re-pointed and never a second stylesheet.
-
-shadcn is copied in rather than depended on, which is what it is for: the components
-live in this repository and are edited here, so a variant this app needs is a change and
-not a fork. Tailwind carries them as CSS variables, so one value reaches a component and
-a chart alike.
-
-What is refused is a look that makes 320 characters feel like an overflow, since that
-length is the format working correctly.
-
 ### §RG51 One catalogue, from the first screen
 
 Every string a person reads comes from a catalogue keyed by an identifier, with English
@@ -680,3 +656,73 @@ not a review comment. And every surface is reachable and dismissable from a keyb
 with focus visible, which is the part that breaks silently as dialogs and menus
 accumulate. Beyond that: a status carries a shape or a word as well as a hue, and text
 is text rather than an image of one.
+
+### §RG61 An advisory that arrives with somebody else's package
+
+Installing the design system brought one finding: `xlsx` is reported high severity and
+reaches this app as a transitive dependency of `@viglet/viglet-design-system`. The
+package on npm is the unmaintained SheetJS build, whose advisories are prototype
+pollution and a regular-expression denial of service, and no patched version exists on
+that registry.
+
+What is actually exposed here is narrow and should be established before anything is
+done. This app parses no spreadsheet, and the renderer that would run the code has no
+filesystem and no process. If the bundle does not include `xlsx` at all — Vite
+tree-shakes what nothing imports — then the advisory is about the install tree and not
+about the executable, and the answer is a documented note rather than a change. That
+measurement is the first half of this task and it may be the whole of it.
+
+If it does ship, the fix is not this repository's: it is a line in the design system,
+either dropping the dependency or moving to the maintained `xlsx` distribution SheetJS
+publishes outside npm. That makes this a line that ends in somebody else's release, so
+it wants the wait-watcher the sibling consoles use — a test pinning the installed
+design-system version, which fails when it moves so the wait is read again rather than
+sitting unnoticed.
+
+### §RG62 Joining the checks the other consoles already answer to
+
+Depending on the design system is half of consuming it. The other half is the two
+mechanisms Shio and Dumont run, and this app has neither.
+
+The first is `viglet-ds-check-duplicates`, a gate shipped in the package's own bin. It
+reads `exports.json` through the consumer's module graph and fails on any component
+declared here that the package already exports, naming the import that replaces it.
+Dumont found nineteen such collisions with nothing failing anywhere. What both consoles
+learned the hard way is that the gate has to be tested against a planted duplicate: a
+gate wired to the wrong root reports a clean tree in exactly the same words as a clean
+tree.
+
+The second is registration in the package's `consumers.json`. It is the declared set the
+design system holds itself to — six apps today, each recording its framework, chrome,
+accent and the subpaths its source imports. A consumer that is not in it is one whose
+parity claims were never checked, and the file's own reasoning says prose naming a
+subset as though it were the whole is a test failure. That entry is a change to the
+sibling checkout and wants its own commit there, which is why it is named here rather
+than done quietly.
+
+The word that trips the gate here is the JavaScript one. "No issue tracker, and no
+export to one" forbids sending this backlog somewhere else; what this check reads is a
+module's named exports, and nothing here moves a task anywhere.
+
+### §RG63 The shell before the pages
+
+The design system's page vocabulary is its bento layer: a nav rail, a user menu, a
+command palette, a hero, a list mosaic and the save-bar morph, extracted from Turing and
+shared with Shio. It is a separate entry point, so importing the tokens does not bring
+it, and this app currently has none of it.
+
+Its own authoring guide names the failure directly: the first mistake is a page that
+looks bento inside a console that does not. So this is the shell, not a screen — a root
+layout holding `BentoNavRail`, `BentoUserMenu`, `BentoCommandPalette`,
+`BentoShortcutsDialog` and `BentoBackToTop`, with `bento-rail-gutter` around the routed
+outlet and `bento.css` imported beside the tokens.
+
+Three things it drags in that are worth knowing before starting. `./bento` needs
+`react-router-dom`, so routing arrives with it rather than later. `BentoUserMenu` calls
+the package's own `useCurrentUser`, and a local provider is a different context object
+that renders the shell blank behind an error boundary. And jsdom implements neither
+`matchMedia` nor `ResizeObserver` nor `scrollIntoView`, all three of which these
+components use, so the suite needs the same polyfills the package sets up for itself.
+
+The keybinding for the palette is this app's to choose; the component takes only open
+state and items.

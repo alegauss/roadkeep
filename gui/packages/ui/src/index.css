@@ -1,9 +1,52 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
 
 /*
- * The design system is Block H's work. What belongs here now is only what a window
- * needs to not look broken: the app fills the viewport and never scrolls the frame
- * itself, because the chrome is the window's and the scrolling is a panel's.
+ * The design system is not this app's. `@viglet/viglet-design-system` is the same
+ * package Turing, Shio and Dumont render with, and this line is the whole of what
+ * roadkeep-gui declares about colour, radius and type: every token arrives here, and
+ * no component in this repository names a value of its own.
+ *
+ * The import order is the one the sibling consoles use and it matters: Tailwind first,
+ * because the package's `@theme inline` block extends it; the animation utilities next;
+ * the design system after both; and this app's accent last, so it overrides rather than
+ * being overridden.
+ *
+ * Light and dark both arrive with this import — the package re-points the same `--vg-*`
+ * variables under `.dark, [data-theme="dark"]`. Nothing switches between them yet: that
+ * is RG52, and it is a provider and a toggle rather than a stylesheet.
+ */
+@import '@viglet/viglet-design-system/styles';
+
+/*
+ * The brand faces, a separate entry because they are most of the package's weight and a
+ * consumer that does not want them should not carry them. This one does: a desktop build
+ * ships its fonts, so the type is the type the catalogue shows on a machine that has
+ * never seen the internet. Without this line `--font-brand` falls back to `system-ui` -
+ * a real look, but not this one.
+ */
+@import '@viglet/viglet-design-system/fonts';
+
+/*
+ * roadkeep's accent, and not a new one. The public site is keyed to amber and spells
+ * three of them (`--amber`, `--amber-bright`, `--amber-deep`); these are those three in
+ * OKLCH, so the app and the site cannot drift into two ambers. `--vg-accent-text` is the
+ * deep one because amber at full chroma does not carry text on a light ground.
+ *
+ * On `:root` rather than a wrapper, which is what the package requires: the tokens are
+ * read by fixed and portalled elements that are not inside any wrapper this app renders.
+ */
+:root {
+  --vg-accent-from: oklch(82.8% 0.189 84.429); /* #fbbf24 — amber-bright */
+  --vg-accent-to: oklch(76.9% 0.188 70.08); /* #f59e0b — amber */
+  --vg-accent-text: oklch(55.5% 0.163 48.998); /* #b45309 — amber-deep, readable on light */
+  --vg-accent-text-dark: oklch(82.8% 0.189 84.429); /* #fbbf24 — readable on dark */
+}
+
+/*
+ * The one thing that is this app's and not the design system's: a desktop window is not
+ * a page. The frame never scrolls, because the chrome belongs to the window and the
+ * scrolling belongs to a panel inside it.
  */
 html,
 body,
