@@ -15,14 +15,13 @@
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 - 💭 **RG13** (deps: RG11 ✅, roadkeep RK1631) **a candidate is judged governed by a read that fails, so rejecting a folder costs the work of a whole lint** — config answers with a null and engines answers happily about an ungoverned directory, so the cheap probe a scan wants does not exist yet. → §RG13
-- 💭 **RG14** (deps: RG11 ✅) **the whole tree is walked again on every launch, so a list the person already approved is rediscovered** — A scan is a statement about this machine and changes rarely, and a project that vanished for a moment is worse than one shown from a record. → §RG14
 - 💭 **RG15** (deps: RG2 ✅, RG13) **which copy of roadkeep each project runs is never read, so a disagreement engines can name is averaged away** — This block will not be finished until the version, the home and the verdict sit beside a project's counts, and nothing reads them yet. → §RG15
 - 📋 **RG71** (deps: RG11 ✅) **a walk of every root blocks the thread it runs on, so a slow drive freezes the window** — Every directory is read with a synchronous call, and a network share or a spinning disk turns a scan into a window that stops repainting. → §RG71
 - 📋 **RG72** (deps: RG12 ✅) **a family is drawn in the order it was found, so a version list can read newest last or newest first by luck** — Members keep scan order, and which version folder the walk reaches first is a fact about the filesystem rather than about the family. → §RG72
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 💭 **RG16** (deps: RG3 ✅, RG14) **nothing shows more than one project, which is the single thing this app exists to do** — Seventeen governed checkouts on this machine are seventeen terminals today, and the count each one holds is unreachable from any one place. → §RG16
+- 💭 **RG16** (deps: RG3 ✅, RG14 ✅) **nothing shows more than one project, which is the single thing this app exists to do** — Seventeen governed checkouts on this machine are seventeen terminals today, and the count each one holds is unreachable from any one place. → §RG16
 - 💭 **RG17** (deps: RG7 ✅, RG8 ✅, RG16) **twenty projects are read one after another, so the first screen is a wait with nothing drawn on it** — A cold start is the only moment every project is read at once, and it is the moment with no cache to answer from. → §RG17
 - 💭 **RG18** (deps: RG16) **whether a project's gate passes is unknown until it is opened, so the list cannot say which one needs attention** — lint exits 1 on a file that drifted and that is the whole contract, but it is also the most expensive read to run seventeen times. → §RG18
 - 💭 **RG19** (deps: RG16) **what to work on is asked one repository at a time, so there is no answer that ranges over all of them** — pick applies three tiers inside one backlog and nothing composes those answers, so a person with seventeen chooses by memory. → §RG19

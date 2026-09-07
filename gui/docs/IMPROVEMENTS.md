@@ -159,15 +159,6 @@ coming back null when it is not. What it must never do is walk up looking for a 
 itself, which is roadkeep's own discovery rule reimplemented here and wrong the day that
 rule moves. The upstream line is a dep on this one for exactly that reason.
 
-### §RG14 A list that survives the window closing
-
-The project list is a record: the roots that produced it, each project's path, its
-family and when it was last confirmed. A launch draws that record immediately and
-rescans behind it, so the first screen is never empty and a rescan is a diff rather than
-a rebuild. A project the rescan no longer finds is marked missing and kept, since the
-two reasons for that — deleted, or a drive not mounted — look identical and only one of
-them is a removal.
-
 ### §RG15 The disagreement, drawn rather than resolved
 
 The engines read answers per project with the writing copy, the plugin, the vendored

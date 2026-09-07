@@ -15,6 +15,22 @@ export type {
   CommandsPayload,
   PublishedCommand,
 } from './capabilities'
+export {
+  CATALOGUE_VERSION,
+  catalogueFrom,
+  EMPTY_CATALOGUE,
+  present,
+  readCatalogue,
+  reconcile,
+  rowsFrom,
+} from './catalogue'
+export type {
+  CatalogueChange,
+  ChangeKind,
+  ProjectCatalogue,
+  Reconciled,
+  RecordedProject,
+} from './catalogue'
 export { createCachingTransport } from './cache'
 export type { CachingOptions, CachingTransport } from './cache'
 export { groupProjects, isFamily } from './families'

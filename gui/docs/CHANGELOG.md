@@ -17,6 +17,7 @@
 - ✅ **RG10** **no root is named, so there is nowhere to look and the project list can only come back empty** — A root is a folder somebody named with a bounded depth, there is no default, and one that stopped existing is kept and marked (design recorded in `packages/core/src/roots.ts`).
 - ✅ **RG11** **a scan descends into node_modules and .git, so finding seventeen projects reads a hundred thousand folders** — The walk looks for one filename, refuses an ignored or hidden directory, stops at the declared depth and never enters a project it found (design recorded in `packages/core/src/scanning.ts`).
 - ✅ **RG12** **a git worktree family reads as unrelated projects, so one backlog appears once per version folder** — A junction collapses onto the folder it names and two worktrees group by the git directory they share, read off git's own files (design recorded in `packages/core/src/families.ts`).
+- ✅ **RG14** **the whole tree is walked again on every launch, so a list the person already approved is rediscovered** — The list is a record a rescan diffs rather than rebuilds, and a project it no longer finds is marked missing and kept (design recorded in `packages/core/src/catalogue.ts`).
 
 ## Block C — The portfolio (many backlogs in one view)
 
