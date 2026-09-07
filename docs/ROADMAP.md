@@ -40,6 +40,7 @@
 - 📋 **RK1630** (deps: —) **a read payload names neither the root it answered about nor the build that answered** — lint carries root and config carries version; list, show, brief, stats, export and pick carry neither, so a client holding several projects' answers cannot tell whose it holds. → §RK1630
 - 📋 **RK1631** (deps: —) **no one call says whether a path is governed and where its root is, so a client reads it off a null** — config answers source = null, engines answers happily about an ungoverned directory, and lint does a whole file's work to report the root a probe needs. → §RK1631
 - 💭 **RK1650** (deps: —) **one of forty read-only verbs now refuses, and the rule that reading is never refused is prose in three places** — RK1608 refuses a --have word outside a declared vocabulary, and the sentence the guard prints an agent still says reading is never refused. → §RK1650
+- 💭 **RK1651** (deps: —) **three readings of one source claim to be complements of each other and no test holds any of the three claims** — RK1609 changed what two of them read and the claim survived by luck, the measurement that says so having been taken by hand once. → §RK1651
 
 ## Block D — The gate
 
