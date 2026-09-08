@@ -530,27 +530,6 @@ replaces itself while somebody is reading a backlog is one that loses their plac
 it must not do is phone anywhere on launch by default: this app reads a person's
 repositories, and a network call it did not need is one that has to be explained.
 
-### §RG57 Watching the half that does not hot-reload
-
-`npm run dev` runs `tsc -b` once and hands the Vite URL to Electron. The renderer
-hot-reloads from there, so a change to `ui` is on screen before the file is saved twice;
-a change to `shell` is on screen only after the window is closed, the run killed and
-started again. The asymmetry is the whole defect, and it gets worse exactly as the main
-process gets interesting: settings, the file watcher and the spawn all live there, and
-each is a thing somebody iterates on.
-
-What this needs is a watch over `packages/shell/src` and `packages/core/src` that
-recompiles and restarts the Electron child without touching the Vite server, because
-restarting the server throws away the renderer state that made the change worth looking
-at. The restart has to be debounced — `tsc -b` writes several files per build and a
-watcher that fires per file restarts the app four times — and it has to wait for the
-compile to succeed, since restarting into a broken build replaces a useful error with a
-crash.
-
-Worth stating what this is not: it is not `electron-vite`. Adopting a framework to get a
-file watcher would put the three-package split under a tool that assumes one package,
-and the split is the design.
-
 ### §RG58 The gate a typecheck is not
 
 `npm run typecheck` and `npm test` between them say the code compiles and behaves.

@@ -74,6 +74,9 @@
   checked **The suite asserts the same things on a runner as on a developer's machine** The engine arrives by checkout and ROADKEEP_HOME, verified to outrank the fallback where no sibling exists; and the two assertions that were about the developer's installed Claude Code now assert the answer in either branch rather than skipping.
 - ✅ **RG56** **an agent working this backlog has no instruction file, so every session rediscovers the rules by reading code** — A session is told which package may know what and where the rest lives, in a file the gate holds to a budget in lines and bytes (design recorded in `CLAUDE.md`).
   checked **The instruction file is an index, and the gate holds it to that** CLAUDE.md says which package may know what and points at the skill for everything longer; roadkeep.toml declares its budget in lines and bytes, verified by padding the file and watching lint report budget.bytes.
+- ✅ **RG57** **a main-process change is invisible until the dev run is killed, because only the renderer is watched** — A main-process edit now rebuilds and replaces the Electron child, and a failed build leaves the running app alone (design recorded in `packages/core/src/reloading.ts`).
+  checked **A main-process edit rebuilds and restarts without touching Vite** Verified against a real run: touching a shell source printed the rebuild and the restart, and a renderer edit is deliberately not watched because restarting the server discards the state that made the change worth seeing.
+  checked **A failed build leaves the running app alone** Verified by introducing a type error into a live run: the compiler's output printed, the app stayed up, and the next good save restarted it. Builds never overlap and a save arriving mid-build is remembered rather than dropped.
 
 ## Block H — The look (a design system for governed prose)
 

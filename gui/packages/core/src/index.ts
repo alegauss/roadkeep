@@ -153,6 +153,8 @@ export {
   THEME_ORDER,
 } from './ground'
 export type { Ground } from './ground'
+export { AGAIN, createReloading, HELD, REBUILDING, RESTARTING } from './reloading'
+export type { Reloading, ReloadHooks, ReloadState } from './reloading'
 export { CONFIG_FILE, createWatching, QUIET_MS, watchedFiles } from './watching'
 export type { Clock, Interest, OnChanged, Watcher, Watching } from './watching'
 export { DEFAULT_SETTINGS, readSettings, SETTINGS_VERSION, settingsText, wasReset } from './settings'
