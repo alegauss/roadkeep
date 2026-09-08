@@ -51,6 +51,7 @@
 - 📋 **RG59** (deps: RG44 ✅) **the renderer has no content policy, so a script tag that reaches the page runs beside the bridge** — Isolation decides what the page may call; nothing yet decides what the page may load, and the bridge is what a loaded script would find. → §RG59
 - 📋 **RG60** (deps: RG44 ✅) **no test ever starts the app, so the isolation the window configures is checked by reading it** — Every webPreferences flag is a default a later edit can drop silently, and a suite that never opens a window cannot notice. → §RG60
 - 💭 **RG85** (deps: —) **the handler proving the seam runs any argv against any root, which a real service cannot** — The test's half is deliberately unguarded, so the day it becomes a product surface the guard has to arrive with it and nothing says what it is. → §RG85
+- 💭 **RG91** (deps: RG55 ✅, RG46 ✅) **the packaged build is proven on one machine, and CI never makes one** — The workflow runs the suite and the bundle but never the packaging step, so the artefact anybody would actually install is the one thing nothing checks. → §RG91
 
 ## Block H — The look (a design system for governed prose)
 

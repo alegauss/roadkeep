@@ -643,6 +643,30 @@ handler already works.
 What would settle this is a short list of refusals written before the service is built,
 not after it runs.
 
+### §RG91 The artefact CI does not make
+
+RG55 wired the typecheck, the suite and `npm run build` to every change. `npm run
+package` is not among them, and it is the one command whose output a person would
+install: it stamps the build identity, refuses to package a renderer that lost its
+posture, and hands electron-builder an installer to produce.
+
+Everything RG46 established about that step is currently held by one machine having run
+it once. The stamp, the posture refusal and the archived app opening a window were all
+verified by hand, on Windows, in a session that is over.
+
+Packaging in CI is not free and that is the whole of the question. An installer per
+platform per push is minutes of runner time and an artefact nobody downloads; the useful
+shapes are narrower. Run the stamp and the posture check on every change, which is fast
+and is where the refusal lives. Run the full package on a tag, or on demand, and keep
+the artefact — which is also how somebody gets a build to try without a developer
+machine.
+
+Two things make it more than tidiness. `ELECTRON_RUN_AS_NODE` is exported by agent
+sessions and silently turns a packaged Electron into plain Node, which is the defect
+RG46 spent a session misdiagnosing — a runner does not export it, so CI is the
+environment where that class of failure is visible rather than masked. And a macOS build
+has never been attempted at all.
+
 ## Block H — The look (a design system for governed prose)
 
 ### §RG61 An advisory that arrives with somebody else's package
