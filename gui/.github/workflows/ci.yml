@@ -82,8 +82,9 @@ jobs:
         run: npm run typecheck
 
       # oxlint holds the package split — a `core` that imported Electron would compile and
-      # be wrong — and Prettier is a check and never a write here: a step that reformatted
-      # the branch it is judging would be a gate that commits.
+      # be wrong — Prettier is a check and never a write here (a step that reformatted the
+      # branch it is judging would be a gate that commits), and the design system's own
+      # duplicates gate fails on a component this app re-declared.
       - name: lint
         run: npm run lint
 

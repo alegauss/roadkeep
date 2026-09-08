@@ -694,27 +694,31 @@ in a way that a test which silently rebuilds is not, and it costs a `stat`.
 ### §RG62 Joining the checks the other consoles already answer to
 
 Depending on the design system is half of consuming it. The other half is the two
-mechanisms Shio and Dumont run, and this app has neither.
+mechanisms Shio and Dumont run.
 
-The first is `viglet-ds-check-duplicates`, a gate shipped in the package's own bin. It
-reads `exports.json` through the consumer's module graph and fails on any component
-declared here that the package already exports, naming the import that replaces it.
-Dumont found nineteen such collisions with nothing failing anywhere. What both consoles
-learned the hard way is that the gate has to be tested against a planted duplicate: a
-gate wired to the wrong root reports a clean tree in exactly the same words as a clean
-tree.
+**The gate is done.** `viglet-ds-check-duplicates` is wired into `npm run lint` over the
+three source roots, and a test plants a duplicate and requires it to be found — because
+a gate pointed at the wrong directory reports a clean tree in exactly the same words as
+a clean tree, which is what both consoles learned the hard way.
 
-The second is registration in the package's `consumers.json`. It is the declared set the
-design system holds itself to — six apps today, each recording its framework, chrome,
-accent and the subpaths its source imports. A consumer that is not in it is one whose
-parity claims were never checked, and the file's own reasoning says prose naming a
-subset as though it were the whole is a test failure. That entry is a change to the
-sibling checkout and wants its own commit there, which is why it is named here rather
-than done quietly.
+**Registration is not, and is deliberately not.** The package's `consumers.json` is the
+declared set it holds itself to, and its own reasoning says prose naming a subset as
+though it were the whole is a test failure. The entry this app wants is:
 
-The word that trips the gate here is the JavaScript one. "No issue tracker, and no
-export to one" forbids sending this backlog somewhere else; what this check reads is a
-module's named exports, and nothing here moves a task anywhere.
+```
+{ "id": "roadkeep-gui", "name": "roadkeep", "package": "@rk/ui",
+  "framework": "vite", "chrome": "console",
+  "entries": [".", "./styles", "./fonts", "./preset"] }
+```
+
+`accent` is the field to stop at. Every one of the six consumers records `cool`, and the
+file says so on purpose: the accent was made a token so a product could re-key without
+forking a header, and none had. This app has — amber, in its own `:root`. So adding it
+is not a row, it is the first case that file was written to anticipate, and the parity
+digest is then required to carry that set.
+
+That is a commit in somebody else's repository with a consequence for five other apps,
+which is why it is written down here rather than made quietly.
 
 ### §RG63 The shell before the pages
 
