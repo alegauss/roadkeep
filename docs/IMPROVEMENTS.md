@@ -899,6 +899,53 @@ pay instead. Deleting `__pycache__` after the check is a second sweep over a tre
 walked. Or the figure is simply stated — `install --vendor` reports what landed, and a
 report saying 7.24 when the rule says 3.89 is the part that misleads.
 
+### §RK1658 The sample that was never counted
+
+RK1619 read the note as the interpolation after `\n\n`, and kept the first-call reading
+as a fallback so a site spelling no blank line still reports a name. That fallback is
+what makes an undeclared kind fail loudly instead of passing in silence — and it is also
+what makes the opposite failure invisible.
+
+A site that *stops* spelling the separator changes the answer a caller reads: the note
+runs on from the text instead of arriving as a paragraph. Under the fallback the sweep
+still names the kind, `NOTES` still matches, and every test in the suite is green. So
+the one property the reading rests on — that appending a paragraph is what these four
+sites do — is asserted nowhere.
+
+The design's own last sentence asked whether the four sites are the population or a
+sample, and the answer shipped was *a sample plus a fallback*. Three tests construct the
+shapes by hand and none of them reads `serving.py`.
+
+**So count them.** The sweep already walks every `Answer(f"…")` site in that module;
+what it does not say is how many took the primary reading and how many the fallback, and
+the second number is a property with a right answer today: zero. A test asserting it is
+one line beside the census, and it fails on the commit that drops a separator rather
+than on the session that notices the note reads wrong.
+
+### §RK1659 The separator that could be a call
+
+`_advise` writes `Answer(f"{text}\n\n{_kind(…)}")` four times. The blank line is the
+same fact each time — *this note is a paragraph after the answer* — spelled as a literal
+in four places, which is the duplication this package removes wherever it finds one.
+
+RK1564 and RK1619 are both what that costs. Each read the f-string for the note's
+identity, each was exact against the shape it was filed for and inexact against the
+mirror one, and RK1619's answer still needs a fallback: a site spelling the separator
+differently gets the older reading, because a literal is what the sweep matches on.
+
+**One helper dissolves the question.** `_appended(text, note)` composes the blank line
+once, and the site becomes `Answer(_appended(text, _landed(changed, root)))` — where the
+kind is the second argument, not the call after a literal, not the first call in an
+f-string. There is no separator to spell differently, so there is nothing for a fallback
+to be about, and the census reads an argument position rather than a string this module
+happens to write.
+
+Against it: it is a wrapper around a two-part f-string, which is the kind of indirection
+that buys nothing where a rule does not already turn on it. Here one does — twice — so
+the test is whether the reading gets simpler, and it does: one call site shape, no
+literal, no fallback, and the suffix `_now` composers already carry stays exactly where
+it is.
+
 ## Block G — The editor surface (the backlog where the file is open)
 
 ## Block H — The tool's own shape (what one verb costs to change)

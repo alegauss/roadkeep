@@ -72,6 +72,8 @@
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 💭 **RK1648** (deps: —) **verifying a vendored engine runs it, so Python writes three megabytes of bytecode into an artefact just measured at four** — RK1606 took the copy to 3.89 MiB and the --version that proves it imports leaves it at 7.24, which no rule about what is copied can reach. → §RK1648
+- 📋 **RK1658** (deps: —) **nothing says the four answer sites all spell the blank line, so one losing it falls back and stays green** — RK1619 chose a reading bound to a literal and its own fallback hides a site that stopped writing the paragraph the note is. → §RK1658
+- 📋 **RK1659** (deps: —) **the paragraph separator is spelled at four answer sites, so what appending a note is stays a literal a sweep matches** — RK1619 read it off that literal and had to keep a fallback for a site that spells another; one helper would leave nothing to match. → §RK1659
 
 ## Block G — The editor surface (the backlog where the file is open)
 
