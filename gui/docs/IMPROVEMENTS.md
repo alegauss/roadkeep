@@ -249,6 +249,29 @@ nothing. Whether that means `call` grows the state, `attemptRead` grows the tabl
 the two become one function is open — what is not open is that a screen should not have
 to know which door it came in by.
 
+### §RG100 Absent, or never looked for
+
+`filingOf` asks three listings in turn — the roadmap, the ledger, the store — and
+answers `unfiled` when none holds the id. That last answer is a strong claim, and
+`whereFiled` spells it out: *nothing in this project carries that id*.
+
+RG67 made it possible for that to be false. A project declaring `[reads] list` answers a
+listing past the bound with its counts and no lines, so every one of the three lookups
+comes back empty and the id is reported as one nobody ever filed. The worst version is
+the one this function exists for: a paused line, in a store that was bounded, described
+to a person as never having existed.
+
+Four states are three too few. What is missing is *not known* — the listing was narrower
+than its file, so this read cannot say. `Filing` carries `open`, `shipped`, `paused` and
+`unfiled`, and the fifth is what a bounded or partly refused listing actually supports.
+`Backlog.complete` and `Store.complete` already carry the bit; nothing between them and
+this function passes it on.
+
+The same doubt applies to a listing with refused lines, which is the older and quieter
+case: a line the grammar could not read is in `uncounted` and not in `tasks`, so an id
+sitting in one has always come back `unfiled`. Whatever `filingOf` grows should cover
+both, since they are one question — *did this read see the whole file?*
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ### §RG13 The cheap no

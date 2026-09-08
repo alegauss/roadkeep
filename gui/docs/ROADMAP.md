@@ -15,6 +15,7 @@
 - 📋 **RG97** (deps: —) **nothing declares which Node this repo needs, so a wrong one fails inside a dependency and not at the door** — Node 20.19.1 broke every jsdom worker with a TypeError from undici and the window test with a missing WebSocket, and CI's pin is the only place a version is written. → §RG97
 - 💭 **RG98** (deps: RG65 ✅) **core's boundary test holds an import and nothing else, so a path rule written as string work passes it** — RG65 decided what a path means belongs to whoever has the filesystem, and a separator fold written inline compiles, typechecks and passes every gate. → §RG98
 - 💭 **RG99** (deps: RG66 ✅) **a read has two doors and the one a screen has to use is the one that raises rather than answering** — The client reads a verb with its own shape and throws when the call never happened, and attemptRead states that as a value but takes the reader back at the call site. → §RG99
+- 💭 **RG100** (deps: RG67 ✅) **an id in a project whose listing was bounded reads as one nothing in that project ever carried** — Where an id is filed is answered by looking through three listings, and a listing past the read bound holds no lines to look through. → §RG100
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
