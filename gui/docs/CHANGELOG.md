@@ -65,6 +65,7 @@
 - ✅ **RG44** **the renderer holds node powers, so the half a service would serve to a browser can delete a file** — The renderer has a browser's powers and one frozen typed object, and every navigation off the bundle is refused or sent to the system browser (design recorded in `packages/core/src/bridge.ts`).
 - ✅ **RG45** **nothing watches the governed files, so a write by an agent or a terminal leaves the screen stale** — The governed files a project declares are watched while somebody holds it, and a burst of writes tells the screen once (design recorded in `packages/core/src/watching.ts`).
 - ✅ **RG46** **there is no executable, so the app runs only where its source tree and toolchain already are** — An installer builds, opens a window, and names its version, commit and signing from inside itself (design recorded in `packages/core/src/build.ts`).
+- ✅ **RG47** **settings have nowhere to live, so roots and preferences are gone when the window closes** — The roots, the skip list, the pool width, the theme and the locale have a versioned file that resets field by field (design recorded in `packages/core/src/settings.ts`).
 
 ## Block H — The look (a design system for governed prose)
 

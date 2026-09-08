@@ -490,14 +490,6 @@ On ship: `--recorded-in packages/core/src/pauses.ts`.
 
 ## Block G — The shell (an executable now, a service later)
 
-### §RG47 The one thing this app owns
-
-Everything on screen is read from a repository except this: the roots, their depths, the
-ignore set, the pool width, the theme and the locale. That file is small, versioned, and
-validated on read — a settings file that fails to parse resets to defaults and says so,
-rather than taking the window down. It holds no project data and no cached answer, which
-is the non-goal about a store of its own restated as a file format.
-
 ### §RG48 Proving the seam instead of describing it
 
 The claim is that the client's transport is one interface, so the same reads answer over
