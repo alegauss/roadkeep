@@ -202,6 +202,73 @@ describe('RG2: the copy the project actually declares', () => {
   })
 })
 
+describe('RG65: one file spelled two ways', () => {
+  const WINDOWS_LAUNCHER = ['python', 'D:\\proj\\.claude\\hooks\\roadkeep-launch.py']
+  const POSIX_SPELLING = 'python D:/proj/.claude/hooks/roadkeep-launch.py'
+  const foldSeparators = (left: string, right: string): boolean =>
+    left.replace(/\\/g, '/') === right.replace(/\\/g, '/')
+
+  it('costs a second interpreter start when nothing was told the spellings are one', async () => {
+    const { transportFor, asked } = machine({
+      'python D:\\proj\\.claude\\hooks\\roadkeep-launch.py': { invoke: POSIX_SPELLING },
+    })
+
+    await resolveEngine(transportFor, '/proj', [WINDOWS_LAUNCHER])
+
+    // The default is the literal comparison, and this is exactly what it pays for.
+    expect(asked).toHaveLength(2)
+  })
+
+  it('asks once when the caller says the two spellings name one file', async () => {
+    const { transportFor, asked } = machine({
+      'python D:\\proj\\.claude\\hooks\\roadkeep-launch.py': { invoke: POSIX_SPELLING },
+    })
+
+    const resolution = await resolveEngine(transportFor, '/proj', [WINDOWS_LAUNCHER], {
+      samePart: foldSeparators,
+    })
+
+    expect(asked).toHaveLength(1)
+    expect(resolution.kind).toBe('resolved')
+    if (resolution.kind !== 'resolved') return
+    expect(resolution.engine.reachedDeclared).toBe(true)
+  })
+
+  it('still reaches a copy that really is a different one', async () => {
+    const { transportFor, asked } = machine({
+      roadkeep: { home: '/engines/plugin', invoke: 'python /plugins/roadkeep/launch.py' },
+      'python /plugins/roadkeep/launch.py': { home: '/engines/plugin' },
+    })
+
+    const resolution = await resolveEngine(transportFor, '/proj', [ON_PATH], {
+      samePart: foldSeparators,
+    })
+
+    // A cheaper comparison is only worth having if it still buys the check: the second
+    // call is what proves the declared copy exists, and a real difference still pays it.
+    expect(asked).toHaveLength(2)
+    expect(resolution.kind).toBe('resolved')
+    if (resolution.kind !== 'resolved') return
+    expect(resolution.engine.engine).toEqual(['python', '/plugins/roadkeep/launch.py'])
+  })
+
+  it('keeps the length of a command line its own business', async () => {
+    const { transportFor } = machine({
+      roadkeep: { home: '/engines/one', invoke: 'python -X utf8 /gone/launch.py' },
+    })
+
+    // The caller answers what makes two *parts* equal. How many there have to be is the
+    // shape of an argv, which stays here — a comparison cannot talk this into a match.
+    const resolution = await resolveEngine(transportFor, '/proj', [ON_PATH], {
+      samePart: () => true,
+    })
+
+    expect(resolution.kind).toBe('resolved')
+    if (resolution.kind !== 'resolved') return
+    expect(resolution.engine.reachedDeclared).toBe(false)
+  })
+})
+
 describe('RG2: the states a screen has to tell apart', () => {
   it('sees a modified working tree', () => {
     const clean = readEnginesPayload(payloadFor({ revision: '2404ae02' }))

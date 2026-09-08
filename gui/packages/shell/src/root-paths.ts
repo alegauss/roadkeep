@@ -12,7 +12,8 @@ import type { ScanRoot } from '@rk/core'
  * there and two everywhere else.
  */
 
-const CASE_INSENSITIVE = process.platform === 'win32' || process.platform === 'darwin'
+/** Whether two spellings differing only in case name one file here. Stated once, used twice. */
+export const CASE_INSENSITIVE = process.platform === 'win32' || process.platform === 'darwin'
 
 /**
  * The string two roots are compared on. Resolved to absolute, separators normalised, and

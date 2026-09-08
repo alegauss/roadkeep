@@ -3,6 +3,22 @@
 ## Block A — The client (payloads in, types out)
 
 - ✅ **RG64** **the fast suite and the one that spawns a real engine are one command, so every run pays for both** — A test that spawns a process, opens a window or reads the build is named `*-live.test.*`; suites.test.ts reads every test file and fails when one is filed under a fast name.
+- ✅ **RG65** **resolving an engine costs two interpreter starts on Windows, where the same file is spelled two ways** — A rule about what a path means is handed into `core` and never folded inside it, even written as pure string work.
+
+### §RG65 What a path means is not core's to know
+
+The cheaper fix was one line inside `core`: normalise the separator in both strings
+before comparing. It was rejected because a backslash is an ordinary character in a
+filename on Linux, so the fold would report two different files as one — and the branch
+it lies to is the one saying the declared copy was *reached*. Claiming to have run an
+engine nobody ran is the failure this module exists to avoid, and a comparison correct
+on one platform is not cheaper than a second process start.
+
+So `resolveEngine` takes the comparison and defaults to a literal one: slow on Windows,
+never wrong anywhere. `root-paths.ts` had answered the same question for folders without
+recording why. This is the second instance, and the constraint is general: a rule about
+paths belongs to whoever has the filesystem, even written as pure string work that would
+compile in `core` untouched.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

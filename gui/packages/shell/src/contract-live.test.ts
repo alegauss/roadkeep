@@ -48,7 +48,7 @@ import {
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { engineCandidates } from './engine-candidates'
+import { engineCandidates, samePathPart } from './engine-candidates'
 import { buildFixture, type Fixture } from './fixture'
 import { createProcessTransport } from './process-transport'
 
@@ -84,7 +84,7 @@ beforeAll(async () => {
     (engine) => createProcessTransport({ command: engine[0] ?? '', prefixArgs: engine.slice(1) }),
     REPO,
     engineCandidates(REPO),
-    { timeoutMs: CEILING },
+    { timeoutMs: CEILING, samePart: samePathPart },
   )
   if (resolution.kind === 'resolved') {
     engineVersion = resolution.engine.payload.writing.version

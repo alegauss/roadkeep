@@ -215,6 +215,7 @@ export type {
   EngineResolution,
   ResolvedEngine,
   ResolveOptions,
+  SamePart,
   TransportFor,
 } from './engine-resolution'
 export { readEnginesPayload, splitCommandLine } from './engines'

@@ -1,8 +1,13 @@
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 
+import type { SamePart } from '@rk/core'
+
+import { CASE_INSENSITIVE } from './root-paths'
+
 /**
- * The command lines worth trying for a project, in the order they should be tried.
+ * The command lines worth trying for a project, in the order they should be tried — and
+ * how two of them are told apart.
  *
  * This is the half of engine resolution that needs a filesystem, which is why it is here
  * and not in `core`. It discovers nothing about *versions* — that is `engines --json`'s
@@ -43,4 +48,31 @@ export function engineCandidates(
 
   candidates.push([onPath])
   return candidates
+}
+
+/**
+ * Whether two parts of a command line name the same thing on this machine.
+ *
+ * The comparison `resolveEngine` is handed, and the other half of "needs a filesystem".
+ * `invoke` is written with posix separators while a candidate built here holds the
+ * platform's, so on Windows `D:/proj/.claude/hooks/roadkeep-launch.py` and
+ * `D:\proj\.claude\hooks\roadkeep-launch.py` are one file spelled twice — and a literal
+ * comparison paid a second interpreter start, about 2.3 seconds, on every resolution to
+ * discover that.
+ *
+ * Normalised rather than resolved: `path.resolve` would make a bare `roadkeep` a file in
+ * whichever directory this process happens to be in, and a PATH lookup is not a path.
+ * Case is folded only where the platform says it does not distinguish a file, which is why
+ * this cannot live in `core` — on Linux a backslash is an ordinary character in a name,
+ * and folding it there would report two different files as one.
+ */
+export const samePathPart: SamePart = (left, right) => {
+  if (left === right) return true
+  if (left === '' || right === '') return false
+
+  const key = (part: string): string => {
+    const normalised = path.normalize(part)
+    return CASE_INSENSITIVE ? normalised.toLowerCase() : normalised
+  }
+  return key(left) === key(right)
 }

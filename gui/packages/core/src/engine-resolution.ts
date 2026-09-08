@@ -23,6 +23,23 @@ import type { CancelSignal, Transport } from './transport'
  */
 export type TransportFor = (engine: readonly string[]) => Transport
 
+/**
+ * Whether two parts of a command line name the same thing.
+ *
+ * Injected for the same reason a transport is. `invoke` is built with posix separators and
+ * a candidate assembled from a filesystem holds that machine's, so on Windows one file
+ * arrives spelled two ways and a literal comparison starts a second interpreter to learn
+ * what it already knew. Deciding that `D:/proj/launch.py` and `D:\proj\launch.py` are one
+ * file is a rule about paths, and this package does not have one: a fold applied
+ * everywhere would make two genuinely different files compare equal wherever a backslash
+ * is an ordinary character in a name, and this function reports having *reached* the
+ * declared copy — the one thing resolution must not say when it is untrue.
+ *
+ * So whoever has the filesystem says what sameness means there, and the default here is
+ * the literal comparison: slow on Windows, never wrong anywhere.
+ */
+export type SamePart = (left: string, right: string) => boolean
+
 export interface ResolvedEngine {
   /** The engine every later call for this project goes through. */
   readonly engine: readonly string[]
@@ -48,6 +65,8 @@ export type EngineResolution =
 export interface ResolveOptions {
   readonly timeoutMs?: number
   readonly signal?: CancelSignal
+  /** How two command lines are told apart. Absent, they are compared character for character. */
+  readonly samePart?: SamePart
 }
 
 /** Ask one candidate. `null` means it is not an engine, which is not an error here. */
@@ -85,6 +104,7 @@ export async function resolveEngine(
   options: ResolveOptions = {},
 ): Promise<EngineResolution> {
   const tried: (readonly string[])[] = []
+  const samePart = options.samePart ?? identical
 
   for (const candidate of candidates) {
     tried.push(candidate)
@@ -95,7 +115,7 @@ export async function resolveEngine(
     // just answered: a launcher resolves an install of its own, and a `roadkeep` on PATH
     // is whatever the machine happens to have.
     const declared = splitCommandLine(payload.invoke)
-    if (declared === null || declared.length === 0 || sameArgv(declared, candidate)) {
+    if (declared === null || declared.length === 0 || sameArgv(declared, candidate, samePart)) {
       return {
         kind: 'resolved',
         engine: { engine: candidate, payload, reachedDeclared: declared !== null },
@@ -126,8 +146,18 @@ export async function resolveEngine(
   }
 }
 
-function sameArgv(left: readonly string[], right: readonly string[]): boolean {
-  return left.length === right.length && left.every((part, index) => part === right[index])
+const identical: SamePart = (left, right) => left === right
+
+/**
+ * Two command lines are the same one when they are the same length and agree part by part.
+ *
+ * The shape of an argv is this package's rule and stays here; what makes two *parts* equal
+ * is the caller's, which is the only half that needs to know what a path is.
+ */
+function sameArgv(left: readonly string[], right: readonly string[], samePart: SamePart): boolean {
+  return (
+    left.length === right.length && left.every((part, index) => samePart(part, right[index] ?? ''))
+  )
 }
 
 /**

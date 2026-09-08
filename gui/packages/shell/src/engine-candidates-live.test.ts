@@ -3,7 +3,7 @@ import path from 'node:path'
 import { resolveEngine } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
-import { COMMITTED_LAUNCHER, engineCandidates } from './engine-candidates'
+import { COMMITTED_LAUNCHER, engineCandidates, samePathPart } from './engine-candidates'
 import { createProcessTransport } from './process-transport'
 
 const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
@@ -46,7 +46,7 @@ describe('RG2: resolving this repository against a live engine', () => {
         }),
       REPO,
       engineCandidates(REPO),
-      { timeoutMs: 30000 },
+      { timeoutMs: 30000, samePart: samePathPart },
     )
 
     expect(resolution.kind).toBe('resolved')
@@ -57,6 +57,28 @@ describe('RG2: resolving this repository against a live engine', () => {
     expect(resolution.engine.payload.writing.home).not.toBe('')
     expect(resolution.engine.payload.verdict).not.toBe('')
     expect(resolution.engine.engine.length).toBeGreaterThan(0)
+  })
+
+  it('RG65: starts the interpreter once, where two spellings name one launcher', async () => {
+    // This repository's own `invoke` reads `python D:/Git/.../roadkeep-launch.py` while the
+    // candidate built from the filesystem holds `D:\Git\...`. Without the comparison that
+    // is a second interpreter start — measured at about 2.3s — on every resolution.
+    const started: string[] = []
+    const resolution = await resolveEngine(
+      (engine) => {
+        started.push(engine.join(' '))
+        return createProcessTransport({ command: engine[0] ?? '', prefixArgs: engine.slice(1) })
+      },
+      REPO,
+      engineCandidates(REPO),
+      { timeoutMs: 30000, samePart: samePathPart },
+    )
+
+    expect(resolution.kind).toBe('resolved')
+    if (resolution.kind !== 'resolved') return
+    expect(started).toHaveLength(1)
+    // Cheaper and not weaker: the copy that answered is still the one the project declares.
+    expect(resolution.engine.reachedDeclared).toBe(true)
   })
 
   it('resolves nothing, with a reason, when every candidate is missing', async () => {

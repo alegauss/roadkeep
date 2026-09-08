@@ -11,32 +11,6 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG65 One file, two spellings, two process starts
-
-Resolution asks a candidate for `engines --json`, reads the `invoke` it reports, and
-where that names a different command line reaches it once to check it is the same copy.
-The check is right and should stay: adopting a command line without running it is how an
-app answers from an install nobody chose.
-
-What is wrong is how often it fires. `invoke` is built with posix separators, and a
-candidate assembled from a filesystem path on Windows holds native ones, so `python
-D:/proj/.claude/hooks/roadkeep-launch.py` and `python
-D:\proj\.claude\hooks\roadkeep-launch.py` compare as different while naming one file.
-Every Windows resolution therefore pays a second interpreter start it did not need —
-measured at roughly 2.3 seconds, which is what pushed this repository's own test past
-Vitest's default ceiling.
-
-The fix is a comparison that knows two spellings of a path are one, and the awkward part
-is where it lives: `core` has no `path` module and must not grow one, since it is the
-half a web service keeps. So the comparison is either passed in by whoever has a
-filesystem, or done on a normalised copy of both strings with the separator as the only
-thing normalised. The second is smaller and is probably right, but it is a rule about
-paths sitting in a package that is meant not to know about them, which is worth deciding
-rather than assuming.
-
-RG7's cache reduces how often this is paid; it does not make the first read of each
-project cheaper.
-
 ### §RG66 Two tables that have to stay the same length
 
 A verb is an entry in `VERBS`, which builds its argv. A payload is a shape in

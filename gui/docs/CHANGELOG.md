@@ -14,6 +14,7 @@
 - ✅ **RG69** **a subcommand is a verb with a space in it, and the verb table has no way to spell one** — A verb's key is an identifier and its spelling is an array, so a two-word verb is looked up and sent under the name commands publishes (design recorded in `packages/core/src/verbs.ts`).
 - ✅ **RG79** **an unreadable answer reports not JSON and drops stderr, where the engine explained itself in full** — An answer this app cannot read now carries what the engine wrote, so the sentence naming the cause reaches the person (design recorded in `packages/core/src/limits.ts`).
 - ✅ **RG64** **the fast suite and the one that spawns a real engine are one command, so every run pays for both** — `npm test` is 854 tests in eight seconds and `test:live` the 307 that spawn, split by a filename that a guard reading every test file keeps honest, with CI paying for both.
+- ✅ **RG65** **resolving an engine costs two interpreter starts on Windows, where the same file is spelled two ways** — Whoever has a filesystem says what makes two spellings one file, so a Windows resolution starts one interpreter rather than two (design recorded in `packages/core/src/engine-resolution.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
