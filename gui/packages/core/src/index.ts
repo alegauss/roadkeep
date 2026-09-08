@@ -117,6 +117,8 @@ export {
 export type { Actionable, Offer, Pass } from './repairing'
 export { saidOfWrite, wasCreated, whereWritten, writtenFrom } from './sections'
 export type { Written } from './sections'
+export { commandLine, createTranscript, entryLine, quoteFor } from './transcript'
+export type { Entry as TranscriptEntry, Ran, Shell, Transcript } from './transcript'
 export { coversEverything, search } from './search'
 export type { Hit, SearchableProject, SearchAnswer, SearchField } from './search'
 export { DEFAULT_POLICY, mayEnter, scan } from './scanning'

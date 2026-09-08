@@ -459,15 +459,6 @@ On ship: `--recorded-in packages/core/src/pauses.ts`.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-### §RG34 The command, on screen
-
-Before a write runs, the argv it will run is shown as a line a person could paste into a
-terminal, and after it runs it stays in a log with its exit code and what it wrote. Two
-things this buys that a confirmation dialog does not: a person can check the flags
-against what they meant, and a defect in this app is reportable as a command rather than
-as a description of a screen. The verbs already print what they staged, so that line is
-kept beside the argv rather than re-derived.
-
 ### §RG35 The corrections that keep the id
 
 Three verbs exist because retiring and re-adding spends an id and deletes a design that

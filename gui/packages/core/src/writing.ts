@@ -75,9 +75,24 @@ export function composeDoor(root: string, door: { readonly argv: readonly string
 }
 
 export type WriteOutcome<T> =
-  | { readonly kind: 'applied'; readonly value: T; readonly durationMs: number }
+  | {
+      readonly kind: 'applied'
+      readonly value: T
+      readonly durationMs: number
+      /**
+       * What the process exited with. **Carried to be shown and never to decide** — the
+       * outcome above was settled by what the answer said, because `lint` exits 1 with an
+       * ordinary payload and reading a code as a verdict is how that becomes an error.
+       */
+      readonly code: number
+    }
   /** The engine declined, naming the fields. Nothing was written — that is its promise. */
-  | { readonly kind: 'refused'; readonly refusal: Refusal; readonly durationMs: number }
+  | {
+      readonly kind: 'refused'
+      readonly refusal: Refusal
+      readonly durationMs: number
+      readonly code: number
+    }
   /**
    * Neither. The call did not happen, ran past its deadline, or answered something this
    * app cannot read — and **whether the write landed is unknown**, which is why this is
@@ -145,8 +160,18 @@ export async function applyWrite<T>(
   }
 
   return answer.value.kind === 'refused'
-    ? { kind: 'refused', refusal: answer.value.refusal, durationMs: result.durationMs }
-    : { kind: 'applied', value: answer.value.value, durationMs: result.durationMs }
+    ? {
+        kind: 'refused',
+        refusal: answer.value.refusal,
+        durationMs: result.durationMs,
+        code: result.code,
+      }
+    : {
+        kind: 'applied',
+        value: answer.value.value,
+        durationMs: result.durationMs,
+        code: result.code,
+      }
 }
 
 /**
