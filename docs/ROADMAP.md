@@ -47,7 +47,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1620** (deps: —) **the note census prices one row per note, so it reports what the gate composed and not what it printed** — RK1565 folded a run of notes into one sentence, and the figure claiming to be what a session pays never learnt about it. → §RK1620
 - 💭 **RK1621** (deps: —) **the summary and the folded note row now both carry the count of surfaces behind the engine** — The clause arguing the summary is not a second sentence rested on the notes carrying no count, which RK1565 changed. → §RK1621
 - 📋 **RK1626** (deps: —) **the field sweep skips its whole assertion where a corpus is absent, including this repository's own 2,246 fields** — RK1569 split ours from theirs in the prose half, and the field half still requires both corpora to say anything about the files in this tree. → §RK1626
 - 💭 **RK1627** (deps: —) **nothing enumerates the fields a caller composes, so which of them has a validator is answered by remembering** — RK1570 found the block title because a design named it, and the same gap in any other composed field would be as invisible as that one was. → §RK1627

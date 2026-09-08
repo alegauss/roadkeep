@@ -4860,8 +4860,32 @@ def _report_rows(config: Config, report: Report, applied: Fix, root: str, quiet:
         print(f"{mechanical} of them need no decision: {invocation()} lint --fix")
 
 
-def _print_notes(notes: Sequence[Note]) -> None:
-    """Every note, with a run that is one sentence said once (RK1565).
+@dataclass(frozen=True, slots=True)
+class Run:
+    """One note as the terminal report prints it — the block, and what it stands for (RK1620).
+
+    Lifted out of :func:`_print_notes` for :func:`disagreements`' reason and by RK1491's rule:
+    what a run of the gate *says* is priced by `budget --notes`, and that read was summing one
+    row per note while the report folds a run of them into one sentence. Five stale surfaces
+    are 1,149 characters to a per-note sum and 358 on the terminal, so the figure claiming to
+    be what a session pays was the figure for what the gate composed.
+
+    A **call and not a parser**: pricing the rendered report would be a second reader of what
+    the gate writes, which is exactly the drift lifting `disagreements` out of the gate ended.
+    So the fold happens once, here, and both callers take the same rows.
+    """
+
+    #: The note's code, which is what the priced row is labelled by.
+    code: str
+    #: Every line of the block, joined — what `print` is handed and what `width` measures.
+    text: str
+    #: How many notes this block stands for. 1 is the ordinary row; more is a folded run,
+    #: and the number is what the report's own first word says.
+    surfaces: int = 1
+
+
+def runs(notes: Sequence[Note]) -> tuple[Run, ...]:
+    """Every note as one printed block, with a run of them said once (RK1565, RK1620).
 
     :func:`_print_findings`' shape one list over and for its argument (RK469): a report whose
     bulk is one sentence repeated is one a reader learns to skip. Measured on a wired project
@@ -4877,22 +4901,36 @@ def _print_notes(notes: Sequence[Note]) -> None:
     Runs of two or more only, and the addresses under the sentence, so nothing a reader could
     open is dropped for the saving. `--json` is untouched: a consumer acts per address.
     """
-    runs: dict[tuple[str, str], list[Note]] = {}
+    grouped: dict[tuple[str, str], list[Note]] = {}
     for note in notes:
         if note.shared:
-            runs.setdefault((note.code, note.shared), []).append(note)
+            grouped.setdefault((note.code, note.shared), []).append(note)
     printed: set[tuple[str, str]] = set()
+    out: list[Run] = []
     for note in notes:
         key = (note.code, note.shared)
-        run = runs.get(key, []) if note.shared else []
+        run = grouped.get(key, []) if note.shared else []
         if len(run) < 2:
-            print(str(note))
+            out.append(Run(note.code, str(note)))
             continue
         if key in printed:
             continue
         printed.add(key)
-        print(f"{len(run)} surface(s)  {note.code}  {note.shared}")
-        print(f"    {'  '.join(one.file for one in run)}")
+        addresses = "  ".join(one.file for one in run)
+        out.append(
+            Run(
+                note.code,
+                f"{len(run)} surface(s)  {note.code}  {note.shared}\n    {addresses}",
+                len(run),
+            )
+        )
+    return tuple(out)
+
+
+def _print_notes(notes: Sequence[Note]) -> None:
+    """Print what :func:`runs` composed, and nothing else (RK1620)."""
+    for one in runs(notes):
+        print(one.text)
 
 
 def _print_findings(config: Config, report: Report) -> int:

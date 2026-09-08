@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 3 | 231 | 2 |
 | C — Query (consult without reading the file) | 12 | 180 | 4 |
-| D — The gate | 19 | 291 | 5 |
+| D — The gate | 18 | 292 | 5 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 162 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 40 | 1100 | 17 |
+| **Total** | 39 | 1101 | 17 |
 
 **Next ready:**
 
-- 💭 **RK1620** (deps: —) **the note census prices one row per note, so it reports what the gate composed and not what it printed** — RK1565 folded a run of notes into one sentence, and the figure claiming to be what a session pays never learnt about it. → §RK1620
+- 💭 **RK1621** (deps: —) **the summary and the folded note row now both carry the count of surfaces behind the engine** — The clause arguing the summary is not a second sentence rested on the notes carrying no count, which RK1565 changed. → §RK1621
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

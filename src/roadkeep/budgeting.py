@@ -2234,8 +2234,17 @@ class Noted:
     judgement left to whoever takes it.
     """
 
-    #: One row per note this run of the gate emitted, widest first — code and width.
+    #: One row per **block the report prints**, widest first — code and width (RK1620). A note
+    #: and a block were one thing until RK1565 taught the gate to say a run of notes sharing a
+    #: sentence once, and this figure went on summing what was composed: five stale surfaces
+    #: are 1,149 characters per note and 358 on the terminal, so the number claiming to be what
+    #: a session pays was the number for what the gate built and threw away.
     emitted: tuple[Part, ...] = ()
+    #: Which rows stand for more than one note, as `(code, surfaces)` — empty where nothing
+    #: folded, which is this project's own gate. Beside the figure and not inside it: a total
+    #: that fell because a run was folded and one that fell because a note stopped firing are
+    #: two different facts, and a reader taking the number away needs to know which they have.
+    folded: tuple[tuple[str, int], ...] = ()
     #: One row per note **this server** can append to a tool result, widest first (RK1524).
     #: The second population and the heavier cadence: these ride on an answer an agent is
     #: already paying for, over the transport L5 exists to keep cheap, and nothing measured
@@ -2268,7 +2277,12 @@ class Noted:
 
     @property
     def here(self) -> int:
-        """What a clean run costs now — the sum, which is the per-commit and per-turn figure."""
+        """What a clean run costs now — the sum, which is the per-commit and per-turn figure.
+
+        Over the blocks the report **prints** since RK1620, which is what "pays" means: the
+        rows are `linting.runs`', so a folded run is charged once here exactly as it is said
+        once there.
+        """
         return sum(one.characters or 0 for one in self.emitted)
 
     @property
@@ -2293,6 +2307,15 @@ class Noted:
             f"  widest   {self.widest:>6}  every `engine.disagreement` row at once, "
             f"which this checkout cannot produce",
         ]
+        if self.folded:
+            # One line and never a second figure (RK1620): a number for what was composed is
+            # the number nobody reads, and what a reader of the total needs is which of its
+            # rows stand for a run the report says once.
+            rows.append(
+                f"  folded   {sum(count for _, count in self.folded):>6}  surface(s) said "
+                f"once, in {len(self.folded)} run(s): "
+                f"{', '.join(code for code, _ in self.folded)}"
+            )
         rows += [
             f"  note     {one.characters or 0:>6}  {one.heading}" for one in self.emitted
         ]
@@ -2340,6 +2363,12 @@ class Noted:
                 {"code": one.heading, "characters": one.characters or 0}
                 for one in self.emitted
             ],
+            # Which of those rows is a run said once (RK1620). A consumer summing `notes` gets
+            # what the terminal prints, and this is what tells it that a row stands for five
+            # addresses — the half `--json` keeps per address on the gate's own side.
+            "folded": [
+                {"code": code, "surfaces": count} for code, count in self.folded
+            ],
             # No `limit` key, for `Skilled`'s reason: a `null` there reads as a ceiling this
             # build failed to find rather than as one nobody has argued for.
         }
@@ -2357,22 +2386,29 @@ def note_cost(config: Config) -> Noted:
     one a reader here would meet if the four facts were true, rather than one measured against
     invented strings of a different length.
     """
-    from roadkeep.linting import disagreements, lint  # noqa: PLC0415 - RK260
+    from roadkeep.linting import disagreements, lint, runs  # noqa: PLC0415 - RK260
     from roadkeep.provenance import engine  # noqa: PLC0415 - RK260
     from roadkeep.remedying import notes  # noqa: PLC0415 - RK260
     from roadkeep.serving import NOTES as SERVED_NOTES  # noqa: PLC0415 - RK260
     from roadkeep.serving import composed  # noqa: PLC0415 - RK260
 
     running = engine()
+    # Off `runs` and not off the notes (RK1620): the report folds a run sharing a sentence into
+    # one block, so a sum over the list is what the gate *composed* rather than what it said —
+    # five stale surfaces are 1,149 characters per note and 358 on the terminal. A call, because
+    # pricing the rendered report would be a second reader of what the gate writes.
+    printed = runs(lint(config).notes)
     emitted = sorted(
         (
             Part(
                 heading=one.code,
-                lines=1,
-                bytes=len(str(one).encode()),
-                characters=width(str(one)),
+                # The block's own, which is 1 on an ordinary note and 2 where a run folded:
+                # the sentence, then the addresses under it.
+                lines=one.text.count("\n") + 1,
+                bytes=len(one.text.encode()),
+                characters=width(one.text),
             )
-            for one in lint(config).notes
+            for one in printed
         ),
         key=lambda one: -(one.characters or 0),
     )
@@ -2381,6 +2417,12 @@ def note_cost(config: Config) -> Noted:
     # the total. One `max` here would price the cheapest possible worst case.
     return Noted(
         emitted=tuple(emitted),
+        # What the figure above no longer charges for, said rather than left to be inferred
+        # (RK1620): a total that fell because a run was folded is a saving the reader should be
+        # able to see, and one that fell because a note stopped firing is a different fact.
+        folded=tuple(
+            (one.code, one.surfaces) for one in printed if one.surfaces > 1
+        ),
         # From the table that knows every code and not from a list here (RK1521): a second
         # spelling of the population is the drift `VARIES` is derived to avoid one layer down.
         population=notes(),

@@ -3057,6 +3057,46 @@ def test_a_folded_run_is_smaller_than_the_rows_it_replaces(project, capsys):
     assert folded < loose // 2, {"folded": folded, "one row each": loose}
 
 
+def test_the_note_census_charges_what_the_report_printed(project, capsys):
+    """RK1620. The fold above takes 791 characters off the report and `cost --notes` went on
+    summing one `Part` per note, so the figure calling itself *what a session pays* was what
+    the gate composed and threw away.
+
+    Invisible on this repository, whose gate emits one note and folds nothing, and wrong on
+    exactly the population the fold was measured on — a wired project whose surfaces are
+    behind. So the reading is here, beside the state that produces it, and the join is to
+    `linting.runs`: one fold, two callers, and no second reader of a rendered report."""
+    from roadkeep.budgeting import note_cost
+    from roadkeep.cli import EXIT_OK, main
+    from roadkeep.config import Config
+    from roadkeep.kernel.schema import width
+    from roadkeep.linting import lint, runs
+
+    install(wired(project), source=HERE)
+    paths = _behind(project)
+    config = Config.discover(project)
+    notes = lint(config).notes
+    printed = runs(notes)
+    found = note_cost(config)
+
+    # What the terminal is handed, which is what the figure claims to be.
+    assert found.here == sum(width(one.text) for one in printed)
+    # And it is a saving and not a rounding: the reading this replaced summed every row.
+    assert found.here < sum(width(str(one)) for one in notes)
+    assert dict(found.folded)["install.stale"] == len(paths)
+    # Said out loud, because a total that fell because a run folded and one that fell because
+    # a note stopped firing are two different facts about the same smaller number.
+    assert "surface(s) said once" in found.stated("utf-16-code-units")
+
+    # The join run rather than asserted: every block the figure charged for is text the gate
+    # actually writes, which is the half a sum over the same list cannot say.
+    capsys.readouterr()
+    assert main(["-C", str(project), "lint"]) == EXIT_OK
+    said = capsys.readouterr().out
+    for one in printed:
+        assert one.text in said, one.code
+
+
 def test_an_absent_page_that_names_a_verb_keeps_its_own_row(project, capsys):
     """The half the fold must not take. An absent row names the verb its page would have
     taught (RK1505), so those rows are different sentences and each keeps its line; a missing
