@@ -5103,6 +5103,19 @@ def _wiring_line(report: Report) -> str:
     sentence: the notes carry the paths and the door, and this carries the count, so a report
     that ended `clean` no longer ends by saying only that.
 
+    **And a different count since RK1565, rather than the same one twice** (RK1621). That fold
+    gives a run of notes sharing a sentence its own `N surface(s)`, and the clause above was
+    written when no note carried a number at all — a reason that stopped being true is worse
+    than no reason, because it is the one a later reader trusts. Re-taken, it holds on three
+    grounds the fold does not reach:
+
+    * it counts **across both codes**, where a fold counts within one — a project behind on two
+      surfaces and missing two reads `4` here and `2 surface(s)` above;
+    * it is there where a run of **one** folds to nothing, which is the commonest state and the
+      one whose note prints no number at all;
+    * `missing entirely` is a split no fold can make, and it is the half that costs a session a
+      verb nobody working in the project can find (RK1482).
+
     Absent where there is nothing to say, which is every project whose wiring is current and
     every plugin-served one — a clause that appears on every run is one a reader stops seeing,
     which is the failure being repaired rather than a smaller version of it.

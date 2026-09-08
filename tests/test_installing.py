@@ -2971,6 +2971,47 @@ def test_the_summary_line_carries_what_a_skimming_reader_would_miss(project, cap
     assert f"{invocation()} install" in summary
 
 
+def test_the_summary_count_is_not_the_number_the_folded_note_carries(project, capsys):
+    """RK1621. RK1482 argued this clause is not a second sentence because the notes carried the
+    paths and the door and no count at all — which RK1565's fold changed, giving a run of notes
+    sharing a sentence its own `N surface(s)`. A reason that stopped being true is worse than
+    none, so it was re-taken here rather than trusted.
+
+    Three grounds, and this holds the two a fixture can show: the summary counts **across** both
+    codes where a fold counts within one, and `missing entirely` is a split no fold makes. The
+    third is one line down — a run of one folds to nothing and still needs saying."""
+    from roadkeep.cli import EXIT_OK, main
+
+    install(wired(project), source=HERE)
+    for page in ("asking.md", "writing.md"):
+        (project / ".claude" / "skills" / "roadkeep" / page).unlink()
+    (project / PROJECT_SKILL).write_text("stale\n", encoding="utf-8")
+    (project / ".mcp.json").write_text('{"stale": true}', encoding="utf-8")
+    assert main(["-C", str(project), "lint"]) == EXIT_OK
+    said = capsys.readouterr().out
+    summary = said.splitlines()[-1]
+
+    # Two behind and two missing, so the summary's four is a number no row above it says.
+    assert "4 wired surface(s) behind this engine" in summary
+    assert "2 of them missing entirely" in summary
+    assert "2 surface(s)  install.stale" in said
+    assert "4 surface(s)" not in said[: said.index(summary)]
+
+
+def test_the_summary_says_a_count_where_a_run_of_one_folds_to_nothing(project, capsys):
+    """The third ground, and the commonest state: one surface behind is one note printed as
+    itself, with no `N surface(s)` anywhere — so the summary is where the number is said at
+    all rather than where it is said twice."""
+    from roadkeep.cli import EXIT_OK, main
+
+    install(wired(project), source=HERE)
+    (project / PROJECT_SKILL).write_text("stale\n", encoding="utf-8")
+    assert main(["-C", str(project), "lint"]) == EXIT_OK
+    said = capsys.readouterr().out
+    assert "surface(s)  install.stale" not in said
+    assert "1 wired surface(s) behind this engine" in said.splitlines()[-1]
+
+
 def test_the_clause_is_absent_where_the_wiring_is_current(project, capsys):
     # A clause that appears on every run is one a reader stops seeing, which is the failure
     # being repaired rather than a smaller version of it.

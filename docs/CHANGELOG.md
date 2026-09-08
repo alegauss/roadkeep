@@ -778,6 +778,7 @@
 - ✅ **RK1610** **a config key typed under the wrong table is refused as unknown, where the tool knows exactly which table it belongs to** — A key this build declares under another table is reported as misplaced and names which, read from the map config prints, and RK1064's sentence stays for the key nothing declares.
 - ✅ **RK1612** **a verb writing an answer and a note in one run has to flush between the streams, and nothing says which verbs those are** — The two streams are ordered by one function both callers go through, with the reason written down and a run that reproduces the reversal without it.
 - ✅ **RK1620** **the note census prices one row per note, so it reports what the gate composed and not what it printed** — The census prices the blocks the report prints, off the fold lifted out of the gate, and names the runs it charged once so a smaller total is not read as a note that stopped firing.
+- ✅ **RK1621** **the summary and the folded note row now both carry the count of surfaces behind the engine** — The summary earns its count on three grounds the fold does not reach: it counts across both codes, it is there where a run of one folds to nothing, and the missing-entirely split is one no fold makes.
 
 ## Block E — Adoption
 

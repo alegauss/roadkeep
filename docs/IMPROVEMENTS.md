@@ -456,29 +456,6 @@ joins them today.
 
 ## Block D — The gate
 
-### §RK1621 A reason that stopped being true
-
-`_wiring_line` argues for itself in one clause: "Not a second check and not a second
-sentence: the notes carry the paths and the door, and this carries the count." That was
-exact while a note was one row per surface — the count existed nowhere else in the
-report, so the summary was the only place a skimmer could meet it.
-
-RK1565's fold gives the note row a count of its own. A wired project behind on five
-surfaces now reads `5 surface(s)  install.stale …` where the notes are, and `5 wired
-surface(s) behind this engine` on the summary — the same number, twice, four lines
-apart.
-
-Small, and not obviously wrong: the two readers are different, one skimming a line and
-one reading the notes, and the summary still adds what the fold cannot — how many of the
-five are missing entirely rather than behind. So this is a question about the sentence
-and not a bug to be closed by deleting one of them.
-
-What it costs is the argument, which is the part that rots. The clause above is now a
-reason that has stopped being true, and a comment stating a fact the code no longer has
-is worse than no comment — it is the one a later reader trusts. Either the summary earns
-its count on a ground the fold does not take, or the fold's row drops the number the
-summary already carries; whichever way, the sentence beside it says why.
-
 ### §RK1626 The sweep CI has never run
 
 RK1569 separated what this build claims from what somebody else's checkout happens to
