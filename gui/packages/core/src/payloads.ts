@@ -997,6 +997,124 @@ export const readSectionWritten: Reader<SectionWritten> = record<SectionWritten>
   { ownWords: 'own_words', readBody: 'read_body' },
 )
 
+export interface AmendPayload {
+  readonly id: string
+  readonly file: string
+  readonly line: number
+  /** Which fields it touched: `why`, `deps`, `ref`. */
+  readonly changed: readonly string[]
+  readonly rendered: string
+  /**
+   * What each changed field held before, keyed by field name.
+   *
+   * **A map here and a string on `restate`.** One key, two types, one verb apart — so the
+   * two are read as two shapes and never with one reader.
+   */
+  readonly was: Record<string, string>
+  readonly refreshed: readonly string[]
+  readonly wrote: readonly string[]
+}
+
+export const readAmendPayload: Reader<AmendPayload> = record<AmendPayload>({
+  id: aString,
+  file: orMissing(aString, ''),
+  line: orMissing(aNumber, 0),
+  changed: orMissing(listOf(aString), []),
+  rendered: orMissing(aString, ''),
+  was: orMissing(dictionaryOf(aString), {}),
+  refreshed: orMissing(listOf(aString), []),
+  wrote: orMissing(listOf(aString), []),
+})
+
+/**
+ * What a restate did not do, and names for somebody else to decide about.
+ *
+ * The why and the design were written from the claim that was replaced, and whether they
+ * still hold is a judgement. The verb names the follow-ups and leaves them.
+ */
+export interface RestatedPremise {
+  /** The section anchor still holding prose written from the old claim. */
+  readonly design: string
+  readonly role: string
+  /** The commands that would correct the rest, in the engine's own words. */
+  readonly next: readonly string[]
+}
+
+export interface RestatePayload {
+  readonly id: string
+  readonly file: string
+  readonly line: number
+  /** The symptom before. **A string here, where `amend` sends a map.** */
+  readonly was: string
+  readonly now: string
+  readonly changed: boolean
+  /** True where this was a slip of the pen rather than a false premise. */
+  readonly typo: boolean
+  readonly premise: RestatedPremise | null
+  readonly rendered: string
+  readonly refreshed: readonly string[]
+  readonly wrote: readonly string[]
+}
+
+export const readRestatePayload: Reader<RestatePayload> = record<RestatePayload>({
+  id: aString,
+  file: orMissing(aString, ''),
+  line: orMissing(aNumber, 0),
+  was: orMissing(aString, ''),
+  now: orMissing(aString, ''),
+  changed: orMissing(aBoolean, false),
+  typo: orMissing(aBoolean, false),
+  premise: orMissing(
+    orNull(
+      record<RestatedPremise>({
+        design: orMissing(aString, ''),
+        role: orMissing(aString, ''),
+        next: orMissing(listOf(aString), []),
+      }),
+    ),
+    null,
+  ),
+  rendered: orMissing(aString, ''),
+  refreshed: orMissing(listOf(aString), []),
+  wrote: orMissing(listOf(aString), []),
+})
+
+export interface RenumberPayload {
+  readonly id: string
+  readonly to: string
+  readonly role: string
+  readonly file: string
+  readonly line: number
+  readonly rendered: string
+  /** The section that moved with it, re-anchored to the new id. */
+  readonly section: RationaleSection | null
+  /** Subsections carried under it. */
+  readonly subsections: readonly string[]
+  /** Whether the line's own criteria moved too. */
+  readonly criteria: boolean
+  /** Lines whose deps were rewritten to the new id. */
+  readonly moved: readonly string[]
+  readonly refreshed: readonly string[]
+  readonly files: readonly string[]
+  readonly wrote: readonly string[]
+}
+
+export const readRenumberPayload: Reader<RenumberPayload> = record<RenumberPayload>({
+  id: aString,
+  to: orMissing(aString, ''),
+  role: orMissing(aString, ''),
+  file: orMissing(aString, ''),
+  line: orMissing(aNumber, 0),
+  rendered: orMissing(aString, ''),
+  section: orMissing(orNull(readSection), null),
+  subsections: orMissing(listOf(aString), []),
+  criteria: orMissing(aBoolean, false),
+  moved: orMissing(listOf(aString), []),
+  refreshed: orMissing(listOf(aString), []),
+  files: orMissing(listOf(aString), []),
+  wrote: orMissing(listOf(aString), []),
+})
+
 export interface LintFinding {
   readonly code: string
   readonly file: string

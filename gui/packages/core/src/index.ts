@@ -34,6 +34,8 @@ export type {
   Reconciled,
   RecordedProject,
 } from './catalogue'
+export { amended, CORRECTIONS, correctionsOffered, renumbered, replacedBy, restated, wasTypo } from './correcting'
+export type { Corrected, Correction, Offered } from './correcting'
 export { coldStart } from './cold-start'
 export type { ColdStartProgress, ColdStartStage } from './cold-start'
 export { allLines, backlogFrom, refusedSummary } from './backlog'
@@ -138,6 +140,7 @@ export {
   governedFiles,
   narrowingOfBrief,
   readAddedPayload,
+  readAmendPayload,
   narrowingOfList,
   narrowingOfStats,
   readBriefBudget,
@@ -157,6 +160,8 @@ export {
   readNonGoalsPayload,
   readPickPayload,
   readRefusedLine,
+  readRenumberPayload,
+  readRestatePayload,
   readRepairPayload,
   readResolvedDep,
   readResumePayload,
@@ -176,6 +181,7 @@ export {
 export type {
   AbsentRequirement,
   AddedPayload,
+  AmendPayload,
   BlockCount,
   BriefBudget,
   BriefPayload,
@@ -199,6 +205,9 @@ export type {
   PickPayload,
   RationaleSection,
   RefusedLine,
+  RenumberPayload,
+  RestatedPremise,
+  RestatePayload,
   RepairLeft,
   RepairPayload,
   RepairStep,

@@ -38,7 +38,6 @@
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-- 💭 **RG35** (deps: RG29 ✅) **amend, restate and renumber have no door, so the corrections that keep an id are terminal-only** — restate exists because retire plus add spends an id and deletes a design that was right, and this app offers neither half. → §RG35
 - 💭 **RG36** (deps: RG29 ✅) **an input has no budget, so a field is typed to whatever length and refused after the sentence exists** — budget prices every field before a word is written, which is the read that makes a refusal something a person never meets. → §RG36
 
 ## Block F — The agent surface (handing one task to Claude Code)

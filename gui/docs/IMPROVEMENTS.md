@@ -486,15 +486,6 @@ On ship: `--recorded-in packages/core/src/pauses.ts`.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-### §RG35 The corrections that keep the id
-
-Three verbs exist because retiring and re-adding spends an id and deletes a design that
-was right. Amend corrects a why, the deps or the pointer. Restate corrects a symptom
-whose claim turned out false, keeping the id, the deps, the marker and the design.
-Renumber moves a line to a free id with its section and its dependents. Each is a narrow
-door with a narrow form, and the reason each exists belongs on the screen offering it,
-since the wrong one is the expensive one.
-
 ### §RG36 The budget, before the sentence
 
 The budget read prices every field of the line that does not exist yet: what the symptom

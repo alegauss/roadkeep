@@ -13,6 +13,7 @@ import {
   narrowingOfList,
   narrowingOfStats,
   readAddedPayload,
+  readAmendPayload,
   readAnswer,
   readBriefPayload,
   readCapabilities,
@@ -28,6 +29,8 @@ import {
   readPayload,
   readPickPayload,
   readRepairPayload,
+  readRenumberPayload,
+  readRestatePayload,
   readResumePayload,
   readRetirePayload,
   readReversalsPayload,
@@ -147,8 +150,11 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(Object.keys(WRITES).sort()).toEqual(
       [
         'add',
+        'amend',
         'defer',
+        'renumber',
         'repair',
+        'restate',
         'resume',
         'retire',
         'sectionAdd',
@@ -448,6 +454,48 @@ describe('RG4: every read this client makes, against a live engine', () => {
     // The key that tells an amend from an add, and the one a shape without it would miss.
     expect(amended.value.changed).toContain('body')
     expect(typeof amended.value.readBody).toBe('boolean')
+  })
+
+  it('corrects a line three ways, and reads what each answers with', async () => {
+    const open = (await readVerb('list', {}, readListPayload)).tasks.map((task) => task.id)
+    const id = open.at(-1)
+    if (id === undefined) return
+
+    const amend = await applyWrite(
+      transport,
+      composeWrite(fixture.root, 'amend', { id, why: 'A corrected sentence, ending in a stop.' }),
+      readAmendPayload,
+      { timeoutMs: CEILING },
+    )
+    expect(amend.kind).toBe('applied')
+    if (amend.kind !== 'applied') throw new Error('unreachable')
+    // `was` is a map here. The same key is a string on `restate` below.
+    expect(typeof amend.value.was).toBe('object')
+    expect(amend.value.changed).toContain('why')
+
+    const restate = await applyWrite(
+      transport,
+      composeWrite(fixture.root, 'restate', { id, symptom: 'the claim turned out to be false' }),
+      readRestatePayload,
+      { timeoutMs: CEILING },
+    )
+    expect(restate.kind).toBe('applied')
+    if (restate.kind !== 'applied') throw new Error('unreachable')
+    expect(typeof restate.value.was).toBe('string')
+    expect(typeof restate.value.typo).toBe('boolean')
+    expect(Array.isArray(restate.value.premise?.next ?? [])).toBe(true)
+
+    const renumber = await applyWrite(
+      transport,
+      composeWrite(fixture.root, 'renumber', { id, to: 'FX95' }),
+      readRenumberPayload,
+      { timeoutMs: CEILING },
+    )
+    expect(renumber.kind).toBe('applied')
+    if (renumber.kind !== 'applied') throw new Error('unreachable')
+    expect(renumber.value.to).toBe('FX95')
+    expect(Array.isArray(renumber.value.moved)).toBe(true)
+    expect(typeof renumber.value.criteria).toBe('boolean')
   })
 
   it('reads what to work on next, and which tier answered', async () => {

@@ -133,6 +133,42 @@ export interface WriteInputs {
   repair: {
     dryRun?: boolean
   }
+  /**
+   * Correct one open line's why, deps or pointer.
+   *
+   * `deps` replaces the whole group where it is given at all; `addDep` and `dropDep` change
+   * one and leave the rest. The symptom is not here — that is `restate`, which is a
+   * different act and has a name so a reviewer can see which was taken.
+   */
+  amend: {
+    id: string
+    why?: string
+    deps?: readonly string[]
+    addDep?: readonly string[]
+    dropDep?: readonly string[]
+    requires?: readonly string[]
+    ref?: string
+    lines?: string
+  }
+  /**
+   * Correct a symptom whose claim turned out false, keeping the id, the deps, the marker
+   * and the design.
+   *
+   * `typo` says it was a slip of the pen rather than a false premise: the claim was the
+   * one intended and a word in it was wrong, and the answer says which it was.
+   */
+  restate: {
+    id: string
+    symptom: string
+    typo?: boolean
+    lines?: string
+  }
+  /** Move one open line to a free id, with its section and its dependents. */
+  renumber: {
+    id: string
+    /** The new id; omitted, one past the highest in the line's family. */
+    to?: string
+  }
 }
 
 /**
@@ -236,6 +272,24 @@ export const WRITES: { [K in WriteName]: ArgvFor<K> } = {
       : ['--replace', input.fragment.replace, '--with', input.fragment.replacement]),
   ],
   repair: (input) => [...(input.dryRun === true ? ['--dry-run'] : [])],
+  amend: (input) => [
+    input.id,
+    ...optional('--why', input.why),
+    ...repeated('--dep', input.deps),
+    ...repeated('--add-dep', input.addDep),
+    ...repeated('--drop-dep', input.dropDep),
+    ...repeated('--requires', input.requires),
+    ...optional('--ref', input.ref),
+    ...optional('--lines', input.lines),
+  ],
+  restate: (input) => [
+    input.id,
+    '--symptom',
+    input.symptom,
+    ...(input.typo === true ? ['--typo'] : []),
+    ...optional('--lines', input.lines),
+  ],
+  renumber: (input) => [input.id, ...optional('--to', input.to)],
 }
 
 /**
@@ -290,4 +344,16 @@ export const EVERY_WRITE_INPUT: { [K in WriteName]: WriteInputs[K] } = {
     fragment: { replace: 'one', replacement: 'two' },
   },
   repair: { dryRun: true },
+  amend: {
+    id: 'RG1',
+    why: 'A sentence.',
+    deps: ['RG2'],
+    addDep: ['RG3'],
+    dropDep: ['RG4'],
+    requires: ['signing-cert'],
+    ref: 'RG1',
+    lines: '2',
+  },
+  restate: { id: 'RG1', symptom: 'a symptom', typo: true, lines: '2' },
+  renumber: { id: 'RG1', to: 'RG90' },
 }

@@ -63,6 +63,14 @@ export interface PublishedCommand {
   readonly published: boolean
   /** What has to be present for it to work, in the engine's words. Empty for most. */
   readonly needs: string
+  /**
+   * The verb explained at length, in the engine's own words.
+   *
+   * Read rather than written, because a screen offering `amend` beside `restate` has to
+   * say which is which, and the difference between them is the expensive thing to get
+   * wrong. A sentence composed here would be this app's account of another tool's verb.
+   */
+  readonly description: string
   readonly arguments: readonly CommandArgument[]
 }
 
@@ -74,6 +82,7 @@ export const readPublishedCommand: Reader<PublishedCommand> = record<PublishedCo
   runs: orMissing(aBoolean, true),
   published: orMissing(aBoolean, true),
   needs: orMissing(aString, ''),
+  description: orMissing(aString, ''),
   arguments: orMissing(listOf(readCommandArgument), []),
 })
 
