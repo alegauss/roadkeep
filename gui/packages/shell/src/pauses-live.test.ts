@@ -17,9 +17,13 @@ import { buildFixture, type Fixture } from './fixture'
 import { createProcessTransport } from './process-transport'
 
 /**
- * The deferred store against a project that has one. This repository pauses nothing, and
- * an empty store is exactly the answer that cannot tell whether the reading works — so
- * the fixture, which `defer` populates with the real verb, is where this runs.
+ * The deferred store against a project that has one. An empty store is exactly the answer
+ * that cannot tell whether the reading works — so the fixture, which `defer` populates
+ * with the real verb, is where this runs.
+ *
+ * The empty case gets a fixture of its own rather than this repository. It was this
+ * repository until something here was actually set aside, at which point an assertion
+ * about "a project that pauses nothing" was an assertion about a backlog that had moved.
  */
 const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
 const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
@@ -29,6 +33,8 @@ const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER
 const client = createClient(engine)
 
 let fixture: Fixture
+/** A project with the store scaffolded and nothing filed into it. */
+let unpaused: Fixture
 
 async function listing(root: string, input: Record<string, unknown> = {}): Promise<ListPayload> {
   const result = await client.call(root, 'list', input, { timeoutMs: CEILING })
@@ -48,10 +54,12 @@ async function storeOf(root: string): Promise<Store> {
 
 beforeAll(async () => {
   fixture = await buildFixture(engine, { open: 2, shipped: 1, deferred: 1 })
+  unpaused = await buildFixture(engine, { open: 2, shipped: 1, deferred: 0 })
 }, 180000)
 
 afterAll(() => {
   fixture.dispose()
+  unpaused.dispose()
 })
 
 describe('RG28: the deferred store, read like any other listing', () => {
@@ -76,7 +84,10 @@ describe('RG28: the deferred store, read like any other listing', () => {
   })
 
   it('reads a project that pauses nothing as an empty store, not a missing one', async () => {
-    const store = await storeOf(REPO)
+    // A fixture with the store scaffolded and nothing filed, rather than this repository.
+    // It used to be this one, and RG62 being set aside made that assertion false — an
+    // "empty" that any later `defer` here can fill is not the condition being asserted.
+    const store = await storeOf(unpaused.root)
 
     expect(store.file).toContain('DEFERRED.md')
     expect(store.total).toBe(0)

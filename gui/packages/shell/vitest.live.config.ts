@@ -1,0 +1,29 @@
+import { defineConfig } from 'vitest/config'
+
+/**
+ * The half of `shell` that starts something (RG64).
+ *
+ * A file named `*-live.test.ts` spawns: a real Python roadkeep, an Electron window, a node
+ * script standing in for Claude Code. That costs seconds per call and needs `python` on
+ * PATH plus the launcher this repository commits, so it is a gate rather than something to
+ * run between edits — which is the whole of why it is a project of its own.
+ *
+ * The two settings below belong here and nowhere else. Both were bought by a real failure
+ * and neither should slow down a suite that spawns nothing.
+ */
+export default defineConfig({
+  test: {
+    name: 'shell-live',
+    environment: 'node',
+    include: ['src/**/*-live.test.ts'],
+    // A live call costs around two seconds and resolving an engine can take two of them.
+    // Vitest's five-second default fails those for being slow rather than for being wrong.
+    testTimeout: 60000,
+    // One file at a time. Half of these build a fixture with a dozen engine calls and then
+    // read it with several more, so running them in parallel puts twenty-odd Python
+    // interpreters on a machine that has eight cores — and the reads that lose that race
+    // fail for being starved rather than for being wrong. Observed: the portfolio row test
+    // passing alone and failing in a full run, twice.
+    fileParallelism: false,
+  },
+})

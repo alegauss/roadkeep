@@ -11,29 +11,6 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG64 Two suites, because they answer different questions
-
-`npm test` now runs two kinds of test through one command. Most of it is pure: a verb
-table, a client over a fake transport, a boundary check over source text, a renderer in
-jsdom — all of it finishing in about a second. Four tests spawn a real Python roadkeep
-against this repository, and those alone take five.
-
-Measured while shipping RG20, which is what makes this urgent rather than tidy. Six live
-files in parallel put twenty-odd interpreters on eight cores, and the reads that lost
-that race failed for being starved — one test passed alone and failed in a full run,
-twice. `fileParallelism: false` fixed it and took the suite from forty seconds to two
-minutes. Right for a gate, wrong for something run between edits, which is the split.
-
-So this wants two commands over one suite: `npm test` staying the fast one, and a second
-— `npm run test:live` — carrying everything that spawns. Vitest's project mechanism
-already splits them; what has to be decided is which project a new test lands in and
-what makes that obvious, because a live test filed in the fast project is how the split
-quietly stops holding.
-
-The live suite also has a dependency the fast one does not: `python` on PATH, plus the
-launcher this repository commits. That is worth stating where CI is configured, since a
-machine without it fails four tests for a reason that has nothing to do with the code.
-
 ### §RG65 One file, two spellings, two process starts
 
 Resolution asks a candidate for `engines --json`, reads the `invoke` it reports, and

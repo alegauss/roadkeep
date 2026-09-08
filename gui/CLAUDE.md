@@ -38,13 +38,14 @@ commit as the code.
 
 ## The gates, before that commit
 
-| Command             | When                                                           |
-| ------------------- | -------------------------------------------------------------- |
-| `npm run typecheck` | Any `.ts` or `.tsx` change.                                    |
-| `npm test`          | Any change to behaviour something asserts.                     |
-| `roadkeep lint`     | Every task, without exception.                                 |
-| `npm run lint`      | Any file this repo owns. `npm run format` is the writer.       |
-| `npm run build`     | Anything the packaged app loads: a Vite config, an asset path. |
+| Command             | When                                                               |
+| ------------------- | ------------------------------------------------------------------ |
+| `npm run typecheck` | Any `.ts` or `.tsx` change.                                        |
+| `npm test`          | Any change to behaviour something asserts. Fast: starts nothing.   |
+| `npm run test:live` | Anything that spawns or reads the build. Needs python and a build. |
+| `roadkeep lint`     | Every task, without exception.                                     |
+| `npm run lint`      | Any file this repo owns. `npm run format` is the writer.           |
+| `npm run build`     | Anything the packaged app loads: a Vite config, an asset path.     |
 
 `npm run dev` opens the window with hot reload; `npm start` runs it against the bundle on
 disk. Neither is a gate.

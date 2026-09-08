@@ -2,6 +2,8 @@
 
 ## Block A — The client (payloads in, types out)
 
+- ✅ **RG64** **the fast suite and the one that spawns a real engine are one command, so every run pays for both** — A test that spawns a process, opens a window or reads the build is named `*-live.test.*`; suites.test.ts reads every test file and fails when one is filed under a fast name.
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ## Block C — The portfolio (many backlogs in one view)

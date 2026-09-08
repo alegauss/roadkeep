@@ -22,6 +22,10 @@ export default defineConfig({
     name: 'ui',
     environment: 'jsdom',
     include: ['src/**/*.test.{ts,tsx}'],
+    // RG64: two of these read the built bundle or run the design system's gate in a child
+    // process. They are named `*-live.test.*` and run from `vitest.live.config.ts`, so that
+    // `npm test` costs nothing a person would not want to pay between edits.
+    exclude: ['**/node_modules/**', '**/dist/**', 'src/**/*-live.test.{ts,tsx}'],
     setupFiles: ['./src/test-setup.ts'],
   },
 })

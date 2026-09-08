@@ -93,14 +93,19 @@ jobs:
       - name: build
         run: npm run build
 
-      # The engine that answers here is not the developer's, which is the point: the
-      # contract test asserts the shape of every payload and reports the version that
-      # produced it, so a second copy is a second chance to catch a rename.
+      # `test:all`, which is both halves (RG64). `npm test` is the fast one on purpose — no
+      # process, no display, no bundle — and CI is the place that pays for the other.
+      #
+      # The live half has dependencies the fast one does not, and both are above: `python`
+      # with the launcher this repository commits, and a build. The engine that answers is
+      # not the developer's, which is the point — the contract test asserts the shape of
+      # every payload and reports the version that produced it, so a second copy is a second
+      # chance to catch a rename.
       #
       # A Linux runner has no desktop session, and Electron will not open a window without
       # one — `xvfb-run` is the display. Windows and macOS runners already have one.
       - name: test
-        run: ${{ runner.os == 'Linux' && 'xvfb-run -a npm test' || 'npm test' }}
+        run: ${{ runner.os == 'Linux' && 'xvfb-run -a npm run test:all' || 'npm run test:all' }}
         shell: bash
         env:
           ROADKEEP_HOME: ${{ github.workspace }}/${{ env.ROADKEEP_CHECKOUT }}

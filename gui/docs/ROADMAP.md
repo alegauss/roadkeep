@@ -5,7 +5,6 @@
 ## Block A — The client (payloads in, types out)
 
 - 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
-- 📋 **RG64** (deps: RG1 ✅) **the fast suite and the one that spawns a real engine are one command, so every run pays for both** — Four live calls took the suite from one second to six, and RG4 adds a payload assertion per verb against the same engine. → §RG64
 - 📋 **RG65** (deps: RG2 ✅) **resolving an engine costs two interpreter starts on Windows, where the same file is spelled two ways** — invoke reports a posix path and the candidate holds a native one, so the verification call fires every time rather than only on a real difference. → §RG65
 - 📋 **RG66** (deps: RG3 ✅) **a verb can be called with no shape declared for its answer, so the boundary has a hole per verb** — The verb table and the shape table are two lists nothing holds together, and brief is already in one and absent from the other. → §RG66
 - 📋 **RG67** (deps: RG3 ✅) **a project declaring a read bound answers in a shape nothing here has ever seen, and the reader refuses it** — A listing past the bound comes back as blocks and counts instead of tasks, and this repo declares none so the shape could not be written from a real payload. → §RG67

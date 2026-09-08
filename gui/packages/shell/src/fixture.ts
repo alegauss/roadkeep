@@ -26,7 +26,10 @@ export interface FixtureShape {
   readonly open: number
   /** How many of those to ship, so the ledger is not empty. */
   readonly shipped: number
-  /** How many to set aside, so the deferred store is not empty. */
+  /**
+   * How many to set aside. `init` scaffolds the store either way, so 0 is the useful
+   * shape for asserting that a project pausing nothing reads as empty and not as missing.
+   */
   readonly deferred: number
 }
 

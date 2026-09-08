@@ -75,9 +75,18 @@ describe('RG60: where the page may go', () => {
     // `will-navigate` fires and the guard cancels it. Asserted by asking where the page is
     // afterwards, because a guard that reported correctly and navigated anyway would pass
     // any check that read the decision instead of the outcome.
+    //
+    // A `file:` path and not an `https:` one, and that is not arbitrary. The guard's correct
+    // answer for `https:` is `open-externally`, which really does call `shell.openExternal`
+    // — so a test that navigated there proved the page stayed put by opening a tab in the
+    // developer's own browser, once per run. This target is refused outright and goes
+    // nowhere at all, and it is the case the guard exists for in a packaged run: `file:`
+    // URLs share an empty host, so any absolute path on the machine is what gets past a
+    // boundary drawn on origin. `navigation.test.ts` holds the `https:` decision, where
+    // asserting it costs nothing.
     const before = await app.evaluate<string>('location.href')
 
-    await app.evaluate<void>("location.href = 'https://example.com/'")
+    await app.evaluate<void>("location.href = 'file:///nowhere-outside-the-bundle.html'")
     await app.evaluate<void>('new Promise((done) => setTimeout(done, 500))')
 
     expect(await app.evaluate<string>('location.href')).toBe(before)
