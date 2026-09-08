@@ -341,6 +341,28 @@ somebody is choosing from.
 Not urgent while the app draws no list. It becomes visible the moment block C does, and
 it is cheaper to decide now than to notice from a screenshot.
 
+### §RG89 One derivation of the marker set, not two
+
+`openMarkers` was written for the status dropdown: it finds `markers.open`, parses
+whatever the file spells there, and hands back a list. RG53 then wrote `markersOf`,
+which walks every key in the markers table, folds the codepoints that several keys name
+into one entry each, and labels them. The second is a superset of the first —
+`markersOf(config).filter(isOpen)` is exactly what `openMarkers` returns.
+
+A live test asserts the two agree against this repository's real config, which is why
+this is a tidy-up and not a defect. But it is one config read two ways, and the ways
+differ in what they tolerate: only one of them reads a key nobody declared, so a project
+that leaves its open set to the default gets a dropdown of nothing from one reading and
+a full set from the other. That case is not in any fixture because this project declares
+its open set.
+
+The fix is one line — `openMarkers` becomes the filter — plus deciding whether the
+dropdown should offer a marker the project left to the default. It probably should, on
+the same argument RG53 made about undeclared keys.
+
+Worth doing before a second screen reads either one. Two derivations agreeing by test is
+a thing somebody has to keep true; one derivation is a thing nobody has to.
+
 ## Block C — The portfolio (many backlogs in one view)
 
 ### §RG73 Four reads to draw one row
