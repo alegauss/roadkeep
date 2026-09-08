@@ -23,6 +23,7 @@
 - 💭 **RG15** (deps: RG2 ✅, RG13) **which copy of roadkeep each project runs is never read, so a disagreement engines can name is averaged away** — This block will not be finished until the version, the home and the verdict sit beside a project's counts, and nothing reads them yet. → §RG15
 - 📋 **RG72** (deps: RG12 ✅) **a family is drawn in the order it was found, so a version list can read newest last or newest first by luck** — Members keep scan order, and which version folder the walk reaches first is a fact about the filesystem rather than about the family. → §RG72
 - 💭 **RG89** (deps: RG53 ✅) **two readings derive the marker set from one config, and only a test keeps them agreeing** — The write path reads the open key directly and the rendering reads every marker key, so a project spelling its set another way could satisfy one and not the other. → §RG89
+- 💭 **RG102** (deps: RG71 ✅) **the walk yields now and the three reads around it do not, over the same paths a person named** — Whether a root is there, whether a project is a worktree and when its governed files last moved are each a synchronous stat in the process that answers the window. → §RG102
 
 ## Block C — The portfolio (many backlogs in one view)
 
