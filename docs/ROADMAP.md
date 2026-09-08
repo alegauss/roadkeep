@@ -44,6 +44,8 @@
 - 📋 **RK1656** (deps: —) **a dep on a ruled-out finding resolves as unknown, which says nothing can answer about a file that answers exactly** — RK92 gave the resolver a fifth answer for a paused target, and the seventh role arrived with no sixth. → §RK1656
 - 📋 **RK1657** (deps: —) **budget prices a pause's wrapped reason and not a dismissal's, whose premise is derived by the same rule** — RK1479 gave the pause its own subject because the wrapper is what bounds the sentence, and the second store that wraps one has no number. → §RK1657
 - 📋 **RK1661** (deps: —) **two payloads say notes about two populations, the gate one per address and the census one per printed block** — RK1620 made the figure follow the fold and the key beside it kept its name, so a consumer joining the two counts five against one. → §RK1661
+- 📋 **RK1663** (deps: —) **the per-block half of a pin's shape counts the roadmap's headings, so a finished block's entries land in no row** — Turing's rows account for 55 of 901 delivered, the rest filed under labels whose last line shipped and whose roadmap heading went with it. → §RK1663
+- 📋 **RK1664** (deps: —) **what a pinned corpus holds is answerable only from Python, and the advisory that says it fires only where the tree moved** — RK1622 made the shape readable and left it out of reach of the session writing the design, which is the reader it was built for. → §RK1664
 
 ## Block D — The gate
 

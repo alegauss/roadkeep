@@ -1685,7 +1685,12 @@ def test_the_widest_a_note_can_be_is_measured_where_it_cannot_fire(tmp_path, cap
     found = note_cost(Config.discover(Path(__file__).resolve().parents[1]))
     # Not a state anywhere on disk here, so it is composed — and it is by a wide margin the
     # largest single thing the gate can say beside a verdict.
-    assert found.widest > found.here
+    #
+    # Against the largest **row** and not against `here`, which is the sum (RK1622 found it):
+    # this compared one note's width to the total of every note, so it said nothing about the
+    # claim above and went red the day a third note fired on this project. What a single note
+    # can cost is the question, and the population it is the widest of is the rows.
+    assert found.widest > max(one.characters or 0 for one in found.emitted)
     assert "engine.disagreement" not in [one.heading for one in found.emitted]
 
 

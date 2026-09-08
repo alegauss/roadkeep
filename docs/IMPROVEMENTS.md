@@ -432,6 +432,53 @@ the gate's entries would make the two joinable and grows a payload every turn pa
 Neither is obviously right, and the measurement that decides it is whether anything
 joins them today.
 
+### §RK1663 The blocks a finished label is not in
+
+RK1622 reads a pin's shape and gives it a row per block. The rows are the **roadmap's**
+headings, so a label whose work is finished — its heading kept in the ledger and gone
+from the roadmap — contributes to the total and to no row. Measured at the pins: Shio's
+rows hold 280 of 668 delivered and Turing's 55 of 901.
+
+The totals are right and the rows are not wrong about what they say; what they are is a
+shape a reader would take for the corpus's. *Three blocks, 55 delivered* reads as a
+small backlog, and the file it is about carries nine hundred entries.
+
+RK429 is this distinction already made once. `Stage` tells a block that finished from
+one that never existed, and `Census.elsewhere` exists exactly for the label the other
+file declares — so the machinery for the honest answer is there and this reading did not
+reach for it.
+
+**What to decide is which set the rows are over.** The union of both files' headings
+answers the corpus's shape and makes a row for every label; the roadmap's alone answers
+*where the open work is*, which is a different and also useful question. A shape that
+means to be cited should probably say both — open rows over the roadmap, delivered rows
+over the union — and the cost of that is one more number per row rather than a second
+reading.
+
+### §RK1664 A reading with no door
+
+`corpora.shape` answers what each pin holds, and the only two ways to meet it are
+importing the test module or reading the drift warning — which fires only where the live
+tree has moved past the pin. On a machine that is current, or where a corpus is absent,
+it says nothing, and the session most likely to cite a corpus is the one that never ran
+the suite.
+
+L5 is the sentence this fails: every question a maintainer asks a governed file should
+be answerable as a command. *What shape is this corpus* is that question, and `stats`
+already counts open lines and delivered entries per block for any directory somebody can
+name.
+
+**"No supported Python API." does not forbid this and is why the door is a command.**
+That constraint bounds the answer rather than the question: the reading may not become
+an import anybody depends on, so the fix cannot be exporting `shape`.
+
+The pinned bytes are materialised into a temp copy inside the suite and removed at exit,
+so there is nothing to name on a command line. That is deliberate (RK192): a config that
+could reach the checkout is what made a pinned read able to move. `materialise` already
+lands one role's bytes for the caller that needs a file, so the door is a write and not
+a second census — and whether it belongs in the suite, in a script, or nowhere is the
+decision.
+
 ## Block D — The gate
 
 ### §RK1626 The sweep CI has never run
