@@ -140,6 +140,8 @@ export { commandLine, createTranscript, entryLine, quoteFor } from './transcript
 export type { Entry as TranscriptEntry, Ran, Shell, Transcript } from './transcript'
 export { outcomeOf, promptFor, readSessionLine, sessionCall } from './session'
 export type { SessionCall, SessionEvent, SessionOutcome, SessionState } from './session'
+export { CONFIG_FILE, createWatching, QUIET_MS, watchedFiles } from './watching'
+export type { Clock, Interest, OnChanged, Watcher, Watching } from './watching'
 export { coversEverything, search } from './search'
 export type { Hit, SearchableProject, SearchAnswer, SearchField } from './search'
 export { DEFAULT_POLICY, mayEnter, scan } from './scanning'

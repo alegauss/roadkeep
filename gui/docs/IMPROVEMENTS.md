@@ -499,15 +499,6 @@ the one that is true.
 
 ## Block G — The shell (an executable now, a service later)
 
-### §RG45 What to watch, and who is told
-
-The config declares every governed role, so what to watch is read and never guessed:
-those files, per project, plus the config itself. A change expires that project's cached
-reads and tells the screens holding them. Writes made by this app are watched the same
-way as writes made by anything else, so there is one path to a redraw and no special
-case that can go out of step. Watchers cost a handle each, so only projects on screen or
-running a session hold one.
-
 ### §RG46 The executable, and what it says about itself
 
 A packaged build has to answer three questions from inside itself: which version it is,

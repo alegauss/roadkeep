@@ -40,11 +40,10 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 💭 **RG42** (deps: RG38 ✅, RG45) **what a session wrote to the governed files is not watched, so the screen shows the backlog from before it ran** — An agent ships through the same verbs a person does, and the only evidence in this app is the files it changed. → §RG42
+- 💭 **RG42** (deps: RG38 ✅, RG45 ✅) **what a session wrote to the governed files is not watched, so the screen shows the backlog from before it ran** — An agent ships through the same verbs a person does, and the only evidence in this app is the files it changed. → §RG42
 
 ## Block G — The shell (an executable now, a service later)
 
-- 💭 **RG45** (deps: RG37 ✅, RG7 ✅) **nothing watches the governed files, so a write by an agent or a terminal leaves the screen stale** — roadkeep.toml names every governed role, so what to watch is declared and the cache has nothing telling it to expire. → §RG45
 - 💭 **RG46** (deps: RG37 ✅, RG44 ✅) **there is no executable, so the app runs only where its source tree and toolchain already are** — An .exe is the delivery this project was asked for, and packaging is what decides the security posture is real rather than configured. → §RG46
 - 💭 **RG47** (deps: RG37 ✅) **settings have nowhere to live, so roots and preferences are gone when the window closes** — The scan roots are the one fact this app owns rather than reads, and there is no file for them and no schema over it. → §RG47
 - 💭 **RG48** (deps: RG1 ✅, RG4 ✅, RG44 ✅) **the claim that a service is a transport swap is asserted by nothing, so it is an intention** — Every criterion in this block rests on one seam, and a seam nothing exercises is one that has already been crossed somewhere. → §RG48
