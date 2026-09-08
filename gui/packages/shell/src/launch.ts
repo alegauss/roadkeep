@@ -23,10 +23,20 @@ const electronPath = createRequire(import.meta.url)('electron') as unknown as st
  * is never what a launch wants, so it is dropped here rather than diagnosed again.
  *
  * @param extraEnv variables this run adds, such as the dev server's URL.
+ * @param extraArgs switches for the binary itself, before the app path — a debugging port
+ *   and a throwaway profile, which is how a test gets to ask the running window anything.
+ * @param stdio how the child's streams are wired. Inherited by default, because a person
+ *   running the app wants its output; a test that reads the renderer's console pipes them.
  */
-export function spawnElectron(extraEnv: Record<string, string> = {}): ChildProcess {
+export function spawnElectron(
+  extraEnv: Record<string, string> = {},
+  extraArgs: readonly string[] = [],
+  stdio: 'inherit' | 'pipe' = 'inherit',
+): ChildProcess {
   const env = { ...process.env, ...extraEnv }
   delete env['ELECTRON_RUN_AS_NODE']
 
-  return spawn(electronPath, [shellRoot], { stdio: 'inherit', env })
+  // The switches come first: Chromium reads its own before the positional path, and one
+  // after it is an argument to the app rather than to the browser.
+  return spawn(electronPath, [...extraArgs, shellRoot], { stdio, env })
 }

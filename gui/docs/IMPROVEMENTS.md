@@ -530,31 +530,6 @@ replaces itself while somebody is reading a backlog is one that loses their plac
 it must not do is phone anywhere on launch by default: this app reads a person's
 repositories, and a network call it did not need is one that has to be explained.
 
-### §RG60 Asking the running window instead of reading its configuration
-
-The suite asserts the navigation policy as pure functions and the renderer against a
-stubbed bridge. Both are worth having and neither starts Electron, so nothing catches
-the failures that live in the wiring: a preload path that stopped resolving, `sandbox`
-dropped from `webPreferences`, a handler registered on a channel the preload no longer
-invokes. Each of those leaves every existing test green.
-
-What answers it is a test that launches the built app with `--remote-debugging-port`,
-attaches over the DevTools protocol and asks the page four questions: that
-`window.roadkeep` holds exactly the methods the interface declares and no others, that
-`identify()` round-trips, that `require`, `process`, `module` and `ipcRenderer` are all
-undefined, and that assigning `location.href` to a path outside the bundle leaves the
-page where it was. Those are the checks that were run by hand when RG44 shipped, which
-is the argument for automating them: they were run once, against one build, by somebody
-who happened to think of it.
-
-It needs a display-less run to be worth putting in CI, so the Linux job wants a virtual
-framebuffer; Windows and macOS runners have a desktop session already. That is the cost,
-and it is why this is its own line rather than a paragraph inside RG55.
-
-RG59 adds a fifth question and the channel to ask it on: a script naming another host
-must be refused. `ELECTRON_ENABLE_LOGGING=1` puts the renderer's console on the parent's
-stderr, which is how that was read by hand.
-
 ### §RG85 What the seam's handler is allowed to be
 
 RG48 built an HTTP handler in front of the process transport so the seam is proven by

@@ -87,13 +87,19 @@ jobs:
       - name: lint
         run: npm run lint
 
+      # RG60 starts the built app and asks the running window what it was given, so the bundle
+      # has to exist before the suite rather than after it.
+      - name: build
+        run: npm run build
+
       # The engine that answers here is not the developer's, which is the point: the
       # contract test asserts the shape of every payload and reports the version that
       # produced it, so a second copy is a second chance to catch a rename.
+      #
+      # A Linux runner has no desktop session, and Electron will not open a window without
+      # one — `xvfb-run` is the display. Windows and macOS runners already have one.
       - name: test
-        run: npm test
+        run: ${{ runner.os == 'Linux' && 'xvfb-run -a npm test' || 'npm test' }}
+        shell: bash
         env:
           ROADKEEP_HOME: ${{ github.workspace }}/${{ env.ROADKEEP_CHECKOUT }}
-
-      - name: build
-        run: npm run build
