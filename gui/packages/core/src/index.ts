@@ -36,6 +36,8 @@ export type {
 } from './catalogue'
 export { amended, CORRECTIONS, correctionsOffered, renumbered, replacedBy, restated, wasTypo } from './correcting'
 export type { Corrected, Correction, Offered } from './correcting'
+export { actLine, actsIn, actsOf, governedIn, isRoadkeep, NOTHING_MARKED, subjectOf, touched } from './acts'
+export type { Act, Marks } from './acts'
 export { coldStart } from './cold-start'
 export type { ColdStartProgress, ColdStartStage } from './cold-start'
 export { allLines, backlogFrom, refusedSummary } from './backlog'

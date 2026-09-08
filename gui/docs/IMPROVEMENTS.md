@@ -488,15 +488,6 @@ On ship: `--recorded-in packages/core/src/pauses.ts`.
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG40 The stream, and what a person needs from it
-
-A headless session emits one JSON object per line: turns, tool calls, results and a
-final message. Rendered raw it is a log nobody reads. What matters while a session runs
-is which tool it is calling and on what, and whether it has touched a governed file — so
-the stream is drawn as a sequence of acts with the text between them, and the roadkeep
-calls are marked. The raw form stays reachable, since a session that went wrong is
-diagnosed from what it actually emitted.
-
 ### §RG41 Taking the line, not just reading it
 
 Every tier of a pick is a function of the file, so a second caller reading an unchanged

@@ -38,6 +38,14 @@ export interface RunningSession {
 export interface SessionWatcher {
   /** One event, as soon as its line is complete. RG40 is what draws these. */
   onEvent?(event: SessionEvent): void
+  /**
+   * Every line, raw, as it completes — before it is read into anything.
+   *
+   * The raw form has to stay reachable for a live session and not only for a finished
+   * one: a run that goes wrong is diagnosed from what it actually emitted, and an event
+   * is a reading of a line rather than the line itself.
+   */
+  onLine?(line: string): void
   /** A line the reader could not parse. Kept apart from an event it read and ignored. */
   onUnreadable?(line: string): void
 }
@@ -100,6 +108,7 @@ export function startSession(call: SessionCall, watcher: SessionWatcher = {}): R
 
     const offer = (line: string) => {
       if (line.trim() === '') return
+      watcher.onLine?.(line)
       const event = readSessionLine(line)
       if (event === null) {
         watcher.onUnreadable?.(line)

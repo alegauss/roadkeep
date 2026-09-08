@@ -54,6 +54,7 @@
 ## Block F — The agent surface (handing one task to Claude Code)
 
 - ✅ **RG38** **nothing starts Claude Code, so a task and the session that does it are two windows and a copied prompt** — A session starts from the brief payload itself, owned and killable, with no claude on the machine its own state (design recorded in `packages/core/src/session.ts`).
+- ✅ **RG40** **a session's output is a stream nothing renders, so what the agent is doing is invisible while it does it** — A session reads as acts: which tool on what, the roadkeep calls marked, and every raw line still reachable (design recorded in `packages/core/src/acts.ts`).
 
 ## Block G — The shell (an executable now, a service later)
 
