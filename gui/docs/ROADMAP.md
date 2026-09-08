@@ -54,7 +54,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 💭 **RG53** (deps: RG39 ✅) **a marker is an emoji drawn by whatever font the platform picked, so one status looks like three** — The marker set is per project and arrives as codepoints, and nothing here decides how they render or what happens when one has no glyph. → §RG53
 - 💭 **RG54** (deps: RG39 ✅) **contrast and keyboard reach are asserted by nobody, so an accessibility defect ships looking like a style** — A status told by colour alone and a dialog that cannot be closed from a keyboard both look correct in a screenshot. → §RG54
 - 📋 **RG61** (deps: RG39 ✅) **the app ships a high-severity advisory it did not choose, reached through the design system** — npm audit reports xlsx as high through @viglet/viglet-design-system, and an executable carries whatever its renderer bundle carries. → §RG61
 - 📋 **RG62** (deps: RG39 ✅) **nothing stops a screen re-declaring a component the design system already exports** — The sibling consoles run a duplicates gate and register in consumers.json; this app does neither, so it is outside every check they answer to. → §RG62

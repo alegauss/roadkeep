@@ -18,6 +18,7 @@ const key = (table: string, name: string, set: string | null): ConfigKey => ({
   address: table === '' ? name : `${table}.${name}`,
   declared: set !== null,
   set,
+  fallback: null,
 })
 
 const CONFIG: ConfigPayload = {

@@ -1420,6 +1420,13 @@ export interface ConfigKey {
   readonly declared: boolean
   /** The value as the file spells it, quotes included, or null where nothing declares it. */
   readonly set: string | null
+  /**
+   * What this build uses when nothing declares it, spelled the same way.
+   *
+   * Carried because an undeclared key is not an absent one: `markers.working` is undeclared
+   * in most projects and every one of them still has a working marker.
+   */
+  readonly fallback: string | null
 }
 
 export interface ConfigPayload {
@@ -1432,13 +1439,19 @@ export const readConfigPayload: Reader<ConfigPayload> = record<ConfigPayload>({
   version: aString,
   source: orMissing(aString, ''),
   keys: listOf(
-    record<ConfigKey>({
-      table: orMissing(aString, ''),
-      key: aString,
-      address: orMissing(aString, ''),
-      declared: orMissing(aBoolean, false),
-      set: orMissing(orNull(aString), null),
-    }),
+    record<ConfigKey>(
+      {
+        table: orMissing(aString, ''),
+        key: aString,
+        address: orMissing(aString, ''),
+        declared: orMissing(aBoolean, false),
+        set: orMissing(orNull(aString), null),
+        fallback: orMissing(orNull(aString), null),
+      },
+      // The engine spells it `default`, which is a reserved word here and a poor field
+      // name besides. The rename is this reader's and goes no further.
+      { fallback: 'default' },
+    ),
   ),
 })
 

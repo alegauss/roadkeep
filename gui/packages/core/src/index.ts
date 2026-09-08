@@ -302,6 +302,8 @@ export {
   readRemedy,
 } from './refusals'
 export type { Answer, Door, Explanation, Refusal, RefusedField, Remedy } from './refusals'
+export { isOpen, labelOf, MARKERS_TABLE, markersOf, meaningOf, SET_KEY } from './markers'
+export type { MarkerMeaning } from './markers'
 export { PACKAGES } from './packages'
 export type { PackageName } from './packages'
 export { EngineCallFailed } from './transport'

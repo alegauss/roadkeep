@@ -41,6 +41,21 @@
   --vg-accent-to: oklch(76.9% 0.188 70.08); /* #f59e0b — amber */
   --vg-accent-text: oklch(55.5% 0.163 48.998); /* #b45309 — amber-deep, readable on light */
   --vg-accent-text-dark: oklch(82.8% 0.189 84.429); /* #fbbf24 — readable on dark */
+
+  /*
+   * RG53: the face a marker is drawn in, and the second value this repository names for
+   * itself. The design system ships no emoji face — `--font-sans`, `--font-brand` and
+   * `--font-mono` are all text — and a status set left to whatever the platform picked is
+   * one where four markers come from four fonts and look like four different apps.
+   *
+   * Named per platform rather than bundled: an emoji font is megabytes, the codepoints are
+   * the project's and not knowable ahead of time, and every desktop this ships to has one.
+   * The text faces trail it so a project whose markers are letters still gets the app's own
+   * type, and `sans-serif` is last because a stack with no end is a stack the browser ends.
+   */
+  --font-marker:
+    'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Segoe UI Symbol',
+    'Noto Emoji', var(--font-sans), sans-serif;
 }
 
 /*

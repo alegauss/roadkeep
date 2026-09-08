@@ -639,15 +639,6 @@ not after it runs.
 
 ## Block H — The look (a design system for governed prose)
 
-### §RG53 Rendering a set this app does not own
-
-The markers are whatever the project declared, arriving as codepoints, so nothing here
-may map them to icons of its own — that is a rule compiled into a reader. What this app
-owns is how they are drawn: one font stack chosen for coverage, a fixed box so a row
-does not jump when a glyph is wider, and a readable label beside each taken from the
-config rather than from a table here. A codepoint with no glyph on this machine falls
-back to the label and is still a status somebody can read.
-
 ### §RG54 The half a screenshot cannot show
 
 Two properties are held by tests rather than by intent. Contrast is computed over the
