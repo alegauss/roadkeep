@@ -7,10 +7,6 @@ import {
   createClient,
   filterAsInput,
   filterChoices,
-  readConfigPayload,
-  readListPayload,
-  readPayload,
-  readStatsPayload,
   type BacklogFilter,
   type ConfigPayload,
   type StatsPayload,
@@ -46,28 +42,24 @@ let config: ConfigPayload
 let stats: StatsPayload
 
 async function listWith(filter: BacklogFilter) {
-  const result = await client.call(REPO, 'list', filterAsInput(filter), { timeoutMs: CEILING })
-  const parsed = readPayload(readListPayload, result.stdout, { verb: 'list', engineVersion: '' })
-  if (!parsed.ok) throw new Error(`list did not read: ${parsed.failure.path}`)
-  return backlogFrom(parsed.value)
+  const answer = await client.call(REPO, 'list', filterAsInput(filter), { timeoutMs: CEILING })
+  if (!answer.ok) throw new Error(`list did not read: ${answer.failure.path}`)
+  if (answer.value.kind === 'refused') throw new Error('list was refused')
+  return backlogFrom(answer.value.value)
 }
 
 beforeAll(async () => {
-  const configResult = await client.call(REPO, 'config', {}, { timeoutMs: CEILING })
-  const configRead = readPayload(readConfigPayload, configResult.stdout, {
-    verb: 'config',
-    engineVersion: '',
-  })
-  if (!configRead.ok) throw new Error('config did not read')
-  config = configRead.value
+  const configRead = await client.call(REPO, 'config', {}, { timeoutMs: CEILING })
+  if (!configRead.ok || configRead.value.kind === 'refused') {
+    throw new Error('config did not read')
+  }
+  config = configRead.value.value
 
-  const statsResult = await client.call(REPO, 'stats', {}, { timeoutMs: CEILING })
-  const statsRead = readPayload(readStatsPayload, statsResult.stdout, {
-    verb: 'stats',
-    engineVersion: '',
-  })
-  if (!statsRead.ok) throw new Error('stats did not read')
-  stats = statsRead.value
+  const statsRead = await client.call(REPO, 'stats', {}, { timeoutMs: CEILING })
+  if (!statsRead.ok || statsRead.value.kind === 'refused') {
+    throw new Error('stats did not read')
+  }
+  stats = statsRead.value.value
 }, 180000)
 
 describe('RG22: what this project offers as filters', () => {

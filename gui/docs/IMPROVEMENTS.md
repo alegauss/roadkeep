@@ -11,29 +11,6 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG66 Two tables that have to stay the same length
-
-A verb is an entry in `VERBS`, which builds its argv. A payload is a shape in
-`payloads.ts`, which reads its answer. Nothing connects the two, and they are already
-out of step: `brief` builds a perfectly good command line and has no shape, so its
-answer would come back as a string somebody parses at the call site — which is the `any`
-this block just spent a task removing, arriving one layer up instead.
-
-`engines` is the same gap from the other side. It has a reader, written before the
-toolkit existed, that answers `null` rather than a named failure. The information a
-refusal is supposed to carry — which field, what was there, which engine version — is
-discarded exactly where the first call of every project is made.
-
-What closes it is making the two tables one: a verb declares its argv *and* its reader,
-and calling one returns the parsed value or the failure. Then a verb with no shape is a
-compile error rather than a hole, and `client.call` stops handing back raw stdout for
-anybody to interpret.
-
-RG5 added the last piece and left it disconnected. `readAnswer` turns a result into a
-payload or a refusal, and every call should go through it — but `client.call` still
-hands back raw stdout, so using it is something each caller remembers. One call is what
-makes it unavoidable rather than advisable.
-
 ### §RG67 The answer shape nobody here has produced
 
 `list --json` was read from real output and its shape demands a `tasks` array. The

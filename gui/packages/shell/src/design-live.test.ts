@@ -3,9 +3,6 @@ import path from 'node:path'
 import {
   createClient,
   designFrom,
-  readBriefPayload,
-  readPayload,
-  readShowPayload,
   whereDesignLives,
   wordsAgainstLimit,
   type Design,
@@ -38,33 +35,38 @@ async function designOfBrief(id?: string): Promise<Design> {
   const result = await client.call(REPO, 'brief', id === undefined ? {} : { id }, {
     timeoutMs: CEILING,
   })
-  const parsed = readPayload(readBriefPayload, result.stdout, { verb: 'brief', engineVersion: '' })
-  if (!parsed.ok) {
+  if (!result.ok) {
     throw new Error(
-      `brief did not read: expected ${parsed.failure.expected} at ` +
-        `${parsed.failure.path || '(the answer)'}, found ${parsed.failure.got}`,
+      `brief did not read: expected ${result.failure.expected} at ` +
+        `${result.failure.path || '(the answer)'}, found ${result.failure.got}`,
     )
   }
+  if (result.value.kind === 'refused') {
+    throw new Error(`brief was refused: ${result.value.refusal.said}`)
+  }
+  const parsed = result.value
   return designFrom(parsed.value)
 }
 
 /** Which line that was, so the `show` reads below ask about the same one. */
 async function openId(): Promise<string> {
-  const result = await client.call(REPO, 'brief', {}, { timeoutMs: CEILING })
-  const parsed = readPayload(readBriefPayload, result.stdout, { verb: 'brief', engineVersion: '' })
-  if (!parsed.ok) throw new Error('brief did not read')
-  return parsed.value.id
+  const answer = await client.call(REPO, 'brief', {}, { timeoutMs: CEILING })
+  if (!answer.ok || answer.value.kind === 'refused') throw new Error('brief did not read')
+  return answer.value.value.id
 }
 
 async function designOfShow(id: string, noBody = false): Promise<Design> {
-  const result = await client.call(REPO, 'show', { id, noBody }, { timeoutMs: CEILING })
-  const parsed = readPayload(readShowPayload, result.stdout, { verb: 'show', engineVersion: '' })
-  if (!parsed.ok) {
+  const answer = await client.call(REPO, 'show', { id, noBody }, { timeoutMs: CEILING })
+  if (!answer.ok) {
     throw new Error(
-      `show did not read: expected ${parsed.failure.expected} at ` +
-        `${parsed.failure.path || '(the answer)'}, found ${parsed.failure.got}`,
+      `show did not read: expected ${answer.failure.expected} at ` +
+        `${answer.failure.path || '(the answer)'}, found ${answer.failure.got}`,
     )
   }
+  if (answer.value.kind === 'refused') {
+    throw new Error(`show was refused: ${answer.value.refusal.said}`)
+  }
+  const parsed = answer.value
   return designFrom(parsed.value)
 }
 

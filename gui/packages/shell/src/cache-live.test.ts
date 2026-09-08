@@ -5,9 +5,6 @@ import {
   createCachingTransport,
   createClient,
   governedFiles,
-  readConfigPayload,
-  readListPayload,
-  readPayload,
   type EngineRequest,
   type EngineResult,
   type Transport,
@@ -50,12 +47,10 @@ beforeAll(async () => {
   fixture = await buildFixture(engine, { open: 2, shipped: 1, deferred: 0 })
 
   const config = await createClient(engine).call(fixture.root, 'config', {}, { timeoutMs: CEILING })
-  const parsed = readPayload(readConfigPayload, config.stdout, {
-    verb: 'config',
-    engineVersion: '',
-  })
-  if (!parsed.ok) throw new Error('config did not answer with a payload')
-  governed = Object.values(governedFiles(parsed.value))
+  if (!config.ok || config.value.kind === 'refused') {
+    throw new Error('config did not answer with a payload')
+  }
+  governed = Object.values(governedFiles(config.value.value))
 }, 180000)
 
 afterAll(() => {
@@ -84,14 +79,10 @@ describe('RG7: a read that does not happen twice', () => {
     const second = await client.call(fixture.root, 'list', {}, { timeoutMs: CEILING })
 
     expect(calls()).toBe(1)
-    expect(second.stdout).toBe(first.stdout)
-
-    // And what came back is still a real payload, not a shape the cache invented.
-    const parsed = readPayload(readListPayload, second.stdout, {
-      verb: 'list',
-      engineVersion: '',
-    })
-    expect(parsed.ok).toBe(true)
+    // The same answer, and a real one: a cache handing back a shape it invented would be
+    // caught by the verb's own reader before the equality below could hide it.
+    expect(first.ok && first.value.kind).toBe('payload')
+    expect(second).toEqual(first)
   })
 
   it('reads again once a governed file has been written', async () => {

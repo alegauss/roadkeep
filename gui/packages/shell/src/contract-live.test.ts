@@ -15,35 +15,22 @@ import {
   readAddedPayload,
   readAmendPayload,
   readAnswer,
-  readBriefPayload,
-  readBudgetPayload,
-  readCapabilities,
-  readCriteriaPayload,
+  buildArgv,
+  capabilitiesOf,
   readDeferPayload,
-  readDeliveredPayload,
-  readDepsPayload,
-  readEnginesPayload,
-  readExplanation,
   readListPayload,
-  readLintPayload,
-  readNonGoalsPayload,
-  readPayload,
-  readPickPayload,
   readRepairPayload,
   readRenumberPayload,
   readRestatePayload,
   readResumePayload,
   readRetirePayload,
-  readReversalsPayload,
   readSectionWritten,
   readShipPayload,
-  readShowPayload,
-  readStatsPayload,
   readStatusPayload,
   resolveEngine,
   withheld,
-  type Parsed,
-  type Reader,
+  type VerbAnswers,
+  type VerbInputs,
   type VerbName,
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -95,21 +82,27 @@ afterAll(() => {
   fixture.dispose()
 })
 
-/** Read one verb's answer off the fixture, failing with the sentence a user would see. */
-async function readVerb<T>(
-  verb: VerbName,
-  input: Parameters<typeof client.call>[2],
-  reader: Reader<T>,
-): Promise<T> {
-  const result = await client.call(fixture.root, verb, input, { timeoutMs: CEILING })
+/**
+ * Read one verb's answer off the fixture, failing with the sentence a user would see.
+ *
+ * The shape is no longer passed in: the verb carries its own (RG66), so a case here that
+ * asked for `pick` and held it against `list`'s shape is a case that cannot be written.
+ */
+async function readVerb<K extends VerbName>(
+  verb: K,
+  input: VerbInputs[K],
+): Promise<VerbAnswers[K]> {
+  const answer = await client.call(fixture.root, verb, input, { timeoutMs: CEILING })
   const where = { verb, engineVersion }
-  const parsed: Parsed<T> = readPayload(reader, result.stdout, where)
 
   // The message is the point of failing: it names the key that moved and the build that
   // moved it, which is what somebody reading a red suite actually needs.
-  expect(parsed.ok, parsed.ok ? '' : explainFailure(parsed.failure, where)).toBe(true)
-  if (!parsed.ok) throw new Error(explainFailure(parsed.failure, where))
-  return parsed.value
+  expect(answer.ok, answer.ok ? '' : explainFailure(answer.failure, where)).toBe(true)
+  if (!answer.ok) throw new Error(explainFailure(answer.failure, where))
+  if (answer.value.kind === 'refused') {
+    throw new Error(`\`${verb}\` was refused: ${answer.value.refusal.said}`)
+  }
+  return answer.value.value
 }
 
 describe('RG4: the build this contract was proven against', () => {
@@ -120,9 +113,9 @@ describe('RG4: the build this contract was proven against', () => {
 
 describe('RG4: every read this client makes, against a live engine', () => {
   it('covers every verb the client can build a command line for', () => {
-    // The guard that keeps this file honest. A verb added to the table without a shape and
-    // without a case here is the hole RG66 exists to close structurally; until then this
-    // is what notices.
+    // The guard that keeps this file honest. A verb with no shape is now a compile error
+    // (RG66); what this still catches is a verb added to both tables and never called
+    // against a live engine, which is a shape nothing has held against a real payload.
     expect(Object.keys(VERBS).sort()).toEqual(
       [
         'brief',
@@ -167,7 +160,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
   })
 
   it('reads a listing, with its standing and its lines', async () => {
-    const payload = await readVerb('list', {}, readListPayload)
+    const payload = await readVerb('list', {})
 
     expect(payload.file).toContain('ROADMAP.md')
     expect(payload.tasks.length).toBeGreaterThan(0)
@@ -178,7 +171,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
   })
 
   it('reads a listing narrowed to one block', async () => {
-    const payload = await readVerb('list', { block: 'A' }, readListPayload)
+    const payload = await readVerb('list', { block: 'A' })
 
     expect(payload.standing?.block).toBe('A')
   })
@@ -186,14 +179,14 @@ describe('RG4: every read this client makes, against a live engine', () => {
   it('reads a listing of another governed role', async () => {
     // `--role changelog` is a different file with the same shape, and the fixture has a
     // shipped line so it is not empty.
-    const payload = await readVerb('list', { role: 'changelog' }, readListPayload)
+    const payload = await readVerb('list', { role: 'changelog' })
 
     expect(payload.file).toContain('CHANGELOG.md')
     expect(payload.tasks.length).toBeGreaterThan(0)
   })
 
   it('reads the counts, keyed by the marker set the fixture declared', async () => {
-    const payload = await readVerb('stats', {}, readStatsPayload)
+    const payload = await readVerb('stats', {})
 
     expect(payload.total).toBeGreaterThan(0)
     expect(Object.keys(payload.markers).length).toBeGreaterThan(0)
@@ -202,12 +195,12 @@ describe('RG4: every read this client makes, against a live engine', () => {
   })
 
   it('reads one task with the rationale its pointer resolves to', async () => {
-    const listed = await readVerb('list', {}, readListPayload)
+    const listed = await readVerb('list', {})
     const first = listed.tasks[0]
     expect(first).toBeDefined()
     if (!first) return
 
-    const payload = await readVerb('show', { id: first.id }, readShowPayload)
+    const payload = await readVerb('show', { id: first.id })
 
     expect(payload.id).toBe(first.id)
     expect(payload.section?.body).not.toBe('')
@@ -215,11 +208,11 @@ describe('RG4: every read this client makes, against a live engine', () => {
   })
 
   it('reads a task with its prose left out, which is a different answer', async () => {
-    const listed = await readVerb('list', {}, readListPayload)
+    const listed = await readVerb('list', {})
     const first = listed.tasks[0]
     if (!first) return
 
-    const payload = await readVerb('show', { id: first.id, noBody: true }, readShowPayload)
+    const payload = await readVerb('show', { id: first.id, noBody: true })
 
     // The section is still there and still located; only the prose is gone, and it comes
     // back null rather than empty. A shape demanding a string failed on exactly this flag,
@@ -229,7 +222,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
   })
 
   it('reads a brief, including what it left out', async () => {
-    const payload = await readVerb('brief', {}, readBriefPayload)
+    const payload = await readVerb('brief', {})
 
     expect(payload.id).not.toBe('')
     expect(payload.readiness).not.toBe('')
@@ -241,7 +234,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
   })
 
   it('reads one line edges, resolved', async () => {
-    const payload = await readVerb('deps', { id: 'FX3' }, readDepsPayload)
+    const payload = await readVerb('deps', { id: 'FX3' })
 
     expect(payload.id).toBe('FX3')
     expect(payload.readiness).not.toBe('')
@@ -258,8 +251,8 @@ describe('RG4: every read this client makes, against a live engine', () => {
   it('reads the two lists that bind a proposal, both two-word verbs', async () => {
     // The only verbs whose name is two words. The name is kept whole because that is the
     // string `commands` publishes, and `buildArgv` is what splits it.
-    const bounds = await readVerb('nonGoalList', {}, readNonGoalsPayload)
-    const finishing = await readVerb('criterionList', {}, readCriteriaPayload)
+    const bounds = await readVerb('nonGoalList', {})
+    const finishing = await readVerb('criterionList', {})
 
     expect(bounds.governed).toBe(true)
     expect(bounds.nonGoals.length).toBeGreaterThan(0)
@@ -274,7 +267,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
   it('reads an address with no list, and the door that opens one', async () => {
     // `empty` is the engine's word for which nothing this is, and it is null on an answer
     // that is not empty — a shape demanding a string fails on every ordinary read.
-    const finishing = await readVerb('criterionList', { task: 'FX1' }, readCriteriaPayload)
+    const finishing = await readVerb('criterionList', { task: 'FX1' })
 
     expect(finishing.criteria).toEqual([])
     expect(finishing.empty).not.toBeNull()
@@ -283,12 +276,8 @@ describe('RG4: every read this client makes, against a live engine', () => {
   })
 
   it('reads what a block already delivered, ranked and unranked', async () => {
-    const whole = await readVerb('delivered', { block: 'A' }, readDeliveredPayload)
-    const near = await readVerb(
-      'delivered',
-      { block: 'A', near: 'nothing answers a question yet' },
-      readDeliveredPayload,
-    )
+    const whole = await readVerb('delivered', { block: 'A' })
+    const near = await readVerb('delivered', { block: 'A', near: 'nothing answers a question yet' })
 
     expect(whole.block).toBe('A')
     expect(whole.file).toContain('CHANGELOG.md')
@@ -301,8 +290,8 @@ describe('RG4: every read this client makes, against a live engine', () => {
   })
 
   it('reads what the ledger undid, and the id a caller asked about', async () => {
-    const all = await readVerb('reversals', {}, readReversalsPayload)
-    const one = await readVerb('reversals', { id: 'FX1' }, readReversalsPayload)
+    const all = await readVerb('reversals', {})
+    const one = await readVerb('reversals', { id: 'FX1' })
 
     expect(all.root).not.toBe('')
     expect(all.asked).toBeNull()
@@ -335,7 +324,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
   })
 
   it('moves a marker, and says what the claim did', async () => {
-    const listed = await readVerb('list', {}, readListPayload)
+    const listed = await readVerb('list', {})
     const first = listed.tasks[0]
     if (!first) return
 
@@ -360,7 +349,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
   it('closes a line four ways, and reads the shape each answers with', async () => {
     // One fixture line per departure. Every one is irreversible in the direction that
     // matters, which is why this runs nowhere but here.
-    const open = (await readVerb('list', {}, readListPayload)).tasks.map((task) => task.id)
+    const open = (await readVerb('list', {})).tasks.map((task) => task.id)
     const [first, second, third] = open.slice(-3)
     if (first === undefined || second === undefined || third === undefined) return
 
@@ -458,7 +447,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
   })
 
   it('corrects a line three ways, and reads what each answers with', async () => {
-    const open = (await readVerb('list', {}, readListPayload)).tasks.map((task) => task.id)
+    const open = (await readVerb('list', {})).tasks.map((task) => task.id)
     const id = open.at(-1)
     if (id === undefined) return
 
@@ -500,7 +489,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
   })
 
   it('prices a line that does not exist yet, and one that is about to ship', async () => {
-    const line = await readVerb('budget', { block: 'A', symptom: 'a draft' }, readBudgetPayload)
+    const line = await readVerb('budget', { block: 'A', symptom: 'a draft' })
 
     expect(line.id).not.toBe('')
     expect(line.lineMax).toBeGreaterThan(0)
@@ -510,11 +499,11 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(typeof line.fields[0]?.boundByLine).toBe('boolean')
     expect(line.ref).not.toBeNull()
 
-    const listed = await readVerb('list', { role: 'changelog' }, readListPayload)
+    const listed = await readVerb('list', { role: 'changelog' })
     const shipped = listed.tasks[0]
     if (shipped === undefined) return
 
-    const ledger = await readVerb('budget', { id: shipped.id, ship: true }, readBudgetPayload)
+    const ledger = await readVerb('budget', { id: shipped.id, ship: true })
     // A shipped line carries no pointer, so `ref` is null where the open form sends a
     // string — the second shape of this verb, and a reader demanding one fails here.
     expect(ledger.ref).toBeNull()
@@ -539,17 +528,17 @@ describe('RG4: every read this client makes, against a live engine', () => {
 
     // `claimed` is null on a brief that only read and an object on one that took, which is
     // the same key answering two ways under a flag.
-    const read = await readVerb('brief', { id }, readBriefPayload)
+    const read = await readVerb('brief', { id })
     expect(read.claimed).toBeNull()
 
-    const took = await readVerb('brief', { id, claim: true }, readBriefPayload)
+    const took = await readVerb('brief', { id, claim: true })
     expect(took.claimed).not.toBeNull()
     expect(typeof took.claimed?.taken).toBe('boolean')
     expect(took.claimed?.to).not.toBe('')
   })
 
   it('reads what to work on next, and which tier answered', async () => {
-    const payload = await readVerb('pick', {}, readPickPayload)
+    const payload = await readVerb('pick', {})
 
     expect(payload.tier).not.toBe('')
     expect(payload.reason).not.toBe('')
@@ -561,21 +550,24 @@ describe('RG4: every read this client makes, against a live engine', () => {
   it('reads a backlog with nothing to pick as a null rather than a refusal', async () => {
     // Scoped to a block the fixture declares and has no open line in. `pick` answering
     // "nothing" is an answer, and a row drawing it as an error would be wrong.
-    const payload = await readVerb('pick', { block: 'B', designed: true }, readPickPayload)
+    const payload = await readVerb('pick', { block: 'B', designed: true })
 
     expect(payload).toHaveProperty('pick')
   })
 
   it('reads the gate, whose non-zero exit is an answer', async () => {
-    const result = await client.call(fixture.root, 'lint', {}, { timeoutMs: CEILING })
-    const where = { verb: 'lint', engineVersion }
-    const parsed = readPayload(readLintPayload, result.stdout, where)
+    // The exit code is the transport's, and the point is that it does not decide: `lint`
+    // exits 1 with an ordinary payload, so both have to be read off the same call.
+    const raw = await transport.run({
+      root: fixture.root,
+      argv: buildArgv(fixture.root, 'lint', {}),
+      timeoutMs: CEILING,
+    })
+    expect([0, 1]).toContain(raw.code)
 
-    expect(parsed.ok, parsed.ok ? '' : explainFailure(parsed.failure, where)).toBe(true)
-    if (!parsed.ok) return
-    expect([0, 1]).toContain(result.code)
-    expect(typeof parsed.value.clean).toBe('boolean')
-    expect(parsed.value.checked.length).toBeGreaterThan(0)
+    const payload = await readVerb('lint', {})
+    expect(typeof payload.clean).toBe('boolean')
+    expect(payload.checked.length).toBeGreaterThan(0)
   })
 
   it('reads a repair pass, whose dry run is a different answer', async () => {
@@ -597,18 +589,15 @@ describe('RG4: every read this client makes, against a live engine', () => {
   })
 
   it('reads which engine answered for the fixture', async () => {
-    const result = await client.call(fixture.root, 'engines', {}, { timeoutMs: CEILING })
-    const payload = readEnginesPayload(result.stdout)
+    const payload = await readVerb('engines', {})
 
-    expect(payload).not.toBeNull()
-    expect(payload?.writing.version).toBe(engineVersion)
+    expect(payload.writing.version).toBe(engineVersion)
   })
 })
 
 describe('RG6: what the live build says it can do', () => {
   it('publishes every verb this app calls, with every flag it would send', async () => {
-    const result = await client.call(fixture.root, 'commands', {}, { timeoutMs: CEILING })
-    const report = readCapabilities(result.stdout, engineVersion)
+    const report = capabilitiesOf(await readVerb('commands', {}))
 
     expect(report.kind).toBe('known')
     if (report.kind !== 'known') return
@@ -621,8 +610,7 @@ describe('RG6: what the live build says it can do', () => {
   })
 
   it('agrees with the flags derived from this project’s own builders', async () => {
-    const result = await client.call(fixture.root, 'commands', {}, { timeoutMs: CEILING })
-    const report = readCapabilities(result.stdout, engineVersion)
+    const report = capabilitiesOf(await readVerb('commands', {}))
     if (report.kind !== 'known') return
 
     expect(report.byVerb.list.callable).toBe(true)
@@ -670,19 +658,18 @@ describe('RG5: a refusal, against a live engine', () => {
   })
 
   it('marks nothing for a refusal the engine did not attach to a field', async () => {
-    const result = await client.call(fixture.root, 'show', { id: 'FX999' }, { timeoutMs: CEILING })
-    const parsed = readAnswer(readShowPayload, result)
+    const parsed = await client.call(fixture.root, 'show', { id: 'FX999' }, { timeoutMs: CEILING })
 
     expect(parsed.ok).toBe(true)
     if (!parsed.ok || parsed.value.kind !== 'refused') {
-      throw new Error(`expected a refusal, got ${result.stdout.slice(0, 120)}`)
+      throw new Error('expected a refusal, got a payload')
     }
     expect(fieldsRefused(parsed.value.refusal)).toEqual([])
     expect(parsed.value.refusal.said).not.toBe('')
   })
 
   it('reads the doors that close the code a refusal named', async () => {
-    const payload = await readVerb('explain', { code: 'symptom.too-long' }, readExplanation)
+    const payload = await readVerb('explain', { code: 'symptom.too-long' })
 
     expect(payload.code).toBe('symptom.too-long')
     expect(payload.cause).not.toBe('')
@@ -694,12 +681,11 @@ describe('RG5: a refusal, against a live engine', () => {
     // The claim the design makes: `explain`'s table and a lint finding's `remedy` are one
     // map at two moments, so one reader covers both. This repository's own gate carries
     // notes with remedies, which is where that gets exercised against real output.
-    const result = await client.call(REPO, 'lint', {}, { timeoutMs: CEILING })
-    const parsed = readPayload(readLintPayload, result.stdout, { verb: 'lint', engineVersion })
+    const parsed = await client.call(REPO, 'lint', {}, { timeoutMs: CEILING })
 
     expect(parsed.ok).toBe(true)
-    if (!parsed.ok) return
-    const withRemedy = [...parsed.value.findings, ...parsed.value.notes].find(
+    if (!parsed.ok || parsed.value.kind === 'refused') return
+    const withRemedy = [...parsed.value.value.findings, ...parsed.value.value.notes].find(
       (entry) => entry.remedy !== null,
     )
     expect(withRemedy?.remedy?.doors.length).toBeGreaterThan(0)
@@ -709,7 +695,7 @@ describe('RG5: a refusal, against a live engine', () => {
 
 describe('RG4: the states a fixture is built to contain', () => {
   it('has a ledger, whose lines point at no rationale at all', async () => {
-    const payload = await readVerb('list', { role: 'changelog' }, readListPayload)
+    const payload = await readVerb('list', { role: 'changelog' })
 
     expect(payload.tasks.some((task) => task.status === '✅')).toBe(true)
     // Shipping deletes the design, so the pointer has nothing to resolve to. The roadmap's
@@ -719,7 +705,7 @@ describe('RG4: the states a fixture is built to contain', () => {
   })
 
   it('has a deferred store, which `list --role deferred` reads', async () => {
-    const payload = await readVerb('list', { role: 'deferred' }, readListPayload)
+    const payload = await readVerb('list', { role: 'deferred' })
     expect(payload.tasks.length).toBeGreaterThan(0)
   })
 })

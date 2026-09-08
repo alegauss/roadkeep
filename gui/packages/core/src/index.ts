@@ -4,6 +4,7 @@ export { BRIDGE_CHANNELS, BRIDGE_KEY } from './bridge'
 export type { BridgeIdentity, RendererBridge, TransportName } from './bridge'
 export {
   CALLED_NAMES,
+  capabilitiesOf,
   flagsFor,
   publishedName,
   readCapabilities,
@@ -210,6 +211,8 @@ export { DEFAULT_POLICY, mayEnter, scan } from './scanning'
 export type { Found, Listing, Look, ScanPolicy, ScanResult } from './scanning'
 export { buildArgv, createClient } from './client'
 export type { CallOptions, Client } from './client'
+export { ANSWERS } from './answers'
+export type { VerbAnswers } from './answers'
 export { disagrees, isModified, resolveEngine } from './engine-resolution'
 export type {
   EngineResolution,
@@ -218,7 +221,7 @@ export type {
   SamePart,
   TransportFor,
 } from './engine-resolution'
-export { readEnginesPayload, splitCommandLine } from './engines'
+export { readEngineProvenance, readEnginesPayload, splitCommandLine } from './engines'
 export type { EngineProvenance, EnginesPayload } from './engines'
 export {
   governedFiles,

@@ -6,8 +6,6 @@ import {
   composeWrite,
   createClient,
   readAddedPayload,
-  readListPayload,
-  readPayload,
   type WriteOutcome,
   type AddedPayload,
 } from '@rk/core'
@@ -41,10 +39,9 @@ function add(
 }
 
 async function roadmapIds(): Promise<string[]> {
-  const result = await client.call(fixture.root, 'list', {}, { timeoutMs: CEILING })
-  const parsed = readPayload(readListPayload, result.stdout, { verb: 'list', engineVersion: '' })
-  if (!parsed.ok) throw new Error('list did not read')
-  return parsed.value.tasks.map((task) => task.id)
+  const answer = await client.call(fixture.root, 'list', {}, { timeoutMs: CEILING })
+  if (!answer.ok || answer.value.kind === 'refused') throw new Error('list did not read')
+  return answer.value.value.tasks.map((task) => task.id)
 }
 
 beforeAll(async () => {

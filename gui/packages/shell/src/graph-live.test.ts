@@ -1,13 +1,6 @@
 import path from 'node:path'
 
-import {
-  createClient,
-  graphFrom,
-  readDepsPayload,
-  readPayload,
-  routeOf,
-  type Graph,
-} from '@rk/core'
+import { createClient, graphFrom, routeOf, type Graph } from '@rk/core'
 import { beforeAll, describe, expect, it } from 'vitest'
 
 import { createProcessTransport } from './process-transport'
@@ -25,14 +18,17 @@ const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER
 const client = createClient(engine)
 
 async function graphOf(id: string): Promise<Graph> {
-  const result = await client.call(REPO, 'deps', { id }, { timeoutMs: CEILING })
-  const parsed = readPayload(readDepsPayload, result.stdout, { verb: 'deps', engineVersion: '' })
-  if (!parsed.ok) {
+  const answer = await client.call(REPO, 'deps', { id }, { timeoutMs: CEILING })
+  if (!answer.ok) {
     throw new Error(
-      `deps did not read: expected ${parsed.failure.expected} at ` +
-        `${parsed.failure.path || '(the answer)'}, found ${parsed.failure.got}`,
+      `deps did not read: expected ${answer.failure.expected} at ` +
+        `${answer.failure.path || '(the answer)'}, found ${answer.failure.got}`,
     )
   }
+  if (answer.value.kind === 'refused') {
+    throw new Error(`deps was refused: ${answer.value.refusal.said}`)
+  }
+  const parsed = answer.value
   return graphFrom(parsed.value)
 }
 
@@ -50,7 +46,8 @@ let leverage: Graph | undefined
 
 beforeAll(async () => {
   const listed = await client.call(REPO, 'list', {}, { timeoutMs: CEILING })
-  const ids = (JSON.parse(listed.stdout) as { tasks: { id: string }[] }).tasks.map((one) => one.id)
+  if (!listed.ok || listed.value.kind === 'refused') throw new Error('list did not read')
+  const ids = listed.value.value.tasks.map((one) => one.id)
 
   for (const id of ids) {
     const graph = await graphOf(id)

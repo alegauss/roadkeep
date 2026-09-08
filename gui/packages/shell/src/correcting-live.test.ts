@@ -7,12 +7,8 @@ import {
   correctionsOffered,
   createClient,
   readAmendPayload,
-  readCommandsPayload,
-  readListPayload,
-  readPayload,
   readRenumberPayload,
   readRestatePayload,
-  readShowPayload,
   renumbered,
   replacedBy,
   restated,
@@ -37,17 +33,15 @@ const client = createClient(engine)
 let fixture: Fixture
 
 async function shown(id: string) {
-  const result = await client.call(fixture.root, 'show', { id }, { timeoutMs: CEILING })
-  const parsed = readPayload(readShowPayload, result.stdout, { verb: 'show', engineVersion: '' })
-  if (!parsed.ok) throw new Error(`show ${id} did not read`)
-  return parsed.value
+  const answer = await client.call(fixture.root, 'show', { id }, { timeoutMs: CEILING })
+  if (!answer.ok || answer.value.kind === 'refused') throw new Error(`show ${id} did not read`)
+  return answer.value.value
 }
 
 async function ids(): Promise<string[]> {
-  const result = await client.call(fixture.root, 'list', {}, { timeoutMs: CEILING })
-  const parsed = readPayload(readListPayload, result.stdout, { verb: 'list', engineVersion: '' })
-  if (!parsed.ok) throw new Error('list did not read')
-  return parsed.value.tasks.map((task) => task.id)
+  const answer = await client.call(fixture.root, 'list', {}, { timeoutMs: CEILING })
+  if (!answer.ok || answer.value.kind === 'refused') throw new Error('list did not read')
+  return answer.value.value.tasks.map((task) => task.id)
 }
 
 beforeAll(async () => {
@@ -60,14 +54,10 @@ afterAll(() => {
 
 describe('RG35: the reason each exists, off the live build', () => {
   it('offers the three with the sentences this engine publishes', async () => {
-    const result = await client.call(fixture.root, 'commands', {}, { timeoutMs: CEILING })
-    const parsed = readPayload(readCommandsPayload, result.stdout, {
-      verb: 'commands',
-      engineVersion: '',
-    })
-    if (!parsed.ok) throw new Error('commands did not read')
+    const answer = await client.call(fixture.root, 'commands', {}, { timeoutMs: CEILING })
+    if (!answer.ok || answer.value.kind === 'refused') throw new Error('commands did not read')
 
-    const offered = correctionsOffered(parsed.value)
+    const offered = correctionsOffered(answer.value.value)
 
     expect(offered.every((one) => one.callable)).toBe(true)
     expect(offered.every((one) => one.help !== '')).toBe(true)

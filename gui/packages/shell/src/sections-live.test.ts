@@ -5,9 +5,7 @@ import {
   composeWrite,
   createClient,
   readAddedPayload,
-  readPayload,
   readSectionWritten,
-  readShowPayload,
   saidOfWrite,
   wasCreated,
   whereWritten,
@@ -49,10 +47,9 @@ async function sectionWrite(
 
 /** The prose the file now holds, read back through `show`. */
 async function proseOf(id: string): Promise<string> {
-  const result = await client.call(fixture.root, 'show', { id }, { timeoutMs: CEILING })
-  const parsed = readPayload(readShowPayload, result.stdout, { verb: 'show', engineVersion: '' })
-  if (!parsed.ok) throw new Error('show did not read')
-  return parsed.value.section?.body ?? ''
+  const answer = await client.call(fixture.root, 'show', { id }, { timeoutMs: CEILING })
+  if (!answer.ok || answer.value.kind === 'refused') throw new Error('show did not read')
+  return answer.value.value.section?.body ?? ''
 }
 
 /** A line with no section, so its pointer resolves to nothing until one is written. */

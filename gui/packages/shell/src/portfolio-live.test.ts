@@ -6,12 +6,7 @@ import {
   createGateLedger,
   pendingRow,
   recordGate,
-  readEnginesPayload,
-  readLintPayload,
-  readPayload,
-  readPickPayload,
   readRow,
-  readStatsPayload,
   tally,
   type ProjectRow,
   type RecordedProject,
@@ -45,45 +40,50 @@ const recorded = (projectPath: string): RecordedProject => ({
 
 /** Read one project the way the portfolio would, and build its row. */
 async function rowFor(projectPath: string): Promise<ProjectRow> {
-  const [stats, pick, lint, engines] = await Promise.all([
+  const [statsRead, pickRead, lintRead, enginesRead] = await Promise.all([
     client.call(projectPath, 'stats', {}, { timeoutMs: CEILING }),
     client.call(projectPath, 'pick', {}, { timeoutMs: CEILING }),
     client.call(projectPath, 'lint', {}, { timeoutMs: CEILING }),
     client.call(projectPath, 'engines', {}, { timeoutMs: CEILING }),
   ])
 
-  const where = { verb: 'portfolio', engineVersion: '' }
-  const statsRead = readPayload(readStatsPayload, stats.stdout, where)
-  const pickRead = readPayload(readPickPayload, pick.stdout, where)
-  const lintRead = readPayload(readLintPayload, lint.stdout, where)
-
   // Named individually: "false" tells whoever reads a red suite nothing, and the three
   // reads fail for entirely different reasons.
-  for (const [verb, result, parsed] of [
-    ['stats', stats, statsRead],
-    ['pick', pick, pickRead],
-    ['lint', lint, lintRead],
+  for (const [verb, answer] of [
+    ['stats', statsRead],
+    ['pick', pickRead],
+    ['lint', lintRead],
   ] as const) {
-    if (!parsed.ok) {
+    if (!answer.ok) {
       throw new Error(
-        `${verb} on ${projectPath} did not read: expected ${parsed.failure.expected} at ` +
-          `${parsed.failure.path || '(the answer)'}, found ${parsed.failure.got}. ` +
-          `exit ${String(result.code)}, stderr: ${result.stderr.slice(0, 200)}`,
+        `${verb} on ${projectPath} did not read: expected ${answer.failure.expected} at ` +
+          `${answer.failure.path || '(the answer)'}, found ${answer.failure.got}`,
       )
+    }
+    if (answer.value.kind === 'refused') {
+      throw new Error(`${verb} on ${projectPath} was refused: ${answer.value.refusal.said}`)
     }
   }
   if (!statsRead.ok || !pickRead.ok || !lintRead.ok) throw new Error('unreachable')
+  if (
+    statsRead.value.kind === 'refused' ||
+    pickRead.value.kind === 'refused' ||
+    lintRead.value.kind === 'refused'
+  ) {
+    throw new Error('unreachable')
+  }
 
   // The gate goes through the ledger rather than straight onto the row: a verdict is
   // dated against the files it was taken from, which is what lets a row say it is stale.
   const ledger = createGateLedger(rootKey)
-  ledger.note(projectPath, recordGate(lintRead.value, 'live', new Date().toISOString()))
+  ledger.note(projectPath, recordGate(lintRead.value.value, 'live', new Date().toISOString()))
 
   return readRow(recorded(projectPath), {
-    stats: statsRead.value,
-    pick: pickRead.value,
+    stats: statsRead.value.value,
+    pick: pickRead.value.value,
     gate: ledger.healthOf(projectPath, 'live'),
-    engines: readEnginesPayload(engines.stdout),
+    engines:
+      enginesRead.ok && enginesRead.value.kind === 'payload' ? enginesRead.value.value : null,
   })
 }
 
@@ -113,7 +113,8 @@ describe('RG16: rows over more than one project', () => {
   it('carries a number no screen computed', async () => {
     const row = await rowFor(fixture.root)
     const stats = await client.call(fixture.root, 'stats', {}, { timeoutMs: CEILING })
-    const printed = JSON.parse(stats.stdout) as { total: number }
+    if (!stats.ok || stats.value.kind === 'refused') throw new Error('stats did not read')
+    const printed = stats.value.value
 
     // The criterion, checked rather than asserted: the number on the row is the number
     // the verb printed, not one derived from it.

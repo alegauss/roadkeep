@@ -177,33 +177,15 @@ export function flagsFor(verb: CalledName): string[] {
 }
 
 /**
- * Build the capability record.
+ * Build the capability record from a payload already read.
  *
- * @param engineVersion what `engines` reported, used when `commands` itself cannot be
- *   read — a build too old to publish this read still has a version worth showing.
+ * The client reads `commands` with the shape the verb declares (RG66), so what is left
+ * here is the comparison this file is actually about — what this build publishes against
+ * what this app would send. The version comes off the payload: a build that answered this
+ * read named itself in it, and `engines`' version is only needed where it did not.
  */
-export function readCapabilities(stdout: string, engineVersion: string): CapabilityReport {
-  let source: unknown
-  try {
-    source = JSON.parse(stdout)
-  } catch {
-    return {
-      kind: 'unsupported',
-      version: engineVersion,
-      reason: '`commands --json` answered with something that is not a payload',
-    }
-  }
-
-  const parsed: Parsed<CommandsPayload> = readCommandsPayload(source, '')
-  if (!parsed.ok) {
-    return {
-      kind: 'unsupported',
-      version: engineVersion,
-      reason: `\`commands --json\` is missing ${parsed.failure.path || 'the shape this app reads'}`,
-    }
-  }
-
-  const published = new Map(parsed.value.commands.map((command) => [command.command, command]))
+export function capabilitiesOf(payload: CommandsPayload): CapabilityReport {
+  const published = new Map(payload.commands.map((command) => [command.command, command]))
   const byVerb = {} as Record<CalledName, Capability>
   let complete = true
 
@@ -234,7 +216,40 @@ export function readCapabilities(stdout: string, engineVersion: string): Capabil
     }
   }
 
-  return { kind: 'known', version: parsed.value.version, byVerb, complete }
+  return { kind: 'known', version: payload.version, byVerb, complete }
+}
+
+/**
+ * The same record, from stdout that has not been read yet.
+ *
+ * The one caller that still needs this is the one asking whether this build can be talked
+ * to at all: a roadkeep too old to publish `commands` answers with prose or with a shape
+ * this app does not know, and *that* is the report — `unsupported`, with the reason. A
+ * client would have raised it as a failure, which is right for a read and wrong for the
+ * question "is there anything here to read".
+ */
+export function readCapabilities(stdout: string, engineVersion: string): CapabilityReport {
+  let source: unknown
+  try {
+    source = JSON.parse(stdout)
+  } catch {
+    return {
+      kind: 'unsupported',
+      version: engineVersion,
+      reason: '`commands --json` answered with something that is not a payload',
+    }
+  }
+
+  const parsed: Parsed<CommandsPayload> = readCommandsPayload(source, '')
+  if (!parsed.ok) {
+    return {
+      kind: 'unsupported',
+      version: engineVersion,
+      reason: `\`commands --json\` is missing ${parsed.failure.path || 'the shape this app reads'}`,
+    }
+  }
+
+  return capabilitiesOf(parsed.value)
 }
 
 /** The verbs a screen should withhold, with why. Empty means every door can be offered. */

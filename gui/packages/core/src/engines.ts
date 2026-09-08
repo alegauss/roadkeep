@@ -1,3 +1,5 @@
+import { aBoolean, aString, orMissing, record, type Reader } from './reading'
+
 /**
  * What `engines --json` says, and how a command line becomes argv.
  *
@@ -8,7 +10,12 @@
  *
  * Only the keys this app actually uses are named below. The rest of the payload is left
  * alone rather than modelled, because a shape restated here is one that goes stale
- * silently — and because a general answer to reading payloads is RG3's, not this file's.
+ * silently.
+ *
+ * The shape is written with RG3's toolkit like every other payload's. It was not, once:
+ * this file predates the toolkit and hand-rolled a reader that answered `null` for
+ * everything — a wrong program, a renamed key, a version that arrived as a number. The
+ * first call every project makes was the one call that threw its diagnosis away.
  */
 
 /** The copy that answered, as `engines --json` describes it. */
@@ -40,56 +47,32 @@ export interface EnginesPayload {
   readonly swapped: boolean
 }
 
-function text(source: Record<string, unknown>, key: string): string {
-  const value = source[key]
-  return typeof value === 'string' ? value : ''
-}
+export const readEngineProvenance: Reader<EngineProvenance> = record<EngineProvenance>(
+  {
+    /**
+     * Strict, and the only field here that is. This is the first call made against a
+     * candidate that may not be roadkeep at all, and `writing.version` is what a real
+     * payload always carries and a wrong program never does — so it is the field that
+     * decides whether anything answered, and the rest may go missing on an older build.
+     */
+    version: aString,
+    home: orMissing(aString, ''),
+    revision: orMissing(aString, ''),
+    onDisk: orMissing(aString, ''),
+  },
+  { onDisk: 'on_disk' },
+)
 
-function flag(source: Record<string, unknown>, key: string): boolean {
-  return source[key] === true
-}
-
-/**
- * Read the payload, or answer `null` for anything that is not one.
- *
- * Defensive rather than trusting: this is the first call made against a candidate that
- * may not be roadkeep at all, so "did not answer with an engines payload" has to be a
- * value and not an exception. `writing.version` is what a real payload always carries and
- * a wrong program never does, which makes it the field worth testing for.
- */
-export function readEnginesPayload(stdout: string): EnginesPayload | null {
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(stdout)
-  } catch {
-    return null
-  }
-  if (typeof parsed !== 'object' || parsed === null) return null
-
-  const root = parsed as Record<string, unknown>
-  const writing = root['writing']
-  if (typeof writing !== 'object' || writing === null) return null
-
-  const provenance = writing as Record<string, unknown>
-  const version = text(provenance, 'version')
-  if (version === '') return null
-
-  return {
-    writing: {
-      version,
-      home: text(provenance, 'home'),
-      revision: text(provenance, 'revision'),
-      onDisk: text(provenance, 'on_disk'),
-    },
-    invoke: text(root, 'invoke'),
-    declaration: text(root, 'declaration'),
-    verdict: text(root, 'verdict'),
-    agree: flag(root, 'agree'),
-    readable: flag(root, 'readable'),
-    split: flag(root, 'split'),
-    swapped: flag(root, 'swapped'),
-  }
-}
+export const readEnginesPayload: Reader<EnginesPayload> = record<EnginesPayload>({
+  writing: readEngineProvenance,
+  invoke: orMissing(aString, ''),
+  declaration: orMissing(aString, ''),
+  verdict: orMissing(aString, ''),
+  agree: orMissing(aBoolean, false),
+  readable: orMissing(aBoolean, false),
+  split: orMissing(aBoolean, false),
+  swapped: orMissing(aBoolean, false),
+})
 
 /**
  * Turn a one-line command into argv.

@@ -4,8 +4,6 @@ import {
   createClient,
   filingOf,
   pauseOf,
-  readListPayload,
-  readPayload,
   storeFrom,
   whereFiled,
   type ListPayload,
@@ -37,14 +35,17 @@ let fixture: Fixture
 let unpaused: Fixture
 
 async function listing(root: string, input: Record<string, unknown> = {}): Promise<ListPayload> {
-  const result = await client.call(root, 'list', input, { timeoutMs: CEILING })
-  const parsed = readPayload(readListPayload, result.stdout, { verb: 'list', engineVersion: '' })
-  if (!parsed.ok) {
+  const answer = await client.call(root, 'list', input, { timeoutMs: CEILING })
+  if (!answer.ok) {
     throw new Error(
-      `list did not read: expected ${parsed.failure.expected} at ` +
-        `${parsed.failure.path || '(the answer)'}, found ${parsed.failure.got}`,
+      `list did not read: expected ${answer.failure.expected} at ` +
+        `${answer.failure.path || '(the answer)'}, found ${answer.failure.got}`,
     )
   }
+  if (answer.value.kind === 'refused') {
+    throw new Error(`list was refused: ${answer.value.refusal.said}`)
+  }
+  const parsed = answer.value
   return parsed.value
 }
 

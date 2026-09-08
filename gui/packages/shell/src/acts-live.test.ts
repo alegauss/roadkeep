@@ -6,8 +6,6 @@ import {
   actsOf,
   createClient,
   governedFiles,
-  readConfigPayload,
-  readPayload,
   sessionCall,
   touched,
   type Act,
@@ -47,15 +45,12 @@ const CAPTURED = readFileSync(
 let marks: Marks = { governed: [], engine: [] }
 
 beforeAll(async () => {
-  const result = await client.call(REPO, 'config', {}, { timeoutMs: CEILING })
-  const parsed = readPayload(readConfigPayload, result.stdout, {
-    verb: 'config',
-    engineVersion: '',
-  })
-  if (!parsed.ok) throw new Error('config did not read')
+  const answer = await client.call(REPO, 'config', {}, { timeoutMs: CEILING })
+  if (!answer.ok) throw new Error('config did not read')
+  if (answer.value.kind === 'refused') throw new Error('config was refused')
 
   marks = {
-    governed: Object.values(governedFiles(parsed.value)),
+    governed: Object.values(governedFiles(answer.value.value)),
     engine: ['roadkeep', 'mcp__roadkeep__'],
   }
 }, 180000)

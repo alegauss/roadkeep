@@ -4,8 +4,6 @@ import {
   coversEverything,
   createCachingTransport,
   createClient,
-  readListPayload,
-  readPayload,
   search,
   type SearchableProject,
 } from '@rk/core'
@@ -40,10 +38,11 @@ let fixture: Fixture
 let projects: SearchableProject[] = []
 
 async function linesOf(projectPath: string) {
-  const result = await client.call(projectPath, 'list', {}, { timeoutMs: CEILING })
-  const parsed = readPayload(readListPayload, result.stdout, { verb: 'list', engineVersion: '' })
-  if (!parsed.ok) throw new Error('list did not answer with a payload')
-  return parsed.value.tasks
+  const answer = await client.call(projectPath, 'list', {}, { timeoutMs: CEILING })
+  if (!answer.ok || answer.value.kind === 'refused') {
+    throw new Error('list did not answer with a payload')
+  }
+  return answer.value.value.tasks
 }
 
 beforeAll(async () => {

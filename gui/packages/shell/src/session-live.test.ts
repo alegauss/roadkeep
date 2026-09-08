@@ -1,13 +1,6 @@
 import path from 'node:path'
 
-import {
-  createClient,
-  promptFor,
-  readBriefPayload,
-  readPayload,
-  sessionCall,
-  type SessionEvent,
-} from '@rk/core'
+import { createClient, promptFor, sessionCall, type SessionEvent } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { fakeClaude, type FakeBehaviour } from './fake-claude'
@@ -43,13 +36,9 @@ function run(behaviour: FakeBehaviour = {}, watcher = {}): RunningSession {
 }
 
 beforeAll(async () => {
-  const result = await client.call(REPO, 'brief', {}, { timeoutMs: CEILING })
-  const parsed = readPayload(readBriefPayload, result.stdout, {
-    verb: 'brief',
-    engineVersion: '',
-  })
-  if (!parsed.ok) throw new Error('brief did not read')
-  prompt = promptFor(parsed.value)
+  const answer = await client.call(REPO, 'brief', {}, { timeoutMs: CEILING })
+  if (!answer.ok || answer.value.kind === 'refused') throw new Error('brief did not read')
+  prompt = promptFor(answer.value.value)
 }, 180000)
 
 afterAll(() => {

@@ -141,20 +141,86 @@ describe('RG1: what the client hands the transport', () => {
     expect(Object.hasOwn(calls[0] ?? {}, 'timeoutMs')).toBe(false)
     expect(Object.hasOwn(calls[0] ?? {}, 'signal')).toBe(false)
   })
+})
 
-  it('returns what the transport returned, parsing nothing', async () => {
-    const run = vi.fn((): Promise<EngineResult> =>
-      Promise.resolve({ code: 1, stdout: '{"clean":false}', stderr: 'a warning', durationMs: 7 }),
-    )
-    const result = await createClient({ run }).call('/w', 'lint', {})
+describe('RG66: the shape a verb declares, applied by the call itself', () => {
+  /** One answer, as a transport that always says it. */
+  const answering = (stdout: string, code = 0): Transport => ({
+    run: vi.fn((): Promise<EngineResult> =>
+      Promise.resolve({ code, stdout, stderr: '', durationMs: 7 }),
+    ),
+  })
 
-    // A non-zero exit is an answer: `lint` exits 1 by design. The client does not read it
-    // as a failure, and it does not turn stdout into an object either - that is RG3's.
-    expect(result).toEqual({
-      code: 1,
-      stdout: '{"clean":false}',
-      stderr: 'a warning',
-      durationMs: 7,
+  const LINTED = JSON.stringify({
+    root: '/w',
+    clean: false,
+    checked: ['docs/ROADMAP.md'],
+    lines: 12,
+    sections: 3,
+    problems: 1,
+    findings: [],
+  })
+
+  it('hands back the payload rather than stdout for somebody to interpret', async () => {
+    const answer = await createClient(answering(LINTED)).call('/w', 'lint', {})
+
+    expect(answer.ok).toBe(true)
+    if (!answer.ok || answer.value.kind !== 'payload') return
+    expect(answer.value.value.clean).toBe(false)
+    expect(answer.value.value.checked).toEqual(['docs/ROADMAP.md'])
+  })
+
+  it('reads a non-zero exit as an answer, because `lint` exits 1 by design', async () => {
+    const answer = await createClient(answering(LINTED, 1)).call('/w', 'lint', {})
+
+    // The exit code never reaches this decision: `said` is what tells a refusal apart, and
+    // reading the code as a verdict is how a gate's own findings become an error.
+    expect(answer.ok && answer.value.kind).toBe('payload')
+  })
+
+  it('tells a refusal from a payload without the caller asking', async () => {
+    const refused = JSON.stringify({
+      refused: [{ code: 'id.unknown', field: 'id', message: 'no such line' }],
+      said: 'roadkeep: RG9999 is not a line here',
     })
+    const answer = await createClient(answering(refused, 2)).call('/w', 'show', { id: 'RG9999' })
+
+    expect(answer.ok).toBe(true)
+    if (!answer.ok || answer.value.kind !== 'refused') return
+    expect(answer.value.refusal.refused[0]?.code).toBe('id.unknown')
+  })
+
+  it('names the field it could not read, rather than handing back a string', async () => {
+    const answer = await createClient(answering(LINTED.replace('false', '"no"'))).call(
+      '/w',
+      'lint',
+      {},
+    )
+
+    expect(answer.ok).toBe(false)
+    if (answer.ok) return
+    expect(answer.failure.path).toBe('clean')
+    expect(answer.failure.expected).toBe('a boolean')
+  })
+
+  it('reads each verb with its own shape and never a neighbour’s', async () => {
+    // A `pick` payload is not a `list` payload. Before the two tables were joined the
+    // reader came from the call site, so reading one with the other's shape compiled.
+    const picked = JSON.stringify({
+      pick: null,
+      tier: '',
+      reason: 'nothing is ready',
+      ready: 0,
+      blocked: 0,
+      outside: 0,
+      paused: 0,
+    })
+    const client = createClient(answering(picked))
+
+    const asPick = await client.call('/w', 'pick', {})
+    const asList = await client.call('/w', 'list', {})
+
+    expect(asPick.ok).toBe(true)
+    expect(asList.ok).toBe(false)
   })
 })

@@ -1,15 +1,7 @@
 import { appendFileSync } from 'node:fs'
 import path from 'node:path'
 
-import {
-  allLines,
-  backlogFrom,
-  createClient,
-  readListPayload,
-  readPayload,
-  refusedSummary,
-  type Backlog,
-} from '@rk/core'
+import { allLines, backlogFrom, createClient, refusedSummary, type Backlog } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { buildFixture, type Fixture } from './fixture'
@@ -31,12 +23,14 @@ const client = createClient(engine)
 let fixture: Fixture
 
 async function backlogOf(root: string, input = {}): Promise<Backlog> {
-  const result = await client.call(root, 'list', input, { timeoutMs: CEILING })
-  const parsed = readPayload(readListPayload, result.stdout, { verb: 'list', engineVersion: '' })
-  if (!parsed.ok) {
-    throw new Error(`list did not read: ${parsed.failure.path} ${parsed.failure.expected}`)
+  const answer = await client.call(root, 'list', input, { timeoutMs: CEILING })
+  if (!answer.ok) {
+    throw new Error(`list did not read: ${answer.failure.path} ${answer.failure.expected}`)
   }
-  return backlogFrom(parsed.value)
+  if (answer.value.kind === 'refused') {
+    throw new Error(`list was refused: ${answer.value.refusal.said}`)
+  }
+  return backlogFrom(answer.value.value)
 }
 
 beforeAll(async () => {

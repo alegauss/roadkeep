@@ -8,8 +8,6 @@ import {
   deferred,
   leftPointing,
   readDeferPayload,
-  readListPayload,
-  readPayload,
   readResumePayload,
   readRetirePayload,
   readShipPayload,
@@ -38,10 +36,9 @@ let fixture: Fixture
 
 async function ids(role?: string): Promise<string[]> {
   const input = role === undefined ? {} : { role }
-  const result = await client.call(fixture.root, 'list', input, { timeoutMs: CEILING })
-  const parsed = readPayload(readListPayload, result.stdout, { verb: 'list', engineVersion: '' })
-  if (!parsed.ok) throw new Error('list did not read')
-  return parsed.value.tasks.map((task) => task.id)
+  const answer = await client.call(fixture.root, 'list', input, { timeoutMs: CEILING })
+  if (!answer.ok || answer.value.kind === 'refused') throw new Error('list did not read')
+  return answer.value.value.tasks.map((task) => task.id)
 }
 
 beforeAll(async () => {

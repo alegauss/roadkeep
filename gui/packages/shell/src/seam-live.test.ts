@@ -1,7 +1,8 @@
 import path from 'node:path'
 
 import {
-  createClient,
+  ANSWERS,
+  buildArgv,
   EngineCallFailed,
   VERBS,
   type Transport,
@@ -21,6 +22,10 @@ import { createProcessTransport } from './process-transport'
  * Every read this client makes goes over two real transports — a process and an HTTP
  * handler — and the two answers are compared. What that catches is a path, a working
  * directory or an exit code leaking upward, which is what a review does not.
+ *
+ * The comparison is of bytes, so it goes through the transport rather than the client: a
+ * client reads its answer into a value (RG66), and two values comparing equal would not
+ * say whether the same bytes arrived. `buildArgv` composes the identical command line.
  */
 const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
 const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
@@ -63,6 +68,15 @@ afterAll(async () => {
   fixture.dispose()
 })
 
+/** The same command line either transport is asked to run. */
+function asked<K extends VerbName>(verb: K) {
+  return {
+    root: fixture.root,
+    argv: buildArgv(fixture.root, verb, READS[verb]),
+    timeoutMs: CEILING,
+  }
+}
+
 describe('RG48: the whole read surface, over both transports', () => {
   it('covers every verb the client can build a command line for', () => {
     // The guard: a verb added to the table without a row here would be a verb the seam is
@@ -70,12 +84,17 @@ describe('RG48: the whole read surface, over both transports', () => {
     expect(Object.keys(READS).sort()).toEqual(Object.keys(VERBS).sort())
   })
 
+  it('RG66: declares a shape for every verb it can build a command line for', () => {
+    // The other hole of the same kind. A verb with an argv builder and no reader would
+    // compile, run, and hand its answer back for whoever called it to interpret.
+    expect(Object.keys(ANSWERS).sort()).toEqual(Object.keys(VERBS).sort())
+  })
+
   for (const verb of Object.keys(VERBS) as VerbName[]) {
     it(`answers identically for ${verb}`, async () => {
-      const input = READS[verb]
       const [byProcess, byHttp] = await Promise.all([
-        createClient(overProcess).call(fixture.root, verb, input, { timeoutMs: CEILING }),
-        createClient(overHttp).call(fixture.root, verb, input, { timeoutMs: CEILING }),
+        overProcess.run(asked(verb)),
+        overHttp.run(asked(verb)),
       ])
 
       // The payload, byte for byte. Anything the transport added or lost shows here.
@@ -92,15 +111,12 @@ describe('RG48: what a leak would look like', () => {
   it("carries the root as data, not as anybody's working directory", async () => {
     // The HTTP transport has no child and no directory of its own. A read that had come to
     // depend on `cwd` would answer about this repository here and about the fixture there.
-    const overThere = await createClient(overHttp).call(
-      fixture.root,
-      'list',
-      {},
-      {
-        timeoutMs: CEILING,
-      },
-    )
-    const overHere = await createClient(overHttp).call(REPO, 'list', {}, { timeoutMs: CEILING })
+    const overThere = await overHttp.run(asked('list'))
+    const overHere = await overHttp.run({
+      root: REPO,
+      argv: buildArgv(REPO, 'list', {}),
+      timeoutMs: CEILING,
+    })
 
     expect(overThere.stdout).not.toBe(overHere.stdout)
     expect(overThere.stdout).toContain('FX')
@@ -110,22 +126,10 @@ describe('RG48: what a leak would look like', () => {
   it('keeps a non-zero exit that is an answer', async () => {
     // The fixture's gate finds something, or it does not — either way the two agree, and
     // an exit of 1 arrives as a number rather than as an exception.
-    const byProcess = await createClient(overProcess).call(
-      fixture.root,
-      'lint',
-      {},
-      {
-        timeoutMs: CEILING,
-      },
-    )
-    const byHttp = await createClient(overHttp).call(
-      fixture.root,
-      'lint',
-      {},
-      {
-        timeoutMs: CEILING,
-      },
-    )
+    const [byProcess, byHttp] = await Promise.all([
+      overProcess.run(asked('lint')),
+      overHttp.run(asked('lint')),
+    ])
 
     expect([0, 1]).toContain(byHttp.code)
     expect(byHttp.code).toBe(byProcess.code)

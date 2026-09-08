@@ -9,8 +9,6 @@ import {
   createWatching,
   governedFiles,
   readAddedPayload,
-  readConfigPayload,
-  readPayload,
   watchedFiles,
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -56,13 +54,9 @@ function nextChange(watching: ReturnType<typeof createWatching>, ms = 8000): Pro
 beforeAll(async () => {
   fixture = await buildFixture(engine, { open: 2, shipped: 0, deferred: 0 })
 
-  const result = await client.call(fixture.root, 'config', {}, { timeoutMs: CEILING })
-  const parsed = readPayload(readConfigPayload, result.stdout, {
-    verb: 'config',
-    engineVersion: '',
-  })
-  if (!parsed.ok) throw new Error('config did not read')
-  files = watchedFiles(Object.values(governedFiles(parsed.value)))
+  const answer = await client.call(fixture.root, 'config', {}, { timeoutMs: CEILING })
+  if (!answer.ok || answer.value.kind === 'refused') throw new Error('config did not read')
+  files = watchedFiles(Object.values(governedFiles(answer.value.value)))
 }, 180000)
 
 afterAll(() => {

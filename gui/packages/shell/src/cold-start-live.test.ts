@@ -73,7 +73,10 @@ const DETAIL: ColdStartStage[] = [
     const parsed = readLintPayload(JSON.parse(stdout), '')
     return parsed.ok ? { lint: parsed.value } : {}
   }),
-  stage('the engine', 'engines', (stdout) => ({ engines: readEnginesPayload(stdout) })),
+  stage('the engine', 'engines', (stdout) => {
+    const parsed = readEnginesPayload(JSON.parse(stdout), '')
+    return parsed.ok ? { engines: parsed.value } : {}
+  }),
 ]
 
 let fixture: Fixture

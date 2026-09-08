@@ -1,5 +1,6 @@
 import { buildArgv } from './client'
 import { type EnginesPayload, readEnginesPayload, splitCommandLine } from './engines'
+import { readAnswer } from './refusals'
 import type { CancelSignal, Transport } from './transport'
 
 /**
@@ -83,7 +84,12 @@ async function ask(
       ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
       ...(options.signal === undefined ? {} : { signal: options.signal }),
     })
-    return readEnginesPayload(result.stdout)
+    // A candidate that answered something else is not the engine, and neither is one that
+    // refused: both are `null` here, because this is asking *whether* it is roadkeep and
+    // the answer to that is a yes or a no rather than a diagnosis.
+    const answer = readAnswer(readEnginesPayload, result)
+    if (!answer.ok || answer.value.kind === 'refused') return null
+    return answer.value.value
   } catch {
     // Unspawnable, timed out or cancelled. A candidate that cannot run is a candidate that
     // is not the engine: the next one gets its turn, and running out of them is the answer.

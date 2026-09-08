@@ -6,8 +6,6 @@ import {
   markersOf,
   meaningOf,
   openMarkers,
-  readConfigPayload,
-  readPayload,
   type ConfigPayload,
 } from '@rk/core'
 import { beforeAll, describe, expect, it } from 'vitest'
@@ -30,13 +28,9 @@ const client = createClient(createProcessTransport({ command: 'python', prefixAr
 let config: ConfigPayload
 
 beforeAll(async () => {
-  const result = await client.call(REPO, 'config', {}, { timeoutMs: CEILING })
-  const parsed = readPayload(readConfigPayload, result.stdout, {
-    verb: 'config',
-    engineVersion: '',
-  })
-  if (!parsed.ok) throw new Error('config did not read')
-  config = parsed.value
+  const answer = await client.call(REPO, 'config', {}, { timeoutMs: CEILING })
+  if (!answer.ok || answer.value.kind === 'refused') throw new Error('config did not read')
+  config = answer.value.value
 }, 120000)
 
 describe('RG53: what a real config says about markers', () => {

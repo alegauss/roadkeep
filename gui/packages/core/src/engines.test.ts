@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
 import { readEnginesPayload, splitCommandLine } from './engines'
+import { readPayload } from './reading'
+
+/** The shape read out of stdout, which is how every candidate's answer arrives. */
+function engines(stdout: string): ReturnType<typeof readEnginesPayload> {
+  return readPayload(readEnginesPayload, stdout, { verb: 'engines', engineVersion: '' })
+}
 
 const REAL = JSON.stringify({
   writing: {
@@ -24,13 +30,15 @@ const REAL = JSON.stringify({
 
 describe('RG2: reading what engines answered', () => {
   it('takes the fields this app uses out of a real payload', () => {
-    const payload = readEnginesPayload(REAL)
+    const parsed = engines(REAL)
 
-    expect(payload?.writing.version).toBe('0.2.356')
-    expect(payload?.writing.onDisk).toBe('0.2.356')
-    expect(payload?.verdict).toBe('agreed')
-    expect(payload?.agree).toBe(true)
-    expect(payload?.invoke).toBe('python D:/proj/.claude/hooks/roadkeep-launch.py')
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.value.writing.version).toBe('0.2.356')
+    expect(parsed.value.writing.onDisk).toBe('0.2.356')
+    expect(parsed.value.verdict).toBe('agreed')
+    expect(parsed.value.agree).toBe(true)
+    expect(parsed.value.invoke).toBe('python D:/proj/.claude/hooks/roadkeep-launch.py')
   })
 
   it.each([
@@ -39,18 +47,32 @@ describe('RG2: reading what engines answered', () => {
     ['an object with no writing', '{"invoke":"roadkeep"}'],
     ['a writing with no version', '{"writing":{"home":"/x"}}'],
     ['nothing', ''],
-  ])('answers null for %s, because a candidate may not be roadkeep', (_case, stdout) => {
+  ])('does not read %s, because a candidate may not be roadkeep', (_case, stdout) => {
     // The first call is made against something that might be any program on the machine.
     // "did not answer with an engines payload" has to be a value, not an exception.
-    expect(readEnginesPayload(stdout)).toBeNull()
+    expect(engines(stdout).ok).toBe(false)
+  })
+
+  it('RG66: names the field it could not read, rather than answering null', () => {
+    // What the hand-rolled reader threw away. Every failure above was one `null`, so the
+    // first call every project makes was the one that could not say what went wrong.
+    const parsed = engines('{"writing":{"version":356}}')
+
+    expect(parsed.ok).toBe(false)
+    if (parsed.ok) return
+    expect(parsed.failure.path).toBe('writing.version')
+    expect(parsed.failure.expected).toBe('a string')
+    expect(parsed.failure.got).toContain('356')
   })
 
   it('treats a missing flag as false rather than as unknown', () => {
-    const payload = readEnginesPayload('{"writing":{"version":"1.0"}}')
+    const parsed = engines('{"writing":{"version":"1.0"}}')
 
-    expect(payload?.agree).toBe(false)
-    expect(payload?.readable).toBe(false)
-    expect(payload?.verdict).toBe('')
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    expect(parsed.value.agree).toBe(false)
+    expect(parsed.value.readable).toBe(false)
+    expect(parsed.value.verdict).toBe('')
   })
 })
 

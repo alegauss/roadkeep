@@ -5,8 +5,6 @@ import {
   counterFor,
   createClient,
   overBy,
-  readBudgetPayload,
-  readPayload,
   saidOfCounter,
   structureOf,
   type BudgetPayload,
@@ -32,14 +30,14 @@ const client = createClient(engine)
 let fixture: Fixture
 
 async function priced(input: VerbInputs['budget']): Promise<BudgetPayload> {
-  const result = await client.call(fixture.root, 'budget', input, { timeoutMs: CEILING })
-  const parsed = readPayload(readBudgetPayload, result.stdout, {
-    verb: 'budget',
-    engineVersion: '',
-  })
-  if (!parsed.ok) {
-    throw new Error(`budget did not read: expected ${parsed.failure.expected}`)
+  const answer = await client.call(fixture.root, 'budget', input, { timeoutMs: CEILING })
+  if (!answer.ok) {
+    throw new Error(`budget did not read: expected ${answer.failure.expected}`)
   }
+  if (answer.value.kind === 'refused') {
+    throw new Error(`budget was refused: ${answer.value.refusal.said}`)
+  }
+  const parsed = answer.value
   return parsed.value
 }
 

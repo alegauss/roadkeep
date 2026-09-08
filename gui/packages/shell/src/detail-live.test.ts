@@ -1,14 +1,6 @@
 import path from 'node:path'
 
-import {
-  createClient,
-  designOf,
-  detailFrom,
-  readBriefPayload,
-  readPayload,
-  whyNotStartable,
-  type TaskDetail,
-} from '@rk/core'
+import { createClient, designOf, detailFrom, whyNotStartable, type TaskDetail } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { buildFixture, type Fixture } from './fixture'
@@ -49,17 +41,16 @@ async function detailOf(root: string, id?: string): Promise<TaskDetail> {
   const result = await client.call(root, 'brief', id === undefined ? {} : { id }, {
     timeoutMs: CEILING,
   })
-  const parsed = readPayload(readBriefPayload, result.stdout, {
-    verb: 'brief',
-    engineVersion: '',
-  })
-  if (!parsed.ok) {
+  if (!result.ok) {
     throw new Error(
-      `brief did not read: expected ${parsed.failure.expected} at ` +
-        `${parsed.failure.path || '(the answer)'}, found ${parsed.failure.got}`,
+      `brief did not read: expected ${result.failure.expected} at ` +
+        `${result.failure.path || '(the answer)'}, found ${result.failure.got}`,
     )
   }
-  return detailFrom(parsed.value)
+  if (result.value.kind === 'refused') {
+    throw new Error(`brief was refused: ${result.value.refusal.said}`)
+  }
+  return detailFrom(result.value.value)
 }
 
 /**

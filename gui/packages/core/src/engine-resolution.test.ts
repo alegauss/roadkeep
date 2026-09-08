@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import { disagrees, isModified, resolveEngine, type TransportFor } from './engine-resolution'
-import { readEnginesPayload } from './engines'
+import { readEnginesPayload, type EnginesPayload } from './engines'
+import { readPayload } from './reading'
 import { EngineCallFailed, type EngineResult, type Transport } from './transport'
 
 interface Answer {
@@ -270,12 +271,19 @@ describe('RG65: one file spelled two ways', () => {
 })
 
 describe('RG2: the states a screen has to tell apart', () => {
-  it('sees a modified working tree', () => {
-    const clean = readEnginesPayload(payloadFor({ revision: '2404ae02' }))
-    const dirty = readEnginesPayload(payloadFor({ revision: '2404ae02 modified' }))
+  /** The payload out of one answer, which every one of these is asked about. */
+  function payload(answer: Answer): EnginesPayload {
+    const parsed = readPayload(readEnginesPayload, payloadFor(answer), {
+      verb: 'engines',
+      engineVersion: '',
+    })
+    if (!parsed.ok) throw new Error(`engines did not read: ${parsed.failure.path}`)
+    return parsed.value
+  }
 
-    expect(clean && isModified(clean)).toBe(false)
-    expect(dirty && isModified(dirty)).toBe(true)
+  it('sees a modified working tree', () => {
+    expect(isModified(payload({ revision: '2404ae02' }))).toBe(false)
+    expect(isModified(payload({ revision: '2404ae02 modified' }))).toBe(true)
   })
 
   it.each([
@@ -283,12 +291,10 @@ describe('RG2: the states a screen has to tell apart', () => {
     ['copies split across homes', { split: true }],
     ['a home swapped under the process', { swapped: true }],
   ])('sees %s', (_case, answer) => {
-    const payload = readEnginesPayload(payloadFor(answer))
-    expect(payload && disagrees(payload)).toBe(true)
+    expect(disagrees(payload(answer))).toBe(true)
   })
 
   it('reports agreement as agreement', () => {
-    const payload = readEnginesPayload(payloadFor({}))
-    expect(payload && disagrees(payload)).toBe(false)
+    expect(disagrees(payload({}))).toBe(false)
   })
 })

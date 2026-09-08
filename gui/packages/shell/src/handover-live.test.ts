@@ -7,8 +7,6 @@ import {
   handoverOf,
   heldBy,
   mayHandOver,
-  readAnswer,
-  readBriefPayload,
   saidOfHandover,
   type Handover,
 } from '@rk/core'
@@ -39,9 +37,8 @@ async function briefing(input: Parameters<typeof claimingBrief>[0] | undefined, 
     claim ? claimingBrief(input) : input === undefined ? {} : { id: input },
     { timeoutMs: CEILING },
   )
-  const answer = readAnswer(readBriefPayload, result)
-  if (!answer.ok) throw new Error('brief did not read at all')
-  return answer.value
+  if (!result.ok) throw new Error('brief did not read at all')
+  return result.value
 }
 
 async function taking(id?: string): Promise<Handover> {

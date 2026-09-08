@@ -5,13 +5,11 @@ import {
   createClient,
   criteriaAbout,
   finishingFrom,
-  readCriteriaPayload,
-  readNonGoalsPayload,
-  readPayload,
   whyNothing,
+  type Answer,
   type Bounds,
   type Finishing,
-  type Reader,
+  type Parsed,
 } from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
@@ -32,29 +30,31 @@ const client = createClient(engine)
 
 let fixture: Fixture
 
-/** Read one answer, or fail with the sentence the shape mismatch would show a person. */
-function must<T>(verb: string, stdout: string, reader: Reader<T>): T {
-  const parsed = readPayload(reader, stdout, { verb, engineVersion: '' })
-  if (!parsed.ok) {
+/** The payload, or the sentence a shape mismatch or a refusal would show a person. */
+function must<T>(verb: string, answer: Parsed<Answer<T>>): T {
+  if (!answer.ok) {
     throw new Error(
-      `${verb} did not read: expected ${parsed.failure.expected} at ` +
-        `${parsed.failure.path || '(the answer)'}, found ${parsed.failure.got}`,
+      `${verb} did not read: expected ${answer.failure.expected} at ` +
+        `${answer.failure.path || '(the answer)'}, found ${answer.failure.got}`,
     )
   }
-  return parsed.value
+  if (answer.value.kind === 'refused') {
+    throw new Error(`${verb} was refused: ${answer.value.refusal.said}`)
+  }
+  return answer.value.value
 }
 
 async function boundsOf(root: string): Promise<Bounds> {
-  const result = await client.call(root, 'nonGoalList', {}, { timeoutMs: CEILING })
-  return boundsFrom(must('nonGoalList', result.stdout, readNonGoalsPayload))
+  const answer = await client.call(root, 'nonGoalList', {}, { timeoutMs: CEILING })
+  return boundsFrom(must('nonGoalList', answer))
 }
 
 async function finishingOf(
   root: string,
   input: { block?: string; task?: string } = {},
 ): Promise<Finishing> {
-  const result = await client.call(root, 'criterionList', input, { timeoutMs: CEILING })
-  return finishingFrom(must('criterionList', result.stdout, readCriteriaPayload))
+  const answer = await client.call(root, 'criterionList', input, { timeoutMs: CEILING })
+  return finishingFrom(must('criterionList', answer))
 }
 
 beforeAll(async () => {

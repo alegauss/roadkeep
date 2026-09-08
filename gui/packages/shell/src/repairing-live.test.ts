@@ -10,9 +10,6 @@ import {
   offerOf,
   passFrom,
   readAddedPayload,
-  readExplanation,
-  readLintPayload,
-  readPayload,
   readRepairPayload,
   readSectionWritten,
   saidOfPass,
@@ -38,10 +35,9 @@ const client = createClient(engine)
 let fixture: Fixture
 
 async function report(): Promise<Actionable[]> {
-  const result = await client.call(fixture.root, 'lint', {}, { timeoutMs: CEILING })
-  const parsed = readPayload(readLintPayload, result.stdout, { verb: 'lint', engineVersion: '' })
-  if (!parsed.ok) throw new Error('lint did not read')
-  return actionableReport(parsed.value)
+  const answer = await client.call(fixture.root, 'lint', {}, { timeoutMs: CEILING })
+  if (!answer.ok || answer.value.kind === 'refused') throw new Error('lint did not read')
+  return actionableReport(answer.value.value)
 }
 
 beforeAll(async () => {
@@ -98,11 +94,8 @@ describe('RG33: a real finding, with the door that closes it', () => {
       { code: 'ref.unresolved' },
       { timeoutMs: CEILING },
     )
-    const parsed = readPayload(readExplanation, result.stdout, {
-      verb: 'explain',
-      engineVersion: '',
-    })
-    if (!parsed.ok) throw new Error('explain did not read')
+    if (!result.ok || result.value.kind === 'refused') throw new Error('explain did not read')
+    const parsed = result.value
 
     expect(parsed.value.code).toBe('ref.unresolved')
     expect(parsed.value.cause).not.toBe('')

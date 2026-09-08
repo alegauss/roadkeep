@@ -7,8 +7,6 @@ import {
   createClient,
   movedFrom,
   openMarkers,
-  readConfigPayload,
-  readPayload,
   readStatusPayload,
   saidOfMove,
   type Moved,
@@ -63,13 +61,9 @@ async function moved(id: string, marker: string): Promise<Moved> {
 beforeAll(async () => {
   fixture = await buildFixture(engine, { open: 3, shipped: 0, deferred: 0 })
 
-  const result = await client.call(fixture.root, 'config', {}, { timeoutMs: CEILING })
-  const parsed = readPayload(readConfigPayload, result.stdout, {
-    verb: 'config',
-    engineVersion: '',
-  })
-  if (!parsed.ok) throw new Error('config did not read')
-  markers = openMarkers(parsed.value)
+  const answer = await client.call(fixture.root, 'config', {}, { timeoutMs: CEILING })
+  if (!answer.ok || answer.value.kind === 'refused') throw new Error('config did not read')
+  markers = openMarkers(answer.value.value)
 
   // One at a time: these are writes to one file, and running them together would be two
   // callers on one governed file, which is the thing the claim registry exists about.

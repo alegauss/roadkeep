@@ -4,13 +4,11 @@ import {
   createClient,
   howListed,
   ledgerFrom,
-  readDeliveredPayload,
-  readPayload,
-  readReversalsPayload,
   reversedFrom,
   undoneBy,
+  type Answer,
   type Ledger,
-  type Reader,
+  type Parsed,
   type Reversed,
 } from '@rk/core'
 import { describe, expect, it } from 'vitest'
@@ -29,27 +27,29 @@ const CEILING = 60000
 const engine = createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] })
 const client = createClient(engine)
 
-function must<T>(verb: string, stdout: string, reader: Reader<T>): T {
-  const parsed = readPayload(reader, stdout, { verb, engineVersion: '' })
-  if (!parsed.ok) {
+function must<T>(verb: string, answer: Parsed<Answer<T>>): T {
+  if (!answer.ok) {
     throw new Error(
-      `${verb} did not read: expected ${parsed.failure.expected} at ` +
-        `${parsed.failure.path || '(the answer)'}, found ${parsed.failure.got}`,
+      `${verb} did not read: expected ${answer.failure.expected} at ` +
+        `${answer.failure.path || '(the answer)'}, found ${answer.failure.got}`,
     )
   }
-  return parsed.value
+  if (answer.value.kind === 'refused') {
+    throw new Error(`${verb} was refused: ${answer.value.refusal.said}`)
+  }
+  return answer.value.value
 }
 
 async function ledgerOf(block: string, near?: string): Promise<Ledger> {
   const input = near === undefined ? { block } : { block, near }
-  const result = await client.call(REPO, 'delivered', input, { timeoutMs: CEILING })
-  return ledgerFrom(must('delivered', result.stdout, readDeliveredPayload))
+  const answer = await client.call(REPO, 'delivered', input, { timeoutMs: CEILING })
+  return ledgerFrom(must('delivered', answer))
 }
 
 async function reversedOf(id?: string): Promise<Reversed> {
   const input = id === undefined ? {} : { id }
-  const result = await client.call(REPO, 'reversals', input, { timeoutMs: CEILING })
-  return reversedFrom(must('reversals', result.stdout, readReversalsPayload))
+  const answer = await client.call(REPO, 'reversals', input, { timeoutMs: CEILING })
+  return reversedFrom(must('reversals', answer))
 }
 
 describe('RG27: what a block already delivered', () => {
