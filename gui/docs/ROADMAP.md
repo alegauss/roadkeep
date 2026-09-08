@@ -61,6 +61,7 @@
 - 💭 **RG86** (deps: RG51 ✅) **the locale setting reaches no screen, so choosing one changes nothing** — A tag is held in settings and the renderer builds its lookup from nothing, so there is no locale file, no loader and no path from the one to the other. → §RG86
 - 💭 **RG87** (deps: RG52 ✅) **the ground setting has two homes, and the file one is not the one that wins** — The switch keeps the choice in browser storage under its own key while settings.json holds a theme field nothing reads, so the two agree only by never being used together. → §RG87
 - 💭 **RG88** (deps: RG51 ✅) **one screen has two translation systems, and only one of them was chosen** — The design system translates its own components with i18next, a declared dependency here, and RG51 built a second catalogue beside it without ever asking which of the two owns a string. → §RG88
+- 💭 **RG90** (deps: RG54 ✅) **muted text on a muted panel is 4.33 to 1, which no screen renders yet and one will** — The design system pairs those two tokens by name and they miss AA on the light ground, so the first panel that uses both ships an unreadable label looking like a style. → §RG90
 
 ## Done when — Block A
 

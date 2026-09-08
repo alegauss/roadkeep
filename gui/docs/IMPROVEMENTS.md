@@ -803,3 +803,27 @@ need replacing to stop being a second source.
 Worth settling with [[RG86]], which is the line that first has to choose a locale at
 all. Deciding it there costs nothing; deciding it after two locales exist means moving
 both.
+
+### §RG90 A token pair that fails before anything uses it
+
+RG54's contrast test computes every pair this app renders. It also found one it does
+not: `--vg-muted-foreground` on `--vg-muted` is 4.33:1 in light, under the 4.5:1 AA
+needs for body text. In dark the same pair is comfortable, so it is a light-ground
+defect only.
+
+The pair is not enforced, and deliberately: nothing on any screen puts those two
+together today, and a test defending a number nobody renders is a number somebody will
+eventually weaken to make an unrelated change land. What is on screen is muted text on a
+card, which clears in both grounds and is enforced.
+
+But the tokens are *named* as a pair — that is what the shadcn convention means by `x`
+and `x-foreground` — so the first muted panel anybody builds will reach for both, and
+the label will be a little too pale in exactly the way nobody notices in review.
+
+Three ways out, in order of how much they cost. Override `--vg-muted-foreground` in this
+app's `:root`, the way RG54 overrode the ring — one line, and it darkens every muted
+label everywhere, which may be right. Or never use `--vg-muted` as a text surface and
+say so where somebody would look. Or take it upstream, since the pair is the package's
+and every console using it has the same 4.33.
+
+Whichever, the pair goes into the enforced list the moment a screen renders it.
