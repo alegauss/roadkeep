@@ -78,27 +78,28 @@ move them onto fixtures. It is to stop asserting about a line by its number.
 
 ### §RG78 One seam for a live read
 
-Five live test files now open with the same twelve lines: resolve the repository root,
-build a process transport on the launcher, wrap it in a client, then a helper that calls
-one verb, hands the stdout to `readPayload`, and throws a sentence naming the expected
-type, the path and what was found. `contract.test.ts` calls its copy `readVerb`;
-`detail-live` calls it `detailOf`; `design-live`, `graph-live` and `binding-live` each
-carry their own.
+Twenty-five live test files now open the same way: resolve the repository root, build a
+process transport on the launcher, wrap it in a client, redeclare the timeout, and then
+unwrap every call by hand — `if (!answer.ok) throw`, `if (answer.value.kind ===
+'refused') throw`, and the payload two properties down.
 
-The copies have already drifted. Two report `(the answer)` for an empty path and one
-reports nothing; the timeout constant is redeclared five times; `binding-live` needed a
-second spelling because its verb name is two words. None of that is load-bearing, and
-each new Block D task adds another copy.
+RG66 halved this and made the rest uniform. The reader used to be chosen at each call
+site; now the verb carries its own and `client.call` applies it. What was left behind is
+the throwing, which is the part that was drifting anyway. Two files keep a `must` helper
+of their own, `contract-live` calls its copy `readVerb`, and the other twenty-two write
+the guards inline — the sentence they print when a key moves upstream is different in
+every one, some naming the path and the expected type, some saying `list did not read`,
+one saying nothing.
 
 What belongs in one place is the seam, not the assertions: a module beside `fixture.ts`
-that hands back a client already pointed at the launcher and a `read(root, verb, input,
-reader)` that fails with the message a person would need. The test files keep what makes
-them different — which root, which verb, and what is asserted about the answer.
+handing back a client already pointed at the launcher, and a `read(root, verb, input)`
+that either returns the payload or fails with the message a person would need. The
+reader is no longer a parameter, which makes that signature smaller than this design
+first assumed.
 
-The failure message is the part worth centralising. It is the reason these helpers exist
-at all: a shape that moved upstream has to name the key and the build that moved it, and
-a copy that quietly says `undefined` is the one that wastes an afternoon. One
-implementation is one place for that sentence to be right.
+The failure message is the part worth centralising. A shape that moved upstream has to
+name the key and the build that moved it, and a copy that quietly says `undefined` is
+the one that wastes an afternoon.
 
 On ship: `--recorded-in packages/shell/src/live.ts`.
 
@@ -250,6 +251,27 @@ and to spend nothing. That is a real answer and may be the right one — `core` 
 and a gate that fires on docstrings gets an exception list, then a second one, and then
 nobody reads it. What this line has to decide is which of the two, not how to build the
 first.
+
+### §RG99 Two doors into one read
+
+RG66 gave `client.call` the verb's own shape and three answers: a payload, a refusal, a
+failure naming the field. What it did not give it is the fourth state, and that is the
+one a portfolio is made of — the call that never happened, timed out or was cancelled
+still leaves this as a thrown `EngineCallFailed`. A screen drawing twenty projects has
+to draw nineteen when one of them hangs, so every caller wraps every call in a `try`.
+
+`attemptRead` is the other door and it has the missing state. It answers `ProjectRead` —
+the value, or an `Unreadable` carrying the reason, the elapsed time, the argv and what
+the engine said on stderr, which is everything a row needs to explain itself. What it
+does not have is the shape: the reader is a parameter, which is the hole RG66 closed for
+the client and left open here. Neither has a production caller yet, so nothing has had
+to choose.
+
+The shape of the answer is what to decide, not which file wins. `applyWrite` already
+returns applied, refused or unreadable for a write, and a read has the same three plus
+nothing. Whether that means `call` grows the state, `attemptRead` grows the table, or
+the two become one function is open — what is not open is that a screen should not have
+to know which door it came in by.
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
