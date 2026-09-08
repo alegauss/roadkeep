@@ -254,6 +254,30 @@ breakage arrive once and named, instead of as an assertion about a key.
 
 On ship: `--recorded-in packages/shell/src/live.ts`.
 
+### §RG97 One Node version, written where a person and npm both meet it
+
+Four places could say which Node this project runs on and only one does:
+`.github/workflows/ci.yml` pins 22. `package.json` declares no `engines`, there is no
+`.nvmrc`, and CLAUDE.md's gate table names commands without naming the runtime they
+need.
+
+What that costs was measured on a machine that had dropped to Node 20.19.1. Nothing
+reported a version problem. Every jsdom file failed to start a worker with `TypeError:
+webidl.util.markAsUncloneable is not a function`, thrown from the undici that jsdom 30
+bundles, and the window test failed with `ReferenceError: WebSocket is not defined`. Two
+symptoms that look unrelated, neither naming the cause, and both suites red for a reason
+with nothing to do with the code under test.
+
+Standardising on 26 is a choice and not a default, and the line that records it should
+say so: Node 26 was released in April 2026 and enters LTS in October, so pinning it now
+pins a Current line for about a month more. That is defensible for an app that ships its
+own runtime through Electron rather than borrowing the machine's, and it is worth
+writing down instead of leaving to whoever installed Node last.
+
+So: `engines` in package.json, an `.nvmrc`, the CI pin moved off 22, and a row in the
+gate table. `engines` is the one that does the work, because npm refuses on it. The rest
+are how a person finds out before npm does.
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ### §RG13 The cheap no
