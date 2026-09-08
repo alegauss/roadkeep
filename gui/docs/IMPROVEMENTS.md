@@ -735,3 +735,29 @@ components use, so the suite needs the same polyfills the package sets up for it
 
 The keybinding for the palette is this app's to choose; the component takes only open
 state and items.
+
+### §RG86 Carrying a locale from the settings to the screen
+
+RG51 built the catalogue and the fallback, and proved both with a locale nobody speaks.
+What it did not build is the path a real locale travels: `Settings.locale` holds a
+BCP-47 tag, `localeFor` can choose among tags that exist, and nothing connects them
+because no second locale exists to choose.
+
+Three pieces are missing and they are small. A locale is a file — a partial map of the
+same keys — and something has to list which ones this build ships, since `localeFor`
+takes that list rather than discovering it. The shell has to read the chosen one and
+hand it across the bridge, alongside the settings it already holds. And
+`WordingProvider` has to take it, which it already does.
+
+The question worth deciding first is where a locale file lives and who reads it. Bundled
+with the renderer is the simple answer and makes a translation a release. Read from disk
+beside the settings would let somebody add one without a build, which is a different
+product and probably not this one.
+
+`untranslated` and `stale` exist and nothing runs them, so a locale can drift from the
+base without anybody hearing about it. Whatever holds the second locale should run both,
+because the first thing that goes wrong with a translation is a key that moved
+underneath it.
+
+Nothing here is urgent while English is the only locale. It stops being small the moment
+there are two.

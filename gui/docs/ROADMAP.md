@@ -60,6 +60,7 @@
 - 📋 **RG61** (deps: RG39 ✅) **the app ships a high-severity advisory it did not choose, reached through the design system** — npm audit reports xlsx as high through @viglet/viglet-design-system, and an executable carries whatever its renderer bundle carries. → §RG61
 - 📋 **RG62** (deps: RG39 ✅) **nothing stops a screen re-declaring a component the design system already exports** — The sibling consoles run a duplicates gate and register in consumers.json; this app does neither, so it is outside every check they answer to. → §RG62
 - 📋 **RG63** (deps: RG39 ✅) **there is no page chrome, so the first real screen will invent a shape the design system already has** — The bento layer is the shared page vocabulary and its own guidance is to adopt the shell before the pages, which is a thing to do once and early. → §RG63
+- 💭 **RG86** (deps: RG51 ✅) **the locale setting reaches no screen, so choosing one changes nothing** — A tag is held in settings and the renderer builds its lookup from nothing, so there is no locale file, no loader and no path from the one to the other. → §RG86
 
 ## Done when — Block A
 
