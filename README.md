@@ -121,15 +121,15 @@ called unbuilt were already in the ledger.
 | C — Query (consult without reading the file) | 12 | 180 | 4 |
 | D — The gate | 19 | 291 | 5 |
 | E — Adoption | 0 | 117 | 1 |
-| F — The Claude Code plugin (the guardrail at the agent boundary) | 2 | 161 | 2 |
+| F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 162 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 39 | 1099 | 17 |
+| **Total** | 38 | 1100 | 17 |
 
 **Next ready:**
 
-- 💭 **RK1619** (deps: —) **the note sweep names the first call in an answer, so a helper before the note would take its kind** — RK1564 fixed the clause after a note and left the mirror case, where the exact reading is the separator the site already spells. → §RK1619
+- 💭 **RK1620** (deps: —) **the note census prices one row per note, so it reports what the gate composed and not what it printed** — RK1565 folded a run of notes into one sentence, and the figure claiming to be what a session pays never learnt about it. → §RK1620
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -3109,19 +3109,45 @@ def test_a_name_this_cli_does_not_have_is_still_taken(tmp_path, capsys):
     assert respelled
 
 
+def _composed(value: ast.expr) -> str:
+    """The name of the outermost call inside one interpolation, or `""` where it has none.
+
+    `ast.walk` is breadth-first over `values` in source order, so this is the outer call of a
+    composer called inside another's arguments — `_landed(_remedy(root), b)` is `landed`, which
+    is the second shape RK1564 measured and the one a token scan reads as two kinds.
+    """
+    found = next(
+        (
+            inner
+            for inner in ast.walk(value)
+            if isinstance(inner, ast.Call) and isinstance(inner.func, ast.Name)
+        ),
+        None,
+    )
+    return found.func.id.lstrip("_") if found is not None else ""
+
+
 def _notes_appended(source: str) -> set[str]:
-    """The kind every `Answer(f"…")` site appends: **the first call in the f-string** (RK1564).
+    """The kind every `Answer(f"…")` site appends: **the interpolation after the blank line**.
 
     One site appends one note, so one site names one kind. RK1525 read *every* call inside the
-    text instead, which was exact only because each of the four sites interpolates a composer
-    and nothing else. A site closing with the clause this module reaches for — `{_landed(changed,
-    root)}{_now(served)}`, and three composers already end that way one dereference in — would
-    have reported `now` as a fifth kind: a census reading a token and asserting a meaning.
+    text, which was exact only because each of the four sites interpolates a composer and
+    nothing else; RK1564 narrowed it to the **first** call, which is exact against a suffix —
+    `{_landed(changed, root)}{_now(served)}`, and three composers already end that way one
+    dereference in — and inexact in the mirror direction, where a helper called *before* the
+    composer takes the kind's name and the note that follows goes undeclared (RK1619).
 
-    First, because the note is what the site is *for* and a suffix is not. Not a list of exempt
-    helpers, which would rot, and not a check that a composer is named after its kind: `_<kind>`
-    is stated in `serving.NOTES` and held by this sweep going red, which is one reader and one
-    failure — a second copy of that fact is the one that goes stale.
+    So the reading is the separator this module already spells. Appending a paragraph *is* a
+    blank line and then the paragraph, and every one of the four sites writes `\\n\\n` in front
+    of its composer — so the note is the interpolation after the literal that ends in one, which
+    is exact in both directions and is a fact about what the site does rather than a rule about
+    which call comes first.
+
+    **And where a site spells no blank line, the first call still answers** (RK1619). That site
+    is not appending a paragraph by this module's own convention, and the fallback is what makes
+    it *visible*: the sweep is total against `serving.NOTES`, so a name nothing declares fails
+    here — where reading nothing at all would let an undeclared note through in silence, which
+    is the one failure worse than a wrong name.
     """
     found: set[str] = set()
     for node in ast.walk(ast.parse(source)):
@@ -3132,20 +3158,29 @@ def _notes_appended(source: str) -> set[str]:
             and isinstance(node.args[0], ast.JoinedStr)
         ):
             continue
-        # `values` is source order and `ast.walk` is breadth-first, so this is the outermost
-        # call of the leftmost interpolation that has one — the note, whatever follows it.
-        first = next(
-            (
-                inner
-                for one in node.args[0].values
-                if isinstance(one, ast.FormattedValue)
-                for inner in ast.walk(one.value)
-                if isinstance(inner, ast.Call) and isinstance(inner.func, ast.Name)
-            ),
-            None,
-        )
-        if first is not None:
-            found.add(first.func.id.lstrip("_"))
+        values = node.args[0].values
+        after_break = False
+        note = ""
+        for one in values:
+            if isinstance(one, ast.Constant) and isinstance(one.value, str):
+                after_break = one.value.endswith("\n\n")
+            elif isinstance(one, ast.FormattedValue):
+                if after_break:
+                    note = _composed(one.value)
+                    break
+                after_break = False
+        if not note:
+            note = next(
+                (
+                    name
+                    for one in values
+                    if isinstance(one, ast.FormattedValue)
+                    and (name := _composed(one.value))
+                ),
+                "",
+            )
+        if note:
+            found.add(note)
     return found
 
 
@@ -3179,6 +3214,33 @@ def test_a_clause_after_the_note_is_not_a_fifth_kind():
     would have been asking `NOTES` to declare a sentence fragment."""
     assert _notes_appended('Answer(f"{text}\\n\\n{_landed(a, b)}{_now(served)}")') == {"landed"}
     assert _notes_appended('Answer(f"{text}\\n\\n{_landed(_remedy(root), b)}")') == {"landed"}
+
+
+def test_a_helper_before_the_note_is_not_a_fifth_kind_either():
+    """RK1619, the mirror of the case above and invisible to the same green sweep: under the
+    first-call reading a helper interpolated *ahead* of the composer takes the kind's name, and
+    the note that follows it goes undeclared — one wrong name and one silence, from one site.
+
+    The separator is what tells them apart, because it is what appending a paragraph is. Both
+    shapes here are ones this module writes, one before the blank line and one after."""
+    assert _notes_appended(
+        'Answer(f"{_rerouted(text, root)}\\n\\n{_landed(a, b)}")'
+    ) == {"landed"}
+    assert _notes_appended(
+        'Answer(f"{_rerouted(text, root)}\\n\\n{_landed(a, b)}{_now(served)}")'
+    ) == {"landed"}
+
+
+def test_a_site_that_spells_no_blank_line_is_reported_rather_than_passed_over():
+    """The fallback, and the reason it is not a silence (RK1619). Binding the reading to a
+    literal means a site composing the separator some other way appends a note this sweep
+    cannot locate — and reporting nothing there would let an undeclared kind through, which is
+    worse than the wrong name the narrowing was filed to remove.
+
+    So a site with no blank line still answers with its first call, the sweep is still total
+    against `NOTES`, and such a site fails here by name rather than passing in silence."""
+    assert _notes_appended('Answer(f"{text}{_landed(a, b)}")') == {"landed"}
+    assert _notes_appended('Answer(f"{text}\\n{_landed(a, b)}")') == {"landed"}
 
 
 def test_the_two_halves_of_the_sweep_disagree_about_exactly_one_kind(tmp_path):

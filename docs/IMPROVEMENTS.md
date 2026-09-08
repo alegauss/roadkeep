@@ -875,29 +875,6 @@ instrument that was missing when the rule was found the first two times.
 
 ## Block F — The plugin
 
-### §RK1619 The other end of the same f-string
-
-RK1564 narrowed the sweep to the **first** call in an `Answer` f-string, on the ground
-that the note is what the site is for. That reading is exact against the failure it was
-filed for, and inexact in the other direction for the same reason: a helper called
-*before* the composer takes the kind's name, and the note that follows goes undeclared.
-
-Nothing writes such a site, and the shape is not live in the way the suffix was — `_now`
-is a clause three composers already end with, while nothing here opens a note with a
-helper. So this is smaller than RK1564 and files as an idea.
-
-What would make the reading exact costs nothing extra: the note is the interpolation
-after the literal ending in `\n\n`. That is what appending a paragraph *is* — a blank
-line, then the paragraph — and it is the fact `_advise` writes at all four sites, rather
-than a rule about which call comes first. It reads a separator the module already
-spells, so it is neither a naming rule nor a list of exempt helpers, the two answers
-RK1564 ruled out for rotting.
-
-Against it: it binds the sweep to a literal, and a site composing that separator
-differently reports no kind at all — a silent miss where today's reading gives a wrong
-name. Which failure is preferable is the question, and it turns on whether the four
-sites are the population or a sample.
-
 ### §RK1648 The bytecode the check leaves behind
 
 `vendor` verifies by running `<copy>/scripts/roadkeep.py --version`, which is RK1193's

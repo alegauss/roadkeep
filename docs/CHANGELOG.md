@@ -1064,6 +1064,7 @@
 - ✅ **RK1581** **install reads roadkeep.toml beside the tree where every other verb discovers it, so a governed subtree reads as none** — install asks config which file governs a tree, so a pyproject-configured root is no longer offered init and a subtree is told what governs it rather than offered a second backlog.
 - ✅ **RK1606** **a vendored engine is twenty-two megabytes of which under four are the engine, the rest a built site and a test suite** — A vendored engine is the directories its declared surfaces live in, derived from CARRIED — 3.89 MiB across 90 files where it was 22.46 across 973.
 - ✅ **RK1611** **uninstall keeps a server declaration it did not write and takes away the approval that made it run** — The un-wiring says the approval it wrote goes with it, so a foreign server left declared and unapproved is a state the caller was told about rather than met.
+- ✅ **RK1619** **the note sweep names the first call in an answer, so a helper before the note would take its kind** — The note is the interpolation after the blank line, exact in both directions; a site spelling none falls back to the first call, so an undeclared kind fails by name instead of passing in silence.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

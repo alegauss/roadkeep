@@ -71,7 +71,6 @@
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
-- 💭 **RK1619** (deps: —) **the note sweep names the first call in an answer, so a helper before the note would take its kind** — RK1564 fixed the clause after a note and left the mirror case, where the exact reading is the separator the site already spells. → §RK1619
 - 💭 **RK1648** (deps: —) **verifying a vendored engine runs it, so Python writes three megabytes of bytecode into an artefact just measured at four** — RK1606 took the copy to 3.89 MiB and the --version that proves it imports leaves it at 7.24, which no rule about what is copied can reach. → §RK1648
 
 ## Block G — The editor surface (the backlog where the file is open)

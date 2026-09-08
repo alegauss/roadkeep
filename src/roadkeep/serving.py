@@ -2952,9 +2952,17 @@ class Kind:
 #: :func:`_witnessed` mattered beyond being measurable: it made the fourth site the same shape
 #: as the other three.
 #:
-#: The kind is the **first** call in that f-string and not every call in it (RK1564): a site
-#: appends one note, and a clause after it — :func:`_now`, which three composers already end
-#: with — is a sentence fragment nothing here declares.
+#: The kind is the interpolation **after the blank line** and not every call in the f-string
+#: (RK1564, RK1619). A site appends one note, and what is beside it is not one: a clause after
+#: it — :func:`_now`, which three composers already end with — is a sentence fragment nothing
+#: here declares, and a helper called ahead of the composer, as :func:`_rerouted` is one line
+#: up, would take the kind's name and leave the note itself undeclared.
+#:
+#: `\n\n` is the reading because it is what appending a paragraph *is*, and every site above
+#: writes it: a rule about which call comes first is a rule about the source, and this is a
+#: fact about the answer. A site that spells no blank line falls back to that older reading
+#: rather than to silence — it is then not appending a paragraph by this module's convention,
+#: and the sweep being total is what turns that into a failure naming the kind.
 NOTES: tuple[Kind, ...] = (
     Kind(
         "swapped",
