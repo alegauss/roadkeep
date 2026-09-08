@@ -659,6 +659,30 @@ produces it, then deciding whether it wants a budget. It is trigger-loaded, so p
 it as resident would be wrong — but its own description triggers it on essentially every
 task, which makes that argument thinner than it looks.
 
+### §RG93 A path into somebody else's package
+
+RG57's dev loop has to run `tsc -b`. Reaching it through `npx` would put PATH and a
+shell in the middle of a rebuild, so it spawns the compiler with this process's own Node
+instead — which means naming the file.
+
+That file is not nameable through the package. TypeScript 7's `exports` publishes
+`./package.json`, `.` as a version module and the unstable API, and nothing else: asking
+for `typescript/bin/tsc` throws `ERR_PACKAGE_PATH_NOT_EXPORTED` at load, which is how
+this was found — the dev run died before opening a window. So the path is assembled from
+the directory `typescript/package.json` resolves in, plus `lib/tsc.js`, which is where
+that version happens to keep it.
+
+It works and it is unowned. A TypeScript upgrade that renames or relocates that file
+breaks `npm run dev` and nothing says so until somebody runs it — the exact shape RG55
+was about, one layer down: an assertion held by a person remembering.
+
+The fix is a line of test. Resolve the same path the dev loop resolves and assert the
+file is there, so an upgrade fails a suite rather than a morning. Better still, run it
+with `--version` and check the exit code, which also proves the launcher still starts.
+
+Neither is worth a task on its own — it belongs to whichever task next touches the dev
+run, or to a sweep of the places this repository reaches into a dependency's layout.
+
 ## Block H — The look (a design system for governed prose)
 
 ### §RG61 An advisory that arrives with somebody else's package
