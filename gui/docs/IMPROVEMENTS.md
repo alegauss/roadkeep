@@ -251,6 +251,31 @@ case: a line the grammar could not read is in `uncounted` and not in `tasks`, so
 sitting in one has always come back `unfiled`. Whatever `filingOf` grows should cover
 both, since they are one question — *did this read see the whole file?*
 
+### §RG101 The interpreter that could stay
+
+Measured while shipping RG68: an engine call against this repository costs about 1.5
+seconds, almost all of it Python starting. The live suite makes roughly six hundred of
+them and spends 415 seconds doing so, and the app will pay the same for every read a
+screen makes that RG7's cache does not already hold.
+
+`commands` publishes 91 verbs and one of them is `mcp` — a process that starts once and
+answers over stdio, which is how the agent in this session reads these files. Both
+transports here spawn instead: the process one by design, and the HTTP one by running
+the process one behind a handler, so the seam it proves buys no speed. A third transport
+speaking to a long-lived `roadkeep mcp` would make a call cost what an in-process call
+costs.
+
+Three things make this worth care rather than worth doing straight away. The tool names
+are the MCP surface's, not the CLI's, and `commands` reports 23 verbs that run and are
+not published there — so this transport answers fewer verbs than the other two, which is
+the question RG6's capability report already knows how to ask. A long-lived process is
+state this app would own and have to restart. And `fileParallelism: false` exists
+because twenty interpreters starve eight cores; one process removes that reason and may
+replace it with different contention.
+
+Not a fourth answer either: whichever verbs it serves, the client above it must not be
+able to tell which transport replied.
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ### §RG13 The cheap no
