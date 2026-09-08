@@ -1,6 +1,7 @@
 import { app, BrowserWindow } from 'electron'
 
 import { registerBridge } from './bridge'
+import { attachDefaultPolicy } from './content-policy'
 import { guardNavigation } from './guard'
 import { appUrl, createWindow } from './window'
 
@@ -15,6 +16,9 @@ import { appUrl, createWindow } from './window'
 guardNavigation(appUrl())
 
 void app.whenReady().then(() => {
+  // Before the first window: the policy hangs off the session, and a response that arrived
+  // before it was attached is a response nobody held to it.
+  attachDefaultPolicy()
   registerBridge()
   createWindow()
 

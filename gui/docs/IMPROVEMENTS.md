@@ -530,27 +530,6 @@ replaces itself while somebody is reading a backlog is one that loses their plac
 it must not do is phone anywhere on launch by default: this app reads a person's
 repositories, and a network call it did not need is one that has to be explained.
 
-### §RG59 The half of the posture that is about loading, not calling
-
-Context isolation, the sandbox and the navigation guard together settle what the
-renderer can *do*. None of them settles what it can *fetch*. A page that ends up with a
-remote `<script>` — an injected tag, a dependency that grew a CDN call, a payload
-rendered as HTML — runs that script with the bridge sitting on `window`, and the guard
-never fires because nothing navigated.
-
-A Content-Security-Policy is the missing half: `default-src 'self'`, no remote script,
-no inline script, images limited to `self` and `data:`. The reason it is a task rather
-than a line in `index.html` is that the dev server needs its own policy — Vite injects
-an inline preamble for React Refresh and talks to itself over a websocket, so one policy
-strict enough to be worth having in a packaged build breaks `npm run dev`. Two policies,
-chosen by whether `ROADKEEP_GUI_RENDERER_URL` is set, is the shape; the packaged one is
-the one that matters and the dev one exists so nobody turns the mechanism off to get
-work done.
-
-What proves it is a test, not a header: a run that loads the bundle and asserts that a
-remote script is refused. Reading a policy string tells you it was written, not that it
-applies.
-
 ### §RG60 Asking the running window instead of reading its configuration
 
 The suite asserts the navigation policy as pure functions and the renderer against a

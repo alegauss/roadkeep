@@ -162,6 +162,17 @@ export { outcomeOf, promptFor, readSessionLine, sessionCall } from './session'
 export type { SessionCall, SessionEvent, SessionOutcome, SessionState } from './session'
 export { DARK_QUERY, followsSystem, GROUNDS, groundFor, nextTheme, THEME_ORDER } from './ground'
 export type { Ground } from './ground'
+export {
+  allowsEval,
+  allowsInlineScript,
+  allowsRemoteScript,
+  DEVELOPMENT_POLICY,
+  PACKAGED_POLICY,
+  policyFor,
+  policyText,
+  POLICY_HEADER,
+} from './policy'
+export type { Policy } from './policy'
 export { AGAIN, createReloading, HELD, REBUILDING, RESTARTING } from './reloading'
 export type { Reloading, ReloadHooks, ReloadState } from './reloading'
 export { CONFIG_FILE, createWatching, QUIET_MS, watchedFiles } from './watching'

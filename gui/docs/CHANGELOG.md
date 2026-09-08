@@ -80,6 +80,9 @@
 - ✅ **RG58** **nothing checks style or dead code, so three packages drift apart file by file with the gate silent** — One command holds the package split, the dead code and the formatting, and every rule it silences says why (design recorded in `.oxlintrc.json`).
   checked **The package split is held by the gate, not by the paragraph describing it** Three overlays forbid what each half may not know, each with its own message; proven by writing probe files that import Electron and node: into core and ui and watching all three rules fire, then deleting them.
   checked **One command, and every rule it silences says why** `npm run lint` runs the linter then Prettier as a check and never a write; the config is commented, so a rule turned off carries its reason beside it rather than being a line nobody can question later.
+- ✅ **RG59** **the renderer has no content policy, so a script tag that reaches the page runs beside the bridge** — The packaged build refuses a remote script, proven by putting one in the page and watching it be blocked by name (design recorded in `packages/core/src/policy.ts`).
+  checked **A remote script is refused by a real run, not by a policy string** A script tag pointing at another host was put in the page and the packaged build refused it by name, quoting the directive; with the tag gone the app's own bundle loads and the renderer reports nothing — and a control that forbade all script proved the channel was listening.
+  checked **The development run keeps working, so nobody turns the policy off** Two policies chosen by whether a dev server URL is set, differing in exactly two directives and asserted to differ in only those; the dev run starts and stays up under its own, and the packaged one is never the relaxed one whatever the environment says.
 
 ## Block H — The look (a design system for governed prose)
 
