@@ -1,13 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { readListPayload } from './payloads'
-import {
-  fieldsRefused,
-  offerable,
-  readAnswer,
-  readExplanation,
-  readRefusal,
-} from './refusals'
+import { fieldsRefused, offerable, readAnswer, readExplanation, readRefusal } from './refusals'
 import type { EngineResult } from './transport'
 
 /** Captured from a real `add` whose symptom was over the project's limit. */
@@ -135,7 +129,12 @@ describe('RG5: telling a refusal from an answer', () => {
   })
 
   it('says so when there was nothing on stdout at all', () => {
-    const parsed = readAnswer(readListPayload, { code: 1, stdout: '', stderr: 'boom', durationMs: 1 })
+    const parsed = readAnswer(readListPayload, {
+      code: 1,
+      stdout: '',
+      stderr: 'boom',
+      durationMs: 1,
+    })
 
     expect(parsed.ok).toBe(false)
     if (parsed.ok) return

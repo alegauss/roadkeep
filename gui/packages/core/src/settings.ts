@@ -105,7 +105,8 @@ function field<T>(
 /** The roots, keeping the ones that read and counting the ones that did not. */
 function rootsIn(raw: unknown): readonly [readonly ScanRoot[], string | null] {
   if (raw === undefined) return [DEFAULT_SETTINGS.roots, null]
-  if (!Array.isArray(raw)) return [DEFAULT_SETTINGS.roots, 'the roots were not a list, so none were read']
+  if (!Array.isArray(raw))
+    return [DEFAULT_SETTINGS.roots, 'the roots were not a list, so none were read']
 
   const kept = raw.map(rootOf).filter((root): root is ScanRoot => root !== null)
   const dropped = raw.length - kept.length

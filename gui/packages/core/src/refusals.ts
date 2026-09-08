@@ -72,10 +72,7 @@ export type Answer<T> =
   | { readonly kind: 'refused'; readonly refusal: Refusal }
 
 /** Read one engine result as either the verb's payload or the refusal it answered with. */
-export function readAnswer<T>(
-  reader: Reader<T>,
-  result: EngineResult,
-): Parsed<Answer<T>> {
+export function readAnswer<T>(reader: Reader<T>, result: EngineResult): Parsed<Answer<T>> {
   let source: unknown
   try {
     source = JSON.parse(result.stdout)

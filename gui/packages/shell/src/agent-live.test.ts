@@ -86,10 +86,7 @@ describe('RG43: what this machine has', () => {
 
 describe('RG43: a machine without one', () => {
   it('is a stated condition naming what was looked for, not a spawn that failed', async () => {
-    const missing = [
-      [path.join(REPO, 'no-claude-here')],
-      [path.join(REPO, 'nor-here', 'claude')],
-    ]
+    const missing = [[path.join(REPO, 'no-claude-here')], [path.join(REPO, 'nor-here', 'claude')]]
 
     const resolution = await resolveAgent(transportFor, REPO, missing, { timeoutMs: CEILING })
 

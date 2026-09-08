@@ -50,13 +50,17 @@ held = 60
 # sibling project's instruction file reach 186 KB while declaring 150 lines.
 #
 # Bytes as well as lines, because a line budget is met by writing longer lines. The figures
-# are the file as it shipped (59 lines, 2692 bytes) with room for one real addition — a
-# budget set far above the reading is room the prose grows back into.
+# are the file as it shipped, with room for one real addition — a budget set far above the
+# reading is room the prose grows back into.
+#
+# Measured *after* Prettier (RG58), which is the size a session actually pays: padding a
+# Markdown table to align it cost this file 648 bytes, and a budget set on the unformatted
+# prose refused a file nobody had added a word to. 59 lines, 3340 bytes formatted.
 #
 # `.claude/skills/roadkeep-gui-roadmap-docs/SKILL.md` is deliberately absent: it is
 # trigger-loaded, so its cost falls on the turns that write, and budgeting it would price
 # it as if it were resident. The index above it is what every turn pays for.
-"CLAUDE.md" = { lines = 70, bytes = 3200 }
+"CLAUDE.md" = { lines = 70, bytes = 3900 }
 
 # the roadmap's other list: declared at all means governed, and `lead` and `why`
 # are the two limits a bullet is held to — 80 and 320 characters unless set here

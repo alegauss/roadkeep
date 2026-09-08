@@ -95,7 +95,9 @@ function renumber(over: Record<string, unknown> = {}): RenumberPayload {
   return parsed.value
 }
 
-function commands(entries: { command: string; help: string; description?: string; runs?: boolean }[]) {
+function commands(
+  entries: { command: string; help: string; description?: string; runs?: boolean }[],
+) {
   const parsed = readCommandsPayload(
     {
       version: '0.2.396',
@@ -136,9 +138,7 @@ describe('RG35: the reason each exists, read and not written', () => {
   })
 
   it('withholds one this build does not publish, rather than offering a refusal', () => {
-    const offered = correctionsOffered(
-      commands([{ command: 'amend', help: 'correct a why' }]),
-    )
+    const offered = correctionsOffered(commands([{ command: 'amend', help: 'correct a why' }]))
 
     expect(offered[0]?.callable).toBe(true)
     expect(offered[1]?.callable).toBe(false)
@@ -202,10 +202,7 @@ describe('RG35: what one correction did', () => {
   it('carries what a restate left for a person, without turning it into a form', () => {
     // The why and the design were written from the claim that was replaced, and whether
     // they still hold is a judgement this app does not make.
-    expect(restated(restate()).next).toEqual([
-      'amend FX1 --why -',
-      'section amend FX1 --body -',
-    ])
+    expect(restated(restate()).next).toEqual(['amend FX1 --why -', 'section amend FX1 --body -'])
     expect(amended(amend()).next).toEqual([])
   })
 
@@ -249,8 +246,18 @@ describe('RG35: each is one command', () => {
 
   it('composes a restate, which always carries the symptom it is for', () => {
     expect(
-      composeWrite('/w', 'restate', { id: 'RG35', symptom: 'the claim was false', typo: true }).argv,
-    ).toEqual(['-C', '/w', 'restate', 'RG35', '--symptom', 'the claim was false', '--typo', '--json'])
+      composeWrite('/w', 'restate', { id: 'RG35', symptom: 'the claim was false', typo: true })
+        .argv,
+    ).toEqual([
+      '-C',
+      '/w',
+      'restate',
+      'RG35',
+      '--symptom',
+      'the claim was false',
+      '--typo',
+      '--json',
+    ])
   })
 
   it('composes a renumber with a derived target where none is named', () => {

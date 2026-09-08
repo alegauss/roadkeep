@@ -191,9 +191,7 @@ describe('RG6: what a build can do', () => {
     const build = JSON.stringify({
       version: '0.2.360',
       source: null,
-      commands: CALLED_NAMES.map((verb) =>
-        command(publishedName(verb), [flagsFor(verb)]),
-      ),
+      commands: CALLED_NAMES.map((verb) => command(publishedName(verb), [flagsFor(verb)])),
     })
 
     const report = readCapabilities(build, '0.2.360')

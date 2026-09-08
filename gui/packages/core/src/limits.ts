@@ -1,4 +1,10 @@
-import { EngineCallFailed, type EngineFailure, type EngineRequest, type EngineResult, type Transport } from './transport'
+import {
+  EngineCallFailed,
+  type EngineFailure,
+  type EngineRequest,
+  type EngineResult,
+  type Transport,
+} from './transport'
 import type { Parsed, Reader } from './reading'
 
 /**
@@ -34,7 +40,11 @@ const WIDTH_CEILING = 32
 
 /** Take a person's settings and make them usable, without pretending they were not given. */
 export function withLimits(given: Partial<ReadLimits> = {}): ReadLimits {
-  const timeoutMs = clamp(given.timeoutMs ?? DEFAULT_LIMITS.timeoutMs, TIMEOUT_FLOOR, TIMEOUT_CEILING)
+  const timeoutMs = clamp(
+    given.timeoutMs ?? DEFAULT_LIMITS.timeoutMs,
+    TIMEOUT_FLOOR,
+    TIMEOUT_CEILING,
+  )
   const width = clamp(Math.floor(given.width ?? DEFAULT_LIMITS.width), 1, WIDTH_CEILING)
   return { timeoutMs, width }
 }

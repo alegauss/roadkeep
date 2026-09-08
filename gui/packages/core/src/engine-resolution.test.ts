@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  disagrees,
-  isModified,
-  resolveEngine,
-  type TransportFor,
-} from './engine-resolution'
+import { disagrees, isModified, resolveEngine, type TransportFor } from './engine-resolution'
 import { readEnginesPayload } from './engines'
 import { EngineCallFailed, type EngineResult, type Transport } from './transport'
 

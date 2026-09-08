@@ -92,9 +92,14 @@ describe('RG48: what a leak would look like', () => {
   it("carries the root as data, not as anybody's working directory", async () => {
     // The HTTP transport has no child and no directory of its own. A read that had come to
     // depend on `cwd` would answer about this repository here and about the fixture there.
-    const overThere = await createClient(overHttp).call(fixture.root, 'list', {}, {
-      timeoutMs: CEILING,
-    })
+    const overThere = await createClient(overHttp).call(
+      fixture.root,
+      'list',
+      {},
+      {
+        timeoutMs: CEILING,
+      },
+    )
     const overHere = await createClient(overHttp).call(REPO, 'list', {}, { timeoutMs: CEILING })
 
     expect(overThere.stdout).not.toBe(overHere.stdout)
@@ -105,12 +110,22 @@ describe('RG48: what a leak would look like', () => {
   it('keeps a non-zero exit that is an answer', async () => {
     // The fixture's gate finds something, or it does not — either way the two agree, and
     // an exit of 1 arrives as a number rather than as an exception.
-    const byProcess = await createClient(overProcess).call(fixture.root, 'lint', {}, {
-      timeoutMs: CEILING,
-    })
-    const byHttp = await createClient(overHttp).call(fixture.root, 'lint', {}, {
-      timeoutMs: CEILING,
-    })
+    const byProcess = await createClient(overProcess).call(
+      fixture.root,
+      'lint',
+      {},
+      {
+        timeoutMs: CEILING,
+      },
+    )
+    const byHttp = await createClient(overHttp).call(
+      fixture.root,
+      'lint',
+      {},
+      {
+        timeoutMs: CEILING,
+      },
+    )
 
     expect([0, 1]).toContain(byHttp.code)
     expect(byHttp.code).toBe(byProcess.code)

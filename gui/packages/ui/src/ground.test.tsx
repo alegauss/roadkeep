@@ -69,7 +69,7 @@ function visibleText(root: HTMLElement): string[] {
     const text = node.textContent?.trim() ?? ''
     if (text !== '') seen.push(text)
   }
-  return seen.sort()
+  return seen.toSorted()
 }
 
 function labelOfControl(): string {

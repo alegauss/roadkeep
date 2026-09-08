@@ -109,10 +109,14 @@ describe('RG54: what a keyboard can reach', () => {
     // end a keyboard finds and a mouse does not.
     const { container } = drawScreen()
 
-    const disabled = [...container.querySelectorAll('button[disabled], button[aria-disabled="true"]')]
+    const disabled = [
+      ...container.querySelectorAll('button[disabled], button[aria-disabled="true"]'),
+    ]
 
     for (const element of disabled) {
-      expect(element.getAttribute('aria-describedby') ?? element.getAttribute('title')).not.toBeNull()
+      expect(
+        element.getAttribute('aria-describedby') ?? element.getAttribute('title'),
+      ).not.toBeNull()
     }
   })
 })

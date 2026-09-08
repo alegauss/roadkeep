@@ -96,7 +96,13 @@ describe('RG14: a rescan is a diff', () => {
   it('keeps the record order rather than the scan order', () => {
     const before = recordOf([seen('/code/z'), seen('/code/a')])
 
-    const { catalogue } = reconcile(before, ROOTS, [seen('/code/a'), seen('/code/z')], keyOf, FRIDAY)
+    const { catalogue } = reconcile(
+      before,
+      ROOTS,
+      [seen('/code/a'), seen('/code/z')],
+      keyOf,
+      FRIDAY,
+    )
 
     expect(catalogue.projects.map((p) => p.path)).toEqual(['/code/z', '/code/a'])
   })
@@ -193,12 +199,12 @@ describe('RG14: reading a record back', () => {
     expect(catalogueFrom(JSON.stringify(before))).toBeNull()
   })
 
-  it.each([['not json', 'nonsense'], ['a record with no projects key', '{"version":1,"roots":[]}']])(
-    'answers nothing for %s',
-    (_case, text) => {
-      expect(catalogueFrom(text)).toBeNull()
-    },
-  )
+  it.each([
+    ['not json', 'nonsense'],
+    ['a record with no projects key', '{"version":1,"roots":[]}'],
+  ])('answers nothing for %s', (_case, text) => {
+    expect(catalogueFrom(text)).toBeNull()
+  })
 
   it('refuses a presence it does not recognise, naming the field', () => {
     const broken = JSON.stringify({

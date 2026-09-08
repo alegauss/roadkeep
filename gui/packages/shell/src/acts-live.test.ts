@@ -8,6 +8,7 @@ import {
   governedFiles,
   readConfigPayload,
   readPayload,
+  sessionCall,
   touched,
   type Act,
   type Marks,
@@ -16,7 +17,6 @@ import { beforeAll, describe, expect, it } from 'vitest'
 
 import { fakeClaude } from './fake-claude'
 import { createProcessTransport } from './process-transport'
-import { sessionCall } from '@rk/core'
 import { startSession } from './session-process'
 
 /**

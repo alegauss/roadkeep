@@ -1,0 +1,187 @@
+{
+  // The gate a typecheck is not (RG58).
+  //
+  // `tsc` says the code compiles and `vitest` says it behaves. Neither says anything about
+  // an import nobody uses, a hook whose dependency list is wrong, or — the part worth the
+  // setup — a package importing something its half of the split may not know.
+  //
+  // **This is oxlint and not ESLint, which is what the design asked for.** No released
+  // `typescript-eslint` accepts TypeScript 7: its peer range is `>=4.8.4 <6.1.0` and this
+  // repository is on 7.0.2, so `npm install` refuses the tree outright. oxlint has no
+  // TypeScript peer at all, uses ESLint-compatible rule names, and its type-aware half is
+  // built on TypeScript-Go — which is TypeScript 7 itself. Formatting stays Prettier's, as
+  // designed; that half had no conflict.
+  //
+  // Comments are allowed here, oxlint reading JSONC. A rule switched off without a reason
+  // beside it is the drift this file exists to stop, so every "off" below says why.
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "unicorn",
+    "oxc",
+    "import",
+    "react",
+    "react-perf",
+    "jsx-a11y",
+    "vitest"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "env": { "es2024": true },
+  "ignorePatterns": [
+    "**/dist/**",
+    "release/**",
+    "node_modules/**",
+    // Captured engine and session output, kept verbatim so a test reads what a real run
+    // printed. Linting it would be linting somebody else's bytes.
+    "packages/shell/src/captured/**"
+  ],
+  "rules": {
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "typescript/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+    ],
+    "typescript/no-explicit-any": "error",
+    "import/no-duplicates": "error",
+    "import/no-self-import": "error",
+    "import/no-cycle": "error",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error",
+    "unicorn/prefer-node-protocol": "error",
+
+    // The dev run and the build steps print to a terminal on purpose.
+    "no-console": "off",
+    // A live test that walks candidates in order is sequential by nature.
+    "no-await-in-loop": "off",
+
+    // The automatic JSX runtime: React is not a name any of these files needs in scope.
+    "react/react-in-jsx-scope": "off",
+    // `import './index.css'` is the side effect, and there is nothing to assign.
+    "import/no-unassigned-import": "off",
+    // A helper defined beside its one caller reads better than the same helper hoisted to
+    // the top of a file, and these are tests.
+    "unicorn/consistent-function-scoping": "off",
+    // Assertions live in named helpers here — `painted('dark')`, `must(...)` — which this
+    // rule cannot see into, so it reports every test that reads well.
+    "vitest/expect-expect": "off",
+    "vitest/require-mock-type-parameters": "off",
+    // A trailing underscore is how `require_`, `record_` and `before_` avoid shadowing the
+    // import or the parameter they are derived from. Deliberate in every case.
+    "eslint/no-underscore-dangle": "off",
+    // Every occurrence is `[...x].sort()`, which sorts a copy. `toSorted` is newer and no
+    // safer here, and rewriting twenty call sites across other tasks' files to satisfy a
+    // preference is not what a gate is for.
+    "unicorn/no-array-sort": "off",
+    // `[...listeners]` before calling them is a snapshot and not a conversion: a listener
+    // that removes itself while being called would otherwise mutate the set being iterated.
+    "unicorn/no-useless-spread": "off",
+    // A loop whose condition is changed by a callback registered outside it, which this
+    // rule reads as never modified.
+    "eslint/no-unmodified-loop-condition": "off",
+    // vitest's `expect(value, message)` takes two arguments by design, and the message is
+    // what makes a red suite readable.
+    "vitest/valid-expect": "off",
+    // `agent-live` asserts a different answer depending on whether the machine has Claude
+    // Code installed. Both branches are real machines, which is the point (RG55).
+    "vitest/no-conditional-expect": "off",
+    // `useTransport` sets state in an effect because it is synchronising with an external
+    // system — the preload bridge — which is the case this rule's own advice allows for.
+    "react/set-state-in-effect": "off",
+    // `{ path, ...gitSite(project) }` builds an object out of a call's result. The rule is
+    // about accumulating a spread, not composing one.
+    "oxc/no-map-spread": "off"
+  },
+  "overrides": [
+    {
+      // `core` is the half a web service would keep.
+      "files": ["packages/core/src/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "electron",
+                "message": "core is the half a web service keeps. It has no Electron in scope and must not acquire one."
+              },
+              {
+                "name": "react",
+                "message": "core is rendered by nothing. A React import here is a rule a browser or a server could not reuse."
+              },
+              { "name": "react-dom", "message": "core is rendered by nothing." }
+            ],
+            "patterns": [
+              {
+                "group": ["node:*"],
+                "message": "core has no Node in scope: a path, a timer or a process type here is a dependency on the thing being swapped out. State the interface instead, as `Clock` and `Transport` do."
+              },
+              {
+                "group": ["@rk/ui", "@rk/shell"],
+                "message": "core is imported by the other two and imports neither: a cycle here is the package split undone."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      // `ui` is the half a service would serve to a browser. Its Vite config is not part of
+      // that — it runs in Node — which is why this covers `src` and not the package.
+      "files": ["packages/ui/src/**/*.ts", "packages/ui/src/**/*.tsx"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "electron",
+                "message": "the renderer is a browser page. It reaches the outside through the bridge and through nothing else."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["node:*"],
+                "message": "a browser cannot provide this. The shell owns paths and processes, and the bridge is how the renderer asks for one."
+              },
+              {
+                "group": ["@rk/shell"],
+                "message": "the renderer never imports the shell: that is the seam a service replaces."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      // `shell` is the half a service would throw away. It may have Node and Electron; what
+      // it may not have is the renderer.
+      "files": ["packages/shell/src/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@rk/ui"],
+                "message": "the main process does not import the renderer: it serves it a URL or a file."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      // A test may reach for whatever it is testing against — `ui`'s own read the stylesheet
+      // off disk, and `core`'s drive fakes that stand in for Node.
+      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "rules": {
+        "no-restricted-imports": "off",
+        "typescript/no-explicit-any": "off"
+      }
+    }
+  ]
+}

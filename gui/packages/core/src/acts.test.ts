@@ -85,7 +85,9 @@ describe('RG40: the stream as a sequence of acts', () => {
     const failed = JSON.stringify({
       type: 'user',
       message: {
-        content: [{ tool_use_id: 't1', type: 'tool_result', content: 'no such file', is_error: true }],
+        content: [
+          { tool_use_id: 't1', type: 'tool_result', content: 'no such file', is_error: true },
+        ],
       },
     })
     const [act] = actsOf(failed, 1, MARKS)
@@ -242,7 +244,12 @@ describe('RG40: what this project counts as its own', () => {
           type: 'assistant',
           message: {
             content: [
-              { type: 'tool_use', id: 't1', name: 'Bash', input: { command: 'roadkeep ship RG40' } },
+              {
+                type: 'tool_use',
+                id: 't1',
+                name: 'Bash',
+                input: { command: 'roadkeep ship RG40' },
+              },
               { type: 'tool_use', id: 't2', name: 'Read', input: { file_path: 'docs/ROADMAP.md' } },
               { type: 'tool_use', id: 't3', name: 'Read', input: { file_path: 'docs/ROADMAP.md' } },
             ],

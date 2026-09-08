@@ -17,6 +17,12 @@ import type { MarkerMeaning } from '@rk/core'
  * codepoint, and a column of rows whose first character is a different width every time is
  * a column that looks ragged for no reason a reader can name.
  */
+/**
+ * The face, built once. An object literal in the attribute would be a new object on every
+ * render, which is a new prop for every row in a list of them.
+ */
+const MARKER_FACE = { fontFamily: 'var(--font-marker)' } as const
+
 export function Marker({
   meaning,
   showLabel = true,
@@ -36,7 +42,7 @@ export function Marker({
         aria-hidden="true"
         data-testid="marker-glyph"
         className="inline-flex w-5 shrink-0 justify-center leading-none"
-        style={{ fontFamily: 'var(--font-marker)' }}
+        style={MARKER_FACE}
       >
         {meaning.marker}
       </span>

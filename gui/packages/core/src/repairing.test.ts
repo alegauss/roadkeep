@@ -118,7 +118,9 @@ describe('RG33: a door sorted on the engine word', () => {
   it('sorts on complete and never on the placeholders', () => {
     // A complete door with a sentinel in a value is still complete, and a screen must not
     // go looking for a form. `complete` is the authority and the blanks are decoration.
-    const offer = offerOf(door({ argv: ['amend', 'RG1', '--why', 'it ended in …'], complete: true }))
+    const offer = offerOf(
+      door({ argv: ['amend', 'RG1', '--why', 'it ended in …'], complete: true }),
+    )
 
     expect(offer.kind).toBe('run')
   })
@@ -137,14 +139,7 @@ describe('RG33: a door argv is the engine own', () => {
   it('adds where to run it, and nothing else', () => {
     const composed = composeDoor('/w/proj', door({ argv: ['renumber', '--from', 'RG40'] }))
 
-    expect(composed.argv).toEqual([
-      '-C',
-      '/w/proj',
-      'renumber',
-      '--from',
-      'RG40',
-      '--json',
-    ])
+    expect(composed.argv).toEqual(['-C', '/w/proj', 'renumber', '--from', 'RG40', '--json'])
     expect(composed.verb).toBe('renumber')
   })
 

@@ -46,12 +46,9 @@ let taken: Fixture
 let open: TaskDetail
 
 async function detailOf(root: string, id?: string): Promise<TaskDetail> {
-  const result = await client.call(
-    root,
-    'brief',
-    id === undefined ? {} : { id },
-    { timeoutMs: CEILING },
-  )
+  const result = await client.call(root, 'brief', id === undefined ? {} : { id }, {
+    timeoutMs: CEILING,
+  })
   const parsed = readPayload(readBriefPayload, result.stdout, {
     verb: 'brief',
     engineVersion: '',

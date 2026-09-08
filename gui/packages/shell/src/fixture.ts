@@ -69,20 +69,45 @@ export async function buildFixture(
     await must(
       transport,
       root,
-      ['init', '--prefix', 'FX', '--block', 'A — The model', '--block', 'B — The surface', '--deferred'],
+      [
+        'init',
+        '--prefix',
+        'FX',
+        '--block',
+        'A — The model',
+        '--block',
+        'B — The surface',
+        '--deferred',
+      ],
       timeoutMs,
     )
 
     await must(
       transport,
       root,
-      ['non-goal', 'add', '--lead', 'No second store', '--why', 'The files are the store, and a cache beside them is a second answer.'],
+      [
+        'non-goal',
+        'add',
+        '--lead',
+        'No second store',
+        '--why',
+        'The files are the store, and a cache beside them is a second answer.',
+      ],
       timeoutMs,
     )
     await must(
       transport,
       root,
-      ['criterion', 'add', '--block', 'A', '--lead', 'Every read is answered by the engine', '--why', 'Nothing here restates a rule the tool already holds.'],
+      [
+        'criterion',
+        'add',
+        '--block',
+        'A',
+        '--lead',
+        'Every read is answered by the engine',
+        '--why',
+        'Nothing here restates a rule the tool already holds.',
+      ],
       timeoutMs,
     )
 
@@ -112,10 +137,20 @@ export async function buildFixture(
     }
 
     for (const id of ids.slice(0, shape.shipped)) {
-      await must(transport, root, ['ship', id, '--why', 'The read now answers, and a test holds it.'], timeoutMs)
+      await must(
+        transport,
+        root,
+        ['ship', id, '--why', 'The read now answers, and a test holds it.'],
+        timeoutMs,
+      )
     }
     for (const id of ids.slice(shape.shipped, shape.shipped + shape.deferred)) {
-      await must(transport, root, ['defer', id, '--reason', 'Waiting on a decision that is not this project.'], timeoutMs)
+      await must(
+        transport,
+        root,
+        ['defer', id, '--reason', 'Waiting on a decision that is not this project.'],
+        timeoutMs,
+      )
     }
 
     return { root, dispose }

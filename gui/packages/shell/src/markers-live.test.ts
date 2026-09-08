@@ -31,7 +31,10 @@ let config: ConfigPayload
 
 beforeAll(async () => {
   const result = await client.call(REPO, 'config', {}, { timeoutMs: CEILING })
-  const parsed = readPayload(readConfigPayload, result.stdout, { verb: 'config', engineVersion: '' })
+  const parsed = readPayload(readConfigPayload, result.stdout, {
+    verb: 'config',
+    engineVersion: '',
+  })
   if (!parsed.ok) throw new Error('config did not read')
   config = parsed.value
 }, 120000)
@@ -84,9 +87,7 @@ describe('RG53: what a real config says about markers', () => {
   it('labels the marker that is both open and something more by the something more', () => {
     // This project's open set overlaps its particular keys; whichever emoji they are, the
     // label has to be the particular one or the list says `open` three times.
-    const overlapping = markersOf(config).filter(
-      (one) => one.roles.length > 1 && isOpen(one),
-    )
+    const overlapping = markersOf(config).filter((one) => one.roles.length > 1 && isOpen(one))
 
     expect(overlapping.length).toBeGreaterThan(0)
     for (const meaning of overlapping) expect(meaning.label).not.toBe('open')

@@ -37,7 +37,10 @@ const always = () => true
 describe('RG7: what a remembered answer is keyed on', () => {
   it('answers a repeat without asking the engine again', async () => {
     const { transport, calls } = counting()
-    const cache = createCachingTransport(transport, { stampFor: stamps().stampFor, cacheable: always })
+    const cache = createCachingTransport(transport, {
+      stampFor: stamps().stampFor,
+      cacheable: always,
+    })
 
     const first = await cache.run({ root: '/p', argv: ['list'] })
     const second = await cache.run({ root: '/p', argv: ['list'] })
@@ -62,7 +65,10 @@ describe('RG7: what a remembered answer is keyed on', () => {
 
   it('keeps two projects apart', async () => {
     const { transport, calls } = counting()
-    const cache = createCachingTransport(transport, { stampFor: stamps().stampFor, cacheable: always })
+    const cache = createCachingTransport(transport, {
+      stampFor: stamps().stampFor,
+      cacheable: always,
+    })
 
     await cache.run({ root: '/one', argv: ['list'] })
     await cache.run({ root: '/two', argv: ['list'] })
@@ -72,7 +78,10 @@ describe('RG7: what a remembered answer is keyed on', () => {
 
   it('keeps two argv apart', async () => {
     const { transport, calls } = counting()
-    const cache = createCachingTransport(transport, { stampFor: stamps().stampFor, cacheable: always })
+    const cache = createCachingTransport(transport, {
+      stampFor: stamps().stampFor,
+      cacheable: always,
+    })
 
     await cache.run({ root: '/p', argv: ['list', '--block', 'A'] })
     await cache.run({ root: '/p', argv: ['list', '--block', 'B'] })
@@ -84,7 +93,10 @@ describe('RG7: what a remembered answer is keyed on', () => {
     // Joined on a space these two are one key, and the second would be served the first's
     // answer. NUL is the separator for exactly this.
     const { transport, calls } = counting()
-    const cache = createCachingTransport(transport, { stampFor: stamps().stampFor, cacheable: always })
+    const cache = createCachingTransport(transport, {
+      stampFor: stamps().stampFor,
+      cacheable: always,
+    })
 
     await cache.run({ root: '/a b', argv: ['c'] })
     await cache.run({ root: '/a', argv: ['b', 'c'] })
@@ -136,7 +148,10 @@ describe('RG7: what is never remembered', () => {
 describe('RG7: forgetting', () => {
   it('forgets one project and keeps the rest', async () => {
     const { transport, calls } = counting()
-    const cache = createCachingTransport(transport, { stampFor: stamps().stampFor, cacheable: always })
+    const cache = createCachingTransport(transport, {
+      stampFor: stamps().stampFor,
+      cacheable: always,
+    })
 
     await cache.run({ root: '/one', argv: ['list'] })
     await cache.run({ root: '/two', argv: ['list'] })
@@ -150,7 +165,10 @@ describe('RG7: forgetting', () => {
 
   it('does not forget a project whose name merely starts the same', async () => {
     const { transport, calls } = counting()
-    const cache = createCachingTransport(transport, { stampFor: stamps().stampFor, cacheable: always })
+    const cache = createCachingTransport(transport, {
+      stampFor: stamps().stampFor,
+      cacheable: always,
+    })
 
     await cache.run({ root: '/one-more', argv: ['list'] })
     cache.invalidate('/one')
@@ -177,7 +195,10 @@ describe('RG7: forgetting', () => {
 
   it('clears everything', async () => {
     const { transport } = counting()
-    const cache = createCachingTransport(transport, { stampFor: stamps().stampFor, cacheable: always })
+    const cache = createCachingTransport(transport, {
+      stampFor: stamps().stampFor,
+      cacheable: always,
+    })
 
     await cache.run({ root: '/p', argv: ['list'] })
     cache.clear()

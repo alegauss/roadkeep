@@ -1,5 +1,4 @@
-import { availableParallelism } from 'node:os'
-import { tmpdir } from 'node:os'
+import { availableParallelism, tmpdir } from 'node:os'
 
 import { attemptRead, createPooledTransport, readListPayload, withLimits } from '@rk/core'
 import { describe, expect, it } from 'vitest'
@@ -35,7 +34,10 @@ describe('RG8: a project whose engine never comes back', () => {
     const pool = createPooledTransport(node, { width: 2 })
     const working = {
       root: tmpdir(),
-      argv: ['-e', 'process.stdout.write(JSON.stringify({file:"docs/ROADMAP.md",total:0,uncounted:[],standing:null,startable:null,over:null,tasks:[]}))'],
+      argv: [
+        '-e',
+        'process.stdout.write(JSON.stringify({file:"docs/ROADMAP.md",total:0,uncounted:[],standing:null,startable:null,over:null,tasks:[]}))',
+      ],
       timeoutMs: 20000,
     }
 

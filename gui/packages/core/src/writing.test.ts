@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
 import { readAddedPayload, readSectionWritten } from './payloads'
-import { EngineCallFailed, type EngineRequest, type EngineResult, type Transport } from './transport'
+import {
+  EngineCallFailed,
+  type EngineRequest,
+  type EngineResult,
+  type Transport,
+} from './transport'
 import { applied, applyWrite, composeWrite } from './writing'
 import { EVERY_WRITE_INPUT, WRITES } from './writes'
 
@@ -34,7 +39,8 @@ const REFUSED = JSON.stringify({
       code: 'symptom.too-long',
       field: 'symptom',
       bound: '',
-      message: '130 characters, limit is 120 (roadkeep.toml:19 [limits].symptom): delete 10 characters',
+      message:
+        '130 characters, limit is 120 (roadkeep.toml:19 [limits].symptom): delete 10 characters',
     },
   ],
   beside: '',
@@ -103,7 +109,9 @@ describe('RG29: the app composes an argv and the command writes', () => {
 
     expect(composed.argv).toContain('--section')
     expect(composed.argv).toContain('--section-body')
-    expect(composed.argv.indexOf('--section-body')).toBeGreaterThan(composed.argv.indexOf('--section'))
+    expect(composed.argv.indexOf('--section-body')).toBeGreaterThan(
+      composed.argv.indexOf('--section'),
+    )
   })
 
   it('repeats a flag per dep rather than joining them into one argument', () => {
@@ -131,7 +139,7 @@ describe('RG29: the app composes an argv and the command writes', () => {
   it('passes prose through as one argument, whatever is in it', () => {
     // Never a shell string: an argv is an array, and a symptom with a backtick and a
     // semicolon in it is one element of it.
-    const symptom = "a `backtick`; and a $dollar, and \"quotes\""
+    const symptom = 'a `backtick`; and a $dollar, and "quotes"'
     const composed = composeWrite('/w', 'add', { block: 'D', symptom, why: 'W.' })
 
     expect(composed.argv).toContain(symptom)

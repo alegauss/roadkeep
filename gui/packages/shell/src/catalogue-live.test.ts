@@ -110,9 +110,9 @@ describe('RG14: a record built from a real walk', () => {
       kind: 'returned',
       path: path.join(root, 'org', 'gamma'),
     })
-    expect(
-      back.catalogue.projects.find((entry) => entry.path.endsWith('gamma'))?.confirmed,
-    ).toBe('2026-09-05T10:00:00.000Z')
+    expect(back.catalogue.projects.find((entry) => entry.path.endsWith('gamma'))?.confirmed).toBe(
+      '2026-09-05T10:00:00.000Z',
+    )
   })
 
   it('survives being written down and read back', () => {

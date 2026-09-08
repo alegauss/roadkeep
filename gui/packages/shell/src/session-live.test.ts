@@ -1,7 +1,13 @@
 import path from 'node:path'
 
-import { promptFor, readBriefPayload, readPayload, sessionCall, type SessionEvent } from '@rk/core'
-import { createClient } from '@rk/core'
+import {
+  createClient,
+  promptFor,
+  readBriefPayload,
+  readPayload,
+  sessionCall,
+  type SessionEvent,
+} from '@rk/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { fakeClaude, type FakeBehaviour } from './fake-claude'
@@ -100,7 +106,10 @@ describe('RG38: a session started from a real brief', () => {
 
   it('tells a line it could not read from one it read and ignored', async () => {
     const unreadable: string[] = []
-    const session = run({ garbage: true }, { onUnreadable: (line: string) => unreadable.push(line) })
+    const session = run(
+      { garbage: true },
+      { onUnreadable: (line: string) => unreadable.push(line) },
+    )
     await session.finished
 
     expect(unreadable).toEqual(['not json at all'])
@@ -139,7 +148,11 @@ describe('RG38: the three ways it does not work', () => {
     expect(outcome.state).toBe('done')
 
     // Nothing at all on stdout and a non-zero exit: there is no verdict to believe.
-    const empty = startSession({ command: process.execPath, cwd: REPO, argv: ['-e', 'process.exit(3)'] })
+    const empty = startSession({
+      command: process.execPath,
+      cwd: REPO,
+      argv: ['-e', 'process.exit(3)'],
+    })
     const outcome2 = await empty.finished
     expect(outcome2.state).toBe('failed')
     expect(outcome2.code).toBe(3)

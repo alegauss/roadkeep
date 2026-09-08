@@ -185,7 +185,9 @@ export function actsOf(line: string, from: number, marks: Marks = NOTHING_MARKED
     // A `user` line carrying no tool result is still a line — the harness injects one to
     // prompt a turn along. Returning nothing for it would make the act list quietly
     // shorter than the stream it was read from.
-    return results.length > 0 ? results : [{ kind: 'note', seq: next(), about: type, line: trimmed }]
+    return results.length > 0
+      ? results
+      : [{ kind: 'note', seq: next(), about: type, line: trimmed }]
   }
 
   return [{ kind: 'note', seq: next(), about: type === '' ? 'unknown' : type, line: trimmed }]

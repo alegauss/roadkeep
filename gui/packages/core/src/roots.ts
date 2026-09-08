@@ -83,11 +83,7 @@ export type KeyOf = (path: string) => string
  * walked twice — so it replaces in place and keeps its position in the list, which is the
  * order the person put them in.
  */
-export function addRoot(
-  roots: readonly ScanRoot[],
-  candidate: ScanRoot,
-  keyOf: KeyOf,
-): ScanRoot[] {
+export function addRoot(roots: readonly ScanRoot[], candidate: ScanRoot, keyOf: KeyOf): ScanRoot[] {
   const key = keyOf(candidate.path)
   const at = roots.findIndex((root) => keyOf(root.path) === key)
   if (at === -1) return [...roots, candidate]
@@ -132,5 +128,7 @@ export function coveredBy(
   candidate: ScanRoot,
   contains: (outer: ScanRoot, inner: string) => boolean,
 ): ScanRoot | null {
-  return roots.find((root) => root.path !== candidate.path && contains(root, candidate.path)) ?? null
+  return (
+    roots.find((root) => root.path !== candidate.path && contains(root, candidate.path)) ?? null
+  )
 }

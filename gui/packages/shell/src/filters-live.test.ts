@@ -92,11 +92,7 @@ describe('RG22: what this project offers as filters', () => {
 
     expect(choices.roles).toContain('roadmap')
     expect(choices.roles).toContain('changelog')
-    expect(choices.requirements).toEqual([
-      'signing-cert',
-      'macos-machine',
-      'published-artifact',
-    ])
+    expect(choices.requirements).toEqual(['signing-cert', 'macos-machine', 'published-artifact'])
   })
 })
 
@@ -124,9 +120,7 @@ describe('RG22: a filter is the command answer', () => {
   it('combines two arguments into one read', async () => {
     const backlog = await listWith({ block: 'A', marker: '💭' })
 
-    expect(allLines(backlog).every((line) => line.block === 'A' && line.status === '💭')).toBe(
-      true,
-    )
+    expect(allLines(backlog).every((line) => line.block === 'A' && line.status === '💭')).toBe(true)
   })
 
   it('gives the same answer as the unfiltered read, narrowed', async () => {

@@ -71,7 +71,11 @@ export function landingBetween(before: Reading, after: Reading): Landing {
   }
   if (before.kind === 'gone') {
     // It came back: resumed, or filed again under the same id.
-    return { id: after.payload.id, changes: [{ kind: 'marker', from: '', to: after.payload.status }], moved: true }
+    return {
+      id: after.payload.id,
+      changes: [{ kind: 'marker', from: '', to: after.payload.status }],
+      moved: true,
+    }
   }
 
   const was = before.payload

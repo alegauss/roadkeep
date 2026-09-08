@@ -109,28 +109,42 @@ describe('RG53: open is a question of its own', () => {
 
 describe('RG53: however the file spells it', () => {
   it('takes the quotes off a bare scalar', () => {
-    expect(markersOf(config(key({ key: 'shipped', set: "'✅'" }))).map((one) => one.marker)).toEqual(
-      ['✅'],
-    )
+    expect(
+      markersOf(config(key({ key: 'shipped', set: "'✅'" }))).map((one) => one.marker),
+    ).toEqual(['✅'])
   })
 
   it('reads an array as the several markers it is', () => {
-    expect(markersOf(config(key({ key: 'open', set: '["a", "b"]' }))).map((one) => one.marker)).toEqual(
-      ['a', 'b'],
-    )
+    expect(
+      markersOf(config(key({ key: 'open', set: '["a", "b"]' }))).map((one) => one.marker),
+    ).toEqual(['a', 'b'])
   })
 
   it('ignores a key that names nothing at all', () => {
-    expect(markersOf(config(key({ key: 'open', set: '[]' }), key({ key: 'shipped', set: '""' })))).toEqual(
-      [],
-    )
+    expect(
+      markersOf(config(key({ key: 'open', set: '[]' }), key({ key: 'shipped', set: '""' }))),
+    ).toEqual([])
   })
 
   it('reads only the markers table, whatever else the config carries', () => {
     const mixed = config(
       key({ key: 'shipped', set: '"✅"' }),
-      { table: 'files', key: 'roadmap', address: 'files.roadmap', declared: true, set: '"docs/ROADMAP.md"', fallback: null },
-      { table: 'limits', key: 'line', address: 'limits.line', declared: true, set: '320', fallback: '320' },
+      {
+        table: 'files',
+        key: 'roadmap',
+        address: 'files.roadmap',
+        declared: true,
+        set: '"docs/ROADMAP.md"',
+        fallback: null,
+      },
+      {
+        table: 'limits',
+        key: 'line',
+        address: 'limits.line',
+        declared: true,
+        set: '320',
+        fallback: '320',
+      },
     )
 
     expect(markersOf(mixed).map((one) => one.marker)).toEqual(['✅'])

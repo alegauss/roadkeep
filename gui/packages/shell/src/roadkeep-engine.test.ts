@@ -23,9 +23,7 @@ import { createProcessTransport } from './process-transport'
 const REPO = path.resolve(import.meta.dirname, '..', '..', '..')
 const LAUNCHER = path.join(REPO, '.claude', 'hooks', 'roadkeep-launch.py')
 
-const client = createClient(
-  createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] }),
-)
+const client = createClient(createProcessTransport({ command: 'python', prefixArgs: [LAUNCHER] }))
 
 /** Generous: the engine is a Python start, measured around 360ms, and CI is slower. */
 const CEILING = 30000
@@ -50,10 +48,15 @@ describe('RG1: a payload this app can actually fetch', () => {
       engineVersion: 'live',
     })
 
-    expect(parsed.ok, parsed.ok ? '' : explainFailure(parsed.failure, {
-      verb: 'list',
-      engineVersion: 'live',
-    })).toBe(true)
+    expect(
+      parsed.ok,
+      parsed.ok
+        ? ''
+        : explainFailure(parsed.failure, {
+            verb: 'list',
+            engineVersion: 'live',
+          }),
+    ).toBe(true)
     if (!parsed.ok) return
     expect(parsed.value.tasks.length).toBeGreaterThan(0)
     expect(parsed.value.standing?.block).toBe('A')
@@ -67,12 +70,7 @@ describe('RG1: a payload this app can actually fetch', () => {
       command: 'python',
       prefixArgs: [LAUNCHER],
     })
-    const result = await createClient(fromElsewhere).call(
-      REPO,
-      'stats',
-      {},
-      { timeoutMs: CEILING },
-    )
+    const result = await createClient(fromElsewhere).call(REPO, 'stats', {}, { timeoutMs: CEILING })
 
     expect(result.code).toBe(0)
     expect((JSON.parse(result.stdout) as { file: string }).file).toContain('ROADMAP.md')

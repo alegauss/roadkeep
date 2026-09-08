@@ -182,10 +182,7 @@ export function flagsFor(verb: CalledName): string[] {
  * @param engineVersion what `engines` reported, used when `commands` itself cannot be
  *   read — a build too old to publish this read still has a version worth showing.
  */
-export function readCapabilities(
-  stdout: string,
-  engineVersion: string,
-): CapabilityReport {
+export function readCapabilities(stdout: string, engineVersion: string): CapabilityReport {
   let source: unknown
   try {
     source = JSON.parse(stdout)

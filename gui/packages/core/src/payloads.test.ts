@@ -19,7 +19,14 @@ const LIST = {
   file: 'docs/ROADMAP.md',
   total: 9,
   uncounted: [],
-  standing: { block: 'A', state: 'live', sentence: 'Block A has 9 open', open: 9, recorded: 2, paused: 0 },
+  standing: {
+    block: 'A',
+    state: 'live',
+    sentence: 'Block A has 9 open',
+    open: 9,
+    recorded: 2,
+    paused: 0,
+  },
   startable: { open: 9, startable: 9, waiting: 0, absent: [] },
   over: null,
   tasks: [

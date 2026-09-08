@@ -530,25 +530,6 @@ replaces itself while somebody is reading a backlog is one that loses their plac
 it must not do is phone anywhere on launch by default: this app reads a person's
 repositories, and a network call it did not need is one that has to be explained.
 
-### §RG58 The gate a typecheck is not
-
-`npm run typecheck` and `npm test` between them say the code compiles and behaves.
-Neither says anything about an import nobody uses, a React hook whose dependency list is
-wrong, a floating promise, or a second spelling of a name that already exists two
-packages over. Those are the defects that accumulate quietly in a repository worked by
-agents, because each one is individually below the threshold anybody would raise it at.
-
-What belongs here is a flat ESLint config at the root with three overlays — `core`
-forbidding any import of `electron` or `react`, `ui` forbidding `node:` and `electron`,
-and `shell` allowed both — so the package split is enforced by the gate rather than by
-the paragraph that describes it. That import boundary is the part worth the setup; the
-stylistic rules are the cheap half that comes with it. Formatting is Prettier's, run as
-a check and not as a commit hook, because a hook that rewrites files under a commit is
-how a diff acquires changes nobody made.
-
-One command, `npm run lint`, added to the table in the roadmap skill and to whatever
-RG55 makes CI run. It fails the build or it is advice.
-
 ### §RG59 The half of the posture that is about loading, not calling
 
 Context isolation, the sandbox and the navigation guard together settle what the

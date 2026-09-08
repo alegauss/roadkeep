@@ -67,9 +67,7 @@ describe('RG51: nothing on the screen is typed into a component', () => {
     // Wait for the bridge to answer, so the badge is a settled string and not `asking`.
     await screen.findByText(`${PSEUDO_OPEN}${BASE['transport.ipc']}${PSEUDO_CLOSE}`)
 
-    const bare = visibleText(container).filter(
-      (text) => !isPseudo(text) && !IDENTIFIERS.has(text),
-    )
+    const bare = visibleText(container).filter((text) => !isPseudo(text) && !IDENTIFIERS.has(text))
 
     expect(bare).toEqual([])
   })
@@ -79,9 +77,7 @@ describe('RG51: nothing on the screen is typed into a component', () => {
     // a green run would prove only that the test does not look.
     const { container } = drawIn(undefined)
 
-    const bare = visibleText(container).filter(
-      (text) => !isPseudo(text) && !IDENTIFIERS.has(text),
-    )
+    const bare = visibleText(container).filter((text) => !isPseudo(text) && !IDENTIFIERS.has(text))
 
     expect(bare.length).toBeGreaterThan(0)
   })

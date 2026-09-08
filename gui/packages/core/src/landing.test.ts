@@ -82,11 +82,7 @@ describe('RG42: one re-read answers all of it', () => {
       reading({ shipped: true, status: '✅', section: null }),
     )
 
-    expect(landing.changes.map((change) => change.kind)).toEqual([
-      'marker',
-      'shipped',
-      'design',
-    ])
+    expect(landing.changes.map((change) => change.kind)).toEqual(['marker', 'shipped', 'design'])
     expect(changeLine(landing.changes[1]!)).toBe('shipped, and in the ledger')
   })
 

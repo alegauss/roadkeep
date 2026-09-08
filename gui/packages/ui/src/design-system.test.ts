@@ -42,7 +42,7 @@ describe('RG39: the design system this app renders with', () => {
       broken,
       'ERR_PACKAGE_PATH_NOT_EXPORTED means the installed version predates the subpath.' +
         ' Check `npm view @viglet/viglet-design-system version` and raise the floor in' +
-        " packages/ui/package.json - do not copy a local dist over node_modules, which makes it" +
+        ' packages/ui/package.json - do not copy a local dist over node_modules, which makes it' +
         ' work on one machine and leaves everyone else to find out.',
     ).toEqual([])
   })
@@ -72,20 +72,10 @@ describe('RG39: what the renderer is allowed to import', () => {
     expect(Object.keys(sources).length).toBeGreaterThan(4)
   })
 
-  it.each(['node:', 'electron'])('imports nothing from %s outside a test', (forbidden) => {
-    const offenders = Object.entries(sources)
-      .filter(([file]) => !file.includes('.test.'))
-      .filter(([, module]) =>
-        new RegExp(`from ['"]${forbidden}`).test(module.default),
-      )
-      .map(([file]) => file)
-
-    expect(
-      offenders,
-      `a renderer file imports ${forbidden}, which a browser cannot provide - the shell` +
-        ' owns paths and processes, and the bridge is how the renderer asks for one',
-    ).toEqual([])
-  })
+  // RG58 moved the import boundary to `.oxlintrc.json`, where `no-restricted-imports` says
+  // it for all three packages at once, reports the line, and catches the spellings a
+  // regular expression over source text does not — a dynamic import, a re-export, a
+  // `require`. What is left here is the rule oxlint has none of.
 
   it('names no colour of its own', () => {
     // Outside a test, as with the imports above. RG54 computes contrast over the tokens,
@@ -93,7 +83,9 @@ describe('RG39: what the renderer is allowed to import', () => {
     // to follow the ground, because nothing renders it.
     const offenders = Object.entries(sources)
       .filter(([file]) => !file.includes('.test.'))
-      .filter(([, module]) => /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\boklch\(|\bhsla?\(/.test(module.default))
+      .filter(([, module]) =>
+        /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\boklch\(|\bhsla?\(/.test(module.default),
+      )
       .map(([file]) => file)
 
     expect(

@@ -16,9 +16,7 @@ const project = (path: string): RecordedProject => ({
 
 const picked = (id: string | null, tier: string): PickPayload => ({
   pick:
-    id === null
-      ? null
-      : { id, block: 'A', status: '📋', symptom: `what ${id} is about`, ref: id },
+    id === null ? null : { id, block: 'A', status: '📋', symptom: `what ${id} is about`, ref: id },
   tier,
   reason: 'because',
   ready: 4,

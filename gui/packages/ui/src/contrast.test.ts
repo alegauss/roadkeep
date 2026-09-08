@@ -17,10 +17,7 @@ import { describe, expect, it } from 'vitest'
  */
 const require_ = createRequire(import.meta.url)
 
-const PACKAGE_CSS = readFileSync(
-  require_.resolve('@viglet/viglet-design-system/styles'),
-  'utf8',
-)
+const PACKAGE_CSS = readFileSync(require_.resolve('@viglet/viglet-design-system/styles'), 'utf8')
 const APP_CSS = readFileSync(path.join(import.meta.dirname, 'index.css'), 'utf8')
 
 /**
@@ -67,10 +64,7 @@ function resolve(tokens: Map<string, string>, value: string, depth = 4): string 
 }
 
 /** The light ground: the package's `:root`, then this app's, which overrides it. */
-const LIGHT = new Map([
-  ...tokensUnder(PACKAGE_CSS, ':root'),
-  ...tokensUnder(APP_CSS, ':root'),
-])
+const LIGHT = new Map([...tokensUnder(PACKAGE_CSS, ':root'), ...tokensUnder(APP_CSS, ':root')])
 
 /** The dark ground: the light one re-pointed by the package's dark block. */
 const DARK = new Map([...LIGHT, ...tokensUnder(PACKAGE_CSS, '\\.dark,\\[data-theme=dark\\]')])
@@ -92,20 +86,75 @@ const PAIRS: readonly {
   readonly behind: string
   readonly least: number
 }[] = [
-  { what: 'body text on the ground', front: '--vg-foreground', behind: '--vg-background', least: AA_TEXT },
-  { what: 'muted text on the ground', front: '--vg-muted-foreground', behind: '--vg-background', least: AA_TEXT },
+  {
+    what: 'body text on the ground',
+    front: '--vg-foreground',
+    behind: '--vg-background',
+    least: AA_TEXT,
+  },
+  {
+    what: 'muted text on the ground',
+    front: '--vg-muted-foreground',
+    behind: '--vg-background',
+    least: AA_TEXT,
+  },
   // Muted text on a card, which is what this screen renders. Not muted text on `--vg-muted`:
   // that pair is 4.33:1 in light and nothing here puts them together — filed rather than
   // enforced, because enforcing a pair nobody renders defends a number for no reason.
-  { what: 'muted text on a card', front: '--vg-muted-foreground', behind: '--vg-card', least: AA_TEXT },
-  { what: 'card text on a card', front: '--vg-card-foreground', behind: '--vg-card', least: AA_TEXT },
-  { what: 'popover text on a popover', front: '--vg-popover-foreground', behind: '--vg-popover', least: AA_TEXT },
-  { what: 'a primary button label', front: '--vg-primary-foreground', behind: '--vg-primary', least: AA_TEXT },
-  { what: 'a secondary badge label', front: '--vg-secondary-foreground', behind: '--vg-secondary', least: AA_TEXT },
-  { what: 'an accent surface label', front: '--vg-accent-foreground', behind: '--vg-accent', least: AA_TEXT },
-  { what: 'a border against the ground', front: '--vg-border', behind: '--vg-background', least: 1.2 },
-  { what: 'a focus ring against the ground', front: '--vg-ring', behind: '--vg-background', least: AA_NON_TEXT },
-  { what: 'a destructive label on the ground', front: '--vg-destructive', behind: '--vg-background', least: AA_LARGE },
+  {
+    what: 'muted text on a card',
+    front: '--vg-muted-foreground',
+    behind: '--vg-card',
+    least: AA_TEXT,
+  },
+  {
+    what: 'card text on a card',
+    front: '--vg-card-foreground',
+    behind: '--vg-card',
+    least: AA_TEXT,
+  },
+  {
+    what: 'popover text on a popover',
+    front: '--vg-popover-foreground',
+    behind: '--vg-popover',
+    least: AA_TEXT,
+  },
+  {
+    what: 'a primary button label',
+    front: '--vg-primary-foreground',
+    behind: '--vg-primary',
+    least: AA_TEXT,
+  },
+  {
+    what: 'a secondary badge label',
+    front: '--vg-secondary-foreground',
+    behind: '--vg-secondary',
+    least: AA_TEXT,
+  },
+  {
+    what: 'an accent surface label',
+    front: '--vg-accent-foreground',
+    behind: '--vg-accent',
+    least: AA_TEXT,
+  },
+  {
+    what: 'a border against the ground',
+    front: '--vg-border',
+    behind: '--vg-background',
+    least: 1.2,
+  },
+  {
+    what: 'a focus ring against the ground',
+    front: '--vg-ring',
+    behind: '--vg-background',
+    least: AA_NON_TEXT,
+  },
+  {
+    what: 'a destructive label on the ground',
+    front: '--vg-destructive',
+    behind: '--vg-background',
+    least: AA_LARGE,
+  },
 ]
 
 describe('RG54: the stylesheets this test reads', () => {
@@ -155,7 +204,10 @@ describe.each(GROUNDS)('RG54: contrast in %s', (ground, tokens) => {
 
 describe("RG54: this app's own accent, which is the value it added", () => {
   it('carries text on the light ground', () => {
-    const ratio = contrastOf(LIGHT.get('--vg-accent-text') ?? '', LIGHT.get('--vg-background') ?? '')
+    const ratio = contrastOf(
+      LIGHT.get('--vg-accent-text') ?? '',
+      LIGHT.get('--vg-background') ?? '',
+    )
 
     expect(ratio, `the accent is ${said(ratio ?? 0)} on light`).toBeGreaterThanOrEqual(AA_LARGE)
   })
@@ -173,7 +225,10 @@ describe("RG54: this app's own accent, which is the value it added", () => {
 
   it('would fail if the accent were the bright one on light, which is the trap', () => {
     // The control: the reason two accent tokens exist is that this pair does not clear.
-    const wrong = contrastOf(LIGHT.get('--vg-accent-from') ?? '', LIGHT.get('--vg-background') ?? '')
+    const wrong = contrastOf(
+      LIGHT.get('--vg-accent-from') ?? '',
+      LIGHT.get('--vg-background') ?? '',
+    )
 
     expect(wrong).not.toBeNull()
     expect(wrong ?? 0).toBeLessThan(AA_LARGE)

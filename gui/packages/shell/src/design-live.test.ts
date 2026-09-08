@@ -35,12 +35,9 @@ const client = createClient(engine)
  * belongs to nothing anybody changed.
  */
 async function designOfBrief(id?: string): Promise<Design> {
-  const result = await client.call(
-    REPO,
-    'brief',
-    id === undefined ? {} : { id },
-    { timeoutMs: CEILING },
-  )
+  const result = await client.call(REPO, 'brief', id === undefined ? {} : { id }, {
+    timeoutMs: CEILING,
+  })
   const parsed = readPayload(readBriefPayload, result.stdout, { verb: 'brief', engineVersion: '' })
   if (!parsed.ok) {
     throw new Error(

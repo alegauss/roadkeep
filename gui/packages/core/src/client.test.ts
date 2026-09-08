@@ -38,13 +38,7 @@ describe('RG1: the command line one call builds', () => {
     // The key is an identifier this app uses and the spelling is an array in
     // `VERB_WORDS`. Never a key with a space in it split back apart: argv is an array so
     // that nothing here ever turns a command line into arguments.
-    expect(buildArgv('/w', 'nonGoalList', {})).toEqual([
-      '-C',
-      '/w',
-      'non-goal',
-      'list',
-      '--json',
-    ])
+    expect(buildArgv('/w', 'nonGoalList', {})).toEqual(['-C', '/w', 'non-goal', 'list', '--json'])
     expect(buildArgv('/w', 'criterionList', { block: 'D' })).toEqual([
       '-C',
       '/w',
@@ -149,14 +143,18 @@ describe('RG1: what the client hands the transport', () => {
   })
 
   it('returns what the transport returned, parsing nothing', async () => {
-    const run = vi.fn(
-      (): Promise<EngineResult> =>
-        Promise.resolve({ code: 1, stdout: '{"clean":false}', stderr: 'a warning', durationMs: 7 }),
+    const run = vi.fn((): Promise<EngineResult> =>
+      Promise.resolve({ code: 1, stdout: '{"clean":false}', stderr: 'a warning', durationMs: 7 }),
     )
     const result = await createClient({ run }).call('/w', 'lint', {})
 
     // A non-zero exit is an answer: `lint` exits 1 by design. The client does not read it
     // as a failure, and it does not turn stdout into an object either - that is RG3's.
-    expect(result).toEqual({ code: 1, stdout: '{"clean":false}', stderr: 'a warning', durationMs: 7 })
+    expect(result).toEqual({
+      code: 1,
+      stdout: '{"clean":false}',
+      stderr: 'a warning',
+      durationMs: 7,
+    })
   })
 })

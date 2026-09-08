@@ -14,9 +14,30 @@ const CONFIG: ConfigPayload = {
   version: '0.2.400',
   source: 'roadkeep.toml',
   keys: [
-    { table: 'markers', key: 'open', address: 'markers.open', declared: true, set: '["📋", "🛠"]', fallback: null },
-    { table: 'markers', key: 'working', address: 'markers.working', declared: false, set: null, fallback: '"🛠"' },
-    { table: 'markers', key: 'shipped', address: 'markers.shipped', declared: true, set: '"✅"', fallback: null },
+    {
+      table: 'markers',
+      key: 'open',
+      address: 'markers.open',
+      declared: true,
+      set: '["📋", "🛠"]',
+      fallback: null,
+    },
+    {
+      table: 'markers',
+      key: 'working',
+      address: 'markers.working',
+      declared: false,
+      set: null,
+      fallback: '"🛠"',
+    },
+    {
+      table: 'markers',
+      key: 'shipped',
+      address: 'markers.shipped',
+      declared: true,
+      set: '"✅"',
+      fallback: null,
+    },
   ],
 }
 

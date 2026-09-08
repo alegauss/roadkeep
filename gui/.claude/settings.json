@@ -13,9 +13,7 @@
     "ask": []
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "roadkeep"
-  ],
+  "enabledMcpjsonServers": ["roadkeep"],
   "hooks": {
     "SessionStart": [
       {

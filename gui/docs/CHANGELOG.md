@@ -77,6 +77,9 @@
 - ✅ **RG57** **a main-process change is invisible until the dev run is killed, because only the renderer is watched** — A main-process edit now rebuilds and replaces the Electron child, and a failed build leaves the running app alone (design recorded in `packages/core/src/reloading.ts`).
   checked **A main-process edit rebuilds and restarts without touching Vite** Verified against a real run: touching a shell source printed the rebuild and the restart, and a renderer edit is deliberately not watched because restarting the server discards the state that made the change worth seeing.
   checked **A failed build leaves the running app alone** Verified by introducing a type error into a live run: the compiler's output printed, the app stayed up, and the next good save restarted it. Builds never overlap and a save arriving mid-build is remembered rather than dropped.
+- ✅ **RG58** **nothing checks style or dead code, so three packages drift apart file by file with the gate silent** — One command holds the package split, the dead code and the formatting, and every rule it silences says why (design recorded in `.oxlintrc.json`).
+  checked **The package split is held by the gate, not by the paragraph describing it** Three overlays forbid what each half may not know, each with its own message; proven by writing probe files that import Electron and node: into core and ui and watching all three rules fire, then deleting them.
+  checked **One command, and every rule it silences says why** `npm run lint` runs the linter then Prettier as a check and never a write; the config is commented, so a rule turned off carries its reason beside it rather than being a line nobody can question later.
 
 ## Block H — The look (a design system for governed prose)
 

@@ -209,13 +209,16 @@ describe('RG16: how the screen stands', () => {
   const rows = [
     readRow(project, { stats: STATS }),
     pendingRow({ ...project, path: '/code/b' }),
-    unreadableRow({ ...project, path: '/code/c' }, {
-      reason: 'unspawnable',
-      message: 'no python',
-      said: '',
-      elapsedMs: 3,
-      argv: [],
-    }),
+    unreadableRow(
+      { ...project, path: '/code/c' },
+      {
+        reason: 'unspawnable',
+        message: 'no python',
+        said: '',
+        elapsedMs: 3,
+        argv: [],
+      },
+    ),
   ]
 
   it('counts the rows', () => {
@@ -227,11 +230,6 @@ describe('RG16: how the screen stands', () => {
     // seventeen backlogs is the one number on the screen no `roadkeep` command could
     // print, which makes it the one somebody would quote and nobody could check. If a
     // field is ever added here, this fails.
-    expect(Object.keys(tally(rows)).sort()).toEqual([
-      'pending',
-      'projects',
-      'read',
-      'unreadable',
-    ])
+    expect(Object.keys(tally(rows)).sort()).toEqual(['pending', 'projects', 'read', 'unreadable'])
   })
 })

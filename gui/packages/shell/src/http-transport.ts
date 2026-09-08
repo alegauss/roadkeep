@@ -81,7 +81,11 @@ export function createHttpTransport(options: HttpTransportOptions): Transport {
         if (cause instanceof EngineCallFailed) throw cause
         const aborted = cause instanceof Error && cause.name === 'AbortError'
         throw new EngineCallFailed(
-          aborted && request.signal?.aborted === true ? 'aborted' : aborted ? 'timeout' : 'unspawnable',
+          aborted && request.signal?.aborted === true
+            ? 'aborted'
+            : aborted
+              ? 'timeout'
+              : 'unspawnable',
           cause instanceof Error ? cause.message : String(cause),
           elapsed(),
         )

@@ -54,7 +54,9 @@ export function loadSettings(userData: string): SettingsRead {
     // want to fix, and overwriting it is how the fix becomes impossible.
     return {
       settings: DEFAULT_SETTINGS,
-      reset: [`${SETTINGS_FILE} is not readable as JSON, so defaults are used and it is left alone`],
+      reset: [
+        `${SETTINGS_FILE} is not readable as JSON, so defaults are used and it is left alone`,
+      ],
     }
   }
 

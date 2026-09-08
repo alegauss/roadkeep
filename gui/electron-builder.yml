@@ -9,7 +9,7 @@
 # one signature away.
 appId: dev.alegauss.roadkeep-gui
 productName: roadkeep
-copyright: ""
+copyright: ''
 
 directories:
   output: release
@@ -23,8 +23,8 @@ files:
   - packages/shell/dist/**
   - packages/ui/package.json
   - packages/ui/dist/**
-  - "!**/*.map"
-  - "!**/*.test.*"
+  - '!**/*.map'
+  - '!**/*.test.*'
 
 # Nothing is fetched at package time that was not already installed: a build that reaches
 # the network is a build whose contents depend on when it ran.

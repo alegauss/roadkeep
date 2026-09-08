@@ -89,11 +89,7 @@ describe('RG20: across every backlog at once', () => {
   it('searches all of them and says which project each hit came from', () => {
     const answer = search([ROADKEEP, SHIO], 'the')
 
-    expect(answer.hits.map((hit) => hit.name)).toEqual([
-      'roadkeep-gui',
-      'roadkeep-gui',
-      'shio',
-    ])
+    expect(answer.hits.map((hit) => hit.name)).toEqual(['roadkeep-gui', 'roadkeep-gui', 'shio'])
     expect(answer.searched).toBe(2)
   })
 

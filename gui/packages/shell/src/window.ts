@@ -27,7 +27,6 @@ export function appUrl(): string {
   return process.env[RENDERER_URL_VAR] ?? pathToFileURL(BUILT_RENDERER).href
 }
 
-
 export function createWindow(): BrowserWindow {
   const window = new BrowserWindow({
     width: 1280,

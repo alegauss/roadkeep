@@ -156,7 +156,9 @@ export function readSessionLine(line: string): SessionEvent | null {
       cwd: stringAt(object, 'cwd'),
       model: stringAt(object, 'model'),
       version: stringAt(object, 'claude_code_version'),
-      tools: Array.isArray(tools) ? tools.filter((one): one is string => typeof one === 'string') : [],
+      tools: Array.isArray(tools)
+        ? tools.filter((one): one is string => typeof one === 'string')
+        : [],
     }
   }
 

@@ -37,9 +37,7 @@ describe('RG21: the lines, in the order the file has them', () => {
   it('groups by block in heading order, not alphabetically', () => {
     // `brief` says a line is under block C. A screen that sorted C above A would make
     // that sentence wrong.
-    const backlog = backlogFrom(
-      listing({ tasks: [task('RG9', 'Z', 5), task('RG1', 'A', 20)] }),
-    )
+    const backlog = backlogFrom(listing({ tasks: [task('RG9', 'Z', 5), task('RG1', 'A', 20)] }))
 
     expect(backlog.blocks.map((block) => block.block)).toEqual(['Z', 'A'])
   })
@@ -52,11 +50,7 @@ describe('RG21: the lines, in the order the file has them', () => {
   })
 
   it('flattens back to the same order it was given', () => {
-    expect(allLines(backlogFrom(listing())).map((line) => line.id)).toEqual([
-      'RG1',
-      'RG2',
-      'RG9',
-    ])
+    expect(allLines(backlogFrom(listing())).map((line) => line.id)).toEqual(['RG1', 'RG2', 'RG9'])
   })
 
   it('carries the file and the count the listing reported', () => {
@@ -126,7 +120,11 @@ describe('RG21: the half a listing would otherwise hide', () => {
 
   it('opens a block that has only refused lines in it', () => {
     const backlog = backlogFrom(
-      listing({ tasks: [], total: 0, uncounted: [refused(9, 'C', 'no marker this grammar knows')] }),
+      listing({
+        tasks: [],
+        total: 0,
+        uncounted: [refused(9, 'C', 'no marker this grammar knows')],
+      }),
     )
 
     expect(backlog.blocks.map((block) => block.block)).toEqual(['C'])
@@ -167,7 +165,9 @@ describe('RG21: saying a listing is narrower than its file', () => {
   it('agrees with itself when there is only one', () => {
     // Prose somebody reads. "1 lines carry" is the kind of thing that makes a person
     // trust the rest of the screen a little less.
-    const summary = refusedSummary(backlogFrom(listing({ uncounted: [refused(8, 'A', 'no bold id')] })))
+    const summary = refusedSummary(
+      backlogFrom(listing({ uncounted: [refused(8, 'A', 'no bold id')] })),
+    )
 
     expect(summary).toContain('1 line in')
     expect(summary).toContain('carries')

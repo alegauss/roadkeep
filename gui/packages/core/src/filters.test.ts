@@ -126,10 +126,7 @@ describe('RG22: what a filter may be set to', () => {
   })
 
   it('reads the requirements this project declares', () => {
-    expect(filterChoices(CONFIG, STATS).requirements).toEqual([
-      'signing-cert',
-      'macos-machine',
-    ])
+    expect(filterChoices(CONFIG, STATS).requirements).toEqual(['signing-cert', 'macos-machine'])
   })
 
   it('reads the blocks off the counts, in the order they came', () => {

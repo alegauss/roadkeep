@@ -1,0 +1,20 @@
+# Build output, and bytes this repository did not write.
+**/dist/
+release/
+node_modules/
+
+# Captured engine and session output, kept exactly as a real run printed it. Reformatting
+# it would make the fixture a formatter's idea of what the engine says.
+packages/shell/src/captured/
+
+# roadkeep writes these: `roadkeep install` rewrites them from its own checkout and reports
+# a stale one against it. Formatting them makes every copy differ from the source it came
+# from, so the gate says the surfaces are behind when only a formatter has been past.
+.claude/skills/roadkeep/
+
+# roadkeep owns these five and refuses a hand edit; a formatter is a hand edit.
+docs/ROADMAP.md
+docs/CHANGELOG.md
+docs/IMPROVEMENTS.md
+docs/DECISIONS.md
+docs/DEFERRED.md

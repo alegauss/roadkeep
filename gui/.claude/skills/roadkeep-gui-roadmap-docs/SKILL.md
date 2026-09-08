@@ -24,7 +24,7 @@ run-commit.cmd -m "<conventional-commits title, ASCII>"
 - **The doc sync rides in the same commit as the code**, so the governed files never
   describe a state that did not ship.
 - **You may NOT do more than one task before committing.** A multi-task request
-  (a whole block, or a list of `RG<n>`s) is *not* permission to batch: it is a request
+  (a whole block, or a list of `RG<n>`s) is _not_ permission to batch: it is a request
   to run them one at a time, committing after each. One giant diff spanning many tasks
   is the failure this rule exists to prevent.
 - **A batch of ≥2 tasks runs under the `/loop` skill** (self-paced): exactly one task
@@ -49,14 +49,15 @@ leaving it in the tree.
 
 Validated means the project's own build and test were run, not that the edit looked right.
 
-Four commands, from the repo root, and each answers a different question:
+Five commands, from the repo root, and each answers a different question:
 
-| Command | What it holds | When |
-|---|---|---|
-| `npm run typecheck` | `tsc -b` over all three packages at once, through the project references — a renderer that broke a payload shape fails here and not in a window. It emits declarations only: `tsc` compiles nothing that runs. | Every task that touches a `.ts` or `.tsx` file. |
-| `npm test` | `vitest run`, headless: `core` in Node, `ui` in jsdom. No display, so it runs the same over SSH and in CI. | Every task that changes behaviour anything asserts. |
-| `roadkeep lint` | The governed files. Non-zero exit is the whole point of it. | Every task, without exception — it is the only gate a docs-only change has. |
-| `npm run build` | Everything Vite produces: the main process and the two launchers into `packages/shell/dist`, the sandboxed preload as `preload.cjs` beside them, and the renderer into `packages/ui/dist`. | Before shipping anything the packaged app loads, and any task that touches a Vite config or an asset path. |
+| Command             | What it holds                                                                                                                                                                                                  | When                                                                                                       |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `npm run typecheck` | `tsc -b` over all three packages at once, through the project references — a renderer that broke a payload shape fails here and not in a window. It emits declarations only: `tsc` compiles nothing that runs. | Every task that touches a `.ts` or `.tsx` file.                                                            |
+| `npm test`          | `vitest run`, headless: `core` in Node, `ui` in jsdom. No display, so it runs the same over SSH and in CI.                                                                                                     | Every task that changes behaviour anything asserts.                                                        |
+| `roadkeep lint`     | The governed files. Non-zero exit is the whole point of it.                                                                                                                                                    | Every task, without exception — it is the only gate a docs-only change has.                                |
+| `npm run lint`      | `oxlint` then `prettier --check`. It holds the package split — `core` importing Electron, `ui` importing `node:`, either importing `shell` — which compiles fine and is wrong. `npm run format` is the writer. | Every task that touches a `.ts`, `.tsx`, `.json`, `.css` or `.md` file this repo owns.                     |
+| `npm run build`     | Everything Vite produces: the main process and the two launchers into `packages/shell/dist`, the sandboxed preload as `preload.cjs` beside them, and the renderer into `packages/ui/dist`.                     | Before shipping anything the packaged app loads, and any task that touches a Vite config or an asset path. |
 
 `npm run dev` opens the window against Vite with hot reload; `npm start` builds and opens
 it against the bundle on disk, which is what a packaged run does. Neither is a gate — they
@@ -83,7 +84,7 @@ terminal or an agent session runs as plain Node and dies on `app` being undefine
 instead of calling the binary.
 
 Do not invent a `compile.cmd` or `test.cmd` here because the sibling `pportal` repo has
-them — the four above are this repo's.
+them — the five above are this repo's.
 
 When the suite arrives: **name EVERY task id an assertion holds, not just the one you are
 working.** A test written under one id often ends up holding the task that finished the
@@ -97,7 +98,7 @@ written to move a number.
 [`.mcp.json`](../../../.mcp.json) plus [`.claude/settings.json`](../../settings.json)
 wire the rest through `.claude/hooks/roadkeep-launch.py`: a hook that **denies a
 hand-edit** to any governed file and names the command that does it, the
-`mcp__roadkeep__*` tools whose input schema *is* this project's format, and the upstream
+`mcp__roadkeep__*` tools whose input schema _is_ this project's format, and the upstream
 `roadkeep` skill with the whole write path. **Reach for the MCP tools first**; the shell
 fallback is that launcher, not a `roadkeep` on PATH.
 
@@ -105,13 +106,13 @@ Start a task with `brief`, not by reading the files; `lint` is the gate.
 
 Each file has one job — never duplicate content between them:
 
-| File | Single responsibility |
-|---|---|
-| [`docs/ROADMAP.md`](../../../docs/ROADMAP.md) | **Task status** — active backlog only (📋 designed · 💭 idea · ⏳ partial · 🛠 in-progress), one line per task, plus the `## Priority` queue, the block headings, the `## Done when` criteria and the `## Non-goals`. |
-| [`docs/CHANGELOG.md`](../../../docs/CHANGELOG.md) | What has **shipped** — the ledger, indexed by block. Authoritative for the highest block letter. |
-| [`docs/IMPROVEMENTS.md`](../../../docs/IMPROVEMENTS.md) | **Design rationale** for *unshipped* work only. Deleted per task by the ship that closes it. |
-| [`docs/DECISIONS.md`](../../../docs/DECISIONS.md) | **Constraints that outlive the work** — written only by `ship --decides`, corrected by `revise`, replaced by `supersede`. Nothing deletes an entry. |
-| [`docs/DEFERRED.md`](../../../docs/DEFERRED.md) | Lines **set aside** by `defer`, keeping their id, deps, symptom and section. `resume` brings one back. |
+| File                                                    | Single responsibility                                                                                                                                                                                                |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`docs/ROADMAP.md`](../../../docs/ROADMAP.md)           | **Task status** — active backlog only (📋 designed · 💭 idea · ⏳ partial · 🛠 in-progress), one line per task, plus the `## Priority` queue, the block headings, the `## Done when` criteria and the `## Non-goals`. |
+| [`docs/CHANGELOG.md`](../../../docs/CHANGELOG.md)       | What has **shipped** — the ledger, indexed by block. Authoritative for the highest block letter.                                                                                                                     |
+| [`docs/IMPROVEMENTS.md`](../../../docs/IMPROVEMENTS.md) | **Design rationale** for _unshipped_ work only. Deleted per task by the ship that closes it.                                                                                                                         |
+| [`docs/DECISIONS.md`](../../../docs/DECISIONS.md)       | **Constraints that outlive the work** — written only by `ship --decides`, corrected by `revise`, replaced by `supersede`. Nothing deletes an entry.                                                                  |
+| [`docs/DEFERRED.md`](../../../docs/DEFERRED.md)         | Lines **set aside** by `defer`, keeping their id, deps, symptom and section. `resume` brings one back.                                                                                                               |
 
 ## The loop
 
@@ -126,7 +127,7 @@ Each file has one job — never duplicate content between them:
   `priority add` / `priority drop` are the doors.
 - **The read BEFORE an add is `delivered <block> --near "<the sentence you would file>"`.**
   It ranks that block's nearest deliveries against what you are about to propose, which is
-  the duplicate question asked *before* an id is spent.
+  the duplicate question asked _before_ an id is spent.
 - **Adding is `add --block <x> --symptom "…" --why "…" --section "…"`.** The `§RG<n>`
   pointer is derived. A line whose section is missing is a `ref.unresolved` finding, so
   file both halves in the one transaction. `budget` prices every field first.
@@ -137,10 +138,10 @@ Each file has one job — never duplicate content between them:
 
 ## The two lists that bind a proposal
 
-Both are governed here and both are checked *before* work becomes a line:
+Both are governed here and both are checked _before_ work becomes a line:
 
 - **`non-goal list`** — ten entries, and they are binding. A proposal a non-goal forbids
-  is not filed. Where one merely *bounds* a line without forbidding it, the gate says so
+  is not filed. Where one merely _bounds_ a line without forbidding it, the gate says so
   (`non-goal.reaches`) and the answer is recorded by quoting that lead in the line's own
   design section.
 - **`criterion list`** — twenty-three entries under `## Done when — Block X`, saying what
@@ -155,16 +156,16 @@ Both are governed here and both are checked *before* work becomes a line:
 design says how the work was built and stops being true when the code moves — but it is
 the last moment anything in that section can be saved.
 
-**Read the section before you ship it**, and ask of each paragraph: *does this stop being
-true when the code moves?* Three doors, in order of how often they are the right one:
+**Read the section before you ship it**, and ask of each paragraph: _does this stop being
+true when the code moves?_ Three doors, in order of how often they are the right one:
 
-| Answer | Door |
-|---|---|
-| It explains **this module** | `--recorded-in <path>` — move the prose into that file's docstring or header. **This is the common case.** |
-| It is a rule the project must keep obeying | usually not a ship flag at all — `criterion add` or `non-goal add`, which are never deleted |
-| It is a constraint with a rejected alternative, belonging to no single file | `--decides "<the constraint>"`, plus `section add <id> --role decisions` for what was weighed (150 words) |
-| You read it and it had gone stale | `--superseded-design "<what it was wrong about>"` |
-| Nothing survives | ship plainly — most ships are this |
+| Answer                                                                      | Door                                                                                                       |
+| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| It explains **this module**                                                 | `--recorded-in <path>` — move the prose into that file's docstring or header. **This is the common case.** |
+| It is a rule the project must keep obeying                                  | usually not a ship flag at all — `criterion add` or `non-goal add`, which are never deleted                |
+| It is a constraint with a rejected alternative, belonging to no single file | `--decides "<the constraint>"`, plus `section add <id> --role decisions` for what was weighed (150 words)  |
+| You read it and it had gone stale                                           | `--superseded-design "<what it was wrong about>"`                                                          |
+| Nothing survives                                                            | ship plainly — most ships are this                                                                         |
 
 **Never copy a section into a second file.** That is the accreting rationale this format
 exists to refuse.

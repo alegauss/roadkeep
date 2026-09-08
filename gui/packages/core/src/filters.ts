@@ -91,7 +91,8 @@ function declared(config: ConfigPayload, address: string): string[] {
 
   try {
     const parsed: unknown = JSON.parse(entry.set)
-    if (Array.isArray(parsed)) return parsed.filter((value): value is string => typeof value === 'string')
+    if (Array.isArray(parsed))
+      return parsed.filter((value): value is string => typeof value === 'string')
     if (typeof parsed === 'string') return [parsed]
   } catch {
     // Not JSON — a bare value the file spells its own way. Strip the quotes and take it.

@@ -65,8 +65,8 @@
    * type, and `sans-serif` is last because a stack with no end is a stack the browser ends.
    */
   --font-marker:
-    'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Segoe UI Symbol',
-    'Noto Emoji', var(--font-sans), sans-serif;
+    'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Segoe UI Symbol', 'Noto Emoji',
+    var(--font-sans), sans-serif;
 }
 
 /*

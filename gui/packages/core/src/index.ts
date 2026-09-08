@@ -36,12 +36,34 @@ export type {
   Reconciled,
   RecordedProject,
 } from './catalogue'
-export { amended, CORRECTIONS, correctionsOffered, renumbered, replacedBy, restated, wasTypo } from './correcting'
+export {
+  amended,
+  CORRECTIONS,
+  correctionsOffered,
+  renumbered,
+  replacedBy,
+  restated,
+  wasTypo,
+} from './correcting'
 export type { Corrected, Correction, Offered } from './correcting'
-export { actLine, actsIn, actsOf, governedIn, isRoadkeep, NOTHING_MARKED, subjectOf, touched } from './acts'
+export {
+  actLine,
+  actsIn,
+  actsOf,
+  governedIn,
+  isRoadkeep,
+  NOTHING_MARKED,
+  subjectOf,
+  touched,
+} from './acts'
 export type { Act, Marks } from './acts'
 export { resolveAgent, saidOfAgent, versionIn } from './agent'
-export type { Agent, AgentResolution, ResolveAgentOptions, TransportFor as TransportForAgent } from './agent'
+export type {
+  Agent,
+  AgentResolution,
+  ResolveAgentOptions,
+  TransportFor as TransportForAgent,
+} from './agent'
 export { coldStart } from './cold-start'
 export type { ColdStartProgress, ColdStartStage } from './cold-start'
 export { allLines, backlogFrom, refusedSummary } from './backlog'
@@ -82,13 +104,7 @@ export type { Chain, DepStanding, Edge, Graph } from './graph'
 export { claimingBrief, handoverOf, heldBy, mayHandOver, saidOfHandover } from './handover'
 export type { Handover } from './handover'
 export { groupProjects, isFamily } from './families'
-export {
-  createGateLedger,
-  gateHealth,
-  needsGate,
-  recordGate,
-  UNKNOWN_GATE,
-} from './gate'
+export { createGateLedger, gateHealth, needsGate, recordGate, UNKNOWN_GATE } from './gate'
 export type { GateHealth, GateLedger, GateRecord, GateVerdict } from './gate'
 export type { ProjectFamily, ProjectMember, ProjectSite } from './families'
 export { changeLine, landingBetween, saidButNotDone } from './landing'
@@ -144,20 +160,19 @@ export { commandLine, createTranscript, entryLine, quoteFor } from './transcript
 export type { Entry as TranscriptEntry, Ran, Shell, Transcript } from './transcript'
 export { outcomeOf, promptFor, readSessionLine, sessionCall } from './session'
 export type { SessionCall, SessionEvent, SessionOutcome, SessionState } from './session'
-export {
-  DARK_QUERY,
-  followsSystem,
-  GROUNDS,
-  groundFor,
-  nextTheme,
-  THEME_ORDER,
-} from './ground'
+export { DARK_QUERY, followsSystem, GROUNDS, groundFor, nextTheme, THEME_ORDER } from './ground'
 export type { Ground } from './ground'
 export { AGAIN, createReloading, HELD, REBUILDING, RESTARTING } from './reloading'
 export type { Reloading, ReloadHooks, ReloadState } from './reloading'
 export { CONFIG_FILE, createWatching, QUIET_MS, watchedFiles } from './watching'
 export type { Clock, Interest, OnChanged, Watcher, Watching } from './watching'
-export { DEFAULT_SETTINGS, readSettings, SETTINGS_VERSION, settingsText, wasReset } from './settings'
+export {
+  DEFAULT_SETTINGS,
+  readSettings,
+  SETTINGS_VERSION,
+  settingsText,
+  wasReset,
+} from './settings'
 export type { Settings, SettingsRead, Theme } from './settings'
 export {
   BASE,

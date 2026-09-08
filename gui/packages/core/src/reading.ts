@@ -26,7 +26,9 @@ export interface PayloadFailure {
   readonly got: string
 }
 
-export type Parsed<T> = { readonly ok: true; readonly value: T } | { readonly ok: false; readonly failure: PayloadFailure }
+export type Parsed<T> =
+  | { readonly ok: true; readonly value: T }
+  | { readonly ok: false; readonly failure: PayloadFailure }
 
 export type Reader<T> = (value: unknown, path: string) => Parsed<T>
 
@@ -44,7 +46,9 @@ export function describe(value: unknown): string {
   if (kind === 'undefined') return 'nothing'
   if (kind === 'string') {
     const text = value as string
-    return text.length > 30 ? `the string ${JSON.stringify(text.slice(0, 30))}…` : JSON.stringify(text)
+    return text.length > 30
+      ? `the string ${JSON.stringify(text.slice(0, 30))}…`
+      : JSON.stringify(text)
   }
   if (kind === 'object') return 'an object'
   return `${kind} ${String(value)}`

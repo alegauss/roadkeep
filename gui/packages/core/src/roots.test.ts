@@ -50,7 +50,10 @@ describe('RG10: what counts as a root', () => {
   })
 
   it('trims what somebody pasted', () => {
-    expect(checkRoot('  /home/a/code  ')).toMatchObject({ ok: true, value: { path: '/home/a/code' } })
+    expect(checkRoot('  /home/a/code  ')).toMatchObject({
+      ok: true,
+      value: { path: '/home/a/code' },
+    })
   })
 
   it('allows a depth of zero, which is the folder itself', () => {
@@ -100,7 +103,10 @@ describe('RG10: a root that is not there', () => {
   it('is kept and marked, never dropped', () => {
     // A disconnected drive is not a project somebody deleted, and forgetting it makes the
     // person retype a setting for a reason that was never theirs.
-    const marked = withPresence([root('/here'), root('/on-a-usb-stick')], (path) => path === '/here')
+    const marked = withPresence(
+      [root('/here'), root('/on-a-usb-stick')],
+      (path) => path === '/here',
+    )
 
     expect(marked).toHaveLength(2)
     expect(marked[1]).toMatchObject({ path: '/on-a-usb-stick', presence: 'missing' })

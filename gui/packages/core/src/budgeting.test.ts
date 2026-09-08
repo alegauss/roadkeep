@@ -1,13 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  anyOver,
-  counterFor,
-  countersOf,
-  overBy,
-  saidOfCounter,
-  structureOf,
-} from './budgeting'
+import { anyOver, counterFor, countersOf, overBy, saidOfCounter, structureOf } from './budgeting'
 import { readBudgetPayload, type BudgetPayload } from './payloads'
 import { buildArgv } from './client'
 
@@ -125,7 +118,10 @@ describe('RG36: an aim, not a gate', () => {
   })
 
   it('drops the aim once a draft is past it, since it is advice and not a wall', () => {
-    const past = counterFor(budget({ fields: [{ ...BUDGET.fields[0], taken: 110, left: 10, room: 0 }] }), 'symptom')!
+    const past = counterFor(
+      budget({ fields: [{ ...BUDGET.fields[0], taken: 110, left: 10, room: 0 }] }),
+      'symptom',
+    )!
 
     expect(saidOfCounter(past)).toBe('10 left of 120')
   })
@@ -143,10 +139,7 @@ describe('RG36: over is read from the answer, never from the exit code', () => {
 
   it('finds the fields a draft outgrew, so a form can mark them', () => {
     const payload = budget({
-      fields: [
-        { ...BUDGET.fields[0], taken: 134, left: 0, over: 14, room: 0 },
-        BUDGET.fields[1],
-      ],
+      fields: [{ ...BUDGET.fields[0], taken: 134, left: 0, over: 14, room: 0 }, BUDGET.fields[1]],
     })
 
     expect(anyOver(payload)).toBe(true)
@@ -237,8 +230,8 @@ describe('RG36: the read a form makes when it opens', () => {
       '--retire',
       '--json',
     ])
-    expect(
-      buildArgv('/w', 'budget', { id: 'RG36', retire: true, supersededBy: 'RG90' }),
-    ).toContain('RG90')
+    expect(buildArgv('/w', 'budget', { id: 'RG36', retire: true, supersededBy: 'RG90' })).toContain(
+      'RG90',
+    )
   })
 })

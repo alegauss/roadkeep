@@ -1,12 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { accountOf, deferred, leftPointing, resumed, retired, shipped } from './leaving'
-import {
-  readDeferPayload,
-  readResumePayload,
-  readRetirePayload,
-  readShipPayload,
-} from './payloads'
+import { readDeferPayload, readResumePayload, readRetirePayload, readShipPayload } from './payloads'
 import type { Reader } from './reading'
 import { composeWrite } from './writing'
 
@@ -122,7 +117,8 @@ describe('RG31: the four ways a line leaves', () => {
         changelog: {
           file: 'docs/CHANGELOG.md',
           line: 5,
-          rendered: '- ✅ **FX1 (the local half)** **nothing answers…** — The local half answers now.',
+          rendered:
+            '- ✅ **FX1 (the local half)** **nothing answers…** — The local half answers now.',
         },
         roadmap: { file: 'docs/ROADMAP.md', line: 5, status: '⏳', open: true, marked: true },
         refreshed: [],
@@ -192,9 +188,7 @@ describe('RG31: what a departure leaves behind', () => {
   it('names the lines still pointing at a retired id', () => {
     // The resolver reads a retired dep as never, so none of these becomes ready by
     // anything happening to this id.
-    const departure = retired(
-      read(readRetirePayload, { ...RETIRE, dependents: ['FX7', 'FX8'] }),
-    )
+    const departure = retired(read(readRetirePayload, { ...RETIRE, dependents: ['FX7', 'FX8'] }))
 
     expect(leftPointing(departure)).toContain('FX7, FX8')
     expect(leftPointing(departure)).toContain('2 line(s)')

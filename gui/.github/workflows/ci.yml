@@ -81,6 +81,12 @@ jobs:
       - name: typecheck
         run: npm run typecheck
 
+      # oxlint holds the package split — a `core` that imported Electron would compile and
+      # be wrong — and Prettier is a check and never a write here: a step that reformatted
+      # the branch it is judging would be a gate that commits.
+      - name: lint
+        run: npm run lint
+
       # The engine that answers here is not the developer's, which is the point: the
       # contract test asserts the shape of every payload and reports the version that
       # produced it, so a second copy is a second chance to catch a rename.

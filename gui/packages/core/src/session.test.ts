@@ -103,13 +103,7 @@ describe('RG38: the call, and nothing beside it', () => {
     // setting: without it the call is refused.
     const call = sessionCall('claude', '/w/proj', 'do the thing')
 
-    expect(call.argv).toEqual([
-      '-p',
-      'do the thing',
-      '--output-format',
-      'stream-json',
-      '--verbose',
-    ])
+    expect(call.argv).toEqual(['-p', 'do the thing', '--output-format', 'stream-json', '--verbose'])
   })
 
   it('runs in the project root, so the project own wiring answers', () => {

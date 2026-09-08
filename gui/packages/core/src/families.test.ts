@@ -19,10 +19,7 @@ const site = (path: string, realPath: string, commonDir: string | null): Project
 describe('RG12: a link is not a second project', () => {
   it('collapses a junction and its target into one member', () => {
     const families = groupProjects(
-      [
-        site(TURING_MAIN, TURING_MAIN, TURING_GIT),
-        site(TURING_LATEST, TURING_MAIN, TURING_GIT),
-      ],
+      [site(TURING_MAIN, TURING_MAIN, TURING_GIT), site(TURING_LATEST, TURING_MAIN, TURING_GIT)],
       keyOf,
     )
 
@@ -34,10 +31,7 @@ describe('RG12: a link is not a second project', () => {
     // A family should read by version. `latest` is a name that moves; `2026.3` is what it
     // currently means, and it is the one somebody is going to recognise next month.
     const families = groupProjects(
-      [
-        site(TURING_LATEST, TURING_MAIN, TURING_GIT),
-        site(TURING_MAIN, TURING_MAIN, TURING_GIT),
-      ],
+      [site(TURING_LATEST, TURING_MAIN, TURING_GIT), site(TURING_MAIN, TURING_MAIN, TURING_GIT)],
       keyOf,
     )
 
@@ -143,7 +137,11 @@ describe('RG12: the order a list is drawn in', () => {
     )
 
     // The walk is shallow-first for a reason, and re-sorting here would undo it.
-    expect(families.map((family) => family.members[0]?.path)).toEqual(['/git/z', '/git/a', '/git/m'])
+    expect(families.map((family) => family.members[0]?.path)).toEqual([
+      '/git/z',
+      '/git/a',
+      '/git/m',
+    ])
   })
 
   it('answers nothing for nothing', () => {

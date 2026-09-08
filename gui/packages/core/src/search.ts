@@ -67,10 +67,7 @@ function touched(fields: Record<SearchField, string>, term: string): SearchField
   return (['id', 'symptom', 'why'] as const).filter((field) => fields[field].includes(term))
 }
 
-export function search(
-  projects: readonly SearchableProject[],
-  query: string,
-): SearchAnswer {
+export function search(projects: readonly SearchableProject[], query: string): SearchAnswer {
   const terms = termsOf(query)
   const hits: Hit[] = []
   const unsearched: string[] = []

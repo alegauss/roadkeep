@@ -31,9 +31,7 @@ const RAW = {
   section_absence: '',
   readiness: 'ready',
   picked: 'lowest ready id',
-  deps_resolved: [
-    { dep: 'RG21', kind: 'task', status: 'shipped', detail: 'in the changelog' },
-  ],
+  deps_resolved: [{ dep: 'RG21', kind: 'task', status: 'shipped', detail: 'in the changelog' }],
   unblocks: { count: 15, of: 49, transitive: ['RG24', 'RG25'], transitive_elided: 11 },
   non_goals: ['No Markdown parsed in this app', 'No write to a governed file'],
   non_goals_elided: 0,
@@ -180,9 +178,7 @@ describe('RG23: whether anybody is holding it', () => {
 
 describe('RG23: a brief that left something out', () => {
   it('is complete only when nothing at all was elided', () => {
-    const detail = detailFrom(
-      brief({ unblocks: { ...RAW.unblocks, transitive_elided: 0 } }),
-    )
+    const detail = detailFrom(brief({ unblocks: { ...RAW.unblocks, transitive_elided: 0 } }))
 
     expect(detail.narrowing.complete).toBe(true)
     expect(detail.narrowing.reasons).toEqual([])

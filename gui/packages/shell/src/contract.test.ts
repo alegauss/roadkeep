@@ -81,8 +81,7 @@ beforeAll(async () => {
   fixture = await buildFixture(transport)
 
   const resolution = await resolveEngine(
-    (engine) =>
-      createProcessTransport({ command: engine[0] ?? '', prefixArgs: engine.slice(1) }),
+    (engine) => createProcessTransport({ command: engine[0] ?? '', prefixArgs: engine.slice(1) }),
     REPO,
     engineCandidates(REPO),
     { timeoutMs: CEILING },
@@ -644,7 +643,18 @@ describe('RG5: a refusal, against a live engine', () => {
     // against the fixture and what makes the refusal worth reading rather than avoiding.
     const result = await transport.run({
       root: fixture.root,
-      argv: ['-C', fixture.root, 'add', '--block', 'A', '--symptom', 'x'.repeat(200), '--why', 'A reason that is fine.', '--json'],
+      argv: [
+        '-C',
+        fixture.root,
+        'add',
+        '--block',
+        'A',
+        '--symptom',
+        'x'.repeat(200),
+        '--why',
+        'A reason that is fine.',
+        '--json',
+      ],
       timeoutMs: CEILING,
     })
     const parsed = readAnswer(readListPayload, result)

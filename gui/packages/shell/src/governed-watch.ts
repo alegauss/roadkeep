@@ -47,9 +47,7 @@ export function createGovernedWatcher(): Watcher {
       const watchers: FSWatcher[] = []
       // Directories rather than files: a file that does not exist yet cannot be watched,
       // and an editor that writes by rename replaces the inode a file watch was holding.
-      const directories = new Set(
-        files.map((file) => path.dirname(path.resolve(root, file))),
-      )
+      const directories = new Set(files.map((file) => path.dirname(path.resolve(root, file))))
       const wanted = new Set(files.map((file) => path.basename(file)))
 
       for (const directory of directories) {

@@ -39,7 +39,7 @@ describe('RG34: a transcript of what actually ran', () => {
   it('records a write that landed, with its exit code and how long it took', async () => {
     const composed = composeWrite(fixture.root, 'add', {
       block: 'A',
-      symptom: "a write the transcript has not seen yet, with an apostrophe in it",
+      symptom: 'a write the transcript has not seen yet, with an apostrophe in it',
       why: 'The line has to be reproducible from what was recorded.',
     })
     const outcome = await applyWrite(engine, composed, readAddedPayload, { timeoutMs: CEILING })

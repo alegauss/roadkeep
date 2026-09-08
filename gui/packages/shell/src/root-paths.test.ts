@@ -58,10 +58,7 @@ describe('RG10: whether a root is there', () => {
   })
 
   it('marks a missing root without dropping it', () => {
-    const marked = withPresence(
-      [at(folder()), at(path.join(tmpdir(), 'rk-root-gone'))],
-      rootExists,
-    )
+    const marked = withPresence([at(folder()), at(path.join(tmpdir(), 'rk-root-gone'))], rootExists)
 
     expect(marked.map((root) => root.presence)).toEqual(['present', 'missing'])
   })

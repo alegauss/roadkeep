@@ -8,7 +8,7 @@ updates:
     schedule:
       interval: weekly
       day: monday
-      time: "06:00"
+      time: '06:00'
       timezone: America/Sao_Paulo
     open-pull-requests-limit: 5
     labels:
@@ -24,32 +24,32 @@ updates:
         patterns:
           - electron
           - electron-*
-          - "@electron/*"
+          - '@electron/*'
       react:
         patterns:
           - react
           - react-dom
-          - "@types/react"
-          - "@types/react-dom"
-          - "@testing-library/react"
-          - "@vitejs/plugin-react"
+          - '@types/react'
+          - '@types/react-dom'
+          - '@testing-library/react'
+          - '@vitejs/plugin-react'
       vite:
         patterns:
           - vite
           - vitest
-          - "@vitest/*"
+          - '@vitest/*'
           - jsdom
       tailwind:
         patterns:
           - tailwindcss
-          - "@tailwindcss/*"
+          - '@tailwindcss/*'
       typescript:
         patterns:
           - typescript
-          - "@types/node"
+          - '@types/node'
       minor-and-patch:
         patterns:
-          - "*"
+          - '*'
         update-types:
           - minor
           - patch
