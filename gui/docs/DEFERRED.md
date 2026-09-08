@@ -16,3 +16,4 @@
 
 ## Block H — The look (a design system for governed prose)
 
+- ⏸ **RG62** (deps: RG39 ✅) **nothing stops a screen re-declaring a component the design system already exports** — set aside (a call for the package's maintainers): Registering in the design system's consumers.json is a commit in that repository, and this would be its first consumer whose accent is not cool. → §RG62

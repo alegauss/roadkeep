@@ -55,7 +55,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- ⏳ **RG62** (deps: RG39 ✅) **nothing stops a screen re-declaring a component the design system already exports** — Registering in the design system's consumers.json is a commit in that repository, and this would be its first consumer whose accent is not cool. → §RG62
 - 📋 **RG63** (deps: RG39 ✅) **there is no page chrome, so the first real screen will invent a shape the design system already has** — The bento layer is the shared page vocabulary and its own guidance is to adopt the shell before the pages, which is a thing to do once and early. → §RG63
 - 💭 **RG86** (deps: RG51 ✅) **the locale setting reaches no screen, so choosing one changes nothing** — A tag is held in settings and the renderer builds its lookup from nothing, so there is no locale file, no loader and no path from the one to the other. → §RG86
 - 💭 **RG87** (deps: RG52 ✅) **the ground setting has two homes, and the file one is not the one that wins** — The switch keeps the choice in browser storage under its own key while settings.json holds a theme field nothing reads, so the two agree only by never being used together. → §RG87
