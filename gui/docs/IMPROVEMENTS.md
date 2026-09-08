@@ -490,16 +490,6 @@ On ship: `--recorded-in packages/core/src/pauses.ts`.
 
 ## Block G — The shell (an executable now, a service later)
 
-### §RG48 Proving the seam instead of describing it
-
-The claim is that the client's transport is one interface, so the same reads answer over
-a process today and over an HTTP handler later. Nothing tests that, and an interface
-only one implementation ever uses is one that has quietly grown a dependency on that
-implementation. What holds it is a second transport in the test suite — not a mock, a
-real one that carries the same argv somewhere else and returns the same payload — and
-the whole read surface run across both. What that catches is the thing a review never
-does: a path, a working directory or an exit code leaking upward.
-
 ### §RG49 The signature, and what it needs that code cannot supply
 
 Signing is not work that can be finished by writing anything: it needs a certificate

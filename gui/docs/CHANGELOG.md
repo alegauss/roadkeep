@@ -66,6 +66,9 @@
 - ✅ **RG45** **nothing watches the governed files, so a write by an agent or a terminal leaves the screen stale** — The governed files a project declares are watched while somebody holds it, and a burst of writes tells the screen once (design recorded in `packages/core/src/watching.ts`).
 - ✅ **RG46** **there is no executable, so the app runs only where its source tree and toolchain already are** — An installer builds, opens a window, and names its version, commit and signing from inside itself (design recorded in `packages/core/src/build.ts`).
 - ✅ **RG47** **settings have nowhere to live, so roots and preferences are gone when the window closes** — The roots, the skip list, the pool width, the theme and the locale have a versioned file that resets field by field (design recorded in `packages/core/src/settings.ts`).
+- ✅ **RG48** **the claim that a service is a transport swap is asserted by nothing, so it is an intention** — A second real transport carries every read over HTTP and the answers are compared, so the swap is exercised on every run (design recorded in `packages/shell/src/http-transport.ts`).
+  checked **Every read verb answers identically over both transports** A test stands the HTTP handler in front of the process transport and runs the whole verb table across both, comparing stdout, stderr and exit code — and a verb added to the table without a row there fails the guard case rather than going unproven.
+  checked **The second transport is real, not a mock** It goes over a socket to a handler that runs the process transport on the other side, so the root travels as data and a read depending on a working directory answers differently there — which a stub returning what the test decided could not catch.
 
 ## Block H — The look (a design system for governed prose)
 

@@ -42,7 +42,6 @@
 
 ## Block G — The shell (an executable now, a service later)
 
-- 💭 **RG48** (deps: RG1 ✅, RG4 ✅, RG44 ✅) **the claim that a service is a transport swap is asserted by nothing, so it is an intention** — Every criterion in this block rests on one seam, and a seam nothing exercises is one that has already been crossed somewhere. → §RG48
 - 💭 **RG49** (deps: RG46 ✅) (requires: signing-cert) **the executable is unsigned, so Windows tells a person the app is untrusted before it opens** — An unsigned build is one most people will not run, and no amount of code in this repository substitutes for the certificate. → §RG49
 - 💭 **RG50** (deps: RG46 ✅) (requires: published-artifact) **nothing updates, so a fix reaches a person only if they go and look for one** — A desktop build that cannot update is one whose defects live on every machine that installed it until somebody notices. → §RG50
 - 💭 **RG55** (deps: RG37 ✅, RG4 ✅) **there is no CI, so every assertion this plan rests on runs only where somebody remembers to run it** — The contract test, the contrast check and the gate are each a promise made by a suite, and a suite nothing runs is a promise nobody keeps. → §RG55
