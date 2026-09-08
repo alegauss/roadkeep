@@ -43,6 +43,17 @@
   --vg-accent-text-dark: oklch(82.8% 0.189 84.429); /* #fbbf24 — readable on dark */
 
   /*
+   * RG54: the focus ring, overridden because the package's light one does not clear.
+   *
+   * `--vg-ring` is `oklch(70.8% 0 0)` on `:root`, which is 2.59:1 against the light ground
+   * and fails WCAG 1.4.11 — a focus indicator has to reach 3:1, and this app is a keyboard
+   * tool. The package already makes the ring the accent in dark (`var(--vg-accent-text-dark)`),
+   * so this is that decision applied to the ground where it was left as a grey, not a new
+   * one. The contrast test computes both and is what would notice either moving.
+   */
+  --vg-ring: var(--vg-accent-text);
+
+  /*
    * RG53: the face a marker is drawn in, and the second value this repository names for
    * itself. The design system ships no emoji face — `--font-sans`, `--font-brand` and
    * `--font-mono` are all text — and a status set left to whatever the platform picked is

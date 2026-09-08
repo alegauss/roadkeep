@@ -88,7 +88,11 @@ describe('RG39: what the renderer is allowed to import', () => {
   })
 
   it('names no colour of its own', () => {
+    // Outside a test, as with the imports above. RG54 computes contrast over the tokens,
+    // which means naming colours to check the arithmetic against — and a test cannot fail
+    // to follow the ground, because nothing renders it.
     const offenders = Object.entries(sources)
+      .filter(([file]) => !file.includes('.test.'))
       .filter(([, module]) => /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\boklch\(|\bhsla?\(/.test(module.default))
       .map(([file]) => file)
 

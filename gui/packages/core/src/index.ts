@@ -302,6 +302,18 @@ export {
   readRemedy,
 } from './refusals'
 export type { Answer, Door, Explanation, Refusal, RefusedField, Remedy } from './refusals'
+export {
+  AA_LARGE,
+  AA_NON_TEXT,
+  AA_TEXT,
+  contrastOf,
+  luminanceOf,
+  parseOklch,
+  ratioBetween,
+  said as saidOfRatio,
+  toLinearRgb,
+} from './contrast'
+export type { LinearRgb, Oklch } from './contrast'
 export { isOpen, labelOf, MARKERS_TABLE, markersOf, meaningOf, SET_KEY } from './markers'
 export type { MarkerMeaning } from './markers'
 export { PACKAGES } from './packages'

@@ -661,15 +661,6 @@ not after it runs.
 
 ## Block H — The look (a design system for governed prose)
 
-### §RG54 The half a screenshot cannot show
-
-Two properties are held by tests rather than by intent. Contrast is computed over the
-token pairs in both grounds, so a palette change that dims a label is a red build and
-not a review comment. And every surface is reachable and dismissable from a keyboard,
-with focus visible, which is the part that breaks silently as dialogs and menus
-accumulate. Beyond that: a status carries a shape or a word as well as a hue, and text
-is text rather than an image of one.
-
 ### §RG61 An advisory that arrives with somebody else's package
 
 Installing the design system brought one finding: `xlsx` is reported high severity and

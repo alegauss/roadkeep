@@ -55,7 +55,6 @@
 
 ## Block H — The look (a design system for governed prose)
 
-- 💭 **RG54** (deps: RG39 ✅) **contrast and keyboard reach are asserted by nobody, so an accessibility defect ships looking like a style** — A status told by colour alone and a dialog that cannot be closed from a keyboard both look correct in a screenshot. → §RG54
 - 📋 **RG61** (deps: RG39 ✅) **the app ships a high-severity advisory it did not choose, reached through the design system** — npm audit reports xlsx as high through @viglet/viglet-design-system, and an executable carries whatever its renderer bundle carries. → §RG61
 - 📋 **RG62** (deps: RG39 ✅) **nothing stops a screen re-declaring a component the design system already exports** — The sibling consoles run a duplicates gate and register in consumers.json; this app does neither, so it is outside every check they answer to. → §RG62
 - 📋 **RG63** (deps: RG39 ✅) **there is no page chrome, so the first real screen will invent a shape the design system already has** — The bento layer is the shared page vocabulary and its own guidance is to adopt the shell before the pages, which is a thing to do once and early. → §RG63
