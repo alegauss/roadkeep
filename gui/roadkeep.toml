@@ -44,6 +44,20 @@ retired = "🗑"
 # minutes a claim on a line reads as held, before a later caller steps over it
 held = 60
 
+[budgets]
+# Files loaded on every turn, and what each may cost (RG56). Held by the gate rather than
+# by a sentence at the bottom of the file about itself, which is the arrangement that let a
+# sibling project's instruction file reach 186 KB while declaring 150 lines.
+#
+# Bytes as well as lines, because a line budget is met by writing longer lines. The figures
+# are the file as it shipped (59 lines, 2692 bytes) with room for one real addition — a
+# budget set far above the reading is room the prose grows back into.
+#
+# `.claude/skills/roadkeep-gui-roadmap-docs/SKILL.md` is deliberately absent: it is
+# trigger-loaded, so its cost falls on the turns that write, and budgeting it would price
+# it as if it were resident. The index above it is what every turn pays for.
+"CLAUDE.md" = { lines = 70, bytes = 3200 }
+
 # the roadmap's other list: declared at all means governed, and `lead` and `why`
 # are the two limits a bullet is held to — 80 and 320 characters unless set here
 [non_goals]

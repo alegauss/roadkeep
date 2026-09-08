@@ -72,6 +72,8 @@
 - ✅ **RG55** **there is no CI, so every assertion this plan rests on runs only where somebody remembers to run it** — One workflow runs the typecheck, the suite and the build on two platforms, and the gate through roadkeep's own action (design recorded in `.github/workflows/ci.yml`).
   checked **Every gate a person can run locally also runs on every change** One workflow runs the typecheck, the suite and the build on two platforms, and roadkeep's own action gates the governed files — each defined where it already was, so CI adds no assertion of its own to drift.
   checked **The suite asserts the same things on a runner as on a developer's machine** The engine arrives by checkout and ROADKEEP_HOME, verified to outrank the fallback where no sibling exists; and the two assertions that were about the developer's installed Claude Code now assert the answer in either branch rather than skipping.
+- ✅ **RG56** **an agent working this backlog has no instruction file, so every session rediscovers the rules by reading code** — A session is told which package may know what and where the rest lives, in a file the gate holds to a budget in lines and bytes (design recorded in `CLAUDE.md`).
+  checked **The instruction file is an index, and the gate holds it to that** CLAUDE.md says which package may know what and points at the skill for everything longer; roadkeep.toml declares its budget in lines and bytes, verified by padding the file and watching lint report budget.bytes.
 
 ## Block H — The look (a design system for governed prose)
 

@@ -530,15 +530,6 @@ replaces itself while somebody is reading a backlog is one that loses their plac
 it must not do is phone anywhere on launch by default: this app reads a person's
 repositories, and a network call it did not need is one that has to be explained.
 
-### §RG56 What a session is told, and what it costs
-
-An instruction file is loaded on every turn, including the ones that touch none of this,
-so it is an index and not a manual: what the three packages are, where the seam is, and
-which rules are not negotiable. Everything longer belongs in a skill that loads when it
-is needed — which is the argument roadkeep makes about its own, and the reason its
-budget table exists. That budget is declared here too, in lines and bytes, so the file
-is held by the gate rather than by a sentence at the bottom of itself.
-
 ### §RG57 Watching the half that does not hot-reload
 
 `npm run dev` runs `tsc -b` once and hands the Vite URL to Electron. The renderer
