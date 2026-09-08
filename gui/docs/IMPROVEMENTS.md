@@ -752,3 +752,50 @@ underneath it.
 
 Nothing here is urgent while English is the only locale. It stops being small the moment
 there are two.
+
+### §RG87 Which copy of the ground setting is the real one
+
+RG52 handed the switch to the design system, which is right — its own `Toaster` reads
+the same library, and a second theme system writing the class from a second key is the
+defect that package was consolidated to fix. What comes with that is `next-themes`
+persisting the choice to `localStorage` under `vite-ui-theme`.
+
+Meanwhile `Settings.theme` has been in settings.json since RG47, validated on read and
+reset field by field with a sentence when it is wrong. Nothing reads it. So the choice a
+person makes is remembered by the browser storage of one window, and the field this app
+declared for it does nothing.
+
+Two homes is not automatically wrong — one is a cache for the first paint, which is what
+it is for, and `next-themes` injects a blocking script to use it before React runs. What
+is wrong is that neither is stated to be the source. The shape that works is the file
+being the source and storage being the cache: settings load, the loaded theme is handed
+to the provider, and a change writes back through the bridge.
+
+That is the same shape as the locale in [[RG86]] and probably the same piece of work:
+one call that carries the settings across and hands both to their providers. Until then,
+a person who sets the ground and reinstalls loses it, which is small, and a person who
+edits the field by hand sees nothing happen, which is worse because it looks broken.
+
+### §RG88 Two translation systems on one screen
+
+RG51 built a small typed catalogue in `core` and it does what it was built for: the base
+is the type, the fallback is per key, and a pseudo-locale fails the run a literal is
+typed into a screen. None of that is in doubt.
+
+What was not checked is that `i18next`, `react-i18next` and
+`i18next-browser-languagedetector` are already dependencies of `@rk/ui`, declared when
+the design system was adopted, because that package translates its own components with
+them. So a screen mixing this app's components with the package's has two translation
+systems on it, each with its own idea of the current locale — which is exactly the shape
+of the theme problem in [[RG87]], and the package's own notes describe the harm: two
+systems agreeing only by luck.
+
+The question is not which library is better. It is which one holds *the locale*, since
+there can only be one answer to what language this window is in. The likely shape is
+that i18next holds the locale because the package's components read it from there, and
+this app's catalogue is fed the same tag — its own lookup is fifty lines and does not
+need replacing to stop being a second source.
+
+Worth settling with [[RG86]], which is the line that first has to choose a locale at
+all. Deciding it there costs nothing; deciding it after two locales exist means moving
+both.
