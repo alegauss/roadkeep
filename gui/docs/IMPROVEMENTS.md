@@ -530,22 +530,6 @@ replaces itself while somebody is reading a backlog is one that loses their plac
 it must not do is phone anywhere on launch by default: this app reads a person's
 repositories, and a network call it did not need is one that has to be explained.
 
-### §RG55 Where the promises are actually kept
-
-Four things run on every change and each closes a hole this plan would otherwise have:
-the typecheck across all three packages, the contract test against a real roadkeep,
-roadkeep's own gate over this project's docs, and the contrast and keyboard assertions.
-The gate is the one worth naming twice — this repository is governed, so a change that
-drifts its own backlog has to fail here for the same reason it fails anywhere else. What
-CI must not become is the only place any of them runs: each is a command a person can
-run locally, and CI is what refuses to forget.
-
-Two things the runner has to have, learned by shipping RG1. **Python, plus the launcher
-this repository commits**, because the tests that fetch a real payload spawn `python
-.claude/hooks/roadkeep-launch.py`; without it four tests fail for a reason that is not
-the code. And **a display for whatever RG60 launches**, which on a Linux runner means a
-virtual framebuffer and on Windows or macOS means nothing at all.
-
 ### §RG56 What a session is told, and what it costs
 
 An instruction file is loaded on every turn, including the ones that touch none of this,

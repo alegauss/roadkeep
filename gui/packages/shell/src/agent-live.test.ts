@@ -31,18 +31,29 @@ afterAll(() => {
 })
 
 describe('RG43: what this machine has', () => {
-  it('resolves a Claude Code and says which and what version', async () => {
+  it('says which and what version, or names everything it looked for', async () => {
+    // Both machines this runs on are real: a developer's has Claude Code installed and a CI
+    // runner does not, and RG55 is where that stopped being a thing only one of them knew.
+    // So the answer is asserted whole in either branch rather than one of them being
+    // assumed — a test that skipped on the runner would be the promise nobody keeps.
     const resolution = await resolveAgent(transportFor, REPO, agentCandidates(), {
       timeoutMs: CEILING,
     })
 
-    expect(resolution.kind).toBe('resolved')
-    if (resolution.kind !== 'resolved') throw new Error('unreachable')
-    expect(resolution.agent.command.length).toBeGreaterThan(0)
-    // A real version, not one written here: whatever this machine has installed.
-    expect(resolution.agent.version).toMatch(/^\d+\.\d+\.\d+/)
-    expect(resolution.agent.said).toContain(resolution.agent.version)
-    expect(saidOfAgent(resolution)).toContain(resolution.agent.version)
+    if (resolution.kind === 'resolved') {
+      expect(resolution.agent.command.length).toBeGreaterThan(0)
+      // A real version, not one written here: whatever this machine has installed.
+      expect(resolution.agent.version).toMatch(/^\d+\.\d+\.\d+/)
+      expect(resolution.agent.said).toContain(resolution.agent.version)
+      expect(saidOfAgent(resolution)).toContain(resolution.agent.version)
+      return
+    }
+
+    expect(resolution.tried).toEqual(agentCandidates())
+    for (const candidate of agentCandidates()) {
+      expect(resolution.reason).toContain(candidate.join(' '))
+    }
+    expect(saidOfAgent(resolution)).toBe(resolution.reason)
   })
 
   it('offers what is on PATH first, because that is whose settings a session uses', () => {
@@ -91,18 +102,28 @@ describe('RG43: a machine without one', () => {
     expect(saidOfAgent(resolution)).toBe(resolution.reason)
   })
 
-  it('falls past one that is not Claude Code to one that is', async () => {
-    // A command that runs and answers something else. Node exits non-zero for an unknown
-    // flag, which is exactly the "ran, and is not this" case.
-    const resolution = await resolveAgent(
-      transportFor,
-      REPO,
-      [[process.execPath, '--definitely-not-a-node-flag'], ...agentCandidates()],
-      { timeoutMs: CEILING },
-    )
+  it('falls past a candidate that ran and did not answer, to one that did', async () => {
+    // Two real commands: node with an unknown flag exits non-zero, which is the "ran, and
+    // is not this" case, and node with `--version` exits 0, which resolves. Both are here
+    // rather than the machine's own Claude Code, because whether one is installed is not
+    // what this is about — and on a runner there is none.
+    const failing = [process.execPath, '--definitely-not-a-node-flag']
+    const answering = [process.execPath]
+
+    const resolution = await resolveAgent(transportFor, REPO, [failing, answering], {
+      timeoutMs: CEILING,
+    })
 
     expect(resolution.kind).toBe('resolved')
     if (resolution.kind !== 'resolved') throw new Error('unreachable')
-    expect(resolution.agent.command[0]).not.toBe(process.execPath)
+    expect(resolution.agent.command).toEqual(answering)
+
+    // And the fallback, which this pair reaches for real: node prints `v24.10.0`, whose
+    // `v` runs into the digits so there is no word boundary and no version is lifted. The
+    // binary is kept and the whole line stands in for the label — the documented answer to
+    // a version this app cannot parse, exercised here by a command that genuinely has one.
+    expect(resolution.agent.version).toBe('')
+    expect(resolution.agent.said).not.toBe('')
+    expect(saidOfAgent(resolution)).toContain(resolution.agent.said)
   })
 })

@@ -1,0 +1,93 @@
+# Where the promises are actually kept (RG55).
+#
+# Every assertion this plan rests on is a command a person can run: `npm run typecheck`,
+# `npm test`, `npm run build`, `roadkeep lint`. None of them is defined here — this file
+# only refuses to forget them, which is the whole of what CI is for.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A push that supersedes a run makes the earlier one an answer about code nobody has.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Where the engine is checked out to, named once because two jobs and one launcher all
+  # have to agree on it.
+  ROADKEEP_CHECKOUT: roadkeep
+
+jobs:
+  # The gate, through roadkeep's own action rather than a `run:` block copied here. That
+  # surface exists so every adopting repository calls one thing; a hand-rolled step is the
+  # per-repository drift it was built to stop.
+  #
+  # `@main` and not a tag on purpose. This project tracks roadkeep's main — `[install]
+  # wired` in roadkeep.toml records a commit, not a release, because the tool cuts none —
+  # so pinning `v0.2.0` here would gate documents written by a much later engine against a
+  # much earlier one. The cost is stated: this job can go red because roadkeep moved, and
+  # that is a thing worth being told.
+  gate:
+    name: roadkeep gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: alegauss/roadkeep@main
+
+  suite:
+    name: suite on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      # Both, and neither cancelled by the other: which platform failed is the useful half
+      # of a failure in a desktop app, and `fail-fast` throws exactly that away.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      # The engine the live tests spawn. `.claude/hooks/roadkeep-launch.py` resolves a
+      # checkout and deliberately never fetches one — a hook that downloads code is a hook
+      # that runs what the repository did not commit — so supplying it is CI's job.
+      # `ROADKEEP_HOME` is that launcher's own first candidate, ahead of everything a
+      # runner might happen to have.
+      - name: check out the engine
+        uses: actions/checkout@v4
+        with:
+          repository: alegauss/roadkeep
+          path: ${{ env.ROADKEEP_CHECKOUT }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # roadkeep declares no dependencies, so the interpreter is the whole install. 3.11 is
+      # its floor, `tomllib` being stdlib there.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: npm ci
+
+      - name: typecheck
+        run: npm run typecheck
+
+      # The engine that answers here is not the developer's, which is the point: the
+      # contract test asserts the shape of every payload and reports the version that
+      # produced it, so a second copy is a second chance to catch a rename.
+      - name: test
+        run: npm test
+        env:
+          ROADKEEP_HOME: ${{ github.workspace }}/${{ env.ROADKEEP_CHECKOUT }}
+
+      - name: build
+        run: npm run build

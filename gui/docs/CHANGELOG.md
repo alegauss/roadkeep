@@ -69,6 +69,9 @@
 - ✅ **RG48** **the claim that a service is a transport swap is asserted by nothing, so it is an intention** — A second real transport carries every read over HTTP and the answers are compared, so the swap is exercised on every run (design recorded in `packages/shell/src/http-transport.ts`).
   checked **Every read verb answers identically over both transports** A test stands the HTTP handler in front of the process transport and runs the whole verb table across both, comparing stdout, stderr and exit code — and a verb added to the table without a row there fails the guard case rather than going unproven.
   checked **The second transport is real, not a mock** It goes over a socket to a handler that runs the process transport on the other side, so the root travels as data and a read depending on a working directory answers differently there — which a stub returning what the test decided could not catch.
+- ✅ **RG55** **there is no CI, so every assertion this plan rests on runs only where somebody remembers to run it** — One workflow runs the typecheck, the suite and the build on two platforms, and the gate through roadkeep's own action (design recorded in `.github/workflows/ci.yml`).
+  checked **Every gate a person can run locally also runs on every change** One workflow runs the typecheck, the suite and the build on two platforms, and roadkeep's own action gates the governed files — each defined where it already was, so CI adds no assertion of its own to drift.
+  checked **The suite asserts the same things on a runner as on a developer's machine** The engine arrives by checkout and ROADKEEP_HOME, verified to outrank the fallback where no sibling exists; and the two assertions that were about the developer's installed Claude Code now assert the answer in either branch rather than skipping.
 
 ## Block H — The look (a design system for governed prose)
 
