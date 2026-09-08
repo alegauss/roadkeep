@@ -488,15 +488,6 @@ On ship: `--recorded-in packages/core/src/pauses.ts`.
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG42 What the session did, beside what it said
-
-An agent writes through the same verbs a person does, so the evidence a session worked
-is the governed files changing. While one runs, those files are watched and the task on
-screen is re-read as they change — the marker moving, the section appearing, the line
-leaving for the ledger. That is drawn beside the stream rather than inside it, since one
-is what the agent said and the other is what the repository now holds, and the second is
-the one that is true.
-
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG46 The executable, and what it says about itself

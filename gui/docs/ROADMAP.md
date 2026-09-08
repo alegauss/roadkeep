@@ -40,8 +40,6 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 💭 **RG42** (deps: RG38 ✅, RG45 ✅) **what a session wrote to the governed files is not watched, so the screen shows the backlog from before it ran** — An agent ships through the same verbs a person does, and the only evidence in this app is the files it changed. → §RG42
-
 ## Block G — The shell (an executable now, a service later)
 
 - 💭 **RG46** (deps: RG37 ✅, RG44 ✅) **there is no executable, so the app runs only where its source tree and toolchain already are** — An .exe is the delivery this project was asked for, and packaging is what decides the security posture is real rather than configured. → §RG46

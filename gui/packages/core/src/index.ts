@@ -89,6 +89,8 @@ export {
 } from './gate'
 export type { GateHealth, GateLedger, GateRecord, GateVerdict } from './gate'
 export type { ProjectFamily, ProjectMember, ProjectSite } from './families'
+export { changeLine, landingBetween, saidButNotDone } from './landing'
+export type { Change, Landing, Reading } from './landing'
 export { accountOf, deferred, leftPointing, resumed, retired, shipped } from './leaving'
 export type { Departure, Edit, Leaving } from './leaving'
 export { aboutNoInput, movedFrom, openMarkers, saidOfMove } from './marking'

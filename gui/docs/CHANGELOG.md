@@ -57,6 +57,7 @@
 - ✅ **RG40** **a session's output is a stream nothing renders, so what the agent is doing is invisible while it does it** — A session reads as acts: which tool on what, the roadkeep calls marked, and every raw line still reachable (design recorded in `packages/core/src/acts.ts`).
 - ✅ **RG41** **a line is handed over without being taken, so two sessions can be started on the same task** — Handing a task to a session takes it: brief and claim are one call, and a held line is named instead of offered (design recorded in `packages/core/src/handover.ts`).
 - ✅ **RG43** **the claude binary is assumed to exist, so a machine without it fails at the moment work starts** — The command that runs a session is resolved and named like the engine, and a machine without one is a stated condition (design recorded in `packages/core/src/agent.ts`).
+- ✅ **RG42** **what a session wrote to the governed files is not watched, so the screen shows the backlog from before it ran** — What a session did is read off the files it changed: the marker, the design and the ledger, beside what it said (design recorded in `packages/core/src/landing.ts`).
 
 ## Block G — The shell (an executable now, a service later)
 

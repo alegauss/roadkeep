@@ -539,6 +539,13 @@ export const readHeldClaim: Reader<HeldClaim> = record<HeldClaim>({
 export interface BriefPayload {
   readonly id: string
   readonly status: string
+  /**
+   * Whether the line has left for the ledger.
+   *
+   * Carried rather than worked out from the marker: a shipped id still briefs, and this is
+   * the engine saying which side of the ledger it is on.
+   */
+  readonly shipped: boolean
   readonly block: string
   readonly symptom: string
   readonly why: string
@@ -601,6 +608,7 @@ export const readBriefPayload: Reader<BriefPayload> = record<BriefPayload>(
   {
     id: aString,
     status: aString,
+    shipped: orMissing(aBoolean, false),
     block: aString,
     symptom: aString,
     why: aString,
