@@ -551,6 +551,10 @@ It needs a display-less run to be worth putting in CI, so the Linux job wants a 
 framebuffer; Windows and macOS runners have a desktop session already. That is the cost,
 and it is why this is its own line rather than a paragraph inside RG55.
 
+RG59 adds a fifth question and the channel to ask it on: a script naming another host
+must be refused. `ELECTRON_ENABLE_LOGGING=1` puts the renderer's console on the parent's
+stderr, which is how that was read by hand.
+
 ### §RG85 What the seam's handler is allowed to be
 
 RG48 built an HTTP handler in front of the process transport so the seam is proven by
