@@ -148,6 +148,24 @@ export { CONFIG_FILE, createWatching, QUIET_MS, watchedFiles } from './watching'
 export type { Clock, Interest, OnChanged, Watcher, Watching } from './watching'
 export { DEFAULT_SETTINGS, readSettings, SETTINGS_VERSION, settingsText, wasReset } from './settings'
 export type { Settings, SettingsRead, Theme } from './settings'
+export {
+  BASE,
+  BASE_LOCALE,
+  EN,
+  fill,
+  isPseudo,
+  keys as messageKeys,
+  localeFor,
+  PACKAGE_TEXT,
+  PSEUDO_CLOSE,
+  PSEUDO_LOCALE,
+  PSEUDO_OPEN,
+  pseudo,
+  stale,
+  translator,
+  untranslated,
+} from './wording'
+export type { Fill, MessageKey, Translate, Wording } from './wording'
 export { coversEverything, search } from './search'
 export type { Hit, SearchableProject, SearchAnswer, SearchField } from './search'
 export { DEFAULT_POLICY, mayEnter, scan } from './scanning'
@@ -274,7 +292,7 @@ export {
   readRemedy,
 } from './refusals'
 export type { Answer, Door, Explanation, Refusal, RefusedField, Remedy } from './refusals'
-export { PACKAGES, RESPONSIBILITY } from './packages'
+export { PACKAGES } from './packages'
 export type { PackageName } from './packages'
 export { EngineCallFailed } from './transport'
 export type {

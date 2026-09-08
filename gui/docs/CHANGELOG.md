@@ -73,3 +73,6 @@
 ## Block H — The look (a design system for governed prose)
 
 - ✅ **RG39** **there is no design system, so every screen decides its own type, spacing and colour on the spot** — Every colour, radius and face comes from the design system Turing, Shio and Dumont render with, and a test fails any component that names one.
+- ✅ **RG51** **strings are written into the components, so a second locale means reopening every screen** — Every string a person reads now comes from one catalogue, and a pseudo-locale test fails the run a literal is typed into a screen (design recorded in `packages/core/src/wording.ts`).
+  checked **A literal typed into a screen fails the run that follows** The screen renders under a pseudo-locale that wraps every catalogue value, and anything visible without the wrapping is reported by name — proven by adding a literal and watching it fail, with a second case holding that the detector actually looks.
+  checked **A half-translated locale shows English, never a key** The lookup falls back per key rather than per file, so one translated string ships without the rest; a locale is chosen by tag then by language, and an empty request means the base.

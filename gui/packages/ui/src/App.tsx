@@ -1,13 +1,19 @@
-import { PACKAGES, RESPONSIBILITY } from '@rk/core'
+import { PACKAGE_TEXT, PACKAGES, type MessageKey } from '@rk/core'
 import { Badge, Card, CardContent, CardHeader, CardTitle } from '@viglet/viglet-design-system'
 
+import type { TransportState } from './useTransport'
 import { useTransport } from './useTransport'
+import { useWording } from './wording'
 
-const TRANSPORT_LABEL: Record<string, string> = {
-  asking: 'asking the bridge',
-  absent: 'no bridge - running as a plain browser page',
-  ipc: 'bridged over IPC',
-  http: 'bridged over HTTP',
+/**
+ * Which string names each state the bridge can be in. Spelled out rather than built from
+ * the state, so a state added without wording fails to compile.
+ */
+const TRANSPORT_TEXT: Readonly<Record<TransportState, MessageKey>> = {
+  asking: 'transport.asking',
+  absent: 'transport.absent',
+  ipc: 'transport.ipc',
+  http: 'transport.http',
 }
 
 /**
@@ -20,21 +26,24 @@ const TRANSPORT_LABEL: Record<string, string> = {
  * The utility classes name roles - `bg-background`, `text-muted-foreground`, `border` -
  * and never values, which is what lets the same markup render on either ground once RG52
  * wires the switch.
+ *
+ * **No sentence is written here.** Everything a person reads comes through `say`, and the
+ * only bare text left is the package names, which are identifiers. A pseudo-locale test
+ * holds that: a literal typed into this file shows up unwrapped and fails the run.
  */
 export function App() {
   const transport = useTransport()
+  const say = useWording()
 
   return (
     <main className="bg-background text-foreground h-full overflow-auto">
       <div className="mx-auto flex max-w-3xl flex-col gap-8 px-8 py-12">
         <header className="flex flex-col gap-3">
-          <h1 className="font-brand text-3xl font-semibold tracking-tight">roadkeep</h1>
-          <p className="text-muted-foreground text-base">
-            The window opens and the three packages are wired. No backlog is read yet.
-          </p>
+          <h1 className="font-brand text-3xl font-semibold tracking-tight">{say('app.name')}</h1>
+          <p className="text-muted-foreground text-base">{say('app.tagline')}</p>
           <div>
             <Badge variant="secondary" className="font-mono" data-testid="transport">
-              {TRANSPORT_LABEL[transport] ?? transport}
+              {say(TRANSPORT_TEXT[transport])}
             </Badge>
           </div>
         </header>
@@ -46,7 +55,7 @@ export function App() {
                 <CardTitle className="font-mono text-sm">{name}</CardTitle>
               </CardHeader>
               <CardContent className="text-muted-foreground text-sm">
-                {RESPONSIBILITY[name]}
+                {say(PACKAGE_TEXT[name])}
               </CardContent>
             </Card>
           ))}

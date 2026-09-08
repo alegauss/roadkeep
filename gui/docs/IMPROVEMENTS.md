@@ -639,15 +639,6 @@ not after it runs.
 
 ## Block H — The look (a design system for governed prose)
 
-### §RG51 One catalogue, from the first screen
-
-Every string a person reads comes from a catalogue keyed by an identifier, with English
-as the base and a second locale as a file beside it. Doing this from the first screen
-costs almost nothing and doing it later costs every screen twice. Two things stay out of
-it: what a payload printed, which is the project's own prose in whatever language it was
-written, and a refusal message, which is the tool's words and is quoted rather than
-translated. What is translated is this app's own voice.
-
 ### §RG52 The same tokens, re-pointed
 
 Dark is not a second stylesheet: it is the same tokens with different values, so a

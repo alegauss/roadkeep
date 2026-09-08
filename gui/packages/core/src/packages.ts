@@ -10,13 +10,11 @@
  * window. It is placeholder data in the sense that nothing reads a backlog yet, and
  * it is not placeholder in the sense that the split it describes is what every later
  * task is filed against.
+ *
+ * The names are here and the sentences are not: a package name is an identifier a person
+ * reads as a name, and a sentence about it is this app's own voice, which since RG51 lives
+ * in the wording catalogue with everything else somebody reads.
  */
 export const PACKAGES = ['core', 'ui', 'shell'] as const
 
 export type PackageName = (typeof PACKAGES)[number]
-
-export const RESPONSIBILITY: Readonly<Record<PackageName, string>> = {
-  core: 'The transport interface, the verb table and the payload shapes. No Electron, no React.',
-  ui: 'React over Tailwind. Receives payloads and renders them, and knows no path and no process.',
-  shell: 'The Electron main process. It spawns, it watches files, it holds settings.',
-}
