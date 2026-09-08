@@ -51,6 +51,7 @@
 - 📋 **RG60** (deps: RG44 ✅) **no test ever starts the app, so the isolation the window configures is checked by reading it** — Every webPreferences flag is a default a later edit can drop silently, and a suite that never opens a window cannot notice. → §RG60
 - 💭 **RG85** (deps: —) **the handler proving the seam runs any argv against any root, which a real service cannot** — The test's half is deliberately unguarded, so the day it becomes a product surface the guard has to arrive with it and nothing says what it is. → §RG85
 - 💭 **RG91** (deps: RG55 ✅, RG46 ✅) **the packaged build is proven on one machine, and CI never makes one** — The workflow runs the suite and the bundle but never the packaging step, so the artefact anybody would actually install is the one thing nothing checks. → §RG91
+- 💭 **RG92** (deps: RG56 ✅) **the project skill states counts and a priority that stopped being true, and nothing checks it** — It is prose about a governed backlog, held by nobody: it names shipped ids as the queue, counts open lines from weeks ago, and calls the suite something still to arrive. → §RG92
 
 ## Block H — The look (a design system for governed prose)
 

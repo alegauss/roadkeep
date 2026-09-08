@@ -658,6 +658,28 @@ RG46 spent a session misdiagnosing — a runner does not export it, so CI is the
 environment where that class of failure is visible rather than masked. And a macOS build
 has never been attempted at all.
 
+### §RG92 The instructions nothing gates
+
+RG56 gave this project an index and put it under a budget the gate enforces. Beside it
+sits `roadkeep-gui-roadmap-docs/SKILL.md`, 190 lines of the long form, and nothing holds
+it at all.
+
+It has already drifted. It says the priority queue reads `RG37`, `RG44`, `RG39` — all
+three shipped. It says 49 of 56 open lines are 💭, a count from before a session's worth
+of work. It says "when the suite arrives", and the suite arrives at over a thousand
+tests. Every one of those is a sentence an agent reads on the turn it starts a task, and
+each sends its reader somewhere that is not where the work is.
+
+The pattern is the one roadkeep exists for, one layer out: prose restating what a tool
+can answer goes stale, and the fix is not to update it but to stop restating. `pick`
+answers what is next; `stats` answers the counts; `list --marker 💭` answers which are
+undesigned. A skill that said *ask* instead of quoting a number would not have drifted.
+
+So the work is a pass over that file replacing every derived figure with the read that
+produces it, then deciding whether it wants a budget. It is trigger-loaded, so pricing
+it as resident would be wrong — but its own description triggers it on essentially every
+task, which makes that argument thinner than it looks.
+
 ## Block H — The look (a design system for governed prose)
 
 ### §RG61 An advisory that arrives with somebody else's package
