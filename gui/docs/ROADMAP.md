@@ -51,6 +51,7 @@
 - 💭 **RG93** (deps: RG57 ✅) **the dev loop reaches into the compiler's own layout, and only a hand run would notice it moving** — TypeScript exports neither of its launchers, so the path is built from the package directory and nothing in the suite ever resolves it. → §RG93
 - 💭 **RG94** (deps: RG58 ✅) **no type-aware rule runs, so a floating promise is still nobody's finding** — The linter's type-aware half is a separate package nobody installed, and it is the half that catches an unawaited call, a misused promise and an unnecessary condition. → §RG94
 - 💭 **RG95** (deps: RG55 ✅) **two high-severity advisories ship in the renderer bundle and nothing reports them** — A spreadsheet library reaches this app through the design system, carries prototype pollution and a ReDoS with no fix published, and no gate reads an advisory. → §RG95
+- 💭 **RG96** (deps: RG60 ✅) **the suite now tests a bundle it did not build, so a green run can be about yesterday's code** — One test starts the built app and nothing rebuilds it first, so a renderer change that broke the window passes locally until somebody happens to build. → §RG96
 
 ## Block H — The look (a design system for governed prose)
 

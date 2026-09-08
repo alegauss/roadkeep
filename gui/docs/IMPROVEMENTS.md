@@ -667,6 +667,28 @@ satisfied is a gate that gets a flag added to silence it.
 The likely shape is `npm audit --audit-level=high` in CI with a recorded, dated
 exception for this pair, so a *third* advisory is what breaks the build.
 
+### §RG96 A test whose subject is on disk
+
+RG60 put a test in the suite that starts the built app. Everything else in there
+compiles from source through Vitest, so `npm test` has always been a statement about the
+working tree. This one is a statement about `packages/ui/dist` and
+`packages/shell/dist`, which are whatever the last build left.
+
+CI is fine: the workflow builds before it tests, deliberately. A developer is not. `npm
+test` after editing a renderer file runs the new unit tests against the new source and
+the RG60 questions against the old bundle, and reports one number for both. The failure
+mode is the bad one — a green run that is partly about code nobody is looking at.
+
+Three shapes, none obviously right. Make `npm test` depend on a build, which costs every
+run a build and makes the fast inner loop slower. Have the test build what it needs,
+which puts a build inside a test and makes one test cost what a build costs. Or have it
+*notice*: compare the bundle's timestamp against the newest source file and fail with a
+sentence naming `npm run build`, which is cheap and turns a false green into an
+instruction.
+
+The third is probably it. A test that refuses to run against a stale subject is honest
+in a way that a test which silently rebuilds is not, and it costs a `stat`.
+
 ## Block H — The look (a design system for governed prose)
 
 ### §RG61 An advisory that arrives with somebody else's package
