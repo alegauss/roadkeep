@@ -872,6 +872,29 @@ So the decision is which this is: a duplication to remove now, or a lift that wa
 the read needing it. What settles it is whether a report is a cadence — a clean run has
 no findings, and a backlog with standing debt prints the same one every run.
 
+### §RK1662 The other two facts about the session
+
+`_ABOUT_THE_SESSION` is `("install.stale", "install.absent")`, and its sentence says
+these are "about the reader's own tooling rather than about this project's files".
+`gate.behind` and `engine.disagreement` answer to exactly that description — one says
+the copy judging is behind the pinned one, the other that the code answering is not the
+code on disk — and neither is in the set, so neither reaches the summary.
+
+RK1482's argument is about the reader: a session read past three of these for hours and
+only looked when it ran out of roadmap work, so the count went where somebody skimming
+one line a run would meet it. That reader skims past `engine.disagreement` the same way,
+and this repository's own gate emits it on every run with uncommitted work.
+
+The split may still be right. A surface behind is a **count** — five of them are one
+sentence and a number — while a disagreement is one note whose whole content is which
+copies differ, so a summary clause would either repeat it or say `1`, which is the
+clause a reader stops seeing.
+
+What is missing is the sentence saying so. The set's comment argues the pair *in* and
+never the other two *out*, so a fifth session note lands in the same silence: RK1621
+re-took this line's count against a fold that had changed under it, and the set it reads
+was never re-taken at all.
+
 ## Block E — Adoption
 
 ## Block F — The plugin

@@ -66,6 +66,7 @@
 - 💭 **RK1652** (deps: —) **a config refusal now names the table a key belongs under, and no verb moves it there** — RK1610 ends in a hand edit to the one file govern and declare exist so nobody hand-edits, and a served session has no editor at all. → §RK1652
 - 💭 **RK1654** (deps: —) **ten functions print to both streams in one body and two go through the helper, nothing saying which of the rest need to** — RK1612 gave the rule a function and left the census it named unbuilt, so the guard catches a stray flush and not a stderr print after a stdout one. → §RK1654
 - 📋 **RK1660** (deps: —) **one sentence said once is written twice, the notes' fold lifted out of the gate and the findings' left inside it** — RK1620 moved the note grouping so a figure could read it, and the finding grouping it was copied from is still a loop in the printer. → §RK1660
+- 📋 **RK1662** (deps: —) **two session notes reach the summary and two do not, and the set holding the pair argues for none of the split** — RK1482 named the reader who skims one line a run, and gate.behind and engine.disagreement are that reader's tooling too. → §RK1662
 
 ## Block E — Adoption
 
