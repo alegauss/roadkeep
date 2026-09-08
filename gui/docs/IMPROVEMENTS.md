@@ -615,6 +615,28 @@ It needs a display-less run to be worth putting in CI, so the Linux job wants a 
 framebuffer; Windows and macOS runners have a desktop session already. That is the cost,
 and it is why this is its own line rather than a paragraph inside RG55.
 
+### §RG85 What the seam's handler is allowed to be
+
+RG48 built an HTTP handler in front of the process transport so the seam is proven by
+two real transports rather than by a mock. That handler reads `{root, argv, timeoutMs}`
+off a socket and runs it — any argv, against any root, with no authentication and no
+allowlist. It binds to loopback and its own comment says it is a test's surface, which
+is true today and is exactly the kind of true that stops being true quietly.
+
+The observation worth keeping is not that the test handler is unsafe. It is that the
+guard is the whole difference between the test's half and a service, and nothing
+currently states what that guard is. The seam says the reads travel as data; it says
+nothing about which reads a server should agree to run for whom, what a root is allowed
+to be, or whether the write verbs cross at all.
+
+So the day a service line is picked up, the first question is not the transport — that
+part is done and held by a test. It is: what does the server refuse? A design that
+starts from the working handler will inherit its permissions by default, because the
+handler already works.
+
+What would settle this is a short list of refusals written before the service is built,
+not after it runs.
+
 ## Block H — The look (a design system for governed prose)
 
 ### §RG51 One catalogue, from the first screen
