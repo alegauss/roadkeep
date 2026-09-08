@@ -49,6 +49,14 @@ export interface VerbInputs {
     block?: string
     designed?: boolean
     have?: readonly string[]
+    /**
+     * Take the line as well as describing it: the marker moves in the same transaction.
+     *
+     * **A read that writes**, and the only one in this table. It sits here rather than in
+     * the write table because it is the same call either way — a brief with a flag — and
+     * splitting it would make the transaction two things a caller could get half of.
+     */
+    claim?: boolean
   }
   /**
    * One task's edges, resolved: the blockers, the chains from it outward, what shipping
@@ -192,6 +200,7 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
     ...optional('--block', input.block),
     ...(input.designed === true ? ['--designed'] : []),
     ...repeated('--have', input.have),
+    ...(input.claim === true ? ['--claim'] : []),
   ],
   deps: (input) => [input.id],
   delivered: (input) => [input.block, ...optional('--near', input.near)],
@@ -245,7 +254,7 @@ export const EVERY_INPUT: { [K in VerbName]: VerbInputs[K] } = {
   list: { block: 'A', role: 'roadmap', marker: '📋', have: ['signing-cert'], stale: true },
   show: { id: 'RG1', noBody: true },
   stats: { block: 'A', role: 'roadmap', have: ['signing-cert'] },
-  brief: { id: 'RG1', block: 'A', designed: true, have: ['signing-cert'] },
+  brief: { id: 'RG1', block: 'A', designed: true, have: ['signing-cert'], claim: true },
   deps: { id: 'RG1' },
   delivered: { block: 'A', near: 'a symptom about to be proposed' },
   reversals: { id: 'RG1' },

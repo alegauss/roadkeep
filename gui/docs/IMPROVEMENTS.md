@@ -488,15 +488,6 @@ On ship: `--recorded-in packages/core/src/pauses.ts`.
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG41 Taking the line, not just reading it
-
-Every tier of a pick is a function of the file, so a second caller reading an unchanged
-backlog is handed the line the first one took. The brief verb with its claim flag
-answers and moves the marker in one transaction, which is the call that starts a task
-anyway. So handing a task to a session takes it in the same act. A claim is an expiry
-and not a lock: it is stepped over once the declared time has passed, it carries no
-owner, and this app never re-dates one to keep it.
-
 ### §RG42 What the session did, beside what it said
 
 An agent writes through the same verbs a person does, so the evidence a session worked

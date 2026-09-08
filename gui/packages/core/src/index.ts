@@ -75,6 +75,8 @@ export { designOf, detailFrom, whyNotStartable } from './detail'
 export type { TaskDetail } from './detail'
 export { expandedFrom, graphFrom, routeOf, standingOf } from './graph'
 export type { Chain, DepStanding, Edge, Graph } from './graph'
+export { claimingBrief, handoverOf, heldBy, mayHandOver, saidOfHandover } from './handover'
+export type { Handover } from './handover'
 export { groupProjects, isFamily } from './families'
 export {
   createGateLedger,
@@ -173,6 +175,7 @@ export {
   readDepsPayload,
   readListPayload,
   readLintPayload,
+  readClaimed,
   readHeldClaim,
   readNonGoalsPayload,
   readPickPayload,
@@ -203,6 +206,7 @@ export type {
   BriefBudget,
   BudgetPayload,
   BriefPayload,
+  Claimed,
   ConfigKey,
   FieldBudget,
   ConfigPayload,

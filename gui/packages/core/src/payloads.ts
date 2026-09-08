@@ -574,7 +574,28 @@ export interface BriefPayload {
   readonly landed: readonly string[]
   /** What the line's fields and its section have left. Null once the design is gone. */
   readonly budget: BriefBudget | null
+  /**
+   * What `--claim` did to the marker, and **null on a brief that only read**.
+   *
+   * A different fact from `held`: this says what this call did, `held` says who is on the
+   * line. Neither is a proxy for the other.
+   */
+  readonly claimed: Claimed | null
 }
+
+/** What taking a line did to its marker. */
+export interface Claimed {
+  /** False where the line already carried the working marker and nothing moved. */
+  readonly taken: boolean
+  readonly from: string
+  readonly to: string
+}
+
+export const readClaimed: Reader<Claimed> = record<Claimed>({
+  taken: orMissing(aBoolean, false),
+  from: orMissing(aString, ''),
+  to: orMissing(aString, ''),
+})
 
 export const readBriefPayload: Reader<BriefPayload> = record<BriefPayload>(
   {
@@ -599,6 +620,7 @@ export const readBriefPayload: Reader<BriefPayload> = record<BriefPayload>(
     held: orMissing(listOf(readHeldClaim), []),
     landed: orMissing(listOf(aString), []),
     budget: orMissing(orNull(readBriefBudget), null),
+    claimed: orMissing(orNull(readClaimed), null),
   },
   {
     sectionAbsence: 'section_absence',

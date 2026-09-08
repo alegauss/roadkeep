@@ -521,6 +521,34 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(ledger.ref).toBeNull()
   })
 
+  it('reads a brief that takes the line, whose claim is a second shape', async () => {
+    // Its own line, because a claim is a write and the fixture's other ids are spoken for
+    // — one is deferred, which `brief` refuses outright.
+    const filed = await applyWrite(
+      transport,
+      composeWrite(fixture.root, 'add', {
+        block: 'A',
+        symptom: 'a line nothing has taken yet',
+        why: 'A claim is a write, so this one is only for taking.',
+      }),
+      readAddedPayload,
+      { timeoutMs: CEILING },
+    )
+    expect(filed.kind).toBe('applied')
+    if (filed.kind !== 'applied') throw new Error('unreachable')
+    const id = filed.value.id
+
+    // `claimed` is null on a brief that only read and an object on one that took, which is
+    // the same key answering two ways under a flag.
+    const read = await readVerb('brief', { id }, readBriefPayload)
+    expect(read.claimed).toBeNull()
+
+    const took = await readVerb('brief', { id, claim: true }, readBriefPayload)
+    expect(took.claimed).not.toBeNull()
+    expect(typeof took.claimed?.taken).toBe('boolean')
+    expect(took.claimed?.to).not.toBe('')
+  })
+
   it('reads what to work on next, and which tier answered', async () => {
     const payload = await readVerb('pick', {}, readPickPayload)
 
