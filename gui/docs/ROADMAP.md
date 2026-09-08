@@ -15,6 +15,7 @@
 - 💭 **RG83** (deps: —) **one verb answers in two shapes under a flag, and nothing names the second until it breaks** — The flag that narrows a read is the flag that changes its answer, and it is never the call anybody writes the first test for. → §RG83
 - 💭 **RG84** (deps: RG78) **every live file resolves the engine itself, so one being rebuilt mid-run reds the suite four ways** — A red contract test is meant to mean roadkeep renamed a key, and it now also means somebody saved a file in another checkout. → §RG84
 - 📋 **RG97** (deps: —) **nothing declares which Node this repo needs, so a wrong one fails inside a dependency and not at the door** — Node 20.19.1 broke every jsdom worker with a TypeError from undici and the window test with a missing WebSocket, and CI's pin is the only place a version is written. → §RG97
+- 💭 **RG98** (deps: RG65 ✅) **core's boundary test holds an import and nothing else, so a path rule written as string work passes it** — RG65 decided what a path means belongs to whoever has the filesystem, and a separator fold written inline compiles, typechecks and passes every gate. → §RG98
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
