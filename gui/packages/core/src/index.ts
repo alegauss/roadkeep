@@ -215,6 +215,8 @@ export { buildArgv, createClient } from './client'
 export type { CallOptions, Client } from './client'
 export { ANSWERS } from './answers'
 export type { VerbAnswers } from './answers'
+export { openProject, readsOnly } from './opening'
+export type { Opening, OpenOptions, OpenProject } from './opening'
 export { disagrees, isModified, resolveEngine } from './engine-resolution'
 export type {
   EngineResolution,
