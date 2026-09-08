@@ -51,6 +51,8 @@
 - 💭 **RG91** (deps: RG55 ✅, RG46 ✅) **the packaged build is proven on one machine, and CI never makes one** — The workflow runs the suite and the bundle but never the packaging step, so the artefact anybody would actually install is the one thing nothing checks. → §RG91
 - 💭 **RG92** (deps: RG56 ✅) **the project skill states counts and a priority that stopped being true, and nothing checks it** — It is prose about a governed backlog, held by nobody: it names shipped ids as the queue, counts open lines from weeks ago, and calls the suite something still to arrive. → §RG92
 - 💭 **RG93** (deps: RG57 ✅) **the dev loop reaches into the compiler's own layout, and only a hand run would notice it moving** — TypeScript exports neither of its launchers, so the path is built from the package directory and nothing in the suite ever resolves it. → §RG93
+- 💭 **RG94** (deps: RG58 ✅) **no type-aware rule runs, so a floating promise is still nobody's finding** — The linter's type-aware half is a separate package nobody installed, and it is the half that catches an unawaited call, a misused promise and an unnecessary condition. → §RG94
+- 💭 **RG95** (deps: RG55 ✅) **two high-severity advisories ship in the renderer bundle and nothing reports them** — A spreadsheet library reaches this app through the design system, carries prototype pollution and a ReDoS with no fix published, and no gate reads an advisory. → §RG95
 
 ## Block H — The look (a design system for governed prose)
 

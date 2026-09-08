@@ -664,6 +664,51 @@ with `--version` and check the exit code, which also proves the launcher still s
 Neither is worth a task on its own — it belongs to whichever task next touches the dev
 run, or to a sweep of the places this repository reaches into a dependency's layout.
 
+### §RG94 The half of the linter that reads types
+
+RG58's design named four kinds of defect: an unused import, a wrong hook dependency
+list, a second spelling of a name, and **a floating promise**. Three are held. The
+fourth is not, and this says so rather than letting the ship read as though it were.
+
+`no-floating-promises` cannot be decided from syntax — it needs to know that an
+expression is a `Promise`, which means the type checker. oxlint puts that behind
+`oxlint-tsgolint`, a peer package built on TypeScript-Go: the same engine TypeScript 7
+is, which is why it works here at all where `typescript-eslint` does not.
+
+It matters more in this codebase than in most. The transport is asynchronous everywhere,
+the dev loop builds in the background, the watcher fans out to listeners, and `void` is
+used deliberately in several places to say *this promise is not awaited on purpose*. A
+rule that reads types is what tells those apart from the ones that are a mistake — and
+an unawaited engine call is a read whose failure lands nowhere, which is the defect
+class hardest to see in a review.
+
+The work is installing the peer, turning on the type-aware category, and then reading
+the findings honestly: some of the `void`s will be right and some will not, and a sweep
+that silences the rule to make the run green would leave this worse than not having it.
+
+### §RG95 Advisories nobody is told about
+
+Installing the linter for RG58 printed something unrelated: `npm audit` reports two
+high-severity advisories against `xlsx`, which reaches this app as a dependency of
+`@viglet/viglet-design-system`. Prototype pollution and a regular-expression denial of
+service, both with **no fix available** — the package is not published to npm under a
+version that resolves them.
+
+Nothing in this repository reads an advisory. `npm ci` in CI does not audit, the gate is
+about governed files, and the suite has no opinion. So this was found by a person
+installing something else, which is the same shape as every other finding this block
+exists to stop.
+
+Two questions, and they are separate. The first is whether the code is even reachable:
+`xlsx` is behind the design system's export helpers, this app imports no table export,
+and a bundle that never pulls it in is not a bundle that runs it — worth checking
+against the built output rather than assuming either way. The second is whether an
+advisory should fail a build at all when no fix exists, because a gate that cannot be
+satisfied is a gate that gets a flag added to silence it.
+
+The likely shape is `npm audit --audit-level=high` in CI with a recorded, dated
+exception for this pair, so a *third* advisory is what breaks the build.
+
 ## Block H — The look (a design system for governed prose)
 
 ### §RG61 An advisory that arrives with somebody else's package
