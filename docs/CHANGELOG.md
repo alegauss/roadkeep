@@ -480,6 +480,9 @@
 - ✅ **RK1618** **delivered and reversals are the reads before an add, and neither holds what was traced and not filed** — A dismissed role on the deferred store's shape: dismiss files a subject, a reason and a required premise, and reopen files it as work when that premise breaks.
 - ✅ **RK1622** **a design can cite a corpus for a ratio it does not have, nothing here reading what shape the pins hold** — corpora.shape reads each pin through the package's own census, totals and per block, and the drift advisory says it: turing holds 3 open against 901 delivered, which is what a design can now cite.
 - ✅ **RK1623** **three tests rebuild the corpus add ranks against, so a change to what add includes leaves every figure passing** — Neighbours is the block's corpus as a value, with the boundary and the ranking on it, so the three readings measure what add ranks instead of a rebuilt list of that shape.
+- 🗑 **RK1657** **budget prices a pause's wrapped reason and not a dismissal's, whose premise is derived by the same rule** — abandoned: An observation and not a defect: budget prices no dismissal because no project declares the store, and a subject argued before a caller wants it is a read nobody takes.
+- 🗑 **RK1661** **two payloads say notes about two populations, the gate one per address and the census one per printed block** — abandoned: An observation and not a defect: both payloads answer what they say they do, and the folded key beside the figure already tells the two populations apart.
+- 🗑 **RK1664** **what a pinned corpus holds is answerable only from Python, and the advisory that says it fires only where the tree moved** — abandoned: An observation and not a defect: the shape is answerable and the drift advisory prints it, and a command for it wants a directory the pin deliberately has not got.
 
 ## Block D — The gate
 
@@ -781,6 +784,8 @@
 - ✅ **RK1612** **a verb writing an answer and a note in one run has to flush between the streams, and nothing says which verbs those are** — The two streams are ordered by one function both callers go through, with the reason written down and a run that reproduces the reversal without it.
 - ✅ **RK1620** **the note census prices one row per note, so it reports what the gate composed and not what it printed** — The census prices the blocks the report prints, off the fold lifted out of the gate, and names the runs it charged once so a smaller total is not read as a note that stopped firing.
 - ✅ **RK1621** **the summary and the folded note row now both carry the count of surfaces behind the engine** — The summary earns its count on three grounds the fold does not reach: it counts across both codes, it is there where a run of one folds to nothing, and the missing-entirely split is one no fold makes.
+- 🗑 **RK1660** **one sentence said once is written twice, the notes' fold lifted out of the gate and the findings' left inside it** — abandoned: An observation and not a defect: the findings' fold has one caller, so lifting it would be indirection with no second reader to hold it true.
+- 🗑 **RK1662** **two session notes reach the summary and two do not, and the set holding the pair argues for none of the split** — abandoned: An observation and not a defect: a disagreement is one note whose content is which copies differ, so a summary clause would say 1 and be the line a reader stops seeing.
 
 ## Block E — Adoption
 
@@ -1069,6 +1074,8 @@
 - ✅ **RK1606** **a vendored engine is twenty-two megabytes of which under four are the engine, the rest a built site and a test suite** — A vendored engine is the directories its declared surfaces live in, derived from CARRIED — 3.89 MiB across 90 files where it was 22.46 across 973.
 - ✅ **RK1611** **uninstall keeps a server declaration it did not write and takes away the approval that made it run** — The un-wiring says the approval it wrote goes with it, so a foreign server left declared and unapproved is a state the caller was told about rather than met.
 - ✅ **RK1619** **the note sweep names the first call in an answer, so a helper before the note would take its kind** — The note is the interpolation after the blank line, exact in both directions; a site spelling none falls back to the first call, so an undeclared kind fails by name instead of passing in silence.
+- 🗑 **RK1658** **nothing says the four answer sites all spell the blank line, so one losing it falls back and stays green** — abandoned: An observation and not a defect: the fallback keeps an undeclared kind visible, and a count of which sites took which reading is a figure with no caller.
+- 🗑 **RK1659** **the paragraph separator is spelled at four answer sites, so what appending a note is stays a literal a sweep matches** — abandoned: An observation and not a defect: one helper would tidy four literals the sweep already reads correctly, which is indirection bought against nobody.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

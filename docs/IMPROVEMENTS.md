@@ -359,54 +359,6 @@ population is this tool's own suite — which is exactly the state RK1084 found 
 pair it wrote a rule for anyway, on the argument that a contradiction the format can
 express should not be silent.
 
-### §RK1657 The premise nothing prices
-
-`budget <id> --defer` exists because a pause's reason is not held to `[limits] why`: the
-door wraps it around the design the store carries forward, so what refuses it is the
-rendered line, and an author composing to the field's number was composing to a figure
-nothing enforced.
-
-A dismissal wraps its premise by the same rule and for the same reason, and both fields
-it carries are new — so the gap is wider here than it was there. `budget --defer` at
-least prices a line that already exists; there is nothing to price a dismissal against,
-because the entry does not exist until `dismiss` has been refused.
-
-That is what makes the subject different rather than a copy. `--defer` takes an id and
-reports what the line leaves the reason; this one takes no id, and what it prices is a
-**shape**: the structure of a rendered dismissal, the symptom, and what the wrapper
-costs before a premise is written. `budget --block <x>` already answers that shape for a
-line `add` would write next, so the question is whether this is a flag on that read or a
-subject of its own.
-
-**Measured before it is offered.** The wrapper is 14 characters here against the pause's
-14 — the same width by coincidence rather than by rule, since both are prose this
-package chose — so a subject that quoted one number for both would be right today and
-wrong at the first rewording of either.
-
-### §RK1661 One word, two populations
-
-`lint --json` carries one `notes` entry per address, deliberately: a consumer acts per
-address, which is why the fold RK1565 shipped was left out of that register entirely.
-`cost --notes --json` carries a `notes` list too, and since RK1620 its entries are the
-*blocks* the terminal prints — five stale surfaces are five there and one here.
-
-Both are right about what they answer. What is wrong is that they answer under one word:
-a consumer holding both, which is any tool reading the gate and pricing it, joins
-`notes` to `notes` and gets two counts of one run with nothing in either payload saying
-they are different questions.
-
-RK1620 added `folded` beside the figure for the reader who takes the number away, and it
-is the half that makes this recoverable rather than the half that fixes it: a consumer
-would have to know to add the surfaces back before the two lists compare. The keys are
-what a client reads first, and a name shared across two answers is a join somebody makes
-without checking.
-
-**Which of the two moves is the question.** Renaming the census's list — `blocks`,
-`printed` — says what it is and leaves the gate's untouched; adding the block count to
-the gate's entries would make the two joinable and grows a payload every turn pays for.
-Neither is obviously right, and the measurement that decides it is whether anything
-joins them today.
-
 ### §RK1663 The blocks a finished label is not in
 
 RK1622 reads a pin's shape and gives it a row per block. The rows are the **roadmap's**
@@ -429,30 +381,6 @@ answers the corpus's shape and makes a row for every label; the roadmap's alone 
 means to be cited should probably say both — open rows over the roadmap, delivered rows
 over the union — and the cost of that is one more number per row rather than a second
 reading.
-
-### §RK1664 A reading with no door
-
-`corpora.shape` answers what each pin holds, and the only two ways to meet it are
-importing the test module or reading the drift warning — which fires only where the live
-tree has moved past the pin. On a machine that is current, or where a corpus is absent,
-it says nothing, and the session most likely to cite a corpus is the one that never ran
-the suite.
-
-L5 is the sentence this fails: every question a maintainer asks a governed file should
-be answerable as a command. *What shape is this corpus* is that question, and `stats`
-already counts open lines and delivered entries per block for any directory somebody can
-name.
-
-**"No supported Python API." does not forbid this and is why the door is a command.**
-That constraint bounds the answer rather than the question: the reading may not become
-an import anybody depends on, so the fix cannot be exporting `shape`.
-
-The pinned bytes are materialised into a temp copy inside the suite and removed at exit,
-so there is nothing to name on a command line. That is deliberate (RK192): a config that
-could reach the checkout is what made a pinned read able to move. `materialise` already
-lands one role's bytes for the caller that needs a file, so the door is a write and not
-a second census — and whether it belongs in the suite, in a script, or nowhere is the
-decision.
 
 ## Block D — The gate
 
@@ -849,52 +777,6 @@ path is a question about execution, and the eight are few enough to drive.
 `tests/test_answers` now has the subprocess that merges the two pipes, which is the
 instrument that was missing when the rule was found the first two times.
 
-### §RK1660 The other fold
-
-RK469 folded findings sharing a sentence and RK1565 folded notes by copying that loop
-one list over. RK1620 then lifted the note half into `linting.runs`, because a *second*
-reader needed it: `cost --notes` was summing one row per note while the report said a
-run of them once, and the only honest fix was one fold with two callers.
-
-The findings' half stayed a loop inside `_print_findings`. So the rule — group by what
-the emitter declared shared, runs of two or more, addresses under the sentence — lives
-in two places, and the pair has already drifted: notes key on `(code, shared)` and
-findings on `(code, shared, file)`, a real difference with a stated reason and also the
-shape a copied loop takes the day somebody changes one.
-
-**What makes a lift worth it is the second reader, not the duplication.** A fold with
-one caller is a printer; RK1620's argument is that a figure claiming to be what a
-session pays has to read what was printed. Nothing prices a *report* — the findings'
-side has no census — so that reader does not exist, and lifting for symmetry alone buys
-indirection against nobody.
-
-So the decision is which this is: a duplication to remove now, or a lift that waits for
-the read needing it. What settles it is whether a report is a cadence — a clean run has
-no findings, and a backlog with standing debt prints the same one every run.
-
-### §RK1662 The other two facts about the session
-
-`_ABOUT_THE_SESSION` is `("install.stale", "install.absent")`, and its sentence says
-these are "about the reader's own tooling rather than about this project's files".
-`gate.behind` and `engine.disagreement` answer to exactly that description — one says
-the copy judging is behind the pinned one, the other that the code answering is not the
-code on disk — and neither is in the set, so neither reaches the summary.
-
-RK1482's argument is about the reader: a session read past three of these for hours and
-only looked when it ran out of roadmap work, so the count went where somebody skimming
-one line a run would meet it. That reader skims past `engine.disagreement` the same way,
-and this repository's own gate emits it on every run with uncommitted work.
-
-The split may still be right. A surface behind is a **count** — five of them are one
-sentence and a number — while a disagreement is one note whose whole content is which
-copies differ, so a summary clause would either repeat it or say `1`, which is the
-clause a reader stops seeing.
-
-What is missing is the sentence saying so. The set's comment argues the pair *in* and
-never the other two *out*, so a fifth session note lands in the same silence: RK1621
-re-took this line's count against a fold that had changed under it, and the set it reads
-was never re-taken at all.
-
 ## Block E — Adoption
 
 ## Block F — The plugin
@@ -922,53 +804,6 @@ on the verification subprocess leaves the copy as written and makes the first re
 pay instead. Deleting `__pycache__` after the check is a second sweep over a tree just
 walked. Or the figure is simply stated — `install --vendor` reports what landed, and a
 report saying 7.24 when the rule says 3.89 is the part that misleads.
-
-### §RK1658 The sample that was never counted
-
-RK1619 read the note as the interpolation after `\n\n`, and kept the first-call reading
-as a fallback so a site spelling no blank line still reports a name. That fallback is
-what makes an undeclared kind fail loudly instead of passing in silence — and it is also
-what makes the opposite failure invisible.
-
-A site that *stops* spelling the separator changes the answer a caller reads: the note
-runs on from the text instead of arriving as a paragraph. Under the fallback the sweep
-still names the kind, `NOTES` still matches, and every test in the suite is green. So
-the one property the reading rests on — that appending a paragraph is what these four
-sites do — is asserted nowhere.
-
-The design's own last sentence asked whether the four sites are the population or a
-sample, and the answer shipped was *a sample plus a fallback*. Three tests construct the
-shapes by hand and none of them reads `serving.py`.
-
-**So count them.** The sweep already walks every `Answer(f"…")` site in that module;
-what it does not say is how many took the primary reading and how many the fallback, and
-the second number is a property with a right answer today: zero. A test asserting it is
-one line beside the census, and it fails on the commit that drops a separator rather
-than on the session that notices the note reads wrong.
-
-### §RK1659 The separator that could be a call
-
-`_advise` writes `Answer(f"{text}\n\n{_kind(…)}")` four times. The blank line is the
-same fact each time — *this note is a paragraph after the answer* — spelled as a literal
-in four places, which is the duplication this package removes wherever it finds one.
-
-RK1564 and RK1619 are both what that costs. Each read the f-string for the note's
-identity, each was exact against the shape it was filed for and inexact against the
-mirror one, and RK1619's answer still needs a fallback: a site spelling the separator
-differently gets the older reading, because a literal is what the sweep matches on.
-
-**One helper dissolves the question.** `_appended(text, note)` composes the blank line
-once, and the site becomes `Answer(_appended(text, _landed(changed, root)))` — where the
-kind is the second argument, not the call after a literal, not the first call in an
-f-string. There is no separator to spell differently, so there is nothing for a fallback
-to be about, and the census reads an argument position rather than a string this module
-happens to write.
-
-Against it: it is a wrapper around a two-part f-string, which is the kind of indirection
-that buys nothing where a rule does not already turn on it. Here one does — twice — so
-the test is whether the reading gets simpler, and it does: one call site shape, no
-literal, no fallback, and the suffix `_now` composers already carry stays exactly where
-it is.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

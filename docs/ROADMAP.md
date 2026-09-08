@@ -41,10 +41,7 @@
 - 💭 **RK1651** (deps: —) **three readings of one source claim to be complements of each other and no test holds any of the three claims** — RK1609 changed what two of them read and the claim survived by luck, the measurement that says so having been taken by hand once. → §RK1651
 - 💭 **RK1653** (deps: —) **five classes answer to notes and one is a gate report, so a sweep over the name is off for three whole test modules** — RK1603 and RK1611 each added a class and an exemption, and each turns the rule off for every assertion in that module rather than for the name. → §RK1653
 - 📋 **RK1656** (deps: —) **a dep on a ruled-out finding resolves as unknown, which says nothing can answer about a file that answers exactly** — RK92 gave the resolver a fifth answer for a paused target, and the seventh role arrived with no sixth. → §RK1656
-- 📋 **RK1657** (deps: —) **budget prices a pause's wrapped reason and not a dismissal's, whose premise is derived by the same rule** — RK1479 gave the pause its own subject because the wrapper is what bounds the sentence, and the second store that wraps one has no number. → §RK1657
-- 📋 **RK1661** (deps: —) **two payloads say notes about two populations, the gate one per address and the census one per printed block** — RK1620 made the figure follow the fold and the key beside it kept its name, so a consumer joining the two counts five against one. → §RK1661
 - 📋 **RK1663** (deps: —) **the per-block half of a pin's shape counts the roadmap's headings, so a finished block's entries land in no row** — Turing's rows account for 55 of 901 delivered, the rest filed under labels whose last line shipped and whose roadmap heading went with it. → §RK1663
-- 📋 **RK1664** (deps: —) **what a pinned corpus holds is answerable only from Python, and the advisory that says it fires only where the tree moved** — RK1622 made the shape readable and left it out of reach of the session writing the design, which is the reader it was built for. → §RK1664
 
 ## Block D — The gate
 
@@ -65,16 +62,12 @@
 - 💭 **RK1649** (deps: —) **answers() spells at most one of a verb's flags and nothing spells exactly one, so a required choice stays a raise** — RK1607 moved four pairs to the parser and left criterion add's, where argparse's required group answers on a command line and says nothing over MCP. → §RK1649
 - 💭 **RK1652** (deps: —) **a config refusal now names the table a key belongs under, and no verb moves it there** — RK1610 ends in a hand edit to the one file govern and declare exist so nobody hand-edits, and a served session has no editor at all. → §RK1652
 - 💭 **RK1654** (deps: —) **ten functions print to both streams in one body and two go through the helper, nothing saying which of the rest need to** — RK1612 gave the rule a function and left the census it named unbuilt, so the guard catches a stray flush and not a stderr print after a stdout one. → §RK1654
-- 📋 **RK1660** (deps: —) **one sentence said once is written twice, the notes' fold lifted out of the gate and the findings' left inside it** — RK1620 moved the note grouping so a figure could read it, and the finding grouping it was copied from is still a loop in the printer. → §RK1660
-- 📋 **RK1662** (deps: —) **two session notes reach the summary and two do not, and the set holding the pair argues for none of the split** — RK1482 named the reader who skims one line a run, and gate.behind and engine.disagreement are that reader's tooling too. → §RK1662
 
 ## Block E — Adoption
 
 ## Block F — The Claude Code plugin (the guardrail at the agent boundary)
 
 - 💭 **RK1648** (deps: —) **verifying a vendored engine runs it, so Python writes three megabytes of bytecode into an artefact just measured at four** — RK1606 took the copy to 3.89 MiB and the --version that proves it imports leaves it at 7.24, which no rule about what is copied can reach. → §RK1648
-- 📋 **RK1658** (deps: —) **nothing says the four answer sites all spell the blank line, so one losing it falls back and stays green** — RK1619 chose a reading bound to a literal and its own fallback hides a site that stopped writing the paragraph the note is. → §RK1658
-- 📋 **RK1659** (deps: —) **the paragraph separator is spelled at four answer sites, so what appending a note is stays a literal a sweep matches** — RK1619 read it off that literal and had to keep a fallback for a site that spells another; one helper would leave nothing to match. → §RK1659
 
 ## Block G — The editor surface (the backlog where the file is open)
 
