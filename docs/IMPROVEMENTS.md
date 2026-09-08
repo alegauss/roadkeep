@@ -125,33 +125,6 @@ assertion worth having or ceremony, is what this design has to weigh.
 
 ## Block C — Query
 
-### §RK1618 Nothing to file is a finding
-
-`delivered` states what a block shipped and `reversals` what it undid, and both are
-named as the read before an `add`. Neither answers the third question a proposal meets:
-was this looked at already and deliberately not filed?
-
-pportal keeps twenty-five such findings in a per-user memory directory outside its git,
-so a second machine, agent or person re-traces them. The tracing is the whole cost:
-`session.c:970` returns without closing a socket and is harmless only because
-`ChiakiTarget` has six values, two of which the guard excludes — reading that took
-longer than any fix it ruled out.
-
-A free-prose reason cannot carry it. *Checked, fine* is unfalsifiable and gets
-re-traced; what makes one durable is the **premise** it names, because that is what a
-later commit breaks. A seventh target value makes `session.c:970` real, and nothing else
-does.
-
-It is none of the three doors that exist. `retire` is for a line that was filed, `defer`
-for work still waiting, `reversals` for a decision undone.
-
-**So a role, on `deferred`'s shape (RK96).** `declare dismissed` opens it, `dismiss`
-files one entry, `reopen` takes it back out. Not the decisions file: a decision is a
-constraint the project chose and a dismissal a finding it ruled out, and one list
-holding both makes *we decided X* and *we checked Y* one kind of sentence. The entry
-carries the subject, the reason, and a **required** premise — the field that is the
-whole point.
-
 ### §RK1622 The shape no test asks a corpus for
 
 RK1566's design named Turing for a property — "a long backlog against a ledger that is

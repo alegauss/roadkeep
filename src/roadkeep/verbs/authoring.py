@@ -22,6 +22,7 @@ from roadkeep.authoring import add, amend, restate, set_status
 from roadkeep.capturing import stamp
 from roadkeep.config import Config
 from roadkeep.deferring import defer, resume
+from roadkeep.dismissing import dismiss, reopen
 from roadkeep.ids import derivation
 from roadkeep.renumbering import renumber
 from roadkeep.verbs.reading import _body_reader, _one_body, _piped
@@ -233,6 +234,40 @@ def _resume(config: Config, args: argparse.Namespace) -> Result | int:
         return _refused(error)
 
     return answered(resumption, config=config, wrote=wrote)
+
+
+def _dismiss(config: Config, args: argparse.Namespace) -> Result | int:
+    """File one finding that was traced and deliberately not filed (RK1618).
+
+    The reason reads the pipe and the premise does not, which is `add`'s split: the reason is
+    the sentence a shell rewrites, and the premise is a claim short enough to type — one pipe
+    per command being the rule `dispatch` holds every verb to.
+    """
+    try:
+        filed = dismiss(
+            config,
+            block=args.block,
+            symptom=args.symptom,
+            reason=_piped(args.reason),
+            premise=args.premise,
+            task_id=args.task_id,
+            family=args.family,
+        )
+        wrote = filed.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    return answered(filed, config=config, wrote=wrote)
+
+
+def _reopen(config: Config, args: argparse.Namespace) -> Result | int:
+    try:
+        filed = reopen(config, args.id, marker=args.marker, ref=args.ref)
+        wrote = filed.save()
+    except REFUSALS as error:
+        return _refused(error)
+
+    return answered(filed, config=config, wrote=wrote)
 
 
 def declare_lines(subcommands: argparse._SubParsersAction) -> None:
@@ -591,4 +626,83 @@ def declare_lines(subcommands: argparse._SubParsersAction) -> None:
     )
     resume_parser.add_argument("--json", action="store_true", help="every edit, as data")
     resume_parser.set_defaults(handler=_resume)
+
+    dismiss_parser = subcommands.add_parser(
+        "dismiss",
+        help="record a finding that was traced and deliberately not filed",
+        description=(
+            "`delivered` says what a block shipped and `reversals` what it undid; neither "
+            "answers whether a proposal was looked at already and left. This files that: "
+            "the subject, the reason, and the premise it holds while — which is the claim a "
+            "later commit breaks, and the only thing that makes the record durable."
+        ),
+    )
+    dismiss_parser.add_argument("--block", required=True, help="the block label, e.g. B")
+    dismiss_parser.add_argument(
+        "--symptom",
+        required=True,
+        help="what was traced — the same phrase a task line would carry, never a fix",
+    )
+    _reason_flag(
+        dismiss_parser,
+        "why it was not filed, one sentence ending in a stop" + _PIPE,
+    )
+    dismiss_parser.add_argument(
+        "--premise",
+        required=True,
+        help=(
+            "what this holds while: the claim a later commit falsifies, without which "
+            "'checked, fine' is unfalsifiable and gets traced again"
+        ),
+    )
+    dismiss_parser.add_argument(
+        "--id",
+        dest="task_id",
+        help="the id (default: derived, one past the highest anywhere)",
+    )
+    dismiss_parser.add_argument(
+        "--prefix",
+        dest="family",
+        help=(
+            "which track the derived id counts in (default: the first declared); only "
+            "a backlog that numbers by track has a second one to name"
+        ),
+    )
+    dismiss_parser.add_argument(
+        "--json", action="store_true", help="the entry, with the file and line it landed on"
+    )
+    withheld(
+        dismiss_parser,
+        family="the id's prefix is `[ids]`' and `next-id` derives it; a caller choosing one is a caller numbering into another project's range",
+    )
+    dismiss_parser.set_defaults(
+        handler=_dismiss, reads_stdin=(Prose(dest="reason", omitted=False),)
+    )
+
+    reopen_parser = subcommands.add_parser(
+        "reopen",
+        help="file a ruled-out finding as work: the premise it held while broke",
+        description=(
+            "The direction that makes a dismissal a record and not a deletion. The entry "
+            "leaves the store and arrives in its block as an open line carrying the subject "
+            "and the reason; the premise is reported once and is not part of what comes "
+            "back, the line being a task and not the history of a decision."
+        ),
+    )
+    reopen_parser.add_argument("id", help="the finding being filed, e.g. RK33")
+    _marker_flag(
+        reopen_parser,
+        "the open marker it arrives at; omitted, the first this project declares — "
+        "the store holds one marker, so what kind of work this is was never a fact it had",
+        dest="marker",
+    )
+    reopen_parser.add_argument(
+        "--ref",
+        help=(
+            "the rationale anchor, for ref_scheme = 'outline' only; otherwise derived — "
+            "a dismissal carries no design, so nothing here can derive one for you"
+        ),
+    )
+    reopen_parser.add_argument("--json", action="store_true", help="every edit, as data")
+    reopen_parser.set_defaults(handler=_reopen)
 

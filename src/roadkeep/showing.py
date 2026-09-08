@@ -36,7 +36,7 @@ from roadkeep.config import DESIGN_ROLES, PROSE_ROLES, Config
 from roadkeep.kernel.document import Document, Entry
 from roadkeep.history import indexed
 from roadkeep.provenance import invocation
-from roadkeep.kernel.schema import Task
+from roadkeep.kernel.schema import Task, dismissal_premise
 from roadkeep.sections import Section, addressable, declaring, find, heading_of
 
 #: A path as prose spells one: inside backticks, or as a Markdown link target. Both are
@@ -281,9 +281,9 @@ def _instead(config: Config, given: str) -> str:
     refuses everywhere else — and the caller who wanted the join would get the section and
     no way to see that they had.
     """
-    paused = _paused(config, given)
-    if paused:
-        return paused
+    held = _paused(config, given) or _ruled_out(config, given)
+    if held:
+        return held
     anchor = given.lstrip("§")
     if not anchor:
         return ""
@@ -329,6 +329,34 @@ def _paused(config: Config, task_id: str) -> str:
         f"{task_id} is paused in {where}:{entry.lineno} — "
         f"`{invocation()} list --role deferred` prints it with the reason it was set aside, "
         f"and `{invocation()} resume {task_id}` returns it to its block"
+    )
+
+
+def _ruled_out(config: Config, task_id: str) -> str:
+    """The dismissed store's answer, on :func:`_paused`'s terms exactly (RK1618).
+
+    A second carrier this read does not open, and the same wrong sentence about it: *never
+    written or was retired* is false about an id sitting in `DISMISSED.md` with a premise
+    beside it — and worse here than one file over, because the whole point of the record is
+    that a later reader finds it instead of tracing the finding again.
+
+    The **premise** is what the answer names, not the reason: a reader who reaches this is
+    deciding whether the finding is live, and that turns on the claim a commit could have
+    broken. Silent where no `dismissed` role is declared, that project having nothing to have
+    ruled out.
+    """
+    if not config.on_disk("dismissed"):
+        return ""
+    entry = config.document("dismissed").by_id().get(task_id)
+    if entry is None:
+        return ""
+    where = config.relative(config.path("dismissed"))
+    premise = dismissal_premise(entry.task.why)
+    holds = f", which holds while {premise}" if premise else ""
+    return (
+        f"{task_id} was ruled out in {where}:{entry.lineno}{holds} — "
+        f"`{invocation()} list --role dismissed` prints it with its reason, and "
+        f"`{invocation()} reopen {task_id}` files it as work when the premise breaks"
     )
 
 

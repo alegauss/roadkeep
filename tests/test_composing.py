@@ -410,6 +410,100 @@ def test_the_door_a_paused_line_names_runs(tmp_path, capsys):
     assert main(["-C", str(root), "ship", "RK1", "--why", "It works now."]) == EXIT_OK
 
 
+#: A dismissal, as `dismiss` renders one. Written out rather than driven where a fixture wants
+#: the store already holding an entry: the premise is what these rows are about, and a line
+#: composed here is one this file can be read beside.
+RULED_OUT = (
+    "- 🚫 **RK7** **A finding traced and left alone** — "
+    "holds while (the caller validates first): the path is unreachable.\n"
+)
+
+
+def test_the_door_a_project_with_no_dismissed_store_names_runs(tmp_path, capsys):
+    """RK1618. The refusal a `dismiss` meets where `[files]` declares no store, and the reason
+    it names a verb at all: the remedy without one is a toml key and a skeleton by hand, which
+    over MCP is the edit the guard denies and so no remedy."""
+    root = departing(tmp_path)
+    assert main([
+        "-C", str(root), "dismiss", "--block", "A",
+        "--symptom", "A finding traced and left alone",
+        "--why", "The path is unreachable.", "--premise", "the caller validates first",
+    ]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    ran = runs(root, said)
+    assert ran and ran[0] == ["declare", "dismissed"], said
+    capsys.readouterr()
+    # And the refused call now lands, which is the half a matched sentence cannot say.
+    assert main([
+        "-C", str(root), "dismiss", "--block", "A",
+        "--symptom", "A finding traced and left alone",
+        "--why", "The path is unreachable.", "--premise", "the caller validates first",
+    ]) == EXIT_OK
+
+
+def test_the_door_a_filed_dismissal_names_runs(tmp_path, capsys):
+    """The row every `dismiss` ends with, which is the one thing the record is *for*: an entry
+    nobody can reopen is the unfalsifiable note the store replaces."""
+    root = departing(tmp_path, **{"DISMISSED.md": "# Ruled out\n\n## Block A\n\n" + RULED_OUT})
+    (root / "roadkeep.toml").write_text(WHOLE + 'dismissed = "DISMISSED.md"\n', encoding="utf-8")
+    assert main([
+        "-C", str(root), "dismiss", "--block", "A",
+        "--symptom", "A second finding traced and left",
+        "--why", "The other path is unreachable too.", "--premise", "the guard runs first",
+    ]) == EXIT_OK
+    said = capsys.readouterr().out
+    ran = runs(root, said)
+    assert ran and ran[-1][:1] == ["reopen"], said
+    capsys.readouterr()
+    # The line it files is the one the door promised, which is what running it proves.
+    assert "A second finding traced and left" in (root / "ROADMAP.md").read_text(encoding="utf-8")
+
+
+def test_the_doors_a_ruled_out_id_names_run(tmp_path, capsys):
+    """RK1618. `show` answered *never written or was retired* about an id sitting in the store
+    with a premise beside it — the same wrong sentence RK1341 removed one file over, and worse
+    here: the whole point of the record is that the next reader finds it."""
+    root = departing(tmp_path, **{"DISMISSED.md": "# Ruled out\n\n## Block A\n\n" + RULED_OUT})
+    (root / "roadkeep.toml").write_text(WHOLE + 'dismissed = "DISMISSED.md"\n', encoding="utf-8")
+    assert main(["-C", str(root), "show", "RK7"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    ran = runs(root, said)
+    assert [one[:2] for one in ran] == [["list", "--role"], ["reopen", "RK7"]], said
+
+
+def test_the_door_a_reopen_that_places_no_line_names_runs(tmp_path, capsys):
+    """The `--marker` refusal, and both its steps in order (RK1593's rule at a second store):
+    `status` will not write a marker for an id the store still holds, so the removal this call
+    was going to make has to come first."""
+    root = departing(
+        tmp_path,
+        **{
+            "ROADMAP.md": "# Roadmap\n\n## Block A\n\n" + LINE.format(marker="📋").replace(
+                "RK1", "RK7"
+            ),
+            "IMPROVEMENTS.md": (
+                "# Improvements\n\n## Block A\n\n### §RK7 A design\n\n"
+                "The reasoning the line has no room for.\n"
+            ),
+            "DISMISSED.md": "# Ruled out\n\n## Block A\n\n" + RULED_OUT,
+        },
+    )
+    (root / "roadkeep.toml").write_text(WHOLE + 'dismissed = "DISMISSED.md"\n', encoding="utf-8")
+    working = Config.discover(root).schema.working
+    assert main(["-C", str(root), "reopen", "RK7", "--marker", working]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    first, second = [one for one in commands(said) if one[:1] != ["report"]]
+    assert first == ["reopen", "RK7"], said
+    # The marker is filled here and not by `filled`: a positional blank has no flag in front of
+    # it to read a value off, so the substitution is the test's, from the project's own schema.
+    assert second == ["status", "RK7", "<marker>"], said
+    assert main(["-C", str(root), *first]) == EXIT_OK
+    assert main([
+        "-C", str(root), *[one if one != "<marker>" else working for one in second]
+    ]) == EXIT_OK
+    assert f"{working} **RK7**" in (root / "ROADMAP.md").read_text(encoding="utf-8")
+
+
 def test_the_door_two_tasks_sharing_an_id_names_runs(tmp_path, capsys):
     # Both files carry RK1 and describe different work, so they are two tasks with one address
     # rather than an interrupted transaction — and the door gives the open one its own.

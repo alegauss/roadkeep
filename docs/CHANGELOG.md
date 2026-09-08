@@ -477,6 +477,7 @@
 - ✅ **RK1573** **declare non_goals opens a table whose verb refuses, nothing writing the heading that declares the list** — The first non-goal opens the list, as criterion add and priority add open theirs: the heading lands where init writes it and the answer says it appeared, so the table declare opens is usable.
 - ✅ **RK1608** **a narrowing flag whose vocabulary the project declared nothing for filters nothing and says nothing** — A narrowing flag with nothing to narrow now says so on its own row, and a --have word outside a vocabulary the project did declare is refused as add --requires already refuses it.
 - ✅ **RK1609** **three scans of one rule reconstruct a composed command three ways, and a value sits in the gap between them** — The three scans share one reading of a composed command, so a span crossing an f-string's parts re-forms and the scan that reads a name reads ids and governed files too.
+- ✅ **RK1618** **delivered and reversals are the reads before an add, and neither holds what was traced and not filed** — A dismissed role on the deferred store's shape: dismiss files a subject, a reason and a required premise, and reopen files it as work when that premise breaks.
 
 ## Block D — The gate
 

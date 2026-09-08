@@ -143,7 +143,12 @@ def highest(config: Config, family: str | None = None) -> IdRef | None:
 #: The roles whose files carry an id as a **line** — a task, an entry, a paused line. Every
 #: other occurrence of an id anywhere is a mention in a sentence, and the scan cannot tell
 #: the two apart because every id starts as one (RK431).
-CARRIERS = ("roadmap", "changelog", "deferred")
+#:
+#: `dismissed` is the fourth (RK1618). A finding ruled out is filed under an id like every
+#: other record here, and it has to be one: `reopen` addresses it, and an id the derivation
+#: could hand out twice would put a dismissal and a task at one address — which is the rule
+#: RK4 keeps and the one thing this store must not be allowed to break.
+CARRIERS = ("roadmap", "changelog", "deferred", "dismissed")
 
 
 def carried(config: Config) -> frozenset[str]:

@@ -309,7 +309,10 @@ def test_every_write_command_is_either_wired_or_exempted():
     # file, and the staging line is what a commit about a replaced constraint reads.
     # 42 since `revise` (RK1453), wired for `supersede`'s reason exactly: it is the correction
     # door in the same file, and a commit fixing a word in a constraint stages it the same way.
-    assert len(declared) == 42 and len(wired) == 36
+    # 44 since `dismiss` and `reopen` (RK1618), both wired: one writes the dismissed store and
+    # the other moves a line between it and the roadmap, and a commit that filed a finding
+    # nobody looked at again reads the staging line for the file it landed in.
+    assert len(declared) == 44 and len(wired) == 38
 
 
 def test_every_wired_write_reaches_the_one_printer():
@@ -435,6 +438,7 @@ changelog = "CHANGELOG.md"
 improvements = "IMPROVEMENTS.md"
 decisions = "DECISIONS.md"
 deferred = "DEFERRED.md"
+dismissed = "DISMISSED.md"
 
 [limits]
 line = 140
@@ -477,6 +481,7 @@ MEASURING_FILES = {
         "- ✅ **RK9** **A shipped symptom** — The store is the repository.\n"
     ),
     "DEFERRED.md": "# Deferred\n\n## Block A\n",
+    "DISMISSED.md": "# Ruled out\n\n## Block A\n",
 }
 
 OVER = ("a word that is plainly far too long to fit " * 4).strip() + "."
@@ -495,6 +500,13 @@ MEASURED: dict[tuple[str, str], list[str]] = {
     ("amend", "why"): ["amend", "RK1", "--why", OVER],
     ("restate", "symptom"): ["restate", "RK1", "--symptom", OVER],
     ("defer", "reason"): ["defer", "RK1", "--reason", OVER],
+    # RK1618. `defer`'s row one store over, and the same measurement: the reason is wrapped in
+    # a derived premise before anything is rendered, so what refuses it is the *line*, and a
+    # write that composed the wrapper without measuring it would be L1 inverted again.
+    ("dismiss", "reason"): [
+        "dismiss", "--block", "A", "--symptom", "A symptom",
+        "--premise", "the guard runs first", "--reason", OVER,
+    ],
     ("retire", "reason"): ["retire", "RK1", "--reason", OVER],
     ("ship", "why"): ["ship", "RK1", "--why", OVER],
     ("ship", "decides"): ["ship", "RK1", "--why", "Done.", "--decides", OVER],

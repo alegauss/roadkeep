@@ -59,6 +59,11 @@ class Where(StrEnum):
     #: `amend`, `restate` and `status` refused a paused line in the words a typo gets, while
     #: `sentence` said *no file mentions it* about a line the store carries verbatim.
     PAUSED = "paused"
+    #: The dismissed store holds it (RK1618) — a finding somebody traced and did not file.
+    #: A fifth state for :attr:`PAUSED`'s reason exactly: an id in that store is not an
+    #: absence, and reading it as one loses the very fact a `reopen` would change — and
+    #: sends the reader to look for work that was deliberately never filed.
+    DISMISSED = "dismissed"
     #: The ledger carries it, shipped or retired — :attr:`Whereabouts.marker` says which.
     RECORDED = "recorded"
     NOWHERE = "nowhere"
@@ -99,6 +104,13 @@ class Whereabouts:
         if config.on_disk("deferred"):
             if config.document("deferred").by_id().get(task_id) is not None:
                 return cls(Where.PAUSED)
+        if config.on_disk("dismissed") and (
+            config.document("dismissed").by_id().get(task_id) is not None
+        ):
+            # Before the ledger and after the pause (RK1618), which is the order's own rule:
+            # this reads down from *most alive* to *least*, and a finding ruled out is one
+            # command from open while a recorded id is not.
+            return cls(Where.DISMISSED)
         if config.on_disk("changelog"):
             recorded = config.document("changelog").by_id().get(task_id)
             if recorded is not None:
@@ -114,6 +126,10 @@ class Whereabouts:
         return self.where is Where.PAUSED
 
     @property
+    def dismissed(self) -> bool:
+        return self.where is Where.DISMISSED
+
+    @property
     def sentence(self) -> str:
         """The clause a refusal appends after naming where the id is not.
 
@@ -125,6 +141,10 @@ class Whereabouts:
             return "it is open in the roadmap"
         if self.where is Where.PAUSED:
             return "the deferred store holds it — `resume` brings it back"
+        if self.where is Where.DISMISSED:
+            # Names its verb for the pause's reason (RK1618): a finding ruled out is one
+            # command from open, which is what makes it a state and not an absence.
+            return "the dismissed store holds it — `reopen` files it as work"
         if self.where is Where.RECORDED:
             return f"the changelog records it as {self.marker}"
         return "no file mentions it"
@@ -425,6 +445,11 @@ class Backlog:
     #: loading it only where somebody remembered to is how a fifth status comes to mean
     #: "unknown" in every command that forgot.
     store: Document | None = None
+    #: The dismissed store (RK1618), read for the store's own reason: it is a file that can
+    #: hold a line for an id, so the gate that reports two files claiming one has to be able
+    #: to open it — and a carrier loaded only where somebody remembered to is how a
+    #: contradiction comes to be reported in three of the four pairs.
+    dismissals: Document | None = None
 
     @classmethod
     def load(cls, config: Config) -> Backlog:
@@ -433,6 +458,7 @@ class Backlog:
             roadmap=config.document("roadmap"),
             ledger=_present(config, "changelog"),
             store=_present(config, "deferred"),
+            dismissals=_present(config, "dismissed"),
         )
 
     @classmethod
@@ -443,6 +469,7 @@ class Backlog:
         roadmap: Document,
         ledger: Document | None = None,
         store: Document | None = None,
+        dismissals: Document | None = None,
     ) -> Backlog:
         """A backlog mid-write: the documents this transaction creates, the rest from disk.
 
@@ -457,6 +484,9 @@ class Backlog:
             roadmap=roadmap,
             ledger=ledger if ledger is not None else _present(config, "changelog"),
             store=store if store is not None else _present(config, "deferred"),
+            dismissals=(
+                dismissals if dismissals is not None else _present(config, "dismissed")
+            ),
         )
 
     # -- lookups -----------------------------------------------------------

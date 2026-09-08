@@ -34,6 +34,7 @@ from roadkeep.kernel.schema import (
     DEFAULT_GRAMMARS,
     DEFAULT_HEADING_WORD,
     DEFERRED,
+    DISMISSED,
     DROPPABLE,
     IN_PROGRESS,
     MARKER_NAMES,
@@ -64,7 +65,23 @@ PYPROJECT = "pyproject.toml"
 #: a decision leaves by one, being superseded, so nothing in that file is ever deleted and it
 #: grows only by decisions somebody actually made. **A named role and not an open tuple**: a
 #: role no machinery knows is a file with no schema, which is the convention this tool replaces.
-ROLES = ("roadmap", "changelog", "improvements", "strategy", "deferred", "decisions")
+#:
+#: `dismissed` is the seventh (RK1618), and the one whose subject never was a task: `delivered`
+#: says what a block shipped and `reversals` what it undid, and neither answers the third
+#: question a proposal meets — *was this looked at already and deliberately not filed?* The
+#: entry carries the subject, the reason and the premise it holds while, which is the field a
+#: later commit breaks. Not the decisions file: a decision is a constraint the project chose and
+#: a dismissal a finding it ruled out, and one list holding both makes *we decided X* and *we
+#: checked Y* one kind of sentence.
+ROLES = (
+    "roadmap",
+    "changelog",
+    "improvements",
+    "strategy",
+    "deferred",
+    "decisions",
+    "dismissed",
+)
 
 #: The governed files a `→ §<anchor>` pointer may address (RK172). Both, because `[files]`
 #: declares strategy as a governed role and a line pointing at it is already in the model.
@@ -95,7 +112,11 @@ DESIGN_ROLES = ("improvements", "strategy")
 #: to fail loudly and did not — reporting a widest over three files where four hold lines,
 #: and accepting a limit the fourth already breaks. Two overlapping sets are what the format
 #: has, so each is named.
-LINE_ROLES = ("roadmap", "changelog", "deferred", "decisions")
+#:
+#: `dismissed` is the fifth (RK1618): a finding ruled out is filed as a line, so a file this
+#: gate did not read would be the one place the format is a convention again — which is exactly
+#: what the per-user memory directory holding twenty-five of them already was.
+LINE_ROLES = ("roadmap", "changelog", "deferred", "decisions", "dismissed")
 
 DEFAULT_PATHS: Mapping[str, str] = {
     "roadmap": "docs/ROADMAP.md",
@@ -129,6 +150,12 @@ DEFERRED_PATH = "docs/DEFERRED.md"
 #: is what writes one — never a `ship --decides` on the way past, a store invented at the moment
 #: one is needed being a format decided by a verb.
 DECISIONS_PATH = "docs/DECISIONS.md"
+
+#: Where the dismissed store goes when one is asked for (RK1618). Beside the three above and
+#: for their reason: a project that has ruled nothing out has no file, and `declare dismissed`
+#: is what writes one — never a `dismiss` on the way past, a store invented at the moment one
+#: is needed being a format decided by a verb.
+DISMISSED_PATH = "docs/DISMISSED.md"
 
 _TOP_KEYS = frozenset(
     {
@@ -265,7 +292,19 @@ _LIMIT_KEYS = {
     "prose": "prose_width",
 }
 _MARKER_KEYS = frozenset(
-    {"open", "shipped", "retired", "deferred", "undesigned", "working", "partial"}
+    {
+        "open",
+        "shipped",
+        "retired",
+        "deferred",
+        # RK1618. The fifth file that states a status, and the fifth glyph a project may
+        # spell its own way — for `deferred`'s reason exactly: a marker the package chose
+        # would be this tool declaring a state in somebody else's file (L6).
+        "dismissed",
+        "undesigned",
+        "working",
+        "partial",
+    }
 )
 # The invisible ones. A marker carrying U+FE0F renders identically and compares
 # unequal, so a config that declares one puts every line in the file permanently
@@ -1358,6 +1397,7 @@ def _markers(raw: object, problems: list[str]) -> dict[str, object]:
         "shipped_marker": SHIPPED,
         "retired_marker": RETIRED,
         "deferred_marker": DEFERRED,
+        "dismissed_marker": DISMISSED,
         "undesigned": UNDESIGNED,
         "working": IN_PROGRESS,
         "partial": PARTIAL,
@@ -1374,6 +1414,7 @@ def _markers(raw: object, problems: list[str]) -> dict[str, object]:
     shipped = _one_marker(raw, "shipped", SHIPPED, problems)
     retired = _one_marker(raw, "retired", RETIRED, problems)
     deferred = _one_marker(raw, "deferred", DEFERRED, problems)
+    dismissed = _one_marker(raw, "dismissed", DISMISSED, problems)
     if shipped == retired:
         problems.append(
             "markers.shipped and markers.retired must differ: a ledger where both "
@@ -1387,11 +1428,21 @@ def _markers(raw: object, problems: list[str]) -> dict[str, object]:
             "markers.deferred must differ from shipped and retired: a paused task that "
             "reads as a departure is the one distinction the state exists to make"
         )
+    if dismissed in (shipped, retired, deferred):
+        # The same cross-key check one marker over (RK1618), and the same reason it is here:
+        # the dismissed store's marker meets these three only inside `as_dismissed`, so a
+        # project spelling two of them alike would be refused by a method call rather than by
+        # the table it typed them in.
+        problems.append(
+            "markers.dismissed must differ from shipped, retired and deferred: a finding "
+            "ruled out that reads as a departure or a pause is a record of work, which is "
+            "what it is a record of never having been"
+        )
     undesigned = _undesigned(raw, open_markers or OPEN_MARKERS, problems)
     spelled = open_markers or OPEN_MARKERS
     working = _narrowed(raw, "working", IN_PROGRESS, spelled, problems, _WORKING_WHY)
     partial = _narrowed(raw, "partial", PARTIAL, spelled, problems, _PARTIAL_WHY)
-    for marker in (*open_markers, shipped, retired, deferred):
+    for marker in (*open_markers, shipped, retired, deferred, dismissed):
         _reject_invisible(marker, problems)
     if "ledger" in raw:
         # Moved to its own table by RK48, and refused rather than aliased: two spellings of
@@ -1406,6 +1457,7 @@ def _markers(raw: object, problems: list[str]) -> dict[str, object]:
         "shipped_marker": shipped,
         "retired_marker": retired,
         "deferred_marker": deferred,
+        "dismissed_marker": dismissed,
         "undesigned": undesigned,
         "working": working,
         "partial": partial,

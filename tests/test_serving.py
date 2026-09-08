@@ -122,7 +122,7 @@ OUTLINED = (
 #: reads as an answer about the package.
 WHOLE = PROSE + (
     'strategy = "docs/STRATEGY.md"\ndeferred = "docs/DEFERRED.md"\n'
-    'decisions = "docs/DECISIONS.md"\n'
+    'decisions = "docs/DECISIONS.md"\ndismissed = "docs/DISMISSED.md"\n'
 )
 
 
@@ -229,6 +229,11 @@ def test_the_tools_are_what_a_task_needs_end_to_end():
         # terminal ones, because a session that has to choose between them is at that spot.
         "defer",
         "resume",
+        # And the fifth and sixth (RK1618), whose subject was never a line: the agent that
+        # traced a finding and decided not to file it is this caller, and what it had instead
+        # was a note in a per-user directory outside the repository.
+        "dismiss",
+        "reopen",
         "record_add",
         "record_amend",
         # The move `record_amend` refuses to spell as a correction (RK143): an entry filed
@@ -1157,6 +1162,11 @@ def test_the_read_only_hint_says_which_tools_write(tmp_path):
         # terminal ones, because a session that has to choose between them is at that spot.
         "defer",
         "resume",
+        # And the fifth and sixth (RK1618), whose subject was never a line: the agent that
+        # traced a finding and decided not to file it is this caller, and what it had instead
+        # was a note in a per-user directory outside the repository.
+        "dismiss",
+        "reopen",
         "record_add",
         "record_amend",
         "record_move",
@@ -1530,6 +1540,9 @@ def test_the_paths_that_could_reach_it_are_the_ones_declared():
         "criterion_amend",
         "retire",
         "defer",
+        # RK1618. Its `--reason` is the author's sentence with a derived premise wrapped round
+        # it, so it reaches the pipe for the reason `defer`'s does one store over.
+        "dismiss",
         # The decisions file's correction door (RK1453): its `--decides` is the one sentence
         # in that file, and it reaches the pipe for the same reason every `--why` does.
         "revise",
@@ -1674,15 +1687,17 @@ def test_the_tool_that_declares_a_scope_is_not_the_tool_that_takes_the_line(tmp_
 
 def test_a_tool_bound_to_a_role_is_published_only_where_the_role_is():
     bound = {tool.name: tool.needs for tool in TOOLS if tool.needs}
-    # Four, and each of them the whole grammar of one role: the pause, the return, and the
-    # decisions role's departure and its correction (RK1453). A tool serving a role every
-    # project has would be a `needs` that never narrows anything and a claim this test could
-    # not falsify.
+    # Six, and each of them the whole grammar of one role: the pause, the return, the
+    # decisions role's departure and its correction (RK1453), and the dismissed store's two
+    # doors (RK1618). A tool serving a role every project has would be a `needs` that never
+    # narrows anything and a claim this test could not falsify.
     assert bound == {
         "defer": "deferred",
         "resume": "deferred",
         "supersede": "decisions",
         "revise": "decisions",
+        "dismiss": "dismissed",
+        "reopen": "dismissed",
     }
     bare = Config.default()
     for name, role in bound.items():
@@ -1697,7 +1712,7 @@ def test_the_surface_shrinks_by_exactly_what_the_undeclared_roles_cost(tmp_path,
     # project is sent is now what it can call, so a role it never declared costs it nothing.
     every = listed(project(other, config=WHOLE))
     three = listed(project(tmp_path))
-    bound = ("defer", "resume", "supersede", "revise")
+    bound = ("defer", "resume", "supersede", "revise", "dismiss", "reopen")
     assert set(every) - set(three) == set(bound)
     withheld = sum(width(json.dumps(every[name], ensure_ascii=False)) for name in bound)
     narrow = dict(serving.surface(Config.discover(tmp_path)).tools)

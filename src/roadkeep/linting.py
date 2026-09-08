@@ -3516,6 +3516,7 @@ def _carried(config: Config, backlog: Backlog) -> list[Finding]:
         "roadmap": backlog.roadmap,
         "changelog": backlog.ledger,
         "deferred": backlog.store,
+        "dismissed": backlog.dismissals,
     }
     out: list[Finding] = []
     for pair in PAIRS:

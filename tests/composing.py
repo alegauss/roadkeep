@@ -240,6 +240,14 @@ SITES: tuple[Site, ...] = (
     # the one command it named refuses there, the store still holding the line, so the same
     # call without the flag is the step before it and the refusal now names both in order.
     Site("deferring.py:NoPlacement.__init__", "run"),
+    # RK1618. The second store's four, all run by `test_composing`: the refusal a project with
+    # no store meets and the verb that opens one, the `reopen` row every filed entry ends with,
+    # the two reads an id nobody can find otherwise answers with, and the same `--marker`
+    # refusal one file over — which is `NoPlacement`'s sentence and its two steps in order.
+    Site("dismissing.py:NoStore.__init__", "run"),
+    Site("dismissing.py:NoPlacement.__init__", "run"),
+    Site("dismissing.py:Dismissal.stated", "run"),
+    Site("showing.py:_ruled_out", "run"),
     # RK1498, RK327's offer. The rank is the half a pause cannot keep, so a resume names the
     # command that puts the line back in the order rather than choosing a place for it —
     # run against a roadmap that declares one, an offer nothing refuses being an offer only

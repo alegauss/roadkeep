@@ -87,12 +87,49 @@ DEFERRED = "\N{DOUBLE VERTICAL BAR}"  # ⏸
 PAUSED_OPEN = "set aside ("
 PAUSED_CLOSE = "): "
 
+#: A finding somebody traced and deliberately did not file (RK1618). Lives in the dismissed
+#: store and nowhere else, on ⏸'s own terms: a roadmap that can say "ruled out" is a backlog
+#: counting work nobody will do, and a ledger that can is a ledger of departures for work that
+#: never arrived. The one state that is neither open, terminal, nor paused.
+DISMISSED = "\N{NO ENTRY SIGN}"  # 🚫
+
+#: What a dismissal wraps its reason in, and what a reopen takes back off (RK1618). The pause's
+#: shape one file over and for the pause's reason (RK1115): the entry's whole point is the
+#: **premise** it names, that being what a later commit breaks, and the line format has no slot
+#: for a fourth field — so the derived half is written around the author's sentence and read
+#: back off it, never mixed into it.
+DISMISSED_OPEN = "holds while ("
+#: One spelling for both wrappers, because it is one rule: a derived prefix ends at the first
+#: ``): ``, both doors refuse an argument that spells it, and a second closing sequence would be
+#: a second thing :func:`authored_why` has to know before it can give a sentence back.
+DISMISSED_CLOSE = PAUSED_CLOSE
+
+#: Every derived prefix a `why` may carry, by the store that writes it. Read as a list rather
+#: than asked one door at a time: the rule that measures an author's half is one rule, and a
+#: wrapper it did not know about is a limit charging somebody for characters a verb composed.
+_WRAPPERS = (PAUSED_OPEN, DISMISSED_OPEN)
+
+
+def _wrapped(why: str, opening: str) -> str | None:
+    """What one derived prefix carries, or None where this is not the prefix it opens with."""
+    if not why.startswith(opening) or PAUSED_CLOSE not in why:
+        return None
+    return why[len(opening) :].split(PAUSED_CLOSE, 1)[0]
+
 
 def pause_reason(why: str) -> str | None:
     """The reason a pause recorded, or None where the prefix is not the one above."""
-    if not why.startswith(PAUSED_OPEN) or PAUSED_CLOSE not in why:
-        return None
-    return why[len(PAUSED_OPEN) :].split(PAUSED_CLOSE, 1)[0]
+    return _wrapped(why, PAUSED_OPEN)
+
+
+def dismissal_premise(why: str) -> str | None:
+    """The premise a dismissal holds while, or None where nothing wrote one (RK1618).
+
+    :func:`pause_reason`'s twin, and the two are told apart by their opening words alone —
+    which is what keeps `resume` from unwrapping a dismissal and `reopen` from unwrapping a
+    pause, neither store holding the other's lines.
+    """
+    return _wrapped(why, DISMISSED_OPEN)
 
 
 def authored_why(why: str) -> str:
@@ -101,8 +138,12 @@ def authored_why(why: str) -> str:
     Left exactly as written when the prefix is not there: an `amend` may have replaced the
     whole sentence while the line was paused, and stripping a prefix nothing wrote would be
     this tool editing prose (L4).
+
+    Whichever prefix it is (RK1618). Two stores write one now, and a reader that knew only the
+    older one would charge a dismissal's author for the fourteen characters a verb composed —
+    which is the defect RK1115 removed for the first store, arriving again through the second.
     """
-    if pause_reason(why) is None:
+    if not any(_wrapped(why, opening) is not None for opening in _WRAPPERS):
         return why
     return why.split(PAUSED_CLOSE, 1)[1]
 
@@ -351,6 +392,7 @@ MARKER_NAMES: Mapping[str, str] = {
     "shipped": "shipped_marker",
     "retired": "retired_marker",
     "deferred": "deferred_marker",
+    "dismissed": "dismissed_marker",
 }
 
 
@@ -418,6 +460,13 @@ DEFAULT_GRAMMARS: Mapping[str, Grammar] = {
     # id scheme and so reachable with no pointer on the line at all. Nothing here changes —
     # the grammar was already right, and the role joined `PROSE_ROLES` instead.
     "decisions": Grammar(markers=("shipped", "retired"), drop=("deps", "ref"), states="shipped"),
+    # The store's marker and the ledger's two drops (RK1618), which is not a compromise between
+    # them but the shape a dismissal has: nothing was ever filed, so there is no design section
+    # for a pointer to reach and no blocker for a `(deps: …)` to name. What it keeps is the
+    # symptom — the subject somebody traced — and the `why`, which carries the premise wrapped
+    # around the reason. One marker, because the file *is* the state: a 🚫 legal anywhere else
+    # would be a second file able to say this finding was ruled out.
+    "dismissed": Grammar(markers=("dismissed",), drop=("deps", "ref"), states="dismissed"),
 }
 
 
@@ -971,6 +1020,10 @@ class Schema:
     #: sits in is what says whether it is being worked, so a marker legal in two files is
     #: two files that can both claim one task.
     deferred_marker: str = DEFERRED
+    #: The dismissed store's only legal marker (RK1618), on the three above's terms exactly:
+    #: the file a line sits in is what says what was decided about it, so a marker legal in two
+    #: files is two files that can both answer *was this looked at and left*.
+    dismissed_marker: str = DISMISSED
     #: The open markers whose design is still to be written (RK83), `[markers] undesigned`.
     #: A subset of :attr:`markers` — checked where it is typed, like the shipped/deferred
     #: clash, because this list only ever meets the open set inside `pick`. Nothing here
@@ -1048,6 +1101,9 @@ class Schema:
     #: The same claim for the deferred store, whose own status is ⏸ (RK96). Set by
     #: :meth:`as_deferred`, never by hand.
     deferred_allowed: bool = False
+    #: And for the dismissed store, whose own status is 🚫 (RK1618). Set by
+    #: :meth:`as_dismissed`, never by hand.
+    dismissed_allowed: bool = False
     #: The ledger carries no `(deps: …)` group: a dependency is a planning fact
     #: about unshipped work, and a shipped line has none left to state.
     deps_field: bool = True
@@ -1146,6 +1202,12 @@ class Schema:
                 f"{self.deferred_marker} is the deferred marker and may not also be an "
                 "open marker: a roadmap that can say 'paused' is a backlog `pick` reads "
                 "as work waiting to be started"
+            )
+        if self.dismissed_marker in self.markers and not self.dismissed_allowed:
+            raise ValueError(
+                f"{self.dismissed_marker} is the dismissed marker and may not also be an "
+                "open marker: a roadmap that can say 'ruled out' is a backlog holding "
+                "findings nobody filed"
             )
         for name in (
             "symptom_max",
@@ -1353,6 +1415,22 @@ class Schema:
         """
         return self.under(DEFAULT_GRAMMARS["deferred"])
 
+    @property
+    def is_dismissed(self) -> bool:
+        """This is the dismissed store's configuration — the one file whose status is 🚫."""
+        return self.dismissed_allowed
+
+    def as_dismissed(self) -> Schema:
+        """The same format as the dismissed store reads it (RK1618, L6 again).
+
+        The marker swapped and the two slots a finding nobody filed has nothing to put in
+        dropped: there is no design section for a pointer to reach, because the whole claim
+        is that no work was filed, and no `(deps: …)`, because nothing is waiting on a
+        decision to rule something out. What stays is the pair a reader judges it by — the
+        subject that was traced, and the sentence carrying the premise it holds while.
+        """
+        return self.under(DEFAULT_GRAMMARS["dismissed"])
+
     def under(self, declared: Grammar) -> Schema:
         """This format as one role's declaration shapes it (RK1064).
 
@@ -1559,6 +1637,7 @@ class Schema:
         out.extend(self._check_requires(task))
         out.extend(self._check_symptom(task))
         out.extend(self._check_why(task))
+        out.extend(self._check_premise(task))
         out.extend(self._check_ref(task))
 
         rendered = self.render(task)
@@ -1964,7 +2043,9 @@ class Schema:
         # left to a line that was neither shipped nor abandoned were the two terminal ones.
         # The whole line is still bounded: `line.too-long` measures what is rendered, and on a
         # paused line the structure around the prose is exactly what it names.
-        measured = authored_why(task.why) if self.is_deferred else task.why
+        # Both stores that write one (RK1618): a dismissal's premise is derived by the same
+        # rule and is charged to nobody for the same reason.
+        measured = authored_why(task.why) if self.is_deferred or self.is_dismissed else task.why
         budget = self.why_budget(task)
         because = ""
         bound = ""
@@ -2022,6 +2103,36 @@ class Schema:
                 )
             )
         return out
+
+    def _check_premise(self, task: Task) -> list[Violation]:
+        """A dismissal states the premise it holds while, and this is the field's rule (RK1618).
+
+        The one slot in this format that is **required prose the tool composed the frame of**,
+        and it is required because of what the record is for: *checked, fine* is unfalsifiable
+        and gets re-traced by the next reader, and what makes a dismissal durable is the claim a
+        later commit can break. A store of entries without one is the per-user note the whole
+        role replaces.
+
+        Checked here and not only at the door, which is L1's own arrangement read the right way
+        round: `dismiss` refuses an entry with no premise before a word of it is composed, and
+        this is what an entry hand-edited past that door meets. Nowhere else, because no other
+        file's grammar has the wrapper to look for.
+        """
+        # Blank counts as absent, and that is the rule rather than a tolerance: `holds while
+        # (): …` is the wrapper with nothing in it, which reads as a premise to every eye and
+        # falsifies nothing — so the one state this field exists to prevent would be reachable
+        # by typing two spaces.
+        if not self.is_dismissed or (dismissal_premise(task.why) or "").strip():
+            return []
+        return [
+            Violation(
+                "premise.missing",
+                "why",
+                f"a dismissal names the premise it holds while, written as "
+                f"{DISMISSED_OPEN}<premise>{DISMISSED_CLOSE}in front of the reason: "
+                f"without one nothing says which later commit makes this finding real again",
+            )
+        ]
 
     def _check_ref(self, task: Task) -> list[Violation]:
         if not task.ref:

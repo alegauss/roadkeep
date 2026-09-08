@@ -151,6 +151,13 @@ WRITES: tuple[tuple[tuple[str, ...], str], ...] = (
     (("non-goal", "drop", "No web UI."), "the constraint"),
     (("declare", "strategy"), "a role a project declined at scaffold time"),
     (("govern", "limits.symptom", "120", "--because", "Measured on the lines that read well."), "a number in roadkeep.toml"),
+    # The seventh role and its two doors (RK1618), declared here rather than in the fixture for
+    # the reason the row above it exists: `declare` is the only way this store is ever opened,
+    # so the sweep drives the sequence an adopter actually runs. The id is named because the
+    # row below it has to address the entry, and a derived one is not knowable from a table.
+    (("declare", "dismissed"), "the store a finding nobody filed goes into"),
+    (("dismiss", "--block", "B", "--symptom", "A symptom traced and left", "--why", "The path is unreachable.", "--premise", "the caller validates first", "--id", "RK20"), "what was looked at and deliberately not filed"),
+    (("reopen", "RK20"), "and the way back, for the day the premise breaks"),
     (("block", "drop", "C"), "a label opened by mistake, last, its subtree still blank"),
 )
 

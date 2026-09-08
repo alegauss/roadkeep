@@ -192,6 +192,28 @@ PAIRS: tuple[Carried, ...] = (
         code="id.paused-and-gone",
         says="recorded as gone and still paused are not both true",
         ),
+    # The fourth carrier's three (RK1618). Reachable for the reason the store's pair is: the
+    # two writes `reopen` makes are ordered so that a crash between them leaves the line in
+    # both files rather than in neither, which is a state a reader can see and a second call
+    # can finish — and a state the gate has to be able to name.
+    Carried(
+        first="roadmap",
+        second="dismissed",
+        code="id.dismissed-and-open",
+        says="open and ruled out are not both true",
+    ),
+    Carried(
+        first="changelog",
+        second="dismissed",
+        code="id.dismissed-and-gone",
+        says="recorded as gone and ruled out without ever being filed are not both true",
+    ),
+    Carried(
+        first="deferred",
+        second="dismissed",
+        code="id.dismissed-and-paused",
+        says="set aside to come back and ruled out are not both true",
+    ),
 )
 
 

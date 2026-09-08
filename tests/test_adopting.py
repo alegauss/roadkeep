@@ -2359,9 +2359,11 @@ def test_the_estimate_names_the_door_this_project_has_not_got(tmp_path: Path) ->
         Config.discover(tmp_path), str(tmp_path / "R.md")
     ).gains}
     # The category RK1089 named: the store, a prose file to point at, the roadmap's other
-    # bullet, the queue, and the decisions file (RK1269). Each says what the project has
-    # *instead*.
-    assert set(named) == {"pause", "design", "non-goals", "queue", "decisions"}
+    # bullet, the queue, the decisions file (RK1269) and the dismissed store (RK1618). Each
+    # says what the project has *instead*.
+    assert set(named) == {
+        "pause", "design", "non-goals", "queue", "decisions", "dismissed"
+    }
     assert "no deferred store" in named["pause"] and "terminal" in named["pause"]
 
 
@@ -2370,7 +2372,8 @@ def test_a_project_with_every_door_reports_no_gains(tmp_path: Path) -> None:
     # estimate takes: a limit stated where it does not bite is noise.
     (tmp_path / "roadkeep.toml").write_text(
         'prefix = "RK"\n[files]\nroadmap = "R.md"\ndeferred = "D.md"\n'
-        'improvements = "I.md"\ndecisions = "K.md"\n[non_goals]\nlead = 60\nwhy = 200\n',
+        'improvements = "I.md"\ndecisions = "K.md"\ndismissed = "X.md"\n'
+        '[non_goals]\nlead = 60\nwhy = 200\n',
         encoding="utf-8",
     )
     (tmp_path / "R.md").write_text(
@@ -2381,6 +2384,7 @@ def test_a_project_with_every_door_reports_no_gains(tmp_path: Path) -> None:
     (tmp_path / "D.md").write_text("# D\n\n## Block A — x\n", encoding="utf-8")
     (tmp_path / "I.md").write_text("# I\n", encoding="utf-8")
     (tmp_path / "K.md").write_text("# K\n\n## Block A — x\n", encoding="utf-8")
+    (tmp_path / "X.md").write_text("# X\n\n## Block A — x\n", encoding="utf-8")
     assert adopt(Config.discover(tmp_path), str(tmp_path / "R.md")).gains == ()
 
 
@@ -2447,11 +2451,13 @@ def test_every_door_the_format_opens_is_named_among_the_gains() -> None:
     # The roles an estimate can be about: the roadmap is the file being estimated and the
     # changelog is where its lines go, so neither is a door a project would *gain*.
     optional = set(ROLES) - {"roadmap", "changelog"}
-    assert {"pause", "queue", "decisions"} <= named
+    assert {"pause", "queue", "decisions", "dismissed"} <= named
     # `design` stands for the prose roles together: one file answers a pointer, and which of
     # the two it is is the project's business (RK196).
-    assert len(optional - {"improvements", "strategy", "deferred", "decisions"}) == 0
-    assert named == {"pause", "design", "non-goals", "queue", "decisions"}
+    assert len(
+        optional - {"improvements", "strategy", "deferred", "decisions", "dismissed"}
+    ) == 0
+    assert named == {"pause", "design", "non-goals", "queue", "decisions", "dismissed"}
 
 
 def test_every_gain_says_what_the_project_does_instead(tmp_path: Path) -> None:

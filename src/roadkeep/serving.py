@@ -500,6 +500,23 @@ TOOLS: tuple[Tool, ...] = (
     # stays reachable and now names `declare deferred`, which is the door it always named.
     Tool("defer", ("id", "reason"), needs="deferred"),
     Tool("resume", ("id", "marker"), needs="deferred"),
+    # The store whose entries were never lines, and its way back (RK1618). `needs` for the pair
+    # above's reason: a project that has ruled nothing out would be reading two descriptions of
+    # a refusal before every call it makes.
+    #
+    # Served rather than left at the terminal, which is what the record is *for*: the agent that
+    # traced a finding and decided not to file it is this caller, in the session holding the
+    # reading — and the alternative it had was the per-user memory file outside somebody's git,
+    # which is the arrangement the whole role replaces.
+    Tool(
+        "dismiss",
+        ("block", "symptom", "reason", "premise"),
+        # `add`'s row exactly (RK111), and for its reason: this verb mints an id, so a project
+        # whose `[ids]` declares a sub-letter has one spelling the counter cannot derive.
+        conditional=("task_id",),
+        needs="dismissed",
+    ),
+    Tool("reopen", ("id", "marker", "ref"), needs="dismissed"),
     # `supersedes` rides with it because the revert is one transaction (RK395): the entry that
     # says the work did not hold and the pointer on the entry that says it shipped are two
     # edits an agent cannot make separately — the second one is a hand edit the guard denies.
@@ -811,9 +828,13 @@ _DESTS: Mapping[str, Mapping[str, str]] = {
     # The two that call the one sentence `--reason` and accept `--why` beside it (RK1038):
     # the same crossing `--marker` and `--status` make, so the same rows.
     "defer": {"--why": "reason"},
+    # The third, and its own `--id`/`--prefix` crossing (RK1618): this verb mints an id the way
+    # `add` does, so it carries that verb's rows beside the `--reason` pair's.
+    "dismiss": {"--why": "reason", "--id": "task_id", "--prefix": "family"},
     "list": {"--status": "marker"},
     "next-id": {"--prefix": "family"},
     "record add": {"--id": "task_id"},
+    "reopen": {"--status": "marker"},
     "resume": {"--status": "marker"},
     "retire": {"--why": "reason"},
     "reversals": {"--id": "task_id"},

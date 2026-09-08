@@ -114,6 +114,11 @@ BACKSTOP: tuple[Backstopped, ...] = (
         "part.blank",
         "part.too-long",
         "part.unexpected",
+        # RK1618. One rule and one name on both surfaces: `dismiss` refuses an entry with no
+        # premise through `Schema.validate`, and a file already carrying one is reported by
+        # that same rule — which is what keeps the required field required for an entry that
+        # arrived by a merge or a hand edit.
+        "premise.missing",
         # RK1227. The one code here that is refused about a *body* and reported about a
         # citation inside one — the same defect and the same name, because `section amend`
         # now asks the question `lint` was left to answer three commits later.

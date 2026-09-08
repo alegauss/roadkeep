@@ -69,6 +69,7 @@ from roadkeep.config import (
     DECISIONS_PATH,
     DEFAULT_PATHS,
     DEFERRED_PATH,
+    DISMISSED_PATH,
     STRATEGY_PATH,
     PROSE_ROLES,
     PYPROJECT,
@@ -115,6 +116,12 @@ DEFERRED_ROLE = "deferred"
 #: role exists to replace rather than reproduce.
 DECISIONS_ROLE = "decisions"
 
+#: The seventh, and the second no scaffold ever writes (RK1618). `declare dismissed` is its
+#: only door, for :data:`DECISIONS_ROLE`'s reason exactly: a project has ruled nothing out on
+#: the day its backlog is created, and a file scaffolded there is an empty list of things
+#: nobody looked at — which reads as a store somebody keeps and is the opposite of one.
+DISMISSED_ROLE = "dismissed"
+
 #: Where each role's file goes when nobody names a path: `DEFAULT_PATHS` plus the three roles
 #: that are not part of a project's implied layout (RK1186, RK1259, RK1269). One table and no
 #: longer two identical literals — the scaffold and `declare` write the same file at the same
@@ -124,6 +131,7 @@ _DEFAULT_FOR = {
     STRATEGY_ROLE: STRATEGY_PATH,
     DEFERRED_ROLE: DEFERRED_PATH,
     DECISIONS_ROLE: DECISIONS_PATH,
+    DISMISSED_ROLE: DISMISSED_PATH,
 }
 
 #: The heading each scaffolded file opens with. Structural, not prose — the block headings
@@ -135,6 +143,7 @@ _TITLES = {
     "strategy": "Strategy",
     "deferred": "Set aside",
     "decisions": "Decisions",
+    "dismissed": "Ruled out",
 }
 
 #: The fields `adopt` measures against their limits, and where each one is read from.
@@ -2533,6 +2542,13 @@ GAINS: tuple[tuple[str, Callable[[Config, Document | None], bool], str], ...] = 
         "no decisions file, so a constraint that outlives the work explaining it has "
         "nowhere governed to go: `ship --decides` refuses, and an ADR is kept by hand "
         "or not at all — which is the convention every schema here replaces",
+    ),
+    (
+        "dismissed",
+        lambda config, _document: not config.has("dismissed"),
+        "no dismissed store, so a finding traced and deliberately not filed is written "
+        "down nowhere the repository keeps: `dismiss` refuses, and the reading that "
+        "ruled it out is paid again by whoever proposes it next",
     ),
 )
 

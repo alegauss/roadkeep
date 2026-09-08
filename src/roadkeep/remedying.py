@@ -1095,6 +1095,27 @@ _TABLE: Mapping[str, _Rule] = {
         "recording the whole; either way, re-running closes the line and writes no second "
         "entry",
     ),
+    # The dismissed store's three (RK1618), and each is its own sentence for `PAIRS`' reason:
+    # what a pair means decides the door, and only the first of these has one to run.
+    "id.dismissed-and-open": _run(
+        ("reopen", "{id}"),
+        "the dismissed store and the roadmap both carry this id — a reopen that stopped "
+        "between its two writes; the open line is what the files should say, so this "
+        "removes the store's copy and places nothing",
+    ),
+    "id.dismissed-and-gone": _decide(
+        "the ledger records this id as gone and the dismissed store says the finding was "
+        "never filed, which cannot both be the history of one id:",
+        (("show", "{id}"), "the entry as the ledger holds it, which is the side claiming "
+                           "there was work"),
+        (("origin", "{id}"), "which commit wrote each, which is what dates the pair"),
+    ),
+    "id.dismissed-and-paused": _decide(
+        "one id is both set aside to come back and ruled out as never worth filing, and "
+        "which of the two stores is the leftover is a fact about what was decided:",
+        (("show", "{id}"), "the line as it is spelled, with the store holding it"),
+        (("origin", "{id}"), "which commit wrote each, which is what dates the pair"),
+    ),
     # ------------------------------------------------------------------------- the pointers
     "ref.unresolved": _compose(
         ("section", "add", "{id}", "--title", BLANK),
@@ -1468,6 +1489,25 @@ _TABLE: Mapping[str, _Rule] = {
         ("ship", "{id}"),
         "a partial qualifier where the files say the work is whole: the completion "
         "replaces the entry and drops it",
+    ),
+    # RK1618. A `decide` and never a `compose`, because there is no field to fill: the premise
+    # is what `dismiss` wraps around the reason, so an entry that reaches the store without one
+    # was hand-edited past the door — and whether the claim was lost or was never made is a
+    # question about that edit rather than about this line. Both doors are reads for that
+    # reason, and the entry stands until somebody answers it.
+    "premise.missing": _decide(
+        "a dismissal with no premise cannot be reopened by anything: nothing says which "
+        "later commit makes the finding real, so what to do turns on where the claim went:",
+        (
+            ("origin", "{id}"),
+            "which commit wrote the entry — a premise an edit dropped is in that diff, and "
+            "re-filing it is a `reopen` and a fresh `dismiss` carrying it",
+        ),
+        (
+            ("show", "{id}"),
+            "the entry as it stands: a subject and a reason with no falsifiable claim is the "
+            "unfalsifiable note this store exists to replace, and `reopen` takes it back out",
+        ),
     ),
     # -------------------------------------------------------------------------- the markers
     # `compose` and not `run`: the marker is a choice from a declared set, so the tool could

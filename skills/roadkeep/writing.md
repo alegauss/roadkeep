@@ -16,7 +16,8 @@ When this session's roadkeep tools are available, **prefer them** — named
 `mcp__plugin_<plugin>_roadkeep__*` where a plugin provides it, so read the prefix off the
 tool list rather than typing it: the whole write path and the reads a task needs are there
 — `add`, `block_add`, `block_drop`, `block_merge`, `declare`, `claim`, `scope`, `status`, `amend`,
-`restate`, `ship`, `retire`, `supersede`, `revise`, `defer`, `resume`, `record_add`, `record_amend`,
+`restate`, `ship`, `retire`, `supersede`, `revise`, `defer`, `resume`, `dismiss`, `reopen`,
+`record_add`, `record_amend`,
 `record_move`, `record_drop`, `record_renumber`, `non_goal_add`, `non_goal_amend`,
 `non_goal_drop`, `criterion_add`, `criterion_amend`, `criterion_drop`, `criterion_list`,
 `section_add`, `section_amend`, `section_move`, `section_drop`, `budget`,
@@ -33,7 +34,8 @@ list a verb refuses over, empty, which is what opting in means; `govern` is what
 numbers in it afterwards. Reach for it when a write refuses over an undeclared role or
 table, which is the refusal that now names this command rather than a hand edit. **And it is
 what the tool list is composed from**: a verb that is one role's whole grammar — `defer` and
-`resume` for the store, `supersede` and `revise` for the decisions file — is published only where that role
+`resume` for the store, `supersede` and `revise` for the decisions file, `dismiss` and
+`reopen` for the dismissed one — is published only where that role
 is declared, so a vocabulary grows for the projects that opted into it and costs the rest
 nothing. Absent is not missing: the name still resolves and the call is refused naming the
 `declare` that opens it, and the list changes under a session that runs one. The last of them
@@ -284,7 +286,19 @@ agreeing). A dep on a
 paused task resolves as **deferred**, and the line waiting on it as `blocked-paused` — not
 offered, counted apart, and unblocked by a `resume` rather than a ship. The three writes that
 reach a line by id — `amend`, `restate`, `status` — refuse a paused one **naming the store
-and `resume`**, so a refusal about a pause never reads like one about a typo. Reach for
+and `resume`**, so a refusal about a pause never reads like one about a typo. **A finding
+nobody filed is a fifth thing**: `dismiss --block <x> --symptom "…" --why "…" --premise "…"`
+records what was traced and deliberately not filed, minting an id the way `add` does and
+filing it in the dismissed store. The **premise** is required and is the whole point — the
+claim a later commit breaks — because *checked, fine* is unfalsifiable and gets traced
+again; it is *wrapped* around the reason, so what bounds that sentence is the line and not
+the `why` limit, and an entry that reaches the file without one is `premise.missing`.
+`declare dismissed` opens the store and no scaffold ever writes it, a project having ruled
+nothing out on the day it is created. `reopen <id> [--marker <m>]` files the entry as work
+when the premise breaks, reporting the premise once and leaving it behind — the line arrives
+carrying the subject and the reason, with the design still to write. `show <id>` on a
+dismissed id says where it is and names both doors, rather than answering *never written*
+about an entry sitting in the file. Reach for
 `retire`
 only when the work is not coming back. `record add --block <x> --symptom "…" --why "…"` is
 the fourth — the entry alone, roadmap untouched, for **any** shipped work with no open line

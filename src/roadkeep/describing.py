@@ -145,6 +145,7 @@ WHERE: Mapping[tuple[str, str], object] = {
     ("markers", "shipped"): lambda: Config.default().schema.shipped_marker,
     ("markers", "retired"): lambda: Config.default().schema.retired_marker,
     ("markers", "deferred"): lambda: Config.default().schema.deferred_marker,
+    ("markers", "dismissed"): lambda: Config.default().schema.dismissed_marker,
     ("markers", "undesigned"): lambda: Config.default().schema.undesigned,
     ("markers", "working"): lambda: Config.default().schema.working,
     ("markers", "partial"): lambda: Config.default().schema.partial,

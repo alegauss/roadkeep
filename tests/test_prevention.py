@@ -111,6 +111,14 @@ PREVENTION: tuple[Prevented, ...] = (
     Prevented("symptom.control", "refused", _add("--symptom", "A symptom\x07of a kind", "--why", WHY)),
     Prevented("symptom.whitespace", "refused", _add("--symptom", SYMPTOM + " ", "--why", WHY)),
     Prevented("line.too-long", "refused", _add("--symptom", "x" * 110, "--why", "y" * 190 + ".")),
+    # RK1618. The field the whole role exists for, measured at its own door: a dismissal with
+    # a blank premise is the unfalsifiable note this store replaces, so the write refuses it
+    # in the gate's own words rather than filing an entry nothing can ever reopen.
+    Prevented(
+        "premise.missing",
+        "refused",
+        ("dismiss", "--block", "A", "--symptom", SYMPTOM, "--why", WHY, "--premise", "  "),
+    ),
     Prevented("part.blank", "refused", ("ship", "RK1", "--part", "", "--why", "Half of it works.")),
     Prevented("part.too-long", "refused", ("ship", "RK1", "--part", "y" * 200, "--why", "Half works.")),
     Prevented("status.unknown", "refused", _add("--marker", "\U0001f937", "--symptom", SYMPTOM, "--why", WHY)),
@@ -266,6 +274,11 @@ PREVENTION: tuple[Prevented, ...] = (
     # -- true of an earlier line because of a later write ---------------------
     Prevented("id.paused-and-open", "gate", because=LATER),
     Prevented("id.paused-and-gone", "gate", because=LATER),
+    # RK1618. The fourth carrier's three, and the same reading: each is a pair of files a
+    # single write could not have created, made true by whichever of the two ran second.
+    Prevented("id.dismissed-and-open", "gate", because=LATER),
+    Prevented("id.dismissed-and-gone", "gate", because=LATER),
+    Prevented("id.dismissed-and-paused", "gate", because=LATER),
     Prevented("block.emptied", "gate", because=LATER),
     Prevented("block.reopened", "gate", because=LATER),
     Prevented("deps.retired", "gate", because=LATER),
@@ -363,6 +376,7 @@ CONFIG = """prefix = "RK"
 roadmap = "ROADMAP.md"
 changelog = "CHANGELOG.md"
 improvements = "IMPROVEMENTS.md"
+dismissed = "DISMISSED.md"
 [criteria]
 [non_goals]
 """
@@ -401,13 +415,23 @@ A paragraph about the first thing, long enough to read as a rationale for it.
 
 A paragraph about the second thing, long enough to read as a rationale for it too.
 """
-GOVERNED = ("ROADMAP.md", "CHANGELOG.md", "IMPROVEMENTS.md")
+#: Declared and empty, because that is what makes `premise.missing` a measurement (RK1618):
+#: the door refuses a blank premise, and a probe of a refusal needs a store the write could
+#: have reached. Nothing is filed here — an entry would be an id this fixture's own ids have
+#: to step around, for a row that is about the write and not about the file.
+DISMISSALS = """# Ruled out
+
+## Block A — The model
+
+## Block B — Authoring
+"""
+GOVERNED = ("ROADMAP.md", "CHANGELOG.md", "IMPROVEMENTS.md", "DISMISSED.md")
 
 
 def project(root: Path) -> Config:
     """A throwaway project, plus the one `src/` a path claim is decided against (RK217)."""
     (root / "roadkeep.toml").write_text(CONFIG, encoding="utf-8", newline="")
-    for name, body in zip(GOVERNED, (ROADMAP, LEDGER, PROSE)):
+    for name, body in zip(GOVERNED, (ROADMAP, LEDGER, PROSE, DISMISSALS)):
         (root / name).write_text(body, encoding="utf-8", newline="")
     (root / "src").mkdir()
     (root / "src" / "kept.py").write_text("x = 1\n", encoding="utf-8")

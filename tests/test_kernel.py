@@ -69,7 +69,13 @@ VOCABULARY = (
 #: `codepoint_kind`, `_codepoints` and `CODEPOINT_KINDS` were counted as this backlog's
 #: words. A ceiling that counts the wrong things is one nobody can bring down on purpose —
 #: the same defect this project files about every other number it publishes.
-SPOKEN = {address("schema"): 43, address("document"): 17}
+#:
+#: **44 since RK1618**, and the one raise this ceiling is for: `dismissed_marker` is the fifth
+#: field naming a marker, beside the four already counted, and it is here for the reason those
+#: are — which file a status is legal in is a fact about the *format*, so the field a project
+#: declares its glyph into has to be on the schema. A rule leaking into the mechanism is what
+#: this number catches, and a fifth spelling of a slot the mechanism already has is not one.
+SPOKEN = {address("schema"): 44, address("document"): 17}
 
 #: How many of them anything **above** the kernel refers to. The split RK1072 was filed to
 #: find, and the answer it did not expect: two thirds are the kernel's public surface —
@@ -79,7 +85,7 @@ SPOKEN = {address("schema"): 43, address("document"): 17}
 #: role does. So the count falls by renaming, which RK1072's own design rules out, or by
 #: moving a rule whose reason for being where it is survives the reading (see `_ledger_slots`,
 #: which states an adoption remedy in the one place a reader of that file is looking).
-PUBLIC = 41
+PUBLIC = 42
 
 
 def declared(where: str) -> set[str]:
