@@ -26,6 +26,7 @@
 - ✅ **RG12** **a git worktree family reads as unrelated projects, so one backlog appears once per version folder** — A junction collapses onto the folder it names and two worktrees group by the git directory they share, read off git's own files (design recorded in `packages/core/src/families.ts`).
 - ✅ **RG14** **the whole tree is walked again on every launch, so a list the person already approved is rediscovered** — The list is a record a rescan diffs rather than rebuilds, and a project it no longer finds is marked missing and kept (design recorded in `packages/core/src/catalogue.ts`).
 - ✅ **RG71** **a walk of every root blocks the thread it runs on, so a slow drive freezes the window** — A level is read together under a bound and consumed in the order it was listed, so a slow drive costs the scan and not the process (design recorded in `packages/core/src/scanning.ts`).
+- ✅ **RG72** **a family is drawn in the order it was found, so a version list can read newest last or newest first by luck** — The member the stable name points at reads first, then the rest by path with digit runs read as numbers, newest first (design recorded in `packages/core/src/families.ts`).
 
 ## Block C — The portfolio (many backlogs in one view)
 

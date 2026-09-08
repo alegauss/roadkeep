@@ -296,28 +296,6 @@ be drawn as one; it is a repository where two copies could write and the person 
 know which did. What is refused is showing a count with no engine beside it, because
 that count is an answer whose author has been dropped.
 
-### §RG72 Which version of a family reads first
-
-Grouping keeps scan order all the way down, which is right for the families themselves —
-the walk is shallow-first and that is the order somebody is watching a list build in.
-Inside a family it is arbitrary. `2026.2` and `2026.3` are returned in whichever order
-the directory listing produced, so the same machine can draw a family newest-first today
-and newest-last after a folder is touched.
-
-What a person means by a family is a current version and some older ones, and the
-junction already says which is current: `latest` points at one of them, and that member
-is the one carrying an alias. That is a fact the grouping already has and throws away.
-
-So the ordering is: the member the stable name points at first, then the rest. The rest
-by what, is the open question. Folder names sort correctly for `2026.2` before `2026.3`
-and stop doing so at `2026.10`, which is the version-sorting trap every tool falls into
-once. Modification time is available and means something different — the one worked on
-most recently, not the newest version — and may be the more honest answer for a list
-somebody is choosing from.
-
-Not urgent while the app draws no list. It becomes visible the moment block C does, and
-it is cheaper to decide now than to notice from a screenshot.
-
 ### §RG89 One derivation of the marker set, not two
 
 `openMarkers` was written for the status dropdown: it finds `markers.open`, parses
