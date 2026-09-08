@@ -479,6 +479,7 @@
 - ✅ **RK1609** **three scans of one rule reconstruct a composed command three ways, and a value sits in the gap between them** — The three scans share one reading of a composed command, so a span crossing an f-string's parts re-forms and the scan that reads a name reads ids and governed files too.
 - ✅ **RK1618** **delivered and reversals are the reads before an add, and neither holds what was traced and not filed** — A dismissed role on the deferred store's shape: dismiss files a subject, a reason and a required premise, and reopen files it as work when that premise breaks.
 - ✅ **RK1622** **a design can cite a corpus for a ratio it does not have, nothing here reading what shape the pins hold** — corpora.shape reads each pin through the package's own census, totals and per block, and the drift advisory says it: turing holds 3 open against 901 delivered, which is what a design can now cite.
+- ✅ **RK1623** **three tests rebuild the corpus add ranks against, so a change to what add includes leaves every figure passing** — Neighbours is the block's corpus as a value, with the boundary and the ranking on it, so the three readings measure what add ranks instead of a rebuilt list of that shape.
 
 ## Block D — The gate
 

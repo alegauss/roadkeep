@@ -25,6 +25,7 @@ from pathlib import Path
 import pytest
 
 import corpora
+from roadkeep.authoring import Neighbours
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
 from roadkeep.ranking import NEAREST, VOLUNTEERED, claim, nearest, words
@@ -234,6 +235,41 @@ def test_the_add_hands_back_the_read_the_author_had_to_remember(tmp_path, capsys
     assert len(ranked) == VOLUNTEERED
     # The block's own entry about that claim leads, which is what makes the row worth printing.
     assert "RK6" in ranked[0] or "RK2" in ranked[0]
+
+
+def test_the_corpus_the_readings_measure_is_the_one_the_write_ranks(tmp_path, capsys):
+    """RK1623. Three readings of how the two halves share the window rebuilt this corpus by
+    hand, and none of them called the code that composes it — so what they measured was *a*
+    corpus of that shape, and a change to what `add` includes would have left every figure
+    passing about a composition production no longer has. RK1495 is that change, made once.
+
+    So the corpus is `Neighbours` and this is the join: the rows a real `add` volunteered are
+    the rows the seam names, off the same block, over the same window. A figure taken from the
+    function the caller uses cannot drift from what the caller gets (RK1491, RK1524)."""
+    root = project(tmp_path)
+    assert main([
+        "-C", str(root), "add", "--block", "A", "--symptom",
+        "A block heading declared twice in the changelog", "--why", "Because.", "--json",
+    ]) == EXIT_OK
+    payload = json.loads(capsys.readouterr().out)
+
+    config = Config.discover(root)
+    filed = config.document("roadmap").by_id()[payload["id"]].task
+    held = Neighbours.of(
+        filed.block,
+        roadmap=config.document("roadmap"),
+        ledger=config.document("changelog"),
+        without=filed.id,
+    )
+    shown = [one["id"] for one in payload["near"]]
+    assert shown == [
+        held.entries[index].task.id
+        for index in held.ranked(filed.symptom, filed.why, VOLUNTEERED)
+    ]
+    # And the two counts the rows are bounded against are the seam's halves, so the boundary
+    # every split figure counts from is the one the write reported.
+    assert payload["near_recorded"] == held.boundary
+    assert payload["near_open"] == len(held.open_lines)
 
 
 def test_the_volunteered_rows_say_they_are_bounded_and_where_the_rest_are(tmp_path, capsys):
@@ -529,19 +565,17 @@ def test_the_two_corpora_do_not_compete_for_the_volunteered_rows():
     assert len(pairs) >= 11
     taken = 0
     for retired, _ in pairs:
-        block = retired.task.block
-        delivered = [
-            one
-            for one in ledger.entries
-            if one.task.block == block and one.task.id != retired.task.id
-        ]
-        entries = [*delivered, *(one for one in roadmap.entries if one.task.block == block)]
-        order = nearest(
-            claim(retired.task.symptom, retired.task.why),
-            [claim(one.task.symptom, one.task.why) for one in entries],
-            VOLUNTEERED,
+        # `add`'s own corpus and not a rebuilt list of that shape (RK1623): the boundary this
+        # counts from is `Neighbours.boundary`, so a change to what `add` includes moves this
+        # figure rather than leaving it passing about a composition production has not got.
+        held = Neighbours.of(
+            retired.task.block,
+            roadmap=roadmap,
+            ledger=ledger,
+            without=retired.task.id,
         )
-        taken += sum(1 for index in order if index >= len(delivered))
+        order = held.ranked(retired.task.symptom, retired.task.why, VOLUNTEERED)
+        taken += sum(1 for index in order if held.opened(index))
     # A ceiling and not an equality: a delivery filed tomorrow moves the order, and what may
     # not happen is the open half taking the rows the measurement says it does not need.
     assert taken <= VOLUNTEERED, {"slots the open half took": taken}
@@ -565,24 +599,23 @@ def _slots(ledger, roadmap, width: int) -> dict[str, tuple[int, int, int, int]]:
         blocks.setdefault(one.task.block, []).append(one)
     found = {}
     for block, asking_all in blocks.items():
-        delivered = [one for one in ledger.entries if one.task.block == block]
         took = slots = 0
+        delivered = 0
         for asking in asking_all:
-            entries = [
-                *delivered,
-                *(one for one in asking_all if one.task.id != asking.task.id),
-            ]
-            if not entries:
-                continue
-            order = nearest(
-                claim(asking.task.symptom, asking.task.why),
-                [claim(one.task.symptom, one.task.why) for one in entries],
-                width,
+            # Through `add`'s own composer (RK1623), once per query, because that is what the
+            # exclusion is about: each open line stands in for the `add` that wrote it, so the
+            # corpus is the block minus that line — which is `without` and not a filter here.
+            held = Neighbours.of(
+                block, roadmap=roadmap, ledger=ledger, without=asking.task.id
             )
+            delivered = held.boundary
+            if not held.entries:
+                continue
+            order = held.ranked(asking.task.symptom, asking.task.why, width)
             slots += len(order)
-            took += sum(1 for index in order if index >= len(delivered))
+            took += sum(1 for index in order if held.opened(index))
         if slots:
-            found[block] = (len(delivered), len(asking_all), took, slots)
+            found[block] = (delivered, len(asking_all), took, slots)
     return found
 
 
@@ -636,24 +669,20 @@ def test_the_rows_an_add_shows_are_not_the_rows_the_named_read_would(tmp_path):
     ledger, roadmap = config.document("changelog"), config.document("roadmap")
     differ = unreachable = total = 0
     for asking in roadmap.entries:
-        block = asking.task.block
-        delivered = [one for one in ledger.entries if one.task.block == block]
-        others = [
-            one
-            for one in roadmap.entries
-            if one.task.block == block and one.task.id != asking.task.id
-        ]
-        both = [*delivered, *others]
-        if not (both and delivered):
+        # `add`'s corpus, and the ledger half alone beside it — which is `delivered --near`'s,
+        # a corpus with no open lines in it (RK1623). Both through the one composer, so the
+        # difference these two figures are about is the halves and never a rebuild.
+        both = Neighbours.of(
+            asking.task.block, roadmap=roadmap, ledger=ledger, without=asking.task.id
+        )
+        delivered = Neighbours(delivered=both.delivered)
+        if not (both.entries and delivered.entries):
             continue
-        query = claim(asking.task.symptom, asking.task.why)
 
-        def ranked(corpus, count, query=query):
+        def ranked(corpus, count, asking=asking):
             return [
-                corpus[index].task.id
-                for index in nearest(
-                    query, [claim(one.task.symptom, one.task.why) for one in corpus], count
-                )
+                corpus.entries[index].task.id
+                for index in corpus.ranked(asking.task.symptom, asking.task.why, count)
             ]
 
         total += 1

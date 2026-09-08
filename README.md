@@ -118,18 +118,18 @@ called unbuilt were already in the ledger.
 | --- | --- | --- | --- |
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 3 | 231 | 2 |
-| C — Query (consult without reading the file) | 14 | 181 | 4 |
+| C — Query (consult without reading the file) | 13 | 182 | 4 |
 | D — The gate | 19 | 293 | 5 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 3 | 162 | 2 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 3 | 41 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 42 | 1103 | 17 |
+| **Total** | 41 | 1104 | 17 |
 
 **Next ready:**
 
-- 💭 **RK1623** (deps: —) **three tests rebuild the corpus add ranks against, so a change to what add includes leaves every figure passing** — RK1566 added the third hand-built copy of the delivered-then-open list, and the boundary between the halves is what every split figure counts from. → §RK1623
+- 💭 **RK1624** (deps: —) **the ranking an add volunteers exists only inside that write, no read answering over a block's whole corpus** — RK1567 left the third way out it named, and the two doors the row prints order by the ledger and by id rather than by the query. → §RK1624
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

@@ -1100,6 +1100,97 @@ def volunteered_rows(
     ]
 
 
+@dataclass(frozen=True, slots=True)
+class Neighbours:
+    """The block's entries an `add`'s volunteered rows are ranked against (RK1623).
+
+    A value, because three tests were rebuilding it. `add` composes the corpus — the block's
+    delivered entries, then its other open lines, in that order — and the **order is
+    load-bearing**: every measurement of how the two halves share the window counts an index
+    past `len(delivered)` as the open half taking a row. Rebuilt by hand in `test_ranking.py`
+    three times over, none of them calling the code that composes it, so what those figures
+    measured was *a* corpus of that shape rather than **the** one `add` ranks.
+
+    Not hypothetical in kind: RK1495 is that change made once, doubling the corpus, and the
+    reason the window had to be re-measured was that nothing held the two halves together.
+
+    :meth:`ranked` is the other half of the same seam. The rebuilds spelled the `nearest` call
+    too — both prose fields on both sides (RK1477), the width, the query — so a corpus lifted
+    without it would leave the ranking spelled twice. RK1491's argument about `disagreements`
+    and RK1524's about `composed`: a figure taken off the function the caller uses cannot drift
+    from what the caller gets, and one taken off a rebuilt copy drifts the day somebody edits
+    the original.
+    """
+
+    #: The block's ledger entries, which is what a proposal is checked against first (RK385).
+    delivered: tuple[Entry, ...] = ()
+    #: And its other open lines (RK1495), after them — the order :attr:`boundary` reads.
+    open_lines: tuple[Entry, ...] = ()
+
+    @classmethod
+    def of(
+        cls,
+        block: str,
+        *,
+        roadmap: Document,
+        ledger: Document | None = None,
+        without: str = "",
+    ) -> Neighbours:
+        """The corpus for one block, off documents somebody else read.
+
+        `Census.of`'s shape and for its reason: the caller holding a parsed file — a
+        transaction mid-write, a corpus at a pinned revision — must not be made to hand over a
+        project so this can open the same bytes again.
+
+        ``without`` is the id the query is *for*, excluded by id rather than by identity: a
+        project whose scheme lets a caller name one could otherwise file over a line already
+        there and be shown its own words back. Taken out of **both** halves, though `add`'s own
+        id can only be in the roadmap: a caller standing an existing entry in for the write
+        that produced it asks with a ledger id, and a corpus that ranked it against itself
+        would answer with the query. A ledger of `None` is a project with none on disk, which
+        is every first `add`.
+        """
+        return cls(
+            delivered=tuple(
+                ()
+                if ledger is None
+                else (one for one in ledger.block(block) if one.task.id != without)
+            ),
+            open_lines=tuple(
+                one for one in roadmap.block(block) if one.task.id != without
+            ),
+        )
+
+    @property
+    def entries(self) -> tuple[Entry, ...]:
+        """Both halves in the order they are ranked in — deliveries, then open lines."""
+        return (*self.delivered, *self.open_lines)
+
+    @property
+    def boundary(self) -> int:
+        """Where the open half begins, which is what every split figure counts from."""
+        return len(self.delivered)
+
+    def opened(self, index: int) -> bool:
+        """Whether the row at this index came from the open half rather than the ledger."""
+        return index >= self.boundary
+
+    def ranked(self, symptom: str, why: str, width: int) -> tuple[int, ...]:
+        """The indices into :attr:`entries` this query's nearest rows are, nearest first.
+
+        Both fields on both sides (RK1477): the line about to be filed carries its `why`
+        already, so the half a second author's vocabulary actually shares costs this call
+        nothing to ask about.
+        """
+        return tuple(
+            nearest(
+                claim(symptom, why),
+                [claim(one.task.symptom, one.task.why) for one in self.entries],
+                width,
+            )
+        )
+
+
 def _near(config: Config, insertion: Insertion) -> tuple[tuple[Entry, ...], int, int]:
     """This block's nearest entries, delivered and open, and how many it holds of each.
 
@@ -1145,33 +1236,23 @@ def _near(config: Config, insertion: Insertion) -> tuple[tuple[Entry, ...], int,
     reader treats such a path as the absent file it effectively is.
     """
     task = insertion.entry.task
-    delivered: list[Entry] = []
-    if config.on_disk("changelog"):
-        delivered = list(config.document("changelog").block(task.block))
-    open_lines = [
-        one
-        for one in config.document("roadmap").block(task.block)
-        if one.task.id != task.id
-    ]
-    entries = [*delivered, *open_lines]
+    # The corpus as a **value** since RK1623, so the three readings that measure how the two
+    # halves share the window read what this ranks rather than a rebuilt list of that shape.
+    held = Neighbours.of(
+        task.block,
+        roadmap=config.document("roadmap"),
+        ledger=config.document("changelog") if config.on_disk("changelog") else None,
+        without=task.id,
+    )
+    entries = held.entries
     if not entries:
         return (), 0, 0
     # The block's own counts beside the shown ones (RK1374), off the same reads: a second
     # lookup for either is the figures coming to disagree about which block was ranked.
     return (
-        tuple(
-            entries[index]
-            # Both fields, on both sides (RK1477): the line about to be filed carries its
-            # `why` already, so the half a second author's vocabulary actually shares costs
-            # this call nothing to ask about.
-            for index in nearest(
-                claim(task.symptom, task.why),
-                [claim(one.task.symptom, one.task.why) for one in entries],
-                VOLUNTEERED,
-            )
-        ),
-        len(delivered),
-        len(open_lines),
+        tuple(entries[index] for index in held.ranked(task.symptom, task.why, VOLUNTEERED)),
+        len(held.delivered),
+        len(held.open_lines),
     )
 
 

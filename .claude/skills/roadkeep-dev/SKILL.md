@@ -1,6 +1,6 @@
 ---
 name: roadkeep-dev
-description: "How to build, test and commit in the roadkeep repository itself. Use when running pytest here, editing a source file, staging a change, or writing a commit — and whenever a scripted edit to source is about to be made, a task is about to be shipped, or a commit message is about to be composed. Trigger words: pytest, run the tests, commit, stage, git add, heredoc, version bump, run-commit."
+description: "How to build, test and commit in the roadkeep repository itself, and what a shipped task may file behind it. Use when running pytest here, editing a source file, staging a change, or writing a commit — and whenever a scripted edit to source is about to be made, a task is about to be shipped or filed, or a commit message is about to be composed. Trigger words: pytest, run the tests, commit, stage, git add, heredoc, version bump, run-commit, ship, file a task, add --block."
 ---
 
 # roadkeep — building and committing in this repository
@@ -35,6 +35,26 @@ silently (RK1091). Write the whole file, or pass old and new text as data.
 match nothing (RK1132), and a test refuses a file that mixes the two. A scripted patch still
 carries an `assert` on its anchor before it writes: that assert is the difference between a
 patch that stops and a patch that silently writes the wrong bytes.
+
+## Shipping: file a defect, never a design question
+
+**A task that revealed nothing wrong files nothing.** Measured over one session working this
+backlog: 5 tasks shipped and **10 filed**, 37 → 42 open — a loop told to stop when nothing
+remains could never stop. The rule that produced it was "archive what the task revealed", read
+as *anything I noticed*.
+
+File a line only where something is **wrong now and the cost is nameable**: a figure that is
+false, a door that refuses, a reading that drops data. Three of those ten qualified — a
+per-block reading dropping 846 of 901 entries, every `reopen` leaving a dangling pointer, a dep
+resolving as unknown against a file that answers exactly. The other seven were observations
+(*the set argues for none of the split*, *two payloads say `notes` about two populations`*) and
+belonged in the commit body.
+
+The corpus invites the mistake: every design section here ends on an open question and the
+backlog is full of 💭 ideas, so noticing reads as filing. It is not — a design question filed as
+a task is work somebody now owes.
+
+**A defect the task exposes in its own work is fixed in that commit, never filed.**
 
 ## Committing
 
