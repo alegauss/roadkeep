@@ -192,3 +192,89 @@ describe('RG21: an empty backlog', () => {
     expect(backlog.complete).toBe(true)
   })
 })
+
+describe('RG67: a listing whose lines the bound withheld', () => {
+  /** The bounded shape, read off a real payload in `bounded-live.test.ts`. */
+  const bounded = (narrows = 'B'): ListPayload =>
+    listing({
+      total: 4,
+      tasks: null,
+      over: {
+        characters: 1439,
+        limit: 1200,
+        blocks: [
+          { label: 'A', name: 'Block A — The model', counted: 3 },
+          { label: 'B', name: 'Block B — The surface', counted: 1 },
+        ],
+        scoped: false,
+        narrows,
+        doors:
+          narrows === ''
+            ? []
+            : [
+                {
+                  argv: ['list', '--block', narrows],
+                  what: `the largest listing under \`[reads] list\` — ${narrows}`,
+                  complete: true,
+                  writes: false,
+                  call: null,
+                },
+              ],
+      },
+    })
+
+  it('opens into the blocks the bound named, in its order', () => {
+    const backlog = backlogFrom(bounded())
+
+    expect(backlog.blocks.map((block) => block.block)).toEqual(['A', 'B'])
+    expect(backlog.blocks.map((block) => block.name)).toEqual([
+      'Block A — The model',
+      'Block B — The surface',
+    ])
+  })
+
+  it('carries the count for a block whose lines did not come', () => {
+    const backlog = backlogFrom(bounded())
+
+    expect(backlog.blocks.map((block) => block.counted)).toEqual([3, 1])
+    expect(allLines(backlog)).toEqual([])
+  })
+
+  it('is not complete, which is the whole difference from an empty project', () => {
+    // Zero lines and a total of four. Without this a screen shows the same nothing for a
+    // backlog that is empty and one whose lines a bound withheld.
+    const backlog = backlogFrom(bounded())
+
+    expect(backlog.complete).toBe(false)
+    expect(backlog.total).toBe(4)
+  })
+
+  it('counts the lines it did get, where a listing carried them', () => {
+    const backlog = backlogFrom(listing())
+
+    expect(backlog.blocks.map((block) => block.counted)).toEqual([2, 1])
+  })
+
+  it('says the bound and the narrower call in one sentence', () => {
+    const said = refusedSummary(backlogFrom(bounded()))
+
+    expect(said).toContain('4 lines')
+    expect(said).toContain('1200')
+    expect(said).toContain('ask for B')
+  })
+
+  it('says so plainly where no block is small enough to offer', () => {
+    expect(refusedSummary(backlogFrom(bounded('')))).toContain('no block is small enough')
+  })
+
+  it('reports the bound rather than the refused lines, where both are true', () => {
+    // A bounded answer has no lines to have refused any of, so the sentence about the
+    // grammar would be about nothing. The bound is the reason there is nothing to show.
+    const said = refusedSummary(
+      backlogFrom({ ...bounded(), uncounted: [refused(8, 'A', 'a marker no verb reads')] }),
+    )
+
+    expect(said).toContain('were not listed')
+    expect(said).not.toContain('a marker no verb reads')
+  })
+})

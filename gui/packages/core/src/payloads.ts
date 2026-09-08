@@ -1,7 +1,6 @@
 import {
   aBoolean,
   aNumber,
-  anything,
   aString,
   dictionaryOf,
   listOf,
@@ -10,7 +9,7 @@ import {
   record,
   type Reader,
 } from './reading'
-import { readDoor, readRemedy, type Door, type Remedy } from './refusals'
+import { offerable, readDoor, readRemedy, type Door, type Remedy } from './refusals'
 
 /**
  * The shapes this app reads, written by hand from the payloads themselves.
@@ -125,6 +124,54 @@ export const readRefusedLine: Reader<RefusedLine> = record<RefusedLine>({
   raw: orMissing(aString, ''),
 })
 
+/** One block's share of a listing that was not printed, so a narrowing can be offered. */
+export interface OverBlock {
+  /** The heading's label, which is what a `--block` door takes. */
+  readonly label: string
+  /** The heading as written, for a screen that shows more than a letter. */
+  readonly name: string
+  readonly counted: number
+}
+
+export const readOverBlock: Reader<OverBlock> = record<OverBlock>({
+  label: aString,
+  name: orMissing(aString, ''),
+  counted: orMissing(aNumber, 0),
+})
+
+/**
+ * The bound a listing did not fit under, and what to ask for instead.
+ *
+ * Present only where the project declares `[reads] list` **and** this answer went past it.
+ * A key that appears on nothing else is one a caller has to have met before to check for,
+ * which is why `over` is `null` rather than absent when no bound applied at all.
+ */
+export interface Over {
+  /** What the answer would have cost, in the engine's own unit. */
+  readonly characters: number
+  readonly limit: number
+  /** Every block and how many lines it holds — the counts that came instead of the lines. */
+  readonly blocks: readonly OverBlock[]
+  /** Whether the call was already narrowed to one block and went past the bound anyway. */
+  readonly scoped: boolean
+  /**
+   * The block whose listing is the largest that would fit, or the empty string where none
+   * would. Empty is an answer — *there is no narrowing* — and not a missing key.
+   */
+  readonly narrows: string
+  /** The call to make instead, already split. Empty where nothing smaller would fit. */
+  readonly doors: readonly Door[]
+}
+
+export const readOver: Reader<Over> = record<Over>({
+  characters: orMissing(aNumber, 0),
+  limit: orMissing(aNumber, 0),
+  blocks: orMissing(listOf(readOverBlock), []),
+  scoped: orMissing(aBoolean, false),
+  narrows: orMissing(aString, ''),
+  doors: orMissing(listOf(readDoor), []),
+})
+
 export interface ListPayload {
   readonly file: string
   readonly total: number
@@ -135,8 +182,16 @@ export interface ListPayload {
   readonly uncounted: readonly RefusedLine[]
   readonly standing: Standing | null
   readonly startable: Startable | null
-  readonly over: unknown
-  readonly tasks: readonly TaskLine[]
+  readonly over: Over | null
+  /**
+   * **Null is not the empty list.** A project declaring `[reads] list` answers a listing
+   * past that bound with its blocks and counts and withdraws the lines, and `null` is how
+   * it says *not listed* where `[]` says *none selected*. A shape demanding an array here
+   * reported *this app is behind the engine* for a project that is merely large and said
+   * so — read off a real bounded payload, since inventing one would be this app's idea of
+   * the format rather than roadkeep's.
+   */
+  readonly tasks: readonly TaskLine[] | null
 }
 
 export const readListPayload: Reader<ListPayload> = record<ListPayload>({
@@ -145,9 +200,14 @@ export const readListPayload: Reader<ListPayload> = record<ListPayload>({
   uncounted: listOf(readRefusedLine),
   standing: orMissing(orNull(readStanding), null),
   startable: orMissing(orNull(readStartable), null),
-  over: orMissing(anything, null),
-  tasks: listOf(readTaskLine),
+  over: orMissing(orNull(readOver), null),
+  tasks: orNull(listOf(readTaskLine)),
 })
+
+/** The lines a listing actually carried. Empty for one the bound withdrew. */
+export function listedTasks(payload: ListPayload): readonly TaskLine[] {
+  return payload.tasks ?? []
+}
 
 export interface BlockCount {
   readonly block: string
@@ -1486,13 +1546,34 @@ export interface Narrowing {
 }
 
 export function narrowingOfList(payload: ListPayload): Narrowing {
-  const reasons =
-    payload.uncounted.length > 0
-      ? [
-          `${String(payload.uncounted.length)} marker-bearing line(s) the grammar did not accept, reported beside this answer`,
-        ]
-      : []
+  const reasons: string[] = []
+  if (payload.uncounted.length > 0) {
+    reasons.push(
+      `${String(payload.uncounted.length)} marker-bearing line(s) the grammar did not accept, reported beside this answer`,
+    )
+  }
+  // The strongest case of "smaller than the file": no lines at all, and the counts in
+  // their place. It belongs here and not in a failure — the project set the bound and the
+  // engine applied it, which is a narrower answer and not an answer this app cannot read.
+  if (payload.over !== null) {
+    const bound = payload.over
+    reasons.push(
+      `${String(payload.total)} line(s) withheld: this listing is ${String(bound.characters)} ` +
+        `characters against the ${String(bound.limit)} this project declares for a read`,
+    )
+  }
   return { complete: reasons.length === 0, reasons }
+}
+
+/**
+ * The narrower call to make, where the engine named one.
+ *
+ * A bound with no door is a real state: `list --block A` that is still too large has
+ * nothing smaller to offer, and saying so is better than offering a call that answers the
+ * same way. The argv is the engine's own and is handed to a transport, never to a shell.
+ */
+export function insteadOf(payload: ListPayload): readonly Door[] {
+  return payload.over === null ? [] : offerable(payload.over.doors)
 }
 
 export function narrowingOfStats(payload: StatsPayload): Narrowing {

@@ -5,7 +5,6 @@
 ## Block A — The client (payloads in, types out)
 
 - 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
-- 📋 **RG67** (deps: RG3 ✅) **a project declaring a read bound answers in a shape nothing here has ever seen, and the reader refuses it** — A listing past the bound comes back as blocks and counts instead of tasks, and this repo declares none so the shape could not be written from a real payload. → §RG67
 - 📋 **RG68** (deps: RG4 ✅) **the contract costs a minute of process starts, because every read rebuilds nothing but pays a fresh engine** — Building the fixture is fifteen write calls and each read is another, so the suite went from four seconds to twenty-eight. → §RG68
 - 💭 **RG75** (deps: —) **two live tests still name RG9, so the commit that ships it fails a suite nothing changed to break** — A live test reads this repository's own backlog, and an id written into an assertion is a claim about today that the work itself keeps falsifying. → §RG75
 - 💭 **RG78** (deps: —) **every live test file now carries its own call-and-unwrap, and the sentence a moved key prints is written in each** — RG66 moved the reading into the client and left the throwing behind, so what each file spells is three lines of unwrap and a message that is the same in none of them. → §RG78

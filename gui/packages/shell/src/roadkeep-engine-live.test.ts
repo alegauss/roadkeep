@@ -1,6 +1,13 @@
 import path from 'node:path'
 
-import { buildArgv, createClient, explainFailure, type VerbInputs, type VerbName } from '@rk/core'
+import {
+  buildArgv,
+  createClient,
+  explainFailure,
+  listedTasks,
+  type VerbInputs,
+  type VerbName,
+} from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
 import { createProcessTransport } from './process-transport'
@@ -61,7 +68,7 @@ describe('RG1: a payload this app can actually fetch', () => {
       answer.ok ? '' : explainFailure(answer.failure, { verb: 'list', engineVersion: 'live' }),
     ).toBe(true)
     if (!answer.ok || answer.value.kind === 'refused') return
-    expect(answer.value.value.tasks.length).toBeGreaterThan(0)
+    expect(listedTasks(answer.value.value).length).toBeGreaterThan(0)
     expect(answer.value.value.standing?.block).toBe('A')
   })
 

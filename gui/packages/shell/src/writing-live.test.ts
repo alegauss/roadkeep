@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 
 import {
+  listedTasks,
   applyWrite,
   composeWrite,
   createClient,
@@ -41,7 +42,7 @@ function add(
 async function roadmapIds(): Promise<string[]> {
   const answer = await client.call(fixture.root, 'list', {}, { timeoutMs: CEILING })
   if (!answer.ok || answer.value.kind === 'refused') throw new Error('list did not read')
-  return answer.value.value.tasks.map((task) => task.id)
+  return listedTasks(answer.value.value).map((task) => task.id)
 }
 
 beforeAll(async () => {

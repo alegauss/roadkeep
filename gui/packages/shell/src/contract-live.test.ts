@@ -1,6 +1,7 @@
 import path from 'node:path'
 
 import {
+  listedTasks,
   VERBS,
   WRITES,
   applyWrite,
@@ -163,10 +164,10 @@ describe('RG4: every read this client makes, against a live engine', () => {
     const payload = await readVerb('list', {})
 
     expect(payload.file).toContain('ROADMAP.md')
-    expect(payload.tasks.length).toBeGreaterThan(0)
+    expect(listedTasks(payload).length).toBeGreaterThan(0)
     // Shape, not values: what matters is that every declared key was there and typed.
-    expect(typeof payload.tasks[0]?.symptom).toBe('string')
-    expect(Array.isArray(payload.tasks[0]?.deps)).toBe(true)
+    expect(typeof listedTasks(payload)[0]?.symptom).toBe('string')
+    expect(Array.isArray(listedTasks(payload)[0]?.deps)).toBe(true)
     expect(narrowingOfList(payload).complete).toBe(true)
   })
 
@@ -182,7 +183,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
     const payload = await readVerb('list', { role: 'changelog' })
 
     expect(payload.file).toContain('CHANGELOG.md')
-    expect(payload.tasks.length).toBeGreaterThan(0)
+    expect(listedTasks(payload).length).toBeGreaterThan(0)
   })
 
   it('reads the counts, keyed by the marker set the fixture declared', async () => {
@@ -196,7 +197,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
 
   it('reads one task with the rationale its pointer resolves to', async () => {
     const listed = await readVerb('list', {})
-    const first = listed.tasks[0]
+    const first = listedTasks(listed)[0]
     expect(first).toBeDefined()
     if (!first) return
 
@@ -209,7 +210,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
 
   it('reads a task with its prose left out, which is a different answer', async () => {
     const listed = await readVerb('list', {})
-    const first = listed.tasks[0]
+    const first = listedTasks(listed)[0]
     if (!first) return
 
     const payload = await readVerb('show', { id: first.id, noBody: true })
@@ -325,7 +326,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
 
   it('moves a marker, and says what the claim did', async () => {
     const listed = await readVerb('list', {})
-    const first = listed.tasks[0]
+    const first = listedTasks(listed)[0]
     if (!first) return
 
     const outcome = await applyWrite(
@@ -349,7 +350,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
   it('closes a line four ways, and reads the shape each answers with', async () => {
     // One fixture line per departure. Every one is irreversible in the direction that
     // matters, which is why this runs nowhere but here.
-    const open = (await readVerb('list', {})).tasks.map((task) => task.id)
+    const open = listedTasks(await readVerb('list', {})).map((task) => task.id)
     const [first, second, third] = open.slice(-3)
     if (first === undefined || second === undefined || third === undefined) return
 
@@ -447,7 +448,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
   })
 
   it('corrects a line three ways, and reads what each answers with', async () => {
-    const open = (await readVerb('list', {})).tasks.map((task) => task.id)
+    const open = listedTasks(await readVerb('list', {})).map((task) => task.id)
     const id = open.at(-1)
     if (id === undefined) return
 
@@ -500,7 +501,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(line.ref).not.toBeNull()
 
     const listed = await readVerb('list', { role: 'changelog' })
-    const shipped = listed.tasks[0]
+    const shipped = listedTasks(listed)[0]
     if (shipped === undefined) return
 
     const ledger = await readVerb('budget', { id: shipped.id, ship: true })
@@ -697,15 +698,15 @@ describe('RG4: the states a fixture is built to contain', () => {
   it('has a ledger, whose lines point at no rationale at all', async () => {
     const payload = await readVerb('list', { role: 'changelog' })
 
-    expect(payload.tasks.some((task) => task.status === '✅')).toBe(true)
+    expect(listedTasks(payload).some((task) => task.status === '✅')).toBe(true)
     // Shipping deletes the design, so the pointer has nothing to resolve to. The roadmap's
     // lines carry one and the ledger's do not, which is a shape difference between two
     // listings of the same verb.
-    expect(payload.tasks.every((task) => task.ref === null)).toBe(true)
+    expect(listedTasks(payload).every((task) => task.ref === null)).toBe(true)
   })
 
   it('has a deferred store, which `list --role deferred` reads', async () => {
     const payload = await readVerb('list', { role: 'deferred' })
-    expect(payload.tasks.length).toBeGreaterThan(0)
+    expect(listedTasks(payload).length).toBeGreaterThan(0)
   })
 })

@@ -1,6 +1,7 @@
 import path from 'node:path'
 
 import {
+  listedTasks,
   amended,
   applyWrite,
   composeWrite,
@@ -41,7 +42,7 @@ async function shown(id: string) {
 async function ids(): Promise<string[]> {
   const answer = await client.call(fixture.root, 'list', {}, { timeoutMs: CEILING })
   if (!answer.ok || answer.value.kind === 'refused') throw new Error('list did not read')
-  return answer.value.value.tasks.map((task) => task.id)
+  return listedTasks(answer.value.value).map((task) => task.id)
 }
 
 beforeAll(async () => {

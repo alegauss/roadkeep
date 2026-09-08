@@ -1,6 +1,7 @@
 import path from 'node:path'
 
 import {
+  listedTasks,
   createClient,
   filingOf,
   pauseOf,
@@ -111,9 +112,9 @@ describe('RG28: a paused line told from one nothing ever filed', () => {
     const store = await listing(fixture.root, { stale: true })
     const filings = { roadmap, ledger, store }
 
-    const paused = store.tasks[0]!.id
-    const open = roadmap.tasks[0]!.id
-    const shipped = ledger.tasks[0]!.id
+    const paused = listedTasks(store)[0]!.id
+    const open = listedTasks(roadmap)[0]!.id
+    const shipped = listedTasks(ledger)[0]!.id
 
     expect(filingOf(paused, filings)).toBe('paused')
     expect(filingOf(open, filings)).toBe('open')

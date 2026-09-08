@@ -16,6 +16,7 @@
 - ✅ **RG64** **the fast suite and the one that spawns a real engine are one command, so every run pays for both** — `npm test` is 854 tests in eight seconds and `test:live` the 307 that spawn, split by a filename that a guard reading every test file keeps honest, with CI paying for both.
 - ✅ **RG65** **resolving an engine costs two interpreter starts on Windows, where the same file is spelled two ways** — Whoever has a filesystem says what makes two spellings one file, so a Windows resolution starts one interpreter rather than two (design recorded in `packages/core/src/engine-resolution.ts`).
 - ✅ **RG66** **a verb can be called with no shape declared for its answer, so the boundary has a hole per verb** — A verb declares its reader beside its argv, so a call answers with the payload, the refusal or the field it could not read (design recorded in `packages/core/src/answers.ts`).
+- ✅ **RG67** **a project declaring a read bound answers in a shape nothing here has ever seen, and the reader refuses it** — A listing past the project's read bound arrives as the blocks, the counts and the narrower call, read off a fixture that declares one (design recorded in `packages/core/src/backlog.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

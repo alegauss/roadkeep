@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { createClient, graphFrom, routeOf, type Graph } from '@rk/core'
+import { createClient, graphFrom, listedTasks, routeOf, type Graph } from '@rk/core'
 import { beforeAll, describe, expect, it } from 'vitest'
 
 import { createProcessTransport } from './process-transport'
@@ -47,7 +47,7 @@ let leverage: Graph | undefined
 beforeAll(async () => {
   const listed = await client.call(REPO, 'list', {}, { timeoutMs: CEILING })
   if (!listed.ok || listed.value.kind === 'refused') throw new Error('list did not read')
-  const ids = listed.value.value.tasks.map((one) => one.id)
+  const ids = listedTasks(listed.value.value).map((one) => one.id)
 
   for (const id of ids) {
     const graph = await graphOf(id)

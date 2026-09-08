@@ -225,6 +225,8 @@ export { readEngineProvenance, readEnginesPayload, splitCommandLine } from './en
 export type { EngineProvenance, EnginesPayload } from './engines'
 export {
   governedFiles,
+  insteadOf,
+  listedTasks,
   narrowingOfBrief,
   readAddedPayload,
   readAmendPayload,
@@ -244,6 +246,8 @@ export {
   readDepChain,
   readDepsPayload,
   readListPayload,
+  readOver,
+  readOverBlock,
   readLintPayload,
   readClaimed,
   readHeldClaim,
@@ -294,6 +298,8 @@ export type {
   LintPayload,
   Narrowing,
   NonGoalsPayload,
+  Over,
+  OverBlock,
   PickedLine,
   PickPayload,
   RationaleSection,

@@ -11,30 +11,6 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG67 The answer shape nobody here has produced
-
-`list --json` was read from real output and its shape demands a `tasks` array. The
-engine's own documentation says something else can arrive: where a project declares
-`[reads] list`, a listing past that bound comes back as its blocks and counts with the
-narrowing that fits, rather than as the lines. That is a different shape, and the reader
-written here would refuse it — reporting *this app is behind the engine* for a project
-that is simply large and has said so.
-
-It could not be modelled when the shape was written, and that is worth stating plainly
-rather than guessing around: this repository declares no `[reads]`, so no payload of
-that shape exists to read one off. Inventing it from the sentence that describes it is
-exactly the second declaration of roadkeep's format the non-goals refuse, and a shape
-invented that way fails silently in the direction nobody tests.
-
-So the work is: declare a read bound in a scratch project, capture the answer, write the
-shape from it, and make `list` return one of two readings. The narrowing helper already
-means "smaller than the file", and a blocks-and-counts answer is the strongest case of
-that, so it should arrive through that door and not as a refusal. "No engine the reader
-cannot name" is not reached: the reader here reads a payload, and which roadkeep answers
-is not in question.
-
-Until then the failure is loud, which is the right way round for a hole this size.
-
 ### §RG68 One fixture, many reads, one interpreter start each
 
 The contract test builds a governed project with the real write verbs — `init`, a

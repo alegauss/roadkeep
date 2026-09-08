@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  listedTasks,
   narrowingOfList,
   narrowingOfStats,
   readListPayload,
@@ -120,8 +121,8 @@ describe('RG3: the shapes this app reads', () => {
     expect(parsed.ok).toBe(true)
     if (!parsed.ok) return
     expect(parsed.value.standing?.sentence).toBe('Block A has 9 open')
-    expect(parsed.value.tasks[0]?.id).toBe('RG3')
-    expect(parsed.value.tasks[0]?.deps).toEqual(['RG1 ✅'])
+    expect(listedTasks(parsed.value)[0]?.id).toBe('RG3')
+    expect(listedTasks(parsed.value)[0]?.deps).toEqual(['RG1 ✅'])
   })
 
   it('reads counts keyed by a marker set it cannot know in advance', () => {
@@ -174,7 +175,7 @@ describe('RG3: the shapes this app reads', () => {
 
     expect(parsed.ok).toBe(true)
     if (!parsed.ok) return
-    expect(parsed.value.tasks[0]?.ref).toBeNull()
+    expect(listedTasks(parsed.value)[0]?.ref).toBeNull()
   })
 
   it('reads a pointer that resolves to nothing as a state, not a failure', () => {

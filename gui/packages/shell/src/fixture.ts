@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs'
+import { appendFileSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -31,6 +31,16 @@ export interface FixtureShape {
    * shape for asserting that a project pausing nothing reads as empty and not as missing.
    */
   readonly deferred: number
+  /**
+   * `[reads] list`, in characters, for a project that declares one.
+   *
+   * The one shape this app could not read off a real payload until something declared it
+   * (RG67): a listing past this bound comes back as blocks and counts with the lines
+   * withdrawn, and no repository here sets one. Written into `roadkeep.toml` after `init`
+   * rather than passed to it, because `init` takes no flag for it — and a small number is
+   * the point, since the bound has to be one four short lines exceed.
+   */
+  readonly listRead?: number
 }
 
 const DEFAULT_SHAPE: FixtureShape = { open: 3, shipped: 1, deferred: 1 }
@@ -153,6 +163,17 @@ export async function buildFixture(
         root,
         ['defer', id, '--reason', 'Waiting on a decision that is not this project.'],
         timeoutMs,
+      )
+    }
+
+    // Last, so every write above runs against a project with no ceiling on a read. The
+    // table is appended rather than templated: what the file already holds is `init`'s,
+    // and this adds the one line that makes the listing bounded.
+    if (shape.listRead !== undefined) {
+      appendFileSync(
+        path.join(root, 'roadkeep.toml'),
+        `\n[reads]\nlist = ${String(shape.listRead)}\n`,
+        'utf8',
       )
     }
 

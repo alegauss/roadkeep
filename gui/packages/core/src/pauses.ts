@@ -1,4 +1,4 @@
-import type { ListPayload, TaskLine } from './payloads'
+import { listedTasks, type ListPayload, type TaskLine } from './payloads'
 
 /**
  * The deferred store, and telling a paused line from one nothing ever filed.
@@ -46,8 +46,10 @@ export function storeFrom(payload: ListPayload): Store {
   return {
     file: payload.file,
     total: payload.total,
-    pauses: payload.tasks.map(pauseOfLine),
-    complete: payload.uncounted.length === 0,
+    pauses: listedTasks(payload).map(pauseOfLine),
+    // A store past `[reads] list` carries its counts and not its lines, and a screen
+    // drawing zero pauses over a total of forty is the silence this flag exists to break.
+    complete: payload.uncounted.length === 0 && payload.over === null,
   }
 }
 
@@ -99,7 +101,10 @@ export function filingOf(id: string, filings: Filings): Filing {
 }
 
 function holds(payload: ListPayload | undefined, id: string): boolean {
-  return payload !== undefined && payload.tasks.some((task) => task.id === id)
+  // A bounded listing carries no lines, so nothing is found in it — which is why
+  // `unfiled` is the answer of last resort and each caller is handed the payloads it
+  // read: a listing whose lines were withheld cannot say an id is absent.
+  return payload !== undefined && listedTasks(payload).some((task) => task.id === id)
 }
 
 /**
