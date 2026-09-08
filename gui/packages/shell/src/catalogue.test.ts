@@ -33,8 +33,8 @@ function project(relative: string): void {
 }
 
 /** Walk and fold, the way a launch would. */
-function rescan(previous = EMPTY_CATALOGUE, now = '2026-09-01T10:00:00.000Z') {
-  const scanned = scanRoots(roots)
+async function rescan(previous = EMPTY_CATALOGUE, now = '2026-09-01T10:00:00.000Z') {
+  const scanned = await scanRoots(roots)
   const families = groupProjects(
     scanned.found.map((entry) => ({ path: entry.path, ...gitSite(entry.path) })),
     rootKey,
@@ -45,7 +45,7 @@ function rescan(previous = EMPTY_CATALOGUE, now = '2026-09-01T10:00:00.000Z') {
   return reconcile(previous, roots, rowsFrom(families, rootOf, now), rootKey, now)
 }
 
-beforeAll(() => {
+beforeAll(async () => {
   root = mkdtempSync(path.join(tmpdir(), 'rk-catalogue-'))
   roots = [{ path: root, depth: 2 }]
   project('org/alpha')
@@ -57,8 +57,8 @@ afterAll(() => {
 })
 
 describe('RG14: a record built from a real walk', () => {
-  it('finds the projects and records where each came from', () => {
-    const { catalogue, changes } = rescan()
+  it('finds the projects and records where each came from', async () => {
+    const { catalogue, changes } = await rescan()
 
     expect(catalogue.projects).toHaveLength(2)
     expect(changes.every((change) => change.kind === 'added')).toBe(true)
@@ -66,9 +66,9 @@ describe('RG14: a record built from a real walk', () => {
     expect(catalogue.roots).toEqual(roots)
   })
 
-  it('changes nothing on a second pass over an unchanged tree', () => {
-    const first = rescan().catalogue
-    const second = rescan(first, '2026-09-04T10:00:00.000Z')
+  it('changes nothing on a second pass over an unchanged tree', async () => {
+    const first = (await rescan()).catalogue
+    const second = await rescan(first, '2026-09-04T10:00:00.000Z')
 
     expect(second.changes).toEqual([])
     expect(second.catalogue.projects.map((entry) => entry.path)).toEqual(
@@ -76,11 +76,11 @@ describe('RG14: a record built from a real walk', () => {
     )
   })
 
-  it('marks a deleted project missing and keeps it', () => {
-    const first = rescan().catalogue
+  it('marks a deleted project missing and keeps it', async () => {
+    const first = (await rescan()).catalogue
     rmSync(path.join(root, 'org', 'beta'), { recursive: true, force: true })
 
-    const second = rescan(first, '2026-09-04T10:00:00.000Z')
+    const second = await rescan(first, '2026-09-04T10:00:00.000Z')
 
     expect(second.changes).toHaveLength(1)
     expect(second.changes[0]?.kind).toBe('missing')
@@ -93,18 +93,18 @@ describe('RG14: a record built from a real walk', () => {
     expect(gone?.confirmed).toBe('2026-09-01T10:00:00.000Z')
   })
 
-  it('brings it back when the folder returns', () => {
+  it('brings it back when the folder returns', async () => {
     // Its own project, and the whole cycle in one test: a sibling's leftovers are not a
     // fixture, and a test that reads one passes for a reason nobody chose.
     project('org/gamma')
-    const withGamma = rescan(EMPTY_CATALOGUE, '2026-09-01T10:00:00.000Z').catalogue
+    const withGamma = (await rescan(EMPTY_CATALOGUE, '2026-09-01T10:00:00.000Z')).catalogue
     expect(withGamma.projects.some((entry) => entry.path.endsWith('gamma'))).toBe(true)
 
     rmSync(path.join(root, 'org', 'gamma'), { recursive: true, force: true })
-    const gone = rescan(withGamma, '2026-09-04T10:00:00.000Z').catalogue
+    const gone = (await rescan(withGamma, '2026-09-04T10:00:00.000Z')).catalogue
 
     project('org/gamma')
-    const back = rescan(gone, '2026-09-05T10:00:00.000Z')
+    const back = await rescan(gone, '2026-09-05T10:00:00.000Z')
 
     expect(back.changes).toContainEqual({
       kind: 'returned',
@@ -115,8 +115,8 @@ describe('RG14: a record built from a real walk', () => {
     )
   })
 
-  it('survives being written down and read back', () => {
-    const { catalogue } = rescan()
+  it('survives being written down and read back', async () => {
+    const { catalogue } = await rescan()
 
     // The record is JSON on disk once RG47 gives it a file. Until then this is what says
     // the shape is one that round-trips.

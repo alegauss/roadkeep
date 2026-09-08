@@ -296,28 +296,6 @@ be drawn as one; it is a repository where two copies could write and the person 
 know which did. What is refused is showing a count with no engine beside it, because
 that count is an answer whose author has been dropped.
 
-### §RG71 A scan that does not hold the process still
-
-The walk reads each directory with `readdirSync`. On the machine it was written for that
-is a few milliseconds for the whole tree, which is why it was the right first version —
-the bounds are what make a scan cheap, and proving those was the task.
-
-What it does not survive is a slow root. A network share, a sleeping external drive or a
-directory behind a virus scanner turns one read into hundreds of milliseconds, and every
-one of them is time the main process spends doing nothing else. The window is drawn by
-another process so it keeps painting, but every IPC call behind it queues, so the app
-stops answering while a drive spins up.
-
-The change is small and the shape is already there: `Look` is the only thing that
-touches a disk, so an asynchronous one is a second implementation of one function. What
-has to change with it is `scan`, which becomes async, and the bound on how many
-directories are open at once — the same argument as RG8's pool, for the same reason, and
-probably the same mechanism.
-
-Worth keeping while doing it: the walk stays breadth first and still reports `looked`,
-because that count is what makes the bounds checkable and it is the first thing that
-would quietly stop being true.
-
 ### §RG72 Which version of a family reads first
 
 Grouping keeps scan order all the way down, which is right for the families themselves —

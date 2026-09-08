@@ -25,6 +25,7 @@
 - ✅ **RG11** **a scan descends into node_modules and .git, so finding seventeen projects reads a hundred thousand folders** — The walk looks for one filename, refuses an ignored or hidden directory, stops at the declared depth and never enters a project it found (design recorded in `packages/core/src/scanning.ts`).
 - ✅ **RG12** **a git worktree family reads as unrelated projects, so one backlog appears once per version folder** — A junction collapses onto the folder it names and two worktrees group by the git directory they share, read off git's own files (design recorded in `packages/core/src/families.ts`).
 - ✅ **RG14** **the whole tree is walked again on every launch, so a list the person already approved is rediscovered** — The list is a record a rescan diffs rather than rebuilds, and a project it no longer finds is marked missing and kept (design recorded in `packages/core/src/catalogue.ts`).
+- ✅ **RG71** **a walk of every root blocks the thread it runs on, so a slow drive freezes the window** — A level is read together under a bound and consumed in the order it was listed, so a slow drive costs the scan and not the process (design recorded in `packages/core/src/scanning.ts`).
 
 ## Block C — The portfolio (many backlogs in one view)
 

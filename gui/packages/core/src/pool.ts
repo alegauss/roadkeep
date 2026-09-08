@@ -1,3 +1,4 @@
+import { createLimiter } from './limiting'
 import {
   EngineCallFailed,
   type EngineRequest,
@@ -14,8 +15,9 @@ import {
  * width is a setting because four cores and thirty-two are different machines.
  *
  * It is a transport wrapping a transport, like the cache, so nothing above knows it is
- * there. Order is first in, first out — a screen that asked for twenty projects gets them
- * in the order it asked, which is the order it is drawing them.
+ * there. The counting is `limiting.ts`'s, which a scan needs for the same reason against a
+ * different resource; what is here is the one thing that is a transport's — a call
+ * cancelled while it waited must not become a process.
  */
 
 export interface PoolOptions {
@@ -23,46 +25,25 @@ export interface PoolOptions {
 }
 
 export function createPooledTransport(inner: Transport, options: PoolOptions): Transport {
-  const width = Math.max(1, Math.floor(options.width))
-  const waiting: (() => void)[] = []
-  let running = 0
-
-  function acquire(): Promise<void> {
-    if (running < width) {
-      running += 1
-      return Promise.resolve()
-    }
-    return new Promise<void>((admit) => {
-      waiting.push(() => {
-        running += 1
-        admit()
-      })
-    })
-  }
-
-  function release(): void {
-    running -= 1
-    waiting.shift()?.()
-  }
+  const limiter = createLimiter(options.width)
 
   return {
-    async run(request: EngineRequest): Promise<EngineResult> {
-      await acquire()
-      try {
+    run(request: EngineRequest): Promise<EngineResult> {
+      return limiter.hold(() => {
         // Checked after the wait, not before it. A call cancelled while queued should
         // never start a process, and by the time a slot frees the screen that asked may
         // have redrawn twice.
         if (request.signal?.aborted === true) {
-          throw new EngineCallFailed(
-            'aborted',
-            'the caller cancelled the call while it was waiting for a slot',
-            0,
+          return Promise.reject(
+            new EngineCallFailed(
+              'aborted',
+              'the caller cancelled the call while it was waiting for a slot',
+              0,
+            ),
           )
         }
-        return await inner.run(request)
-      } finally {
-        release()
-      }
+        return inner.run(request)
+      })
     },
   }
 }

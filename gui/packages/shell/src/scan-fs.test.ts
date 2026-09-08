@@ -44,37 +44,37 @@ afterAll(() => {
 })
 
 describe('RG11: a real walk over a real tree', () => {
-  it('finds the projects and none of the decoys', () => {
-    const result = scanRoots([{ path: root, depth: 3 }])
+  it('finds the projects and none of the decoys', async () => {
+    const result = await scanRoots([{ path: root, depth: 3 }])
     const found = result.found.map((entry) => path.relative(root, entry.path).replaceAll('\\', '/'))
 
     expect(found.sort()).toEqual(['org/alpha', 'org/beta'])
   })
 
-  it('does not enter a project it already found', () => {
-    const found = scanRoots([{ path: root, depth: 5 }]).found.map((entry) =>
+  it('does not enter a project it already found', async () => {
+    const found = (await scanRoots([{ path: root, depth: 5 }])).found.map((entry) =>
       path.relative(root, entry.path).replaceAll('\\', '/'),
     )
 
     expect(found).not.toContain('org/alpha/packages/inner')
   })
 
-  it('does not go past the depth the root declared', () => {
+  it('does not go past the depth the root declared', async () => {
     // `very/deep/down/here/delta` is five below the root. Four does not reach it and five
     // does, which is the bound doing its job in both directions.
-    const at = (depth: number) =>
-      scanRoots([{ path: root, depth }]).found.map((entry) =>
+    const at = async (depth: number) =>
+      (await scanRoots([{ path: root, depth }])).found.map((entry) =>
         path.relative(root, entry.path).replaceAll('\\', '/'),
       )
 
-    expect(at(4)).not.toContain('very/deep/down/here/delta')
-    expect(at(5)).toContain('very/deep/down/here/delta')
+    expect(await at(4)).not.toContain('very/deep/down/here/delta')
+    expect(await at(5)).toContain('very/deep/down/here/delta')
   })
 
-  it('reads a handful of directories rather than the whole tree', () => {
+  it('reads a handful of directories rather than the whole tree', async () => {
     // The number is the point. Without the bounds this tree has three decoys behind
     // directories the walk should never open.
-    const result = scanRoots([{ path: root, depth: 3 }])
+    const result = await scanRoots([{ path: root, depth: 3 }])
 
     expect(result.looked).toBeLessThan(15)
     expect(result.unreadable).toEqual([])
@@ -82,20 +82,20 @@ describe('RG11: a real walk over a real tree', () => {
 })
 
 describe('RG11: what one look at a directory answers', () => {
-  it('says a directory holding the marker is a project', () => {
-    const listing = lookWith()(path.join(root, 'org', 'alpha'))
+  it('says a directory holding the marker is a project', async () => {
+    const listing = await lookWith()(path.join(root, 'org', 'alpha'))
 
     expect(listing?.isProject).toBe(true)
   })
 
-  it('does not mistake a directory named like the marker for one', () => {
-    const listing = lookWith()(path.join(root, 'org', 'decoy'))
+  it('does not mistake a directory named like the marker for one', async () => {
+    const listing = await lookWith()(path.join(root, 'org', 'decoy'))
 
     expect(listing?.isProject).toBe(false)
   })
 
-  it('lists the child directories and not the files', () => {
-    const listing = lookWith()(path.join(root, 'org'))
+  it('lists the child directories and not the files', async () => {
+    const listing = await lookWith()(path.join(root, 'org'))
 
     expect(listing?.children.map((child) => child.name).sort()).toEqual([
       'alpha',
@@ -105,12 +105,12 @@ describe('RG11: what one look at a directory answers', () => {
     ])
   })
 
-  it('answers null for a directory that cannot be read', () => {
-    expect(lookWith()(path.join(root, 'not-here-at-all'))).toBeNull()
+  it('answers null for a directory that cannot be read', async () => {
+    expect(await lookWith()(path.join(root, 'not-here-at-all'))).toBeNull()
   })
 
-  it('looks for the marker the policy names', () => {
-    const listing = lookWith({ ...DEFAULT_POLICY, marker: 'nothing.toml' })(
+  it('looks for the marker the policy names', async () => {
+    const listing = await lookWith({ ...DEFAULT_POLICY, marker: 'nothing.toml' })(
       path.join(root, 'org', 'alpha'),
     )
 

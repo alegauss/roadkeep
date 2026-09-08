@@ -1,3 +1,4 @@
+import { createLimiter } from './limiting'
 import type { KeyOf, ScanRoot } from './roots'
 
 /**
@@ -20,6 +21,13 @@ import type { KeyOf, ScanRoot } from './roots'
  *
  * How a directory is *looked at* belongs to whoever has a filesystem. This decides whether
  * to enter it and when to stop.
+ *
+ * **Nothing here waits on a disk.** A `Look` answers a promise, because the machine this
+ * runs on is not the one it was written on: a network share, a sleeping external drive or
+ * a directory behind a virus scanner turns one read into hundreds of milliseconds, and a
+ * synchronous walk spends every one of them holding the process that answers the window.
+ * The directories of one level are looked at together and bounded, so a slow root costs
+ * the scan its own time and nothing else's.
  */
 
 export interface ScanPolicy {
@@ -59,7 +67,7 @@ export interface Listing {
   readonly children: readonly { readonly name: string; readonly path: string }[]
 }
 
-export type Look = (path: string) => Listing | null
+export type Look = (path: string) => Promise<Listing | null>
 
 export interface Found {
   readonly path: string
@@ -83,18 +91,43 @@ export function mayEnter(name: string, policy: ScanPolicy): boolean {
 }
 
 /**
+ * How many directories may be read at once.
+ *
+ * Higher than the four a portfolio read allows itself, because these are not the same
+ * resource: that number bounds Python interpreters and this one bounds open handles, and a
+ * disk that is answering slowly is a disk with idle time to give. Low enough that a share
+ * which has gone away is not met with sixty simultaneous requests to prove it.
+ */
+export const SCAN_WIDTH = 8
+
+export interface ScanOptions {
+  readonly policy?: ScanPolicy
+  /** Directories read at once. Defaults to `SCAN_WIDTH`. */
+  readonly width?: number
+}
+
+/**
  * Walk every root, breadth first.
  *
  * Breadth first because the shallow answer is the likely one: a person naming `~/code`
  * with a depth of three mostly means the repositories directly under it, and finding
  * those first is what lets a list start drawing before the walk has finished.
+ *
+ * **One level at a time and the level together.** The directories of a level are read
+ * concurrently under a bound, which is where a slow disk stops being a stall — but the
+ * answers are consumed in the order the level lists them, so what is found and the order
+ * it is found in do not depend on which read came back first. A scan of the same machine
+ * twice is the same list twice.
  */
-export function scan(
+export async function scan(
   roots: readonly ScanRoot[],
   look: Look,
   keyOf: KeyOf,
-  policy: ScanPolicy = DEFAULT_POLICY,
-): ScanResult {
+  options: ScanOptions = {},
+): Promise<ScanResult> {
+  const { policy = DEFAULT_POLICY, width = SCAN_WIDTH } = options
+  const limiter = createLimiter(width)
+
   const found: Found[] = []
   const unreadable: string[] = []
   const seen = new Set<string>()
@@ -104,15 +137,23 @@ export function scan(
     let level: string[] = [root.path]
 
     for (let depth = 0; depth <= root.depth && level.length > 0; depth += 1) {
-      const next: string[] = []
-
-      for (const directory of level) {
+      // Claimed before any of them is read, and in order: two roots overlapping must not
+      // both look at the same directory, and which of them wins cannot be a race.
+      const claimed = level.filter((directory) => {
         const key = keyOf(directory)
-        if (seen.has(key)) continue
+        if (seen.has(key)) return false
         seen.add(key)
+        return true
+      })
 
-        looked += 1
-        const listing = look(directory)
+      looked += claimed.length
+      const listings = await Promise.all(
+        claimed.map((directory) => limiter.hold(() => look(directory))),
+      )
+
+      const next: string[] = []
+      for (const [index, listing] of listings.entries()) {
+        const directory = claimed[index] ?? ''
         if (listing === null) {
           unreadable.push(directory)
           continue
