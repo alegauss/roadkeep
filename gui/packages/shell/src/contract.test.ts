@@ -16,6 +16,7 @@ import {
   readAmendPayload,
   readAnswer,
   readBriefPayload,
+  readBudgetPayload,
   readCapabilities,
   readCriteriaPayload,
   readDeferPayload,
@@ -126,6 +127,7 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(Object.keys(VERBS).sort()).toEqual(
       [
         'brief',
+        'budget',
         'commands',
         'config',
         'criterionList',
@@ -496,6 +498,27 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect(renumber.value.to).toBe('FX95')
     expect(Array.isArray(renumber.value.moved)).toBe(true)
     expect(typeof renumber.value.criteria).toBe('boolean')
+  })
+
+  it('prices a line that does not exist yet, and one that is about to ship', async () => {
+    const line = await readVerb('budget', { block: 'A', symptom: 'a draft' }, readBudgetPayload)
+
+    expect(line.id).not.toBe('')
+    expect(line.lineMax).toBeGreaterThan(0)
+    expect(line.fields.map((one) => one.field)).toContain('why')
+    // `allowed` is the key a counter uses and `limit` is the one it must not.
+    expect(typeof line.fields[0]?.allowed).toBe('number')
+    expect(typeof line.fields[0]?.boundByLine).toBe('boolean')
+    expect(line.ref).not.toBeNull()
+
+    const listed = await readVerb('list', { role: 'changelog' }, readListPayload)
+    const shipped = listed.tasks[0]
+    if (shipped === undefined) return
+
+    const ledger = await readVerb('budget', { id: shipped.id, ship: true }, readBudgetPayload)
+    // A shipped line carries no pointer, so `ref` is null where the open form sends a
+    // string — the second shape of this verb, and a reader demanding one fails here.
+    expect(ledger.ref).toBeNull()
   })
 
   it('reads what to work on next, and which tier answered', async () => {

@@ -49,6 +49,7 @@
 - ✅ **RG33** **a lint finding is a line of text, so a report naming its own doors arrives as something to read and not to run** — A finding is offered as the door that closes it: run where complete, a form where not, and the repair pass dry first (design recorded in `packages/core/src/repairing.ts`).
 - ✅ **RG34** **the argv the app composed is never shown, so a write cannot be read before it runs or repeated after it** — The argv is a line a person can read before it runs and paste after it, and a transcript keeps what ran with its exit code (design recorded in `packages/core/src/transcript.ts`).
 - ✅ **RG35** **amend, restate and renumber have no door, so the corrections that keep an id are terminal-only** — The three corrections that keep an id are doors, each offered with the sentence the engine publishes for it (design recorded in `packages/core/src/correcting.ts`).
+- ✅ **RG36** **an input has no budget, so a field is typed to whatever length and refused after the sentence exists** — Every field is priced before a word is typed, counted against what the line allows rather than what the limit says (design recorded in `packages/core/src/budgeting.ts`).
 
 ## Block F — The agent surface (handing one task to Claude Code)
 

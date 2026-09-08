@@ -486,15 +486,6 @@ On ship: `--recorded-in packages/core/src/pauses.ts`.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-### §RG36 The budget, before the sentence
-
-The budget read prices every field of the line that does not exist yet: what the symptom
-has, what the why has after the structure and the deps are counted, what the section has
-in words, and the aim each is composed towards. It is called when the form opens and
-again when a dep or a block changes the arithmetic. The counter counts down against the
-tool's number and never against one this app derived, and it is an aim rather than a
-gate — the verb still decides.
-
 ## Block F — The agent surface (handing one task to Claude Code)
 
 ### §RG38 What a session is handed, and what starts it

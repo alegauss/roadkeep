@@ -65,6 +65,37 @@ export interface VerbInputs {
   }
   /** Every id the ledger undid, and the entry that undid it. `id` asks about one. */
   reversals: { id?: string }
+  /**
+   * What a line's fields have left, priced before any of them is written.
+   *
+   * Everything is optional because the interesting call is the one about a line that does
+   * not exist yet: a block and a marker and a dep are enough to say what the symptom and
+   * the why will have. The drafts are measured and never refused by this read.
+   */
+  budget: {
+    /** An existing line. Omitted, the line an `add` would write next. */
+    id?: string
+    block?: string
+    status?: string
+    deps?: readonly string[]
+    requires?: readonly string[]
+    /** A draft, measured against its allowance rather than refused by it. */
+    symptom?: string
+    why?: string
+    /** A section to price instead, by anchor, and which prose file it is against. */
+    anchor?: string
+    role?: string
+    body?: string
+    bodyFile?: string
+    /** Price the sentence a `ship` writes, which is the ledger's limit and not the line's. */
+    ship?: boolean
+    /** Price the reason a `defer` writes: the store's limit, less what it carries forward. */
+    defer?: boolean
+    /** Price a retirement's reason. Bare is an abandonment. */
+    retire?: boolean
+    /** With `retire`: the id taking it over, which costs more of the field than a bare one. */
+    supersededBy?: string
+  }
   /** What this project says it is not building. Takes nothing: the list is the project's. */
   nonGoalList: Record<string, never>
   /** What would finish a block, or what one line carries of its own. */
@@ -165,6 +196,25 @@ export const VERBS: { [K in VerbName]: ArgvFor<K> } = {
   deps: (input) => [input.id],
   delivered: (input) => [input.block, ...optional('--near', input.near)],
   reversals: (input) => [...optional('--id', input.id)],
+  budget: (input) => [
+    ...(input.id === undefined ? [] : [input.id]),
+    ...optional('--block', input.block),
+    ...repeated('--dep', input.deps),
+    ...repeated('--requires', input.requires),
+    ...optional('--status', input.status),
+    ...optional('--symptom', input.symptom),
+    ...optional('--why', input.why),
+    ...optional('--anchor', input.anchor),
+    ...optional('--role', input.role),
+    ...optional('--body', input.body),
+    ...optional('--body-file', input.bodyFile),
+    ...(input.ship === true ? ['--ship'] : []),
+    ...(input.defer === true ? ['--defer'] : []),
+    // One flag, an optional value: bare is an abandonment, named is a supersession.
+    ...(input.retire === true
+      ? ['--retire', ...(input.supersededBy === undefined ? [] : [input.supersededBy])]
+      : []),
+  ],
   nonGoalList: () => [],
   criterionList: (input) => [
     ...optional('--block', input.block),
@@ -199,6 +249,23 @@ export const EVERY_INPUT: { [K in VerbName]: VerbInputs[K] } = {
   deps: { id: 'RG1' },
   delivered: { block: 'A', near: 'a symptom about to be proposed' },
   reversals: { id: 'RG1' },
+  budget: {
+    id: 'RG1',
+    block: 'A',
+    status: '📋',
+    deps: ['RG2'],
+    requires: ['signing-cert'],
+    symptom: 'a symptom',
+    why: 'A sentence.',
+    anchor: 'RG1',
+    role: 'improvements',
+    body: 'Prose.',
+    bodyFile: 'a.md',
+    ship: true,
+    defer: true,
+    retire: true,
+    supersededBy: 'RG9',
+  },
   nonGoalList: {},
   criterionList: { block: 'A', task: 'RG1' },
   lint: { baseline: 'HEAD' },

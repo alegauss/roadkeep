@@ -38,8 +38,6 @@
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-- 💭 **RG36** (deps: RG29 ✅) **an input has no budget, so a field is typed to whatever length and refused after the sentence exists** — budget prices every field before a word is written, which is the read that makes a refusal something a person never meets. → §RG36
-
 ## Block F — The agent surface (handing one task to Claude Code)
 
 - 📋 **RG38** (deps: RG1 ✅, RG23 ✅) **nothing starts Claude Code, so a task and the session that does it are two windows and a copied prompt** — The loop this app is for ends in an agent working the line, and today the handoff is a person retyping what the screen already holds. → §RG38

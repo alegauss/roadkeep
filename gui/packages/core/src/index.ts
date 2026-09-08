@@ -40,6 +40,17 @@ export { coldStart } from './cold-start'
 export type { ColdStartProgress, ColdStartStage } from './cold-start'
 export { allLines, backlogFrom, refusedSummary } from './backlog'
 export type { Backlog, BacklogBlock } from './backlog'
+export {
+  anyOver,
+  counterFor,
+  counterOf,
+  countersOf,
+  overBy,
+  saidOfCounter,
+  sectionCounter,
+  structureOf,
+} from './budgeting'
+export type { Counter } from './budgeting'
 export { boundsFrom, criteriaAbout, finishingFrom, whyNothing } from './binding'
 export type { Bounds, CriterionGroup, Finishing, NonGoal } from './binding'
 export { candidateBoard, inTier } from './candidates'
@@ -144,6 +155,8 @@ export {
   narrowingOfList,
   narrowingOfStats,
   readBriefBudget,
+  readBudgetPayload,
+  readFieldBudget,
   readBriefPayload,
   readConfigPayload,
   readCriteriaPayload,
@@ -184,8 +197,10 @@ export type {
   AmendPayload,
   BlockCount,
   BriefBudget,
+  BudgetPayload,
   BriefPayload,
   ConfigKey,
+  FieldBudget,
   ConfigPayload,
   CriteriaPayload,
   Criterion,

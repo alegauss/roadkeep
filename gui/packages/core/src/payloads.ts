@@ -240,8 +240,16 @@ export interface SectionBudget {
   readonly written: boolean
   readonly unit: string
   readonly limit: number
+  /** What is actually available, where something binds before the limit does. */
+  readonly allowed: number
+  /** What to compose towards, which is lower than the limit on purpose. */
+  readonly aim: number
   readonly taken: number
   readonly left: number
+  /** What is left against the aim rather than the limit. */
+  readonly room: number
+  /** The count including everything under this heading. */
+  readonly subtree: number
   /** How far past the limit it already is. Above zero, the gate is what says so. */
   readonly over: number
 }
@@ -252,10 +260,113 @@ export const readSectionBudget: Reader<SectionBudget> = record<SectionBudget>({
   written: orMissing(aBoolean, false),
   unit: orMissing(aString, ''),
   limit: orMissing(aNumber, 0),
+  allowed: orMissing(aNumber, 0),
+  aim: orMissing(aNumber, 0),
   taken: orMissing(aNumber, 0),
   left: orMissing(aNumber, 0),
+  room: orMissing(aNumber, 0),
+  subtree: orMissing(aNumber, 0),
   over: orMissing(aNumber, 0),
 })
+
+/**
+ * What one prose field has left.
+ *
+ * **`allowed` and not `limit` is what a counter counts down from.** `[limits] why` is 200
+ * and the rendered line's 320 binds first, so on a line carrying deps the why has less —
+ * and `boundByLine` says which of the two was the binding one. A screen counting against
+ * the limit would promise room the write is going to refuse.
+ */
+export interface FieldBudget {
+  readonly field: string
+  /** What the project declares for this field on its own. */
+  readonly limit: number
+  /** What is actually available here, once the line's own budget is counted. */
+  readonly allowed: number
+  /** What to compose towards. Lower than the limit deliberately. */
+  readonly aim: number
+  readonly taken: number
+  readonly left: number
+  /** Above zero, a draft is past the limit. */
+  readonly over: number
+  /** What is left against the aim rather than the limit. */
+  readonly room: number
+  /** Whether a draft was measured, or this is the allowance of an empty field. */
+  readonly drafted: boolean
+  /** Whether the field already holds something this would replace. */
+  readonly replaced: boolean
+  readonly sentences: number
+  /** Whether the draft ends in a stop, which the why is held to. */
+  readonly terminated: boolean
+  /** Characters or words — the engine says which, since they are not the same field. */
+  readonly unit: string
+  /** True where the rendered line bound before the field's own limit did. */
+  readonly boundByLine: boolean
+  /** Where the number comes from, as an address in the project's config. */
+  readonly source: string
+}
+
+export const readFieldBudget: Reader<FieldBudget> = record<FieldBudget>(
+  {
+    field: aString,
+    limit: orMissing(aNumber, 0),
+    allowed: orMissing(aNumber, 0),
+    aim: orMissing(aNumber, 0),
+    taken: orMissing(aNumber, 0),
+    left: orMissing(aNumber, 0),
+    over: orMissing(aNumber, 0),
+    room: orMissing(aNumber, 0),
+    drafted: orMissing(aBoolean, false),
+    replaced: orMissing(aBoolean, false),
+    sentences: orMissing(aNumber, 0),
+    terminated: orMissing(aBoolean, false),
+    unit: orMissing(aString, ''),
+    boundByLine: orMissing(aBoolean, false),
+    source: orMissing(aString, ''),
+  },
+  { boundByLine: 'bound_by_line' },
+)
+
+export interface BudgetPayload {
+  /** The line this is about — the next id where the call was about one not yet written. */
+  readonly id: string
+  readonly status: string
+  readonly deps: readonly string[]
+  /** Whether the line is open, which changes what the structure costs. */
+  readonly openLine: boolean
+  /** The whole line's ceiling, which the prose fields share. */
+  readonly lineMax: number
+  /** What the line's own shape costs before any prose: the marker, the deps, the pointer. */
+  readonly structure: number
+  /** What is left of the line for prose, across all its fields. */
+  readonly prose: number
+  /**
+   * The pointer the line would carry, and **null where it would carry none** — the ship
+   * form prices a line whose pointer is about to go with its design.
+   */
+  readonly ref: string | null
+  /** True where no pointer was named and the widest on file was assumed. */
+  readonly refAssumed: boolean
+  readonly fields: readonly FieldBudget[]
+  readonly section: SectionBudget | null
+}
+
+export const readBudgetPayload: Reader<BudgetPayload> = record<BudgetPayload>(
+  {
+    id: orMissing(aString, ''),
+    status: orMissing(aString, ''),
+    deps: orMissing(listOf(aString), []),
+    openLine: orMissing(aBoolean, false),
+    lineMax: orMissing(aNumber, 0),
+    structure: orMissing(aNumber, 0),
+    prose: orMissing(aNumber, 0),
+    ref: orMissing(orNull(aString), null),
+    refAssumed: orMissing(aBoolean, false),
+    fields: orMissing(listOf(readFieldBudget), []),
+    section: orMissing(orNull(readSectionBudget), null),
+  },
+  { openLine: 'open_line', lineMax: 'line_max', refAssumed: 'ref_assumed' },
+)
 
 /**
  * The pricing a brief carries, of which this app reads the section's half.
