@@ -722,26 +722,29 @@ which is why it is written down here rather than made quietly.
 
 ### §RG63 The shell before the pages
 
-The design system's page vocabulary is its bento layer: a nav rail, a user menu, a
-command palette, a hero, a list mosaic and the save-bar morph, extracted from Turing and
-shared with Shio. It is a separate entry point, so importing the tokens does not bring
-it, and this app currently has none of it.
+The design system's page vocabulary is its bento layer: a nav rail, a command palette, a
+hero, a list mosaic and the save-bar morph, extracted from Turing and shared with Shio.
+It is a separate entry point, so importing the tokens does not bring it, and this app
+has none of it. Its own authoring guide names the failure directly — the first mistake
+is a page that looks bento inside a console that does not — so this is the shell, not a
+screen.
 
-Its own authoring guide names the failure directly: the first mistake is a page that
-looks bento inside a console that does not. So this is the shell, not a screen — a root
-layout holding `BentoNavRail`, `BentoUserMenu`, `BentoCommandPalette`,
-`BentoShortcutsDialog` and `BentoBackToTop`, with `bento-rail-gutter` around the routed
-outlet and `bento.css` imported beside the tokens.
+Reading the components' contracts turned up three things the line was written without.
 
-Three things it drags in that are worth knowing before starting. `./bento` needs
-`react-router-dom`, so routing arrives with it rather than later. `BentoUserMenu` calls
-the package's own `useCurrentUser`, and a local provider is a different context object
-that renders the shell blank behind an error boundary. And jsdom implements neither
-`matchMedia` nor `ResizeObserver` nor `scrollIntoView`, all three of which these
-components use, so the suite needs the same polyfills the package sets up for itself.
+**`BentoUserMenu` is not for this app.** Its props are `accountRoute` and `logoutUrl`;
+it exists to sign somebody out. *No account, no auth and no remote store in the desktop
+build* forbids exactly that, so the shell here is the rail, the palette, the shortcuts
+dialog and the back-to-top, and the user menu is left out on purpose rather than passed
+empty strings.
 
-The keybinding for the palette is this app's to choose; the component takes only open
-state and items.
+**Every nav label is an i18next key.** `BentoNavItem` carries `titleKey` and
+`descriptionKey`, resolved by the package's own i18next. So adopting the rail means this
+app's nav strings live there while RG51's catalogue holds the rest — which is [[RG88]]'s
+question, unsettled. That is now a dep, because building the shell first would answer it
+by accident.
+
+**`react-router-dom` is not installed.** A declared peer that npm did not pull; routing
+arrives with this line, as the design always said.
 
 ### §RG86 Carrying a locale from the settings to the screen
 
