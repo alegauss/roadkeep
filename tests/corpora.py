@@ -33,6 +33,12 @@ Three consequences worth stating, because each is a decision:
 Updating a pin is a commit of its own: the numbers below it are what that revision holds,
 so moving it is re-measuring on purpose rather than absorbing somebody else's afternoon.
 
+What each pin holds is :func:`shape`, and it is a **reading** (RK1622). Everything this
+module claims for a corpus below is a shape some test names, so one that stops carrying it
+goes red or skips; a *ratio* is not that kind of claim, and a design was free to name a
+corpus for one it does not have. Nothing here asserts somebody's numbers — those move, and
+should — but they are answerable at the pin, which makes a claim about them checkable.
+
 **A pin held by discipline is not held** (RK192). :func:`config` used to parse the pinned
 declaration and then root it at the checkout, so `config.document(role)` and `lint(config)`
 were ordinary calls that read the file as it is this afternoon — the exact shape RK105 was
@@ -233,6 +239,79 @@ def config(corpus: Corpus) -> Config:
     :func:`checkout` and the revision it already takes.
     """
     return Config.parse(_declaration(corpus), root=_materialised(corpus))
+
+
+@dataclass(frozen=True, slots=True)
+class Shape:
+    """What one pin actually holds, in the units a design cites a corpus for (RK1622).
+
+    RK1566's design named Turing for "a long backlog against a ledger that is mostly one
+    migration" and the pin holds the opposite — three open lines against 901 entries, which
+    is this repository's own shape. Nothing here could have disagreed: this module says in
+    prose what each corpus supplies, and every one of those is a **shape** some test names,
+    so a corpus that stopped carrying block deps or an outline scheme goes red or skips. A
+    *ratio* is not that kind of shape — no test asks for it, so a paragraph was free to
+    assert what it liked about somebody else's backlog.
+
+    A **reading and never an assertion**. The numbers move and should; what this makes
+    possible is that a claim about which corpus exhibits which ratio is answered rather than
+    remembered, and answered at the pin, which is the only state a design can be written
+    against twice and get the same answer.
+    """
+
+    corpus: str
+    rev: str
+    #: Task lines the roadmap holds at the pin.
+    open: int
+    #: Entries the ledger holds at the pin — shipped and retired, which is what a ledger is.
+    delivered: int
+    #: `(label, open, delivered)` per block the roadmap declares, in file order. The same
+    #: question one level down, because "a long backlog" is as often a claim about one block
+    #: as about a file — and a corpus whose work is all under one label is a different fixture
+    #: from one that spreads it, whatever the totals say.
+    blocks: tuple[tuple[str, int, int], ...] = ()
+
+    def __str__(self) -> str:
+        return (
+            f"{self.corpus}@{self.rev} holds {self.open} open against {self.delivered} "
+            f"delivered, over {len(self.blocks)} block(s)"
+        )
+
+
+@lru_cache(maxsize=None)
+def shape(corpus: Corpus) -> Shape:
+    """Read :class:`Shape` off the pin, through the package's own census (RK1622).
+
+    `counting.Census` and never a second count here: what "how many open lines" means is a
+    question this tool answers for a project, and a loop in the suite that counted entries
+    its own way would be the second reader this repository removes wherever it finds one.
+
+    Through :func:`config`, so every number is the revision's (RK192): a shape read off the
+    checkout would move under a design written against it, which is the whole failure.
+    """
+    from roadkeep.counting import Census  # noqa: PLC0415 - the suite's own edge
+
+    settings = config(corpus)
+    roadmap = Census.read(settings, "roadmap")
+    ledger = (
+        Census.read(settings, "changelog") if has(corpus, "changelog") else None
+    )
+    return Shape(
+        corpus=corpus.name,
+        rev=corpus.rev,
+        open=len(roadmap.counted),
+        delivered=0 if ledger is None else len(ledger.counted),
+        blocks=tuple(
+            (
+                label,
+                sum(1 for one in roadmap.counted if one.task.block == label),
+                0
+                if ledger is None
+                else sum(1 for one in ledger.counted if one.task.block == label),
+            )
+            for label in roadmap.blocks
+        ),
+    )
 
 
 def text(corpus: Corpus, role: str) -> str:

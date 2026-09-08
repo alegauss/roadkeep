@@ -158,10 +158,43 @@ def test_the_live_tree_has_moved_since_the_pin(corpus):
         if here != pinned:
             drift.append(f"{role} {pinned} → {here}")
     if drift:
+        # And **what the pin holds**, not only how far it has moved (RK1622). This warning
+        # said `roadmap 3 → 0` while a design was being written around a corpus for a ratio
+        # it does not have, and the delta alone does not carry the shape: a design writer
+        # reading this needs the two numbers a claim about a backlog is made of.
         _advise(
             f"{corpus.name}: the live tree has moved past {corpus.rev} ({', '.join(drift)}) "
-            f"— the pinned numbers still hold, and re-pinning re-measures them"
+            f"— {corpora.shape(corpus)}, which is what the pinned numbers are measured on, "
+            f"and re-pinning re-measures them"
         )
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)
+def test_the_shape_a_design_cites_is_read_at_the_pin(corpus):
+    """RK1622. A design named Turing for "a long backlog against a ledger that is mostly one
+    migration" and the pin holds the opposite — three open lines against 901 entries. Nothing
+    could have disagreed: every property this module claims for a corpus is a *shape* some
+    test names, and a ratio is not one of those.
+
+    A reading and never an assertion about somebody's backlog: those numbers move, and should.
+    What is held is that they are answerable and that they are the **revision's** — a shape
+    read off the checkout would move under the design written against it, which is RK192's
+    defect arriving through the helper written to remove it."""
+    corpora.require(corpus)
+    found = corpora.shape(corpus)
+    assert found.rev == corpus.rev
+    # The pinned documents' own counts, so the reading cannot be reaching this afternoon.
+    assert found.open == len(corpora.document(corpus, "roadmap").entries)
+    if corpora.has(corpus, "changelog"):
+        assert found.delivered == len(corpora.document(corpus, "changelog").entries)
+    # And the same question one level down, which is where "a long backlog" is as often a
+    # claim: every block the roadmap declares is a row, empty ones included.
+    assert [label for label, _, _ in found.blocks] == list(
+        dict.fromkeys(
+            one.label for one in corpora.document(corpus, "roadmap").headings if one.label
+        )
+    )
+    assert sum(count for _, count, _ in found.blocks) == found.open
 
 
 @pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda c: c.name)

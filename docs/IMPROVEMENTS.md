@@ -147,28 +147,6 @@ already built, and already the shape every other door that leaves a pointer owin
 
 ## Block C — Query
 
-### §RK1622 The shape no test asks a corpus for
-
-RK1566's design named Turing for a property — "a long backlog against a ledger that is
-mostly one migration" — and the pin holds the opposite: three open lines against 901
-entries, this repository's own shape. The design was written and filed on that sentence,
-and the measurement it asked for was the first thing to read it.
-
-Nothing here could have disagreed. `corpora.py` says in prose what each corpus supplies
-— block deps, an outline scheme, an unmarked ledger, ranges — and each is a shape some
-test names, so a corpus that stopped carrying one goes red or skips. A **ratio** is not
-that kind of shape: no test asks for it, nothing reads it, and a paragraph is free to
-assert what it likes about the pinned trees.
-
-The advisory in `test_corpora.py` is the near miss. It warns when the pin has fallen
-behind, and the warning during this task said `roadmap 3 → 0` — the whole answer,
-sitting in output nobody reads until something fails.
-
-What is missing is a shape a design can be checked against: how many open lines and how
-many delivered entries each pin holds, and the same per block. Not an assertion about
-somebody else's backlog — those numbers move and should — but a **reading**, so a claim
-about which corpus exhibits which ratio is answered rather than remembered.
-
 ### §RK1623 The corpus measured beside the one that is ranked
 
 `add` builds the corpus its volunteered rows are ranked against: the block's delivered
