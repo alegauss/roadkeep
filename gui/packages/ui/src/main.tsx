@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import { App } from './App'
+import { GroundProvider } from './ground'
 import './index.css'
 import { WordingProvider } from './wording'
 
@@ -10,12 +11,15 @@ if (!host) {
   throw new Error('index.html has no #root to mount into')
 }
 
-// No translation is passed yet, which is English. The locale is a setting the shell holds,
-// so the day the bridge carries settings across, it arrives here and nothing else moves.
+// Neither the locale nor the ground is passed yet, so both start where their defaults are:
+// English, and following the desktop. Both are settings the shell holds, so the day the
+// bridge carries settings across they arrive here as props and nothing else moves.
 createRoot(host).render(
   <StrictMode>
-    <WordingProvider>
-      <App />
-    </WordingProvider>
+    <GroundProvider>
+      <WordingProvider>
+        <App />
+      </WordingProvider>
+    </GroundProvider>
   </StrictMode>,
 )

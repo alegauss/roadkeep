@@ -639,15 +639,6 @@ not after it runs.
 
 ## Block H — The look (a design system for governed prose)
 
-### §RG52 The same tokens, re-pointed
-
-Dark is not a second stylesheet: it is the same tokens with different values, so a
-component names a role and never a shade. Which ground is drawn follows the system by
-default and is overridable, and the choice is a setting like every other one. What has
-to hold in both is the thing this app is for — a 320-character line and a 250-word
-section have to stay comfortable to read, which is a contrast and a measure question
-rather than a palette one.
-
 ### §RG53 Rendering a set this app does not own
 
 The markers are whatever the project declared, arriving as codepoints, so nothing here

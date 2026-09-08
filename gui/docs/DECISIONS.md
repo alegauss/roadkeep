@@ -32,6 +32,7 @@ spans every file the project runs and not only what it ships.
 ## Block H — The look (a design system for governed prose)
 
 - ✅ **RG39** **there is no design system, so every screen decides its own type, spacing and colour on the spot** — The design system is @viglet/viglet-design-system, a dependency shared with Turing, Shio and Dumont: this app declares no colour, type scale, spacing or radius of its own.
+- ✅ **RG52** **there is one ground, so somebody who works in dark reads this app in light** — The design system owns the theme switch; this app resolves the setting and never mounts a second theme system.
 
 ### §RG39 A shared design system, not a copied one
 

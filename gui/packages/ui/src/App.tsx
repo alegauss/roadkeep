@@ -1,6 +1,14 @@
-import { PACKAGE_TEXT, PACKAGES, type MessageKey } from '@rk/core'
-import { Badge, Card, CardContent, CardHeader, CardTitle } from '@viglet/viglet-design-system'
+import { PACKAGE_TEXT, PACKAGES, THEME_TEXT, type MessageKey } from '@rk/core'
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@viglet/viglet-design-system'
 
+import { useGround } from './ground'
 import type { TransportState } from './useTransport'
 import { useTransport } from './useTransport'
 import { useWording } from './wording'
@@ -34,6 +42,7 @@ const TRANSPORT_TEXT: Readonly<Record<TransportState, MessageKey>> = {
 export function App() {
   const transport = useTransport()
   const say = useWording()
+  const { theme, cycle } = useGround()
 
   return (
     <main className="bg-background text-foreground h-full overflow-auto">
@@ -41,10 +50,25 @@ export function App() {
         <header className="flex flex-col gap-3">
           <h1 className="font-brand text-3xl font-semibold tracking-tight">{say('app.name')}</h1>
           <p className="text-muted-foreground text-base">{say('app.tagline')}</p>
-          <div>
+          <div className="flex flex-wrap items-center gap-3">
             <Badge variant="secondary" className="font-mono" data-testid="transport">
               {say(TRANSPORT_TEXT[transport])}
             </Badge>
+            {/*
+             * The ground says which of the three it is set to and not which of the two it
+             * resolved to - `system` and `light` look identical on a machine set to light,
+             * and the setting is what the person chose. Words rather than an icon, because
+             * nothing on this screen is told by colour or shape alone.
+             */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={cycle}
+              aria-label={say('ground.action')}
+              data-testid="ground"
+            >
+              {say(THEME_TEXT[theme])}
+            </Button>
           </div>
         </header>
 

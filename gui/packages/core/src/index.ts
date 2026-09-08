@@ -144,6 +144,15 @@ export { commandLine, createTranscript, entryLine, quoteFor } from './transcript
 export type { Entry as TranscriptEntry, Ran, Shell, Transcript } from './transcript'
 export { outcomeOf, promptFor, readSessionLine, sessionCall } from './session'
 export type { SessionCall, SessionEvent, SessionOutcome, SessionState } from './session'
+export {
+  DARK_QUERY,
+  followsSystem,
+  GROUNDS,
+  groundFor,
+  nextTheme,
+  THEME_ORDER,
+} from './ground'
+export type { Ground } from './ground'
 export { CONFIG_FILE, createWatching, QUIET_MS, watchedFiles } from './watching'
 export type { Clock, Interest, OnChanged, Watcher, Watching } from './watching'
 export { DEFAULT_SETTINGS, readSettings, SETTINGS_VERSION, settingsText, wasReset } from './settings'
@@ -157,6 +166,7 @@ export {
   keys as messageKeys,
   localeFor,
   PACKAGE_TEXT,
+  THEME_TEXT,
   PSEUDO_CLOSE,
   PSEUDO_LOCALE,
   PSEUDO_OPEN,

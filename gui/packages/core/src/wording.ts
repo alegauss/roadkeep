@@ -20,6 +20,7 @@
  */
 
 import type { PackageName } from './packages'
+import type { Theme } from './settings'
 
 /** Named holes, filled by name. Positional would be a promise about word order. */
 export type Fill = Readonly<Record<string, string | number>>
@@ -38,6 +39,11 @@ export const EN = {
   'transport.absent': 'no bridge - running as a plain browser page',
   'transport.ipc': 'bridged over IPC',
   'transport.http': 'bridged over HTTP',
+
+  'ground.system': 'ground: following the desktop',
+  'ground.light': 'ground: light',
+  'ground.dark': 'ground: dark',
+  'ground.action': 'Change the ground',
 
   'packages.core':
     'The transport interface, the verb table and the payload shapes. No Electron, no React.',
@@ -59,6 +65,19 @@ export const PACKAGE_TEXT: Readonly<Record<PackageName, MessageKey>> = {
   core: 'packages.core',
   ui: 'packages.ui',
   shell: 'packages.shell',
+}
+
+/**
+ * What the ground control says it is set to.
+ *
+ * `system` has wording of its own rather than borrowing whichever ground it resolved to:
+ * *following the desktop* and *light* look identical on a machine set to light, and the
+ * difference is the whole reason `system` is a setting.
+ */
+export const THEME_TEXT: Readonly<Record<Theme, MessageKey>> = {
+  system: 'ground.system',
+  light: 'ground.light',
+  dark: 'ground.dark',
 }
 
 /** A translation. Partial because a translation in progress is still worth shipping. */
