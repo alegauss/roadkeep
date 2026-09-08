@@ -44,6 +44,7 @@
 - 💭 **RK1653** (deps: —) **five classes answer to notes and one is a gate report, so a sweep over the name is off for three whole test modules** — RK1603 and RK1611 each added a class and an exemption, and each turns the rule off for every assertion in that module rather than for the name. → §RK1653
 - 📋 **RK1656** (deps: —) **a dep on a ruled-out finding resolves as unknown, which says nothing can answer about a file that answers exactly** — RK92 gave the resolver a fifth answer for a paused target, and the seventh role arrived with no sixth. → §RK1656
 - 📋 **RK1657** (deps: —) **budget prices a pause's wrapped reason and not a dismissal's, whose premise is derived by the same rule** — RK1479 gave the pause its own subject because the wrapper is what bounds the sentence, and the second store that wraps one has no number. → §RK1657
+- 📋 **RK1661** (deps: —) **two payloads say notes about two populations, the gate one per address and the census one per printed block** — RK1620 made the figure follow the fold and the key beside it kept its name, so a consumer joining the two counts five against one. → §RK1661
 
 ## Block D — The gate
 
@@ -65,6 +66,7 @@
 - 💭 **RK1649** (deps: —) **answers() spells at most one of a verb's flags and nothing spells exactly one, so a required choice stays a raise** — RK1607 moved four pairs to the parser and left criterion add's, where argparse's required group answers on a command line and says nothing over MCP. → §RK1649
 - 💭 **RK1652** (deps: —) **a config refusal now names the table a key belongs under, and no verb moves it there** — RK1610 ends in a hand edit to the one file govern and declare exist so nobody hand-edits, and a served session has no editor at all. → §RK1652
 - 💭 **RK1654** (deps: —) **ten functions print to both streams in one body and two go through the helper, nothing saying which of the rest need to** — RK1612 gave the rule a function and left the census it named unbuilt, so the guard catches a stray flush and not a stderr print after a stdout one. → §RK1654
+- 📋 **RK1660** (deps: —) **one sentence said once is written twice, the notes' fold lifted out of the gate and the findings' left inside it** — RK1620 moved the note grouping so a figure could read it, and the finding grouping it was copied from is still a loop in the printer. → §RK1660
 
 ## Block E — Adoption
 

@@ -430,6 +430,30 @@ subject of its own.
 package chose — so a subject that quoted one number for both would be right today and
 wrong at the first rewording of either.
 
+### §RK1661 One word, two populations
+
+`lint --json` carries one `notes` entry per address, deliberately: a consumer acts per
+address, which is why the fold RK1565 shipped was left out of that register entirely.
+`cost --notes --json` carries a `notes` list too, and since RK1620 its entries are the
+*blocks* the terminal prints — five stale surfaces are five there and one here.
+
+Both are right about what they answer. What is wrong is that they answer under one word:
+a consumer holding both, which is any tool reading the gate and pricing it, joins
+`notes` to `notes` and gets two counts of one run with nothing in either payload saying
+they are different questions.
+
+RK1620 added `folded` beside the figure for the reader who takes the number away, and it
+is the half that makes this recoverable rather than the half that fixes it: a consumer
+would have to know to add the surfaces back before the two lists compare. The keys are
+what a client reads first, and a name shared across two answers is a join somebody makes
+without checking.
+
+**Which of the two moves is the question.** Renaming the census's list — `blocks`,
+`printed` — says what it is and leaves the gate's untouched; adding the block count to
+the gate's entries would make the two joinable and grows a payload every turn pays for.
+Neither is obviously right, and the measurement that decides it is whether anything
+joins them today.
+
 ## Block D — The gate
 
 ### §RK1621 A reason that stopped being true
@@ -847,6 +871,29 @@ What the reading needs is a run, not a scan: whether a body reaches both streams
 path is a question about execution, and the eight are few enough to drive.
 `tests/test_answers` now has the subprocess that merges the two pipes, which is the
 instrument that was missing when the rule was found the first two times.
+
+### §RK1660 The other fold
+
+RK469 folded findings sharing a sentence and RK1565 folded notes by copying that loop
+one list over. RK1620 then lifted the note half into `linting.runs`, because a *second*
+reader needed it: `cost --notes` was summing one row per note while the report said a
+run of them once, and the only honest fix was one fold with two callers.
+
+The findings' half stayed a loop inside `_print_findings`. So the rule — group by what
+the emitter declared shared, runs of two or more, addresses under the sentence — lives
+in two places, and the pair has already drifted: notes key on `(code, shared)` and
+findings on `(code, shared, file)`, a real difference with a stated reason and also the
+shape a copied loop takes the day somebody changes one.
+
+**What makes a lift worth it is the second reader, not the duplication.** A fold with
+one caller is a printer; RK1620's argument is that a figure claiming to be what a
+session pays has to read what was printed. Nothing prices a *report* — the findings'
+side has no census — so that reader does not exist, and lifting for symmetry alone buys
+indirection against nobody.
+
+So the decision is which this is: a duplication to remove now, or a lift that waits for
+the read needing it. What settles it is whether a report is a cadence — a clean run has
+no findings, and a backlog with standing debt prints the same one every run.
 
 ## Block E — Adoption
 
