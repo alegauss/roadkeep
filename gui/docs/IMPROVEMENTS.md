@@ -276,6 +276,31 @@ replace it with different contention.
 Not a fourth answer either: whichever verbs it serves, the client above it must not be
 able to tell which transport replied.
 
+### §RG103 The recipe nobody wrote down
+
+Six pieces ship and nothing joins them: `resolveEngine`, `createClient`,
+`createPooledTransport`, `createCachingTransport`, `attemptRead` and `readCapabilities`
+each have a test and none has a production caller. Opening a project is therefore a
+recipe rather than a call — resolve the engine from the candidates, wrap the process
+transport in a pool, wrap that in the cache keyed on the governed files, build the
+client, read `config` for those files and `commands` for what this build runs — and
+every caller writes it again. Twenty-five live test files write a version of it today;
+every screen in blocks C and D would write another.
+
+That is where a good part of this backlog comes from. RG84 is each file resolving the
+engine itself; RG73 is a row costing four interpreter starts; RG78 is twenty-five copies
+of the same call-and-unwrap; RG99 is two doors into one read. None of them is the defect
+— they are what a missing seam looks like, counted one file at a time.
+
+The shape follows what this package already does. The sequence is pure and belongs in
+`core`, taking `transportFor` and the candidates injected exactly as `resolveEngine`
+does; the pieces needing a process and a filesystem stay in `shell`. What comes back is
+a project that is open, with its client and what its build can run, or unreadable with
+the reason — the states `attemptRead` already spells.
+
+Worth deciding: whether an open project holds its client for the life of a window, or is
+composed per read.
+
 ## Block B — Discovery (which checkouts on this machine are governed)
 
 ### §RG13 The cheap no

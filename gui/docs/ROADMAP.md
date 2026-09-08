@@ -2,20 +2,23 @@
 
 ## Priority
 
+- RG103
+
 ## Block A — The client (payloads in, types out)
 
 - 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
 - 💭 **RG75** (deps: —) **two live tests still name RG9, so the commit that ships it fails a suite nothing changed to break** — A live test reads this repository's own backlog, and an id written into an assertion is a claim about today that the work itself keeps falsifying. → §RG75
-- 💭 **RG78** (deps: —) **every live test file now carries its own call-and-unwrap, and the sentence a moved key prints is written in each** — RG66 moved the reading into the client and left the throwing behind, so what each file spells is three lines of unwrap and a message that is the same in none of them. → §RG78
+- 💭 **RG78** (deps: RG103) **every live test file now carries its own call-and-unwrap, and the sentence a moved key prints is written in each** — RG66 moved the reading into the client and left the throwing behind, so each file spells three lines of unwrap and a message that is the same in none of them. → §RG78
 - 💭 **RG81** (deps: —) **the read and write paths each spell the same argv wrapper, and the two have already drifted apart** — Three rules about -C, --json and a two-word verb now live in two composers, and only one of them says why any of it is so. → §RG81
 - 💭 **RG82** (deps: RG75) **the contract test asserts one engine version across three reads, so a rebuilt engine reds a suite nothing touched** — A red contract test is meant to mean roadkeep renamed a key, and a reader who learns it also means the version moved stops believing it. → §RG82
 - 💭 **RG83** (deps: —) **one verb answers in two shapes under a flag, and nothing names the second until it breaks** — The flag that narrows a read is the flag that changes its answer, and it is never the call anybody writes the first test for. → §RG83
-- 💭 **RG84** (deps: RG78) **every live file resolves the engine itself, so one being rebuilt mid-run reds the suite four ways** — A red contract test is meant to mean roadkeep renamed a key, and it now also means somebody saved a file in another checkout. → §RG84
+- 💭 **RG84** (deps: RG78, RG103) **every live file resolves the engine itself, so one being rebuilt mid-run reds the suite four ways** — A red contract test is meant to mean roadkeep renamed a key, and it now also means somebody saved a file in another checkout. → §RG84
 - 📋 **RG97** (deps: —) **nothing declares which Node this repo needs, so a wrong one fails inside a dependency and not at the door** — Node 20.19.1 broke every jsdom worker with a TypeError from undici and the window test with a missing WebSocket, and CI's pin is the only place a version is written. → §RG97
 - 📋 **RG98** (deps: RG65 ✅) **core's boundary test holds an import and nothing else, so a path rule written as string work passes it** — RG65 decided what a path means belongs to whoever has the filesystem, and a separator fold written inline compiles, typechecks and passes every gate. → §RG98
-- 📋 **RG99** (deps: RG66 ✅) **a read has two doors and the one a screen has to use is the one that raises rather than answering** — The client reads a verb with its own shape and throws when the call never happened, and attemptRead states that as a value but takes the reader back at the call site. → §RG99
+- 📋 **RG99** (deps: RG66 ✅, RG103) **a read has two doors and the one a screen has to use is the one that raises rather than answering** — The client reads a verb with its own shape and throws when the call never happened, and attemptRead states that as a value but takes the reader back at the call site. → §RG99
 - 📋 **RG100** (deps: RG67 ✅) **an id in a project whose listing was bounded reads as one nothing in that project ever carried** — Where an id is filed is answered by looking through three listings, and a listing past the read bound holds no lines to look through. → §RG100
 - 📋 **RG101** (deps: RG68 ✅) **every call spends a second and a half starting Python, and the engine publishes a mode that starts once** — Both transports here spawn per call, so the cost is paid per read rather than per session, and RG7's cache only stops it being paid twice. → §RG101
+- 📋 **RG103** (deps: RG66 ✅) **every caller assembles the engine, the pool, the cache and the reader itself, and no two assemble it alike** — Six pieces ship with no production caller between them, so opening a project is a recipe each screen and each test writes again. → §RG103
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 
@@ -26,7 +29,7 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 📋 **RG73** (deps: RG16 ✅) **a row is built by four separate reads, so a project costs four interpreter starts to show once** — stats, pick, lint and engines are four calls per project, which is sixty-eight over seventeen and most of a cold start. → §RG73
+- 📋 **RG73** (deps: RG16 ✅, RG103) **a row is built by four separate reads, so a project costs four interpreter starts to show once** — stats, pick, lint and engines are four calls per project, which is sixty-eight over seventeen and most of a cold start. → §RG73
 
 ## Block D — The project surface (one backlog, read)
 
