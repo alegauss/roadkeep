@@ -41,7 +41,6 @@
 ## Block F — The agent surface (handing one task to Claude Code)
 
 - 💭 **RG42** (deps: RG38 ✅, RG45) **what a session wrote to the governed files is not watched, so the screen shows the backlog from before it ran** — An agent ships through the same verbs a person does, and the only evidence in this app is the files it changed. → §RG42
-- 💭 **RG43** (deps: RG38 ✅) **the claude binary is assumed to exist, so a machine without it fails at the moment work starts** — This app resolves a roadkeep engine per project and states what it found, and it does none of that for the other command it runs. → §RG43
 
 ## Block G — The shell (an executable now, a service later)
 

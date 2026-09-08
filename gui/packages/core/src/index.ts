@@ -38,6 +38,8 @@ export { amended, CORRECTIONS, correctionsOffered, renumbered, replacedBy, resta
 export type { Corrected, Correction, Offered } from './correcting'
 export { actLine, actsIn, actsOf, governedIn, isRoadkeep, NOTHING_MARKED, subjectOf, touched } from './acts'
 export type { Act, Marks } from './acts'
+export { resolveAgent, saidOfAgent, versionIn } from './agent'
+export type { Agent, AgentResolution, ResolveAgentOptions, TransportFor as TransportForAgent } from './agent'
 export { coldStart } from './cold-start'
 export type { ColdStartProgress, ColdStartStage } from './cold-start'
 export { allLines, backlogFrom, refusedSummary } from './backlog'

@@ -497,15 +497,6 @@ leaving for the ledger. That is drawn beside the stream rather than inside it, s
 is what the agent said and the other is what the repository now holds, and the second is
 the one that is true.
 
-### §RG43 The other command this app runs
-
-This app resolves a roadkeep engine per project and says what it found; it does none of
-that for the command that runs a session. So the same treatment: resolve it once, record
-which binary and which version answered, and show a machine without one as a stated
-condition rather than a failure at the moment work starts. Nothing is bundled here
-either, and for the same reason — the session runs the person's own installation, with
-their own authentication and their own settings.
-
 ## Block G — The shell (an executable now, a service later)
 
 ### §RG45 What to watch, and who is told
