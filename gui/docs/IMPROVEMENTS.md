@@ -646,26 +646,26 @@ that silences the rule to make the run green would leave this worse than not hav
 
 ### §RG95 Advisories nobody is told about
 
-Installing the linter for RG58 printed something unrelated: `npm audit` reports two
-high-severity advisories against `xlsx`, which reaches this app as a dependency of
-`@viglet/viglet-design-system`. Prototype pollution and a regular-expression denial of
-service, both with **no fix available** — the package is not published to npm under a
-version that resolves them.
+Nothing in this repository reads a security advisory. `npm ci` does not audit,
+roadkeep's gate is about governed files, and the suite has no opinion. So the one
+advisory this project knows about was found by somebody installing a linter for an
+unrelated task — which is the shape of finding this block exists to stop.
 
-Nothing in this repository reads an advisory. `npm ci` in CI does not audit, the gate is
-about governed files, and the suite has no opinion. So this was found by a person
-installing something else, which is the same shape as every other finding this block
-exists to stop.
+That advisory is [[RG61]]'s and this line is not about it. This is about the next one: a
+dependency added six months from now that arrives with something known, and nobody
+hears.
 
-Two questions, and they are separate. The first is whether the code is even reachable:
-`xlsx` is behind the design system's export helpers, this app imports no table export,
-and a bundle that never pulls it in is not a bundle that runs it — worth checking
-against the built output rather than assuming either way. The second is whether an
-advisory should fail a build at all when no fix exists, because a gate that cannot be
-satisfied is a gate that gets a flag added to silence it.
+The likely shape is `npm audit --audit-level=high` as a CI step. What makes it a task
+rather than a line of YAML is the exception, because an advisory with no published fix
+is the ordinary case and a gate that cannot be satisfied is a gate somebody adds a flag
+to silence. So the exception has to be a list somebody wrote deliberately — an advisory
+id, why it does not reach this executable, and the date that was established — and a
+*third* advisory has to be what breaks the build.
 
-The likely shape is `npm audit --audit-level=high` in CI with a recorded, dated
-exception for this pair, so a *third* advisory is what breaks the build.
+The alternative is Dependabot, which this repository already configures and which
+reports without gating. That is worth reading before building anything: if its alerts
+are seen, the gate adds a fail and not a discovery, and the exception list is the only
+part actually missing.
 
 ### §RG96 A test whose subject is on disk
 
@@ -690,28 +690,6 @@ The third is probably it. A test that refuses to run against a stale subject is 
 in a way that a test which silently rebuilds is not, and it costs a `stat`.
 
 ## Block H — The look (a design system for governed prose)
-
-### §RG61 An advisory that arrives with somebody else's package
-
-Installing the design system brought one finding: `xlsx` is reported high severity and
-reaches this app as a transitive dependency of `@viglet/viglet-design-system`. The
-package on npm is the unmaintained SheetJS build, whose advisories are prototype
-pollution and a regular-expression denial of service, and no patched version exists on
-that registry.
-
-What is actually exposed here is narrow and should be established before anything is
-done. This app parses no spreadsheet, and the renderer that would run the code has no
-filesystem and no process. If the bundle does not include `xlsx` at all — Vite
-tree-shakes what nothing imports — then the advisory is about the install tree and not
-about the executable, and the answer is a documented note rather than a change. That
-measurement is the first half of this task and it may be the whole of it.
-
-If it does ship, the fix is not this repository's: it is a line in the design system,
-either dropping the dependency or moving to the maintained `xlsx` distribution SheetJS
-publishes outside npm. That makes this a line that ends in somebody else's release, so
-it wants the wait-watcher the sibling consoles use — a test pinning the installed
-design-system version, which fails when it moves so the wait is read again rather than
-sitting unnoticed.
 
 ### §RG62 Joining the checks the other consoles already answer to
 
