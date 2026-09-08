@@ -488,31 +488,6 @@ On ship: `--recorded-in packages/core/src/pauses.ts`.
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-### §RG38 What a session is handed, and what starts it
-
-Claude Code runs headless — `claude -p <prompt> --output-format stream-json`, a child
-process writing one JSON object per line. That call is the whole integration, and
-everything difficult about it sits on either side of it.
-
-What goes in is not a prompt somebody typed. It is the payload `brief` returned for the
-task: the tier it was chosen by, its deps, its design section, what shipping it
-unblocks, and the criteria and non-goals that bind it. That is the read roadkeep's own
-skill tells an agent to start from, and re-composing it here in English would be this
-app paraphrasing the tool. The prompt is a short frame around a payload.
-
-Where it runs decides what it can do. The session's working directory is the project
-root, so the project's own wiring answers: its `roadkeep.toml`, its guard, its skill,
-its `.mcp.json`. This app passes no configuration and installs nothing, which is the
-engine rule again — the session runs the project's roadkeep and not this app's idea of
-one.
-
-Three failures are certain and each needs a state rather than a crash: no `claude` on
-the machine, a session that exits non-zero, and a session cancelled from the window. The
-process is owned, killable, and its exit is drawn.
-
-What this app never does is write the backlog on the session's behalf. The agent writes
-through the same verbs a person does, and the app watches the files change.
-
 ### §RG40 The stream, and what a person needs from it
 
 A headless session emits one JSON object per line: turns, tool calls, results and a

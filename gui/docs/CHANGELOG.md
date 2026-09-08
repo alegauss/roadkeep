@@ -53,6 +53,8 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
+- ✅ **RG38** **nothing starts Claude Code, so a task and the session that does it are two windows and a copied prompt** — A session starts from the brief payload itself, owned and killable, with no claude on the machine its own state (design recorded in `packages/core/src/session.ts`).
+
 ## Block G — The shell (an executable now, a service later)
 
 - ✅ **RG37** **there is no application at all: no window, no build and no way to run any of this** — A window opens over three packages, with one typecheck spanning them and a headless suite over both halves (design recorded in `packages/core/src/packages.ts`).

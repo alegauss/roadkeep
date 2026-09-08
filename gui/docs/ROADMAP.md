@@ -40,11 +40,10 @@
 
 ## Block F — The agent surface (handing one task to Claude Code)
 
-- 📋 **RG38** (deps: RG1 ✅, RG23 ✅) **nothing starts Claude Code, so a task and the session that does it are two windows and a copied prompt** — The loop this app is for ends in an agent working the line, and today the handoff is a person retyping what the screen already holds. → §RG38
-- 💭 **RG40** (deps: RG38) **a session's output is a stream nothing renders, so what the agent is doing is invisible while it does it** — stream-json is one object per line and a window that shows only the exit has thrown away every turn that led to it. → §RG40
-- 💭 **RG41** (deps: RG30 ✅, RG38) **a line is handed over without being taken, so two sessions can be started on the same task** — brief --claim answers and moves the marker in one transaction, and an app that skips it hands one id to two authors. → §RG41
-- 💭 **RG42** (deps: RG38, RG45) **what a session wrote to the governed files is not watched, so the screen shows the backlog from before it ran** — An agent ships through the same verbs a person does, and the only evidence in this app is the files it changed. → §RG42
-- 💭 **RG43** (deps: RG38) **the claude binary is assumed to exist, so a machine without it fails at the moment work starts** — This app resolves a roadkeep engine per project and states what it found, and it does none of that for the other command it runs. → §RG43
+- 💭 **RG40** (deps: RG38 ✅) **a session's output is a stream nothing renders, so what the agent is doing is invisible while it does it** — stream-json is one object per line and a window that shows only the exit has thrown away every turn that led to it. → §RG40
+- 💭 **RG41** (deps: RG30 ✅, RG38 ✅) **a line is handed over without being taken, so two sessions can be started on the same task** — brief --claim answers and moves the marker in one transaction, and an app that skips it hands one id to two authors. → §RG41
+- 💭 **RG42** (deps: RG38 ✅, RG45) **what a session wrote to the governed files is not watched, so the screen shows the backlog from before it ran** — An agent ships through the same verbs a person does, and the only evidence in this app is the files it changed. → §RG42
+- 💭 **RG43** (deps: RG38 ✅) **the claude binary is assumed to exist, so a machine without it fails at the moment work starts** — This app resolves a roadkeep engine per project and states what it found, and it does none of that for the other command it runs. → §RG43
 
 ## Block G — The shell (an executable now, a service later)
 
