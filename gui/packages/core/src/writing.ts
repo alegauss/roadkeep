@@ -28,7 +28,11 @@ import { spell } from './verbs'
 
 /** A command line, built and not yet run. */
 export interface Composed {
-  readonly verb: WriteName
+  /**
+   * What is being run. A `WriteName` where this app chose the verb, and whatever the
+   * engine put first where it chose — a door's argv is not from the table.
+   */
+  readonly verb: string
   /** The whole argv, `-C <root>` and `--json` included. An array, never a shell string. */
   readonly argv: readonly string[]
   readonly root: string
@@ -53,6 +57,21 @@ export function composeWrite<K extends WriteName>(
     root,
     argv: ['-C', root, ...spell(verb, WRITE_WORDS), ...argvFor(input), '--json'],
   }
+}
+
+/**
+ * Wrap a door's own argv so it can be run against a project.
+ *
+ * **This app did not compose it.** A gate finding, a refusal and `explain` all publish the
+ * command that closes them, already split, and the whole of what is added here is where to
+ * run it and the request for a machine-readable answer. `composeWrite` builds from a table
+ * because the app chose the verb; nothing chose this one but the tool.
+ *
+ * A door the engine marked incomplete still composes, and should not be run: the
+ * placeholders go through as themselves, and `complete` is what a caller checks.
+ */
+export function composeDoor(root: string, door: { readonly argv: readonly string[] }): Composed {
+  return { verb: door.argv[0] ?? '', root, argv: ['-C', root, ...door.argv, '--json'] }
 }
 
 export type WriteOutcome<T> =

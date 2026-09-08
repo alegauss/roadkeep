@@ -124,6 +124,15 @@ export interface WriteInputs {
     role?: string
     fragment?: FragmentEdit
   }
+  /**
+   * Spend a whole gate report in one call.
+   *
+   * The one write that reaches every governed file, so `dryRun` is what it is offered as
+   * first: it prints the commands and runs none of them.
+   */
+  repair: {
+    dryRun?: boolean
+  }
 }
 
 /**
@@ -226,6 +235,7 @@ export const WRITES: { [K in WriteName]: ArgvFor<K> } = {
       ? []
       : ['--replace', input.fragment.replace, '--with', input.fragment.replacement]),
   ],
+  repair: (input) => [...(input.dryRun === true ? ['--dry-run'] : [])],
 }
 
 /**
@@ -279,4 +289,5 @@ export const EVERY_WRITE_INPUT: { [K in WriteName]: WriteInputs[K] } = {
     role: 'improvements',
     fragment: { replace: 'one', replacement: 'two' },
   },
+  repair: { dryRun: true },
 }

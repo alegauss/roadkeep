@@ -27,6 +27,7 @@ import {
   readNonGoalsPayload,
   readPayload,
   readPickPayload,
+  readRepairPayload,
   readResumePayload,
   readRetirePayload,
   readReversalsPayload,
@@ -144,7 +145,17 @@ describe('RG4: every read this client makes, against a live engine', () => {
     // The same guard as above, for the other table. A write verb added without a shape
     // and without a case here is a door offered against an answer nobody has read.
     expect(Object.keys(WRITES).sort()).toEqual(
-      ['add', 'defer', 'resume', 'retire', 'sectionAdd', 'sectionAmend', 'ship', 'status'].sort(),
+      [
+        'add',
+        'defer',
+        'repair',
+        'resume',
+        'retire',
+        'sectionAdd',
+        'sectionAmend',
+        'ship',
+        'status',
+      ].sort(),
     )
   })
 
@@ -467,6 +478,24 @@ describe('RG4: every read this client makes, against a live engine', () => {
     expect([0, 1]).toContain(result.code)
     expect(typeof parsed.value.clean).toBe('boolean')
     expect(parsed.value.checked.length).toBeGreaterThan(0)
+  })
+
+  it('reads a repair pass, whose dry run is a different answer', async () => {
+    const dry = await applyWrite(
+      transport,
+      composeWrite(fixture.root, 'repair', { dryRun: true }),
+      readRepairPayload,
+      { timeoutMs: CEILING },
+    )
+
+    expect(dry.kind).toBe('applied')
+    if (dry.kind !== 'applied') throw new Error('unreachable')
+    // `dry_run` is the key that tells the two apart, and a shape without it would read a
+    // rehearsal as a pass that ran.
+    expect(dry.value.dryRun).toBe(true)
+    expect(Array.isArray(dry.value.steps)).toBe(true)
+    expect(Array.isArray(dry.value.left)).toBe(true)
+    expect(typeof dry.value.exhausted).toBe('boolean')
   })
 
   it('reads which engine answered for the fixture', async () => {

@@ -105,6 +105,16 @@ export {
   withPresence,
 } from './roots'
 export type { KeyOf, KnownRoot, RootCheck, RootPresence, RootProblem, ScanRoot } from './roots'
+export {
+  actionableFrom,
+  actionableLeft,
+  actionableReport,
+  anyRunnable,
+  offerOf,
+  passFrom,
+  saidOfPass,
+} from './repairing'
+export type { Actionable, Offer, Pass } from './repairing'
 export { saidOfWrite, wasCreated, whereWritten, writtenFrom } from './sections'
 export type { Written } from './sections'
 export { coversEverything, search } from './search'
@@ -134,6 +144,7 @@ export {
   readCriteriaPayload,
   readCriterion,
   readDeferPayload,
+  readFinding,
   readDeliveredEntry,
   readDeliveredPayload,
   readDepChain,
@@ -144,6 +155,7 @@ export {
   readNonGoalsPayload,
   readPickPayload,
   readRefusedLine,
+  readRepairPayload,
   readResolvedDep,
   readResumePayload,
   readRetirePayload,
@@ -185,6 +197,9 @@ export type {
   PickPayload,
   RationaleSection,
   RefusedLine,
+  RepairLeft,
+  RepairPayload,
+  RepairStep,
   RemovedLine,
   ResumePayload,
   RetirePayload,
@@ -229,5 +244,5 @@ export { EVERY_INPUT, publishedAs, spell, VERBS, VERB_WORDS } from './verbs'
 export type { Spelling, VerbInputs, VerbName } from './verbs'
 export { EVERY_WRITE_INPUT, WRITES, WRITE_WORDS } from './writes'
 export type { FragmentEdit, WriteInputs, WriteName } from './writes'
-export { applied, applyWrite, composeWrite } from './writing'
+export { applied, applyWrite, composeDoor, composeWrite } from './writing'
 export type { Composed, WriteOutcome } from './writing'

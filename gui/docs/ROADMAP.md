@@ -37,7 +37,6 @@
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-- 💭 **RG33** (deps: RG29 ✅) **a lint finding is a line of text, so a report naming its own doors arrives as something to read and not to run** — Every finding carries a code, a file and line and a complete argv, and explain answers what a code means: none of it is reachable here. → §RG33
 - 💭 **RG34** (deps: RG29 ✅) **the argv the app composed is never shown, so a write cannot be read before it runs or repeated after it** — A person approving a write has only the app's word for what it will do, and reproducing it in a terminal means guessing the flags. → §RG34
 - 💭 **RG35** (deps: RG29 ✅) **amend, restate and renumber have no door, so the corrections that keep an id are terminal-only** — restate exists because retire plus add spends an id and deletes a design that was right, and this app offers neither half. → §RG35
 - 💭 **RG36** (deps: RG29 ✅) **an input has no budget, so a field is typed to whatever length and refused after the sentence exists** — budget prices every field before a word is written, which is the read that makes a refusal something a person never meets. → §RG36

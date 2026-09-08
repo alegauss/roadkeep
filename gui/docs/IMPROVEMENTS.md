@@ -459,15 +459,6 @@ On ship: `--recorded-in packages/core/src/pauses.ts`.
 
 ## Block E — The write path (the app composes an argv; the command writes)
 
-### §RG33 A finding that can be run
-
-Every gate finding carries a code, a file, a line and column, and the complete argv that
-closes it, and a repair pass spends a whole report in one call. The explain read says
-what a code means and which doors it has. So this surface is a translation and decides
-nothing: a door the tool marked complete becomes one action, an incomplete one opens the
-form with the blank a person has to fill, and the repair pass is offered whole with its
-dry run first.
-
 ### §RG34 The command, on screen
 
 Before a write runs, the argv it will run is shown as a line a person could paste into a

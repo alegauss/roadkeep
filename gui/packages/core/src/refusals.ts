@@ -148,12 +148,18 @@ export interface Remedy {
   readonly kind: string
   /** True where the doors are a sequence rather than a choice. */
   readonly sequence: boolean
+  /** What a person has to settle before any door helps. Empty for most. */
+  readonly decision: string
+  /** What this is waiting on, where nothing here can close it yet. */
+  readonly awaits: string
   readonly doors: readonly Door[]
 }
 
 export const readRemedy: Reader<Remedy> = record<Remedy>({
   kind: orMissing(aString, ''),
   sequence: orMissing(aBoolean, false),
+  decision: orMissing(aString, ''),
+  awaits: orMissing(aString, ''),
   doors: orMissing(listOf(readDoor), []),
 })
 
@@ -165,6 +171,8 @@ export interface Explanation {
   /** Present where the same code means different things in different places. */
   readonly varies: string | null
   readonly sequence: boolean
+  /** What this code waits on, where no door here closes it. */
+  readonly awaits: string
   readonly doors: readonly Door[]
 }
 
@@ -174,6 +182,7 @@ export const readExplanation: Reader<Explanation> = record<Explanation>({
   cause: orMissing(aString, ''),
   varies: orMissing(orNull(aString), null),
   sequence: orMissing(aBoolean, false),
+  awaits: orMissing(aString, ''),
   doors: orMissing(listOf(readDoor), []),
 })
 

@@ -1001,6 +1001,8 @@ export interface LintFinding {
   readonly code: string
   readonly file: string
   readonly line: number | null
+  /** Where on the line, where the gate can say. Null for a finding about the whole line. */
+  readonly column: number | null
   readonly id: string | null
   readonly message: string
   /**
@@ -1011,14 +1013,77 @@ export interface LintFinding {
   readonly remedy: Remedy | null
 }
 
-const readFinding: Reader<LintFinding> = record<LintFinding>({
+export const readFinding: Reader<LintFinding> = record<LintFinding>({
   code: aString,
   file: orMissing(aString, ''),
   line: orMissing(orNull(aNumber), null),
+  column: orMissing(orNull(aNumber), null),
   id: orMissing(orNull(aString), null),
   message: aString,
   remedy: orMissing(orNull(readRemedy), null),
 })
+
+/**
+ * One finding as a repair pass reports it, which is the same thing addressed differently.
+ *
+ * `where` is the file and line already joined, because a repair's report is about a place
+ * rather than about a file with a line in it. Everything else is the finding's own.
+ */
+export interface RepairLeft {
+  readonly code: string
+  readonly where: string
+  readonly message: string
+  readonly remedy: Remedy | null
+}
+
+const readRepairLeft: Reader<RepairLeft> = record<RepairLeft>({
+  code: aString,
+  where: orMissing(aString, ''),
+  message: orMissing(aString, ''),
+  remedy: orMissing(orNull(readRemedy), null),
+})
+
+/** One move a repair pass made, or would have made under a dry run. */
+export interface RepairStep {
+  readonly code: string
+  readonly argv: readonly string[]
+  readonly what: string
+  /** Whether it ran. False for every step of a dry run. */
+  readonly ran: boolean
+}
+
+const readRepairStep: Reader<RepairStep> = record<RepairStep>({
+  code: orMissing(aString, ''),
+  argv: orMissing(listOf(aString), []),
+  what: orMissing(aString, ''),
+  ran: orMissing(aBoolean, false),
+})
+
+export interface RepairPayload {
+  readonly root: string
+  readonly clean: boolean
+  /** Whether this printed the commands and ran none of them. */
+  readonly dryRun: boolean
+  readonly passes: number
+  /** True where the passes stopped because they stopped helping, not because it is clean. */
+  readonly exhausted: boolean
+  readonly steps: readonly RepairStep[]
+  /** What the passes could not close. The report after, in a finding's own shape. */
+  readonly left: readonly RepairLeft[]
+}
+
+export const readRepairPayload: Reader<RepairPayload> = record<RepairPayload>(
+  {
+    root: orMissing(aString, ''),
+    clean: orMissing(aBoolean, false),
+    dryRun: orMissing(aBoolean, false),
+    passes: orMissing(aNumber, 0),
+    exhausted: orMissing(aBoolean, false),
+    steps: orMissing(listOf(readRepairStep), []),
+    left: orMissing(listOf(readRepairLeft), []),
+  },
+  { dryRun: 'dry_run' },
+)
 
 export interface LintPayload {
   readonly root: string
