@@ -28,6 +28,7 @@
 
 - 📋 **RK1632** (deps: —) **add --symptom takes no stdin, the one prose field with no pipe being the one every line leads with** — RK1187 gave restate --symptom the pipe and add kept the literal, so a claim carrying a backtick reaches one verb and lands as text in the other. → §RK1632
 - 📋 **RK1634** (deps: —) **a ship deletes the design section and names nothing that was in it, so the last look at it never happens** — Three flags carry a design's durable half and all three are optional, so a section goes to a caller who was never shown it was about to. → §RK1634
+- 📋 **RK1655** (deps: —) **reopen files a line whose pointer resolves to nothing, and has no way to write the design in the same call** — add closes it with --section and this door cannot, so every reopen leaves a ref.unresolved the author closes by hand. → §RK1655
 
 ## Block C — Query (consult without reading the file)
 
@@ -41,6 +42,8 @@
 - 💭 **RK1650** (deps: —) **one of forty read-only verbs now refuses, and the rule that reading is never refused is prose in three places** — RK1608 refuses a --have word outside a declared vocabulary, and the sentence the guard prints an agent still says reading is never refused. → §RK1650
 - 💭 **RK1651** (deps: —) **three readings of one source claim to be complements of each other and no test holds any of the three claims** — RK1609 changed what two of them read and the claim survived by luck, the measurement that says so having been taken by hand once. → §RK1651
 - 💭 **RK1653** (deps: —) **five classes answer to notes and one is a gate report, so a sweep over the name is off for three whole test modules** — RK1603 and RK1611 each added a class and an exemption, and each turns the rule off for every assertion in that module rather than for the name. → §RK1653
+- 📋 **RK1656** (deps: —) **a dep on a ruled-out finding resolves as unknown, which says nothing can answer about a file that answers exactly** — RK92 gave the resolver a fifth answer for a paused target, and the seventh role arrived with no sixth. → §RK1656
+- 📋 **RK1657** (deps: —) **budget prices a pause's wrapped reason and not a dismissal's, whose premise is derived by the same rule** — RK1479 gave the pause its own subject because the wrapper is what bounds the sentence, and the second store that wraps one has no number. → §RK1657
 
 ## Block D — The gate
 

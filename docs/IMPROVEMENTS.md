@@ -123,6 +123,28 @@ delete — the title, the word count — and the three doors, before it writes. 
 project may demand the stronger form, and whether an explicit `nothing survives` is an
 assertion worth having or ceremony, is what this design has to weigh.
 
+### §RK1655 The design a reopen owes
+
+A dismissal carries no design section — that is what a dismissal *is*, the claim being
+that no work was filed. So the line `reopen` places points at `§<id>` and nothing
+answers it, and the gate reports `ref.unresolved` on every single reopen this tool will
+ever perform.
+
+`add` met the same problem and closed it: `--section <title>` writes the rationale in
+the same transaction, and without it the follow-up is named in the write's own report
+rather than left to the gate. `reopen` has neither half — no flag, and no `needs` row
+saying what is owed.
+
+The state is not wrong. A finding that has just become real has a design still to write,
+and inventing one would be this tool writing prose (L4). What is wrong is that the write
+says nothing about it: the caller reads a clean answer, the gate reports a finding on
+the next run, and the two are the same fact arriving twice.
+
+**So the flag and the sentence, both from `add`.** `reopen <id> --section "<title>"`
+with the prose on stdin writes the section in the transaction that files the line, and a
+`reopen` without it reports the anchor nothing answers — which is `Insertion.needs`,
+already built, and already the shape every other door that leaves a pointer owing uses.
+
 ## Block C — Query
 
 ### §RK1622 The shape no test asks a corpus for
@@ -359,6 +381,54 @@ assigned from a bare `.notes` — so it could ask what the receiver is:
 `removal(project).notes` is not. Or the exemption stays a declaration and narrows to a
 symbol rather than a module. Which is cheaper depends on how many receivers the suite
 actually spells, and that is one grep.
+
+### §RK1656 The answer a dismissed target has none of
+
+`Backlog.resolve` reads the roadmap, the ledger and the deferred store, and a dep naming
+an id none of them holds is `deps.unknown`: *in neither the roadmap nor the changelog,
+so nothing can say whether it is done*. The dismissed store makes that sentence false —
+it says precisely what was decided, and names the premise under which it stays decided.
+
+RK92 is the same finding one store earlier. Before it, a dep on a paused line read as a
+missing id: the gate reported it, `pick` could not rank the line waiting on it, and the
+fix was a fifth `DepStatus` plus a `blocked-paused` readiness. The seventh role arrived
+without the sixth.
+
+What it costs is smaller than RK92's and is the same shape. Nothing *should* depend on a
+dismissal — the entry is a finding nobody filed — so the honest answer is not
+`DEFERRED`'s: a dep on one is work waiting on something this project decided not to do,
+which is closer to `deps.retired` than to a pause. That distinction is the design:
+whether the resolver gains a sixth status or the existing unresolvable branch gains a
+second sentence.
+
+**The measurement first.** Neither adopting corpus declares this store yet, so the
+population is this tool's own suite — which is exactly the state RK1084 found for the
+pair it wrote a rule for anyway, on the argument that a contradiction the format can
+express should not be silent.
+
+### §RK1657 The premise nothing prices
+
+`budget <id> --defer` exists because a pause's reason is not held to `[limits] why`: the
+door wraps it around the design the store carries forward, so what refuses it is the
+rendered line, and an author composing to the field's number was composing to a figure
+nothing enforced.
+
+A dismissal wraps its premise by the same rule and for the same reason, and both fields
+it carries are new — so the gap is wider here than it was there. `budget --defer` at
+least prices a line that already exists; there is nothing to price a dismissal against,
+because the entry does not exist until `dismiss` has been refused.
+
+That is what makes the subject different rather than a copy. `--defer` takes an id and
+reports what the line leaves the reason; this one takes no id, and what it prices is a
+**shape**: the structure of a rendered dismissal, the symptom, and what the wrapper
+costs before a premise is written. `budget --block <x>` already answers that shape for a
+line `add` would write next, so the question is whether this is a flag on that read or a
+subject of its own.
+
+**Measured before it is offered.** The wrapper is 14 characters here against the pause's
+14 — the same width by coincidence rather than by rule, since both are prose this
+package chose — so a subject that quoted one number for both would be right today and
+wrong at the first rewording of either.
 
 ## Block D — The gate
 
