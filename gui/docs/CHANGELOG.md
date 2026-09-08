@@ -17,6 +17,7 @@
 - ✅ **RG65** **resolving an engine costs two interpreter starts on Windows, where the same file is spelled two ways** — Whoever has a filesystem says what makes two spellings one file, so a Windows resolution starts one interpreter rather than two (design recorded in `packages/core/src/engine-resolution.ts`).
 - ✅ **RG66** **a verb can be called with no shape declared for its answer, so the boundary has a hole per verb** — A verb declares its reader beside its argv, so a call answers with the payload, the refusal or the field it could not read (design recorded in `packages/core/src/answers.ts`).
 - ✅ **RG67** **a project declaring a read bound answers in a shape nothing here has ever seen, and the reader refuses it** — A listing past the project's read bound arrives as the blocks, the counts and the narrower call, read off a fixture that declares one (design recorded in `packages/core/src/backlog.ts`).
+- ✅ **RG68** **the contract costs a minute of process starts, because every read rebuilds nothing but pays a fresh engine** — A fixture is built once per shape per run and copied after that, taking the live suite from 599 seconds to 415 (design recorded in `packages/shell/src/fixture-cache.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

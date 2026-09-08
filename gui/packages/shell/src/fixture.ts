@@ -1,8 +1,10 @@
-import { appendFileSync, mkdtempSync, rmSync } from 'node:fs'
+import { appendFileSync, cpSync, existsSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
 import type { Transport } from '@rk/core'
+
+import { cacheDirectory } from './fixture-cache'
 
 /**
  * A governed project, built by the real engine, for the contract test to read.
@@ -65,6 +67,15 @@ async function must(
 /**
  * Scaffold and populate a fixture project.
  *
+ * **Built once per shape per run, and copied after that** (RG68). Twenty-six of these are
+ * asked for across the live suite and twelve distinct shapes answer all of them, so the
+ * first ask pays the ten interpreter starts and the rest pay a directory copy. Each caller
+ * still gets a project of its own — several of these files ship, defer and amend what they
+ * were handed, and a shared one would make a test depend on which file ran first.
+ *
+ * The copy is a copy of the *built* project and never of a template kept between runs:
+ * `fixture-cache.ts` says why that line is where it is.
+ *
  * @param transport the engine to build it with — the same one the reads will use, so a
  *   contract proven here is a contract about that build and no other.
  */
@@ -76,6 +87,12 @@ export async function buildFixture(
   const root = mkdtempSync(path.join(tmpdir(), 'rk-fixture-'))
   const dispose = () => {
     rmSync(root, { recursive: true, force: true })
+  }
+
+  const held = builtEarlier(shape)
+  if (held !== '') {
+    cpSync(held, root, { recursive: true })
+    return { root, dispose }
   }
 
   try {
@@ -177,9 +194,50 @@ export async function buildFixture(
       )
     }
 
+    keepForLater(shape, root)
     return { root, dispose }
   } catch (cause) {
     dispose()
     throw cause
+  }
+}
+
+/**
+ * The name this shape's built project is kept under.
+ *
+ * Every field, so a shape that differs in one number is a different project — which it is:
+ * the ids run to a different count and half these tests name one.
+ */
+function nameOf(shape: FixtureShape): string {
+  return [
+    `open-${String(shape.open)}`,
+    `shipped-${String(shape.shipped)}`,
+    `deferred-${String(shape.deferred)}`,
+    `read-${String(shape.listRead ?? 0)}`,
+  ].join('-')
+}
+
+/** A project of this shape already built this run, or the empty string. */
+function builtEarlier(shape: FixtureShape): string {
+  const cache = cacheDirectory()
+  if (cache === '') return ''
+  const held = path.join(cache, nameOf(shape))
+  return existsSync(held) ? held : ''
+}
+
+/**
+ * Keep this project so the next ask for the same shape copies it.
+ *
+ * A failure to keep it is not a failure to build it: the caller has a working fixture in
+ * hand, and the only thing lost is the saving on whoever asks next.
+ */
+function keepForLater(shape: FixtureShape, root: string): void {
+  const cache = cacheDirectory()
+  if (cache === '') return
+  try {
+    cpSync(root, path.join(cache, nameOf(shape)), { recursive: true, force: false })
+  } catch {
+    // Two workers reaching here at once, or a disk that said no. Either way the suite has
+    // what it asked for and the next build is simply not free.
   }
 }

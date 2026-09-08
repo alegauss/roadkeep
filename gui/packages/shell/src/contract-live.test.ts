@@ -64,6 +64,12 @@ const client = createClient(transport)
 
 let fixture: Fixture
 let engineVersion = ''
+/**
+ * The first open line, listed once (RG68). Two `show` cases want an id and nothing else,
+ * and each was fetching the whole listing to find one — a second and a half apiece for an
+ * answer that does not change until the write cases further down start moving lines.
+ */
+let firstOpen = ''
 
 beforeAll(async () => {
   fixture = await buildFixture(transport)
@@ -77,6 +83,8 @@ beforeAll(async () => {
   if (resolution.kind === 'resolved') {
     engineVersion = resolution.engine.payload.writing.version
   }
+
+  firstOpen = listedTasks(await readVerb('list', {}))[0]?.id ?? ''
 }, 180000)
 
 afterAll(() => {
@@ -196,24 +204,17 @@ describe('RG4: every read this client makes, against a live engine', () => {
   })
 
   it('reads one task with the rationale its pointer resolves to', async () => {
-    const listed = await readVerb('list', {})
-    const first = listedTasks(listed)[0]
-    expect(first).toBeDefined()
-    if (!first) return
+    expect(firstOpen).not.toBe('')
 
-    const payload = await readVerb('show', { id: first.id })
+    const payload = await readVerb('show', { id: firstOpen })
 
-    expect(payload.id).toBe(first.id)
+    expect(payload.id).toBe(firstOpen)
     expect(payload.section?.body).not.toBe('')
     expect(payload.section?.words).toBeGreaterThan(0)
   })
 
   it('reads a task with its prose left out, which is a different answer', async () => {
-    const listed = await readVerb('list', {})
-    const first = listedTasks(listed)[0]
-    if (!first) return
-
-    const payload = await readVerb('show', { id: first.id, noBody: true })
+    const payload = await readVerb('show', { id: firstOpen, noBody: true })
 
     // The section is still there and still located; only the prose is gone, and it comes
     // back null rather than empty. A shape demanding a string failed on exactly this flag,

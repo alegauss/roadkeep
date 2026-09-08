@@ -11,27 +11,6 @@ rather than pretending it is safe. Spawning without a shell removes the quoting 
 but not the encoding one. What proves it is a round trip: write a symptom carrying an
 accent, an apostrophe and an em dash, read it back with show, and compare the bytes.
 
-### §RG68 One fixture, many reads, one interpreter start each
-
-The contract test builds a governed project with the real write verbs — `init`, a
-non-goal, a criterion, five `add`s, a `ship`, a `defer` — and then reads it with every
-verb this client calls. Every one of those is a Python interpreter start of roughly two
-seconds, and the file now accounts for most of the suite's wall clock.
-
-Two things would help and they differ in kind. The fixture is built once per file
-already, so what is left is the reads: several ask for a listing purely to find an id to
-show, which could be one call. That is ordinary tidying and worth doing first.
-
-The larger one is that the fixture is rebuilt every run even though nothing about it
-changes between runs. It could be built once into a directory keyed by the engine
-version and reused until that moves — the key `engines` already answers. What makes that
-worth care is that a stale fixture is a contract passing against a project the current
-engine did not build, which is worse than a slow suite.
-
-RG64 splits this file out of the fast suite, which stops the cost being paid on every
-edit. This line is about the cost itself, and the two are worth doing in that order:
-moving something slow is cheaper than making it fast, and it may turn out to be enough.
-
 ### §RG75 Ids that stop being true
 
 RG23 shipped, and a test asserting RG23 was in progress failed with nothing changed to
