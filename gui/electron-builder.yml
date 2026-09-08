@@ -1,0 +1,64 @@
+# What goes into the executable, and what does not.
+#
+# `files` is a list of what to include rather than what to exclude, because an exclude list
+# is one somebody has to remember to extend. The three packages' built output and their
+# manifests are what the app runs on; nothing else is.
+#
+# Signing is absent on purpose. The certificate is RG49's and it is a thing somebody buys,
+# so this produces an honestly unsigned build rather than a configuration pretending to be
+# one signature away.
+appId: dev.alegauss.roadkeep-gui
+productName: roadkeep
+copyright: ""
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - package.json
+  - packages/core/package.json
+  - packages/core/dist-types/**
+  - packages/shell/package.json
+  - packages/shell/dist/**
+  - packages/ui/package.json
+  - packages/ui/dist/**
+  - "!**/*.map"
+  - "!**/*.test.*"
+
+# Nothing is fetched at package time that was not already installed: a build that reaches
+# the network is a build whose contents depend on when it ran.
+npmRebuild: false
+buildDependenciesFromSource: false
+
+# A note for whoever tests the built app, because it cost an hour here.
+#
+# `ELECTRON_RUN_AS_NODE=1` is exported by VS Code and by agent sessions started from it.
+# A packaged Electron inheriting it runs as plain Node, fails on `import { BrowserWindow }
+# from 'electron'` and exits with nothing on either stream — which looks exactly like a
+# broken package. Clear the variable before running the executable. `spawnElectron` strips
+# it for `npm run dev` and `npm start`; nothing can strip it for a .exe somebody launches.
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  # An unsigned Windows build. Named rather than left to a default so that turning it on is
+  # an edit somebody makes deliberately.
+  signAndEditExecutable: false
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+
+linux:
+  target:
+    - AppImage
+  category: Development
+
+mac:
+  target:
+    - dmg
+  category: public.app-category.developer-tools

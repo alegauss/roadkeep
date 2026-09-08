@@ -20,6 +20,9 @@ export default defineConfig({
         main: 'src/main.ts',
         dev: 'src/dev.ts',
         start: 'src/start.ts',
+        // The build step behind `npm run package`: it stamps what this build is and
+        // refuses to package one that lost the posture it claims.
+        'stamp-build': 'src/stamp-build.ts',
       },
       formats: ['es'],
     },

@@ -3,6 +3,8 @@ import { pathToFileURL } from 'node:url'
 
 import { BrowserWindow } from 'electron'
 
+import { RENDERER_POSTURE } from './posture'
+
 /**
  * Where the renderer comes from, and it is one of exactly two places. In development
  * the dev script starts Vite and hands the URL down in this variable, so the window
@@ -25,6 +27,7 @@ export function appUrl(): string {
   return process.env[RENDERER_URL_VAR] ?? pathToFileURL(BUILT_RENDERER).href
 }
 
+
 export function createWindow(): BrowserWindow {
   const window = new BrowserWindow({
     width: 1280,
@@ -42,18 +45,8 @@ export function createWindow(): BrowserWindow {
     show: false,
     title: 'roadkeep',
     webPreferences: {
-      // Every one of these is Electron's default. They are written out anyway: a default
-      // is a thing a later edit can turn off without the diff looking like it took
-      // anything away, and this list is the difference between a renderer that is a
-      // browser and one that can delete a file.
-      contextIsolation: true,
-      nodeIntegration: false,
-      nodeIntegrationInWorker: false,
-      sandbox: true,
-      webSecurity: true,
-      // Not a default. A `<webview>` is a second renderer with its own preferences, and
-      // this app has no use for one.
-      webviewTag: false,
+      // Spread from the one constant, so what a test asserts is what this is built with.
+      ...RENDERER_POSTURE,
       preload: PRELOAD,
     },
   })

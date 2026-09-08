@@ -1,3 +1,5 @@
+export { identityFrom, saidOfBuild, STAMP_VARS, UNSTAMPED } from './build'
+export type { BuildIdentity } from './build'
 export { BRIDGE_CHANNELS, BRIDGE_KEY } from './bridge'
 export type { BridgeIdentity, RendererBridge, TransportName } from './bridge'
 export {

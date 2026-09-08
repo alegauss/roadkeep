@@ -1,4 +1,4 @@
-import { PACKAGES, type RendererBridge } from '@rk/core'
+import { identityFrom, PACKAGES, type RendererBridge } from '@rk/core'
 import { render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
@@ -11,6 +11,9 @@ function withBridge(bridge: RendererBridge): void {
 afterEach(() => {
   Reflect.deleteProperty(window, 'roadkeep')
 })
+
+/** A build identity like a real one, so a fixture is not a shape of its own. */
+const BUILT = identityFrom({ version: '0.0.0', commit: 'abc1234', signed: 'unsigned' })
 
 describe('RG37: the scaffold screen', () => {
   it('renders without a display', () => {
@@ -33,13 +36,13 @@ describe('RG44: the renderer through the bridge', () => {
   })
 
   it('names the transport the bridge reports, without knowing what is behind it', async () => {
-    withBridge({ identify: () => Promise.resolve({ transport: 'ipc' }) })
+    withBridge({ identify: () => Promise.resolve({ transport: 'ipc', build: BUILT }) })
     render(<App />)
     expect(await screen.findByText(/over IPC/)).toBeTruthy()
   })
 
   it('renders the same screen over a transport that is not a process', async () => {
-    withBridge({ identify: () => Promise.resolve({ transport: 'http' }) })
+    withBridge({ identify: () => Promise.resolve({ transport: 'http', build: BUILT }) })
     render(<App />)
     expect(await screen.findByText(/over HTTP/)).toBeTruthy()
     for (const name of PACKAGES) {

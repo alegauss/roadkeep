@@ -5,6 +5,7 @@
   "description": "A desktop reader for roadkeep-governed backlogs. Three packages: core reads what the command prints, ui renders it, shell is the Electron process that owns every path.",
   "license": "MIT",
   "type": "module",
+  "main": "packages/shell/dist/main.js",
   "workspaces": [
     "packages/*"
   ],
@@ -16,7 +17,9 @@
     "typecheck": "tsc -b",
     "test": "vitest run",
     "test:watch": "vitest",
-    "clean": "tsc -b --clean"
+    "clean": "tsc -b --clean",
+    "stamp": "node packages/shell/dist/stamp-build.js",
+    "package": "npm run build && npm run stamp && electron-builder --config electron-builder.yml"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -26,6 +29,7 @@
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "electron": "^44.2.0",
+    "electron-builder": "^26.15.3",
     "jsdom": "^30.0.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",

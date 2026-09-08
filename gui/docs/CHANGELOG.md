@@ -64,6 +64,7 @@
 - ✅ **RG37** **there is no application at all: no window, no build and no way to run any of this** — A window opens over three packages, with one typecheck spanning them and a headless suite over both halves (design recorded in `packages/core/src/packages.ts`).
 - ✅ **RG44** **the renderer holds node powers, so the half a service would serve to a browser can delete a file** — The renderer has a browser's powers and one frozen typed object, and every navigation off the bundle is refused or sent to the system browser (design recorded in `packages/core/src/bridge.ts`).
 - ✅ **RG45** **nothing watches the governed files, so a write by an agent or a terminal leaves the screen stale** — The governed files a project declares are watched while somebody holds it, and a burst of writes tells the screen once (design recorded in `packages/core/src/watching.ts`).
+- ✅ **RG46** **there is no executable, so the app runs only where its source tree and toolchain already are** — An installer builds, opens a window, and names its version, commit and signing from inside itself (design recorded in `packages/core/src/build.ts`).
 
 ## Block H — The look (a design system for governed prose)
 

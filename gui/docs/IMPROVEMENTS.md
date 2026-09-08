@@ -490,15 +490,6 @@ On ship: `--recorded-in packages/core/src/pauses.ts`.
 
 ## Block G — The shell (an executable now, a service later)
 
-### §RG46 The executable, and what it says about itself
-
-A packaged build has to answer three questions from inside itself: which version it is,
-which commit it came from, and whether it was signed. Those go on an about surface and
-into whatever a defect report carries, because a bug from a packaged app is otherwise a
-screenshot with no build attached. Packaging is also where the security posture stops
-being configuration: a build is checked against the settings it claims, so a renderer
-that gained a power during development does not ship with it.
-
 ### §RG47 The one thing this app owns
 
 Everything on screen is read from a repository except this: the roots, their depths, the

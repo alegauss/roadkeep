@@ -13,6 +13,8 @@
  * added here is a method a web transport has to be able to implement.
  */
 
+import type { BuildIdentity } from './build'
+
 /** The single property the preload adds to `window`. */
 export const BRIDGE_KEY = 'roadkeep'
 
@@ -21,6 +23,14 @@ export type TransportName = 'ipc' | 'http'
 
 export interface BridgeIdentity {
   readonly transport: TransportName
+  /**
+   * What this build is, so a defect report carries it and an about surface can show it.
+   *
+   * It rides on `identify` rather than arriving as a method of its own: widening the
+   * method set is the change that costs the port, and a web transport answering "which
+   * build am I" is answering the same question this already asks.
+   */
+  readonly build: BuildIdentity
 }
 
 export interface RendererBridge {
