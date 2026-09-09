@@ -858,10 +858,15 @@ def test_the_two_readers_of_it_are_the_only_two():
     # `budgeting.py` re-ranks a block to price the rows an `add` volunteers (RK1582): it is
     # `authoring.py`'s own corpus asked about again, which is what makes the figure a reading
     # of the real lines rather than of a fixture that agrees until somebody edits one.
+    # `history.py` is the sixth (RK1628): `landed_since` counts the entries filed under one
+    # block after the commit that proposed a line, which is the block's own entries asked
+    # about against an ordering — the same call, and the block is again the fact rather than
+    # the answer.
     assert spellings == {
         "backlog.py",
         "authoring.py",
         "budgeting.py",
+        "history.py",
         "linting.py",
         "verbs/shipping.py",
     }

@@ -147,29 +147,6 @@ already built, and already the shape every other door that leaves a pointer owin
 
 ## Block C — Query
 
-### §RK1628 The premise a later ship deleted
-
-RK1571 and RK1574 were filed on one day against thirty-one composer rows that were a
-work-list. RK1599 landed and emptied it, and `test_composing` now asserts that no row is
-`unreached`. Neither line said so. `pick` offered RK1571 first, as the lowest ready id,
-and what it proposed was a field that would be empty on every row.
-
-Reading the section is what found it: 245 words of design against a state that no longer
-exists. That is the cost this tool exists to avoid — the check was opening the source
-the design argues about, one idea at a time.
-
-Nothing here can judge a premise and nothing should try (L4). RK1439 is the neighbour
-and it does not reach: it names the shipped entries whose sentences cite an open id, and
-RK1599's cites neither of these. What is derivable is the distance — `origin` names the
-commit that proposed a line, and the ledger records every entry under its block in
-order. An idea filed before twenty entries landed in its own block is not thereby wrong,
-but it is the line whose design a picker should re-read before starting.
-
-So `pick`'s `because` carries it and `show` beside the pointer: proposed at that commit,
-with that many entries recorded in the block since. A count and not a date, which is the
-non-goal one field over — the question is how much has happened under this line, and an
-ordinal answers it where a calendar would not.
-
 ### §RK1630 Which project, and which build, an answer is about
 
 `lint --json` leads with `root`, and `config`, `commands` and `engines` each lead with

@@ -608,6 +608,24 @@ class Brief:
                 f"{'y' if len(self.against) == 1 else 'ies'} name this line and it is still "
                 f"open: {', '.join(self.against)}"
             )
+        # And the third question about the same line (RK1628): what has landed *under* it —
+        # in its block, since it was proposed. A design is argued against a state and a later
+        # ship can delete that state without touching the line, which is how two ideas came to
+        # be offered against a work-list that had been emptied. Read off the view this brief
+        # already holds, so it costs the answer nothing extra.
+        #
+        # Silent at zero and where history could not say, which is the same rule the row above
+        # keeps: a count of none is the ordinary line, and a clause every brief carries is one
+        # a reader stops seeing. Never a verdict — an idea filed before twenty entries landed
+        # is not thereby wrong, and judging that is the premise question L4 keeps out.
+        landed_since = self.view.landed
+        if landed_since is not None and landed_since.known and landed_since.entries:
+            rows.append(
+                f"  since    {landed_since.entries} entr"
+                f"{'y' if landed_since.entries == 1 else 'ies'} recorded under Block "
+                f"{self.view.task.block} since {landed_since.proposed_in} proposed this "
+                f"line — re-read the design before starting"
+            )
         for clause, found in self.criterion:
             # Before the design and after the deps, which is where the claim belongs: the
             # order is the whole point (RK1185) — what the work will be measured against
@@ -766,6 +784,15 @@ class Brief:
             # What the ledger already records as landed, per `ship --part` (RK1226). `[]` on
             # the ordinary line, which is an answer rather than an absence.
             "landed": list(self.landed),
+            # The distance beside what landed *as* this task (RK1628), and null rather than 0
+            # where history could not say: a consumer reading zero cannot tell a quiet block
+            # from a checkout with no git.
+            "since": None
+            if self.view.landed is None or not self.view.landed.known
+            else {
+                "entries": self.view.landed.entries,
+                "proposed_in": self.view.landed.proposed_in,
+            },
             # And what shipped *against* it (RK1439). Published always and printed only where
             # it is non-empty, which is `Split.payload`'s rule for its reason: a key costs a
             # client nothing to skip, where a row costs every reader the same attention.

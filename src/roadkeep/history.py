@@ -967,6 +967,81 @@ def origin_of(config: Config, task_id: str) -> Origin:
 
 
 @dataclass(frozen=True, slots=True)
+class Landed:
+    """How much has been recorded under a line's block since the line was proposed (RK1628).
+
+    RK1571 and RK1574 were filed on one day against thirty-one composer rows that were a
+    work-list; RK1599 landed and emptied it, and neither line said so. `pick` offered the
+    first of them as the lowest ready id, and what it proposed was a field that would be
+    empty on every row — found by *reading the section*, which is the cost this tool exists
+    to remove.
+
+    Nothing here judges a premise and nothing should (L4). What is derivable is the
+    **distance**: an idea filed before twenty entries landed in its own block is not thereby
+    wrong, but it is the line whose design a picker should re-read before starting.
+
+    A count and never a date, which is the non-goal one field over: the question is how much
+    has happened under this line, and an ordinal answers it where a calendar would not — and
+    a rebase makes a timestamp wrong about an order that did not change.
+    """
+
+    task_id: str
+    block: str
+    #: Ledger entries filed under the same block since the commit that proposed this line.
+    entries: int = 0
+    #: The short sha of that commit, so a reader can go and look. Empty where history could
+    #: not say which one it was, which is also when :attr:`entries` means nothing.
+    proposed_in: str = ""
+
+    @property
+    def known(self) -> bool:
+        """Whether history answered at all — `entries` is a reading only where this is true."""
+        return bool(self.proposed_in)
+
+
+def landed_since(config: Config, task_id: str, block: str) -> Landed:
+    """Read :class:`Landed` for one open line, in the three walks it takes (RK1628).
+
+    `deferring.standing`'s own arrangement for the age of a pause, and for its reason: which
+    commit first wrote each id into a file, and one ordering to put two files on one axis, so
+    *before* and *after* are answerable without a clock.
+
+    **`added_ids` and never `origin_of`**, which is the same question asked the expensive way:
+    that one is a pickaxe per id — 352 ms against 97 for the walk — and it exists for the case
+    this is not, an id a file never carried. An **open** line is in the roadmap by
+    construction, so the walk is exact here and a third of the cost.
+
+    Empty where any of the three cannot answer, and empty is a **stated** absence rather than
+    a zero: `known` is False, and a caller that printed `0 entries since` about a checkout with
+    no git would be reporting a quiet block that is nothing of the kind.
+    """
+    if not config.on_disk("changelog"):
+        return Landed(task_id=task_id, block=block)
+    try:
+        proposed = added_ids(config, "roadmap").get(task_id)
+        if proposed is None:
+            return Landed(task_id=task_id, block=block)
+        filed = added_ids(config, "changelog")
+        order = ordering(config, ("roadmap", "changelog"))
+    except (HistoryUnavailable, OSError):
+        return Landed(task_id=task_id, block=block)
+    at = order.get(proposed)
+    if at is None:
+        return Landed(task_id=task_id, block=block)
+    return Landed(
+        task_id=task_id,
+        block=block,
+        entries=sum(
+            1
+            for entry in config.document("changelog").block(block)
+            if (sha := filed.get(entry.task.id)) is not None
+            and order.get(sha, -1) > at
+        ),
+        proposed_in=proposed[:8],
+    )
+
+
+@dataclass(frozen=True, slots=True)
 class Pending:
     """One open line, and the commits whose message already names it (RK1201).
 

@@ -90,6 +90,55 @@ def test_the_line_and_its_section_arrive_together(tmp_path):
     assert view.section_absence == ""
 
 
+def test_the_distance_since_a_line_was_proposed_reaches_both_reads(tmp_path):
+    """RK1628. The row a picker needs is on the two reads a picker takes deliberately — this
+    one, where somebody is already looking at the design, and `brief`, which holds the same
+    view and gets it for nothing.
+
+    **Not `pick`**, and the reason is measured rather than argued: that read is 2 ms and runs
+    every loop iteration, and the three git walks behind this are ~340. RK1547 made the same
+    call about the deferred count, and this is that arithmetic again."""
+    import sys
+
+    from conftest import git_commit, git_init
+    from roadkeep.briefing import brief
+    from roadkeep.showing import show
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from test_history import propose, repo, ship
+
+    config = repo(tmp_path)
+    propose(config, "RK1", "docs: file RK1")
+    propose(config, "RK2", "docs: file RK2")
+    ship(config, "RK2", "feat: the second thing (RK2)")
+
+    config = Config.discover(tmp_path)
+    view = show(config, "RK1")
+    assert view.landed is not None
+    assert view.landed.known
+    assert view.landed.entries == 1
+    assert "1 entry recorded under Block A" in view.stated(config)
+    # The same fact on the brief, off the view it already holds — so the answer a picker reads
+    # before starting carries it without a second walk.
+    assert "1 entry recorded under Block A" in brief(config, "RK1").stated(config)
+
+
+def test_a_shipped_line_is_not_asked_how_far_it_has_come(tmp_path):
+    # Its design is gone, so there is nothing to re-read and the distance answers about
+    # nobody's next task — which is why the field is None rather than zero there.
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from test_history import propose, repo, ship
+
+    config = repo(tmp_path)
+    propose(config, "RK1", "docs: file RK1")
+    ship(config, "RK1", "feat: the thing (RK1)")
+    from roadkeep.showing import show
+
+    assert show(Config.discover(tmp_path), "RK1").landed is None
+
+
 def test_a_shipped_task_is_found_in_the_ledger(tmp_path):
     # "RK2 shipped" is an answer, and a different one from "no such task".
     view = show(project(tmp_path), "RK2")

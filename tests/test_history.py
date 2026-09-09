@@ -2554,6 +2554,52 @@ def test_a_walk_that_did_not_happen_reports_no_entry_as_idle(tmp_path):
     assert "set aside" not in said
 
 
+def test_the_distance_between_a_line_and_what_landed_under_it_is_readable(tmp_path):
+    """RK1628. RK1571 and RK1574 were filed on one day against thirty-one composer rows that
+    were a work-list; RK1599 emptied it, neither line said so, and `pick` offered the first as
+    the lowest ready id. Reading 245 words of design was the only way to learn it.
+
+    Nothing here judges the premise (L4). What is derivable is the **distance**: how much has
+    been recorded under this line's block since the commit that proposed it, which is a count
+    and never a date — the non-goal one field over, and a rebase makes a timestamp wrong about
+    an order that did not change."""
+    from roadkeep.history import landed_since
+
+    config = repo(tmp_path)
+    propose(config, "RK1", "docs: file RK1")
+    # Two entries filed under the same block *after* RK1 was proposed, which is the distance.
+    propose(config, "RK2", "docs: file RK2")
+    ship(config, "RK2", "feat: the second thing (RK2)")
+    propose(config, "RK3", "docs: file RK3")
+    ship(config, "RK3", "feat: the third thing (RK3)")
+    propose(config, "RK4", "docs: file RK4")
+
+    found = landed_since(Config.discover(tmp_path), "RK1", "A")
+    assert found.known
+    assert found.entries == 2
+    assert found.proposed_in
+    # And the line proposed after both of them counts none: the distance is what landed
+    # *since*, so a line filed last is one nothing has happened under yet.
+    assert landed_since(Config.discover(tmp_path), "RK4", "A").entries == 0
+
+
+def test_the_distance_is_a_stated_absence_where_history_cannot_say(tmp_path):
+    """`Unclosed.searched`'s rule one read over (RK1625): a count of zero and a history that
+    could not be read are two answers, and printing the first about the second would report a
+    quiet block that is nothing of the kind. `known` is what tells them apart."""
+    from roadkeep.cli import EXIT_OK, main
+    from roadkeep.history import landed_since
+
+    assert main(["-C", str(tmp_path), "init", "--block", "A"]) == EXIT_OK
+    assert main([
+        "-C", str(tmp_path), "add", "--block", "A",
+        "--symptom", "A symptom that is plainly long enough", "--why", "Because of a reason.",
+    ]) == EXIT_OK
+    found = landed_since(Config.discover(tmp_path), "RK1", "A")
+    assert not found.known
+    assert found.entries == 0
+
+
 def test_a_tree_with_no_history_says_so_and_says_what_it_cannot_speak_for(tmp_path, capsys):
     """RK1625. `searched` says what it is for — `()` means two different things otherwise, and
     a checkout with no history reading as a clean backlog is the silence RK10 is about — and

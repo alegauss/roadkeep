@@ -34,7 +34,7 @@ from pathlib import Path
 
 from roadkeep.config import DESIGN_ROLES, PROSE_ROLES, Config
 from roadkeep.kernel.document import Document, Entry
-from roadkeep.history import indexed
+from roadkeep.history import Landed, indexed, landed_since
 from roadkeep.provenance import invocation
 from roadkeep.kernel.schema import Task, dismissal_premise
 from roadkeep.sections import Section, addressable, declaring, find, heading_of
@@ -110,6 +110,16 @@ class View:
     #: since RK157 and every *writer* uses it; this is the reader that prints it, so what
     #: `record amend --lines` replaces is a command's answer rather than a file to open.
     lines: tuple[str, ...] = ()
+    #: How much has been recorded under this line's block since it was proposed (RK1628).
+    #: `None` on a shipped line, whose design is gone and whose distance is a fact about
+    #: history rather than about work to start.
+    #:
+    #: A design is argued against a state, and a later ship can delete that state without
+    #: touching the line: RK1571 and RK1574 were filed against a work-list RK1599 emptied, and
+    #: reading 245 words of design was the only way to learn it. Nothing here judges the
+    #: premise (L4) — what is derivable is the distance, and this is the read where somebody
+    #: is already looking at the design.
+    landed: Landed | None = None
 
     @property
     def task(self) -> Task:
@@ -170,6 +180,16 @@ class View:
             # The absence carries its reason: deleted on ship, never written, or no prose file at
             # all are three states, and only one of them is a defect (RK15).
             rows.append(f"  section  none — {self.section_absence}")
+        if self.landed is not None and self.landed.known:
+            # Beside the pointer, which is where a reader deciding whether to trust the design
+            # is looking (RK1628). A count and never a verdict: an idea filed before twenty
+            # entries landed under its own block is not thereby wrong, and judging that is the
+            # premise question this tool has no model for (L4).
+            rows.append(
+                f"  since    {self.landed.entries} entr"
+                f"{'y' if self.landed.entries == 1 else 'ies'} recorded under Block "
+                f"{task.block} since {self.landed.proposed_in} proposed this line"
+            )
         rows += [
             f"  path     {one.path}{'' if one.exists else '  (missing)'}" for one in self.paths
         ]
@@ -210,6 +230,16 @@ class View:
             if section is None
             else {**section.payload(self.section_file or ""), "body": body},
             "section_absence": self.section_absence,
+            # Null and not omitted where history could not say, which is `Unclosed.searched`'s
+            # rule one read over (RK1628): a consumer reading `0` cannot tell a quiet block
+            # from a checkout with no git, and those are the two answers this is between.
+            "landed": None
+            if self.landed is None or not self.landed.known
+            else {
+                "entries": self.landed.entries,
+                "proposed_in": self.landed.proposed_in,
+                "block": self.landed.block,
+            },
             "paths": [{"path": p.path, "exists": p.exists} for p in self.paths],
         }
 
@@ -241,6 +271,17 @@ def show(config: Config, task_id: str) -> View:
             config.root,
             near=config.path(role).parent,
             known=lambda: known_directories(config),
+        ),
+        # Only for a line that is still open (RK1628): a shipped entry's design is gone, so
+        # there is nothing left to re-read and the distance answers about nobody's next task.
+        #
+        # **Three git walks, ~340 ms**, paid here and not by `pick`, which is 2 ms and runs
+        # every loop iteration — RK1547's own call about the deferred count, made again with
+        # the same arithmetic. This read and `brief` are the two a picker takes deliberately.
+        landed=(
+            None
+            if role == "changelog"
+            else landed_since(config, entry.task.id, entry.task.block)
         ),
     )
 
