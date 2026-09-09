@@ -40,6 +40,7 @@
 - 💭 **RG95** (deps: RG55 ✅) **no gate reads an advisory, so the next one is found by whoever happens to install something** — npm ci does not audit, the gate is about governed files and the suite has no opinion, so an advisory is noticed only when somebody installs a package for another reason. → §RG95
 - 💭 **RG96** (deps: RG60 ✅) **the suite now tests a bundle it did not build, so a green run can be about yesterday's code** — One test starts the built app and nothing rebuilds it first, so a renderer change that broke the window passes locally until somebody happens to build. → §RG96
 - 💭 **RG115** (deps: RG47 ✅) **the sentences a bad settings file composes cross the bridge and no screen shows one** — readSettings names each field it reset and LaunchSettings carries the list to the renderer, and nothing on the far side reads it, so a dropped root is found by noticing the list is short. → §RG115
+- 💭 **RG118** (deps: RG44 ✅, RG63 ✅) **no screen names the build, so a defect report cannot say which one it came from** — identify already answers with the version, the commit and whether it is signed, and nothing draws any of it. → §RG118
 
 ## Block H — The look (a design system for governed prose)
 
@@ -48,6 +49,7 @@
 - 📋 **RG106** (deps: RG86 ✅) **the window mounts nothing until the bridge answers, so a call that never returns leaves it blank** — The locale is asked for before the first render with no deadline, so a main process that hangs shows a window painted its background colour and nothing else. → §RG106
 - 📋 **RG107** (deps: RG54 ✅) **the dark focus ring is the light accent, because this app's :root wins over the package's dark block** — index.css says the package makes the ring the accent in dark and the contrast test agrees, but both blocks are unlayered and equally specific, so the later one wins. → §RG107
 - 💭 **RG116** (deps: RG88 ✅, RG87 ✅) **there is no control for the language, so choosing one means editing the settings file by hand** — RG88 gave i18next the locale and changeLanguage moves it, RG87 built the write back for the ground, and what is missing is the control between them. → §RG116
+- 📋 **RG117** (deps: RG63 ✅) **the route table is spelled three times, so a surface can be routed and still be missing from the map** — main mounts the routes, the harness mounts them again and the shell's test keeps a third list to check a nav entry against, and only one of the three is what a window runs. → §RG117
 
 ## Done when — Block A
 

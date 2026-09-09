@@ -425,6 +425,27 @@ design system ships a `Toaster`, and page chrome is RG63's. A notice belongs in
 whichever of those two arrives first, and the answer to *which* is the design still to
 write.
 
+### §RG118 The build the window is, said on screen
+
+Block G's own criterion is that a user can say which build they are running and where it
+came from, and every part of the answer is already in hand. `readStamp` composes it in
+the main process, `identify` carries it across the bridge beside the transport name, and
+a live test asserts the field is there. Nothing renders it. So the criterion is unmet by
+a screen and not by a mechanism.
+
+It matters most in the case it was written for. A person reporting that a read came back
+wrong has a version, a commit and a signed-or-not to quote, and without a surface they
+quote none of them — which is when the report becomes a conversation about which build
+they have rather than about the defect.
+
+RG63 gave it a home and left it empty. The bento layer's own answer is `AppFooter` — a
+hairline, then the product name, its version and a few links — and its guidance is
+explicit that the choice is the shell's: either every page carries the footer or the
+chrome has none, and what must not happen is one page growing its own. That is the
+decision to make here, and the alternative worth weighing is the header's trailing edge,
+where `BentoUserMenu` would have gone and where `docs/design/Main.dc.html` draws a
+version.
+
 ## Block H — The look (a design system for governed prose)
 
 ### §RG62 Joining the checks the other consoles already answer to
@@ -578,3 +599,27 @@ starts a list; a patch method hands the renderer the roots as well. Neither is o
 right, and the answer wants to be given once rather than twice.
 
 Where the control sits is [[RG63]]'s, since there is no chrome to put it in yet.
+
+### §RG117 One route table, read three ways
+
+RG63 left the routes written out in three files. `main.tsx` mounts them, `harness.tsx`
+mounts them again so a test renders the same window, and `Shell.test.tsx` keeps a
+`ROUTES` set to check that every nav entry points at one this app serves. Only the first
+is what runs, and the third is the one that decides whether the check passes — so a
+surface added to the router and forgotten in the set makes the guard weaker without
+failing anything, and one added to the set alone makes it pass against a screen nobody
+wrote.
+
+Harmless while there is one route, which is why it is filed rather than fixed inside the
+task that made it: with a single entry all three agree by inspection, and building the
+mechanism before the second surface is the shape of speculative work.
+
+The shape is a `routes.tsx` beside `areas.ts`, exporting the pairs — a path and the
+element that answers it — as data. `main` maps it into `Route`s, the harness maps the
+same array, and the test reads the paths off it rather than restating them. `.tsx`
+because an element is JSX; that is the whole reason it cannot live in `areas.ts` as it
+stands.
+
+What it should not become is a route the map does not know about. The two lists are
+different questions — what the router serves, and what a reader is offered — and the
+check is that the second is a subset of the first.
