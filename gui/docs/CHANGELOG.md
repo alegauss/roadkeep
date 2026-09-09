@@ -28,6 +28,7 @@
 - ✅ **RG84** **every live file resolves the engine itself, so one being rebuilt mid-run reds the suite four ways** — The suite asks the engine what it is once per run, so a rebuild underneath it arrives as one named sentence and not thirty-one renamed keys (design recorded in `packages/shell/src/live.ts`).
 - ✅ **RG98** **core's boundary test holds an import and nothing else, so a path rule written as string work passes it** — core's boundary test now fails on a separator fold nobody wrote a reason for, and on a reason that no longer matches anything (design recorded in `packages/core/src/boundaries.test.ts`).
 - ✅ **RG99** **a read has two doors and the one a screen has to use is the one that raises rather than answering** — client.call answers with the same three states a write gets and raises for none, so a screen has one door and no caller wraps a read in a try (design recorded in `packages/core/src/client.ts`).
+- ✅ **RG100** **an id in a project whose listing was bounded reads as one nothing in that project ever carried** — An id in none of the listings reads as unfiled only where all three were read whole, and as unknown otherwise, which is a sentence about the read (design recorded in `packages/core/src/pauses.ts`).
 
 ## Block B — Discovery (which checkouts on this machine are governed)
 

@@ -1,5 +1,6 @@
 import {
   listedTasks,
+  sawEverything,
   type ListPayload,
   type Over,
   type RefusedLine,
@@ -121,7 +122,7 @@ export function backlogFrom(payload: ListPayload): Backlog {
     unplaced,
     standing: payload.standing,
     over: payload.over,
-    complete: payload.uncounted.length === 0 && payload.over === null,
+    complete: sawEverything(payload),
   }
 }
 

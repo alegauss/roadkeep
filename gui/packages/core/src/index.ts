@@ -235,6 +235,7 @@ export {
   governedFiles,
   insteadOf,
   listedTasks,
+  sawEverything,
   narrowingOfBrief,
   readAddedPayload,
   readAmendPayload,

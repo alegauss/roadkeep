@@ -204,6 +204,23 @@ export const readListPayload: Reader<ListPayload> = record<ListPayload>({
   tasks: orNull(listOf(readTaskLine)),
 })
 
+/**
+ * Whether a listing saw the whole file, which is what makes its absences mean anything.
+ *
+ * Two ways it did not, and they are one question. A project declaring `[reads] list`
+ * answers a listing past the bound with its counts and no lines, which arrives as `over`.
+ * And a marker-bearing line the grammar could not accept is in `uncounted` rather than in
+ * `tasks`, which is the older and quieter case.
+ *
+ * Here rather than at each reader, because three of them derive it and the third — RG100's
+ * — is about an *absence*: an id found in no listing is unfiled where the listings were
+ * whole and unknown where any of them was not, and two spellings of that would be two
+ * answers to it.
+ */
+export function sawEverything(payload: ListPayload): boolean {
+  return payload.uncounted.length === 0 && payload.over === null
+}
+
 /** The lines a listing actually carried. Empty for one the bound withdrew. */
 export function listedTasks(payload: ListPayload): readonly TaskLine[] {
   return payload.tasks ?? []

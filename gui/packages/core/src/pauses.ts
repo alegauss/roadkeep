@@ -1,4 +1,4 @@
-import { listedTasks, type ListPayload, type TaskLine } from './payloads'
+import { listedTasks, sawEverything, type ListPayload, type TaskLine } from './payloads'
 import type { Refusal } from './refusals'
 import { composeWrite, type Composed } from './writing'
 
@@ -51,7 +51,7 @@ export function storeFrom(payload: ListPayload): Store {
     pauses: listedTasks(payload).map(pauseOfLine),
     // A store past `[reads] list` carries its counts and not its lines, and a screen
     // drawing zero pauses over a total of forty is the silence this flag exists to break.
-    complete: payload.uncounted.length === 0 && payload.over === null,
+    complete: sawEverything(payload),
   }
 }
 
@@ -77,8 +77,16 @@ export function pauseOf(store: Store, id: string): Pause | null {
  *
  * `unfiled` is the answer that used to be given for a paused line too, which is the whole
  * symptom: until the store is read, set aside and never written look identical.
+ *
+ * **`unknown` is the fifth and it is about the read rather than the id** (RG100). Finding
+ * an id in none of three listings only means it is nowhere if all three saw their whole
+ * files, and two things stop that being true: a project declaring `[reads] list` answers a
+ * listing past the bound with counts and no lines, and a line the grammar could not accept
+ * is in `uncounted` rather than in `tasks`. Either way there is nothing to look through,
+ * and reporting *nothing in this project carries that id* about a line somebody paused is
+ * the failure this state exists to refuse.
  */
-export type Filing = 'open' | 'shipped' | 'paused' | 'unfiled'
+export type Filing = 'open' | 'shipped' | 'paused' | 'unfiled' | 'unknown'
 
 /** The three listings an id could be in, each as the engine answered it. */
 export interface Filings {
@@ -94,19 +102,32 @@ export interface Filings {
  * answer is only whether the id is in it. The order is the order a person means: an id in
  * the roadmap is open whatever else also mentions it, since an id can be cited by a
  * ledger entry that shipped part of it while the line stays open.
+ *
+ * **Being found is one question and not being found is another.** A listing holding the id
+ * settles it whatever the other two did; an id in none of them is `unfiled` only where all
+ * three were read and each saw its whole file, and `unknown` otherwise.
  */
 export function filingOf(id: string, filings: Filings): Filing {
   if (holds(filings.roadmap, id)) return 'open'
   if (holds(filings.ledger, id)) return 'shipped'
   if (holds(filings.store, id)) return 'paused'
-  return 'unfiled'
+  return looked(filings) ? 'unfiled' : 'unknown'
 }
 
 function holds(payload: ListPayload | undefined, id: string): boolean {
-  // A bounded listing carries no lines, so nothing is found in it — which is why
-  // `unfiled` is the answer of last resort and each caller is handed the payloads it
-  // read: a listing whose lines were withheld cannot say an id is absent.
   return payload !== undefined && listedTasks(payload).some((task) => task.id === id)
+}
+
+/**
+ * Whether an absence is evidence.
+ *
+ * All three listings, each whole. A listing nobody read is the same silence as one whose
+ * lines the bound withdrew — in both cases there was nothing to find the id in.
+ */
+function looked(filings: Filings): boolean {
+  return [filings.roadmap, filings.ledger, filings.store].every(
+    (payload) => payload !== undefined && sawEverything(payload),
+  )
 }
 
 /**
@@ -172,7 +193,9 @@ export function whereaboutsOf(
  * What to say about an id that is not open, in a sentence rather than a word.
  *
  * `unfiled` gets the shortest answer and the most important one: nothing in this project
- * has ever carried that id, which is different from a line somebody paused.
+ * has ever carried that id, which is different from a line somebody paused — and different
+ * again from `unknown`, which is a sentence about the read and says so out loud rather than
+ * claiming the id is nowhere (RG100).
  */
 export function whereFiled(filing: Filing, store: Store | null = null, id = ''): string {
   switch (filing) {
@@ -185,6 +208,8 @@ export function whereFiled(filing: Filing, store: Store | null = null, id = ''):
       const where = store?.file ?? 'the deferred store'
       return pause === null ? `set aside in ${where}` : `set aside in ${where}: ${pause.why}`
     }
+    case 'unknown':
+      return 'not found, in a read that did not see every line'
     default:
       return 'nothing in this project carries that id'
   }

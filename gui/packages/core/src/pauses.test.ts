@@ -27,6 +27,9 @@ const STORE = {
   ],
 }
 
+/** The bound a listing went past, as the engine answers it: counts and no lines. */
+const OVER = { characters: 9000, limit: 4000, blocks: [], scoped: false, narrows: '', doors: [] }
+
 function listing(over: Record<string, unknown> = {}): ListPayload {
   const parsed = readListPayload({ ...STORE, ...over }, '')
   if (!parsed.ok) throw new Error(`the fixture does not match the shape: ${parsed.failure.path}`)
@@ -120,9 +123,32 @@ describe('RG28: a paused line told from one nothing ever filed', () => {
     expect(filingOf('FX3', both)).toBe('open')
   })
 
-  it('says unfiled where a listing was never read, rather than guessing', () => {
-    expect(filingOf('FX1', {})).toBe('unfiled')
+  it('says unknown where a listing was never read, rather than claiming nowhere', () => {
+    // RG100: an absence is only evidence where somebody looked. Being *found* still
+    // settles it whatever the other two listings did.
+    expect(filingOf('FX1', {})).toBe('unknown')
     expect(filingOf('FX1', { store })).toBe('paused')
+    expect(filingOf('FX99', { roadmap, ledger })).toBe('unknown')
+  })
+
+  it('says unknown where a listing was read past its bound', () => {
+    // The case RG67 made possible: counts and no lines, so nothing is found in it and
+    // nothing may be concluded from that.
+    const withheld = { roadmap, ledger, store: listing({ tasks: null, over: OVER }) }
+
+    expect(filingOf('FX99', withheld)).toBe('unknown')
+  })
+
+  it('says unknown where a line in the file was one the grammar refused', () => {
+    // The older and quieter half of the same question: a refused line is in `uncounted`
+    // and not in `tasks`, so an id sitting in one was never in the list being searched.
+    const refused = {
+      roadmap,
+      ledger,
+      store: listing({ uncounted: [{ file: 'docs/DEFERRED.md', line: 9, text: '- ?? FX8' }] }),
+    }
+
+    expect(filingOf('FX99', refused)).toBe('unknown')
   })
 })
 
@@ -190,13 +216,15 @@ describe('RG80: the refusal that knows where the line went', () => {
     expect(found.sentence).toBe('nothing in this project carries that id')
   })
 
-  it('reads a withheld store as unfiled, which is RG100 and not this', () => {
-    // A listing past `[reads] list` carries counts and no lines, so nothing is found in it
-    // and `unfiled` is the answer of last resort. The id is still paused in the file. RG100
-    // is the line about that hole; what belongs here is that it is not papered over.
+  it('reads a withheld store as unknown rather than as never filed', () => {
+    // RG100: a listing past `[reads] list` carries counts and no lines, so nothing is found
+    // in it — and the id may well still be paused in the file. What is refused is the
+    // sentence claiming nothing here ever carried it.
     const withheld = whereaboutsOf('/w', 'FX1', REFUSED, { store: listing({ tasks: null }) })
 
-    expect(withheld.filing).toBe('unfiled')
+    expect(withheld.filing).toBe('unknown')
+    expect(withheld.sentence).toContain('did not see every line')
+    expect(withheld.sentence).not.toContain('nothing in this project')
     expect(withheld.pause).toBeNull()
     expect(withheld.back).toBeNull()
   })
@@ -206,7 +234,7 @@ describe('RG80: the refusal that knows where the line went', () => {
     // through rather than picked apart.
     const nothing = whereaboutsOf('/w', 'FX1', REFUSED, {})
 
-    expect(nothing.filing).toBe('unfiled')
+    expect(nothing.filing).toBe('unknown')
     expect(nothing.said).toBe(REFUSED.said)
     expect(nothing.said).toContain('roadkeep resume FX1')
   })
