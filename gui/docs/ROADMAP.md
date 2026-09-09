@@ -5,7 +5,6 @@
 ## Block A — The client (payloads in, types out)
 
 - 💭 **RG9** (deps: RG1 ✅, roadkeep RK1632) **prose a person typed goes out through argv, which is where RK1474 recorded bytes arriving as different bytes** — why and section-body each read stdin on a dash and symptom does not, so the field every line leads with is the one with no safe path in. → §RG9
-- 💭 **RG83** (deps: —) **one verb answers in two shapes under a flag, and nothing names the second until it breaks** — The flag that narrows a read is the flag that changes its answer, and it is never the call anybody writes the first test for. → §RG83
 - 💭 **RG84** (deps: RG78 ✅, RG103 ✅) **every live file resolves the engine itself, so one being rebuilt mid-run reds the suite four ways** — A red contract test is meant to mean roadkeep renamed a key, and it now also means somebody saved a file in another checkout. → §RG84
 - 📋 **RG98** (deps: RG65 ✅) **core's boundary test holds an import and nothing else, so a path rule written as string work passes it** — RG65 decided what a path means belongs to whoever has the filesystem, and a separator fold written inline compiles, typechecks and passes every gate. → §RG98
 - 📋 **RG99** (deps: RG66 ✅, RG103 ✅) **a read has two doors and the one a screen has to use is the one that raises rather than answering** — The client reads a verb with its own shape and throws when the call never happened, and attemptRead states that as a value but takes the reader back at the call site. → §RG99
