@@ -300,29 +300,6 @@ the line. Dark is untouched, the package re-pointing that token there already.
 
 What is left here is adopting the release that carries it, and enforcing the pair.
 
-### §RG106 Mounting when the bridge does not answer
-
-RG86 moved the first render behind one bridge call, and that was the right trade against
-a window that repaints every sentence a frame after it opens. What it did not buy is a
-bound: `localeFromBridge` resolves on an answer and on a rejection, and a promise that
-does neither is a promise React never hears about. Electron shows the window on
-`ready-to-show`, which fires on the first paint of an empty page, so the failure is a
-window sized and titled and holding nothing.
-
-Nothing observed this. It is reachable, though, and the shape of it is known: a handler
-that throws before replying rejects, but a main process wedged in a synchronous read
-never settles the channel at all, and `loadSettings` reads a file.
-
-**A deadline, not a retry.** The base catalogue is complete and English is a correct
-window, so the answer when the shell is slow is to mount in English — the same answer
-already given for no bridge and for a refusal. What the deadline is worth arguing about
-is its length: long enough that an ordinary IPC round trip never loses the locale, short
-enough that nobody watches an empty frame.
-
-**It belongs to the ask and not to the caller.** Every later reader of `settings()`
-wants the same bound, so it is the reader in `ui/src/locale.ts` that carries it, not
-`main.tsx`.
-
 ### §RG107 The override that reached both grounds
 
 RG54 overrode `--vg-ring` in this app's `:root` because the package's light ring is a

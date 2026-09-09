@@ -62,6 +62,21 @@ describe('RG60: what the renderer was given', () => {
     expect(launch.settings?.locale).toBeDefined()
   })
 
+  it('answers the launch read far inside the deadline the renderer holds', async () => {
+    // RG106 put a two-second bound on the call the first frame waits for, and what makes
+    // that number right is how long a real one takes: an IPC round trip and one small file.
+    // Measured in the running app, because nothing else can say.
+    const took = await app.evaluate<number>(`
+      (async () => {
+        const at = performance.now()
+        await window['${BRIDGE_KEY}'].settings()
+        return performance.now() - at
+      })()
+    `)
+
+    expect(took).toBeLessThan(200)
+  })
+
   it('keeps a ground the page chose, so the file is the source of it', async () => {
     // RG87: the whole write path in one call, which no unit test reaches — the renderer
     // asks, a handler validates the value and rewrites this profile's settings file, and

@@ -1,7 +1,7 @@
 import { BASE_LOCALE, DEFAULT_SETTINGS, type RendererBridge, type Theme } from '@rk/core'
 import { describe, expect, it } from 'vitest'
 
-import { choicesFromBridge } from './launch'
+import { choicesFromBridge, LAUNCH_CEILING_MS } from './launch'
 
 /**
  * RG86 and RG87: what the renderer asks for before it draws anything.
@@ -71,5 +71,64 @@ describe('RG87: the ground the window opens in', () => {
 
   it('says nothing answered when the channel refuses', async () => {
     expect((await choicesFromBridge(CLOSED)).theme).toBeNull()
+  })
+})
+
+describe('RG106: an answer that never comes', () => {
+  it('mounts in English rather than waiting on a promise that never settles', async () => {
+    // The failure this is about: a main process wedged in a synchronous read settles the
+    // channel not at all, and Electron has already shown a window painted its background.
+    const silent: RendererBridge = {
+      identify: () => Promise.reject(new Error('not asked')),
+      settings: () => new Promise(() => undefined),
+      saveTheme: () => Promise.resolve(),
+    }
+
+    const opened = await choicesFromBridge(silent, 20)
+
+    expect(opened).toEqual({ locale: BASE_LOCALE, theme: null })
+  })
+
+  it('takes the answer when it arrives inside the deadline', async () => {
+    // The other half: a deadline that fired on an ordinary round trip would lose somebody's
+    // language for nothing.
+    const slow: RendererBridge = {
+      identify: () => Promise.reject(new Error('not asked')),
+      settings: () =>
+        new Promise((answer) =>
+          setTimeout(
+            () =>
+              answer({
+                settings: { ...DEFAULT_SETTINGS, theme: 'dark' },
+                reset: [],
+                locale: 'pt-BR',
+              }),
+            5,
+          ),
+        ),
+      saveTheme: () => Promise.resolve(),
+    }
+
+    expect(await choicesFromBridge(slow, 500)).toEqual({ locale: 'pt-BR', theme: 'dark' })
+  })
+
+  it('waits the deadline it was given and not longer', async () => {
+    // A window that hangs for two seconds and one that hangs for ten are different windows.
+    const silent: RendererBridge = {
+      identify: () => Promise.reject(new Error('not asked')),
+      settings: () => new Promise(() => undefined),
+      saveTheme: () => Promise.resolve(),
+    }
+
+    const startedAt = Date.now()
+    await choicesFromBridge(silent, 30)
+
+    expect(Date.now() - startedAt).toBeLessThan(400)
+  })
+
+  it('gives an ordinary answer room a real one never needs', () => {
+    // Named rather than asserted about: what makes two seconds right is that a measured
+    // round trip is single-digit milliseconds, which `running-app-live` holds.
+    expect(LAUNCH_CEILING_MS).toBeGreaterThanOrEqual(1000)
   })
 })

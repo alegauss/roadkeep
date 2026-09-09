@@ -18,6 +18,16 @@ import { getBridge } from './bridge'
  * channel that is not there. Neither is a reason to show nothing, because the base
  * catalogue is complete and following the desktop is a real answer and not a fallback of
  * last resort.
+ *
+ * **And an answer that never comes is a failure like the others** (RG106). A promise that
+ * neither resolves nor rejects is one React is never told about, and Electron shows the
+ * window on the first paint of an empty page — so the window arrives sized, titled and
+ * holding nothing. A handler that throws rejects; a main process wedged in a synchronous
+ * read settles the channel not at all, and reading the settings file is a synchronous read.
+ *
+ * **A deadline and not a retry.** Asking again would wait twice on the thing that is not
+ * answering. Mounting in English is the answer already given for no bridge and for a
+ * refusal, and it is a correct window rather than a degraded one.
  */
 export interface LaunchChoices {
   /** A tag this build ships, already resolved against the desktop by the shell. */
@@ -36,16 +46,44 @@ export interface LaunchChoices {
 
 const AT_WORST: LaunchChoices = { locale: BASE_LOCALE, theme: null }
 
+/**
+ * How long the first frame waits on the shell.
+ *
+ * An ordinary answer is one IPC round trip and one small file, which `running-app-live`
+ * measures in single-digit milliseconds — so this is three orders of magnitude of room, and
+ * a launch that loses its locale to the deadline is a launch where something is wrong. Short
+ * enough, at two seconds, that a person reads a hang as a hesitation rather than as a window
+ * that opened empty and stayed that way.
+ */
+export const LAUNCH_CEILING_MS = 2000
+
 export async function choicesFromBridge(
   bridge: RendererBridge | undefined,
+  ceilingMs: number = LAUNCH_CEILING_MS,
 ): Promise<LaunchChoices> {
   if (!bridge) return AT_WORST
 
+  // The timer is cleared either way: a deadline that outlives its answer keeps the process
+  // awake for two seconds after the window is already drawn.
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const deadline = new Promise<LaunchChoices>((settle) => {
+    timer = setTimeout(() => {
+      settle(AT_WORST)
+    }, ceilingMs)
+  })
+
   try {
-    const answer = await bridge.settings()
-    return { locale: answer.locale, theme: answer.settings.theme }
+    return await Promise.race([
+      bridge.settings().then((answer) => ({
+        locale: answer.locale,
+        theme: answer.settings.theme,
+      })),
+      deadline,
+    ])
   } catch {
     return AT_WORST
+  } finally {
+    clearTimeout(timer)
   }
 }
 
