@@ -55,8 +55,10 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import inspect
 import io
 import itertools
+import re
 import shutil
 from pathlib import Path
 
@@ -64,6 +66,7 @@ import pytest
 
 from conftest import git_commit, git_init
 from roadkeep.cli import _one_answer, build_parser, main
+from roadkeep.verbs.querying import _cost as _cost_handler
 
 ROADMAP = """# Roadmap
 
@@ -477,6 +480,75 @@ def test_every_declared_answer_names_a_flag_its_verb_actually_has():
     # Five verbs declare between them, and the count is the claim: a declaration deleted with
     # the branch it replaced would leave this file measuring nothing.
     assert seen >= 12, seen
+
+
+# -- the cadences a table now counts (RK1637) ----------------------------------
+
+#: Every cadence `cost` prices: the flag that reads it, and **when what it measures is paid**.
+#: The population, held total against the parser below — which is the whole of this task. Five
+#: tasks each filed a subject as *the Nth cadence, and the one nothing counted*, each correctly
+#: and none able to say how many were left, because the count lived in prose in five docstrings
+#: and in a sentence a reader incremented by hand. `SITES` says what every composed command is
+#: and `USES` what every caller of `Part` holds; this is the same shape about the thing those
+#: tables are for.
+CADENCES = {
+    "--tools": "once at connect",
+    "--brief": "once per read",
+    "--session": "once at connect and once per turn",
+    "--skill": "once per turn that loads it",
+    "--deny": "once per refused write",
+    "--notes": "once per run of the gate",
+    "--near": "once per `add`",
+}
+
+#: The three of them paid **per write**, which is the group RK1491, RK1524 and RK1582 each
+#: argued into existence one at a time. Named as a subset rather than as a fourth table: what
+#: makes them one group is prose composed by a write rather than a state somebody reads.
+PER_WRITE = ("--deny", "--notes", "--near")
+
+
+def _cadences() -> dict[str, str]:
+    """What `cost` declares, off the real parser — the one reader this file has."""
+    return {
+        one.option: one.trigger
+        for one in subcommands()["cost"].get_default("subjects") or ()
+    }
+
+
+def test_every_cadence_cost_prices_is_one_this_table_counts():
+    """RK1637. Total against the declaration, so the eighth subject is a red here with one
+    question in it: what is it paid per. That question had no place to be asked before — the
+    trigger is what makes the set a set, and without it a subject was a flag with a sentence
+    beside it that happened to mention a cadence."""
+    assert _cadences() == CADENCES
+
+
+def test_no_two_cadences_share_a_trigger():
+    """The property the field exists for: two subjects paid at the same moment are one cadence
+    counted twice, which is the arithmetic `--session` refuses to do with its own two figures.
+    Checkable only once the trigger is declared rather than described."""
+    triggers = list(_cadences().values())
+    assert len(triggers) == len(set(triggers)), sorted(triggers)
+
+
+def test_every_subject_this_verb_dispatches_is_declared_with_a_cadence():
+    """Both directions, because either alone is green on the state RK1637 was filed from: a
+    branch in the handler nothing declared, or a declaration nothing dispatches. Read off the
+    handler's own source, so a subject added to one and not the other is the red.
+
+    Not a limit on the total, deliberately (RK1095): different surfaces are paid by different
+    callers and a sum charges one session for all of them."""
+    source = inspect.getsource(_cost_handler)
+    dispatched = {
+        f"--{one}"
+        for one in re.findall(r"args\.(\w+)", source)
+        if one not in {"subjects", "json"}
+    }
+    assert dispatched == set(CADENCES)
+    # And the per-write group is the three it is: a fourth is the next task's argument, not a
+    # row somebody quietly adds to a tuple.
+    assert set(PER_WRITE) <= set(CADENCES)
+    assert len(PER_WRITE) == 3, PER_WRITE
 
 
 # -- the flag one flag alone, over the transport that appends --json (RK1517) ---

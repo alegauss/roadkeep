@@ -192,6 +192,7 @@ command. The new property holds all three values, which leak alike.
 - ✅ **RK1555** **two of adopt's argument rules are still raised inside the estimator, where no declaration reader can see them** — A shape with one member gets a raise with a good sentence; a third kind of declaration is what a second member buys.
 - ✅ **RK1559** **twelve of the fifteen note codes have never been priced, this project's gate tripping only two of them** — A figure over part of a population is a reading of that part; the population is the census that closes over it.
 - ✅ **RK1563** **a field that shares a name with the served prefix is reported as a carrier of it, which it is not** — A red that made somebody look is the mechanism working; narrowing the sweep that raised it trades a misleading message for a missed one.
+- ✅ **RK1637** **seven cost subjects each argued they were the Nth cadence nobody counted, and nothing enumerates the cadences** — A cost subject is a cadence and states its trigger: the population is total against the declaration, and no ceiling sums them — different surfaces are paid by different callers.
 
 ### §RK1394 Proof, not age
 

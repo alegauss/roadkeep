@@ -268,6 +268,14 @@ class Answer:
     #: What this question answers, as a **noun phrase**: it is rendered inside `<what>
     #: (--flag)`, so a verb here would have to agree with a list whose length is the caller's.
     what: str
+    #: When what this answers about is **paid**, where that is the thing distinguishing one
+    #: subject from another (RK1637). `""` on every verb whose subjects are not cadences,
+    #: which is all of them but `cost`: there, seven subjects were each filed as *the Nth
+    #: cadence, and the one nothing counted*, five times from scratch, because the population
+    #: was prose in five docstrings and a number a reader incremented by hand. Two subjects
+    #: sharing a trigger are one cadence counted twice, and a text whose trigger nothing
+    #: prices is the next one — neither is answerable while the field does not exist.
+    trigger: str = ""
 
     def given(self, args: argparse.Namespace) -> tuple[str, ...]:
         """The option strings of this group the caller actually passed."""
@@ -282,6 +290,23 @@ class Answer:
 
     def asked(self, args: argparse.Namespace) -> str:
         return f"{self.what} ({', '.join(self.given(args))})"
+
+    @property
+    def option(self) -> str:
+        """The option string a caller passes, which for a group of one is the group (RK1637).
+
+        First and not joined: a verb whose subjects are cadences has one flag apiece, and the
+        one group of two on this surface — `export --readme --site` — declares no trigger.
+        """
+        return self.flags[0][1]
+
+    def offered(self) -> str:
+        """This subject as the row a verb prints when it was asked for none (RK1637).
+
+        The trigger last, because it is the half a caller who ran the verb bare does not have:
+        they know they want a figure and not which of seven cadences they are asking about.
+        """
+        return f"  {self.option:<10} {self.what}, {self.trigger}"
 
 
 def _declared(parser: argparse.ArgumentParser, dest: str) -> tuple[str, str, object]:
@@ -299,7 +324,10 @@ def _declared(parser: argparse.ArgumentParser, dest: str) -> tuple[str, str, obj
     raise KeyError(f"{parser.prog} declares no --{dest.replace('_', '-')}")
 
 
-def answers(parser: argparse.ArgumentParser, *groups: tuple[str | tuple[str, ...], str]) -> None:
+def answers(
+    parser: argparse.ArgumentParser,
+    *groups: tuple[str | tuple[str, ...], str] | tuple[str | tuple[str, ...], str, str],
+) -> None:
     """Declare which of a verb's flags are **answers**, so two of them are refused (RK489).
 
     `budget` wrote this by hand for its four subjects — a list of flags, a refusal when two
@@ -314,17 +342,23 @@ def answers(parser: argparse.ArgumentParser, *groups: tuple[str | tuple[str, ...
     this tool's own thesis turned on itself: the saving is the analysis, not the characters —
     a sweep reports after a flag nothing reads has been added, and a declaration refuses
     before a subparser exists that can swallow one.
+
+    A **third element is the trigger** (RK1637), and every group may state one: where a verb's
+    subjects are cadences rather than questions, when each is paid is what tells them apart,
+    and `cost` is the only verb here whose seven are. Optional and not defaulted per verb,
+    because a subject that is not a cadence has no honest answer to give.
     """
     parser.set_defaults(
         subjects=tuple(
             Answer(
                 tuple(
                     _declared(parser, one)
-                    for one in ((dests,) if isinstance(dests, str) else dests)
+                    for one in ((group[0],) if isinstance(group[0], str) else group[0])
                 ),
-                what,
+                group[1],
+                *group[2:],
             )
-            for dests, what in groups
+            for group in groups
         )
     )
 

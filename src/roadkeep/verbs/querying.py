@@ -70,6 +70,7 @@ from roadkeep.verbs.declaring import (
     _PIPE,
     _counting_flags,
     _marker_flag,
+    Answer,
     answers,
     narrows,
     withheld,
@@ -461,15 +462,23 @@ def _cost(config: Config, args: argparse.Namespace) -> Result | int:
     if args.near:
         return _near_budget(config, args)
     # No subject is the default here, unlike `budget`, whose bare form is about the line `add`
-    # would write next. These are seven cadences — once at connect, once per turn, once per
-    # read, once per turn that loads the write path (RK1424), once per refused write (RK1428),
-    # once per run of the gate (RK1491) and once per `add` (RK1582) — and privileging one
-    # would make the others look like narrowings of it.
+    # would write next: these are cadences, and privileging one would make the others look
+    # like narrowings of it.
+    #
+    # **Read off the declaration** (RK1637). This sentence restated all seven by hand and a
+    # comment beside it counted their cadences in prose, so a subject added anywhere was a
+    # line somebody had to remember in three places — and five tasks in a row each argued
+    # from scratch that theirs was the one nothing counted. Rows and not a sentence, because
+    # the population is the answer: what a caller asked for is which cadence, and a
+    # 300-character clause is the enumeration this task is about being unreadable.
+    subjects: tuple[Answer, ...] = getattr(args, "subjects", ())
     print(
-        "roadkeep: cost takes a subject: --tools for the served surface, --brief for what "
-        "that read costs a tool result, --session for both against their cadences, --skill "
-        "for the write path on the turns that load it, --deny for one refused write, --notes "
-        "for what a clean run says beside its verdict, --near for what an `add` volunteers",
+        "\n".join(
+            [
+                f"roadkeep: cost takes a subject, one per cadence ({len(subjects)}):",
+                *(one.offered() for one in subjects),
+            ]
+        ),
         file=sys.stderr,
     )
     return EXIT_USAGE
@@ -2040,22 +2049,56 @@ def declare_reads(subcommands: argparse._SubParsersAction) -> None:
     )
     cost_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
     cost_parser.set_defaults(handler=_cost, reads_only=True)
+    # Each subject with **the cadence it is paid at** (RK1637), which on this verb is what
+    # tells one from another: five tasks each filed a subject as *the Nth cadence, and the one
+    # nothing counted*, each correctly and none able to say how many were left, because the
+    # population was prose in five docstrings and a number a reader incremented by hand. The
+    # trigger is what makes the set a set — two subjects sharing one are one cadence counted
+    # twice — and it is read back by the row `cost` prints when it was asked for no subject,
+    # so the eighth cannot arrive without appearing there.
     answers(
         cost_parser,
-        ("tools", "what this tool surface costs a session"),
-        ("brief", "what the read that replaces the file costs a tool result"),
-        ("session", "both halves of what a session pays, against their cadences"),
+        ("tools", "what this tool surface costs a session", "once at connect"),
+        (
+            "brief",
+            "what the read that replaces the file costs a tool result",
+            "once per read",
+        ),
+        # The `what` no longer carries *against their cadences* and `--near`'s no longer
+        # carries *per write* (RK1637): the trigger beside it says both, and a row stating a
+        # cadence twice is the hand-maintained prose this task removed.
+        (
+            "session",
+            "both halves of what a session pays",
+            "once at connect and once per turn",
+        ),
         # The fourth cadence (RK1424): trigger-loaded, so it is neither the schema's once at
         # connect nor `[budgets]`' every turn, and it is larger than either.
-        ("skill", "what the write path costs the turns that load it"),
+        (
+            "skill",
+            "what the write path costs the turns that load it",
+            "once per turn that loads it",
+        ),
         # And the fifth (RK1428), paid per refused write by the surface this plugin is for.
-        ("deny", "what one refused write costs the session that meets it"),
+        (
+            "deny",
+            "what one refused write costs the session that meets it",
+            "once per refused write",
+        ),
         # The sixth (RK1491), paid on every run of the gate by a project that wired it: what a
         # clean report says beside its verdict, which no other cadence here counts.
-        ("notes", "what a clean run of the gate says beside its verdict"),
+        (
+            "notes",
+            "what a clean run of the gate says beside its verdict",
+            "once per run of the gate",
+        ),
         # And the seventh (RK1582), paid on every `add` — the third per-write prose here, on
         # the one command an agent runs most, and the only one bounded by construction.
-        ("near", "what the neighbours an `add` volunteers cost, per write"),
+        (
+            "near",
+            "what the neighbours an `add` volunteers cost",
+            "once per `add`",
+        ),
     )
     # The one subject of this verb the surface does not offer (RK1428), and `list --ids`'
     # reason exactly: a caller over that transport is *handed the denial itself*, so the
