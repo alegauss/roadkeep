@@ -126,13 +126,25 @@ export interface RowReads {
 }
 
 export function readRow(project: RecordedProject, reads: RowReads): ProjectRow {
+  return fillRow({ ...shell(project), state: 'read' }, reads)
+}
+
+/**
+ * The same row with whatever has since been read put onto it.
+ *
+ * A row is filled in more than one moment (RG73): the counts are what a list is scanned
+ * for and the next line arrives after, so what a screen already drew has to survive the
+ * second pass. A read that has not happened leaves the field it would have filled exactly
+ * as it was, which is what makes it safe to call twice.
+ */
+export function fillRow(row: ProjectRow, reads: RowReads): ProjectRow {
   return {
-    ...shell(project),
+    ...row,
     state: 'read',
-    counts: reads.stats ? countsFrom(reads.stats) : null,
-    next: reads.pick ? nextFrom(reads.pick) : null,
-    gate: reads.gate ?? null,
-    engine: reads.engines ? engineFrom(reads.engines) : null,
+    counts: reads.stats ? countsFrom(reads.stats) : row.counts,
+    next: reads.pick ? nextFrom(reads.pick) : row.next,
+    gate: reads.gate ?? row.gate,
+    engine: reads.engines ? engineFrom(reads.engines) : row.engine,
   }
 }
 

@@ -26,8 +26,6 @@
 
 ## Block C — The portfolio (many backlogs in one view)
 
-- 📋 **RG73** (deps: RG16 ✅, RG103 ✅) **a row is built by four separate reads, so a project costs four interpreter starts to show once** — stats, pick, lint and engines are four calls per project, which is sixty-eight over seventeen and most of a cold start. → §RG73
-
 ## Block D — The project surface (one backlog, read)
 
 - ⏳ **RG28** (deps: roadkeep publishing the stale ordering in the payload) **the deferred store has no order, so which pause has stood longest is a question only a terminal can ask** — How long each pause has stood, which --stale orders by and prints for a terminal, putting none of it in the payload. → §RG28

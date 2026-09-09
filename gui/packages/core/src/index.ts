@@ -124,7 +124,8 @@ export { createPooledTransport } from './pool'
 export type { PoolOptions } from './pool'
 export { createLimiter } from './limiting'
 export type { Limiter } from './limiting'
-export { folderName, pendingRow, readRow, tally, unreadableRow } from './portfolio'
+export { fillRow, folderName, pendingRow, readRow, tally, unreadableRow } from './portfolio'
+export { glanceRow, withNext } from './rows'
 export type {
   PortfolioTally,
   ProjectRow,

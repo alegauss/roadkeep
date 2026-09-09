@@ -36,6 +36,7 @@
 - ✅ **RG18** **whether a project's gate passes is unknown until it is opened, so the list cannot say which one needs attention** — A row shows the last verdict with when it was taken, unknown until a run has earned one, and stale the moment the files move (design recorded in `packages/core/src/gate.ts`).
 - ✅ **RG19** **what to work on is asked one repository at a time, so there is no answer that ranges over all of them** — Every project's candidate is laid out together with the tier that chose it, in the person's own project order and ranked by nothing here (design recorded in `packages/core/src/candidates.ts`).
 - ✅ **RG20** **finding a line by its words means opening each project and reading its list in turn** — Search runs over held payloads across every backlog, matches id, symptom and why, and names any project it could not cover (design recorded in `packages/core/src/search.ts`).
+- ✅ **RG73** **a row is built by four separate reads, so a project costs four interpreter starts to show once** — A scannable row is one call and the next line is a second, because resolution already answered the engine and the gate comes off the ledger (design recorded in `packages/core/src/rows.ts`).
 
 ## Block D — The project surface (one backlog, read)
 
