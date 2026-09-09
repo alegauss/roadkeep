@@ -788,9 +788,10 @@ def declaring(config: Config, anchor: str) -> tuple[str, ...]:
     return tuple(
         role
         for role in PROSE_ROLES
-        if config.has(role)
-        and config.path(role).is_file()
-        and find(config.document(role), anchor) is not None
+        # `on_disk` and no longer the pair by hand (RK1604, found by RK1644): the guard over
+        # this idiom was a regex over lines and this one is wrapped across two, so it read as
+        # clean — which is the reading's failure and not the rule's.
+        if config.on_disk(role) and find(config.document(role), anchor) is not None
     )
 
 

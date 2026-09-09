@@ -803,6 +803,7 @@
 - ✅ **RK1641** **the sweep that runs every door the gate offers reaches one of eighty-four dispatchable rows** — One instrument, three fixtures, and the reach stated as seven of eighty-five instead of described as one.
 - ✅ **RK1642** **the preventive read a refusal names for seven codes is in the sentence and in no field of the payload** — The read goes out under doors, which is where a payload publishes a command a caller has not yet chosen.
 - ✅ **RK1643** **the orientation is held at a ceiling and the two pages it points at, six times its size, are held by nothing** — Each page carries its own figure beside the orientation's, and a page past it is a page to split.
+- ✅ **RK1644** **nine guards over this package's source read its characters where twenty-two read its syntax** — Five guards whose subject was a code shape now read the syntax, and the population that reads characters is empty.
 
 ## Block E — Adoption
 

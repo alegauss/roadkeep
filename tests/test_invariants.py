@@ -34,7 +34,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from surface import PACKAGE, addresses, modules
+from surface import PACKAGE, addresses, modules, suite
 
 HERE = Path(__file__).resolve().parents[1]
 
@@ -353,6 +353,19 @@ INVARIANTS: tuple[Invariant, ...] = (
         # where the enumeration finds one, both examples written from the tool table and
         # neither checked against the parser.
         instances=("RK1539",),
+    ),
+    Invariant(
+        stated="RK1644",
+        rule=(
+            "a guard whose subject is a code shape reads this package's syntax and not its "
+            "characters, so a docstring naming a call is never counted as one"
+        ),
+        over="surface.suite",
+        held_by="test_invariants::test_no_guard_over_this_package_reads_its_source_as_characters",
+        # Both halves of the same reading, met one after the other on one rule: a pattern too
+        # narrow to see a fifth spelling, then one wide enough to match the sentence recording
+        # that the fourth had gone.
+        instances=("RK1542", "RK1602"),
     ),
     Invariant(
         stated="RK1639",
@@ -687,6 +700,79 @@ def test_no_test_spells_an_address_the_package_no_longer_has():
             if addresses(node.value) and node.value not in known:
                 stale.setdefault(module.name, []).append(f"{node.value}:{node.lineno}")
     assert stale == {}, stale
+
+
+#: Readers in this suite whose answer is already taken off the AST. A guard that goes through
+#: one of these is reading syntax even though what it holds afterwards is a string, which is
+#: why the sweep below cannot decide by looking for `ast.` in a function body.
+_PARSING = frozenset(
+    {
+        "spoken",
+        "census",
+        "commanded",
+        "beyond",
+        "inconsistent",
+        "unprefixed",
+        "loose",
+        "claimed",
+        "commented",
+        "beside",
+        "measured",
+        "calling",
+        "naming",
+        "bodies",
+    }
+)
+
+
+def test_no_guard_over_this_package_reads_its_source_as_characters():
+    """RK1644. A guard whose subject is a **code shape** and whose reading is characters has
+    two failures, and this suite met both. RK1542 refused a second site recovering `superseded
+    by <id>` by hand as a regex over four string methods; `reverting` compiled a fifth, so the
+    guard read it as clean for that rule's whole life. Widening the pattern then matched
+    `reverting`'s own docstring, which quotes the regex it had just stopped using — a sentence
+    recording why a coupling went is not a coupling (RK1602).
+
+    Five guards were still of that shape and every one of their subjects was syntax: a
+    `stdout.flush()` call, a `has(r) and path(r).is_file()` expression, `.block(` and `.holds(`
+    calls, an `in_halves` reference, a `_staging_rows` call inside one handler's body. Each
+    carried a hand-rolled workaround for exactly the case it could not decide — skipping lines
+    that open with `#`, a comment explaining away a docstring that counted as a caller — and
+    converting them found a real site the regex could not see: the pair wrapped across two
+    lines in `sections.py`, which every formatter here produces past 88 columns.
+
+    So the population is **empty**, which is a stronger claim than a table of readings would
+    be. A guard whose subject really is characters is right to read them — a marker codepoint
+    appearing anywhere, a line terminator, a project's own value in a help string — and each of
+    those reaches the package's *text* without asking `modules()` for it, or goes through a
+    reader in :data:`_PARSING` that has already parsed. The limit is stated rather than papered
+    over: this decides by which reader a guard calls, so one that inlined its own `re` over
+    `Module.text` without touching either is invisible here — the same limit
+    `governing._config_writers` names about its own spelling scan."""
+    found: list[str] = []
+    for path in suite():
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        parses = {
+            node.name
+            for node in ast.walk(tree)
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+            and ("ast.parse" in ast.unparse(node) or "ast.walk" in ast.unparse(node))
+        }
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            body = ast.unparse(node)
+            if "modules()" not in body or ".text" not in body:
+                continue
+            if "ast.parse" in body or "ast.walk" in body:
+                continue
+            if any(f"{one}(" in body for one in parses | _PARSING):
+                continue
+            found.append(f"{path.name}::{node.name}")
+    assert found == [], (
+        "these read the package's source as characters, where a docstring naming a call "
+        f"counts as one: `surface.calling`, `naming` and `bodies` ask the tree — {found}"
+    )
 
 
 def test_the_declared_surface_reaches_the_directories_under_the_package():

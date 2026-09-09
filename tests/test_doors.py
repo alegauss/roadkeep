@@ -271,9 +271,12 @@ def test_the_gate_and_the_verb_read_one_predicate_and_not_two(tmp_path):
     copy nobody can find — so the question moved onto the record both of them hold.
 
     Held by reading the source rather than by two behaviours agreeing, because agreeing is
-    exactly what the duplicate did.
+    exactly what the duplicate did — and by reading its **syntax** since RK1644. `"in_halves"
+    in text` was satisfied by `linting.py`'s own docstring saying the predicate is the tolerated
+    shape, which is a sentence about the rule and not a reading of it; `".task.part" not in
+    text` would have been broken by a comment naming the field it forbids.
     """
-    from surface import address, modules
+    from surface import address, modules, naming
 
     everywhere = {
         module.where: module.text
@@ -281,11 +284,13 @@ def test_the_gate_and_the_verb_read_one_predicate_and_not_two(tmp_path):
         if module.where in (address("linting"), address("shipping"))
     }
     for where, text in everywhere.items():
-        assert "in_halves" in text, where
+        # Read and never called: it is a property on the record both of them hold, which is
+        # the whole point of the predicate living there.
+        assert naming(text, "in_halves"), where
     # The gate asks and never reads the field: a `.task.part` here is the restatement coming
     # back. The verb still reads it — it *writes* the qualifier and puts it in messages —
     # which is the difference between holding a value and re-deciding a question.
-    assert ".task.part" not in everywhere[address("linting")]
+    assert not naming(everywhere[address("linting")], "task.part")
 
 
 def test_the_state_the_table_was_written_from_is_gone_afterwards(tmp_path):

@@ -26,7 +26,7 @@ from pathlib import Path
 import pytest
 
 import corpora
-from surface import address, modules
+from surface import address, calling, modules
 from roadkeep import DESIGNED, IDEA, PARTIAL, SHIPPED, Dep, Schema, Task
 from roadkeep.kernel.document import (
     Document,
@@ -890,6 +890,11 @@ def test_the_two_readers_of_it_are_the_only_two():
 
     Source, not behaviour, because behaviour is what a third spelling would agree with right
     up until it did not — which is the argument `_only_reads` and `GUARDED_TOOLS` are built on.
+
+    **Syntax and not characters** (RK1644). This asked whether `.block(` appears in a module's
+    text, so a docstring naming the method counted as a caller — the failure RK1542 met twice
+    in the other direction, where a sentence recording a removed coupling read as the coupling.
+    `surface.calling` walks the calls, where the question does not arise.
     """
     # `document.py` is where both are defined and where each one's docstring names the other,
     # so it is the one module that is not a caller. The set is `surface.modules` and not a
@@ -898,7 +903,7 @@ def test_the_two_readers_of_it_are_the_only_two():
     # `verbs/shipping.py` answer under `shipping.py` — one file counted as another.
     callers = {module.where: module.text for module in modules()}
     callers.pop(address("document"))
-    spellings = {name for name, text in callers.items() if ".block(" in text}
+    spellings = {name for name, text in callers.items() if calling(text, ".block")}
     # Every remaining caller wants the entries themselves: `backlog.py` expands a `Block X`
     # dep into member ids, `authoring.py` finds where to insert, `linting.py` counts how
     # many lines a block *held* for the note's own sentence — which the event line never
@@ -920,13 +925,14 @@ def test_the_two_readers_of_it_are_the_only_two():
         "linting.py",
         "verbs/shipping.py",
     }
-    # `rendering.py` is the third name and not a third spelling (RK493): the event line moved
-    # there with every other printer, and what it carries is the *word* — `Backlog.during`,
-    # not this call. Its `.holds(` is the docstring saying which one it stopped being.
-    assert {name for name, text in callers.items() if ".holds(" in text} == {
+    # Two callers and not three (RK1644). `rendering.py` was the third *name* and never a
+    # third spelling (RK493): the event line moved there with every other printer, and what it
+    # carries is the word — `Backlog.during`, not this call — its `.holds(` being the docstring
+    # that says which one it stopped being. The character scan counted that sentence and the
+    # comment above had to explain it away; reading the calls, it is simply not one.
+    assert {name for name, text in callers.items() if calling(text, ".holds")} == {
         "cli.py",
         "linting.py",
-        "rendering.py",
     }
 
 

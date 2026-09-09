@@ -11,6 +11,7 @@ about other people's projects.
 
 from __future__ import annotations
 
+import ast
 import tomllib
 from dataclasses import replace
 from pathlib import Path
@@ -124,26 +125,68 @@ def test_a_role_with_no_default_answers_the_same_to_both(tmp_path):
     assert not config.on_disk("deferred")
 
 
+def _one_side(node: ast.expr) -> tuple[str, str] | None:
+    """One half of the pair `on_disk` names, as `(which question, the role)` (RK1644).
+
+    A `not` is stripped rather than refused: `not has(r) or not path(r).is_file()` is the same
+    question asked the other way, which is why the regex this replaces had two alternations.
+    """
+    inner = node
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
+        inner = node.operand
+    if not isinstance(inner, ast.Call) or not inner.args and not isinstance(inner.func, ast.Attribute):
+        return None
+    spelled = ast.unparse(inner.func)
+    if spelled.endswith("has") and inner.args:
+        return ("has", ast.unparse(inner.args[0]))
+    if spelled.endswith(".is_file") and isinstance(inner.func, ast.Attribute):
+        target = inner.func.value
+        if (
+            isinstance(target, ast.Call)
+            and ast.unparse(target.func).endswith("path")
+            and target.args
+        ):
+            return ("is_file", ast.unparse(target.args[0]))
+    return None
+
+
+def _asked_by_hand(source: str) -> tuple[int, ...]:
+    """Every line writing the pair as an expression rather than calling `on_disk` (RK1644).
+
+    A `BoolOp` with both halves in it **about the same role**, which is the rule: `has(a) and
+    path(b).is_file()` is two questions and not this idiom, and the regex this replaces held
+    that with a backreference where the AST holds it by comparing the argument.
+    """
+    found: list[int] = []
+    for node in ast.walk(ast.parse(source)):
+        if not isinstance(node, ast.BoolOp):
+            continue
+        sides = [_one_side(one) for one in node.values]
+        asked = {one[0] for one in sides if one is not None}
+        roles = {one[1] for one in sides if one is not None}
+        if asked == {"has", "is_file"} and len(roles) == 1:
+            found.append(node.lineno)
+    return tuple(sorted(set(found)))
+
+
 def test_no_caller_spells_the_file_question_by_hand():
     """The pair's guard, and `carrying`'s shape again (RK1507, RK1542, RK1602). Forty-one sites
     wrote `config.has(role) and config.path(role).is_file()` or its negation, because the
     question they were asking had no name — two spellings of one fact, kept in step by nobody.
 
     Total against the source, so a forty-second written tomorrow is a red here rather than the
-    idiom growing back one call at a time."""
-    import re
+    idiom growing back one call at a time.
 
+    **The expression and not the line** (RK1644). This was a regex over lines, which has two
+    failures a reading of the syntax has not: a docstring quoting the idiom counts, and the
+    same pair wrapped across two lines — which every formatter here does past 88 columns —
+    does not."""
     from surface import modules
 
-    spelled = re.compile(
-        r"has\((?P<r>[^()]+)\) and \S*path\((?P=r)\)\.is_file\(\)"
-        r"|not \S*has\((?P<n>[^()]+)\) or not \S*path\((?P=n)\)\.is_file\(\)"
-    )
     found = [
         f"{one.where}:{number}"
         for one in modules()
-        for number, line in enumerate(one.text.splitlines(), start=1)
-        if spelled.search(line)
+        for number in _asked_by_hand(one.text)
     ]
     assert not found, f"`on_disk` is what these are asking: {found}"
 

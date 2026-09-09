@@ -469,8 +469,14 @@ def test_the_ordering_lives_in_one_function_and_not_in_two_disciplines():
     separates the ones that write both in one run. So the repair is the seam: two callers had
     each worked the rule out, and one of them carried the flush with no sentence saying why.
 
-    Asserted as *nobody else flushes*, which is the claim a helper makes."""
-    from surface import modules
+    Asserted as *nobody else flushes*, which is the claim a helper makes.
+
+    **The call and not the characters** (RK1644). This read lines and skipped the ones opening
+    with `#` or `*` — a hand-rolled exclusion for exactly the case a character scan cannot
+    decide, and one that still counted a docstring's own `stdout.flush()` anywhere but the
+    first column. `surface.calling` walks the calls, so the exclusion is not needed and cannot
+    be got wrong."""
+    from surface import calling, modules
 
     from roadkeep.verbs.refusing import beneath
 
@@ -479,8 +485,7 @@ def test_the_ordering_lives_in_one_function_and_not_in_two_disciplines():
         f"{one.where}:{number}"
         for one in modules()
         if one.where != "verbs/refusing.py"
-        for number, line in enumerate(one.text.splitlines(), start=1)
-        if "stdout.flush()" in line and not line.lstrip().startswith(("#", "*"))
+        for number in calling(one.text, "stdout.flush")
     ]
     assert not found, f"`beneath` is where the two streams are ordered: {found}"
 

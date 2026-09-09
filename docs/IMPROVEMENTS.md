@@ -224,28 +224,6 @@ reading.
 
 ## Block D — The gate
 
-### §RK1644 The guard that reads characters
-
-RK1542 refused a second site recovering `superseded by <id>` by hand, as a regex over
-lines matching four string methods. `reverting` did not use one of the four — it
-compiled `\(superseded by ([^)]+)\)` — so the guard read that module as clean for the
-whole of RK1542's life. Widening the pattern to `re` then matched `reverting`'s own
-docstring, which quotes the regex it had just stopped using: a sentence recording why a
-coupling went is not a coupling, and a scan over characters cannot tell them apart.
-RK1602 rewrote it to walk calls, where the question does not arise.
-
-Both failures are properties of the reading, not of that rule. Twenty-two guards over
-this package's source already read the AST — `test_shadowing`, `test_importing`,
-`test_invariants` — and nine read the text. `test_document`'s is the same shape exactly:
-it looks for `.block(` in a module's characters, so a docstring naming the method counts
-as a second caller.
-
-What is undecided is which of the nine are wrong. A guard whose subject really is
-*characters* is right to read them — a marker codepoint appearing anywhere, a project's
-own value in a help string — and converting those would narrow a rule that is
-deliberately wide. So the work is a reading per guard, asking whether its subject is a
-code shape or a byte, and the population is nine.
-
 ### §RK1645 The second list nothing promised
 
 `tests/test_payloads.INSIDE` says what its docstring says: *the keys inside the one
@@ -489,27 +467,26 @@ with a token.
 
 ### §RK1648 The bytecode the check leaves behind
 
-`vendor` verifies by running `<copy>/scripts/roadkeep.py --version`, which is RK1193's
-fourth rule and the one that makes picking by version mean anything: the evidence is the
-copy answering. Running it imports the package out of the copy, and Python writes
-`__pycache__` beside every module it loads.
+`vendor` verifies by running `<copy>/scripts/roadkeep.py --version` — RK1193's fourth
+rule, and what makes picking by version mean anything: the evidence is the copy
+answering. That imports the package out of the copy, and Python writes `__pycache__`
+beside every module it loads.
 
-Measured while building RK1606: the copy as written is **3.89 MiB across 90 files**;
-after the verification it is **7.24 MiB across 147**, of which 60 files and 3.35 MiB are
-bytecode nothing asked for. The proportion is what makes it worth a line — the check
-costs almost as much as the artefact.
+Measured while building RK1606: the copy as written is **3.89 MiB across 90 files** and
+**7.24 MiB across 147** after the check, of which 60 files and 3.35 MiB are bytecode
+nothing asked for. The proportion is the finding — the check costs almost what the
+artefact does.
 
-It predates RK1606 and was invisible beside 22.46 MiB. It is also not a bug: the
-bytecode is valid and is what the launcher would write on first use anyway. What it is
-is an artefact that stopped being the size its own rule says. **No supported Python
-API.** does not reach it — that non-goal is about what this tool offers a caller to
-import, and this is what CPython writes for its own loader.
+It predates RK1606, was invisible beside 22.46 MiB, and is not a bug: the bytecode is
+valid and is what the launcher writes on first use anyway. It is an artefact that
+stopped being the size its rule says. **No supported Python API.** does not reach it:
+that non-goal is about what this tool offers a caller to import, and this is what
+CPython writes for its own loader.
 
-Three ways out and they differ in what they give up. `-B` or `PYTHONDONTWRITEBYTECODE`
-on the verification subprocess leaves the copy as written and makes the first real run
-pay instead. Deleting `__pycache__` after the check is a second sweep over a tree just
-walked. Or the figure is simply stated — `install --vendor` reports what landed, and a
-report saying 7.24 when the rule says 3.89 is the part that misleads.
+Three ways out, differing in what they give up. `-B` on the verification subprocess
+leaves the copy as written and makes the first run pay. Deleting `__pycache__` after is
+a second sweep over a tree just walked. Or the figure is stated: a report saying 7.24
+where the rule says 3.89 is the part that misleads.
 
 ## Block G — The editor surface (the backlog where the file is open)
 

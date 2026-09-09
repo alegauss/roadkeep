@@ -152,6 +152,64 @@ def suite() -> tuple[Path, ...]:
     return tuple(sorted(Path(__file__).resolve().parent.glob("test_*.py")))
 
 
+def calling(source: str, spelled: str) -> tuple[int, ...]:
+    """Every line where a call to ``spelled`` is made, by syntax and not by characters (RK1644).
+
+    ``spelled`` is the tail of the call as the source writes it — `block`, `stdout.flush`,
+    `save_all` — matched against the unparsed callee, so a dotted form is as addressable as a
+    bare one and neither reaches a docstring.
+
+    **The failure this replaces is measured twice.** RK1542 refused a second site recovering
+    `superseded by <id>` by hand as a regex over lines matching four string methods; `reverting`
+    used a fifth, so the guard read it as clean for that rule's whole life. Widening the pattern
+    then matched `reverting`'s own docstring, which quotes the regex it had just stopped using —
+    a sentence recording why a coupling went is not a coupling, and a scan over characters
+    cannot tell them apart. Both failures are properties of the reading (RK1602).
+
+    What is **not** claimed is that a name identifies a method: two classes may both declare
+    `block`, exactly as the character scan could not tell them apart either. What this fixes is
+    the prose, which is the half that produced both defects.
+    """
+    found: list[int] = []
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Call) and ast.unparse(node.func).endswith(spelled):
+            found.append(node.lineno)
+    return tuple(sorted(set(found)))
+
+
+def naming(source: str, spelled: str) -> tuple[int, ...]:
+    """Every line where ``spelled`` is **read** as a name or a dotted attribute (RK1644).
+
+    :func:`calling`'s other half, for the guards whose subject is a reference rather than a
+    call: `in_halves` passed as a predicate, `task.part` read off a record. A docstring naming
+    either is prose, which is the whole distinction.
+    """
+    found: list[int] = []
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Name) and node.id == spelled:
+            found.append(node.lineno)
+        elif isinstance(node, ast.Attribute) and ast.unparse(node).endswith(spelled):
+            found.append(node.lineno)
+    return tuple(sorted(set(found)))
+
+
+def bodies(source: str) -> dict[str, str]:
+    """Every function and method this source declares, by name, as source of its own (RK1644).
+
+    So a guard about *what one handler reaches* can ask :func:`calling` about that handler
+    rather than splitting the file on `def <name>(` — which is the shape that reads a nested
+    definition, a docstring mentioning the name, and the next function's body as one span.
+
+    Last wins where a name is declared twice, which `test_shadowing` already refuses for this
+    package: two bodies under one address is the state that guard exists to keep out.
+    """
+    return {
+        node.name: ast.unparse(node)
+        for node in ast.walk(ast.parse(source))
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+
+
 def commented(module: str, name: str) -> str:
     """The comment block immediately above where ``name`` is bound (RK1638).
 

@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pytest
 
-from surface import modules
+from surface import bodies, calling, modules
 
 from roadkeep.cli import build_parser
 from roadkeep.verbs import adopting
@@ -317,12 +317,20 @@ def test_every_write_command_is_either_wired_or_exempted():
 
 def test_every_wired_write_reaches_the_one_printer():
     """Executed rather than asserted, which is `test_doors`' rule: each handler is read for the
-    call, because a staging line composed per verb is a line that comes to differ per verb."""
+    call, because a staging line composed per verb is a line that comes to differ per verb.
+
+    **Read by syntax since RK1644.** Both halves sliced the source: a record's body was the
+    span between `\\n    def <name>(self` and the next `\\n    def `, and a handler's was
+    everything after `def <name>(` up to the next top-level `def` — so a nested function, a
+    docstring naming the producer, and the file's remaining text were one body, and a method
+    whose signature wrapped across two lines had none. `surface.bodies` and `surface.calling`
+    ask the tree, where a body is a body."""
     # `surface.modules` and never a glob of its own (RK496): the one module allowed to ask the
     # filesystem what this package holds is the one every survey quantifies over, so a layout
     # that moves takes this reader with it instead of leaving it quietly covering nothing.
     source = {one.where: one.text for one in modules() if one.where.startswith("verbs/")}
     handlers = {handler for name, handler in writes().items() if name not in EXEMPT}
+    PRODUCERS = ("_staging_rows", "_scope_rows")
     # **The hop, derived** (RK1170): every record method that reaches a producer itself, found
     # by reading the package rather than named here. `stated` was the first and `retired` the
     # second — one shape carries two doors — and a pair spelled in this test is a list that
@@ -330,33 +338,24 @@ def test_every_wired_write_reaches_the_one_printer():
     composing = {
         name
         for one in modules()
-        for name in re.findall(r"\n    def (\w+)\(self", one.text)
-        if any(
-            producer in one.text.split(f"\n    def {name}(self", 1)[1].split("\n    def ", 1)[0]
-            for producer in ("_staging_rows", "_scope_rows")
-        )
+        for name, body in bodies(one.text).items()
+        if any(calling(body, producer) for producer in PRODUCERS)
     }
     assert composing, "no record composes the staging line — the hop below would be vacuous"
     missing = []
     for handler in sorted(handlers):
         body = next(
-            (
-                text.split(f"def {handler}(", 1)[1]
-                for text in source.values()
-                if f"def {handler}(" in text
-            ),
+            (found[handler] for text in source.values() if handler in (found := bodies(text))),
             "",
         )
-        # Up to the next top-level def: a handler that delegates is read through its own body.
-        body = body.split("\ndef ", 1)[0]
         # `_staging_rows` since RK1170: the sentence is composed where the answer is and written
         # by the one seam, so what a handler must reach is the producer rather than a printer.
-        if "_staging_rows" in body or "_scope_rows" in body:
+        if any(calling(body, producer) for producer in PRODUCERS):
             continue
         # **One hop, where the verb moved onto its record** (RK1170): a handler that renders
         # through one of those methods composes the line inside it, so this follows the
         # delegation rather than calling a moved verb a missing one.
-        if any(f".{name}(" in body for name in composing):
+        if any(calling(body, f".{name}") for name in composing):
             continue
         # **The hop RK1617 put between them.** A migrated handler no longer names a register at
         # all: it hands its record to `answered`, which reads both off it. So reaching that is
@@ -367,7 +366,7 @@ def test_every_wired_write_reaches_the_one_printer():
         # passes, whatever class the record is — so neither resolves the type, and `answered`
         # calls `.stated(` unconditionally. What it is not is a list: there is one contract
         # function, and a second would be the drift this file exists to catch.
-        if "answered(" in body:
+        if calling(body, "answered"):
             continue
         missing.append(handler)
     assert not missing, missing
