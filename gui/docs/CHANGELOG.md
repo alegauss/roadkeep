@@ -108,6 +108,7 @@
 - ✅ **RG111** **the lint gate reads the engine CI checks out beside the packages and fails on code this repo did not write** — Both halves of the lint step skip the engine CI checks out, so the gate judges this repository's files alone — verified with a checkout in place (design recorded in `.github/workflows/ci.yml`).
 - ✅ **RG112** **nothing pins the line endings, so a Windows runner checks out CRLF and Prettier reports every text file** — `* text=auto eol=lf` makes every checkout LF, so the gate reads the same bytes on a runner as locally — proven on a clone with the runner's `core.autocrlf` (design recorded in `.gitattributes`).
 - ✅ **RG113** **the live tests find an engine on the developer's PATH, so a fixture is unresolved on a runner** — CI installs the checked-out engine with pip, so a fixture resolves the same command a developer has — verified against a venv holding only that (design recorded in `.github/workflows/ci.yml`).
+- ✅ **RG114** **the built app never starts on the Linux runner, and the harness reports the wait without what it printed** — The refusal now carries what the app printed, and the Linux runner lets Chromium enter its sandbox — the second is a hypothesis CI tests (design recorded in `packages/shell/src/running-app.ts`).
 
 ## Block H — The look (a design system for governed prose)
 

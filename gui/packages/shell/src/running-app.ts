@@ -58,8 +58,21 @@ interface Target {
   readonly webSocketDebuggerUrl?: string
 }
 
-/** Wait for the runtime to write the port it bound, or say it never did. */
-async function portOf(userDataDir: string, until: number): Promise<number> {
+/**
+ * Wait for the runtime to write the port it bound, or say it never did — and say what it
+ * printed on the way (RG114).
+ *
+ * The refusal is the whole account. A runtime that cannot start says why on stderr — a
+ * sandbox it could not enter, a library it could not load — and this is piped, so nothing
+ * else is watching that stream. Thrown without it, the sentence below reports thirty
+ * seconds of silence from a machine the reader does not have, which is how a Linux-only
+ * failure cost a CI cycle before it could even be named.
+ */
+async function portOf(
+  userDataDir: string,
+  until: number,
+  printed: readonly string[],
+): Promise<number> {
   while (Date.now() < until) {
     try {
       // The first line is the port; the second is a path this does not need.
@@ -71,7 +84,11 @@ async function portOf(userDataDir: string, until: number): Promise<number> {
     }
     await after(POLL_MS)
   }
-  throw new Error(`the app never wrote ${PORT_FILE}: it did not start, or it exited first`)
+  const said = printed.join('').trim()
+  throw new Error(
+    `the app never wrote ${PORT_FILE}: it did not start, or it exited first` +
+      (said === '' ? ', and it printed nothing' : `. It printed:\n${said}`),
+  )
 }
 
 /** Wait for a page target with a debugger URL, which is the window's own contents. */
@@ -152,7 +169,7 @@ export async function startApp(extraEnv: Record<string, string> = {}): Promise<R
 
   try {
     const until = Date.now() + READY_MS
-    const port = await portOf(userDataDir, until)
+    const port = await portOf(userDataDir, until, printed)
     const page = await pageOf(port, until)
 
     const socket = new WebSocket(page.webSocketDebuggerUrl ?? '')

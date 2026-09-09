@@ -110,6 +110,20 @@ jobs:
       - name: lint
         run: npm run lint
 
+      # Ubuntu 24.04 restricts unprivileged user namespaces through AppArmor, and an Electron
+      # installed by npm carries no SUID `chrome-sandbox` to fall back to — so Chromium cannot
+      # enter its sandbox and the browser process exits before it writes the port RG60's
+      # harness waits for. The window never opens and the symptom is thirty seconds of nothing
+      # (RG114).
+      #
+      # Relaxed on the runner rather than answered with `--no-sandbox`, which is the other way
+      # out and the wrong one: `running-app-live` asserts that `require`, `process` and the
+      # rest are undefined *because the sandbox is on*, so a runner that switched it off would
+      # report a pass about a posture nobody ships.
+      - name: let Chromium enter its sandbox
+        if: runner.os == 'Linux'
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
       # RG60 starts the built app and asks the running window what it was given, so the bundle
       # has to exist before the suite rather than after it.
       - name: build
