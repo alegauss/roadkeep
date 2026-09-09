@@ -48,7 +48,7 @@ from roadkeep.capturing import offer
 from roadkeep.config import Config, ConfigError
 from roadkeep.locking import LockBusy, exclusive
 from roadkeep.provenance import asking, engine, invocation, invoked, read_by
-from roadkeep.rendering import Result
+from roadkeep.rendering import Result, addressed
 from roadkeep.serving import Prose
 from roadkeep.remaining import declared
 from roadkeep.verbs.adopting import declare_wiring
@@ -461,7 +461,7 @@ def dispatch(config: Config, args: argparse.Namespace) -> int:
     work and this writes the register asked for. Split at RK1615, so the surface that does not
     print has something to call — see that function for why the split is the whole task.
     """
-    return _rendered(answer(config, args), args)
+    return _rendered(answer(config, args), args, config)
 
 
 def answer(config: Config, args: argparse.Namespace) -> Result | int:
@@ -520,7 +520,7 @@ def answer(config: Config, args: argparse.Namespace) -> Result | int:
         return code
 
 
-def _rendered(answer: object, args: argparse.Namespace) -> int:
+def _rendered(answer: object, args: argparse.Namespace, config: Config) -> int:
     """One command's answer, printed in the register asked for (RK1617).
 
     The seam the migration needs and the only place that decides it. A handler that still
@@ -535,7 +535,10 @@ def _rendered(answer: object, args: argparse.Namespace) -> int:
     if isinstance(answer, int):
         return answer
     if args.json:
-        print(json.dumps(answer.fields, indent=2))
+        # Which project and which build, leading (RK1630): every path below them is
+        # relative to a root the payload did not name, so a client holding several projects'
+        # answers could not tell whose it held.
+        print(json.dumps(addressed(answer.fields, config), indent=2))
         # And no note, which is what every handler that had both already did: `next-id` and
         # `section show` return before theirs under `--json`, because a payload is one object
         # and the fact the note states is a field of it. The note is the *plain* register's

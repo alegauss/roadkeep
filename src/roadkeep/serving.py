@@ -98,7 +98,7 @@ from roadkeep.provenance import engine, invocation, serving
 # scope since RK1615: `call` binds its answer before the try that may not reach a handler, so
 # both are read on a path a function-level import would have to run first. `rendering` does not
 # import this module, so the edge runs one way.
-from roadkeep.rendering import Result
+from roadkeep.rendering import Result, addressed
 from roadkeep.verbs.refusing import EXIT_USAGE as _EXIT_USAGE
 # `words` from where it is *defined* and not from `budgeting`, which re-exports it (RK260):
 # `config` already loads `schema`, and reaching the name through `budgeting` cost the guard
@@ -2581,7 +2581,11 @@ def call(tool: Tool, arguments: Mapping[str, Any], directory: str = ".") -> Answ
     # reason, none of which this surface serves.
     if not isinstance(given, int):
         return _answered(
-            json.dumps(given.fields, indent=2),
+            # The same two keys the terminal's `--json` leads with (RK1630), through the
+            # one helper: this transport is where the argument is strongest — the caller's
+            # directory is never the tree `-C` selected, so an answer that named neither is
+            # one a session holding two projects cannot place.
+            json.dumps(addressed(given.fields, config), indent=2),
             config.root,
             is_error=bool(code),
             served=_spelled(tool, parsers),

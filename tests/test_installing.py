@@ -1953,7 +1953,13 @@ def test_the_payload_carries_it_without_the_flag(tmp_path, capsys, monkeypatch):
     # Two keys since RK1561, and the claim is unchanged: the flag's payload is the answer and
     # what the answer fell through, not the whole reading `engines` bare publishes.
     assert main(["-C", str(root), "engines", "--invoke", "--json"]) == EXIT_OK
-    assert set(json.loads(capsys.readouterr().out)) == {"invoke", "unread"}
+    assert set(json.loads(capsys.readouterr().out)) == {
+        # RK1630's two, which every payload leads with.
+        "root",
+        "version",
+        "invoke",
+        "unread",
+    }
 
 
 # -- the write a stale copy should not make (RK1235) --------------------------

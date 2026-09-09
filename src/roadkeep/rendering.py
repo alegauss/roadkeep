@@ -166,6 +166,48 @@ class Result:
         )
 
 
+def addressed(
+    fields: Mapping[str, object] | Sequence[object], config: Config
+) -> Mapping[str, object] | Sequence[object]:
+    """Which project an answer is about, and which build gave it (RK1630).
+
+    `lint --json` led with `root` and `config`, `commands` and `engines` with `version`. The
+    reads a client actually loops over — `list`, `show`, `brief`, `stats`, `export`, `pick`,
+    `deps`, `budget` — carried neither, and every path on them is relative to a root the
+    payload never stated. Run from a subdirectory the answer is identical, so a caller that
+    passed `-C` could not join what it got back to what it asked about.
+
+    Survivable for one project in one terminal, where the caller is standing in the answer,
+    and not for a client holding many: three checkouts may answer for three projects,
+    `engines` says outright that they are allowed to differ, and what the client then holds is
+    eight payloads with nothing on them saying which repository or which parser produced each.
+    A key renamed between builds reads there as a value that changed.
+
+    **Leading, and never replacing.** A payload that already states one keeps its own — the
+    two verbs whose subject *is* the root or the build have said it their way for longer than
+    this has existed, and a second spelling is what this removes rather than adds.
+
+    **Absolute, where the `file` beside it is relative to it.** That is the whole join: a
+    relative path is only an address once something names what it is relative to.
+
+    A **sequence** payload is handed back untouched, and that is a decision rather than an
+    oversight: `explain` with no code answers with an array of every code this build declares,
+    and there is nowhere in a list to put a key. Wrapping it would change the shape every
+    consumer already reads — which is the compatibility this whole task is about, broken to
+    fix it.
+    """
+    if not isinstance(fields, Mapping):
+        return fields
+    from roadkeep.provenance import engine  # noqa: PLC0415 - RK260
+
+    leading: dict[str, object] = {}
+    if "root" not in fields:
+        leading["root"] = config.root.as_posix()
+    if "version" not in fields:
+        leading["version"] = engine().version
+    return {**leading, **fields} if leading else fields
+
+
 def answered(
     one: object,
     *,

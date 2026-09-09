@@ -707,22 +707,14 @@ def test_the_open_half_takes_a_share_and_never_the_window(corpus):
     }
 
 
-def test_the_rows_an_add_shows_are_not_the_rows_the_named_read_would(tmp_path):
-    """RK1567. The `near` rows were described in two places as `delivered --near`
-    volunteered, and RK1495 widened the corpus under that sentence: `add` ranks the block's
-    deliveries **and** its open lines, `delivered` ranks the ledger by its own subject. So a
-    caller running the read the description named got a different answer from the one shown.
+def _two_reads(ledger, roadmap) -> tuple[int, int, int]:
+    """How often `add`'s corpus and `delivered --near`'s answer differently, and how hard.
 
-    Measured over every open line here, standing in for the `add` that filed it: the two
-    reads differ on **half** the queries, and on 15 of those 18 a shown row is one
-    `delivered --near` cannot reach at its own wider window — because it is an open line, and
-    no width reaches a corpus a verb does not rank. Shio measures the same, 10 of 20 and 8.
-
-    Which is what settles the three ways §RK1567 named: this is not a wording that agrees
-    with the read nearly always, so the row keeps `delivered`'s two **phrases** (RK1375) and
-    stops claiming to be its rows. The door for each half is already printed (RK1528)."""
-    config = Config.discover(HERE)
-    ledger, roadmap = config.document("changelog"), config.document("roadmap")
+    `(differ, unreachable, total)` over every open line, each standing in for the `add` that
+    filed it. `unreachable` is the sharp half: a shown row the named read cannot produce
+    however wide it is asked to be, because it is an open line and no width reaches a corpus
+    a verb does not rank.
+    """
     differ = unreachable = total = 0
     for asking in roadmap.entries:
         # `add`'s corpus, and the ledger half alone beside it — which is `delivered --near`'s,
@@ -746,22 +738,52 @@ def test_the_rows_an_add_shows_are_not_the_rows_the_named_read_would(tmp_path):
         if shown == ranked(delivered, VOLUNTEERED):
             continue
         differ += 1
-        # The half that makes this a description defect rather than a difference of window:
-        # a row the named read cannot produce however wide it is asked to be.
         unreachable += any(one not in ranked(delivered, NEAREST) for one in shown)
-    assert total >= 20, "the backlog this is measured over lost its open lines"
-    # **The count and no longer the rate**, which is `test_weighing`'s own correction one
-    # figure over: a floor tracking a number down is a record of where the backlog has been.
-    # Measured across one session of shipping: 15 of 37, 13 of 41, 8 of 34, 5 of 32 — the open
-    # half of a block's corpus is what makes the two reads differ, so draining it makes them
-    # agree more often, and that is the backlog working rather than the reading failing. A rate
-    # asserted here would have to be lowered on every session that ships well.
-    #
-    # So the floor is on the **count**, which keeps the comparison about something, and the
-    # claim is the line below it: `add`'s rows are not `delivered --near`'s, and every query
-    # where the two differ names a row that read cannot reach at any width — 5 of 5 here, and
-    # the share it is asserted at is what would survive a corpus where it is not.
-    assert differ >= 4, {"differ": differ, "of": total}
+    return differ, unreachable, total
+
+
+@pytest.mark.parametrize("corpus", corpora.BOTH, ids=lambda one: one.name)
+def test_the_rows_an_add_shows_are_not_the_rows_the_named_read_would(corpus):
+    """RK1567. The `near` rows were described in two places as `delivered --near`
+    volunteered, and RK1495 widened the corpus under that sentence: `add` ranks the block's
+    deliveries **and** its open lines, `delivered` ranks the ledger by its own subject. So a
+    caller running the read the description named got a different answer from the one shown.
+
+    **Measured at a pin and no longer on this backlog** (RK1630's session found it). It was
+    asserted here as a rate and then as a count, and both had to be lowered as the backlog
+    drained — 15 of 37, 13 of 41, 8 of 34, 5 of 32, 3 of 29 across one sitting — because the
+    open half of a block's corpus is what makes the two reads differ, and shipping empties it.
+    `test_document` recorded the same arithmetic about its own roadmap floor: *a backlog's
+    finished state is empty, so any floor at all is a count progress crosses.*
+
+    A pin cannot move. Shio at its own holds 20 open lines against 668 delivered and measures
+    10 of 20 differing, 8 of them unreachable at any width — a real backlog, and one this
+    suite's own progress does not drain. Turing's three open lines say nothing and skip, which
+    is the honest answer rather than a floor lowered to admit it.
+
+    Which is what settles the three ways §RK1567 named: this is not a wording that agrees
+    with the read nearly always, so the row keeps `delivered`'s two **phrases** (RK1375) and
+    stops claiming to be its rows. The door for each half is already printed (RK1528)."""
+    corpora.require(corpus)
+    differ, unreachable, total = _two_reads(
+        corpora.document(corpus, "changelog"), corpora.document(corpus, "roadmap")
+    )
+    if total < 5:
+        pytest.skip(f"{corpus} holds {total} rankable line(s): too few to say anything")
+    assert differ, {"differ": differ, "of": total}
+    assert unreachable * 2 >= differ, {"unreachable at any width": unreachable, "differ": differ}
+
+
+def test_the_same_holds_here_wherever_there_is_anything_to_observe():
+    """This repository's own reading, with **no floor** — which is the whole of what moving
+    the assertion to a pin buys. The claim still has to hold where it can be seen, and how
+    many lines are left to see it on is progress rather than a property."""
+    config = Config.discover(HERE)
+    differ, unreachable, total = _two_reads(
+        config.document("changelog"), config.document("roadmap")
+    )
+    assert total, "no open line here has a delivered block to be ranked against"
+    # Not `differ >= n`: a backlog whose finished state is empty crosses every such number.
     assert unreachable * 2 >= differ, {"unreachable at any width": unreachable, "differ": differ}
 
 

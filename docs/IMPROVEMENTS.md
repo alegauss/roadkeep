@@ -147,30 +147,6 @@ already built, and already the shape every other door that leaves a pointer owin
 
 ## Block C — Query
 
-### §RK1630 Which project, and which build, an answer is about
-
-`lint --json` leads with `root`, and `config`, `commands` and `engines` each lead with
-`version`. The reads a client actually loops over — `list`, `show`, `brief`, `stats`,
-`export`, `pick`, `deps`, `budget` — carry neither, and every path on them is relative
-to a root the payload never states. Run from a subdirectory the answer is identical, so
-a caller that passed `-C` cannot join what it got back to what it asked about.
-
-That is survivable for one project in one terminal, where the caller is standing in the
-answer. It is not survivable for a client holding many at once: three checkouts may
-answer for three projects, `engines` says outright that they are allowed to differ, and
-what the client then holds is eight payloads with nothing on them saying which
-repository or which parser produced each. A key renamed between builds reads as a value
-that changed.
-
-Block G's own criterion is that a payload is asserted here as an outside client reads
-it. An outside client reads it out of a subprocess whose directory it chose, and the two
-facts it needs before it can trust a single field are the two `lint` and `config`
-already print separately.
-
-What this does not ask for is a new verb. Both keys exist and are spelled; the question
-is whether every `--json` read leads with them, and whether `root` is absolute where the
-`file` beside it is relative to that root.
-
 ### §RK1631 The probe, and the null that stands in for it
 
 Asking whether a path is governed has no door. `config --json` answers `source: null`,

@@ -158,6 +158,49 @@ def test_the_top_level_keys_a_client_is_promised_are_there(verb, dirty, populate
     assert not missing, f"{verb} no longer carries {missing}"
 
 
+@pytest.mark.parametrize("verb", sorted(PROMISED))
+def test_every_payload_says_which_project_and_which_build(verb, dirty, populated):
+    """RK1630. `lint` led with `root` and `config` with `version`; the reads a client loops
+    over carried neither, and every path on them is relative to a root the payload never
+    stated. Run from a subdirectory the answer is identical, so a caller that passed `-C`
+    could not join what it got back to what it asked about.
+
+    Survivable for one project in one terminal, where the caller is standing in the answer,
+    and not for a client holding many — three checkouts may answer for three projects, and
+    `engines` says outright that they are allowed to differ.
+
+    **Leading**, because a key a client reads first is the one it dispatches on, and
+    **absolute**, because a relative path is only an address once something names what it is
+    relative to."""
+    where, code = (dirty, EXIT_GATE) if verb == "lint" else (populated, EXIT_OK)
+    got = payload(*_argv(verb, where), root=where, expected=code)
+    assert list(got)[:2] == ["root", "version"] or {"root", "version"} <= set(got)
+    assert Path(got["root"]).is_absolute()
+    assert Path(got["root"]) == Path(where).resolve()
+    assert got["version"]
+
+
+def test_a_payload_that_already_named_one_keeps_its_own(dirty):
+    """Leading and never replacing (RK1630): the two verbs whose subject *is* the root or the
+    build have said it their way for longer than this has existed, and a second spelling of a
+    fact is what this removes rather than adds."""
+    from roadkeep.provenance import engine
+
+    got = payload(*_argv("lint", dirty), root=dirty, expected=EXIT_GATE)
+    # One `root`, and it is the gate's own — which was already the absolute project root.
+    assert Path(got["root"]) == Path(dirty).resolve()
+    assert got["version"] == engine().version
+
+
+def test_a_list_payload_is_handed_back_as_the_list_it_is(populated):
+    """The decision the helper states rather than the oversight it would otherwise be: there
+    is nowhere in an array to put a key, and wrapping `explain`'s would change the shape every
+    consumer already reads — the compatibility this whole task is about, broken to fix it."""
+    got = payload("explain", root=populated, expected=EXIT_OK)
+    assert isinstance(got, list)
+    assert got, "explain answered with no codes: this asserts nothing"
+
+
 @pytest.mark.parametrize("verb", sorted(INSIDE))
 def test_the_keys_inside_a_row_are_there_too(verb, dirty, populated):
     """A client walks into `tasks` and `findings`, so a rename one level down breaks it just

@@ -1252,7 +1252,11 @@ def test_the_payload_says_what_it_wrote(tmp_path, capsys):
     capsys.readouterr()
     assert main(argv) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    assert payload == {"path": ".roadkeep/reports/held.json", "filed": "RK1"}
+    # The two RK1630 leads with are on every payload; what this asserts is the rest.
+    assert {k: v for k, v in payload.items() if k not in ("root", "version")} == {
+        "path": ".roadkeep/reports/held.json",
+        "filed": "RK1",
+    }
 
 
 # -- a capture delivered to another backlog (RK1160) ---------------------------

@@ -1871,7 +1871,11 @@ def test_the_check_answers_the_two_halves_as_fields_and_not_as_prose(tmp_path):
     reported = json.loads(text_of(answered))
     # `other_copy` beside them since RK1389: the alternative is not a repair, so a
     # consumer running `fix` in order never runs a sentence.
-    assert set(reported) == {"attributes", "driver", "sound", "fix", "other_copy"}
+    # `root` and `version` lead every payload since RK1630, over this transport most of
+    # all: the caller's directory is never the tree `-C` selected.
+    assert set(reported) == {
+        "root", "version", "attributes", "driver", "sound", "fix", "other_copy"
+    }
     # An unregistered project: nothing is wired, so the check is the refusal it exists to be.
     assert reported["sound"] is False
     assert answered["isError"] is True

@@ -788,7 +788,12 @@ def test_the_listing_offers_nothing_and_ranks_nothing(tmp_path, capsys):
     take(Config.discover(tmp_path))
     assert main(["-C", str(tmp_path), "claims", "--json"]) == EXIT_OK
     payload = json.loads(capsys.readouterr().out)
-    assert set(payload) == {"window", "registry", "held", "claims", "pruned"}
+    # `root` and `version` lead every payload since RK1630, so a client holding several
+    # projects' answers can tell whose it holds — asserted here rather than stripped,
+    # because what this test is about is the keys this verb publishes.
+    assert set(payload) == {
+        "root", "version", "window", "registry", "held", "claims", "pruned"
+    }
     # `null` and not an empty list, because the flag was not passed: nothing was dropped and
     # nothing was asked to be (RK165).
     assert payload["pruned"] is None
