@@ -741,7 +741,7 @@ def test_a_project_with_no_rationale_file_has_no_contents_to_be_stale(tmp_path):
     # The same answer an absent README gets, one role over.
     config = project_files(tmp_path)
     bare = Config.discover(tmp_path)
-    if bare.has("improvements") and bare.path("improvements").is_file():
+    if bare.on_disk("improvements"):
         bare.path("improvements").unlink()
     del config
     write, said = splice_into(Config.discover(tmp_path), project(Config.discover(tmp_path)), "contents")

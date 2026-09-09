@@ -224,27 +224,6 @@ reading.
 
 ## Block D — The gate
 
-### §RK1646 The guard that stops at the package
-
-RK1604 folded `config.has(role) and config.path(role).is_file()` into `Config.on_disk`
-at 41 sites and wrote the sweep that keeps it folded. That sweep reads
-`surface.modules()` — the package — and stops there. `tests/test_corpora.py:384` and
-`tests/test_exporting.py:744` still spell the pair out, and nothing reports them.
-
-RK1542's guard is the precedent and it reads both: `modules()` for the package and
-`suite()` for the tests, on the argument that a second spelling anywhere is the
-coupling. Half of that was copied. It is not obvious the halves deserve the same rule —
-a test may reasonably ask the question the long way where it is *about* the two halves —
-but two sites that simply predate the fold are not that, and neither is a rule silent on
-which they are.
-
-Widening it needs RK1644's reading first. The sweep matches lines, so the third hit
-today is `test_config.py`'s own docstring quoting the idiom it refuses: the prose that
-records why the fold happened would be reported as the thing that undid it. That is the
-same two-sided failure RK1602 met and the reason its guard walks calls instead — so this
-is one task with that one, or it is a rule that has to carry an exemption for the
-sentence explaining it.
-
 ### §RK1647 The scope walk written three times
 
 `composing.census` walks a module's syntax to answer *which function is this call in*.

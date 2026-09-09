@@ -119,17 +119,17 @@ called unbuilt were already in the ledger.
 | A — The model (a task is data before it is a line) | 0 | 43 | 2 |
 | B — Authoring (insert, never hand-edit) | 1 | 233 | 2 |
 | C — Query (consult without reading the file) | 5 | 187 | 7 |
-| D — The gate | 9 | 305 | 7 |
+| D — The gate | 8 | 306 | 7 |
 | E — Adoption | 0 | 117 | 1 |
 | F — The Claude Code plugin (the guardrail at the agent boundary) | 1 | 162 | 4 |
 | G — The editor surface (the backlog where the file is open) | 0 | 15 | 0 |
 | H — The tool's own shape (what one verb costs to change) | 0 | 44 | 1 |
 | I — The documentation area (what an adopter reads before there is a session to ask) | 0 | 20 | 0 |
-| **Total** | 16 | 1126 | 24 |
+| **Total** | 15 | 1127 | 24 |
 
 **Next ready:**
 
-- 💭 **RK1646** (deps: —) **the guard against the folded idiom sweeps the package and not the suite, where two sites still spell it out** — RK1542's equivalent sweeps both and this one copies half of it, so the shape RK1604 took out of forty-one call sites can grow back in a test. → §RK1646
+- 💭 **RK1647** (deps: —) **three walkers in the suite each rebuild which function a node sits in, and one of them spells the address differently** — RK1605 added the third, and surface.py is where a shared reading of the layout belongs. → §RK1647
 <!-- roadkeep:end -->
 
 Every command takes `--json`, which carries provenance — which file and line the answer

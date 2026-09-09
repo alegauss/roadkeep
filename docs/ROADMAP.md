@@ -38,7 +38,6 @@
 
 ## Block D — The gate
 
-- 💭 **RK1646** (deps: —) **the guard against the folded idiom sweeps the package and not the suite, where two sites still spell it out** — RK1542's equivalent sweeps both and this one copies half of it, so the shape RK1604 took out of forty-one call sites can grow back in a test. → §RK1646
 - 💭 **RK1647** (deps: —) **three walkers in the suite each rebuild which function a node sits in, and one of them spells the address differently** — RK1605 added the third, and surface.py is where a shared reading of the layout belongs. → §RK1647
 - 💭 **RK1649** (deps: —) **answers() spells at most one of a verb's flags and nothing spells exactly one, so a required choice stays a raise** — RK1607 moved four pairs to the parser and left criterion add's, where argparse's required group answers on a command line and says nothing over MCP. → §RK1649
 - 💭 **RK1652** (deps: —) **a config refusal now names the table a key belongs under, and no verb moves it there** — RK1610 ends in a hand edit to the one file govern and declare exist so nobody hand-edits, and a served session has no editor at all. → §RK1652

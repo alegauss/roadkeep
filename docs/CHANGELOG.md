@@ -805,6 +805,7 @@
 - ✅ **RK1643** **the orientation is held at a ceiling and the two pages it points at, six times its size, are held by nothing** — Each page carries its own figure beside the orientation's, and a page past it is a page to split.
 - ✅ **RK1644** **nine guards over this package's source read its characters where twenty-two read its syntax** — Five guards whose subject was a code shape now read the syntax, and the population that reads characters is empty.
 - ✅ **RK1645** **config publishes three lists of objects and the promise table holds one slot per verb, so one list's rows are unpromised** — One table with a row per list, and the population read off the payloads — which found a second list nothing promised.
+- ✅ **RK1646** **the guard against the folded idiom sweeps the package and not the suite, where two sites still spell it out** — The sweep reads the suite as well as the package, and the two sites that predated the fold are folded.
 
 ## Block E — Adoption
 

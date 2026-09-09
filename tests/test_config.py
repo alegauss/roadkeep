@@ -169,6 +169,15 @@ def _asked_by_hand(source: str) -> tuple[int, ...]:
     return tuple(sorted(set(found)))
 
 
+#: Sites allowed to write the pair out, and why. **Empty**, which is the finding rather than a
+#: table waiting to be filled (RK1646): the one case that would deserve a row is a test whose
+#: subject *is* the two halves — asking `has` and `is_file` separately because what it is about
+#: is that they can disagree — and no test here is. The two the widened sweep found simply
+#: predated the fold. Declared all the same, so a row somebody adds tomorrow is a sentence
+#: saying which kind it is, where silence would read as the rule being kept.
+_SPELT_ON_PURPOSE: dict[str, str] = {}
+
+
 def test_no_caller_spells_the_file_question_by_hand():
     """The pair's guard, and `carrying`'s shape again (RK1507, RK1542, RK1602). Forty-one sites
     wrote `config.has(role) and config.path(role).is_file()` or its negation, because the
@@ -180,14 +189,31 @@ def test_no_caller_spells_the_file_question_by_hand():
     **The expression and not the line** (RK1644). This was a regex over lines, which has two
     failures a reading of the syntax has not: a docstring quoting the idiom counts, and the
     same pair wrapped across two lines — which every formatter here does past 88 columns —
-    does not."""
-    from surface import modules
+    does not.
+
+    **And the suite as well as the package** (RK1646). RK1542's guard against the other folded
+    idiom reads both, on the argument that a second spelling anywhere is the coupling; this one
+    copied half of it, so `test_corpora` and `test_exporting` each still spelled the pair out
+    and nothing reported them. Both simply predated the fold. Widening it had to wait for the
+    reading above: over lines, the third hit was this docstring quoting the idiom it
+    refuses — the prose recording why the fold happened, reported as the thing that undid it."""
+    from surface import modules, suite
 
     found = [
         f"{one.where}:{number}"
         for one in modules()
         for number in _asked_by_hand(one.text)
     ]
+    found += [
+        f"{path.name}:{number}"
+        for path in suite()
+        for number in _asked_by_hand(path.read_text(encoding="utf-8"))
+    ]
+    # Nothing needed one, which is the answer to the design's own question about whether the
+    # two halves deserve the same rule: they do, because no site here asks the question the
+    # long way for a reason.
+    assert _SPELT_ON_PURPOSE == {}
+    found = [one for one in found if one not in _SPELT_ON_PURPOSE]
     assert not found, f"`on_disk` is what these are asking: {found}"
 
 

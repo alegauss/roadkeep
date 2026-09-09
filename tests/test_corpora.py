@@ -414,7 +414,7 @@ def _here() -> tuple[list[str], list[str]]:
     prose = [
         config.path(role).read_text(encoding="utf-8")
         for role in PROSE
-        if config.has(role) and config.path(role).is_file()
+        if config.on_disk(role)
     ]
     return fields, prose
 
