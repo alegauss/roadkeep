@@ -35,6 +35,7 @@ compile in `core` untouched.
 ## Block G — The shell (an executable now, a service later)
 
 - ✅ **RG37** **there is no application at all: no window, no build and no way to run any of this** — The desktop shell is Electron over Vite and React, not a native toolkit: the renderer has to be the half a web service later serves to a browser unchanged.
+- ✅ **RG85** **the handler proving the seam runs any argv against any root, which a real service cannot** — A service transport refuses what the test handler allows: a root the server was not started with, an argv the verb table did not compose, every write verb, and a bind that is not loopback.
 
 ### §RG37 Electron, and what it costs
 
@@ -48,6 +49,25 @@ site is built with, so the build conventions exist in a repository beside this o
 and React 19 follow from that. One thing settled while building against the choice
 belongs with it: everything is ESM and TypeScript, launchers included, so one `tsc -b`
 spans every file the project runs and not only what it ships.
+
+### §RG85 What the server refuses, decided before there is one
+
+Four refusals, each one a power the test handler has and a service must not.
+
+**A root it was not started with.** The wire carries a root and the handler runs it; a
+server holds its own and the call names one or is refused. Validating the path was
+rejected: a rule about what a path may be is one somebody spells around.
+
+**An argv the verb table did not compose.** A command line over a socket is a shell. A
+service takes a verb and its arguments and composes the argv itself.
+
+**Every write verb.** Reads cross; a write is somebody's working tree, and the desktop
+already says the command writes and the app does not.
+
+**A bind that is not loopback.** Until identity exists there is nobody to serve.
+
+They are written here and not in the handler because a design starting from working code
+inherits its permissions.
 
 ## Block H — The look (a design system for governed prose)
 

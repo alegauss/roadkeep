@@ -13,6 +13,12 @@ import type { Transport } from '@rk/core'
  * **It runs whatever argv arrives, against whatever root arrives.** That is exactly the
  * power a real service would have to think hard about, and exactly why this one is a
  * test's: the thing being proved is the shape of the seam, not a deployment.
+ *
+ * **The refusals a service owes are written down, and none of them are implemented here.**
+ * `§RG85` in `docs/DECISIONS.md` names them: a root the server was not started with, an
+ * argv the verb table did not compose, every write verb, and a bind that is not loopback.
+ * They are stated away from this file on purpose — a design that starts from working code
+ * inherits that code's permissions, and this code works.
  */
 
 export interface Handler {
