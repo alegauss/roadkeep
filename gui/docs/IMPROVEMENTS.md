@@ -399,6 +399,27 @@ package`, opens what comes out, and writes down what it took. Adding `macos-late
 the package matrix is the last step and not the first — it is how the answer is kept,
 not how it is found.
 
+### §RG120 The surfaces that drift, and the gate that would not let them
+
+`roadkeep lint` reports `install.stale` against `.claude/skills/roadkeep/SKILL.md` and
+`.claude/skills/roadkeep/writing.md` on every run, and has for long enough that the
+sentence reads as part of a clean answer. It is not: it says a session is reading a
+skill older than the engine that will answer it, which is the same defect RG92 fixed one
+layer out — instructions that are not what is actually running.
+
+The fix has two halves and only the second is work. `roadkeep install` rewrites the
+copied surfaces from the checkout it runs from, which closes today's drift. `roadkeep
+install --check` writes nothing and exits non-zero on anything that would change; the
+CLI's own help calls it the gate for a CI job or a pre-commit hook. Adding it to the
+`gate` job is the half that stops the drift coming back.
+
+Two things to settle while doing it. The gate job runs `alegauss/roadkeep@main`, so the
+engine it checks against moves without this repository changing — which is already true
+of the gate and is a cost this project accepted deliberately, but it means this check
+can go red on a day nobody edited a skill. And the refresh belongs in its own commit: it
+rewrites files this repository ships, and a diff of copied bytes should not ride along
+with something a reader is meant to review.
+
 ## Block H — The look (a design system for governed prose)
 
 ### §RG62 Joining the checks the other consoles already answer to
