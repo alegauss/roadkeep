@@ -396,6 +396,9 @@ SITES: tuple[Site, ...] = (
     # that has recorded something — the state the count is about, a listing whose `is all 0`
     # never opened a file answering the same on a ledger of two hundred.
     Site("shipping.py:Delivered.__str__", "run"),
+    # RK1624. The refusal a `--open` with no sentence to rank against gets, which names the two
+    # halves as they stand — the listings this widening exists to be a ranking *instead* of.
+    Site("verbs/shipping.py:_delivered", "run"),
     Site("shipping.py:Divergent.__init__", "run"),
     # RK1281, run by `test_composing` (RK1498). Two doors and they are alternatives, so each
     # is taken on its own tree and each has to make the refused ship land. The `govern` is the

@@ -718,7 +718,11 @@ TOOLS: tuple[Tool, ...] = (
     # makes immediately before an `add`, over a transport where the whole block arriving as
     # a tool result is the cost L5 is about — so withholding it here would leave the one
     # surface that most needs the narrow answer asking for the file.
-    Tool("delivered", ("block", "near")),
+    # `open` rides with `near` (RK1624), and this transport is where it earns its units: the
+    # order it publishes is the one an `add` volunteers, which until now was computed once
+    # inside a write and never available again — so the agent that saw three rows and suspects
+    # the fourth is exactly the caller here, and neither door the row prints ranks anything.
+    Tool("delivered", ("block", "near", "open")),
     # The eight reads the shipped skill names and this surface withheld (RK463). `serving`'s
     # own opening records that argument being had and settled once: RK24 exposed four tools
     # because one roadmap line named four, on the ground that the reads were "one `Bash` call

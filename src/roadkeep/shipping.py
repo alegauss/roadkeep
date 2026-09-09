@@ -4588,6 +4588,38 @@ class Delivered:
     near: str
     #: Which of these the ledger later undid, by the entry that undid it (RK1042).
     reversed_by: Mapping[str, str]
+    #: Every open id the block holds, where `--open` widened the corpus to the one an `add`
+    #: ranks (RK1624) — and `None` where it did not, which is every other call.
+    #:
+    #: The ranking an `add` volunteers was computed once, inside a write, and never available
+    #: again: the two doors the row prints order by the ledger and by id, so a reader who
+    #: suspects the fourth-nearest is the duplicate could not ask for the order that put three
+    #: rows in front of them. Half the insertions here show a row this verb's own corpus cannot
+    #: reach at any width, and those are exactly the rows the widening was for.
+    #:
+    #: **Opt-in and named**, which is what keeps RK1567's correction intact: bare `--near` is
+    #: still the ledger's ranking, and this says *and the open lines beside them* — the same
+    #: sentence RK1495 used when it widened `add`'s.
+    #:
+    #: The ids and not a count, because both readings want it: the header says how many the
+    #: block holds open, and a row says which half it came from — and deriving the second from
+    #: a marker would be a consumer reading this project's `[markers]` out of a listing.
+    open_half: tuple[str, ...] | None = None
+    #: The roadmap as the project spells it, named only where the open half is in the answer:
+    #: a listing that spans two files says both, or a reader takes every row for a delivery.
+    roadmap: str = ""
+
+    @property
+    def held(self) -> str:
+        """What the block holds, in the halves this answer was ranked over (RK442, RK1624)."""
+        if self.open_half is None:
+            return f"{self.recorded} delivered"
+        return f"{self.recorded} delivered and {len(self.open_half)} open"
+
+    @property
+    def files(self) -> str:
+        """The file this answer came out of, or both where the open half is in it."""
+        return self.where if self.open_half is None else f"{self.where}, {self.roadmap}"
 
     def __str__(self) -> str:
         rows: list[str] = []
@@ -4601,8 +4633,8 @@ class Delivered:
             # nobody read — so a bounded answer has to say it is bounded, in the header, or it
             # inherits the guarantee it just gave up.
             rows.append(
-                f"{self.where}  {self.standing.named}, {len(self.entries)} nearest of "
-                f"{self.recorded} delivered"
+                f"{self.files}  {self.standing.named}, {len(self.entries)} nearest of "
+                f"{self.held}"
             )
         else:
             rows.append(f"{self.where}  {self.standing.named}, {self.recorded} delivered")
@@ -4611,10 +4643,19 @@ class Delivered:
             # Said once, above the rows: the ordering is the whole answer and there is no
             # threshold under it, which is the sentence that keeps a reader from taking #1 as a
             # verdict (RK441). The rest of the block is one command away and named here.
+            #
+            # Two doors where the corpus has two halves (RK1528's rule, and RK1624's reason for
+            # reaching it here): the row an `add` prints names one command per half, because
+            # neither listing holds the other's lines.
+            rest = f"`{invocation()} delivered {self.standing.label}` is all {self.recorded}"
+            if self.open_half is not None:
+                rest += (
+                    f", `{invocation()} list --block {self.standing.label}` the "
+                    f"{len(self.open_half)} open"
+                )
             rows.append(
                 f"  near     ranked by word overlap, nearest first — an order and not a "
-                f"verdict; `{invocation()} delivered {self.standing.label}` is all "
-                f"{self.recorded}"
+                f"verdict; {rest}"
             )
         for entry in self.entries:
             # Marked and never dropped (RK1042). This verb's own rule about retired lines: a
@@ -4634,6 +4675,12 @@ class Delivered:
             # to what was asked, and this is what the label it was asked about turned out to be.
             "standing": self.standing.payload(),
             "recorded": self.recorded,
+            # The other half of the corpus, where one was asked for (RK1624). Null and not
+            # omitted where it was not: a consumer reading a missing key cannot tell *this
+            # answer is the ledger's* from *this server is older*, which is `undone_by`'s own
+            # rule two keys down and the whole use of this payload.
+            "open": None if self.open_half is None else len(self.open_half),
+            "roadmap": self.roadmap or None,
             "near": self.near or None,
             "delivered": [
                 {
@@ -4641,6 +4688,14 @@ class Delivered:
                     "marker": entry.task.status,
                     "symptom": entry.task.symptom,
                     "line": entry.lineno,
+                    # Which half this row came from, where the corpus has two (RK1624). Off the
+                    # composition and never off the marker: a consumer deciding it from ✅
+                    # against 📋 would be reading this project's `[markers]` out of a listing.
+                    **(
+                        {"open": entry.task.id in self.open_half}
+                        if self.open_half is not None
+                        else {}
+                    ),
                     # Null and not omitted (RK1042): a consumer reading a missing key cannot
                     # tell "this held" from "this server is older", and the whole use of this
                     # payload is deciding a duplicate.

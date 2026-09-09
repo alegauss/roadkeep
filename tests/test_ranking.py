@@ -25,6 +25,7 @@ from pathlib import Path
 import pytest
 
 import corpora
+from composing import runs
 from roadkeep.authoring import Neighbours
 from roadkeep.cli import EXIT_OK, EXIT_USAGE, main
 from roadkeep.config import Config
@@ -235,6 +236,61 @@ def test_the_add_hands_back_the_read_the_author_had_to_remember(tmp_path, capsys
     assert len(ranked) == VOLUNTEERED
     # The block's own entry about that claim leads, which is what makes the row worth printing.
     assert "RK6" in ranked[0] or "RK2" in ranked[0]
+
+
+def test_the_order_an_add_volunteers_can_be_asked_for_again(tmp_path, capsys):
+    """RK1624. The rows an `add` volunteers were the only place that ranking was ever computed,
+    and it ran once inside a write. RK442's guarantee is that a bounded answer says where the
+    rest are — and the two doors the row prints order by the ledger and by id, so a reader who
+    suspects the fourth-nearest had one listing in ledger order and one in id order.
+
+    `delivered <block> --near … --open` is that order, asked for again and **wider**: this
+    verb's window is `NEAREST` against the write's three, which is the whole point of asking."""
+    root = project(tmp_path)
+    _added(root, "A block heading declared twice in the changelog")
+    capsys.readouterr()
+    assert main([
+        "-C", str(root), "delivered", "A", "--near",
+        "A block heading declared twice in the changelog", "--open", "--json",
+    ]) == EXIT_OK
+    found = json.loads(capsys.readouterr().out)
+
+    # The corpus is the write's, so the header counts both halves and the payload says which.
+    assert found["open"] is not None
+    assert found["roadmap"]
+    assert len(found["delivered"]) == NEAREST > VOLUNTEERED
+    # And it reaches the open half, which is what the ledger's own ranking cannot do at any
+    # width — the line the `add` above just filed is in this answer.
+    assert any(one["open"] for one in found["delivered"])
+
+
+def test_the_open_half_is_opt_in_and_the_ledger_stays_the_default(tmp_path, capsys):
+    """RK1567's correction, kept. `add` ranks both halves and `delivered` ranks the ledger by
+    its own subject, and conflating them is the sentence that task removed — so the widening
+    is a flag that names itself, and a bare `--near` answers exactly what it always did."""
+    root = project(tmp_path)
+    _added(root, "A block heading declared twice in the changelog")
+    capsys.readouterr()
+    assert main([
+        "-C", str(root), "delivered", "A", "--near",
+        "A block heading declared twice in the changelog", "--json",
+    ]) == EXIT_OK
+    found = json.loads(capsys.readouterr().out)
+    # Null and not absent, which is `undone_by`'s rule: a consumer reading a missing key cannot
+    # tell "this answer is the ledger's" from "this server is older".
+    assert found["open"] is None
+    assert found["roadmap"] is None
+    assert not any("open" in one for one in found["delivered"])
+
+
+def test_the_widening_with_nothing_to_rank_against_is_refused(tmp_path, capsys):
+    """Unranked, the wider corpus is the two listings glued together — which is the two doors
+    the refusal names, run one after the other, and not an answer either of them lacks."""
+    root = project(tmp_path)
+    assert main(["-C", str(root), "delivered", "A", "--open"]) == EXIT_USAGE
+    said = capsys.readouterr().err
+    ran = runs(root, said)
+    assert [one[:2] for one in ran] == [["delivered", "A"], ["list", "--block"]], said
 
 
 def test_the_corpus_the_readings_measure_is_the_one_the_write_ranks(tmp_path, capsys):

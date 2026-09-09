@@ -327,9 +327,13 @@ rank three — the entries are ranked on **both** their prose fields, the `why` 
 two authors of one defect agree. The order is the answer and no score is printed. **And the `add` volunteers a
 wider read whether or not you made this one**: every insertion names the three lines of its
 block nearest the symptom it just filed — its deliveries **and** its open lines, which is
-where the other session filing your defect this morning is, and which `delivered` never
-ranks, that verb's subject being the ledger. Half the insertions measured here and on a
-second backlog show a row `--near` cannot reach at any width. Same order, same silence about
+where the other session filing your defect this morning is. Half the insertions measured here
+and on a second backlog show a row a bare `--near` cannot reach at any width, that flag's
+subject being the ledger — so **`delivered <block> --near "<the symptom>" --open` widens this
+read to that same corpus**, at its own five rather than the write's three, and is how you ask
+again for the order an `add` showed you once. It needs `--near`: unranked, the two halves are
+the two listings the row already names. Each row says which half it came from. Same order,
+same silence about
 scores, and never a refusal — a read volunteered, not the gate the measurement rules out.
 Three of however many the block holds, and the row says which of how many and names a
 command per half, so the volunteered rows are bounded out loud rather than read as the whole. A letter nothing

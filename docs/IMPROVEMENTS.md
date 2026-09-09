@@ -147,29 +147,6 @@ already built, and already the shape every other door that leaves a pointer owin
 
 ## Block C — Query
 
-### §RK1624 The read that runs once and is never available again
-
-RK1567 measured the gap and closed the sentence, leaving the third way out it named: a
-read whose subject is a block's **whole corpus**. The rows an `add` volunteers are the
-only place that ranking is ever computed, and it is computed once, inside a write.
-
-RK442's guarantee is that a bounded answer says where the rest are. The row does name
-two doors — `delivered <block>` for the deliveries and `list --block <block>` for the
-open lines — and neither of them ranks. So a reader who suspects the fourth-nearest is
-the duplicate has one listing ordered by the ledger and one by id, and the order that
-put three rows in front of them cannot be asked for again at any width.
-
-That is not a small residue. Half the insertions here show a row `delivered --near`
-cannot reach, and those are exactly the rows the widening was for: the other session
-filing this defect this morning. The one read that would find it is unavailable to
-everyone who did not just run an `add`.
-
-What it wants is one verb over the block, ranked, each row saying which half it came
-from — the marker already does. `delivered --near` widened answers outside its own
-subject; `list --near` is the same read under the name of the verb that orders by id.
-Which spelling is right is a question about the surface and not about the ranking,
-`authoring` already holding the arithmetic behind one call.
-
 ### §RK1625 The silence the flag was declared to prevent
 
 `Unclosed.searched` says what it is for: *`()` means two different things otherwise, and

@@ -32,7 +32,6 @@
 
 ## Block C — Query (consult without reading the file)
 
-- 💭 **RK1624** (deps: —) **the ranking an add volunteers exists only inside that write, no read answering over a block's whole corpus** — RK1567 left the third way out it named, and the two doors the row prints order by the ledger and by id rather than by the query. → §RK1624
 - 📋 **RK1625** (deps: —) **unclosed answers a tree with no git as a backlog with nothing open, the flag that tells those apart never being set** — Nothing in the package makes Unclosed.searched false, so the one state the field was declared for is the one it reports as a clean sweep. → §RK1625
 - 📋 **RK1628** (deps: —) **pick offers an idea whose premise a later ship deleted, no answer saying what landed under the line since it was filed** — RK1571 and RK1574 were both designed against a work-list RK1599 emptied, and reading the section was the only way to learn it. → §RK1628
 - 📋 **RK1630** (deps: —) **a read payload names neither the root it answered about nor the build that answered** — lint carries root and config carries version; list, show, brief, stats, export and pick carry neither, so a client holding several projects' answers cannot tell whose it holds. → §RK1630

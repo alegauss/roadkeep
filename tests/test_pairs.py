@@ -281,6 +281,10 @@ NEEDS = {
     # never fire on — the id was as much of why it read as inert as the missing body was.
     "origin": ["RK9"],
     "adopt": ["docs/ROADMAP.md"],
+    # The label and the sentence, for `_SUPPLIED`'s reason one sweep over (RK1624): the block
+    # is required and `--open` widens what `--near` ranks, so a call missing either is argparse
+    # refusing before a flag is read rather than a pair being separated.
+    "delivered": ["A", "--near", "A symptom that is plainly long enough"],
 }
 
 
@@ -487,6 +491,10 @@ _SUPPLIED: dict[str, dict[str, object]] = {
     "block merge": {"label": "A"},
     "restate": {"id": "RK1", "symptom": "A restated symptom, plainly long enough"},
     "priority add": {"token": "RK1"},
+    # The label this verb is *about*, and a sentence to rank against (RK1624): `--open` widens
+    # the corpus `--near` orders, so without one both forms refuse and the sweep would be
+    # reading its own reach rather than whether the flag reaches anything.
+    "delivered": {"block": "A", "near": "A symptom that is plainly long enough"},
 }
 
 #: Served booleans whose two forms **both** refuse here, with the state each wants. The same

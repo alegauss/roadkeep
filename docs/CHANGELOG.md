@@ -483,6 +483,7 @@
 - 🗑 **RK1657** **budget prices a pause's wrapped reason and not a dismissal's, whose premise is derived by the same rule** — abandoned: An observation and not a defect: budget prices no dismissal because no project declares the store, and a subject argued before a caller wants it is a read nobody takes.
 - 🗑 **RK1661** **two payloads say notes about two populations, the gate one per address and the census one per printed block** — abandoned: An observation and not a defect: both payloads answer what they say they do, and the folded key beside the figure already tells the two populations apart.
 - 🗑 **RK1664** **what a pinned corpus holds is answerable only from Python, and the advisory that says it fires only where the tree moved** — abandoned: An observation and not a defect: the shape is answerable and the drift advisory prints it, and a command for it wants a directory the pin deliberately has not got.
+- ✅ **RK1624** **the ranking an add volunteers exists only inside that write, no read answering over a block's whole corpus** — delivered --near --open ranks the corpus an add ranks, at this verb's wider window, so the order a write volunteered once can be asked for again and each row says which half it came from.
 
 ## Block D — The gate
 

@@ -17,6 +17,7 @@ import argparse
 import sys
 from collections.abc import Sequence
 
+from roadkeep.authoring import Neighbours
 from roadkeep.backlog import Backlog, Stage
 from roadkeep.config import Config
 from roadkeep.kernel.document import declares, shading
@@ -305,6 +306,28 @@ def _delivered(config: Config, args: argparse.Namespace) -> Result | int:
             file=sys.stderr,
         )
         return EXIT_USAGE
+    if args.open and args.near is None:
+        # The ranking is what the wider corpus is *for* (RK1624): unranked, this would be the
+        # ledger's listing and the roadmap's glued together, which is the two doors below run
+        # one after the other and not an answer either of them lacks.
+        from roadkeep.provenance import invocation  # noqa: PLC0415 - RK260, the refusal path
+
+        print(
+            f"roadkeep: --open widens the corpus `--near` ranks over, and no sentence was "
+            f"passed to rank it against: add `--near \"<the symptom>\"`, or read the two "
+            f"halves as they stand with `{invocation()} delivered {label}` and "
+            f"`{invocation()} list --block {label}`",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    held = None
+    if args.open:
+        # `add`'s own corpus, through the composer that builds it (RK1623): the order this
+        # answer publishes is the order that write volunteers, at this verb's wider window —
+        # which is the whole point, a reader suspecting the fourth-nearest having had no way
+        # to ask for it.
+        held = Neighbours.of(label, roadmap=backlog.roadmap, ledger=ledger)
+        entries = held.entries
     if args.near:
         entries = tuple(
             entries[index]
@@ -325,6 +348,10 @@ def _delivered(config: Config, args: argparse.Namespace) -> Result | int:
         recorded=recorded,
         near=args.near or "",
         reversed_by={one.undone: one.by for one in reversals(config)},
+        open_half=(
+            None if held is None else tuple(one.task.id for one in held.open_lines)
+        ),
+        roadmap="" if held is None else config.relative(config.path("roadmap")),
     )
     # Both registers off one result (RK1170). This is the read that decides whether an `add` is
     # a duplicate, so the two had better say the same thing — and they were a printer and a
@@ -778,6 +805,14 @@ def declare_departures(subcommands: argparse._SubParsersAction) -> None:
         help=(
             f"the symptom about to be proposed: print the {NEAREST} entries nearest it "
             "rather than the block, ranked by word overlap and never refused or warned about"
+        ),
+    )
+    delivered_parser.add_argument(
+        "--open",
+        action="store_true",
+        help=(
+            "rank the block's open lines beside its deliveries, which is the corpus an "
+            "`add` ranks and the only place that order was ever computed; needs --near"
         ),
     )
     delivered_parser.add_argument("--json", action="store_true", help=_JSON_HELP)
