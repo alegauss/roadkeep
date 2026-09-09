@@ -5,6 +5,12 @@ description: How to work a task in this project's roadmap — the five docs/ fil
 
 # Roadmap tasks & committing
 
+**No figure in this file is derived from the backlog** (RG92). Counts, the priority queue
+and which ids are open are all things `roadkeep` answers, and a sentence here quoting one
+is a sentence that was true on the day it was written. Where you would want a number, this
+file names the read instead. Keep it that way: the drift it is recovering from sent readers
+to three ids that had shipped and told them a suite of a thousand tests had not arrived.
+
 ## ⛔ READ FIRST — one task, one `run-commit.cmd` (non-negotiable)
 
 **A task is not finished until the commit landed.** The commit tool is
@@ -33,13 +39,13 @@ run-commit.cmd -m "<conventional-commits title, ASCII>"
 - **Self-check before starting task N+1:** `git status` / `git log -1`. If the previous
   task's work is still in the working tree, stop and commit it first.
 - **Declare your paths, then read them back at the moment of committing.** A claim is dated
-  by a marker write and released when the marker moves (`[claims] held = 60` minutes).
+  by a marker write and released when the marker moves, for the window `[claims] held` sets.
   `roadkeep claim RG<n> --path <p>` says what the task will touch; **`roadkeep claim RG<n>`
   with no `--path` answers what you declared plus what the tree holds that another live claim
   says is its own — the analysis `git add -A` cannot make.** `roadkeep claims` lists held,
-  expired and stale. This matters wherever two sessions run against one checkout: in the
-  sibling `pportal` repo a commit made with no live claim swallowed four files of unrelated
-  work under its own title.
+  expired and stale, and `[claims] held` in `roadkeep.toml` is how long one stands. This
+  matters wherever two sessions run against one checkout: in the sibling `pportal` repo a
+  commit made with no live claim swallowed four files of unrelated work under its own title.
 
 The same rule applies to any finished unit of work in this repo, roadmap task or not:
 when the work is done and validated, commit it with `run-commit.cmd -m "…"` rather than
@@ -86,10 +92,11 @@ instead of calling the binary.
 Do not invent a `compile.cmd` or `test.cmd` here because the sibling `pportal` repo has
 them — the five above are this repo's.
 
-When the suite arrives: **name EVERY task id an assertion holds, not just the one you are
-working.** A test written under one id often ends up holding the task that finished the
-work, and naming both is four characters, while the alternative is a second test file
-written to move a number.
+**Name EVERY task id an assertion holds, not just the one you are working.** A test written
+under one id often ends up holding the task that finished the work, and naming both is four
+characters, while the alternative is a second test file written to move a number. The suite
+is large and `npm test` says how large; a `describe` that names no id is a test nobody can
+trace back to what it was for.
 
 ## ⛔ READ SECOND — five files are owned by `roadkeep`
 
@@ -117,14 +124,14 @@ Each file has one job — never duplicate content between them:
 ## The loop
 
 - **`brief --claim`** picks the next line and briefs it in one read, taking it in the same
-  transaction. **Reach for `--designed`**: 49 of the 56 open lines are 💭 and their design
-  is still to write, so an unscoped pick often hands you a `section add` and not a commit.
-- **`--have <word>`** where the machine has one of the three declared requirements —
-  `signing-cert`, `macos-machine`, `published-artifact`. Lines naming one are set aside
-  and named, never silently dropped.
+  transaction. **Reach for `--designed`**: most of this backlog is 💭 with its design still
+  to write — `list --marker 💭` says how much — so an unscoped pick often hands you a
+  `section add` and not a commit.
+- **`--have <word>`** where the machine has one of the requirements `[requirements]
+declared` names. Lines naming one are set aside and named, never silently dropped.
 - **Order is the `## Priority` section of `docs/ROADMAP.md`**, not `roadkeep.toml` and not
-  opinion — it currently reads `RG37`, `RG44`, `RG39`, and then the lowest ready id.
-  `priority add` / `priority drop` are the doors.
+  opinion. `priority list` is the read; an empty queue means the tier is off and `pick`
+  falls through to the lowest ready id. `priority add` / `priority drop` are the doors.
 - **The read BEFORE an add is `delivered <block> --near "<the sentence you would file>"`.**
   It ranks that block's nearest deliveries against what you are about to propose, which is
   the duplicate question asked _before_ an id is spent.
@@ -140,14 +147,14 @@ Each file has one job — never duplicate content between them:
 
 Both are governed here and both are checked _before_ work becomes a line:
 
-- **`non-goal list`** — ten entries, and they are binding. A proposal a non-goal forbids
-  is not filed. Where one merely _bounds_ a line without forbidding it, the gate says so
+- **`non-goal list`** — every entry binds. A proposal a non-goal forbids is not filed.
+  Where one merely _bounds_ a line without forbidding it, the gate says so
   (`non-goal.reaches`) and the answer is recorded by quoting that lead in the line's own
   design section.
-- **`criterion list`** — twenty-three entries under `## Done when — Block X`, saying what
-  would finish each block. **A constraint the project must keep obeying usually belongs
-  here, not in `DECISIONS.md`**: a criterion survives every ship, is never deleted, and is
-  what `ship --checked <lead>` verifies.
+- **`criterion list`** — what would finish each block, under `## Done when — Block X`.
+  **A constraint the project must keep obeying usually belongs here, not in
+  `DECISIONS.md`**: a criterion survives every ship, is never deleted, and is what
+  `ship --checked <lead>` verifies.
 
 ## Shipping, and the section it deletes
 
@@ -157,15 +164,15 @@ design says how the work was built and stops being true when the code moves — 
 the last moment anything in that section can be saved.
 
 **Read the section before you ship it**, and ask of each paragraph: _does this stop being
-true when the code moves?_ Three doors, in order of how often they are the right one:
+true when the code moves?_ The doors, in order of how often they are the right one:
 
-| Answer                                                                      | Door                                                                                                       |
-| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| It explains **this module**                                                 | `--recorded-in <path>` — move the prose into that file's docstring or header. **This is the common case.** |
-| It is a rule the project must keep obeying                                  | usually not a ship flag at all — `criterion add` or `non-goal add`, which are never deleted                |
-| It is a constraint with a rejected alternative, belonging to no single file | `--decides "<the constraint>"`, plus `section add <id> --role decisions` for what was weighed (150 words)  |
-| You read it and it had gone stale                                           | `--superseded-design "<what it was wrong about>"`                                                          |
-| Nothing survives                                                            | ship plainly — most ships are this                                                                         |
+| Answer                                                                      | Door                                                                                                               |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| It explains **this module**                                                 | `--recorded-in <path>` — move the prose into that file's docstring or header. **This is the common case.**         |
+| It is a rule the project must keep obeying                                  | usually not a ship flag at all — `criterion add` or `non-goal add`, which are never deleted                        |
+| It is a constraint with a rejected alternative, belonging to no single file | `--decides "<the constraint>"`, plus `section add <id> --role decisions` for what was weighed — `budget` prices it |
+| You read it and it had gone stale                                           | `--superseded-design "<what it was wrong about>"`                                                                  |
+| Nothing survives                                                            | ship plainly — most ships are this                                                                                 |
 
 **Never copy a section into a second file.** That is the accreting rationale this format
 exists to refuse.
@@ -183,8 +190,9 @@ would survive, the section ends with a line naming it — `On ship: --decides "�
 - **A false claim is `restate <id> --symptom "…"`**, which keeps the id, the deps, the marker
   and the design — not `retire` plus `add`, which spends an id and deletes a design that was
   right.
-- **Two deps point outside this backlog** — `roadkeep RK1631` and `roadkeep RK1632`, filed in
-  the sibling `d:/Git/alegauss/roadkeep` checkout. They never resolve by shipping here, and
-  `pick` will not offer the lines that carry them.
+- **Some deps point outside this backlog** — at roadkeep's own ids, filed in the sibling
+  `d:/Git/alegauss/roadkeep` checkout, and at things roadkeep has not published yet. `deps`
+  names them. None resolves by shipping here, and `pick` will not offer the lines that
+  carry them.
 - **`lint` reports and `repair` spends the report** — every finding names the command that
   closes it, and `explain <code>` says what a code means before you guess.

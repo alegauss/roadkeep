@@ -112,6 +112,7 @@
 - ✅ **RG114** **the built app never starts on the Linux runner, and the harness reports the wait without what it printed** — The refusal now carries what the app printed, and the Linux runner lets Chromium enter its sandbox — the second is a hypothesis CI tests (design recorded in `packages/shell/src/running-app.ts`).
 - ✅ **RG85** **the handler proving the seam runs any argv against any root, which a real service cannot** — The refusals a service transport owes are written down before one exists: DECISIONS names four, and the test handler's own comment points at them.
 - ✅ **RG91** **the packaged build is proven on one machine, and CI never makes one** — CI runs the stamp and its posture refusal on every change, and builds a Windows and a Linux installer on a tag or on demand, keeping both (design recorded in `.github/workflows/ci.yml`).
+- ✅ **RG92** **the project skill states counts and a priority that stopped being true, and nothing checks it** — Every count and queue the skill restated is now the read that answers it, and the file is under a budget the gate holds (design recorded in `.claude/skills/roadkeep-gui-roadmap-docs/SKILL.md`).
 
 ## Block H — The look (a design system for governed prose)
 

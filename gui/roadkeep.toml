@@ -57,10 +57,18 @@ held = 60
 # Markdown table to align it cost this file 648 bytes, and a budget set on the unformatted
 # prose refused a file nobody had added a word to. 59 lines, 3340 bytes formatted.
 #
-# `.claude/skills/roadkeep-gui-roadmap-docs/SKILL.md` is deliberately absent: it is
-# trigger-loaded, so its cost falls on the turns that write, and budgeting it would price
-# it as if it were resident. The index above it is what every turn pays for.
+# The project skill was left out on the argument that it is trigger-loaded, so its cost
+# falls on the turns that write rather than on every turn. RG92 reversed that: its own
+# description triggers it on "finishing any task that touches this repo", which is every
+# task, so it is resident in all but name — and it had already grown to four times the
+# index while nothing measured it. Its figures are the file after RG92's pass, which
+# removed every count it had been restating.
+#
+# Its headroom is deliberately thinner than the index's. This figure is a ceiling on growth
+# and not an endorsement of the size: four times the index is already more than a file
+# loaded on every task should cost, and the next real addition should displace something.
 "CLAUDE.md" = { lines = 70, bytes = 3900 }
+".claude/skills/roadkeep-gui-roadmap-docs/SKILL.md" = { lines = 210, bytes = 17600 }
 
 # the roadmap's other list: declared at all means governed, and `lead` and `why`
 # are the two limits a bullet is held to — 80 and 320 characters unless set here
